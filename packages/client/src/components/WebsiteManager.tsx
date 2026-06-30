@@ -1,26 +1,14 @@
-import type { Website } from "@eesimple/types";
-
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
-import { BulkActionBar } from "./bulk/BulkActionBar";
-import { WebsiteBulkActions } from "./bulk/WebsiteBulkActions";
 import { ListingStatusMessages } from "./ListingStatusMessages";
-import { listingSelectionColumn } from "./tables/selectionColumn";
-import { useTableRowNav } from "./tables/useTableRowNav";
-import { useWebsiteColumns } from "./tables/websiteColumns";
-import { WebsiteListItem } from "./WebsiteListItem";
+import { WebsiteListBody } from "./WebsiteListBody";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
-import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useWebsites } from "../hooks/useWebsites";
-import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
-import { useListSelection } from "../lib/useListSelection";
-
-import { DataTable } from "@/components/ui/data-table";
 
 /** Browsable, searchable website listing with add modal. Shared by the Websites taxonomy page and the Settings Websites page. */
 export function WebsitesListing() {
@@ -30,10 +18,6 @@ export function WebsitesListing() {
   const [modalOpen, setModalOpen] = useState(false);
   useSetListingPage("websites-listing", false, false, false, () => setModalOpen(true));
   useRegisterHeaderSearch();
-  const columns = useBookmarkColumns("websites-listing");
-  const viewMode = useViewMode("websites-listing");
-  const websiteColumns = useWebsiteColumns();
-  const rowNav = useTableRowNav();
   const navigate = useNavigate();
 
   const websites = allWebsites ?? [];
@@ -43,10 +27,6 @@ export function WebsitesListing() {
     websites,
     (w, query) => w.siteName.toLowerCase().includes(query) || w.domain.toLowerCase().includes(query),
   );
-
-  const deletableIds = filtered.filter(w => !w.builtIn).map(w => w.id);
-  const selection = useListSelection("websites-listing", deletableIds);
-  useRegisterBulkSelect("websites-listing");
 
   return (
     <div className="space-y-4">
@@ -67,69 +47,7 @@ export function WebsitesListing() {
           )}
         />
 
-        <BulkActionBar
-          count={selection.count}
-          totalSelectable={deletableIds.length}
-          onSelectAll={selection.selectAll}
-          onClear={selection.clear}
-          allSelected={selection.allSelected}
-        >
-          <WebsiteBulkActions
-            selectedIds={selection.selectedIds}
-            onDone={selection.clear}
-          />
-        </BulkActionBar>
-
-        {filtered.length > 0 && viewMode === "table"
-          ? (
-            <DataTable
-              columns={[
-                ...(selection.mode ? [listingSelectionColumn<Website>(selection, w => w.id, w => !w.builtIn)] : []),
-                ...websiteColumns,
-              ]}
-              data={filtered}
-              sortable
-              onRowClick={(website, event) =>
-                rowNav(event, "website", website.id, () => {
-                  void navigate({
-                    to: "/taxonomies/websites/$websiteSlug",
-                    params: {
-                      websiteSlug: website.slug,
-                    },
-                  });
-                }, () => {
-                  void navigate({
-                    to: "/taxonomies/websites/$websiteSlug/edit/general",
-                    params: {
-                      websiteSlug: website.slug,
-                    },
-                  });
-                })}
-            />
-          )
-          : null}
-
-        {filtered.length > 0 && viewMode !== "table"
-          ? (
-            <div
-              className={`
-                grid gap-2
-                ${COLUMN_CLASS[columns]}
-              `}
-            >
-              {filtered.map(website => (
-                <WebsiteListItem
-                  key={website.id}
-                  website={website}
-                  selectable={!website.builtIn}
-                  selected={selection.isSelected(website.id)}
-                  onSelectToggle={() => selection.toggle(website.id)}
-                  inSelectionMode={selection.mode}
-                />
-              ))}
-            </div>
-          )
-          : null}
+        <WebsiteListBody filtered={filtered} />
       </div>
 
       <AddWebsiteModal

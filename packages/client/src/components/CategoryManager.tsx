@@ -5,13 +5,11 @@ import { CheckSquare, Plus } from "lucide-react";
 
 import { AddCategoryModal } from "./AddCategoryModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
-import { CategoryCard } from "./CategoryCard";
+import { CategorySelectableCard } from "./CategorySelectableCard";
 import { useBulkDeleteCategories, useCategories } from "../hooks/useCategories";
 import { useListSelection } from "../lib/useListSelection";
 
 import { Button } from "@/components/ui/button";
-import { RowCard } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 /** Create and list categories; each row links to a category's full edit page. */
 export function CategoryManager() {
@@ -59,29 +57,15 @@ export function CategoryManager() {
       />
 
       <div className="space-y-4">
-        {(categories ?? []).map((category) => {
-          const selected = selection.isSelected(category.id);
-          return (
-            <RowCard
-              key={category.id}
-              className={cn("group relative p-4", selected && `
-                ring-2 ring-primary
-              `)}
-            >
-              {(selection.mode && !category.builtIn)
-                ? (
-                  <button
-                    type="button"
-                    className="absolute inset-0 z-10 cursor-pointer"
-                    aria-label={selected ? `Deselect ${category.name}` : `Select ${category.name}`}
-                    onClick={() => selection.toggle(category.id)}
-                  />
-                )
-                : null}
-              <CategoryCard category={category} />
-            </RowCard>
-          );
-        })}
+        {(categories ?? []).map(category => (
+          <CategorySelectableCard
+            key={category.id}
+            category={category}
+            selected={selection.isSelected(category.id)}
+            inSelectionMode={selection.mode}
+            onSelectToggle={() => selection.toggle(category.id)}
+          />
+        ))}
       </div>
 
       <AddCategoryModal

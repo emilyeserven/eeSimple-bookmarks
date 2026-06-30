@@ -1,22 +1,12 @@
-import type { PropertyGroup } from "@eesimple/types";
-
-import { useNavigate } from "@tanstack/react-router";
-
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
-import { PropertyGroupListItem } from "./PropertyGroupListItem";
-import { usePropertyGroupColumns } from "./tables/propertyGroupColumns";
-import { listingSelectionColumn } from "./tables/selectionColumn";
-import { useTableRowNav } from "./tables/useTableRowNav";
+import { PropertyGroupListBody } from "./PropertyGroupListBody";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useBulkDeletePropertyGroups, usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
-
-import { DataTable } from "@/components/ui/data-table";
 
 /** Browsable, searchable property-group listing. */
 export function PropertyGroupsListing() {
@@ -25,11 +15,6 @@ export function PropertyGroupsListing() {
   } = usePropertyGroups();
   useSetListingPage("property-groups-listing");
   useRegisterHeaderSearch();
-  const columns = useBookmarkColumns("property-groups-listing");
-  const viewMode = useViewMode("property-groups-listing");
-  const groupColumns = usePropertyGroupColumns();
-  const rowNav = useTableRowNav();
-  const navigate = useNavigate();
 
   const groups = allGroups ?? [];
   const {
@@ -69,56 +54,10 @@ export function PropertyGroupsListing() {
         noun={["property group", "property groups"]}
       />
 
-      {filtered.length > 0 && viewMode === "table"
-        ? (
-          <DataTable
-            columns={[
-              ...(selection.mode ? [listingSelectionColumn<PropertyGroup>(selection, g => g.id)] : []),
-              ...groupColumns,
-            ]}
-            data={filtered}
-            sortable
-            onRowClick={(group, event) =>
-              rowNav(event, "property-group", group.id, () => {
-                void navigate({
-                  to: "/taxonomies/property-groups/$propertyGroupSlug",
-                  params: {
-                    propertyGroupSlug: group.slug,
-                  },
-                });
-              }, () => {
-                void navigate({
-                  to: "/taxonomies/property-groups/$propertyGroupSlug/edit/general",
-                  params: {
-                    propertyGroupSlug: group.slug,
-                  },
-                });
-              })}
-          />
-        )
-        : null}
-
-      {filtered.length > 0 && viewMode !== "table"
-        ? (
-          <div
-            className={`
-              grid gap-2
-              ${COLUMN_CLASS[columns]}
-            `}
-          >
-            {filtered.map(group => (
-              <PropertyGroupListItem
-                key={group.id}
-                group={group}
-                selectable
-                selected={selection.isSelected(group.id)}
-                onSelectToggle={() => selection.toggle(group.id)}
-                inSelectionMode={selection.mode}
-              />
-            ))}
-          </div>
-        )
-        : null}
+      <PropertyGroupListBody
+        groups={filtered}
+        selection={selection}
+      />
     </div>
   );
 }

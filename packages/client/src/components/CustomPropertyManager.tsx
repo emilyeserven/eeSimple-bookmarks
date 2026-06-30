@@ -1,54 +1,16 @@
-import type { CustomProperty } from "@eesimple/types";
-
-import { useState } from "react";
-
-import { useNavigate } from "@tanstack/react-router";
-
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { CustomPropertyGrid } from "./CustomPropertyGrid";
+import { CustomPropertyTable } from "./CustomPropertyTable";
 import { ListingStatusMessages } from "./ListingStatusMessages";
-import { PropertyPreview } from "./PropertyPreview";
-import { useCustomPropertyColumns } from "./tables/customPropertyColumns";
-import { listingSelectionColumn } from "./tables/selectionColumn";
-import { useTableRowNav } from "./tables/useTableRowNav";
-import { useBulkDeleteCustomProperties, useCustomProperties } from "../hooks/useCustomProperties";
-import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
-import { useSetListingPage } from "../hooks/useListingPage";
-import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
-import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
-import { TYPE_LABELS } from "../lib/propertyFormat";
-import { useListSelection } from "../lib/useListSelection";
-
-import { DataTable } from "@/components/ui/data-table";
+import { useCustomPropertyManager } from "../hooks/useCustomPropertyManager";
 
 /** Searchable listing of custom properties, with previews that link out to the view/create pages. */
 export function CustomPropertyManager() {
   const {
-    data: properties, isLoading, error,
-  } = useCustomProperties();
-  const [modalOpen, setModalOpen] = useState(false);
-  const navigate = useNavigate();
-  useSetListingPage("custom-properties-listing", false, false, false, () => setModalOpen(true));
-  useRegisterHeaderSearch();
-  const columns = useBookmarkColumns("custom-properties-listing");
-  const viewMode = useViewMode("custom-properties-listing");
-  const propertyColumns = useCustomPropertyColumns();
-  const rowNav = useTableRowNav();
-
-  const all = properties ?? [];
-  const {
-    rawQuery, hasQuery, filtered,
-  } = useHeaderSearchFilter(
-    all,
-    (property, query) => property.name.toLowerCase().includes(query)
-      || TYPE_LABELS[property.type].toLowerCase().includes(query),
-  );
-
-  const deletableIds = filtered.filter(p => !p.builtIn).map(p => p.id);
-  const selection = useListSelection("custom-properties-listing", deletableIds);
-  useRegisterBulkSelect("custom-properties-listing");
-  const bulkDelete = useBulkDeleteCustomProperties();
+    properties, isLoading, error, modalOpen, setModalOpen, navigate, columns, viewMode,
+    all, rawQuery, hasQuery, filtered, deletableIds, selection, bulkDelete,
+  } = useCustomPropertyManager();
 
   return (
     <section className="space-y-4">
@@ -77,53 +39,21 @@ export function CustomPropertyManager() {
 
       {filtered.length > 0 && viewMode === "table"
         ? (
-          <DataTable
-            columns={[
-              ...(selection.mode ? [listingSelectionColumn<CustomProperty>(selection, p => p.id, p => !p.builtIn)] : []),
-              ...propertyColumns,
-            ]}
-            data={filtered}
-            sortable
-            onRowClick={(property, event) =>
-              rowNav(event, "property", property.id, () => {
-                void navigate({
-                  to: "/custom-properties/$propertySlug",
-                  params: {
-                    propertySlug: property.slug,
-                  },
-                });
-              }, () => {
-                void navigate({
-                  to: "/custom-properties/$propertySlug/edit/general",
-                  params: {
-                    propertySlug: property.slug,
-                  },
-                });
-              })}
+          <CustomPropertyTable
+            filtered={filtered}
+            selection={selection}
           />
         )
         : null}
 
       {viewMode !== "table"
         ? (
-          <div
-            className={`
-              grid gap-3
-              ${COLUMN_CLASS[columns]}
-            `}
-          >
-            {filtered.map(property => (
-              <PropertyPreview
-                key={property.id}
-                property={property}
-                allProperties={properties ?? []}
-                selectable={!property.builtIn}
-                selected={selection.isSelected(property.id)}
-                onSelectToggle={() => selection.toggle(property.id)}
-                inSelectionMode={selection.mode}
-              />
-            ))}
-          </div>
+          <CustomPropertyGrid
+            filtered={filtered}
+            allProperties={properties ?? []}
+            columns={columns}
+            selection={selection}
+          />
         )
         : null}
 

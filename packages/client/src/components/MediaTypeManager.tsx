@@ -2,17 +2,14 @@ import type { MediaTypeNode } from "@eesimple/types";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ExpandAllToggle } from "./ExpandAllToggle";
+import { MediaTypeTable } from "./MediaTypeTable";
 import { MediaTypeTreeList } from "./MediaTypeTreeList";
-import { useMediaTypeColumns } from "./tables/mediaTypeColumns";
-import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useExpandedSet } from "../hooks/useExpandedSet";
 import { useBulkDeleteMediaTypes, useMediaTypeTree } from "../hooks/useMediaTypes";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { expandableIds } from "../lib/tagTree";
 import { useListSelection } from "../lib/useListSelection";
-
-import { DataTable } from "@/components/ui/data-table";
 
 /** Flatten a media-type tree to `{ id, builtIn }` pairs for selection / select-all. */
 function flattenMediaTypes(nodes: MediaTypeNode[]): { id: string;
@@ -38,7 +35,6 @@ export function MediaTypesListing() {
   } = useExpandedSet([]);
   const columns = useBookmarkColumns("media-types-listing");
   const viewMode = useViewMode("media-types-listing");
-  const mediaTypeColumns = useMediaTypeColumns();
   const deletableIds = flattenMediaTypes(tree ?? []).filter(n => !n.builtIn).map(n => n.id);
   const selection = useListSelection("media-types-listing", deletableIds);
   useRegisterBulkSelect("media-types-listing");
@@ -66,15 +62,9 @@ export function MediaTypesListing() {
 
       {tree && tree.length > 0 && viewMode === "table"
         ? (
-          <DataTable
-            columns={[
-              ...(selection.mode
-                ? [listingSelectionColumn<MediaTypeNode>(selection, n => n.id, n => !n.builtIn)]
-                : []),
-              ...mediaTypeColumns,
-            ]}
-            data={tree}
-            getSubRows={node => node.children}
+          <MediaTypeTable
+            tree={tree}
+            selection={selection}
           />
         )
         : null}
