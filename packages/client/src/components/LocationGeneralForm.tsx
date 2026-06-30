@@ -10,6 +10,7 @@ import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { ROOT, useLocationGeneralForm } from "./useLocationGeneralForm";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 interface LocationGeneralFormProps {
@@ -23,6 +24,7 @@ export function LocationGeneralForm({
 }: LocationGeneralFormProps) {
   const {
     form, alternateNames, setAlternateNames, tagIds, saveTagIds,
+    wikidataId, usesWikidataCoordinates, saveUsesWikidataCoordinates,
     existingOptions, parentOptions, placeTypeChoices, tagOptions,
     saveField, followSlug, applyLookup,
     repullCoordinates, isRepullingCoordinates,
@@ -129,6 +131,22 @@ export function LocationGeneralForm({
           />
         )}
       </form.AppField>
+
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id="location-uses-wikidata-coordinates"
+          checked={usesWikidataCoordinates}
+          onCheckedChange={value => saveUsesWikidataCoordinates(value === true)}
+        />
+        <div className="space-y-1">
+          <Label htmlFor="location-uses-wikidata-coordinates">Uses Wikidata for coordinates</Label>
+          <p className="text-xs text-muted-foreground">
+            Auto-checked when a Wikidata search result is picked above
+            {wikidataId ? ` (${wikidataId})` : ""}. When checked, &ldquo;Re-geocode&rdquo; and area
+            refreshes query Wikidata only — Nominatim is skipped.
+          </p>
+        </div>
+      </div>
 
       <div
         className="

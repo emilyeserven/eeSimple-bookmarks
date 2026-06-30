@@ -170,12 +170,14 @@ test("wikidataGeocode resolves a region Nominatim lacks, with names, country, an
     assert.equal(hit?.countryCode, "JP");
     assert.equal(hit?.placeType, "region of Japan");
     assert.equal(hit?.displayName, "中国地方, 日本");
+    assert.equal(hit?.wikidataId, "Q127864");
     // P131 (Q17) dedups against the P17 country, leaving a single 日本 ancestor.
     assert.deepEqual(hit?.ancestors, [
       {
         name: "日本",
         placeType: null,
         countryCode: "JP",
+        wikidataId: "Q17",
       },
     ]);
     assert.match(hit?.mapUrl ?? "", /google\.com\/maps/);

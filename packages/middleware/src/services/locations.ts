@@ -48,6 +48,8 @@ function toLocation(row: LocationRow, counts?: LocationBookmarkCounts, tagIds?: 
     placeType: row.placeType,
     countryCode: row.countryCode,
     boundary: row.boundary ?? null,
+    wikidataId: row.wikidataId,
+    usesWikidataCoordinates: row.usesWikidataCoordinates === true,
     sortOrder: row.sortOrder,
     parentId: row.parentId,
     createdAt:
@@ -263,6 +265,8 @@ export async function createLocation(input: CreateLocationInput): Promise<Locati
         placeType: input.placeType ?? null,
         countryCode: input.countryCode ?? null,
         boundary: input.boundary ?? null,
+        wikidataId: input.wikidataId ?? null,
+        usesWikidataCoordinates: input.usesWikidataCoordinates ?? false,
         sortOrder: input.sortOrder ?? 0,
         parentId: input.parentId ?? null,
       })
@@ -398,6 +402,8 @@ export async function updateLocation(id: string, input: UpdateLocationInput): Pr
   if (input.placeType !== undefined) patch.placeType = input.placeType;
   if (input.countryCode !== undefined) patch.countryCode = input.countryCode;
   if (input.boundary !== undefined) patch.boundary = input.boundary;
+  if (input.wikidataId !== undefined) patch.wikidataId = input.wikidataId;
+  if (input.usesWikidataCoordinates !== undefined) patch.usesWikidataCoordinates = input.usesWikidataCoordinates;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
 
@@ -423,17 +429,21 @@ export async function updateLocation(id: string, input: UpdateLocationInput): Pr
 }
 
 /**
- * Backfill a location's GeoJSON `boundary` on demand (one Nominatim request), caching it on the row.
+ * Backfill a location's GeoJSON `boundary` on demand (one geocoder request), caching it on the row.
  * Returns the current location unchanged when a boundary is already stored or none can be resolved.
  * Boundaries are display-only metadata, so this deliberately does NOT invalidate the bookmark cache
- * (mirrors the Card Display Rules / scan-cache carve-out).
+ * (mirrors the Card Display Rules / scan-cache carve-out). When `usesWikidataCoordinates` is set, the
+ * area is grabbed from Wikidata only — Nominatim is skipped, since this location's lat/long source of
+ * truth is Wikidata (e.g. an informal region like 中国地方 with no Nominatim admin boundary).
  */
 export async function ensureLocationBoundary(id: string): Promise<Location | null> {
   const [current] = await db.select().from(locations).where(eq(locations.id, id));
   if (!current) return null;
   let row = current;
   if (!current.boundary) {
-    const boundary = await refreshLocationBoundary(current.name, current.latitude, current.longitude);
+    const boundary = await refreshLocationBoundary(current.name, current.latitude, current.longitude, {
+      source: current.usesWikidataCoordinates === true ? "wikidata" : undefined,
+    });
     if (boundary !== null) {
       const [updated] = await db
         .update(locations)
@@ -451,11 +461,12 @@ export async function ensureLocationBoundary(id: string): Promise<Location | nul
 
 /**
  * Force-refresh a location's coordinates (lat/lon, mapUrl, boundary) by re-geocoding its current
- * name via Nominatim. Unlike `ensureLocationBoundary`, this always writes — even when coordinates
- * are already stored — making it the "force repull" action. Picks the candidate with an area
- * boundary when available, then the one closest to the stored point; falls back to the first
- * result. Returns `null` when the location isn't found; returns the location unchanged when
- * Nominatim returns no results.
+ * name. Unlike `ensureLocationBoundary`, this always writes — even when coordinates are already
+ * stored — making it the "force repull" action. Picks the candidate with an area boundary when
+ * available, then the one closest to the stored point; falls back to the first result. Returns
+ * `null` when the location isn't found; returns the location unchanged when the geocoder returns no
+ * results. When `usesWikidataCoordinates` is set, re-geocodes against Wikidata only — Nominatim is
+ * skipped, mirroring `ensureLocationBoundary`.
  */
 export async function refreshLocationCoordinates(id: string): Promise<Location | null> {
   const [current] = await db.select().from(locations).where(eq(locations.id, id));
@@ -463,7 +474,9 @@ export async function refreshLocationCoordinates(id: string): Promise<Location |
 
   const {
     results,
-  } = await geocodeLocation(current.name);
+  } = await geocodeLocation(current.name, {
+    source: current.usesWikidataCoordinates === true ? "wikidata" : undefined,
+  });
   const tagMap = await tagIdsByLocation([id]);
   if (results.length === 0) return toLocation(current, undefined, tagMap.get(id) ?? []);
 

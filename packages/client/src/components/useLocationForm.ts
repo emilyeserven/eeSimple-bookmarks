@@ -55,6 +55,12 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
   const [countryCode, setCountryCode] = useState("");
   // Captured from a geocoding candidate (not user-editable); persisted so the location renders as an area.
   const [boundary, setBoundary] = useState<LocationBoundary | null>(null);
+  // Captured from a Wikidata candidate; not user-editable but persisted so the location can be
+  // re-identified against Wikidata later.
+  const [wikidataId, setWikidataId] = useState<string | null>(null);
+  // Whether the lat/long source of truth is Wikidata. Auto-checked when a Wikidata candidate is
+  // applied; the user can also toggle it by hand (e.g. to gate Nominatim out of future refreshes).
+  const [usesWikidataCoordinates, setUsesWikidataCoordinates] = useState(false);
   const [parentId, setParentId] = useState<string>(ROOT);
   const [alternateNames, setAlternateNames] = useState<LocationAlternateName[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
@@ -102,6 +108,8 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
       placeType: placeType.trim() || null,
       countryCode: countryCode.trim() || null,
       boundary,
+      wikidataId,
+      usesWikidataCoordinates,
       tagIds,
     };
   }
@@ -157,6 +165,10 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
     if (candidate.countryCode) setCountryCode(candidate.countryCode);
     if (candidate.placeType) setPlaceType(candidate.placeType);
     setBoundary(candidate.boundary);
+    setWikidataId(candidate.wikidataId);
+    // A Wikidata-sourced candidate auto-checks "Uses Wikidata for coordinates"; a Nominatim one
+    // un-checks it (picking a fresh candidate resets the source).
+    setUsesWikidataCoordinates(candidate.wikidataId != null);
     // Auto-fill the ancestor chain from the geocoded hierarchy, reusing existing locations
     // where one matches by name. Reset the explicit parent so the filled chain is shown and
     // used (an existing parent short-circuits the chain on submit).
@@ -185,6 +197,9 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
     setPlaceType,
     countryCode,
     setCountryCode,
+    wikidataId,
+    usesWikidataCoordinates,
+    setUsesWikidataCoordinates,
     parentId,
     setParentId,
     alternateNames,

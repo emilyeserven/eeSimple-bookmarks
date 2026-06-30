@@ -14,17 +14,29 @@ import { wikidataGeocode } from "@/services/wikidataGeocoding";
 
 export { geocodingEnabled, geocodingEndpoint } from "@/services/nominatimGeocoding";
 
+/** Geocoding source preference, mirroring the lookup route's `source` query param. */
+export interface GeocodeOptions {
+  /**
+   * When `"wikidata"`, query Wikidata only — Nominatim is skipped entirely. Used for a location whose
+   * `usesWikidataCoordinates` flag is set: its lat/long source of truth is Wikidata, so a coordinate
+   * or area refresh must not pull a different result from Nominatim.
+   */
+  source?: "wikidata";
+}
+
 /**
  * Geocode a free-text place query (e.g. "Tokyo") to candidate locations. Tries Nominatim first; when
  * it returns nothing — typically a traditional / informal / natural region with no admin boundary,
  * e.g. 中国地方 (Chūgoku region) — falls back to Wikidata (`wikidataGeocode`), which carries those
- * places. The fallback maps to the same `LocationLookupResult`, so callers are unchanged.
+ * places. The fallback maps to the same `LocationLookupResult`, so callers are unchanged. Pass
+ * `{ source: "wikidata" }` to query Wikidata only (see {@link GeocodeOptions}).
  */
-export async function geocodeLocation(query: string): Promise<LocationLookupResult> {
+export async function geocodeLocation(query: string, options: GeocodeOptions = {}): Promise<LocationLookupResult> {
   const trimmed = query.trim();
   if (trimmed === "") return {
     results: [],
   };
+  if (options.source === "wikidata") return wikidataGeocode(trimmed);
   const nominatim = await nominatimGeocode(trimmed);
   if (nominatim.results.length > 0) return nominatim;
   return wikidataGeocode(trimmed);
@@ -40,10 +52,11 @@ export async function refreshLocationBoundary(
   name: string,
   lat: number | null,
   lon: number | null,
+  options: GeocodeOptions = {},
 ): Promise<LocationBoundary | null> {
   const {
     results,
-  } = await geocodeLocation(name);
+  } = await geocodeLocation(name, options);
   if (results.length === 0) return null;
   const withBoundary = results.filter(candidate => candidate.boundary !== null);
   const pool = withBoundary.length > 0 ? withBoundary : results;

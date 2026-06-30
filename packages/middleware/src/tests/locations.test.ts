@@ -23,6 +23,8 @@ function makeLocation(partial: Partial<Location> & Pick<Location, "id" | "name" 
     plusCode: null,
     placeType: null,
     countryCode: null,
+    wikidataId: null,
+    usesWikidataCoordinates: false,
     sortOrder: 0,
     createdAt: "2026-06-01T00:00:00.000Z",
     ...partial,

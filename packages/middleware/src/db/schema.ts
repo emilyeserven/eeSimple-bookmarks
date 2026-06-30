@@ -574,6 +574,12 @@ export const locations = pgTable("locations", {
   countryCode: text("country_code"),
   // GeoJSON area outline (Nominatim polygon), nullable → push-safe additive. Backfilled on demand.
   boundary: jsonb("boundary").$type<LocationBoundary>(),
+  // The Wikidata QID this location was resolved from, or null. Nullable → push-safe additive.
+  wikidataId: text("wikidata_id"),
+  // Whether lat/long came from Wikidata (gates Nominatim out of future refreshes). Nullable rather
+  // than NOT NULL DEFAULT false — a NOT NULL column added to an existing table prompts `push` even
+  // with a column default (see CLAUDE.md → Database schema changes); null reads as false.
+  usesWikidataCoordinates: boolean("uses_wikidata_coordinates"),
   sortOrder: integer("sort_order").notNull().default(0),
   parentId: uuid("parent_id").references((): AnyPgColumn => locations.id, {
     onDelete: "cascade",

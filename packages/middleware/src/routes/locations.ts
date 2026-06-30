@@ -102,6 +102,13 @@ const locationFields = {
     nullable: true,
   },
   boundary: boundarySchema,
+  wikidataId: {
+    type: "string",
+    nullable: true,
+  },
+  usesWikidataCoordinates: {
+    type: "boolean",
+  },
   sortOrder: {
     type: "integer",
   },

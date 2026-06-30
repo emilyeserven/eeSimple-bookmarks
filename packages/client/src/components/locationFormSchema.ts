@@ -17,6 +17,8 @@ export interface AncestorDraft {
   mapUrl: string | null;
   placeType: string | null;
   countryCode: string | null;
+  /** The ancestor's Wikidata QID when it was resolved via the Wikidata fallback, else `null`. */
+  wikidataId: string | null;
 }
 
 /** Drop a draft ancestor's empty optional fields into a `CreateLocationInput` (the to-be-created level). */
@@ -29,6 +31,8 @@ export function ancestorToInput(draft: AncestorDraft): CreateLocationInput {
     mapUrl: draft.mapUrl,
     placeType: draft.placeType,
     countryCode: draft.countryCode,
+    wikidataId: draft.wikidataId,
+    usesWikidataCoordinates: draft.wikidataId != null,
   };
 }
 
@@ -43,6 +47,7 @@ export function emptyAncestorDraft(): AncestorDraft {
     mapUrl: null,
     placeType: null,
     countryCode: null,
+    wikidataId: null,
   };
 }
 
@@ -108,6 +113,7 @@ export function geocodedAncestorsToDrafts(
         name: ancestor.name,
         placeType: ancestor.placeType,
         countryCode: ancestor.countryCode,
+        wikidataId: ancestor.wikidataId,
       });
       break;
     }
@@ -116,6 +122,7 @@ export function geocodedAncestorsToDrafts(
       name: ancestor.name,
       placeType: ancestor.placeType,
       countryCode: ancestor.countryCode,
+      wikidataId: ancestor.wikidataId,
     });
   }
   return drafts;

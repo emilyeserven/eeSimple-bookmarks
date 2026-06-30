@@ -284,6 +284,7 @@ function buildAncestors(
       name,
       placeType: typeId ? classificationName(labels.get(typeId)) : null,
       countryCode,
+      wikidataId: id,
     });
   }
   return ancestors;
@@ -291,6 +292,7 @@ function buildAncestors(
 
 /** Assemble a `LocationLookupCandidate` from a hydrated entity (boundary resolved separately). */
 function buildCandidate(
+  qid: string,
   entity: WikidataEntity,
   coordinate: ParsedCoordinate,
   labels: Map<string, WikidataEntity>,
@@ -316,6 +318,7 @@ function buildCandidate(
     mapUrl: mapUrlFor(coordinate.latitude, coordinate.longitude),
     boundary,
     ancestors,
+    wikidataId: qid,
   };
 }
 
@@ -402,7 +405,7 @@ export async function wikidataGeocode(query: string): Promise<LocationLookupResu
   const results: LocationLookupCandidate[] = [];
   for (const [index, hit] of hits.entries()) {
     const boundary = index === 0 ? await resolveBoundary(hit.id, hit.entity, labels) : null;
-    results.push(buildCandidate(hit.entity, hit.coordinate, labels, boundary));
+    results.push(buildCandidate(hit.id, hit.entity, hit.coordinate, labels, boundary));
   }
   return {
     results,

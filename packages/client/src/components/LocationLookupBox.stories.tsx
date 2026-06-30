@@ -18,6 +18,7 @@ const sampleResult: LocationLookupResult = {
       countryCode: "JP",
       boundary: null,
       ancestors: [],
+      wikidataId: null,
     },
   ],
 };
