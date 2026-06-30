@@ -1,96 +1,19 @@
 import type { TaxonomyTreeNode } from "./TaxonomyTreeRow";
 import type { TagNode } from "@eesimple/types";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { Folder, FolderOpen, Info, Pencil } from "lucide-react";
+import { Folder, Info, Pencil } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { RomanizedLabel } from "./RomanizedLabel";
+import { TagCategoriesPopover } from "./TagCategoriesPopover";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useSidebarOpenModifier, useSortByRomanized } from "../hooks/useAppSettings";
-import { useCategories } from "../hooks/useCategories";
-import { useTagCategories } from "../hooks/useTags";
 import { sortTagTreeByRomanized } from "../lib/tagTree";
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
-
-interface TagCategoriesPopoverProps {
-  tagId: string;
-  tagName: string;
-}
-
-function TagCategoriesPopover({
-  tagId, tagName,
-}: TagCategoriesPopoverProps) {
-  const [open, setOpen] = useState(false);
-  const {
-    data: categoryIds, isLoading,
-  } = useTagCategories(tagId, {
-    enabled: open,
-  });
-  const {
-    data: allCategories,
-  } = useCategories();
-
-  const assignedCategories = categoryIds && allCategories && categoryIds.length > 0
-    ? allCategories.filter(c => categoryIds.includes(c.id))
-    : null;
-
-  return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          aria-label={`Categories for ${tagName}`}
-          onClick={e => e.stopPropagation()}
-          className="
-            text-muted-foreground transition-colors
-            hover:text-foreground
-          "
-        >
-          {open
-            ? <FolderOpen className="size-4 shrink-0" />
-            : <Folder className="size-4 shrink-0" />}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-48 p-3"
-        align="start"
-      >
-        <p
-          className="
-            mb-2 text-xs font-semibold tracking-wide text-muted-foreground
-            uppercase
-          "
-        >
-          Categories
-        </p>
-        {isLoading || categoryIds === undefined
-          ? <p className="text-sm text-muted-foreground">Loading…</p>
-          : categoryIds.length === 0
-            ? <p className="text-sm text-muted-foreground italic">All categories</p>
-            : (
-              <ul className="space-y-1">
-                {(assignedCategories ?? []).map(c => (
-                  <li
-                    key={c.id}
-                    className="text-sm"
-                  >
-                    {c.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 interface TagTreeListProps {
   /** The root tags to render. */

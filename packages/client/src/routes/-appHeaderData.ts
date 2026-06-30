@@ -1,17 +1,9 @@
 import type { PinContext } from "@/components/HeaderPinButton";
 
-import { useAuthorBySlug } from "@/hooks/useAuthors";
-import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
-import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
+import { useTaxonomyNameMap } from "./-appHeaderNames";
+
 import { useCategoryBySlug } from "@/hooks/useCategories";
-import { usePropertyBySlug } from "@/hooks/useCustomProperties";
-import { useImportRuleBySlug } from "@/hooks/useImportRules";
 import { useMediaTypeBySlug } from "@/hooks/useMediaTypes";
-import { useNewsletterBySlug } from "@/hooks/useNewsletters";
-import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
-import { usePublisherBySlug } from "@/hooks/usePublishers";
-import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
-import { useSavedFilterBySlug } from "@/hooks/useSavedFilters";
 import { useWebsiteBySlug } from "@/hooks/useWebsites";
 import { useYouTubeChannelBySlug } from "@/hooks/useYouTubeChannels";
 
@@ -63,36 +55,20 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
   const {
     channel,
   } = useYouTubeChannelBySlug(slugFor(pathname, pathParts, "/taxonomies/youtube-channels", 2));
-  const {
-    newsletter,
-  } = useNewsletterBySlug(slugFor(pathname, pathParts, "/taxonomies/newsletters", 2));
-  const {
-    author,
-  } = useAuthorBySlug(slugFor(pathname, pathParts, "/taxonomies/authors", 2));
-  const {
-    publisher,
-  } = usePublisherBySlug(slugFor(pathname, pathParts, "/taxonomies/publishers", 2));
-  const {
-    propertyGroup,
-  } = usePropertyGroupBySlug(slugFor(pathname, pathParts, "/taxonomies/property-groups", 2));
-  const {
-    relationshipType,
-  } = useRelationshipTypeBySlug(slugFor(pathname, pathParts, "/taxonomies/relationship-types", 2));
-  const {
-    property,
-  } = usePropertyBySlug(slugFor(pathname, pathParts, "/custom-properties", 1));
-  const {
-    rule,
-  } = useAutofillRuleBySlug(slugFor(pathname, pathParts, "/autofill", 1));
-  const {
-    rule: importRule,
-  } = useImportRuleBySlug(slugFor(pathname, pathParts, "/import-rules", 1));
-  const {
-    savedFilter,
-  } = useSavedFilterBySlug(slugFor(pathname, pathParts, "/saved-filters", 1));
-  const {
-    rule: cardDisplayRule,
-  } = useCardDisplayRuleBySlug(slugFor(pathname, pathParts, "/card-display-rules", 1));
+  // The remaining entities are *named* only (no raw record needed) — resolved in a sibling hook to
+  // keep this module's dependency count low. We own `slugFor`, so we resolve their slugs here.
+  const namedTaxonomies = useTaxonomyNameMap({
+    newsletter: slugFor(pathname, pathParts, "/taxonomies/newsletters", 2),
+    author: slugFor(pathname, pathParts, "/taxonomies/authors", 2),
+    publisher: slugFor(pathname, pathParts, "/taxonomies/publishers", 2),
+    propertyGroup: slugFor(pathname, pathParts, "/taxonomies/property-groups", 2),
+    relationshipType: slugFor(pathname, pathParts, "/taxonomies/relationship-types", 2),
+    property: slugFor(pathname, pathParts, "/custom-properties", 1),
+    autofill: slugFor(pathname, pathParts, "/autofill", 1),
+    importRule: slugFor(pathname, pathParts, "/import-rules", 1),
+    savedFilter: slugFor(pathname, pathParts, "/saved-filters", 1),
+    cardDisplayRule: slugFor(pathname, pathParts, "/card-display-rules", 1),
+  });
 
   return {
     taxonomyNames: {
@@ -109,38 +85,7 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
       "/taxonomies/youtube-channels": {
         name: channel?.name,
       },
-      "/taxonomies/newsletters": {
-        name: newsletter?.name,
-      },
-      "/taxonomies/authors": {
-        name: author?.name,
-        romanized: author?.romanizedName,
-      },
-      "/taxonomies/publishers": {
-        name: publisher?.name,
-        romanized: publisher?.romanizedName,
-      },
-      "/taxonomies/property-groups": {
-        name: propertyGroup?.name,
-      },
-      "/taxonomies/relationship-types": {
-        name: relationshipType?.name,
-      },
-      "/custom-properties": {
-        name: property?.name,
-      },
-      "/autofill": {
-        name: rule?.name,
-      },
-      "/import-rules": {
-        name: importRule?.name,
-      },
-      "/saved-filters": {
-        name: savedFilter?.name,
-      },
-      "/card-display-rules": {
-        name: cardDisplayRule?.name,
-      },
+      ...namedTaxonomies,
     },
     category,
     website,

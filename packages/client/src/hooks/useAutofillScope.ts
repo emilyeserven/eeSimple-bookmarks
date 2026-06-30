@@ -110,3 +110,87 @@ export function useAutofillFacets(search: AutofillListSearch): ResolvedAutofillF
     channels: channels ?? [],
   });
 }
+
+/** One facet's `<FacetSelect>` options plus its loading flag. */
+export interface AutofillFacetOptions {
+  options: { value: string;
+    label: string; }[];
+  loading: boolean;
+}
+
+/** Per-entity option lists + loading flags for the autofill-rules listing filter sidebar. Bundles
+ * the six entity-list hooks so the sidebar component depends on one hook instead of six. */
+export interface AutofillFilterData {
+  categories: AutofillFacetOptions;
+  properties: AutofillFacetOptions;
+  websites: AutofillFacetOptions;
+  mediaTypes: AutofillFacetOptions;
+  tags: AutofillFacetOptions;
+  channels: AutofillFacetOptions;
+}
+
+export function useAutofillFilterData(): AutofillFilterData {
+  const {
+    data: categories = [], isLoading: categoriesLoading,
+  } = useCategories();
+  const {
+    data: properties = [], isLoading: propertiesLoading,
+  } = useCustomProperties();
+  const {
+    data: websites = [], isLoading: websitesLoading,
+  } = useWebsites();
+  const {
+    data: mediaTypes = [], isLoading: mediaTypesLoading,
+  } = useMediaTypes();
+  const {
+    data: tags = [], isLoading: tagsLoading,
+  } = useTags();
+  const {
+    data: channels = [], isLoading: channelsLoading,
+  } = useYouTubeChannels();
+
+  return {
+    categories: {
+      loading: categoriesLoading,
+      options: categories.map(category => ({
+        value: category.slug,
+        label: category.name,
+      })),
+    },
+    properties: {
+      loading: propertiesLoading,
+      options: properties.map(property => ({
+        value: property.slug,
+        label: property.name,
+      })),
+    },
+    websites: {
+      loading: websitesLoading,
+      options: websites.map(website => ({
+        value: website.slug,
+        label: website.siteName ?? website.domain,
+      })),
+    },
+    mediaTypes: {
+      loading: mediaTypesLoading,
+      options: mediaTypes.map(mediaType => ({
+        value: mediaType.slug,
+        label: mediaType.name,
+      })),
+    },
+    tags: {
+      loading: tagsLoading,
+      options: tags.map(tag => ({
+        value: tag.slug,
+        label: tag.name,
+      })),
+    },
+    channels: {
+      loading: channelsLoading,
+      options: channels.map(channel => ({
+        value: channel.slug,
+        label: channel.name,
+      })),
+    },
+  };
+}

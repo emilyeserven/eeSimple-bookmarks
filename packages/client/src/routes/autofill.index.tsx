@@ -1,177 +1,22 @@
 import type { AutofillListSearch } from "../lib/autofillScope";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { X } from "lucide-react";
 
-import { FacetSelect } from "../components/AutofillRulesFilterBar";
+import { AutofillFilterSidebar } from "../components/AutofillFilterSidebar";
 import { AutofillRulesList } from "../components/AutofillRulesList";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useAutofillFacets } from "../hooks/useAutofillScope";
-import { useCategories } from "../hooks/useCategories";
-import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useSetListingPage } from "../hooks/useListingPage";
-import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
-import { useTags } from "../hooks/useTags";
-import { useWebsites } from "../hooks/useWebsites";
-import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
-import { AUTOFILL_FACET_KEYS, NO_CATEGORY, validateAutofillListSearch } from "../lib/autofillScope";
+import { validateAutofillListSearch } from "../lib/autofillScope";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { SelectItem } from "@/components/ui/select";
 
 export const Route = createFileRoute("/autofill/")({
   validateSearch: validateAutofillListSearch,
   component: AutofillListPage,
 });
-
-interface AutofillFilterSidebarProps {
-  search: AutofillListSearch;
-  onChange: (patch: Partial<AutofillListSearch>) => void;
-}
-
-function AutofillFilterSidebar({
-  search, onChange,
-}: AutofillFilterSidebarProps) {
-  const {
-    data: categories = [], isLoading: categoriesLoading,
-  } = useCategories();
-  const {
-    data: properties = [], isLoading: propertiesLoading,
-  } = useCustomProperties();
-  const {
-    data: websites = [], isLoading: websitesLoading,
-  } = useWebsites();
-  const {
-    data: mediaTypes = [], isLoading: mediaTypesLoading,
-  } = useMediaTypes();
-  const {
-    data: tags = [], isLoading: tagsLoading,
-  } = useTags();
-  const {
-    data: channels = [], isLoading: channelsLoading,
-  } = useYouTubeChannels();
-
-  const anyFacetActive = AUTOFILL_FACET_KEYS.some(key => search[key]);
-
-  return (
-    <aside className="flex flex-col gap-3">
-      <Input
-        type="search"
-        value={search.q ?? ""}
-        placeholder="Search rules…"
-        aria-label="Search autofill rules"
-        onChange={event => onChange({
-          q: event.target.value || undefined,
-        })}
-      />
-
-      <FacetSelect
-        label="categories"
-        value={search.category}
-        loading={categoriesLoading}
-        options={categories.map(category => ({
-          value: category.slug,
-          label: category.name,
-        }))}
-        onChange={value => onChange({
-          category: value,
-        })}
-      >
-        <SelectItem value={NO_CATEGORY}>No category</SelectItem>
-      </FacetSelect>
-
-      <FacetSelect
-        label="websites"
-        value={search.website}
-        loading={websitesLoading}
-        options={websites.map(website => ({
-          value: website.slug,
-          label: website.siteName ?? website.domain,
-        }))}
-        onChange={value => onChange({
-          website: value,
-        })}
-      />
-
-      <FacetSelect
-        label="tags"
-        value={search.tag}
-        loading={tagsLoading}
-        options={tags.map(tag => ({
-          value: tag.slug,
-          label: tag.name,
-        }))}
-        onChange={value => onChange({
-          tag: value,
-        })}
-      />
-
-      <FacetSelect
-        label="media types"
-        value={search.mediaType}
-        loading={mediaTypesLoading}
-        options={mediaTypes.map(mediaType => ({
-          value: mediaType.slug,
-          label: mediaType.name,
-        }))}
-        onChange={value => onChange({
-          mediaType: value,
-        })}
-      />
-
-      <FacetSelect
-        label="channels"
-        value={search.channel}
-        loading={channelsLoading}
-        options={channels.map(channel => ({
-          value: channel.slug,
-          label: channel.name,
-        }))}
-        onChange={value => onChange({
-          channel: value,
-        })}
-      />
-
-      <FacetSelect
-        label="properties"
-        value={search.property}
-        loading={propertiesLoading}
-        options={properties.map(property => ({
-          value: property.slug,
-          label: property.name,
-        }))}
-        onChange={value => onChange({
-          property: value,
-        })}
-      />
-
-      {anyFacetActive
-        ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="justify-start"
-            onClick={() => onChange({
-              category: undefined,
-              property: undefined,
-              website: undefined,
-              tag: undefined,
-              mediaType: undefined,
-              channel: undefined,
-            })}
-          >
-            <X className="size-4" />
-            Clear filters
-          </Button>
-        )
-        : null}
-    </aside>
-  );
-}
 
 function AutofillListPage() {
   const {

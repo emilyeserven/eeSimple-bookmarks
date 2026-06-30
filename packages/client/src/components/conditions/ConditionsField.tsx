@@ -15,24 +15,20 @@ import type {
   YouTubeChannelCondition,
 } from "@eesimple/types";
 
-import { ChevronDown } from "lucide-react";
-
-import { CategoryConditionEditor } from "./CategoryConditionEditor";
-import { LocationConditionEditor } from "./LocationConditionEditor";
-import { MatchConditionEditor } from "./MatchConditionEditor";
-import { MediaTypeConditionEditor } from "./MediaTypeConditionEditor";
-import { PropertyConditionEditor } from "./PropertyConditionEditor";
-import { RelationshipTypeConditionEditor } from "./RelationshipTypeConditionEditor";
-import { TagConditionEditor } from "./TagConditionEditor";
-import { WebsiteConditionEditor } from "./WebsiteConditionEditor";
-import { YouTubeChannelConditionEditor } from "./YouTubeChannelConditionEditor";
+import {
+  CategoryConditionEditor,
+  LocationConditionEditor,
+  MatchConditionEditor,
+  MediaTypeConditionEditor,
+  PropertyConditionEditor,
+  RelationshipTypeConditionEditor,
+  TagConditionEditor,
+  WebsiteConditionEditor,
+  YouTubeChannelConditionEditor,
+} from "./conditionEditors";
+import { Section } from "./ConditionsFieldSection";
 
 import { Button } from "@/components/ui/button";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface ConditionsFieldProps {
@@ -42,44 +38,6 @@ interface ConditionsFieldProps {
   properties: CustomProperty[];
   tagTree: TagNode[];
   openCustomProperties?: boolean;
-}
-
-interface SectionProps {
-  title: string;
-  summary?: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}
-
-/** A labelled collapsible group within the conditions builder. */
-function Section({
-  title, summary, defaultOpen, children,
-}: SectionProps) {
-  return (
-    <Collapsible
-      defaultOpen={defaultOpen}
-      className="rounded-md border"
-    >
-      <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className="
-            flex w-full items-center justify-between gap-2 p-3 text-left text-sm
-            font-medium
-          "
-        >
-          <span>
-            {title}
-            {summary ? <span className="ml-2 font-normal text-muted-foreground">{summary}</span> : null}
-          </span>
-          <ChevronDown className="size-4 shrink-0 opacity-60" />
-        </button>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="border-t p-3">
-        {children}
-      </CollapsibleContent>
-    </Collapsible>
-  );
 }
 
 /**
