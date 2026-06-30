@@ -20,6 +20,7 @@ import {
 import { LOCATION_MAP_PALETTES } from "@eesimple/types";
 import { Plus } from "lucide-react";
 
+import { PlaceTypeIconsCard } from "./PlaceTypeIconsCard";
 import { SortableGroupRow } from "./SortableLevelGroupRow";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
@@ -47,6 +48,9 @@ export function LocationsSettings() {
     removeGroup,
     reorderGroups,
     applyPalette,
+    placeTypeIcons,
+    setPlaceTypeIcon,
+    resetPlaceTypeIcons,
   } = useLocationLevels();
 
   // Local order so drag feels instant; re-synced whenever the saved groups change.
@@ -81,114 +85,123 @@ export function LocationsSettings() {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between">
-        <CardTitle className="text-base">Level groups</CardTitle>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addGroup}
-        >
-          <Plus className="mr-1 size-4" />
-          Add level
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {isLoading
-          ? <p className="text-sm text-muted-foreground">Loading…</p>
-          : null}
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex-row items-center justify-between">
+          <CardTitle className="text-base">Level groups</CardTitle>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addGroup}
+          >
+            <Plus className="mr-1 size-4" />
+            Add level
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {isLoading
+            ? <p className="text-sm text-muted-foreground">Loading…</p>
+            : null}
 
-        {!isLoading && orderedGroups.length === 0
-          ? (
-            <p className="text-sm text-muted-foreground">
-              No level groups yet. Add a level (e.g. “Country”, “Region”, “City”) and assign the place
-              types (city, state, country, …) discovered from your locations to it.
-            </p>
-          )
-          : null}
-
-        {orderedGroups.length > 0
-          ? (
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">
-                Apply a color palette across your levels (top to bottom), then fine-tune any level’s
-                color individually.
+          {!isLoading && orderedGroups.length === 0
+            ? (
+              <p className="text-sm text-muted-foreground">
+                No level groups yet. Add a level (e.g. “Country”, “Region”, “City”) and assign the place
+                types (city, state, country, …) discovered from your locations to it.
               </p>
-              <div className="flex flex-wrap gap-2">
-                {LOCATION_MAP_PALETTES.map(palette => (
-                  <button
-                    key={palette.id}
-                    type="button"
-                    onClick={() => applyPalette(palette.id)}
-                    className="
-                      flex items-center gap-2 rounded-md border px-2 py-1
-                      text-xs
-                      hover:bg-accent
-                    "
-                    title={`Apply the ${palette.name} palette`}
-                  >
-                    <span className="flex overflow-hidden rounded-sm">
-                      {palette.colors.map(color => (
-                        <span
-                          key={color}
-                          className="size-3"
-                          style={{
-                            backgroundColor: color,
-                          }}
-                        />
-                      ))}
-                    </span>
-                    {palette.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )
-          : null}
+            )
+            : null}
 
-        {orderedGroups.length > 0
-          ? (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={orderedIds}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-3">
-                  {orderedGroups.map(group => (
-                    <SortableGroupRow
-                      key={group.id}
-                      group={group}
-                      options={placeTypeOptions}
-                      renameGroup={renameGroup}
-                      setGroupVisible={setGroupVisible}
-                      setGroupDisplayMode={setGroupDisplayMode}
-                      setGroupPlaceTypes={setGroupPlaceTypes}
-                      setGroupColor={setGroupColor}
-                      removeGroup={removeGroup}
-                    />
+          {orderedGroups.length > 0
+            ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Apply a color palette across your levels (top to bottom), then fine-tune any level’s
+                  color individually.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {LOCATION_MAP_PALETTES.map(palette => (
+                    <button
+                      key={palette.id}
+                      type="button"
+                      onClick={() => applyPalette(palette.id)}
+                      className="
+                        flex items-center gap-2 rounded-md border px-2 py-1
+                        text-xs
+                        hover:bg-accent
+                      "
+                      title={`Apply the ${palette.name} palette`}
+                    >
+                      <span className="flex overflow-hidden rounded-sm">
+                        {palette.colors.map(color => (
+                          <span
+                            key={color}
+                            className="size-3"
+                            style={{
+                              backgroundColor: color,
+                            }}
+                          />
+                        ))}
+                      </span>
+                      {palette.name}
+                    </button>
                   ))}
                 </div>
-              </SortableContext>
-            </DndContext>
-          )
-          : null}
+              </div>
+            )
+            : null}
 
-        {unassignedPlaceTypes.length > 0
-          ? (
-            <p className="text-xs text-muted-foreground">
-              Unassigned place types (shown as areas by default):
-              {" "}
-              {unassignedPlaceTypes.map(option => option.label).join(", ")}
-              .
-            </p>
-          )
-          : null}
-      </CardContent>
-    </Card>
+          {orderedGroups.length > 0
+            ? (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={orderedIds}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-3">
+                    {orderedGroups.map(group => (
+                      <SortableGroupRow
+                        key={group.id}
+                        group={group}
+                        options={placeTypeOptions}
+                        renameGroup={renameGroup}
+                        setGroupVisible={setGroupVisible}
+                        setGroupDisplayMode={setGroupDisplayMode}
+                        setGroupPlaceTypes={setGroupPlaceTypes}
+                        setGroupColor={setGroupColor}
+                        removeGroup={removeGroup}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            )
+            : null}
+
+          {unassignedPlaceTypes.length > 0
+            ? (
+              <p className="text-xs text-muted-foreground">
+                Unassigned place types (shown as areas by default):
+                {" "}
+                {unassignedPlaceTypes.map(option => option.label).join(", ")}
+                .
+              </p>
+            )
+            : null}
+        </CardContent>
+      </Card>
+
+      <PlaceTypeIconsCard
+        options={placeTypeOptions}
+        icons={placeTypeIcons}
+        onSetIcon={setPlaceTypeIcon}
+        onReset={resetPlaceTypeIcons}
+      />
+    </div>
   );
 }

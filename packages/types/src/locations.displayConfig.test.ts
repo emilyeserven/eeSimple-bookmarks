@@ -1,15 +1,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import type { LocationBoundary, PlaceTypeDisplayConfig, PlaceTypeLevelGroupConfig } from "./locations.js";
+import type { LocationBoundary, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig } from "./locations.js";
 
 import {
   expandLevelGroupsToDisplayConfig,
   normalizeHexColor,
+  normalizeIconName,
   placeTypeKey,
   placeTypeOrder,
   resolveLocationColor,
   resolveLocationDisplay,
+  resolveLocationIcon,
 } from "./locations.js";
 
 const POLYGON: LocationBoundary = {
@@ -231,6 +233,39 @@ test("resolveLocationColor returns the placeType's color or null when unset", ()
   assert.equal(resolveLocationColor({
     placeType: "city",
   }, config), null);
+});
+
+// --- normalizeIconName ---
+
+test("normalizeIconName trims a usable name and rejects empty/over-long/non-string values", () => {
+  assert.equal(normalizeIconName("  Star  "), "Star");
+  assert.equal(normalizeIconName("BookOpen"), "BookOpen");
+  assert.equal(normalizeIconName("   "), null);
+  assert.equal(normalizeIconName(""), null);
+  assert.equal(normalizeIconName("x".repeat(65)), null);
+  assert.equal(normalizeIconName(null), null);
+  assert.equal(normalizeIconName(42), null);
+});
+
+// --- resolveLocationIcon ---
+
+test("resolveLocationIcon returns the placeType's icon (key-normalized) or null when unset", () => {
+  const icons: PlaceTypeIconConfig = {
+    city: "Building2",
+    country: "Flag",
+  };
+  assert.equal(resolveLocationIcon({
+    placeType: "City",
+  }, icons), "Building2");
+  assert.equal(resolveLocationIcon({
+    placeType: "  country  ",
+  }, icons), "Flag");
+  assert.equal(resolveLocationIcon({
+    placeType: "state",
+  }, icons), null);
+  assert.equal(resolveLocationIcon({
+    placeType: null,
+  }, icons), null);
 });
 
 test("expandLevelGroupsToDisplayConfig lets the lowest-sortOrder group win a shared place type", () => {

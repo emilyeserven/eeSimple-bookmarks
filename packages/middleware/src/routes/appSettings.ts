@@ -1,6 +1,7 @@
 import type {
   ImportBlacklistEntry,
   PlaceTypeDisplayConfig,
+  PlaceTypeIconConfig,
   PlaceTypeLevelGroupConfig,
   UpdateAdvancedSettingsInput,
   UpdateAiSummarizationInput,
@@ -23,6 +24,7 @@ import {
   getHomepageContentSettings,
   getImportBlacklist,
   getPlaceTypeDisplay,
+  getPlaceTypeIcons,
   getPlaceTypeLevelGroups,
   getRedirectIgnoreList,
   getShortenerIgnoreList,
@@ -36,6 +38,7 @@ import {
   updateHomepageContentSettings,
   updateImportBlacklist,
   updatePlaceTypeDisplay,
+  updatePlaceTypeIcons,
   updatePlaceTypeLevelGroups,
   updateRedirectIgnoreList,
   updateShortenerIgnoreList,
@@ -387,6 +390,14 @@ const placeTypeLevelGroupsBody = {
   },
 } as const;
 
+// The per-placeType map-pin icon overrides: a sparse map of placeType key → Lucide icon name.
+const placeTypeIconsBody = {
+  type: "object",
+  additionalProperties: {
+    type: "string",
+  },
+} as const;
+
 /** Global app-settings endpoints, mounted under `/api/app-settings`. */
 export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/app-settings/shortener-ignore-list", {
@@ -550,6 +561,19 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       body: placeTypeLevelGroupsBody,
     },
   }, async req => updatePlaceTypeLevelGroups(req.body as PlaceTypeLevelGroupConfig));
+
+  app.get("/api/app-settings/place-type-icons", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getPlaceTypeIcons());
+
+  app.put("/api/app-settings/place-type-icons", {
+    schema: {
+      tags: ["app-settings"],
+      body: placeTypeIconsBody,
+    },
+  }, async req => updatePlaceTypeIcons(req.body as PlaceTypeIconConfig));
 
   app.get("/api/app-settings/display-preferences", {
     schema: {

@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeDisplayConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -1249,6 +1249,11 @@ export const appSettings = pgTable("app_settings", {
   // truth the UI edits; the per-placeType display config the map/sort consume is derived from it.
   // Display-only, so it never touches the bookmark cache. Nullable = push-safe additive.
   placeTypeLevelGroups: jsonb("place_type_level_groups").$type<PlaceTypeLevelGroupConfig>(),
+  // Per-Nominatim-placeType map-pin icon overrides (Settings → Locations "Place Type Icons"):
+  // a sparse Record<placeTypeKey, lucideIconName>. Configured per place type (not per level group)
+  // so types in one group can differ. Display-only, never touches the bookmark cache. Nullable =
+  // push-safe additive; the service reads `?? {}`.
+  placeTypeIcons: jsonb("place_type_icons").$type<PlaceTypeIconConfig>(),
   // When true, a location detail page's map also plots the location's ancestor/parent locations
   // (not just its direct children). Nullable = push-safe additive; the service reads `?? false`.
   showLocationAncestorsOnMap: boolean("show_location_ancestors_on_map"),

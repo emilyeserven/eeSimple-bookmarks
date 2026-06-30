@@ -1,11 +1,16 @@
 import type { PlaceTypeOption } from "../lib/locationLevels";
-import type { LocationDisplayMode, PlaceTypeLevelGroup, PlaceTypeLevelGroupConfig } from "@eesimple/types";
+import type { LocationDisplayMode, PlaceTypeIconConfig, PlaceTypeLevelGroup, PlaceTypeLevelGroupConfig } from "@eesimple/types";
 
 import { useMemo } from "react";
 
 import { LOCATION_MAP_PALETTES } from "@eesimple/types";
 
-import { useLocationLevelGroups, useUpdateLocationLevelGroups } from "./useAppSettings";
+import {
+  useLocationLevelGroups,
+  useLocationPlaceTypeIcons,
+  useUpdateLocationLevelGroups,
+  useUpdatePlaceTypeIcons,
+} from "./useAppSettings";
 import { useLocations } from "./useLocations";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { placeTypeOptions } from "../lib/locationLevels";
@@ -37,12 +42,20 @@ export function useLocationLevels(): {
   reorderGroups: (orderedIds: string[]) => void;
   /** Assign a predefined palette's colors across the groups in display order (wrapping if needed). */
   applyPalette: (paletteId: string) => void;
+  /** The per-placeType map-pin icon overrides (placeType key → Lucide icon name). */
+  placeTypeIcons: PlaceTypeIconConfig;
+  /** Set one place type's map-pin icon (a Lucide name), persisting the whole map with a toast. */
+  setPlaceTypeIcon: (placeTypeKey: string, iconName: string) => void;
+  /** Clear all per-placeType icon overrides. */
+  resetPlaceTypeIcons: () => void;
 } {
   const {
     data: locations, isLoading,
   } = useLocations();
   const stored = useLocationLevelGroups();
   const update = useUpdateLocationLevelGroups();
+  const placeTypeIcons = useLocationPlaceTypeIcons();
+  const updateIcons = useUpdatePlaceTypeIcons();
 
   // Memoize the derived arrays so their identity is stable across renders while the underlying query
   // data is unchanged. Without this, `groups` (a fresh `[...stored].sort()` each render) is a new
@@ -160,6 +173,24 @@ export function useLocationLevels(): {
     save(next, "Level order");
   }
 
+  function setPlaceTypeIcon(key: string, iconName: string): void {
+    const label = `${options.find(option => option.key === key)?.label ?? key} icon`;
+    updateIcons.mutate({
+      ...placeTypeIcons,
+      [key]: iconName,
+    }, {
+      onSuccess: () => notifyFieldSaved(label),
+      onError: error => notifyFieldSaveError(label, error.message),
+    });
+  }
+
+  function resetPlaceTypeIcons(): void {
+    updateIcons.mutate({}, {
+      onSuccess: () => notifyFieldSaved("Place type icons"),
+      onError: error => notifyFieldSaveError("Place type icons", error.message),
+    });
+  }
+
   return {
     groups,
     isLoading,
@@ -175,5 +206,8 @@ export function useLocationLevels(): {
     removeGroup,
     reorderGroups,
     applyPalette,
+    placeTypeIcons,
+    setPlaceTypeIcon,
+    resetPlaceTypeIcons,
   };
 }

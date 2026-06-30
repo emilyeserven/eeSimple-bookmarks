@@ -6,7 +6,7 @@ import { ChevronDown, Map as MapIcon } from "lucide-react";
 
 import { LocationLevelsOverlay } from "./LocationLevelsOverlay";
 import { LocationMap } from "./LocationMap";
-import { usePlaceTypeDisplayConfig } from "../hooks/useAppSettings";
+import { useLocationPlaceTypeIcons, usePlaceTypeDisplayConfig } from "../hooks/useAppSettings";
 import { useRefreshLocationBoundary } from "../hooks/useLocations";
 import { useUiStore } from "../stores/uiStore";
 
@@ -43,6 +43,7 @@ export function LocationMapSection({
   const toggle = useUiStore(state => state.toggleLocationMapCollapsed);
   const isCollapsed = collapsedKeys.includes(mapKey);
   const displayConfig = usePlaceTypeDisplayConfig();
+  const iconConfig = useLocationPlaceTypeIcons();
 
   const refreshBoundary = useRefreshLocationBoundary();
   const attemptedRef = useRef<string | null>(null);
@@ -93,6 +94,7 @@ export function LocationMapSection({
             tree={tree}
             className={mapClassName}
             displayConfig={displayConfig}
+            iconConfig={iconConfig}
           />
         )
         : null}

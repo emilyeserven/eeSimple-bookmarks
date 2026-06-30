@@ -244,6 +244,18 @@ export function normalizeHexColor(input: unknown): string | null {
   return /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test(trimmed) ? trimmed : null;
 }
 
+/**
+ * Normalize a user/stored value into a Lucide icon name (a trimmed, length-capped non-empty string),
+ * or `null` when it isn't usable. We don't validate against the Lucide catalog here — that list lives
+ * client-side and the renderer falls back to a default for unknown names — so this only guards against
+ * a malformed jsonb row or a stray non-string value.
+ */
+export function normalizeIconName(input: unknown): string | null {
+  if (typeof input !== "string") return null;
+  const trimmed = input.trim();
+  return trimmed !== "" && trimmed.length <= 64 ? trimmed : null;
+}
+
 /** A named, ready-made set of map colors the user can apply across their level groups in one click. */
 export interface LocationMapPalette {
   /** Stable id. */
@@ -309,6 +321,14 @@ export interface PlaceTypeDisplaySetting {
  * uses the defaults (visible `area`), so the config only needs rows the user has customized.
  */
 export type PlaceTypeDisplayConfig = Record<string, PlaceTypeDisplaySetting>;
+
+/**
+ * Map of normalized placeType key → a Lucide icon name drawn inside that place type's map pin.
+ * **Sparse** — a place type with no entry renders the default pin (no glyph). Configured per place
+ * type (not per level group) so place types sharing a group can still show distinct icons. Stored
+ * standalone on the app-settings singleton, separate from the group-derived {@link PlaceTypeDisplayConfig}.
+ */
+export type PlaceTypeIconConfig = Record<string, string>;
 
 /**
  * A named "level" — a user-defined group of Nominatim place types configured in Settings → Locations.
@@ -425,6 +445,18 @@ export function resolveLocationColor(
   config: PlaceTypeDisplayConfig,
 ): string | null {
   return config[placeTypeKey(node.placeType)]?.color ?? null;
+}
+
+/**
+ * The Lucide icon name configured for a location's placeType, or `null` when its place type has none
+ * (the map then draws a plain pin). Pure helper — the per-placeType sibling of {@link resolveLocationColor},
+ * keyed off the standalone {@link PlaceTypeIconConfig} so it's independent of the level-group pipeline.
+ */
+export function resolveLocationIcon(
+  node: { placeType: string | null },
+  icons: PlaceTypeIconConfig,
+): string | null {
+  return icons[placeTypeKey(node.placeType)] ?? null;
 }
 
 /**

@@ -1,10 +1,10 @@
-import type { LocationBoundary, LocationNode, PlaceTypeDisplayConfig } from "@eesimple/types";
+import type { LocationBoundary, LocationNode, PlaceTypeDisplayConfig, PlaceTypeIconConfig } from "@eesimple/types";
 import type { Feature, Geometry } from "geojson";
 import type { LatLngTuple } from "leaflet";
 
 import { useEffect, useState } from "react";
 
-import { resolveLocationColor, resolveLocationDisplay } from "@eesimple/types";
+import { resolveLocationColor, resolveLocationDisplay, resolveLocationIcon } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { geoJSON, latLngBounds } from "leaflet";
 import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
@@ -59,6 +59,8 @@ interface RenderItem {
   kind: "area" | "pin";
   /** The level's custom map color, or `null` to fall back to Leaflet's default blue. */
   color: string | null;
+  /** The place type's custom pin icon (a Lucide name), or `null` for a plain pin. */
+  icon: string | null;
 }
 
 /**
@@ -67,26 +69,34 @@ interface RenderItem {
  * actually available (a "pin" with only a boundary still draws the area; an "area" with no boundary
  * draws a pin — already handled by `resolveLocationDisplay`).
  */
-function toRenderItems(mapped: MappedNode[], config: PlaceTypeDisplayConfig): RenderItem[] {
+function toRenderItems(
+  mapped: MappedNode[],
+  config: PlaceTypeDisplayConfig,
+  iconConfig: PlaceTypeIconConfig,
+): RenderItem[] {
   const items: RenderItem[] = [];
   for (const node of mapped) {
     const resolved = resolveLocationDisplay(node, config);
     if (resolved === "hidden") continue;
     const color = resolveLocationColor(node, config);
+    const icon = resolveLocationIcon(node, iconConfig);
     if (resolved === "area" && node.boundary) items.push({
       node,
       kind: "area",
       color,
+      icon,
     });
     else if (node.position) items.push({
       node,
       kind: "pin",
       color,
+      icon,
     });
     else if (node.boundary) items.push({
       node,
       kind: "area",
       color,
+      icon,
     });
   }
   return items;
@@ -265,6 +275,11 @@ interface LocationMapProps {
    * level visible, legacy area-or-pin rendering).
    */
   displayConfig?: PlaceTypeDisplayConfig;
+  /**
+   * Per-placeType map-pin icon overrides (Settings → Locations "Place Type Icons"). A Lucide icon
+   * keyed here is drawn inside that place type's pin. Defaults to `{}` (plain pins).
+   */
+  iconConfig?: PlaceTypeIconConfig;
 }
 
 /**
@@ -277,9 +292,10 @@ export function LocationMap({
   tree,
   className = "h-[70vh] w-full rounded-lg border",
   displayConfig = {},
+  iconConfig = {},
 }: LocationMapProps) {
   const mapped = collectMapped(tree);
-  const items = toRenderItems(mapped, displayConfig);
+  const items = toRenderItems(mapped, displayConfig, iconConfig);
   const areaNodes = items.filter(item => item.kind === "area" && item.node.boundary).map(item => item.node);
   const omitted = countNodes(tree) - mapped.length;
   const hiddenByLevel = mapped.length - items.length;
@@ -308,7 +324,7 @@ export function LocationMap({
         <FitBounds items={items} />
         <AreaClickPopup items={items} />
         {items.map(({
-          node, kind, color,
+          node, kind, color, icon,
         }) => (
           kind === "area" && node.boundary
             ? (
@@ -328,7 +344,7 @@ export function LocationMap({
                 <Marker
                   key={node.id}
                   position={node.position}
-                  icon={markerIconFor(color)}
+                  icon={markerIconFor(color, icon)}
                 >
                   <PinPopup
                     node={node}

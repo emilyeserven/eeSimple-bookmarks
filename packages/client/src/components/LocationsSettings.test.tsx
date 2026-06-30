@@ -30,6 +30,11 @@ vi.mock("../hooks/useAppSettings", () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
+  useLocationPlaceTypeIcons: () => ({}),
+  useUpdatePlaceTypeIcons: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 vi.mock("../hooks/useLocations", () => ({
@@ -50,6 +55,18 @@ describe("LocationsSettings", () => {
     // City is discovered from locations and offered as an assignable option.
     expect(screen.getByRole("option", {
       name: /City/,
+    })).toBeInTheDocument();
+  });
+
+  it("renders a Place Type Icons picker per discovered place type", () => {
+    render(<LocationsSettings />);
+    expect(screen.getByText("Place Type Icons")).toBeInTheDocument();
+    // Each discovered place type (country, city) gets its own icon picker.
+    expect(screen.getByRole("combobox", {
+      name: /Icon for Country/,
+    })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", {
+      name: /Icon for City/,
     })).toBeInTheDocument();
   });
 });
