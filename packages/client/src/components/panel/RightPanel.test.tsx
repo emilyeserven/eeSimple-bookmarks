@@ -100,6 +100,7 @@ function displayData(): DisplayPreferenceSettings {
     onDemandFilters: [],
     showRomanizedByDefault: false,
     sortByRomanized: true,
+    showLocationAncestorsOnMap: false,
   };
 }
 

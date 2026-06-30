@@ -1,27 +1,4 @@
-import type { PlaceTypeDisplayConfig, PlaceTypeDisplaySetting } from "@eesimple/types";
-
-import { placeTypeKey, placeTypeOrder } from "@eesimple/types";
-
-/** A place-type "level" row for the Settings list and the map levels overlay. */
-export interface PlaceTypeLevel {
-  /** Normalized placeType key (the config key). */
-  key: string;
-  /** Human-readable label (title-cased, underscores → spaces). */
-  label: string;
-  /** The resolved setting (the stored config entry, or the legacy default for an unconfigured type). */
-  setting: PlaceTypeDisplaySetting;
-  /** Whether this level already has an explicit entry in the saved config. */
-  configured: boolean;
-}
-
-/** The default setting for a place type with no explicit config entry (legacy area-or-pin, visible). */
-export function defaultPlaceTypeSetting(key: string, config: PlaceTypeDisplayConfig): PlaceTypeDisplaySetting {
-  return {
-    displayMode: "area",
-    visible: true,
-    sortOrder: placeTypeOrder(key, config),
-  };
-}
+import { placeTypeKey } from "@eesimple/types";
 
 /** Humanize a normalized placeType key for display (e.g. `state_district` → `State District`). */
 export function placeTypeLabel(key: string): string {
@@ -42,25 +19,32 @@ export function discoverPlaceTypeKeys(locations: { placeType: string | null }[])
   return [...keys];
 }
 
+/** A discovered place type offered in the level-group assignment UI: its key + humanized label. */
+export interface PlaceTypeOption {
+  /** Normalized placeType key (the group-membership value). */
+  key: string;
+  /** Human-readable label. */
+  label: string;
+}
+
 /**
- * Merge the place types discovered in the data with the saved config into one ordered list of level
- * rows (configured ∪ discovered), sorted by each level's order then label. The single source the
- * Settings list, the levels overlay, and the placeType sort all read so they agree on the levels.
+ * The discovered place types (∪ any already assigned to a group), as label-sorted options for the
+ * group assignment control. Passing `assigned` keeps a group's currently-assigned types selectable
+ * even if no location currently carries them.
  */
-export function buildPlaceTypeLevels(
+export function placeTypeOptions(
   locations: { placeType: string | null }[],
-  config: PlaceTypeDisplayConfig,
-): PlaceTypeLevel[] {
-  const keys = new Set<string>([...Object.keys(config), ...discoverPlaceTypeKeys(locations)]);
+  assigned: string[] = [],
+): PlaceTypeOption[] {
+  const keys = new Set<string>([...discoverPlaceTypeKeys(locations)]);
+  for (const key of assigned) {
+    const normalized = placeTypeKey(key);
+    if (normalized !== "") keys.add(normalized);
+  }
   return [...keys]
-    .map((key): PlaceTypeLevel => ({
+    .map((key): PlaceTypeOption => ({
       key,
       label: placeTypeLabel(key),
-      setting: config[key] ?? defaultPlaceTypeSetting(key, config),
-      configured: key in config,
     }))
-    .sort((a, b) => {
-      const byOrder = placeTypeOrder(a.key, config) - placeTypeOrder(b.key, config);
-      return byOrder !== 0 ? byOrder : a.label.localeCompare(b.label);
-    });
+    .sort((a, b) => a.label.localeCompare(b.label));
 }

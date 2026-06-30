@@ -9,20 +9,20 @@ import { ResponsivePopover } from "@/components/ui/responsive-popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 /**
- * Map "Levels" overlay: a popover (modal on mobile) listing each Nominatim place type present in the
- * data with a visibility checkbox and a pin/area choice. Writes straight through to the **server**
- * per-placeType config (shared with Settings → Locations), so a toggle here changes the global
- * default everywhere and fires a toast.
+ * Map "Levels" overlay: a popover (modal on mobile) listing each named level group with a visibility
+ * checkbox and a pin/area choice. Writes straight through to the **server** level groups (shared with
+ * Settings → Locations), so a toggle here changes the global default everywhere and fires a toast.
+ * Defining groups and assigning place types to them happens in Settings → Locations.
  */
 export function LocationLevelsOverlay() {
   const {
-    levels, setLevel,
+    groups, setGroupVisible, setGroupDisplayMode,
   } = useLocationLevels();
 
   return (
     <ResponsivePopover
       title="Levels"
-      description="Choose which place types appear on the map and how each renders."
+      description="Choose which level groups appear on the map and how each renders."
       align="end"
       trigger={(
         <Button
@@ -35,48 +35,43 @@ export function LocationLevelsOverlay() {
         </Button>
       )}
     >
-      {levels.length === 0
+      {groups.length === 0
         ? (
           <p className="text-sm text-muted-foreground">
-            No place types yet. Locations pick up a place type from their geocoding lookup.
+            No level groups yet. Define them in Settings → Locations.
           </p>
         )
         : (
           <ul className="space-y-2">
-            {levels.map(level => (
+            {groups.map(group => (
               <li
-                key={level.key}
+                key={group.id}
                 className="flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-2">
                   <Checkbox
-                    id={`level-${level.key}`}
-                    checked={level.setting.visible}
-                    onCheckedChange={checked =>
-                      setLevel(level.key, {
-                        visible: checked === true,
-                      }, `${level.label} visibility`)}
+                    id={`level-${group.id}`}
+                    checked={group.visible}
+                    onCheckedChange={checked => setGroupVisible(group.id, checked === true)}
                   />
                   <Label
-                    htmlFor={`level-${level.key}`}
+                    htmlFor={`level-${group.id}`}
                     className="cursor-pointer"
                   >
-                    {level.label}
+                    {group.name || "Level"}
                   </Label>
                 </div>
                 <ToggleGroup
                   type="single"
                   size="sm"
                   variant="outline"
-                  value={level.setting.displayMode}
+                  value={group.displayMode}
                   onValueChange={(value) => {
                     if (value === "pin" || value === "area") {
-                      setLevel(level.key, {
-                        displayMode: value,
-                      }, `${level.label} display`);
+                      setGroupDisplayMode(group.id, value);
                     }
                   }}
-                  aria-label={`${level.label} display mode`}
+                  aria-label={`${group.name || "Level"} display mode`}
                 >
                   <ToggleGroupItem
                     value="pin"

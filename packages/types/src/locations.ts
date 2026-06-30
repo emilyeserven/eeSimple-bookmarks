@@ -230,6 +230,60 @@ export interface PlaceTypeDisplaySetting {
 export type PlaceTypeDisplayConfig = Record<string, PlaceTypeDisplaySetting>;
 
 /**
+ * A named "level" — a user-defined group of Nominatim place types configured in Settings → Locations.
+ * The group is the unit of display control: its member place types all inherit the group's
+ * visibility, pin/area render mode, and order. This is the source of truth the Settings list and the
+ * map's "Levels" overlay edit; the per-placeType {@link PlaceTypeDisplayConfig} the map/sort consume
+ * is **derived** from it (see {@link expandLevelGroupsToDisplayConfig}).
+ */
+export interface PlaceTypeLevelGroup {
+  /** Stable id (generated when the group is created). */
+  id: string;
+  /** User-facing label (e.g. `"Country"`, `"Region"`, `"City"`). */
+  name: string;
+  /** Normalized place-type keys assigned to this group. */
+  placeTypes: string[];
+  /** How locations in this group render: `area` (boundary when present, else pin) or `pin`. */
+  displayMode: LocationDisplayMode;
+  /** Whether locations in this group are shown on the map at all. */
+  visible: boolean;
+  /** Ordering weight among groups (lower sorts first). */
+  sortOrder: number;
+}
+
+/** The full ordered list of place-type level groups (stored on the app-settings singleton). */
+export type PlaceTypeLevelGroupConfig = PlaceTypeLevelGroup[];
+
+/**
+ * Expand the named level groups into the per-placeType {@link PlaceTypeDisplayConfig} the map renderer
+ * and the place-type tree sort consume. Each member place type inherits its group's `displayMode`,
+ * `visible`, and `sortOrder` (so members of a group share the group's order). A place type belonging
+ * to no group is simply absent from the result — {@link resolveLocationDisplay} then treats it as the
+ * legacy default (visible `area`). When a place type appears in more than one group, the
+ * lowest-`sortOrder` group wins. Pure helper — shared by the client and unit-tested directly.
+ */
+export function expandLevelGroupsToDisplayConfig(
+  groups: PlaceTypeLevelGroupConfig,
+): PlaceTypeDisplayConfig {
+  const config: PlaceTypeDisplayConfig = {};
+  const winningOrder: Record<string, number> = {};
+  for (const group of groups) {
+    for (const placeType of group.placeTypes) {
+      const key = placeTypeKey(placeType);
+      if (key === "") continue;
+      if (key in config && winningOrder[key] <= group.sortOrder) continue;
+      config[key] = {
+        displayMode: group.displayMode,
+        visible: group.visible,
+        sortOrder: group.sortOrder,
+      };
+      winningOrder[key] = group.sortOrder;
+    }
+  }
+  return config;
+}
+
+/**
  * Canonical most-general → most-specific ordering of common Nominatim place types, used only as the
  * fallback ordering for place types the user has not explicitly ordered in Settings.
  */

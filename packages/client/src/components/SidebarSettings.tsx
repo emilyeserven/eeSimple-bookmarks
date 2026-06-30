@@ -45,6 +45,7 @@ const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   onDemandFilters: [],
   showRomanizedByDefault: false,
   sortByRomanized: true,
+  showLocationAncestorsOnMap: false,
 };
 
 const AUTOMATION_DEFAULTS: AutomationSettings = {

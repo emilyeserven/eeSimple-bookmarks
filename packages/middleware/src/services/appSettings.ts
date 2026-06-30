@@ -12,6 +12,8 @@ import type {
   HomepageContentWidth,
   ImportBlacklistEntry,
   PlaceTypeDisplayConfig,
+  PlaceTypeLevelGroup,
+  PlaceTypeLevelGroupConfig,
   QuickAddDisplay,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
@@ -23,9 +25,9 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { LOCATION_DISPLAY_MODES, normalizeBlacklist, placeTypeKey } from "@eesimple/types";
+import { CANONICAL_PLACE_TYPE_ORDER, LOCATION_DISPLAY_MODES, normalizeBlacklist, placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
-import { appSettings } from "@/db/schema";
+import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
 
 /** The app-settings singleton always lives at row id = 1, mirroring `homepage_filter`. */
@@ -110,6 +112,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   croppedHeight: 9,
   showRomanizedByDefault: false,
   sortByRomanized: true,
+  showLocationAncestorsOnMap: false,
 };
 
 /** Coerce a stored width string to the typed union, defaulting to "full". */
@@ -639,6 +642,180 @@ export async function updatePlaceTypeDisplay(
   return next;
 }
 
+/**
+ * Sanitize the named place-type level groups: keep only well-formed groups (a string id+name, a
+ * valid `displayMode`, an array of normalized member place-type keys), coercing `visible`/`sortOrder`.
+ * Tolerates arbitrary client/stored shapes so a malformed jsonb row never crashes the map.
+ */
+function normalizePlaceTypeLevelGroups(input: unknown): PlaceTypeLevelGroupConfig {
+  if (!Array.isArray(input)) return [];
+  const out: PlaceTypeLevelGroupConfig = [];
+  input.forEach((rawGroup, index) => {
+    if (rawGroup === null || typeof rawGroup !== "object") return;
+    const value = rawGroup as Record<string, unknown>;
+    const displayMode = LOCATION_DISPLAY_MODES.find(mode => mode === value.displayMode);
+    if (!displayMode) return;
+    const id = typeof value.id === "string" && value.id.trim() !== ""
+      ? value.id
+      : `group-${index}`;
+    const name = typeof value.name === "string" ? value.name.trim() : "";
+    const placeTypes = Array.isArray(value.placeTypes)
+      ? [...new Set(
+        value.placeTypes
+          .filter((pt): pt is string => typeof pt === "string")
+          .map(pt => placeTypeKey(pt))
+          .filter(pt => pt !== ""),
+      )]
+      : [];
+    const group: PlaceTypeLevelGroup = {
+      id,
+      name,
+      placeTypes,
+      displayMode,
+      visible: value.visible !== false,
+      sortOrder: typeof value.sortOrder === "number" && Number.isFinite(value.sortOrder)
+        ? value.sortOrder
+        : index,
+    };
+    out.push(group);
+  });
+  return out;
+}
+
+/** Read the named place-type level groups (Settings → Locations + the map "Levels" overlay). */
+export async function getPlaceTypeLevelGroups(): Promise<PlaceTypeLevelGroupConfig> {
+  const [row] = await db
+    .select({
+      placeTypeLevelGroups: appSettings.placeTypeLevelGroups,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  return normalizePlaceTypeLevelGroups(row?.placeTypeLevelGroups ?? []);
+}
+
+/** Replace the named place-type level groups, upserting the singleton. Returns the stored value. */
+export async function updatePlaceTypeLevelGroups(
+  input: PlaceTypeLevelGroupConfig,
+): Promise<PlaceTypeLevelGroupConfig> {
+  const next = normalizePlaceTypeLevelGroups(input);
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      placeTypeLevelGroups: next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: {
+        placeTypeLevelGroups: next,
+      },
+    });
+  return next;
+}
+
+/** Starter level-group buckets, covering {@link CANONICAL_PLACE_TYPE_ORDER} most-general → specific. */
+const SEED_LEVEL_GROUP_BUCKETS: { id: string;
+  name: string;
+  placeTypes: string[]; }[] = [
+  {
+    id: "seed-country",
+    name: "Country",
+    placeTypes: ["continent", "country"],
+  },
+  {
+    id: "seed-region",
+    name: "Region",
+    placeTypes: ["state", "region", "province", "state_district", "county"],
+  },
+  {
+    id: "seed-locality",
+    name: "Locality",
+    placeTypes: ["municipality", "city", "borough", "town", "village", "hamlet"],
+  },
+  {
+    id: "seed-neighborhood",
+    name: "Neighborhood",
+    placeTypes: ["suburb", "quarter", "neighbourhood", "city_block"],
+  },
+  {
+    id: "seed-area",
+    name: "Area",
+    placeTypes: ["island", "islet", "locality"],
+  },
+];
+
+/** Canonical rank for ordering a place type (unknowns sort last), used when seeding "Other". */
+function canonicalRank(key: string): number {
+  const index = CANONICAL_PLACE_TYPE_ORDER.indexOf(key as (typeof CANONICAL_PLACE_TYPE_ORDER)[number]);
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+}
+
+/**
+ * Seed an initial set of named place-type level groups the first time (when the column is null) by
+ * bucketing the place types discovered in the data (∪ any legacy per-placeType config) into a few
+ * tiers (Country / Region / Locality / Neighborhood / Area), plus an "Other" group for anything
+ * unrecognized. Carries over each member's legacy `visible`/`displayMode` where one was set. Idempotent
+ * — skips once the column holds an array (even an empty one the user cleared), and writes nothing
+ * until at least one place type exists, so it self-heals on a later boot.
+ */
+export async function ensureDefaultPlaceTypeLevelGroups(): Promise<void> {
+  const [row] = await db
+    .select({
+      groups: appSettings.placeTypeLevelGroups,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  // Only seed when never initialized (null); an explicit array (incl. []) means the user owns it.
+  if (row && row.groups != null) return;
+
+  const legacy = await getPlaceTypeDisplay();
+  const distinctRows = await db
+    .selectDistinct({
+      placeType: locations.placeType,
+    })
+    .from(locations);
+  const allKeys = new Set<string>(Object.keys(legacy));
+  for (const r of distinctRows) {
+    const key = placeTypeKey(r.placeType);
+    if (key !== "") allKeys.add(key);
+  }
+  if (allKeys.size === 0) return; // no place types yet — try again on a later boot
+
+  const assigned = new Set<string>();
+  const groups: PlaceTypeLevelGroupConfig = [];
+  let sortOrder = 0;
+  for (const bucket of SEED_LEVEL_GROUP_BUCKETS) {
+    const members = bucket.placeTypes.filter(pt => allKeys.has(pt));
+    if (members.length === 0) continue;
+    members.forEach(pt => assigned.add(pt));
+    const configured = members.map(pt => legacy[pt]).filter(Boolean) as PlaceTypeDisplayConfig[string][];
+    groups.push({
+      id: bucket.id,
+      name: bucket.name,
+      placeTypes: members,
+      displayMode: configured[0]?.displayMode ?? "area",
+      visible: configured.length > 0 ? configured.some(setting => setting.visible) : true,
+      sortOrder: sortOrder++,
+    });
+  }
+  const others = [...allKeys]
+    .filter(key => !assigned.has(key))
+    .sort((a, b) => canonicalRank(a) - canonicalRank(b) || a.localeCompare(b));
+  if (others.length > 0) {
+    const configured = others.map(pt => legacy[pt]).filter(Boolean) as PlaceTypeDisplayConfig[string][];
+    groups.push({
+      id: "seed-other",
+      name: "Other",
+      placeTypes: others,
+      displayMode: configured[0]?.displayMode ?? "area",
+      visible: configured.length > 0 ? configured.some(setting => setting.visible) : true,
+      sortOrder: sortOrder++,
+    });
+  }
+  await updatePlaceTypeLevelGroups(groups);
+}
+
 /** Read the display/detail preferences (group C). */
 export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceSettings> {
   const [row] = await db
@@ -656,6 +833,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       onDemandFilters: appSettings.onDemandFilters,
       showRomanizedByDefault: appSettings.showRomanizedByDefault,
       sortByRomanized: appSettings.sortByRomanized,
+      showLocationAncestorsOnMap: appSettings.showLocationAncestorsOnMap,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -674,6 +852,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     onDemandFilters: row.onDemandFilters ?? [],
     showRomanizedByDefault: row.showRomanizedByDefault,
     sortByRomanized: row.sortByRomanized,
+    showLocationAncestorsOnMap: row.showLocationAncestorsOnMap ?? false,
   };
 }
 
@@ -852,6 +1031,7 @@ export async function updateDisplayPreferenceSettings(
     onDemandFilters: [...(input.onDemandFilters ?? [])],
     showRomanizedByDefault: input.showRomanizedByDefault,
     sortByRomanized: input.sortByRomanized,
+    showLocationAncestorsOnMap: input.showLocationAncestorsOnMap,
   };
   await db
     .insert(appSettings)

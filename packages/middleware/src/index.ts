@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { buildApp, docsEnabled } from "@/app";
 import { maybeSeed } from "@/db/seed";
-import { ensureAppSettings } from "@/services/appSettings";
+import { ensureAppSettings, ensureDefaultPlaceTypeLevelGroups } from "@/services/appSettings";
 import { backfillAuthorSlugs } from "@/services/authors";
 import { backfillPublisherSlugs } from "@/services/publishers";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
@@ -74,6 +74,7 @@ try {
   await backfillTagSlugs();
   await backfillLocationSlugs();
   await backfillLocationRomanizedSlugs();
+  await ensureDefaultPlaceTypeLevelGroups();
   await backfillAuthorSlugs();
   await maybeSeed();
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the

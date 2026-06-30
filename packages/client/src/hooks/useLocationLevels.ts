@@ -1,71 +1,137 @@
-import type { PlaceTypeLevel } from "../lib/locationLevels";
-import type { PlaceTypeDisplayConfig, PlaceTypeDisplaySetting } from "@eesimple/types";
+import type { PlaceTypeOption } from "../lib/locationLevels";
+import type { LocationDisplayMode, PlaceTypeLevelGroup, PlaceTypeLevelGroupConfig } from "@eesimple/types";
 
-import {
-  usePlaceTypeDisplayConfig,
-  useUpdateLocationDisplaySettings,
-} from "./useAppSettings";
+import { useLocationLevelGroups, useUpdateLocationLevelGroups } from "./useAppSettings";
 import { useLocations } from "./useLocations";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
-import { buildPlaceTypeLevels, defaultPlaceTypeSetting } from "../lib/locationLevels";
+import { placeTypeOptions } from "../lib/locationLevels";
+
+import { randomId } from "@/lib/utils";
 
 /**
- * The place-type "levels" (discovered ∪ configured), plus the auto-save writers shared by the
- * Settings → Locations page and the map "Levels" overlay. Every write persists the whole
- * server-side config and fires a field-named toast (the same config backs both surfaces, so they
- * stay in sync). The map level overlay and Settings therefore edit one source of truth.
+ * The named place-type "level" groups (the source of truth Settings → Locations and the map "Levels"
+ * overlay edit) plus the auto-save writers shared by both. Every write persists the whole group array
+ * and fires a field-named toast (the per-placeType display config the map/sort consume is derived from
+ * these groups, so both surfaces stay in sync). Editing one source of truth keeps them identical.
  */
 export function useLocationLevels(): {
-  levels: PlaceTypeLevel[];
+  groups: PlaceTypeLevelGroup[];
   isLoading: boolean;
   isSaving: boolean;
-  setLevel: (key: string, patch: Partial<PlaceTypeDisplaySetting>, label: string) => void;
-  reorder: (orderedKeys: string[]) => void;
+  /** Discovered place types (∪ any assigned), label-sorted, for the assignment control. */
+  placeTypeOptions: PlaceTypeOption[];
+  /** Discovered place types not assigned to any group (they render with the default visible/area). */
+  unassignedPlaceTypes: PlaceTypeOption[];
+  addGroup: () => void;
+  renameGroup: (id: string, name: string) => void;
+  setGroupVisible: (id: string, visible: boolean) => void;
+  setGroupDisplayMode: (id: string, displayMode: LocationDisplayMode) => void;
+  setGroupPlaceTypes: (id: string, placeTypes: string[]) => void;
+  removeGroup: (id: string) => void;
+  reorderGroups: (orderedIds: string[]) => void;
 } {
   const {
     data: locations, isLoading,
   } = useLocations();
-  const config = usePlaceTypeDisplayConfig();
-  const update = useUpdateLocationDisplaySettings();
-  const levels = buildPlaceTypeLevels(locations ?? [], config);
+  const stored = useLocationLevelGroups();
+  const update = useUpdateLocationLevelGroups();
 
-  function save(next: PlaceTypeDisplayConfig, label: string): void {
+  const groups = [...stored].sort((a, b) => a.sortOrder - b.sortOrder);
+  const assigned = new Set(groups.flatMap(group => group.placeTypes));
+  const options = placeTypeOptions(locations ?? [], [...assigned]);
+  const unassignedPlaceTypes = options.filter(option => !assigned.has(option.key));
+
+  function save(next: PlaceTypeLevelGroupConfig, label: string): void {
     update.mutate(next, {
       onSuccess: () => notifyFieldSaved(label),
       onError: error => notifyFieldSaveError(label, error.message),
     });
   }
 
-  function setLevel(key: string, patch: Partial<PlaceTypeDisplaySetting>, label: string): void {
-    const current = config[key] ?? defaultPlaceTypeSetting(key, config);
-    save({
-      ...config,
-      [key]: {
-        ...current,
+  /** Apply a patch to one group by id, persisting the full reordered-by-sortOrder array. */
+  function patchGroup(id: string, patch: Partial<PlaceTypeLevelGroup>, label: string): void {
+    save(groups.map(group => (group.id === id
+      ? {
+        ...group,
         ...patch,
-      },
-    }, label);
+      }
+      : group)), label);
   }
 
-  function reorder(orderedKeys: string[]): void {
-    const next: PlaceTypeDisplayConfig = {
-      ...config,
+  function groupLabel(id: string): string {
+    return groups.find(group => group.id === id)?.name || "Level";
+  }
+
+  function addGroup(): void {
+    const maxOrder = groups.reduce((max, group) => Math.max(max, group.sortOrder), -1);
+    const next: PlaceTypeLevelGroup = {
+      id: randomId(),
+      name: "New level",
+      placeTypes: [],
+      displayMode: "area",
+      visible: true,
+      sortOrder: maxOrder + 1,
     };
-    orderedKeys.forEach((key, index) => {
-      const current = config[key] ?? defaultPlaceTypeSetting(key, config);
-      next[key] = {
-        ...current,
-        sortOrder: index,
-      };
-    });
+    save([...groups, next], "Level group");
+  }
+
+  function renameGroup(id: string, name: string): void {
+    patchGroup(id, {
+      name,
+    }, `${name || "Level"} name`);
+  }
+
+  function setGroupVisible(id: string, visible: boolean): void {
+    patchGroup(id, {
+      visible,
+    }, `${groupLabel(id)} visibility`);
+  }
+
+  function setGroupDisplayMode(id: string, displayMode: LocationDisplayMode): void {
+    patchGroup(id, {
+      displayMode,
+    }, `${groupLabel(id)} display`);
+  }
+
+  function setGroupPlaceTypes(id: string, placeTypes: string[]): void {
+    patchGroup(id, {
+      placeTypes,
+    }, `${groupLabel(id)} place types`);
+  }
+
+  function removeGroup(id: string): void {
+    const label = groupLabel(id);
+    save(groups.filter(group => group.id !== id), `${label} removed`);
+  }
+
+  function reorderGroups(orderedIds: string[]): void {
+    const byId = new Map(groups.map(group => [group.id, group]));
+    const next = orderedIds
+      .map((id, index) => {
+        const group = byId.get(id);
+        return group
+          ? {
+            ...group,
+            sortOrder: index,
+          }
+          : undefined;
+      })
+      .filter((group): group is PlaceTypeLevelGroup => group !== undefined);
     save(next, "Level order");
   }
 
   return {
-    levels,
+    groups,
     isLoading,
     isSaving: update.isPending,
-    setLevel,
-    reorder,
+    placeTypeOptions: options,
+    unassignedPlaceTypes,
+    addGroup,
+    renameGroup,
+    setGroupVisible,
+    setGroupDisplayMode,
+    setGroupPlaceTypes,
+    removeGroup,
+    reorderGroups,
   };
 }
