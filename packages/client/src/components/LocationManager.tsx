@@ -3,7 +3,7 @@ import type { LocationNode } from "@eesimple/types";
 import { useState } from "react";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
-import { LocationMap } from "./LocationMap";
+import { LocationMapSection } from "./LocationMapSection";
 import { LocationTreeList } from "./LocationTreeList";
 import { useLocationColumns } from "./tables/locationColumns";
 import { listingSelectionColumn } from "./tables/selectionColumn";
@@ -56,6 +56,15 @@ export function LocationsListing() {
         )
         : null}
 
+      {tree && tree.length > 0
+        ? (
+          <LocationMapSection
+            mapKey="listing"
+            tree={tree}
+          />
+        )
+        : null}
+
       <TaxonomyBulkBar
         selection={selection}
         totalSelectable={deletableIds.length}
@@ -78,11 +87,7 @@ export function LocationsListing() {
         )
         : null}
 
-      {tree && tree.length > 0 && viewMode === "map"
-        ? <LocationMap tree={tree} />
-        : null}
-
-      {tree && tree.length > 0 && viewMode === "cards"
+      {tree && tree.length > 0 && viewMode !== "table"
         ? (
           <LocationTreeList
             tree={tree}

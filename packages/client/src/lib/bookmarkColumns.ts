@@ -51,14 +51,6 @@ export function useViewMode(pageKey: string): ViewMode {
   return useUiStore(state => state.viewMode[pageKey] ?? DEFAULT_VIEW_MODE);
 }
 
-/**
- * Whether a listing page offers the geographic Map view mode. Only the Locations taxonomy carries
- * per-item coordinates, so it is the sole page that adds a "Map" toggle beside Cards/Table.
- */
-export function supportsMapView(pageKey: string): boolean {
-  return pageKey === "locations-listing";
-}
-
 /** Default image visibility for a listing page (full card with image shown). */
 export const DEFAULT_BOOKMARK_IMAGE_VISIBILITY: BookmarkImageVisibility = "shown";
 

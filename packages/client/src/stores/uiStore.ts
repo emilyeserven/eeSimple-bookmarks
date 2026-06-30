@@ -104,6 +104,9 @@ interface UiState {
   /** Section IDs whose bookmark grid is collapsed on the homepage. */
   collapsedHomepageSectionIds: string[];
   toggleHomepageSectionCollapsed: (id: string) => void;
+  /** Keys whose Locations map section is collapsed ("listing" for the listing page, a location id on detail pages). */
+  collapsedLocationMapKeys: string[];
+  toggleLocationMapCollapsed: (key: string) => void;
   /** Per-listing image layout for 2-column listing pages: "above" (default) or "side". Keyed by a stable page key. */
   bookmarkImageLayout: Record<string, HomepageSectionImageLayout>;
   setBookmarkImageLayout: (pageKey: string, layout: HomepageSectionImageLayout) => void;
@@ -238,6 +241,12 @@ export const useUiStore = create<UiState>()(
       setImportModalInitialNewsletterId: id => set({
         importModalInitialNewsletterId: id,
       }),
+      collapsedLocationMapKeys: [],
+      toggleLocationMapCollapsed: key => set(state => ({
+        collapsedLocationMapKeys: state.collapsedLocationMapKeys.includes(key)
+          ? state.collapsedLocationMapKeys.filter(x => x !== key)
+          : [...state.collapsedLocationMapKeys, key],
+      })),
       collapsedHomepageSectionIds: [],
       toggleHomepageSectionCollapsed: id => set(state => ({
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds.includes(id)
@@ -341,6 +350,7 @@ export const useUiStore = create<UiState>()(
         collapsedSidebarSections: state.collapsedSidebarSections,
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
+        collapsedLocationMapKeys: state.collapsedLocationMapKeys,
         bookmarkImageLayout: state.bookmarkImageLayout,
         bookmarkCornerOverlays: state.bookmarkCornerOverlays,
       }),

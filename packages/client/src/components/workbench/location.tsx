@@ -8,6 +8,7 @@ import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { HierarchyView } from "../HierarchyView";
 import { LocationGeneralForm } from "../LocationGeneralForm";
+import { LocationMapSection } from "../LocationMapSection";
 import { LocationTreeList } from "../LocationTreeList";
 import { RomanizedLabel } from "../RomanizedLabel";
 
@@ -86,6 +87,12 @@ function LocationGeneralView({
         <dt className="text-muted-foreground">Created</dt>
         <dd>{new Date(node.createdAt).toLocaleDateString()}</dd>
       </dl>
+      <LocationMapSection
+        mapKey={node.id}
+        tree={[node, ...node.children]}
+        autoRefreshLocationId={node.id}
+        mapClassName="h-80 w-full rounded-lg border"
+      />
     </div>
   );
 }

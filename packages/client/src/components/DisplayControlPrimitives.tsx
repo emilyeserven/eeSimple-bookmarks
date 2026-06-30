@@ -12,16 +12,11 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-/**
- * Shared "View" cards/table toggle row used by listing + section display controls. Pass
- * `showMap` to add a third "Map" option (only the Locations taxonomy opts in — it carries
- * per-item coordinates).
- */
+/** Shared "View" cards/table toggle row used by listing + section display controls. */
 export function ViewModeToggle({
-  value, onChange, showMap = false,
+  value, onChange,
 }: { value: ViewMode;
-  onChange: (value: ViewMode) => void;
-  showMap?: boolean; }) {
+  onChange: (value: ViewMode) => void; }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <Label className="text-sm font-medium">View</Label>
@@ -52,19 +47,6 @@ export function ViewModeToggle({
         >
           Table
         </ToggleGroupItem>
-        {showMap
-          ? (
-            <ToggleGroupItem
-              value="map"
-              className="
-                rounded-none border-l border-input
-                last:rounded-r-sm
-              "
-            >
-              Map
-            </ToggleGroupItem>
-          )
-          : null}
       </ToggleGroup>
     </div>
   );

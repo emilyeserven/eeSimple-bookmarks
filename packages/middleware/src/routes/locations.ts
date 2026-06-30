@@ -9,6 +9,7 @@ import {
   createLocation,
   createLocationWithAncestors,
   deleteLocation,
+  ensureLocationBoundary,
   getLocationTree,
   listLocations,
   LocationCycleError,
@@ -47,6 +48,24 @@ const alternateNamesSchema = {
   },
 } as const;
 
+/** A GeoJSON area outline (Polygon / MultiPolygon) captured from a geocoding candidate. */
+const boundarySchema = {
+  type: "object",
+  nullable: true,
+  required: ["type", "coordinates"],
+  additionalProperties: false,
+  properties: {
+    type: {
+      type: "string",
+      enum: ["Polygon", "MultiPolygon"],
+    },
+    // Nested coordinate arrays; left untyped (GeoJSON ring depth varies by geometry type).
+    coordinates: {
+      type: "array",
+    },
+  },
+} as const;
+
 /** The editable location columns shared by create and update bodies. */
 const locationFields = {
   romanizedName: {
@@ -78,6 +97,7 @@ const locationFields = {
     type: "string",
     nullable: true,
   },
+  boundary: boundarySchema,
   sortOrder: {
     type: "integer",
   },
@@ -216,6 +236,22 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
       }
       throw err;
     }
+  });
+
+  app.post("/api/locations/:id/refresh-boundary", {
+    schema: {
+      tags: ["locations"],
+      params: locationParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const location = await ensureLocationBoundary(id);
+    if (!location) return reply.code(404).send({
+      message: "Location not found",
+    });
+    return location;
   });
 
   app.delete("/api/locations/:id", {

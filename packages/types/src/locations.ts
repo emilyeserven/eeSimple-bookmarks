@@ -10,6 +10,17 @@
 
 import { titleMatchesTerm } from "./titleTags.js";
 
+/**
+ * A simplified GeoJSON boundary geometry for a location (an administrative area outline fetched from
+ * OpenStreetMap Nominatim). Only area geometries are kept — a point-only place leaves `boundary`
+ * null and renders as a pin. Stored verbatim and handed to Leaflet's GeoJSON layer for rendering.
+ */
+export interface LocationBoundary {
+  type: "Polygon" | "MultiPolygon";
+  /** GeoJSON ring coordinates — `number[][][]` for Polygon, `number[][][][]` for MultiPolygon. */
+  coordinates: number[][][] | number[][][][];
+}
+
 /** An alternate name for a location, optionally labeled with the romanization style it belongs to. */
 export interface LocationAlternateName {
   /** The alternate spelling/name (e.g. a Hepburn vs Kunrei romanization). */
@@ -41,6 +52,8 @@ export interface Location {
   placeType: string | null;
   /** ISO 3166-1 alpha-2 country code, or `null`. */
   countryCode: string | null;
+  /** GeoJSON area outline for the place (rendered as a map polygon), or `null` for a point-only place. */
+  boundary?: LocationBoundary | null;
   /** Display ordering weight; lower sorts first. */
   sortOrder: number;
   /** Parent location id, or `null` for a root-level location. */
@@ -74,6 +87,7 @@ export interface CreateLocationInput {
   plusCode?: string | null;
   placeType?: string | null;
   countryCode?: string | null;
+  boundary?: LocationBoundary | null;
   sortOrder?: number;
   /** Parent location id, or `null`/omitted for a root location. */
   parentId?: string | null;
@@ -92,6 +106,7 @@ export interface UpdateLocationInput {
   plusCode?: string | null;
   placeType?: string | null;
   countryCode?: string | null;
+  boundary?: LocationBoundary | null;
   sortOrder?: number;
   parentId?: string | null;
   tagIds?: string[];
@@ -158,6 +173,8 @@ export interface LocationLookupCandidate {
   countryCode: string | null;
   /** A pre-built map link for the coordinate, or `null`. */
   mapUrl: string | null;
+  /** GeoJSON area outline for the place, or `null` when only a point is available. */
+  boundary: LocationBoundary | null;
 }
 
 /** Response shape of `GET /api/locations/lookup`. */

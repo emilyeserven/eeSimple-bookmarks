@@ -8,7 +8,7 @@
  * doing a single request per lookup. Results are mapped to the shared `LocationLookupResult`.
  */
 
-import type { LocationLookupCandidate, LocationLookupResult } from "@eesimple/types";
+import type { LocationBoundary, LocationLookupCandidate, LocationLookupResult } from "@eesimple/types";
 
 const DEFAULT_ENDPOINT = "https://nominatim.openstreetmap.org";
 const GEOCODE_TIMEOUT_MS = 10000;
@@ -40,10 +40,28 @@ interface NominatimResult {
   address?: { country_code?: unknown } | null;
   /** Per-language name tags (requested via `namedetails=1`): `name` (local), `name:en`, … */
   namedetails?: Record<string, unknown> | null;
+  /** GeoJSON geometry (requested via `polygon_geojson=1`); only area types are kept as a boundary. */
+  geojson?: unknown;
 }
 
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
+}
+
+/**
+ * Keep a Nominatim `geojson` value only when it is an area outline (Polygon / MultiPolygon). A
+ * `Point` geojson is just the coordinate we already store, so it is discarded (→ pin rendering).
+ */
+function toBoundary(geojson: unknown): LocationBoundary | null {
+  if (geojson === null || typeof geojson !== "object") return null;
+  const geometry = geojson as { type?: unknown;
+    coordinates?: unknown; };
+  if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon") return null;
+  if (!Array.isArray(geometry.coordinates)) return null;
+  return {
+    type: geometry.type,
+    coordinates: geometry.coordinates as LocationBoundary["coordinates"],
+  };
 }
 
 /**
@@ -88,6 +106,7 @@ function toCandidate(raw: NominatimResult): LocationLookupCandidate | null {
     placeType: asString(raw.addresstype) ?? asString(raw.type),
     countryCode: countryCode ? countryCode.toUpperCase() : null,
     mapUrl: mapUrlFor(latitude, longitude),
+    boundary: toBoundary(raw.geojson),
   };
 }
 
@@ -108,6 +127,10 @@ export async function geocodeLocation(query: string): Promise<LocationLookupResu
   // Per-language name tags so we can prefer the local name as the title and the English name as the
   // romanized form (e.g. 萩市 / Hagi) instead of whatever single localized name `display_name` carries.
   url.searchParams.set("namedetails", "1");
+  // Request the area outline so locations can render as polygons, not just pins. `polygon_threshold`
+  // simplifies the geometry (Douglas–Peucker, degrees) to keep payloads modest — tunable.
+  url.searchParams.set("polygon_geojson", "1");
+  url.searchParams.set("polygon_threshold", "0.005");
   url.searchParams.set("limit", "5");
 
   const controller = new AbortController();
@@ -142,4 +165,37 @@ export async function geocodeLocation(query: string): Promise<LocationLookupResu
   finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * Best-effort area outline for an already-stored location, used to backfill a `boundary` on demand
+ * (one request, rate-limit friendly). Re-geocodes by name and, when a stored coordinate is known,
+ * picks the candidate closest to it; otherwise the first candidate. Returns `null` when no area
+ * geometry is available (the location stays a pin).
+ */
+export async function refreshLocationBoundary(
+  name: string,
+  lat: number | null,
+  lon: number | null,
+): Promise<LocationBoundary | null> {
+  const {
+    results,
+  } = await geocodeLocation(name);
+  if (results.length === 0) return null;
+  const withBoundary = results.filter(candidate => candidate.boundary !== null);
+  const pool = withBoundary.length > 0 ? withBoundary : results;
+  if (lat === null || lon === null) return pool[0]?.boundary ?? null;
+  const closest = pool.reduce((best, candidate) => {
+    const d = (candidate.latitude - lat) ** 2 + (candidate.longitude - lon) ** 2;
+    return d < best.distance
+      ? {
+        distance: d,
+        boundary: candidate.boundary,
+      }
+      : best;
+  }, {
+    distance: Number.POSITIVE_INFINITY,
+    boundary: null as LocationBoundary | null,
+  });
+  return closest.boundary;
 }

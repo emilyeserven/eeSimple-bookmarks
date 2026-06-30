@@ -2125,8 +2125,8 @@ export type HomepageSectionImageLayout = "above" | "side";
 /** Bookmark image visibility on a listing/section: full card, image-only, or no image. */
 export type BookmarkImageVisibility = "shown" | "image-only" | "off";
 
-/** Rendering mode for a listing/section: a card grid (default), a data table, or a geographic map. */
-export type ViewMode = "cards" | "table" | "map";
+/** Rendering mode for a listing/section: a card grid (default) or a data table. */
+export type ViewMode = "cards" | "table";
 
 /** Modifier key that, held while clicking an Edit button, opens the item in the right-hand drawer. */
 export type SidebarOpenModifier = "alt" | "ctrl" | "shift" | "meta";

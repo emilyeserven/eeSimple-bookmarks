@@ -113,6 +113,19 @@ export function useBulkDeleteLocations() {
 }
 
 /**
+ * Backfill a location's map boundary on demand (one Nominatim request, cached server-side). Used by
+ * the detail-page map when a location has no stored area yet; invalidates the location queries so the
+ * polygon appears once resolved. A no-op server-side when a boundary already exists.
+ */
+export function useRefreshLocationBoundary() {
+  const invalidate = useLocationInvalidation();
+  return useMutation({
+    mutationFn: (id: string) => locationsApi.refreshBoundary(id),
+    onSuccess: invalidate,
+  });
+}
+
+/**
  * Geocoding lookup mutation: resolves a free-text place query to candidate locations
  * (name / coordinates / map URL / country / place type) via `/api/locations/lookup`. Used by the
  * create form's "Look up location" search box to prefill fields.

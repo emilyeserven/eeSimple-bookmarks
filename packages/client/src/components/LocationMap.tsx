@@ -1,12 +1,15 @@
-import type { LocationNode } from "@eesimple/types";
-import type { LatLngBoundsExpression, LatLngTuple } from "leaflet";
+import type { LocationBoundary, LocationNode } from "@eesimple/types";
+import type { Feature, Geometry } from "geojson";
+import type { LatLngTuple } from "leaflet";
+
+import { useEffect } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { Icon } from "leaflet";
+import { Icon, geoJSON, latLngBounds } from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import { RomanizedLabel } from "./RomanizedLabel";
 
@@ -27,53 +30,125 @@ const DEFAULT_MARKER = new Icon({
   shadowSize: [41, 41],
 });
 
-/** A location reduced to the fields the map needs, guaranteed to have a coordinate. */
-interface LocatedNode {
+/** A location reduced to the fields the map needs: an area outline, a point, or both. */
+interface MappedNode {
   id: string;
   name: string;
   romanizedName: string | null | undefined;
   slug: string;
-  position: LatLngTuple;
+  /** A point coordinate, when known. */
+  position: LatLngTuple | null;
+  /** A GeoJSON area outline, when known (preferred over the point for rendering). */
+  boundary: LocationBoundary | null;
 }
 
-/** Depth-first flatten of the location tree to every node carrying a usable coordinate. */
-function collectLocated(nodes: LocationNode[]): LocatedNode[] {
+/** Depth-first flatten of the location tree to every node that can be placed (point and/or area). */
+function collectMapped(nodes: LocationNode[]): MappedNode[] {
   return nodes.flatMap((node) => {
-    const here: LocatedNode[] = node.latitude != null && node.longitude != null
+    const position: LatLngTuple | null = node.latitude != null && node.longitude != null
+      ? [node.latitude, node.longitude]
+      : null;
+    const boundary = node.boundary ?? null;
+    const here: MappedNode[] = position !== null || boundary !== null
       ? [{
         id: node.id,
         name: node.name,
         romanizedName: node.romanizedName,
         slug: node.slug,
-        position: [node.latitude, node.longitude],
+        position,
+        boundary,
       }]
       : [];
-    return [...here, ...collectLocated(node.children)];
+    return [...here, ...collectMapped(node.children)];
   });
 }
 
-/** Count every node in the tree, regardless of whether it has a coordinate. */
+/** Count every node in the tree, regardless of whether it can be placed. */
 function countNodes(nodes: LocationNode[]): number {
   return nodes.reduce((sum, node) => sum + 1 + countNodes(node.children), 0);
 }
 
+/** Wrap a stored boundary geometry as a GeoJSON Feature for Leaflet's GeoJSON layer. */
+function toFeature(boundary: LocationBoundary): Feature {
+  return {
+    type: "Feature",
+    geometry: boundary as Geometry,
+    properties: {},
+  };
+}
+
+/** Imperatively fit the map to every placed node (polygon bounds + point markers) once they load. */
+function FitBounds({
+  nodes,
+}: {
+  nodes: MappedNode[];
+}) {
+  const map = useMap();
+  // Re-fit whenever the set of placed nodes changes (e.g. a boundary backfills in).
+  const signature = nodes.map(n => `${n.id}:${n.boundary ? "b" : ""}${n.position ? "p" : ""}`).join("|");
+  useEffect(() => {
+    const bounds = latLngBounds([]);
+    for (const node of nodes) {
+      if (node.boundary) bounds.extend(geoJSON(toFeature(node.boundary)).getBounds());
+      else if (node.position) bounds.extend(node.position);
+    }
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, {
+        padding: [40, 40],
+        maxZoom: 12,
+      });
+    }
+  }, [map, signature, nodes]);
+  return null;
+}
+
+/** A name link shared by marker popups and polygon popups. */
+function NodePopupLink({
+  node,
+}: {
+  node: MappedNode;
+}) {
+  return (
+    <Popup>
+      <Link
+        to="/taxonomies/locations/$locationSlug"
+        params={{
+          locationSlug: node.slug,
+        }}
+        className="
+          font-medium
+          hover:underline
+        "
+      >
+        <RomanizedLabel
+          name={node.name}
+          romanized={node.romanizedName}
+        />
+      </Link>
+    </Popup>
+  );
+}
+
 interface LocationMapProps {
-  /** The full location tree; nodes without coordinates are silently skipped. */
+  /** The location tree (or sub-tree) to plot; nodes without a point or area are silently skipped. */
   tree: LocationNode[];
+  /** Extra classes for the map container (size/height). Defaults to a tall listing-style map. */
+  className?: string;
 }
 
 /**
- * Map view for the Locations taxonomy: one pin per location that has stored coordinates. Clicking a
- * pin opens a popup with the (romanized) name linking to that location's detail page. Locations
- * without coordinates can't be placed and are omitted (with a count note).
+ * Map for the Locations taxonomy. Each location renders as its **area polygon** when a boundary is
+ * known, otherwise as a **pin** at its coordinate; both link to the location's detail page. Nodes
+ * with neither a coordinate nor a boundary are omitted (with a count note).
  */
 export function LocationMap({
   tree,
+  className = "h-[70vh] w-full rounded-lg border",
 }: LocationMapProps) {
-  const located = collectLocated(tree);
-  const omitted = countNodes(tree) - located.length;
+  const mapped = collectMapped(tree);
+  const omitted = countNodes(tree) - mapped.length;
 
-  if (located.length === 0) {
+  if (mapped.length === 0) {
     return (
       <p className="text-muted-foreground">
         No locations have coordinates yet. Add one via a location’s geocoding lookup to place it on
@@ -82,47 +157,40 @@ export function LocationMap({
     );
   }
 
-  const bounds: LatLngBoundsExpression = located.map(node => node.position);
-
   return (
     <div className="space-y-2">
       <MapContainer
-        bounds={bounds}
-        boundsOptions={{
-          padding: [50, 50],
-          maxZoom: 12,
-        }}
+        center={[20, 0]}
+        zoom={2}
         scrollWheelZoom
-        className="h-[70vh] w-full rounded-lg border"
+        className={className}
       >
         <TileLayer
           attribution="© OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {located.map(node => (
-          <Marker
-            key={node.id}
-            position={node.position}
-            icon={DEFAULT_MARKER}
-          >
-            <Popup>
-              <Link
-                to="/taxonomies/locations/$locationSlug"
-                params={{
-                  locationSlug: node.slug,
-                }}
-                className="
-                  font-medium
-                  hover:underline
-                "
+        <FitBounds nodes={mapped} />
+        {mapped.map(node => (
+          node.boundary
+            ? (
+              <GeoJSON
+                key={node.id}
+                data={toFeature(node.boundary)}
               >
-                <RomanizedLabel
-                  name={node.name}
-                  romanized={node.romanizedName}
-                />
-              </Link>
-            </Popup>
-          </Marker>
+                <NodePopupLink node={node} />
+              </GeoJSON>
+            )
+            : node.position
+              ? (
+                <Marker
+                  key={node.id}
+                  position={node.position}
+                  icon={DEFAULT_MARKER}
+                >
+                  <NodePopupLink node={node} />
+                </Marker>
+              )
+              : null
         ))}
       </MapContainer>
       {omitted > 0

@@ -12,6 +12,7 @@ import { matchLocationIdsByTitle } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarkLocations, locations, locationTags, type LocationRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
+import { refreshLocationBoundary } from "@/services/geocoding";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
@@ -45,6 +46,7 @@ function toLocation(row: LocationRow, counts?: LocationBookmarkCounts, tagIds?: 
     plusCode: row.plusCode,
     placeType: row.placeType,
     countryCode: row.countryCode,
+    boundary: row.boundary ?? null,
     sortOrder: row.sortOrder,
     parentId: row.parentId,
     createdAt:
@@ -259,6 +261,7 @@ export async function createLocation(input: CreateLocationInput): Promise<Locati
         plusCode: input.plusCode ?? null,
         placeType: input.placeType ?? null,
         countryCode: input.countryCode ?? null,
+        boundary: input.boundary ?? null,
         sortOrder: input.sortOrder ?? 0,
         parentId: input.parentId ?? null,
       })
@@ -353,6 +356,7 @@ export async function updateLocation(id: string, input: UpdateLocationInput): Pr
   if (input.plusCode !== undefined) patch.plusCode = input.plusCode;
   if (input.placeType !== undefined) patch.placeType = input.placeType;
   if (input.countryCode !== undefined) patch.countryCode = input.countryCode;
+  if (input.boundary !== undefined) patch.boundary = input.boundary;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
 
@@ -373,6 +377,33 @@ export async function updateLocation(id: string, input: UpdateLocationInput): Pr
   if (!row) return null;
   // A reparent or a tag-association change feeds condition matching; invalidate the cache.
   invalidateBookmarkCache();
+  const tagMap = await tagIdsByLocation([id]);
+  return toLocation(row, undefined, tagMap.get(id) ?? []);
+}
+
+/**
+ * Backfill a location's GeoJSON `boundary` on demand (one Nominatim request), caching it on the row.
+ * Returns the current location unchanged when a boundary is already stored or none can be resolved.
+ * Boundaries are display-only metadata, so this deliberately does NOT invalidate the bookmark cache
+ * (mirrors the Card Display Rules / scan-cache carve-out).
+ */
+export async function ensureLocationBoundary(id: string): Promise<Location | null> {
+  const [current] = await db.select().from(locations).where(eq(locations.id, id));
+  if (!current) return null;
+  let row = current;
+  if (!current.boundary) {
+    const boundary = await refreshLocationBoundary(current.name, current.latitude, current.longitude);
+    if (boundary !== null) {
+      const [updated] = await db
+        .update(locations)
+        .set({
+          boundary,
+        })
+        .where(eq(locations.id, id))
+        .returning();
+      if (updated) row = updated;
+    }
+  }
   const tagMap = await tagIdsByLocation([id]);
   return toLocation(row, undefined, tagMap.get(id) ?? []);
 }

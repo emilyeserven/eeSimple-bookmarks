@@ -4,6 +4,7 @@ import type {
   CreateLocationInput,
   Location,
   LocationAlternateName,
+  LocationBoundary,
 } from "@eesimple/types";
 
 import { useState } from "react";
@@ -76,6 +77,8 @@ export function LocationForm({
   const [plusCode, setPlusCode] = useState("");
   const [placeType, setPlaceType] = useState("");
   const [countryCode, setCountryCode] = useState("");
+  // Captured from a geocoding candidate (not user-editable); persisted so the location renders as an area.
+  const [boundary, setBoundary] = useState<LocationBoundary | null>(null);
   const [parentId, setParentId] = useState<string>(ROOT);
   const [alternateNames, setAlternateNames] = useState<LocationAlternateName[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
@@ -111,6 +114,7 @@ export function LocationForm({
       plusCode: plusCode.trim() || null,
       placeType: placeType.trim() || null,
       countryCode: countryCode.trim() || null,
+      boundary,
       tagIds,
     };
   }
@@ -168,6 +172,7 @@ export function LocationForm({
           if (candidate.mapUrl) setMapUrl(candidate.mapUrl);
           if (candidate.countryCode) setCountryCode(candidate.countryCode);
           if (candidate.placeType) setPlaceType(candidate.placeType);
+          setBoundary(candidate.boundary);
         }}
       />
 
