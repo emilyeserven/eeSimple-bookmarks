@@ -805,7 +805,13 @@ export interface IssueBookmarksInput {
  * so a replaced image busts the browser cache).
  */
 export interface BookmarkImage {
-  /** Serving URL on the API, e.g. `/api/bookmarks/<id>/image?v=<version>`. */
+  /**
+   * Stable id of this image row. A bookmark may hold several images; `id` identifies one for the
+   * per-image routes (`/api/bookmarks/<id>/images/<imageId>`). The main image also surfaces on
+   * `Bookmark.image` for back-compat.
+   */
+  id: string;
+  /** Serving URL on the API, e.g. `/api/bookmarks/<id>/images/<imageId>?v=<version>`. */
   url: string;
   /** Pixel width of the stored (already-resized) image. */
   width: number;
@@ -813,6 +819,10 @@ export interface BookmarkImage {
   height: number;
   /** How the image was obtained: a manual upload, the page's `og:image`, or a Browserless screenshot. */
   source: "upload" | "og" | "screenshot";
+  /** Whether this is the bookmark's main/primary image. Exactly one image per bookmark is main. */
+  isMain: boolean;
+  /** Display order among a bookmark's images (the main image sorts first regardless). */
+  sortOrder: number;
 }
 
 /**
@@ -909,8 +919,10 @@ export interface Bookmark {
   romanizedTitle: string | null;
   /** Optional free-form description. */
   description: string | null;
-  /** The image attached to this bookmark, or `null` when none has been set. */
+  /** The main image attached to this bookmark, or `null` when none has been set. Mirrors the `isMain` entry of `images`. */
   image: BookmarkImage | null;
+  /** All images kept on this bookmark, main first then by `sortOrder`. Empty when none have been set. */
+  images: BookmarkImage[];
   /** A Browserless-captured page screenshot, or `null` when none has been taken. Used as image fallback when `image` is null. */
   screenshot: BookmarkImage | null;
   /** Specific reason the last image auto-grab attempt failed, or `null` when not yet attempted or the last attempt succeeded. */
@@ -2296,6 +2308,22 @@ export interface CreateCardFieldTemplateInput {
 }
 
 /**
+ * A single candidate image discovered while scanning a page, before any bytes are fetched. The scan
+ * returns several of these so the Add Bookmark form can let the user pick which to keep. `url` is an
+ * absolute, public (SSRF-checked), non-blacklisted http(s) URL.
+ */
+export interface ImageCandidate {
+  /** Absolute http(s) URL of the candidate image. */
+  url: string;
+  /** Pixel width when the source advertised it (oEmbed/JSON-LD/`<img>` attrs), else `null`. */
+  width?: number | null;
+  /** Pixel height when the source advertised it, else `null`. */
+  height?: number | null;
+  /** Where the candidate came from — used only to order/label candidates, not stored on the image. */
+  source: "og" | "twitter" | "article" | "instagram" | "icon";
+}
+
+/**
  * Result of fetching metadata for a bookmark URL (`GET /api/fetch-metadata`). Always carries the
  * page title; for recognized YouTube video URLs it also carries the channel, duration, and
  * thumbnail pulled from YouTube's public oEmbed + watch page.
@@ -2316,8 +2344,10 @@ export interface FetchMetadataResult {
   durationSeconds: number | null;
   /** ISO-8601 publish date ("YYYY-MM-DD"), from the YouTube watch page or an oEmbed provider, or `null`. */
   datePosted: string | null;
-  /** A preview/thumbnail image URL (YouTube or an oEmbed provider), or `null`. */
+  /** A preview/thumbnail image URL (YouTube or an oEmbed provider), or `null`. The first of `imageCandidates` when present. */
   thumbnailUrl: string | null;
+  /** All candidate images discovered on the page (carousel/article images), public + non-blacklisted. May be empty. */
+  imageCandidates: ImageCandidate[];
   /** Author name(s) parsed from page metadata (non-YouTube only), or `null` when none were found. */
   authorNames: string[] | null;
   /**
@@ -2358,8 +2388,10 @@ export interface ScanResult {
   durationSeconds: number | null;
   /** ISO-8601 publish date ("YYYY-MM-DD") from YouTube or an oEmbed provider, or `null`. */
   datePosted: string | null;
-  /** A preview/thumbnail image URL (YouTube or an oEmbed provider), or `null`. */
+  /** A preview/thumbnail image URL (YouTube or an oEmbed provider), or `null`. The first of `imageCandidates` when present. */
   thumbnailUrl: string | null;
+  /** All candidate images discovered on the page (carousel/article images), public + non-blacklisted. May be empty. */
+  imageCandidates: ImageCandidate[];
   /** Author name(s) parsed from page metadata / oEmbed (non-YouTube), or `null`. */
   authorNames: string[] | null;
   /** An instant favicon URL for display (scraped icon or a CDN fallback), or `null`. */
@@ -2408,6 +2440,12 @@ export interface ConnectorsAppSettings {
   encryptionEnabled: boolean;
   /** Base URL of the ArchiveBox instance (e.g. `http://localhost:8000`), or `""` when unset. */
   archiveBoxEndpoint: string;
+  /**
+   * Patterns that exclude matching candidate images from a URL scan. Each entry is a case-insensitive
+   * substring, or a simple `*` glob (e.g. `*.doubleclick.net/*`). Applied to every candidate image
+   * (Instagram, oEmbed, article scrape) before it reaches the Add Bookmark picker.
+   */
+  imageUrlBlacklist: string[];
 }
 
 /** Body for `PUT /api/app-settings/connectors`. */
@@ -2423,6 +2461,8 @@ export interface UpdateConnectorsSettingsInput {
   hostedMetadataApiKey: string | null;
   /** Base URL of the ArchiveBox instance; `""` clears it. No key analog — ArchiveBox link-outs are tokenless. */
   archiveBoxEndpoint: string;
+  /** Image-URL blacklist patterns; replaces the stored list wholesale. */
+  imageUrlBlacklist: string[];
 }
 
 /** Result of probing a URL for reachability (`GET /api/check-url`). */

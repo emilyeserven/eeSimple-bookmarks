@@ -246,7 +246,7 @@ const placeTypeDisplayBody = {
 
 const connectorsBody = {
   type: "object",
-  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint"],
+  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "imageUrlBlacklist"],
   additionalProperties: false,
   properties: {
     hostedMetadataEndpoint: {
@@ -262,6 +262,13 @@ const connectorsBody = {
     archiveBoxEndpoint: {
       // ArchiveBox base URL; "" clears it. No key analog — link-outs are tokenless.
       type: "string",
+    },
+    imageUrlBlacklist: {
+      // Patterns (substring or `*` glob) that exclude matching candidate images from a URL scan.
+      type: "array",
+      items: {
+        type: "string",
+      },
     },
   },
 } as const;

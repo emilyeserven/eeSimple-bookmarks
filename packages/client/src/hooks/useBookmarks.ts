@@ -289,6 +289,68 @@ export function useDeleteBookmarkImage() {
   });
 }
 
+/** Add an image to a bookmark, keeping its other images. Quiet on success (the form toasts the save). */
+export function useAddBookmarkImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, file, main,
+    }: { id: string;
+      file: File;
+      main?: boolean; }) => bookmarksApi.addImage(id, file, main ?? false),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+    onError: (err: Error) => notifyError(describeError(err, "Could not add that image")),
+  });
+}
+
+/** Capture images chosen from a URL scan (server re-derives them from the bookmark's own URL). */
+export function useBookmarkImagesFromCandidates() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, urls, mainUrl,
+    }: { id: string;
+      urls: string[];
+      mainUrl?: string | null; }) => bookmarksApi.imagesFromCandidates(id, urls, mainUrl),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+    onError: (err: Error) => notifyError(describeError(err, "Could not save the selected images")),
+  });
+}
+
+/** Make one of a bookmark's images its main/primary image. */
+export function useSetMainBookmarkImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, imageId,
+    }: { id: string;
+      imageId: string; }) => bookmarksApi.setMainImage(id, imageId),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+    onError: (err: Error) => notifyError(describeError(err, "Could not set the main image")),
+  });
+}
+
+/** Remove one specific image of a bookmark by id. */
+export function useDeleteBookmarkImageById() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, imageId,
+    }: { id: string;
+      imageId: string; }) => bookmarksApi.deleteImageById(id, imageId),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+    onError: (err: Error) => notifyError(describeError(err, "Could not remove the image")),
+  });
+}
+
 /** Take a Browserless screenshot and store it as the bookmark's screenshot image. */
 export function useTakeBookmarkScreenshot() {
   const queryClient = useQueryClient();

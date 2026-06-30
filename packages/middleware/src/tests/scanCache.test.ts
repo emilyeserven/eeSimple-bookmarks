@@ -26,6 +26,7 @@ function scan(url: string): ScanResult {
     durationSeconds: null,
     datePosted: null,
     thumbnailUrl: null,
+    imageCandidates: [],
     authorNames: null,
     faviconUrl: null,
   };

@@ -1,9 +1,13 @@
 import { useCreateAuthor } from "../hooks/useAuthors";
 import {
+  useAddBookmarkImage,
   useAutoBookmarkImage,
+  useBookmarkImagesFromCandidates,
   useBookmarkUrlDuplicateCheck,
   useCreateBookmark,
   useDeleteBookmarkImage,
+  useDeleteBookmarkImageById,
+  useSetMainBookmarkImage,
   useUpdateBookmark,
   useUploadBookmarkImage,
 } from "../hooks/useBookmarks";
@@ -27,6 +31,10 @@ export function useBookmarkFormActions() {
     uploadImage: useUploadBookmarkImage(),
     autoImage: useAutoBookmarkImage(),
     deleteImage: useDeleteBookmarkImage(),
+    addImage: useAddBookmarkImage(),
+    imagesFromCandidates: useBookmarkImagesFromCandidates(),
+    setMainImage: useSetMainBookmarkImage(),
+    deleteImageById: useDeleteBookmarkImageById(),
     fetchTitle: useFetchTitle(),
     fetchMetadata: useFetchMetadata(),
     websiteLookup: useWebsiteLookup(),

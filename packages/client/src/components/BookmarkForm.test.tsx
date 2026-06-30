@@ -55,6 +55,7 @@ function emptyScan(url: string): ScanResult {
     durationSeconds: null,
     datePosted: null,
     thumbnailUrl: null,
+    imageCandidates: [],
     authorNames: null,
     faviconUrl: null,
   };
@@ -107,6 +108,20 @@ vi.mock("../hooks/useBookmarks", () => ({
     mutateAsync: vi.fn(),
   }),
   useDeleteBookmarkImage: () => ({
+    mutateAsync: vi.fn(),
+  }),
+  useAddBookmarkImage: () => ({
+    mutateAsync: vi.fn(async () => ({
+      id: "img",
+    })),
+  }),
+  useBookmarkImagesFromCandidates: () => ({
+    mutateAsync: vi.fn(async () => []),
+  }),
+  useSetMainBookmarkImage: () => ({
+    mutateAsync: vi.fn(),
+  }),
+  useDeleteBookmarkImageById: () => ({
     mutateAsync: vi.fn(),
   }),
   useBookmarkUrlDuplicateCheck: () => ({

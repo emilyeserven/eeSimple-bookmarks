@@ -1,6 +1,8 @@
 import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanResult, WebsiteLookup } from "@eesimple/types";
+import { getImageUrlBlacklist } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
+import { buildImageCandidates, filterCandidates } from "@/services/imageCandidates";
 import {
   checkUrl,
   duckDuckGoIconUrl,
@@ -95,6 +97,14 @@ async function buildYouTubeMetadataResult(
     }
   }
 
+  const thumbnailUrl = meta?.thumbnailUrl ?? null;
+  // A YouTube video is a single thumbnail, not a gallery — its candidate list is just that image.
+  const imageCandidates = thumbnailUrl
+    ? filterCandidates([{
+      url: thumbnailUrl,
+      source: "og",
+    }], await getImageUrlBlacklist())
+    : [];
   return {
     title,
     description: meta?.description ?? null,
@@ -109,7 +119,8 @@ async function buildYouTubeMetadataResult(
       : null,
     durationSeconds: meta?.durationSeconds ?? null,
     datePosted: meta?.datePosted ?? null,
-    thumbnailUrl: meta?.thumbnailUrl ?? null,
+    thumbnailUrl,
+    imageCandidates,
     authorNames: null,
     ...(warnings.length > 0 && {
       diagnostics: warnings,
@@ -198,6 +209,15 @@ async function buildGenericMetadataResult(
     authorNames = mergeAuthorName(authorNames, hosted.authorName);
   }
 
+  // Collect every candidate image (Instagram carousel / og / twitter / JSON-LD / article <img>),
+  // ranking the resolved oEmbed/hosted thumbnail first. SSRF- and blacklist-filtered inside.
+  const imageCandidates = await buildImageCandidates({
+    url,
+    headHtml: html,
+    primaryUrl: thumbnailUrl,
+    blacklist: await getImageUrlBlacklist(),
+  });
+
   return {
     title,
     description,
@@ -205,7 +225,9 @@ async function buildGenericMetadataResult(
     channel: null,
     durationSeconds: null,
     datePosted,
-    thumbnailUrl,
+    // Keep the single thumbnail in sync with the best candidate so existing single-image consumers work.
+    thumbnailUrl: imageCandidates[0]?.url ?? thumbnailUrl,
+    imageCandidates,
     authorNames,
   };
 }
@@ -514,6 +536,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       durationSeconds: metadata.durationSeconds,
       datePosted: metadata.datePosted,
       thumbnailUrl: metadata.thumbnailUrl,
+      imageCandidates: metadata.imageCandidates,
       authorNames: metadata.authorNames,
       // An instant icon for display via the DuckDuckGo icon service (no scrape, no object storage).
       faviconUrl: website.domain ? duckDuckGoIconUrl(website.domain) : null,

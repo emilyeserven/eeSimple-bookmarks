@@ -1,4 +1,4 @@
-import { eq, inArray, or } from "drizzle-orm";
+import { asc, desc, eq, inArray, or } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkAuthor,
@@ -80,7 +80,7 @@ interface BookmarkExtras {
   sectionsValues: BookmarkSectionsValue[];
   textValues: BookmarkTextValue[];
   fileValues: BookmarkFileValue[];
-  image: BookmarkImage | null;
+  images: BookmarkImage[];
   screenshot: BookmarkImage | null;
   relationships: BookmarkRelationship[];
 }
@@ -104,7 +104,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   sectionsValues: [],
   textValues: [],
   fileValues: [],
-  image: null,
+  images: [],
   screenshot: null,
   relationships: [],
 };
@@ -138,7 +138,8 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     textValues: extras.textValues,
     fileValues: extras.fileValues,
     relationships: extras.relationships,
-    image: extras.image,
+    image: extras.images.find(img => img.isMain) ?? extras.images[0] ?? null,
+    images: extras.images,
     screenshot: extras.screenshot,
     imageAutoGrabError: (row.imageAutoGrabError as "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null) ?? null,
     priority: row.priority,
@@ -631,18 +632,24 @@ async function fileValuesByBookmarkId(
   return grouped;
 }
 
-/** Load attached images for a set of bookmarks in a single query, keyed by bookmark id. */
-async function imagesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkImage>> {
-  const byId = new Map<string, BookmarkImage>();
+/**
+ * Load attached images for a set of bookmarks in a single query, keyed by bookmark id. Each value is
+ * the bookmark's full image list ordered main-first then by `sortOrder` (a bookmark may hold several).
+ */
+async function imagesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkImage[]>> {
+  const byId = new Map<string, BookmarkImage[]>();
   if (bookmarkIds.length === 0) return byId;
 
   const rows = await db
     .select()
     .from(bookmarkImages)
-    .where(inArray(bookmarkImages.bookmarkId, bookmarkIds));
+    .where(inArray(bookmarkImages.bookmarkId, bookmarkIds))
+    .orderBy(desc(bookmarkImages.isMain), asc(bookmarkImages.sortOrder), asc(bookmarkImages.createdAt));
 
   for (const row of rows) {
-    byId.set(row.bookmarkId, bookmarkImageFromRow(row));
+    const list = byId.get(row.bookmarkId) ?? [];
+    list.push(bookmarkImageFromRow(row));
+    byId.set(row.bookmarkId, list);
   }
   return byId;
 }
@@ -791,7 +798,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       sectionsValues: sectionsMap.get(id) ?? [],
       textValues: textMap.get(id) ?? [],
       fileValues: fileMap.get(id) ?? [],
-      image: imageMap.get(id) ?? null,
+      images: imageMap.get(id) ?? [],
       screenshot: screenshotMap.get(id) ?? null,
       relationships: relationshipsMap.get(id) ?? [],
     });

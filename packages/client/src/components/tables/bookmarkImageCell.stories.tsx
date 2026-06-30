@@ -8,10 +8,13 @@ const withImage = makeBookmark({
   id: "bm-img",
   title: "A bookmark with an image",
   image: {
+    id: "bm-img-image",
     url: "https://github.githubassets.com/favicons/favicon.png",
     width: 64,
     height: 64,
     source: "og",
+    isMain: true,
+    sortOrder: 0,
   },
 });
 

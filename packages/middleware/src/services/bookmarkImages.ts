@@ -5,39 +5,70 @@
 
 import type { BookmarkImage, BulkAutoFetchResult } from "@eesimple/types";
 import { findOEmbedProvider } from "@eesimple/types";
-import { and, eq, isNull } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { bookmarkImages, type BookmarkImageRow, bookmarkScreenshots, bookmarks } from "@/db/schema";
+import { bookmarkImages, type BookmarkImageRow, bookmarkScreenshots, type BookmarkScreenshotRow, bookmarks } from "@/db/schema";
 import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
-import { fetchOgImage } from "@/services/metadata";
+import { buildImageCandidates } from "@/services/imageCandidates";
+import { downloadImage, fetchOgImage } from "@/services/metadata";
 import { fetchOEmbedThumbnail } from "@/services/oembed";
 import { fetchYouTubeThumbnail, isYouTubeVideoUrl } from "@/services/youtube";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
-import { getActiveHostedEndpoint, getDecryptedHostedApiKey } from "@/services/appSettings";
+import { getActiveHostedEndpoint, getDecryptedHostedApiKey, getImageUrlBlacklist } from "@/services/appSettings";
 
 export type SetImageResult = BookmarkImage | "not_found" | "bad_image";
 export type ImageAutoGrabError = "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error";
 export type AutoImageResult = BookmarkImage | "not_found" | ImageAutoGrabError;
 
-/** Object-storage key for a bookmark's image. Stable per bookmark, so a replace overwrites it. */
-function objectKeyFor(bookmarkId: string): string {
-  return `bookmarks/${bookmarkId}.webp`;
+/**
+ * Object-storage key for one of a bookmark's images, scoped by the image's surrogate id so a
+ * bookmark can hold several. Legacy single-image rows keep their original `bookmarks/<id>.webp` key
+ * (the serving route reads the stored `objectKey` rather than reconstructing it, so both coexist).
+ */
+function objectKeyFor(bookmarkId: string, imageId: string): string {
+  return `bookmarks/${bookmarkId}/${imageId}.webp`;
 }
 
 /** Version token embedded in the serving URL so a replaced image busts the browser cache. */
-function imageVersion(row: BookmarkImageRow): number {
+function imageVersion(row: { createdAt: Date | string }): number {
   const created = row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt);
   return created.getTime();
+}
+
+/**
+ * A signature-insensitive key for matching candidate URLs across two separate page fetches: the
+ * origin + path, dropping the query/hash. Lets a Instagram/CDN image whose expiring token changed
+ * between the client's scan and the server's re-derive still be recognised as the same image.
+ */
+function imageMatchKey(rawUrl: string): string {
+  try {
+    const url = new URL(rawUrl);
+    return `${url.origin}${url.pathname}`;
+  }
+  catch {
+    return rawUrl;
+  }
+}
+
+/** Order a bookmark's image rows for display: the main image first, then by `sortOrder`, then age. */
+function compareImageRows(a: BookmarkImageRow, b: BookmarkImageRow): number {
+  if (a.isMain !== b.isMain) return a.isMain ? -1 : 1;
+  if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+  return imageVersion(a) - imageVersion(b);
 }
 
 /** Map a stored-image row to the shared `BookmarkImage` wire type (used by routes and hydration). */
 export function bookmarkImageFromRow(row: BookmarkImageRow): BookmarkImage {
   return {
-    url: `/api/bookmarks/${row.bookmarkId}/image?v=${imageVersion(row)}`,
+    id: row.id,
+    url: `/api/bookmarks/${row.bookmarkId}/images/${row.id}?v=${imageVersion(row)}`,
     width: row.width,
     height: row.height,
     source: row.source === "og" ? "og" : "upload",
+    isMain: row.isMain,
+    sortOrder: row.sortOrder,
   };
 }
 
@@ -46,18 +77,25 @@ function screenshotKeyFor(bookmarkId: string): string {
   return `bookmarks/${bookmarkId}-screenshot.webp`;
 }
 
-/** Map a screenshot row to the shared `BookmarkImage` wire type with the screenshot-specific URL. */
-export function bookmarkScreenshotFromRow(row: BookmarkImageRow): BookmarkImage {
+/**
+ * Map a screenshot row to the shared `BookmarkImage` wire type with the screenshot-specific URL. A
+ * bookmark has at most one screenshot, so it carries the bookmark id as its image id and is never
+ * "main" (the real image, when present, always wins).
+ */
+export function bookmarkScreenshotFromRow(row: BookmarkScreenshotRow): BookmarkImage {
   return {
+    id: row.bookmarkId,
     url: `/api/bookmarks/${row.bookmarkId}/screenshot?v=${imageVersion(row)}`,
     width: row.width,
     height: row.height,
     source: "screenshot",
+    isMain: false,
+    sortOrder: 0,
   };
 }
 
 /** Read a bookmark's stored screenshot row, or null when it has no screenshot. */
-export async function getBookmarkScreenshotRow(bookmarkId: string): Promise<BookmarkImageRow | null> {
+export async function getBookmarkScreenshotRow(bookmarkId: string): Promise<BookmarkScreenshotRow | null> {
   const [row] = await db.select().from(bookmarkScreenshots).where(
     eq(bookmarkScreenshots.bookmarkId, bookmarkId),
   );
@@ -167,15 +205,141 @@ export async function takeAndStoreScreenshot(
   return bookmarkScreenshotFromRow(row);
 }
 
-/** Read a bookmark's stored-image row, or null when it has no image. */
-export async function getBookmarkImageRow(bookmarkId: string): Promise<BookmarkImageRow | null> {
-  const [row] = await db.select().from(bookmarkImages).where(eq(bookmarkImages.bookmarkId, bookmarkId));
-  return row ?? null;
+/** All of a bookmark's image rows, ordered main-first then by `sortOrder`. Empty when it has none. */
+export async function listBookmarkImageRows(bookmarkId: string): Promise<BookmarkImageRow[]> {
+  const rows = await db
+    .select()
+    .from(bookmarkImages)
+    .where(eq(bookmarkImages.bookmarkId, bookmarkId))
+    .orderBy(desc(bookmarkImages.isMain), asc(bookmarkImages.sortOrder), asc(bookmarkImages.createdAt));
+  return rows;
 }
 
 /**
- * Process `rawBytes`, store them, and upsert the bookmark's image row. Returns the wire shape, or
- * `"not_found"` when the bookmark is gone / `"bad_image"` when the bytes aren't a decodable image.
+ * Read a bookmark's main image row (or its first image when none is flagged), or null when it has
+ * no images. Back-compat for the legacy `/image` route and the "does it already have an image?" check.
+ */
+export async function getBookmarkImageRow(bookmarkId: string): Promise<BookmarkImageRow | null> {
+  const rows = await listBookmarkImageRows(bookmarkId);
+  return rows[0] ?? null;
+}
+
+/** Read one specific image row by id (scoped to its bookmark), or null when absent. */
+export async function getBookmarkImageRowById(
+  bookmarkId: string,
+  imageId: string,
+): Promise<BookmarkImageRow | null> {
+  const [row] = await db
+    .select()
+    .from(bookmarkImages)
+    .where(and(eq(bookmarkImages.bookmarkId, bookmarkId), eq(bookmarkImages.id, imageId)));
+  return row ?? null;
+}
+
+/** Max kept images per bookmark — guards runaway storage from a large carousel. */
+export const MAX_BOOKMARK_IMAGES = 12;
+
+/**
+ * Process `rawBytes`, store the bytes under a per-image key, and insert a new image row. Returns the
+ * wire shape, `"not_found"` when the bookmark is gone, or `"bad_image"` when the bytes aren't a
+ * decodable image. The image becomes the bookmark's main when `setMain` is set or it's the first one.
+ */
+async function storeImageRow(
+  bookmarkId: string,
+  processed: { body: Buffer;
+    contentType: string;
+    width: number;
+    height: number; },
+  source: "upload" | "og",
+  opts: { isMain: boolean;
+    sortOrder: number; },
+): Promise<BookmarkImageRow> {
+  const id = randomUUID();
+  const objectKey = objectKeyFor(bookmarkId, id);
+  await putObject(objectKey, processed.body, processed.contentType);
+
+  const [row] = await db
+    .insert(bookmarkImages)
+    .values({
+      id,
+      bookmarkId,
+      objectKey,
+      contentType: processed.contentType,
+      width: processed.width,
+      height: processed.height,
+      byteSize: processed.body.byteLength,
+      source,
+      isMain: opts.isMain,
+      sortOrder: opts.sortOrder,
+      createdAt: new Date(),
+    })
+    .returning();
+  // Keep the bucket manifest in sync so the Gallery reflects the upload before any scan runs.
+  await recordManifestObject({
+    objectKey,
+    contentType: processed.contentType,
+    byteSize: processed.body.byteLength,
+    bookmarkId,
+  });
+  return row;
+}
+
+/** Delete every image object + row for a bookmark (and forget them in the manifest). */
+async function deleteAllBookmarkImages(bookmarkId: string): Promise<void> {
+  const rows = await listBookmarkImageRows(bookmarkId);
+  for (const row of rows) {
+    await deleteObject(row.objectKey);
+    await forgetManifestObject(row.objectKey);
+  }
+  if (rows.length > 0) {
+    await db.delete(bookmarkImages).where(eq(bookmarkImages.bookmarkId, bookmarkId));
+  }
+}
+
+/**
+ * Add an image to a bookmark, keeping its other images. Returns the wire shape, `"not_found"` when
+ * the bookmark is gone, `"bad_image"` for undecodable bytes, or `"too_many"` once the per-bookmark
+ * cap is reached. The new image is made main when `setMain` is set or it's the bookmark's first.
+ */
+export async function addBookmarkImage(
+  bookmarkId: string,
+  rawBytes: Buffer,
+  source: "upload" | "og",
+  opts?: { setMain?: boolean },
+): Promise<SetImageResult | "too_many"> {
+  const [bookmark] = await db.select({
+    id: bookmarks.id,
+  }).from(bookmarks).where(eq(bookmarks.id, bookmarkId));
+  if (!bookmark) return "not_found";
+
+  const existing = await listBookmarkImageRows(bookmarkId);
+  if (existing.length >= MAX_BOOKMARK_IMAGES) return "too_many";
+
+  const processed = await processImage(rawBytes);
+  if (!processed) return "bad_image";
+
+  const makeMain = opts?.setMain === true || existing.length === 0;
+  if (makeMain && existing.length > 0) {
+    await db.update(bookmarkImages).set({
+      isMain: false,
+    }).where(eq(bookmarkImages.bookmarkId, bookmarkId));
+  }
+  const nextSortOrder = existing.reduce((max, r) => Math.max(max, r.sortOrder), -1) + 1;
+  const row = await storeImageRow(bookmarkId, processed, source, {
+    isMain: makeMain,
+    sortOrder: nextSortOrder,
+  });
+  // Clear any previous auto-grab error: a new image (upload or auto) resolves the failure.
+  await db.update(bookmarks).set({
+    imageAutoGrabError: null,
+  }).where(eq(bookmarks.id, bookmarkId));
+  return bookmarkImageFromRow(row);
+}
+
+/**
+ * Replace ALL of a bookmark's images with a single main image. The back-compat path for the legacy
+ * `/image` upload route, the gallery attach, and the auto/bulk capture (which conceptually set "the"
+ * image). Returns the wire shape, `"not_found"`, or `"bad_image"`.
  */
 export async function setBookmarkImage(
   bookmarkId: string,
@@ -190,40 +354,67 @@ export async function setBookmarkImage(
   const processed = await processImage(rawBytes);
   if (!processed) return "bad_image";
 
-  const objectKey = objectKeyFor(bookmarkId);
-  await putObject(objectKey, processed.body, processed.contentType);
-
-  // Bump `createdAt` on replace too, so the serving URL's version changes and caches refresh.
-  const values = {
-    bookmarkId,
-    objectKey,
-    contentType: processed.contentType,
-    width: processed.width,
-    height: processed.height,
-    byteSize: processed.body.byteLength,
-    source,
-    createdAt: new Date(),
-  };
-  const [row] = await db
-    .insert(bookmarkImages)
-    .values(values)
-    .onConflictDoUpdate({
-      target: bookmarkImages.bookmarkId,
-      set: values,
-    })
-    .returning();
-  // Keep the bucket manifest in sync so the Gallery reflects the upload before any scan runs.
-  await recordManifestObject({
-    objectKey,
-    contentType: processed.contentType,
-    byteSize: processed.body.byteLength,
-    bookmarkId,
+  await deleteAllBookmarkImages(bookmarkId);
+  const row = await storeImageRow(bookmarkId, processed, source, {
+    isMain: true,
+    sortOrder: 0,
   });
   // Clear any previous auto-grab error: a new image (upload or auto) resolves the failure.
   await db.update(bookmarks).set({
     imageAutoGrabError: null,
   }).where(eq(bookmarks.id, bookmarkId));
   return bookmarkImageFromRow(row);
+}
+
+/**
+ * Make `imageId` the bookmark's main image (clearing the flag on its siblings). Returns the new main
+ * image's wire shape, or `"not_found"` when the bookmark has no such image.
+ */
+export async function setMainImage(
+  bookmarkId: string,
+  imageId: string,
+): Promise<BookmarkImage | "not_found"> {
+  const target = await getBookmarkImageRowById(bookmarkId, imageId);
+  if (!target) return "not_found";
+  await db.update(bookmarkImages).set({
+    isMain: false,
+  }).where(eq(bookmarkImages.bookmarkId, bookmarkId));
+  const [row] = await db
+    .update(bookmarkImages)
+    .set({
+      isMain: true,
+    })
+    .where(and(eq(bookmarkImages.bookmarkId, bookmarkId), eq(bookmarkImages.id, imageId)))
+    .returning();
+  return bookmarkImageFromRow(row);
+}
+
+/**
+ * Delete one image (object + row). When it was the main image and others remain, the next image (by
+ * display order) is promoted to main so a bookmark never loses its main while keeping images.
+ * Returns whether the image existed.
+ */
+export async function removeBookmarkImageById(
+  bookmarkId: string,
+  imageId: string,
+): Promise<boolean> {
+  const rows = await listBookmarkImageRows(bookmarkId);
+  const target = rows.find(r => r.id === imageId);
+  if (!target) return false;
+  await deleteObject(target.objectKey);
+  await db.delete(bookmarkImages).where(
+    and(eq(bookmarkImages.bookmarkId, bookmarkId), eq(bookmarkImages.id, imageId)),
+  );
+  await forgetManifestObject(target.objectKey);
+  if (target.isMain) {
+    const next = rows.filter(r => r.id !== imageId).sort(compareImageRows)[0];
+    if (next) {
+      await db.update(bookmarkImages).set({
+        isMain: true,
+      }).where(and(eq(bookmarkImages.bookmarkId, bookmarkId), eq(bookmarkImages.id, next.id)));
+    }
+  }
+  return true;
 }
 
 async function eligibleNoImageBookmarkIds(): Promise<{ id: string }[]> {
@@ -300,13 +491,56 @@ export async function bulkAutoFetchWithScreenshotFallback(
   }, onProgress);
 }
 
-/** Delete a bookmark's image (object + row). Returns whether one existed. */
+/**
+ * Capture and store images chosen from a URL scan. SSRF-safe: it re-derives the page's allowed image
+ * candidates from the bookmark's OWN stored URL (never trusting the client's URLs as fetch targets)
+ * and only stores the requested URLs that are genuinely candidates of that page. Returns the
+ * bookmark's full image list, or `"not_found"` when the bookmark is gone. Best-effort per image —
+ * an undecodable/unfetchable candidate is skipped.
+ */
+export async function storeBookmarkImagesFromCandidates(
+  bookmarkId: string,
+  requestedUrls: string[],
+  mainUrl?: string | null,
+): Promise<BookmarkImage[] | "not_found"> {
+  const [bookmark] = await db.select({
+    id: bookmarks.id,
+    url: bookmarks.url,
+  }).from(bookmarks).where(eq(bookmarks.id, bookmarkId));
+  if (!bookmark) return "not_found";
+  if (!bookmark.url) return [];
+
+  const requested = new Set(requestedUrls.map(imageMatchKey));
+  const mainKey = mainUrl != null ? imageMatchKey(mainUrl) : null;
+  const allowed = await buildImageCandidates({
+    url: bookmark.url,
+    blacklist: await getImageUrlBlacklist(),
+  });
+  // Keep the page's candidate ordering; only store URLs the client asked to keep AND that the page
+  // actually exposes. Match on origin+path (not the full URL) so a candidate whose CDN signature
+  // changed between the client's scan and this fresh re-derive (e.g. Instagram's expiring tokens)
+  // still matches — but we ALWAYS download the server's freshly-derived URL, never the client's.
+  const toStore = allowed.filter(candidate => requested.has(imageMatchKey(candidate.url)));
+
+  for (const candidate of toStore) {
+    const bytes = await downloadImage(candidate.url, bookmark.url);
+    if (!bytes) continue;
+    const result = await addBookmarkImage(bookmarkId, bytes, "og", {
+      setMain: mainKey != null && imageMatchKey(candidate.url) === mainKey,
+    });
+    // Stop once the per-bookmark cap is hit; remaining candidates are silently dropped.
+    if (result === "too_many") break;
+  }
+
+  const rows = await listBookmarkImageRows(bookmarkId);
+  return rows.map(bookmarkImageFromRow);
+}
+
+/** Delete ALL of a bookmark's images (objects + rows). Returns whether any existed. */
 export async function removeBookmarkImage(bookmarkId: string): Promise<boolean> {
-  const row = await getBookmarkImageRow(bookmarkId);
-  if (!row) return false;
-  await deleteObject(row.objectKey);
-  await db.delete(bookmarkImages).where(eq(bookmarkImages.bookmarkId, bookmarkId));
-  await forgetManifestObject(row.objectKey);
+  const rows = await listBookmarkImageRows(bookmarkId);
+  if (rows.length === 0) return false;
+  await deleteAllBookmarkImages(bookmarkId);
   return true;
 }
 

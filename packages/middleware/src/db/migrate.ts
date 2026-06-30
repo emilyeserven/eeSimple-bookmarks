@@ -832,6 +832,83 @@ const migrations: RuntimeMigration[] = [
       `);
     },
   },
+  {
+    // `bookmark_images` moved from 0..1 (PK on `bookmark_id`) to 0..N (surrogate `id` PK + `is_main` /
+    // `sort_order`). The PK swap is DESTRUCTIVE — drizzle-kit push would drop+recreate the populated
+    // table and crash this non-TTY deploy — and the NOT NULL `is_main`/`sort_order` columns prompt
+    // push too. Pre-apply everything here, idempotently, so push's subsequent diff stays additive
+    // (it only adds the new `bookmark_images_bookmark_id_idx` index, which never prompts).
+    //
+    // On a fresh DB the table doesn't exist yet (push creates it AFTER migrate), so every step is
+    // guarded with `IF EXISTS` / `to_regclass` and simply no-ops; push then builds the final shape.
+    // Each `db.execute` is a single statement (extended-protocol safe).
+    name: "migrate bookmark_images to one-to-many (id PK + is_main/sort_order)",
+    run: async (db) => {
+      // 1. Surrogate id — existing rows each get a distinct uuid from the volatile default.
+      await db.execute(sql`
+        ALTER TABLE IF EXISTS "bookmark_images" ADD COLUMN IF NOT EXISTS "id" uuid DEFAULT gen_random_uuid()
+      `);
+      // 2. The 1:N marker columns (one ALTER, two clauses = one statement). Defaults match schema.ts.
+      await db.execute(sql`
+        ALTER TABLE IF EXISTS "bookmark_images"
+          ADD COLUMN IF NOT EXISTS "is_main" boolean NOT NULL DEFAULT false,
+          ADD COLUMN IF NOT EXISTS "sort_order" integer NOT NULL DEFAULT 0
+      `);
+      // 3. Swap the PK from `bookmark_id` to `id` — only when the legacy PK is still on `bookmark_id`.
+      //    The FK and NOT NULL on `bookmark_id` are independent and survive the PK drop.
+      await db.execute(sql`
+        DO $$
+        DECLARE
+          pk_name text;
+          pk_is_bookmark_id boolean;
+        BEGIN
+          IF to_regclass('bookmark_images') IS NULL THEN
+            RETURN;
+          END IF;
+          SELECT conname INTO pk_name
+          FROM pg_constraint
+          WHERE conrelid = 'bookmark_images'::regclass AND contype = 'p'
+          LIMIT 1;
+          IF pk_name IS NULL THEN
+            RETURN;
+          END IF;
+          SELECT EXISTS (
+            SELECT 1
+            FROM pg_index i
+            JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+            WHERE i.indrelid = 'bookmark_images'::regclass AND i.indisprimary
+              AND a.attname = 'bookmark_id'
+          ) INTO pk_is_bookmark_id;
+          IF pk_is_bookmark_id THEN
+            EXECUTE 'ALTER TABLE "bookmark_images" DROP CONSTRAINT ' || quote_ident(pk_name);
+            ALTER TABLE "bookmark_images" ADD PRIMARY KEY ("id");
+          END IF;
+        END $$
+      `);
+      // 4. Backfill: mark each bookmark's oldest image as main, but ONLY when it has no main yet — so
+      //    legacy single-image rows become main and re-runs never clobber a real multi-image main.
+      await db.execute(sql`
+        DO $$ BEGIN
+          IF to_regclass('bookmark_images') IS NULL THEN
+            RETURN;
+          END IF;
+          UPDATE "bookmark_images" b
+          SET "is_main" = true
+          WHERE b."is_main" = false
+            AND NOT EXISTS (
+              SELECT 1 FROM "bookmark_images" m
+              WHERE m."bookmark_id" = b."bookmark_id" AND m."is_main" = true
+            )
+            AND b."id" = (
+              SELECT x."id" FROM "bookmark_images" x
+              WHERE x."bookmark_id" = b."bookmark_id"
+              ORDER BY x."created_at" ASC, x."id" ASC
+              LIMIT 1
+            );
+        END $$
+      `);
+    },
+  },
 ];
 
 async function main(): Promise<void> {

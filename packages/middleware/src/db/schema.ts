@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
@@ -62,15 +62,23 @@ export const bookmarks = pgTable("bookmarks", {
 ]);
 
 /**
- * `bookmark_images` — 0..1 image per bookmark. The image bytes live in object storage (Garage/S3);
- * this table holds only metadata. `bookmarkId` is the primary key, so a replace is an upsert and the
- * row cascades away with its bookmark.
+ * `bookmark_images` — 0..N images per bookmark. The image bytes live in object storage (Garage/S3);
+ * this table holds only metadata. Surrogate `id` is the primary key (a bookmark can hold several
+ * images); exactly one row per bookmark has `isMain = true` — that invariant is enforced in the
+ * service layer (a DB partial-unique can't converge under `drizzle-kit push`). Rows cascade away with
+ * their bookmark.
+ *
+ * The `id` PK swap + `isMain`/`sortOrder` columns are pre-applied idempotently in `migrate.ts` (the
+ * PK change is destructive and NOT-NULL columns prompt push), so push's diff stays additive.
  */
 export const bookmarkImages = pgTable("bookmark_images", {
-  bookmarkId: uuid("bookmark_id").primaryKey().references(() => bookmarks.id, {
+  id: uuid("id").primaryKey().defaultRandom(),
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
     onDelete: "cascade",
   }),
-  // Object-storage key the bytes are stored under, e.g. "bookmarks/<id>.webp".
+  // Object-storage key the bytes are stored under, e.g. "bookmarks/<bookmarkId>/<imageId>.webp".
+  // Legacy single-image rows keep their original "bookmarks/<id>.webp" key; the serving route reads
+  // this column rather than reconstructing it, so the two schemes coexist.
   objectKey: text("object_key").notNull(),
   // Always "image/webp" after the resize/encode pipeline.
   contentType: text("content_type").notNull(),
@@ -79,10 +87,16 @@ export const bookmarkImages = pgTable("bookmark_images", {
   byteSize: integer("byte_size").notNull(),
   // "upload" | "og" — kept as text so new sources can be added without a migration.
   source: text("source").notNull(),
+  // Exactly one row per bookmark is the main/primary image (service-enforced). Pre-applied in migrate.ts.
+  isMain: boolean("is_main").notNull().default(false),
+  // Display order among a bookmark's images (the main image sorts first regardless). Pre-applied in migrate.ts.
+  sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-});
+}, table => [
+  index("bookmark_images_bookmark_id_idx").on(table.bookmarkId),
+]);
 
 /**
  * `bookmark_screenshots` — 0..1 Browserless-captured screenshot per bookmark. Mirrors
@@ -674,7 +688,7 @@ export const bookmarksRelations = relations(bookmarks, ({
   bookmarkTags: many(bookmarkTags),
   bookmarkLocations: many(bookmarkLocations),
   bookmarkAuthors: many(bookmarkAuthors),
-  image: one(bookmarkImages),
+  images: many(bookmarkImages),
   relationsA: many(bookmarkRelationships, {
     relationName: "bookmark_relation_a",
   }),
@@ -1240,6 +1254,10 @@ export const appSettings = pgTable("app_settings", {
   // ArchiveBox base URL configured from Settings → Connectors. Nullable = push-safe additive;
   // ARCHIVEBOX_ENDPOINT env var is used as fallback when null.
   archiveBoxEndpoint: text("archive_box_endpoint"),
+  // Image-URL blacklist (Settings → Connectors): patterns that exclude matching candidate images
+  // from a URL scan. Display/scan-only, never touches the bookmark cache. Nullable = push-safe
+  // additive; the service reads `?? []`.
+  imageUrlBlacklist: jsonb("image_url_blacklist").$type<string[]>(),
   // Per-Nominatim-placeType map display config (Settings → Locations + the map "Levels" overlay):
   // a sparse Record<placeTypeKey, { displayMode: "pin"|"area", visible, sortOrder }>. Display-only,
   // so it never touches the bookmark cache. Nullable = push-safe additive; the service reads `?? {}`.
@@ -1842,6 +1860,7 @@ export type BookmarkRow = typeof bookmarks.$inferSelect;
 export type NewBookmarkRow = typeof bookmarks.$inferInsert;
 export type BookmarkImageRow = typeof bookmarkImages.$inferSelect;
 export type NewBookmarkImageRow = typeof bookmarkImages.$inferInsert;
+export type BookmarkScreenshotRow = typeof bookmarkScreenshots.$inferSelect;
 export type MediaObjectRow = typeof mediaObjects.$inferSelect;
 export type NewMediaObjectRow = typeof mediaObjects.$inferInsert;
 export type WebsiteRow = typeof websites.$inferSelect;

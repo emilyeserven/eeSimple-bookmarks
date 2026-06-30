@@ -176,7 +176,8 @@ export function BookmarkForm({
           onAddPublisherOpenChange={c.setAddPublisherOpen}
           sourceDefaults={c.sourceDefaults}
           imageFieldKey={c.imageFieldKey}
-          existingImageUrl={c.bookmark?.image?.url ?? null}
+          existingImages={c.bookmark?.images ?? []}
+          imageCandidates={c.imageCandidates}
           defaultAuto={!c.isEdit && c.autoFetchImage}
           autoGrabError={c.bookmark?.imageAutoGrabError ?? null}
           onImageIntentChange={(intent) => {

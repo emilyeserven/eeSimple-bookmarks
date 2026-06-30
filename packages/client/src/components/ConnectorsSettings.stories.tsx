@@ -33,6 +33,7 @@ const connectorsSettings: ConnectorsAppSettings = {
   hostedMetadataApiKeySet: false,
   encryptionEnabled: true,
   archiveBoxEndpoint: "",
+  imageUrlBlacklist: [],
 };
 
 const meta = {

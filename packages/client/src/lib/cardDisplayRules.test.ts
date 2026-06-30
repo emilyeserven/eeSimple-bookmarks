@@ -16,6 +16,7 @@ function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     romanizedTitle: null,
     description: null,
     image: null,
+    images: [],
     screenshot: null,
     imageAutoGrabError: null,
     categoryId: "cat-1",

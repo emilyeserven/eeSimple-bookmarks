@@ -1,43 +1,69 @@
+import type { ImageIntent } from "./bookmarkImageIntent";
 import type { Bookmark } from "@eesimple/types";
 
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
 import { makeBookmark } from "../test-utils/factories";
 
-const uploadMutateAsync = vi.fn(async () => undefined);
 const autoMutateAsync = vi.fn(async () => undefined);
-const deleteMutateAsync = vi.fn(async () => undefined);
+const addMutateAsync = vi.fn(async () => ({
+  id: "new-img",
+}));
+const fromCandidatesMutateAsync = vi.fn(async () => []);
+const setMainMutateAsync = vi.fn(async () => undefined);
+const deleteByIdMutateAsync = vi.fn(async () => undefined);
 const takeScreenshotMutateAsync = vi.fn(async () => undefined);
 const deleteScreenshotMutateAsync = vi.fn(async () => undefined);
+const scanMock = vi.fn(async () => ({
+  imageCandidates: [{
+    url: "https://e.com/a.jpg",
+    source: "article",
+  }],
+}));
+
+const pendingFalse = {
+  isPending: false,
+  error: null,
+};
 
 vi.mock("../hooks/useBookmarks", () => ({
-  useUploadBookmarkImage: () => ({
-    mutateAsync: uploadMutateAsync,
-    isPending: false,
-    error: null,
-  }),
   useAutoBookmarkImage: () => ({
     mutateAsync: autoMutateAsync,
-    isPending: false,
-    error: null,
+    ...pendingFalse,
   }),
-  useDeleteBookmarkImage: () => ({
-    mutateAsync: deleteMutateAsync,
-    isPending: false,
-    error: null,
+  useAddBookmarkImage: () => ({
+    mutateAsync: addMutateAsync,
+    ...pendingFalse,
+  }),
+  useBookmarkImagesFromCandidates: () => ({
+    mutateAsync: fromCandidatesMutateAsync,
+    ...pendingFalse,
+  }),
+  useSetMainBookmarkImage: () => ({
+    mutateAsync: setMainMutateAsync,
+    ...pendingFalse,
+  }),
+  useDeleteBookmarkImageById: () => ({
+    mutateAsync: deleteByIdMutateAsync,
+    ...pendingFalse,
   }),
   useTakeBookmarkScreenshot: () => ({
     mutateAsync: takeScreenshotMutateAsync,
-    isPending: false,
-    error: null,
+    ...pendingFalse,
   }),
   useDeleteBookmarkScreenshot: () => ({
     mutateAsync: deleteScreenshotMutateAsync,
-    isPending: false,
-    error: null,
+    ...pendingFalse,
   }),
+}));
+
+vi.mock("../lib/api/metadata", () => ({
+  metadataApi: {
+    scan: (...args: unknown[]) => scanMock(...(args as [])),
+  },
 }));
 
 vi.mock("../lib/notifications", () => ({
@@ -53,18 +79,14 @@ const fakeEvent = {
   preventDefault: () => undefined,
 } as React.FormEvent;
 
-async function submitWith(intent: { file?: File | null;
-  auto?: boolean;
-  remove?: boolean; }) {
+async function submitWith(over: Partial<ImageIntent>) {
   const {
     result,
   } = renderHook(() => useBookmarkImageEditForm(bookmark));
   act(() => {
     result.current.onImageChange({
-      file: null,
-      auto: false,
-      remove: false,
-      ...intent,
+      ...EMPTY_IMAGE_INTENT,
+      ...over,
     });
   });
   await act(async () => {
@@ -82,22 +104,47 @@ describe("useBookmarkImageEditForm", () => {
     vi.clearAllMocks();
   });
 
-  it("uploads a staged file on submit", async () => {
+  it("adds a staged upload on submit, marking it main", async () => {
     const file = new File(["x"], "pic.png", {
       type: "image/png",
     });
     await submitWith({
-      file,
+      uploads: [file],
+      mainSelection: {
+        kind: "upload",
+        index: 0,
+      },
     });
-    expect(uploadMutateAsync).toHaveBeenCalledWith({
+    expect(addMutateAsync).toHaveBeenCalledWith({
       id: bookmark.id,
       file,
+      main: true,
     });
     expect(autoMutateAsync).not.toHaveBeenCalled();
-    expect(deleteMutateAsync).not.toHaveBeenCalled();
   });
 
-  it("auto-fetches the page image when the auto intent is set", async () => {
+  it("captures kept candidates on submit", async () => {
+    await submitWith({
+      keepCandidateUrls: ["https://e.com/a.jpg"],
+    });
+    expect(fromCandidatesMutateAsync).toHaveBeenCalledWith({
+      id: bookmark.id,
+      urls: ["https://e.com/a.jpg"],
+      mainUrl: null,
+    });
+  });
+
+  it("removes a staged existing image on submit", async () => {
+    await submitWith({
+      removeImageIds: ["old-1"],
+    });
+    expect(deleteByIdMutateAsync).toHaveBeenCalledWith({
+      id: bookmark.id,
+      imageId: "old-1",
+    });
+  });
+
+  it("auto-fetches the page image when the auto fallback is set and nothing else is chosen", async () => {
     await submitWith({
       auto: true,
     });
@@ -105,35 +152,28 @@ describe("useBookmarkImageEditForm", () => {
       id: bookmark.id,
       sourceUrl: bookmark.url,
     });
-    expect(uploadMutateAsync).not.toHaveBeenCalled();
-  });
-
-  it("deletes the image when the remove intent is set", async () => {
-    await submitWith({
-      remove: true,
-    });
-    expect(deleteMutateAsync).toHaveBeenCalledWith(bookmark.id);
-  });
-
-  it("file intent wins over auto and remove when several are set", async () => {
-    const file = new File(["x"], "pic.png", {
-      type: "image/png",
-    });
-    await submitWith({
-      file,
-      auto: true,
-      remove: true,
-    });
-    expect(uploadMutateAsync).toHaveBeenCalledTimes(1);
-    expect(autoMutateAsync).not.toHaveBeenCalled();
-    expect(deleteMutateAsync).not.toHaveBeenCalled();
   });
 
   it("calls no image mutation when nothing is staged", async () => {
     await submitWith({});
-    expect(uploadMutateAsync).not.toHaveBeenCalled();
+    expect(addMutateAsync).not.toHaveBeenCalled();
     expect(autoMutateAsync).not.toHaveBeenCalled();
-    expect(deleteMutateAsync).not.toHaveBeenCalled();
+    expect(fromCandidatesMutateAsync).not.toHaveBeenCalled();
+    expect(deleteByIdMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("scans the page for candidates on find-images", async () => {
+    const {
+      result,
+    } = renderHook(() => useBookmarkImageEditForm(bookmark));
+    await act(async () => {
+      result.current.onFindImages();
+    });
+    expect(scanMock).toHaveBeenCalled();
+    expect(result.current.candidates).toEqual([{
+      url: "https://e.com/a.jpg",
+      source: "article",
+    }]);
   });
 
   it("takes a screenshot with the selected delay, and remove sends no delay", async () => {

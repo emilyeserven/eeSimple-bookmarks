@@ -249,9 +249,8 @@ export function computeAutofill(input: AutofillInput, rules: AutofillRule[]): Au
 export function initialImageIntent(autoFetchImage: boolean): ImageIntent {
   return autoFetchImage
     ? {
-      file: null,
+      ...EMPTY_IMAGE_INTENT,
       auto: true,
-      remove: false,
     }
     : EMPTY_IMAGE_INTENT;
 }

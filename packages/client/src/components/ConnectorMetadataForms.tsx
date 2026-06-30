@@ -3,12 +3,13 @@ import type { CheckUrlResult } from "@eesimple/types";
 import { useEffect, useState } from "react";
 
 import { useMutation } from "@tanstack/react-query";
-import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Plus, X, XCircle } from "lucide-react";
 
 import { useConnectorsSettings, useUpdateConnectorsSettings } from "../hooks/useAppSettings";
 import { metadataApi } from "../lib/api/metadata";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -113,8 +114,9 @@ export function HostedMetadataForm() {
         hostedMetadataProvider: provider,
         // null = server preserves the existing key; only send the value when the user typed.
         hostedMetadataApiKey: field === "apiKey" ? apiKey : null,
-        // The connectors PUT body requires every field; preserve the saved ArchiveBox URL.
+        // The connectors PUT body requires every field; preserve the saved ArchiveBox URL + blacklist.
         archiveBoxEndpoint: data.archiveBoxEndpoint,
+        imageUrlBlacklist: data.imageUrlBlacklist,
       },
       {
         onSuccess: () => {
@@ -275,6 +277,7 @@ export function ArchiveBoxForm() {
         hostedMetadataProvider: data.hostedMetadataProvider,
         hostedMetadataApiKey: null,
         archiveBoxEndpoint: endpoint,
+        imageUrlBlacklist: data.imageUrlBlacklist,
       },
       {
         onSuccess: () => notifyFieldSaved("ArchiveBox URL"),
@@ -350,6 +353,124 @@ export function ArchiveBoxForm() {
           </Button>
           <CheckConnectionResult result={checkResult} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Editor for the image-URL blacklist: patterns that exclude matching candidate images from a URL
+ * scan (e.g. ad/CDN hosts). Each add/remove persists the whole list via the connectors settings with
+ * a named toast. The connectors PUT body requires every field, so the other connector values are
+ * echoed from the loaded settings (API key left unchanged).
+ */
+export function ImageBlacklistForm() {
+  const {
+    data,
+  } = useConnectorsSettings();
+  const update = useUpdateConnectorsSettings();
+
+  const [draft, setDraft] = useState("");
+
+  function persist(patterns: string[]): void {
+    if (!data) return;
+    update.mutate(
+      {
+        hostedMetadataEndpoint: data.hostedMetadataEndpoint,
+        hostedMetadataProvider: data.hostedMetadataProvider,
+        hostedMetadataApiKey: null,
+        archiveBoxEndpoint: data.archiveBoxEndpoint,
+        imageUrlBlacklist: patterns,
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Image blacklist"),
+        onError: (err: Error) => notifyFieldSaveError("Image blacklist", err.message),
+      },
+    );
+  }
+
+  function addPattern(): void {
+    const value = draft.trim();
+    if (!value || !data) return;
+    if (data.imageUrlBlacklist.includes(value)) {
+      setDraft("");
+      return;
+    }
+    persist([...data.imageUrlBlacklist, value]);
+    setDraft("");
+  }
+
+  function removePattern(pattern: string): void {
+    if (!data) return;
+    persist(data.imageUrlBlacklist.filter(p => p !== pattern));
+  }
+
+  const patterns = data?.imageUrlBlacklist ?? [];
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        When scanning a URL for images, any candidate whose URL matches one of these patterns is
+        dropped before it reaches the Add Bookmark picker. A pattern is a case-insensitive substring
+        (e.g.
+        {" "}
+        <code>doubleclick.net</code>
+        ) or a
+        {" "}
+        <code>*</code>
+        {" "}
+        glob (e.g.
+        {" "}
+        <code>*/ads/*</code>
+        ).
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {patterns.length === 0
+          ? <p className="text-xs text-muted-foreground">No patterns yet.</p>
+          : patterns.map(pattern => (
+            <Badge
+              key={pattern}
+              variant="secondary"
+              className="gap-1"
+            >
+              <code>{pattern}</code>
+              <button
+                type="button"
+                aria-label={`Remove ${pattern}`}
+                className="
+                  rounded-sm
+                  hover:text-destructive
+                "
+                onClick={() => removePattern(pattern)}
+              >
+                <X className="size-3" />
+              </button>
+            </Badge>
+          ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <Input
+          aria-label="Image URL blacklist pattern"
+          placeholder="e.g. doubleclick.net or */ads/*"
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addPattern();
+            }
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={!draft.trim()}
+          onClick={addPattern}
+        >
+          <Plus className="size-4" />
+          Add
+        </Button>
       </div>
     </div>
   );

@@ -100,6 +100,27 @@ export const bookmarksApi = {
     request<undefined>(`/bookmarks/${id}/image`, {
       method: "DELETE",
     }),
+  // Multi-image: add one image (keeping the others), capture kept scan candidates, set the main, delete one.
+  addImage: (id: string, file: File, main = false) =>
+    uploadImageFile<BookmarkImage>(`/bookmarks/${id}/images${main ? "?main=true" : ""}`, file),
+  imagesFromCandidates: (id: string, urls: string[], mainUrl?: string | null) =>
+    request<BookmarkImage[]>(`/bookmarks/${id}/images/from-candidates`, {
+      method: "POST",
+      body: JSON.stringify({
+        urls,
+        ...(mainUrl != null && {
+          mainUrl,
+        }),
+      }),
+    }),
+  setMainImage: (id: string, imageId: string) =>
+    request<BookmarkImage>(`/bookmarks/${id}/images/${imageId}/main`, {
+      method: "POST",
+    }),
+  deleteImageById: (id: string, imageId: string) =>
+    request<undefined>(`/bookmarks/${id}/images/${imageId}`, {
+      method: "DELETE",
+    }),
   takeScreenshot: (id: string, delayMs?: number) =>
     request<BookmarkImage>(`/bookmarks/${id}/screenshot`, {
       method: "POST",

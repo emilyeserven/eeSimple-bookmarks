@@ -1,12 +1,17 @@
 import type { FastifyInstance } from "fastify";
 import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
 import {
+  addBookmarkImage,
   fetchAndStoreOgImage,
   getBookmarkImageRow,
+  getBookmarkImageRowById,
   getBookmarkScreenshotRow,
   removeBookmarkImage,
+  removeBookmarkImageById,
   removeBookmarkScreenshot,
   setBookmarkImage,
+  setMainImage,
+  storeBookmarkImagesFromCandidates,
   takeAndStoreScreenshot,
 } from "@/services/bookmarkImages";
 import {
@@ -55,6 +60,21 @@ const propertyFileParams = {
       format: "uuid",
     },
     propertyId: {
+      type: "string",
+      format: "uuid",
+    },
+  },
+} as const;
+
+const bookmarkImageParams = {
+  type: "object",
+  required: ["id", "imageId"],
+  properties: {
+    id: {
+      type: "string",
+      format: "uuid",
+    },
+    imageId: {
       type: "string",
       format: "uuid",
     },
@@ -773,6 +793,162 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
     return reply.code(204).send();
   });
 
+  // Add an image to a bookmark (multipart), keeping its other images. The first image (or one sent
+  // with `?main=1`) becomes the main image.
+  app.post("/api/bookmarks/:id/images", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+      querystring: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          main: {
+            type: "boolean",
+          },
+        },
+      },
+      consumes: ["multipart/form-data"],
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const {
+      main,
+    } = req.query as { main?: boolean };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    let bytes: Buffer;
+    try {
+      const file = await req.file();
+      if (!file) {
+        return reply.code(400).send({
+          message: "No file uploaded",
+        });
+      }
+      bytes = await file.toBuffer();
+    }
+    catch (err) {
+      if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
+        return reply.code(413).send({
+          message: "Image is too large",
+        });
+      }
+      throw err;
+    }
+    const result = await addBookmarkImage(id, bytes, "upload", {
+      setMain: main === true,
+    });
+    if (result === "not_found") {
+      return reply.code(404).send({
+        message: "Bookmark not found",
+      });
+    }
+    if (result === "too_many") {
+      return reply.code(409).send({
+        message: "This bookmark already has the maximum number of images",
+      });
+    }
+    if (result === "bad_image") {
+      return reply.code(415).send({
+        message: "Unsupported or invalid image",
+      });
+    }
+    return reply.code(201).send(result);
+  });
+
+  // Capture images chosen from a URL scan. SSRF-safe: the server re-derives the page's allowed
+  // candidates from the bookmark's own stored URL and only stores the requested ones.
+  app.post("/api/bookmarks/:id/images/from-candidates", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+      body: {
+        type: "object",
+        required: ["urls"],
+        additionalProperties: false,
+        properties: {
+          urls: {
+            type: "array",
+            items: {
+              type: "string",
+              format: "uri",
+            },
+          },
+          mainUrl: {
+            type: "string",
+            format: "uri",
+            nullable: true,
+          },
+        },
+      } as const,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const {
+      urls, mainUrl,
+    } = req.body as { urls: string[];
+      mainUrl?: string | null; };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    const result = await storeBookmarkImagesFromCandidates(id, urls, mainUrl ?? null);
+    if (result === "not_found") {
+      return reply.code(404).send({
+        message: "Bookmark not found",
+      });
+    }
+    return reply.code(201).send(result);
+  });
+
+  // Make one of a bookmark's images its main/primary image.
+  app.post("/api/bookmarks/:id/images/:imageId/main", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkImageParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id, imageId,
+    } = req.params as { id: string;
+      imageId: string; };
+    const result = await setMainImage(id, imageId);
+    if (result === "not_found") {
+      return reply.code(404).send({
+        message: "Image not found",
+      });
+    }
+    return reply.code(200).send(result);
+  });
+
+  // Remove one of a bookmark's images.
+  app.delete("/api/bookmarks/:id/images/:imageId", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkImageParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id, imageId,
+    } = req.params as { id: string;
+      imageId: string; };
+    const removed = await removeBookmarkImageById(id, imageId);
+    if (!removed) {
+      return reply.code(404).send({
+        message: "No image to delete",
+      });
+    }
+    return reply.code(204).send();
+  });
+
   // Take an on-demand Browserless screenshot and store it.
   app.post("/api/bookmarks/:id/screenshot", {
     schema: {
@@ -901,6 +1077,34 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     const row = await getBookmarkImageRow(id);
+    if (!row) {
+      return reply.code(404).send({
+        message: "No image",
+      });
+    }
+    const object = await getObjectStream(row.objectKey);
+    if (!object) {
+      return reply.code(404).send({
+        message: "No image",
+      });
+    }
+    reply.header("Content-Type", row.contentType);
+    reply.header("Cache-Control", "public, max-age=31536000, immutable");
+    return reply.send(object.body);
+  });
+
+  // Serve one specific image of a bookmark by id. Same immutable `?v=` caching as `/image`.
+  app.get("/api/bookmarks/:id/images/:imageId", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkImageParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id, imageId,
+    } = req.params as { id: string;
+      imageId: string; };
+    const row = await getBookmarkImageRowById(id, imageId);
     if (!row) {
       return reply.code(404).send({
         message: "No image",

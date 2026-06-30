@@ -82,7 +82,8 @@ export const Default: Story = {
           addPublisherOpen={false}
           onAddPublisherOpenChange={() => {}}
           imageFieldKey={0}
-          existingImageUrl={null}
+          existingImages={[]}
+          imageCandidates={[]}
           defaultAuto={false}
           autoGrabError={null}
           onImageIntentChange={() => {}}
@@ -117,7 +118,8 @@ export const WithCategorySelected: Story = {
           addPublisherOpen={false}
           onAddPublisherOpenChange={() => {}}
           imageFieldKey={0}
-          existingImageUrl={null}
+          existingImages={[]}
+          imageCandidates={[]}
           defaultAuto={false}
           autoGrabError={null}
           onImageIntentChange={() => {}}

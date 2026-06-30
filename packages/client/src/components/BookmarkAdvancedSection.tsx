@@ -5,9 +5,11 @@ import type {
   Author,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
+  BookmarkImage,
   BookmarkNumberValue,
   Category,
   CustomProperty,
+  ImageCandidate,
   MediaTypeNode,
   Publisher,
   TagNode,
@@ -20,7 +22,7 @@ import { BookmarkAdvancedDescriptionTagsField } from "./BookmarkAdvancedDescript
 import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
-import { BookmarkImageField } from "./BookmarkImageField";
+import { BookmarkImagePicker } from "./BookmarkImagePicker";
 import { MultiCombobox } from "./MultiCombobox";
 
 import {
@@ -75,7 +77,8 @@ interface BookmarkAdvancedSectionProps {
   onAddPublisherOpenChange: (open: boolean) => void;
   /** Remount key for the image field so a form reset clears it. */
   imageFieldKey: number;
-  existingImageUrl: string | null;
+  existingImages: BookmarkImage[];
+  imageCandidates: ImageCandidate[];
   defaultAuto: boolean;
   autoGrabError: string | null;
   onImageIntentChange: (intent: ImageIntent) => void;
@@ -176,9 +179,10 @@ export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
 
         <form.Subscribe selector={state => state.values.url}>
           {url => (
-            <BookmarkImageField
+            <BookmarkImagePicker
               key={props.imageFieldKey}
-              existingImageUrl={props.existingImageUrl}
+              existingImages={props.existingImages}
+              candidates={props.imageCandidates}
               pageUrl={url}
               defaultAuto={props.defaultAuto}
               autoGrabError={props.autoGrabError}
