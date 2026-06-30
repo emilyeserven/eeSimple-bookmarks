@@ -77,18 +77,6 @@ export function useSidebarSettings() {
     });
   }
 
-  function setManagementItemMode(key: string, mode: "visible" | "hidden"): void {
-    updateSidebar.mutate({
-      ...sidebar,
-      hiddenManagementItems: mode === "hidden"
-        ? [...sidebar.hiddenManagementItems.filter(x => x !== key), key]
-        : sidebar.hiddenManagementItems.filter(x => x !== key),
-    }, {
-      onSuccess: () => notifySuccess("Sidebar updated"),
-      onError: error => notifyError(error.message),
-    });
-  }
-
   const toggleSidebarGroup = (group: string) => toggleSidebarKey("hiddenSidebarGroups", group);
 
   return {
@@ -96,7 +84,6 @@ export function useSidebarSettings() {
     setCategoryMode,
     setTaxonomyItemMode,
     setCustomizationItemMode,
-    setManagementItemMode,
     toggleSidebarGroup,
   };
 }

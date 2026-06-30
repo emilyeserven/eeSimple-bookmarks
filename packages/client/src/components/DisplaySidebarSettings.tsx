@@ -2,10 +2,29 @@ import type { ReactNode } from "react";
 
 import { Fragment } from "react";
 
+import {
+  Building2,
+  Clapperboard,
+  FileInput,
+  FolderOpen,
+  Globe,
+  LayoutGrid,
+  Layers,
+  ListFilter,
+  Mail,
+  MapPin,
+  MonitorPlay,
+  Share2,
+  SlidersHorizontal,
+  Tags,
+  UserRound,
+  Wand2,
+} from "lucide-react";
+
 import { PinnedItemsCard } from "./PinnedItemsCard";
 import { SidebarCategoryVisibilityList } from "./SidebarCategoryVisibilityList";
 import { SidebarExternalLinksSettings } from "./SidebarExternalLinksSettings";
-import { SidebarItemsCard, SidebarItemsMatrix } from "./SidebarItemsCard";
+import { SidebarItemsMatrix } from "./SidebarItemsCard";
 import { useSidebarSettings } from "../hooks/useSidebarSettings";
 
 import {
@@ -37,28 +56,49 @@ function SidebarSettingsSection({
 
 const TAXONOMY_ITEMS = [
   {
+    key: "categories",
+    label: "Categories",
+    icon: FolderOpen,
+  },
+  {
     key: "tags",
     label: "Tags",
+    icon: Tags,
   },
   {
     key: "websites",
     label: "Websites",
+    icon: Globe,
   },
   {
     key: "media-types",
     label: "Media Types",
+    icon: Clapperboard,
+  },
+  {
+    key: "locations",
+    label: "Locations",
+    icon: MapPin,
   },
   {
     key: "youtube-channels",
     label: "YouTube Channels",
+    icon: MonitorPlay,
+  },
+  {
+    key: "newsletters",
+    label: "Imports",
+    icon: Mail,
   },
   {
     key: "authors",
     label: "Authors",
+    icon: UserRound,
   },
   {
     key: "publishers",
     label: "Publishers",
+    icon: Building2,
   },
 ] as const;
 
@@ -66,37 +106,37 @@ const CUSTOMIZATION_ITEMS = [
   {
     key: "custom-properties",
     label: "Custom Properties",
+    icon: SlidersHorizontal,
   },
   {
     key: "property-groups",
     label: "Property Groups",
+    icon: Layers,
   },
   {
     key: "relationship-types",
     label: "Relationship Types",
+    icon: Share2,
   },
   {
     key: "autofill",
     label: "Autofill Rules",
+    icon: Wand2,
   },
   {
     key: "card-display-rules",
     label: "Card Display Rules",
+    icon: LayoutGrid,
   },
   {
     key: "import-rules",
     label: "Import Rules",
-  },
-] as const;
-
-const MANAGEMENT_ITEMS = [
-  {
-    key: "categories",
-    label: "Categories",
+    icon: FileInput,
   },
   {
-    key: "tags",
-    label: "Tags",
+    key: "saved-filters",
+    label: "Saved Filters",
+    icon: ListFilter,
   },
 ] as const;
 
@@ -114,10 +154,6 @@ const SIDEBAR_GROUPS = [
     label: "Customization",
   },
   {
-    key: "management",
-    label: "Management",
-  },
-  {
     key: "action",
     label: "Action",
   },
@@ -130,7 +166,6 @@ export function DisplaySidebarSettings() {
     setCategoryMode,
     setTaxonomyItemMode,
     setCustomizationItemMode,
-    setManagementItemMode,
     toggleSidebarGroup,
   } = useSidebarSettings();
 
@@ -141,7 +176,6 @@ export function DisplaySidebarSettings() {
     seeMoreTaxonomyItems,
     hiddenCustomizationItems,
     seeMoreCustomizationItems,
-    hiddenManagementItems,
     hiddenSidebarGroups,
   } = sidebar;
 
@@ -234,15 +268,6 @@ export function DisplaySidebarSettings() {
           </Card>
         )}
 
-        {!hiddenSidebarGroups.includes("management") && (
-          <SidebarItemsCard
-            title="Management"
-            description="Choose which management pages appear in the left sidebar."
-            items={MANAGEMENT_ITEMS}
-            hiddenItems={hiddenManagementItems}
-            onSetMode={(key, mode) => setManagementItemMode(key, mode === "hidden" ? "hidden" : "visible")}
-          />
-        )}
       </div>
 
       <SidebarExternalLinksSettings />
