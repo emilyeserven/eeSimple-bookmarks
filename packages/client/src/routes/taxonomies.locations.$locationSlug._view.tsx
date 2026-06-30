@@ -1,5 +1,6 @@
 import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteLocation, useLocationBySlug } from "../hooks/useLocations";
 
@@ -74,7 +75,17 @@ function LocationViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Location" : (location?.name ?? "Location not found")}
+              {isLoading
+                ? "Location"
+                : location
+                  ? (
+                    <RomanizedLabel
+                      name={location.name}
+                      romanized={location.romanizedName}
+                      stacked
+                    />
+                  )
+                  : "Location not found"}
             </h1>
             {location
               ? (
