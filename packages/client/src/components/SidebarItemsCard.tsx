@@ -1,9 +1,13 @@
+import type React from "react";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export interface SidebarToggleItem {
   key: string;
   label: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon?: React.ComponentType<any>;
 }
 
 type SidebarItemMode = "visible" | "see-more" | "hidden";
@@ -44,7 +48,16 @@ export function SidebarItemsMatrix({
           key={item.key}
           className="flex items-center justify-between gap-2"
         >
-          <span className="truncate text-sm">{item.label}</span>
+          <span className="flex min-w-0 items-center gap-1.5 truncate text-sm">
+            {item.icon
+              ? (
+                <item.icon
+                  className="size-3.5 shrink-0 text-muted-foreground"
+                />
+              )
+              : null}
+            {item.label}
+          </span>
           <ToggleGroup
             type="single"
             size="sm"

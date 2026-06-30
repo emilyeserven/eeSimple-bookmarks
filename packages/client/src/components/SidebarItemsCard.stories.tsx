@@ -2,24 +2,35 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { useState } from "react";
 
+import {
+  Clapperboard,
+  Globe,
+  MonitorPlay,
+  Tags,
+} from "lucide-react";
+
 import { SidebarItemsCard } from "./SidebarItemsCard";
 
 const items = [
   {
     key: "tags",
     label: "Tags",
+    icon: Tags,
   },
   {
     key: "websites",
     label: "Websites",
+    icon: Globe,
   },
   {
     key: "media-types",
     label: "Media Types",
+    icon: Clapperboard,
   },
   {
     key: "youtube-channels",
     label: "YouTube Channels",
+    icon: MonitorPlay,
   },
 ];
 
@@ -44,11 +55,6 @@ export const ThreeState: Story = {
   render: () => <ThreeStateControlled />,
 };
 
-export const TwoState: Story = {
-  name: "Two-state (Management)",
-  render: () => <TwoStateControlled />,
-};
-
 function ThreeStateControlled() {
   const [hidden, setHidden] = useState<string[]>([]);
   const [seeMore, setSeeMore] = useState<string[]>(["youtube-channels"]);
@@ -65,33 +71,6 @@ function ThreeStateControlled() {
             mode === "hidden" ? [...prev.filter(k => k !== key), key] : prev.filter(k => k !== key));
           setSeeMore(prev =>
             mode === "see-more" ? [...prev.filter(k => k !== key), key] : prev.filter(k => k !== key));
-        }}
-      />
-    </div>
-  );
-}
-
-function TwoStateControlled() {
-  const [hidden, setHidden] = useState<string[]>([]);
-  return (
-    <div className="w-80">
-      <SidebarItemsCard
-        title="Management"
-        description="Choose which management pages appear in the left sidebar."
-        items={[
-          {
-            key: "categories",
-            label: "Categories",
-          },
-          {
-            key: "tags",
-            label: "Tags",
-          },
-        ]}
-        hiddenItems={hidden}
-        onSetMode={(key, mode) => {
-          setHidden(prev =>
-            mode === "hidden" ? [...prev.filter(k => k !== key), key] : prev.filter(k => k !== key));
         }}
       />
     </div>
