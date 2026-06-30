@@ -25,7 +25,7 @@ import type {
   LocationLookupCandidate,
   LocationLookupResult,
 } from "@eesimple/types";
-import { mapUrlFor, nominatimGeocode } from "@/services/geocoding";
+import { mapUrlFor, nominatimGeocode } from "@/services/nominatimGeocoding";
 
 const DEFAULT_ENDPOINT = "https://www.wikidata.org";
 const DEFAULT_MAPS_ENDPOINT = "https://maps.wikimedia.org";
