@@ -162,6 +162,10 @@ export const locationsApi = {
     request<Location>(`/locations/${id}/refresh-boundary`, {
       method: "POST",
     }),
+  refreshCoordinates: (id: string) =>
+    request<Location>(`/locations/${id}/refresh-coordinates`, {
+      method: "POST",
+    }),
 };
 
 export const placeTypesApi = createCrudApi<PlaceType, CreatePlaceTypeInput, UpdatePlaceTypeInput>("place-types");

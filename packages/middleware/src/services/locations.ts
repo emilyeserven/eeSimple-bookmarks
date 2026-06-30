@@ -13,7 +13,7 @@ import { matchLocationIdsByTitle } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarkLocations, locations, locationTags, type LocationRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
-import { refreshLocationBoundary } from "@/services/geocoding";
+import { geocodeLocation, refreshLocationBoundary } from "@/services/geocoding";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
@@ -447,6 +447,53 @@ export async function ensureLocationBoundary(id: string): Promise<Location | nul
   }
   const tagMap = await tagIdsByLocation([id]);
   return toLocation(row, undefined, tagMap.get(id) ?? []);
+}
+
+/**
+ * Force-refresh a location's coordinates (lat/lon, mapUrl, boundary) by re-geocoding its current
+ * name via Nominatim. Unlike `ensureLocationBoundary`, this always writes — even when coordinates
+ * are already stored — making it the "force repull" action. Picks the candidate with an area
+ * boundary when available, then the one closest to the stored point; falls back to the first
+ * result. Returns `null` when the location isn't found; returns the location unchanged when
+ * Nominatim returns no results.
+ */
+export async function refreshLocationCoordinates(id: string): Promise<Location | null> {
+  const [current] = await db.select().from(locations).where(eq(locations.id, id));
+  if (!current) return null;
+
+  const {
+    results,
+  } = await geocodeLocation(current.name);
+  const tagMap = await tagIdsByLocation([id]);
+  if (results.length === 0) return toLocation(current, undefined, tagMap.get(id) ?? []);
+
+  const withBoundary = results.filter(c => c.boundary != null);
+  const pool = withBoundary.length > 0 ? withBoundary : results;
+
+  let chosen = pool[0]!;
+  if (current.latitude != null && current.longitude != null) {
+    const lat = current.latitude;
+    const lon = current.longitude;
+    chosen = pool.reduce((best, c) => {
+      const d = (c.latitude - lat) ** 2 + (c.longitude - lon) ** 2;
+      const bd = (best.latitude - lat) ** 2 + (best.longitude - lon) ** 2;
+      return d < bd ? c : best;
+    });
+  }
+
+  const [updated] = await db
+    .update(locations)
+    .set({
+      latitude: chosen.latitude,
+      longitude: chosen.longitude,
+      mapUrl: chosen.mapUrl ?? current.mapUrl,
+      boundary: chosen.boundary ?? current.boundary,
+    })
+    .where(eq(locations.id, id))
+    .returning();
+
+  if (!updated) return null;
+  return toLocation(updated, undefined, tagMap.get(id) ?? []);
 }
 
 /** Fill in slugs for any locations missing one (e.g. rows that predate the `slug` column). */

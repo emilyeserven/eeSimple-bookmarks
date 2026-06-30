@@ -154,6 +154,19 @@ export function useRefreshLocationBoundary() {
 }
 
 /**
+ * Force-refresh a location's coordinates (lat/lon, mapUrl, boundary) from Nominatim, even when
+ * values are already stored. Used by the "Re-geocode" button on the location edit/general page.
+ */
+export function useRefreshLocationCoordinates() {
+  const invalidate = useLocationInvalidation();
+  return useMutation({
+    mutationFn: (id: string) => locationsApi.refreshCoordinates(id),
+    onMutate: notifyNominatimCall,
+    onSuccess: invalidate,
+  });
+}
+
+/**
  * Geocoding lookup mutation: resolves a free-text place query to candidate locations
  * (name / coordinates / map URL / country / place type) via `/api/locations/lookup`. Used by the
  * create form's "Look up location" search box to prefill fields.
