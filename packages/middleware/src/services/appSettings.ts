@@ -12,6 +12,7 @@ import type {
   HomepageContentWidth,
   ImportBlacklistEntry,
   PlaceTypeDisplayConfig,
+  PlaceTypeIconConfig,
   PlaceTypeLevelGroup,
   PlaceTypeLevelGroupConfig,
   QuickAddDisplay,
@@ -25,7 +26,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { CANONICAL_PLACE_TYPE_ORDER, LOCATION_DISPLAY_MODES, normalizeBlacklist, normalizeHexColor, placeTypeKey } from "@eesimple/types";
+import { CANONICAL_PLACE_TYPE_ORDER, LOCATION_DISPLAY_MODES, normalizeBlacklist, normalizeHexColor, normalizeIconName, placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
@@ -716,6 +717,54 @@ export async function updatePlaceTypeLevelGroups(
       target: appSettings.id,
       set: {
         placeTypeLevelGroups: next,
+      },
+    });
+  return next;
+}
+
+/**
+ * Sanitize the per-placeType map-pin icon overrides: keep only entries whose key normalizes to a
+ * non-empty place-type key and whose value is a usable Lucide icon name. Tolerates arbitrary
+ * client/stored shapes so a malformed jsonb row never crashes the map.
+ */
+function normalizePlaceTypeIcons(input: unknown): PlaceTypeIconConfig {
+  if (input === null || typeof input !== "object" || Array.isArray(input)) return {};
+  const out: PlaceTypeIconConfig = {};
+  for (const [rawKey, rawValue] of Object.entries(input as Record<string, unknown>)) {
+    const key = placeTypeKey(rawKey);
+    const icon = normalizeIconName(rawValue);
+    if (key !== "" && icon) out[key] = icon;
+  }
+  return out;
+}
+
+/** Read the per-placeType map-pin icon overrides (Settings → Locations "Place Type Icons"). */
+export async function getPlaceTypeIcons(): Promise<PlaceTypeIconConfig> {
+  const [row] = await db
+    .select({
+      placeTypeIcons: appSettings.placeTypeIcons,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  return normalizePlaceTypeIcons(row?.placeTypeIcons ?? {});
+}
+
+/** Replace the per-placeType map-pin icon overrides, upserting the singleton. Returns the stored value. */
+export async function updatePlaceTypeIcons(
+  input: PlaceTypeIconConfig,
+): Promise<PlaceTypeIconConfig> {
+  const next = normalizePlaceTypeIcons(input);
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      placeTypeIcons: next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: {
+        placeTypeIcons: next,
       },
     });
   return next;

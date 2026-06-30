@@ -6,6 +6,7 @@ import type {
   ConnectorsAppSettings,
   ImportBlacklistEntry,
   PlaceTypeDisplayConfig,
+  PlaceTypeIconConfig,
   PlaceTypeLevelGroupConfig,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
@@ -37,6 +38,9 @@ const LOCATION_DISPLAY_KEY = ["app-settings", "location-display"] as const;
 const LOCATION_LEVEL_GROUPS_KEY = ["app-settings", "location-level-groups"] as const;
 /** Stable empty fallback so `useLocationLevelGroups()` keeps a constant reference while loading. */
 const EMPTY_LEVEL_GROUPS: PlaceTypeLevelGroupConfig = [];
+const PLACE_TYPE_ICONS_KEY = ["app-settings", "place-type-icons"] as const;
+/** Stable empty fallback so `useLocationPlaceTypeIcons()` keeps a constant reference while loading. */
+const EMPTY_PLACE_TYPE_ICONS: PlaceTypeIconConfig = {};
 const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
 const AI_SUMMARIZATION_KEY = ["app-settings", "ai-summarization"] as const;
 
@@ -302,6 +306,35 @@ export function usePlaceTypeDisplayConfig(): PlaceTypeDisplayConfig {
     data: legacy,
   } = useLocationDisplaySettings();
   return groups.length > 0 ? expandLevelGroupsToDisplayConfig(groups) : (legacy ?? {});
+}
+
+/**
+ * The per-placeType map-pin icon overrides (Settings → Locations "Place Type Icons") — a sparse map of
+ * placeType key → Lucide icon name the map renderer reads to draw a glyph inside each pin.
+ */
+export function usePlaceTypeIconsSettings() {
+  return useQuery({
+    queryKey: PLACE_TYPE_ICONS_KEY,
+    queryFn: appSettingsApi.getPlaceTypeIcons,
+  });
+}
+
+export function useUpdatePlaceTypeIcons() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: PlaceTypeIconConfig) => appSettingsApi.updatePlaceTypeIcons(input),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(PLACE_TYPE_ICONS_KEY, saved);
+    },
+  });
+}
+
+/** The resolved per-placeType icon overrides, defaulting to an empty map while loading. */
+export function useLocationPlaceTypeIcons(): PlaceTypeIconConfig {
+  const {
+    data,
+  } = usePlaceTypeIconsSettings();
+  return data ?? EMPTY_PLACE_TYPE_ICONS;
 }
 
 /** Whether blurring the bookmark URL field auto-fetches the page title (default true). */
