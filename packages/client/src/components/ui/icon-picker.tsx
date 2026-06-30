@@ -12,11 +12,14 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CategoryIcon, ICON_NAMES, PHOSPHOR_TRAVEL_ICON_NAMES } from "@/lib/icons";
+import {
+  CategoryIcon,
+  ICON_NAMES,
+  LUCIDE_CATEGORY_NAMES,
+  LUCIDE_ICONS_BY_CATEGORY,
+  PHOSPHOR_TRAVEL_ICON_NAMES,
+} from "@/lib/icons";
 import { cn } from "@/lib/utils";
-
-/** Cap how many Lucide icons render at once so opening the popover stays snappy. */
-const MAX_LUCIDE_RESULTS = 60;
 
 interface IconPickerProps {
   "value": string | null | undefined;
@@ -26,10 +29,9 @@ interface IconPickerProps {
 }
 
 /**
- * A searchable icon picker built from shadcn `Popover` + `Command`. Shows two
- * sections: Lucide Icons (general purpose, capped at 60 per search) and Travel &
- * Map Icons (Phosphor, ~80 curated travel/international icons). Phosphor names are
- * stored with a `"ph:"` prefix; Lucide names are stored as-is.
+ * A searchable icon picker built from shadcn `Popover` + `Command`. Shows icons
+ * in named category tabs (Arrows, Files & Docs, etc.) or a flat search across all
+ * icons. Phosphor names are stored with a `"ph:"` prefix; Lucide names are stored as-is.
  */
 export function IconPicker({
   value,
@@ -39,25 +41,59 @@ export function IconPicker({
 }: IconPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
 
-  const lucideResults = React.useMemo(() => {
+  const isSearching = query.trim().length > 0;
+
+  const lucideSearchResults = React.useMemo(() => {
+    if (!isSearching) return null;
     const needle = query.trim().toLowerCase();
-    const matches = needle
-      ? ICON_NAMES.filter(name => name.toLowerCase().includes(needle))
-      : ICON_NAMES;
-    return matches.slice(0, MAX_LUCIDE_RESULTS);
-  }, [query]);
+    return ICON_NAMES.filter(n => n.toLowerCase().includes(needle));
+  }, [query, isSearching]);
+
+  const categoryIcons = React.useMemo(() => {
+    if (isSearching || selectedCategory === "All" || selectedCategory === "Travel & Map") return null;
+    return LUCIDE_ICONS_BY_CATEGORY[selectedCategory] ?? [];
+  }, [isSearching, selectedCategory]);
 
   const travelResults = React.useMemo(() => {
+    if (!isSearching) return PHOSPHOR_TRAVEL_ICON_NAMES;
     const needle = query.trim().toLowerCase();
-    if (!needle) return PHOSPHOR_TRAVEL_ICON_NAMES;
-    return PHOSPHOR_TRAVEL_ICON_NAMES.filter(name =>
-      name.slice(3).toLowerCase().includes(needle));
-  }, [query]);
+    return PHOSPHOR_TRAVEL_ICON_NAMES.filter(name => name.slice(3).toLowerCase().includes(needle));
+  }, [query, isSearching]);
 
   const displayName = value
     ? (value.startsWith("ph:") ? value.slice(3) : value)
     : null;
+
+  const allCategoryTabs = ["All", ...LUCIDE_CATEGORY_NAMES, "Travel & Map"];
+
+  function renderIconGrid(names: string[], isPhosphor = false) {
+    return (
+      <div className="grid grid-cols-6 gap-1 p-1">
+        {names.map(name => (
+          <CommandItem
+            key={name}
+            value={name}
+            title={isPhosphor ? name.slice(3) : name}
+            onSelect={() => {
+              onChange(name);
+              setOpen(false);
+            }}
+            className={cn(
+              "flex aspect-square items-center justify-center p-0",
+              value === name && "bg-accent text-accent-foreground",
+            )}
+          >
+            <CategoryIcon
+              name={name}
+              className="size-4"
+            />
+          </CommandItem>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <Popover
@@ -95,63 +131,95 @@ export function IconPicker({
           <CommandInput
             placeholder="Search icons…"
             value={query}
-            onValueChange={setQuery}
+            onValueChange={(v) => {
+              setQuery(v);
+              if (v.trim()) setSelectedCategory("All");
+            }}
           />
-          <CommandList>
-            {lucideResults.length === 0 && travelResults.length === 0 && (
-              <CommandEmpty>No matching icons.</CommandEmpty>
+          <div className="flex gap-1 overflow-x-auto border-b px-2 py-1.5">
+            {allCategoryTabs.map(cat => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setQuery("");
+                }}
+                disabled={isSearching}
+                className={cn(
+                  `
+                    shrink-0 rounded-sm px-2 py-0.5 text-xs whitespace-nowrap
+                    transition-colors
+                  `,
+                  selectedCategory === cat && !isSearching
+                    ? "bg-accent font-medium text-accent-foreground"
+                    : `
+                      text-muted-foreground
+                      hover:bg-accent hover:text-accent-foreground
+                    `,
+                  isSearching && "cursor-default opacity-40",
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <CommandList className="max-h-[400px]">
+            {/* Search mode: flat results across all icons */}
+            {isSearching && (
+              <>
+                {(lucideSearchResults ?? []).length === 0 && travelResults.length === 0 && (
+                  <CommandEmpty>No matching icons.</CommandEmpty>
+                )}
+                {(lucideSearchResults ?? []).length > 0 && (
+                  <CommandGroup heading="Lucide Icons">
+                    {renderIconGrid(lucideSearchResults ?? [])}
+                  </CommandGroup>
+                )}
+                {travelResults.length > 0 && (
+                  <CommandGroup heading="Travel & Map Icons">
+                    {renderIconGrid(travelResults, true)}
+                  </CommandGroup>
+                )}
+              </>
             )}
-            {lucideResults.length > 0 && (
-              <CommandGroup heading="Lucide Icons">
-                <div className="grid grid-cols-6 gap-1 p-1">
-                  {lucideResults.map(name => (
-                    <CommandItem
-                      key={name}
-                      value={name}
-                      title={name}
-                      onSelect={() => {
-                        onChange(name);
-                        setOpen(false);
-                      }}
-                      className={cn(
-                        "flex aspect-square items-center justify-center p-0",
-                        value === name && "bg-accent text-accent-foreground",
-                      )}
-                    >
-                      <CategoryIcon
-                        name={name}
-                        className="size-4"
-                      />
-                    </CommandItem>
-                  ))}
-                </div>
-              </CommandGroup>
+
+            {/* Specific Lucide category tab */}
+            {!isSearching && categoryIcons !== null && (
+              <>
+                {categoryIcons.length === 0 && (
+                  <CommandEmpty>No icons in this category.</CommandEmpty>
+                )}
+                {categoryIcons.length > 0 && (
+                  <CommandGroup heading={selectedCategory}>
+                    {renderIconGrid(categoryIcons)}
+                  </CommandGroup>
+                )}
+              </>
             )}
-            {travelResults.length > 0 && (
+
+            {/* Travel & Map tab */}
+            {!isSearching && selectedCategory === "Travel & Map" && (
               <CommandGroup heading="Travel & Map Icons">
-                <div className="grid grid-cols-6 gap-1 p-1">
-                  {travelResults.map(name => (
-                    <CommandItem
-                      key={name}
-                      value={name}
-                      title={name.slice(3)}
-                      onSelect={() => {
-                        onChange(name);
-                        setOpen(false);
-                      }}
-                      className={cn(
-                        "flex aspect-square items-center justify-center p-0",
-                        value === name && "bg-accent text-accent-foreground",
-                      )}
-                    >
-                      <CategoryIcon
-                        name={name}
-                        className="size-4"
-                      />
-                    </CommandItem>
-                  ))}
-                </div>
+                {renderIconGrid(PHOSPHOR_TRAVEL_ICON_NAMES, true)}
               </CommandGroup>
+            )}
+
+            {/* All tab: every category as a group */}
+            {!isSearching && selectedCategory === "All" && (
+              <>
+                {LUCIDE_CATEGORY_NAMES.map(cat => (
+                  <CommandGroup
+                    key={cat}
+                    heading={cat}
+                  >
+                    {renderIconGrid(LUCIDE_ICONS_BY_CATEGORY[cat] ?? [])}
+                  </CommandGroup>
+                ))}
+                <CommandGroup heading="Travel & Map Icons">
+                  {renderIconGrid(PHOSPHOR_TRAVEL_ICON_NAMES, true)}
+                </CommandGroup>
+              </>
             )}
           </CommandList>
         </Command>
