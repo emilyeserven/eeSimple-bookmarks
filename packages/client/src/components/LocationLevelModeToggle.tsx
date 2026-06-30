@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, Circle } from "lucide-react";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 const MODE_OPTIONS: { value: LocationMapLevelMode;
   label: string;
@@ -59,6 +60,13 @@ export function LocationLevelModeToggle({
               <ToggleGroupItem
                 value={optionValue}
                 aria-label={label}
+                className={cn(
+                  value === optionValue
+                  && `
+                    bg-primary text-primary-foreground
+                    hover:bg-primary hover:text-primary-foreground
+                  `,
+                )}
               >
                 <Icon className="size-3" />
               </ToggleGroupItem>
