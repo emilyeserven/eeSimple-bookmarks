@@ -5,18 +5,12 @@ import type {
   InboxPreFillDefaults,
 } from "@eesimple/types";
 
-import { useState } from "react";
-
-import { blacklistPatternsFor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Ban, Check, Eye, FolderInput, MoreHorizontal, RefreshCw, RotateCcw, Scissors, X } from "lucide-react";
+import { Check, Eye, RotateCcw, X } from "lucide-react";
 
-import { MarkAsShortenerDialog } from "./MarkAsShortenerDialog";
+import { MoreActionsMenu } from "./InboxMoreActionsMenu";
 import {
   useApproveImportItem,
-  useBlockImportItem,
-  useIngestUrl,
-  useRecheckImportItemUrl,
   useRejectImportItem,
   useUnrejectImportItem,
 } from "../hooks/useImports";
@@ -25,28 +19,13 @@ import { notifyError, notifySuccess } from "../lib/notifications";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+// Re-exported from their extracted module so existing importers keep their import site.
+export { BlockMenuItems, ShortenerMenuItems } from "./InboxMoreActionsMenu";
 
 const STATUS_META: Record<ImportItemStatus, { label: string;
   variant: "secondary" | "default" | "destructive" | "outline"; }> = {
@@ -157,204 +136,6 @@ function UnrejectButton({
   );
 }
 
-/**
- * The three block menu items (URL / domain / page-path) plus the path-prefix dialog.
- * Extracted so `MoreActionsMenu` can embed them in a submenu without nesting dropdowns.
- */
-export function BlockMenuItems({
-  item,
-}: { item: ImportItem }) {
-  const block = useBlockImportItem();
-  const [pathPrefixDialog, setPathPrefixDialog] = useState<string | null>(null);
-
-  const patterns = item.url ? blacklistPatternsFor(item.url) : null;
-  if (!patterns) return null;
-
-  function blockWith(entry: { kind: "exact" | "domain" | "path-prefix";
-    value: string; }, message: string) {
-    block.mutate({
-      itemId: item.id,
-      entry,
-    }, {
-      onSuccess: () => notifySuccess(message),
-      onError: () => notifyError("Couldn't block this link"),
-    });
-  }
-
-  return (
-    <>
-      <DropdownMenuItem onClick={() => blockWith(patterns.exact, "Blocked this URL")}>
-        Block this URL
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => blockWith(patterns.domain, `Blocked ${patterns.domain.value}`)}>
-        Block this domain
-      </DropdownMenuItem>
-      <DropdownMenuItem
-        onSelect={(e) => {
-          // Prevent Radix from auto-closing the dropdown before the dialog can take focus.
-          e.preventDefault();
-          setPathPrefixDialog(patterns.pathPrefix.value);
-        }}
-      >
-        Block this page path
-      </DropdownMenuItem>
-
-      <Dialog
-        open={pathPrefixDialog !== null}
-        onOpenChange={(open) => {
-          if (!open) setPathPrefixDialog(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Block page path</DialogTitle>
-            <DialogDescription>
-              Block any URL whose path starts with this prefix (including the host). Shorten
-              the path to block a wider set of URLs from the same site.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            value={pathPrefixDialog ?? ""}
-            onChange={e => setPathPrefixDialog(e.target.value)}
-            aria-label="Path prefix"
-          />
-          <DialogFooter>
-            <Button
-              variant="ghost"
-              onClick={() => setPathPrefixDialog(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              disabled={!pathPrefixDialog || block.isPending}
-              onClick={() => {
-                if (!pathPrefixDialog) return;
-                blockWith({
-                  kind: "path-prefix",
-                  value: pathPrefixDialog,
-                }, "Blocked this page path");
-                setPathPrefixDialog(null);
-              }}
-            >
-              Block
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-/**
- * The single "More" (kebab) dropdown that collects the secondary row actions — Block URL and
- * Mark as link shortener (each a submenu over the embeddable `*MenuItems` fragments), plus Recheck
- * link URL and Import links from this URL — so they don't crowd the inline action bar.
- *
- * The shortener dialog is kept as a sibling of the `DropdownMenu` (not inside its content) so it
- * survives the menu closing; `BlockMenuItems` carries its own path-prefix dialog, which already runs
- * inside a dropdown today.
- */
-function MoreActionsMenu({
-  item,
-}: { item: ImportItem }) {
-  const recheck = useRecheckImportItemUrl();
-  const ingest = useIngestUrl();
-  const [shortenerMode, setShortenerMode] = useState<ShortenerMode | null>(null);
-  const url = item.url;
-
-  return (
-    <>
-      <Tooltip>
-        <DropdownMenu>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                aria-label="More actions"
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
-          <DropdownMenuContent align="end">
-            {url
-              ? (
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Ban className="size-4 text-muted-foreground" />
-                    Block URL
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <BlockMenuItems item={item} />
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              )
-              : null}
-            {url
-              ? (
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Scissors className="size-4 text-muted-foreground" />
-                    Mark as link shortener
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <ShortenerMenuItems
-                      item={item}
-                      onSelect={m => setShortenerMode(m)}
-                    />
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              )
-              : null}
-            <DropdownMenuItem
-              disabled={recheck.isPending}
-              onClick={() =>
-                recheck.mutate(item.id, {
-                  onSuccess: ({
-                    updated,
-                  }) =>
-                    updated ? notifySuccess("Link resolved") : notifySuccess("No change"),
-                  onError: () => notifyError("Couldn't recheck this link"),
-                })}
-            >
-              <RefreshCw className="size-4 text-muted-foreground" />
-              Recheck link URL
-            </DropdownMenuItem>
-            {url
-              ? (
-                <DropdownMenuItem
-                  disabled={ingest.isPending}
-                  onClick={() =>
-                    ingest.mutate({
-                      url,
-                    }, {
-                      onSuccess: () => notifySuccess("Queued as new import group"),
-                      onError: () => notifyError("Couldn't queue this URL for import"),
-                    })}
-                >
-                  <FolderInput className="size-4 text-muted-foreground" />
-                  Import links from this URL
-                </DropdownMenuItem>
-              )
-              : null}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <TooltipContent>More actions</TooltipContent>
-      </Tooltip>
-
-      {shortenerMode !== null && (
-        <MarkAsShortenerDialog
-          item={item}
-          open
-          initialMode={shortenerMode}
-          onClose={() => setShortenerMode(null)}
-        />
-      )}
-    </>
-  );
-}
-
 /** A "View bookmark" link button shown on approved/duplicate rows. */
 function ViewBookmarkButton({
   bookmarkId,
@@ -380,42 +161,6 @@ function ViewBookmarkButton({
       </TooltipTrigger>
       <TooltipContent>View bookmark</TooltipContent>
     </Tooltip>
-  );
-}
-
-type ShortenerMode = "ignore-list" | "website";
-
-/**
- * The two shortener menu items (ignore list / associate with website). Extracted so
- * `MoreActionsMenu` can embed them in a submenu without nesting dropdowns.
- */
-export function ShortenerMenuItems({
-  item,
-  onSelect,
-}: {
-  item: ImportItem;
-  onSelect: (mode: ShortenerMode) => void;
-}) {
-  if (!item.url) return null;
-  return (
-    <>
-      <DropdownMenuItem
-        onSelect={(e) => {
-          e.preventDefault();
-          onSelect("ignore-list");
-        }}
-      >
-        Add to shortener ignore list
-      </DropdownMenuItem>
-      <DropdownMenuItem
-        onSelect={(e) => {
-          e.preventDefault();
-          onSelect("website");
-        }}
-      >
-        Associate with website
-      </DropdownMenuItem>
-    </>
   );
 }
 
