@@ -57,13 +57,17 @@ export function placeTypeOptions(
  * - `main`: the all-locations index map — the groups flagged "Show by default on main map".
  * - `location`: a specific place's pages — relative to the **current** group (the one containing the
  *   viewed place's own place type), expanded up/down per the shared {@link LocationMapLevelMode}.
- * - `bookmark`: a bookmark's locations map — always every group (show all tagged levels).
+ * - `bookmark`: a bookmark's locations map — relative to the **current** groups (every group
+ *   containing one of the bookmark's tagged locations' place types — there can be several, since a
+ *   bookmark may tag locations of different levels), expanded up/down per the shared
+ *   {@link LocationMapLevelMode}, same as `location` but with multiple anchors.
  */
 export type LevelScope
   = | { kind: "main" }
     | { kind: "location";
       currentPlaceType: string | null; }
-      | { kind: "bookmark" };
+      | { kind: "bookmark";
+        placeTypes: string[]; };
 
 /**
  * The per-map level controls handed to the "Levels" overlays. Visibility is a **temporary per-map
@@ -75,7 +79,7 @@ export interface LevelsControls {
   visibleIds: Set<string>;
   /** Toggle one group's visibility for this map only. */
   onToggleVisible: (id: string, visible: boolean) => void;
-  /** Shared above/current/below mode; omitted hides the button group (main + bookmark maps). */
+  /** Shared above/current/below mode; omitted hides the button group (the main map only). */
   levelMode?: LocationMapLevelMode;
   onLevelModeChange?: (mode: LocationMapLevelMode) => void;
 }
@@ -86,7 +90,13 @@ export interface LevelsControls {
  * For a `location` scope the **current** group (the one whose `placeTypes` contains the viewed
  * place's own place type) is always included; `above` adds every broader group (lower `sortOrder`)
  * and `below` adds every narrower group (higher `sortOrder`). When the viewed place's type belongs
- * to no group there is no anchor, so every group is shown (avoids an empty map). Pure — unit-tested.
+ * to no group there is no anchor, so every group is shown (avoids an empty map).
+ *
+ * A `bookmark` scope generalizes this to **multiple** anchors — every group containing one of the
+ * bookmark's tagged locations' place types. `current` shows just those anchor groups; `above` adds
+ * every group broader than the broadest anchor; `below` adds every group narrower than the
+ * narrowest anchor. No anchors (no tagged location's type belongs to any group) falls back to every
+ * group, same as `location`. Pure — unit-tested.
  */
 export function computeVisibleLevelGroupIds(
   groups: PlaceTypeLevelGroup[],
@@ -97,7 +107,21 @@ export function computeVisibleLevelGroupIds(
     return new Set(groups.filter(group => group.showOnMainMap !== false).map(group => group.id));
   }
   if (scope.kind === "bookmark") {
-    return new Set(groups.map(group => group.id));
+    const anchorKeys = new Set(
+      scope.placeTypes.map(placeTypeKey).filter(key => key !== ""),
+    );
+    const anchors = groups.filter(group => group.placeTypes.some(pt => anchorKeys.has(pt)));
+    if (anchors.length === 0) return new Set(groups.map(group => group.id));
+    const ids = new Set<string>(anchors.map(group => group.id));
+    if (mode === "above") {
+      const minSortOrder = Math.min(...anchors.map(group => group.sortOrder));
+      for (const group of groups) if (group.sortOrder < minSortOrder) ids.add(group.id);
+    }
+    else if (mode === "below") {
+      const maxSortOrder = Math.max(...anchors.map(group => group.sortOrder));
+      for (const group of groups) if (group.sortOrder > maxSortOrder) ids.add(group.id);
+    }
+    return ids;
   }
   const currentKey = placeTypeKey(scope.currentPlaceType);
   const current = currentKey === ""

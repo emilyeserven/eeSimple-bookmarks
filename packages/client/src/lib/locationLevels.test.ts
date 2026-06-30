@@ -56,10 +56,51 @@ describe("computeVisibleLevelGroupIds", () => {
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
-  it("bookmark scope always shows every group regardless of mode", () => {
+  it("bookmark 'current' shows only the groups containing a tagged location's type", () => {
     const ids = computeVisibleLevelGroupIds(groups, {
       kind: "bookmark",
+      placeTypes: ["region"],
+    }, "current");
+    expect([...ids]).toEqual(["region"]);
+  });
+
+  it("bookmark scope anchors on every tagged location's place type", () => {
+    const ids = computeVisibleLevelGroupIds(groups, {
+      kind: "bookmark",
+      placeTypes: ["country", "city"],
+    }, "current");
+    expect([...ids].sort()).toEqual(["city", "country"]);
+  });
+
+  it("bookmark 'above' adds levels broader than the broadest anchor", () => {
+    const ids = computeVisibleLevelGroupIds(groups, {
+      kind: "bookmark",
+      placeTypes: ["city"],
     }, "above");
+    expect([...ids].sort()).toEqual(["city", "country", "region"]);
+  });
+
+  it("bookmark 'below' adds levels narrower than the narrowest anchor", () => {
+    const ids = computeVisibleLevelGroupIds(groups, {
+      kind: "bookmark",
+      placeTypes: ["country"],
+    }, "below");
+    expect([...ids].sort()).toEqual(["city", "country", "region"]);
+  });
+
+  it("bookmark scope falls back to all groups when no tagged location's type belongs to a group", () => {
+    const ids = computeVisibleLevelGroupIds(groups, {
+      kind: "bookmark",
+      placeTypes: ["continent"],
+    }, "current");
+    expect([...ids].sort()).toEqual(["city", "country", "region"]);
+  });
+
+  it("bookmark scope falls back to all groups when there are no tagged locations", () => {
+    const ids = computeVisibleLevelGroupIds(groups, {
+      kind: "bookmark",
+      placeTypes: [],
+    }, "current");
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 

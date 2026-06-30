@@ -41,6 +41,13 @@ export function BookmarkLocationsTabContent({
     });
   }, [locationTree, locations]);
 
+  // The tagged locations' own place types — anchors for the map's "Show" (above/current/below)
+  // level-mode button group.
+  const placeTypes = useMemo(
+    () => mapNodes.flatMap(node => node.placeType ? [node.placeType] : []),
+    [mapNodes],
+  );
+
   // Ancestor path (root → location) for each tagged location.
   const ancestorPaths = useMemo(() => {
     if (!locationTree) return new Map<string, LocationNode[]>();
@@ -60,6 +67,7 @@ export function BookmarkLocationsTabContent({
             showLevels
             scope={{
               kind: "bookmark",
+              placeTypes,
             }}
           />
         )
