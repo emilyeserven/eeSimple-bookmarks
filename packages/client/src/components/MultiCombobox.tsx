@@ -61,9 +61,7 @@ export function MultiCombobox({
   const summary
     = selectedOptions.length === 0
       ? placeholder
-      : selectedOptions.length <= 2
-        ? selectedOptions.map(option => option.label).join(", ")
-        : `${selectedOptions.length} selected`;
+      : selectedOptions.map(option => option.label).join(", ");
 
   function toggle(value: string) {
     onValuesChange(selectedSet.has(value)
@@ -85,16 +83,19 @@ export function MultiCombobox({
           aria-expanded={open}
           aria-label={ariaLabel}
           data-slot="multi-combobox"
-          className={cn("w-full justify-between font-normal", className)}
+          className={cn(`
+            h-auto min-h-9 w-full justify-between py-1.5 font-normal
+          `, className)}
         >
           <span
-            className={cn("flex min-w-0 items-center gap-2", selectedOptions.length === 0 && `
-              text-muted-foreground
-            `)}
+            className={cn(
+              "min-w-0 text-left",
+              selectedOptions.length === 0 && "text-muted-foreground",
+            )}
           >
-            <span className="truncate">{summary}</span>
+            {summary}
           </span>
-          <ChevronsUpDown className="opacity-50" />
+          <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent

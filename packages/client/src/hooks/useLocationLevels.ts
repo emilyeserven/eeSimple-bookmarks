@@ -31,7 +31,8 @@ export function useLocationLevels(): {
   placeTypeOptions: PlaceTypeOption[];
   /** Discovered place types not assigned to any group (they render with the default visible/area). */
   unassignedPlaceTypes: PlaceTypeOption[];
-  addGroup: () => void;
+  /** Add a new group with the given display mode, optionally inserted after the group with `afterId`. */
+  addGroupOfMode: (displayMode: LocationDisplayMode, afterId?: string) => void;
   renameGroup: (id: string, name: string) => void;
   setGroupVisible: (id: string, visible: boolean) => void;
   setGroupDisplayMode: (id: string, displayMode: LocationDisplayMode) => void;
@@ -39,7 +40,8 @@ export function useLocationLevels(): {
   /** Set (or clear, with `null`) the map color a level's pins/areas render in. */
   setGroupColor: (id: string, color: string | null) => void;
   removeGroup: (id: string) => void;
-  reorderGroups: (orderedIds: string[]) => void;
+  /** Reorder only the groups with the given display mode, preserving the relative positions of others. */
+  reorderGroupsInTab: (displayMode: LocationDisplayMode, orderedIds: string[]) => void;
   /** Assign a predefined palette's colors across the groups in display order (wrapping if needed). */
   applyPalette: (paletteId: string) => void;
   /** The per-placeType map-pin icon overrides (placeType key → Lucide icon name). */
@@ -99,17 +101,30 @@ export function useLocationLevels(): {
     return groups.find(group => group.id === id)?.name || "Level";
   }
 
-  function addGroup(): void {
-    const maxOrder = groups.reduce((max, group) => Math.max(max, group.sortOrder), -1);
-    const next: PlaceTypeLevelGroup = {
+  function addGroupOfMode(displayMode: LocationDisplayMode, afterId?: string): void {
+    const newGroup: PlaceTypeLevelGroup = {
       id: randomId(),
       name: "New level",
       placeTypes: [],
-      displayMode: "area",
+      displayMode,
       visible: true,
-      sortOrder: maxOrder + 1,
+      sortOrder: 0,
     };
-    save([...groups, next], "Level group");
+    const sorted = [...groups].sort((a, b) => a.sortOrder - b.sortOrder);
+    let inserted: PlaceTypeLevelGroup[];
+    if (afterId) {
+      const idx = sorted.findIndex(g => g.id === afterId);
+      inserted = idx !== -1
+        ? [...sorted.slice(0, idx + 1), newGroup, ...sorted.slice(idx + 1)]
+        : [...sorted, newGroup];
+    }
+    else {
+      inserted = [...sorted, newGroup];
+    }
+    save(inserted.map((g, i) => ({
+      ...g,
+      sortOrder: i,
+    })), "Level group");
   }
 
   function renameGroup(id: string, name: string): void {
@@ -157,20 +172,19 @@ export function useLocationLevels(): {
     save(groups.filter(group => group.id !== id), `${label} removed`);
   }
 
-  function reorderGroups(orderedIds: string[]): void {
-    const byId = new Map(groups.map(group => [group.id, group]));
-    const next = orderedIds
-      .map((id, index) => {
-        const group = byId.get(id);
-        return group
-          ? {
-            ...group,
-            sortOrder: index,
-          }
-          : undefined;
-      })
-      .filter((group): group is PlaceTypeLevelGroup => group !== undefined);
-    save(next, "Level order");
+  function reorderGroupsInTab(displayMode: LocationDisplayMode, newTabIds: string[]): void {
+    const allSorted = [...groups].sort((a, b) => a.sortOrder - b.sortOrder);
+    const byId = new Map(groups.map(g => [g.id, g]));
+    const queue = [...newTabIds];
+    const result = allSorted.map((g) => {
+      if (g.displayMode !== displayMode) return g;
+      const nextId = queue.shift();
+      return nextId ? (byId.get(nextId) ?? g) : g;
+    });
+    save(result.map((g, i) => ({
+      ...g,
+      sortOrder: i,
+    })), "Level order");
   }
 
   function setPlaceTypeIcon(key: string, iconName: string): void {
@@ -197,14 +211,14 @@ export function useLocationLevels(): {
     isSaving: update.isPending,
     placeTypeOptions: options,
     unassignedPlaceTypes,
-    addGroup,
+    addGroupOfMode,
     renameGroup,
     setGroupVisible,
     setGroupDisplayMode,
     setGroupPlaceTypes,
     setGroupColor,
     removeGroup,
-    reorderGroups,
+    reorderGroupsInTab,
     applyPalette,
     placeTypeIcons,
     setPlaceTypeIcon,

@@ -1,6 +1,6 @@
 import type { PlaceTypeLevelGroupConfig } from "@eesimple/types";
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { LocationsSettings } from "./LocationsSettings";
@@ -47,6 +47,13 @@ vi.mock("../hooks/useLocations", () => ({
 describe("LocationsSettings", () => {
   it("renders without an infinite render loop and opens the place-types combobox", () => {
     render(<LocationsSettings />);
+    // The Country group has displayMode "area", so it lives in the Area tab.
+    const levelGroupTabs = screen.getByRole("navigation", {
+      name: "Level group tabs",
+    });
+    fireEvent.click(within(levelGroupTabs).getByRole("button", {
+      name: "Area",
+    }));
     const trigger = screen.getByRole("combobox", {
       name: /Place types for Country/,
     });
@@ -61,7 +68,13 @@ describe("LocationsSettings", () => {
   it("renders a Place Type Icons picker per discovered place type", () => {
     render(<LocationsSettings />);
     expect(screen.getByText("Place Type Icons")).toBeInTheDocument();
-    // Each discovered place type (country, city) gets its own icon picker.
+    // Country is in an area-mode group; City is unassigned (defaults to area). Both live in "Area" tab.
+    const iconTabs = screen.getByRole("navigation", {
+      name: "Place type icon tabs",
+    });
+    fireEvent.click(within(iconTabs).getByRole("button", {
+      name: "Area",
+    }));
     expect(screen.getByRole("combobox", {
       name: /Icon for Country/,
     })).toBeInTheDocument();

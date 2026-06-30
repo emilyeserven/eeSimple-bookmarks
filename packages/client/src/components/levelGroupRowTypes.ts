@@ -13,7 +13,6 @@ export interface GroupRowProps {
   options: Levels["placeTypeOptions"];
   renameGroup: Levels["renameGroup"];
   setGroupVisible: Levels["setGroupVisible"];
-  setGroupDisplayMode: Levels["setGroupDisplayMode"];
   setGroupPlaceTypes: Levels["setGroupPlaceTypes"];
   setGroupColor: Levels["setGroupColor"];
   removeGroup: Levels["removeGroup"];

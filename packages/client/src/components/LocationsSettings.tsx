@@ -1,5 +1,5 @@
 import type { DragEndEvent } from "@dnd-kit/core";
-import type { PlaceTypeLevelGroup } from "@eesimple/types";
+import type { LocationDisplayMode, PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { LOCATION_MAP_PALETTES } from "@eesimple/types";
-import { Plus } from "lucide-react";
+import { MapPin, Plus, Shapes } from "lucide-react";
 
 import { PlaceTypeIconsCard } from "./PlaceTypeIconsCard";
 import { SortableGroupRow } from "./SortableLevelGroupRow";
@@ -26,6 +26,49 @@ import { useLocationLevels } from "../hooks/useLocationLevels";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+/** A subtle clickable gap between two level group rows — hover reveals a "+" to insert a new level. */
+function AddLevelGap({
+  onClick,
+}: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Add level here"
+      className="
+        group flex h-6 w-full items-center gap-2 text-muted-foreground/25
+        transition-colors
+        hover:text-muted-foreground
+      "
+    >
+      <div className="h-px flex-1 bg-current" />
+      <Plus
+        className="
+          size-3 opacity-0 transition-opacity
+          group-hover:opacity-100
+        "
+      />
+      <div className="h-px flex-1 bg-current" />
+    </button>
+  );
+}
+
+const TAB_CONFIG = {
+  pin: {
+    icon: MapPin,
+    label: "Pin",
+    description: "Levels that always render as map pins.",
+    empty: "No pin levels yet. Add one to group place types that always show as pins on the map.",
+  },
+  area: {
+    icon: Shapes,
+    label: "Area",
+    description: "Levels that render as boundary areas (falling back to a pin when no boundary exists).",
+    empty: "No area levels yet. Add one to group place types that render as boundary areas on the map.",
+  },
+} as const;
 
 /**
  * Settings → Locations: define named "level" groups, each grouping one or more Nominatim place types
@@ -39,25 +82,40 @@ export function LocationsSettings() {
     isLoading,
     placeTypeOptions,
     unassignedPlaceTypes,
-    addGroup,
+    addGroupOfMode,
     renameGroup,
     setGroupVisible,
-    setGroupDisplayMode,
     setGroupPlaceTypes,
     setGroupColor,
     removeGroup,
-    reorderGroups,
+    reorderGroupsInTab,
     applyPalette,
     placeTypeIcons,
     setPlaceTypeIcon,
     resetPlaceTypeIcons,
   } = useLocationLevels();
 
-  // Local order so drag feels instant; re-synced whenever the saved groups change.
-  const [orderedIds, setOrderedIds] = useState<string[]>([]);
+  const [levelTab, setLevelTab] = useState<LocationDisplayMode>("pin");
+
+  // Local ordered IDs for each tab, re-synced when the saved groups change.
+  const [orderedPinIds, setOrderedPinIds] = useState<string[]>([]);
+  const [orderedAreaIds, setOrderedAreaIds] = useState<string[]>([]);
   useEffect(() => {
-    setOrderedIds(groups.map(group => group.id));
+    const sorted = [...groups].sort((a, b) => a.sortOrder - b.sortOrder);
+    setOrderedPinIds(sorted.filter(g => g.displayMode === "pin").map(g => g.id));
+    setOrderedAreaIds(sorted.filter(g => g.displayMode === "area").map(g => g.id));
   }, [groups]);
+
+  const byId = new Map(groups.map(g => [g.id, g]));
+  const orderedPinGroups = orderedPinIds
+    .map(id => byId.get(id))
+    .filter((g): g is PlaceTypeLevelGroup => g !== undefined);
+  const orderedAreaGroups = orderedAreaIds
+    .map(id => byId.get(id))
+    .filter((g): g is PlaceTypeLevelGroup => g !== undefined);
+
+  const currentGroups = levelTab === "pin" ? orderedPinGroups : orderedAreaGroups;
+  const currentIds = levelTab === "pin" ? orderedPinIds : orderedAreaIds;
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -66,58 +124,34 @@ export function LocationsSettings() {
     }),
   );
 
-  const byId = new Map(groups.map(group => [group.id, group]));
-  const orderedGroups = orderedIds
-    .map(id => byId.get(id))
-    .filter((group): group is PlaceTypeLevelGroup => group !== undefined);
-
   function handleDragEnd(event: DragEndEvent) {
     const {
       active, over,
     } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = orderedIds.indexOf(String(active.id));
-    const newIndex = orderedIds.indexOf(String(over.id));
+    const oldIndex = currentIds.indexOf(String(active.id));
+    const newIndex = currentIds.indexOf(String(over.id));
     if (oldIndex === -1 || newIndex === -1) return;
-    const next = arrayMove(orderedIds, oldIndex, newIndex);
-    setOrderedIds(next);
-    reorderGroups(next);
+    const next = arrayMove(currentIds, oldIndex, newIndex);
+    if (levelTab === "pin") setOrderedPinIds(next);
+    else setOrderedAreaIds(next);
+    reorderGroupsInTab(levelTab, next);
   }
+
+  const tabCfg = TAB_CONFIG[levelTab];
 
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle className="text-base">Level groups</CardTitle>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addGroup}
-          >
-            <Plus className="mr-1 size-4" />
-            Add level
-          </Button>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {isLoading
-            ? <p className="text-sm text-muted-foreground">Loading…</p>
-            : null}
-
-          {!isLoading && orderedGroups.length === 0
+        <CardContent className="space-y-4">
+          {groups.length > 0
             ? (
-              <p className="text-sm text-muted-foreground">
-                No level groups yet. Add a level (e.g. “Country”, “Region”, “City”) and assign the place
-                types (city, state, country, …) discovered from your locations to it.
-              </p>
-            )
-            : null}
-
-          {orderedGroups.length > 0
-            ? (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">
-                  Apply a color palette across your levels (top to bottom), then fine-tune any level’s
+                  Apply a color palette across your levels (top to bottom), then fine-tune each
                   color individually.
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -152,52 +186,131 @@ export function LocationsSettings() {
             )
             : null}
 
-          {orderedGroups.length > 0
-            ? (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={orderedIds}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-3">
-                    {orderedGroups.map(group => (
-                      <SortableGroupRow
-                        key={group.id}
-                        group={group}
-                        options={placeTypeOptions}
-                        renameGroup={renameGroup}
-                        setGroupVisible={setGroupVisible}
-                        setGroupDisplayMode={setGroupDisplayMode}
-                        setGroupPlaceTypes={setGroupPlaceTypes}
-                        setGroupColor={setGroupColor}
-                        removeGroup={removeGroup}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
-            )
-            : null}
+          {/* Vertical-tab layout: tab list left, content right */}
+          <div
+            className="
+              flex flex-col gap-4
+              sm:flex-row
+            "
+          >
+            {/* Tab list — horizontal on mobile, vertical on sm+ */}
+            <nav
+              aria-label="Level group tabs"
+              className="
+                flex flex-row gap-1
+                sm:w-28 sm:shrink-0 sm:flex-col
+              "
+            >
+              {(["pin", "area"] as const).map((tab) => {
+                const cfg = TAB_CONFIG[tab];
+                const Icon = cfg.icon;
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setLevelTab(tab)}
+                    className={cn(
+                      `
+                        flex items-center gap-2 rounded-md px-3 py-2 text-sm
+                        font-medium whitespace-nowrap transition-colors
+                      `,
+                      levelTab === tab
+                        ? "bg-accent text-accent-foreground"
+                        : `
+                          text-muted-foreground
+                          hover:bg-accent/50 hover:text-foreground
+                        `,
+                    )}
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    {cfg.label}
+                  </button>
+                );
+              })}
+            </nav>
 
-          {unassignedPlaceTypes.length > 0
-            ? (
-              <p className="text-xs text-muted-foreground">
-                Unassigned place types (shown as areas by default):
-                {" "}
-                {unassignedPlaceTypes.map(option => option.label).join(", ")}
-                .
-              </p>
-            )
-            : null}
+            {/* Tab content */}
+            <div className="min-w-0 flex-1 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-xs text-muted-foreground">{tabCfg.description}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => addGroupOfMode(levelTab)}
+                >
+                  <Plus className="mr-1 size-4" />
+                  Add level
+                </Button>
+              </div>
+
+              {isLoading
+                ? <p className="text-sm text-muted-foreground">Loading…</p>
+                : null}
+
+              {!isLoading && currentGroups.length === 0
+                ? (
+                  <p className="text-sm text-muted-foreground">{tabCfg.empty}</p>
+                )
+                : null}
+
+              {currentGroups.length > 0
+                ? (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={currentIds}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div>
+                        {currentGroups.map((group, index) => (
+                          <div key={group.id}>
+                            <SortableGroupRow
+                              group={group}
+                              options={placeTypeOptions}
+                              renameGroup={renameGroup}
+                              setGroupVisible={setGroupVisible}
+                              setGroupPlaceTypes={setGroupPlaceTypes}
+                              setGroupColor={setGroupColor}
+                              removeGroup={removeGroup}
+                            />
+                            {index < currentGroups.length - 1
+                              ? (
+                                <AddLevelGap
+                                  onClick={() => addGroupOfMode(levelTab, group.id)}
+                                />
+                              )
+                              : null}
+                          </div>
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )
+                : null}
+
+              {unassignedPlaceTypes.length > 0
+                ? (
+                  <p className="text-xs text-muted-foreground">
+                    Unassigned place types (shown as areas by default):
+                    {" "}
+                    {unassignedPlaceTypes.map(option => option.label).join(", ")}
+                    .
+                  </p>
+                )
+                : null}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       <PlaceTypeIconsCard
         options={placeTypeOptions}
+        groups={groups}
         icons={placeTypeIcons}
         onSetIcon={setPlaceTypeIcon}
         onReset={resetPlaceTypeIcons}
