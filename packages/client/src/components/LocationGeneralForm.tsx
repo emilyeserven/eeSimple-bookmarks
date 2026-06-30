@@ -2,6 +2,7 @@ import type { LocationNode } from "@eesimple/types";
 
 import { RefreshCw } from "lucide-react";
 
+import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { LocationAncestorsSection } from "./LocationAncestorsSection";
 import { LocationLookupBox } from "./LocationLookupBox";
@@ -25,6 +26,7 @@ export function LocationGeneralForm({
     existingOptions, parentOptions, placeTypeChoices, tagOptions,
     saveField, followSlug, applyLookup,
     repullCoordinates, isRepullingCoordinates,
+    addPlaceTypeOpen, setAddPlaceTypeOpen,
   } = useLocationGeneralForm(node);
 
   return (
@@ -152,6 +154,10 @@ export function LocationGeneralForm({
               searchPlaceholder="Search place types…"
               emptyText="No place types found."
               onValueChange={value => saveField("placeType", value.trim() || null)}
+              createOption={{
+                label: "Create place type",
+                onSelect: () => setAddPlaceTypeOpen(true),
+              }}
             />
           )}
         </form.AppField>
@@ -165,6 +171,15 @@ export function LocationGeneralForm({
           )}
         </form.AppField>
       </div>
+
+      <AddPlaceTypeModal
+        open={addPlaceTypeOpen}
+        onOpenChange={setAddPlaceTypeOpen}
+        onCreated={(placeType) => {
+          form.setFieldValue("placeType", placeType.slug);
+          saveField("placeType", placeType.slug);
+        }}
+      />
 
       <form.AppField name="parent">
         {field => (

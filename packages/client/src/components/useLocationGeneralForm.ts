@@ -56,6 +56,7 @@ export function useLocationGeneralForm(node: LocationNode) {
   } = usePlaceTypes();
   const [alternateNames, setAlternateNames] = useState(node.alternateNames);
   const [tagIds, setTagIds] = useState<string[]>(node.tagIds ?? []);
+  const [addPlaceTypeOpen, setAddPlaceTypeOpen] = useState(false);
 
   const autoSave = useFieldAutoSave<UpdateLocationInput, Location>({
     id: node.id,
@@ -196,5 +197,7 @@ export function useLocationGeneralForm(node: LocationNode) {
     applyLookup,
     repullCoordinates,
     isRepullingCoordinates: refreshCoordinatesMutation.isPending,
+    addPlaceTypeOpen,
+    setAddPlaceTypeOpen,
   };
 }
