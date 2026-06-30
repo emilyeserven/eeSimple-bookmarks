@@ -57,6 +57,7 @@ function emptyScan(url: string): ScanResult {
     thumbnailUrl: null,
     imageCandidates: [],
     authorNames: null,
+    socialAccount: null,
     faviconUrl: null,
   };
 }
@@ -246,6 +247,12 @@ vi.mock("../hooks/useAuthors", () => ({
   }),
   useCreateAuthor: () => ({
     mutateAsync: vi.fn(),
+  }),
+  useUpdateAuthor: () => ({
+    mutateAsync: vi.fn(),
+  }),
+  useAutoAuthorImage: () => ({
+    mutate: vi.fn(),
   }),
 }));
 vi.mock("../hooks/usePublishers", () => ({

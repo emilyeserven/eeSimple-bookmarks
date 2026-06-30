@@ -8,6 +8,7 @@
  */
 
 import type { ImageCandidate } from "@eesimple/types";
+import { normalizeSocialHandle, socialAccountFromUrl } from "@eesimple/types";
 
 import { decodeEntities, fetchBodyHtmlResult, metaContent } from "@/services/metadata";
 
@@ -153,4 +154,46 @@ export async function fetchInstagramCarousel(url: string): Promise<ImageCandidat
   const result = await fetchBodyHtmlResult(embedUrl, /<\/html>/i);
   if (result.kind !== "ok") return [];
   return parseInstagramEmbed(result.html);
+}
+
+/**
+ * Extract the account's profile/avatar image URL from an Instagram profile or embed page's HTML, or
+ * null. The profile picture lives OUTSIDE `shortcode_media` (the post payload) — it's exposed as
+ * `profile_pic_url_hd` / `profile_pic_url` in the page JSON, and as the page's `og:image` on a
+ * profile URL. Tries the HD variant first, then the standard one, then `og:image`. Pure.
+ */
+export function parseInstagramProfileImageUrl(html: string): string | null {
+  for (const key of ["profile_pic_url_hd", "profile_pic_url"]) {
+    const match = new RegExp(`"${key}":"((?:[^"\\\\]|\\\\.)*)"`).exec(html);
+    if (match) {
+      const url = decodeJsonString(match[1]);
+      if (/^https?:\/\//i.test(url)) return url;
+    }
+  }
+  const og = metaContent(html, /property=["']og:image(?::url)?["']/i);
+  const url = og ? decodeEntities(og).trim() : "";
+  return /^https?:\/\//i.test(url) ? url : null;
+}
+
+/**
+ * Best-effort, keyless fetch of an Instagram account's avatar URL. Accepts a handle or a profile
+ * URL. Tries the account's `/embed/` page first (less aggressively walled than the bare profile),
+ * then the profile page itself. Returns the avatar URL string, or null on any failure. Never throws.
+ */
+export async function fetchInstagramProfileImageUrl(handleOrUrl: string): Promise<string | null> {
+  const handle = handleOrUrl.includes("/")
+    ? socialAccountFromUrl(handleOrUrl)?.handle ?? null
+    : normalizeSocialHandle(handleOrUrl);
+  if (!handle) return null;
+
+  for (const pageUrl of [
+    `https://www.instagram.com/${handle}/embed/`,
+    `https://www.instagram.com/${handle}/`,
+  ]) {
+    const result = await fetchBodyHtmlResult(pageUrl, /<\/html>/i);
+    if (result.kind !== "ok") continue;
+    const imageUrl = parseInstagramProfileImageUrl(result.html);
+    if (imageUrl) return imageUrl;
+  }
+  return null;
 }

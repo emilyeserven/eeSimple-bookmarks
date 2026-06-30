@@ -1,10 +1,11 @@
 import type { FastifyInstance } from "fastify";
-import type { CreateAuthorInput, UpdateAuthorInput } from "@eesimple/types";
+import type { CreateAuthorInput, SocialMediaPlatform, UpdateAuthorInput } from "@eesimple/types";
 import { SOCIAL_MEDIA_PLATFORMS } from "@eesimple/types";
 import {
   adoptChannelImageForAuthor,
   adoptWebsiteFaviconForAuthor,
   fetchAndStoreAuthorImage,
+  fetchAndStoreAuthorImageFromSocial,
   getAuthorImageRow,
   removeAuthorImage,
   setAuthorImageFromBytes,
@@ -121,7 +122,11 @@ const autoImageBody = {
   properties: {
     source: {
       type: "string",
-      enum: ["website", "biography"],
+      enum: ["website", "biography", "social"],
+    },
+    platform: {
+      type: "string",
+      enum: SOCIAL_MEDIA_PLATFORMS,
     },
   },
 } as const;
@@ -241,7 +246,8 @@ export async function authorRoutes(app: FastifyInstance): Promise<void> {
     return reply.code(201).send(result);
   });
 
-  // Auto-fetch: pull an og:image from the author's stored website or biography URL.
+  // Auto-fetch: pull an avatar from the author's stored website/biography URL, or from a connected
+  // social account (Instagram). `source: "social"` requires `platform`.
   app.post("/api/authors/:id/image/auto", {
     schema: {
       tags: ["authors"],
@@ -253,14 +259,22 @@ export async function authorRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const {
-      source,
-    } = req.body as { source: "website" | "biography" };
+      source, platform,
+    } = req.body as { source: "website" | "biography" | "social";
+      platform?: SocialMediaPlatform; };
     if (!isObjectStoreConfigured()) {
       return reply.code(503).send({
         message: "Image storage is not configured",
       });
     }
-    const result = await fetchAndStoreAuthorImage(id, source);
+    if (source === "social" && !platform) {
+      return reply.code(400).send({
+        message: "A platform is required to fetch from a social account",
+      });
+    }
+    const result = source === "social"
+      ? await fetchAndStoreAuthorImageFromSocial(id, platform!)
+      : await fetchAndStoreAuthorImage(id, source);
     if (result === "not_found") return reply.code(404).send({
       message: "Author not found",
     });

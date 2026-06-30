@@ -187,6 +187,11 @@ export function BookmarkForm({
           urlDuplicate={c.urlDuplicate}
           autofillOfferDismissed={c.autofillOfferDismissed}
           onAutofillOfferDismiss={() => c.setAutofillOfferDismissed(true)}
+          socialAccountOffer={c.socialAccountOffer}
+          onCreateAuthorFromSocialAccount={() => {
+            if (c.socialAccountOffer) return c.createAuthorFromSocialAccount(c.socialAccountOffer);
+          }}
+          onSocialAccountOfferDismiss={() => c.setSocialAccountOffer(null)}
           onFetchDescription={url => void c.runFetchDescription(url, {
             force: true,
           })}

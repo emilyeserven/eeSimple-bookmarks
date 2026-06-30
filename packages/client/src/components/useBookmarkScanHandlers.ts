@@ -1,7 +1,9 @@
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
 import type { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
-import type { Author, FetchMetadataResult, YouTubeChannelHint } from "@eesimple/types";
+import type { Author, FetchMetadataResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 import type { Dispatch, RefObject, SetStateAction } from "react";
+
+import { sameSocialAccount, socialAccountFromLink } from "@eesimple/types";
 
 import { looksLikeYouTube, stripSelfId } from "./bookmarkFormSchema";
 
@@ -46,6 +48,12 @@ interface UseBookmarkScanHandlersParams {
   setAuthorIds?: (ids: string[]) => void;
   /** Create-author mutation — when provided, enables creating new authors discovered in metadata. */
   createAuthor?: Actions["createAuthor"];
+  /** Update-author mutation — used to attach a social link when creating an author from a social account. */
+  updateAuthor?: Actions["updateAuthor"];
+  /** Auto-avatar mutation — used to pull the new author's avatar from the social account (best-effort). */
+  autoAuthorImage?: Actions["autoAuthorImage"];
+  /** Surface a "create author from this social account" offer — when provided, enables the social-match flow. */
+  setSocialAccountOffer?: Dispatch<SetStateAction<SocialAccountRef | null>>;
 }
 
 /**
@@ -74,6 +82,9 @@ export function useBookmarkScanHandlers({
   getAuthorIds,
   setAuthorIds,
   createAuthor,
+  updateAuthor,
+  autoAuthorImage,
+  setSocialAccountOffer,
 }: UseBookmarkScanHandlersParams) {
   // Fetch the page title for the current URL and write it into the Title field.
   // `force` (manual button) always overwrites; the on-blur path only fills a blank title.
@@ -268,6 +279,69 @@ export function useBookmarkScanHandlers({
     if (ids.length > 0) setAuthorIds(ids);
   }
 
+  /** Find an existing author whose social links already include `acct` (same platform + handle). */
+  function findAuthorBySocialAccount(acct: SocialAccountRef): Author | undefined {
+    return (authors ?? []).find(author =>
+      author.socialLinks.some((link) => {
+        const ref = socialAccountFromLink(link);
+        return ref !== null && sameSocialAccount(ref, acct);
+      }));
+  }
+
+  // When the scanned URL is a social account, either select the author who already lists it, or
+  // surface an offer to create a new author from it. Create-form only (gated on the author params);
+  // runs after name-based resolution and only fills authors when none are selected yet, so it never
+  // clobbers a name-detected author.
+  function applyScanSocialAccount(acct: SocialAccountRef | null): void {
+    if (!acct || !setAuthorIds || !getAuthorIds) return;
+    const match = findAuthorBySocialAccount(acct);
+    if (match) {
+      if ((getAuthorIds()).length === 0) setAuthorIds([match.id]);
+      setSocialAccountOffer?.(null);
+      return;
+    }
+    setSocialAccountOffer?.(acct);
+  }
+
+  // Create a new author from a detected social account: name = handle, attach the social link, pull
+  // the avatar best-effort (non-blocking), then select the author and clear the offer. Invoked by the
+  // offer banner's "Create author" button.
+  async function createAuthorFromSocialAccount(acct: SocialAccountRef): Promise<void> {
+    if (!createAuthor || !setAuthorIds || !getAuthorIds) return;
+    let created;
+    try {
+      created = await createAuthor.mutateAsync({
+        name: acct.handle,
+      });
+    }
+    catch {
+      return; // e.g. a name clash — leave the offer up so the user can resolve it.
+    }
+    try {
+      await updateAuthor?.mutateAsync({
+        id: created.id,
+        input: {
+          socialLinks: [{
+            platform: acct.platform,
+            url: acct.profileUrl,
+          }],
+        },
+      });
+    }
+    catch {
+      // Non-fatal: the author exists; the link can be added manually.
+    }
+    // Best-effort avatar pull — don't block selecting the author on the image fetch.
+    autoAuthorImage?.mutate({
+      id: created.id,
+      source: "social",
+      platform: acct.platform,
+      sourceUrl: acct.profileUrl,
+    });
+    setAuthorIds([...getAuthorIds(), created.id]);
+    setSocialAccountOffer?.(null);
+  }
+
   // For a non-YouTube URL, pull author names from page metadata and resolve them to author IDs.
   // Only runs when no authors have been selected yet, and only when the author params are provided.
   async function runFetchAuthors(url: string): Promise<void> {
@@ -288,7 +362,9 @@ export function useBookmarkScanHandlers({
   // same title/description/author/channel writes the granular handlers do, fed from one `/api/scan`
   // result. YouTube videos route through `applyYouTubeMeta`; everything else fills the strict title,
   // description, and detected authors (and clears any stale channel hint from a prior YouTube URL).
-  async function applyScanMetadata(url: string, meta: FetchMetadataResult, {
+  async function applyScanMetadata(url: string, meta: FetchMetadataResult & {
+    socialAccount?: SocialAccountRef | null;
+  }, {
     fillTitle, force,
   }: { fillTitle: boolean;
     force: boolean; }): Promise<void> {
@@ -314,6 +390,8 @@ export function useBookmarkScanHandlers({
       form.setFieldValue("description", meta.description);
     }
     await applyAuthorsFromNames(url, meta.authorNames);
+    // Social-account match/offer runs after name resolution; it only fills when still empty.
+    applyScanSocialAccount(meta.socialAccount ?? null);
   }
 
   // Check whether the URL's site is already on record so the banner can say whether a new
@@ -345,6 +423,7 @@ export function useBookmarkScanHandlers({
     runFetchAuthors,
     runYouTubeEnrichment,
     applyScanMetadata,
+    createAuthorFromSocialAccount,
     runUrlCleanup,
     undoUrlCleanup,
     undoTitleFetch,

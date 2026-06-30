@@ -275,6 +275,38 @@ export function ConnectorsSettings() {
       ),
     },
     {
+      id: "instagram",
+      status: "always-on",
+      node: (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>Instagram</CardTitle>
+              <AlwaysOnBadge />
+            </div>
+            <CardDescription>
+              Post and carousel images, and an author&apos;s avatar from a connected Instagram account,
+              come from Instagram&apos;s keyless public embed. When an
+              {" "}
+              <code>INSTAGRAM_API_KEY</code>
+              {" "}
+              (with
+              {" "}
+              <code>INSTAGRAM_API_ENDPOINT</code>
+              ) is configured, profile data comes from that API instead, with the keyless scrape as a
+              fallback.
+              {data?.instagram.apiKey
+                ? " Profile API: configured."
+                : " Profile API: not configured (keyless scrape in use)."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Provides items={["Post images", "Author avatar"]} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
       id: "hosted-metadata",
       status: envStatus(data?.hostedMetadata.enabled),
       node: (

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildApp } from "@/app";
-import { checkUrl, decodeEntities, duckDuckGoIconUrl, extractTitle, fetchPageTitle } from "@/services/metadata";
+import { checkUrl, decodeEntities, duckDuckGoIconUrl, extractSocialProfileLinks, extractTitle, fetchPageTitle } from "@/services/metadata";
 
 // These tests cover schema validation and the pure title-parsing helpers, so
 // they run without a live network or database.
@@ -77,6 +77,44 @@ test("extractTitle skips a CDATA-wrapped <title> (feed artifact) but uses other 
     ),
     "Clean Name",
   );
+});
+
+test("extractSocialProfileLinks detects Instagram/X/LinkedIn alongside GitHub, one per platform", () => {
+  const html = `
+    <a href="https://www.instagram.com/janedoe/">IG</a>
+    <a href="https://twitter.com/janedoe">X</a>
+    <a href="https://www.linkedin.com/in/jane-doe">LinkedIn</a>
+    <a href="https://github.com/janedoe">GitHub</a>
+    <a href="https://github.com/settings">GitHub settings (system path, skipped)</a>
+    <a href="https://www.instagram.com/janedoe/">IG again (deduped)</a>
+  `;
+  const links = extractSocialProfileLinks(html, "https://example.com/author");
+  assert.deepEqual(links, [
+    {
+      platform: "instagram",
+      url: "https://instagram.com/janedoe",
+    },
+    {
+      platform: "x",
+      url: "https://x.com/janedoe",
+    },
+    {
+      platform: "linkedin",
+      url: "https://linkedin.com/in/jane-doe",
+    },
+    {
+      platform: "github",
+      url: "https://github.com/janedoe",
+    },
+  ]);
+});
+
+test("extractSocialProfileLinks ignores non-profile social URLs", () => {
+  const html = `
+    <a href="https://instagram.com/p/AbC123/">a post, not a profile</a>
+    <a href="https://github.com/janedoe/repo">a repo, not a profile</a>
+  `;
+  assert.deepEqual(extractSocialProfileLinks(html, "https://example.com"), []);
 });
 
 test("duckDuckGoIconUrl builds the DuckDuckGo icon-service URL for a domain", () => {

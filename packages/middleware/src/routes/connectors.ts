@@ -3,6 +3,7 @@ import type { ConnectorsStatus } from "@eesimple/types";
 import { archiveBoxBaseUrl } from "@/services/archiveBox";
 import { geocodingEnabled, geocodingEndpoint } from "@/services/geocoding";
 import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/services/hostedMetadata";
+import { instagramApiEnabled } from "@/services/socialImages";
 import { youtubeApiEnabled } from "@/services/youtube";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 
@@ -26,6 +27,9 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
       },
       youtubeDataApi: {
         enabled: youtubeApiEnabled(),
+      },
+      instagram: {
+        apiKey: instagramApiEnabled(),
       },
       objectStorage: {
         configured: isObjectStoreConfigured(),

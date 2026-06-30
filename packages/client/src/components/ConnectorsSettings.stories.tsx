@@ -14,6 +14,9 @@ const connectorsStatus: ConnectorsStatus = {
   youtubeDataApi: {
     enabled: false,
   },
+  instagram: {
+    apiKey: false,
+  },
   objectStorage: {
     configured: false,
   },

@@ -1,9 +1,10 @@
 import type { useAuthorGeneralForm } from "./useAuthorGeneralForm";
 import type { Author, Website, YouTubeChannel } from "@eesimple/types";
 
-import { Globe, MonitorPlay, Sparkles } from "lucide-react";
+import { AtSign, Globe, MonitorPlay, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
 type Controller = ReturnType<typeof useAuthorGeneralForm>;
 
@@ -57,6 +58,28 @@ export function AuthorAvatarActions({
         <Sparkles className="size-4" />
         Fetch from Biography
       </Button>
+      {author.socialLinks
+        .filter(link => link.platform === "instagram")
+        .map(link => (
+          <Button
+            key={link.url}
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={avatarBusy}
+            onClick={() => autoAvatar.mutate({
+              id: author.id,
+              source: "social",
+              platform: link.platform,
+              sourceUrl: link.url,
+            })}
+          >
+            <AtSign className="size-4" />
+            Fetch from
+            {" "}
+            {SOCIAL_MEDIA_PLATFORM_LABELS[link.platform]}
+          </Button>
+        ))}
       {connectedChannelsWithImage.map(ch => (
         <Button
           key={ch.id}

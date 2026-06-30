@@ -9,7 +9,7 @@ import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from 
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
 import type { BookmarkLocation } from "./locations.js";
-import type { SocialLink } from "./socialMedia.js";
+import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
 export * from "./conditions.js";
 export * from "./customProperties.js";
@@ -2397,6 +2397,8 @@ export interface ScanResult {
   imageCandidates: ImageCandidate[];
   /** Author name(s) parsed from page metadata / oEmbed (non-YouTube), or `null`. */
   authorNames: string[] | null;
+  /** The social-media account `finalUrl` points at (Instagram/X/…), or `null`. Pure of `finalUrl`. */
+  socialAccount: SocialAccountRef | null;
   /** An instant favicon URL for display (scraped icon or a CDN fallback), or `null`. */
   faviconUrl: string | null;
   /** Human-readable reasons a field could not be resolved (YouTube scrape warnings), when present. */
@@ -2415,6 +2417,12 @@ export interface ConnectorsStatus {
     provider: string | null; };
   /** YouTube Data API v3 — active only when `YOUTUBE_API_KEY` is set (else the watch-page scrape runs). */
   youtubeDataApi: { enabled: boolean };
+  /**
+   * Instagram — post/carousel images and author avatars always come from the keyless public embed.
+   * `apiKey` reports whether `INSTAGRAM_API_KEY` is set (the API path is preferred when configured,
+   * with the keyless scrape as fallback).
+   */
+  instagram: { apiKey: boolean };
   /** Object storage (S3/Garage) — whether bookmark images / favicons can be stored. */
   objectStorage: { configured: boolean };
   /**

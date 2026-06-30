@@ -1,4 +1,4 @@
-import type { BookmarkUrlDuplicateResult } from "@eesimple/types";
+import type { BookmarkUrlDuplicateResult, SocialAccountRef } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
@@ -60,6 +60,9 @@ export function useBookmarkFormUiState({
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
+  // The social account a scanned social-network URL points at, with no existing author — drives the
+  // "Create author from this account" offer banner. Null when matched or not a social URL.
+  const [socialAccountOffer, setSocialAccountOffer] = useState<SocialAccountRef | null>(null);
   // Drives the inline "Create category" modal opened from the Category combobox.
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   // Drives the inline "Create media type" modal opened from the Media Type combobox.
@@ -89,6 +92,7 @@ export function useBookmarkFormUiState({
   // Intentionally leaves `isScanning`, the reporting inputs, and the modal toggle untouched.
   function resetUiState(): void {
     setWebsiteSiteName("");
+    setSocialAccountOffer(null);
     setScanned(false);
     setUrlDuplicate(null);
     setAutofillOfferDismissed(false);
@@ -111,6 +115,8 @@ export function useBookmarkFormUiState({
     setExpectedTitle,
     websiteSiteName,
     setWebsiteSiteName,
+    socialAccountOffer,
+    setSocialAccountOffer,
     addCategoryOpen,
     setAddCategoryOpen,
     addMediaTypeOpen,

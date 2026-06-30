@@ -12,11 +12,13 @@ import type {
   ImageCandidate,
   MediaTypeNode,
   Publisher,
+  SocialAccountRef,
   TagNode,
   Website,
   YouTubeChannelHint,
 } from "@eesimple/types";
 
+import { AuthorSocialAccountOffer } from "./AuthorSocialAccountOffer";
 import { BookmarkAdvancedSection } from "./BookmarkAdvancedSection";
 import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
 import { BookmarkUrlDuplicateWarnings } from "./BookmarkUrlDuplicateWarnings";
@@ -110,6 +112,11 @@ interface BookmarkRevealedFieldsProps extends BookmarkCustomFieldControls {
   autofillOfferDismissed: boolean;
   onAutofillOfferDismiss: () => void;
 
+  // Social-account → author offer (create form only).
+  socialAccountOffer?: SocialAccountRef | null;
+  onCreateAuthorFromSocialAccount?: () => Promise<void> | void;
+  onSocialAccountOfferDismiss?: () => void;
+
   // Description fetch sparkle.
   onFetchDescription: (url: string) => void;
 
@@ -159,6 +166,13 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
 
       {/* Autofill rule offer for new sites with a non-default category. */}
       <RevealedAutofillOffer {...props} />
+
+      {/* Offer to create an author when the URL is a social profile with no matching author. */}
+      <AuthorSocialAccountOffer
+        account={props.socialAccountOffer ?? null}
+        onCreate={() => props.onCreateAuthorFromSocialAccount?.()}
+        onDismiss={() => props.onSocialAccountOfferDismiss?.()}
+      />
 
       <RevealedCustomFields {...props} />
 
