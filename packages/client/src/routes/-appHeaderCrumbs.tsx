@@ -219,6 +219,7 @@ function taxonomyCrumbs(
     label: itemLabel,
     romanizedLabel,
     href: `${prefix}/${slug}/general`,
+    truncatable: true,
   }, {
     label: tab ? crumbLabel(tab) : "Edit",
   }];
@@ -321,6 +322,7 @@ function treeTaxonomyCrumbs(
         label: node.name,
         romanizedLabel: node.romanizedName,
         href: `${viewPrefix}/${node.slug}/general`,
+        truncatable: true,
       })),
       {
         label: "Edit",
@@ -337,6 +339,7 @@ function treeTaxonomyCrumbs(
       romanizedLabel: node.romanizedName,
       href: `${viewPrefix}/${node.slug}`,
       switcher: treeSiblingSwitcher(node, tree),
+      truncatable: true,
     })),
     {
       label: current.name,
@@ -422,6 +425,7 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
       romanizedLabel: data.categoryName ? data.categoryRomanized : undefined,
       href: `/categories/${data.categorySlug}`,
       switcher: catSwitcher,
+      truncatable: true,
     }
     : {
       label: data?.categoryName ?? "Category",
@@ -439,6 +443,7 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
     return [listCrumb, catCrumb, {
       ...titleCrumb,
       href: detailHref,
+      truncatable: true,
     }, {
       label: "Edit",
     }];
