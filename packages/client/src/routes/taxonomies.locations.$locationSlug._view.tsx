@@ -20,6 +20,10 @@ const viewNav = [
     label: "Hierarchy",
   },
   {
+    to: "/taxonomies/locations/$locationSlug/gallery",
+    label: "Gallery",
+  },
+  {
     type: "group",
     label: "Rules",
     items: [
