@@ -82,7 +82,7 @@ export function LocationsSettings() {
     unassignedPlaceTypes,
     addGroupOfMode,
     renameGroup,
-    setGroupVisible,
+    setGroupDisplayMode,
     setGroupPlaceTypes,
     setGroupColor,
     removeGroup,
@@ -106,6 +106,13 @@ export function LocationsSettings() {
   const orderedGroups = orderedIds
     .map(id => byId.get(id))
     .filter((g): g is PlaceTypeLevelGroup => g !== undefined);
+
+  const takenPlaceTypesByGroup = new Map(
+    orderedGroups.map(g => [
+      g.id,
+      new Set(orderedGroups.filter(o => o.id !== g.id).flatMap(o => o.placeTypes)),
+    ]),
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -256,8 +263,9 @@ export function LocationsSettings() {
                               <SortableGroupRow
                                 group={group}
                                 options={placeTypeOptions}
+                                takenPlaceTypes={takenPlaceTypesByGroup.get(group.id) ?? new Set()}
                                 renameGroup={renameGroup}
-                                setGroupVisible={setGroupVisible}
+                                setGroupDisplayMode={setGroupDisplayMode}
                                 setGroupPlaceTypes={setGroupPlaceTypes}
                                 setGroupColor={setGroupColor}
                                 removeGroup={removeGroup}

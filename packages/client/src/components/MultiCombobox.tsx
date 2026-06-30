@@ -63,7 +63,8 @@ export function MultiCombobox({
       ? placeholder
       : selectedOptions.map(option => option.label).join(", ");
 
-  function toggle(value: string) {
+  function toggle(value: string, disabled?: boolean) {
+    if (disabled) return;
     onValuesChange(selectedSet.has(value)
       ? values.filter(current => current !== value)
       : [...values, value]);
@@ -112,10 +113,14 @@ export function MultiCombobox({
                   key={option.value}
                   value={option.label}
                   keywords={option.searchAlias ? [option.searchAlias] : undefined}
-                  onSelect={() => toggle(option.value)}
+                  disabled={option.disabled}
+                  onSelect={() => toggle(option.value, option.disabled)}
                   style={{
                     paddingLeft: `${0.5 + (option.depth ?? 0) * 1}rem`,
                   }}
+                  className={cn(option.disabled && `
+                    cursor-not-allowed opacity-40
+                  `)}
                 >
                   {option.icon}
                   {option.label}

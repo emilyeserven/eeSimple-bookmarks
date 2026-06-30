@@ -2,7 +2,8 @@ import type { GroupRowProps, SortableHandle } from "./levelGroupRowTypes";
 
 import { useEffect, useState } from "react";
 
-import { GripVertical, Star, Trash2 } from "lucide-react";
+import { DEFAULT_LOCATION_MAP_COLOR } from "@eesimple/types";
+import { GripVertical, MapPin, Shapes, Trash2 } from "lucide-react";
 
 import { LevelColorControl } from "./LevelColorControl";
 import { MultiCombobox } from "./MultiCombobox";
@@ -10,6 +11,7 @@ import { MultiCombobox } from "./MultiCombobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
 type LevelGroupRowContentProps = GroupRowProps & SortableHandle;
@@ -18,36 +20,98 @@ type LevelGroupRowContentProps = GroupRowProps & SortableHandle;
 export function LevelGroupRowContent({
   group,
   options,
+  takenPlaceTypes,
   renameGroup,
-  setGroupVisible,
+  setGroupDisplayMode,
   setGroupPlaceTypes,
   setGroupColor,
   removeGroup,
   attributes,
   listeners,
 }: LevelGroupRowContentProps) {
+  const [isEditing, setIsEditing] = useState(false);
+
   // Local name so typing feels instant; the rename auto-saves on blur.
   const [name, setName] = useState(group.name);
   useEffect(() => {
     setName(group.name);
   }, [group.name]);
 
+  const colorSwatch = group.color ?? DEFAULT_LOCATION_MAP_COLOR;
+
+  const dragHandle = (
+    <button
+      type="button"
+      className="
+        cursor-grab text-muted-foreground
+        active:cursor-grabbing
+      "
+      aria-label={`Reorder ${group.name || "level"}`}
+      {...attributes}
+      {...listeners}
+    >
+      <GripVertical className="size-4" />
+    </button>
+  );
+
+  if (!isEditing) {
+    return (
+      <div className="space-y-1.5">
+        {/* Row 1: summary line */}
+        <div className="flex items-center gap-2">
+          {dragHandle}
+
+          <span
+            className="size-4 shrink-0 rounded-sm"
+            style={{
+              backgroundColor: colorSwatch,
+            }}
+            aria-hidden="true"
+          />
+
+          <span className="flex-1 truncate text-sm font-medium">
+            {group.name || <span className="text-muted-foreground italic">Unnamed level</span>}
+          </span>
+
+          <span
+            className={cn(
+              `
+                flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs
+                text-muted-foreground
+              `,
+            )}
+          >
+            {group.displayMode === "area"
+              ? <Shapes className="size-3" />
+              : <MapPin className="size-3" />}
+            {group.displayMode === "area" ? "Area" : "Pin"}
+          </span>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+          >
+            Edit
+          </Button>
+        </div>
+
+        {/* Row 2: place types summary */}
+        <p className="pl-6 text-xs text-muted-foreground">
+          {group.placeTypes.length > 0
+            ? group.placeTypes.join(", ")
+            : <span className="italic">No place types assigned</span>}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
-      {/* Row 1: title — on its own row on all screen sizes */}
+      {/* Row 1: name input */}
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="
-            cursor-grab text-muted-foreground
-            active:cursor-grabbing
-          "
-          aria-label={`Reorder ${group.name || "level"}`}
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="size-4" />
-        </button>
+        {dragHandle}
 
         <Input
           value={name}
@@ -61,7 +125,7 @@ export function LevelGroupRowContent({
         />
       </div>
 
-      {/* Row 2: controls — stack on mobile, inline on desktop */}
+      {/* Row 2: controls */}
       <div
         className="
           flex flex-col gap-2 pl-6
@@ -74,46 +138,70 @@ export function LevelGroupRowContent({
           onChange={color => setGroupColor(group.id, color)}
         />
 
-        <button
-          type="button"
-          onClick={() => setGroupVisible(group.id, !group.visible)}
-          aria-label={group.visible ? `Hide ${group.name || "level"}` : `Show ${group.name || "level"}`}
-          aria-pressed={group.visible}
-          title={group.visible ? "Visible on map" : "Hidden from map"}
-          className={cn(
-            `
-              rounded-sm p-1 transition-colors
-              hover:bg-accent
-            `,
-            group.visible ? "text-yellow-500" : "text-muted-foreground",
-          )}
+        <ToggleGroup
+          type="single"
+          size="sm"
+          variant="outline"
+          value={group.displayMode}
+          onValueChange={(value) => {
+            if (value === "pin" || value === "area") {
+              setGroupDisplayMode(group.id, value);
+            }
+          }}
+          aria-label={`${group.name || "Level"} display mode`}
         >
-          <Star
-            className={cn(
-              "size-4",
-              group.visible ? "fill-yellow-400" : "fill-none",
-            )}
-          />
-        </button>
+          <ToggleGroupItem
+            value="pin"
+            aria-label="Pin"
+          >
+            <MapPin className="size-3" />
+            Pin
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="area"
+            aria-label="Area"
+          >
+            <Shapes className="size-3" />
+            Area
+          </ToggleGroupItem>
+        </ToggleGroup>
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={`Remove ${group.name || "level"}`}
-          onClick={() => removeGroup(group.id)}
+        <div
+          className="
+            flex items-center gap-1
+            sm:ml-auto
+          "
         >
-          <Trash2 className="size-4" />
-        </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => removeGroup(group.id)}
+            aria-label={`Remove ${group.name || "level"}`}
+          >
+            <Trash2 className="size-4" />
+            Remove
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditing(false)}
+          >
+            Done
+          </Button>
+        </div>
       </div>
 
       {/* Row 3: place type assignment */}
-      <div className="space-y-1">
+      <div className="space-y-1 pl-6">
         <Label className="text-xs text-muted-foreground">Place types</Label>
         <MultiCombobox
           options={options.map(option => ({
             value: option.key,
             label: option.label,
+            disabled: takenPlaceTypes.has(option.key),
           }))}
           values={group.placeTypes}
           onValuesChange={values => setGroupPlaceTypes(group.id, values)}

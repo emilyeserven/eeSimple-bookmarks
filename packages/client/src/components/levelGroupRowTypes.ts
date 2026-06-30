@@ -11,8 +11,10 @@ export type SortableHandle = Pick<ReturnType<typeof useSortable>, "attributes" |
 export interface GroupRowProps {
   group: PlaceTypeLevelGroup;
   options: Levels["placeTypeOptions"];
+  /** Place types already assigned to other groups — shown disabled in the combobox. */
+  takenPlaceTypes: Set<string>;
   renameGroup: Levels["renameGroup"];
-  setGroupVisible: Levels["setGroupVisible"];
+  setGroupDisplayMode: Levels["setGroupDisplayMode"];
   setGroupPlaceTypes: Levels["setGroupPlaceTypes"];
   setGroupColor: Levels["setGroupColor"];
   removeGroup: Levels["removeGroup"];

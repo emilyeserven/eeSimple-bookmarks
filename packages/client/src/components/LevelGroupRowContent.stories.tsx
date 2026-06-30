@@ -36,8 +36,9 @@ const meta = {
   args: {
     group: sampleGroup,
     options: sampleOptions,
+    takenPlaceTypes: new Set<string>(),
     renameGroup: noop,
-    setGroupVisible: noop,
+    setGroupDisplayMode: noop,
     setGroupPlaceTypes: noop,
     setGroupColor: noop,
     removeGroup: noop,
@@ -60,8 +61,8 @@ type Story = StoryObj<typeof meta>;
 /** A configured "Country" level rendering as an area, with one assigned place type. */
 export const Default: Story = {};
 
-/** A hidden level set to render as pins, with no place types assigned yet. */
-export const HiddenPinLevel: Story = {
+/** A pin-mode level with no place types assigned yet, and region taken by another group. */
+export const PinLevelWithTaken: Story = {
   args: {
     group: {
       ...sampleGroup,
@@ -69,8 +70,8 @@ export const HiddenPinLevel: Story = {
       name: "City",
       placeTypes: [],
       displayMode: "pin",
-      visible: false,
       color: null,
     },
+    takenPlaceTypes: new Set(["region"]),
   },
 };
