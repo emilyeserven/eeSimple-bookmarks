@@ -35,7 +35,13 @@ function CrumbItem({
 }) {
   return (
     <BreadcrumbItem
-      className={cn("items-center", crumb.switcher && "group/crumb")}
+      // Ancestor (link) crumbs keep their natural width; the current page (no href) is allowed to
+      // shrink so its long label truncates to an ellipsis instead of widening the header/main pane.
+      className={cn(
+        "items-center",
+        crumb.href ? "shrink-0" : "min-w-0",
+        crumb.switcher && "group/crumb",
+      )}
     >
       {crumb.href
         ? (
@@ -147,14 +153,14 @@ function InlineBreadcrumbs({
   return (
     <Breadcrumb
       className="
-        hidden
+        hidden min-w-0
         md:block
       "
     >
-      <BreadcrumbList className="items-center">
+      <BreadcrumbList className="min-w-0 flex-nowrap items-center">
         {nodes.map((node, i) => (
           <React.Fragment key={node.key}>
-            {i > 0 && <BreadcrumbSeparator />}
+            {i > 0 && <BreadcrumbSeparator className="shrink-0" />}
             {node.element}
           </React.Fragment>
         ))}
