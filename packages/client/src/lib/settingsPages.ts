@@ -9,6 +9,7 @@ import {
   Forward,
   Globe,
   HardDrive,
+  History,
   Image,
   Inbox,
   Layers,
@@ -99,6 +100,11 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/automations/global",
     label: "Automations: Global",
     icon: Wand2,
+  },
+  {
+    path: "/settings/automations/backfill",
+    label: "Automations: Backfill",
+    icon: History,
   },
   {
     path: "/ai-summarization",
