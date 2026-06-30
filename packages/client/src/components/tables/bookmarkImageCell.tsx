@@ -32,7 +32,7 @@ export function BookmarkImageColumnCell({
         alt=""
         className={isNatural
           ? "h-auto max-h-12 w-full object-contain"
-          : "size-full object-cover"}
+          : "size-full object-contain"}
         loading="lazy"
       />
     </div>

@@ -6,11 +6,11 @@ export function bookmarkImageClass(imageLeft: boolean, imageMode: string): strin
   if (imageLeft) {
     return imageMode === "natural"
       ? "h-auto w-32 shrink-0 self-start rounded-md border sm:w-40"
-      : "w-32 shrink-0 self-start rounded-md border object-cover sm:w-40";
+      : "w-32 shrink-0 self-start rounded-md border object-contain sm:w-40";
   }
   return imageMode === "natural"
     ? "mb-2 h-auto w-full rounded-md border"
-    : "mb-2 w-full rounded-md border object-cover";
+    : "mb-2 w-full rounded-md border object-contain";
 }
 
 /** Inline `aspect-ratio` style for a bookmark card image, resolving built-in and custom ratios. */
