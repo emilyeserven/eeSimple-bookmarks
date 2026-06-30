@@ -46,63 +46,99 @@ function decodeJsonString(raw: string): string {
   }
 }
 
-/**
- * Narrow the embed HTML to the MAIN post's media, dropping the "More posts" / related-media section.
- * Instagram's embed JSON carries the post under `shortcode_media`, but the related posts under
- * `shortcode_media.edge_web_media_to_related_media` (and the captioned embed renders them in an
- * `EmbedRelatedMedia` container) — and those related nodes have their OWN `display_url` values. We
- * cut everything from the first related-section marker so those thumbnails never enter the scan.
- */
-function mainPostRegion(html: string): string {
-  const relatedIdx = html.search(/edge_web_media_to_related_media|EmbedRelatedMedia/i);
-  return relatedIdx >= 0 ? html.slice(0, relatedIdx) : html;
+/** One node of the embed's `shortcode_media` (the post, or a carousel child) — only the bits we read. */
+interface ShortcodeMediaNode {
+  display_url?: unknown;
+  edge_sidecar_to_children?: {
+    edges?: { node?: { display_url?: unknown } }[];
+  };
 }
 
 /**
- * Parse an Instagram embed page's HTML into the MAIN post's image candidates. The embed carries each
- * image's full-size URL as a JSON-escaped `"display_url"` value — one per slide under
- * `edge_sidecar_to_children` for a carousel, or a single value for a non-carousel post. Related
- * ("More posts") thumbnails and the owner's `profile_pic_url` are deliberately excluded: the related
- * section is cut up front, and `profile_pic_url` is never a `display_url`. Falls back to the embed's
- * `og:image` (the post's own share image) when no media JSON is present. Pure — unit-testable.
+ * Pull the post's `shortcode_media` object out of the embed's `contextJSON`. The captioned embed
+ * carries the post as a JSON-*string* value (`"contextJSON":"{…}"`, double-escaped) inside the
+ * `["PolarisEmbedSimple","init",…]` script; decoding it twice (un-escape the string, then parse the
+ * JSON) yields `gql_data.shortcode_media`. Returns null when the blob is absent or unparseable.
+ */
+function shortcodeMediaFromContextJSON(html: string): ShortcodeMediaNode | null {
+  // `(?:[^"\\]|\\.)*` matches the JSON-string body, honouring escaped quotes/backslashes.
+  const match = /"contextJSON":"((?:[^"\\]|\\.)*)"/.exec(html);
+  if (!match) return null;
+  try {
+    const jsonText = JSON.parse(`"${match[1]}"`) as string;
+    const context = JSON.parse(jsonText) as { gql_data?: { shortcode_media?: ShortcodeMediaNode } };
+    return context.gql_data?.shortcode_media ?? null;
+  }
+  catch {
+    return null;
+  }
+}
+
+/**
+ * Collect the MAIN post's image URLs from a `shortcode_media` node: every carousel slide's
+ * `display_url` (full size, in order) when it's a sidecar, otherwise the single top-level
+ * `display_url`. Related "More posts" thumbnails and the owner's `profile_pic_url` live elsewhere in
+ * the embed (HoverCard / Avatar `<img>` markup, not under `shortcode_media`), so they're excluded
+ * structurally. Pure.
+ */
+function mainPostImageUrls(media: ShortcodeMediaNode): string[] {
+  const seen = new Set<string>();
+  const urls: string[] = [];
+  const push = (value: unknown): void => {
+    if (typeof value === "string" && /^https?:\/\//i.test(value) && !seen.has(value)) {
+      seen.add(value);
+      urls.push(value);
+    }
+  };
+  const children = media.edge_sidecar_to_children?.edges;
+  if (Array.isArray(children) && children.length > 0) {
+    for (const edge of children) push(edge.node?.display_url);
+  }
+  else {
+    push(media.display_url);
+  }
+  return urls;
+}
+
+/**
+ * Parse an Instagram embed page's HTML into the MAIN post's image candidates. Reads Instagram's own
+ * structured `contextJSON → gql_data.shortcode_media` (the carousel slides at full size, or the
+ * single image), which excludes the embed's "More posts" thumbnails and the profile picture for free
+ * — they aren't part of `shortcode_media`. Falls back to a legacy `display_url` scan (older
+ * `window.__additionalDataLoaded` embeds) and then the page's `og:image`. Pure — unit-testable.
  */
 export function parseInstagramEmbed(html: string): ImageCandidate[] {
-  const main = mainPostRegion(html);
-  // Carousel slides live under `edge_sidecar_to_children`; scan from there so only the children's
-  // `display_url`s are collected. With no sidecar it's a single-image post — keep just the first
-  // `display_url` (the post image), not every `display_url` that might appear elsewhere in the JSON.
-  const sidecarIdx = main.search(/edge_sidecar_to_children/i);
-  const region = sidecarIdx >= 0 ? main.slice(sidecarIdx) : main;
-  const limit = sidecarIdx >= 0 ? Infinity : 1;
+  const toCandidate = (url: string): ImageCandidate => ({
+    url,
+    source: "instagram",
+  });
 
-  const seen = new Set<string>();
-  const candidates: ImageCandidate[] = [];
-
-  // `(?:[^"\\]|\\.)*` matches a JSON string body, honouring escaped quotes/backslashes.
-  for (const match of region.matchAll(/"display_url":\s*"((?:[^"\\]|\\.)*)"/g)) {
-    const url = decodeJsonString(match[1]);
-    if (/^https?:\/\//i.test(url) && !seen.has(url)) {
-      seen.add(url);
-      candidates.push({
-        url,
-        source: "instagram",
-      });
-      if (candidates.length >= limit) break;
-    }
+  const media = shortcodeMediaFromContextJSON(html);
+  if (media) {
+    const urls = mainPostImageUrls(media);
+    if (urls.length > 0) return urls.map(toCandidate);
   }
 
-  if (candidates.length === 0) {
-    const og = metaContent(html, /property=["']og:image(?::url)?["']/i);
-    const url = og ? decodeEntities(og).trim() : "";
-    if (/^https?:\/\//i.test(url)) {
-      candidates.push({
-        url,
-        source: "instagram",
-      });
+  // Secondary: older embeds inline the data as `window.__additionalDataLoaded('extra', {…})` with
+  // single-escaped JSON, where the carousel `display_url`s sit under `edge_sidecar_to_children`.
+  const sidecarIdx = html.search(/edge_sidecar_to_children/i);
+  if (sidecarIdx >= 0) {
+    const seen = new Set<string>();
+    const candidates: ImageCandidate[] = [];
+    for (const match of html.slice(sidecarIdx).matchAll(/"display_url":\s*"((?:[^"\\]|\\.)*)"/g)) {
+      const url = decodeJsonString(match[1]);
+      if (/^https?:\/\//i.test(url) && !seen.has(url)) {
+        seen.add(url);
+        candidates.push(toCandidate(url));
+      }
     }
+    if (candidates.length > 0) return candidates;
   }
 
-  return candidates;
+  // Last resort: the post's own og:image (never a related/profile image).
+  const og = metaContent(html, /property=["']og:image(?::url)?["']/i);
+  const url = og ? decodeEntities(og).trim() : "";
+  return /^https?:\/\//i.test(url) ? [toCandidate(url)] : [];
 }
 
 /**
