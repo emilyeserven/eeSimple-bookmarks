@@ -98,6 +98,7 @@ export function LocationMapSection({
       {!isCollapsed
         ? (
           <LocationMap
+            key={mapKey}
             tree={tree}
             className={mapClassName}
             displayConfig={displayConfig}
