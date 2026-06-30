@@ -176,6 +176,20 @@ describe("useBookmarkImageEditForm", () => {
     }]);
   });
 
+  it("clears candidates after a successful save", async () => {
+    const {
+      result,
+    } = renderHook(() => useBookmarkImageEditForm(bookmark));
+    await act(async () => {
+      result.current.onFindImages();
+    });
+    expect(result.current.candidates).toHaveLength(1);
+    await act(async () => {
+      result.current.onSubmit(fakeEvent);
+    });
+    expect(result.current.candidates).toHaveLength(0);
+  });
+
   it("takes a screenshot with the selected delay, and remove sends no delay", async () => {
     const {
       result,
