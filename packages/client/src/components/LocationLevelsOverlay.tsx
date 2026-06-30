@@ -1,3 +1,4 @@
+import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
 import { Layers, MapPin, Shapes } from "lucide-react";
 
 import { useLocationLevels } from "../hooks/useLocationLevels";
@@ -53,6 +54,13 @@ export function LocationLevelsOverlay() {
                     id={`level-${group.id}`}
                     checked={group.visible}
                     onCheckedChange={checked => setGroupVisible(group.id, checked === true)}
+                  />
+                  <span
+                    className="size-3 shrink-0 rounded-sm border"
+                    style={{
+                      backgroundColor: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
+                    }}
+                    aria-hidden="true"
                   />
                   <Label
                     htmlFor={`level-${group.id}`}
