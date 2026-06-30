@@ -1,8 +1,10 @@
-import { asc, eq, isNotNull, isNull } from "drizzle-orm";
+import { asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import type { BulkDeleteResult, CreatePlaceTypeInput, PlaceType, UpdatePlaceTypeInput } from "@eesimple/types";
 import { placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { migratePlaceTypeConfig } from "@/services/appSettings";
+import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { locations, placeTypes, type PlaceTypeRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -15,8 +17,16 @@ export class DuplicatePlaceTypeError extends Error {
   }
 }
 
+/** Thrown when a delete's `reassignTo` target is missing or is the place type being deleted. */
+export class InvalidReassignTargetError extends Error {
+  constructor(message = "Invalid reassignment target") {
+    super(message);
+    this.name = "InvalidReassignTargetError";
+  }
+}
+
 /** Map a DB row to the shared `PlaceType` wire type. */
-function toPlaceType(row: PlaceTypeRow): PlaceType {
+function toPlaceType(row: PlaceTypeRow, locationCount = 0): PlaceType {
   return {
     id: row.id,
     name: row.name,
@@ -24,6 +34,7 @@ function toPlaceType(row: PlaceTypeRow): PlaceType {
     sortOrder: row.sortOrder,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
+    locationCount,
   };
 }
 
@@ -36,13 +47,30 @@ function titleCase(key: string): string {
   return key.replace(/[_-]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 }
 
+/**
+ * Count locations per place type, keyed by the normalized `placeTypeKey` so legacy raw values
+ * (e.g. `"City"`) match a place type's lower-cased slug. Returns a `slug → count` map.
+ */
+async function locationCountsBySlug(): Promise<Map<string, number>> {
+  const key = sql<string>`lower(trim(${locations.placeType}))`;
+  const rows = await db
+    .select({
+      key,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(locations)
+    .where(isNotNull(locations.placeType))
+    .groupBy(key);
+  return new Map(rows.map(r => [r.key, r.count]));
+}
+
 /** List all place types, ordered by sort order then name. */
 export async function listPlaceTypes(): Promise<PlaceType[]> {
-  const rows = await db
-    .select()
-    .from(placeTypes)
-    .orderBy(asc(placeTypes.sortOrder), asc(placeTypes.name));
-  return rows.map(toPlaceType);
+  const [rows, counts] = await Promise.all([
+    db.select().from(placeTypes).orderBy(asc(placeTypes.sortOrder), asc(placeTypes.name)),
+    locationCountsBySlug(),
+  ]);
+  return rows.map(row => toPlaceType(row, counts.get(placeTypeKey(row.slug ?? row.name)) ?? 0));
 }
 
 /** Add a place type. Throws `DuplicatePlaceTypeError` on a name clash. */
@@ -89,8 +117,36 @@ export async function updatePlaceType(
   return row ? toPlaceType(row) : null;
 }
 
-/** Delete a place type. Returns false when not found. */
-export async function deletePlaceType(id: string): Promise<boolean> {
+/**
+ * Delete a place type. Returns false when not found.
+ *
+ * When `reassignToId` is given, the locations using the deleted place type are first moved to the
+ * target place type (their `placeType` text rewritten to the target's slug) and the deleted type's
+ * map display/icon/level-group config is migrated onto the target, so the locations keep a place type
+ * instead of being orphaned. Throws `InvalidReassignTargetError` when the target is missing or is the
+ * place type being deleted. Without `reassignToId` the locations are left untouched (legacy behavior).
+ */
+export async function deletePlaceType(id: string, reassignToId?: string): Promise<boolean> {
+  const [existing] = await db.select().from(placeTypes).where(eq(placeTypes.id, id));
+  if (!existing) return false;
+  const fromSlug = existing.slug ?? slugify(existing.name);
+
+  if (reassignToId !== undefined) {
+    if (reassignToId === id) throw new InvalidReassignTargetError();
+    const [target] = await db.select().from(placeTypes).where(eq(placeTypes.id, reassignToId));
+    if (!target) throw new InvalidReassignTargetError("Reassignment target not found");
+    const toSlug = target.slug ?? slugify(target.name);
+
+    await db
+      .update(locations)
+      .set({
+        placeType: toSlug,
+      })
+      .where(eq(sql`lower(trim(${locations.placeType}))`, placeTypeKey(fromSlug)));
+    await migratePlaceTypeConfig(fromSlug, toSlug);
+    invalidateBookmarkCache();
+  }
+
   const rows = await db.delete(placeTypes).where(eq(placeTypes.id, id)).returning({
     id: placeTypes.id,
   });

@@ -4,7 +4,8 @@ import { useState } from "react";
 
 import { Pencil, Trash2 } from "lucide-react";
 
-import { useCreatePlaceType, useDeletePlaceType, usePlaceTypes, useUpdatePlaceType } from "../hooks/usePlaceTypes";
+import { DeletePlaceTypeDialog } from "./DeletePlaceTypeDialog";
+import { useCreatePlaceType, usePlaceTypes, useUpdatePlaceType } from "../hooks/usePlaceTypes";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,11 +17,11 @@ export function PlaceTypesCard() {
   } = usePlaceTypes();
   const createPlaceType = useCreatePlaceType();
   const updatePlaceType = useUpdatePlaceType();
-  const deletePlaceType = useDeletePlaceType();
 
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [deleting, setDeleting] = useState<PlaceType | null>(null);
 
   const sorted = [...(placeTypesData ?? [])].sort(
     (a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name),
@@ -153,8 +154,7 @@ export function PlaceTypesCard() {
                           size-7 shrink-0 text-destructive
                           hover:text-destructive
                         "
-                        onClick={() => deletePlaceType.mutate(pt.id)}
-                        disabled={deletePlaceType.isPending}
+                        onClick={() => setDeleting(pt)}
                       >
                         <Trash2 className="size-3.5" />
                       </Button>
@@ -164,6 +164,12 @@ export function PlaceTypesCard() {
           )
           : null}
       </CardContent>
+
+      <DeletePlaceTypeDialog
+        placeType={deleting}
+        placeTypes={sorted}
+        onClose={() => setDeleting(null)}
+      />
     </Card>
   );
 }
