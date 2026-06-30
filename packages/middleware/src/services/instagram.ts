@@ -47,17 +47,39 @@ function decodeJsonString(raw: string): string {
 }
 
 /**
- * Parse an Instagram embed page's HTML into the post's image candidates. The embed carries each
- * image's full-size URL as a JSON-escaped `"display_url"` value (one per carousel slide; a single
- * value for non-carousel posts). Falls back to the embed's `og:image` when no carousel JSON is
- * present. Pure — unit-testable on a fixture.
+ * Narrow the embed HTML to the MAIN post's media, dropping the "More posts" / related-media section.
+ * Instagram's embed JSON carries the post under `shortcode_media`, but the related posts under
+ * `shortcode_media.edge_web_media_to_related_media` (and the captioned embed renders them in an
+ * `EmbedRelatedMedia` container) — and those related nodes have their OWN `display_url` values. We
+ * cut everything from the first related-section marker so those thumbnails never enter the scan.
+ */
+function mainPostRegion(html: string): string {
+  const relatedIdx = html.search(/edge_web_media_to_related_media|EmbedRelatedMedia/i);
+  return relatedIdx >= 0 ? html.slice(0, relatedIdx) : html;
+}
+
+/**
+ * Parse an Instagram embed page's HTML into the MAIN post's image candidates. The embed carries each
+ * image's full-size URL as a JSON-escaped `"display_url"` value — one per slide under
+ * `edge_sidecar_to_children` for a carousel, or a single value for a non-carousel post. Related
+ * ("More posts") thumbnails and the owner's `profile_pic_url` are deliberately excluded: the related
+ * section is cut up front, and `profile_pic_url` is never a `display_url`. Falls back to the embed's
+ * `og:image` (the post's own share image) when no media JSON is present. Pure — unit-testable.
  */
 export function parseInstagramEmbed(html: string): ImageCandidate[] {
+  const main = mainPostRegion(html);
+  // Carousel slides live under `edge_sidecar_to_children`; scan from there so only the children's
+  // `display_url`s are collected. With no sidecar it's a single-image post — keep just the first
+  // `display_url` (the post image), not every `display_url` that might appear elsewhere in the JSON.
+  const sidecarIdx = main.search(/edge_sidecar_to_children/i);
+  const region = sidecarIdx >= 0 ? main.slice(sidecarIdx) : main;
+  const limit = sidecarIdx >= 0 ? Infinity : 1;
+
   const seen = new Set<string>();
   const candidates: ImageCandidate[] = [];
 
   // `(?:[^"\\]|\\.)*` matches a JSON string body, honouring escaped quotes/backslashes.
-  for (const match of html.matchAll(/"display_url":\s*"((?:[^"\\]|\\.)*)"/g)) {
+  for (const match of region.matchAll(/"display_url":\s*"((?:[^"\\]|\\.)*)"/g)) {
     const url = decodeJsonString(match[1]);
     if (/^https?:\/\//i.test(url) && !seen.has(url)) {
       seen.add(url);
@@ -65,6 +87,7 @@ export function parseInstagramEmbed(html: string): ImageCandidate[] {
         url,
         source: "instagram",
       });
+      if (candidates.length >= limit) break;
     }
   }
 
