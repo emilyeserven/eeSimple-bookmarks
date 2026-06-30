@@ -16,6 +16,7 @@ const MEDIA_TYPES_KEY = ["media-types"] as const;
 const WEBSITES_KEY = ["websites"] as const;
 const YOUTUBE_CHANNELS_KEY = ["youtube-channels"] as const;
 const TAGS_KEY = ["tags"] as const;
+const LOCATIONS_KEY = ["locations"] as const;
 
 /** Invalidate every query whose data a bookmark write can change (the list + all source counts). */
 function invalidateBookmarkRelatedQueries(queryClient: QueryClient): void {
@@ -209,6 +210,30 @@ export function useBackfillTitleTags() {
       );
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not backfill tags from titles")),
+  });
+}
+
+/**
+ * Apply the "auto-apply locations from title" automation to every existing bookmark (additive).
+ * Reports how many bookmarks were updated and refreshes the bookmark list + location counts.
+ */
+export function useBackfillTitleLocations() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => bookmarksApi.backfillTitleLocations(),
+    onSuccess: (result) => {
+      invalidateBookmarkRelatedQueries(queryClient);
+      void queryClient.invalidateQueries({
+        queryKey: LOCATIONS_KEY,
+      });
+      notifySuccess(
+        result.tagsApplied === 0
+          ? "No bookmark titles matched a location name"
+          : `Updated ${result.updated} bookmark${result.updated === 1 ? "" : "s"} (${result.tagsApplied} location${result.tagsApplied === 1 ? "" : "s"} applied)`,
+      );
+    },
+    onError: (err: Error) =>
+      notifyError(describeError(err, "Could not backfill locations from titles")),
   });
 }
 
