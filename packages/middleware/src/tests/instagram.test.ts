@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { isInstagramPostUrl, parseInstagramEmbed, parseInstagramProfileImageUrl, shortcodeFromUrl } from "@/services/instagram";
+import { isInstagramPostUrl, parseInstagramEmbed, parseInstagramEmbedVideo, parseInstagramProfileImageUrl, shortcodeFromUrl } from "@/services/instagram";
 
 const SIDECAR_EMBED_HTML = readFileSync(
   new URL("./fixtures/instagram-embed-sidecar.html", import.meta.url),
@@ -118,6 +118,59 @@ test("parseInstagramEmbed falls back to og:image when no media JSON is present",
 
 test("parseInstagramEmbed returns [] for garbage", () => {
   assert.deepEqual(parseInstagramEmbed("<html>nothing here</html>"), []);
+});
+
+test("parseInstagramEmbedVideo reads the video URL + dimensions from contextJSON", () => {
+  const html = embedWithContextJSON({
+    __typename: "GraphVideo",
+    is_video: true,
+    video_url: "https://scontent.example.com/reel.mp4",
+    dimensions: {
+      width: 720,
+      height: 1280,
+    },
+  });
+  assert.deepEqual(parseInstagramEmbedVideo(html), {
+    videoUrl: "https://scontent.example.com/reel.mp4",
+    width: 720,
+    height: 1280,
+  });
+});
+
+test("parseInstagramEmbedVideo tolerates missing dimensions", () => {
+  const html = embedWithContextJSON({
+    __typename: "GraphVideo",
+    is_video: true,
+    video_url: "https://scontent.example.com/reel.mp4",
+  });
+  assert.deepEqual(parseInstagramEmbedVideo(html), {
+    videoUrl: "https://scontent.example.com/reel.mp4",
+    width: null,
+    height: null,
+  });
+});
+
+test("parseInstagramEmbedVideo returns null for a non-video post", () => {
+  const html = embedWithContextJSON({
+    __typename: "GraphImage",
+    is_video: false,
+    display_url: "https://scontent.example.com/single-main.jpg",
+  });
+  assert.equal(parseInstagramEmbedVideo(html), null);
+});
+
+test("parseInstagramEmbedVideo falls back to a direct video_url scan for older embed markup", () => {
+  const html = "<html><body><script>window.__additionalDataLoaded('extra',"
+    + "{\"shortcode_media\":{\"is_video\":true,\"video_url\":\"https://scontent.cdninstagram.com/reel.mp4?a=1\\u0026b=2\"}});</script></body></html>";
+  assert.deepEqual(parseInstagramEmbedVideo(html), {
+    videoUrl: "https://scontent.cdninstagram.com/reel.mp4?a=1&b=2",
+    width: null,
+    height: null,
+  });
+});
+
+test("parseInstagramEmbedVideo returns null for garbage", () => {
+  assert.equal(parseInstagramEmbedVideo("<html>nothing here</html>"), null);
 });
 
 test("parseInstagramProfileImageUrl prefers the HD profile picture", () => {

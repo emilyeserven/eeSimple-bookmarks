@@ -39,6 +39,11 @@ function decodeJsonString(raw: string): string {
 /** One node of the embed's `shortcode_media` (the post, or a carousel child) — only the bits we read. */
 interface ShortcodeMediaNode {
   display_url?: unknown;
+  video_url?: unknown;
+  dimensions?: {
+    width?: unknown;
+    height?: unknown;
+  };
   edge_sidecar_to_children?: {
     edges?: { node?: { display_url?: unknown } }[];
   };
@@ -143,6 +148,62 @@ export async function fetchInstagramCarousel(url: string): Promise<ImageCandidat
   const result = await fetchBodyHtmlResult(embedUrl, /<\/html>/i);
   if (result.kind !== "ok") return [];
   return parseInstagramEmbed(result.html);
+}
+
+/** A Reel/IGTV's video URL + dimensions, extracted from an Instagram embed page. */
+export interface InstagramEmbedVideo {
+  videoUrl: string;
+  width: number | null;
+  height: number | null;
+}
+
+/**
+ * Parse an Instagram embed page's HTML for the post's video URL (+ dimensions) — for Reels/IGTV.
+ * Reads the same structured `contextJSON → gql_data.shortcode_media` blob {@link parseInstagramEmbed}
+ * uses for images: a video post carries `video_url` and `dimensions` alongside `display_url`. Falls
+ * back to a direct `"video_url":"…"` scan for older embed markup that doesn't expose `contextJSON`.
+ * Returns null when no video is exposed (a non-video post, or Instagram withholding the field). Pure
+ * — unit-testable.
+ */
+export function parseInstagramEmbedVideo(html: string): InstagramEmbedVideo | null {
+  const dim = (v: unknown): number | null => (typeof v === "number" && v > 0 ? v : null);
+
+  const media = shortcodeMediaFromContextJSON(html);
+  if (media && typeof media.video_url === "string" && /^https?:\/\//i.test(media.video_url)) {
+    return {
+      videoUrl: media.video_url,
+      width: dim(media.dimensions?.width),
+      height: dim(media.dimensions?.height),
+    };
+  }
+
+  // Legacy fallback: older embeds inline single-escaped JSON under the same field name.
+  const match = /"video_url":\s*"((?:[^"\\]|\\.)*)"/.exec(html);
+  if (match) {
+    const url = decodeJsonString(match[1]);
+    if (/^https?:\/\//i.test(url)) return {
+      videoUrl: url,
+      width: null,
+      height: null,
+    };
+  }
+  return null;
+}
+
+/**
+ * Fetch a Reel/IGTV's video URL (+ dimensions) via Instagram's public, keyless embed endpoint — the
+ * same source {@link fetchInstagramCarousel} uses for images, so it works without any Browserless
+ * configuration and isn't subject to the login wall the live reel page can show to a headless
+ * browser. Returns null when the URL isn't an Instagram post/reel/tv permalink, the embed can't be
+ * fetched, or the post carries no video. Never throws.
+ */
+export async function fetchInstagramEmbedVideo(url: string): Promise<InstagramEmbedVideo | null> {
+  const shortcode = shortcodeFromUrl(url);
+  if (!shortcode) return null;
+  const embedUrl = `https://www.instagram.com/p/${shortcode}/embed/captioned/`;
+  const result = await fetchBodyHtmlResult(embedUrl, /<\/html>/i);
+  if (result.kind !== "ok") return null;
+  return parseInstagramEmbedVideo(result.html);
 }
 
 /**
