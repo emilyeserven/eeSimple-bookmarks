@@ -10,6 +10,9 @@ const NOMINATIM_HIT = JSON.stringify([
     lon: "131.3990",
     addresstype: "city",
     address: {
+      city: "萩市",
+      state: "山口県",
+      country: "日本",
       country_code: "jp",
     },
     namedetails: {
@@ -50,6 +53,49 @@ test("geocodeLocation prefers the local name as title and the English name as ro
     assert.equal(hit.placeType, "city");
     assert.equal(hit.countryCode, "JP");
     assert.match(hit.mapUrl ?? "", /google\.com\/maps/);
+    // The address hierarchy above the city becomes ancestors, immediate-parent-first; the city
+    // itself (the leaf) is excluded, and each ancestor carries the shared country code.
+    assert.deepEqual(hit.ancestors, [
+      {
+        name: "山口県",
+        placeType: "state",
+        countryCode: "JP",
+      },
+      {
+        name: "日本",
+        placeType: "country",
+        countryCode: "JP",
+      },
+    ]);
+  }
+  finally {
+    restore();
+  }
+});
+
+test("geocodeLocation returns no ancestors when the address has no admin levels above the leaf", async () => {
+  const flatHit = JSON.stringify([
+    {
+      display_name: "Null Island",
+      name: "Null Island",
+      lat: "0",
+      lon: "0",
+      addresstype: "city",
+      address: {
+        city: "Null Island",
+        country_code: "xx",
+      },
+      namedetails: {
+        name: "Null Island",
+      },
+    },
+  ]);
+  const restore = stubFetch(() => new Response(flatHit, {
+    status: 200,
+  }));
+  try {
+    const [hit] = (await geocodeLocation("Null Island")).results;
+    assert.deepEqual(hit.ancestors, []);
   }
   finally {
     restore();

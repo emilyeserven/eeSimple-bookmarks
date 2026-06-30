@@ -8,7 +8,11 @@
  * doing a single request per lookup. Results are mapped to the shared `LocationLookupResult`.
  */
 
-import type { LocationLookupCandidate, LocationLookupResult } from "@eesimple/types";
+import type {
+  LocationLookupAncestor,
+  LocationLookupCandidate,
+  LocationLookupResult,
+} from "@eesimple/types";
 
 const DEFAULT_ENDPOINT = "https://nominatim.openstreetmap.org";
 const GEOCODE_TIMEOUT_MS = 10000;
@@ -37,9 +41,77 @@ interface NominatimResult {
   lon?: unknown;
   type?: unknown;
   addresstype?: unknown;
-  address?: { country_code?: unknown } | null;
+  /** The full address hierarchy (requested via `addressdetails=1`): city/county/state/country/… */
+  address?: Record<string, unknown> | null;
   /** Per-language name tags (requested via `namedetails=1`): `name` (local), `name:en`, … */
   namedetails?: Record<string, unknown> | null;
+}
+
+/**
+ * Nominatim `address` keys we treat as admin levels, ordered most-specific → least-specific. We walk
+ * these in order to turn the flat address object into an ordered ancestor chain (immediate-parent
+ * first). Keys not in this list (`country_code`, `ISO3166-2-lvl4`, `postcode`, road-level detail, …)
+ * are ignored.
+ */
+const ADMIN_LEVEL_KEYS = [
+  "neighbourhood",
+  "suburb",
+  "quarter",
+  "city_district",
+  "borough",
+  "hamlet",
+  "village",
+  "town",
+  "city",
+  "municipality",
+  "county",
+  "state_district",
+  "region",
+  "province",
+  "state",
+  "country",
+] as const;
+
+/**
+ * Turn a Nominatim `address` object into the candidate's higher-level ancestors, ordered
+ * immediate-parent-first (e.g. 萩市 → [山口県, 日本]). Walks the admin-level keys most-specific →
+ * least-specific, drops the level that is the place itself (and anything more specific than it), and
+ * returns the rest. Each ancestor carries the address key as its loose `placeType` and shares the
+ * candidate's `countryCode`. Duplicate names (a level repeated under two keys) are collapsed.
+ */
+function parseAncestors(
+  address: Record<string, unknown> | null,
+  leafName: string,
+  countryCode: string | null,
+): LocationLookupAncestor[] {
+  if (!address) return [];
+  const levels: { name: string;
+    placeType: string; }[] = [];
+  for (const key of ADMIN_LEVEL_KEYS) {
+    const name = asString(address[key]);
+    if (name === null) continue;
+    levels.push({
+      name,
+      placeType: key,
+    });
+  }
+  // Drop the place itself and everything more specific than it, so we keep only true ancestors.
+  const leafIndex = levels.findIndex(level => level.name === leafName);
+  const ancestors = leafIndex === -1 ? levels : levels.slice(leafIndex + 1);
+
+  // Seed with the leaf so it is never emitted as its own ancestor, even if the index match missed.
+  const seen = new Set<string>([leafName]);
+  const result: LocationLookupAncestor[] = [];
+  for (const level of ancestors) {
+    if (seen.has(level.name)) continue;
+    seen.add(level.name);
+    result.push({
+      name: level.name,
+      placeType: level.placeType,
+      countryCode,
+    });
+  }
+  return result;
 }
 
 function asString(value: unknown): string | null {
@@ -78,7 +150,8 @@ function toCandidate(raw: NominatimResult): LocationLookupCandidate | null {
   const {
     name, romanizedName,
   } = resolveNames(raw, displayName);
-  const countryCode = asString(raw.address?.country_code);
+  const rawCountryCode = asString(raw.address?.country_code);
+  const countryCode = rawCountryCode ? rawCountryCode.toUpperCase() : null;
   return {
     name,
     romanizedName,
@@ -86,8 +159,9 @@ function toCandidate(raw: NominatimResult): LocationLookupCandidate | null {
     latitude,
     longitude,
     placeType: asString(raw.addresstype) ?? asString(raw.type),
-    countryCode: countryCode ? countryCode.toUpperCase() : null,
+    countryCode,
     mapUrl: mapUrlFor(latitude, longitude),
+    ancestors: parseAncestors(raw.address ?? null, name, countryCode),
   };
 }
 
