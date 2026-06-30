@@ -38,7 +38,6 @@ const meta = {
     options: sampleOptions,
     renameGroup: noop,
     setGroupVisible: noop,
-    setGroupDisplayMode: noop,
     setGroupPlaceTypes: noop,
     setGroupColor: noop,
     removeGroup: noop,

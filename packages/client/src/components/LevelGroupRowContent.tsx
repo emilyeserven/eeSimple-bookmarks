@@ -2,16 +2,15 @@ import type { GroupRowProps, SortableHandle } from "./levelGroupRowTypes";
 
 import { useEffect, useState } from "react";
 
-import { GripVertical, MapPin, Shapes, Trash2 } from "lucide-react";
+import { GripVertical, Star, Trash2 } from "lucide-react";
 
 import { LevelColorControl } from "./LevelColorControl";
 import { MultiCombobox } from "./MultiCombobox";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 
 type LevelGroupRowContentProps = GroupRowProps & SortableHandle;
 
@@ -21,7 +20,6 @@ export function LevelGroupRowContent({
   options,
   renameGroup,
   setGroupVisible,
-  setGroupDisplayMode,
   setGroupPlaceTypes,
   setGroupColor,
   removeGroup,
@@ -35,8 +33,9 @@ export function LevelGroupRowContent({
   }, [group.name]);
 
   return (
-    <>
-      <div className="flex items-center gap-3">
+    <div className="space-y-2">
+      {/* Row 1: title — on its own row on all screen sizes */}
+      <div className="flex items-center gap-2">
         <button
           type="button"
           className="
@@ -60,54 +59,42 @@ export function LevelGroupRowContent({
           placeholder="Level name"
           className="h-9 flex-1"
         />
+      </div>
 
-        <ToggleGroup
-          type="single"
-          size="sm"
-          variant="outline"
-          value={group.displayMode}
-          onValueChange={(value) => {
-            if (value === "pin" || value === "area") {
-              setGroupDisplayMode(group.id, value);
-            }
-          }}
-          aria-label={`${group.name || "Level"} display mode`}
-        >
-          <ToggleGroupItem
-            value="pin"
-            aria-label="Pin"
-          >
-            <MapPin className="mr-1 size-4" />
-            Pin
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="area"
-            aria-label="Area"
-          >
-            <Shapes className="mr-1 size-4" />
-            Area
-          </ToggleGroupItem>
-        </ToggleGroup>
-
+      {/* Row 2: controls — stack on mobile, inline on desktop */}
+      <div
+        className="
+          flex flex-col gap-2 pl-6
+          sm:flex-row sm:items-center
+        "
+      >
         <LevelColorControl
           color={group.color}
           label={group.name}
           onChange={color => setGroupColor(group.id, color)}
         />
 
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={`loc-group-${group.id}`}
-            checked={group.visible}
-            onCheckedChange={checked => setGroupVisible(group.id, checked === true)}
+        <button
+          type="button"
+          onClick={() => setGroupVisible(group.id, !group.visible)}
+          aria-label={group.visible ? `Hide ${group.name || "level"}` : `Show ${group.name || "level"}`}
+          aria-pressed={group.visible}
+          title={group.visible ? "Visible on map" : "Hidden from map"}
+          className={cn(
+            `
+              rounded-sm p-1 transition-colors
+              hover:bg-accent
+            `,
+            group.visible ? "text-yellow-500" : "text-muted-foreground",
+          )}
+        >
+          <Star
+            className={cn(
+              "size-4",
+              group.visible ? "fill-yellow-400" : "fill-none",
+            )}
           />
-          <Label
-            htmlFor={`loc-group-${group.id}`}
-            className="cursor-pointer"
-          >
-            Shown
-          </Label>
-        </div>
+        </button>
 
         <Button
           type="button"
@@ -120,6 +107,7 @@ export function LevelGroupRowContent({
         </Button>
       </div>
 
+      {/* Row 3: place type assignment */}
       <div className="space-y-1">
         <Label className="text-xs text-muted-foreground">Place types</Label>
         <MultiCombobox
@@ -135,6 +123,6 @@ export function LevelGroupRowContent({
           aria-label={`Place types for ${group.name || "level"}`}
         />
       </div>
-    </>
+    </div>
   );
 }
