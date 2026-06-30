@@ -4,13 +4,30 @@ import type { Bookmark, MediaObject } from "@eesimple/types";
 import { useState } from "react";
 
 import { GalleryDialogs } from "./GalleryDialogs";
-import { OrphansGrid, RegisteredGrid, StorageSummary } from "./GalleryGrids";
+import { isVideoObject } from "./galleryFormat";
+import { ArchivedReelsGrid, OrphansGrid, RegisteredGrid, StorageSummary } from "./GalleryGrids";
 import { GalleryToolbar } from "./GalleryToolbar";
+import { navLinkClass, TabbedShell } from "./TabbedShell";
 import { galleryColumns } from "./tables/galleryColumns";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useAttachOrphan, useAutoFetchImages, useAutoFetchStatus, useAutoFetchWithFallback, useAutoFetchWithFallbackStatus, useDeleteOrphans, useGallery, useScanBucket } from "../hooks/useGallery";
 
 import { DataTable } from "@/components/ui/data-table";
+import { cn } from "@/lib/utils";
+
+type GallerySection = "media" | "archived-reels";
+
+const GALLERY_SECTIONS: { key: GallerySection;
+  label: string; }[] = [
+  {
+    key: "media",
+    label: "Media",
+  },
+  {
+    key: "archived-reels",
+    label: "Archived Reels",
+  },
+];
 
 interface GalleryContentProps {
   view: GalleryView;
@@ -161,28 +178,18 @@ export function GalleryListing() {
 
   const [view, setView] = useState<GalleryView>("grid");
   const [layout, setLayout] = useState<GalleryLayout>("natural");
+  const [section, setSection] = useState<GallerySection>("media");
 
   const dialogs = useGalleryDialogs();
 
   const registered = catalog?.registered ?? [];
   const orphans = catalog?.orphans ?? [];
-  const hasObjects = registered.length > 0 || orphans.length > 0;
+  // Archived-reel videos get their own tab; the Media tab's grid/table only shows images.
+  const registeredImages = registered.filter(object => !isVideoObject(object));
+  const hasObjects = registeredImages.length > 0 || orphans.length > 0;
 
   return (
     <div className="space-y-6">
-      <GalleryToolbar
-        view={view}
-        onViewChange={setView}
-        layout={layout}
-        onLayoutChange={setLayout}
-        scan={scan}
-        autoFetch={autoFetch}
-        autoFetchRunning={autoFetchRunning}
-        autoFetchWithFallback={autoFetchWithFallback}
-        autoFetchWithFallbackRunning={autoFetchWithFallbackRunning}
-        pendingAutoFetchCount={catalog?.pendingAutoFetchCount ?? 0}
-      />
-
       {catalog
         ? (
           <StorageSummary
@@ -196,27 +203,62 @@ export function GalleryListing() {
       {isLoading ? <p className="text-sm text-muted-foreground">Loading media…</p> : null}
       {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
 
-      {catalog && !hasObjects
-        ? (
-          <p className="text-sm text-muted-foreground">
-            No images in storage yet. Upload an image to a bookmark, then run a scan.
-          </p>
-        )
-        : null}
+      <TabbedShell
+        nav={GALLERY_SECTIONS.map(item => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => setSection(item.key)}
+            className={cn(navLinkClass, item.key === section && `
+              bg-accent text-accent-foreground
+            `)}
+          >
+            {item.label}
+          </button>
+        ))}
+        navAriaLabel="Gallery sections"
+      >
+        {section === "media"
+          ? (
+            <div className="space-y-6">
+              <GalleryToolbar
+                view={view}
+                onViewChange={setView}
+                layout={layout}
+                onLayoutChange={setLayout}
+                scan={scan}
+                autoFetch={autoFetch}
+                autoFetchRunning={autoFetchRunning}
+                autoFetchWithFallback={autoFetchWithFallback}
+                autoFetchWithFallbackRunning={autoFetchWithFallbackRunning}
+                pendingAutoFetchCount={catalog?.pendingAutoFetchCount ?? 0}
+              />
 
-      {hasObjects
-        ? (
-          <GalleryContent
-            view={view}
-            layout={layout}
-            registered={registered}
-            orphans={orphans}
-            onDeleteAll={() => dialogs.requestDeleteAll(orphans)}
-            onAttach={dialogs.openAttach}
-            onDelete={dialogs.requestDelete}
-          />
-        )
-        : null}
+              {catalog && !hasObjects
+                ? (
+                  <p className="text-sm text-muted-foreground">
+                    No images in storage yet. Upload an image to a bookmark, then run a scan.
+                  </p>
+                )
+                : null}
+
+              {hasObjects
+                ? (
+                  <GalleryContent
+                    view={view}
+                    layout={layout}
+                    registered={registeredImages}
+                    orphans={orphans}
+                    onDeleteAll={() => dialogs.requestDeleteAll(orphans)}
+                    onAttach={dialogs.openAttach}
+                    onDelete={dialogs.requestDelete}
+                  />
+                )
+                : null}
+            </div>
+          )
+          : <ArchivedReelsGrid bookmarks={dialogs.allBookmarks} />}
+      </TabbedShell>
 
       <GalleryDialogs
         pendingLabel={dialogs.pending?.label ?? null}

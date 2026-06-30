@@ -20,6 +20,10 @@ const editNav = [
     to: "/bookmarks/$bookmarkId/edit/image",
     label: "Image",
   },
+  {
+    to: "/bookmarks/$bookmarkId/edit/video",
+    label: "Video",
+  },
 ] as const;
 
 function BookmarkEditLayout() {

@@ -6,7 +6,6 @@ import { BookmarkArchiveLinkButton, BookmarkArchiveNowButton } from "./BookmarkC
 import { BookmarkDetailBody } from "./BookmarkDetailBody";
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
-import { BookmarkArchiveReelButton, BookmarkReelArchivePlayer } from "./BookmarkReelArchive";
 import { DetailHeaderActions } from "./DetailHeaderActions";
 import { RomanizedLabel } from "./RomanizedLabel";
 import { useBookmarkDetailLayout } from "../hooks/useAppSettings";
@@ -48,8 +47,6 @@ export function BookmarkDetail({
   // ArchiveBox link-outs render only when the connector is configured and the bookmark has a url.
   const archiveBaseUrl = connectors?.archiveBox.baseUrl ?? null;
   const showArchive = archiveBaseUrl !== null && Boolean(bookmark.url);
-  // Self-contained reel archiving needs both Browserless and object storage configured.
-  const reelArchiveEnabled = connectors?.instagramReelArchive.enabled ?? false;
 
   return (
     <div className="@container space-y-6">
@@ -91,10 +88,6 @@ export function BookmarkDetail({
                   />
                 </>
               )}
-              <BookmarkArchiveReelButton
-                bookmark={bookmark}
-                enabled={reelArchiveEnabled}
-              />
               <DetailHeaderActions
                 onEdit={onEdit}
                 onDelete={onDelete}
@@ -118,7 +111,6 @@ export function BookmarkDetail({
           embedUrl={embedUrl}
         />
       </div>
-      <BookmarkReelArchivePlayer bookmark={bookmark} />
       {isSingle
         ? (
           <BookmarkDetailBody

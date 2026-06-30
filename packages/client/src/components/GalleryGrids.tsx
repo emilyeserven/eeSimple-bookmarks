@@ -1,12 +1,13 @@
 import type { GalleryLayout } from "./galleryFormat";
-import type { MediaObject } from "@eesimple/types";
+import type { Bookmark, InstagramReelArchive, MediaObject } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
-import { Trash2 } from "lucide-react";
+import { Download, Loader2, Trash2 } from "lucide-react";
 
-import { formatSize } from "./galleryFormat";
+import { formatSize, isVideoObject } from "./galleryFormat";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
+import { useDeleteBookmarkReelArchive } from "../hooks/useBookmarks";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,23 +37,37 @@ export function StorageSummary({
 
 /**
  * A thumbnail tile shared by both grids. In `natural` layout the image keeps its true aspect ratio
- * (it flows in a masonry column); in `square` layout it's cropped to fill a uniform 1:1 box.
+ * (it flows in a masonry column); in `square` layout it's cropped to fill a uniform 1:1 box. Video
+ * objects (archived reels) render as a muted, controls-less preview instead of an `<img>`.
  */
 export function Thumb({
   object,
   layout,
 }: { object: MediaObject;
   layout: GalleryLayout; }) {
-  if (layout === "natural") {
-    return (
+  const media = isVideoObject(object)
+    ? (
+      <video
+        src={object.url}
+        muted
+        preload="metadata"
+        className={layout === "natural"
+          ? "h-auto w-full rounded-md border bg-muted/30"
+          : "size-full object-cover"}
+      />
+    )
+    : (
       <img
         src={object.url}
         alt=""
         loading="lazy"
-        className="h-auto w-full rounded-md border bg-muted/30"
+        className={layout === "natural"
+          ? "h-auto w-full rounded-md border bg-muted/30"
+          : "size-full object-cover"}
       />
     );
-  }
+
+  if (layout === "natural") return media;
   return (
     <div
       className="
@@ -60,12 +75,7 @@ export function Thumb({
         rounded-md border bg-muted/30
       "
     >
-      <img
-        src={object.url}
-        alt=""
-        loading="lazy"
-        className="size-full object-cover"
-      />
+      {media}
     </div>
   );
 }
@@ -191,14 +201,18 @@ export function OrphansGrid({
             <div className="flex items-center justify-between gap-1">
               <span className="text-xs text-muted-foreground">{formatSize(object.byteSize)}</span>
               <div className="flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onAttach(object.objectKey)}
-                >
-                  Attach
-                </Button>
+                {isVideoObject(object)
+                  ? null
+                  : (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onAttach(object.objectKey)}
+                    >
+                      Attach
+                    </Button>
+                  )}
                 <Button
                   type="button"
                   variant="ghost"
@@ -212,6 +226,106 @@ export function OrphansGrid({
             </div>
           </li>
         ))}
+      </ul>
+    </section>
+  );
+}
+
+/** The grid of bookmarks with a self-contained archived Instagram reel video. */
+export function ArchivedReelsGrid({
+  bookmarks,
+}: { bookmarks: Bookmark[] }) {
+  const viewClick = useViewPanelClick();
+  const modifier = useSidebarOpenModifier();
+  const remove = useDeleteBookmarkReelArchive();
+  const reels = bookmarks.filter(
+    (bookmark): bookmark is Bookmark & { reelArchive: InstagramReelArchive } => bookmark.reelArchive !== null,
+  );
+
+  if (reels.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No archived reel videos yet. Archive one from a bookmark&apos;s Video edit tab.
+      </p>
+    );
+  }
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center gap-2">
+        <h2 className="text-lg font-semibold">Archived Reels</h2>
+        <Badge variant="secondary">{reels.length}</Badge>
+      </div>
+      <ul
+        className="
+          grid grid-cols-2 gap-3
+          sm:grid-cols-3
+          lg:grid-cols-4
+        "
+      >
+        {reels.map((bookmark) => {
+          const archive = bookmark.reelArchive;
+          return (
+            <li
+              key={bookmark.id}
+              className="space-y-1"
+            >
+              <video
+                src={archive.url}
+                controls
+                preload="metadata"
+                className="w-full rounded-md border bg-muted/30"
+              />
+              <Link
+                to="/bookmarks/$bookmarkId"
+                params={{
+                  bookmarkId: bookmark.id,
+                }}
+                title={entityLinkTitle(modifier)}
+                onClick={event => viewClick(event, "bookmark", bookmark.id, bookmark.id)}
+                className="
+                  block truncate text-sm font-medium
+                  hover:underline
+                "
+              >
+                {bookmark.title}
+              </Link>
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs text-muted-foreground">{formatSize(archive.byteSize)}</span>
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Download archived reel"
+                    title="Download archived reel"
+                    asChild
+                  >
+                    <a
+                      href={archive.url}
+                      download={`reel-${bookmark.id}.mp4`}
+                    >
+                      <Download className="size-4" />
+                    </a>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Remove archived reel"
+                    title="Remove archived reel"
+                    disabled={remove.isPending}
+                    onClick={() => remove.mutate(bookmark.id)}
+                  >
+                    {remove.isPending
+                      ? <Loader2 className="size-4 animate-spin" />
+                      : <Trash2 className="size-4" />}
+                  </Button>
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

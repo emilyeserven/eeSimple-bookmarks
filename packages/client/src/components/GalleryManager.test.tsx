@@ -1,13 +1,15 @@
-import type { GalleryCatalog, MediaObject } from "@eesimple/types";
+import type { Bookmark, GalleryCatalog, MediaObject } from "@eesimple/types";
 
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { GalleryListing } from "./GalleryManager";
+import { makeBookmark } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 // Stub the gallery hooks so the listing can be driven without a live API.
 const deleteMutate = vi.fn<(keys: string[], opts?: unknown) => void>();
+const deleteReelArchiveMutate = vi.fn();
 let galleryState: { data: GalleryCatalog | undefined;
   isLoading: boolean;
   error: Error | null; } = {
@@ -15,6 +17,7 @@ let galleryState: { data: GalleryCatalog | undefined;
   isLoading: false,
   error: null,
 };
+let bookmarksState: Bookmark[] = [];
 
 vi.mock("../hooks/useGallery", () => ({
   useGallery: () => galleryState,
@@ -55,7 +58,11 @@ vi.mock("../hooks/useGallery", () => ({
 
 vi.mock("../hooks/useBookmarks", () => ({
   useBookmarks: () => ({
-    data: [],
+    data: bookmarksState,
+  }),
+  useDeleteBookmarkReelArchive: () => ({
+    mutate: deleteReelArchiveMutate,
+    isPending: false,
   }),
 }));
 
@@ -226,5 +233,97 @@ describe("GalleryListing", () => {
     if (confirmButton) fireEvent.click(confirmButton);
 
     expect(deleteMutate).toHaveBeenCalledWith(["bookmarks/orphan.webp"], expect.anything());
+  });
+
+  it("keeps archived-reel videos out of the Media tab's Registered grid", async () => {
+    bookmarksState = [];
+    galleryState = {
+      data: {
+        registered: [
+          makeObject({
+            objectKey: "bookmarks/11111111-1111-1111-1111-111111111111-reel.mp4",
+            contentType: "video/mp4",
+            bookmark: {
+              id: "11111111-1111-1111-1111-111111111111",
+              title: "A Reel",
+            },
+            url: "/api/bookmarks/11111111-1111-1111-1111-111111111111/reel-archive",
+          }),
+        ],
+        orphans: [],
+        storageQuotaBytes: null,
+        pendingAutoFetchCount: 0,
+      },
+      isLoading: false,
+      error: null,
+    };
+    await renderWithRouter(<GalleryListing />, {
+      paths: [DETAIL_PATH],
+    });
+
+    expect(screen.getByText(/No images in storage yet/)).toBeInTheDocument();
+    expect(screen.queryByText("A Reel")).not.toBeInTheDocument();
+  });
+
+  it("lists bookmarks with an archived reel under the Archived Reels tab", async () => {
+    bookmarksState = [
+      makeBookmark({
+        id: "bm-reel",
+        title: "Archived Reel Bookmark",
+        url: "https://www.instagram.com/reel/abc123/",
+        reelArchive: {
+          url: "/api/bookmarks/bm-reel/reel-archive?v=1",
+          contentType: "video/mp4",
+          byteSize: 4096,
+          width: 720,
+          height: 1280,
+          durationSeconds: null,
+          sourceUrl: "https://www.instagram.com/reel/abc123/",
+          createdAt: "2026-06-01T00:00:00.000Z",
+        },
+      }),
+    ];
+    galleryState = {
+      data: {
+        registered: [],
+        orphans: [],
+        storageQuotaBytes: null,
+        pendingAutoFetchCount: 0,
+      },
+      isLoading: false,
+      error: null,
+    };
+    await renderWithRouter(<GalleryListing />, {
+      paths: [DETAIL_PATH],
+    });
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Archived Reels",
+    }));
+
+    expect(screen.getByText("Archived Reel Bookmark")).toBeInTheDocument();
+  });
+
+  it("shows an empty message on the Archived Reels tab when no bookmark has one", async () => {
+    bookmarksState = [];
+    galleryState = {
+      data: {
+        registered: [],
+        orphans: [],
+        storageQuotaBytes: null,
+        pendingAutoFetchCount: 0,
+      },
+      isLoading: false,
+      error: null,
+    };
+    await renderWithRouter(<GalleryListing />, {
+      paths: [DETAIL_PATH],
+    });
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Archived Reels",
+    }));
+
+    expect(screen.getByText(/No archived reel videos yet/)).toBeInTheDocument();
   });
 });
