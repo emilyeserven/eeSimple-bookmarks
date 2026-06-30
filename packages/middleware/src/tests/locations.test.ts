@@ -166,3 +166,34 @@ test("matchLocationIdsByTitle matches name, romanizedName, and alternate names",
   // No spurious substring match.
   assert.deepEqual(matchLocationIdsByTitle("Stockyard tour", null, candidates), []);
 });
+
+test("matchLocationIdsByTitle drops a matched ancestor of a more specific matched location", () => {
+  const candidates = [
+    {
+      id: "l-busan",
+      name: "부산광역시",
+      romanizedName: "Busan",
+      alternateNames: [],
+      parentId: null,
+    },
+    {
+      id: "l-temple",
+      name: "대한불교조계종 석불사",
+      romanizedName: "Seokbulsa Temple",
+      alternateNames: [],
+      parentId: "l-busan",
+    },
+  ];
+  // Title mentions both the temple (by name) and "Busan" (the temple's ancestor) — only the more
+  // specific temple match should survive; Busan is implied by it.
+  assert.deepEqual(
+    matchLocationIdsByTitle(
+      "Seokbulsa Temple: A Rewarding Cave Temple Hike in Busan - Nickkembel Travels",
+      null,
+      candidates,
+    ),
+    ["l-temple"],
+  );
+  // A title mentioning only the ancestor still matches the ancestor.
+  assert.deepEqual(matchLocationIdsByTitle("A day trip to Busan", null, candidates), ["l-busan"]);
+});

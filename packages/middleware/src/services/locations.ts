@@ -72,6 +72,7 @@ export async function listLocationNames(): Promise<LocationTitleCandidate[]> {
       name: locations.name,
       romanizedName: locations.romanizedName,
       alternateNames: locations.alternateNames,
+      parentId: locations.parentId,
     })
     .from(locations);
   return rows.map(row => ({
@@ -79,6 +80,7 @@ export async function listLocationNames(): Promise<LocationTitleCandidate[]> {
     name: row.name,
     romanizedName: row.romanizedName,
     alternateNames: row.alternateNames ?? [],
+    parentId: row.parentId,
   }));
 }
 
