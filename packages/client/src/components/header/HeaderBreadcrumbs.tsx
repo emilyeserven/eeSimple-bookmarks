@@ -8,6 +8,7 @@ import { ListTree } from "lucide-react";
 import { BreadcrumbSwitcher } from "@/components/BreadcrumbSwitcher";
 import {
   Breadcrumb,
+  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
@@ -15,6 +16,12 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetClose,
@@ -74,7 +81,9 @@ function CrumbItem({
   crumb: BreadcrumbSegment;
 }) {
   return (
-    <BreadcrumbItem className={cn("items-start", crumb.switcher && "group/crumb")}>
+    <BreadcrumbItem
+      className={cn("items-center", crumb.switcher && "group/crumb")}
+    >
       {crumb.href
         ? (
           <BreadcrumbLink asChild>
@@ -99,12 +108,89 @@ function CrumbItem({
   );
 }
 
-/** Wide-screen trail: `Parent → Parent → Current` on one line. */
+/**
+ * The collapsed middle of a long trail: an ellipsis that opens a dropdown listing the hidden
+ * crumbs (shadcn's canonical collapsed-breadcrumb pattern). Each hidden crumb stays a working link
+ * (or a plain row when it has no href), keeping its romanized subtitle via `CrumbLabel`.
+ */
+function CollapsedCrumbs({
+  crumbs,
+}: {
+  crumbs: BreadcrumbSegment[];
+}) {
+  return (
+    <BreadcrumbItem>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          aria-label="Show hidden breadcrumbs"
+          className="
+            flex items-center gap-1 rounded-sm text-muted-foreground
+            transition-colors
+            hover:text-foreground
+            focus-visible:text-foreground
+            data-[state=open]:text-foreground
+          "
+        >
+          <BreadcrumbEllipsis className="size-4" />
+          <span className="sr-only">Toggle menu</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          {crumbs.map(crumb => (
+            <DropdownMenuItem
+              key={crumb.label}
+              asChild={Boolean(crumb.href)}
+            >
+              {crumb.href
+                ? (
+                  <Link to={crumb.href}>
+                    <CrumbLabel
+                      label={crumb.label}
+                      romanizedLabel={crumb.romanizedLabel}
+                    />
+                  </Link>
+                )
+                : (
+                  <CrumbLabel
+                    label={crumb.label}
+                    romanizedLabel={crumb.romanizedLabel}
+                  />
+                )}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </BreadcrumbItem>
+  );
+}
+
+/**
+ * Wide-screen trail: `Parent → … → Current` on one line, vertically centered. When the trail has
+ * more than 3 crumbs the middle ones collapse into a clickable ellipsis dropdown, keeping the root
+ * plus the last two crumbs visible.
+ */
 function InlineBreadcrumbs({
   crumbs,
 }: {
   crumbs: BreadcrumbSegment[];
 }) {
+  const collapsed = crumbs.length > 3;
+  const crumbNode = (crumb: BreadcrumbSegment) => ({
+    key: crumb.label,
+    element: <CrumbItem crumb={crumb} />,
+  });
+  // Each visible node carries a stable key; when collapsed the trail is first → ⋯ → last two.
+  const nodes: { key: string;
+    element: React.ReactNode; }[] = collapsed
+    ? [
+      ...crumbs.slice(0, 1).map(crumbNode),
+      {
+        key: "ellipsis",
+        element: <CollapsedCrumbs crumbs={crumbs.slice(1, -2)} />,
+      },
+      ...crumbs.slice(-2).map(crumbNode),
+    ]
+    : crumbs.map(crumbNode);
+
   return (
     <Breadcrumb
       className="
@@ -112,11 +198,11 @@ function InlineBreadcrumbs({
         md:block
       "
     >
-      <BreadcrumbList className="items-start">
-        {crumbs.map((crumb, i) => (
-          <React.Fragment key={crumb.label}>
-            {i > 0 && <BreadcrumbSeparator className="mt-1" />}
-            <CrumbItem crumb={crumb} />
+      <BreadcrumbList className="items-center">
+        {nodes.map((node, i) => (
+          <React.Fragment key={node.key}>
+            {i > 0 && <BreadcrumbSeparator />}
+            {node.element}
           </React.Fragment>
         ))}
       </BreadcrumbList>
