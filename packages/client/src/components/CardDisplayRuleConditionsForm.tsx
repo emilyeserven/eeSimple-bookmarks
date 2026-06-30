@@ -1,23 +1,11 @@
-import type { CardDisplayRule, ConditionTree, UpdateCardDisplayRuleInput } from "@eesimple/types";
-
-import { useState } from "react";
-
-import { emptyConditionTree } from "@eesimple/types";
+import type { CardDisplayRule } from "@eesimple/types";
 
 import { ConditionsField } from "./conditions/ConditionsField";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
-import { useUpdateCardDisplayRule } from "../hooks/useCardDisplayRules";
-import { useCategories } from "../hooks/useCategories";
-import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-import { useTagTree } from "../hooks/useTags";
+import { useCardDisplayRuleConditionsForm } from "./useCardDisplayRuleConditionsForm";
 
 import { LabeledSection } from "@/components/LabeledSection";
 import { Separator } from "@/components/ui/separator";
-
-const LABELS: Partial<Record<keyof UpdateCardDisplayRuleInput, string>> = {
-  conditions: "Conditions",
-};
 
 interface Props {
   entity: CardDisplayRule;
@@ -31,30 +19,12 @@ export function CardDisplayRuleConditionsForm({
   entity: rule,
 }: Props) {
   const {
-    data: categories = [],
-  } = useCategories();
-  const {
-    data: properties = [],
-  } = useCustomProperties();
-  const {
-    data: tagTree = [],
-  } = useTagTree();
-  const update = useUpdateCardDisplayRule();
-  const autoSave = useFieldAutoSave<UpdateCardDisplayRuleInput>({
-    id: rule.id,
-    update,
-    labels: LABELS,
-    initial: {
-      conditions: rule.conditions ?? emptyConditionTree(),
-    },
-  });
-
-  const [conditions, setConditions] = useState<ConditionTree>(rule.conditions ?? emptyConditionTree());
-
-  function handleChange(next: ConditionTree) {
-    setConditions(next);
-    autoSave.saveField("conditions", next);
-  }
+    categories,
+    properties,
+    tagTree,
+    conditions,
+    handleChange,
+  } = useCardDisplayRuleConditionsForm(rule);
 
   return (
     <div className="space-y-6">
