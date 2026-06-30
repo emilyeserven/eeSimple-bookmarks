@@ -1,5 +1,5 @@
 import type { DragEndEvent } from "@dnd-kit/core";
-import type { LocationDisplayMode, PlaceTypeLevelGroup } from "@eesimple/types";
+import type { PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { LOCATION_MAP_PALETTES } from "@eesimple/types";
-import { Layers, MapPin, Plus, Shapes } from "lucide-react";
+import { Layers, MapPin, Plus } from "lucide-react";
 
 import { PlaceTypeIconsCard } from "./PlaceTypeIconsCard";
 import { SortableGroupRow } from "./SortableLevelGroupRow";
@@ -55,21 +55,6 @@ function AddLevelGap({
   );
 }
 
-const DISPLAY_MODE_CONFIG = {
-  pin: {
-    icon: MapPin,
-    label: "Pin",
-    description: "Levels that always render as map pins.",
-    empty: "No pin levels yet. Add one to group place types that always show as pins on the map.",
-  },
-  area: {
-    icon: Shapes,
-    label: "Area",
-    description: "Levels that render as boundary areas (falling back to a pin when no boundary exists).",
-    empty: "No area levels yet. Add one to group place types that render as boundary areas on the map.",
-  },
-} as const;
-
 const OUTER_TABS = [
   {
     key: "level-groups" as const,
@@ -101,7 +86,7 @@ export function LocationsSettings() {
     setGroupPlaceTypes,
     setGroupColor,
     removeGroup,
-    reorderGroupsInTab,
+    reorderGroups,
     applyPalette,
     placeTypeIcons,
     setPlaceTypeIcon,
@@ -109,27 +94,18 @@ export function LocationsSettings() {
   } = useLocationLevels();
 
   const [outerTab, setOuterTab] = useState<"level-groups" | "pin-icons">("level-groups");
-  const [levelTab, setLevelTab] = useState<LocationDisplayMode>("pin");
 
-  // Local ordered IDs for each tab, re-synced when the saved groups change.
-  const [orderedPinIds, setOrderedPinIds] = useState<string[]>([]);
-  const [orderedAreaIds, setOrderedAreaIds] = useState<string[]>([]);
+  // Local ordered IDs, re-synced when the saved groups change.
+  const [orderedIds, setOrderedIds] = useState<string[]>([]);
   useEffect(() => {
     const sorted = [...groups].sort((a, b) => a.sortOrder - b.sortOrder);
-    setOrderedPinIds(sorted.filter(g => g.displayMode === "pin").map(g => g.id));
-    setOrderedAreaIds(sorted.filter(g => g.displayMode === "area").map(g => g.id));
+    setOrderedIds(sorted.map(g => g.id));
   }, [groups]);
 
   const byId = new Map(groups.map(g => [g.id, g]));
-  const orderedPinGroups = orderedPinIds
+  const orderedGroups = orderedIds
     .map(id => byId.get(id))
     .filter((g): g is PlaceTypeLevelGroup => g !== undefined);
-  const orderedAreaGroups = orderedAreaIds
-    .map(id => byId.get(id))
-    .filter((g): g is PlaceTypeLevelGroup => g !== undefined);
-
-  const currentGroups = levelTab === "pin" ? orderedPinGroups : orderedAreaGroups;
-  const currentIds = levelTab === "pin" ? orderedPinIds : orderedAreaIds;
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -143,16 +119,13 @@ export function LocationsSettings() {
       active, over,
     } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = currentIds.indexOf(String(active.id));
-    const newIndex = currentIds.indexOf(String(over.id));
+    const oldIndex = orderedIds.indexOf(String(active.id));
+    const newIndex = orderedIds.indexOf(String(over.id));
     if (oldIndex === -1 || newIndex === -1) return;
-    const next = arrayMove(currentIds, oldIndex, newIndex);
-    if (levelTab === "pin") setOrderedPinIds(next);
-    else setOrderedAreaIds(next);
-    reorderGroupsInTab(levelTab, next);
+    const next = arrayMove(orderedIds, oldIndex, newIndex);
+    setOrderedIds(next);
+    reorderGroups(next);
   }
-
-  const modeCfg = DISPLAY_MODE_CONFIG[levelTab];
 
   return (
     <div
@@ -241,114 +214,79 @@ export function LocationsSettings() {
                   )
                   : null}
 
-                {/* Horizontal Pin / Area tab switcher */}
-                <nav
-                  aria-label="Level group display mode"
-                  className="flex gap-1 border-b pb-1"
-                >
-                  {(["pin", "area"] as const).map((tab) => {
-                    const cfg = DISPLAY_MODE_CONFIG[tab];
-                    const Icon = cfg.icon;
-                    return (
-                      <button
-                        key={tab}
-                        type="button"
-                        onClick={() => setLevelTab(tab)}
-                        className={cn(
-                          `
-                            flex items-center gap-1.5 rounded-md px-3 py-1.5
-                            text-sm font-medium transition-colors
-                          `,
-                          levelTab === tab
-                            ? "bg-accent text-accent-foreground"
-                            : `
-                              text-muted-foreground
-                              hover:bg-accent/50 hover:text-foreground
-                            `,
-                        )}
-                      >
-                        <Icon className="size-3.5" />
-                        {cfg.label}
-                      </button>
-                    );
-                  })}
-                </nav>
-
-                {/* Display mode tab content */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-xs text-muted-foreground">{modeCfg.description}</p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="shrink-0"
-                      onClick={() => addGroupOfMode(levelTab)}
-                    >
-                      <Plus className="mr-1 size-4" />
-                      Add level
-                    </Button>
-                  </div>
-
-                  {isLoading
-                    ? <p className="text-sm text-muted-foreground">Loading…</p>
-                    : null}
-
-                  {!isLoading && currentGroups.length === 0
-                    ? (
-                      <p className="text-sm text-muted-foreground">{modeCfg.empty}</p>
-                    )
-                    : null}
-
-                  {currentGroups.length > 0
-                    ? (
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                      >
-                        <SortableContext
-                          items={currentIds}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          <div>
-                            {currentGroups.map((group, index) => (
-                              <div key={group.id}>
-                                <SortableGroupRow
-                                  group={group}
-                                  options={placeTypeOptions}
-                                  renameGroup={renameGroup}
-                                  setGroupVisible={setGroupVisible}
-                                  setGroupPlaceTypes={setGroupPlaceTypes}
-                                  setGroupColor={setGroupColor}
-                                  removeGroup={removeGroup}
-                                />
-                                {index < currentGroups.length - 1
-                                  ? (
-                                    <AddLevelGap
-                                      onClick={() => addGroupOfMode(levelTab, group.id)}
-                                    />
-                                  )
-                                  : null}
-                              </div>
-                            ))}
-                          </div>
-                        </SortableContext>
-                      </DndContext>
-                    )
-                    : null}
-
-                  {unassignedPlaceTypes.length > 0
-                    ? (
-                      <p className="text-xs text-muted-foreground">
-                        Unassigned place types (shown as areas by default):
-                        {" "}
-                        {unassignedPlaceTypes.map(option => option.label).join(", ")}
-                        .
-                      </p>
-                    )
-                    : null}
+                <div className="flex items-start justify-between gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="ml-auto shrink-0"
+                    onClick={() => addGroupOfMode("pin")}
+                  >
+                    <Plus className="mr-1 size-4" />
+                    Add level
+                  </Button>
                 </div>
+
+                {isLoading
+                  ? <p className="text-sm text-muted-foreground">Loading…</p>
+                  : null}
+
+                {!isLoading && orderedGroups.length === 0
+                  ? (
+                    <p className="text-sm text-muted-foreground">
+                      No levels yet. Add one to group place types for map rendering and sorting.
+                    </p>
+                  )
+                  : null}
+
+                {orderedGroups.length > 0
+                  ? (
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={orderedIds}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div>
+                          {orderedGroups.map((group, index) => (
+                            <div key={group.id}>
+                              <SortableGroupRow
+                                group={group}
+                                options={placeTypeOptions}
+                                renameGroup={renameGroup}
+                                setGroupVisible={setGroupVisible}
+                                setGroupPlaceTypes={setGroupPlaceTypes}
+                                setGroupColor={setGroupColor}
+                                removeGroup={removeGroup}
+                              />
+                              {index < orderedGroups.length - 1
+                                ? (
+                                  <AddLevelGap
+                                    onClick={() => addGroupOfMode("pin", group.id)}
+                                  />
+                                )
+                                : null}
+                            </div>
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  )
+                  : null}
+
+                {unassignedPlaceTypes.length > 0
+                  ? (
+                    <p className="text-xs text-muted-foreground">
+                      Unassigned place types (shown as areas by default):
+                      {" "}
+                      {unassignedPlaceTypes.map(option => option.label).join(", ")}
+                      .
+                    </p>
+                  )
+                  : null}
               </CardContent>
             </Card>
           )

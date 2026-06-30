@@ -47,13 +47,7 @@ vi.mock("../hooks/useLocations", () => ({
 describe("LocationsSettings", () => {
   it("renders without an infinite render loop and opens the place-types combobox", () => {
     render(<LocationsSettings />);
-    // The Country group has displayMode "area", so it lives in the Area tab.
-    const levelGroupTabs = screen.getByRole("navigation", {
-      name: "Level group display mode",
-    });
-    fireEvent.click(within(levelGroupTabs).getByRole("button", {
-      name: "Area",
-    }));
+    // All groups appear in a single flat list regardless of displayMode.
     const trigger = screen.getByRole("combobox", {
       name: /Place types for Country/,
     });
