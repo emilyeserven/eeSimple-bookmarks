@@ -9,7 +9,7 @@ import { ChevronDown, Map as MapIcon } from "lucide-react";
 import { LocationLevelsMapPanel } from "./LocationLevelsMapPanel";
 import { LocationLevelsOverlay } from "./LocationLevelsOverlay";
 import { LocationMap } from "./LocationMap";
-import { useLocationPlaceTypeIcons } from "../hooks/useAppSettings";
+import { useLocationPlaceTypeColors, useLocationPlaceTypeIcons } from "../hooks/useAppSettings";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 import { useRefreshLocationBoundary } from "../hooks/useLocations";
 import { computeVisibleLevelGroupIds } from "../lib/locationLevels";
@@ -58,6 +58,7 @@ export function LocationMapSection({
   const toggle = useUiStore(state => state.toggleLocationMapCollapsed);
   const isCollapsed = collapsedKeys.includes(mapKey);
   const iconConfig = useLocationPlaceTypeIcons();
+  const colorConfig = useLocationPlaceTypeColors();
 
   // Per-map level state: which level groups show is resolved from this map's scope + the shared mode,
   // with a temporary local override for individual checkbox tweaks (reset when the mode/scope change).
@@ -173,6 +174,7 @@ export function LocationMapSection({
             className={mapClassName}
             displayConfig={displayConfig}
             iconConfig={iconConfig}
+            colorConfig={colorConfig}
             overlay={showLevels ? <LocationLevelsMapPanel controls={controls} /> : undefined}
           />
         )

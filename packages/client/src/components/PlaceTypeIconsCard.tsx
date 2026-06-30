@@ -1,9 +1,11 @@
 import type { PlaceTypeOption } from "../lib/locationLevels";
-import type { PlaceTypeLevelGroup, PlaceTypeIconConfig } from "@eesimple/types";
+import type { PlaceTypeColorConfig, PlaceTypeLevelGroup, PlaceTypeIconConfig } from "@eesimple/types";
 
 import { useState } from "react";
 
 import { MapPin, Shapes } from "lucide-react";
+
+import { LevelColorControl } from "./LevelColorControl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,16 +29,23 @@ interface PlaceTypeIconsCardProps {
   onSetIcon: (placeTypeKey: string, iconName: string) => void;
   /** Clear all icon overrides. */
   onReset: () => void;
+  /** The user's per-placeType color overrides (a sparse placeType key → `#rrggbb` hex map). */
+  colors: PlaceTypeColorConfig;
+  /** Persist (or clear, with `null`) a single place type's color. */
+  onSetColor: (placeTypeKey: string, color: string | null) => void;
+  /** Clear all color overrides. */
+  onResetColors: () => void;
 }
 
 /**
- * The "Place Type Icons" settings card: an icon picker per discovered place type plus a reset button.
- * Place types are split into two tabs: those assigned to pin-mode levels (the icon appears inside a
- * map pin), and those in area-mode levels or unassigned (the icon is used for fallback pin rendering).
- * The chosen Lucide icon is drawn inside that place type's map pin. Mirrors {@link PropertyTypeIconsCard}.
+ * The "Pin Style" settings card: per discovered place type, an icon picker plus a color swatch (one
+ * row controls that place type's whole pin appearance), with reset buttons. Place types are split into
+ * two tabs: those assigned to pin-mode levels (the icon/color applies to the map pin), and those in
+ * area-mode levels or unassigned. The chosen icon is drawn inside the pin; the color overrides the
+ * level group's color for that place type. Mirrors {@link PropertyTypeIconsCard}.
  */
 export function PlaceTypeIconsCard({
-  options, groups, icons, onSetIcon, onReset,
+  options, groups, icons, onSetIcon, onReset, colors, onSetColor, onResetColors,
 }: PlaceTypeIconsCardProps) {
   const [tab, setTab] = useState<"pin" | "area">("pin");
 
@@ -53,10 +62,10 @@ export function PlaceTypeIconsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Place Type Icons</CardTitle>
+        <CardTitle className="text-base">Pin Style</CardTitle>
         <CardDescription>
-          Choose an icon for each place type map pin. The icon is drawn inside the pin on the
-          Locations map.
+          Choose an icon and a color for each place type. The icon is drawn inside the pin on the
+          Locations map; the color overrides the level-group color for that place type.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -128,17 +137,30 @@ export function PlaceTypeIconsCard({
                         aria-label={`Icon for ${option.label}`}
                         className="max-w-xs"
                       />
+                      <LevelColorControl
+                        color={colors[option.key] ?? null}
+                        label={option.label}
+                        onChange={color => onSetColor(option.key, color)}
+                      />
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={onReset}
                   >
-                    Reset to defaults
+                    Reset icons
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onResetColors}
+                  >
+                    Reset colors
                   </Button>
                 </div>
               </>

@@ -1,11 +1,11 @@
-import type { LocationBoundary, LocationNode, PlaceTypeDisplayConfig, PlaceTypeIconConfig } from "@eesimple/types";
+import type { LocationBoundary, LocationNode, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig } from "@eesimple/types";
 import type { Feature, Geometry } from "geojson";
 import type { LatLngTuple } from "leaflet";
 import type { ReactNode } from "react";
 
 import { useEffect, useState } from "react";
 
-import { resolveLocationColor, resolveLocationDisplay, resolveLocationIcon } from "@eesimple/types";
+import { resolveLocationColor, resolveLocationDisplay, resolveLocationIcon, resolveLocationPlaceTypeColor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { geoJSON, latLngBounds } from "leaflet";
 import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
@@ -74,12 +74,14 @@ function toRenderItems(
   mapped: MappedNode[],
   config: PlaceTypeDisplayConfig,
   iconConfig: PlaceTypeIconConfig,
+  colorConfig: PlaceTypeColorConfig,
 ): RenderItem[] {
   const items: RenderItem[] = [];
   for (const node of mapped) {
     const resolved = resolveLocationDisplay(node, config);
     if (resolved === "hidden") continue;
-    const color = resolveLocationColor(node, config);
+    // Per-placeType override wins; else fall back to the level group's color (then Leaflet default).
+    const color = resolveLocationPlaceTypeColor(node, colorConfig) ?? resolveLocationColor(node, config);
     const icon = resolveLocationIcon(node, iconConfig);
     if (resolved === "area" && node.boundary) items.push({
       node,
@@ -282,6 +284,11 @@ interface LocationMapProps {
    */
   iconConfig?: PlaceTypeIconConfig;
   /**
+   * Per-placeType map color overrides (Settings → Locations "Pin Style"). A color keyed here wins over
+   * the place type's level-group color for its pins/areas. Defaults to `{}` (use the group color).
+   */
+  colorConfig?: PlaceTypeColorConfig;
+  /**
    * An element rendered as an absolutely-positioned overlay inside the map (top-right corner).
    * Pointer events on the rest of the map area are preserved via `pointer-events-none` on the
    * overlay wrapper; the passed element itself must handle its own pointer events.
@@ -300,10 +307,11 @@ export function LocationMap({
   className = "h-[70vh] w-full rounded-lg border",
   displayConfig = {},
   iconConfig = {},
+  colorConfig = {},
   overlay,
 }: LocationMapProps) {
   const mapped = collectMapped(tree);
-  const items = toRenderItems(mapped, displayConfig, iconConfig);
+  const items = toRenderItems(mapped, displayConfig, iconConfig, colorConfig);
   const areaNodes = items.filter(item => item.kind === "area" && item.node.boundary).map(item => item.node);
   const omitted = countNodes(tree) - mapped.length;
   const hiddenByLevel = mapped.length - items.length;

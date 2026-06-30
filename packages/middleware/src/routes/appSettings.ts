@@ -1,5 +1,6 @@
 import type {
   ImportBlacklistEntry,
+  PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
   PlaceTypeIconConfig,
   PlaceTypeLevelGroupConfig,
@@ -23,6 +24,7 @@ import {
   getDisplayPreferenceSettings,
   getHomepageContentSettings,
   getImportBlacklist,
+  getPlaceTypeColors,
   getPlaceTypeDisplay,
   getPlaceTypeIcons,
   getPlaceTypeLevelGroups,
@@ -37,6 +39,7 @@ import {
   updateDisplayPreferenceSettings,
   updateHomepageContentSettings,
   updateImportBlacklist,
+  updatePlaceTypeColors,
   updatePlaceTypeDisplay,
   updatePlaceTypeIcons,
   updatePlaceTypeLevelGroups,
@@ -408,6 +411,14 @@ const placeTypeIconsBody = {
   },
 } as const;
 
+// The per-placeType map color overrides: a sparse map of placeType key → `#rrggbb` hex color.
+const placeTypeColorsBody = {
+  type: "object",
+  additionalProperties: {
+    type: "string",
+  },
+} as const;
+
 /** Global app-settings endpoints, mounted under `/api/app-settings`. */
 export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/app-settings/shortener-ignore-list", {
@@ -584,6 +595,19 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       body: placeTypeIconsBody,
     },
   }, async req => updatePlaceTypeIcons(req.body as PlaceTypeIconConfig));
+
+  app.get("/api/app-settings/place-type-colors", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getPlaceTypeColors());
+
+  app.put("/api/app-settings/place-type-colors", {
+    schema: {
+      tags: ["app-settings"],
+      body: placeTypeColorsBody,
+    },
+  }, async req => updatePlaceTypeColors(req.body as PlaceTypeColorConfig));
 
   app.get("/api/app-settings/display-preferences", {
     schema: {

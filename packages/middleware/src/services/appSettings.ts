@@ -11,6 +11,7 @@ import type {
   HomepageContentSettings,
   HomepageContentWidth,
   ImportBlacklistEntry,
+  PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
   PlaceTypeIconConfig,
   PlaceTypeLevelGroup,
@@ -769,6 +770,54 @@ export async function updatePlaceTypeIcons(
       target: appSettings.id,
       set: {
         placeTypeIcons: next,
+      },
+    });
+  return next;
+}
+
+/**
+ * Sanitize the per-placeType map color overrides: keep only entries whose key normalizes to a
+ * non-empty place-type key and whose value is a valid `#rgb`/`#rrggbb` hex color. Tolerates arbitrary
+ * client/stored shapes so a malformed jsonb row never crashes the map.
+ */
+function normalizePlaceTypeColors(input: unknown): PlaceTypeColorConfig {
+  if (input === null || typeof input !== "object" || Array.isArray(input)) return {};
+  const out: PlaceTypeColorConfig = {};
+  for (const [rawKey, rawValue] of Object.entries(input as Record<string, unknown>)) {
+    const key = placeTypeKey(rawKey);
+    const color = normalizeHexColor(rawValue);
+    if (key !== "" && color) out[key] = color;
+  }
+  return out;
+}
+
+/** Read the per-placeType map color overrides (Settings → Locations "Pin Style"). */
+export async function getPlaceTypeColors(): Promise<PlaceTypeColorConfig> {
+  const [row] = await db
+    .select({
+      placeTypeColors: appSettings.placeTypeColors,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  return normalizePlaceTypeColors(row?.placeTypeColors ?? {});
+}
+
+/** Replace the per-placeType map color overrides, upserting the singleton. Returns the stored value. */
+export async function updatePlaceTypeColors(
+  input: PlaceTypeColorConfig,
+): Promise<PlaceTypeColorConfig> {
+  const next = normalizePlaceTypeColors(input);
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      placeTypeColors: next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: {
+        placeTypeColors: next,
       },
     });
   return next;

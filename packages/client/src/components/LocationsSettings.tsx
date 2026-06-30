@@ -65,7 +65,7 @@ const OUTER_TABS = [
   {
     key: "pin-icons" as const,
     icon: MapPin,
-    label: "Pin Icons",
+    label: "Pin Style",
   },
   {
     key: "place-types" as const,
@@ -98,6 +98,9 @@ export function LocationsSettings() {
     placeTypeIcons,
     setPlaceTypeIcon,
     resetPlaceTypeIcons,
+    placeTypeColors,
+    setPlaceTypeColor,
+    resetPlaceTypeColors,
   } = useLocationLevels();
 
   const [outerTab, setOuterTab] = useState<"level-groups" | "pin-icons" | "place-types">("level-groups");
@@ -315,6 +318,9 @@ export function LocationsSettings() {
                 icons={placeTypeIcons}
                 onSetIcon={setPlaceTypeIcon}
                 onReset={resetPlaceTypeIcons}
+                colors={placeTypeColors}
+                onSetColor={setPlaceTypeColor}
+                onResetColors={resetPlaceTypeColors}
               />
             )}
       </div>

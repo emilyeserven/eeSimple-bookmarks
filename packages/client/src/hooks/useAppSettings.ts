@@ -5,6 +5,7 @@ import type {
   BookmarkDetailVideoSize,
   ConnectorsAppSettings,
   ImportBlacklistEntry,
+  PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
   PlaceTypeIconConfig,
   PlaceTypeLevelGroupConfig,
@@ -41,6 +42,9 @@ const EMPTY_LEVEL_GROUPS: PlaceTypeLevelGroupConfig = [];
 const PLACE_TYPE_ICONS_KEY = ["app-settings", "place-type-icons"] as const;
 /** Stable empty fallback so `useLocationPlaceTypeIcons()` keeps a constant reference while loading. */
 const EMPTY_PLACE_TYPE_ICONS: PlaceTypeIconConfig = {};
+const PLACE_TYPE_COLORS_KEY = ["app-settings", "place-type-colors"] as const;
+/** Stable empty fallback so `useLocationPlaceTypeColors()` keeps a constant reference while loading. */
+const EMPTY_PLACE_TYPE_COLORS: PlaceTypeColorConfig = {};
 const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
 const AI_SUMMARIZATION_KEY = ["app-settings", "ai-summarization"] as const;
 
@@ -335,6 +339,36 @@ export function useLocationPlaceTypeIcons(): PlaceTypeIconConfig {
     data,
   } = usePlaceTypeIconsSettings();
   return data ?? EMPTY_PLACE_TYPE_ICONS;
+}
+
+/**
+ * The per-placeType map color overrides (Settings → Locations "Pin Style") — a sparse map of
+ * placeType key → `#rrggbb` hex color the map renderer reads to override that place type's pin/area
+ * color, winning over the level group's color.
+ */
+export function usePlaceTypeColorsSettings() {
+  return useQuery({
+    queryKey: PLACE_TYPE_COLORS_KEY,
+    queryFn: appSettingsApi.getPlaceTypeColors,
+  });
+}
+
+export function useUpdatePlaceTypeColors() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: PlaceTypeColorConfig) => appSettingsApi.updatePlaceTypeColors(input),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(PLACE_TYPE_COLORS_KEY, saved);
+    },
+  });
+}
+
+/** The resolved per-placeType color overrides, defaulting to an empty map while loading. */
+export function useLocationPlaceTypeColors(): PlaceTypeColorConfig {
+  const {
+    data,
+  } = usePlaceTypeColorsSettings();
+  return data ?? EMPTY_PLACE_TYPE_COLORS;
 }
 
 /** Whether blurring the bookmark URL field auto-fetches the page title (default true). */
