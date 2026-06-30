@@ -18,9 +18,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { LOCATION_MAP_PALETTES } from "@eesimple/types";
-import { Layers, MapPin, Plus } from "lucide-react";
+import { Globe2, Layers, MapPin, Plus } from "lucide-react";
 
 import { PlaceTypeIconsCard } from "./PlaceTypeIconsCard";
+import { PlaceTypesCard } from "./PlaceTypesCard";
 import { SortableGroupRow } from "./SortableLevelGroupRow";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
@@ -66,6 +67,11 @@ const OUTER_TABS = [
     icon: MapPin,
     label: "Pin Icons",
   },
+  {
+    key: "place-types" as const,
+    icon: Globe2,
+    label: "Place Types",
+  },
 ];
 
 /**
@@ -93,7 +99,7 @@ export function LocationsSettings() {
     resetPlaceTypeIcons,
   } = useLocationLevels();
 
-  const [outerTab, setOuterTab] = useState<"level-groups" | "pin-icons">("level-groups");
+  const [outerTab, setOuterTab] = useState<"level-groups" | "pin-icons" | "place-types">("level-groups");
 
   // Local ordered IDs, re-synced when the saved groups change.
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
@@ -175,7 +181,9 @@ export function LocationsSettings() {
 
       {/* Tab content */}
       <div className="min-w-0 flex-1">
-        {outerTab === "level-groups"
+        {outerTab === "place-types"
+          ? <PlaceTypesCard />
+          : outerTab === "level-groups"
           ? (
             <Card>
               <CardHeader>

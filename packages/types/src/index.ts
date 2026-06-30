@@ -16,6 +16,7 @@ export * from "./customProperties.js";
 export * from "./importBlacklist.js";
 export * from "./locations.js";
 export * from "./oembed.js";
+export * from "./placeTypes.js";
 export * from "./socialMedia.js";
 export * from "./titleTags.js";
 export * from "./urlCleanup.js";

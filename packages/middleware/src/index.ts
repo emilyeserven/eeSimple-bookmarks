@@ -18,6 +18,7 @@ import { backfillSavedFilterSlugs } from "@/services/savedFilters";
 import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
 import { backfillTagSlugs } from "@/services/tags";
 import { backfillLocationRomanizedSlugs, backfillLocationSlugs } from "@/services/locations";
+import { seedPlaceTypesFromLocations } from "@/services/placeTypes";
 import { backfillWebsiteSlugs, ensureBuiltInWebsites } from "@/services/websites";
 import { backfillYouTubeChannelSlugs } from "@/services/youtubeChannels";
 import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
@@ -74,6 +75,7 @@ try {
   await backfillTagSlugs();
   await backfillLocationSlugs();
   await backfillLocationRomanizedSlugs();
+  await seedPlaceTypesFromLocations();
   await ensureDefaultPlaceTypeLevelGroups();
   await backfillAuthorSlugs();
   await maybeSeed();

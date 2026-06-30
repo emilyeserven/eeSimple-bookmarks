@@ -9,6 +9,7 @@ import type {
   CreateCategoryInput,
   CreateCustomPropertyInput,
   CreateMediaTypeInput,
+  CreatePlaceTypeInput,
   CreatePropertyGroupInput,
   CreatePublisherInput,
   CreateRelationshipTypeInput,
@@ -24,7 +25,9 @@ import type {
   LocationNode,
   MediaType,
   MediaTypeNode,
+  PlaceType,
   UpdateLocationInput,
+  UpdatePlaceTypeInput,
   PropertyGroup,
   Publisher,
   RedirectFailureWebsite,
@@ -160,6 +163,8 @@ export const locationsApi = {
       method: "POST",
     }),
 };
+
+export const placeTypesApi = createCrudApi<PlaceType, CreatePlaceTypeInput, UpdatePlaceTypeInput>("place-types");
 
 export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");
 

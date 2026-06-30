@@ -12,8 +12,8 @@ import { useState } from "react";
 
 import { ancestorToInput, geocodedAncestorsToDrafts, splitAncestorChain } from "./locationFormSchema";
 import { useCreateLocation, useCreateLocationChain, useLocationTree } from "../hooks/useLocations";
+import { usePlaceTypes } from "../hooks/usePlaceTypes";
 import { useTagTree } from "../hooks/useTags";
-import { placeTypeChoices } from "../lib/locationLevels";
 import { flattenTree, tagNodesToOptions } from "../lib/tagTree";
 
 /** Sentinel for the "(root / no existing parent)" option. */
@@ -41,6 +41,9 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
   const {
     data: tagTree,
   } = useTagTree();
+  const {
+    data: placeTypesData,
+  } = usePlaceTypes();
 
   const [name, setName] = useState("");
   const [romanizedName, setRomanizedName] = useState("");
@@ -60,9 +63,6 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
   const isPending = createLocation.isPending || createChain.isPending;
   const error = createLocation.error ?? createChain.error;
 
-  // Every location (flat), used to offer the distinct place types already in use as picker choices.
-  const allLocations = flattenTree(tree ?? []).map(item => item.node);
-
   // Existing locations as options, shared by the leaf parent picker and the ancestor-chain rows.
   const locationOptions: ComboboxOption[] = flattenTree(tree ?? []).map(item => ({
     value: item.node.id,
@@ -78,7 +78,10 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
     ...locationOptions,
   ];
 
-  const placeTypeOptions = placeTypeChoices(allLocations, placeType);
+  const placeTypeOptions = (placeTypesData ?? []).map(pt => ({
+    value: pt.slug,
+    label: pt.name,
+  }));
   const tagOptions = tagNodesToOptions(tagTree ?? []);
 
   const hasExistingParent = parentId !== ROOT && parentId !== "";
