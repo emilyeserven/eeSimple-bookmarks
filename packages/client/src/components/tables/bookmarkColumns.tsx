@@ -4,58 +4,21 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
-import { Link } from "@tanstack/react-router";
-import { Globe } from "lucide-react";
 
-import { ImageCell } from "./cells";
-import { useCustomAspectRatios } from "../../hooks/useCustomAspectRatios";
+import { BookmarkImageColumnCell } from "./bookmarkImageCell";
+import {
+  BookmarkCategoryColumnCell,
+  BookmarkMediaTypeColumnCell,
+  BookmarkPropertyColumnCell,
+  BookmarkSourceColumnCell,
+  BookmarkTagsColumnCell,
+} from "./bookmarkPillCells";
+import { BookmarkTitleColumnCell } from "./bookmarkTitleCell";
 import { useDefaultFieldZones, useHideWebsiteForYouTube } from "../../lib/bookmarkCardFields";
 import { resolveFieldPlacements } from "../../lib/bookmarkCardValues";
 import { useBookmarkImageMode, useBookmarkImageVisibility } from "../../lib/bookmarkColumns";
-import { formatBoolean, formatDateTime, formatNumber } from "../../lib/bookmarkFormat";
-import { bookmarkImageAspectStyle } from "../../lib/bookmarkImage";
-import { BookmarkTagsBox } from "../BookmarkTagsBox";
-import { CategoryPill } from "../CategoryPill";
-import { MediaTypePill } from "../MediaTypePill";
-import { useViewPanelClick } from "../panel/useEditPanelClick";
-import { SourcePill } from "../SourcePill";
-import { StarRating } from "../StarRating";
 
-import {
-  useCroppedHeight,
-  useCroppedWidth,
-  useSidebarOpenModifier,
-} from "@/hooks/useAppSettings";
 import { useCategories } from "@/hooks/useCategories";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
-
-/**
- * Format a single custom-property value for a bookmark, or `null` when it has no displayable value.
- * `showIfFalse` (for booleans) is resolved from the Default card display rule by the caller.
- */
-function formatPropertyValue(
-  bookmark: Bookmark,
-  property: CustomProperty,
-  showIfFalse: boolean,
-): string | null {
-  if (property.type === "number" || property.type === "calculate") {
-    const entry = bookmark.numberValues.find(value => value.propertyId === property.id);
-    return entry ? formatNumber(entry.value, property) : null;
-  }
-  if (property.type === "boolean") {
-    const entry = bookmark.booleanValues.find(value => value.propertyId === property.id);
-    if (!entry) return null;
-    if (!entry.value && !showIfFalse) return null;
-    return formatBoolean(entry.value, property);
-  }
-  if (property.type === "image" || property.type === "file") {
-    const entry = bookmark.fileValues.find(value => value.propertyId === property.id);
-    if (!entry) return null;
-    return property.type === "image" ? "Image" : (entry.originalFilename ?? "File");
-  }
-  const entry = bookmark.dateTimeValues.find(value => value.propertyId === property.id);
-  return entry ? formatDateTime(entry.value, property) : null;
-}
 
 interface UseBookmarkTableColumnsArgs {
   properties: CustomProperty[];
@@ -96,13 +59,6 @@ export function useBookmarkTableColumns({
   const defaultPlacements = defaultZones ? resolveFieldPlacements(defaultZones) : null;
   const imageMode = imageModeOverride ?? pageImageMode;
   const imageVisibility = imageVisibilityOverride ?? pageImageVisibility;
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
-  const croppedWidth = useCroppedWidth();
-  const croppedHeight = useCroppedHeight();
-  const {
-    data: customRatios = [],
-  } = useCustomAspectRatios();
   const {
     data: allCategories,
   } = useCategories();
@@ -117,8 +73,6 @@ export function useBookmarkTableColumns({
     const cols: ColumnDef<Bookmark>[] = [];
 
     if (imageVisibility !== "off") {
-      const aspectStyle = bookmarkImageAspectStyle(imageMode, croppedWidth, croppedHeight, customRatios);
-      const isNatural = imageMode === "natural";
       cols.push({
         id: "image",
         header: "",
@@ -129,28 +83,12 @@ export function useBookmarkTableColumns({
         enableSorting: false,
         cell: ({
           row,
-        }) => {
-          const url = row.original.image?.url;
-          if (!url) return null;
-          return (
-            <div
-              className="overflow-hidden rounded-sm"
-              style={{
-                width: 64,
-                ...aspectStyle,
-              }}
-            >
-              <img
-                src={url}
-                alt=""
-                className={isNatural
-                  ? "h-auto max-h-12 w-full object-contain"
-                  : "size-full object-cover"}
-                loading="lazy"
-              />
-            </div>
-          );
-        },
+        }) => (
+          <BookmarkImageColumnCell
+            bookmark={row.original}
+            imageMode={imageMode}
+          />
+        ),
       });
     }
 
@@ -164,26 +102,7 @@ export function useBookmarkTableColumns({
       },
       cell: ({
         row,
-      }) => (
-        <Link
-          to="/bookmarks/$bookmarkId"
-          params={{
-            bookmarkId: row.original.id,
-          }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "bookmark", row.original.id, row.original.id)}
-          className="
-            flex items-center gap-2 font-medium
-            hover:underline
-          "
-        >
-          <ImageCell
-            src={row.original.website?.imageUrl}
-            fallback={<Globe className="size-4" />}
-          />
-          <span className="line-clamp-2">{row.original.title}</span>
-        </Link>
-      ),
+      }) => <BookmarkTitleColumnCell bookmark={row.original} />,
     });
 
     if (!fieldHidden("category")) {
@@ -195,12 +114,12 @@ export function useBookmarkTableColumns({
         enableSorting: false,
         cell: ({
           row,
-        }) => {
-          const category = (allCategories ?? []).find(
-            c => c.id === row.original.categoryId && !c.builtIn,
-          );
-          return category ? <CategoryPill category={category} /> : null;
-        },
+        }) => (
+          <BookmarkCategoryColumnCell
+            bookmark={row.original}
+            allCategories={allCategories ?? []}
+          />
+        ),
       });
     }
 
@@ -213,28 +132,14 @@ export function useBookmarkTableColumns({
         enableSorting: false,
         cell: ({
           row,
-        }) => {
-          const {
-            website, youtubeChannel,
-          } = row.original;
-          if (youtubeChannel && !fieldHidden("youtubeChannel")) {
-            return (
-              <SourcePill
-                type="youtube-channel"
-                data={youtubeChannel}
-              />
-            );
-          }
-          if (website && !fieldHidden("website") && !(youtubeChannel && hideWebsiteForYouTube)) {
-            return (
-              <SourcePill
-                type="website"
-                data={website}
-              />
-            );
-          }
-          return null;
-        },
+        }) => (
+          <BookmarkSourceColumnCell
+            bookmark={row.original}
+            hideWebsiteForYouTube={hideWebsiteForYouTube}
+            websiteHidden={fieldHidden("website")}
+            youtubeChannelHidden={fieldHidden("youtubeChannel")}
+          />
+        ),
       });
     }
 
@@ -247,7 +152,7 @@ export function useBookmarkTableColumns({
         enableSorting: false,
         cell: ({
           row,
-        }) => (row.original.mediaType ? <MediaTypePill mediaType={row.original.mediaType} /> : null),
+        }) => <BookmarkMediaTypeColumnCell bookmark={row.original} />,
       });
     }
 
@@ -260,7 +165,7 @@ export function useBookmarkTableColumns({
         enableSorting: false,
         cell: ({
           row,
-        }) => (row.original.tags.length > 0 ? <BookmarkTagsBox tags={row.original.tags} /> : null),
+        }) => <BookmarkTagsColumnCell bookmark={row.original} />,
       });
     }
 
@@ -278,24 +183,14 @@ export function useBookmarkTableColumns({
         }) => {
           // On the all-bookmarks page rows span categories: only show the value where it applies.
           if (!propertyAppliesToCategory(property, row.original.categoryId)) return null;
-          if (property.type === "ratingScale") {
-            const entry = row.original.numberValues.find(value => value.propertyId === property.id);
-            return entry
-              ? (
-                <StarRating
-                  value={entry.value}
-                  max={property.ratingMax ?? 5}
-                  allowHalf={property.ratingAllowHalf}
-                  readOnly
-                  label={property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined}
-                  size={14}
-                />
-              )
-              : null;
-          }
           const showIfFalse = defaultPlacements?.get(property.id)?.showIfFalse ?? false;
-          const formatted = formatPropertyValue(row.original, property, showIfFalse);
-          return formatted ? <span className="text-sm">{formatted}</span> : null;
+          return (
+            <BookmarkPropertyColumnCell
+              bookmark={row.original}
+              property={property}
+              showIfFalse={showIfFalse}
+            />
+          );
         },
       });
     }
@@ -320,14 +215,9 @@ export function useBookmarkTableColumns({
     categoryId,
     hiddenOverride,
     defaultPlacements,
-    viewClick,
-    modifier,
     allCategories,
     imageVisibility,
     imageMode,
-    croppedWidth,
-    croppedHeight,
-    customRatios,
     hideWebsiteForYouTube,
   ]);
 }

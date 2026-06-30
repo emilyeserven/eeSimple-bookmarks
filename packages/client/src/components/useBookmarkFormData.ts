@@ -1,18 +1,10 @@
 import { useBookmarkFormActions } from "./useBookmarkFormActions";
-import {
-  useAutoFetchImage,
-  useAutoFetchTitle,
-  useCustomStripParams,
-  useRedirectIgnoreList,
-  useShortenerIgnoreList,
-} from "../hooks/useAppSettings";
-import { useAuthors } from "../hooks/useAuthors";
+import { useBookmarkFormSettings } from "./useBookmarkFormSettings";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useLocationTree } from "../hooks/useLocations";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
-import { usePublishers } from "../hooks/usePublishers";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
@@ -29,15 +21,6 @@ export function useBookmarkFormData() {
   const {
     data: websites,
   } = useWebsites();
-  const {
-    data: shortenerIgnoreList,
-  } = useShortenerIgnoreList();
-  const {
-    data: customStripParams,
-  } = useCustomStripParams();
-  const {
-    data: redirectIgnoreList,
-  } = useRedirectIgnoreList();
   const {
     data: tagTree,
   } = useTagTree();
@@ -60,13 +43,14 @@ export function useBookmarkFormData() {
     data: youtubeChannels,
   } = useYouTubeChannels();
   const {
-    data: authors,
-  } = useAuthors();
-  const {
-    data: publishers,
-  } = usePublishers();
-  const autoFetchTitle = useAutoFetchTitle();
-  const autoFetchImage = useAutoFetchImage();
+    shortenerIgnoreList,
+    customStripParams,
+    redirectIgnoreList,
+    authors,
+    publishers,
+    autoFetchTitle,
+    autoFetchImage,
+  } = useBookmarkFormSettings();
 
   return {
     actions,

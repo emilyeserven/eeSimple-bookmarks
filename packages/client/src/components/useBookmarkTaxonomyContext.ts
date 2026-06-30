@@ -1,19 +1,15 @@
 import type { FlatNode } from "@/lib/tagTree";
 import type { Author, Bookmark, Category, CustomProperty, LocationNode, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
 
-import { useMemo } from "react";
-
 import { useRouterState } from "@tanstack/react-router";
+
+import { useBookmarkTaxonomyTrees } from "./useBookmarkTaxonomyTrees";
 
 import { useAuthors } from "@/hooks/useAuthors";
 import { useBookmark, useUpdateBookmark } from "@/hooks/useBookmarks";
 import { useCategories } from "@/hooks/useCategories";
 import { useCustomProperties } from "@/hooks/useCustomProperties";
-import { useLocationTree } from "@/hooks/useLocations";
-import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useNewsletters } from "@/hooks/useNewsletters";
-import { useTagTree } from "@/hooks/useTags";
-import { flattenTree } from "@/lib/tagTree";
 
 export interface BookmarkTaxonomyContext {
   bookmarkId: string | null;
@@ -65,15 +61,6 @@ export function useBookmarkTaxonomyContext(fallbackBookmarkId: string | null = n
     data: categories = [],
   } = useCategories();
   const {
-    data: mediaTypeTree = [],
-  } = useMediaTypeTree();
-  const {
-    data: tagTree = [],
-  } = useTagTree();
-  const {
-    data: locationTree = [],
-  } = useLocationTree();
-  const {
     data: authors = [],
   } = useAuthors();
   const {
@@ -84,20 +71,9 @@ export function useBookmarkTaxonomyContext(fallbackBookmarkId: string | null = n
   } = useCustomProperties();
   const updateBookmark = useUpdateBookmark();
 
-  const flatMediaTypes = useMemo(
-    () => flattenTree(mediaTypeTree),
-    [mediaTypeTree],
-  );
-
-  const flatTags = useMemo(
-    () => flattenTree(tagTree),
-    [tagTree],
-  );
-
-  const flatLocations = useMemo(
-    () => flattenTree(locationTree),
-    [locationTree],
-  );
+  const {
+    flatMediaTypes, flatTags, flatLocations,
+  } = useBookmarkTaxonomyTrees();
 
   return {
     bookmarkId,

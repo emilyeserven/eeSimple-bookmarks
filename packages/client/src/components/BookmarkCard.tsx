@@ -1,3 +1,4 @@
+import type { BookmarkCardMenuControls } from "./BookmarkCardActions";
 import type { BookmarkImageVisibility } from "../lib/bookmarkColumns";
 import type { Bookmark,
   CardFieldZones,
@@ -5,21 +6,15 @@ import type { Bookmark,
   CustomProperty } from "@eesimple/types";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
-import { Link } from "@tanstack/react-router";
 
-import { BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
 import { BookmarkCardDetails } from "./BookmarkCardDetails";
 import { BookmarkCardImage } from "./BookmarkCardImage";
-import { buildCardOverlayItems } from "./bookmarkCardOverlays";
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-import { useAutoBookmarkImage, useTakeBookmarkScreenshot, useUpdateBookmark } from "../hooks/useBookmarks";
+import { BookmarkCardImageOnlyLink } from "./BookmarkCardImageOnlyLink";
+import { BookmarkCardIsbnLinks } from "./BookmarkCardIsbnLinks";
+import { buildBookmarkCardOverlayItems } from "./bookmarkCardOverlayItems";
+import { useBookmarkCardSaves } from "./useBookmarkCardSaves";
 import { useCategories } from "../hooks/useCategories";
 import { buildBookmarkValueItems, fieldPlacementsForCard } from "../lib/bookmarkCardValues";
-import { mergeBooleanValue } from "../lib/bookmarkFormat";
-import { buildIsbnLinks } from "../lib/isbnLinks";
-
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -52,25 +47,13 @@ interface BookmarkCardProps {
   hideWebsiteForYouTube?: boolean;
 }
 
-/** Replace the entry for `propertyId` in a typed value array, or append it when missing. */
-function mergePropertyEntry<T extends { propertyId: string }>(entries: T[], next: T): T[] {
-  const {
-    propertyId,
-  } = next;
-  return entries.some(e => e.propertyId === propertyId)
-    ? entries.map(e => (e.propertyId === propertyId ? next : e))
-    : [...entries, next];
-}
-
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
   imageVisibility = "shown", fieldZones, cardZoneLayouts, hideWebsiteForYouTube,
 }: BookmarkCardProps) {
-  const autoImage = useAutoBookmarkImage();
-  const screenshot = useTakeBookmarkScreenshot();
-  const updateBookmark = useUpdateBookmark();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
+  const {
+    autoImage, screenshot, saveNumber, saveBoolean, saveDateTime, saveChoices, saveTags,
+  } = useBookmarkCardSaves(bookmark);
   const placements = fieldPlacementsForCard(fieldZones, properties);
   const {
     data: allCategories = [],
@@ -86,71 +69,30 @@ export function BookmarkCard({
   // Tags opted into the bookmark card's "More" menu quick-toggle.
   const editableTags = bookmark.tags.filter(t => t.editableOnCard);
 
-  function saveNumber(propertyId: string, value: number) {
-    updateBookmark.mutate({
-      id: bookmark.id,
-      input: {
-        numberValues: mergePropertyEntry(bookmark.numberValues, {
-          propertyId,
-          value,
-        }),
-      },
-    });
-  }
-
-  function saveBoolean(propertyId: string, value: boolean) {
-    updateBookmark.mutate({
-      id: bookmark.id,
-      input: {
-        booleanValues: mergeBooleanValue(bookmark.booleanValues, propertyId, value),
-      },
-    });
-  }
-
-  function saveDateTime(propertyId: string, value: string) {
-    updateBookmark.mutate({
-      id: bookmark.id,
-      input: {
-        dateTimeValues: mergePropertyEntry(bookmark.dateTimeValues, {
-          propertyId,
-          value,
-        }),
-      },
-    });
-  }
-
-  function saveChoices(propertyId: string, values: string[]) {
-    updateBookmark.mutate({
-      id: bookmark.id,
-      input: {
-        choicesValues: mergePropertyEntry(bookmark.choicesValues, {
-          propertyId,
-          values,
-        }),
-      },
-    });
-  }
-
-  function saveTags(tagIds: string[]) {
-    updateBookmark.mutate({
-      id: bookmark.id,
-      input: {
-        tagIds,
-      },
-    });
-  }
-
   const hasActualImage = !!(bookmark.image ?? bookmark.screenshot);
   const imageEnabled = imageVisibility !== "off";
   const hasImage = hasActualImage && imageEnabled;
 
-  // Compact Amazon links for any text-typed properties with a non-empty value (e.g. ISBN/ASIN).
-  const propById = new Map(properties.map(p => [p.id, p]));
-  const isbnLinks = bookmark.textValues.flatMap((entry) => {
-    const prop = propById.get(entry.propertyId);
-    if (!prop || prop.type !== "text" || !entry.value.trim()) return [];
-    return buildIsbnLinks(entry.value).slice(0, 2);
-  });
+  // The "More" menu's editable-data + capture controls, shared by the image overlay and the card body.
+  const menu: BookmarkCardMenuControls = {
+    editableProperties,
+    editableTags,
+    autoImagePending: autoImage.isPending,
+    onAutoImage: () => autoImage.mutate({
+      id: bookmark.id,
+      sourceUrl: bookmark.url ?? "",
+    }),
+    screenshotPending: screenshot.isPending,
+    onScreenshot: () => screenshot.mutate({
+      id: bookmark.id,
+    }),
+    onSaveNumber: saveNumber,
+    onSaveBoolean: saveBoolean,
+    onSaveDateTime: saveDateTime,
+    onSaveChoices: saveChoices,
+    onSaveTags: saveTags,
+    onDelete,
+  };
 
   // Fields placed in an image corner render on the image (or placeholder); without an image area
   // they fall back to the card body (BookmarkCardDetails reads the same `placements`).
@@ -158,31 +100,7 @@ export function BookmarkCard({
   const bookmarkCategory = allCategories.find(c => c.id === bookmark.categoryId && !c.builtIn);
   // Compute overlays whenever the image area is enabled so they appear on placeholders too.
   const overlayItems = imageEnabled
-    ? buildCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, {
-      externalLink: <BookmarkExternalLinkButton url={bookmark.url ?? ""} />,
-      more: (
-        <BookmarkMoreMenu
-          bookmark={bookmark}
-          editableProperties={editableProperties}
-          editableTags={editableTags}
-          autoImagePending={autoImage.isPending}
-          onAutoImage={() => autoImage.mutate({
-            id: bookmark.id,
-            sourceUrl: bookmark.url ?? "",
-          })}
-          screenshotPending={screenshot.isPending}
-          onScreenshot={() => screenshot.mutate({
-            id: bookmark.id,
-          })}
-          onSaveNumber={saveNumber}
-          onSaveBoolean={saveBoolean}
-          onSaveDateTime={saveDateTime}
-          onSaveChoices={saveChoices}
-          onSaveTags={saveTags}
-          onDelete={onDelete}
-        />
-      ),
-    })
+    ? buildBookmarkCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, menu)
     : [];
 
   // Show a placeholder only in "shown" mode (not image-only or off) when there is no actual image
@@ -207,17 +125,9 @@ export function BookmarkCard({
   // with no image falls through to the normal card below so the card is never empty.
   if (imageVisibility === "image-only" && imageEl) {
     return (
-      <Link
-        to="/bookmarks/$bookmarkId"
-        params={{
-          bookmarkId: bookmark.id,
-        }}
-        title={entityLinkTitle(modifier)}
-        onClick={event => viewClick(event, "bookmark", bookmark.id, bookmark.id)}
-        className="block"
-      >
+      <BookmarkCardImageOnlyLink bookmarkId={bookmark.id}>
         {imageEl}
-      </Link>
+      </BookmarkCardImageOnlyLink>
     );
   }
 
@@ -231,49 +141,16 @@ export function BookmarkCard({
       hideWebsiteForYouTube={hideWebsiteForYouTube}
       hasImageAbove={showImageArea && !imageLeft}
       onSaveRating={saveNumber}
-      menu={{
-        editableProperties,
-        editableTags,
-        autoImagePending: autoImage.isPending,
-        onAutoImage: () => autoImage.mutate({
-          id: bookmark.id,
-          sourceUrl: bookmark.url ?? "",
-        }),
-        screenshotPending: screenshot.isPending,
-        onScreenshot: () => screenshot.mutate({
-          id: bookmark.id,
-        }),
-        onSaveNumber: saveNumber,
-        onSaveDateTime: saveDateTime,
-        onDelete,
-        onSaveBoolean: saveBoolean,
-        onSaveChoices: saveChoices,
-        onSaveTags: saveTags,
-      }}
+      menu={menu}
     />
   );
 
-  const isbnLinksEl = isbnLinks.length > 0
-    ? (
-      <div className="flex flex-wrap gap-x-2 gap-y-1 px-3 pb-2 text-xs">
-        {isbnLinks.map(link => (
-          <a
-            key={link.label}
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="
-              text-muted-foreground underline-offset-2
-              hover:text-foreground hover:underline
-            "
-            onClick={e => e.stopPropagation()}
-          >
-            {link.label}
-          </a>
-        ))}
-      </div>
-    )
-    : null;
+  const isbnLinksEl = (
+    <BookmarkCardIsbnLinks
+      bookmark={bookmark}
+      properties={properties}
+    />
+  );
 
   if (imageLeft) {
     return (
