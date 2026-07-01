@@ -8,6 +8,7 @@ import type {
   UpdateCategoryInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
   bookmarks,
@@ -168,6 +169,8 @@ export async function deleteCategory(id: string): Promise<boolean> {
     await db.update(bookmarks).set({
       categoryId: defaultId,
     }).where(isNull(bookmarks.categoryId));
+    // The reassignment changes bookmarks' matchable categoryId (category condition leaves).
+    invalidateBookmarkCache();
   }
   return rows.length > 0;
 }

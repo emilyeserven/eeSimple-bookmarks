@@ -107,7 +107,7 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   ratings) are better filled after creation. To hide a built-in slug:
   1. Export a `*_SLUG` constant for it in `packages/client/src/components/bookmarkFormSchema.ts`
      (alongside `RUNTIME_SLUG`, `DATE_POSTED_SLUG`, `CONTENT_STATUS_SLUG`, `PAGE_PROGRESS_SLUG`,
-     `PAGE_RANGE_SLUG`, `PAGE_SECTIONS_SLUG`).
+     `PAGE_RANGE_SLUG`, `PAGE_SECTIONS_SLUG`, `CHAPTERS_SLUG`, `URL_SECTIONS_SLUG`).
   2. Add it to the `hiddenSlugs` array in `RevealedCustomFields.tsx`.
   The `BookmarkPropertiesForm` (edit-mode properties tab) does **not** use this list — hidden-from-create
   properties remain editable after creation. Only omit a slug from `hiddenSlugs` when the property is

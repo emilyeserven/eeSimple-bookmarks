@@ -46,6 +46,13 @@ Copy `services/mediaTypes.ts`. It provides the canonical shape:
   the fallow duplication budget (already near its ceiling) and caused a CI failure when a fourth
   service duplicated it.
 - A `backfill*Slugs()` / `ensure*()` boot helper for existing rows.
+- **If the entity is matchable data** — i.e. it appears in the bookmark cache's `ConditionInput`
+  (a bookmark column like `categoryId`/`mediaTypeId`/`youtubeChannelId`, a join table like
+  `bookmark_relationships`, tags, or custom-property values) — every write that changes that data
+  **must call `invalidateBookmarkCache()`**, *including `delete*`*: a delete that FK-set-nulls or
+  reassigns a bookmark column, or cascades join rows away, changes match results just like an
+  update does (this was missed on categories/media-types/channels/relationship-types once). Gate it
+  on rows-affected, mirroring `services/tags.ts`. Display-only entities (card display rules) skip this.
 
 ### 3. Middleware — routes (`packages/middleware/src/routes/<entity>.ts`)
 Copy `routes/mediaTypes.ts`; register the plugin in `src/app.ts` alongside the others.
@@ -53,6 +60,12 @@ Copy `routes/mediaTypes.ts`; register the plugin in `src/app.ts` alongside the o
 ### 4. Middleware — boot step (`packages/middleware/src/index.ts`)
 If you added a `backfill*`/`ensure*` helper, call it in the boot block **after** `app.listen()`
 (the listen-before-boot ordering is intentional — see CLAUDE.md → Deployment).
+
+If the boot step seeds a **built-in custom property** that is a post-creation detail property
+(progress/range/sections/rating), also hide it from the Add Bookmark form: export a `*_SLUG`
+constant in `packages/client/src/components/bookmarkFormSchema.ts` and add it to `hiddenSlugs` in
+`RevealedCustomFields.tsx` (see CLAUDE.md → "Built-in custom properties and the Add Bookmark form";
+`chapters`/`url-sections` were once seeded without this and leaked into the create form).
 
 ### 5. Shared types (`packages/types/src/index.ts`)
 Add the row + `Create*Input` / `Update*Input` types. **Intra-package imports/re-exports need
