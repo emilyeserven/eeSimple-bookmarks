@@ -143,7 +143,9 @@ the runtime-migrations hook (`dist/db/migrate.js`) and then `drizzle-kit push` �
    by setting their env vars (see `packages/middleware/.env.example`): a Microlink-compatible
    `HOSTED_METADATA_ENDPOINT` for JS-rendered / bot-protected pages, and a `YOUTUBE_API_KEY` for the
    YouTube Data API. Both fall back to the keyless path when unset; their status is shown on
-   **Settings → Connectors**.
+   **Settings → Connectors**. A self-hosted [Kavita](https://www.kavitareader.com/) server can also
+   be connected there (`KAVITA_ENDPOINT` + `KAVITA_API_KEY`, or via the Connectors page) to link
+   bookmarks to a Kavita series, with a "View on Kavita" link-out and series cover import.
 5. **Deploy.** Coolify builds the multi-stage image and starts the gateway. The schema is applied
    automatically on first boot. Visit the app URL and check `GET /healthz` returns `{"status":"ok"}`.
 

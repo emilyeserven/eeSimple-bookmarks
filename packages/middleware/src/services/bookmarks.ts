@@ -548,6 +548,9 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         newsletterId: input.newsletterId ?? null,
         importId: input.importId ?? null,
         publisherId: input.publisherId ?? null,
+        kavitaSeriesId: input.kavitaSeriesId ?? null,
+        kavitaLibraryId: input.kavitaLibraryId ?? null,
+        kavitaSeriesName: input.kavitaSeriesName ?? null,
         priority: input.priority ?? 0,
       })
       .returning({
@@ -595,7 +598,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "publisherId" | "priority">
+  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "publisherId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "priority">
 >;
 
 /**
@@ -616,6 +619,9 @@ export function scalarBookmarkPatch(
   if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;
   else if (mediaTypeDefault !== undefined) patch.mediaTypeId = mediaTypeDefault;
   if (input.publisherId !== undefined) patch.publisherId = input.publisherId ?? null;
+  if (input.kavitaSeriesId !== undefined) patch.kavitaSeriesId = input.kavitaSeriesId ?? null;
+  if (input.kavitaLibraryId !== undefined) patch.kavitaLibraryId = input.kavitaLibraryId ?? null;
+  if (input.kavitaSeriesName !== undefined) patch.kavitaSeriesName = input.kavitaSeriesName ?? null;
   if (input.priority !== undefined) patch.priority = input.priority;
   return patch;
 }
@@ -755,6 +761,9 @@ export async function updateBookmark(
         | "mediaTypeId"
         | "youtubeChannelId"
         | "publisherId"
+        | "kavitaSeriesId"
+        | "kavitaLibraryId"
+        | "kavitaSeriesName"
         | "priority"
         | "updatedAt"
       >

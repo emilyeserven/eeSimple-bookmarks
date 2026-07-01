@@ -35,6 +35,9 @@ services:
       - HOSTED_METADATA_ENDPOINT=${HOSTED_METADATA_ENDPOINT:-}
       - HOSTED_METADATA_API_KEY=${HOSTED_METADATA_API_KEY:-}
       - HOSTED_METADATA_PROVIDER=${HOSTED_METADATA_PROVIDER:-}
+      # Kavita ebook/manga server (series linking + cover import). Configurable from Settings → Connectors.
+      - KAVITA_ENDPOINT=${KAVITA_ENDPOINT:-}
+      - KAVITA_API_KEY=${KAVITA_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy

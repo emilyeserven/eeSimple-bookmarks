@@ -11,9 +11,11 @@ import {
   useBookmarkImagesFromCandidates,
   useDeleteBookmarkImageById,
   useDeleteBookmarkScreenshot,
+  useKavitaCoverImage,
   useSetMainBookmarkImage,
   useTakeBookmarkScreenshot,
 } from "../hooks/useBookmarks";
+import { useConnectors } from "../hooks/useConnectors";
 import { metadataApi } from "../lib/api/metadata";
 import { notifySuccess } from "../lib/notifications";
 
@@ -61,6 +63,12 @@ export interface BookmarkImageEditFormController {
   getPageImagePending: boolean;
   /** Fetch the page's preview image (og:image) directly and add it to the bookmark. */
   onGetPageImage: () => void;
+  /** Whether the "Use Kavita cover" action applies (connector enabled + bookmark linked to a series). */
+  canUseKavitaCover: boolean;
+  /** Whether the Kavita cover import is in flight. */
+  kavitaCoverPending: boolean;
+  /** Import the linked Kavita series' cover as the bookmark's main image. */
+  onUseKavitaCover: () => void;
   /** Stage the chosen image intent (uploads / kept candidates / main / removals) for the next save. */
   onImageChange: (intent: ImageIntent) => void;
   /** Persist the staged image intent. */
@@ -83,6 +91,10 @@ export interface BookmarkImageEditFormController {
  */
 export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditFormController {
   const autoImage = useAutoBookmarkImage();
+  const kavitaCover = useKavitaCoverImage();
+  const {
+    data: connectors,
+  } = useConnectors();
   const addImage = useAddBookmarkImage();
   const imagesFromCandidates = useBookmarkImagesFromCandidates();
   const setMainImage = useSetMainBookmarkImage();
@@ -140,11 +152,12 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
   return {
     imageFieldKey,
     isPending,
-    isMutating: addImage.isPending || autoImage.isPending || imagesFromCandidates.isPending
+    isMutating: addImage.isPending || autoImage.isPending || kavitaCover.isPending
+      || imagesFromCandidates.isPending
       || setMainImage.isPending || deleteImageById.isPending || takeScreenshot.isPending
       || deleteScreenshot.isPending,
     mutationError: addImage.error ?? imagesFromCandidates.error ?? setMainImage.error
-      ?? deleteImageById.error ?? autoImage.error,
+      ?? deleteImageById.error ?? autoImage.error ?? kavitaCover.error,
     candidates,
     isScanning,
     onFindImages: () => void handleFindImages(),
@@ -153,6 +166,9 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
       id: bookmark.id,
       sourceUrl: bookmark.url ?? "",
     }),
+    canUseKavitaCover: Boolean(connectors?.kavita.enabled) && bookmark.kavitaSeriesId !== null,
+    kavitaCoverPending: kavitaCover.isPending,
+    onUseKavitaCover: () => kavitaCover.mutate(bookmark.id),
     onImageChange: (intent) => {
       imageIntentRef.current = intent;
     },

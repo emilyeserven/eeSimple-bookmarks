@@ -7,6 +7,7 @@ import { BookmarkCategoryField } from "./BookmarkCategoryField";
 import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
 import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSection";
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
+import { BookmarkKavitaField } from "./BookmarkKavitaField";
 import { BookmarkNameField } from "./BookmarkNameField";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
@@ -156,6 +157,11 @@ export function BookmarkGeneralForm({
         publishers={publishers ?? []}
         addPublisherOpen={addPublisherOpen}
         onAddPublisherOpenChange={setAddPublisherOpen}
+      />
+
+      <BookmarkKavitaField
+        bookmark={bookmark}
+        onSelect={ctrl.saveKavitaSeries}
       />
 
       <form.AppForm>

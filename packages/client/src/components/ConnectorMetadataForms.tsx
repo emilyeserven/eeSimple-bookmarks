@@ -47,14 +47,16 @@ function CheckConnectionResult({
 
 /** Description text beneath the API key field, varying by stored state and encryption config. */
 function ApiKeyHint({
-  apiKeySet, encryptionEnabled,
+  apiKeySet, encryptionEnabled, unsetHint,
 }: { apiKeySet: boolean;
-  encryptionEnabled: boolean; }) {
+  encryptionEnabled: boolean;
+  /** Copy shown while no key is stored, telling the user where the key comes from. */
+  unsetHint?: string; }) {
   return (
     <p className="text-xs text-muted-foreground">
       {apiKeySet
         ? "A token is stored — the value is never shown. Type a new token to replace it. To clear the stored token, type a single space and save."
-        : "Optional. Set the TOKEN env var on your Browserless container and enter the same value here. Sent as an Authorization: Bearer header."}
+        : unsetHint ?? "Optional. Set the TOKEN env var on your Browserless container and enter the same value here. Sent as an Authorization: Bearer header."}
       {!encryptionEnabled && (
         <>
           {" "}
@@ -114,8 +116,10 @@ export function HostedMetadataForm() {
         hostedMetadataProvider: provider,
         // null = server preserves the existing key; only send the value when the user typed.
         hostedMetadataApiKey: field === "apiKey" ? apiKey : null,
-        // The connectors PUT body requires every field; preserve the saved ArchiveBox URL + blacklist.
+        // The connectors PUT body requires every field; preserve the other connectors' values.
         archiveBoxEndpoint: data.archiveBoxEndpoint,
+        kavitaEndpoint: data.kavitaEndpoint,
+        kavitaApiKey: null,
         imageUrlBlacklist: data.imageUrlBlacklist,
       },
       {
@@ -272,11 +276,13 @@ export function ArchiveBoxForm() {
     if (!data) return;
     update.mutate(
       {
-        // Echo the hosted-metadata fields unchanged (null preserves the stored API key).
+        // Echo the other connectors' fields unchanged (null preserves the stored API keys).
         hostedMetadataEndpoint: data.hostedMetadataEndpoint,
         hostedMetadataProvider: data.hostedMetadataProvider,
         hostedMetadataApiKey: null,
         archiveBoxEndpoint: endpoint,
+        kavitaEndpoint: data.kavitaEndpoint,
+        kavitaApiKey: null,
         imageUrlBlacklist: data.imageUrlBlacklist,
       },
       {
@@ -359,6 +365,158 @@ export function ArchiveBoxForm() {
 }
 
 /**
+ * Editable form for the Kavita connector: base URL and API key, each saving on blur with a named
+ * toast. The raw API key is never returned by the API — only `kavitaApiKeySet: boolean`. The
+ * connectors PUT body requires every field, so the other connectors' values are echoed from the
+ * loaded settings (hosted-metadata API key left unchanged).
+ */
+export function KavitaForm() {
+  const {
+    data,
+  } = useConnectorsSettings();
+  const update = useUpdateConnectorsSettings();
+
+  const [endpoint, setEndpoint] = useState(data?.kavitaEndpoint ?? "");
+  // apiKey field is always blank on load; user must type to set/replace/clear the stored key.
+  const [apiKey, setApiKey] = useState("");
+  const [apiKeyDirty, setApiKeyDirty] = useState(false);
+  const [checkResult, setCheckResult] = useState<CheckUrlResult | null>(null);
+
+  const checkConnection = useMutation({
+    // Kavita's /api/Health endpoint is anonymous, so this probes reachability only — the API key
+    // is validated by the first series search.
+    mutationFn: () => metadataApi.checkUrl({
+      url: `${endpoint.replace(/\/$/, "")}/api/Health`,
+    }),
+    onSuccess: result => setCheckResult(result),
+    onError: (err: Error) => notifyFieldSaveError("Connection check", err.message),
+  });
+
+  useEffect(() => {
+    if (data) {
+      setEndpoint(data.kavitaEndpoint);
+      setCheckResult(null);
+    }
+  }, [data]);
+
+  function saveField(field: "endpoint" | "apiKey"): void {
+    if (!data) return;
+    // API key field: skip when the user hasn't typed anything (would silently no-op server-side).
+    if (field === "apiKey" && !apiKeyDirty) return;
+    const label = field === "endpoint" ? "Kavita URL" : "Kavita API key";
+    update.mutate(
+      {
+        // Echo the other connectors' fields unchanged (null preserves the stored API keys).
+        hostedMetadataEndpoint: data.hostedMetadataEndpoint,
+        hostedMetadataProvider: data.hostedMetadataProvider,
+        hostedMetadataApiKey: null,
+        archiveBoxEndpoint: data.archiveBoxEndpoint,
+        kavitaEndpoint: endpoint,
+        kavitaApiKey: field === "apiKey" ? apiKey : null,
+        imageUrlBlacklist: data.imageUrlBlacklist,
+      },
+      {
+        onSuccess: () => {
+          notifyFieldSaved(label);
+          if (field === "apiKey") {
+            setApiKeyDirty(false);
+            setApiKey("");
+          }
+        },
+        onError: (err: Error) => notifyFieldSaveError(label, err.message),
+      },
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Point this at your self-hosted
+        {" "}
+        <a
+          href="https://www.kavitareader.com/"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2"
+        >
+          Kavita
+        </a>
+        {" "}
+        server. When set, bookmarks can be linked to a Kavita series, gain a &quot;View on
+        Kavita&quot; link-out, and can import the series cover as their image. The API key stays on the server —
+        searches and cover fetches are proxied so it never reaches the browser. Each field saves on
+        blur.
+      </p>
+      <div className="space-y-1.5">
+        <Label htmlFor="kv-endpoint">Base URL</Label>
+        <Input
+          id="kv-endpoint"
+          type="url"
+          placeholder="http://localhost:5000"
+          value={endpoint}
+          onChange={(e) => {
+            setEndpoint(e.target.value);
+            setCheckResult(null);
+          }}
+          onBlur={() => saveField("endpoint")}
+        />
+        <p className="text-xs text-muted-foreground">
+          Base URL of your Kavita instance (e.g.
+          {" "}
+          <code>http://localhost:5000</code>
+          ). Series links open
+          {" "}
+          <code>/library/&lt;libraryId&gt;/series/&lt;seriesId&gt;</code>
+          {" "}
+          on this host in a new tab.
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!endpoint || checkConnection.isPending}
+            onClick={() => {
+              setCheckResult(null);
+              checkConnection.mutate();
+            }}
+          >
+            {checkConnection.isPending
+              ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Checking…
+                </>
+              )
+              : "Check connection"}
+          </Button>
+          <CheckConnectionResult result={checkResult} />
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="kv-apikey">API key</Label>
+        <Input
+          id="kv-apikey"
+          type="password"
+          placeholder={data?.kavitaApiKeySet ? "••••••••" : "No key stored"}
+          value={apiKey}
+          onChange={(e) => {
+            setApiKey(e.target.value);
+            setApiKeyDirty(true);
+          }}
+          onBlur={() => saveField("apiKey")}
+        />
+        <ApiKeyHint
+          apiKeySet={data?.kavitaApiKeySet ?? false}
+          encryptionEnabled={data?.encryptionEnabled ?? true}
+          unsetHint="Copy your API key from Kavita under User Settings → API Key (older versions: 3rd Party Clients). The server exchanges it for a session token; it is never sent to the browser."
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
  * Editor for the image-URL blacklist: patterns that exclude matching candidate images from a URL
  * scan (e.g. ad/CDN hosts). Each add/remove persists the whole list via the connectors settings with
  * a named toast. The connectors PUT body requires every field, so the other connector values are
@@ -380,6 +538,8 @@ export function ImageBlacklistForm() {
         hostedMetadataProvider: data.hostedMetadataProvider,
         hostedMetadataApiKey: null,
         archiveBoxEndpoint: data.archiveBoxEndpoint,
+        kavitaEndpoint: data.kavitaEndpoint,
+        kavitaApiKey: null,
         imageUrlBlacklist: patterns,
       },
       {

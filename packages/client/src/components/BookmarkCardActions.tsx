@@ -1,10 +1,11 @@
 import type { Bookmark, BookmarkTag, ChoicesDisplayType, CustomProperty } from "@eesimple/types";
 
-import { Archive, ArchiveRestore, ExternalLink, MoreVertical } from "lucide-react";
+import { Archive, ArchiveRestore, BookOpen, ExternalLink, MoreVertical } from "lucide-react";
 
 import { BookmarkCardMenu } from "./BookmarkCardMenu";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
 import { archiveAddUrl, archiveSearchUrl } from "../lib/archiveBox";
+import { kavitaSeriesUrl } from "../lib/kavita";
 
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -89,6 +90,35 @@ export function BookmarkArchiveNowButton({
         title="Archive this page now in ArchiveBox"
       >
         <ArchiveRestore className="size-4" />
+      </a>
+    </Button>
+  );
+}
+
+/**
+ * "View on Kavita" action — opens the linked series' page in Kavita's web UI in a new tab. Caller
+ * renders it only when the Kavita connector is configured and the bookmark is linked to a series.
+ */
+export function BookmarkKavitaLinkButton({
+  baseUrl, libraryId, seriesId,
+}: { baseUrl: string;
+  libraryId: number;
+  seriesId: number; }) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      asChild
+    >
+      <a
+        href={kavitaSeriesUrl(baseUrl, libraryId, seriesId)}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="View series on Kavita"
+        title="View series on Kavita"
+      >
+        <BookOpen className="size-4" />
       </a>
     </Button>
   );

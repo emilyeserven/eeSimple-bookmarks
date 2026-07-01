@@ -8,6 +8,7 @@ import { Link } from "@tanstack/react-router";
 import { BookmarkCategoryLink } from "./BookmarkCategoryLink";
 import { BookmarkDetailDebug } from "./BookmarkDetailDebug";
 import { BookmarkGallery } from "./BookmarkGallery";
+import { BookmarkKavitaDetailLink } from "./BookmarkKavitaField";
 import { BookmarkLocationsBox } from "./BookmarkLocationsBox";
 import { BookmarkLocationsTabContent } from "./BookmarkLocationsTabContent";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
@@ -184,6 +185,14 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
                       </span>
                     ))}
                   </span>
+                </DetailField>
+              )
+              : null}
+
+            {bookmark.kavitaSeriesId !== null
+              ? (
+                <DetailField label="Kavita">
+                  <BookmarkKavitaDetailLink bookmark={bookmark} />
                 </DetailField>
               )
               : null}

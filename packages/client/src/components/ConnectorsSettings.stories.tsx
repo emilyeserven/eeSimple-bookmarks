@@ -27,6 +27,10 @@ const connectorsStatus: ConnectorsStatus = {
     enabled: false,
     baseUrl: null,
   },
+  kavita: {
+    enabled: false,
+    baseUrl: null,
+  },
   geocoding: {
     enabled: true,
     endpoint: "https://nominatim.openstreetmap.org",
@@ -43,6 +47,8 @@ const connectorsSettings: ConnectorsAppSettings = {
   hostedMetadataApiKeySet: false,
   encryptionEnabled: true,
   archiveBoxEndpoint: "",
+  kavitaEndpoint: "",
+  kavitaApiKeySet: false,
   imageUrlBlacklist: [],
 };
 
@@ -84,6 +90,10 @@ export const ProvidersActive: Story = {
             enabled: true,
             baseUrl: "http://localhost:8000",
           },
+          kavita: {
+            enabled: true,
+            baseUrl: "http://localhost:5000",
+          },
         } satisfies ConnectorsStatus)),
         http.get("/api/app-settings/connectors", () => HttpResponse.json({
           ...connectorsSettings,
@@ -91,6 +101,8 @@ export const ProvidersActive: Story = {
           hostedMetadataProvider: "browserless",
           hostedMetadataApiKeySet: true,
           archiveBoxEndpoint: "http://localhost:8000",
+          kavitaEndpoint: "http://localhost:5000",
+          kavitaApiKeySet: true,
         } satisfies ConnectorsAppSettings)),
         ...apiHandlers,
       ],
