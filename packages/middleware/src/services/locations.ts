@@ -374,35 +374,14 @@ export async function setLocationAncestors(
   });
 }
 
-export async function updateLocation(id: string, input: UpdateLocationInput): Promise<Location | null> {
-  if (input.parentId !== undefined && input.parentId !== null) {
-    if (input.parentId === id) throw new LocationCycleError();
-    const all = await listLocations();
-    if (wouldCreateLocationCycle(all, id, input.parentId)) throw new LocationCycleError();
-  }
-
+/**
+ * Copy every provided (non-`undefined`) editable column from an update input onto a row patch.
+ * Pure — the slug (which needs an async lookup) and the tag write are handled by the caller.
+ */
+export function locationInputToPatch(input: UpdateLocationInput): Partial<LocationRow> {
   const patch: Partial<LocationRow> = {};
   if (input.name !== undefined) patch.name = input.name;
   if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName;
-  // The slug derives from the romanized name (falling back to the name), so a change to either
-  // field re-derives it. Resolve the effective values against the current row when one is absent.
-  if (input.name !== undefined || input.romanizedName !== undefined) {
-    const [current] = await db
-      .select({
-        name: locations.name,
-        romanizedName: locations.romanizedName,
-      })
-      .from(locations)
-      .where(eq(locations.id, id));
-    if (current) {
-      const effectiveName = input.name ?? current.name;
-      const effectiveRomanized = input.romanizedName !== undefined ? input.romanizedName : current.romanizedName;
-      patch.slug = uniqueSlug(
-        locationSlugSource(effectiveName, effectiveRomanized),
-        await takenLocationSlugs(id),
-      );
-    }
-  }
   if (input.alternateNames !== undefined) patch.alternateNames = input.alternateNames;
   if (input.latitude !== undefined) patch.latitude = input.latitude;
   if (input.longitude !== undefined) patch.longitude = input.longitude;
@@ -418,6 +397,37 @@ export async function updateLocation(id: string, input: UpdateLocationInput): Pr
   if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
+  return patch;
+}
+
+/** The re-derived slug when the name or romanized name changed, else `undefined` (leave slug as-is). */
+async function deriveUpdatedLocationSlug(id: string, input: UpdateLocationInput): Promise<string | undefined> {
+  // The slug derives from the romanized name (falling back to the name), so a change to either
+  // field re-derives it. Resolve the effective values against the current row when one is absent.
+  if (input.name === undefined && input.romanizedName === undefined) return undefined;
+  const [current] = await db
+    .select({
+      name: locations.name,
+      romanizedName: locations.romanizedName,
+    })
+    .from(locations)
+    .where(eq(locations.id, id));
+  if (!current) return undefined;
+  const effectiveName = input.name ?? current.name;
+  const effectiveRomanized = input.romanizedName !== undefined ? input.romanizedName : current.romanizedName;
+  return uniqueSlug(locationSlugSource(effectiveName, effectiveRomanized), await takenLocationSlugs(id));
+}
+
+export async function updateLocation(id: string, input: UpdateLocationInput): Promise<Location | null> {
+  if (input.parentId !== undefined && input.parentId !== null) {
+    if (input.parentId === id) throw new LocationCycleError();
+    const all = await listLocations();
+    if (wouldCreateLocationCycle(all, id, input.parentId)) throw new LocationCycleError();
+  }
+
+  const patch = locationInputToPatch(input);
+  const slug = await deriveUpdatedLocationSlug(id, input);
+  if (slug !== undefined) patch.slug = slug;
 
   const row = await db.transaction(async (tx) => {
     let updated: LocationRow | undefined;

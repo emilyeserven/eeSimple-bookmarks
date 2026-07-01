@@ -5,6 +5,7 @@ import {
   buildLocationTree,
   collectLocationSubtreeIds,
   computeLocationBookmarkCounts,
+  locationInputToPatch,
   locationSlugSource,
   matchLocationIdsByTitle,
   wouldCreateLocationCycle,
@@ -199,4 +200,36 @@ test("matchLocationIdsByTitle drops a matched ancestor of a more specific matche
   );
   // A title mentioning only the ancestor still matches the ancestor.
   assert.deepEqual(matchLocationIdsByTitle("A day trip to Busan", null, candidates), ["l-busan"]);
+});
+
+test("locationInputToPatch copies only the fields that are present", () => {
+  const patch = locationInputToPatch({
+    name: "Kyoto",
+    latitude: 35,
+    officialLink: null,
+  });
+  assert.deepEqual(patch, {
+    name: "Kyoto",
+    latitude: 35,
+    officialLink: null,
+  });
+});
+
+test("locationInputToPatch omits undefined fields and never includes slug", () => {
+  const patch = locationInputToPatch({
+    romanizedName: "Kyoto",
+    placeType: undefined,
+    parentId: "parent",
+    tagIds: ["t1"],
+  });
+  // tagIds is written separately (not a row column) and slug is derived by the caller.
+  assert.deepEqual(patch, {
+    romanizedName: "Kyoto",
+    parentId: "parent",
+  });
+  assert.equal("slug" in patch, false);
+});
+
+test("locationInputToPatch returns an empty patch for an empty input", () => {
+  assert.deepEqual(locationInputToPatch({}), {});
 });
