@@ -1,4 +1,4 @@
-import type { LevelsControls, MapFilterControls } from "../lib/locationLevels";
+import type { AncestorChildrenScopeControls, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 
 import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
 import { MapPin, Settings, Shapes, Square } from "lucide-react";
@@ -94,9 +94,11 @@ function ViewOptionsPopover({
 export function LocationLevelsMapPanel({
   controls,
   filter,
+  ancestorChildrenScope,
 }: {
   controls: LevelsControls;
   filter?: MapFilterControls;
+  ancestorChildrenScope?: AncestorChildrenScopeControls;
 }) {
   const {
     groups,
@@ -193,6 +195,24 @@ export function LocationLevelsMapPanel({
           Hide map borders
         </Label>
       </div>
+
+      {ancestorChildrenScope
+        ? (
+          <div className="mt-2 flex items-start gap-2 border-t pt-2">
+            <Checkbox
+              id="map-levels-only-direct-relatives"
+              checked={ancestorChildrenScope.onlyDirect}
+              onCheckedChange={checked => ancestorChildrenScope.onToggle(checked === true)}
+            />
+            <Label
+              htmlFor="map-levels-only-direct-relatives"
+              className="cursor-pointer text-xs"
+            >
+              Only show direct ancestors/children of current location
+            </Label>
+          </div>
+        )
+        : null}
 
       {filter ? <LocationMapFilterSection filter={filter} /> : null}
     </div>

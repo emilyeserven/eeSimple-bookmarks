@@ -1,5 +1,5 @@
 import type { MapView } from "./LocationMap";
-import type { LevelScope, LevelsControls, MapFilterControls } from "../lib/locationLevels";
+import type { AncestorChildrenScopeControls, LevelScope, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 import type { LocationMapLevelMode } from "../stores/uiStore";
 import type { LocationNode } from "@eesimple/types";
 
@@ -53,6 +53,11 @@ interface LocationMapSectionProps {
     filterIds: string[];
     onFilterChange: (ids: string[]) => void;
   };
+  /**
+   * When set, the Levels overlay shows an "Only show direct ancestors/children of current location"
+   * checkbox — used only by maps with a single "current" location (see `LocationGeneralView`).
+   */
+  ancestorChildrenScope?: AncestorChildrenScopeControls;
 }
 
 /** A collapsible "Map" section wrapping {@link LocationMap}, with persisted open/closed state. */
@@ -68,6 +73,7 @@ export function LocationMapSection({
     currentPlaceType: null,
   },
   filter,
+  ancestorChildrenScope,
 }: LocationMapSectionProps) {
   const collapsedKeys = useUiStore(state => state.collapsedLocationMapKeys);
   const toggle = useUiStore(state => state.toggleLocationMapCollapsed);
@@ -225,6 +231,7 @@ export function LocationMapSection({
               <LocationLevelsOverlay
                 controls={controls}
                 filter={mapFilter}
+                ancestorChildrenScope={ancestorChildrenScope}
               />
             </div>
           )
@@ -247,6 +254,7 @@ export function LocationMapSection({
                 <LocationLevelsMapPanel
                   controls={controls}
                   filter={mapFilter}
+                  ancestorChildrenScope={ancestorChildrenScope}
                 />
               )
               : undefined}

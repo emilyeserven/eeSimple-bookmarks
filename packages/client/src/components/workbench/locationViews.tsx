@@ -1,5 +1,7 @@
 import type { LocationNode } from "@eesimple/types";
 
+import { useState } from "react";
+
 import { LocationMapSection } from "../LocationMapSection";
 import { RomanizedLabel } from "../RomanizedLabel";
 
@@ -30,6 +32,7 @@ export function LocationGeneralView({
     data: displayPrefs,
   } = useDisplayPreferenceSettings();
   const updatePrefs = useUpdateDisplayPreferenceSettings();
+  const [onlyDirectRelatives, setOnlyDirectRelatives] = useState(false);
   const parent = node.parentId
     ? flattenTree(data ?? []).find(item => item.node.id === node.parentId)?.node
     : null;
@@ -38,15 +41,27 @@ export function LocationGeneralView({
     : "—";
 
   // Ancestor chain (root → parent), stripped of children so only the ancestors themselves plot —
-  // otherwise `collectMapped` would re-plot the whole tree under a root ancestor.
+  // otherwise `collectMapped` would re-plot the whole tree under a root ancestor. "Only direct"
+  // narrows this to just the immediate parent, and narrows the plotted children to just the
+  // immediate ones (grandchildren's own subtrees stripped too).
   const path = findAncestorPath(data ?? [], node.slug);
-  const ancestors = (path ? path.slice(0, -1) : []).map(ancestor => ({
+  const fullAncestors = (path ? path.slice(0, -1) : []).map(ancestor => ({
     ...ancestor,
     children: [],
   }));
+  const ancestors = onlyDirectRelatives ? fullAncestors.slice(-1) : fullAncestors;
+  const nodeForMap = onlyDirectRelatives
+    ? {
+      ...node,
+      children: node.children.map(child => ({
+        ...child,
+        children: [],
+      })),
+    }
+    : node;
   const mapTree = showAncestors
-    ? [...ancestors, node, ...node.children]
-    : [node, ...node.children];
+    ? [...ancestors, nodeForMap, ...nodeForMap.children]
+    : [nodeForMap, ...nodeForMap.children];
 
   function toggleAncestors(next: boolean): void {
     if (!displayPrefs) return;
@@ -189,6 +204,10 @@ export function LocationGeneralView({
           scope={{
             kind: "location",
             currentPlaceType: node.placeType,
+          }}
+          ancestorChildrenScope={{
+            onlyDirect: onlyDirectRelatives,
+            onToggle: setOnlyDirectRelatives,
           }}
         />
       </div>
