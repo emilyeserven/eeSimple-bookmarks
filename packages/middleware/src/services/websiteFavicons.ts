@@ -58,7 +58,7 @@ async function setWebsiteFavicon(
   if (!website) return "not_found";
 
   const processed = await processImage(rawBytes);
-  if (!processed) return "bad_image";
+  if ("error" in processed) return "bad_image";
 
   const objectKey = objectKeyFor(websiteId);
   await putObject(objectKey, processed.body, processed.contentType);

@@ -174,7 +174,7 @@ export async function takeAndStoreScreenshot(
   }
 
   const processed = await processImage(rawBytes);
-  if (!processed) return "bad_image";
+  if ("error" in processed) return "bad_image";
 
   const objectKey = screenshotKeyFor(bookmarkId);
   await putObject(objectKey, processed.body, processed.contentType);
@@ -317,7 +317,7 @@ export async function addBookmarkImage(
   if (existing.length >= MAX_BOOKMARK_IMAGES) return "too_many";
 
   const processed = await processImage(rawBytes);
-  if (!processed) return "bad_image";
+  if ("error" in processed) return "bad_image";
 
   const makeMain = opts?.setMain === true || existing.length === 0;
   if (makeMain && existing.length > 0) {
@@ -353,7 +353,7 @@ export async function setBookmarkImage(
   if (!bookmark) return "not_found";
 
   const processed = await processImage(rawBytes);
-  if (!processed) return "bad_image";
+  if ("error" in processed) return "bad_image";
 
   await deleteAllBookmarkImages(bookmarkId);
   const row = await storeImageRow(bookmarkId, processed, source, {

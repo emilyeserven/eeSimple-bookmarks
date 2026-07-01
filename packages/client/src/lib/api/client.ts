@@ -18,8 +18,9 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const body = (await res.json().catch(() => ({}))) as {
       message?: string;
       code?: string;
+      detail?: string;
     };
-    throw new ApiError(body.message ?? `Request failed with ${res.status}`, body.code);
+    throw new ApiError(body.message ?? `Request failed with ${res.status}`, body.code, body.detail);
   }
 
   if (res.status === 204) return undefined as T;

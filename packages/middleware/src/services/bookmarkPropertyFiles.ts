@@ -89,7 +89,7 @@ export async function setBookmarkPropertyFile(
   let height: number | null = null;
   if (isImage) {
     const processed = await processImage(rawBytes);
-    if (!processed) return "bad_image";
+    if ("error" in processed) return "bad_image";
     body = processed.body;
     storedContentType = processed.contentType;
     width = processed.width;
