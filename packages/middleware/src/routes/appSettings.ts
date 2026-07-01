@@ -293,6 +293,7 @@ const displayPreferenceBody = {
     "showLocationAncestorsOnMap",
     "minAreaPinThresholdKm2",
     "bookmarksPerPage",
+    "mapPinScale",
   ],
   additionalProperties: false,
   properties: {
@@ -367,6 +368,11 @@ const displayPreferenceBody = {
     bookmarksPerPage: {
       type: "integer",
       minimum: 1,
+    },
+    mapPinScale: {
+      type: "number",
+      minimum: 0.5,
+      maximum: 2,
     },
   },
 } as const;

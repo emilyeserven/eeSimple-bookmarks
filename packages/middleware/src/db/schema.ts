@@ -1380,6 +1380,9 @@ export const appSettings = pgTable("app_settings", {
   // How many bookmarks to show per page on listing pages. Nullable = push-safe additive; the
   // service clamps to a positive integer and falls back to the default (25) when null.
   bookmarksPerPage: integer("bookmarks_per_page"),
+  // Scale factor applied to every rendered map pin's size (1 = default size). Nullable = push-safe
+  // additive; the service clamps to [MAP_PIN_SCALE_MIN, MAP_PIN_SCALE_MAX] and falls back to 1 when null.
+  mapPinScale: real("map_pin_scale"),
 });
 
 /**

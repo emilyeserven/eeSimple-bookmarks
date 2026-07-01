@@ -103,6 +103,7 @@ function displayData(): DisplayPreferenceSettings {
     showLocationAncestorsOnMap: false,
     minAreaPinThresholdKm2: 0,
     bookmarksPerPage: 25,
+    mapPinScale: 1,
   };
 }
 

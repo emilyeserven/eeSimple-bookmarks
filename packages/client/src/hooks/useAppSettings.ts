@@ -20,7 +20,7 @@ import type {
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
 
-import { DEFAULT_BOOKMARKS_PER_PAGE, expandLevelGroupsToDisplayConfig } from "@eesimple/types";
+import { DEFAULT_BOOKMARKS_PER_PAGE, expandLevelGroupsToDisplayConfig, MAP_PIN_SCALE_DEFAULT } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { appSettingsApi } from "../lib/api/settings";
@@ -202,6 +202,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   showLocationAncestorsOnMap: false,
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
+  mapPinScale: MAP_PIN_SCALE_DEFAULT,
 };
 
 /** Sidebar-customization settings (group A): which left-sidebar items/groups are hidden. */
@@ -492,6 +493,14 @@ export function useMinAreaPinThresholdKm2(): number {
     data,
   } = useDisplayPreferenceSettings();
   return data?.minAreaPinThresholdKm2 ?? DISPLAY_PREFERENCE_DEFAULTS.minAreaPinThresholdKm2;
+}
+
+/** Scale factor applied to every rendered map pin's size (default 1 = 100%). */
+export function useMapPinScale(): number {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.mapPinScale ?? DISPLAY_PREFERENCE_DEFAULTS.mapPinScale;
 }
 
 /** Whether alphabetical name/title sorting uses the romanized value as the sort key (default true). */

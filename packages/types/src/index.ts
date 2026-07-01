@@ -412,7 +412,16 @@ export interface DisplayPreferenceSettings {
   minAreaPinThresholdKm2: number;
   /** How many bookmarks to show per page on bookmark listing pages (paginated). */
   bookmarksPerPage: number;
+  /** Scale factor applied to every rendered map pin's size (1 = default size). */
+  mapPinScale: number;
 }
+
+/** Minimum allowed value for {@link DisplayPreferenceSettings.mapPinScale}. */
+export const MAP_PIN_SCALE_MIN = 0.5;
+/** Maximum allowed value for {@link DisplayPreferenceSettings.mapPinScale}. */
+export const MAP_PIN_SCALE_MAX = 2;
+/** Default value for {@link DisplayPreferenceSettings.mapPinScale} (100% / unscaled). */
+export const MAP_PIN_SCALE_DEFAULT = 1;
 
 /** Selectable "bookmarks per page" values offered in Display settings. */
 export const BOOKMARKS_PER_PAGE_OPTIONS = [15, 25, 50, 100] as const;

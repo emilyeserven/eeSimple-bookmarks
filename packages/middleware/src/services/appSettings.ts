@@ -27,7 +27,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARKS_PER_PAGE, LOCATION_DISPLAY_MODES, normalizeBlacklist, normalizeHexColor, normalizeIconName, placeTypeKey } from "@eesimple/types";
+import { CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARKS_PER_PAGE, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
@@ -117,6 +117,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   showLocationAncestorsOnMap: false,
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
+  mapPinScale: MAP_PIN_SCALE_DEFAULT,
 };
 
 /** Coerce a stored width string to the typed union, defaulting to "full". */
@@ -159,6 +160,12 @@ function asCropped(value: number | null | undefined, fallback: number): number {
 function asMinAreaThreshold(value: number | null | undefined): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return 0;
   return Math.max(0, value);
+}
+
+/** Clamp the stored map-pin scale to [MAP_PIN_SCALE_MIN, MAP_PIN_SCALE_MAX], defaulting to 1. */
+function asMapPinScale(value: number | null | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return MAP_PIN_SCALE_DEFAULT;
+  return Math.min(MAP_PIN_SCALE_MAX, Math.max(MAP_PIN_SCALE_MIN, value));
 }
 
 /** Coerce breakpoints to a deduped, sorted array of positive integers. */
@@ -1021,6 +1028,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       showLocationAncestorsOnMap: appSettings.showLocationAncestorsOnMap,
       minAreaPinThresholdKm2: appSettings.minAreaPinThresholdKm2,
       bookmarksPerPage: appSettings.bookmarksPerPage,
+      mapPinScale: appSettings.mapPinScale,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -1042,6 +1050,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     showLocationAncestorsOnMap: row.showLocationAncestorsOnMap ?? false,
     minAreaPinThresholdKm2: asMinAreaThreshold(row.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(row.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
+    mapPinScale: asMapPinScale(row.mapPinScale),
   };
 }
 
@@ -1248,6 +1257,7 @@ export async function updateDisplayPreferenceSettings(
     showLocationAncestorsOnMap: input.showLocationAncestorsOnMap,
     minAreaPinThresholdKm2: asMinAreaThreshold(input.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(input.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
+    mapPinScale: asMapPinScale(input.mapPinScale),
   };
   await db
     .insert(appSettings)

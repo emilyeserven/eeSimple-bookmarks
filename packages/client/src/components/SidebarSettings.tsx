@@ -48,6 +48,7 @@ const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   showLocationAncestorsOnMap: false,
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,
+  mapPinScale: 1,
 };
 
 const AUTOMATION_DEFAULTS: AutomationSettings = {

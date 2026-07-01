@@ -19,7 +19,7 @@ import { geoJSON, latLngBounds } from "leaflet";
 import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
 import { RomanizedLabel } from "./RomanizedLabel";
-import { useMinAreaPinThresholdKm2 } from "../hooks/useAppSettings";
+import { useMapPinScale, useMinAreaPinThresholdKm2 } from "../hooks/useAppSettings";
 import { boundaryContainsPoint } from "../lib/locationGeo";
 import { markerIconFor } from "../lib/locationMapMarkers";
 
@@ -433,6 +433,7 @@ export function LocationMap({
   hideAdminBorders = false,
 }: LocationMapProps) {
   const minAreaKm2 = useMinAreaPinThresholdKm2();
+  const pinScale = useMapPinScale();
   const mapped = collectMapped(tree);
   const items = toRenderItems(mapped, displayConfig, iconConfig, colorConfig, minAreaKm2);
   const areaNodes = items.filter(item => item.kind === "area" && item.node.boundary).map(item => item.node);
@@ -497,7 +498,7 @@ export function LocationMap({
                   <Marker
                     key={node.id}
                     position={node.position}
-                    icon={markerIconFor(color, icon)}
+                    icon={markerIconFor(color, icon, pinScale)}
                   >
                     <PinPopup
                       node={node}
