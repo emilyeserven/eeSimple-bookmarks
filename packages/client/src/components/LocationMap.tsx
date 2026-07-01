@@ -476,7 +476,7 @@ export function LocationMap({
             kind === "area" && node.boundary
               ? (
                 <GeoJSON
-                  key={color === null ? node.id : `${node.id}:${color}`}
+                  key={`${node.id}:${color ?? ""}:${JSON.stringify(node.boundary)}`}
                   data={toFeature(node.boundary)}
                   style={color === null
                     ? undefined
