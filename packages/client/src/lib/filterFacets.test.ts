@@ -33,6 +33,9 @@ describe("facetHasActiveSelection", () => {
     expect(facetHasActiveSelection("authors", {
       authors: ["au"],
     })).toBe(true);
+    expect(facetHasActiveSelection("place-types", {
+      placeTypes: ["city"],
+    })).toBe(true);
     expect(facetHasActiveSelection("sections", {
       sectionTypes: ["url"],
     })).toBe(true);
@@ -47,6 +50,9 @@ describe("facetHasActiveSelection", () => {
     })).toBe(true);
     expect(facetHasActiveSelection("websites", {
       websitePresence: "exclude",
+    })).toBe(true);
+    expect(facetHasActiveSelection("place-types", {
+      placeTypePresence: "has",
     })).toBe(true);
     expect(facetHasActiveSelection("sections", {
       sectionsPresence: "has",

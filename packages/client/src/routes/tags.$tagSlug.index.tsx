@@ -31,6 +31,7 @@ function TagBookmarksPage() {
     youtubeChannels,
     relationshipTypes,
     authors,
+    placeTypes,
   } = useCategoryPageData(tagsForServerQuery(search));
 
   const path = tagTree ? findAncestorPath(tagTree, tagSlug) : null;
@@ -98,6 +99,7 @@ function TagBookmarksPage() {
       youtubeChannels={youtubeChannels ?? []}
       relationshipTypes={relationshipTypes ?? []}
       authors={authors ?? []}
+      placeTypes={placeTypes ?? []}
       bookmarks={tagBookmarks}
       search={search}
       onSearchChange={next => navigate({

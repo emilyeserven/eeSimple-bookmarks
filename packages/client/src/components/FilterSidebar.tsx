@@ -1,6 +1,6 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { FilterFacetKey } from "../lib/filterFacets";
-import type { Author, Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Author, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -44,6 +44,8 @@ interface FilterSidebarProps {
   relationshipTypes?: RelationshipType[];
   /** Authors offered as a multi-select filter; rendered only when non-empty. */
   authors?: Author[];
+  /** Place types offered as a multi-select filter; rendered only when non-empty. */
+  placeTypes?: PlaceType[];
   /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
@@ -52,7 +54,7 @@ interface FilterSidebarProps {
 
 /** Left filter rail for the search pages: tiered tags plus custom-property filters. */
 export function FilterSidebar({
-  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, bookmarks, search, onSearchChange,
+  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, placeTypes, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
   const [sectionFilter, setSectionFilter] = useState("");
   // Filters configured as "on demand" (Settings → Display → Filters) are hidden until the user adds
@@ -71,6 +73,7 @@ export function FilterSidebar({
   const hasWebsiteData = (websites?.length ?? 0) > 0;
   const hasRelationshipTypeData = (relationshipTypes?.length ?? 0) > 0;
   const hasAuthorData = (authors?.length ?? 0) > 0;
+  const hasPlaceTypeData = (placeTypes?.length ?? 0) > 0;
 
   const enabledProperties = properties.filter(p => p.enabled);
   const hasTagsData = tree.length > 0;
@@ -80,7 +83,8 @@ export function FilterSidebar({
   // rail (and its Add-filter control) still appears when every filter is configured on-demand.
   const hasFilters
     = hasTagsData || enabledProperties.length > 0 || hasSectionsData || hasCategoryData
-      || hasMediaTypeData || hasChannelData || hasWebsiteData || hasRelationshipTypeData || hasAuthorData;
+      || hasMediaTypeData || hasChannelData || hasWebsiteData || hasRelationshipTypeData || hasAuthorData
+      || hasPlaceTypeData;
 
   // Gated flags passed to the rendered sections: present in data AND currently revealed.
   const facetVisible = (key: FilterFacetKey) => revealed(key, facetHasActiveSelection(key, search));
@@ -91,6 +95,7 @@ export function FilterSidebar({
   const hasWebsiteFilter = hasWebsiteData && facetVisible("websites");
   const hasRelationshipTypeFilter = hasRelationshipTypeData && facetVisible("relationship-types");
   const hasAuthorFilter = hasAuthorData && facetVisible("authors");
+  const hasPlaceTypeFilter = hasPlaceTypeData && facetVisible("place-types");
   const hasSectionsFilter = hasSectionsData && facetVisible("sections");
   const visibleProperties = enabledProperties.filter(p =>
     revealed(p.id, propertyHasActiveSelection(p.id, search)));
@@ -105,6 +110,7 @@ export function FilterSidebar({
     "websites": hasWebsiteData,
     "relationship-types": hasRelationshipTypeData,
     "authors": hasAuthorData,
+    "place-types": hasPlaceTypeData,
     "sections": hasSectionsData,
   };
   const addableFilters = [
@@ -240,6 +246,7 @@ export function FilterSidebar({
                     websites={websites}
                     relationshipTypes={relationshipTypes}
                     authors={authors}
+                    placeTypes={placeTypes}
                     bookmarks={bookmarks}
                     search={search}
                     onSearchChange={onSearchChange}
@@ -251,6 +258,7 @@ export function FilterSidebar({
                     hasWebsiteFilter={hasWebsiteFilter}
                     hasRelationshipTypeFilter={hasRelationshipTypeFilter}
                     hasAuthorFilter={hasAuthorFilter}
+                    hasPlaceTypeFilter={hasPlaceTypeFilter}
                     hasSectionsFilter={hasSectionsFilter}
                     sectionFilter={sectionFilter}
                   />

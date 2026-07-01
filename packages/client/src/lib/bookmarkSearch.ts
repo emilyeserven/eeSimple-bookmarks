@@ -1,4 +1,6 @@
-import type { Bookmark, BookmarkAuthor, BookmarkTag, SectionEntryType } from "@eesimple/types";
+import type { Bookmark, BookmarkAuthor, BookmarkLocation, BookmarkTag, SectionEntryType } from "@eesimple/types";
+
+import { placeTypeKey } from "@eesimple/types";
 
 import { bookmarkMatchesFilters } from "./customPropertyFilter";
 
@@ -31,6 +33,15 @@ export interface BookmarkSearch {
   websitePresence?: "has" | "missing" | "exclude";
   /** Restrict to bookmarks that have a relationship of one of these type ids (empty/absent = all). */
   relationshipTypes?: string[];
+  /**
+   * Restrict to bookmarks with at least one location whose place type is one of these normalized
+   * slugs (empty/absent = all place types). Matched against `location.placeType` via
+   * {@link placeTypeKey} — a bookmark can carry several locations, so this is an "any match" filter
+   * like tags, not a 1:1 id comparison.
+   */
+  placeTypes?: string[];
+  /** Filter bookmarks by place type: "has" = has any location with a place type, "missing" = none, "exclude" = does not have the selected place types. */
+  placeTypePresence?: "has" | "missing" | "exclude";
   /** Restrict to bookmarks whose author list overlaps with these ids (empty/absent = all). */
   authors?: string[];
   num?: Record<string, [number, number]>;
@@ -144,6 +155,8 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     websitePresence: validPresence(search.websitePresence),
     relationshipTypes: validStringList(search.relationshipTypes),
     authors: validStringList(search.authors),
+    placeTypes: validStringList(search.placeTypes),
+    placeTypePresence: validPresence(search.placeTypePresence),
     num: nonEmptyRecord(parseNumRecord(search.num)),
     bool: nonEmptyRecord(parseBoolRecord(search.bool)),
     date: nonEmptyRecord(parseDateRecord(search.date)),
@@ -168,6 +181,7 @@ type SearchableBookmark = Pick<
   | "youtubeChannel"
   | "website"
   | "tags"
+  | "locations"
   | "authors"
   | "numberValues"
   | "booleanValues"
@@ -211,6 +225,24 @@ function passesIdFilterExclude(selected: string[] | undefined, value: string | n
 function passesTagsExclusion(selected: string[] | undefined, bookmarkTags: BookmarkTag[]): boolean {
   if (!selected || selected.length === 0) return true;
   return !bookmarkTags.some(tag => selected.includes(tag.id));
+}
+
+/** The normalized, non-blank place-type keys carried by a bookmark's locations (deduped). */
+function bookmarkPlaceTypeKeys(bookmarkLocations: BookmarkLocation[]): string[] {
+  const keys = bookmarkLocations.map(loc => placeTypeKey(loc.placeType)).filter(key => key !== "");
+  return Array.from(new Set(keys));
+}
+
+/** A multi-select place-type filter passes when empty or the bookmark has a location with a matching place type. */
+function passesPlaceTypesFilter(selected: string[] | undefined, keys: string[]): boolean {
+  if (!selected || selected.length === 0) return true;
+  return keys.some(key => selected.includes(key));
+}
+
+/** An exclusion place-type filter passes when empty (no filter) or none of the bookmark's location place types are in the excluded list. */
+function passesPlaceTypesExclusion(selected: string[] | undefined, keys: string[]): boolean {
+  if (!selected || selected.length === 0) return true;
+  return !keys.some(key => selected.includes(key));
 }
 
 /** A "has"/"missing" presence filter checks whether the dimension is present. "exclude" is handled elsewhere; returns true so it doesn't double-filter. */
@@ -307,15 +339,20 @@ export function bookmarkMatchesSearch(
           && passesPresence(search.websitePresence, Boolean(bookmark.website)))
         && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
         && passesAuthorsFilter(search.authors, bookmark.authors)
+    // Place types: multi-valued (a bookmark can carry several locations), so "any match" like tags.
+        && (search.placeTypePresence === "exclude"
+          ? passesPlaceTypesExclusion(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
+          : passesPlaceTypesFilter(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
+            && passesPresence(search.placeTypePresence, bookmarkPlaceTypeKeys(bookmark.locations).length > 0))
     // Tags: server handles inclusion (tagsForServerQuery gates the query); client handles presence and exclude.
-        && (search.tagPresence === "exclude"
-          ? passesTagsExclusion(search.tags, bookmark.tags)
-          : passesPresence(search.tagPresence, bookmark.tags.length > 0))
-        && passesPropertyPresence(bookmark, search)
-        && passesValueFilters(bookmark, search)
-        && passesChoicesFilters(bookmark, search)
-        && passesSectionsPresence(bookmark, search.sectionsPresence)
-        && passesSectionTypes(bookmark, search.sectionTypes, search.sectionsPresence)
+          && (search.tagPresence === "exclude"
+            ? passesTagsExclusion(search.tags, bookmark.tags)
+            : passesPresence(search.tagPresence, bookmark.tags.length > 0))
+          && passesPropertyPresence(bookmark, search)
+          && passesValueFilters(bookmark, search)
+          && passesChoicesFilters(bookmark, search)
+          && passesSectionsPresence(bookmark, search.sectionsPresence)
+          && passesSectionTypes(bookmark, search.sectionTypes, search.sectionsPresence)
   );
 }
 
@@ -342,6 +379,8 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     || search.websitePresence !== undefined
     || hasItems(search.relationshipTypes)
     || hasItems(search.authors)
+    || hasItems(search.placeTypes)
+    || search.placeTypePresence !== undefined
     || hasEntries(search.num)
     || hasEntries(search.bool)
     || hasEntries(search.date)
@@ -511,6 +550,38 @@ export function withRelationshipTypes(search: BookmarkSearch, ids: string[]): Bo
   return next;
 }
 
+/** Return a copy of `search` with the place-type filter set, or cleared when `keys` is empty. */
+export function withPlaceTypes(search: BookmarkSearch, keys: string[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (keys.length === 0) delete next.placeTypes;
+  else next.placeTypes = keys;
+  return next;
+}
+
+/**
+ * Return a copy of `search` with the place-type-presence filter set or cleared.
+ * Setting `"missing"` also clears any specific place-type selection (selecting one contradicts "none").
+ * Setting `"exclude"` keeps the existing selection — those keys become the exclusion list.
+ */
+export function withPlaceTypePresence(
+  search: BookmarkSearch,
+  mode: "has" | "missing" | "exclude" | undefined,
+): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (mode === undefined) {
+    delete next.placeTypePresence;
+  }
+  else {
+    next.placeTypePresence = mode;
+    if (mode === "missing") delete next.placeTypes;
+  }
+  return next;
+}
+
 /**
  * Return a copy of `search` with the website-presence filter set or cleared.
  * Setting `"missing"` also clears any specific website selection (selecting one contradicts "none").
@@ -665,6 +736,7 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     ...entityPresenceParts(search.websites, search.websitePresence, "website", "websites", "website"),
     countPart(search.relationshipTypes?.length ?? 0, "relationship type", "relationship types"),
     countPart(search.authors?.length ?? 0, "author", "authors"),
+    ...entityPresenceParts(search.placeTypes, search.placeTypePresence, "place type", "place types", "place type"),
     ...entityPresenceParts(search.tags, search.tagPresence, "tag", "tags", "tags"),
     countPart(propCount, "property", "properties"),
     sectionPresencePart(search.sectionsPresence),

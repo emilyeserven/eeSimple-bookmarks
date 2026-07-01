@@ -30,6 +30,7 @@ export function FiltersPanel() {
     websites,
     relationshipTypes,
     authors,
+    placeTypes,
     bookmarks,
     search,
     onSearchChange,
@@ -42,6 +43,7 @@ export function FiltersPanel() {
   const hasWebsiteFilter = (websites?.length ?? 0) > 0;
   const hasRelationshipTypeFilter = (relationshipTypes?.length ?? 0) > 0;
   const hasAuthorFilter = (authors?.length ?? 0) > 0;
+  const hasPlaceTypeFilter = (placeTypes?.length ?? 0) > 0;
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
   const hasSectionsFilter = enabledProperties.some(p => p.type === "sections");
@@ -53,7 +55,7 @@ export function FiltersPanel() {
         onSearchChange={onSearchChange}
       />
 
-      {(hasTags || hasProperties || hasSectionsFilter || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasAuthorFilter)
+      {(hasTags || hasProperties || hasSectionsFilter || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasAuthorFilter || hasPlaceTypeFilter)
         ? <Separator />
         : null}
 
@@ -67,6 +69,7 @@ export function FiltersPanel() {
         websites={websites}
         relationshipTypes={relationshipTypes}
         authors={authors}
+        placeTypes={placeTypes}
         bookmarks={bookmarks}
         search={search}
         onSearchChange={onSearchChange}
@@ -78,6 +81,7 @@ export function FiltersPanel() {
         hasWebsiteFilter={hasWebsiteFilter}
         hasRelationshipTypeFilter={hasRelationshipTypeFilter}
         hasAuthorFilter={hasAuthorFilter}
+        hasPlaceTypeFilter={hasPlaceTypeFilter}
         hasSectionsFilter={hasSectionsFilter}
       />
     </div>

@@ -10,18 +10,21 @@ const locations: BookmarkLocation[] = [
     name: "Tokyo",
     slug: "tokyo",
     parentId: null,
+    placeType: null,
   },
   {
     id: "loc-kyoto",
     name: "Kyoto",
     slug: "kyoto",
     parentId: null,
+    placeType: null,
   },
   {
     id: "loc-osaka",
     name: "Osaka",
     slug: "osaka",
     parentId: null,
+    placeType: null,
   },
 ];
 
@@ -59,6 +62,7 @@ export const Many: Story = {
       name: `City ${index + 1}`,
       slug: `city-${index + 1}`,
       parentId: null,
+      placeType: null,
     })),
   },
 };

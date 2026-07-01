@@ -433,6 +433,7 @@ async function locationsByBookmarkId(bookmarkIds: string[]): Promise<Map<string,
       name: locations.name,
       slug: locations.slug,
       parentId: locations.parentId,
+      placeType: locations.placeType,
     })
     .from(bookmarkLocations)
     .innerJoin(locations, eq(bookmarkLocations.locationId, locations.id))
@@ -445,6 +446,7 @@ async function locationsByBookmarkId(bookmarkIds: string[]): Promise<Map<string,
       name: row.name,
       slug: row.slug ?? slugify(row.name),
       parentId: row.parentId,
+      placeType: row.placeType,
     });
     grouped.set(row.bookmarkId, list);
   }

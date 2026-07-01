@@ -1,9 +1,9 @@
 import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Author, Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, SectionEntryType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Author, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, SectionEntryType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { SECTION_ENTRY_TYPE_LABELS, SECTION_ENTRY_TYPES } from "@eesimple/types";
-import { ChevronDown, Globe, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
+import { ChevronDown, Globe, MapPin, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { FacetChips, FacetPresenceToggle } from "./FilterFacetControls";
@@ -20,6 +20,8 @@ import {
   withDateTimeFilter,
   withMediaTypes,
   withNumberFilter,
+  withPlaceTypePresence,
+  withPlaceTypes,
   withPresenceFilter,
   withRelationshipTypes,
   withSectionTypes,
@@ -318,6 +320,92 @@ export function YouTubeChannelFilterSection({
                 hover:underline
               "
               onClick={() => onSearchChange(withYouTubeChannelPresence(withYouTubeChannels(search, []), undefined))}
+            >
+              Reset
+            </button>
+          )
+          : null}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/**
+ * Multi-select place-type filter; rendered wherever locations carry a place type. A bookmark can
+ * carry several locations, so this is an "any match" filter (like Tags) rather than a 1:1 id
+ * comparison — options are keyed by the place type's normalized `slug`, matching how
+ * `BookmarkLocation.placeType` is compared server-side.
+ */
+export function PlaceTypeFilterSection({
+  placeTypes, search, onSearchChange,
+}: {
+  placeTypes?: PlaceType[];
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const options = (placeTypes ?? []).map(placeType => ({
+    value: placeType.slug,
+    label: placeType.name,
+    icon: <MapPin className="size-4 shrink-0 text-muted-foreground" />,
+  }));
+  const selected = search.placeTypes ?? [];
+  const filterActive = selected.length > 0 || search.placeTypePresence !== undefined;
+
+  return (
+    <Collapsible
+      defaultOpen
+      className="group/place-type space-y-3"
+    >
+      <div className="flex items-center justify-between">
+        <CollapsibleTrigger
+          className="
+            flex items-center gap-1.5 text-sm font-semibold
+            hover:text-foreground
+          "
+        >
+          <ChevronDown
+            className="
+              size-3.5 shrink-0 transition-transform
+              group-data-[state=open]/place-type:rotate-180
+            "
+          />
+          Place type
+        </CollapsibleTrigger>
+        <FacetPresenceToggle
+          value={search.placeTypePresence}
+          onChange={mode => onSearchChange(withPlaceTypePresence(search, mode))}
+          hasLabel="Has place type"
+          missingLabel="No place type"
+        />
+      </div>
+      <CollapsibleContent className="space-y-3">
+        {search.placeTypePresence !== "missing"
+          ? (
+            <>
+              <MultiCombobox
+                options={options}
+                values={selected}
+                onValuesChange={ids => onSearchChange(withPlaceTypes(search, ids))}
+                placeholder="All place types"
+                aria-label="Filter by place type"
+              />
+              <FacetChips
+                options={options}
+                values={selected}
+                onValuesChange={ids => onSearchChange(withPlaceTypes(search, ids))}
+              />
+            </>
+          )
+          : null}
+        {filterActive
+          ? (
+            <button
+              type="button"
+              className="
+                text-xs text-primary
+                hover:underline
+              "
+              onClick={() => onSearchChange(withPlaceTypePresence(withPlaceTypes(search, []), undefined))}
             >
               Reset
             </button>
