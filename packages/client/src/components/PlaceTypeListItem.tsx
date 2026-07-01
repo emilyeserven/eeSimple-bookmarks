@@ -1,13 +1,16 @@
 import type { PlaceType } from "@eesimple/types";
 
+import { placeTypeKey } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Info, Map, MapPinned, Pencil } from "lucide-react";
+import { Info, Map, Pencil, Shapes } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
+import { useLocationLevels } from "../hooks/useLocationLevels";
 
 import { Button } from "@/components/ui/button";
+import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +43,25 @@ export function PlaceTypeListItem({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const {
+    groups, placeTypeIcons,
+  } = useLocationLevels({
+    notify: false,
+  });
+
+  // Match the Pin/Area split in the Pin Style settings (`PlaceTypeIconsCard`): a place type assigned
+  // to a pin-mode level shows its configured (or default) pin icon; everything else — area-mode or
+  // unassigned — shows a generic area icon.
+  const key = placeTypeKey(placeType.slug);
+  const isPinType = groups.some(group => group.displayMode === "pin" && group.placeTypes.includes(key));
+  const icon = isPinType
+    ? (
+      <CategoryIcon
+        name={placeTypeIcons[key] ?? "MapPin"}
+        className="size-5 shrink-0 text-muted-foreground"
+      />
+    )
+    : <Shapes className="size-5 shrink-0 text-muted-foreground" />;
 
   return (
     <StandardListingCard
@@ -47,7 +69,7 @@ export function PlaceTypeListItem({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
-      icon={<MapPinned className="size-5 shrink-0 text-muted-foreground" />}
+      icon={icon}
       title={placeType.name}
       count={placeType.locationCount}
       renderExtra={onToggleFilter
