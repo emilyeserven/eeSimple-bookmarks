@@ -932,6 +932,18 @@ export function CommandPalette() {
                             >
                               Sort by Date Updated (Oldest)
                             </CommandItem>
+                            <CommandItem
+                              value="Sort Randomly"
+                              onSelect={() => {
+                                listingCtx.setSort({
+                                  random: true,
+                                  seed: Math.random(),
+                                });
+                                handleOpenChange(false);
+                              }}
+                            >
+                              Sort Randomly
+                            </CommandItem>
                             {listingCtx.currentSort != null && (
                               <CommandItem
                                 value="Clear Sort"

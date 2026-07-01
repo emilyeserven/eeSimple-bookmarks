@@ -10,10 +10,19 @@ export interface BookmarkSortDimension {
   direction: SortDirection;
 }
 
-export interface BookmarkSort {
+export interface BookmarkFieldSort {
   primary: BookmarkSortDimension;
   secondary?: BookmarkSortDimension;
 }
+
+/** Shuffles bookmarks in a stable pseudo-random order derived from `seed`. */
+export interface BookmarkRandomSort {
+  random: true;
+  /** Re-rolled each time the user picks "Random" or clicks "Shuffle again". */
+  seed: number;
+}
+
+export type BookmarkSort = BookmarkFieldSort | BookmarkRandomSort;
 
 /** Custom property types whose values can be meaningfully compared for sorting. */
 export const SORTABLE_PROPERTY_TYPES = [
@@ -119,6 +128,16 @@ function compareOneDimension(
   return 0;
 }
 
+/** A deterministic 32-bit hash of `id` mixed with `seed`, used to derive a stable shuffle order. */
+function seededRank(id: string, seed: number): number {
+  let hash = seed | 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = Math.imul(hash ^ id.charCodeAt(i), 2654435761);
+    hash ^= hash >>> 15;
+  }
+  return hash >>> 0;
+}
+
 /**
  * Returns a stable sorted copy of `bookmarks` according to `sort`.
  * When `sort` is undefined the original order is preserved (server's `createdAt DESC`).
@@ -129,6 +148,10 @@ export function sortBookmarks(
   properties: CustomProperty[],
 ): Bookmark[] {
   if (!sort) return bookmarks;
+  if ("random" in sort) {
+    return [...bookmarks].sort((a, b) =>
+      seededRank(a.id, sort.seed) - seededRank(b.id, sort.seed));
+  }
   return [...bookmarks].sort((a, b) => {
     const primary = compareOneDimension(a, b, sort.primary, properties);
     if (primary !== 0) return primary;

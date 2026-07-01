@@ -63,6 +63,8 @@ interface BookmarkSortControlsProps {
   pageKey: string;
 }
 
+const RANDOM_FIELD = "random";
+
 function BookmarkSortControls({
   pageKey,
 }: BookmarkSortControlsProps) {
@@ -78,6 +80,10 @@ function BookmarkSortControls({
   );
 
   const fieldOptions = [
+    {
+      value: RANDOM_FIELD,
+      label: "Random",
+    },
     {
       value: "title",
       label: "Title",
@@ -96,14 +102,24 @@ function BookmarkSortControls({
     })),
   ];
 
-  const primaryField = sort?.primary.field ?? null;
-  const primaryDir = sort?.primary.direction ?? "asc";
-  const secondaryField = sort?.secondary?.field ?? null;
-  const secondaryDir = sort?.secondary?.direction ?? "asc";
+  const isRandom = sort != null && "random" in sort;
+  const fieldsSort = sort && !isRandom ? sort : undefined;
+
+  const primaryField = isRandom ? RANDOM_FIELD : fieldsSort?.primary.field ?? null;
+  const primaryDir = fieldsSort?.primary.direction ?? "asc";
+  const secondaryField = fieldsSort?.secondary?.field ?? null;
+  const secondaryDir = fieldsSort?.secondary?.direction ?? "asc";
 
   function setPrimary(field: string | null, direction: SortDirection = primaryDir) {
     if (!field) {
       clearBookmarkSort(pageKey);
+      return;
+    }
+    if (field === RANDOM_FIELD) {
+      setBookmarkSort(pageKey, {
+        random: true,
+        seed: Math.random(),
+      });
       return;
     }
     const next: BookmarkSort = {
@@ -111,26 +127,26 @@ function BookmarkSortControls({
         field,
         direction,
       },
-      secondary: sort?.secondary,
+      secondary: fieldsSort?.secondary,
     };
     setBookmarkSort(pageKey, next);
   }
 
   function setPrimaryDir(direction: SortDirection) {
-    if (!primaryField) return;
+    if (!fieldsSort) return;
     setBookmarkSort(pageKey, {
       primary: {
-        field: primaryField,
+        field: fieldsSort.primary.field,
         direction,
       },
-      secondary: sort?.secondary,
+      secondary: fieldsSort.secondary,
     });
   }
 
   function setSecondary(field: string | null, direction: SortDirection = secondaryDir) {
-    if (!primaryField || !sort) return;
+    if (!fieldsSort) return;
     setBookmarkSort(pageKey, {
-      primary: sort.primary,
+      primary: fieldsSort.primary,
       secondary: field
         ? {
           field,
@@ -141,9 +157,9 @@ function BookmarkSortControls({
   }
 
   function setSecondaryDir(direction: SortDirection) {
-    if (!primaryField || !secondaryField || !sort) return;
+    if (!fieldsSort || !secondaryField) return;
     setBookmarkSort(pageKey, {
-      primary: sort.primary,
+      primary: fieldsSort.primary,
       secondary: {
         field: secondaryField,
         direction,
@@ -151,7 +167,16 @@ function BookmarkSortControls({
     });
   }
 
-  const secondaryOptions = fieldOptions.filter(o => o.value !== primaryField);
+  function reshuffle() {
+    setBookmarkSort(pageKey, {
+      random: true,
+      seed: Math.random(),
+    });
+  }
+
+  const secondaryOptions = fieldOptions.filter(
+    o => o.value !== primaryField && o.value !== RANDOM_FIELD,
+  );
 
   return (
     <div className="flex flex-col gap-3">
@@ -162,12 +187,13 @@ function BookmarkSortControls({
           field={primaryField}
           direction={primaryDir}
           placeholder="Default order"
+          showDirection={!isRandom}
           onFieldChange={field => setPrimary(field)}
           onDirectionChange={dir => setPrimaryDir(dir)}
         />
       </div>
 
-      {primaryField != null && (
+      {primaryField != null && !isRandom && (
         <div className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-muted-foreground">Secondary</span>
           <SortDimensionRow
@@ -182,15 +208,26 @@ function BookmarkSortControls({
       )}
 
       {sort != null && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="self-start"
-          onClick={() => clearBookmarkSort(pageKey)}
-        >
-          Clear sort
-        </Button>
+        <div className="flex gap-2">
+          {isRandom && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={reshuffle}
+            >
+              Shuffle again
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => clearBookmarkSort(pageKey)}
+          >
+            Clear sort
+          </Button>
+        </div>
       )}
     </div>
   );
@@ -202,6 +239,7 @@ interface SortDimensionRowProps {
   field: string | null;
   direction: SortDirection;
   placeholder: string;
+  showDirection?: boolean;
   onFieldChange: (field: string | null) => void;
   onDirectionChange: (dir: SortDirection) => void;
 }
@@ -211,6 +249,7 @@ function SortDimensionRow({
   field,
   direction,
   placeholder,
+  showDirection = true,
   onFieldChange,
   onDirectionChange,
 }: SortDimensionRowProps) {
@@ -239,7 +278,7 @@ function SortDimensionRow({
         </SelectContent>
       </Select>
 
-      {field != null && (
+      {field != null && showDirection && (
         <ToggleGroup
           type="single"
           size="sm"
