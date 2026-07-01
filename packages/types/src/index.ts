@@ -404,6 +404,12 @@ export interface DisplayPreferenceSettings {
   sortByRomanized: boolean;
   /** When true, a location detail page's map also plots the location's ancestor/parent locations. */
   showLocationAncestorsOnMap: boolean;
+  /**
+   * Minimum area (km²) an `"area"`-mode location's boundary must have to still render as a polygon
+   * on the map; smaller boundaries render as a pin instead. `0` disables the threshold (legacy
+   * behavior — any boundary renders as an area).
+   */
+  minAreaPinThresholdKm2: number;
   /** How many bookmarks to show per page on bookmark listing pages (paginated). */
   bookmarksPerPage: number;
 }

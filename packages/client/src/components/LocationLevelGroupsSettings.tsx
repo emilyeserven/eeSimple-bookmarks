@@ -21,11 +21,18 @@ import { LOCATION_MAP_PALETTES } from "@eesimple/types";
 import { ArrowLeftRight, Plus } from "lucide-react";
 
 import { SortableGroupRow } from "./SortableLevelGroupRow";
+import {
+  useDisplayPreferenceSettings,
+  useMinAreaPinThresholdKm2,
+  useUpdateDisplayPreferenceSettings,
+} from "../hooks/useAppSettings";
 import { useLocationLevels } from "../hooks/useLocationLevels";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 /** A subtle clickable gap between two level group rows — hover reveals a "+" to insert a new level. */
@@ -83,6 +90,29 @@ export function LocationLevelGroupsSettings() {
   const [paletteReversed, setPaletteReversed] = useState(false);
   const [paletteIncludesPins, setPaletteIncludesPins] = useState(true);
 
+  const minAreaKm2 = useMinAreaPinThresholdKm2();
+  const {
+    data: displayPrefs,
+  } = useDisplayPreferenceSettings();
+  const updatePrefs = useUpdateDisplayPreferenceSettings();
+  const [minAreaInput, setMinAreaInput] = useState(String(minAreaKm2));
+  useEffect(() => {
+    setMinAreaInput(String(minAreaKm2));
+  }, [minAreaKm2]);
+
+  function commitMinArea() {
+    const parsed = Math.max(0, Number(minAreaInput) || 0);
+    setMinAreaInput(String(parsed));
+    if (parsed === minAreaKm2 || !displayPrefs) return;
+    updatePrefs.mutate({
+      ...displayPrefs,
+      minAreaPinThresholdKm2: parsed,
+    }, {
+      onSuccess: () => notifySuccess("Minimum area threshold updated"),
+      onError: error => notifyError(error.message),
+    });
+  }
+
   // Local ordered IDs, re-synced when the saved groups change.
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
   useEffect(() => {
@@ -128,6 +158,33 @@ export function LocationLevelGroupsSettings() {
         <CardTitle className="text-base">Level Groups</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="min-area-pin-threshold"
+            className="text-sm font-medium"
+          >
+            Minimum area size
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            An &ldquo;area&rdquo; level whose boundary is smaller than this (km²) renders as a pin
+            instead of a polygon. Set to 0 to always draw the area when a boundary exists.
+          </p>
+          <div className="flex items-center gap-2">
+            <Input
+              id="min-area-pin-threshold"
+              type="number"
+              min={0}
+              step="any"
+              value={minAreaInput}
+              onChange={e => setMinAreaInput(e.target.value)}
+              onBlur={commitMinArea}
+              className="w-28"
+              aria-label="Minimum area size in square kilometers"
+            />
+            <span className="text-sm text-muted-foreground">km²</span>
+          </div>
+        </div>
+
         {groups.length > 0
           ? (
             <div className="space-y-2">

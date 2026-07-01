@@ -200,6 +200,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   showRomanizedByDefault: false,
   sortByRomanized: true,
   showLocationAncestorsOnMap: false,
+  minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
 };
 
@@ -493,6 +494,14 @@ export function useShowLocationAncestorsOnMap(): boolean {
     data,
   } = useDisplayPreferenceSettings();
   return data?.showLocationAncestorsOnMap ?? DISPLAY_PREFERENCE_DEFAULTS.showLocationAncestorsOnMap;
+}
+
+/** Minimum boundary area (km²) for an "area"-mode location to still render as a polygon (default 0 = off). */
+export function useMinAreaPinThresholdKm2(): number {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.minAreaPinThresholdKm2 ?? DISPLAY_PREFERENCE_DEFAULTS.minAreaPinThresholdKm2;
 }
 
 /** Whether alphabetical name/title sorting uses the romanized value as the sort key (default true). */

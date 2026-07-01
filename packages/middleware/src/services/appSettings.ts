@@ -115,6 +115,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   showRomanizedByDefault: false,
   sortByRomanized: true,
   showLocationAncestorsOnMap: false,
+  minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
 };
 
@@ -152,6 +153,12 @@ function asDetailLayout(value: string | null | undefined): BookmarkDetailLayout 
 function asCropped(value: number | null | undefined, fallback: number): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
   return Math.max(1, Math.round(value));
+}
+
+/** Clamp the stored min-area-pin threshold (km²) to a non-negative number; `0` disables it. */
+function asMinAreaThreshold(value: number | null | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 0;
+  return Math.max(0, value);
 }
 
 /** Coerce breakpoints to a deduped, sorted array of positive integers. */
@@ -1012,6 +1019,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       showRomanizedByDefault: appSettings.showRomanizedByDefault,
       sortByRomanized: appSettings.sortByRomanized,
       showLocationAncestorsOnMap: appSettings.showLocationAncestorsOnMap,
+      minAreaPinThresholdKm2: appSettings.minAreaPinThresholdKm2,
       bookmarksPerPage: appSettings.bookmarksPerPage,
     })
     .from(appSettings)
@@ -1032,6 +1040,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     showRomanizedByDefault: row.showRomanizedByDefault,
     sortByRomanized: row.sortByRomanized,
     showLocationAncestorsOnMap: row.showLocationAncestorsOnMap ?? false,
+    minAreaPinThresholdKm2: asMinAreaThreshold(row.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(row.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
   };
 }
@@ -1237,6 +1246,7 @@ export async function updateDisplayPreferenceSettings(
     showRomanizedByDefault: input.showRomanizedByDefault,
     sortByRomanized: input.sortByRomanized,
     showLocationAncestorsOnMap: input.showLocationAncestorsOnMap,
+    minAreaPinThresholdKm2: asMinAreaThreshold(input.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(input.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
   };
   await db

@@ -553,13 +553,53 @@ export function placeTypeKey(placeType: string | null | undefined): string {
 /** What the map should do with a single location once the per-placeType config is applied. */
 export type ResolvedLocationDisplay = "pin" | "area" | "hidden";
 
+/** Signed shoelace area of a single `[lng, lat]` ring, in square degrees. */
+function ringAreaDegrees(ring: number[][]): number {
+  let sum = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const [x1, y1] = ring[i];
+    const [x2, y2] = ring[(i + 1) % ring.length];
+    sum += x1 * y2 - x2 * y1;
+  }
+  return sum / 2;
+}
+
+/**
+ * Approximate area (km²) of a single GeoJSON polygon's rings (outer ring minus holes), using an
+ * equirectangular degree→km scale factor from the outer ring's average latitude. Good enough to
+ * threshold "is this area tiny" without pulling in a full geodesic-area library.
+ */
+function polygonAreaKm2(rings: number[][][]): number {
+  if (rings.length === 0 || rings[0].length === 0) return 0;
+  const avgLat = rings[0].reduce((sum, [, lat]) => sum + lat, 0) / rings[0].length;
+  const kmPerDegLat = 110.574;
+  const kmPerDegLng = 111.320 * Math.cos((avgLat * Math.PI) / 180);
+  const scale = Math.abs(kmPerDegLat * kmPerDegLng);
+  const outer = Math.abs(ringAreaDegrees(rings[0])) * scale;
+  const holes = rings.slice(1).reduce((sum, ring) => sum + Math.abs(ringAreaDegrees(ring)) * scale, 0);
+  return Math.max(0, outer - holes);
+}
+
+/**
+ * Approximate area (km²) of a location's stored GeoJSON boundary (Polygon or MultiPolygon), summing
+ * each constituent polygon. Pure helper — shared by the map renderer and unit-tested directly; used
+ * by {@link resolveLocationDisplay} to downgrade a tiny area to a pin.
+ */
+export function boundaryAreaKm2(boundary: LocationBoundary): number {
+  if (boundary.type === "Polygon") return polygonAreaKm2(boundary.coordinates as number[][][]);
+  return (boundary.coordinates as number[][][][]).reduce((sum, poly) => sum + polygonAreaKm2(poly), 0);
+}
+
 /**
  * Decide how a location renders given the per-placeType display config:
  * - a placeType whose setting is `visible: false` → `"hidden"` (omitted from the map);
  * - `displayMode: "pin"` → always a `"pin"`;
  * - `displayMode: "area"` → `"area"` when a boundary exists, else a `"pin"` fallback;
  * - an **unconfigured** placeType is treated as visible `area`, reproducing the legacy behavior
- *   (area when a boundary exists, else a pin).
+ *   (area when a boundary exists, else a pin);
+ * - when `minAreaKm2` is positive, an otherwise-`"area"` boundary smaller than it also downgrades to
+ *   `"pin"` — a tiny administrative area (e.g. a single city block) renders as a pin instead of a
+ *   polygon too small to see/click on the map.
  *
  * Pure helper — shared by the map renderer (client) and unit-tested directly.
  */
@@ -567,12 +607,15 @@ export function resolveLocationDisplay(
   node: { placeType: string | null;
     boundary?: LocationBoundary | null; },
   config: PlaceTypeDisplayConfig,
+  minAreaKm2 = 0,
 ): ResolvedLocationDisplay {
   const setting = config[placeTypeKey(node.placeType)];
   if (setting && !setting.visible) return "hidden";
   const mode = setting?.displayMode ?? "area";
   if (mode === "pin") return "pin";
-  return node.boundary ? "area" : "pin";
+  if (!node.boundary) return "pin";
+  if (minAreaKm2 > 0 && boundaryAreaKm2(node.boundary) < minAreaKm2) return "pin";
+  return "area";
 }
 
 /**
