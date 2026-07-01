@@ -457,11 +457,21 @@ const COUNTRY_LANGUAGE_FALLBACK: Record<string, string> = {
   MY: "ms",
 };
 
-/** Unicode-script → Wikipedia language code guess for an unambiguously non-Latin title. */
-function detectWikipediaLanguage(text: string): string | null {
+/**
+ * Unicode-script → Wikipedia language code guess for an unambiguously non-Latin title. `countryCode`
+ * disambiguates bare CJK ideographs (Han characters with no kana/hangul alongside them) — a title
+ * like 平泉寺白山神社 (a Japanese shrine with no hiragana/katakana) or a Korean place name written
+ * only in hanja is otherwise indistinguishable from Chinese by script alone; the location's country
+ * breaks the tie when it maps to ja/ko/zh, falling back to a Chinese guess only when the country is
+ * unknown or unmapped.
+ */
+function detectWikipediaLanguage(text: string, countryCode: string | null): string | null {
   if (/[぀-ヿ]/.test(text)) return "ja"; // hiragana / katakana
   if (/[가-힣]/.test(text)) return "ko"; // hangul
-  if (/[一-鿿]/.test(text)) return "zh"; // CJK ideographs with no kana → best-effort Chinese
+  if (/[一-鿿]/.test(text)) {
+    const byCountry = countryCode ? COUNTRY_LANGUAGE_FALLBACK[countryCode.toUpperCase()] : undefined;
+    return byCountry === "ja" || byCountry === "ko" || byCountry === "zh" ? byCountry : "zh";
+  }
   if (/[Ѐ-ӿ]/.test(text)) return "ru"; // cyrillic
   if (/[؀-ۿ]/.test(text)) return "ar"; // arabic
   if (/[฀-๿]/.test(text)) return "th"; // thai
@@ -546,7 +556,7 @@ export async function resolveWikipediaLinks(
   };
 
   const wikipediaLinkEn = sitelinks.enwiki?.url ?? null;
-  const localLanguage = detectWikipediaLanguage(name)
+  const localLanguage = detectWikipediaLanguage(name, countryCode)
     ?? (countryCode ? COUNTRY_LANGUAGE_FALLBACK[countryCode.toUpperCase()] : undefined)
     ?? null;
   const wikipediaLinkLocal = localLanguage && localLanguage !== "en"

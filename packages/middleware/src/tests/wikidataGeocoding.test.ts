@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { wikidataEnabled, wikidataEndpoint, wikidataGeocode } from "@/services/wikidataGeocoding";
+import { resolveWikipediaLinks, wikidataEnabled, wikidataEndpoint, wikidataGeocode } from "@/services/wikidataGeocoding";
 
 /**
  * Install a URL-aware `fetch` stub: `route(url)` returns the canned body for that request (Wikidata
@@ -332,5 +332,92 @@ test("wikidataGeocode returns no results for an empty query (no fetch)", async (
   }
   finally {
     global.fetch = original;
+  }
+});
+
+/** Route a `wbsearchentities` search to `qid` and `wbgetentities` sitelinks lookup to `sitelinks`. */
+function sitelinksRoute(qid: string, sitelinks: Record<string, { title: string;
+  url: string; }>) {
+  return (url: URL): unknown => {
+    if (url.searchParams.get("action") === "wbsearchentities") {
+      return {
+        search: [{
+          id: qid,
+        }],
+      };
+    }
+    return {
+      entities: {
+        [qid]: {
+          sitelinks,
+        },
+      },
+    };
+  };
+}
+
+test("resolveWikipediaLinks picks jawiki for an all-kanji Japanese title (no kana to disambiguate from Chinese)", async () => {
+  // 平泉寺白山神社 carries no hiragana/katakana, so script alone is ambiguous with Chinese —
+  // the location's JP country code must break the tie toward "ja".
+  const restore = stubFetch(sitelinksRoute("Q1", {
+    enwiki: {
+      title: "Heisenji Hakusan Shrine",
+      url: "https://en.wikipedia.org/wiki/Heisenji_Hakusan_Shrine",
+    },
+    jawiki: {
+      title: "平泉寺白山神社",
+      url: "https://ja.wikipedia.org/wiki/%E5%B9%B3%E6%B3%89%E5%AF%BA%E7%99%BD%E5%B1%B1%E7%A5%9E%E7%A4%BE",
+    },
+    zhwiki: {
+      title: "平泉寺白山神社",
+      url: "https://zh.wikipedia.org/wiki/%E5%B9%B3%E6%B3%89%E5%AF%BA%E7%99%BD%E5%B1%B1%E7%A5%9E%E7%A4%BE",
+    },
+  }));
+  try {
+    const result = await resolveWikipediaLinks("平泉寺白山神社", null, null, "JP");
+    assert.equal(result.wikipediaLinkEn, "https://en.wikipedia.org/wiki/Heisenji_Hakusan_Shrine");
+    assert.equal(
+      result.wikipediaLinkLocal,
+      "https://ja.wikipedia.org/wiki/%E5%B9%B3%E6%B3%89%E5%AF%BA%E7%99%BD%E5%B1%B1%E7%A5%9E%E7%A4%BE",
+    );
+  }
+  finally {
+    restore();
+  }
+});
+
+test("resolveWikipediaLinks picks kowiki for an all-hanja Korean title", async () => {
+  const restore = stubFetch(sitelinksRoute("Q2", {
+    enwiki: {
+      title: "Gyeongbokgung",
+      url: "https://en.wikipedia.org/wiki/Gyeongbokgung",
+    },
+    kowiki: {
+      title: "景福宮",
+      url: "https://ko.wikipedia.org/wiki/%E6%99%AF%E7%A6%8F%E5%AE%AE",
+    },
+  }));
+  try {
+    const result = await resolveWikipediaLinks("景福宮", null, null, "KR");
+    assert.equal(result.wikipediaLinkLocal, "https://ko.wikipedia.org/wiki/%E6%99%AF%E7%A6%8F%E5%AE%AE");
+  }
+  finally {
+    restore();
+  }
+});
+
+test("resolveWikipediaLinks falls back to zh for bare CJK ideographs with no country hint", async () => {
+  const restore = stubFetch(sitelinksRoute("Q3", {
+    zhwiki: {
+      title: "測試",
+      url: "https://zh.wikipedia.org/wiki/%E6%B8%AC%E8%A9%A6",
+    },
+  }));
+  try {
+    const result = await resolveWikipediaLinks("測試", null, null, null);
+    assert.equal(result.wikipediaLinkLocal, "https://zh.wikipedia.org/wiki/%E6%B8%AC%E8%A9%A6");
+  }
+  finally {
+    restore();
   }
 });
