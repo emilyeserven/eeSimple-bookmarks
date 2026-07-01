@@ -20,6 +20,7 @@ const displayPreferences = {
   showRomanizedByDefault: false,
   sortByRomanized: true,
   showLocationAncestorsOnMap: false,
+  minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,
 };
 

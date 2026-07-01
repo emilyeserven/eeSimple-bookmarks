@@ -19,6 +19,7 @@ import { geoJSON, latLngBounds } from "leaflet";
 import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
 import { RomanizedLabel } from "./RomanizedLabel";
+import { useMinAreaPinThresholdKm2 } from "../hooks/useAppSettings";
 import { boundaryContainsPoint } from "../lib/locationGeo";
 import { markerIconFor } from "../lib/locationMapMarkers";
 
@@ -110,10 +111,11 @@ function toRenderItems(
   config: PlaceTypeDisplayConfig,
   iconConfig: PlaceTypeIconConfig,
   colorConfig: PlaceTypeColorConfig,
+  minAreaKm2: number,
 ): RenderItem[] {
   const items: RenderItem[] = [];
   for (const node of mapped) {
-    const resolved = resolveLocationDisplay(node, config);
+    const resolved = resolveLocationDisplay(node, config, minAreaKm2);
     if (resolved === "hidden") continue;
     // Per-placeType override wins; else the level group's color; else a needs-attention fallback.
     const overrideColor = resolveLocationPlaceTypeColor(node, colorConfig) ?? resolveLocationColor(node, config);
@@ -427,8 +429,9 @@ export function LocationMap({
   lastViewRef,
   hideAdminBorders = false,
 }: LocationMapProps) {
+  const minAreaKm2 = useMinAreaPinThresholdKm2();
   const mapped = collectMapped(tree);
-  const items = toRenderItems(mapped, displayConfig, iconConfig, colorConfig);
+  const items = toRenderItems(mapped, displayConfig, iconConfig, colorConfig, minAreaKm2);
   const areaNodes = items.filter(item => item.kind === "area" && item.node.boundary).map(item => item.node);
   const omitted = countNodes(tree) - mapped.length;
   const hiddenByLevel = mapped.length - items.length;

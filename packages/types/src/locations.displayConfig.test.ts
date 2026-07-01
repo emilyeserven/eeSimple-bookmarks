@@ -4,6 +4,7 @@ import { test } from "node:test";
 import type { LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig } from "./locations.js";
 
 import {
+  boundaryAreaKm2,
   distributePaletteColors,
   expandLevelGroupsToDisplayConfig,
   locationLacksLevel,
@@ -97,6 +98,74 @@ test("resolveLocationDisplay hides a place type toggled invisible regardless of 
     placeType: "state",
     boundary: null,
   }, config), "hidden");
+});
+
+test("resolveLocationDisplay downgrades a tiny area to a pin when it's below minAreaKm2", () => {
+  const config: PlaceTypeDisplayConfig = {};
+  // A ~1 degree square near the equator is on the order of 10,000+ km^2 — well above a 1 km^2 floor.
+  assert.equal(resolveLocationDisplay({
+    placeType: "city",
+    boundary: POLYGON,
+  }, config, 1), "area");
+  // A tiny sliver of a boundary (roughly 0.0001 degrees square) is far below a 1 km^2 floor.
+  const tinyBoundary: LocationBoundary = {
+    type: "Polygon",
+    coordinates: [[[0, 0], [0, 0.0001], [0.0001, 0.0001], [0.0001, 0], [0, 0]]],
+  };
+  assert.equal(resolveLocationDisplay({
+    placeType: "city",
+    boundary: tinyBoundary,
+  }, config, 1), "pin");
+  // minAreaKm2 defaults to 0 (disabled) — the tiny boundary still renders as an area.
+  assert.equal(resolveLocationDisplay({
+    placeType: "city",
+    boundary: tinyBoundary,
+  }, config), "area");
+});
+
+test("resolveLocationDisplay ignores minAreaKm2 for pin-mode levels and levels with no boundary", () => {
+  const pinConfig: PlaceTypeDisplayConfig = {
+    city: {
+      displayMode: "pin",
+      visible: true,
+      sortOrder: 0,
+    },
+  };
+  assert.equal(resolveLocationDisplay({
+    placeType: "city",
+    boundary: POLYGON,
+  }, pinConfig, 1_000_000), "pin");
+  assert.equal(resolveLocationDisplay({
+    placeType: "city",
+    boundary: null,
+  }, {}, 1), "pin");
+});
+
+// --- boundaryAreaKm2 ---
+
+test("boundaryAreaKm2 computes a positive area for a Polygon and sums a MultiPolygon's parts", () => {
+  const area = boundaryAreaKm2(POLYGON);
+  assert.ok(area > 0);
+  const multi: LocationBoundary = {
+    type: "MultiPolygon",
+    coordinates: [POLYGON.coordinates as number[][][], POLYGON.coordinates as number[][][]],
+  };
+  assert.ok(Math.abs(boundaryAreaKm2(multi) - area * 2) < 1e-6);
+});
+
+test("boundaryAreaKm2 subtracts hole rings from the outer ring", () => {
+  const withHole: LocationBoundary = {
+    type: "Polygon",
+    coordinates: [
+      [[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]],
+      [[0.5, 0.5], [0.5, 1.5], [1.5, 1.5], [1.5, 0.5], [0.5, 0.5]],
+    ],
+  };
+  const noHole: LocationBoundary = {
+    type: "Polygon",
+    coordinates: [(withHole.coordinates as number[][][])[0]],
+  };
+  assert.ok(boundaryAreaKm2(withHole) < boundaryAreaKm2(noHole));
 });
 
 // --- placeTypeOrder ---

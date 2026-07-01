@@ -291,6 +291,7 @@ const displayPreferenceBody = {
     "showRomanizedByDefault",
     "sortByRomanized",
     "showLocationAncestorsOnMap",
+    "minAreaPinThresholdKm2",
     "bookmarksPerPage",
   ],
   additionalProperties: false,
@@ -358,6 +359,10 @@ const displayPreferenceBody = {
     },
     showLocationAncestorsOnMap: {
       type: "boolean",
+    },
+    minAreaPinThresholdKm2: {
+      type: "number",
+      minimum: 0,
     },
     bookmarksPerPage: {
       type: "integer",
