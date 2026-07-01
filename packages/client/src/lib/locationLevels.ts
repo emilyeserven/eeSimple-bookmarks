@@ -97,6 +97,13 @@ export interface LevelsControls {
   /** Shared above/current/below mode; omitted hides the button group (the main map only). */
   levelMode?: LocationMapLevelMode;
   onLevelModeChange?: (mode: LocationMapLevelMode) => void;
+  /**
+   * Whether the base map tiles' own country/prefecture/state administrative border lines are hidden
+   * (switches the tile layer to a borderless style — see {@link LocationMap}). Shared across every
+   * location map, mirroring `levelMode`.
+   */
+  hideAdminBorders: boolean;
+  onHideAdminBordersChange: (hide: boolean) => void;
 }
 
 /**

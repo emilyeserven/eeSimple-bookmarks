@@ -180,6 +180,20 @@ export function LocationLevelsMapPanel({
         )
         : null}
 
+      <div className="mt-2 flex items-center gap-2 border-t pt-2">
+        <Checkbox
+          id="map-hide-admin-borders"
+          checked={controls.hideAdminBorders}
+          onCheckedChange={checked => controls.onHideAdminBordersChange(checked === true)}
+        />
+        <Label
+          htmlFor="map-hide-admin-borders"
+          className="cursor-pointer text-xs"
+        >
+          Hide map borders
+        </Label>
+      </div>
+
       {filter ? <LocationMapFilterSection filter={filter} /> : null}
     </div>
   );
