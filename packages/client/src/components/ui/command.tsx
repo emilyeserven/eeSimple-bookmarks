@@ -49,7 +49,7 @@ function CommandInput({
 }
 
 function CommandList({
-  className, ...props
+  className, onWheel, ...props
 }: React.ComponentProps<typeof CommandPrimitive.List>) {
   return (
     <CommandPrimitive.List
@@ -58,6 +58,14 @@ function CommandList({
         "max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto",
         className,
       )}
+      onWheel={(event) => {
+        // A Popover's content portals to <body>, so when the popover opens inside a Dialog (e.g. a
+        // Combobox in a modal form), the Dialog's scroll-lock doesn't recognize this list as part of
+        // its own subtree and swallows the wheel event before it can scroll natively. Apply the delta
+        // ourselves so the list still scrolls in that nesting.
+        event.currentTarget.scrollTop += event.deltaY;
+        onWheel?.(event);
+      }}
       {...props}
     />
   );
