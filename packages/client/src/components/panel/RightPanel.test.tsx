@@ -101,6 +101,7 @@ function displayData(): DisplayPreferenceSettings {
     showRomanizedByDefault: false,
     sortByRomanized: true,
     showLocationAncestorsOnMap: false,
+    bookmarksPerPage: 25,
   };
 }
 

@@ -291,6 +291,7 @@ const displayPreferenceBody = {
     "showRomanizedByDefault",
     "sortByRomanized",
     "showLocationAncestorsOnMap",
+    "bookmarksPerPage",
   ],
   additionalProperties: false,
   properties: {
@@ -357,6 +358,10 @@ const displayPreferenceBody = {
     },
     showLocationAncestorsOnMap: {
       type: "boolean",
+    },
+    bookmarksPerPage: {
+      type: "integer",
+      minimum: 1,
     },
   },
 } as const;

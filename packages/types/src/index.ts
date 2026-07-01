@@ -404,7 +404,15 @@ export interface DisplayPreferenceSettings {
   sortByRomanized: boolean;
   /** When true, a location detail page's map also plots the location's ancestor/parent locations. */
   showLocationAncestorsOnMap: boolean;
+  /** How many bookmarks to show per page on bookmark listing pages (paginated). */
+  bookmarksPerPage: number;
 }
+
+/** Selectable "bookmarks per page" values offered in Display settings. */
+export const BOOKMARKS_PER_PAGE_OPTIONS = [15, 25, 50, 100] as const;
+
+/** Default number of bookmarks shown per listing page. */
+export const DEFAULT_BOOKMARKS_PER_PAGE = 25;
 
 /** Payload for replacing the display-preference settings. */
 export type UpdateDisplayPreferenceInput = DisplayPreferenceSettings;

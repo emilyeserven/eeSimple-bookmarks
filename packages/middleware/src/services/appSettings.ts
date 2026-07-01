@@ -27,7 +27,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { CANONICAL_PLACE_TYPE_ORDER, LOCATION_DISPLAY_MODES, normalizeBlacklist, normalizeHexColor, normalizeIconName, placeTypeKey } from "@eesimple/types";
+import { CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARKS_PER_PAGE, LOCATION_DISPLAY_MODES, normalizeBlacklist, normalizeHexColor, normalizeIconName, placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
@@ -115,6 +115,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   showRomanizedByDefault: false,
   sortByRomanized: true,
   showLocationAncestorsOnMap: false,
+  bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
 };
 
 /** Coerce a stored width string to the typed union, defaulting to "full". */
@@ -1011,6 +1012,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       showRomanizedByDefault: appSettings.showRomanizedByDefault,
       sortByRomanized: appSettings.sortByRomanized,
       showLocationAncestorsOnMap: appSettings.showLocationAncestorsOnMap,
+      bookmarksPerPage: appSettings.bookmarksPerPage,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -1030,6 +1032,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     showRomanizedByDefault: row.showRomanizedByDefault,
     sortByRomanized: row.sortByRomanized,
     showLocationAncestorsOnMap: row.showLocationAncestorsOnMap ?? false,
+    bookmarksPerPage: asCropped(row.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
   };
 }
 
@@ -1234,6 +1237,7 @@ export async function updateDisplayPreferenceSettings(
     showRomanizedByDefault: input.showRomanizedByDefault,
     sortByRomanized: input.sortByRomanized,
     showLocationAncestorsOnMap: input.showLocationAncestorsOnMap,
+    bookmarksPerPage: asCropped(input.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
   };
   await db
     .insert(appSettings)

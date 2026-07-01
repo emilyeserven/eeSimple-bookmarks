@@ -20,6 +20,7 @@ const displayPreferences: DisplayPreferenceSettings = {
   showRomanizedByDefault: false,
   sortByRomanized: false,
   showLocationAncestorsOnMap: false,
+  bookmarksPerPage: 25,
 };
 
 const meta = {

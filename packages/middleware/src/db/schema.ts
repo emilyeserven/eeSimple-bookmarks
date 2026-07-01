@@ -1373,6 +1373,9 @@ export const appSettings = pgTable("app_settings", {
   // When true, a location detail page's map also plots the location's ancestor/parent locations
   // (not just its direct children). Nullable = push-safe additive; the service reads `?? false`.
   showLocationAncestorsOnMap: boolean("show_location_ancestors_on_map"),
+  // How many bookmarks to show per page on listing pages. Nullable = push-safe additive; the
+  // service clamps to a positive integer and falls back to the default (25) when null.
+  bookmarksPerPage: integer("bookmarks_per_page"),
 });
 
 /**
