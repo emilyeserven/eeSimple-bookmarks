@@ -35,16 +35,18 @@ export function markerIconFor(color: string | null, icon: string | null = null):
         />,
       )}</g>`
     : "<circle cx=\"13\" cy=\"13\" r=\"4.5\" fill=\"#ffffff\"/>";
-  const html = "<svg width=\"26\" height=\"38\" viewBox=\"0 0 26 38\" xmlns=\"http://www.w3.org/2000/svg\">"
+  // Rendered 40% larger than the underlying 26×38 artwork (viewBox stays 26×38; only the display
+  // width/height grow) so the pin is a comfortable touch/click target, not just a visual mark.
+  const html = "<svg width=\"36\" height=\"53\" viewBox=\"0 0 26 38\" xmlns=\"http://www.w3.org/2000/svg\">"
     + "<path d=\"M13 0C5.82 0 0 5.82 0 13c0 9.75 13 25 13 25s13-15.25 13-25C26 5.82 20.18 0 13 0z\" "
     + `fill="${fill}" stroke="#ffffff" stroke-width="1.5"/>`
     + `${center}</svg>`;
   const newIcon = new DivIcon({
     html,
     className: "",
-    iconSize: [26, 38],
-    iconAnchor: [13, 38],
-    popupAnchor: [0, -34],
+    iconSize: [36, 53],
+    iconAnchor: [18, 53],
+    popupAnchor: [0, -48],
   });
   coloredMarkerCache.set(cacheKey, newIcon);
   return newIcon;
