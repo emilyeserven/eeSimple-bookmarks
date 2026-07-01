@@ -20,7 +20,7 @@ import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents }
 
 import { RomanizedLabel } from "./RomanizedLabel";
 import { useMinAreaPinThresholdKm2 } from "../hooks/useAppSettings";
-import { boundaryContainsPoint } from "../lib/locationGeo";
+import { boundaryCentroid, boundaryContainsPoint } from "../lib/locationGeo";
 import { markerIconFor } from "../lib/locationMapMarkers";
 
 import { cn } from "@/lib/utils";
@@ -122,15 +122,26 @@ function toRenderItems(
     const fallback = overrideColor === null ? fallbackColor(node, config) : null;
     const color = overrideColor ?? fallback?.color ?? null;
     const icon = resolveLocationIcon(node, iconConfig);
-    if (resolved === "area" && node.boundary) items.push({
-      node,
-      kind: "area",
-      color,
-      icon,
-      colorReason: fallback?.reason,
-    });
-    else if (node.position) items.push({
-      node,
+    if (resolved === "area" && node.boundary) {
+      items.push({
+        node,
+        kind: "area",
+        color,
+        icon,
+        colorReason: fallback?.reason,
+      });
+      continue;
+    }
+    // `resolved` is "pin" here (or "area" with no boundary, which is also a pin in practice). A
+    // location whose only stored geometry is a boundary (no separate lat/lng) still needs a point
+    // to drop a pin at — fall back to the boundary's own centroid rather than silently re-rendering
+    // it as an area, which would undo a `minAreaKm2` downgrade for exactly the locations it targets.
+    const position = node.position ?? (node.boundary ? boundaryCentroid(node.boundary) : null);
+    if (position) items.push({
+      node: {
+        ...node,
+        position,
+      },
       kind: "pin",
       color,
       icon,
