@@ -6,13 +6,16 @@ import { useMemo } from "react";
 
 import { AddBookmarkCollapsible } from "./AddBookmarkCollapsible";
 import { BookmarkCardGrid } from "./BookmarkCardGrid";
+import { BookmarkPagination } from "./BookmarkPagination";
 import { BookmarkTableView } from "./BookmarkTableView";
 import { BookmarkBulkActions } from "./bulk/BookmarkBulkActions";
 import { BulkActionBar } from "./bulk/BulkActionBar";
+import { useBookmarksPerPage } from "../hooks/useAppSettings";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useViewMode } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
 import { sortBookmarks } from "../lib/bookmarkSort";
+import { useListingPagination } from "../lib/useListingPagination";
 import { useListSelection } from "../lib/useListSelection";
 import { useUiStore } from "../stores/uiStore";
 
@@ -121,9 +124,16 @@ export function BookmarkListPane({
 }: BookmarkListPaneProps) {
   useRegisterBulkSelect(pageKey);
   const sort = useUiStore(s => s.bookmarkSort[pageKey]);
+  const headerSearchQuery = useUiStore(s => s.headerSearchQuery);
+  const perPage = useBookmarksPerPage();
   const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const visibleBookmarks = sortBookmarks(filtered, sort, properties);
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
+
+  const resetKey = `${pageKey}|${sort ?? ""}|${headerSearchQuery}|${JSON.stringify(search)}`;
+  const {
+    page, totalPages, pageItems, total, rangeStart, rangeEnd, setPage,
+  } = useListingPagination(visibleBookmarks, perPage, resetKey);
 
   return (
     <div className="min-w-0 space-y-6">
@@ -143,13 +153,23 @@ export function BookmarkListPane({
 
       {visibleBookmarks.length > 0
         ? (
-          <BookmarkListContent
-            pageKey={pageKey}
-            columns={columns}
-            visibleBookmarks={visibleBookmarks}
-            properties={properties}
-            addFormCategoryId={addFormCategoryId}
-          />
+          <>
+            <BookmarkListContent
+              pageKey={pageKey}
+              columns={columns}
+              visibleBookmarks={pageItems}
+              properties={properties}
+              addFormCategoryId={addFormCategoryId}
+            />
+            <BookmarkPagination
+              page={page}
+              totalPages={totalPages}
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              total={total}
+              onPageChange={setPage}
+            />
+          </>
         )
         : null}
     </div>

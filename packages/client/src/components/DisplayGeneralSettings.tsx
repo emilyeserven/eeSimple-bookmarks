@@ -4,6 +4,8 @@ import type {
   DisplayPreferenceSettings,
 } from "@eesimple/types";
 
+import { BOOKMARKS_PER_PAGE_OPTIONS, DEFAULT_BOOKMARKS_PER_PAGE } from "@eesimple/types";
+
 import { PropertyTypeIconsCard } from "./PropertyTypeIconsCard";
 import {
   useDisplayPreferenceSettings,
@@ -37,11 +39,12 @@ const THEME_LABELS: Record<Theme, string> = {
 
 const DISPLAY_DEFAULTS: Pick<
   DisplayPreferenceSettings,
-  "customPropertyTypeIcons" | "showRomanizedByDefault" | "sortByRomanized"
+  "customPropertyTypeIcons" | "showRomanizedByDefault" | "sortByRomanized" | "bookmarksPerPage"
 > = {
   customPropertyTypeIcons: null,
   showRomanizedByDefault: false,
   sortByRomanized: true,
+  bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
 };
 
 /** General display preferences — theme, romanized-name handling, and per-type property icons. */
@@ -95,6 +98,10 @@ export function DisplayGeneralSettings() {
     saveDisplay({
       sortByRomanized: value,
     }, "Romanized sort updated");
+  const setBookmarksPerPage = (value: number) =>
+    saveDisplay({
+      bookmarksPerPage: value,
+    }, "Bookmarks per page updated");
 
   return (
     <div className="space-y-6">
@@ -127,6 +134,44 @@ export function DisplayGeneralSettings() {
                   value={value}
                 >
                   {THEME_LABELS[value]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Bookmarks per page</CardTitle>
+          <CardDescription>
+            How many bookmarks each listing page shows before paginating. Applies to the Bookmarks
+            page and every entity-scoped bookmark listing (categories, tags, websites, media types,
+            YouTube channels, …).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          <Label htmlFor="bookmarks-per-page-select">Bookmarks per page</Label>
+          <Select
+            value={String(display.bookmarksPerPage)}
+            onValueChange={value => setBookmarksPerPage(Number(value))}
+          >
+            <SelectTrigger
+              id="bookmarks-per-page-select"
+              className="
+                w-full
+                sm:w-60
+              "
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {BOOKMARKS_PER_PAGE_OPTIONS.map(value => (
+                <SelectItem
+                  key={value}
+                  value={String(value)}
+                >
+                  {value}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -20,6 +20,7 @@ const displayPreferences = {
   showRomanizedByDefault: false,
   sortByRomanized: true,
   showLocationAncestorsOnMap: false,
+  bookmarksPerPage: 25,
 };
 
 const automation = {

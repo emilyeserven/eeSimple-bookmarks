@@ -20,7 +20,7 @@ import type {
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
 
-import { expandLevelGroupsToDisplayConfig } from "@eesimple/types";
+import { DEFAULT_BOOKMARKS_PER_PAGE, expandLevelGroupsToDisplayConfig } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { appSettingsApi } from "../lib/api/settings";
@@ -200,6 +200,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   showRomanizedByDefault: false,
   sortByRomanized: true,
   showLocationAncestorsOnMap: false,
+  bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
 };
 
 /** Sidebar-customization settings (group A): which left-sidebar items/groups are hidden. */
@@ -436,6 +437,14 @@ export function useBookmarkDetailLayout(): BookmarkDetailLayout {
     data,
   } = useDisplayPreferenceSettings();
   return data?.bookmarkDetailLayout ?? DISPLAY_PREFERENCE_DEFAULTS.bookmarkDetailLayout;
+}
+
+/** How many bookmarks to show per listing page (default 25). */
+export function useBookmarksPerPage(): number {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.bookmarksPerPage ?? DISPLAY_PREFERENCE_DEFAULTS.bookmarksPerPage;
 }
 
 /** Whether listing pages open filters in the right-hand drawer by default (default false). */
