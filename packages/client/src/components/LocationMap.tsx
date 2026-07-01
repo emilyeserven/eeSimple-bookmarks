@@ -1,3 +1,4 @@
+import type { MapLayersDebug } from "../lib/locationMapDebug";
 import type { LocationBoundary, LocationNode, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig } from "@eesimple/types";
 import type { Feature, Geometry } from "geojson";
 import type { LatLngTuple } from "leaflet";
@@ -18,9 +19,11 @@ import { Link } from "@tanstack/react-router";
 import { geoJSON, latLngBounds } from "leaflet";
 import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
+import { LocationMapDebugModal } from "./LocationMapDebugModal";
 import { RomanizedLabel } from "./RomanizedLabel";
 import { useMapPinScale, useMinAreaPinThresholdKm2 } from "../hooks/useAppSettings";
 import { boundaryContainsPoint } from "../lib/locationGeo";
+import { buildMapDebugInfo } from "../lib/locationMapDebug";
 import { markerIconFor } from "../lib/locationMapMarkers";
 
 import { cn } from "@/lib/utils";
@@ -414,6 +417,12 @@ interface LocationMapProps {
    * (the standard OpenStreetMap style, which draws these borders).
    */
   hideAdminBorders?: boolean;
+  /**
+   * The "Levels" overlay state (visibility/disabled/populated per level group + mode/filter), captured
+   * by {@link LocationMapSection}. `LocationMap` can't introspect the opaque `overlay` node, so the
+   * section threads this in purely to enrich the debug modal. Omit on maps without a Levels overlay.
+   */
+  layersDebug?: MapLayersDebug | null;
 }
 
 /**
@@ -431,6 +440,7 @@ export function LocationMap({
   overlay,
   lastViewRef,
   hideAdminBorders = false,
+  layersDebug = null,
 }: LocationMapProps) {
   const minAreaKm2 = useMinAreaPinThresholdKm2();
   const pinScale = useMapPinScale();
@@ -449,12 +459,33 @@ export function LocationMap({
   const center: LatLngTuple = seedRef.current?.center ?? [20, 0];
   const zoom = seedRef.current?.zoom ?? 2;
 
+  const debugInfo = buildMapDebugInfo({
+    tree,
+    displayConfig,
+    iconConfig,
+    colorConfig,
+    minAreaKm2,
+    pinScale,
+    hideAdminBorders,
+    className,
+    seedView: seedRef.current
+      ? {
+        center: [seedRef.current.center[0], seedRef.current.center[1]],
+        zoom: seedRef.current.zoom,
+      }
+      : null,
+    layers: layersDebug,
+  });
+
   if (mapped.length === 0) {
     return (
-      <p className="text-muted-foreground">
-        No locations have coordinates yet. Add one via a location’s geocoding lookup to place it on
-        the map.
-      </p>
+      <div className="space-y-2">
+        <p className="text-muted-foreground">
+          No locations have coordinates yet. Add one via a location’s geocoding lookup to place it on
+          the map.
+        </p>
+        <LocationMapDebugModal debug={debugInfo} />
+      </div>
     );
   }
 
@@ -578,6 +609,9 @@ export function LocationMap({
           </p>
         )
         : null}
+      <div className="flex justify-end">
+        <LocationMapDebugModal debug={debugInfo} />
+      </div>
     </div>
   );
 }
