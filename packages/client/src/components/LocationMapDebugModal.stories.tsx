@@ -77,7 +77,6 @@ const debug: MapDebugInfo = {
     ],
   },
   ancestry: {
-    showAncestors: true,
     onlyDirectRelatives: false,
     treeLoaded: true,
     treeNodeCount: 42,
@@ -166,7 +165,6 @@ export const RootLocationNoAncestors: Story = {
         totalNodes: 1,
       },
       ancestry: {
-        showAncestors: true,
         onlyDirectRelatives: false,
         treeLoaded: true,
         treeNodeCount: 42,

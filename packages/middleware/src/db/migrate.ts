@@ -909,6 +909,16 @@ const migrations: RuntimeMigration[] = [
       `);
     },
   },
+  {
+    // The `show_location_ancestors_on_map` display preference was removed — a location's map now
+    // always plots its ancestor chain, so the toggle is gone. Dropping the column is destructive, so
+    // do it here (before push) to keep push's diff additive and avoid an interactive drop prompt in
+    // the non-TTY deploy. Idempotent via IF EXISTS.
+    name: "drop legacy app_settings.show_location_ancestors_on_map",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings" DROP COLUMN IF EXISTS "show_location_ancestors_on_map"
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

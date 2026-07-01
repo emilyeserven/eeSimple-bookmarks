@@ -10,7 +10,6 @@ import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { LocationMapSection } from "../components/LocationMapSection";
 import { RomanizedLabel } from "../components/RomanizedLabel";
-import { useShowLocationAncestorsOnMap } from "../hooks/useAppSettings";
 import { useLocationBySlug, useLocationTree } from "../hooks/useLocations";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 import { findAncestorPath, flattenTree, subtreeIds } from "../lib/tagTree";
@@ -50,7 +49,6 @@ function LocationBookmarksPage() {
   const {
     data: locationTree,
   } = useLocationTree();
-  const showAncestorsOnMap = useShowLocationAncestorsOnMap();
 
   if (locationLoading) {
     return <p className="text-muted-foreground">Loading location…</p>;
@@ -65,15 +63,15 @@ function LocationBookmarksPage() {
   const locationBookmarks = (bookmarks ?? []).filter(b => b.locations.some(l => locationIds.has(l.id)));
 
   // Ancestor chain (root → parent), stripped of children so only the ancestors themselves plot —
-  // otherwise the map would re-plot the whole tree under a root ancestor. Only included when the
-  // "Show ancestors on map" preference is on, mirroring `LocationGeneralView`.
+  // otherwise the map would re-plot the whole tree under a root ancestor. Always included, mirroring
+  // `LocationGeneralView`.
   const ancestorPath = locationTree ? findAncestorPath(locationTree, locationSlug) : null;
   const ancestors = (ancestorPath ? ancestorPath.slice(0, -1) : []).map(ancestor => ({
     ...ancestor,
     children: [] as LocationNode[],
   }));
   const mapTree = [
-    ...(showAncestorsOnMap ? ancestors : []),
+    ...ancestors,
     {
       ...location,
       children: [],
@@ -88,7 +86,6 @@ function LocationBookmarksPage() {
   // This page has no "only direct ancestors/children" control, so that flag is always false. Mirrors
   // `LocationGeneralView` so the diagnostic is populated on the bookmarks page too, not just General.
   const ancestryDebug: MapAncestryDebug = {
-    showAncestors: showAncestorsOnMap,
     onlyDirectRelatives: false,
     treeLoaded: locationTree !== undefined,
     treeNodeCount: flattenTree(locationTree ?? []).length,

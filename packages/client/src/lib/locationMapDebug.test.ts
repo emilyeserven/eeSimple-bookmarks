@@ -195,7 +195,6 @@ describe("buildMapDebugInfo", () => {
       id: "leaf",
     })], {
       ancestry: {
-        showAncestors: true,
         onlyDirectRelatives: false,
         treeLoaded: true,
         treeNodeCount: 12,
@@ -207,7 +206,6 @@ describe("buildMapDebugInfo", () => {
       },
     }));
     expect(debug.ancestry).toEqual({
-      showAncestors: true,
       onlyDirectRelatives: false,
       treeLoaded: true,
       treeNodeCount: 12,

@@ -6,15 +6,7 @@ import { useState } from "react";
 import { LocationMapSection } from "../LocationMapSection";
 import { RomanizedLabel } from "../RomanizedLabel";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import {
-  useDisplayPreferenceSettings,
-  useShowLocationAncestorsOnMap,
-  useUpdateDisplayPreferenceSettings,
-} from "@/hooks/useAppSettings";
 import { useLocationTree } from "@/hooks/useLocations";
-import { notifyError, notifySuccess } from "@/lib/notifications";
 import { findAncestorPath, flattenTree } from "@/lib/tagTree";
 
 export { LocationGalleryView } from "./locationGalleryView";
@@ -28,11 +20,6 @@ export function LocationGeneralView({
   const {
     data,
   } = useLocationTree();
-  const showAncestors = useShowLocationAncestorsOnMap();
-  const {
-    data: displayPrefs,
-  } = useDisplayPreferenceSettings();
-  const updatePrefs = useUpdateDisplayPreferenceSettings();
   const [onlyDirectRelatives, setOnlyDirectRelatives] = useState(false);
   const parent = node.parentId
     ? flattenTree(data ?? []).find(item => item.node.id === node.parentId)?.node
@@ -62,15 +49,12 @@ export function LocationGeneralView({
     : node;
   // `collectMapped` already walks `nodeForMap.children` recursively, so appending them again here
   // would give every child (and its subtree) a second, colliding React key.
-  const mapTree = showAncestors
-    ? [...ancestors, nodeForMap]
-    : [nodeForMap];
+  const mapTree = [...ancestors, nodeForMap];
 
   // Diagnostic for the map's Debug modal: why the parent chain is (or isn't) plotted. Distinguishes
-  // "toggle off" (showAncestors) from "root location, no ancestors exist" (parentId null) from
-  // "path didn't resolve" (foundInTree false / empty chain) — see MapAncestryDebug.
+  // "root location, no ancestors exist" (parentId null) from "path didn't resolve" (foundInTree
+  // false / empty chain) — see MapAncestryDebug.
   const ancestryDebug: MapAncestryDebug = {
-    showAncestors,
     onlyDirectRelatives,
     treeLoaded: data !== undefined,
     treeNodeCount: flattenTree(data ?? []).length,
@@ -85,17 +69,6 @@ export function LocationGeneralView({
       placeType: ancestor.placeType,
     })),
   };
-
-  function toggleAncestors(next: boolean): void {
-    if (!displayPrefs) return;
-    updatePrefs.mutate({
-      ...displayPrefs,
-      showLocationAncestorsOnMap: next,
-    }, {
-      onSuccess: () => notifySuccess(next ? "Showing ancestors on map" : "Hiding ancestors on map"),
-      onError: error => notifyError(error.message),
-    });
-  }
 
   return (
     <div className="space-y-6">
@@ -205,36 +178,21 @@ export function LocationGeneralView({
         <dt className="text-muted-foreground">Created</dt>
         <dd>{new Date(node.createdAt).toLocaleDateString()}</dd>
       </dl>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="loc-show-ancestors"
-            checked={showAncestors}
-            onCheckedChange={checked => toggleAncestors(checked === true)}
-          />
-          <Label
-            htmlFor="loc-show-ancestors"
-            className="cursor-pointer"
-          >
-            Show ancestors on map
-          </Label>
-        </div>
-        <LocationMapSection
-          mapKey={node.id}
-          tree={mapTree}
-          autoRefreshLocationId={node.id}
-          mapClassName="h-80 w-full rounded-lg border"
-          scope={{
-            kind: "location",
-            currentPlaceType: node.placeType,
-          }}
-          ancestorChildrenScope={{
-            onlyDirect: onlyDirectRelatives,
-            onToggle: setOnlyDirectRelatives,
-          }}
-          ancestryDebug={ancestryDebug}
-        />
-      </div>
+      <LocationMapSection
+        mapKey={node.id}
+        tree={mapTree}
+        autoRefreshLocationId={node.id}
+        mapClassName="h-80 w-full rounded-lg border"
+        scope={{
+          kind: "location",
+          currentPlaceType: node.placeType,
+        }}
+        ancestorChildrenScope={{
+          onlyDirect: onlyDirectRelatives,
+          onToggle: setOnlyDirectRelatives,
+        }}
+        ancestryDebug={ancestryDebug}
+      />
     </div>
   );
 }

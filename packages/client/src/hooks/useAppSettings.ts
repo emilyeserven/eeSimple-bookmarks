@@ -199,7 +199,6 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   croppedHeight: 9,
   showRomanizedByDefault: false,
   sortByRomanized: true,
-  showLocationAncestorsOnMap: false,
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   mapPinScale: MAP_PIN_SCALE_DEFAULT,
@@ -477,14 +476,6 @@ export function useShowRomanizedByDefault(): boolean {
     data,
   } = useDisplayPreferenceSettings();
   return data?.showRomanizedByDefault ?? DISPLAY_PREFERENCE_DEFAULTS.showRomanizedByDefault;
-}
-
-/** Whether a location detail page's map also plots the location's ancestors/parent (default false). */
-export function useShowLocationAncestorsOnMap(): boolean {
-  const {
-    data,
-  } = useDisplayPreferenceSettings();
-  return data?.showLocationAncestorsOnMap ?? DISPLAY_PREFERENCE_DEFAULTS.showLocationAncestorsOnMap;
 }
 
 /** Minimum boundary area (km²) for an "area"-mode location to still render as a polygon (default 0 = off). */

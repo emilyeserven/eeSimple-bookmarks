@@ -290,7 +290,6 @@ const displayPreferenceBody = {
     "croppedHeight",
     "showRomanizedByDefault",
     "sortByRomanized",
-    "showLocationAncestorsOnMap",
     "minAreaPinThresholdKm2",
     "bookmarksPerPage",
     "mapPinScale",
@@ -356,9 +355,6 @@ const displayPreferenceBody = {
       type: "boolean",
     },
     sortByRomanized: {
-      type: "boolean",
-    },
-    showLocationAncestorsOnMap: {
       type: "boolean",
     },
     minAreaPinThresholdKm2: {
