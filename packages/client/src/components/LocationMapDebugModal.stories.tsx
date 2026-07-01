@@ -76,6 +76,24 @@ const debug: MapDebugInfo = {
       },
     ],
   },
+  ancestry: {
+    showAncestors: true,
+    onlyDirectRelatives: false,
+    treeLoaded: true,
+    treeNodeCount: 42,
+    nodeId: "tokyo",
+    nodeSlug: "tokyo",
+    parentId: "japan",
+    foundInTree: true,
+    ancestors: [
+      {
+        id: "japan",
+        name: "日本",
+        slug: "japan",
+        placeType: "country",
+      },
+    ],
+  },
   nodes: [
     {
       id: "tokyo",
@@ -134,3 +152,30 @@ type Story = StoryObj<typeof meta>;
 
 /** The trigger button; click "Debug" to open the copy/paste-ready dump. */
 export const Default: Story = {};
+
+/**
+ * A location whose parent chain is missing because it is a **root** node — its ancestors were never
+ * built (a geocoding/data gap). The ancestry diagnostic explains the empty chain.
+ */
+export const RootLocationNoAncestors: Story = {
+  args: {
+    debug: {
+      ...debug,
+      summary: {
+        ...debug.summary,
+        totalNodes: 1,
+      },
+      ancestry: {
+        showAncestors: true,
+        onlyDirectRelatives: false,
+        treeLoaded: true,
+        treeNodeCount: 42,
+        nodeId: "dewa",
+        nodeSlug: "three-mountains-of-dewa",
+        parentId: null,
+        foundInTree: true,
+        ancestors: [],
+      },
+    },
+  },
+};

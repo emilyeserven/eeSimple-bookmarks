@@ -1,3 +1,4 @@
+import type { MapAncestryDebug } from "@/lib/locationMapDebug";
 import type { LocationNode } from "@eesimple/types";
 
 import { useState } from "react";
@@ -64,6 +65,26 @@ export function LocationGeneralView({
   const mapTree = showAncestors
     ? [...ancestors, nodeForMap]
     : [nodeForMap];
+
+  // Diagnostic for the map's Debug modal: why the parent chain is (or isn't) plotted. Distinguishes
+  // "toggle off" (showAncestors) from "root location, no ancestors exist" (parentId null) from
+  // "path didn't resolve" (foundInTree false / empty chain) — see MapAncestryDebug.
+  const ancestryDebug: MapAncestryDebug = {
+    showAncestors,
+    onlyDirectRelatives,
+    treeLoaded: data !== undefined,
+    treeNodeCount: flattenTree(data ?? []).length,
+    nodeId: node.id,
+    nodeSlug: node.slug,
+    parentId: node.parentId ?? null,
+    foundInTree: path !== null,
+    ancestors: fullAncestors.map(ancestor => ({
+      id: ancestor.id,
+      name: ancestor.name,
+      slug: ancestor.slug,
+      placeType: ancestor.placeType,
+    })),
+  };
 
   function toggleAncestors(next: boolean): void {
     if (!displayPrefs) return;
@@ -211,6 +232,7 @@ export function LocationGeneralView({
             onlyDirect: onlyDirectRelatives,
             onToggle: setOnlyDirectRelatives,
           }}
+          ancestryDebug={ancestryDebug}
         />
       </div>
     </div>
