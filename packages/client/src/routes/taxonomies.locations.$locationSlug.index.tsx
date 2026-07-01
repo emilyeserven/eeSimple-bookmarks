@@ -1,3 +1,4 @@
+import type { MapAncestryDebug } from "../lib/locationMapDebug";
 import type { LocationNode } from "@eesimple/types";
 
 import { useState } from "react";
@@ -12,7 +13,7 @@ import { RomanizedLabel } from "../components/RomanizedLabel";
 import { useShowLocationAncestorsOnMap } from "../hooks/useAppSettings";
 import { useLocationBySlug, useLocationTree } from "../hooks/useLocations";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
-import { findAncestorPath, subtreeIds } from "../lib/tagTree";
+import { findAncestorPath, flattenTree, subtreeIds } from "../lib/tagTree";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -83,6 +84,26 @@ function LocationBookmarksPage() {
     })),
   ];
 
+  // Diagnostic for the map's Debug modal: why this location's parent chain is (or isn't) plotted.
+  // This page has no "only direct ancestors/children" control, so that flag is always false. Mirrors
+  // `LocationGeneralView` so the diagnostic is populated on the bookmarks page too, not just General.
+  const ancestryDebug: MapAncestryDebug = {
+    showAncestors: showAncestorsOnMap,
+    onlyDirectRelatives: false,
+    treeLoaded: locationTree !== undefined,
+    treeNodeCount: flattenTree(locationTree ?? []).length,
+    nodeId: location.id,
+    nodeSlug: location.slug,
+    parentId: location.parentId ?? null,
+    foundInTree: ancestorPath !== null,
+    ancestors: ancestors.map(ancestor => ({
+      id: ancestor.id,
+      name: ancestor.name,
+      slug: ancestor.slug,
+      placeType: ancestor.placeType,
+    })),
+  };
+
   return (
     <BookmarkSearchView
       header={(
@@ -140,6 +161,7 @@ function LocationBookmarksPage() {
             kind: "location",
             currentPlaceType: location.placeType,
           }}
+          ancestryDebug={ancestryDebug}
         />
       )}
       pageKey={`location:${locationSlug}`}
