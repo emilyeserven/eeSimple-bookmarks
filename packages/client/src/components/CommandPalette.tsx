@@ -1,20 +1,18 @@
 import type { CreateKind } from "./commandPaletteModals";
 import type { TaxonomyMode } from "./commandPaletteSubPalettes";
+import type { SettingsPage } from "@/lib/settingsPages";
 
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 import {
-  BookmarkIcon,
   CheckIcon,
   Columns2Icon,
   FolderIcon,
-  HomeIcon,
-  InboxIcon,
   PencilIcon,
   PlusIcon,
   SettingsIcon,
-  TagIcon,
+  StarIcon,
 } from "lucide-react";
 
 import { CommandPaletteModals } from "./commandPaletteModals";
@@ -46,151 +44,42 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useSettingsFavorite } from "@/hooks/useSettingsFavorite";
+import { SETTINGS_TAB_SECTIONS } from "@/lib/settingsNav";
+import {
+  ACTION_LISTING_PAGES,
+  CUSTOMIZATION_LISTING_PAGES,
+  SETTINGS_PAGES,
+  TAXONOMY_LISTING_PAGES,
+} from "@/lib/settingsPages";
+import { navItems } from "@/lib/sidebarNavItems";
 import { useUiStore } from "@/stores/uiStore";
 
+// The nav groups derive from the sidebar / settings nav data (via lib/settingsPages.ts), so a new
+// sidebar entry or settings tab shows up here automatically — don't hand-list paths.
 const PAGES = [
-  {
-    label: "Home",
-    path: "/",
-    icon: HomeIcon,
-  },
-  {
-    label: "Bookmarks",
-    path: "/bookmarks",
-    icon: BookmarkIcon,
-  },
-  {
-    label: "Inbox",
-    path: "/inbox",
-    icon: InboxIcon,
-  },
-] as const;
+  ...navItems.map(item => ({
+    label: item.title,
+    path: item.to as string,
+    icon: item.icon,
+  })),
+  ...ACTION_LISTING_PAGES.map(page => ({
+    label: page.label,
+    path: page.path,
+    icon: page.icon,
+  })),
+];
 
-const TAXONOMIES = [
-  {
-    label: "Categories",
-    path: "/categories",
-  },
-  {
-    label: "Tags",
-    path: "/tags",
-  },
-  {
-    label: "Websites",
-    path: "/taxonomies/websites",
-  },
-  {
-    label: "Media Types",
-    path: "/taxonomies/media-types",
-  },
-  {
-    label: "YouTube Channels",
-    path: "/taxonomies/youtube-channels",
-  },
-  {
-    label: "Custom Properties",
-    path: "/custom-properties",
-  },
-  {
-    label: "Property Groups",
-    path: "/taxonomies/property-groups",
-  },
-  {
-    label: "Autofill Rules",
-    path: "/autofill",
-  },
-  {
-    label: "Import Rules",
-    path: "/import-rules",
-  },
-  {
-    label: "Newsletters",
-    path: "/taxonomies/newsletters",
-  },
-  {
-    label: "Authors",
-    path: "/taxonomies/authors",
-  },
-  {
-    label: "Relationship Types",
-    path: "/taxonomies/relationship-types",
-  },
-  {
-    label: "Card Display Rules",
-    path: "/card-display-rules",
-  },
-] as const;
+const TAXONOMIES = [...TAXONOMY_LISTING_PAGES, ...CUSTOMIZATION_LISTING_PAGES];
 
 const SETTINGS = [
-  {
-    label: "Display",
-    path: "/settings/display",
-  },
-  {
-    label: "Homepage",
-    path: "/settings/display/homepage",
-  },
-  {
-    label: "Drawer",
-    path: "/settings/display/drawer",
-  },
-  {
-    label: "Media Types",
-    path: "/settings/media-types",
-  },
-  {
-    label: "Websites",
-    path: "/settings/websites",
-  },
-  {
-    label: "YouTube Channels",
-    path: "/settings/youtube-channels",
-  },
-  {
-    label: "Autofill",
-    path: "/settings/autofill",
-  },
-  {
-    label: "Automations",
-    path: "/settings/automations",
-  },
-  {
-    label: "Imports",
-    path: "/settings/automations/imports",
-  },
-  {
-    label: "Relationships",
-    path: "/settings/relationships",
-  },
-  {
-    label: "Custom Properties",
-    path: "/settings/custom-properties",
-  },
-  {
-    label: "Card Display Rules",
-    path: "/settings/card-display-rules",
-  },
-  {
-    label: "Link Parsing",
-    path: "/settings/automations/link-parsing",
-  },
-  {
-    label: "Manage Media",
-    path: "/settings/advanced/manage-media",
-  },
-  {
-    label: "Advanced",
-    path: "/settings/advanced",
-  },
-  {
-    label: "Saved Filters",
-    path: "/saved-filters",
-  },
-  {
-    label: "Extension",
-    path: "/settings/extension",
-  },
-] as const;
+  ...SETTINGS_TAB_SECTIONS.map(section => ({
+    label: section.section,
+    path: section.path as string,
+    icon: SettingsIcon,
+  })),
+  ...SETTINGS_PAGES.filter(page => page.path.startsWith("/settings/")),
+];
 
 // ─── State hook ──────────────────────────────────────────────────────────────
 
@@ -323,6 +212,36 @@ function useCreateModalState() {
   };
 }
 
+/**
+ * Favorite/unfavorite the current settings page — the palette twin of the header star button
+ * (`settingsFavoriteAction`). Mounted only when a settings page matches, so `useSettingsFavorite`'s
+ * non-null `page` requirement holds.
+ */
+function SettingsFavoriteCommandItem({
+  page,
+  onDone,
+}: {
+  page: SettingsPage;
+  onDone: () => void;
+}) {
+  const {
+    isFavorited, toggle,
+  } = useSettingsFavorite(page);
+  const label = isFavorited ? "Unfavorite This Page" : "Favorite This Page";
+  return (
+    <CommandItem
+      value={label}
+      onSelect={() => {
+        toggle();
+        onDone();
+      }}
+    >
+      <StarIcon className={isFavorited ? "fill-current" : undefined} />
+      {label}
+    </CommandItem>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function CommandPalette() {
@@ -357,6 +276,7 @@ export function CommandPalette() {
     setDetailLayout,
     listingCtx,
     savedFilterCtx,
+    settingsPage,
     matchingCardRules,
   } = useCommandPaletteData(open, targetBookmarkId);
 
@@ -1032,6 +952,18 @@ export function CommandPalette() {
                   {!bookmarkFromHover && bookmarkTaxonomiesGroup}
                   {!bookmarkFromHover && cardDisplayRulesGroup}
 
+                  {settingsPage && (
+                    <>
+                      <CommandGroup heading="Current Page">
+                        <SettingsFavoriteCommandItem
+                          page={settingsPage}
+                          onDone={() => handleOpenChange(false)}
+                        />
+                      </CommandGroup>
+                      <CommandSeparator />
+                    </>
+                  )}
+
                   {filterId && savedFilter && (
                     <>
                       <CommandGroup heading="Saved Filter">
@@ -1133,6 +1065,13 @@ export function CommandPalette() {
                       <PlusIcon />
                       New Location
                     </CommandItem>
+                    <CommandItem
+                      value="New Custom Property"
+                      onSelect={() => handleCreate("custom-property")}
+                    >
+                      <PlusIcon />
+                      New Custom Property
+                    </CommandItem>
                   </CommandGroup>
 
                   <CommandSeparator />
@@ -1156,14 +1095,14 @@ export function CommandPalette() {
 
                   <CommandGroup heading="Taxonomies">
                     {TAXONOMIES.map(({
-                      label, path,
+                      label, path, icon: Icon,
                     }) => (
                       <CommandItem
                         key={path}
                         value={label}
                         onSelect={() => handleSelect(path)}
                       >
-                        <TagIcon />
+                        <Icon />
                         {label}
                       </CommandItem>
                     ))}
@@ -1173,14 +1112,14 @@ export function CommandPalette() {
 
                   <CommandGroup heading="Settings">
                     {SETTINGS.map(({
-                      label, path,
+                      label, path, icon: Icon,
                     }) => (
                       <CommandItem
                         key={path}
                         value={`Settings ${label}`}
                         onSelect={() => handleSelect(path)}
                       >
-                        <SettingsIcon />
+                        <Icon />
                         {label}
                       </CommandItem>
                     ))}

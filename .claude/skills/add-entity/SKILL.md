@@ -123,6 +123,16 @@ reuse the submit create form for edit (right-panel parity invariant in CLAUDE.md
     `PANEL_CONTENT_TYPES` with `type`, `label`, `singular`, a `lucide-react` `icon`, `useList`,
     `View`, `Edit`. Create flows (the `NEW_SENTINEL` path) keep their submit form.
 
+### 10. Registries that derive from the sidebar entry
+
+Adding the listing page to the sidebar (`lib/sidebarNavItems.ts` — `taxonomyItems` or
+`customizationItems`) is also what registers it elsewhere; **don't** hand-register these:
+- **Favoritable settings page** (header star + Settings favorites flyout): `SETTINGS_PAGES` in
+  `lib/settingsPages.ts` derives from the sidebar items. Only a listing page on **no** sidebar
+  (e.g. Place Types) needs a `STANDALONE_PAGES` entry there.
+- **CMD+K nav groups**: the palette's Pages/Taxonomies/Settings groups (`CommandPalette.tsx`)
+  derive from the same modules.
+
 ## Verify
 
 ```

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { findSettingsPage, SETTINGS_PAGES } from "./settingsPages";
+import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
+import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 
 describe("settingsPages registry", () => {
   it("resolves a /settings sub-page by exact path", () => {
@@ -49,6 +51,44 @@ describe("settingsPages registry", () => {
       label: "Place Types",
     });
     expect(page?.icon).toBeDefined();
+  });
+
+  it("derives an entry for every sidebar taxonomy/action/customization item", () => {
+    for (const item of [...taxonomyItems, ...actionItems, ...customizationItems]) {
+      const page = findSettingsPage(item.to);
+      expect(page, `sidebar item ${item.to} must be favoritable`).toBeDefined();
+      expect(page?.icon).toBe(item.icon);
+    }
+  });
+
+  it("derives an entry for every tab of every tabbed settings section", () => {
+    for (const {
+      section, items,
+    } of SETTINGS_TAB_SECTIONS) {
+      for (const item of items) {
+        const page = findSettingsPage(item.to as string);
+        expect(page, `settings tab ${item.to} must be favoritable`).toBeDefined();
+        expect(page?.label).toBe(`${section}: ${item.label}`);
+      }
+    }
+  });
+
+  it("resolves the pages that were once missing from the hand-maintained list", () => {
+    for (const path of [
+      "/taxonomies/authors",
+      "/taxonomies/publishers",
+      "/taxonomies/locations",
+      "/taxonomies/newsletters",
+      "/import-rules",
+      "/saved-filters",
+    ]) {
+      expect(findSettingsPage(path)?.label).toBeTruthy();
+    }
+  });
+
+  it("labels the newsletters listing distinctly from Automations: Imports", () => {
+    expect(findSettingsPage("/taxonomies/newsletters")?.label).toBe("Newsletters");
+    expect(findSettingsPage("/settings/automations/imports")?.label).toBe("Automations: Imports");
   });
 
   it("assigns every page an icon", () => {

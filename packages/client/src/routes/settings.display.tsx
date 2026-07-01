@@ -1,39 +1,12 @@
-import type { TabNavItem } from "../components/TabbedEntityLayout";
-
 import { createFileRoute } from "@tanstack/react-router";
 
 import { VerticalTabbedLayout } from "../components/VerticalTabbedLayout";
 
+import { displayNav } from "@/lib/settingsNav";
+
 export const Route = createFileRoute("/settings/display")({
   component: DisplayLayout,
 });
-
-const displayNav: readonly TabNavItem[] = [
-  {
-    to: "/settings/display/general",
-    label: "General",
-  },
-  {
-    to: "/settings/display/media",
-    label: "Media",
-  },
-  {
-    to: "/settings/display/sidebar",
-    label: "Sidebar",
-  },
-  {
-    to: "/settings/display/filters",
-    label: "Filters",
-  },
-  {
-    to: "/settings/display/drawer",
-    label: "Drawer",
-  },
-  {
-    to: "/settings/display/homepage",
-    label: "Homepage",
-  },
-] as const;
 
 function DisplayLayout() {
   return (

@@ -1,27 +1,12 @@
-import type { TabNavItem } from "../components/TabbedEntityLayout";
-
 import { createFileRoute } from "@tanstack/react-router";
 
 import { VerticalTabbedLayout } from "../components/VerticalTabbedLayout";
 
+import { locationsNav } from "@/lib/settingsNav";
+
 export const Route = createFileRoute("/settings/locations")({
   component: LocationsLayout,
 });
-
-const locationsNav: readonly TabNavItem[] = [
-  {
-    to: "/settings/locations/level-groups",
-    label: "Level Groups",
-  },
-  {
-    to: "/settings/locations/pin-style",
-    label: "Pin Style",
-  },
-  {
-    to: "/settings/locations/place-types",
-    label: "Place Types",
-  },
-] as const;
 
 function LocationsLayout() {
   return (

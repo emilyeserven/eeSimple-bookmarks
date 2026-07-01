@@ -565,23 +565,27 @@ See `packages/middleware/.env.example`.
 
 ## Settings page starring
 
-**Every settings sub-page must be registered as favoritable.** The header star button, the sidebar
-Settings favorites flyout, and the persisted favorite (`favorite_settings_pages` table /
-`FavoriteSettingsPage`) all key off one registry: `SETTINGS_PAGES` in
-`packages/client/src/lib/settingsPages.ts` (`{ path, label, icon }`, resolved by exact pathname via
-`findSettingsPage()`). A page not in this list silently gets no star button — `useSettingsFavorite`
-and `HeaderSettingsFavoriteButton` only render once `findSettingsPage(pathname)` returns a match
-(wired through `ctx.settingsPage` in `routes/-appHeaderToolbar.ts` →
-`settingsFavoriteAction` in `components/header/toolbarEntityActions.tsx`). **When adding a new
-`/settings/*` leaf page (or a new tab inside an existing tabbed section like Display/Automations/
-Advanced), add a matching entry to `SETTINGS_PAGES` in the same change** — label mirrors the section
-+ tab name (e.g. `"Automations: Backfill"`), icon is a `lucide-react` icon distinct from sibling
-entries. Don't register the tabbed section's own index/parent path (`/settings/automations`, not
-just its tabs) — it redirects to the first tab and is never the live pathname, so an entry for it
-can never match. This also applies to the management/customization listing pages that live outside
-`/settings/*` (Categories, Tags, Websites, …) — see the existing second half of the `SETTINGS_PAGES`
-array. Add the new leaf path to the relevant test list in `packages/client/src/lib/settingsPages.test.ts`
-too.
+**Every settings sub-page must be favoritable — and registration is now derived, not hand-listed.**
+The header star button, the sidebar Settings favorites flyout, and the persisted favorite
+(`favorite_settings_pages` table / `FavoriteSettingsPage`) all key off one registry:
+`SETTINGS_PAGES` in `packages/client/src/lib/settingsPages.ts` (`{ path, label, icon }`, resolved by
+exact pathname via `findSettingsPage()`). A page not in this list silently gets no star button —
+`useSettingsFavorite` and `HeaderSettingsFavoriteButton` only render once `findSettingsPage(pathname)`
+returns a match (wired through `ctx.settingsPage` in `routes/-appHeaderToolbar.ts` →
+`settingsFavoriteAction` in `components/header/toolbarEntityActions.tsx`). The registry **derives**
+from the two nav data modules, so favoritability comes for free:
+- A **new tab inside a tabbed settings section** (Display/Automations/Locations/Advanced): add it to
+  the section's nav array in `lib/settingsNav.ts` with a `lucide-react` `icon` distinct from its
+  siblings — the label derives as `"Section: Tab"`. Section index/parent paths are intentionally
+  never registered (they redirect to their first tab and can't be the live pathname).
+- A **management/customization listing page** (Categories, Tags, Websites, Authors, Saved Filters, …):
+  its sidebar entry in `lib/sidebarNavItems.ts` *is* the registration (`SIDEBAR_LABEL_OVERRIDES` in
+  `settingsPages.ts` covers a label that must differ from the sidebar title, e.g. newsletters).
+- Only a page on **neither surface** (e.g. `/settings/extension`, `/taxonomies/place-types`) goes in
+  the hand-listed `STANDALONE_PAGES` remainder in `settingsPages.ts`.
+`settingsPages.test.ts` asserts the derivation (every sidebar item / settings tab resolves) — extend
+it only for standalone pages. The CMD+K palette's Pages/Taxonomies/Settings nav groups derive from
+the same modules (`CommandPalette.tsx`), so they also pick the page up automatically.
 
 ## CMD+K palette sync
 
