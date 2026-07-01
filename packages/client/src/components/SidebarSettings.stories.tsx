@@ -22,6 +22,7 @@ const displayPreferences = {
   showLocationAncestorsOnMap: false,
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,
+  mapPinScale: 1,
 };
 
 const automation = {
