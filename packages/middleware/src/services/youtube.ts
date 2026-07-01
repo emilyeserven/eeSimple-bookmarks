@@ -240,6 +240,45 @@ async function resolveWatchMeta(videoId: string): Promise<WatchPageMeta> {
   return fetchWatchPageMeta(videoId);
 }
 
+/**
+ * Fetch a channel's avatar image URL from the YouTube Data API v3 (when `YOUTUBE_API_KEY` is set),
+ * or `null` when unconfigured or the lookup fails. Preferred over scraping the channel page's
+ * `og:image`: YouTube has tightened bot-detection on channel pages (they now routinely 403
+ * non-browser requests, unlike video watch pages / oEmbed), making the scrape unreliable even with
+ * browser-shaped headers. `channelKey` is routed to the matching lookup param: `@handle` → `forHandle`,
+ * a channel id (`UC…`) → `id`, anything else (a legacy vanity name) → `forUsername`.
+ */
+export async function fetchChannelAvatarUrlViaApi(channelKey: string): Promise<string | null> {
+  const key = process.env.YOUTUBE_API_KEY;
+  if (!key) return null;
+  const trimmed = channelKey.trim();
+  const lookupParam = trimmed.startsWith("@")
+    ? `forHandle=${encodeURIComponent(trimmed)}`
+    : /^UC[\w-]{20,}$/.test(trimmed)
+      ? `id=${encodeURIComponent(trimmed)}`
+      : `forUsername=${encodeURIComponent(trimmed)}`;
+  const endpoint = `https://www.googleapis.com/youtube/v3/channels?part=snippet&${lookupParam}&key=${encodeURIComponent(key)}`;
+  try {
+    const res = await fetch(endpoint, {
+      method: "GET",
+      signal: AbortSignal.timeout(OEMBED_TIMEOUT_MS),
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      items?: { snippet?: { thumbnails?: Record<string, { url?: unknown }> } }[];
+    };
+    const thumbnails = json.items?.[0]?.snippet?.thumbnails;
+    const url = thumbnails?.high?.url ?? thumbnails?.medium?.url ?? thumbnails?.default?.url;
+    return typeof url === "string" && url.trim().length > 0 ? url.trim() : null;
+  }
+  catch {
+    return null;
+  }
+}
+
 /** Decode common HTML entities in a string. */
 function decodeEntities(text: string): string {
   return text
