@@ -3,15 +3,15 @@ import type { LocationNode } from "@eesimple/types";
 import { useState } from "react";
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight, Images, MapPin } from "lucide-react";
+import { Images, MapPin } from "lucide-react";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { LocationMapSection } from "../components/LocationMapSection";
 import { RomanizedLabel } from "../components/RomanizedLabel";
-import { useLocationBySlug, useLocationTree } from "../hooks/useLocations";
+import { useLocationBySlug } from "../hooks/useLocations";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
-import { findAncestorPath, subtreeIds } from "../lib/tagTree";
+import { subtreeIds } from "../lib/tagTree";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -45,12 +45,6 @@ function LocationBookmarksPage() {
   const {
     location, isLoading: locationLoading,
   } = useLocationBySlug(locationSlug);
-  const {
-    data: locationTree,
-  } = useLocationTree();
-  const ancestors = locationTree
-    ? (findAncestorPath(locationTree, locationSlug)?.slice(0, -1) ?? [])
-    : [];
 
   if (locationLoading) {
     return <p className="text-muted-foreground">Loading location…</p>;
@@ -68,34 +62,6 @@ function LocationBookmarksPage() {
     <BookmarkSearchView
       header={(
         <div className="space-y-2">
-          {ancestors.length > 0 && (
-            <div
-              className="
-                flex flex-wrap items-center gap-1 text-sm text-muted-foreground
-              "
-            >
-              {ancestors.map((ancestor, i) => (
-                <span
-                  key={ancestor.id}
-                  className="flex items-center gap-1"
-                >
-                  {i > 0 && <ChevronRight className="size-3 shrink-0" />}
-                  <Link
-                    to="/taxonomies/locations/$locationSlug"
-                    params={{
-                      locationSlug: ancestor.slug,
-                    }}
-                    className="hover:underline"
-                  >
-                    <RomanizedLabel
-                      name={ancestor.name}
-                      romanized={ancestor.romanizedName}
-                    />
-                  </Link>
-                </span>
-              ))}
-            </div>
-          )}
           <div className="flex items-start justify-between gap-4">
             <h1 className="flex min-w-0 items-center gap-2 text-2xl font-bold">
               <MapPin className="size-6 shrink-0" />
