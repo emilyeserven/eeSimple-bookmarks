@@ -135,6 +135,20 @@ export function LocationLevelsOverlay({
         )
         : null}
 
+      <div className="mt-3 flex items-center gap-2 border-t pt-3">
+        <Checkbox
+          id="levels-hide-admin-borders"
+          checked={controls.hideAdminBorders}
+          onCheckedChange={checked => controls.onHideAdminBordersChange(checked === true)}
+        />
+        <Label
+          htmlFor="levels-hide-admin-borders"
+          className="cursor-pointer"
+        >
+          Hide map borders
+        </Label>
+      </div>
+
       {filter ? <LocationMapFilterSection filter={filter} /> : null}
     </ResponsivePopover>
   );

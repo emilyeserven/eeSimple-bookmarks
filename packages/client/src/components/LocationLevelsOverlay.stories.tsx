@@ -40,6 +40,8 @@ const meta = {
       onToggleVisible: () => {},
       levelMode: "current",
       onLevelModeChange: () => {},
+      hideAdminBorders: false,
+      onHideAdminBordersChange: () => {},
     },
   },
   parameters: {

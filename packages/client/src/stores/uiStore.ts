@@ -122,6 +122,12 @@ interface UiState {
   /** Which levels a place's location maps show relative to its own level (shared across location maps). */
   locationMapLevelMode: LocationMapLevelMode;
   setLocationMapLevelMode: (mode: LocationMapLevelMode) => void;
+  /**
+   * Whether location maps hide the base tiles' own country/prefecture/state administrative border
+   * lines (switches to a borderless tile style). Shared across every location map, like `locationMapLevelMode`.
+   */
+  hideLocationMapAdminBorders: boolean;
+  setHideLocationMapAdminBorders: (hide: boolean) => void;
   /** Per-listing image layout for 2-column listing pages: "above" (default) or "side". Keyed by a stable page key. */
   bookmarkImageLayout: Record<string, HomepageSectionImageLayout>;
   setBookmarkImageLayout: (pageKey: string, layout: HomepageSectionImageLayout) => void;
@@ -276,6 +282,10 @@ export const useUiStore = create<UiState>()(
       setLocationMapLevelMode: mode => set({
         locationMapLevelMode: mode,
       }),
+      hideLocationMapAdminBorders: false,
+      setHideLocationMapAdminBorders: hide => set({
+        hideLocationMapAdminBorders: hide,
+      }),
       collapsedHomepageSectionIds: [],
       toggleHomepageSectionCollapsed: id => set(state => ({
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds.includes(id)
@@ -397,6 +407,7 @@ export const useUiStore = create<UiState>()(
         collapsedLocationMapKeys: state.collapsedLocationMapKeys,
         locationSortMode: state.locationSortMode,
         locationMapLevelMode: state.locationMapLevelMode,
+        hideLocationMapAdminBorders: state.hideLocationMapAdminBorders,
         bookmarkImageLayout: state.bookmarkImageLayout,
         bookmarkCornerOverlays: state.bookmarkCornerOverlays,
         bookmarkSort: state.bookmarkSort,

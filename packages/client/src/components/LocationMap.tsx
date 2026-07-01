@@ -159,6 +159,18 @@ function toFeature(boundary: LocationBoundary): Feature {
   };
 }
 
+/** Standard OpenStreetMap raster tiles — renders country/state/prefecture administrative borders. */
+const OSM_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const OSM_ATTRIBUTION = "© OpenStreetMap contributors";
+/**
+ * CARTO's "Positron" raster tiles — a lighter, non-obtrusive basemap style that omits administrative
+ * boundary lines. Used when the "hide borders" option is on, since the OSM standard style bakes
+ * country/prefecture/state borders into the tile images themselves (nothing our own GeoJSON layers
+ * draw), so hiding them means swapping the whole base tile layer rather than toggling a feature.
+ */
+const BORDERLESS_TILE_URL = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+const BORDERLESS_ATTRIBUTION = "© OpenStreetMap contributors © CARTO";
+
 /** A map viewport (center + zoom) persisted across this map's remounts to seed the next one. */
 export interface MapView {
   center: LatLngTuple;
@@ -391,6 +403,12 @@ interface LocationMapProps {
    * keeps it up to date as the user pans/zooms. Omit on maps that don't navigate (no continuity).
    */
   lastViewRef?: MutableRefObject<MapView | null>;
+  /**
+   * Hide the base map tiles' own country/prefecture/state administrative border lines by switching to
+   * a borderless tile style (Settings → Locations / the map "Levels" overlay). Defaults to `false`
+   * (the standard OpenStreetMap style, which draws these borders).
+   */
+  hideAdminBorders?: boolean;
 }
 
 /**
@@ -407,6 +425,7 @@ export function LocationMap({
   colorConfig = {},
   overlay,
   lastViewRef,
+  hideAdminBorders = false,
 }: LocationMapProps) {
   const mapped = collectMapped(tree);
   const items = toRenderItems(mapped, displayConfig, iconConfig, colorConfig);
@@ -442,8 +461,8 @@ export function LocationMap({
           className={cn("isolate", className)}
         >
           <TileLayer
-            attribution="© OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution={hideAdminBorders ? BORDERLESS_ATTRIBUTION : OSM_ATTRIBUTION}
+            url={hideAdminBorders ? BORDERLESS_TILE_URL : OSM_TILE_URL}
           />
           <FitBounds
             items={items}

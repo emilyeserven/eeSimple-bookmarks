@@ -96,6 +96,8 @@ export function LocationMapSection({
 
   const levelMode = scope.kind === "bookmark" ? bookmarkLevelMode : sharedLevelMode;
   const setLevelMode = scope.kind === "bookmark" ? setBookmarkLevelMode : setSharedLevelMode;
+  const hideAdminBorders = useUiStore(state => state.hideLocationMapAdminBorders);
+  const setHideAdminBorders = useUiStore(state => state.setHideLocationMapAdminBorders);
 
   // Destructure scope into primitives so the hooks below have honest, stable dependencies (callers
   // reconstruct the `scope` object inline each render, so depending on it directly would thrash).
@@ -149,6 +151,8 @@ export function LocationMapSection({
     }),
     levelMode: hasLevelMode ? levelMode : undefined,
     onLevelModeChange: hasLevelMode ? setLevelMode : undefined,
+    hideAdminBorders,
+    onHideAdminBordersChange: setHideAdminBorders,
   };
 
   // Survives the inner LocationMap's remounts (this section is reused across $locationSlug changes):
@@ -237,6 +241,7 @@ export function LocationMapSection({
             iconConfig={iconConfig}
             colorConfig={colorConfig}
             lastViewRef={lastViewRef}
+            hideAdminBorders={hideAdminBorders}
             overlay={showLevels
               ? (
                 <LocationLevelsMapPanel
