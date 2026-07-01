@@ -395,7 +395,10 @@ interface LocationMapProps {
   /**
    * An element rendered as an absolutely-positioned overlay inside the map (top-right corner).
    * Pointer events on the rest of the map area are preserved via `pointer-events-none` on the
-   * overlay wrapper; the passed element itself must handle its own pointer events.
+   * overlay wrapper; the passed element itself must handle its own pointer events. Hidden below
+   * the `md` breakpoint — on mobile the trigger lives outside the map instead (see
+   * `LocationMapSection`'s `md:hidden` header button), since a persistent panel drawn over a
+   * narrow map crowds out the map itself.
    */
   overlay?: ReactNode;
   /**
@@ -507,7 +510,12 @@ export function LocationMap({
         </MapContainer>
         {overlay
           ? (
-            <div className="pointer-events-none absolute inset-0 z-1000">
+            <div
+              className="
+                pointer-events-none absolute inset-0 z-1000 hidden
+                md:block
+              "
+            >
               <div className="pointer-events-auto absolute top-2 right-2">
                 {overlay}
               </div>
