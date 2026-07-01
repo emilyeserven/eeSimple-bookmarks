@@ -154,7 +154,7 @@ describe("computeVisibleLevelGroupIds", () => {
 });
 
 describe("computePopulatedLevelGroupIds", () => {
-  it("includes only groups whose place type is present among the plotted locations", () => {
+  it("includes groups whose place type is present among the plotted locations", () => {
     const ids = computePopulatedLevelGroupIds(groups, [
       {
         placeType: "country",
@@ -163,16 +163,25 @@ describe("computePopulatedLevelGroupIds", () => {
         placeType: "city",
       },
     ]);
-    expect([...ids].sort()).toEqual(["city", "country"]);
+    expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
-  it("excludes a group with no plotted locations of its place types", () => {
+  it("excludes a group narrower than every directly-populated level", () => {
     const ids = computePopulatedLevelGroupIds(groups, [
       {
         placeType: "country",
       },
     ]);
     expect([...ids].sort()).toEqual(["country"]);
+  });
+
+  it("includes broader ancestor groups even when only a narrower level is plotted", () => {
+    const ids = computePopulatedLevelGroupIds(groups, [
+      {
+        placeType: "city",
+      },
+    ]);
+    expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
   it("re-includes a group once a location of its place type appears", () => {
