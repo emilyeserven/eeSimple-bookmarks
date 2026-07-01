@@ -182,6 +182,42 @@ describe("buildMapDebugInfo", () => {
     });
     expect(debug.layers?.groups[0].color).toBe("#123456");
   });
+
+  it("defaults the ancestry diagnostic to null when none is supplied", () => {
+    const debug = buildMapDebugInfo(baseInput([node({
+      id: "x",
+    })]));
+    expect(debug.ancestry).toBeNull();
+  });
+
+  it("passes the ancestry diagnostic through unchanged", () => {
+    const debug = buildMapDebugInfo(baseInput([node({
+      id: "leaf",
+    })], {
+      ancestry: {
+        showAncestors: true,
+        onlyDirectRelatives: false,
+        treeLoaded: true,
+        treeNodeCount: 12,
+        nodeId: "leaf-id",
+        nodeSlug: "leaf",
+        parentId: null,
+        foundInTree: true,
+        ancestors: [],
+      },
+    }));
+    expect(debug.ancestry).toEqual({
+      showAncestors: true,
+      onlyDirectRelatives: false,
+      treeLoaded: true,
+      treeNodeCount: 12,
+      nodeId: "leaf-id",
+      nodeSlug: "leaf",
+      parentId: null,
+      foundInTree: true,
+      ancestors: [],
+    });
+  });
 });
 
 describe("buildLayersDebug", () => {

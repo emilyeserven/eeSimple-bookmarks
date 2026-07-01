@@ -109,6 +109,41 @@ export function buildLayersDebug(input: LayersDebugInput): MapLayersDebug {
   };
 }
 
+/**
+ * The location-**detail** map's ancestor-resolution state — the "why is the parent chain missing?"
+ * diagnostic. Only the single-location detail map (`LocationGeneralView`) supplies this; the listing,
+ * bookmark, and place-type maps omit it (`null`). It answers, in order, the three ways the ancestor
+ * chain fails to plot:
+ * - `showAncestors: false` → the "Show ancestors on map" toggle is off, so only the leaf is plotted;
+ * - `parentId: null` → the viewed place is a **root** location (its ancestor chain was never built —
+ *   a geocoding/data gap, not a display bug), so there are no ancestors to show;
+ * - `parentId` set but `ancestors` empty / `foundInTree: false` → the ancestor path failed to resolve
+ *   against the full tree (still loading, or a stale/partial tree that doesn't contain the node).
+ */
+export interface MapAncestryDebug {
+  /** The "Show ancestors on map" preference — when `false`, only the leaf node is plotted. */
+  showAncestors: boolean;
+  /** The per-map "only direct ancestors/children" toggle (narrows the chain to the immediate parent). */
+  onlyDirectRelatives: boolean;
+  /** Whether the full location tree query has resolved — ancestors can't be resolved until it has. */
+  treeLoaded: boolean;
+  /** Node count of the full location tree the ancestor path is resolved against. */
+  treeNodeCount: number;
+  /** The viewed location's own id. */
+  nodeId: string;
+  /** The viewed location's own slug (what the ancestor path is looked up by). */
+  nodeSlug: string;
+  /** The viewed location's stored parent id — `null` means a root location with no ancestors at all. */
+  parentId: string | null;
+  /** Whether the viewed node was located in the full tree (a stale/partial tree can't resolve ancestors). */
+  foundInTree: boolean;
+  /** The resolved root→parent ancestor chain (excludes the leaf). Empty = no ancestors are plotted. */
+  ancestors: { id: string;
+    name: string;
+    slug: string;
+    placeType: string | null; }[];
+}
+
 /** The reason a node is not drawn, or `null` when it is rendered. */
 export type NodeHiddenReason = "no-geometry" | "hidden-by-level";
 
@@ -172,6 +207,8 @@ export interface MapDebugInfo {
     noLevel: number;
   };
   layers: MapLayersDebug | null;
+  /** Ancestor-resolution diagnostic (location detail map only; `null` elsewhere). */
+  ancestry: MapAncestryDebug | null;
   nodes: MapNodeDebug[];
 }
 
@@ -187,6 +224,7 @@ export interface MapDebugInput {
   className: string;
   seedView: DebugMapView | null;
   layers?: MapLayersDebug | null;
+  ancestry?: MapAncestryDebug | null;
 }
 
 /**
@@ -334,6 +372,7 @@ export function buildMapDebugInfo(input: MapDebugInput): MapDebugInfo {
     },
     summary,
     layers: input.layers ?? null,
+    ancestry: input.ancestry ?? null,
     nodes,
   };
 }

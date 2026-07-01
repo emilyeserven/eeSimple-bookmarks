@@ -1,4 +1,4 @@
-import type { MapDebugInfo } from "../lib/locationMapDebug";
+import type { MapAncestryDebug, MapDebugInfo } from "../lib/locationMapDebug";
 
 import { useState } from "react";
 
@@ -28,7 +28,7 @@ export function LocationMapDebugModal({
 }) {
   const [open, setOpen] = useState(false);
   const {
-    summary,
+    summary, ancestry,
   } = debug;
 
   return (
@@ -89,6 +89,8 @@ export function LocationMapDebugModal({
           />
         </dl>
 
+        {ancestry ? <AncestryDiagnostic ancestry={ancestry} /> : null}
+
         <pre
           className="
             max-h-[45vh] overflow-auto rounded-md border bg-muted/50 p-3 text-xs
@@ -106,6 +108,82 @@ export function LocationMapDebugModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * Plain-language verdict on why the viewed place's ancestor chain is (or isn't) plotted — the point
+ * of this whole diagnostic. Ordered by the checks a missing chain trips: tree still loading, toggle
+ * off, root location (no ancestors exist), path failed to resolve, else the chain is present.
+ */
+function ancestryVerdict(ancestry: MapAncestryDebug): string {
+  if (!ancestry.treeLoaded) return "The full location tree is still loading — ancestors can't resolve yet.";
+  if (!ancestry.showAncestors) {
+    return "“Show ancestors on map” is off, so only this location is plotted. Turn it on to show the parent chain.";
+  }
+  if (ancestry.parentId === null) {
+    return "This is a root location — it has no parent, so its ancestor chain was never built (a geocoding/data gap, not a display issue).";
+  }
+  if (!ancestry.foundInTree) {
+    return "This location wasn’t found in the loaded tree, so its ancestor path couldn’t be resolved.";
+  }
+  if (ancestry.ancestors.length === 0) {
+    return "A parent id is set but no ancestors resolved from the tree — the parent may be missing from the tree.";
+  }
+  return `${ancestry.ancestors.length} ancestor(s) resolved and plotted alongside this location.`;
+}
+
+/** The ancestor-chain diagnostic block shown above the raw JSON on location detail maps. */
+function AncestryDiagnostic({
+  ancestry,
+}: {
+  ancestry: MapAncestryDebug;
+}) {
+  return (
+    <div className="space-y-2 rounded-md border bg-muted/30 p-3 text-xs">
+      <p className="font-medium">Ancestor chain</p>
+      <p className="text-muted-foreground">{ancestryVerdict(ancestry)}</p>
+      <dl
+        className="
+          grid grid-cols-2 gap-x-4 gap-y-1
+          sm:grid-cols-3
+        "
+      >
+        <DebugStat
+          label="Show ancestors"
+          value={ancestry.showAncestors ? "on" : "off"}
+        />
+        <DebugStat
+          label="Parent id"
+          value={ancestry.parentId ?? "(root — none)"}
+        />
+        <DebugStat
+          label="Ancestors resolved"
+          value={ancestry.ancestors.length}
+        />
+        <DebugStat
+          label="Found in tree"
+          value={ancestry.foundInTree ? "yes" : "no"}
+        />
+        <DebugStat
+          label="Tree loaded"
+          value={ancestry.treeLoaded ? `yes (${ancestry.treeNodeCount})` : "no"}
+        />
+        <DebugStat
+          label="Only direct"
+          value={ancestry.onlyDirectRelatives ? "on" : "off"}
+        />
+      </dl>
+      {ancestry.ancestors.length > 0
+        ? (
+          <p className="text-muted-foreground">
+            Chain:
+            {" "}
+            {ancestry.ancestors.map(a => a.name).join(" → ")}
+          </p>
+        )
+        : null}
+    </div>
   );
 }
 

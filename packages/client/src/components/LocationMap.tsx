@@ -1,4 +1,4 @@
-import type { MapLayersDebug } from "../lib/locationMapDebug";
+import type { MapAncestryDebug, MapLayersDebug } from "../lib/locationMapDebug";
 import type { LocationBoundary, LocationNode, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig } from "@eesimple/types";
 import type { Feature, Geometry } from "geojson";
 import type { LatLngTuple } from "leaflet";
@@ -423,6 +423,12 @@ interface LocationMapProps {
    * section threads this in purely to enrich the debug modal. Omit on maps without a Levels overlay.
    */
   layersDebug?: MapLayersDebug | null;
+  /**
+   * The ancestor-resolution diagnostic for the location **detail** map — why the viewed place's
+   * parent chain is (or isn't) plotted. Threaded by {@link LocationMapSection} from the detail view
+   * (which owns the "Show ancestors" toggle + ancestor-path resolution); omitted on other maps.
+   */
+  ancestryDebug?: MapAncestryDebug | null;
 }
 
 /**
@@ -441,6 +447,7 @@ export function LocationMap({
   lastViewRef,
   hideAdminBorders = false,
   layersDebug = null,
+  ancestryDebug = null,
 }: LocationMapProps) {
   const minAreaKm2 = useMinAreaPinThresholdKm2();
   const pinScale = useMapPinScale();
@@ -475,6 +482,7 @@ export function LocationMap({
       }
       : null,
     layers: layersDebug,
+    ancestry: ancestryDebug,
   });
 
   if (mapped.length === 0) {

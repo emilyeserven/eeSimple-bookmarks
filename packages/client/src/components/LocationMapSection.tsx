@@ -1,5 +1,6 @@
 import type { MapView } from "./LocationMap";
 import type { AncestorChildrenScopeControls, LevelScope, LevelsControls, MapFilterControls } from "../lib/locationLevels";
+import type { MapAncestryDebug } from "../lib/locationMapDebug";
 import type { LocationMapLevelMode } from "../stores/uiStore";
 import type { LocationNode } from "@eesimple/types";
 
@@ -59,6 +60,12 @@ interface LocationMapSectionProps {
    * checkbox — used only by maps with a single "current" location (see `LocationGeneralView`).
    */
   ancestorChildrenScope?: AncestorChildrenScopeControls;
+  /**
+   * The ancestor-resolution diagnostic for the location detail map, passed straight through to
+   * {@link LocationMap}'s debug modal. Supplied only by `LocationGeneralView` (which owns the
+   * "Show ancestors" toggle + ancestor-path resolution); omitted on the listing/bookmark maps.
+   */
+  ancestryDebug?: MapAncestryDebug | null;
 }
 
 /** A collapsible "Map" section wrapping {@link LocationMap}, with persisted open/closed state. */
@@ -75,6 +82,7 @@ export function LocationMapSection({
   },
   filter,
   ancestorChildrenScope,
+  ancestryDebug,
 }: LocationMapSectionProps) {
   const collapsedKeys = useUiStore(state => state.collapsedLocationMapKeys);
   const toggle = useUiStore(state => state.toggleLocationMapCollapsed);
@@ -283,6 +291,7 @@ export function LocationMapSection({
             lastViewRef={lastViewRef}
             hideAdminBorders={hideAdminBorders}
             layersDebug={layersDebug}
+            ancestryDebug={ancestryDebug}
             overlay={showLevels
               ? (
                 <LocationLevelsMapPanel
