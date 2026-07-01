@@ -67,6 +67,25 @@ export function placeTypeOptions(
 }
 
 /**
+ * Level-group ids that have at least one plotted location (area or pin) on the current map — i.e.
+ * one of `locations`' place types belongs to the group. A group with none of its place types
+ * currently plotted has nothing to show, so its checkbox should be disabled/unchecked; it becomes
+ * enabled again the moment the map's plotted locations include one of its place types (e.g. after
+ * navigating to a different bookmark/location). Pure — unit-tested.
+ */
+export function computePopulatedLevelGroupIds(
+  groups: PlaceTypeLevelGroup[],
+  locations: { placeType: string | null }[],
+): Set<string> {
+  const presentKeys = new Set(discoverPlaceTypeKeys(locations));
+  const ids = new Set<string>();
+  for (const group of groups) {
+    if (group.placeTypes.some(pt => presentKeys.has(pt))) ids.add(group.id);
+  }
+  return ids;
+}
+
+/**
  * How a given map decides which level groups are visible by default:
  * - `main`: the all-locations index map — the groups flagged "Show by default on main map".
  * - `location`: a specific place's pages — relative to the **current** group (the one containing the
@@ -94,6 +113,11 @@ export interface LevelsControls {
   visibleIds: Set<string>;
   /** Toggle one group's visibility for this map only. */
   onToggleVisible: (id: string, visible: boolean) => void;
+  /**
+   * Group ids with no plotted areas/pins on this map — their checkbox is shown unchecked and
+   * disabled. See {@link computePopulatedLevelGroupIds}.
+   */
+  disabledIds: Set<string>;
   /** Shared above/current/below mode; omitted hides the button group (the main map only). */
   levelMode?: LocationMapLevelMode;
   onLevelModeChange?: (mode: LocationMapLevelMode) => void;
