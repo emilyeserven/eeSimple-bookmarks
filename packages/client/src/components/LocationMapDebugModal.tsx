@@ -113,14 +113,11 @@ export function LocationMapDebugModal({
 
 /**
  * Plain-language verdict on why the viewed place's ancestor chain is (or isn't) plotted — the point
- * of this whole diagnostic. Ordered by the checks a missing chain trips: tree still loading, toggle
- * off, root location (no ancestors exist), path failed to resolve, else the chain is present.
+ * of this whole diagnostic. Ordered by the checks a missing chain trips: tree still loading, root
+ * location (no ancestors exist), path failed to resolve, else the chain is present.
  */
 function ancestryVerdict(ancestry: MapAncestryDebug): string {
   if (!ancestry.treeLoaded) return "The full location tree is still loading — ancestors can't resolve yet.";
-  if (!ancestry.showAncestors) {
-    return "“Show ancestors on map” is off, so only this location is plotted. Turn it on to show the parent chain.";
-  }
   if (ancestry.parentId === null) {
     return "This is a root location — it has no parent, so its ancestor chain was never built (a geocoding/data gap, not a display issue).";
   }
@@ -149,10 +146,6 @@ function AncestryDiagnostic({
           sm:grid-cols-3
         "
       >
-        <DebugStat
-          label="Show ancestors"
-          value={ancestry.showAncestors ? "on" : "off"}
-        />
         <DebugStat
           label="Parent id"
           value={ancestry.parentId ?? "(root — none)"}

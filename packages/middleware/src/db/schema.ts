@@ -1370,9 +1370,6 @@ export const appSettings = pgTable("app_settings", {
   // group can render in distinct colors; resolved override-wins over the group color. Display-only,
   // never touches the bookmark cache. Nullable = push-safe additive; the service reads `?? {}`.
   placeTypeColors: jsonb("place_type_colors").$type<PlaceTypeColorConfig>(),
-  // When true, a location detail page's map also plots the location's ancestor/parent locations
-  // (not just its direct children). Nullable = push-safe additive; the service reads `?? false`.
-  showLocationAncestorsOnMap: boolean("show_location_ancestors_on_map"),
   // Minimum area (km²) an "area"-mode location's boundary must have to still render as a polygon on
   // the map; smaller boundaries render as a pin instead. 0/null disables the threshold. Nullable =
   // push-safe additive; the service reads `?? 0`.

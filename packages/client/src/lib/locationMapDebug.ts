@@ -112,17 +112,14 @@ export function buildLayersDebug(input: LayersDebugInput): MapLayersDebug {
 /**
  * The location-**detail** map's ancestor-resolution state — the "why is the parent chain missing?"
  * diagnostic. Only the single-location detail map (`LocationGeneralView`) supplies this; the listing,
- * bookmark, and place-type maps omit it (`null`). It answers, in order, the three ways the ancestor
- * chain fails to plot:
- * - `showAncestors: false` → the "Show ancestors on map" toggle is off, so only the leaf is plotted;
+ * bookmark, and place-type maps omit it (`null`). The ancestor chain is always plotted, so a missing
+ * chain means one of:
  * - `parentId: null` → the viewed place is a **root** location (its ancestor chain was never built —
  *   a geocoding/data gap, not a display bug), so there are no ancestors to show;
  * - `parentId` set but `ancestors` empty / `foundInTree: false` → the ancestor path failed to resolve
  *   against the full tree (still loading, or a stale/partial tree that doesn't contain the node).
  */
 export interface MapAncestryDebug {
-  /** The "Show ancestors on map" preference — when `false`, only the leaf node is plotted. */
-  showAncestors: boolean;
   /** The per-map "only direct ancestors/children" toggle (narrows the chain to the immediate parent). */
   onlyDirectRelatives: boolean;
   /** Whether the full location tree query has resolved — ancestors can't be resolved until it has. */

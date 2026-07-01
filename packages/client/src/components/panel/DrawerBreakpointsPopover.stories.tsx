@@ -19,7 +19,6 @@ const displayPreferences: DisplayPreferenceSettings = {
   onDemandFilters: [],
   showRomanizedByDefault: false,
   sortByRomanized: false,
-  showLocationAncestorsOnMap: false,
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,
   mapPinScale: 1,

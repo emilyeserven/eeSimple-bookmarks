@@ -100,7 +100,6 @@ function displayData(): DisplayPreferenceSettings {
     onDemandFilters: [],
     showRomanizedByDefault: false,
     sortByRomanized: true,
-    showLocationAncestorsOnMap: false,
     minAreaPinThresholdKm2: 0,
     bookmarksPerPage: 25,
     mapPinScale: 1,
