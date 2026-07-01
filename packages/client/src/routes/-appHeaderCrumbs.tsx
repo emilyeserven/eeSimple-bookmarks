@@ -85,6 +85,12 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
     slugIndex: 2,
   },
   {
+    prefix: "/taxonomies/place-types",
+    listLabel: "Place Types",
+    singular: "Place Type",
+    slugIndex: 2,
+  },
+  {
     prefix: "/taxonomies/youtube-channels",
     listLabel: "YouTube Channels",
     singular: "Channel",

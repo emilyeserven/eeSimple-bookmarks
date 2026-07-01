@@ -27,6 +27,8 @@ export function buildMainPanePath(
       return `/taxonomies/websites/${slug}/${tab}`;
     case "media-type":
       return `/taxonomies/media-types/${slug}/${tab}`;
+    case "place-type":
+      return `/taxonomies/place-types/${slug}/${tab}`;
     case "youtube-channel":
       return `/taxonomies/youtube-channels/${slug}/${tab}`;
     case "newsletter":

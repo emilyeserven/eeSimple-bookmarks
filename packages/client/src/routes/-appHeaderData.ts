@@ -61,6 +61,7 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
     newsletter: slugFor(pathname, pathParts, "/taxonomies/newsletters", 2),
     author: slugFor(pathname, pathParts, "/taxonomies/authors", 2),
     publisher: slugFor(pathname, pathParts, "/taxonomies/publishers", 2),
+    placeType: slugFor(pathname, pathParts, "/taxonomies/place-types", 2),
     propertyGroup: slugFor(pathname, pathParts, "/taxonomies/property-groups", 2),
     relationshipType: slugFor(pathname, pathParts, "/taxonomies/relationship-types", 2),
     property: slugFor(pathname, pathParts, "/custom-properties", 1),

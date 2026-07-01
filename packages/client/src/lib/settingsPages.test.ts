@@ -42,6 +42,15 @@ describe("settingsPages registry", () => {
     expect(page?.icon).toBeDefined();
   });
 
+  it("resolves the Place Types taxonomy listing page", () => {
+    const page = findSettingsPage("/taxonomies/place-types");
+    expect(page).toMatchObject({
+      path: "/taxonomies/place-types",
+      label: "Place Types",
+    });
+    expect(page?.icon).toBeDefined();
+  });
+
   it("assigns every page an icon", () => {
     for (const page of SETTINGS_PAGES) {
       expect(page.icon).toBeDefined();

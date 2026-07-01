@@ -37,6 +37,7 @@ import { Route as TaxonomiesWebsitesRouteImport } from './routes/taxonomies.webs
 import { Route as TaxonomiesRelationshipTypesRouteImport } from './routes/taxonomies.relationship-types'
 import { Route as TaxonomiesPublishersRouteImport } from './routes/taxonomies.publishers'
 import { Route as TaxonomiesPropertyGroupsRouteImport } from './routes/taxonomies.property-groups'
+import { Route as TaxonomiesPlaceTypesRouteImport } from './routes/taxonomies.place-types'
 import { Route as TaxonomiesNewslettersRouteImport } from './routes/taxonomies.newsletters'
 import { Route as TaxonomiesMediaTypesRouteImport } from './routes/taxonomies.media-types'
 import { Route as TaxonomiesLocationsRouteImport } from './routes/taxonomies.locations'
@@ -75,6 +76,7 @@ import { Route as TaxonomiesWebsitesIndexRouteImport } from './routes/taxonomies
 import { Route as TaxonomiesRelationshipTypesIndexRouteImport } from './routes/taxonomies.relationship-types.index'
 import { Route as TaxonomiesPublishersIndexRouteImport } from './routes/taxonomies.publishers.index'
 import { Route as TaxonomiesPropertyGroupsIndexRouteImport } from './routes/taxonomies.property-groups.index'
+import { Route as TaxonomiesPlaceTypesIndexRouteImport } from './routes/taxonomies.place-types.index'
 import { Route as TaxonomiesNewslettersIndexRouteImport } from './routes/taxonomies.newsletters.index'
 import { Route as TaxonomiesMediaTypesIndexRouteImport } from './routes/taxonomies.media-types.index'
 import { Route as TaxonomiesLocationsIndexRouteImport } from './routes/taxonomies.locations.index'
@@ -96,6 +98,7 @@ import { Route as TaxonomiesWebsitesWebsiteSlugRouteImport } from './routes/taxo
 import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug'
 import { Route as TaxonomiesPublishersPublisherSlugRouteImport } from './routes/taxonomies.publishers.$publisherSlug'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug'
+import { Route as TaxonomiesPlaceTypesPlaceTypeSlugRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug'
 import { Route as TaxonomiesNewslettersNewsletterSlugRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug'
 import { Route as TaxonomiesLocationsNewRouteImport } from './routes/taxonomies.locations.new'
@@ -141,6 +144,7 @@ import { Route as TaxonomiesWebsitesWebsiteSlugIndexRouteImport } from './routes
 import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugIndexRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug.index'
 import { Route as TaxonomiesPublishersPublisherSlugIndexRouteImport } from './routes/taxonomies.publishers.$publisherSlug.index'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugIndexRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.index'
+import { Route as TaxonomiesPlaceTypesPlaceTypeSlugIndexRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug.index'
 import { Route as TaxonomiesNewslettersNewsletterSlugIndexRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.index'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugIndexRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.index'
 import { Route as TaxonomiesLocationsLocationSlugIndexRouteImport } from './routes/taxonomies.locations.$locationSlug.index'
@@ -163,6 +167,8 @@ import { Route as TaxonomiesPublishersPublisherSlugEditRouteImport } from './rou
 import { Route as TaxonomiesPublishersPublisherSlugViewRouteImport } from './routes/taxonomies.publishers.$publisherSlug._view'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.edit'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug._view'
+import { Route as TaxonomiesPlaceTypesPlaceTypeSlugEditRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug.edit'
+import { Route as TaxonomiesPlaceTypesPlaceTypeSlugViewRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug._view'
 import { Route as TaxonomiesNewslettersNewsletterSlugEditRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.edit'
 import { Route as TaxonomiesNewslettersNewsletterSlugViewRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug._view'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugEditRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit'
@@ -234,6 +240,7 @@ import { Route as TaxonomiesYoutubeChannelsChannelSlugEditIndexRouteImport } fro
 import { Route as TaxonomiesWebsitesWebsiteSlugEditIndexRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.index'
 import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug.edit.index'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.edit.index'
+import { Route as TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug.edit.index'
 import { Route as TaxonomiesNewslettersNewsletterSlugEditIndexRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.edit.index'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugEditIndexRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit.index'
 import { Route as TaxonomiesLocationsLocationSlugEditIndexRouteImport } from './routes/taxonomies.locations.$locationSlug.edit.index'
@@ -264,6 +271,8 @@ import { Route as TaxonomiesPublishersPublisherSlugViewGeneralRouteImport } from
 import { Route as TaxonomiesPublishersPublisherSlugViewAuthorsRouteImport } from './routes/taxonomies.publishers.$publisherSlug._view.authors'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.edit.general'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug._view.general'
+import { Route as TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug.edit.general'
+import { Route as TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug._view.general'
 import { Route as TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.issues.$issueId'
 import { Route as TaxonomiesNewslettersNewsletterSlugEditGeneralRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.edit.general'
 import { Route as TaxonomiesNewslettersNewsletterSlugViewGeneralRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug._view.general'
@@ -434,6 +443,11 @@ const TaxonomiesPropertyGroupsRoute =
     path: '/taxonomies/property-groups',
     getParentRoute: () => rootRouteImport,
   } as any)
+const TaxonomiesPlaceTypesRoute = TaxonomiesPlaceTypesRouteImport.update({
+  id: '/taxonomies/place-types',
+  path: '/taxonomies/place-types',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TaxonomiesNewslettersRoute = TaxonomiesNewslettersRouteImport.update({
   id: '/taxonomies/newsletters',
   path: '/taxonomies/newsletters',
@@ -632,6 +646,12 @@ const TaxonomiesPropertyGroupsIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesPropertyGroupsRoute,
   } as any)
+const TaxonomiesPlaceTypesIndexRoute =
+  TaxonomiesPlaceTypesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesPlaceTypesRoute,
+  } as any)
 const TaxonomiesNewslettersIndexRoute =
   TaxonomiesNewslettersIndexRouteImport.update({
     id: '/',
@@ -751,6 +771,12 @@ const TaxonomiesPropertyGroupsPropertyGroupSlugRoute =
     id: '/$propertyGroupSlug',
     path: '/$propertyGroupSlug',
     getParentRoute: () => TaxonomiesPropertyGroupsRoute,
+  } as any)
+const TaxonomiesPlaceTypesPlaceTypeSlugRoute =
+  TaxonomiesPlaceTypesPlaceTypeSlugRouteImport.update({
+    id: '/$placeTypeSlug',
+    path: '/$placeTypeSlug',
+    getParentRoute: () => TaxonomiesPlaceTypesRoute,
   } as any)
 const TaxonomiesNewslettersNewsletterSlugRoute =
   TaxonomiesNewslettersNewsletterSlugRouteImport.update({
@@ -1000,6 +1026,12 @@ const TaxonomiesPropertyGroupsPropertyGroupSlugIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesPropertyGroupsPropertyGroupSlugRoute,
   } as any)
+const TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute =
+  TaxonomiesPlaceTypesPlaceTypeSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesPlaceTypesPlaceTypeSlugRoute,
+  } as any)
 const TaxonomiesNewslettersNewsletterSlugIndexRoute =
   TaxonomiesNewslettersNewsletterSlugIndexRouteImport.update({
     id: '/',
@@ -1125,6 +1157,17 @@ const TaxonomiesPropertyGroupsPropertyGroupSlugViewRoute =
   TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteImport.update({
     id: '/_view',
     getParentRoute: () => TaxonomiesPropertyGroupsPropertyGroupSlugRoute,
+  } as any)
+const TaxonomiesPlaceTypesPlaceTypeSlugEditRoute =
+  TaxonomiesPlaceTypesPlaceTypeSlugEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => TaxonomiesPlaceTypesPlaceTypeSlugRoute,
+  } as any)
+const TaxonomiesPlaceTypesPlaceTypeSlugViewRoute =
+  TaxonomiesPlaceTypesPlaceTypeSlugViewRouteImport.update({
+    id: '/_view',
+    getParentRoute: () => TaxonomiesPlaceTypesPlaceTypeSlugRoute,
   } as any)
 const TaxonomiesNewslettersNewsletterSlugEditRoute =
   TaxonomiesNewslettersNewsletterSlugEditRouteImport.update({
@@ -1545,6 +1588,12 @@ const TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesPropertyGroupsPropertyGroupSlugEditRoute,
   } as any)
+const TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute =
+  TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesPlaceTypesPlaceTypeSlugEditRoute,
+  } as any)
 const TaxonomiesNewslettersNewsletterSlugEditIndexRoute =
   TaxonomiesNewslettersNewsletterSlugEditIndexRouteImport.update({
     id: '/',
@@ -1726,6 +1775,18 @@ const TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute =
     id: '/general',
     path: '/general',
     getParentRoute: () => TaxonomiesPropertyGroupsPropertyGroupSlugViewRoute,
+  } as any)
+const TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute =
+  TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () => TaxonomiesPlaceTypesPlaceTypeSlugEditRoute,
+  } as any)
+const TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRoute =
+  TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () => TaxonomiesPlaceTypesPlaceTypeSlugViewRoute,
   } as any)
 const TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute =
   TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRouteImport.update({
@@ -1931,6 +1992,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/locations': typeof TaxonomiesLocationsRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
   '/taxonomies/newsletters': typeof TaxonomiesNewslettersRouteWithChildren
+  '/taxonomies/place-types': typeof TaxonomiesPlaceTypesRouteWithChildren
   '/taxonomies/property-groups': typeof TaxonomiesPropertyGroupsRouteWithChildren
   '/taxonomies/publishers': typeof TaxonomiesPublishersRouteWithChildren
   '/taxonomies/relationship-types': typeof TaxonomiesRelationshipTypesRouteWithChildren
@@ -1979,6 +2041,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
   '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugViewRouteWithChildren
+  '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugViewRouteWithChildren
   '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteWithChildren
   '/taxonomies/publishers/$publisherSlug': typeof TaxonomiesPublishersPublisherSlugViewRouteWithChildren
   '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewRouteWithChildren
@@ -2000,6 +2063,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/newsletters/': typeof TaxonomiesNewslettersIndexRoute
+  '/taxonomies/place-types/': typeof TaxonomiesPlaceTypesIndexRoute
   '/taxonomies/property-groups/': typeof TaxonomiesPropertyGroupsIndexRoute
   '/taxonomies/publishers/': typeof TaxonomiesPublishersIndexRoute
   '/taxonomies/relationship-types/': typeof TaxonomiesRelationshipTypesIndexRoute
@@ -2068,6 +2132,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/locations/$locationSlug/edit': typeof TaxonomiesLocationsLocationSlugEditRouteWithChildren
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditRouteWithChildren
   '/taxonomies/newsletters/$newsletterSlug/edit': typeof TaxonomiesNewslettersNewsletterSlugEditRouteWithChildren
+  '/taxonomies/place-types/$placeTypeSlug/edit': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditRouteWithChildren
   '/taxonomies/property-groups/$propertyGroupSlug/edit': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditRouteWithChildren
   '/taxonomies/publishers/$publisherSlug/edit': typeof TaxonomiesPublishersPublisherSlugEditRouteWithChildren
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditRouteWithChildren
@@ -2085,6 +2150,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/locations/$locationSlug/': typeof TaxonomiesLocationsLocationSlugIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
   '/taxonomies/newsletters/$newsletterSlug/': typeof TaxonomiesNewslettersNewsletterSlugIndexRoute
+  '/taxonomies/place-types/$placeTypeSlug/': typeof TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/': typeof TaxonomiesPropertyGroupsPropertyGroupSlugIndexRoute
   '/taxonomies/publishers/$publisherSlug/': typeof TaxonomiesPublishersPublisherSlugIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugIndexRoute
@@ -2116,6 +2182,8 @@ export interface FileRoutesByFullPath {
   '/taxonomies/newsletters/$newsletterSlug/general': typeof TaxonomiesNewslettersNewsletterSlugViewGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/general': typeof TaxonomiesNewslettersNewsletterSlugEditGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
+  '/taxonomies/place-types/$placeTypeSlug/general': typeof TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRoute
+  '/taxonomies/place-types/$placeTypeSlug/edit/general': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute
   '/taxonomies/publishers/$publisherSlug/authors': typeof TaxonomiesPublishersPublisherSlugViewAuthorsRoute
@@ -2146,6 +2214,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/locations/$locationSlug/edit/': typeof TaxonomiesLocationsLocationSlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/': typeof TaxonomiesNewslettersNewsletterSlugEditIndexRoute
+  '/taxonomies/place-types/$placeTypeSlug/edit/': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit/': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRoute
   '/taxonomies/websites/$websiteSlug/edit/': typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
@@ -2219,6 +2288,7 @@ export interface FileRoutesByTo {
   '/taxonomies/locations': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/newsletters': typeof TaxonomiesNewslettersIndexRoute
+  '/taxonomies/place-types': typeof TaxonomiesPlaceTypesIndexRoute
   '/taxonomies/property-groups': typeof TaxonomiesPropertyGroupsIndexRoute
   '/taxonomies/publishers': typeof TaxonomiesPublishersIndexRoute
   '/taxonomies/relationship-types': typeof TaxonomiesRelationshipTypesIndexRoute
@@ -2288,6 +2358,7 @@ export interface FileRoutesByTo {
   '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
   '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugIndexRoute
+  '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugIndexRoute
   '/taxonomies/publishers/$publisherSlug': typeof TaxonomiesPublishersPublisherSlugIndexRoute
   '/taxonomies/publishers/$publisherSlug/edit': typeof TaxonomiesPublishersPublisherSlugEditRouteWithChildren
@@ -2328,6 +2399,8 @@ export interface FileRoutesByTo {
   '/taxonomies/newsletters/$newsletterSlug/general': typeof TaxonomiesNewslettersNewsletterSlugViewGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/general': typeof TaxonomiesNewslettersNewsletterSlugEditGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
+  '/taxonomies/place-types/$placeTypeSlug/general': typeof TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRoute
+  '/taxonomies/place-types/$placeTypeSlug/edit/general': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute
   '/taxonomies/publishers/$publisherSlug/authors': typeof TaxonomiesPublishersPublisherSlugViewAuthorsRoute
@@ -2358,6 +2431,7 @@ export interface FileRoutesByTo {
   '/taxonomies/locations/$locationSlug/edit': typeof TaxonomiesLocationsLocationSlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
   '/taxonomies/newsletters/$newsletterSlug/edit': typeof TaxonomiesNewslettersNewsletterSlugEditIndexRoute
+  '/taxonomies/place-types/$placeTypeSlug/edit': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRoute
   '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
@@ -2411,6 +2485,7 @@ export interface FileRoutesById {
   '/taxonomies/locations': typeof TaxonomiesLocationsRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
   '/taxonomies/newsletters': typeof TaxonomiesNewslettersRouteWithChildren
+  '/taxonomies/place-types': typeof TaxonomiesPlaceTypesRouteWithChildren
   '/taxonomies/property-groups': typeof TaxonomiesPropertyGroupsRouteWithChildren
   '/taxonomies/publishers': typeof TaxonomiesPublishersRouteWithChildren
   '/taxonomies/relationship-types': typeof TaxonomiesRelationshipTypesRouteWithChildren
@@ -2466,6 +2541,7 @@ export interface FileRoutesById {
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
   '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugRouteWithChildren
+  '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugRouteWithChildren
   '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
   '/taxonomies/publishers/$publisherSlug': typeof TaxonomiesPublishersPublisherSlugRouteWithChildren
   '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugRouteWithChildren
@@ -2487,6 +2563,7 @@ export interface FileRoutesById {
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/newsletters/': typeof TaxonomiesNewslettersIndexRoute
+  '/taxonomies/place-types/': typeof TaxonomiesPlaceTypesIndexRoute
   '/taxonomies/property-groups/': typeof TaxonomiesPropertyGroupsIndexRoute
   '/taxonomies/publishers/': typeof TaxonomiesPublishersIndexRoute
   '/taxonomies/relationship-types/': typeof TaxonomiesRelationshipTypesIndexRoute
@@ -2559,6 +2636,8 @@ export interface FileRoutesById {
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditRouteWithChildren
   '/taxonomies/newsletters/$newsletterSlug/_view': typeof TaxonomiesNewslettersNewsletterSlugViewRouteWithChildren
   '/taxonomies/newsletters/$newsletterSlug/edit': typeof TaxonomiesNewslettersNewsletterSlugEditRouteWithChildren
+  '/taxonomies/place-types/$placeTypeSlug/_view': typeof TaxonomiesPlaceTypesPlaceTypeSlugViewRouteWithChildren
+  '/taxonomies/place-types/$placeTypeSlug/edit': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditRouteWithChildren
   '/taxonomies/property-groups/$propertyGroupSlug/_view': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteWithChildren
   '/taxonomies/property-groups/$propertyGroupSlug/edit': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditRouteWithChildren
   '/taxonomies/publishers/$publisherSlug/_view': typeof TaxonomiesPublishersPublisherSlugViewRouteWithChildren
@@ -2581,6 +2660,7 @@ export interface FileRoutesById {
   '/taxonomies/locations/$locationSlug/': typeof TaxonomiesLocationsLocationSlugIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
   '/taxonomies/newsletters/$newsletterSlug/': typeof TaxonomiesNewslettersNewsletterSlugIndexRoute
+  '/taxonomies/place-types/$placeTypeSlug/': typeof TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/': typeof TaxonomiesPropertyGroupsPropertyGroupSlugIndexRoute
   '/taxonomies/publishers/$publisherSlug/': typeof TaxonomiesPublishersPublisherSlugIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugIndexRoute
@@ -2612,6 +2692,8 @@ export interface FileRoutesById {
   '/taxonomies/newsletters/$newsletterSlug/_view/general': typeof TaxonomiesNewslettersNewsletterSlugViewGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/general': typeof TaxonomiesNewslettersNewsletterSlugEditGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
+  '/taxonomies/place-types/$placeTypeSlug/_view/general': typeof TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRoute
+  '/taxonomies/place-types/$placeTypeSlug/edit/general': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/_view/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute
   '/taxonomies/publishers/$publisherSlug/_view/authors': typeof TaxonomiesPublishersPublisherSlugViewAuthorsRoute
@@ -2642,6 +2724,7 @@ export interface FileRoutesById {
   '/taxonomies/locations/$locationSlug/edit/': typeof TaxonomiesLocationsLocationSlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/': typeof TaxonomiesNewslettersNewsletterSlugEditIndexRoute
+  '/taxonomies/place-types/$placeTypeSlug/edit/': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit/': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRoute
   '/taxonomies/websites/$websiteSlug/edit/': typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
@@ -2696,6 +2779,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations'
     | '/taxonomies/media-types'
     | '/taxonomies/newsletters'
+    | '/taxonomies/place-types'
     | '/taxonomies/property-groups'
     | '/taxonomies/publishers'
     | '/taxonomies/relationship-types'
@@ -2744,6 +2828,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/new'
     | '/taxonomies/media-types/$mediaTypeSlug'
     | '/taxonomies/newsletters/$newsletterSlug'
+    | '/taxonomies/place-types/$placeTypeSlug'
     | '/taxonomies/property-groups/$propertyGroupSlug'
     | '/taxonomies/publishers/$publisherSlug'
     | '/taxonomies/relationship-types/$relationshipTypeSlug'
@@ -2765,6 +2850,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/'
     | '/taxonomies/media-types/'
     | '/taxonomies/newsletters/'
+    | '/taxonomies/place-types/'
     | '/taxonomies/property-groups/'
     | '/taxonomies/publishers/'
     | '/taxonomies/relationship-types/'
@@ -2833,6 +2919,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/$locationSlug/edit'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
     | '/taxonomies/newsletters/$newsletterSlug/edit'
+    | '/taxonomies/place-types/$placeTypeSlug/edit'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit'
     | '/taxonomies/publishers/$publisherSlug/edit'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit'
@@ -2850,6 +2937,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/$locationSlug/'
     | '/taxonomies/media-types/$mediaTypeSlug/'
     | '/taxonomies/newsletters/$newsletterSlug/'
+    | '/taxonomies/place-types/$placeTypeSlug/'
     | '/taxonomies/property-groups/$propertyGroupSlug/'
     | '/taxonomies/publishers/$publisherSlug/'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/'
@@ -2881,6 +2969,8 @@ export interface FileRouteTypes {
     | '/taxonomies/newsletters/$newsletterSlug/general'
     | '/taxonomies/newsletters/$newsletterSlug/edit/general'
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
+    | '/taxonomies/place-types/$placeTypeSlug/general'
+    | '/taxonomies/place-types/$placeTypeSlug/edit/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
     | '/taxonomies/publishers/$publisherSlug/authors'
@@ -2911,6 +3001,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/$locationSlug/edit/'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/'
     | '/taxonomies/newsletters/$newsletterSlug/edit/'
+    | '/taxonomies/place-types/$placeTypeSlug/edit/'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/'
     | '/taxonomies/websites/$websiteSlug/edit/'
@@ -2984,6 +3075,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations'
     | '/taxonomies/media-types'
     | '/taxonomies/newsletters'
+    | '/taxonomies/place-types'
     | '/taxonomies/property-groups'
     | '/taxonomies/publishers'
     | '/taxonomies/relationship-types'
@@ -3053,6 +3145,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/$locationSlug'
     | '/taxonomies/media-types/$mediaTypeSlug'
     | '/taxonomies/newsletters/$newsletterSlug'
+    | '/taxonomies/place-types/$placeTypeSlug'
     | '/taxonomies/property-groups/$propertyGroupSlug'
     | '/taxonomies/publishers/$publisherSlug'
     | '/taxonomies/publishers/$publisherSlug/edit'
@@ -3093,6 +3186,8 @@ export interface FileRouteTypes {
     | '/taxonomies/newsletters/$newsletterSlug/general'
     | '/taxonomies/newsletters/$newsletterSlug/edit/general'
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
+    | '/taxonomies/place-types/$placeTypeSlug/general'
+    | '/taxonomies/place-types/$placeTypeSlug/edit/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
     | '/taxonomies/publishers/$publisherSlug/authors'
@@ -3123,6 +3218,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/$locationSlug/edit'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
     | '/taxonomies/newsletters/$newsletterSlug/edit'
+    | '/taxonomies/place-types/$placeTypeSlug/edit'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit'
     | '/taxonomies/websites/$websiteSlug/edit'
@@ -3175,6 +3271,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations'
     | '/taxonomies/media-types'
     | '/taxonomies/newsletters'
+    | '/taxonomies/place-types'
     | '/taxonomies/property-groups'
     | '/taxonomies/publishers'
     | '/taxonomies/relationship-types'
@@ -3230,6 +3327,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/new'
     | '/taxonomies/media-types/$mediaTypeSlug'
     | '/taxonomies/newsletters/$newsletterSlug'
+    | '/taxonomies/place-types/$placeTypeSlug'
     | '/taxonomies/property-groups/$propertyGroupSlug'
     | '/taxonomies/publishers/$publisherSlug'
     | '/taxonomies/relationship-types/$relationshipTypeSlug'
@@ -3251,6 +3349,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/'
     | '/taxonomies/media-types/'
     | '/taxonomies/newsletters/'
+    | '/taxonomies/place-types/'
     | '/taxonomies/property-groups/'
     | '/taxonomies/publishers/'
     | '/taxonomies/relationship-types/'
@@ -3323,6 +3422,8 @@ export interface FileRouteTypes {
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
     | '/taxonomies/newsletters/$newsletterSlug/_view'
     | '/taxonomies/newsletters/$newsletterSlug/edit'
+    | '/taxonomies/place-types/$placeTypeSlug/_view'
+    | '/taxonomies/place-types/$placeTypeSlug/edit'
     | '/taxonomies/property-groups/$propertyGroupSlug/_view'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit'
     | '/taxonomies/publishers/$publisherSlug/_view'
@@ -3345,6 +3446,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/$locationSlug/'
     | '/taxonomies/media-types/$mediaTypeSlug/'
     | '/taxonomies/newsletters/$newsletterSlug/'
+    | '/taxonomies/place-types/$placeTypeSlug/'
     | '/taxonomies/property-groups/$propertyGroupSlug/'
     | '/taxonomies/publishers/$publisherSlug/'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/'
@@ -3376,6 +3478,8 @@ export interface FileRouteTypes {
     | '/taxonomies/newsletters/$newsletterSlug/_view/general'
     | '/taxonomies/newsletters/$newsletterSlug/edit/general'
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
+    | '/taxonomies/place-types/$placeTypeSlug/_view/general'
+    | '/taxonomies/place-types/$placeTypeSlug/edit/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/_view/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
     | '/taxonomies/publishers/$publisherSlug/_view/authors'
@@ -3406,6 +3510,7 @@ export interface FileRouteTypes {
     | '/taxonomies/locations/$locationSlug/edit/'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/'
     | '/taxonomies/newsletters/$newsletterSlug/edit/'
+    | '/taxonomies/place-types/$placeTypeSlug/edit/'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/'
     | '/taxonomies/websites/$websiteSlug/edit/'
@@ -3430,6 +3535,7 @@ export interface RootRouteChildren {
   TaxonomiesLocationsRoute: typeof TaxonomiesLocationsRouteWithChildren
   TaxonomiesMediaTypesRoute: typeof TaxonomiesMediaTypesRouteWithChildren
   TaxonomiesNewslettersRoute: typeof TaxonomiesNewslettersRouteWithChildren
+  TaxonomiesPlaceTypesRoute: typeof TaxonomiesPlaceTypesRouteWithChildren
   TaxonomiesPropertyGroupsRoute: typeof TaxonomiesPropertyGroupsRouteWithChildren
   TaxonomiesPublishersRoute: typeof TaxonomiesPublishersRouteWithChildren
   TaxonomiesRelationshipTypesRoute: typeof TaxonomiesRelationshipTypesRouteWithChildren
@@ -3633,6 +3739,13 @@ declare module '@tanstack/react-router' {
       path: '/taxonomies/property-groups'
       fullPath: '/taxonomies/property-groups'
       preLoaderRoute: typeof TaxonomiesPropertyGroupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxonomies/place-types': {
+      id: '/taxonomies/place-types'
+      path: '/taxonomies/place-types'
+      fullPath: '/taxonomies/place-types'
+      preLoaderRoute: typeof TaxonomiesPlaceTypesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/taxonomies/newsletters': {
@@ -3901,6 +4014,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesPropertyGroupsIndexRouteImport
       parentRoute: typeof TaxonomiesPropertyGroupsRoute
     }
+    '/taxonomies/place-types/': {
+      id: '/taxonomies/place-types/'
+      path: '/'
+      fullPath: '/taxonomies/place-types/'
+      preLoaderRoute: typeof TaxonomiesPlaceTypesIndexRouteImport
+      parentRoute: typeof TaxonomiesPlaceTypesRoute
+    }
     '/taxonomies/newsletters/': {
       id: '/taxonomies/newsletters/'
       path: '/'
@@ -4047,6 +4167,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/property-groups/$propertyGroupSlug'
       preLoaderRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteImport
       parentRoute: typeof TaxonomiesPropertyGroupsRoute
+    }
+    '/taxonomies/place-types/$placeTypeSlug': {
+      id: '/taxonomies/place-types/$placeTypeSlug'
+      path: '/$placeTypeSlug'
+      fullPath: '/taxonomies/place-types/$placeTypeSlug'
+      preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugRouteImport
+      parentRoute: typeof TaxonomiesPlaceTypesRoute
     }
     '/taxonomies/newsletters/$newsletterSlug': {
       id: '/taxonomies/newsletters/$newsletterSlug'
@@ -4363,6 +4490,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugIndexRouteImport
       parentRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugRoute
     }
+    '/taxonomies/place-types/$placeTypeSlug/': {
+      id: '/taxonomies/place-types/$placeTypeSlug/'
+      path: '/'
+      fullPath: '/taxonomies/place-types/$placeTypeSlug/'
+      preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugIndexRouteImport
+      parentRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugRoute
+    }
     '/taxonomies/newsletters/$newsletterSlug/': {
       id: '/taxonomies/newsletters/$newsletterSlug/'
       path: '/'
@@ -4516,6 +4650,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/property-groups/$propertyGroupSlug'
       preLoaderRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteImport
       parentRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugRoute
+    }
+    '/taxonomies/place-types/$placeTypeSlug/edit': {
+      id: '/taxonomies/place-types/$placeTypeSlug/edit'
+      path: '/edit'
+      fullPath: '/taxonomies/place-types/$placeTypeSlug/edit'
+      preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditRouteImport
+      parentRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugRoute
+    }
+    '/taxonomies/place-types/$placeTypeSlug/_view': {
+      id: '/taxonomies/place-types/$placeTypeSlug/_view'
+      path: ''
+      fullPath: '/taxonomies/place-types/$placeTypeSlug'
+      preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugViewRouteImport
+      parentRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugRoute
     }
     '/taxonomies/newsletters/$newsletterSlug/edit': {
       id: '/taxonomies/newsletters/$newsletterSlug/edit'
@@ -5014,6 +5162,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRouteImport
       parentRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditRoute
     }
+    '/taxonomies/place-types/$placeTypeSlug/edit/': {
+      id: '/taxonomies/place-types/$placeTypeSlug/edit/'
+      path: '/'
+      fullPath: '/taxonomies/place-types/$placeTypeSlug/edit/'
+      preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRouteImport
+      parentRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditRoute
+    }
     '/taxonomies/newsletters/$newsletterSlug/edit/': {
       id: '/taxonomies/newsletters/$newsletterSlug/edit/'
       path: '/'
@@ -5223,6 +5378,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/property-groups/$propertyGroupSlug/general'
       preLoaderRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRouteImport
       parentRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRoute
+    }
+    '/taxonomies/place-types/$placeTypeSlug/edit/general': {
+      id: '/taxonomies/place-types/$placeTypeSlug/edit/general'
+      path: '/general'
+      fullPath: '/taxonomies/place-types/$placeTypeSlug/edit/general'
+      preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRouteImport
+      parentRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditRoute
+    }
+    '/taxonomies/place-types/$placeTypeSlug/_view/general': {
+      id: '/taxonomies/place-types/$placeTypeSlug/_view/general'
+      path: '/general'
+      fullPath: '/taxonomies/place-types/$placeTypeSlug/general'
+      preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRouteImport
+      parentRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugViewRoute
     }
     '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': {
       id: '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
@@ -6478,6 +6647,74 @@ const TaxonomiesNewslettersRouteWithChildren =
     TaxonomiesNewslettersRouteChildren,
   )
 
+interface TaxonomiesPlaceTypesPlaceTypeSlugViewRouteChildren {
+  TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRoute
+}
+
+const TaxonomiesPlaceTypesPlaceTypeSlugViewRouteChildren: TaxonomiesPlaceTypesPlaceTypeSlugViewRouteChildren =
+  {
+    TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRoute:
+      TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRoute,
+  }
+
+const TaxonomiesPlaceTypesPlaceTypeSlugViewRouteWithChildren =
+  TaxonomiesPlaceTypesPlaceTypeSlugViewRoute._addFileChildren(
+    TaxonomiesPlaceTypesPlaceTypeSlugViewRouteChildren,
+  )
+
+interface TaxonomiesPlaceTypesPlaceTypeSlugEditRouteChildren {
+  TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute
+  TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute
+}
+
+const TaxonomiesPlaceTypesPlaceTypeSlugEditRouteChildren: TaxonomiesPlaceTypesPlaceTypeSlugEditRouteChildren =
+  {
+    TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute:
+      TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute,
+    TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute:
+      TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute,
+  }
+
+const TaxonomiesPlaceTypesPlaceTypeSlugEditRouteWithChildren =
+  TaxonomiesPlaceTypesPlaceTypeSlugEditRoute._addFileChildren(
+    TaxonomiesPlaceTypesPlaceTypeSlugEditRouteChildren,
+  )
+
+interface TaxonomiesPlaceTypesPlaceTypeSlugRouteChildren {
+  TaxonomiesPlaceTypesPlaceTypeSlugViewRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugViewRouteWithChildren
+  TaxonomiesPlaceTypesPlaceTypeSlugEditRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditRouteWithChildren
+  TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute
+}
+
+const TaxonomiesPlaceTypesPlaceTypeSlugRouteChildren: TaxonomiesPlaceTypesPlaceTypeSlugRouteChildren =
+  {
+    TaxonomiesPlaceTypesPlaceTypeSlugViewRoute:
+      TaxonomiesPlaceTypesPlaceTypeSlugViewRouteWithChildren,
+    TaxonomiesPlaceTypesPlaceTypeSlugEditRoute:
+      TaxonomiesPlaceTypesPlaceTypeSlugEditRouteWithChildren,
+    TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute:
+      TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute,
+  }
+
+const TaxonomiesPlaceTypesPlaceTypeSlugRouteWithChildren =
+  TaxonomiesPlaceTypesPlaceTypeSlugRoute._addFileChildren(
+    TaxonomiesPlaceTypesPlaceTypeSlugRouteChildren,
+  )
+
+interface TaxonomiesPlaceTypesRouteChildren {
+  TaxonomiesPlaceTypesPlaceTypeSlugRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugRouteWithChildren
+  TaxonomiesPlaceTypesIndexRoute: typeof TaxonomiesPlaceTypesIndexRoute
+}
+
+const TaxonomiesPlaceTypesRouteChildren: TaxonomiesPlaceTypesRouteChildren = {
+  TaxonomiesPlaceTypesPlaceTypeSlugRoute:
+    TaxonomiesPlaceTypesPlaceTypeSlugRouteWithChildren,
+  TaxonomiesPlaceTypesIndexRoute: TaxonomiesPlaceTypesIndexRoute,
+}
+
+const TaxonomiesPlaceTypesRouteWithChildren =
+  TaxonomiesPlaceTypesRoute._addFileChildren(TaxonomiesPlaceTypesRouteChildren)
+
 interface TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteChildren {
   TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute
 }
@@ -6894,6 +7131,7 @@ const rootRouteChildren: RootRouteChildren = {
   TaxonomiesLocationsRoute: TaxonomiesLocationsRouteWithChildren,
   TaxonomiesMediaTypesRoute: TaxonomiesMediaTypesRouteWithChildren,
   TaxonomiesNewslettersRoute: TaxonomiesNewslettersRouteWithChildren,
+  TaxonomiesPlaceTypesRoute: TaxonomiesPlaceTypesRouteWithChildren,
   TaxonomiesPropertyGroupsRoute: TaxonomiesPropertyGroupsRouteWithChildren,
   TaxonomiesPublishersRoute: TaxonomiesPublishersRouteWithChildren,
   TaxonomiesRelationshipTypesRoute:

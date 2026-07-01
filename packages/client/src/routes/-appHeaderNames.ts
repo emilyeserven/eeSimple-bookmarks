@@ -6,6 +6,7 @@ import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
+import { usePlaceTypeBySlug } from "@/hooks/usePlaceTypes";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { usePublisherBySlug } from "@/hooks/usePublishers";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
@@ -17,6 +18,7 @@ export interface TaxonomyNameSlugs {
   newsletter: string;
   author: string;
   publisher: string;
+  placeType: string;
   propertyGroup: string;
   relationshipType: string;
   property: string;
@@ -45,6 +47,9 @@ export function useTaxonomyNameMap(
   const {
     publisher,
   } = usePublisherBySlug(slugs.publisher);
+  const {
+    placeType,
+  } = usePlaceTypeBySlug(slugs.placeType);
   const {
     propertyGroup,
   } = usePropertyGroupBySlug(slugs.propertyGroup);
@@ -78,6 +83,9 @@ export function useTaxonomyNameMap(
     "/taxonomies/publishers": {
       name: publisher?.name,
       romanized: publisher?.romanizedName,
+    },
+    "/taxonomies/place-types": {
+      name: placeType?.name,
     },
     "/taxonomies/property-groups": {
       name: propertyGroup?.name,

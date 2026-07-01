@@ -4,6 +4,7 @@ export { bookmarkContentType } from "./bookmark";
 export { categoryContentType } from "./category";
 export { locationContentType } from "./location";
 export { mediaTypeContentType } from "./mediaType";
+export { placeTypeContentType } from "./placeType";
 export { propertyContentType } from "./property";
 export { propertyGroupContentType } from "./propertyGroup";
 export { tagContentType } from "./tag";
