@@ -67,6 +67,7 @@ export function LocationLevelsOverlay({
                   <Checkbox
                     id={`level-${group.id}`}
                     checked={controls.visibleIds.has(group.id)}
+                    disabled={controls.disabledIds.has(group.id)}
                     onCheckedChange={checked => controls.onToggleVisible(group.id, checked === true)}
                   />
                   {group.displayMode === "pin"

@@ -2,7 +2,7 @@ import type { PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { computeVisibleLevelGroupIds, placeTypeChoices } from "./locationLevels";
+import { computePopulatedLevelGroupIds, computeVisibleLevelGroupIds, placeTypeChoices } from "./locationLevels";
 
 function group(overrides: Partial<PlaceTypeLevelGroup> & Pick<PlaceTypeLevelGroup, "id">): PlaceTypeLevelGroup {
   return {
@@ -150,6 +150,50 @@ describe("computeVisibleLevelGroupIds", () => {
       currentPlaceType: null,
     }, "current");
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
+  });
+});
+
+describe("computePopulatedLevelGroupIds", () => {
+  it("includes only groups whose place type is present among the plotted locations", () => {
+    const ids = computePopulatedLevelGroupIds(groups, [
+      {
+        placeType: "country",
+      },
+      {
+        placeType: "city",
+      },
+    ]);
+    expect([...ids].sort()).toEqual(["city", "country"]);
+  });
+
+  it("excludes a group with no plotted locations of its place types", () => {
+    const ids = computePopulatedLevelGroupIds(groups, [
+      {
+        placeType: "country",
+      },
+    ]);
+    expect([...ids].sort()).toEqual(["country"]);
+  });
+
+  it("re-includes a group once a location of its place type appears", () => {
+    const before = computePopulatedLevelGroupIds(groups, [{
+      placeType: "country",
+    }]);
+    expect(before.has("region")).toBe(false);
+    const after = computePopulatedLevelGroupIds(groups, [
+      {
+        placeType: "country",
+      },
+      {
+        placeType: "state",
+      },
+    ]);
+    expect(after.has("region")).toBe(true);
+  });
+
+  it("returns no ids when there are no plotted locations", () => {
+    const ids = computePopulatedLevelGroupIds(groups, []);
+    expect(ids.size).toBe(0);
   });
 });
 

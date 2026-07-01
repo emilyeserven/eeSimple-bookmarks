@@ -38,6 +38,7 @@ const meta = {
     controls: {
       visibleIds: new Set(["level-country"]),
       onToggleVisible: () => {},
+      disabledIds: new Set<string>(),
       levelMode: "current",
       onLevelModeChange: () => {},
       hideAdminBorders: false,

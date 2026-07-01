@@ -14,8 +14,8 @@ import { LocationMap } from "./LocationMap";
 import { useLocationPlaceTypeColors, useLocationPlaceTypeIcons } from "../hooks/useAppSettings";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 import { useRefreshLocationBoundary } from "../hooks/useLocations";
-import { computeVisibleLevelGroupIds } from "../lib/locationLevels";
-import { selectedSubtrees } from "../lib/tagTree";
+import { computePopulatedLevelGroupIds, computeVisibleLevelGroupIds } from "../lib/locationLevels";
+import { flattenTree, selectedSubtrees } from "../lib/tagTree";
 import { useUiStore } from "../stores/uiStore";
 
 import { cn } from "@/lib/utils";
@@ -81,6 +81,16 @@ export function LocationMapSection({
   const iconConfig = useLocationPlaceTypeIcons();
   const colorConfig = useLocationPlaceTypeColors();
 
+  // Prune the plotted tree to the focused location(s) + their subtrees when a filter is active; the
+  // overlay combobox still sees the full tree (built into `mapFilter`) so any place stays selectable.
+  // `filterIds` is the prop array reference (stable from the parent's state), or undefined when
+  // filtering is disabled — keeping it out of a `?? []` fallback avoids a fresh dep every render.
+  const filterIds = filter?.filterIds;
+  const plottedTree = useMemo(
+    () => (filterIds && filterIds.length > 0 ? selectedSubtrees(tree, new Set(filterIds)) : tree),
+    [tree, filterIds],
+  );
+
   // Per-map level state: which level groups show is resolved from this map's scope + the shared mode,
   // with a temporary local override for individual checkbox tweaks (reset when the mode/scope change).
   const {
@@ -136,7 +146,19 @@ export function LocationMapSection({
     setOverrideIds(null);
   }, [scopeKind, currentPlaceType, bookmarkPlaceTypesKey, levelMode]);
 
-  const visibleIds = overrideIds ?? defaultVisibleIds;
+  // Level groups with no plotted areas/pins in the current tree get their checkbox disabled/unchecked
+  // — this is derived fresh from `plottedTree` every render (not stored state), so a group re-enables
+  // itself the instant its place type is plotted again (e.g. after navigating to a different bookmark).
+  const populatedIds = useMemo(
+    () => computePopulatedLevelGroupIds(groups, flattenTree(plottedTree).map(({
+      node,
+    }) => node)),
+    [groups, plottedTree],
+  );
+  const visibleIds = useMemo(() => {
+    const base = overrideIds ?? defaultVisibleIds;
+    return new Set([...base].filter(id => populatedIds.has(id)));
+  }, [overrideIds, defaultVisibleIds, populatedIds]);
   const displayConfig = useMemo(
     () => expandLevelGroupsToDisplayConfig(groups.map(group => ({
       ...group,
@@ -147,6 +169,10 @@ export function LocationMapSection({
 
   // The above/current/below button group applies wherever there's a "current" level (or levels).
   const hasLevelMode = scopeKind === "location" || scopeKind === "bookmark";
+  const disabledIds = useMemo(
+    () => new Set(groups.filter(group => !populatedIds.has(group.id)).map(group => group.id)),
+    [groups, populatedIds],
+  );
   const controls: LevelsControls = {
     visibleIds,
     onToggleVisible: (id, visible) => setOverrideIds((prev) => {
@@ -155,6 +181,7 @@ export function LocationMapSection({
       else next.delete(id);
       return next;
     }),
+    disabledIds,
     levelMode: hasLevelMode ? levelMode : undefined,
     onLevelModeChange: hasLevelMode ? setLevelMode : undefined,
     hideAdminBorders,
@@ -165,15 +192,6 @@ export function LocationMapSection({
   // holds the previous location's settled viewport so the next map seeds + animates from it.
   const lastViewRef = useRef<MapView | null>(null);
 
-  // Prune the plotted tree to the focused location(s) + their subtrees when a filter is active; the
-  // overlay combobox still sees the full tree (built into `mapFilter`) so any place stays selectable.
-  // `filterIds` is the prop array reference (stable from the parent's state), or undefined when
-  // filtering is disabled — keeping it out of a `?? []` fallback avoids a fresh dep every render.
-  const filterIds = filter?.filterIds;
-  const plottedTree = useMemo(
-    () => (filterIds && filterIds.length > 0 ? selectedSubtrees(tree, new Set(filterIds)) : tree),
-    [tree, filterIds],
-  );
   const mapFilter: MapFilterControls | undefined = filter
     ? {
       tree,
