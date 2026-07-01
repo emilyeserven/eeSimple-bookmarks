@@ -1011,6 +1011,12 @@ export interface Bookmark {
   newsletter: BookmarkNewsletter | null;
   /** The publisher of this bookmarked item, or null when unset. */
   publisher: BookmarkPublisher | null;
+  /** Id of the linked series on the connected Kavita server, or `null` when not linked. */
+  kavitaSeriesId: number | null;
+  /** Id of the Kavita library containing the linked series (needed for the web UI deep link). */
+  kavitaLibraryId: number | null;
+  /** Display name of the linked Kavita series, denormalized at link time. */
+  kavitaSeriesName: string | null;
   /** The import event this bookmark was created from, or `null`. */
   import: BookmarkImport | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
@@ -1104,6 +1110,12 @@ export interface CreateBookmarkInput {
   importId?: string | null;
   /** Id of the publisher to assign; null to clear. Omit to leave unchanged. */
   publisherId?: string | null;
+  /** Id of the Kavita series to link, or `null` to unlink. Omit to leave unchanged. */
+  kavitaSeriesId?: number | null;
+  /** Id of the Kavita library containing the linked series, or `null` to clear. Omit to leave unchanged. */
+  kavitaLibraryId?: number | null;
+  /** Display name of the linked Kavita series, or `null` to clear. Omit to leave unchanged. */
+  kavitaSeriesName?: string | null;
 }
 
 /** Payload for partially updating a bookmark. */
@@ -2514,6 +2526,14 @@ export interface ConnectorsStatus {
   archiveBox: { enabled: boolean;
     baseUrl: string | null; };
   /**
+   * Kavita ebook/manga server — active only when BOTH a base URL and an API key are configured
+   * (`KAVITA_ENDPOINT` / `KAVITA_API_KEY` env vars or the saved settings). The base URL is not a
+   * secret and is returned so the client can build series deep links
+   * (`<base>/library/{libraryId}/series/{seriesId}`); the API key never leaves the middleware.
+   */
+  kavita: { enabled: boolean;
+    baseUrl: string | null; };
+  /**
    * Geocoding for the Locations taxonomy — always keyless (OpenStreetMap Nominatim). `endpoint`
    * reports the base URL in use (the public Nominatim by default, or a self-hosted instance set via
    * `NOMINATIM_ENDPOINT`); it is not a secret.
@@ -2540,6 +2560,10 @@ export interface ConnectorsAppSettings {
   encryptionEnabled: boolean;
   /** Base URL of the ArchiveBox instance (e.g. `http://localhost:8000`), or `""` when unset. */
   archiveBoxEndpoint: string;
+  /** Base URL of the Kavita instance (e.g. `http://localhost:5000`), or `""` when unset. */
+  kavitaEndpoint: string;
+  /** Whether a Kavita API key is stored (encrypted or plain); the raw value is never returned. */
+  kavitaApiKeySet: boolean;
   /**
    * Patterns that exclude matching candidate images from a URL scan. Each entry is a case-insensitive
    * substring, or a simple `*` glob (e.g. `*.doubleclick.net/*`). Applied to every candidate image
@@ -2561,8 +2585,31 @@ export interface UpdateConnectorsSettingsInput {
   hostedMetadataApiKey: string | null;
   /** Base URL of the ArchiveBox instance; `""` clears it. No key analog — ArchiveBox link-outs are tokenless. */
   archiveBoxEndpoint: string;
+  /** Base URL of the Kavita instance; `""` clears it. */
+  kavitaEndpoint: string;
+  /**
+   * Raw Kavita API key to store (encrypted when `APP_SECRET` is set).
+   * `null` = leave the stored key unchanged.
+   * `""` = clear the stored key.
+   * Any other string = encrypt and store as the new key.
+   */
+  kavitaApiKey: string | null;
   /** Image-URL blacklist patterns; replaces the stored list wholesale. */
   imageUrlBlacklist: string[];
+}
+
+/** One Kavita series matched by a search (`GET /api/kavita/series?q=`). */
+export interface KavitaSeriesResult {
+  /** Kavita's numeric series id. */
+  seriesId: number;
+  /** Id of the Kavita library the series belongs to (needed for the web UI deep link). */
+  libraryId: number;
+  /** Series display name. */
+  name: string;
+  /** Name of the containing Kavita library, or `null` when not reported. */
+  libraryName: string | null;
+  /** Release year of the series, or `null` when unknown/unreported. */
+  releaseYear: number | null;
 }
 
 /** Result of probing a URL for reachability (`GET /api/check-url`). */

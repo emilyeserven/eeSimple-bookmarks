@@ -48,6 +48,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Archive Link",
   },
   {
+    key: "kavitaLink",
+    label: "Kavita Link",
+  },
+  {
     key: "more",
     label: "More menu",
   },

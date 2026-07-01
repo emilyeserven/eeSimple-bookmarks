@@ -97,6 +97,10 @@ export const bookmarksApi = {
     request<BookmarkImage>(`/bookmarks/${id}/image/auto`, {
       method: "POST",
     }),
+  kavitaCover: (id: string) =>
+    request<BookmarkImage>(`/bookmarks/${id}/kavita-cover`, {
+      method: "POST",
+    }),
   deleteImage: (id: string) =>
     request<undefined>(`/bookmarks/${id}/image`, {
       method: "DELETE",

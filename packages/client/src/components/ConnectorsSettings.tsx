@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { OEMBED_PROVIDERS } from "@eesimple/types";
 
-import { ArchiveBoxForm, HostedMetadataForm, ImageBlacklistForm } from "./ConnectorMetadataForms";
+import { ArchiveBoxForm, HostedMetadataForm, ImageBlacklistForm, KavitaForm } from "./ConnectorMetadataForms";
 import { useConnectors } from "../hooks/useConnectors";
 
 import { Badge } from "@/components/ui/badge";
@@ -432,6 +432,30 @@ export function ConnectorsSettings() {
           <CardContent className="space-y-4">
             <ArchiveBoxForm />
             <Provides items={["View archived snapshot", "Archive now (add URL)"]} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: "kavita",
+      status: envStatus(data?.kavita.enabled),
+      node: (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>Kavita</CardTitle>
+              <StatusBadge enabled={data?.kavita.enabled} />
+            </div>
+            <CardDescription>
+              Optional. When a base URL and API key are configured, bookmarks can be linked to a
+              series on your self-hosted Kavita ebook/manga server — with a &quot;View on Kavita&quot;
+              link-out and series cover import. Off by default; series searches and cover fetches are
+              proxied by the server, so the API key never reaches the browser.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <KavitaForm />
+            <Provides items={["Link bookmarks to a Kavita series", "View on Kavita link-out", "Series cover import"]} />
           </CardContent>
         </Card>
       ),

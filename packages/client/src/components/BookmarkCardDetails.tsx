@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 
 import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
 
-import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
+import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkKavitaLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
 import { badgeNode, ratingStars } from "./bookmarkCardFieldRenders";
 import { describeTaxonomyField } from "./bookmarkCardTaxonomyFields";
 import { BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
@@ -147,6 +147,18 @@ export function BookmarkCardDetails({
       />
     )
     : null;
+  // Kavita deep link; the kavitaLink field renders nothing when unconfigured or unlinked.
+  const kavitaBaseUrl = connectors?.kavita.enabled ? connectors.kavita.baseUrl : null;
+  const kavitaLinkNode = kavitaBaseUrl !== null
+    && bookmark.kavitaSeriesId !== null && bookmark.kavitaLibraryId !== null
+    ? (
+      <BookmarkKavitaLinkButton
+        baseUrl={kavitaBaseUrl}
+        libraryId={bookmark.kavitaLibraryId}
+        seriesId={bookmark.kavitaSeriesId}
+      />
+    )
+    : null;
   const moreNode = (
     <BookmarkMoreMenu
       bookmark={bookmark}
@@ -187,6 +199,16 @@ export function BookmarkCardDetails({
           block: archiveLinkNode,
           tableName: "Archive",
           tableValue: archiveLinkNode,
+        };
+      }
+      case "kavitaLink": {
+        // Hidden when Kavita isn't configured or the bookmark isn't linked to a series.
+        if (kavitaLinkNode === null) return null;
+        return {
+          inline: kavitaLinkNode,
+          block: kavitaLinkNode,
+          tableName: "Kavita",
+          tableValue: kavitaLinkNode,
         };
       }
       case "more": {

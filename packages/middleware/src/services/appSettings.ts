@@ -1059,6 +1059,8 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
       hostedMetadataApiKey: appSettings.hostedMetadataApiKey,
       hostedMetadataProvider: appSettings.hostedMetadataProvider,
       archiveBoxEndpoint: appSettings.archiveBoxEndpoint,
+      kavitaEndpoint: appSettings.kavitaEndpoint,
+      kavitaApiKey: appSettings.kavitaApiKey,
       imageUrlBlacklist: appSettings.imageUrlBlacklist,
     })
     .from(appSettings)
@@ -1073,6 +1075,8 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
     hostedMetadataApiKeySet: hasStoredKey || hasEnvKey,
     encryptionEnabled: encryptionEnabled(),
     archiveBoxEndpoint: row?.archiveBoxEndpoint ?? process.env.ARCHIVEBOX_ENDPOINT ?? "",
+    kavitaEndpoint: row?.kavitaEndpoint ?? process.env.KAVITA_ENDPOINT ?? "",
+    kavitaApiKeySet: Boolean(row?.kavitaApiKey) || Boolean(process.env.KAVITA_API_KEY),
     imageUrlBlacklist: row?.imageUrlBlacklist ?? [],
   };
 }
@@ -1174,62 +1178,82 @@ export async function getActiveArchiveBoxEndpoint(): Promise<string | null> {
   }
 }
 
+/**
+ * Get the active Kavita base URL: database value wins over env var.
+ * Returns null when neither is configured.
+ */
+export async function getActiveKavitaEndpoint(): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select({
+        kavitaEndpoint: appSettings.kavitaEndpoint,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    return row?.kavitaEndpoint || process.env.KAVITA_ENDPOINT || null;
+  }
+  catch {
+    return process.env.KAVITA_ENDPOINT || null;
+  }
+}
+
+/**
+ * Retrieve the decrypted Kavita API key. Checks the database first (decrypting if encrypted),
+ * then falls back to the `KAVITA_API_KEY` env var.
+ */
+export async function getDecryptedKavitaApiKey(): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select({
+        kavitaApiKey: appSettings.kavitaApiKey,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    if (row?.kavitaApiKey) {
+      const decrypted = maybeDecrypt(row.kavitaApiKey);
+      if (decrypted) return decrypted;
+    }
+  }
+  catch {
+    // DB unavailable (e.g. test environment) — fall through to env var.
+  }
+  return process.env.KAVITA_API_KEY ?? null;
+}
+
 /** Replace the hosted-metadata connector settings, upserting the singleton. */
 export async function updateConnectorsSettings(
   input: UpdateConnectorsSettingsInput,
 ): Promise<ConnectorsAppSettings> {
-  const endpoint = input.hostedMetadataEndpoint.trim();
-  const provider = input.hostedMetadataProvider.trim();
-  const archiveBoxEndpoint = input.archiveBoxEndpoint.trim();
-  // Normalize the blacklist: trim entries, drop blanks, dedupe — store a clean list.
-  const imageUrlBlacklist = [...new Set(input.imageUrlBlacklist.map(p => p.trim()).filter(Boolean))];
-  if (input.hostedMetadataApiKey === null) {
-    // null = leave any existing API key unchanged; only update endpoint/provider.
-    await db
-      .insert(appSettings)
-      .values({
-        id: ROW_ID,
-        hostedMetadataEndpoint: endpoint,
-        hostedMetadataProvider: provider,
-        archiveBoxEndpoint,
-        imageUrlBlacklist,
-      })
-      .onConflictDoUpdate({
-        target: appSettings.id,
-        set: {
-          hostedMetadataEndpoint: endpoint,
-          hostedMetadataProvider: provider,
-          archiveBoxEndpoint,
-          imageUrlBlacklist,
-        },
-      });
-  }
-  else {
-    // "" = clear the stored key; any other value = encrypt and store.
-    const apiKeyToStore = input.hostedMetadataApiKey.trim()
+  // Base (non-secret) fields are always written; each API key is written only when its input is
+  // non-null (null = leave the stored key unchanged; "" = clear; other values encrypt and store).
+  const set: Partial<typeof appSettings.$inferInsert> = {
+    hostedMetadataEndpoint: input.hostedMetadataEndpoint.trim(),
+    hostedMetadataProvider: input.hostedMetadataProvider.trim(),
+    archiveBoxEndpoint: input.archiveBoxEndpoint.trim(),
+    kavitaEndpoint: input.kavitaEndpoint.trim(),
+    // Normalize the blacklist: trim entries, drop blanks, dedupe — store a clean list.
+    imageUrlBlacklist: [...new Set(input.imageUrlBlacklist.map(p => p.trim()).filter(Boolean))],
+  };
+  if (input.hostedMetadataApiKey !== null) {
+    set.hostedMetadataApiKey = input.hostedMetadataApiKey.trim()
       ? maybeEncrypt(input.hostedMetadataApiKey.trim())
       : null;
-    await db
-      .insert(appSettings)
-      .values({
-        id: ROW_ID,
-        hostedMetadataEndpoint: endpoint,
-        hostedMetadataProvider: provider,
-        hostedMetadataApiKey: apiKeyToStore,
-        archiveBoxEndpoint,
-        imageUrlBlacklist,
-      })
-      .onConflictDoUpdate({
-        target: appSettings.id,
-        set: {
-          hostedMetadataEndpoint: endpoint,
-          hostedMetadataProvider: provider,
-          hostedMetadataApiKey: apiKeyToStore,
-          archiveBoxEndpoint,
-          imageUrlBlacklist,
-        },
-      });
   }
+  if (input.kavitaApiKey !== null) {
+    set.kavitaApiKey = input.kavitaApiKey.trim()
+      ? maybeEncrypt(input.kavitaApiKey.trim())
+      : null;
+  }
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      ...set,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set,
+    });
   return getConnectorsSettings();
 }
 

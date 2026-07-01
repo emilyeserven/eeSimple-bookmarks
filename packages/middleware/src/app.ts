@@ -27,6 +27,7 @@ import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { locationRoutes } from "@/routes/locations";
 import { placeTypeRoutes } from "@/routes/placeTypes";
 import { connectorsRoutes } from "@/routes/connectors";
+import { kavitaRoutes } from "@/routes/kavita";
 import { metadataRoutes } from "@/routes/metadata";
 import { newsletterRoutes } from "@/routes/newsletters";
 import { publisherRoutes } from "@/routes/publishers";
@@ -208,6 +209,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(healthRoutes);
   await app.register(metadataRoutes);
   await app.register(connectorsRoutes);
+  await app.register(kavitaRoutes);
   await app.register(authorRoutes);
   await app.register(newsletterRoutes);
   await app.register(publisherRoutes);

@@ -49,6 +49,12 @@ export const bookmarks = pgTable("bookmarks", {
   publisherId: uuid("publisher_id").references((): AnyPgColumn => publishers.id, {
     onDelete: "set null",
   }),
+  // Link to a series on the connected Kavita server (Settings → Connectors). All nullable =
+  // push-safe additive; the library id is kept alongside the series id to build the web UI deep
+  // link, and the series name is denormalized at link time for display without a Kavita round-trip.
+  kavitaSeriesId: integer("kavita_series_id"),
+  kavitaLibraryId: integer("kavita_library_id"),
+  kavitaSeriesName: text("kavita_series_name"),
   priority: integer("priority").notNull().default(0),
   // Specific reason the last image auto-grab attempt failed. Nullable so `drizzle-kit push`
   // applies cleanly to existing rows (push-safe additive change). NULL means never attempted or
@@ -1347,6 +1353,12 @@ export const appSettings = pgTable("app_settings", {
   // ArchiveBox base URL configured from Settings → Connectors. Nullable = push-safe additive;
   // ARCHIVEBOX_ENDPOINT env var is used as fallback when null.
   archiveBoxEndpoint: text("archive_box_endpoint"),
+  // Kavita base URL configured from Settings → Connectors. Nullable = push-safe additive;
+  // KAVITA_ENDPOINT env var is used as fallback when null.
+  kavitaEndpoint: text("kavita_endpoint"),
+  // API key for the Kavita server; stored encrypted when APP_SECRET is configured.
+  // KAVITA_API_KEY env var is used as fallback when null.
+  kavitaApiKey: text("kavita_api_key"),
   // Image-URL blacklist (Settings → Connectors): patterns that exclude matching candidate images
   // from a URL scan. Display/scan-only, never touches the bookmark cache. Nullable = push-safe
   // additive; the service reads `?? []`.

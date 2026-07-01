@@ -249,7 +249,7 @@ const placeTypeDisplayBody = {
 
 const connectorsBody = {
   type: "object",
-  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "imageUrlBlacklist"],
+  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaApiKey", "imageUrlBlacklist"],
   additionalProperties: false,
   properties: {
     hostedMetadataEndpoint: {
@@ -265,6 +265,14 @@ const connectorsBody = {
     archiveBoxEndpoint: {
       // ArchiveBox base URL; "" clears it. No key analog — link-outs are tokenless.
       type: "string",
+    },
+    kavitaEndpoint: {
+      // Kavita base URL; "" clears it.
+      type: "string",
+    },
+    kavitaApiKey: {
+      // null = leave the stored key unchanged; "" = clear; any other string = set new key.
+      type: ["string", "null"],
     },
     imageUrlBlacklist: {
       // Patterns (substring or `*` glob) that exclude matching candidate images from a URL scan.

@@ -27,6 +27,10 @@ vi.mock("../hooks/useConnectors", () => ({
         enabled: false,
         baseUrl: null,
       },
+      kavita: {
+        enabled: false,
+        baseUrl: null,
+      },
       geocoding: {
         enabled: true,
         endpoint: "https://nominatim.openstreetmap.org",
@@ -54,6 +58,8 @@ vi.mock("../hooks/useAppSettings", () => ({
       hostedMetadataApiKeySet: false,
       encryptionEnabled: false,
       archiveBoxEndpoint: "",
+      kavitaEndpoint: "",
+      kavitaApiKeySet: false,
     },
   }),
   useUpdateConnectorsSettings: () => ({
@@ -73,7 +79,10 @@ describe("ConnectorsSettings", () => {
     expect(screen.getByText("YouTube")).toBeInTheDocument();
     // "ArchiveBox" appears as the card title and in its description link.
     expect(screen.getAllByText("ArchiveBox").length).toBeGreaterThan(0);
-    expect(screen.getByText("Base URL")).toBeInTheDocument();
+    expect(screen.getAllByText("Base URL").length).toBeGreaterThan(0);
+    // The Kavita card renders with its editable form (API key field).
+    expect(screen.getAllByText("Kavita").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("API key")).toBeInTheDocument();
 
     // YouTube Data API is enabled → an Active badge; the hosted provider is disabled → Inactive.
     expect(screen.getAllByText("Active").length).toBeGreaterThan(0);

@@ -299,6 +299,9 @@ export function useCardDisplayRulePreview({
         imageUrl: null,
       },
       newsletter: null,
+      kavitaSeriesId: null,
+      kavitaLibraryId: null,
+      kavitaSeriesName: null,
       import: null,
       tags: [
         {

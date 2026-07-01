@@ -42,6 +42,7 @@ import {
   removeBookmarkReelArchive,
 } from "@/services/reelArchive";
 import { quickSaveToInbox } from "@/services/imports";
+import { importKavitaSeriesCover, kavitaEnabledAsync } from "@/services/kavita";
 import { getObjectRange, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { isValidUrl } from "@/utils/url";
 
@@ -347,6 +348,15 @@ const createBookmarkBody = {
     publisherId: {
       type: ["string", "null"],
       format: "uuid",
+    },
+    kavitaSeriesId: {
+      type: ["integer", "null"],
+    },
+    kavitaLibraryId: {
+      type: ["integer", "null"],
+    },
+    kavitaSeriesName: {
+      type: ["string", "null"],
     },
   },
 } as const;
@@ -781,6 +791,55 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       return reply.code(502).send({
         message: errorMessages[result] ?? "Could not fetch a preview image",
         code: result,
+      });
+    }
+    return reply.code(201).send(result);
+  });
+
+  // Import the linked Kavita series' cover as the bookmark's main image (keeps other images).
+  app.post("/api/bookmarks/:id/kavita-cover", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    if (!(await kavitaEnabledAsync())) {
+      return reply.code(503).send({
+        message: "Kavita is not configured",
+      });
+    }
+    const result = await importKavitaSeriesCover(id);
+    if (result === "not_found") {
+      return reply.code(404).send({
+        message: "Bookmark not found",
+      });
+    }
+    if (result === "not_linked") {
+      return reply.code(400).send({
+        message: "Bookmark is not linked to a Kavita series",
+      });
+    }
+    if (result === "cover_unavailable") {
+      return reply.code(502).send({
+        message: "Could not fetch the cover from Kavita",
+      });
+    }
+    if (result === "too_many") {
+      return reply.code(409).send({
+        message: "This bookmark already has the maximum number of images",
+      });
+    }
+    if (result === "bad_image") {
+      return reply.code(415).send({
+        message: "Unsupported or invalid image",
       });
     }
     return reply.code(201).send(result);
