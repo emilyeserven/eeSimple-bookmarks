@@ -11,7 +11,8 @@ interface BookmarkGalleryProps {
 /**
  * The bookmark Gallery tab: a big image on the left with a vertical strip of thumbnails on the
  * right (shown only when there's more than one kept image) to switch which one is displayed.
- * Capped at 1200px in either dimension so a large source image can't blow out the layout.
+ * The main image fills the available width; only its height is capped at 1200px so a large
+ * source image can't blow out the layout.
  */
 export function BookmarkGallery({
   bookmark,
@@ -25,13 +26,13 @@ export function BookmarkGallery({
   if (!selected) return null;
 
   return (
-    <div className="flex max-h-[1200px] max-w-[1200px] gap-2">
+    <div className="flex max-h-[1200px] w-full gap-2">
       <img
         src={selected.url}
         alt=""
         loading="lazy"
         className="
-          max-h-[1200px] max-w-[1200px] flex-1 rounded-md border object-contain
+          max-h-[1200px] min-w-0 flex-1 rounded-md border object-contain
         "
       />
       {images.length > 1
