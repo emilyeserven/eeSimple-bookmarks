@@ -28,6 +28,7 @@ export function LocationGeneralForm({
     existingOptions, parentOptions, placeTypeChoices, tagOptions,
     saveField, followSlug, applyLookup,
     repullCoordinates, isRepullingCoordinates,
+    autofillWikipediaLinks, isAutofillingWikipediaLinks,
     addPlaceTypeOpen, setAddPlaceTypeOpen,
   } = useLocationGeneralForm(node);
 
@@ -198,6 +199,58 @@ export function LocationGeneralForm({
           saveField("placeType", placeType.slug);
         }}
       />
+
+      <form.AppField name="officialLink">
+        {field => (
+          <field.TextField
+            label="Official link"
+            placeholder="https://…"
+            onBlur={() => saveField("officialLink", field.state.value.trim() || null)}
+          />
+        )}
+      </form.AppField>
+
+      <div className="space-y-2">
+        <div
+          className="
+            grid gap-3
+            sm:grid-cols-2
+          "
+        >
+          <form.AppField name="wikipediaLinkEn">
+            {field => (
+              <field.TextField
+                label="Wikipedia link (EN)"
+                placeholder="https://en.wikipedia.org/wiki/…"
+                onBlur={() => saveField("wikipediaLinkEn", field.state.value.trim() || null)}
+              />
+            )}
+          </form.AppField>
+          <form.AppField name="wikipediaLinkLocal">
+            {field => (
+              <field.TextField
+                label="Wikipedia link (Local)"
+                placeholder="https://ja.wikipedia.org/wiki/…"
+                onBlur={() => saveField("wikipediaLinkLocal", field.state.value.trim() || null)}
+              />
+            )}
+          </form.AppField>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isAutofillingWikipediaLinks}
+          onClick={autofillWikipediaLinks}
+        >
+          <RefreshCw
+            className={isAutofillingWikipediaLinks
+              ? "mr-2 size-3.5 animate-spin"
+              : "mr-2 size-3.5"}
+          />
+          {isAutofillingWikipediaLinks ? "Searching Wikidata…" : "Autofill Wikipedia links"}
+        </Button>
+      </div>
 
       <form.AppField name="parent">
         {field => (

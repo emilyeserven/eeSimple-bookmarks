@@ -143,5 +143,8 @@ export const locationSchema = z.object({
   plusCode: z.string(),
   placeType: z.string(),
   countryCode: z.string(),
+  officialLink: z.string(),
+  wikipediaLinkEn: z.string(),
+  wikipediaLinkLocal: z.string(),
   parent: z.string(),
 });
