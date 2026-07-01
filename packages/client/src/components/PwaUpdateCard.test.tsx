@@ -27,14 +27,15 @@ describe("PwaUpdateCard", () => {
       updateAvailable: false,
       checking: false,
       lastChecked: null,
+      lastUpdated: null,
       checkForUpdate,
       applyUpdate,
     };
   });
 
-  it("shows 'Never' when no check has run on this device", () => {
+  it("shows 'Never' for both timestamps when neither has happened on this device", () => {
     render(<PwaUpdateCard />);
-    expect(screen.getByText("Never")).toBeInTheDocument();
+    expect(screen.getAllByText("Never")).toHaveLength(2);
   });
 
   it("renders the last-checked timestamp when present", () => {
@@ -42,6 +43,16 @@ describe("PwaUpdateCard", () => {
     state = {
       ...state,
       lastChecked: when,
+    };
+    render(<PwaUpdateCard />);
+    expect(screen.getByText(new Date(when).toLocaleString())).toBeInTheDocument();
+  });
+
+  it("renders the last-updated timestamp when present", () => {
+    const when = new Date("2026-06-20T08:00:00Z").getTime();
+    state = {
+      ...state,
+      lastUpdated: when,
     };
     render(<PwaUpdateCard />);
     expect(screen.getByText(new Date(when).toLocaleString())).toBeInTheDocument();
