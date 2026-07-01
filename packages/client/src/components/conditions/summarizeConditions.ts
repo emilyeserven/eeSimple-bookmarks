@@ -77,18 +77,74 @@ export function conditionsDetailedLabel(tree: ConditionTree): string {
   return parts.length > 0 ? parts.join(" · ") : "No conditions set";
 }
 
+/** Per-type breakdown rows: the summary count paired with its singular/plural noun. */
+const BREAKDOWN_LABELS: {
+  key: keyof Omit<ConditionSummary, "total" | "combinator">;
+  singular: string;
+  plural: string;
+}[] = [
+  {
+    key: "match",
+    singular: "title match",
+    plural: "title matches",
+  },
+  {
+    key: "categories",
+    singular: "category",
+    plural: "categories",
+  },
+  {
+    key: "websites",
+    singular: "website",
+    plural: "websites",
+  },
+  {
+    key: "tags",
+    singular: "tag",
+    plural: "tags",
+  },
+  {
+    key: "locations",
+    singular: "location",
+    plural: "locations",
+  },
+  {
+    key: "channels",
+    singular: "YouTube channel",
+    plural: "YouTube channels",
+  },
+  {
+    key: "mediaTypes",
+    singular: "media type",
+    plural: "media types",
+  },
+  {
+    key: "relationshipTypes",
+    singular: "relationship type",
+    plural: "relationship types",
+  },
+  {
+    key: "properties",
+    singular: "custom property",
+    plural: "custom properties",
+  },
+];
+
 /** Human-readable per-type breakdown lines (only non-empty types), e.g. `["2 match", "3 categories"]`. */
 export function conditionsBreakdown(tree: ConditionTree): string[] {
   const summary = summarizeConditions(tree);
-  const lines: string[] = [];
-  if (summary.match > 0) lines.push(`${summary.match} title match${summary.match === 1 ? "" : "es"}`);
-  if (summary.categories > 0) lines.push(`${summary.categories} categor${summary.categories === 1 ? "y" : "ies"}`);
-  if (summary.websites > 0) lines.push(`${summary.websites} website${summary.websites === 1 ? "" : "s"}`);
-  if (summary.tags > 0) lines.push(`${summary.tags} tag${summary.tags === 1 ? "" : "s"}`);
-  if (summary.locations > 0) lines.push(`${summary.locations} location${summary.locations === 1 ? "" : "s"}`);
-  if (summary.channels > 0) lines.push(`${summary.channels} YouTube channel${summary.channels === 1 ? "" : "s"}`);
-  if (summary.mediaTypes > 0) lines.push(`${summary.mediaTypes} media type${summary.mediaTypes === 1 ? "" : "s"}`);
-  if (summary.relationshipTypes > 0) lines.push(`${summary.relationshipTypes} relationship type${summary.relationshipTypes === 1 ? "" : "s"}`);
-  if (summary.properties > 0) lines.push(`${summary.properties} custom propert${summary.properties === 1 ? "y" : "ies"}`);
-  return lines;
+  return BREAKDOWN_LABELS
+    .map(({
+      key, singular, plural,
+    }) => ({
+      count: summary[key],
+      singular,
+      plural,
+    }))
+    .filter(({
+      count,
+    }) => count > 0)
+    .map(({
+      count, singular, plural,
+    }) => `${count} ${count === 1 ? singular : plural}`);
 }

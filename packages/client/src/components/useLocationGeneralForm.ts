@@ -46,6 +46,66 @@ const LABELS: Record<keyof UpdateLocationInput, string> = {
 };
 
 /**
+ * The editable text/number fields shared by the autosave snapshot and the form defaults, with each
+ * nullable column resolved to its blank/zero fallback. Pulled to module scope (and unit-tested) so
+ * the `??` chains don't inflate the hook's cognitive complexity.
+ */
+function locationEditableDefaults(node: LocationNode) {
+  return {
+    name: node.name,
+    romanizedName: node.romanizedName ?? "",
+    latitude: node.latitude ?? 0,
+    longitude: node.longitude ?? 0,
+    mapUrl: node.mapUrl ?? "",
+    plusCode: node.plusCode ?? "",
+    placeType: node.placeType ?? "",
+    countryCode: node.countryCode ?? "",
+    officialLink: node.officialLink ?? "",
+    wikipediaLinkEn: node.wikipediaLinkEn ?? "",
+    wikipediaLinkLocal: node.wikipediaLinkLocal ?? "",
+  };
+}
+
+/** The autosave engine's initial snapshot for a location (see {@link locationEditableDefaults}). */
+export function buildLocationAutoSaveInitial(node: LocationNode): UpdateLocationInput {
+  return {
+    ...locationEditableDefaults(node),
+    alternateNames: node.alternateNames,
+    parentId: node.parentId,
+    tagIds: node.tagIds ?? [],
+  };
+}
+
+/** The edit form's default values for a location (the `parent` combobox uses the ROOT sentinel). */
+export function buildLocationFormDefaults(node: LocationNode) {
+  return {
+    ...locationEditableDefaults(node),
+    parent: node.parentId ?? ROOT,
+  };
+}
+
+/** The local (non-autosaved-immediately) field state of the edit form, grouped to spread hook density. */
+function useLocationEditState(node: LocationNode) {
+  const [alternateNames, setAlternateNames] = useState(node.alternateNames);
+  const [tagIds, setTagIds] = useState<string[]>(node.tagIds ?? []);
+  const [addPlaceTypeOpen, setAddPlaceTypeOpen] = useState(false);
+  const [wikidataId, setWikidataId] = useState<string | null>(node.wikidataId);
+  const [usesWikidataCoordinates, setUsesWikidataCoordinates] = useState(node.usesWikidataCoordinates);
+  return {
+    alternateNames,
+    setAlternateNames,
+    tagIds,
+    setTagIds,
+    addPlaceTypeOpen,
+    setAddPlaceTypeOpen,
+    wikidataId,
+    setWikidataId,
+    usesWikidataCoordinates,
+    setUsesWikidataCoordinates,
+  };
+}
+
+/**
  * Owns the stateful pieces of the location General (edit) form: the autosave engine, the local
  * alternate-names + tag state, the location/tag tree queries (resolved to picker options), the
  * geocoding-lookup save, and the field-save handlers. Returns one bag so `LocationGeneralForm`
@@ -65,32 +125,16 @@ export function useLocationGeneralForm(node: LocationNode) {
   const {
     data: placeTypesData,
   } = usePlaceTypes();
-  const [alternateNames, setAlternateNames] = useState(node.alternateNames);
-  const [tagIds, setTagIds] = useState<string[]>(node.tagIds ?? []);
-  const [addPlaceTypeOpen, setAddPlaceTypeOpen] = useState(false);
-  const [wikidataId, setWikidataId] = useState<string | null>(node.wikidataId);
-  const [usesWikidataCoordinates, setUsesWikidataCoordinates] = useState(node.usesWikidataCoordinates);
+  const {
+    alternateNames, setAlternateNames, tagIds, setTagIds, addPlaceTypeOpen, setAddPlaceTypeOpen,
+    wikidataId, setWikidataId, usesWikidataCoordinates, setUsesWikidataCoordinates,
+  } = useLocationEditState(node);
 
   const autoSave = useFieldAutoSave<UpdateLocationInput, Location>({
     id: node.id,
     update: updateLocation,
     labels: LABELS,
-    initial: {
-      name: node.name,
-      romanizedName: node.romanizedName ?? "",
-      alternateNames: node.alternateNames,
-      latitude: node.latitude ?? 0,
-      longitude: node.longitude ?? 0,
-      mapUrl: node.mapUrl ?? "",
-      plusCode: node.plusCode ?? "",
-      placeType: node.placeType ?? "",
-      countryCode: node.countryCode ?? "",
-      officialLink: node.officialLink ?? "",
-      wikipediaLinkEn: node.wikipediaLinkEn ?? "",
-      wikipediaLinkLocal: node.wikipediaLinkLocal ?? "",
-      parentId: node.parentId,
-      tagIds: node.tagIds ?? [],
-    },
+    initial: buildLocationAutoSaveInitial(node),
   });
 
   function saveUsesWikidataCoordinates(next: boolean): void {
@@ -132,20 +176,7 @@ export function useLocationGeneralForm(node: LocationNode) {
   ];
 
   const form = useAppForm({
-    defaultValues: {
-      name: node.name,
-      romanizedName: node.romanizedName ?? "",
-      latitude: node.latitude ?? 0,
-      longitude: node.longitude ?? 0,
-      mapUrl: node.mapUrl ?? "",
-      plusCode: node.plusCode ?? "",
-      placeType: node.placeType ?? "",
-      countryCode: node.countryCode ?? "",
-      officialLink: node.officialLink ?? "",
-      wikipediaLinkEn: node.wikipediaLinkEn ?? "",
-      wikipediaLinkLocal: node.wikipediaLinkLocal ?? "",
-      parent: node.parentId ?? ROOT,
-    },
+    defaultValues: buildLocationFormDefaults(node),
     validators: {
       onChange: locationSchema,
     },

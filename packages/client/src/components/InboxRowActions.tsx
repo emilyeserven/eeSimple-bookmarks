@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/tooltip";
 
 // Re-exported from their extracted module so existing importers keep their import site.
-export { BlockMenuItems, ShortenerMenuItems } from "./InboxMoreActionsMenu";
 
 const STATUS_META: Record<ImportItemStatus, { label: string;
   variant: "secondary" | "default" | "destructive" | "outline"; }> = {

@@ -17,7 +17,6 @@ import {
 import { useAppForm } from "@/lib/form";
 
 /** Re-exported for consumers; the canonical definition lives in `./websiteGeneralForm`. */
-export { websiteAutoSaveInitial };
 
 /**
  * Owns every stateful piece of the website General (edit) form: the favicon mutations, the local

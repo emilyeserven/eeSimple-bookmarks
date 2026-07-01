@@ -1,10 +1,8 @@
 import type { CustomProperty } from "@eesimple/types";
 
-import { DateTimePicker } from "./DateTimePicker";
-import { StarRating } from "./StarRating";
+import { renderPropertyScalarInput } from "./PropertyScalarInput";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface RulePropertyFieldProps {
@@ -22,60 +20,25 @@ export function RulePropertyField({
   property, numberInputs, booleanInputs, dateTimeInputs,
   onNumberChange, onBooleanChange, onDateTimeChange,
 }: RulePropertyFieldProps) {
-  if (property.type === "number") {
-    return (
-      <div className="space-y-1">
-        <Label htmlFor={`rule-property-${property.id}`}>
-          {property.name}
-          {property.unitPlural ? ` (${property.unitPlural})` : ""}
-        </Label>
-        <Input
-          id={`rule-property-${property.id}`}
-          type="number"
-          value={numberInputs[property.id] ?? ""}
-          onChange={event => onNumberChange(property.id, event.target.value)}
-        />
-      </div>
-    );
-  }
-  if (property.type === "datetime") {
-    return (
-      <div className="space-y-1">
-        <Label htmlFor={`rule-property-${property.id}`}>{property.name}</Label>
-        <DateTimePicker
-          id={`rule-property-${property.id}`}
-          format={property.dateTimeFormat ?? "date"}
-          value={dateTimeInputs[property.id] ?? null}
-          onChange={value => onDateTimeChange(property.id, value ?? "")}
-        />
-      </div>
-    );
-  }
-  if (property.type === "ratingScale") {
-    const raw = numberInputs[property.id];
-    return (
-      <div className="space-y-1">
-        <Label>{property.name}</Label>
-        <div>
-          <StarRating
-            value={raw ? Number(raw) : 0}
-            max={property.ratingMax ?? 5}
-            allowHalf={property.ratingAllowHalf}
-            allowZero={property.ratingAllowZero}
-            onChange={value => onNumberChange(property.id, String(value))}
-          />
-        </div>
-      </div>
-    );
-  }
+  const htmlId = `rule-property-${property.id}`;
+  const scalar = renderPropertyScalarInput({
+    property,
+    htmlId,
+    numberInputs,
+    dateTimeInputs,
+    onNumberChange,
+    onDateTimeChange,
+  });
+  if (scalar) return scalar;
+
   return (
     <div className="flex items-center gap-2 self-end">
       <Checkbox
-        id={`rule-property-${property.id}`}
+        id={htmlId}
         checked={booleanInputs[property.id] ?? false}
         onCheckedChange={checked => onBooleanChange(property.id, checked === true)}
       />
-      <Label htmlFor={`rule-property-${property.id}`}>{property.name}</Label>
+      <Label htmlFor={htmlId}>{property.name}</Label>
     </div>
   );
 }
