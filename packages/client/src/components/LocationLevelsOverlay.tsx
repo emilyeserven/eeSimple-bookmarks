@@ -1,4 +1,4 @@
-import type { LevelsControls, MapFilterControls } from "../lib/locationLevels";
+import type { AncestorChildrenScopeControls, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 
 import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
 import { Layers, MapPin, Shapes, Square } from "lucide-react";
@@ -22,9 +22,11 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 export function LocationLevelsOverlay({
   controls,
   filter,
+  ancestorChildrenScope,
 }: {
   controls: LevelsControls;
   filter?: MapFilterControls;
+  ancestorChildrenScope?: AncestorChildrenScopeControls;
 }) {
   const {
     groups, setGroupDisplayMode,
@@ -148,6 +150,24 @@ export function LocationLevelsOverlay({
           Hide map borders
         </Label>
       </div>
+
+      {ancestorChildrenScope
+        ? (
+          <div className="mt-3 flex items-center gap-2 border-t pt-3">
+            <Checkbox
+              id="levels-only-direct-relatives"
+              checked={ancestorChildrenScope.onlyDirect}
+              onCheckedChange={checked => ancestorChildrenScope.onToggle(checked === true)}
+            />
+            <Label
+              htmlFor="levels-only-direct-relatives"
+              className="cursor-pointer"
+            >
+              Only show direct ancestors/children of current location
+            </Label>
+          </div>
+        )
+        : null}
 
       {filter ? <LocationMapFilterSection filter={filter} /> : null}
     </ResponsivePopover>

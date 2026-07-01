@@ -107,6 +107,19 @@ export interface LevelsControls {
 }
 
 /**
+ * Controls for the Levels overlay's "Only show direct ancestors/children" toggle — restricts a
+ * location detail map's ancestor chain to just the immediate parent and its plotted descendants to
+ * just immediate children, instead of the full chain to root / full descendant subtree. Session-only
+ * per-map state (not persisted), passed only by maps that have a single "current" location (see
+ * `LocationGeneralView`) — omitted elsewhere hides the checkbox.
+ */
+export interface AncestorChildrenScopeControls {
+  /** Whether the map is currently restricted to direct ancestors/children only. */
+  onlyDirect: boolean;
+  onToggle: (onlyDirect: boolean) => void;
+}
+
+/**
  * The set of level-group ids a map shows by default, given its scope and the shared level mode.
  *
  * For a `location` scope the **current** group (the one whose `placeTypes` contains the viewed
