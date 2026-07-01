@@ -41,11 +41,11 @@ interface BookmarkSearchViewProps {
   /** Message shown when a filter is active but nothing matches it. */
   noMatchMessage: string;
   /**
-   * When set, the add form is locked to this category and hides its Category picker — used on
-   * category pages, where new bookmarks belong to the current category.
+   * When set, the header Add Bookmark modal is locked to this category and hides its Category
+   * picker — used on category pages, where new bookmarks belong to the current category.
    */
   addFormCategoryId?: string;
-  /** Optional content rendered directly below the Add Bookmark form (e.g. a location map). */
+  /** Optional content rendered at the top of the list pane (e.g. a location map). */
   afterAddForm?: ReactNode;
 }
 
@@ -94,6 +94,7 @@ export function BookmarkSearchView({
     bookmarks,
     search,
     onSearchChange,
+    addFormCategoryId,
   });
 
   return (

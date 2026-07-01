@@ -20,7 +20,10 @@ function PropertyGroupsPage() {
   } = usePropertyGroups();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("property-groups-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("property-groups-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New property group",
+  });
 
   return (
     <section className="space-y-6">

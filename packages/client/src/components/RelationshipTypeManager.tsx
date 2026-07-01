@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { AddRelationshipTypeRow } from "./AddRelationshipTypeRow";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { RelationshipTypeCard } from "./RelationshipTypeCard";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import {
   useBulkDeleteRelationshipTypes,
@@ -18,6 +19,9 @@ export function RelationshipTypesListing() {
   const deletableIds = (relationshipTypes ?? []).filter(rt => !rt.builtIn).map(rt => rt.id);
   const selection = useListSelection("relationship-types-listing", deletableIds);
   useRegisterBulkSelect("relationship-types-listing");
+  useSetListingPage("relationship-types-listing", false, false, false, undefined, false, {
+    addBookmark: {},
+  });
   const bulkDelete = useBulkDeleteRelationshipTypes();
 
   return (

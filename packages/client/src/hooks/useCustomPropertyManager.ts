@@ -18,7 +18,10 @@ export function useCustomPropertyManager() {
   } = useCustomProperties();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("custom-properties-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("custom-properties-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New property",
+  });
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("custom-properties-listing");
   const viewMode = useViewMode("custom-properties-listing");

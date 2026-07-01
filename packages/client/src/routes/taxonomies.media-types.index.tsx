@@ -20,7 +20,10 @@ function MediaTypesTaxonomyPage() {
   } = useMediaTypes();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("media-types-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("media-types-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New media type",
+  });
 
   return (
     <section className="space-y-6">

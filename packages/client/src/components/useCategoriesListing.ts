@@ -40,7 +40,10 @@ export function useCategoriesListing(): CategoriesListingState {
   } = useCategories();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("categories-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("categories-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New category",
+  });
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("categories-listing");
   const viewMode = useViewMode("categories-listing");

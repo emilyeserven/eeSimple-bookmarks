@@ -105,6 +105,14 @@ interface UiState {
   /** Whether the Add Bookmark accordion is expanded on Listings pages. Shared across all listing pages. */
   addBookmarkFormOpen: boolean;
   setAddBookmarkFormOpen: (open: boolean) => void;
+  /**
+   * Transient: the app-level Add Bookmark modal (opened from the header Plus button). `null` = closed;
+   * an object = open, with an optional `categoryId` locking the new bookmark to a category (preserving
+   * the category-page prefill). Never persisted.
+   */
+  addBookmarkModal: { categoryId?: string } | null;
+  openAddBookmarkModal: (categoryId?: string) => void;
+  closeAddBookmarkModal: () => void;
   /** Whether the Add Import modal is open. */
   addImportModalOpen: boolean;
   setAddImportModalOpen: (open: boolean) => void;
@@ -148,13 +156,19 @@ interface UiState {
     hasFilters: boolean;
     hasSort?: boolean;
     showsCards: boolean;
-    createAction?: (event?: ReactMouseEvent) => void; } | null;
+    createAction?: (event?: ReactMouseEvent) => void;
+    /** When set, the header Plus offers "Add bookmark" (with an optional locked category). */
+    addBookmark?: { categoryId?: string };
+    /** Label for the entity-create option in the Plus dropdown (e.g. "New category"). */
+    createLabel?: string; } | null;
   setListingPage: (page: { key: string;
     showsImages: boolean;
     hasFilters: boolean;
     hasSort?: boolean;
     showsCards: boolean;
-    createAction?: () => void; } | null) => void;
+    createAction?: (event?: ReactMouseEvent) => void;
+    addBookmark?: { categoryId?: string };
+    createLabel?: string; } | null) => void;
   /** Transient: true while a listing page with header-search support is mounted. Never persisted. */
   headerSearchActive: boolean;
   setHeaderSearchActive: (active: boolean) => void;
@@ -260,6 +274,15 @@ export const useUiStore = create<UiState>()(
       addBookmarkFormOpen: true,
       setAddBookmarkFormOpen: open => set({
         addBookmarkFormOpen: open,
+      }),
+      addBookmarkModal: null,
+      openAddBookmarkModal: categoryId => set({
+        addBookmarkModal: {
+          categoryId,
+        },
+      }),
+      closeAddBookmarkModal: () => set({
+        addBookmarkModal: null,
       }),
       addImportModalOpen: false,
       setAddImportModalOpen: open => set({

@@ -6,6 +6,7 @@ import { PanelRight, Plus, Settings } from "lucide-react";
 import { AddChildButton } from "@/components/AddChildButton";
 import { AddChildModal } from "@/components/AddChildModal";
 import { FavoriteMenuItem, PinMenuItem } from "@/components/header/headerMenuItems";
+import { ListingCreateButton, ListingCreateMenuItems } from "@/components/header/ListingCreateControls";
 import { HeaderPinButton } from "@/components/HeaderPinButton";
 import { HeaderSettingsFavoriteButton } from "@/components/HeaderSettingsFavoriteButton";
 import { Button } from "@/components/ui/button";
@@ -41,28 +42,30 @@ export function addChildAction(ctx: ToolbarContext): ToolbarAction | null {
 }
 
 export function createListingAction(ctx: ToolbarContext): ToolbarAction | null {
-  if (!ctx.listingPage?.createAction) return null;
-  const createAction = ctx.listingPage.createAction;
+  const listingPage = ctx.listingPage;
+  if (!listingPage) return null;
+  const {
+    addBookmark, createAction, createLabel,
+  } = listingPage;
+  // Nothing to create from this listing page.
+  if (addBookmark == null && createAction == null) return null;
   return {
     key: "create",
     desktop: (
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label="New"
-        onClick={createAction}
-      >
-        <Plus className="size-4" />
-      </Button>
+      <ListingCreateButton
+        addBookmark={addBookmark}
+        createAction={createAction}
+        createLabel={createLabel}
+      />
     ),
     mobile: {
       kind: "menuItem",
       node: (
-        <DropdownMenuItem onSelect={() => createAction()}>
-          <Plus className="size-4" />
-          New
-        </DropdownMenuItem>
+        <ListingCreateMenuItems
+          addBookmark={addBookmark}
+          createAction={createAction}
+          createLabel={createLabel}
+        />
       ),
     },
   };

@@ -38,7 +38,10 @@ function LocationsTaxonomyPage() {
       to: "/taxonomies/locations/new",
     });
   };
-  useSetListingPage("locations-listing", false, false, false, createLocation);
+  useSetListingPage("locations-listing", false, false, false, createLocation, false, {
+    addBookmark: {},
+    createLabel: "New location",
+  });
 
   return (
     <section className="space-y-6">

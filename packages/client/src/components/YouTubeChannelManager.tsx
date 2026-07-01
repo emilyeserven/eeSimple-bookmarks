@@ -16,7 +16,10 @@ export function YouTubeChannelsListing() {
     data: allChannels, isLoading, error,
   } = useYouTubeChannels();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("youtube-channels-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("youtube-channels-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New channel",
+  });
   useRegisterHeaderSearch();
   const navigate = useNavigate();
 

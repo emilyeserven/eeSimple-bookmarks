@@ -34,7 +34,11 @@ export interface ToolbarContext {
   listingPage: { key: string;
     hasFilters: boolean;
     hasSort?: boolean;
-    createAction?: (event?: React.MouseEvent) => void; } | null;
+    createAction?: (event?: React.MouseEvent) => void;
+    /** When set, the header Plus offers "Add bookmark" (with an optional locked category). */
+    addBookmark?: { categoryId?: string };
+    /** Label for the entity-create option in the Plus dropdown (e.g. "New category"). */
+    createLabel?: string; } | null;
   /** The selection pageKey of a mounted bulk-selectable listing, or null. Independent of `listingPage`. */
   bulkSelectPageKey: string | null;
   isBookmarkDetail: boolean;

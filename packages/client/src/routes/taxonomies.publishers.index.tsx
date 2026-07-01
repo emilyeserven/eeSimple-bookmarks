@@ -20,7 +20,10 @@ function PublishersTaxonomyPage() {
   } = usePublishers();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("publishers-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("publishers-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New publisher",
+  });
 
   return (
     <section className="space-y-6">

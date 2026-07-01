@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 
 import { useMemo } from "react";
 
-import { AddBookmarkCollapsible } from "./AddBookmarkCollapsible";
 import { BookmarkCardGrid } from "./BookmarkCardGrid";
 import { BookmarkPagination } from "./BookmarkPagination";
 import { BookmarkTableView } from "./BookmarkTableView";
@@ -103,11 +102,11 @@ interface BookmarkListPaneProps {
   emptyMessage: string;
   noMatchMessage: string;
   addFormCategoryId?: string;
-  /** Optional content rendered directly below the Add Bookmark form (e.g. a location map). */
+  /** Optional content rendered at the top of the list pane (e.g. a location map). */
   afterAddForm?: ReactNode;
 }
 
-/** Right column of the search view: the add form and the matching bookmarks, as a grid or table. */
+/** Right column of the search view: the matching bookmarks, as a grid or table. */
 export function BookmarkListPane({
   pageKey,
   columns,
@@ -137,8 +136,6 @@ export function BookmarkListPane({
 
   return (
     <div className="min-w-0 space-y-6">
-      <AddBookmarkCollapsible lockedCategoryId={addFormCategoryId} />
-
       {afterAddForm}
 
       {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
