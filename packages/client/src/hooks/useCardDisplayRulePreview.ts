@@ -319,6 +319,7 @@ export function useCardDisplayRulePreview({
           name: "Sample location",
           slug: "sample-location",
           parentId: null,
+          placeType: null,
         },
       ],
       blacklistedLocationIds: [],

@@ -39,6 +39,7 @@ function LocationBookmarksPage() {
     youtubeChannels,
     relationshipTypes,
     authors,
+    placeTypes,
   } = useCategoryPageData(tagsForServerQuery(search));
 
   const {
@@ -124,6 +125,7 @@ function LocationBookmarksPage() {
       youtubeChannels={youtubeChannels ?? []}
       relationshipTypes={relationshipTypes ?? []}
       authors={authors ?? []}
+      placeTypes={placeTypes ?? []}
       bookmarks={locationBookmarks}
       search={search}
       onSearchChange={next => navigate({

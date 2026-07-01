@@ -315,6 +315,7 @@ describe("bookmarkMatchesSearch", () => {
       imageUrl: null,
     },
     tags: [],
+    locations: [],
     numberValues: [{
       propertyId: "p1",
       value: 2,
@@ -382,6 +383,74 @@ describe("bookmarkMatchesSearch", () => {
     }, {
       youtubeChannels: ["ch-1"],
     })).toBe(false);
+  });
+
+  it("applies the place-type filter (any-match across a bookmark's locations)", () => {
+    const withLocations = {
+      ...bookmark,
+      locations: [
+        {
+          id: "loc-1",
+          name: "Tokyo",
+          slug: "tokyo",
+          parentId: null,
+          placeType: "City",
+        },
+        {
+          id: "loc-2",
+          name: "Japan",
+          slug: "japan",
+          parentId: null,
+          placeType: "Country",
+        },
+      ],
+    };
+    expect(bookmarkMatchesSearch(withLocations, {
+      placeTypes: ["city"],
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withLocations, {
+      placeTypes: ["region"],
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(withLocations, {
+      placeTypes: ["city", "region"],
+    })).toBe(true);
+    // A bookmark with no locations never matches a place-type filter.
+    expect(bookmarkMatchesSearch(bookmark, {
+      placeTypes: ["city"],
+    })).toBe(false);
+  });
+
+  it("applies place-type presence and exclude filters", () => {
+    const withLocations = {
+      ...bookmark,
+      locations: [{
+        id: "loc-1",
+        name: "Tokyo",
+        slug: "tokyo",
+        parentId: null,
+        placeType: "City",
+      }],
+    };
+    expect(bookmarkMatchesSearch(withLocations, {
+      placeTypePresence: "has",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      placeTypePresence: "has",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(bookmark, {
+      placeTypePresence: "missing",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withLocations, {
+      placeTypePresence: "missing",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(withLocations, {
+      placeTypes: ["city"],
+      placeTypePresence: "exclude",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(withLocations, {
+      placeTypes: ["region"],
+      placeTypePresence: "exclude",
+    })).toBe(true);
   });
 
   it("applies the relationship-type filter", () => {
@@ -688,6 +757,7 @@ describe("bookmarkMatchesSearch — exclude mode", () => {
       imageUrl: null,
     },
     tags: [tag1],
+    locations: [],
     numberValues: [],
     booleanValues: [],
     dateTimeValues: [],

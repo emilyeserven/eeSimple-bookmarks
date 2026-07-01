@@ -98,7 +98,7 @@ export interface LocationNode extends Location {
 }
 
 /** Lightweight location shape carried on a bookmark. */
-export type BookmarkLocation = Pick<Location, "id" | "name" | "slug" | "parentId">;
+export type BookmarkLocation = Pick<Location, "id" | "name" | "slug" | "parentId" | "placeType">;
 
 /** Payload for creating a location. */
 export interface CreateLocationInput {

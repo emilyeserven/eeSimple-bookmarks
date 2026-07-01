@@ -29,6 +29,7 @@ function MediaTypeBookmarksPage() {
     youtubeChannels,
     relationshipTypes,
     authors,
+    placeTypes,
   } = useCategoryPageData(tagsForServerQuery(search));
 
   const {
@@ -64,6 +65,7 @@ function MediaTypeBookmarksPage() {
       youtubeChannels={youtubeChannels ?? []}
       relationshipTypes={relationshipTypes ?? []}
       authors={authors ?? []}
+      placeTypes={placeTypes ?? []}
       bookmarks={mediaTypeBookmarks}
       search={search}
       onSearchChange={next => navigate({

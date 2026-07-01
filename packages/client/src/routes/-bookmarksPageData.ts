@@ -3,6 +3,7 @@ import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
+import { usePlaceTypes } from "../hooks/usePlaceTypes";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useRelationshipTypes } from "../hooks/useRelationshipTypes";
 import { useTagTree } from "../hooks/useTags";
@@ -44,6 +45,9 @@ export function useBookmarksPageData(tags: string[] | undefined) {
   const {
     data: authors,
   } = useAuthors();
+  const {
+    data: placeTypes,
+  } = usePlaceTypes();
 
   return {
     bookmarks,
@@ -58,5 +62,6 @@ export function useBookmarksPageData(tags: string[] | undefined) {
     websites,
     relationshipTypes,
     authors,
+    placeTypes,
   };
 }
