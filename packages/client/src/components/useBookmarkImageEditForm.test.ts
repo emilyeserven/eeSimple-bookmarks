@@ -218,6 +218,8 @@ describe("useBookmarkImageEditForm", () => {
     expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
       id: bookmark.id,
       delayMs: 5000,
+      width: 1280,
+      height: 720,
     });
 
     act(() => {
@@ -236,6 +238,26 @@ describe("useBookmarkImageEditForm", () => {
     expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
       id: bookmark.id,
       delayMs: undefined,
+      width: 1280,
+      height: 720,
+    });
+  });
+
+  it("takes a screenshot with the selected size", async () => {
+    const {
+      result,
+    } = renderHook(() => useBookmarkImageEditForm(bookmark));
+    act(() => {
+      result.current.setScreenshotSize(1920, 1080);
+    });
+    act(() => {
+      result.current.onTakeScreenshot();
+    });
+    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+      id: bookmark.id,
+      delayMs: undefined,
+      width: 1920,
+      height: 1080,
     });
   });
 });
