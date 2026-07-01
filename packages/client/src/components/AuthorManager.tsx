@@ -17,7 +17,10 @@ export function AuthorsListing() {
     data: allAuthors, isLoading, error,
   } = useAuthors();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("authors-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("authors-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New author",
+  });
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("authors-listing");
   const navigate = useNavigate();

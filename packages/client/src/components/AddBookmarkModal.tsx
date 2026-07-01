@@ -12,6 +12,8 @@ interface AddBookmarkModalProps {
   onOpenChange: (open: boolean) => void;
   initialUrl?: string;
   autoScan?: boolean;
+  /** When set, locks the new bookmark to this category and hides its Category picker. */
+  lockedCategoryId?: string;
 }
 
 export function AddBookmarkModal({
@@ -19,6 +21,7 @@ export function AddBookmarkModal({
   onOpenChange,
   initialUrl,
   autoScan,
+  lockedCategoryId,
 }: AddBookmarkModalProps) {
   return (
     <Dialog
@@ -30,9 +33,10 @@ export function AddBookmarkModal({
           <DialogTitle>Add Bookmark</DialogTitle>
         </DialogHeader>
         <BookmarkForm
-          key={initialUrl ?? "empty"}
+          key={`${initialUrl ?? "empty"}|${lockedCategoryId ?? ""}`}
           initialUrl={initialUrl}
           autoScan={autoScan}
+          lockedCategoryId={lockedCategoryId}
           onCreated={() => onOpenChange(false)}
         />
       </DialogContent>

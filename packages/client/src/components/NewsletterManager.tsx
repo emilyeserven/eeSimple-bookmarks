@@ -17,7 +17,10 @@ export function NewslettersListing() {
     data: allNewsletters, isLoading, error,
   } = useNewsletters();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("newsletters-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("newsletters-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New newsletter",
+  });
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("newsletters-listing");
   const navigate = useNavigate();

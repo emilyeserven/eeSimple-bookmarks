@@ -24,7 +24,10 @@ export function YouTubeChannelsListing() {
   } = useCategories();
   const [modalOpen, setModalOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>();
-  useSetListingPage("youtube-channels-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("youtube-channels-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New channel",
+  });
   useRegisterHeaderSearch();
   const navigate = useNavigate();
 

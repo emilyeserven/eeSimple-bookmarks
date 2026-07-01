@@ -16,7 +16,10 @@ export function WebsitesListing() {
     data: allWebsites, isLoading, error,
   } = useWebsites();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("websites-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("websites-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New website",
+  });
   useRegisterHeaderSearch();
   const navigate = useNavigate();
 

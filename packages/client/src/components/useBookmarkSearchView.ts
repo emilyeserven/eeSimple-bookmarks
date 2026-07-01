@@ -26,6 +26,8 @@ export interface BookmarkSearchViewData {
   bookmarks: Bookmark[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
+  /** When set, the header Add Bookmark modal locks new bookmarks to this category (category pages). */
+  addFormCategoryId?: string;
 }
 
 export interface BookmarkSearchViewState {
@@ -48,9 +50,14 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
   const {
     pageKey, tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels,
     websites, relationshipTypes, authors, placeTypes, bookmarks, search, onSearchChange,
+    addFormCategoryId,
   } = data;
 
-  useSetListingPage(pageKey, true, true, true, undefined, true);
+  useSetListingPage(pageKey, true, true, true, undefined, true, {
+    addBookmark: {
+      categoryId: addFormCategoryId,
+    },
+  });
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns(pageKey);
   const filtersInDrawer = useFiltersInDrawer();

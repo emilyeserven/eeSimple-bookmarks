@@ -21,7 +21,9 @@ export function PlaceTypesListing() {
   const {
     data: locationTree,
   } = useLocationTree();
-  useSetListingPage("place-types-listing");
+  useSetListingPage("place-types-listing", false, false, false, undefined, false, {
+    addBookmark: {},
+  });
   useRegisterHeaderSearch();
 
   const placeTypes = allPlaceTypes ?? [];

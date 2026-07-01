@@ -20,7 +20,10 @@ function TagsListingPage() {
   } = useTags();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("tags-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("tags-listing", false, false, false, () => setModalOpen(true), false, {
+    addBookmark: {},
+    createLabel: "New tag",
+  });
 
   return (
     <section className="space-y-6">
