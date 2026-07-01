@@ -1,9 +1,7 @@
 import type { CustomProperty } from "@eesimple/types";
 
-import { DateTimePicker } from "./DateTimePicker";
-import { StarRating } from "./StarRating";
+import { renderPropertyScalarInput } from "./PropertyScalarInput";
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -38,63 +36,28 @@ export function CategoryDefaultField({
   onBooleanChange,
   onDateTimeChange,
 }: CategoryDefaultFieldProps) {
-  if (property.type === "number") {
-    return (
-      <div className="space-y-1">
-        <Label htmlFor={`default-${category.id}-${property.id}`}>
-          {property.name}
-          {property.unitPlural ? ` (${property.unitPlural})` : ""}
-        </Label>
-        <Input
-          id={`default-${category.id}-${property.id}`}
-          type="number"
-          value={numberInputs[property.id] ?? ""}
-          onChange={event => onNumberChange(property.id, event.target.value)}
-        />
-      </div>
-    );
-  }
-  if (property.type === "datetime") {
-    return (
-      <div className="space-y-1">
-        <Label htmlFor={`default-${category.id}-${property.id}`}>{property.name}</Label>
-        <DateTimePicker
-          id={`default-${category.id}-${property.id}`}
-          format={property.dateTimeFormat ?? "date"}
-          value={dateTimeInputs[property.id] ?? null}
-          onChange={value => onDateTimeChange(property.id, value ?? "")}
-        />
-      </div>
-    );
-  }
-  if (property.type === "ratingScale") {
-    const raw = numberInputs[property.id];
-    return (
-      <div className="space-y-1">
-        <Label>{property.name}</Label>
-        <div>
-          <StarRating
-            value={raw ? Number(raw) : 0}
-            max={property.ratingMax ?? 5}
-            allowHalf={property.ratingAllowHalf}
-            allowZero={property.ratingAllowZero}
-            onChange={value => onNumberChange(property.id, String(value))}
-          />
-        </div>
-      </div>
-    );
-  }
+  const htmlId = `default-${category.id}-${property.id}`;
+  const scalar = renderPropertyScalarInput({
+    property,
+    htmlId,
+    numberInputs,
+    dateTimeInputs,
+    onNumberChange,
+    onDateTimeChange,
+  });
+  if (scalar) return scalar;
+
   const current = booleanInputs[property.id];
   const selectValue = current === undefined ? "unset" : String(current);
   return (
     <div className="space-y-1">
-      <Label htmlFor={`default-${category.id}-${property.id}`}>{property.name}</Label>
+      <Label htmlFor={htmlId}>{property.name}</Label>
       <Select
         value={selectValue}
         onValueChange={value =>
           onBooleanChange(property.id, value === "unset" ? undefined : value === "true")}
       >
-        <SelectTrigger id={`default-${category.id}-${property.id}`}>
+        <SelectTrigger id={htmlId}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

@@ -9,6 +9,7 @@ import { SECTION_ENTRY_TYPES, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types"
 import { Loader2, Sparkles } from "lucide-react";
 
 import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
+import { ChoicesCheckboxList } from "./ChoicesCheckboxList";
 import { DateTimePicker } from "./DateTimePicker";
 import { StarRating } from "./StarRating";
 
@@ -187,35 +188,12 @@ export function ChoicesPropertyField({
   // Checkbox: multi-select list
   if (display === "checkbox") {
     return (
-      <div className="col-span-full space-y-1">
-        <Label>{property.name}</Label>
-        <div className="space-y-1.5">
-          {items.map(item => (
-            <div
-              key={item.value}
-              className="flex items-center gap-2"
-            >
-              <Checkbox
-                id={`${fieldId}-${item.value}`}
-                checked={selectedValues.includes(item.value)}
-                onCheckedChange={(checked) => {
-                  onChange(
-                    checked
-                      ? [...selectedValues, item.value]
-                      : selectedValues.filter(v => v !== item.value),
-                  );
-                }}
-              />
-              <Label
-                htmlFor={`${fieldId}-${item.value}`}
-                className="font-normal"
-              >{item.label}
-              </Label>
-            </div>
-          ))}
-        </div>
-        <FieldDescription text={property.description} />
-      </div>
+      <ChoicesCheckboxList
+        property={property}
+        fieldId={fieldId}
+        selectedValues={selectedValues}
+        onChange={onChange}
+      />
     );
   }
 
@@ -272,35 +250,12 @@ export function ChoicesPropertyField({
   // Dropdown / combobox: Select for single, checkbox list for multiple
   if (multiple) {
     return (
-      <div className="col-span-full space-y-1">
-        <Label>{property.name}</Label>
-        <div className="space-y-1.5">
-          {items.map(item => (
-            <div
-              key={item.value}
-              className="flex items-center gap-2"
-            >
-              <Checkbox
-                id={`${fieldId}-${item.value}`}
-                checked={selectedValues.includes(item.value)}
-                onCheckedChange={(checked) => {
-                  onChange(
-                    checked
-                      ? [...selectedValues, item.value]
-                      : selectedValues.filter(v => v !== item.value),
-                  );
-                }}
-              />
-              <Label
-                htmlFor={`${fieldId}-${item.value}`}
-                className="font-normal"
-              >{item.label}
-              </Label>
-            </div>
-          ))}
-        </div>
-        <FieldDescription text={property.description} />
-      </div>
+      <ChoicesCheckboxList
+        property={property}
+        fieldId={fieldId}
+        selectedValues={selectedValues}
+        onChange={onChange}
+      />
     );
   }
 
