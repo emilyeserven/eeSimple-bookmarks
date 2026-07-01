@@ -11,6 +11,7 @@ import { BookmarkGallery } from "./BookmarkGallery";
 import { BookmarkLocationsBox } from "./BookmarkLocationsBox";
 import { BookmarkLocationsTabContent } from "./BookmarkLocationsTabContent";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
+import { BookmarkReelArchivePlayer } from "./BookmarkReelArchive";
 import { hasBookmarkPropertyRows } from "../lib/bookmarkProperties";
 
 import { DetailField } from "@/components/DetailField";
@@ -21,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 export type BookmarkDetailSectionId
   = | "general"
     | "gallery"
+    | "video"
     | "relationships"
     | "hierarchy"
     | "locations"
@@ -214,6 +216,15 @@ function gallerySection(bookmark: Bookmark): BookmarkDetailSection | null {
   };
 }
 
+function videoSection(bookmark: Bookmark): BookmarkDetailSection | null {
+  if (bookmark.reelArchive === null) return null;
+  return {
+    id: "video",
+    label: "Video",
+    content: <BookmarkReelArchivePlayer bookmark={bookmark} />,
+  };
+}
+
 function relationshipsSection(bookmark: Bookmark): BookmarkDetailSection | null {
   if (bookmark.relationships.length === 0) return null;
   return {
@@ -370,6 +381,7 @@ export function buildBookmarkDetailSections(args: BuildArgs): BookmarkDetailSect
   return [
     generalSection(args, category),
     gallerySection(args.bookmark),
+    videoSection(args.bookmark),
     relationshipsSection(args.bookmark),
     hierarchySection(args.flatHierarchy),
     locationsSection(args.bookmark, args.locationTree),

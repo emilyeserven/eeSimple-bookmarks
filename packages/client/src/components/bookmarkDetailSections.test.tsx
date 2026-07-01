@@ -52,6 +52,23 @@ describe("buildBookmarkDetailSections", () => {
     expect(build(makeBookmark())).not.toContain("gallery");
   });
 
+  it("adds the Video section when the bookmark has an archived reel, omitting it otherwise", () => {
+    const withReel = makeBookmark({
+      reelArchive: {
+        url: "/api/bookmarks/b1/reel-archive",
+        contentType: "video/mp4",
+        byteSize: 1024,
+        width: 720,
+        height: 1280,
+        durationSeconds: 12,
+        sourceUrl: "https://www.instagram.com/reel/abc123/",
+        createdAt: "2026-01-01T00:00:00.000Z",
+      },
+    });
+    expect(build(withReel)).toContain("video");
+    expect(build(makeBookmark())).not.toContain("video");
+  });
+
   it("adds the Hierarchy section when a flat hierarchy is supplied", () => {
     const flat: FlatNode<BookmarkHierarchyNode>[] = [
       {
