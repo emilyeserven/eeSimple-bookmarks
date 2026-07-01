@@ -73,8 +73,9 @@ export function placeTypeOptions(
  *   viewed place's own place type), expanded up/down per the shared {@link LocationMapLevelMode}.
  * - `bookmark`: a bookmark's locations map — relative to the **current** groups (every group
  *   containing one of the bookmark's tagged locations' place types — there can be several, since a
- *   bookmark may tag locations of different levels), expanded up/down per the shared
- *   {@link LocationMapLevelMode}, same as `location` but with multiple anchors.
+ *   bookmark may tag locations of different levels), expanded up/down per an
+ *   {@link LocationMapLevelMode} that defaults to `"current"` and is **not** shared with location
+ *   pages — same expansion rules as `location` but with multiple anchors and its own mode state.
  */
 export type LevelScope
   = | { kind: "main" }

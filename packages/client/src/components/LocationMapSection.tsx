@@ -1,5 +1,6 @@
 import type { MapView } from "./LocationMap";
 import type { LevelScope, LevelsControls, MapFilterControls } from "../lib/locationLevels";
+import type { LocationMapLevelMode } from "../stores/uiStore";
 import type { LocationNode } from "@eesimple/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -40,8 +41,8 @@ interface LocationMapSectionProps {
   /**
    * How this map decides which levels are visible by default: the main index map (`showOnMainMap`),
    * a place's pages (the viewed place's level ± the shared mode), or a bookmark map (the tagged
-   * locations' levels ± the shared mode). Defaults to a location scope with no current place type
-   * (shows all levels).
+   * locations' levels ± its own "current"-by-default mode — see the `bookmarkLevelMode` state below).
+   * Defaults to a location scope with no current place type (shows all levels).
    */
   scope?: LevelScope;
   /**
@@ -81,8 +82,20 @@ export function LocationMapSection({
   } = useLocationLevels({
     notify: false,
   });
-  const levelMode = useUiStore(state => state.locationMapLevelMode);
-  const setLevelMode = useUiStore(state => state.setLocationMapLevelMode);
+  const sharedLevelMode = useUiStore(state => state.locationMapLevelMode);
+  const setSharedLevelMode = useUiStore(state => state.setLocationMapLevelMode);
+
+  // Bookmark maps get their own per-map "Show" mode, always starting at "current" — they don't share
+  // the location pages' mode (a user who left a location page on "above" shouldn't land on a
+  // bookmark's map already expanded). Reset to "current" whenever this map's key changes (a different
+  // bookmark's map re-mounts with the same LocationMapSection instance in the panel/tab).
+  const [bookmarkLevelMode, setBookmarkLevelMode] = useState<LocationMapLevelMode>("current");
+  useEffect(() => {
+    setBookmarkLevelMode("current");
+  }, [mapKey]);
+
+  const levelMode = scope.kind === "bookmark" ? bookmarkLevelMode : sharedLevelMode;
+  const setLevelMode = scope.kind === "bookmark" ? setBookmarkLevelMode : setSharedLevelMode;
 
   // Destructure scope into primitives so the hooks below have honest, stable dependencies (callers
   // reconstruct the `scope` object inline each render, so depending on it directly would thrash).
