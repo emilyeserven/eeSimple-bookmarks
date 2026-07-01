@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { channelUrlFromKey } from "@eesimple/types";
-import { fetchYouTubeMetadata, parseIsoDuration, parseYouTubeVideo } from "@/services/youtube";
+import { fetchChannelAvatarUrlViaApi, fetchYouTubeMetadata, parseIsoDuration, parseYouTubeVideo } from "@/services/youtube";
 import { channelKeyFromUrl } from "@/services/youtubeChannels";
 
 // Pure-helper tests run without a live database or network, matching the `websites` style.
@@ -205,6 +205,71 @@ test("fetchYouTubeMetadata uses the Data API for duration/date when YOUTUBE_API_
   finally {
     global.fetch = originalFetch;
     console.warn = originalWarn;
+  }
+});
+
+// --- fetchChannelAvatarUrlViaApi: Tier 2 channel-avatar lookup ---
+
+test("fetchChannelAvatarUrlViaApi returns null when YOUTUBE_API_KEY is unset", async () => {
+  assert.equal(await fetchChannelAvatarUrlViaApi("@veritasium"), null);
+});
+
+test("fetchChannelAvatarUrlViaApi routes @handle, channel id, and vanity keys to the matching lookup param", async () => {
+  process.env.YOUTUBE_API_KEY = "test-key";
+  const originalFetch = global.fetch;
+  const seenUrls: string[] = [];
+  global.fetch = (async (input: string | URL | Request) => {
+    const url = typeof input === "string" ? input : input.toString();
+    seenUrls.push(url);
+    return new Response(JSON.stringify({
+      items: [{
+        snippet: {
+          thumbnails: {
+            high: {
+              url: "https://yt3.googleusercontent.com/high.jpg",
+            },
+          },
+        },
+      }],
+    }), {
+      headers: {
+        "content-type": "application/json",
+      },
+    });
+  }) as typeof global.fetch;
+  try {
+    assert.equal(await fetchChannelAvatarUrlViaApi("@veritasium"), "https://yt3.googleusercontent.com/high.jpg");
+    assert.equal(await fetchChannelAvatarUrlViaApi("UCHnyfMqiRRG1u-2MsSQLbXA"), "https://yt3.googleusercontent.com/high.jpg");
+    assert.equal(await fetchChannelAvatarUrlViaApi("somename"), "https://yt3.googleusercontent.com/high.jpg");
+    assert.ok(seenUrls[0].includes("forHandle=%40veritasium"));
+    assert.ok(seenUrls[1].includes("id=UCHnyfMqiRRG1u-2MsSQLbXA"));
+    assert.ok(seenUrls[2].includes("forUsername=somename"));
+  }
+  finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("fetchChannelAvatarUrlViaApi returns null on a non-ok response or a missing thumbnail", async () => {
+  process.env.YOUTUBE_API_KEY = "test-key";
+  const originalFetch = global.fetch;
+  try {
+    global.fetch = (async () => new Response("", {
+      status: 403,
+    })) as typeof global.fetch;
+    assert.equal(await fetchChannelAvatarUrlViaApi("@veritasium"), null);
+
+    global.fetch = (async () => new Response(JSON.stringify({
+      items: [],
+    }), {
+      headers: {
+        "content-type": "application/json",
+      },
+    })) as typeof global.fetch;
+    assert.equal(await fetchChannelAvatarUrlViaApi("@veritasium"), null);
+  }
+  finally {
+    global.fetch = originalFetch;
   }
 });
 
