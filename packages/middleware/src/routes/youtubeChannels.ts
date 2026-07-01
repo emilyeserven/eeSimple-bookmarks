@@ -289,9 +289,11 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
         message: "Channel not found",
       });
     }
-    if (result === "bad_image") {
+    if (typeof result === "object" && "code" in result) {
       return reply.code(415).send({
         message: "Unsupported or invalid image",
+        code: result.code,
+        detail: result.detail,
       });
     }
     return reply.code(201).send(result);
@@ -316,6 +318,13 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     if (result === "not_found") {
       return reply.code(404).send({
         message: "Channel not found",
+      });
+    }
+    if (typeof result === "object" && "code" in result) {
+      return reply.code(502).send({
+        message: IMAGE_GRAB_ERROR_MESSAGES[result.code] ?? "Could not fetch an avatar",
+        code: result.code,
+        detail: result.detail,
       });
     }
     if (typeof result === "string") {

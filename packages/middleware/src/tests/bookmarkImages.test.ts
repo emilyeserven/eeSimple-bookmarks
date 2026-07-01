@@ -21,7 +21,7 @@ test("processImage resizes to fit the max edge and re-encodes to WebP", async ()
   }).png().toBuffer();
 
   const result = await processImage(wide);
-  assert.ok(result, "expected a processed image");
+  assert.ok(!("error" in result), "expected a processed image");
   assert.equal(result.contentType, "image/webp");
   // 2400x600 fits within 1200x1200 by scaling to 1200x300 (aspect ratio preserved).
   assert.equal(result.width, MAX_IMAGE_EDGE);
@@ -29,9 +29,10 @@ test("processImage resizes to fit the max edge and re-encodes to WebP", async ()
   assert.ok(result.body.byteLength > 0);
 });
 
-test("processImage returns null for non-image bytes", async () => {
+test("processImage returns the decode error for non-image bytes", async () => {
   const result = await processImage(Buffer.from("definitely not an image"));
-  assert.equal(result, null);
+  assert.ok("error" in result, "expected a decode error");
+  assert.ok(result.error.length > 0);
 });
 
 test("extractImageUrl prefers og:image and resolves relative URLs", () => {

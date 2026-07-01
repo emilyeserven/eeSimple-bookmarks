@@ -18,6 +18,15 @@ import { type EntityImageResult, fetchOgImage, withTransientRetry } from "@/serv
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 
+/**
+ * A successful grab/store returns the serving URL; `"not_found"` when the channel is gone; a typed
+ * download-failure string (shared with the website-favicon/author-avatar pipelines); or a
+ * `{ code: "bad_image" }` result carrying the underlying sharp decode error's message, so the
+ * client can surface (and console-log) the real reason instead of an opaque "bad_image".
+ */
+export type ChannelImageResult = EntityImageResult | { code: "bad_image";
+  detail: string; };
+
 /** Object-storage key for a channel's avatar. Stable per channel, so a replace overwrites it. */
 function objectKeyFor(channelId: string): string {
   return `youtube-channels/${channelId}.webp`;
@@ -45,13 +54,15 @@ export async function getYouTubeChannelImageRow(channelId: string): Promise<YouT
 
 /**
  * Process `rawBytes`, store them, and upsert the channel's avatar row. Returns the serving URL, or
- * `"not_found"` when the channel is gone / `"bad_image"` when the bytes aren't a decodable image.
+ * `"not_found"` when the channel is gone / a `{ code: "bad_image" }` result (carrying the
+ * underlying decode error's message) when the bytes aren't a decodable image.
  */
 async function setYouTubeChannelImage(
   channelId: string,
   rawBytes: Buffer,
   source: "og" | "upload",
-): Promise<{ imageUrl: string } | "not_found" | "bad_image"> {
+): Promise<{ imageUrl: string } | "not_found" | { code: "bad_image";
+  detail: string; }> {
   const [channel] = await db
     .select({
       id: youtubeChannels.id,
@@ -61,7 +72,12 @@ async function setYouTubeChannelImage(
   if (!channel) return "not_found";
 
   const processed = await processImage(rawBytes);
-  if (!processed) return "bad_image";
+  if ("error" in processed) {
+    return {
+      code: "bad_image",
+      detail: processed.error,
+    };
+  }
 
   const objectKey = objectKeyFor(channelId);
   await putObject(objectKey, processed.body, processed.contentType);
@@ -92,12 +108,14 @@ async function setYouTubeChannelImage(
 
 /**
  * Store a user-uploaded avatar from raw bytes (replacing any existing one). Returns the serving
- * URL, `"not_found"` when the channel is gone, or `"bad_image"` when the bytes aren't decodable.
+ * URL, `"not_found"` when the channel is gone, or a `bad_image` result when the bytes aren't
+ * decodable.
  */
 export async function setYouTubeChannelImageFromBytes(
   channelId: string,
   rawBytes: Buffer,
-): Promise<{ imageUrl: string } | "not_found" | "bad_image"> {
+): Promise<{ imageUrl: string } | "not_found" | { code: "bad_image";
+  detail: string; }> {
   return setYouTubeChannelImage(channelId, rawBytes, "upload");
 }
 
@@ -111,7 +129,7 @@ export async function removeYouTubeChannelImage(channelId: string): Promise<bool
 }
 
 /** Fetch and store a channel's avatar from its already-known `channelKey`, avoiding a re-lookup. */
-async function fetchAndStoreChannelAvatar(channelId: string, channelKey: string): Promise<EntityImageResult> {
+async function fetchAndStoreChannelAvatar(channelId: string, channelKey: string): Promise<ChannelImageResult> {
   const url = channelUrlFromKey(channelKey);
   const result = await withTransientRetry(() => fetchOgImage(url));
   if (typeof result === "string") return result;
@@ -123,7 +141,7 @@ async function fetchAndStoreChannelAvatar(channelId: string, channelKey: string)
  * reconstructed from the stored `channelKey` (never a client-supplied URL — avoids an SSRF
  * amplifier). Returns the serving URL, `"not_found"`, or a typed grab error.
  */
-export async function fetchAndStoreChannelImage(channelId: string): Promise<EntityImageResult> {
+export async function fetchAndStoreChannelImage(channelId: string): Promise<ChannelImageResult> {
   const [channel] = await db
     .select({
       channelKey: youtubeChannels.channelKey,
@@ -167,6 +185,7 @@ export async function bulkBackfillChannelImages(
   }) => {
     const r = await fetchAndStoreChannelAvatar(id, channelKey);
     if (typeof r === "string") throw new Error(r);
+    if ("code" in r) throw new Error(r.detail);
     return r;
   }, onProgress);
 }

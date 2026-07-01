@@ -689,7 +689,7 @@ export async function fetchFaviconImage(pageUrl: string): Promise<OgImageResult>
     // Validate the bytes are decodable before returning; skips SVG or corrupted icons so the
     // loop can try the next candidate instead of surfacing bad_image immediately.
     const valid = await processImage(bytes);
-    if (!valid) continue;
+    if ("error" in valid) continue;
     return bytes;
   }
   return "bad_image";

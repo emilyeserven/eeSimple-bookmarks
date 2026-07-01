@@ -1,6 +1,10 @@
-/** An Error subclass that carries a typed error code from the API's 4xx/5xx response body. */
+/**
+ * An Error subclass that carries a typed error code from the API's 4xx/5xx response body, plus an
+ * optional `detail` — the raw underlying error message (e.g. a sharp decode error) the server
+ * captured but didn't fold into the user-facing `message`, so callers can console-log it.
+ */
 export class ApiError extends Error {
-  constructor(message: string, public readonly code?: string) {
+  constructor(message: string, public readonly code?: string, public readonly detail?: string) {
     super(message);
     this.name = "ApiError";
   }

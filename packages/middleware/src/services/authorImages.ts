@@ -53,7 +53,7 @@ async function setAuthorImage(
   if (!author) return "not_found";
 
   const processed = await processImage(rawBytes);
-  if (!processed) return "bad_image";
+  if ("error" in processed) return "bad_image";
 
   const objectKey = objectKeyFor(authorId);
   await putObject(objectKey, processed.body, processed.contentType);
