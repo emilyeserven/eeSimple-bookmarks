@@ -59,9 +59,11 @@ export function LocationGeneralView({
       })),
     }
     : node;
+  // `collectMapped` already walks `nodeForMap.children` recursively, so appending them again here
+  // would give every child (and its subtree) a second, colliding React key.
   const mapTree = showAncestors
-    ? [...ancestors, nodeForMap, ...nodeForMap.children]
-    : [nodeForMap, ...nodeForMap.children];
+    ? [...ancestors, nodeForMap]
+    : [nodeForMap];
 
   function toggleAncestors(next: boolean): void {
     if (!displayPrefs) return;

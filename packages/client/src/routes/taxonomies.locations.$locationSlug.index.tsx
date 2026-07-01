@@ -107,7 +107,16 @@ function LocationBookmarksPage() {
       afterAddForm={(
         <LocationMapSection
           mapKey={location.id}
-          tree={[location, ...location.children]}
+          tree={[
+            {
+              ...location,
+              children: [],
+            },
+            ...location.children.map(child => ({
+              ...child,
+              children: [],
+            })),
+          ]}
           autoRefreshLocationId={location.id}
           mapClassName="h-80 w-full rounded-lg border"
           showLevels
