@@ -1,7 +1,9 @@
 import { ListingStatusMessages } from "./ListingStatusMessages";
+import { LocationMapSection } from "./LocationMapSection";
 import { PlaceTypeListItem } from "./PlaceTypeListItem";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useLocationTree } from "../hooks/useLocations";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
@@ -11,6 +13,9 @@ export function PlaceTypesListing() {
   const {
     data: allPlaceTypes, isLoading, error,
   } = usePlaceTypes();
+  const {
+    data: locationTree,
+  } = useLocationTree();
   useSetListingPage("place-types-listing");
   useRegisterHeaderSearch();
 
@@ -26,6 +31,19 @@ export function PlaceTypesListing() {
 
   return (
     <div className="space-y-4">
+      {locationTree && locationTree.length > 0
+        ? (
+          <LocationMapSection
+            mapKey="place-types-listing"
+            tree={locationTree}
+            showLevels
+            scope={{
+              kind: "main",
+            }}
+          />
+        )
+        : null}
+
       <ListingStatusMessages
         isLoading={isLoading}
         error={error}
