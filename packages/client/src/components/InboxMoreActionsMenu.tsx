@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/tooltip";
 
 // Re-exported so existing importers keep their import site stable.
-export { BlockMenuItems } from "./InboxBlockMenuItems";
 
 type ShortenerMode = "ignore-list" | "website";
 

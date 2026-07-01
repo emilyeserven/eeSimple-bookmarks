@@ -17,7 +17,6 @@ import {
 import { useAppForm } from "@/lib/form";
 
 /** Re-exported for consumers; the canonical definition lives in `./youTubeChannelGeneralForm`. */
-export { channelAutoSaveInitial };
 
 /**
  * Owns every stateful piece of the YouTube-channel General (edit) form: the avatar mutations, the

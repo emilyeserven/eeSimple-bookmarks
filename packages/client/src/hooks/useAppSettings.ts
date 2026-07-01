@@ -261,16 +261,6 @@ export function useLocationDisplaySettings() {
   });
 }
 
-export function useUpdateLocationDisplaySettings() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (input: PlaceTypeDisplayConfig) => appSettingsApi.updateLocationDisplay(input),
-    onSuccess: (saved) => {
-      queryClient.setQueryData(LOCATION_DISPLAY_KEY, saved);
-    },
-  });
-}
-
 /**
  * The named place-type level groups (Settings → Locations + the map "Levels" overlay) — the source of
  * truth the UI edits. The per-placeType config the map/sort consume is **derived** from this.
