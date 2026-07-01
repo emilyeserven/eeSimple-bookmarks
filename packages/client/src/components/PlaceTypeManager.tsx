@@ -46,6 +46,11 @@ export function PlaceTypesListing() {
   );
   const plottedTree = locationTree ? filterTreeByPlaceType(locationTree, filterKeys) : locationTree;
 
+  // Levels overlay "Filter" combobox: focuses the map on chosen location(s) + descendants, same as
+  // the main Locations listing (`LocationsListing`) — a separate concern from the per-row place-type
+  // map filter above.
+  const [locationFilterIds, setLocationFilterIds] = useState<string[]>([]);
+
   return (
     <div className="space-y-4">
       {locationTree && locationTree.length > 0
@@ -56,6 +61,10 @@ export function PlaceTypesListing() {
             showLevels
             scope={{
               kind: "main",
+            }}
+            filter={{
+              filterIds: locationFilterIds,
+              onFilterChange: setLocationFilterIds,
             }}
           />
         )
