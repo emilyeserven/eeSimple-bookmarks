@@ -3,7 +3,7 @@ import type { GroupRowProps, SortableHandle } from "./levelGroupRowTypes";
 import { useEffect, useState } from "react";
 
 import { DEFAULT_LOCATION_MAP_COLOR } from "@eesimple/types";
-import { GripVertical, Map as MapIcon, MapPin, Shapes, Trash2 } from "lucide-react";
+import { GripVertical, Map as MapIcon, MapPin, Shapes, TriangleAlert, Trash2 } from "lucide-react";
 
 import { LevelColorControl } from "./LevelColorControl";
 import { MultiCombobox } from "./MultiCombobox";
@@ -40,6 +40,17 @@ export function LevelGroupRowContent({
   }, [group.name]);
 
   const colorSwatch = group.color ?? DEFAULT_LOCATION_MAP_COLOR;
+
+  // A place type can end up assigned to this group AND another one (e.g. a past bug, or a race
+  // between two tabs) even though the combobox normally blocks picking an already-taken option.
+  // Once that's happened, `takenPlaceTypes` would otherwise make the offending option look
+  // disabled forever in this group's picker too — so callers must always exempt a value already
+  // present in `group.placeTypes` from the "taken" disable, or there's no way to click it off.
+  const duplicatePlaceTypes = new Set(group.placeTypes.filter(pt => takenPlaceTypes.has(pt)));
+
+  function removePlaceType(placeType: string): void {
+    setGroupPlaceTypes(group.id, group.placeTypes.filter(pt => pt !== placeType));
+  }
 
   const dragHandle = (
     <button
@@ -115,9 +126,36 @@ export function LevelGroupRowContent({
         </div>
 
         {/* Row 2: place types summary */}
-        <p className="pl-6 text-xs text-muted-foreground">
+        <p
+          className="
+            flex flex-wrap items-center gap-x-1 pl-6 text-xs
+            text-muted-foreground
+          "
+        >
           {group.placeTypes.length > 0
-            ? group.placeTypes.join(", ")
+            ? group.placeTypes.map((placeType, index) => (
+              <span key={placeType}>
+                {duplicatePlaceTypes.has(placeType)
+                  ? (
+                    <button
+                      type="button"
+                      onClick={() => removePlaceType(placeType)}
+                      className="
+                        inline-flex items-center gap-0.5 font-medium
+                        text-amber-600 underline decoration-dotted
+                        underline-offset-2
+                        hover:text-amber-700
+                      "
+                      title={`"${placeType}" is also assigned to another level — click to remove it from this level`}
+                    >
+                      <TriangleAlert className="size-3" />
+                      {placeType}
+                    </button>
+                  )
+                  : placeType}
+                {index < group.placeTypes.length - 1 ? "," : ""}
+              </span>
+            ))
             : <span className="italic">No place types assigned</span>}
         </p>
       </div>
@@ -233,7 +271,9 @@ export function LevelGroupRowContent({
           options={options.map(option => ({
             value: option.key,
             label: option.label,
-            disabled: takenPlaceTypes.has(option.key),
+            // Never disable a value already assigned to this group — even one also taken by
+            // another group (a duplicate) — or it becomes impossible to click off.
+            disabled: takenPlaceTypes.has(option.key) && !group.placeTypes.includes(option.key),
           }))}
           values={group.placeTypes}
           onValuesChange={values => setGroupPlaceTypes(group.id, values)}
@@ -242,6 +282,17 @@ export function LevelGroupRowContent({
           emptyText="No place types discovered yet."
           aria-label={`Place types for ${group.name || "level"}`}
         />
+        {duplicatePlaceTypes.size > 0
+          ? (
+            <p className="flex items-center gap-1 text-xs text-amber-600">
+              <TriangleAlert className="size-3 shrink-0" />
+              Also assigned to another level:
+              {" "}
+              {[...duplicatePlaceTypes].join(", ")}
+              . Open the picker above and click it again to remove it from this level.
+            </p>
+          )
+          : null}
       </div>
     </div>
   );
