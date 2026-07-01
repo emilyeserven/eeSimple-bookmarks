@@ -1,4 +1,4 @@
-import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { Bookmark, CustomProperty, CustomPropertyType } from "@eesimple/types";
 
 export const BUILTIN_SORT_FIELDS = ["title", "createdAt", "updatedAt"] as const;
 export type BuiltinSortField = typeof BUILTIN_SORT_FIELDS[number];
@@ -35,6 +35,89 @@ export const SORTABLE_PROPERTY_TYPES = [
   "choices",
 ] as const;
 
+/** Missing/null values always sort last, regardless of the ascending/descending sign. */
+const NULL_LAST = 1;
+
+/**
+ * Compares two possibly-null values. A present value always precedes a missing one (so blanks sink
+ * to the bottom in both directions); two present values are compared with `cmp` and scaled by `sign`.
+ */
+function compareNullable<T>(
+  av: T | null,
+  bv: T | null,
+  sign: number,
+  cmp: (a: T, b: T) => number,
+): number {
+  if (av === null && bv === null) return 0;
+  if (av === null) return NULL_LAST;
+  if (bv === null) return -NULL_LAST;
+  return sign * cmp(av, bv);
+}
+
+const localeCmp = (a: string, b: string): number =>
+  a.localeCompare(b, undefined, {
+    sensitivity: "base",
+  });
+/** Ordinal comparison for values that compare with `<` / `>` (ISO dates, etc.). */
+const ordinalCmp = <T>(a: T, b: T): number => (a < b ? -1 : a > b ? 1 : 0);
+
+/** Extracts the label of the first selected choice value (falling back to its raw key). */
+function firstChoiceLabel(bookmark: Bookmark, prop: CustomProperty): string | null {
+  const cv = bookmark.choicesValues.find(v => v.propertyId === prop.id);
+  if (!cv || cv.values.length === 0) return null;
+  return prop.choicesItems.find(i => i.value === cv.values[0])?.label ?? cv.values[0];
+}
+
+type PropComparator = (a: Bookmark, b: Bookmark, prop: CustomProperty, sign: number) => number;
+
+const numberComparator: PropComparator = (a, b, prop, sign) =>
+  compareNullable(
+    a.numberValues.find(v => v.propertyId === prop.id)?.value ?? null,
+    b.numberValues.find(v => v.propertyId === prop.id)?.value ?? null,
+    sign,
+    (x, y) => x - y,
+  );
+
+/** Per-property-type value comparators. Types absent from this map are not sortable (stable/0). */
+const PROPERTY_COMPARATORS: Partial<Record<CustomPropertyType, PropComparator>> = {
+  number: numberComparator,
+  calculate: numberComparator,
+  ratingScale: numberComparator,
+  datetime: (a, b, prop, sign) =>
+    compareNullable(
+      a.dateTimeValues.find(v => v.propertyId === prop.id)?.value ?? null,
+      b.dateTimeValues.find(v => v.propertyId === prop.id)?.value ?? null,
+      sign,
+      ordinalCmp,
+    ),
+  text: (a, b, prop, sign) =>
+    compareNullable(
+      a.textValues.find(v => v.propertyId === prop.id)?.value ?? null,
+      b.textValues.find(v => v.propertyId === prop.id)?.value ?? null,
+      sign,
+      localeCmp,
+    ),
+  boolean: (a, b, prop, sign) =>
+    compareNullable(
+      a.booleanValues.find(v => v.propertyId === prop.id)?.value ?? null,
+      b.booleanValues.find(v => v.propertyId === prop.id)?.value ?? null,
+      sign,
+      // false (0) < true (1)
+      (x, y) => (x ? 1 : 0) - (y ? 1 : 0),
+    ),
+  choices: (a, b, prop, sign) =>
+    compareNullable(firstChoiceLabel(a, prop), firstChoiceLabel(b, prop), sign, localeCmp),
+};
+
+/** Compares by a built-in field, or returns null when `field` is not a built-in. */
+function compareBuiltInField(a: Bookmark, b: Bookmark, field: string, sign: number): number | null {
+  if (field === "title") return sign * localeCmp(a.title, b.title);
+  if (field === "createdAt") return sign * ordinalCmp(a.createdAt, b.createdAt);
+  // Null (never-updated) always sorts last regardless of direction.
+  if (field === "updatedAt") return compareNullable(a.updatedAt, b.updatedAt, sign, ordinalCmp);
+  return null;
+}
+
 /** Returns a numeric comparator result for a single sort dimension. */
 function compareOneDimension(
   a: Bookmark,
@@ -44,88 +127,12 @@ function compareOneDimension(
 ): number {
   const sign = dim.direction === "asc" ? 1 : -1;
 
-  if (dim.field === "title") {
-    return sign * a.title.localeCompare(b.title, undefined, {
-      sensitivity: "base",
-    });
-  }
+  const builtIn = compareBuiltInField(a, b, dim.field, sign);
+  if (builtIn !== null) return builtIn;
 
-  if (dim.field === "createdAt") {
-    return sign * (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0);
-  }
-
-  if (dim.field === "updatedAt") {
-    // Null (never-updated) always sorts last regardless of direction.
-    if (a.updatedAt === null && b.updatedAt === null) return 0;
-    if (a.updatedAt === null) return 1;
-    if (b.updatedAt === null) return -1;
-    return sign * (a.updatedAt < b.updatedAt ? -1 : a.updatedAt > b.updatedAt ? 1 : 0);
-  }
-
-  // Custom property — look up value by property type.
   const prop = properties.find(p => p.id === dim.field);
   if (!prop) return 0;
-
-  const nullLast = 1; // missing values always sort last
-
-  if (prop.type === "number" || prop.type === "calculate" || prop.type === "ratingScale") {
-    const av = a.numberValues.find(v => v.propertyId === prop.id)?.value ?? null;
-    const bv = b.numberValues.find(v => v.propertyId === prop.id)?.value ?? null;
-    if (av === null && bv === null) return 0;
-    if (av === null) return nullLast;
-    if (bv === null) return -nullLast;
-    return sign * (av - bv);
-  }
-
-  if (prop.type === "datetime") {
-    const av = a.dateTimeValues.find(v => v.propertyId === prop.id)?.value ?? null;
-    const bv = b.dateTimeValues.find(v => v.propertyId === prop.id)?.value ?? null;
-    if (av === null && bv === null) return 0;
-    if (av === null) return nullLast;
-    if (bv === null) return -nullLast;
-    return sign * (av < bv ? -1 : av > bv ? 1 : 0);
-  }
-
-  if (prop.type === "text") {
-    const av = a.textValues.find(v => v.propertyId === prop.id)?.value ?? null;
-    const bv = b.textValues.find(v => v.propertyId === prop.id)?.value ?? null;
-    if (av === null && bv === null) return 0;
-    if (av === null) return nullLast;
-    if (bv === null) return -nullLast;
-    return sign * av.localeCompare(bv, undefined, {
-      sensitivity: "base",
-    });
-  }
-
-  if (prop.type === "boolean") {
-    const av = a.booleanValues.find(v => v.propertyId === prop.id)?.value ?? null;
-    const bv = b.booleanValues.find(v => v.propertyId === prop.id)?.value ?? null;
-    if (av === null && bv === null) return 0;
-    if (av === null) return nullLast;
-    if (bv === null) return -nullLast;
-    // false (0) < true (1)
-    return sign * ((av ? 1 : 0) - (bv ? 1 : 0));
-  }
-
-  if (prop.type === "choices") {
-    // Sort by the label of the first selected choice value alphabetically.
-    const firstChoice = (vals: typeof a.choicesValues) => {
-      const cv = vals.find(v => v.propertyId === prop.id);
-      if (!cv || cv.values.length === 0) return null;
-      const item = prop.choicesItems.find(i => i.value === cv.values[0]);
-      return item?.label ?? cv.values[0];
-    };
-    const av = firstChoice(a.choicesValues);
-    const bv = firstChoice(b.choicesValues);
-    if (av === null && bv === null) return 0;
-    if (av === null) return nullLast;
-    if (bv === null) return -nullLast;
-    return sign * av.localeCompare(bv, undefined, {
-      sensitivity: "base",
-    });
-  }
-
-  return 0;
+  return PROPERTY_COMPARATORS[prop.type]?.(a, b, prop, sign) ?? 0;
 }
 
 /** A deterministic 32-bit hash of `id` mixed with `seed`, used to derive a stable shuffle order. */
