@@ -9,9 +9,10 @@ import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { LocationMapSection } from "../components/LocationMapSection";
 import { RomanizedLabel } from "../components/RomanizedLabel";
-import { useLocationBySlug } from "../hooks/useLocations";
+import { useShowLocationAncestorsOnMap } from "../hooks/useAppSettings";
+import { useLocationBySlug, useLocationTree } from "../hooks/useLocations";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
-import { subtreeIds } from "../lib/tagTree";
+import { findAncestorPath, subtreeIds } from "../lib/tagTree";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -45,6 +46,10 @@ function LocationBookmarksPage() {
   const {
     location, isLoading: locationLoading,
   } = useLocationBySlug(locationSlug);
+  const {
+    data: locationTree,
+  } = useLocationTree();
+  const showAncestorsOnMap = useShowLocationAncestorsOnMap();
 
   if (locationLoading) {
     return <p className="text-muted-foreground">Loading location…</p>;
@@ -57,6 +62,26 @@ function LocationBookmarksPage() {
   // Include bookmarks tagged with this location or any of its descendants.
   const locationIds = new Set(subtreeIds(location));
   const locationBookmarks = (bookmarks ?? []).filter(b => b.locations.some(l => locationIds.has(l.id)));
+
+  // Ancestor chain (root → parent), stripped of children so only the ancestors themselves plot —
+  // otherwise the map would re-plot the whole tree under a root ancestor. Only included when the
+  // "Show ancestors on map" preference is on, mirroring `LocationGeneralView`.
+  const ancestorPath = locationTree ? findAncestorPath(locationTree, locationSlug) : null;
+  const ancestors = (ancestorPath ? ancestorPath.slice(0, -1) : []).map(ancestor => ({
+    ...ancestor,
+    children: [] as LocationNode[],
+  }));
+  const mapTree = [
+    ...(showAncestorsOnMap ? ancestors : []),
+    {
+      ...location,
+      children: [],
+    },
+    ...location.children.map(child => ({
+      ...child,
+      children: [] as LocationNode[],
+    })),
+  ];
 
   return (
     <BookmarkSearchView
@@ -107,16 +132,7 @@ function LocationBookmarksPage() {
       afterAddForm={(
         <LocationMapSection
           mapKey={location.id}
-          tree={[
-            {
-              ...location,
-              children: [],
-            },
-            ...location.children.map(child => ({
-              ...child,
-              children: [],
-            })),
-          ]}
+          tree={mapTree}
           autoRefreshLocationId={location.id}
           mapClassName="h-80 w-full rounded-lg border"
           showLevels
