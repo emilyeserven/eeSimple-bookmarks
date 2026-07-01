@@ -69,22 +69,28 @@ export function placeTypeOptions(
 }
 
 /**
- * Level-group ids that have at least one plotted location (area or pin) on the current map — i.e.
- * one of `locations`' place types belongs to the group. A group with none of its place types
- * currently plotted has nothing to show, so its checkbox should be disabled/unchecked; it becomes
- * enabled again the moment the map's plotted locations include one of its place types (e.g. after
- * navigating to a different bookmark/location). Pure — unit-tested.
+ * Level-group ids whose checkbox should stay enabled on the current map: a group with at least one
+ * plotted location (area or pin) of its own place types, **plus every broader (lower `sortOrder`)
+ * ancestor group** up to the narrowest directly-populated level. Ancestor groups are included even
+ * when their own place type has no separately plotted node — a plotted city's country/region isn't
+ * always present as its own node in the tree (e.g. "show ancestors" off, or a filtered subtree that
+ * only keeps descendants), but it conceptually still has that parent, so its checkbox shouldn't be
+ * force-disabled just because the tree happens not to render it. A group narrower than every
+ * directly-populated level (no plotted descendant either) stays disabled. Re-derived fresh from the
+ * plotted tree, so a group re-enables the instant its own or a descendant's place type is plotted
+ * again (e.g. after navigating to a different bookmark/location). Pure — unit-tested.
  */
 export function computePopulatedLevelGroupIds(
   groups: PlaceTypeLevelGroup[],
   locations: { placeType: string | null }[],
 ): Set<string> {
   const presentKeys = new Set(discoverPlaceTypeKeys(locations));
-  const ids = new Set<string>();
-  for (const group of groups) {
-    if (group.placeTypes.some(pt => presentKeys.has(pt))) ids.add(group.id);
-  }
-  return ids;
+  const directlyPopulated = groups.filter(group => group.placeTypes.some(pt => presentKeys.has(pt)));
+  if (directlyPopulated.length === 0) return new Set();
+  const deepestSortOrder = Math.max(...directlyPopulated.map(group => group.sortOrder));
+  return new Set(
+    groups.filter(group => group.sortOrder <= deepestSortOrder).map(group => group.id),
+  );
 }
 
 /**
