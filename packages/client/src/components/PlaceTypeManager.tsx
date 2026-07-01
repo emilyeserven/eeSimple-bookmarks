@@ -1,3 +1,7 @@
+import { useCallback, useState } from "react";
+
+import { placeTypeKey } from "@eesimple/types";
+
 import { ListingStatusMessages } from "./ListingStatusMessages";
 import { LocationMapSection } from "./LocationMapSection";
 import { PlaceTypeListItem } from "./PlaceTypeListItem";
@@ -7,6 +11,7 @@ import { useLocationTree } from "../hooks/useLocations";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
+import { filterTreeByPlaceType } from "../lib/locationLevels";
 
 /** Browsable, searchable place-type listing. Creation lives in Settings → Locations → Place Types. */
 export function PlaceTypesListing() {
@@ -29,13 +34,25 @@ export function PlaceTypesListing() {
   );
   const columns = useBookmarkColumns("place-types-listing");
 
+  // Map filter: which place type ids the map is focused on. Empty = show every location, matching
+  // by the normalized `placeTypeKey` of each selected place type's slug against each location's own
+  // (equally normalized) `placeType` string — the same correlation the middleware uses for `locationCount`.
+  const [filterIds, setFilterIds] = useState<string[]>([]);
+  const toggleFilterId = useCallback((id: string) => {
+    setFilterIds(prev => (prev.includes(id) ? prev.filter(value => value !== id) : [...prev, id]));
+  }, []);
+  const filterKeys = new Set(
+    placeTypes.filter(pt => filterIds.includes(pt.id)).map(pt => placeTypeKey(pt.slug)),
+  );
+  const plottedTree = locationTree ? filterTreeByPlaceType(locationTree, filterKeys) : locationTree;
+
   return (
     <div className="space-y-4">
       {locationTree && locationTree.length > 0
         ? (
           <LocationMapSection
             mapKey="place-types-listing"
-            tree={locationTree}
+            tree={plottedTree ?? locationTree}
             showLevels
             scope={{
               kind: "main",
@@ -72,6 +89,8 @@ export function PlaceTypesListing() {
               <PlaceTypeListItem
                 key={placeType.id}
                 placeType={placeType}
+                filtered={filterIds.includes(placeType.id)}
+                onToggleFilter={() => toggleFilterId(placeType.id)}
               />
             ))}
           </div>

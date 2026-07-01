@@ -3,6 +3,8 @@ import type { LocationNode, PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { placeTypeKey } from "@eesimple/types";
 
+import { flattenTree } from "./tagTree";
+
 /**
  * The map-filter controls handed to the "Levels" overlays' Filter section: the full location tree
  * (for the hierarchical combobox options), the currently-focused location ids, and a change handler.
@@ -171,6 +173,26 @@ export function computeVisibleLevelGroupIds(
     for (const group of groups) if (group.sortOrder > current.sortOrder) ids.add(group.id);
   }
   return ids;
+}
+
+/**
+ * Prune a location tree to just the nodes whose (normalized) `placeType` is in `keys`, flattening
+ * the tree in the process — filtering by place type crosses branches (a matching node can sit
+ * anywhere in the hierarchy), so there's no parent/child structure worth preserving; the map only
+ * needs each survivor's own point/area. An empty `keys` means "no filter" (returns `nodes` as-is).
+ * Pure — used to focus the Place Types listing's map on the place type(s) selected below it.
+ */
+export function filterTreeByPlaceType(nodes: LocationNode[], keys: Set<string>): LocationNode[] {
+  if (keys.size === 0) return nodes;
+  return flattenTree(nodes)
+    .map(({
+      node,
+    }) => node)
+    .filter(node => keys.has(placeTypeKey(node.placeType)))
+    .map(node => ({
+      ...node,
+      children: [],
+    }));
 }
 
 /** A place type offered in the location-form picker: its (raw) stored value + humanized label. */
