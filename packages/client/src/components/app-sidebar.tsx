@@ -31,6 +31,7 @@ import {
   SidebarAdvancedSection,
   SidebarResizeHandle,
 } from "./app-sidebar-sections";
+import { LocationsSidebarItem } from "./LocationsSidebarItem";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
 import { useAppSidebarData } from "./useAppSidebarData";
 
@@ -235,6 +236,15 @@ function ExpandableLinkSection({
   seeMoreTooltip: string;
 }) {
   const renderItem = (item: LinkSidebarItem) => {
+    // Locations gets a hover flyout surfacing its Place Types taxonomy; every other item is a plain link.
+    if (item.key === "locations") {
+      return (
+        <LocationsSidebarItem
+          key={item.key}
+          pathname={pathname}
+        />
+      );
+    }
     const isActive = pathname.startsWith(item.to);
     return (
       <SidebarMenuItem key={item.key}>

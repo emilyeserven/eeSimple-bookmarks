@@ -13,6 +13,15 @@ export function usePlaceTypes() {
   });
 }
 
+/** Resolve a single place type by slug from the cached list (no dedicated REST endpoint needed). */
+export function usePlaceTypeBySlug(slug: string) {
+  const query = usePlaceTypes();
+  return {
+    ...query,
+    placeType: (query.data ?? []).find(placeType => placeType.slug === slug),
+  };
+}
+
 export function useCreatePlaceType() {
   const queryClient = useQueryClient();
   return useMutation({

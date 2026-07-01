@@ -18,6 +18,7 @@ import {
   Link2,
   ListChecks,
   MapPin,
+  MapPinned,
   Monitor,
   MonitorPlay,
   PanelLeft,
@@ -192,6 +193,11 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/taxonomies/media-types",
     label: "Media Types",
     icon: Clapperboard,
+  },
+  {
+    path: "/taxonomies/place-types",
+    label: "Place Types",
+    icon: MapPinned,
   },
   {
     path: "/taxonomies/youtube-channels",
