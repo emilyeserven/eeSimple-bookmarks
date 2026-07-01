@@ -106,6 +106,10 @@ const BUILT_IN_MEDIA_TYPES: BuiltInMediaType[] = [
     icon: "Globe",
   },
   {
+    name: "Social Media Post",
+    icon: "Share2",
+  },
+  {
     name: "Other",
     icon: "Shapes",
   },
