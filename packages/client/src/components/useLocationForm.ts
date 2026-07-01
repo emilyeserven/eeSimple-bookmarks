@@ -28,6 +28,71 @@ function parseCoord(value: string): number | null {
 }
 
 /**
+ * The geographic/place attributes of the create form. Grouped into their own hook so the top-level
+ * `useLocationForm` isn't hook-dense (fallow scores +1 cognitive per `useState`).
+ */
+function usePlaceFields() {
+  const [name, setName] = useState("");
+  const [romanizedName, setRomanizedName] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [mapUrl, setMapUrl] = useState("");
+  const [plusCode, setPlusCode] = useState("");
+  const [placeType, setPlaceType] = useState("");
+  const [countryCode, setCountryCode] = useState("");
+  // Captured from a geocoding candidate (not user-editable); persisted so the location renders as an area.
+  const [boundary, setBoundary] = useState<LocationBoundary | null>(null);
+  // Captured from a Wikidata candidate; not user-editable but persisted so the location can be
+  // re-identified against Wikidata later.
+  const [wikidataId, setWikidataId] = useState<string | null>(null);
+  // Whether the lat/long source of truth is Wikidata. Auto-checked when a Wikidata candidate is
+  // applied; the user can also toggle it by hand (e.g. to gate Nominatim out of future refreshes).
+  const [usesWikidataCoordinates, setUsesWikidataCoordinates] = useState(false);
+  return {
+    name,
+    setName,
+    romanizedName,
+    setRomanizedName,
+    latitude,
+    setLatitude,
+    longitude,
+    setLongitude,
+    mapUrl,
+    setMapUrl,
+    plusCode,
+    setPlusCode,
+    placeType,
+    setPlaceType,
+    countryCode,
+    setCountryCode,
+    boundary,
+    setBoundary,
+    wikidataId,
+    setWikidataId,
+    usesWikidataCoordinates,
+    setUsesWikidataCoordinates,
+  };
+}
+
+/** The parent/ancestor/associations state of the create form (see {@link usePlaceFields}). */
+function useHierarchyFields() {
+  const [parentId, setParentId] = useState<string>(ROOT);
+  const [alternateNames, setAlternateNames] = useState<LocationAlternateName[]>([]);
+  const [tagIds, setTagIds] = useState<string[]>([]);
+  const [ancestors, setAncestors] = useState<AncestorDraft[]>([]);
+  return {
+    parentId,
+    setParentId,
+    alternateNames,
+    setAlternateNames,
+    tagIds,
+    setTagIds,
+    ancestors,
+    setAncestors,
+  };
+}
+
+/**
  * Owns every stateful piece of the location create form: the create mutations, the field state, the
  * geocoder prefill, the derived option lists, and the submit handler. Returns one bag so
  * `LocationForm` stays a presentational shell.
@@ -45,26 +110,14 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
     data: placeTypesData,
   } = usePlaceTypes();
 
-  const [name, setName] = useState("");
-  const [romanizedName, setRomanizedName] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
-  const [mapUrl, setMapUrl] = useState("");
-  const [plusCode, setPlusCode] = useState("");
-  const [placeType, setPlaceType] = useState("");
-  const [countryCode, setCountryCode] = useState("");
-  // Captured from a geocoding candidate (not user-editable); persisted so the location renders as an area.
-  const [boundary, setBoundary] = useState<LocationBoundary | null>(null);
-  // Captured from a Wikidata candidate; not user-editable but persisted so the location can be
-  // re-identified against Wikidata later.
-  const [wikidataId, setWikidataId] = useState<string | null>(null);
-  // Whether the lat/long source of truth is Wikidata. Auto-checked when a Wikidata candidate is
-  // applied; the user can also toggle it by hand (e.g. to gate Nominatim out of future refreshes).
-  const [usesWikidataCoordinates, setUsesWikidataCoordinates] = useState(false);
-  const [parentId, setParentId] = useState<string>(ROOT);
-  const [alternateNames, setAlternateNames] = useState<LocationAlternateName[]>([]);
-  const [tagIds, setTagIds] = useState<string[]>([]);
-  const [ancestors, setAncestors] = useState<AncestorDraft[]>([]);
+  const {
+    name, setName, romanizedName, setRomanizedName, latitude, setLatitude, longitude, setLongitude,
+    mapUrl, setMapUrl, plusCode, setPlusCode, placeType, setPlaceType, countryCode, setCountryCode,
+    boundary, setBoundary, wikidataId, setWikidataId, usesWikidataCoordinates, setUsesWikidataCoordinates,
+  } = usePlaceFields();
+  const {
+    parentId, setParentId, alternateNames, setAlternateNames, tagIds, setTagIds, ancestors, setAncestors,
+  } = useHierarchyFields();
 
   const isPending = createLocation.isPending || createChain.isPending;
   const error = createLocation.error ?? createChain.error;
