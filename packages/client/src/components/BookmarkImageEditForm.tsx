@@ -3,7 +3,7 @@ import type { Bookmark } from "@eesimple/types";
 import { Search, Sparkles } from "lucide-react";
 
 import { BookmarkImagePicker } from "./BookmarkImagePicker";
-import { useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
+import { SCREENSHOT_SIZE_PRESETS, useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
 
 import { Button } from "@/components/ui/button";
 
@@ -105,6 +105,32 @@ export function BookmarkImageEditForm({
               <option value={5000}>5 s</option>
               <option value={10000}>10 s</option>
               <option value={30000}>30 s</option>
+            </select>
+          </label>
+          <label
+            className="flex items-center gap-1.5 text-xs text-muted-foreground"
+          >
+            Size
+            <select
+              className="
+                rounded-sm border bg-background px-1.5 py-1 text-xs
+                text-foreground
+              "
+              value={`${c.screenshotWidth}x${c.screenshotHeight}`}
+              disabled={c.isMutating}
+              onChange={(e) => {
+                const preset = SCREENSHOT_SIZE_PRESETS.find(p => `${p.width}x${p.height}` === e.target.value);
+                if (preset) c.setScreenshotSize(preset.width, preset.height);
+              }}
+            >
+              {SCREENSHOT_SIZE_PRESETS.map(preset => (
+                <option
+                  key={preset.label}
+                  value={`${preset.width}x${preset.height}`}
+                >
+                  {preset.label}
+                </option>
+              ))}
             </select>
           </label>
           <Button

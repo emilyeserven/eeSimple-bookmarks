@@ -17,6 +17,30 @@ import {
 import { metadataApi } from "../lib/api/metadata";
 import { notifySuccess } from "../lib/notifications";
 
+/** Common Browserless screenshot viewport sizes offered in the size picker. */
+export const SCREENSHOT_SIZE_PRESETS = [
+  {
+    width: 1280,
+    height: 720,
+    label: "1280 × 720 (16:9)",
+  },
+  {
+    width: 1920,
+    height: 1080,
+    label: "1920 × 1080 (16:9)",
+  },
+  {
+    width: 1024,
+    height: 768,
+    label: "1024 × 768 (4:3)",
+  },
+  {
+    width: 800,
+    height: 600,
+    label: "800 × 600 (4:3)",
+  },
+] as const;
+
 /** Everything `BookmarkImageEditForm`'s JSX needs, with every hook consolidated into this one call. */
 export interface BookmarkImageEditFormController {
   /** Remount key for the image picker so a successful save clears the staged intent. */
@@ -43,6 +67,9 @@ export interface BookmarkImageEditFormController {
   onSubmit: (event: React.FormEvent) => void;
   screenshotDelayMs: number;
   setScreenshotDelayMs: (ms: number) => void;
+  screenshotWidth: number;
+  screenshotHeight: number;
+  setScreenshotSize: (width: number, height: number) => void;
   takeScreenshotPending: boolean;
   deleteScreenshotPending: boolean;
   onTakeScreenshot: () => void;
@@ -69,6 +96,8 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
   const [candidates, setCandidates] = useState<ImageCandidate[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [screenshotDelayMs, setScreenshotDelayMs] = useState(0);
+  const [screenshotWidth, setScreenshotWidth] = useState<number>(SCREENSHOT_SIZE_PRESETS[0].width);
+  const [screenshotHeight, setScreenshotHeight] = useState<number>(SCREENSHOT_SIZE_PRESETS[0].height);
 
   async function handleFindImages(): Promise<void> {
     if (!bookmark.url) return;
@@ -130,11 +159,19 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     onSubmit: event => void handleSubmit(event),
     screenshotDelayMs,
     setScreenshotDelayMs,
+    screenshotWidth,
+    screenshotHeight,
+    setScreenshotSize: (width, height) => {
+      setScreenshotWidth(width);
+      setScreenshotHeight(height);
+    },
     takeScreenshotPending: takeScreenshot.isPending,
     deleteScreenshotPending: deleteScreenshot.isPending,
     onTakeScreenshot: () => void takeScreenshot.mutateAsync({
       id: bookmark.id,
       delayMs: screenshotDelayMs || undefined,
+      width: screenshotWidth,
+      height: screenshotHeight,
     }),
     onDeleteScreenshot: () => void deleteScreenshot.mutateAsync(bookmark.id),
   };

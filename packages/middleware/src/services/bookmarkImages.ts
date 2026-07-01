@@ -115,6 +115,12 @@ export async function removeBookmarkScreenshot(bookmarkId: string): Promise<bool
 
 const SCREENSHOT_TIMEOUT_MS = 30_000;
 
+/** Browser viewport size (in CSS pixels) to render before capturing a screenshot. */
+export interface ScreenshotViewport {
+  width: number;
+  height: number;
+}
+
 /**
  * Capture a screenshot of the bookmark's page via Browserless, process it, and store it in the
  * `bookmark_screenshots` table. Returns the wire shape, `"not_found"` when the bookmark is gone,
@@ -124,6 +130,7 @@ const SCREENSHOT_TIMEOUT_MS = 30_000;
 export async function takeAndStoreScreenshot(
   bookmarkId: string,
   delayMs?: number,
+  viewport?: ScreenshotViewport,
 ): Promise<BookmarkImage | "not_found" | "not_configured" | "bad_image"> {
   const [bookmark] = await db.select({
     id: bookmarks.id,
@@ -144,6 +151,12 @@ export async function takeAndStoreScreenshot(
       fullPage: false,
     },
   };
+  if (viewport) {
+    screenshotBody.viewport = {
+      width: viewport.width,
+      height: viewport.height,
+    };
+  }
   // Browserless v2 deprecated the v1 `waitFor` field in favor of Puppeteer's specific waiting
   // methods; a fixed post-load delay is now `waitForTimeout` (ms). Sending the old `waitFor` key
   // makes v2 reject the request (its body schema disallows unknown properties), which surfaced as a

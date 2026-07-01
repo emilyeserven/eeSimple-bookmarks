@@ -974,6 +974,16 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
             minimum: 0,
             maximum: 30000,
           },
+          width: {
+            type: "integer",
+            minimum: 200,
+            maximum: 3840,
+          },
+          height: {
+            type: "integer",
+            minimum: 200,
+            maximum: 2160,
+          },
         },
         additionalProperties: false,
       },
@@ -983,14 +993,22 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     const {
-      delayMs,
-    } = (req.body ?? {}) as { delayMs?: number };
+      delayMs, width, height,
+    } = (req.body ?? {}) as { delayMs?: number;
+      width?: number;
+      height?: number; };
     if (!isObjectStoreConfigured()) {
       return reply.code(503).send({
         message: "Image storage is not configured",
       });
     }
-    const result = await takeAndStoreScreenshot(id, delayMs);
+    const viewport = width != null && height != null
+      ? {
+        width,
+        height,
+      }
+      : undefined;
+    const result = await takeAndStoreScreenshot(id, delayMs, viewport);
     if (result === "not_found") return reply.code(404).send({
       message: "Bookmark not found",
     });
