@@ -15,6 +15,7 @@ import { useLocationPlaceTypeColors, useLocationPlaceTypeIcons } from "../hooks/
 import { useLocationLevels } from "../hooks/useLocationLevels";
 import { useRefreshLocationBoundary } from "../hooks/useLocations";
 import { computePopulatedLevelGroupIds, computeVisibleLevelGroupIds } from "../lib/locationLevels";
+import { buildLayersDebug } from "../lib/locationMapDebug";
 import { flattenTree, selectedSubtrees } from "../lib/tagTree";
 import { useUiStore } from "../stores/uiStore";
 
@@ -200,6 +201,20 @@ export function LocationMapSection({
     }
     : undefined;
 
+  // Snapshot the "Levels" overlay state for the map's debug modal — the map itself only receives the
+  // overlay as an opaque node, so it can't report this without being handed it.
+  const layersDebug = buildLayersDebug({
+    scopeKind,
+    levelMode: hasLevelMode ? levelMode : null,
+    hideAdminBorders,
+    filterIds: filter?.filterIds ?? [],
+    onlyDirectRelatives: ancestorChildrenScope ? ancestorChildrenScope.onlyDirect : null,
+    groups,
+    visibleIds,
+    disabledIds,
+    populatedIds,
+  });
+
   const refreshBoundary = useRefreshLocationBoundary();
   const attemptedRef = useRef<string | null>(null);
   // Only fetch when the target location currently has no boundary, and only once per id.
@@ -267,6 +282,7 @@ export function LocationMapSection({
             colorConfig={colorConfig}
             lastViewRef={lastViewRef}
             hideAdminBorders={hideAdminBorders}
+            layersDebug={layersDebug}
             overlay={showLevels
               ? (
                 <LocationLevelsMapPanel
