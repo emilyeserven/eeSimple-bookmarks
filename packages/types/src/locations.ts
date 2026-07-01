@@ -68,6 +68,16 @@ export interface Location {
    * only — Nominatim is skipped, since this place's lat/long source of truth is Wikidata.
    */
   usesWikidataCoordinates: boolean;
+  /** The location's official website, or `null`. */
+  officialLink: string | null;
+  /** English Wikipedia article URL, or `null`. Can be filled by hand or via the Wikipedia autofill action. */
+  wikipediaLinkEn: string | null;
+  /**
+   * Local-language Wikipedia article URL, or `null` — the Wikipedia edition matching the location's
+   * own (`name`) title, e.g. the Japanese Wikipedia for a Japanese place. Can be filled by hand or via
+   * the Wikipedia autofill action.
+   */
+  wikipediaLinkLocal: string | null;
   /** Display ordering weight; lower sorts first. */
   sortOrder: number;
   /** Parent location id, or `null` for a root-level location. */
@@ -106,6 +116,9 @@ export interface CreateLocationInput {
   wikidataId?: string | null;
   /** Whether the latitude/longitude came from Wikidata; gates Nominatim out of future refreshes. */
   usesWikidataCoordinates?: boolean;
+  officialLink?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
   sortOrder?: number;
   /** Parent location id, or `null`/omitted for a root location. */
   parentId?: string | null;
@@ -129,6 +142,9 @@ export interface UpdateLocationInput {
   wikidataId?: string | null;
   /** Whether the latitude/longitude came from Wikidata; gates Nominatim out of future refreshes. */
   usesWikidataCoordinates?: boolean;
+  officialLink?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
   sortOrder?: number;
   parentId?: string | null;
   tagIds?: string[];

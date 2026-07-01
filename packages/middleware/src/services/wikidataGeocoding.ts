@@ -325,7 +325,7 @@ function buildCandidate(
 // --- API calls -----------------------------------------------------------------------------------
 
 /** Search Wikidata for items matching a free-text query, returning up to `limit` entity ids. */
-async function searchEntities(query: string, limit: number): Promise<string[]> {
+export async function searchEntities(query: string, limit: number): Promise<string[]> {
   const language = detectLanguage(query);
   const url = new URL(`${wikidataEndpoint()}/w/api.php`);
   url.searchParams.set("action", "wbsearchentities");
@@ -409,5 +409,153 @@ export async function wikidataGeocode(query: string): Promise<LocationLookupResu
   }
   return {
     results,
+  };
+}
+
+// --- Wikipedia links (autofill) -------------------------------------------------------------------
+
+/** Best-effort ISO 3166-1 alpha-2 country → primary Wikipedia language code, used as the "local"
+ * language guess when a location's title carries no distinguishing non-Latin script (e.g. a French
+ * or German place). Not exhaustive — an unmapped country with a Latin-script title simply gets no
+ * local link, which is fine for a best-effort convenience autofill.
+ */
+const COUNTRY_LANGUAGE_FALLBACK: Record<string, string> = {
+  JP: "ja",
+  KR: "ko",
+  CN: "zh",
+  TW: "zh",
+  HK: "zh",
+  RU: "ru",
+  UA: "uk",
+  SA: "ar",
+  EG: "ar",
+  IL: "he",
+  IN: "hi",
+  TH: "th",
+  GR: "el",
+  FR: "fr",
+  DE: "de",
+  AT: "de",
+  ES: "es",
+  IT: "it",
+  PT: "pt",
+  BR: "pt",
+  NL: "nl",
+  BE: "nl",
+  PL: "pl",
+  SE: "sv",
+  NO: "no",
+  DK: "da",
+  FI: "fi",
+  CZ: "cs",
+  SK: "sk",
+  HU: "hu",
+  RO: "ro",
+  TR: "tr",
+  VN: "vi",
+  ID: "id",
+  MY: "ms",
+};
+
+/** Unicode-script → Wikipedia language code guess for an unambiguously non-Latin title. */
+function detectWikipediaLanguage(text: string): string | null {
+  if (/[぀-ヿ]/.test(text)) return "ja"; // hiragana / katakana
+  if (/[가-힣]/.test(text)) return "ko"; // hangul
+  if (/[一-鿿]/.test(text)) return "zh"; // CJK ideographs with no kana → best-effort Chinese
+  if (/[Ѐ-ӿ]/.test(text)) return "ru"; // cyrillic
+  if (/[؀-ۿ]/.test(text)) return "ar"; // arabic
+  if (/[฀-๿]/.test(text)) return "th"; // thai
+  if (/[ऀ-ॿ]/.test(text)) return "hi"; // devanagari
+  if (/[Ͱ-Ͽ]/.test(text)) return "el"; // greek
+  if (/[֐-׿]/.test(text)) return "he"; // hebrew
+  return null;
+}
+
+/** Fetch a Wikidata item's sitelinks (`{ enwiki: { title, url }, jawiki: {…}, … }`), or `null`. */
+async function fetchSitelinks(qid: string): Promise<Record<string, { title: string;
+  url: string; }> | null> {
+  const url = new URL(`${wikidataEndpoint()}/w/api.php`);
+  url.searchParams.set("action", "wbgetentities");
+  url.searchParams.set("ids", qid);
+  url.searchParams.set("props", "sitelinks/urls");
+  url.searchParams.set("format", "json");
+  const body = await fetchJson(url);
+  const entities = (body as { entities?: Record<string, unknown> })?.entities;
+  const entity = entities?.[qid] as { sitelinks?: Record<string, { title?: unknown;
+    url?: unknown; }>; } | undefined;
+  if (!entity?.sitelinks) return null;
+  const sitelinks: Record<string, { title: string;
+    url: string; }> = {};
+  for (const [site, value] of Object.entries(entity.sitelinks)) {
+    const title = asString(value?.title);
+    const siteUrl = asString(value?.url);
+    if (title !== null && siteUrl !== null) sitelinks[site] = {
+      title,
+      url: siteUrl,
+    };
+  }
+  return sitelinks;
+}
+
+/** Result of {@link resolveWikipediaLinks} — each field `null` when nothing could be resolved. */
+export interface WikipediaLinkResolution {
+  wikipediaLinkEn: string | null;
+  wikipediaLinkLocal: string | null;
+  /** The Wikidata QID the links were resolved from, or the `existingWikidataId` passed in. */
+  wikidataId: string | null;
+}
+
+/**
+ * Resolve English + local Wikipedia links for a location from Wikidata sitelinks. Reuses
+ * `existingWikidataId` when present (skipping the search); otherwise searches Wikidata by the regular
+ * title first, then the romanized title. The "local" language is the one implied by the regular
+ * title's script when unambiguous (CJK / Cyrillic / Arabic / …); for a Latin-script title it falls
+ * back to {@link COUNTRY_LANGUAGE_FALLBACK}`[countryCode]`. Best-effort — resolves to all-`null` on
+ * any failure or no match, since this backs a convenience "try to autofill" action, not a required
+ * field.
+ */
+export async function resolveWikipediaLinks(
+  name: string,
+  romanizedName: string | null,
+  existingWikidataId: string | null,
+  countryCode: string | null,
+): Promise<WikipediaLinkResolution> {
+  const empty: WikipediaLinkResolution = {
+    wikipediaLinkEn: null,
+    wikipediaLinkLocal: null,
+    wikidataId: existingWikidataId,
+  };
+
+  let qid = existingWikidataId;
+  if (qid === null) {
+    const candidates = [name, romanizedName].filter((v): v is string => !!v && v.trim() !== "");
+    for (const candidate of candidates) {
+      const ids = await searchEntities(candidate, 1);
+      if (ids[0]) {
+        qid = ids[0];
+        break;
+      }
+    }
+  }
+  if (qid === null) return empty;
+
+  const sitelinks = await fetchSitelinks(qid);
+  if (sitelinks === null) return {
+    ...empty,
+    wikidataId: qid,
+  };
+
+  const wikipediaLinkEn = sitelinks.enwiki?.url ?? null;
+  const localLanguage = detectWikipediaLanguage(name)
+    ?? (countryCode ? COUNTRY_LANGUAGE_FALLBACK[countryCode.toUpperCase()] : undefined)
+    ?? null;
+  const wikipediaLinkLocal = localLanguage && localLanguage !== "en"
+    ? (sitelinks[`${localLanguage}wiki`]?.url ?? null)
+    : null;
+
+  return {
+    wikipediaLinkEn,
+    wikipediaLinkLocal,
+    wikidataId: qid,
   };
 }

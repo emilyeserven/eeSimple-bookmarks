@@ -622,6 +622,10 @@ export const locations = pgTable("locations", {
   boundary: jsonb("boundary").$type<LocationBoundary>(),
   // The Wikidata QID this location was resolved from, or null. Nullable → push-safe additive.
   wikidataId: text("wikidata_id"),
+  // Official site / Wikipedia links. Nullable free-form URLs → push-safe additive.
+  officialLink: text("official_link"),
+  wikipediaLinkEn: text("wikipedia_link_en"),
+  wikipediaLinkLocal: text("wikipedia_link_local"),
   // Whether lat/long came from Wikidata (gates Nominatim out of future refreshes). Nullable rather
   // than NOT NULL DEFAULT false — a NOT NULL column added to an existing table prompts `push` even
   // with a column default (see CLAUDE.md → Database schema changes); null reads as false.

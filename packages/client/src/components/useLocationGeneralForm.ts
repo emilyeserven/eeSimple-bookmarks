@@ -7,7 +7,12 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { locationSchema } from "./locationFormSchema";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-import { useLocationTree, useRefreshLocationCoordinates, useUpdateLocation } from "../hooks/useLocations";
+import {
+  useAutofillLocationWikipediaLinks,
+  useLocationTree,
+  useRefreshLocationCoordinates,
+  useUpdateLocation,
+} from "../hooks/useLocations";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
 import { useTagTree } from "../hooks/useTags";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
@@ -32,6 +37,9 @@ const LABELS: Record<keyof UpdateLocationInput, string> = {
   boundary: "Boundary",
   wikidataId: "Wikidata ID",
   usesWikidataCoordinates: "Uses Wikidata coordinates",
+  officialLink: "Official link",
+  wikipediaLinkEn: "Wikipedia link (EN)",
+  wikipediaLinkLocal: "Wikipedia link (Local)",
   sortOrder: "Sort order",
   parentId: "Parent",
   tagIds: "Tags",
@@ -47,6 +55,7 @@ export function useLocationGeneralForm(node: LocationNode) {
   const navigate = useNavigate();
   const updateLocation = useUpdateLocation();
   const refreshCoordinatesMutation = useRefreshLocationCoordinates();
+  const autofillWikipediaLinksMutation = useAutofillLocationWikipediaLinks();
   const {
     data: tree,
   } = useLocationTree();
@@ -76,6 +85,9 @@ export function useLocationGeneralForm(node: LocationNode) {
       plusCode: node.plusCode ?? "",
       placeType: node.placeType ?? "",
       countryCode: node.countryCode ?? "",
+      officialLink: node.officialLink ?? "",
+      wikipediaLinkEn: node.wikipediaLinkEn ?? "",
+      wikipediaLinkLocal: node.wikipediaLinkLocal ?? "",
       parentId: node.parentId,
       tagIds: node.tagIds ?? [],
     },
@@ -129,6 +141,9 @@ export function useLocationGeneralForm(node: LocationNode) {
       plusCode: node.plusCode ?? "",
       placeType: node.placeType ?? "",
       countryCode: node.countryCode ?? "",
+      officialLink: node.officialLink ?? "",
+      wikipediaLinkEn: node.wikipediaLinkEn ?? "",
+      wikipediaLinkLocal: node.wikipediaLinkLocal ?? "",
       parent: node.parentId ?? ROOT,
     },
     validators: {
@@ -193,6 +208,30 @@ export function useLocationGeneralForm(node: LocationNode) {
     );
   }
 
+  function autofillWikipediaLinks(): void {
+    autofillWikipediaLinksMutation.mutate(
+      {
+        id: node.id,
+      },
+      {
+        onSuccess: (updated) => {
+          form.setFieldValue("wikipediaLinkEn", updated.wikipediaLinkEn ?? "");
+          form.setFieldValue("wikipediaLinkLocal", updated.wikipediaLinkLocal ?? "");
+          if (updated.wikipediaLinkEn || updated.wikipediaLinkLocal) {
+            notifyFieldSaved("Wikipedia links");
+          }
+          else {
+            notifyFieldSaveError("Wikipedia links", "No matching Wikipedia article was found");
+          }
+        },
+        onError: error => notifyFieldSaveError(
+          "Wikipedia links",
+          error instanceof Error ? error.message : undefined,
+        ),
+      },
+    );
+  }
+
   function saveTagIds(next: string[]): void {
     setTagIds(next);
     autoSave.saveField("tagIds", next);
@@ -219,6 +258,8 @@ export function useLocationGeneralForm(node: LocationNode) {
     applyLookup,
     repullCoordinates,
     isRepullingCoordinates: refreshCoordinatesMutation.isPending,
+    autofillWikipediaLinks,
+    isAutofillingWikipediaLinks: autofillWikipediaLinksMutation.isPending,
     addPlaceTypeOpen,
     setAddPlaceTypeOpen,
   };

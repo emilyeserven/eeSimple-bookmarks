@@ -6,6 +6,7 @@ import type {
   UpdateLocationInput,
 } from "@eesimple/types";
 import {
+  autofillLocationWikipediaLinks,
   bulkDeleteLocations,
   createLocation,
   createLocationWithAncestors,
@@ -108,6 +109,18 @@ const locationFields = {
   },
   usesWikidataCoordinates: {
     type: "boolean",
+  },
+  officialLink: {
+    type: "string",
+    nullable: true,
+  },
+  wikipediaLinkEn: {
+    type: "string",
+    nullable: true,
+  },
+  wikipediaLinkLocal: {
+    type: "string",
+    nullable: true,
   },
   sortOrder: {
     type: "integer",
@@ -330,6 +343,22 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const location = await refreshLocationCoordinates(id);
+    if (!location) return reply.code(404).send({
+      message: "Location not found",
+    });
+    return location;
+  });
+
+  app.post("/api/locations/:id/autofill-wikipedia-links", {
+    schema: {
+      tags: ["locations"],
+      params: locationParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const location = await autofillLocationWikipediaLinks(id);
     if (!location) return reply.code(404).send({
       message: "Location not found",
     });

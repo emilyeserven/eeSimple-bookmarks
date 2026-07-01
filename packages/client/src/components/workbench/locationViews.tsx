@@ -111,6 +111,57 @@ export function LocationGeneralView({
             </>
           )
           : null}
+        {node.officialLink
+          ? (
+            <>
+              <dt className="text-muted-foreground">Official link</dt>
+              <dd>
+                <a
+                  href={node.officialLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:underline"
+                >
+                  {node.officialLink}
+                </a>
+              </dd>
+            </>
+          )
+          : null}
+        {node.wikipediaLinkEn
+          ? (
+            <>
+              <dt className="text-muted-foreground">Wikipedia (EN)</dt>
+              <dd>
+                <a
+                  href={node.wikipediaLinkEn}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:underline"
+                >
+                  {node.wikipediaLinkEn}
+                </a>
+              </dd>
+            </>
+          )
+          : null}
+        {node.wikipediaLinkLocal
+          ? (
+            <>
+              <dt className="text-muted-foreground">Wikipedia (Local)</dt>
+              <dd>
+                <a
+                  href={node.wikipediaLinkLocal}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:underline"
+                >
+                  {node.wikipediaLinkLocal}
+                </a>
+              </dd>
+            </>
+          )
+          : null}
         <dt className="text-muted-foreground">Bookmarks</dt>
         <dd>{node.bookmarkCount ?? 0}</dd>
         <dt className="text-muted-foreground">Created</dt>

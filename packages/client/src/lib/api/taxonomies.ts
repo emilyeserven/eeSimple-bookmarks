@@ -175,6 +175,10 @@ export const locationsApi = {
     request<Location>(`/locations/${id}/refresh-coordinates`, {
       method: "POST",
     }),
+  autofillWikipediaLinks: (id: string) =>
+    request<Location>(`/locations/${id}/autofill-wikipedia-links`, {
+      method: "POST",
+    }),
 };
 
 export const placeTypesApi = {

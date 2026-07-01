@@ -15,6 +15,7 @@ import { bookmarkLocations, locations, locationTags, type LocationRow } from "@/
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { geocodeLocation, refreshLocationBoundary } from "@/services/geocoding";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { resolveWikipediaLinks } from "@/services/wikidataGeocoding";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a reparent would put a location under itself or one of its descendants. */
@@ -50,6 +51,9 @@ function toLocation(row: LocationRow, counts?: LocationBookmarkCounts, tagIds?: 
     boundary: row.boundary ?? null,
     wikidataId: row.wikidataId,
     usesWikidataCoordinates: row.usesWikidataCoordinates === true,
+    officialLink: row.officialLink,
+    wikipediaLinkEn: row.wikipediaLinkEn,
+    wikipediaLinkLocal: row.wikipediaLinkLocal,
     sortOrder: row.sortOrder,
     parentId: row.parentId,
     createdAt:
@@ -269,6 +273,9 @@ export async function createLocation(input: CreateLocationInput): Promise<Locati
         boundary: input.boundary ?? null,
         wikidataId: input.wikidataId ?? null,
         usesWikidataCoordinates: input.usesWikidataCoordinates ?? false,
+        officialLink: input.officialLink ?? null,
+        wikipediaLinkEn: input.wikipediaLinkEn ?? null,
+        wikipediaLinkLocal: input.wikipediaLinkLocal ?? null,
         sortOrder: input.sortOrder ?? 0,
         parentId: input.parentId ?? null,
       })
@@ -406,6 +413,9 @@ export async function updateLocation(id: string, input: UpdateLocationInput): Pr
   if (input.boundary !== undefined) patch.boundary = input.boundary;
   if (input.wikidataId !== undefined) patch.wikidataId = input.wikidataId;
   if (input.usesWikidataCoordinates !== undefined) patch.usesWikidataCoordinates = input.usesWikidataCoordinates;
+  if (input.officialLink !== undefined) patch.officialLink = input.officialLink;
+  if (input.wikipediaLinkEn !== undefined) patch.wikipediaLinkEn = input.wikipediaLinkEn;
+  if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
 
@@ -507,6 +517,47 @@ export async function refreshLocationCoordinates(id: string): Promise<Location |
     .where(eq(locations.id, id))
     .returning();
 
+  if (!updated) return null;
+  return toLocation(updated, undefined, tagMap.get(id) ?? []);
+}
+
+/**
+ * Try to autofill a location's English + local Wikipedia links from Wikidata, using its regular
+ * (`name`) and romanized (`romanizedName`) titles to resolve a Wikidata item (reusing a stored
+ * `wikidataId` when present). A found link only overwrites a currently-empty field — an existing
+ * manual value is never clobbered. Returns `null` when the location isn't found; returns the location
+ * unchanged when nothing could be resolved. Display-only metadata, so this deliberately does NOT
+ * invalidate the bookmark cache (mirrors `ensureLocationBoundary`).
+ */
+export async function autofillLocationWikipediaLinks(id: string): Promise<Location | null> {
+  const [current] = await db.select().from(locations).where(eq(locations.id, id));
+  if (!current) return null;
+
+  const tagMap = await tagIdsByLocation([id]);
+  const resolution = await resolveWikipediaLinks(
+    current.name,
+    current.romanizedName,
+    current.wikidataId,
+    current.countryCode,
+  );
+
+  const nextWikidataId = current.wikidataId ?? resolution.wikidataId;
+  const nextEn = current.wikipediaLinkEn ?? resolution.wikipediaLinkEn;
+  const nextLocal = current.wikipediaLinkLocal ?? resolution.wikipediaLinkLocal;
+  if (nextWikidataId === current.wikidataId && nextEn === current.wikipediaLinkEn
+    && nextLocal === current.wikipediaLinkLocal) {
+    return toLocation(current, undefined, tagMap.get(id) ?? []);
+  }
+
+  const [updated] = await db
+    .update(locations)
+    .set({
+      wikidataId: nextWikidataId,
+      wikipediaLinkEn: nextEn,
+      wikipediaLinkLocal: nextLocal,
+    })
+    .where(eq(locations.id, id))
+    .returning();
   if (!updated) return null;
   return toLocation(updated, undefined, tagMap.get(id) ?? []);
 }
