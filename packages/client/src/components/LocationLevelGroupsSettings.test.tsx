@@ -40,6 +40,14 @@ vi.mock("../hooks/useAppSettings", () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
+  useMinAreaPinThresholdKm2: () => 0,
+  useDisplayPreferenceSettings: () => ({
+    data: undefined,
+  }),
+  useUpdateDisplayPreferenceSettings: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 vi.mock("../hooks/useLocations", () => ({
