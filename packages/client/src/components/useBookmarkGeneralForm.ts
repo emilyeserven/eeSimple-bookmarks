@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkUrlDuplicateResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
+import type { Bookmark, BookmarkUrlDuplicateResult, KavitaSeriesResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
@@ -204,6 +204,25 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     );
   }
 
+  // The Kavita link lives outside the zod form state (immediate-save, like tags/authors), so the
+  // tab's Save-changes submit never touches it.
+  function saveKavitaSeries(selection: KavitaSeriesResult | null): void {
+    updateBookmark.mutate(
+      {
+        id: bookmark.id,
+        input: {
+          kavitaSeriesId: selection?.seriesId ?? null,
+          kavitaLibraryId: selection?.libraryId ?? null,
+          kavitaSeriesName: selection?.name ?? null,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Kavita series"),
+        onError: e => notifyFieldSaveError("Kavita series", describeError(e)),
+      },
+    );
+  }
+
   function runAutofill(): void {
     const url = form.getFieldValue("url");
     const title = form.getFieldValue("title");
@@ -341,6 +360,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveBlacklistedTagIds,
     saveBlacklistedLocationIds,
     saveAuthors,
+    saveKavitaSeries,
     fetchTitle,
     fetchMetadata,
     websiteLookup,

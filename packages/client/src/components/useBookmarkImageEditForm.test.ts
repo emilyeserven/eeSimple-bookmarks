@@ -60,6 +60,16 @@ vi.mock("../hooks/useBookmarks", () => ({
     mutateAsync: deleteScreenshotMutateAsync,
     ...pendingFalse,
   }),
+  useKavitaCoverImage: () => ({
+    mutate: vi.fn(),
+    ...pendingFalse,
+  }),
+}));
+
+vi.mock("../hooks/useConnectors", () => ({
+  useConnectors: () => ({
+    data: undefined,
+  }),
 }));
 
 vi.mock("../lib/api/metadata", () => ({

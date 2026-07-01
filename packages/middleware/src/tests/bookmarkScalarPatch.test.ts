@@ -31,6 +31,29 @@ test("scalarBookmarkPatch coalesces nullable fields to null", () => {
   });
 });
 
+test("scalarBookmarkPatch copies the Kavita link fields, coalescing null to unlink", () => {
+  const input: UpdateBookmarkInput = {
+    kavitaSeriesId: 12,
+    kavitaLibraryId: 3,
+    kavitaSeriesName: "Berserk",
+  };
+  assert.deepEqual(scalarBookmarkPatch(input, undefined), {
+    kavitaSeriesId: 12,
+    kavitaLibraryId: 3,
+    kavitaSeriesName: "Berserk",
+  });
+  // Explicit nulls unlink; omitting the fields leaves them untouched (first test covers that).
+  assert.deepEqual(scalarBookmarkPatch({
+    kavitaSeriesId: null,
+    kavitaLibraryId: null,
+    kavitaSeriesName: null,
+  } as UpdateBookmarkInput, undefined), {
+    kavitaSeriesId: null,
+    kavitaLibraryId: null,
+    kavitaSeriesName: null,
+  });
+});
+
 test("scalarBookmarkPatch applies the media-type default only when the caller set none", () => {
   assert.deepEqual(scalarBookmarkPatch({}, "mt-video"), {
     mediaTypeId: "mt-video",

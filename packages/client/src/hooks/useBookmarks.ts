@@ -278,6 +278,21 @@ export function useAutoBookmarkImage() {
   });
 }
 
+/** Import the linked Kavita series' cover as the bookmark's main image. */
+export function useKavitaCoverImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => bookmarksApi.kavitaCover(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      notifySuccess("Kavita cover added");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not fetch the cover from Kavita")),
+  });
+}
+
 /** Remove a bookmark's image. */
 export function useDeleteBookmarkImage() {
   const queryClient = useQueryClient();

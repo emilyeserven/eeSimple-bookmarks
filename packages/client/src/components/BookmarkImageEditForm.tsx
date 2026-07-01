@@ -1,6 +1,6 @@
 import type { Bookmark } from "@eesimple/types";
 
-import { Search, Sparkles } from "lucide-react";
+import { BookOpen, Search, Sparkles } from "lucide-react";
 
 import { BookmarkImagePicker } from "./BookmarkImagePicker";
 import { SCREENSHOT_SIZE_PRESETS, useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
@@ -64,6 +64,21 @@ export function BookmarkImageEditForm({
                 {c.getPageImagePending ? "Fetching…" : "Get page image"}
               </Button>
             </>
+          )
+          : null}
+        {c.canUseKavitaCover
+          ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={c.kavitaCoverPending}
+              title="Import the linked Kavita series' cover as the main image"
+              onClick={c.onUseKavitaCover}
+            >
+              <BookOpen className="size-4" />
+              {c.kavitaCoverPending ? "Importing…" : "Use Kavita cover"}
+            </Button>
           )
           : null}
         {c.mutationError

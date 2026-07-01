@@ -2,7 +2,7 @@ import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimpl
 
 import { youtubeEmbedUrl } from "@eesimple/types";
 
-import { BookmarkArchiveLinkButton, BookmarkArchiveNowButton } from "./BookmarkCardActions";
+import { BookmarkArchiveLinkButton, BookmarkArchiveNowButton, BookmarkKavitaLinkButton } from "./BookmarkCardActions";
 import { BookmarkDetailBody } from "./BookmarkDetailBody";
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
@@ -48,6 +48,12 @@ export function BookmarkDetail({
   const archiveBaseUrl = connectors?.archiveBox.baseUrl ?? null;
   const showArchive = archiveBaseUrl !== null && Boolean(bookmark.url);
 
+  // "View on Kavita" renders only when the connector is enabled and the bookmark is linked.
+  const kavitaBaseUrl = connectors?.kavita.enabled ? connectors.kavita.baseUrl : null;
+  const showKavita = kavitaBaseUrl !== null
+    && bookmark.kavitaSeriesId !== null
+    && bookmark.kavitaLibraryId !== null;
+
   return (
     <div className="@container space-y-6">
       {/* Shared header — identical in Single and Tabbed modes */}
@@ -76,6 +82,14 @@ export function BookmarkDetail({
               </a>
             </h1>
             <div className="flex items-center gap-1">
+              {showKavita && kavitaBaseUrl !== null
+                && bookmark.kavitaLibraryId !== null && bookmark.kavitaSeriesId !== null && (
+                <BookmarkKavitaLinkButton
+                  baseUrl={kavitaBaseUrl}
+                  libraryId={bookmark.kavitaLibraryId}
+                  seriesId={bookmark.kavitaSeriesId}
+                />
+              )}
               {showArchive && archiveBaseUrl !== null && bookmark.url && (
                 <>
                   <BookmarkArchiveLinkButton

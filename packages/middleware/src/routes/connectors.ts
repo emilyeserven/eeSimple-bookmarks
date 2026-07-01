@@ -5,6 +5,8 @@ import { geocodingEnabled, geocodingEndpoint } from "@/services/geocoding";
 import { wikidataEnabled, wikidataEndpoint } from "@/services/wikidataGeocoding";
 import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/services/hostedMetadata";
 import { instagramApiEnabled } from "@/services/socialImages";
+import { kavitaEnabledAsync } from "@/services/kavita";
+import { getActiveKavitaEndpoint } from "@/services/appSettings";
 import { youtubeApiEnabled } from "@/services/youtube";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 
@@ -45,6 +47,12 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
       archiveBox: {
         enabled: Boolean(archiveUrl),
         baseUrl: archiveUrl,
+      },
+      kavita: {
+        // Enabled requires both the base URL and the API key; the base URL alone is still returned
+        // (non-secret) so the client can build series deep links.
+        enabled: await kavitaEnabledAsync(),
+        baseUrl: await getActiveKavitaEndpoint(),
       },
       geocoding: {
         enabled: geocodingEnabled(),

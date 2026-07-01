@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HttpResponse, http } from "msw";
 
-import { ArchiveBoxForm, HostedMetadataForm } from "./ConnectorMetadataForms";
+import { ArchiveBoxForm, HostedMetadataForm, KavitaForm } from "./ConnectorMetadataForms";
 import { apiHandlers } from "../test-utils/story-mocks";
 
 const connectorsSettings: ConnectorsAppSettings = {
@@ -12,6 +12,8 @@ const connectorsSettings: ConnectorsAppSettings = {
   hostedMetadataApiKeySet: false,
   encryptionEnabled: true,
   archiveBoxEndpoint: "",
+  kavitaEndpoint: "",
+  kavitaApiKeySet: false,
   imageUrlBlacklist: [],
 };
 
@@ -57,4 +59,26 @@ export const HostedMetadataConfigured: Story = {
 /** The ArchiveBox connector form — a single base-URL field. */
 export const ArchiveBox: Story = {
   render: () => <ArchiveBoxForm />,
+};
+
+/** The Kavita connector form — base URL and API key. */
+export const Kavita: Story = {
+  render: () => <KavitaForm />,
+};
+
+/** Kavita already configured with a stored API key. */
+export const KavitaConfigured: Story = {
+  render: () => <KavitaForm />,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/app-settings/connectors", () => HttpResponse.json({
+          ...connectorsSettings,
+          kavitaEndpoint: "http://localhost:5000",
+          kavitaApiKeySet: true,
+        } satisfies ConnectorsAppSettings)),
+        ...apiHandlers,
+      ],
+    },
+  },
 };
