@@ -122,6 +122,7 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   allBookmarks: ReturnType<typeof useBookmarks>["data"];
   inboxCount: number | undefined;
   aiSummarizationCount: number | undefined;
+  placeTypesCount: number | undefined;
   currentBookmarkCategories: string[];
   modifier: ReturnType<typeof useSidebarOpenModifier>;
   viewClick: ReturnType<typeof useViewPanelClick>;
@@ -254,6 +255,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     allBookmarks: data.allBookmarks,
     inboxCount: data.inboxItems?.filter(item => item.status === "pending").length,
     aiSummarizationCount: data.aiSummaryQueue?.length,
+    placeTypesCount: data.allPlaceTypes?.length,
     currentBookmarkCategories,
     modifier,
     viewClick,
