@@ -1,6 +1,6 @@
 import type { LocationMapLevelMode, LocationNode, PlaceTypeLevelGroup } from "@eesimple/types";
 
-import { placeTypeKey } from "@eesimple/types";
+import { DEFAULT_LOCATION_MAP_LEVEL_MODE, placeTypeKey } from "@eesimple/types";
 
 import { flattenTree } from "./tagTree";
 
@@ -100,9 +100,9 @@ export function computePopulatedLevelGroupIds(
  *   {@link LocationMapLevelMode} (`levelMode`, default `"current"`).
  * - `bookmark`: a bookmark's locations map — relative to the **current** groups (every group
  *   containing one of the bookmark's tagged locations' place types — there can be several, since a
- *   bookmark may tag locations of different levels), expanded up/down per the persisted
- *   `bookmarkMapLevelMode` display preference (default `"current"`, independent of the per-group
- *   modes) — same expansion rules as `location` but with multiple anchors.
+ *   bookmark may tag locations of different levels). Each anchor group expands up/down per **its
+ *   own** persisted `levelMode` (default `"current"`), independently of the other anchors — the
+ *   same per-group setting a `location` scope reads, generalized to multiple anchors.
  */
 export type LevelScope
   = | { kind: "main" }
@@ -114,10 +114,10 @@ export type LevelScope
 /**
  * The per-map level controls handed to the "Levels" overlays. Visibility is a **temporary per-map
  * override** (it does not write the shared/global group config); the `levelMode` button group edits
- * the **persisted default** for this map's anchor — the current level group's `levelMode` on a
- * place's pages, the `bookmarkMapLevelMode` display preference on a bookmark map (both configurable
- * on Settings → Locations → Level Groups) — and is omitted (button group hidden) on maps without a
- * "current" level.
+ * the **persisted default** for this map's anchor(s) — the current level group's `levelMode`,
+ * whether the map is a place's own pages (one anchor) or a bookmark's map (one or more anchors, all
+ * written together) — configurable on Settings → Locations → Level Groups, and omitted (button
+ * group hidden) on maps without a "current" level.
  */
 export interface LevelsControls {
   /** Group ids currently shown on this map. */
@@ -155,34 +155,12 @@ export interface AncestorChildrenScopeControls {
 }
 
 /**
- * The set of level-group ids a map shows by default, given its scope and its resolved level mode.
- *
- * For a `location` scope the **current** group (the one whose `placeTypes` contains the viewed
- * place's own place type) is always included; `above` adds every broader group (lower `sortOrder`)
- * and `below` adds every narrower group (higher `sortOrder`). When the viewed place's type belongs
- * to no group there is no anchor, so every group is shown (avoids an empty map).
- *
- * A `bookmark` scope generalizes this to **multiple** anchors — every group containing one of the
- * bookmark's tagged locations' place types. `current` shows just those anchor groups; `above` adds
- * every group broader than the broadest anchor; `below` adds every group narrower than the
- * narrowest anchor. No anchors (no tagged location's type belongs to any group) falls back to every
- * group, same as `location`.
- *
- * A group with `visible: false` is dropped from the result **in addition to** the scope/mode
- * computation above — it stays excluded from a main-map default, from an "above"/"below" expansion
- * that would otherwise have pulled it in, and even as the anchor/current level itself. This is the
- * per-group "visible by default" override (`LevelGroupEditRow`'s "Visible by default" checkbox): it
- * lets a level (e.g. "Country") be excluded from every default computation — "show everything above,
- * but don't show countries" — without touching the `levelMode`/`showOnMainMap` "Show" settings. It
- * only affects **defaults**; a map's per-map Levels overlay checkbox can still turn the level back on
- * for that one map. Pure — unit-tested.
- */
-/**
  * The **anchor** groups a non-main scope expands around: for a `location` the single group owning
  * the viewed place's type (or none), for a `bookmark` every group containing one of the tagged
  * locations' place types. An empty result signals "no anchor" — the caller shows every group.
+ * Exported for {@link useMapLevelMode}, which reads/writes each anchor's own persisted `levelMode`.
  */
-function resolveAnchorGroups(
+export function resolveAnchorGroups(
   groups: PlaceTypeLevelGroup[],
   scope: Exclude<LevelScope, { kind: "main" }>,
 ): PlaceTypeLevelGroup[] {
@@ -211,30 +189,55 @@ export function findAnchorGroup(
 }
 
 /**
- * The anchor groups plus, per `mode`, every group broader (`above`) than the broadest anchor or
- * narrower (`below`) than the narrowest. `current` returns just the anchors.
+ * Each anchor plus, per **that anchor's own** persisted `levelMode` (default `"current"`), every
+ * group broader (`above`) or narrower (`below`) than it. Anchors expand independently — two anchors
+ * with different `levelMode`s each contribute their own broader/narrower set — so a bookmark tagging
+ * locations of different levels can show a different scope around each one.
  */
-function expandAnchorsByMode(
+function expandAnchorsByOwnMode(
   groups: PlaceTypeLevelGroup[],
   anchors: PlaceTypeLevelGroup[],
-  mode: LocationMapLevelMode,
 ): Set<string> {
-  const ids = new Set<string>(anchors.map(group => group.id));
-  if (mode === "above") {
-    const minSortOrder = Math.min(...anchors.map(group => group.sortOrder));
-    for (const group of groups) if (group.sortOrder < minSortOrder) ids.add(group.id);
-  }
-  else if (mode === "below") {
-    const maxSortOrder = Math.max(...anchors.map(group => group.sortOrder));
-    for (const group of groups) if (group.sortOrder > maxSortOrder) ids.add(group.id);
+  const ids = new Set<string>();
+  for (const anchor of anchors) {
+    ids.add(anchor.id);
+    const mode = anchor.levelMode ?? DEFAULT_LOCATION_MAP_LEVEL_MODE;
+    if (mode === "above") {
+      for (const group of groups) if (group.sortOrder < anchor.sortOrder) ids.add(group.id);
+    }
+    else if (mode === "below") {
+      for (const group of groups) if (group.sortOrder > anchor.sortOrder) ids.add(group.id);
+    }
   }
   return ids;
 }
 
+/**
+ * The set of level-group ids a map shows by default, given its scope.
+ *
+ * For a `location` scope the **current** group (the one whose `placeTypes` contains the viewed
+ * place's own place type) is always included; its own persisted `levelMode` then adds every broader
+ * group (`above`, lower `sortOrder`) or every narrower group (`below`, higher `sortOrder`). When the
+ * viewed place's type belongs to no group there is no anchor, so every group is shown (avoids an
+ * empty map).
+ *
+ * A `bookmark` scope generalizes this to **multiple** anchors — every group containing one of the
+ * bookmark's tagged locations' place types — each expanding independently per its own `levelMode`
+ * (see {@link expandAnchorsByOwnMode}). No anchors (no tagged location's type belongs to any group)
+ * falls back to every group, same as `location`.
+ *
+ * A group with `visible: false` is dropped from the result **in addition to** the scope computation
+ * above — it stays excluded from a main-map default, from an "above"/"below" expansion that would
+ * otherwise have pulled it in, and even as an anchor/current level itself. This is the per-group
+ * "visible by default" override (`LevelGroupEditRow`'s "Visible by default" checkbox): it lets a
+ * level (e.g. "Country") be excluded from every default computation — "show everything above, but
+ * don't show countries" — without touching the `levelMode`/`showOnMainMap` "Show" settings. It only
+ * affects **defaults**; a map's per-map Levels overlay checkbox can still turn the level back on for
+ * that one map. Pure — unit-tested.
+ */
 export function computeVisibleLevelGroupIds(
   groups: PlaceTypeLevelGroup[],
   scope: LevelScope,
-  mode: LocationMapLevelMode,
 ): Set<string> {
   const dropHidden = (ids: Set<string>): Set<string> => {
     const hiddenIds = new Set(groups.filter(group => group.visible === false).map(group => group.id));
@@ -246,7 +249,7 @@ export function computeVisibleLevelGroupIds(
   const anchors = resolveAnchorGroups(groups, scope);
   // No anchor (viewed type belongs to no group / no tagged locations) → show every visible group.
   if (anchors.length === 0) return dropHidden(new Set(groups.map(group => group.id)));
-  return dropHidden(expandAnchorsByMode(groups, anchors, mode));
+  return dropHidden(expandAnchorsByOwnMode(groups, anchors));
 }
 
 /**

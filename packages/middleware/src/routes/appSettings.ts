@@ -301,7 +301,6 @@ const displayPreferenceBody = {
     "minAreaPinThresholdKm2",
     "bookmarksPerPage",
     "mapPinScale",
-    "bookmarkMapLevelMode",
   ],
   additionalProperties: false,
   properties: {
@@ -378,10 +377,6 @@ const displayPreferenceBody = {
       type: "number",
       minimum: 0.5,
       maximum: 2,
-    },
-    bookmarkMapLevelMode: {
-      type: "string",
-      enum: [...LOCATION_MAP_LEVEL_MODES],
     },
   },
 } as const;

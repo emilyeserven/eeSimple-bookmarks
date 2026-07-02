@@ -43,8 +43,9 @@ interface LocationMapSectionProps {
   /**
    * How this map decides which levels are visible by default: the main index map (`showOnMainMap`),
    * a place's pages (the viewed place's level ± that level group's persisted "Show" mode), or a
-   * bookmark map (the tagged locations' levels ± the persisted `bookmarkMapLevelMode` preference) —
-   * see `useMapLevelMode`. Defaults to a location scope with no current place type (shows all levels).
+   * bookmark map (each tagged location's level ± that level group's own persisted "Show" mode,
+   * expanded independently per anchor) — see `useMapLevelMode`. Defaults to a location scope with no
+   * current place type (shows all levels).
    */
   scope?: LevelScope;
   /**
@@ -117,11 +118,12 @@ export function LocationMapSection({
   const currentPlaceType = scope.kind === "location" ? scope.currentPlaceType : null;
   const bookmarkPlaceTypes = scope.kind === "bookmark" ? scope.placeTypes : EMPTY_PLACE_TYPES;
 
-  // The persisted "Show" mode for this map's anchor (the current level group / the bookmark-map
-  // preference); the setter writes straight through to it — see useMapLevelMode.
+  // The persisted "Show" mode for this map's anchor(s) (the current level group, or every level
+  // group anchoring a bookmark's tagged locations); the setter writes straight through to it — see
+  // useMapLevelMode.
   const {
     levelMode, setLevelMode,
-  } = useMapLevelMode(scopeKind, currentPlaceType, groups);
+  } = useMapLevelMode(scopeKind, currentPlaceType, groups, bookmarkPlaceTypes);
   // Join into a stable string key — callers reconstruct the `placeTypes` array inline each render,
   // so depending on its reference directly would thrash the memo/effect below on every render.
   const bookmarkPlaceTypesKey = bookmarkPlaceTypes.join(" ");
@@ -139,9 +141,9 @@ export function LocationMapSection({
           kind: "location",
           currentPlaceType,
         };
-    return computeVisibleLevelGroupIds(groups, resolved, levelMode);
+    return computeVisibleLevelGroupIds(groups, resolved);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- bookmarkPlaceTypesKey stands in for bookmarkPlaceTypes
-  }, [groups, scopeKind, currentPlaceType, bookmarkPlaceTypesKey, levelMode]);
+  }, [groups, scopeKind, currentPlaceType, bookmarkPlaceTypesKey]);
   const [overrideIds, setOverrideIds] = useState<Set<string> | null>(null);
   // Re-sync the checkboxes to the computed default whenever the shared mode or the scope changes.
   useEffect(() => {

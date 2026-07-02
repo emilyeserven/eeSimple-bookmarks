@@ -5,7 +5,6 @@ import type {
   BookmarkDetailVideoSize,
   ConnectorsAppSettings,
   ImportBlacklistEntry,
-  LocationMapLevelMode,
   PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
   PlaceTypeIconConfig,
@@ -203,7 +202,6 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   mapPinScale: MAP_PIN_SCALE_DEFAULT,
-  bookmarkMapLevelMode: "current" as LocationMapLevelMode,
 };
 
 /** Sidebar-customization settings (group A): which left-sidebar items/groups are hidden. */
@@ -494,14 +492,6 @@ export function useMapPinScale(): number {
     data,
   } = useDisplayPreferenceSettings();
   return data?.mapPinScale ?? DISPLAY_PREFERENCE_DEFAULTS.mapPinScale;
-}
-
-/** Default "Show" mode for a bookmark's locations map (default "current" = just its own levels). */
-export function useBookmarkMapLevelMode(): LocationMapLevelMode {
-  const {
-    data,
-  } = useDisplayPreferenceSettings();
-  return data?.bookmarkMapLevelMode ?? DISPLAY_PREFERENCE_DEFAULTS.bookmarkMapLevelMode;
 }
 
 /** Whether alphabetical name/title sorting uses the romanized value as the sort key (default true). */
