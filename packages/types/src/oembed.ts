@@ -19,6 +19,14 @@ export interface OEmbedProvider {
   matches: (url: string) => boolean;
   /** Build the provider's oEmbed JSON endpoint for the given content URL. */
   endpoint: (url: string) => string;
+  /**
+   * Whether the provider's `thumbnail_url` is trustworthy as the bookmark's preview image. Defaults
+   * to `true` when omitted. Set `false` for providers whose oEmbed thumbnail is a generic/placeholder
+   * image unrelated to the specific content (e.g. Reddit returns a subreddit icon rather than a
+   * post's actual image) — the title/author/description still come from oEmbed, but the image
+   * pipeline falls through to the page's own scraped `og:image` instead.
+   */
+  trustThumbnail?: boolean;
 }
 
 /** Parse a URL's lowercased hostname, or `null` when it isn't a valid absolute URL. */
@@ -79,6 +87,9 @@ export const OEMBED_PROVIDERS: readonly OEmbedProvider[] = [
     name: "Reddit",
     matches: url => hostMatches(url, ["reddit.com"]),
     endpoint: url => jsonEndpoint("https://www.reddit.com/oembed", url),
+    // Reddit's oEmbed `thumbnail_url` is very often a generic subreddit/community icon rather than
+    // the post's actual submitted image — trust its title/author text but not its thumbnail.
+    trustThumbnail: false,
   },
   {
     name: "Flickr",

@@ -122,6 +122,9 @@ export async function fetchOEmbedForUrl(
   const raw = await fetchOEmbedJson(endpoint);
   if (raw === null) return null;
   const normalized = normalizeOEmbed(raw, providerName);
+  // Some providers' thumbnails are generic/placeholder images unrelated to the specific content
+  // (e.g. Reddit) — drop it so callers fall through to the page's own scraped og:image instead.
+  if (provider?.trustThumbnail === false) normalized.thumbnailUrl = null;
   // A result with no usable text, author, or thumbnail isn't worth returning.
   if (
     normalized.title === null

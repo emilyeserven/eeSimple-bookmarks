@@ -124,6 +124,25 @@ test("fetchOEmbedForUrl returns null for a non-provider URL with no autodiscover
   assert.equal(meta, null);
 });
 
+test("fetchOEmbedForUrl drops Reddit's thumbnail but keeps its title/author (untrusted thumbnail)", async () => {
+  const restore = stubFetch(JSON.stringify({
+    title: "Cool Post",
+    author_name: "u/someone",
+    thumbnail_url: "https://a.thumbs.redditmedia.com/generic-icon.jpg",
+    provider_name: "reddit.com",
+  }));
+  try {
+    const meta = await fetchOEmbedForUrl("https://www.reddit.com/r/x/comments/1/y");
+    assert.ok(meta);
+    assert.equal(meta.title, "Cool Post");
+    assert.equal(meta.authorName, "u/someone");
+    assert.equal(meta.thumbnailUrl, null);
+  }
+  finally {
+    restore();
+  }
+});
+
 test("fetchOEmbedForUrl returns null when every mapped field is empty", async () => {
   const restore = stubFetch(JSON.stringify({
     type: "rich",
@@ -162,6 +181,19 @@ test("fetchOEmbedThumbnail downloads the oEmbed thumbnail bytes", async () => {
   }
   finally {
     global.fetch = originalFetch;
+  }
+});
+
+test("fetchOEmbedThumbnail returns null for Reddit even though oEmbed returns a thumbnail (untrusted)", async () => {
+  const restore = stubFetch(JSON.stringify({
+    title: "Cool Post",
+    thumbnail_url: "https://a.thumbs.redditmedia.com/generic-icon.jpg",
+  }));
+  try {
+    assert.equal(await fetchOEmbedThumbnail("https://www.reddit.com/r/x/comments/1/y"), null);
+  }
+  finally {
+    restore();
   }
 });
 
