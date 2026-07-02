@@ -1,9 +1,7 @@
 import type { YouTubeChannel } from "@eesimple/types";
 
-import { useState } from "react";
-
-import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
 import { MultiCombobox } from "./MultiCombobox";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { Label } from "@/components/ui/label";
 
@@ -22,7 +20,7 @@ export function WebsiteYouTubeChannelsField({
   selectedIds,
   onChange,
 }: Props) {
-  const [addChannelOpen, setAddChannelOpen] = useState(false);
+  const channelCreate = useEntityCreateOption("youtube-channel", channel => onChange([...selectedIds, channel.id]));
 
   const options = channels.map(channel => ({
     value: channel.id,
@@ -43,17 +41,10 @@ export function WebsiteYouTubeChannelsField({
           placeholder="No channels selected"
           searchPlaceholder="Search channels…"
           emptyText="No channels found."
-          createOption={{
-            label: "Add channel",
-            onSelect: () => setAddChannelOpen(true),
-          }}
+          createOption={channelCreate.createOption}
         />
       </div>
-      <AddYouTubeChannelModal
-        open={addChannelOpen}
-        onOpenChange={setAddChannelOpen}
-        onCreated={channel => onChange([...selectedIds, channel.id])}
-      />
+      {channelCreate.modal}
     </>
   );
 }

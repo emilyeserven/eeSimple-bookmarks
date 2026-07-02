@@ -1,6 +1,5 @@
 import type { Publisher, SocialLink } from "@eesimple/types";
 
-import { AddWebsiteModal } from "./AddWebsiteModal";
 import { SocialLinksField } from "./SocialLinksField";
 import { usePublisherGeneralForm } from "./usePublisherGeneralForm";
 
@@ -15,7 +14,7 @@ export function PublisherGeneralForm({
   publisher,
 }: Props) {
   const {
-    form, saveField, saveName, websiteOptions, addWebsiteOpen, setAddWebsiteOpen,
+    form, saveField, saveName, websiteOptions, websiteCreate,
   } = usePublisherGeneralForm(publisher);
 
   return (
@@ -47,19 +46,12 @@ export function PublisherGeneralForm({
             searchPlaceholder="Search websites…"
             emptyText="No websites found."
             options={websiteOptions}
-            createOption={{
-              label: "Add website",
-              onSelect: () => setAddWebsiteOpen(true),
-            }}
+            createOption={websiteCreate.createOption}
             onValueChange={value => saveField("websiteId", value || null)}
           />
         )}
       </form.AppField>
-      <AddWebsiteModal
-        open={addWebsiteOpen}
-        onOpenChange={setAddWebsiteOpen}
-        onCreated={website => form.setFieldValue("websiteId", website.id)}
-      />
+      {websiteCreate.modal}
 
       <Separator />
 

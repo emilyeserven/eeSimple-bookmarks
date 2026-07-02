@@ -1,13 +1,10 @@
 import type { Category, LocationNode, MediaTypeNode, TagNode } from "@eesimple/types";
 
-import { useState } from "react";
-
-import { AddCategoryModal } from "./AddCategoryModal";
-import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { NO_CATEGORY, NO_MEDIA_TYPE } from "./AutofillRuleForm";
 import { Combobox } from "./Combobox";
 import { LocationPickerWithCreate } from "./LocationPickerWithCreate";
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "../lib/comboboxOptions";
 
 import { Label } from "@/components/ui/label";
@@ -34,8 +31,8 @@ export function AutofillRulePrefillPickers({
   categories, mediaTypeTree, tagTree, locationTree, setCategoryId, onCategoryChange,
   setMediaTypeId, onMediaTypeChange, tagIds, onToggleTag, locationIds, onToggleLocation,
 }: Props) {
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
+  const categoryCreate = useEntityCreateOption("category", c => onCategoryChange(c.id));
+  const mediaTypeCreate = useEntityCreateOption("media-type", m => onMediaTypeChange(m.id));
 
   const categoryOptions = [
     {
@@ -62,10 +59,7 @@ export function AutofillRulePrefillPickers({
           onValueChange={v => onCategoryChange(v ?? NO_CATEGORY)}
           searchPlaceholder="Search categories…"
           emptyText="No categories found."
-          createOption={{
-            label: "Create category",
-            onSelect: () => setAddCategoryOpen(true),
-          }}
+          createOption={categoryCreate.createOption}
         />
       </div>
 
@@ -77,10 +71,7 @@ export function AutofillRulePrefillPickers({
           onValueChange={v => onMediaTypeChange(v ?? NO_MEDIA_TYPE)}
           searchPlaceholder="Search media types…"
           emptyText="No media types found."
-          createOption={{
-            label: "Create media type",
-            onSelect: () => setAddMediaTypeOpen(true),
-          }}
+          createOption={mediaTypeCreate.createOption}
         />
       </div>
 
@@ -102,16 +93,8 @@ export function AutofillRulePrefillPickers({
         />
       </div>
 
-      <AddCategoryModal
-        open={addCategoryOpen}
-        onOpenChange={setAddCategoryOpen}
-        onCreated={c => onCategoryChange(c.id)}
-      />
-      <AddMediaTypeModal
-        open={addMediaTypeOpen}
-        onOpenChange={setAddMediaTypeOpen}
-        onCreated={m => onMediaTypeChange(m.id)}
-      />
+      {categoryCreate.modal}
+      {mediaTypeCreate.modal}
     </>
   );
 }

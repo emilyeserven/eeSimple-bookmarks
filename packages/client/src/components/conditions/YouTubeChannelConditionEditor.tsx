@@ -1,9 +1,7 @@
 import type { YouTubeChannelCondition } from "@eesimple/types";
 
-import { useState } from "react";
-
-import { AddYouTubeChannelModal } from "../AddYouTubeChannelModal";
 import { MultiCombobox } from "../MultiCombobox";
+import { useEntityCreateOption } from "../useEntityCreateOption";
 
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 
@@ -19,7 +17,11 @@ export function YouTubeChannelConditionEditor({
   const {
     data: channels = [], isLoading,
   } = useYouTubeChannels();
-  const [addOpen, setAddOpen] = useState(false);
+  const channelCreate = useEntityCreateOption("youtube-channel", channel =>
+    onChange({
+      ...value,
+      channelIds: [...value.channelIds, channel.id],
+    }));
 
   return (
     <>
@@ -38,15 +40,9 @@ export function YouTubeChannelConditionEditor({
             ...value,
             channelIds,
           })}
-        createOption={{
-          label: "Create channel",
-          onSelect: () => setAddOpen(true),
-        }}
+        createOption={channelCreate.createOption}
       />
-      <AddYouTubeChannelModal
-        open={addOpen}
-        onOpenChange={setAddOpen}
-      />
+      {channelCreate.modal}
     </>
   );
 }

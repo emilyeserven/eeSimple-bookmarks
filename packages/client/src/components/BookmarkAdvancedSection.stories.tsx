@@ -75,12 +75,6 @@ export const Default: Story = {
           customProperties={sampleProperties}
           mediaTypes={mediaTypeNodes}
           sourceDefaults={sourceDefaults}
-          addCategoryOpen={false}
-          onAddCategoryOpenChange={() => {}}
-          addMediaTypeOpen={false}
-          onAddMediaTypeOpenChange={() => {}}
-          addPublisherOpen={false}
-          onAddPublisherOpenChange={() => {}}
           imageFieldKey={0}
           existingImages={[]}
           imageCandidates={[]}
@@ -111,12 +105,6 @@ export const WithCategorySelected: Story = {
           customProperties={sampleProperties}
           mediaTypes={mediaTypeNodes}
           sourceDefaults={sourceDefaults}
-          addCategoryOpen={false}
-          onAddCategoryOpenChange={() => {}}
-          addMediaTypeOpen={false}
-          onAddMediaTypeOpenChange={() => {}}
-          addPublisherOpen={false}
-          onAddPublisherOpenChange={() => {}}
           imageFieldKey={0}
           existingImages={[]}
           imageCandidates={[]}

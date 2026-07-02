@@ -1,7 +1,7 @@
 import type { PropertyFormApi } from "./propertyFormSchema";
 
-import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { LabeledSection } from "./LabeledSection";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -13,8 +13,6 @@ interface PropertyDisplaySectionProps {
     value: string;
     label: string;
   }[];
-  addGroupOpen: boolean;
-  setAddGroupOpen: (open: boolean) => void;
 }
 
 /**
@@ -26,9 +24,9 @@ export function PropertyDisplaySection({
   form,
   idPrefix,
   groupOptions,
-  addGroupOpen,
-  setAddGroupOpen,
 }: PropertyDisplaySectionProps) {
+  const groupCreate = useEntityCreateOption("property-group", group => form.setFieldValue("propertyGroupId", group.id));
+
   return (
     <>
       <LabeledSection title="Display options">
@@ -42,10 +40,7 @@ export function PropertyDisplaySection({
                 placeholder="Ungrouped"
                 searchPlaceholder="Search groups…"
                 emptyText="No groups yet."
-                createOption={{
-                  label: "Create group…",
-                  onSelect: () => setAddGroupOpen(true),
-                }}
+                createOption={groupCreate.createOption}
               />
             )}
           </form.AppField>
@@ -185,11 +180,7 @@ export function PropertyDisplaySection({
         </form.Subscribe>
       </LabeledSection>
 
-      <AddPropertyGroupModal
-        open={addGroupOpen}
-        onOpenChange={setAddGroupOpen}
-        onCreated={group => form.setFieldValue("propertyGroupId", group.id)}
-      />
+      {groupCreate.modal}
     </>
   );
 }

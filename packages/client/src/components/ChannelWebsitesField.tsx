@@ -1,9 +1,7 @@
 import type { Website } from "@eesimple/types";
 
-import { useState } from "react";
-
-import { AddWebsiteModal } from "./AddWebsiteModal";
 import { MultiCombobox } from "./MultiCombobox";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { Label } from "@/components/ui/label";
 
@@ -22,7 +20,7 @@ export function ChannelWebsitesField({
   selectedIds,
   onChange,
 }: Props) {
-  const [addWebsiteOpen, setAddWebsiteOpen] = useState(false);
+  const websiteCreate = useEntityCreateOption("website", website => onChange([...selectedIds, website.id]));
 
   const options = websites.map(website => ({
     value: website.id,
@@ -43,17 +41,10 @@ export function ChannelWebsitesField({
           placeholder="No websites selected"
           searchPlaceholder="Search websites…"
           emptyText="No websites found."
-          createOption={{
-            label: "Add website",
-            onSelect: () => setAddWebsiteOpen(true),
-          }}
+          createOption={websiteCreate.createOption}
         />
       </div>
-      <AddWebsiteModal
-        open={addWebsiteOpen}
-        onOpenChange={setAddWebsiteOpen}
-        onCreated={website => onChange([...selectedIds, website.id])}
-      />
+      {websiteCreate.modal}
     </>
   );
 }

@@ -45,6 +45,9 @@ function Host() {
     locationIds,
     onTagsChange: setTagIds,
     onLocationsChange: setLocationIds,
+    onCategoryChange: setCategoryId,
+    onMediaTypeChange: setMediaTypeId,
+    onPublisherChange: setPublisherId,
   });
 
   return (

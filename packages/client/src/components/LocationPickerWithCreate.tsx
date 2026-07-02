@@ -1,9 +1,7 @@
 import type { LocationNode } from "@eesimple/types";
 
-import { useState } from "react";
-
-import { AddLocationModal } from "./AddLocationModal";
 import { LocationPicker } from "./LocationPicker";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 
 interface LocationPickerWithCreateProps {
   tree: LocationNode[];
@@ -15,7 +13,9 @@ interface LocationPickerWithCreateProps {
 export function LocationPickerWithCreate({
   tree, selectedIds, onToggle,
 }: LocationPickerWithCreateProps) {
-  const [addLocationOpen, setAddLocationOpen] = useState(false);
+  const locationCreate = useEntityCreateOption("location", (location) => {
+    if (!selectedIds.includes(location.id)) onToggle(location.id);
+  });
 
   return (
     <>
@@ -23,18 +23,9 @@ export function LocationPickerWithCreate({
         tree={tree}
         selectedIds={selectedIds}
         onToggle={onToggle}
-        createOption={{
-          label: "Create location",
-          onSelect: () => setAddLocationOpen(true),
-        }}
+        createOption={locationCreate.createOption}
       />
-      <AddLocationModal
-        open={addLocationOpen}
-        onOpenChange={setAddLocationOpen}
-        onCreated={(location) => {
-          if (!selectedIds.includes(location.id)) onToggle(location.id);
-        }}
-      />
+      {locationCreate.modal}
     </>
   );
 }

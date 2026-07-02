@@ -46,8 +46,6 @@ export const Default: Story = {
           form={form}
           categories={sampleCategories}
           sourceDefaults={sourceDefaults()}
-          addCategoryOpen={false}
-          onAddCategoryOpenChange={() => {}}
         />
       )}
     </BookmarkFormHost>
@@ -68,8 +66,6 @@ export const Locked: Story = {
           lockedCategoryId="cat-workflow"
           categories={sampleCategories}
           sourceDefaults={sourceDefaults()}
-          addCategoryOpen={false}
-          onAddCategoryOpenChange={() => {}}
         />
       )}
     </BookmarkFormHost>
@@ -92,8 +88,6 @@ export const WithSourceDefaultOffer: Story = {
             label: "example.com",
             showSourceDefault: true,
           })}
-          addCategoryOpen={false}
-          onAddCategoryOpenChange={() => {}}
         />
       )}
     </BookmarkFormHost>

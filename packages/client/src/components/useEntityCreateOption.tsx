@@ -1,19 +1,38 @@
-import type { Author, PlaceType, Tag, Website } from "@eesimple/types";
+import type {
+  Author, Category, CustomProperty, Location, MediaType, Newsletter,
+  PlaceType, Publisher, PropertyGroup, Tag, Website, YouTubeChannel,
+} from "@eesimple/types";
 import type { ComponentType, ReactNode } from "react";
 
 import { useState } from "react";
 
 import { AddAuthorModal } from "./AddAuthorModal";
+import { AddCategoryModal } from "./AddCategoryModal";
+import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
+import { AddLocationModal } from "./AddLocationModal";
+import { AddMediaTypeModal } from "./AddMediaTypeModal";
+import { AddNewsletterModal } from "./AddNewsletterModal";
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
+import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
+import { AddPublisherModal } from "./AddPublisherModal";
 import { AddTagModal } from "./AddTagModal";
 import { AddWebsiteModal } from "./AddWebsiteModal";
+import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
 
 /** What each creatable entity's Add-modal hands back to the opener. */
 interface CreatedByEntity {
   "tag": Tag;
   "author": Author;
   "place-type": PlaceType;
+  "category": Category;
+  "media-type": MediaType;
   "website": Website;
+  "youtube-channel": YouTubeChannel;
+  "publisher": Publisher;
+  "newsletter": Newsletter;
+  "property-group": PropertyGroup;
+  "location": Location;
+  "custom-property": CustomProperty;
 }
 
 export type CreatableEntityKind = keyof CreatedByEntity;
@@ -27,7 +46,7 @@ interface CreateModalProps<T> {
 /**
  * The creatable-entity registry: one entry per entity kind an entity picker can mint inline.
  * Growing it is one line here (the Add-modals all share the open/onOpenChange/onCreated contract) —
- * see the `combobox-new-entity-creation` skill. Issue #A migrates the remaining wired pickers.
+ * see the `combobox-new-entity-creation` skill.
  */
 const CREATABLE_ENTITY_PICKERS: {
   [K in CreatableEntityKind]: {
@@ -47,9 +66,41 @@ const CREATABLE_ENTITY_PICKERS: {
     createLabel: "Create place type",
     Modal: AddPlaceTypeModal,
   },
+  "category": {
+    createLabel: "Create category",
+    Modal: AddCategoryModal,
+  },
+  "media-type": {
+    createLabel: "Create media type",
+    Modal: AddMediaTypeModal,
+  },
   "website": {
     createLabel: "Create website",
     Modal: AddWebsiteModal,
+  },
+  "youtube-channel": {
+    createLabel: "Add channel",
+    Modal: AddYouTubeChannelModal,
+  },
+  "publisher": {
+    createLabel: "Create publisher",
+    Modal: AddPublisherModal,
+  },
+  "newsletter": {
+    createLabel: "Create import group",
+    Modal: AddNewsletterModal,
+  },
+  "property-group": {
+    createLabel: "Create group…",
+    Modal: AddPropertyGroupModal,
+  },
+  "location": {
+    createLabel: "Create location",
+    Modal: AddLocationModal,
+  },
+  "custom-property": {
+    createLabel: "Create property",
+    Modal: AddCustomPropertyModal,
   },
 };
 

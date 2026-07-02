@@ -1,11 +1,14 @@
 import type { Location } from "@eesimple/types";
 
+import { useState } from "react";
+
+import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
+import { AddTagModal } from "./AddTagModal";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { Combobox } from "./Combobox";
 import { LocationAncestorChainEditor } from "./LocationAncestorChainEditor";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
-import { useEntityCreateOption } from "./useEntityCreateOption";
 import { ROOT, useLocationForm } from "./useLocationForm";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +26,12 @@ interface LocationFormProps {
  * prefills the fields, an existing-parent picker, and an ancestor-chain editor (immediate-parent-first
  * up to the root). On submit: an existing parent → `useCreateLocation` with `parentId`; otherwise any
  * entered ancestors → `useCreateLocationChain`; otherwise a plain root `useCreateLocation`.
+ *
+ * The Place Type and Tag pickers here intentionally use the manual `useState` + `Add*Modal` pattern
+ * rather than `useEntityCreateOption` — `AddLocationModal` wraps this component, and
+ * `useEntityCreateOption`'s registry imports `AddLocationModal` for the `"location"` entry, so this
+ * form calling the hook would create an import cycle (`AddLocationModal` → `LocationForm` →
+ * `useEntityCreateOption` → `AddLocationModal`).
  */
 export function LocationForm({
   onCreated,
@@ -53,10 +62,8 @@ export function LocationForm({
     applyCandidate,
   } = useLocationForm(onCreated);
 
-  const placeTypeCreate = useEntityCreateOption("place-type", pt => setPlaceType(pt.slug));
-  const tagCreate = useEntityCreateOption("tag", (tag) => {
-    setTagIds(prev => (prev.includes(tag.id) ? prev : [...prev, tag.id]));
-  });
+  const [addPlaceTypeOpen, setAddPlaceTypeOpen] = useState(false);
+  const [addTagOpen, setAddTagOpen] = useState(false);
 
   return (
     <form
@@ -162,7 +169,10 @@ export function LocationForm({
             placeholder="Select a place type…"
             searchPlaceholder="Search place types…"
             emptyText="No place types found."
-            createOption={placeTypeCreate.createOption}
+            createOption={{
+              label: "Create place type",
+              onSelect: () => setAddPlaceTypeOpen(true),
+            }}
           />
         </div>
         <div className="space-y-1">
@@ -220,11 +230,22 @@ export function LocationForm({
           placeholder="Select tags…"
           searchPlaceholder="Search tags…"
           emptyText="No tags found."
-          createOption={tagCreate.createOption}
+          createOption={{
+            label: "Create tag",
+            onSelect: () => setAddTagOpen(true),
+          }}
         />
       </div>
-      {placeTypeCreate.modal}
-      {tagCreate.modal}
+      <AddPlaceTypeModal
+        open={addPlaceTypeOpen}
+        onOpenChange={setAddPlaceTypeOpen}
+        onCreated={pt => setPlaceType(pt.slug)}
+      />
+      <AddTagModal
+        open={addTagOpen}
+        onOpenChange={setAddTagOpen}
+        onCreated={tag => setTagIds(prev => (prev.includes(tag.id) ? prev : [...prev, tag.id]))}
+      />
 
       <Button
         type="submit"

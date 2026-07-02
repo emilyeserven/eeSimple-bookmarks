@@ -1,14 +1,10 @@
 import type { IngestSource } from "./importFormSchema";
 
-import { useState } from "react";
-
-import { AddCategoryModal } from "./AddCategoryModal";
-import { AddNewsletterModal } from "./AddNewsletterModal";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { NewsletterFileField } from "./NewsletterFileField";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useImportForm } from "./useImportForm";
 
-import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/lib/icons";
 
 const SOURCE_OPTIONS: { value: IngestSource;
@@ -54,8 +50,8 @@ export function ImportForm({
     onComplete,
   });
 
-  const [addNewsletterOpen, setAddNewsletterOpen] = useState(false);
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  const newsletterCreate = useEntityCreateOption("newsletter", newsletter => form.setFieldValue("newsletterId", newsletter.id));
+  const categoryCreate = useEntityCreateOption("category", category => form.setFieldValue("categoryId", category.id));
 
   const selectedNewsletter = newsletters?.find(n => n.id === form.state.values.newsletterId);
   const advancedPreview = selectedNewsletter?.name ?? "None";
@@ -128,6 +124,7 @@ export function ImportForm({
                 placeholder="No import group"
                 searchPlaceholder="Search import groups…"
                 emptyText="No import groups found."
+                createOption={newsletterCreate.createOption}
                 options={(newsletters ?? []).map(newsletter => ({
                   value: newsletter.id,
                   label: newsletter.name,
@@ -135,16 +132,6 @@ export function ImportForm({
               />
             )}
           </form.AppField>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setAddNewsletterOpen(true)}
-            >
-              New import group
-            </Button>
-          </div>
         </div>
 
         <div className="space-y-2">
@@ -155,6 +142,7 @@ export function ImportForm({
                 placeholder="No category"
                 searchPlaceholder="Search categories…"
                 emptyText="No categories found."
+                createOption={categoryCreate.createOption}
                 options={categories.map(category => ({
                   value: category.id,
                   label: category.name,
@@ -168,16 +156,6 @@ export function ImportForm({
               />
             )}
           </form.AppField>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setAddCategoryOpen(true)}
-            >
-              New category
-            </Button>
-          </div>
         </div>
       </CollapsibleFormSection>
 
@@ -189,17 +167,8 @@ export function ImportForm({
         />
       </form.AppForm>
 
-      <AddNewsletterModal
-        open={addNewsletterOpen}
-        onOpenChange={setAddNewsletterOpen}
-        onCreated={newsletter => form.setFieldValue("newsletterId", newsletter.id)}
-      />
-
-      <AddCategoryModal
-        open={addCategoryOpen}
-        onOpenChange={setAddCategoryOpen}
-        onCreated={category => form.setFieldValue("categoryId", category.id)}
-      />
+      {newsletterCreate.modal}
+      {categoryCreate.modal}
     </form>
   );
 }

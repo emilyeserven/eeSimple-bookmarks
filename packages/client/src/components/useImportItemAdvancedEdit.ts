@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { normalizeDomain } from "@eesimple/types";
 
+import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useAuthors } from "../hooks/useAuthors";
 import { useCategories } from "../hooks/useCategories";
 import { useLocationTree } from "../hooks/useLocations";
@@ -18,12 +19,16 @@ interface UseImportItemAdvancedEditParams {
   locationIds: string[];
   onTagsChange: (ids: string[]) => void;
   onLocationsChange: (ids: string[]) => void;
+  onCategoryChange: (id: string | undefined) => void;
+  onMediaTypeChange: (id: string | undefined) => void;
+  onPublisherChange: (id: string | undefined) => void;
 }
 
 /**
- * State + data orchestration for {@link ImportItemAdvancedEdit}: the six "add new X" modal flags,
- * the taxonomy queries, the URL → website/YouTube derivation, and the tag/location toggle handlers.
- * Extracted to keep the component's import surface and hook density low.
+ * State + data orchestration for {@link ImportItemAdvancedEdit}: the still-manual "add new X" modal
+ * flags (Tag / Author), the Category/Media Type/Publisher/Location inline-create (via
+ * `useEntityCreateOption`), the taxonomy queries, the URL → website/YouTube derivation, and the
+ * tag/location toggle handlers. Extracted to keep the component's import surface and hook density low.
  */
 export function useImportItemAdvancedEdit({
   item,
@@ -31,13 +36,16 @@ export function useImportItemAdvancedEdit({
   locationIds,
   onTagsChange,
   onLocationsChange,
+  onCategoryChange,
+  onMediaTypeChange,
+  onPublisherChange,
 }: UseImportItemAdvancedEditParams) {
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
-  const [addPublisherOpen, setAddPublisherOpen] = useState(false);
   const [addAuthorOpen, setAddAuthorOpen] = useState(false);
   const [addTagOpen, setAddTagOpen] = useState(false);
-  const [addLocationOpen, setAddLocationOpen] = useState(false);
+  const categoryCreate = useEntityCreateOption("category", category => onCategoryChange(category.id));
+  const mediaTypeCreate = useEntityCreateOption("media-type", mediaType => onMediaTypeChange(mediaType.id));
+  const publisherCreate = useEntityCreateOption("publisher", publisher => onPublisherChange(publisher.id));
+  const locationCreate = useEntityCreateOption("location", location => onLocationsChange([...locationIds, location.id]));
 
   const {
     data: categories = [],
@@ -98,19 +106,15 @@ export function useImportItemAdvancedEdit({
     isYouTube,
     handleTagToggle,
     handleLocationToggle,
+    categoryCreate,
+    mediaTypeCreate,
+    publisherCreate,
+    locationCreate,
     addModalState: {
-      addCategoryOpen,
-      setAddCategoryOpen,
-      addMediaTypeOpen,
-      setAddMediaTypeOpen,
-      addPublisherOpen,
-      setAddPublisherOpen,
       addAuthorOpen,
       setAddAuthorOpen,
       addTagOpen,
       setAddTagOpen,
-      addLocationOpen,
-      setAddLocationOpen,
     },
   };
 }

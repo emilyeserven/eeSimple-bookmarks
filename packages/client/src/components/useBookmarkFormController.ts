@@ -249,16 +249,8 @@ export function useBookmarkFormController({
     setIsReportingTitle: ui.setIsReportingTitle,
     expectedTitle: ui.expectedTitle,
     setExpectedTitle: ui.setExpectedTitle,
-    // Category.
-    addCategoryOpen: ui.addCategoryOpen,
-    setAddCategoryOpen: ui.setAddCategoryOpen,
-    // Media type.
-    addMediaTypeOpen: ui.addMediaTypeOpen,
-    setAddMediaTypeOpen: ui.setAddMediaTypeOpen,
     // Publisher.
     publishers,
-    addPublisherOpen: ui.addPublisherOpen,
-    setAddPublisherOpen: ui.setAddPublisherOpen,
     // Image.
     imageFieldKey,
     imageIntentRef,

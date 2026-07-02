@@ -62,6 +62,9 @@ export function ImportItemAdvancedEdit({
     locationIds,
     onTagsChange,
     onLocationsChange,
+    onCategoryChange,
+    onMediaTypeChange,
+    onPublisherChange,
   });
 
   return (
@@ -101,16 +104,11 @@ export function ImportItemAdvancedEdit({
       </CollapsibleContent>
 
       <ImportItemAdvancedEditModals
-        state={state.addModalState}
+        state={state}
         tagIds={tagIds}
-        locationIds={locationIds}
         authorIds={authorIds}
-        onCategoryChange={onCategoryChange}
-        onMediaTypeChange={onMediaTypeChange}
         onTagsChange={onTagsChange}
-        onLocationsChange={onLocationsChange}
         onAuthorsChange={onAuthorsChange}
-        onPublisherChange={onPublisherChange}
       />
     </Collapsible>
   );

@@ -43,8 +43,6 @@ export const Default: Story = {
         <BookmarkAdvancedPublisherField
           form={form}
           publishers={samplePublishers}
-          addPublisherOpen={false}
-          onAddPublisherOpenChange={() => {}}
         />
       )}
     </BookmarkFormHost>
@@ -62,8 +60,6 @@ export const NoPublishers: Story = {
         <BookmarkAdvancedPublisherField
           form={form}
           publishers={[]}
-          addPublisherOpen={false}
-          onAddPublisherOpenChange={() => {}}
         />
       )}
     </BookmarkFormHost>

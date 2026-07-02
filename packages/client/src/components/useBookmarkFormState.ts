@@ -50,9 +50,9 @@ interface UseBookmarkFormUiStateParams {
 
 /**
  * The bookmark form's transient UI state: progressive-disclosure / scan flags, the URL-duplicate and
- * autofill-offer banners, the title-fetch undo + "report wrong title" inputs, the new-site name, and
- * the inline "Create category" modal toggle. Grouped into one hook so the controller spends a single
- * hook slot on what would otherwise be nine `useState`s plus an effect.
+ * autofill-offer banners, the title-fetch undo + "report wrong title" inputs, and the new-site name.
+ * Grouped into one hook so the controller spends a single hook slot on what would otherwise be
+ * several loose `useState`s plus an effect.
  */
 export function useBookmarkFormUiState({
   initialScanned, fetchTitlePending,
@@ -63,12 +63,6 @@ export function useBookmarkFormUiState({
   // The social account a scanned social-network URL points at, with no existing author — drives the
   // "Create author from this account" offer banner. Null when matched or not a social URL.
   const [socialAccountOffer, setSocialAccountOffer] = useState<SocialAccountRef | null>(null);
-  // Drives the inline "Create category" modal opened from the Category combobox.
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  // Drives the inline "Create media type" modal opened from the Media Type combobox.
-  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
-  // Drives the inline "Create publisher" modal opened from the Publisher combobox.
-  const [addPublisherOpen, setAddPublisherOpen] = useState(false);
   // When the fetch-title button overwrites a non-empty title, record the previous value so the
   // banner can offer an undo. Cleared when the user manually edits the title field.
   const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
@@ -117,12 +111,6 @@ export function useBookmarkFormUiState({
     setWebsiteSiteName,
     socialAccountOffer,
     setSocialAccountOffer,
-    addCategoryOpen,
-    setAddCategoryOpen,
-    addMediaTypeOpen,
-    setAddMediaTypeOpen,
-    addPublisherOpen,
-    setAddPublisherOpen,
     titleFetch,
     setTitleFetch,
     scanned,

@@ -1,15 +1,13 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { Category } from "@eesimple/types";
 
-import { AddCategoryModal } from "./AddCategoryModal";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { CategoryIcon } from "@/lib/icons";
 
 interface BookmarkCategoryFieldProps {
   form: BookmarkFormApi;
   categories: Category[];
-  addCategoryOpen: boolean;
-  setAddCategoryOpen: (open: boolean) => void;
 }
 
 /**
@@ -19,9 +17,9 @@ interface BookmarkCategoryFieldProps {
 export function BookmarkCategoryField({
   form,
   categories,
-  addCategoryOpen,
-  setAddCategoryOpen,
 }: BookmarkCategoryFieldProps) {
+  const categoryCreate = useEntityCreateOption("category", category => form.setFieldValue("categoryId", category.id));
+
   return (
     <>
       <form.AppField name="categoryId">
@@ -31,10 +29,7 @@ export function BookmarkCategoryField({
             placeholder="Select a category"
             searchPlaceholder="Search categories…"
             emptyText="No categories found."
-            createOption={{
-              label: "Create category",
-              onSelect: () => setAddCategoryOpen(true),
-            }}
+            createOption={categoryCreate.createOption}
             options={categories.map(category => ({
               value: category.id,
               label: category.name,
@@ -49,11 +44,7 @@ export function BookmarkCategoryField({
         )}
       </form.AppField>
 
-      <AddCategoryModal
-        open={addCategoryOpen}
-        onOpenChange={setAddCategoryOpen}
-        onCreated={category => form.setFieldValue("categoryId", category.id)}
-      />
+      {categoryCreate.modal}
     </>
   );
 }

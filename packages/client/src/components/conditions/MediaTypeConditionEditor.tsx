@@ -1,9 +1,7 @@
 import type { MediaTypeCondition } from "@eesimple/types";
 
-import { useState } from "react";
-
-import { AddMediaTypeModal } from "../AddMediaTypeModal";
 import { MultiCombobox } from "../MultiCombobox";
+import { useEntityCreateOption } from "../useEntityCreateOption";
 
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
@@ -20,7 +18,11 @@ export function MediaTypeConditionEditor({
   const {
     data: mediaTypeTree = [], isLoading,
   } = useMediaTypeTree();
-  const [addOpen, setAddOpen] = useState(false);
+  const mediaTypeCreate = useEntityCreateOption("media-type", mediaType =>
+    onChange({
+      ...value,
+      mediaTypeIds: [...value.mediaTypeIds, mediaType.id],
+    }));
 
   return (
     <>
@@ -36,15 +38,9 @@ export function MediaTypeConditionEditor({
             ...value,
             mediaTypeIds,
           })}
-        createOption={{
-          label: "Create media type",
-          onSelect: () => setAddOpen(true),
-        }}
+        createOption={mediaTypeCreate.createOption}
       />
-      <AddMediaTypeModal
-        open={addOpen}
-        onOpenChange={setAddOpen}
-      />
+      {mediaTypeCreate.modal}
     </>
   );
 }
