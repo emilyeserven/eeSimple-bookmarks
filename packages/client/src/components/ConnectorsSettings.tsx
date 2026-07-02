@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { OEMBED_PROVIDERS } from "@eesimple/types";
 
-import { ArchiveBoxForm, HostedMetadataForm, ImageBlacklistForm, KavitaForm, YoutubeForm } from "./ConnectorMetadataForms";
+import { ArchiveBoxForm, HostedMetadataForm, ImageBlacklistForm, KavitaForm, PlexForm, YoutubeForm } from "./ConnectorMetadataForms";
 import { useConnectors } from "../hooks/useConnectors";
 
 import { Badge } from "@/components/ui/badge";
@@ -457,6 +457,30 @@ export function ConnectorsSettings() {
           <CardContent className="space-y-4">
             <KavitaForm />
             <Provides items={["Link bookmarks to a Kavita series", "View on Kavita link-out", "Series cover import", "Table of contents import"]} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: "plex",
+      status: envStatus(data?.plex.enabled),
+      node: (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>Plex</CardTitle>
+              <StatusBadge enabled={data?.plex.enabled} />
+            </div>
+            <CardDescription>
+              Optional. When a base URL and token are configured, bookmarks can be linked to an item
+              on your self-hosted Plex media server (movie, TV show, music, …) — with a &quot;View on
+              Plex&quot; link-out and poster import. Off by default; item searches and poster fetches
+              are proxied by the server, so the token never reaches the browser.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <PlexForm />
+            <Provides items={["Link bookmarks to a Plex item", "View on Plex link-out", "Poster import"]} />
           </CardContent>
         </Card>
       ),

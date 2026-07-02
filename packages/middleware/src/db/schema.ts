@@ -55,6 +55,13 @@ export const bookmarks = pgTable("bookmarks", {
   kavitaSeriesId: integer("kavita_series_id"),
   kavitaLibraryId: integer("kavita_library_id"),
   kavitaSeriesName: text("kavita_series_name"),
+  // Link to an item on the connected Plex server (Settings → Connectors). All nullable = push-safe
+  // additive; the item type and title are denormalized at link time so the deep link and detail
+  // display need no Plex round-trip. The web-UI deep link also needs the server's machineIdentifier,
+  // which is resolved (and cached) server-side from Plex's /identity and returned via /api/connectors.
+  plexRatingKey: text("plex_rating_key"),
+  plexItemType: text("plex_item_type"),
+  plexItemTitle: text("plex_item_title"),
   priority: integer("priority").notNull().default(0),
   // Specific reason the last image auto-grab attempt failed. Nullable so `drizzle-kit push`
   // applies cleanly to existing rows (push-safe additive change). NULL means never attempted or
@@ -1366,6 +1373,12 @@ export const appSettings = pgTable("app_settings", {
   // API key for the Kavita server; stored encrypted when APP_SECRET is configured.
   // KAVITA_API_KEY env var is used as fallback when null.
   kavitaApiKey: text("kavita_api_key"),
+  // Plex base URL configured from Settings → Connectors. Nullable = push-safe additive;
+  // PLEX_ENDPOINT env var is used as fallback when null.
+  plexEndpoint: text("plex_endpoint"),
+  // X-Plex-Token for the Plex server; stored encrypted when APP_SECRET is configured.
+  // PLEX_TOKEN env var is used as fallback when null.
+  plexToken: text("plex_token"),
   // API key for the YouTube Data API v3, configured from Settings → Connectors; stored encrypted
   // when APP_SECRET is configured. Nullable = push-safe additive; the YOUTUBE_API_KEY env var is
   // used as fallback when null.

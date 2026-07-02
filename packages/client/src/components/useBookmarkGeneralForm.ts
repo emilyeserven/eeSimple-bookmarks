@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkUrlDuplicateResult, KavitaSeriesResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
+import type { Bookmark, BookmarkUrlDuplicateResult, KavitaSeriesResult, PlexItemResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
@@ -223,6 +223,24 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     );
   }
 
+  // The Plex link also lives outside the zod form state (immediate-save, like the Kavita link).
+  function savePlexItem(selection: PlexItemResult | null): void {
+    updateBookmark.mutate(
+      {
+        id: bookmark.id,
+        input: {
+          plexRatingKey: selection?.ratingKey ?? null,
+          plexItemType: selection?.type ?? null,
+          plexItemTitle: selection?.title ?? null,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Plex item"),
+        onError: e => notifyFieldSaveError("Plex item", describeError(e)),
+      },
+    );
+  }
+
   function runAutofill(): void {
     const url = form.getFieldValue("url");
     const title = form.getFieldValue("title");
@@ -361,6 +379,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveBlacklistedLocationIds,
     saveAuthors,
     saveKavitaSeries,
+    savePlexItem,
     fetchTitle,
     fetchMetadata,
     websiteLookup,

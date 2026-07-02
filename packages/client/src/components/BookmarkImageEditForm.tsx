@@ -1,7 +1,7 @@
 import type { BookmarkImageEditFormController } from "./useBookmarkImageEditForm";
 import type { Bookmark } from "@eesimple/types";
 
-import { BookImage, BookOpen, Search, Sparkles } from "lucide-react";
+import { BookImage, BookOpen, Search, Sparkles, Tv } from "lucide-react";
 
 import { BookmarkImagePicker } from "./BookmarkImagePicker";
 import { BookmarkScreenshotSection } from "./BookmarkScreenshotSection";
@@ -69,6 +69,21 @@ function ImageActionButtons({
           >
             <BookOpen className="size-4" />
             {c.kavitaCoverPending ? "Importing…" : "Use Kavita cover"}
+          </Button>
+        )
+        : null}
+      {c.canUsePlexPoster
+        ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={c.plexPosterPending}
+            title="Import the linked Plex item's poster as the main image"
+            onClick={c.onUsePlexPoster}
+          >
+            <Tv className="size-4" />
+            {c.plexPosterPending ? "Importing…" : "Use Plex poster"}
           </Button>
         )
         : null}

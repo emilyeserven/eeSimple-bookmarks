@@ -1,0 +1,37 @@
+import type { FastifyInstance } from "fastify";
+import { plexEnabledAsync, searchPlexItems } from "@/services/plex";
+
+const searchQuery = {
+  type: "object",
+  required: ["q"],
+  additionalProperties: false,
+  properties: {
+    q: {
+      type: "string",
+      minLength: 1,
+    },
+  },
+} as const;
+
+/**
+ * Plex lookups, mounted under `/api`. The middleware proxies the operator's Plex server so the
+ * `X-Plex-Token` never reaches the client — responses carry only the mapped item DTOs.
+ */
+export async function plexRoutes(app: FastifyInstance): Promise<void> {
+  app.get("/api/plex/search", {
+    schema: {
+      tags: ["connectors"],
+      querystring: searchQuery,
+    },
+  }, async (req, reply) => {
+    if (!(await plexEnabledAsync())) {
+      return reply.code(503).send({
+        message: "Plex is not configured",
+      });
+    }
+    const {
+      q,
+    } = req.query as { q: string };
+    return searchPlexItems(q);
+  });
+}

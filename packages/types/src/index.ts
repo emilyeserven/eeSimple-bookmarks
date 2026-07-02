@@ -1095,6 +1095,12 @@ export interface Bookmark {
   kavitaLibraryId: number | null;
   /** Display name of the linked Kavita series, denormalized at link time. */
   kavitaSeriesName: string | null;
+  /** `ratingKey` of the linked item on the connected Plex server, or `null` when not linked. */
+  plexRatingKey: string | null;
+  /** Plex item type of the linked item (`movie`/`show`/`episode`/`artist`/`album`/`track`/…), or `null`. */
+  plexItemType: string | null;
+  /** Display title of the linked Plex item, denormalized at link time. */
+  plexItemTitle: string | null;
   /** The import event this bookmark was created from, or `null`. */
   import: BookmarkImport | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
@@ -1194,6 +1200,12 @@ export interface CreateBookmarkInput {
   kavitaLibraryId?: number | null;
   /** Display name of the linked Kavita series, or `null` to clear. Omit to leave unchanged. */
   kavitaSeriesName?: string | null;
+  /** `ratingKey` of the Plex item to link, or `null` to unlink. Omit to leave unchanged. */
+  plexRatingKey?: string | null;
+  /** Plex item type of the linked item, or `null` to clear. Omit to leave unchanged. */
+  plexItemType?: string | null;
+  /** Display title of the linked Plex item, or `null` to clear. Omit to leave unchanged. */
+  plexItemTitle?: string | null;
 }
 
 /** Payload for partially updating a bookmark. */
@@ -2648,6 +2660,16 @@ export interface ConnectorsStatus {
   kavita: { enabled: boolean;
     baseUrl: string | null; };
   /**
+   * Plex media server — active only when BOTH a base URL and an `X-Plex-Token` are configured
+   * (`PLEX_ENDPOINT` / `PLEX_TOKEN` env vars or the saved settings). The base URL is not a secret
+   * and is returned so the client can build item deep links; `machineIdentifier` (fetched from the
+   * server's `/identity`, non-secret) is needed alongside it to build the web-UI deep link. The
+   * token never leaves the middleware.
+   */
+  plex: { enabled: boolean;
+    baseUrl: string | null;
+    machineIdentifier: string | null; };
+  /**
    * Geocoding for the Locations taxonomy — always keyless (OpenStreetMap Nominatim). `endpoint`
    * reports the base URL in use (the public Nominatim by default, or a self-hosted instance set via
    * `NOMINATIM_ENDPOINT`); it is not a secret.
@@ -2678,6 +2700,10 @@ export interface ConnectorsAppSettings {
   kavitaEndpoint: string;
   /** Whether a Kavita API key is stored (encrypted or plain); the raw value is never returned. */
   kavitaApiKeySet: boolean;
+  /** Base URL of the Plex instance (e.g. `http://localhost:32400`), or `""` when unset. */
+  plexEndpoint: string;
+  /** Whether a Plex token is stored (encrypted or plain); the raw value is never returned. */
+  plexTokenSet: boolean;
   /** Whether a YouTube Data API v3 key is stored (encrypted or plain); the raw value is never returned. */
   youtubeApiKeySet: boolean;
   /**
@@ -2710,6 +2736,15 @@ export interface UpdateConnectorsSettingsInput {
    * Any other string = encrypt and store as the new key.
    */
   kavitaApiKey: string | null;
+  /** Base URL of the Plex instance; `""` clears it. */
+  plexEndpoint: string;
+  /**
+   * Raw Plex `X-Plex-Token` to store (encrypted when `APP_SECRET` is set).
+   * `null` = leave the stored token unchanged.
+   * `""` = clear the stored token.
+   * Any other string = encrypt and store as the new token.
+   */
+  plexToken: string | null;
   /**
    * Raw YouTube Data API v3 key to store (encrypted when `APP_SECRET` is set).
    * `null` = leave the stored key unchanged.
@@ -2733,6 +2768,22 @@ export interface KavitaSeriesResult {
   libraryName: string | null;
   /** Release year of the series, or `null` when unknown/unreported. */
   releaseYear: number | null;
+}
+
+/** One Plex library item matched by a search (`GET /api/plex/search?q=`). */
+export interface PlexItemResult {
+  /** Plex's `ratingKey` — the stable id used to build metadata/deep-link URLs. */
+  ratingKey: string;
+  /** Item type: `movie` / `show` / `season` / `episode` / `artist` / `album` / `track`. */
+  type: string;
+  /** Item display title. */
+  title: string;
+  /** Release year, or `null` when unknown/unreported. */
+  year: number | null;
+  /** Name of the containing Plex library section, or `null` when not reported. */
+  librarySectionTitle: string | null;
+  /** A one-line context subtitle (show/artist, year, library), or `null`. */
+  subtitle: string | null;
 }
 
 /** One flattened table-of-contents entry from a linked Kavita book (`GET /api/kavita/toc`). */

@@ -31,6 +31,11 @@ const connectorsStatus: ConnectorsStatus = {
     enabled: false,
     baseUrl: null,
   },
+  plex: {
+    enabled: false,
+    baseUrl: null,
+    machineIdentifier: null,
+  },
   geocoding: {
     enabled: true,
     endpoint: "https://nominatim.openstreetmap.org",
@@ -49,6 +54,8 @@ const connectorsSettings: ConnectorsAppSettings = {
   archiveBoxEndpoint: "",
   kavitaEndpoint: "",
   kavitaApiKeySet: false,
+  plexEndpoint: "",
+  plexTokenSet: false,
   youtubeApiKeySet: false,
   imageUrlBlacklist: [],
 };
@@ -95,6 +102,11 @@ export const ProvidersActive: Story = {
             enabled: true,
             baseUrl: "http://localhost:5000",
           },
+          plex: {
+            enabled: true,
+            baseUrl: "http://localhost:32400",
+            machineIdentifier: "abc123",
+          },
         } satisfies ConnectorsStatus)),
         http.get("/api/app-settings/connectors", () => HttpResponse.json({
           ...connectorsSettings,
@@ -104,6 +116,8 @@ export const ProvidersActive: Story = {
           archiveBoxEndpoint: "http://localhost:8000",
           kavitaEndpoint: "http://localhost:5000",
           kavitaApiKeySet: true,
+          plexEndpoint: "http://localhost:32400",
+          plexTokenSet: true,
           youtubeApiKeySet: true,
         } satisfies ConnectorsAppSettings)),
         ...apiHandlers,

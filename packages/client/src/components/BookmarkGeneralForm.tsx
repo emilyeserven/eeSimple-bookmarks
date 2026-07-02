@@ -9,6 +9,7 @@ import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSecti
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
 import { BookmarkKavitaField } from "./BookmarkKavitaField";
 import { BookmarkNameField } from "./BookmarkNameField";
+import { BookmarkPlexField } from "./BookmarkPlexField";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 
@@ -156,6 +157,11 @@ export function BookmarkGeneralForm({
       <BookmarkKavitaField
         bookmark={bookmark}
         onSelect={ctrl.saveKavitaSeries}
+      />
+
+      <BookmarkPlexField
+        bookmark={bookmark}
+        onSelect={ctrl.savePlexItem}
       />
 
       <form.AppForm>

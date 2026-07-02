@@ -52,6 +52,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Kavita Link",
   },
   {
+    key: "plexLink",
+    label: "Plex Link",
+  },
+  {
     key: "more",
     label: "More menu",
   },

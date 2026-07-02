@@ -249,7 +249,7 @@ const placeTypeDisplayBody = {
 
 const connectorsBody = {
   type: "object",
-  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaApiKey", "youtubeApiKey", "imageUrlBlacklist"],
+  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaApiKey", "plexEndpoint", "plexToken", "youtubeApiKey", "imageUrlBlacklist"],
   additionalProperties: false,
   properties: {
     hostedMetadataEndpoint: {
@@ -272,6 +272,14 @@ const connectorsBody = {
     },
     kavitaApiKey: {
       // null = leave the stored key unchanged; "" = clear; any other string = set new key.
+      type: ["string", "null"],
+    },
+    plexEndpoint: {
+      // Plex base URL; "" clears it.
+      type: "string",
+    },
+    plexToken: {
+      // null = leave the stored token unchanged; "" = clear; any other string = set new token.
       type: ["string", "null"],
     },
     youtubeApiKey: {

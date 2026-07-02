@@ -1,11 +1,12 @@
 import type { Bookmark, BookmarkTag, ChoicesDisplayType, CustomProperty } from "@eesimple/types";
 
-import { Archive, ArchiveRestore, BookOpen, ExternalLink, MoreVertical } from "lucide-react";
+import { Archive, ArchiveRestore, BookOpen, ExternalLink, MoreVertical, Tv } from "lucide-react";
 
 import { BookmarkCardMenu } from "./BookmarkCardMenu";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
 import { archiveAddUrl, archiveSearchUrl } from "../lib/archiveBox";
 import { kavitaSeriesUrl } from "../lib/kavita";
+import { plexItemUrl } from "../lib/plex";
 
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -119,6 +120,36 @@ export function BookmarkKavitaLinkButton({
         title="View series on Kavita"
       >
         <BookOpen className="size-4" />
+      </a>
+    </Button>
+  );
+}
+
+/**
+ * "View on Plex" action — opens the linked item's page in Plex's web UI in a new tab. Caller renders
+ * it only when the Plex connector is configured (with a known machineIdentifier) and the bookmark is
+ * linked to an item.
+ */
+export function BookmarkPlexLinkButton({
+  baseUrl, machineIdentifier, ratingKey,
+}: { baseUrl: string;
+  machineIdentifier: string;
+  ratingKey: string; }) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      asChild
+    >
+      <a
+        href={plexItemUrl(baseUrl, machineIdentifier, ratingKey)}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="View item on Plex"
+        title="View item on Plex"
+      >
+        <Tv className="size-4" />
       </a>
     </Button>
   );

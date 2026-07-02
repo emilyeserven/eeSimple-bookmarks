@@ -293,6 +293,21 @@ export function useKavitaCoverImage() {
   });
 }
 
+/** Import the linked Plex item's poster as the bookmark's main image. */
+export function usePlexPosterImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => bookmarksApi.plexPoster(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      notifySuccess("Plex poster added");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not fetch the poster from Plex")),
+  });
+}
+
 /** Import the cover from the bookmark's stored ISBN/ASIN as its main image. */
 export function useIsbnCoverImage() {
   const queryClient = useQueryClient();

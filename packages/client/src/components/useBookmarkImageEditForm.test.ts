@@ -64,6 +64,10 @@ vi.mock("../hooks/useBookmarks", () => ({
     mutate: vi.fn(),
     ...pendingFalse,
   }),
+  usePlexPosterImage: () => ({
+    mutate: vi.fn(),
+    ...pendingFalse,
+  }),
   useIsbnCoverImage: () => ({
     mutate: vi.fn(),
     ...pendingFalse,

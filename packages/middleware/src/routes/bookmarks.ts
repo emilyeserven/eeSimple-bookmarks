@@ -44,6 +44,7 @@ import {
 import { quickSaveToInbox } from "@/services/imports";
 import { importIsbnCover } from "@/services/isbn";
 import { importKavitaSeriesCover, kavitaEnabledAsync } from "@/services/kavita";
+import { importPlexPoster, plexEnabledAsync } from "@/services/plex";
 import { getObjectRange, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { isValidUrl } from "@/utils/url";
 
@@ -357,6 +358,15 @@ const createBookmarkBody = {
       type: ["integer", "null"],
     },
     kavitaSeriesName: {
+      type: ["string", "null"],
+    },
+    plexRatingKey: {
+      type: ["string", "null"],
+    },
+    plexItemType: {
+      type: ["string", "null"],
+    },
+    plexItemTitle: {
       type: ["string", "null"],
     },
   },
@@ -831,6 +841,55 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
     if (result === "cover_unavailable") {
       return reply.code(502).send({
         message: "Could not fetch the cover from Kavita",
+      });
+    }
+    if (result === "too_many") {
+      return reply.code(409).send({
+        message: "This bookmark already has the maximum number of images",
+      });
+    }
+    if (result === "bad_image") {
+      return reply.code(415).send({
+        message: "Unsupported or invalid image",
+      });
+    }
+    return reply.code(201).send(result);
+  });
+
+  // Import the linked Plex item's poster as the bookmark's main image (keeps other images).
+  app.post("/api/bookmarks/:id/plex-poster", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    if (!(await plexEnabledAsync())) {
+      return reply.code(503).send({
+        message: "Plex is not configured",
+      });
+    }
+    const result = await importPlexPoster(id);
+    if (result === "not_found") {
+      return reply.code(404).send({
+        message: "Bookmark not found",
+      });
+    }
+    if (result === "not_linked") {
+      return reply.code(400).send({
+        message: "Bookmark is not linked to a Plex item",
+      });
+    }
+    if (result === "poster_unavailable") {
+      return reply.code(502).send({
+        message: "Could not fetch the poster from Plex",
       });
     }
     if (result === "too_many") {

@@ -32,6 +32,11 @@ const connectorsStatus: ConnectorsStatus = {
     enabled: true,
     baseUrl: "http://localhost:5000",
   },
+  plex: {
+    enabled: false,
+    baseUrl: null,
+    machineIdentifier: null,
+  },
   geocoding: {
     enabled: true,
     endpoint: "https://nominatim.openstreetmap.org",

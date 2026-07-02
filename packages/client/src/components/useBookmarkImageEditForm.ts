@@ -39,6 +39,12 @@ export interface BookmarkImageEditFormController {
   kavitaCoverPending: boolean;
   /** Import the linked Kavita series' cover as the bookmark's main image. */
   onUseKavitaCover: () => void;
+  /** Whether the "Use Plex poster" action applies (connector enabled + bookmark linked to an item). */
+  canUsePlexPoster: boolean;
+  /** Whether the Plex poster import is in flight. */
+  plexPosterPending: boolean;
+  /** Import the linked Plex item's poster as the bookmark's main image. */
+  onUsePlexPoster: () => void;
   /** Whether the "Pull cover from ISBN" action applies (bookmark has a non-empty ISBN/ASIN value). */
   canUseIsbnCover: boolean;
   /** Whether the ISBN cover import is in flight. */
@@ -131,6 +137,9 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     canUseKavitaCover: Boolean(connectors?.kavita.enabled) && bookmark.kavitaSeriesId !== null,
     kavitaCoverPending: mutations.kavitaCover.isPending,
     onUseKavitaCover: () => mutations.kavitaCover.mutate(bookmark.id),
+    canUsePlexPoster: Boolean(connectors?.plex.enabled) && bookmark.plexRatingKey !== null,
+    plexPosterPending: mutations.plexPoster.isPending,
+    onUsePlexPoster: () => mutations.plexPoster.mutate(bookmark.id),
     canUseIsbnCover: Boolean(
       isbnProperty
       && bookmark.textValues.some(v => v.propertyId === isbnProperty.id && v.value.trim()),
