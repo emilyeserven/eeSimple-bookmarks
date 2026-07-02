@@ -1,7 +1,7 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { BookmarkSort } from "../lib/bookmarkSort";
 import type { LocationSortMode } from "../lib/locationSort";
-import type { Author, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Author, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, LocationMapLevelMode, MediaType, PlaceType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { create } from "zustand";
@@ -14,22 +14,18 @@ export type Theme = "light" | "dark" | "system";
 export type HomepageSectionImageLayout = "above" | "side";
 
 /**
- * Which levels a place's location maps show relative to the viewed place's own level: only the
- * current level, the current level plus broader ("above") levels, or plus narrower ("below") levels.
- * The current level is always shown. Shared across all location maps (not bookmark maps).
- */
-export type LocationMapLevelMode = "above" | "current" | "below";
-
-/**
  * UI-pref unions defined once in `@eesimple/types` and re-exported here so existing
  * `../stores/uiStore` importers keep working. `SidebarOpenModifier` and the bookmark-detail sizing
- * unions now drive server-persisted settings but are still re-exported for back-compat.
+ * unions now drive server-persisted settings but are still re-exported for back-compat —
+ * `LocationMapLevelMode` too (the "Show" mode now persists per level group / per the bookmark-map
+ * display preference instead of in this store).
  */
 export type {
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
   BookmarkImageVisibility,
+  LocationMapLevelMode,
   SidebarOpenModifier,
   ViewMode,
 };
@@ -128,12 +124,9 @@ interface UiState {
   /** How the Locations list/tree is ordered: server order ("default") or grouped by place type. */
   locationSortMode: LocationSortMode;
   setLocationSortMode: (mode: LocationSortMode) => void;
-  /** Which levels a place's location maps show relative to its own level (shared across location maps). */
-  locationMapLevelMode: LocationMapLevelMode;
-  setLocationMapLevelMode: (mode: LocationMapLevelMode) => void;
   /**
    * Whether location maps hide the base tiles' own country/prefecture/state administrative border
-   * lines (switches to a borderless tile style). Shared across every location map, like `locationMapLevelMode`.
+   * lines (switches to a borderless tile style). Shared across every location map.
    */
   hideLocationMapAdminBorders: boolean;
   setHideLocationMapAdminBorders: (hide: boolean) => void;
@@ -302,10 +295,6 @@ export const useUiStore = create<UiState>()(
       setLocationSortMode: mode => set({
         locationSortMode: mode,
       }),
-      locationMapLevelMode: "current",
-      setLocationMapLevelMode: mode => set({
-        locationMapLevelMode: mode,
-      }),
       hideLocationMapAdminBorders: false,
       setHideLocationMapAdminBorders: hide => set({
         hideLocationMapAdminBorders: hide,
@@ -430,7 +419,6 @@ export const useUiStore = create<UiState>()(
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         collapsedLocationMapKeys: state.collapsedLocationMapKeys,
         locationSortMode: state.locationSortMode,
-        locationMapLevelMode: state.locationMapLevelMode,
         hideLocationMapAdminBorders: state.hideLocationMapAdminBorders,
         bookmarkImageLayout: state.bookmarkImageLayout,
         bookmarkCornerOverlays: state.bookmarkCornerOverlays,

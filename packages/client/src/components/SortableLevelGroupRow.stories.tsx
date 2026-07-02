@@ -58,6 +58,7 @@ const meta = {
     renameGroup: noop,
     setGroupShowOnMainMap: noop,
     setGroupDisplayMode: noop,
+    setGroupLevelMode: noop,
     setGroupPlaceTypes: noop,
     setGroupColor: noop,
     removeGroup: noop,

@@ -1,5 +1,5 @@
 import type { PlaceTypeOption } from "../lib/locationLevels";
-import type { LocationDisplayMode, PlaceTypeColorConfig, PlaceTypeIconConfig, PlaceTypeLevelGroup, PlaceTypeLevelGroupConfig } from "@eesimple/types";
+import type { LocationDisplayMode, LocationMapLevelMode, PlaceTypeColorConfig, PlaceTypeIconConfig, PlaceTypeLevelGroup, PlaceTypeLevelGroupConfig } from "@eesimple/types";
 
 import { useMemo } from "react";
 
@@ -40,6 +40,11 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
   /** Set whether this level shows by default on the main all-locations map (`/taxonomies/locations`). */
   setGroupShowOnMainMap: (id: string, showOnMainMap: boolean) => void;
   setGroupDisplayMode: (id: string, displayMode: LocationDisplayMode) => void;
+  /**
+   * Set the default "Show" mode (above/current/below) for maps anchored at this level — which other
+   * levels a place's pages show alongside it when the viewed place's type belongs to this group.
+   */
+  setGroupLevelMode: (id: string, levelMode: LocationMapLevelMode) => void;
   setGroupPlaceTypes: (id: string, placeTypes: string[]) => void;
   /** Set (or clear, with `null`) the map color a level's pins/areas render in. */
   setGroupColor: (id: string, color: string | null) => void;
@@ -175,6 +180,12 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     }, `${groupLabel(id)} display`);
   }
 
+  function setGroupLevelMode(id: string, levelMode: LocationMapLevelMode): void {
+    patchGroup(id, {
+      levelMode,
+    }, `${groupLabel(id)} levels shown`);
+  }
+
   function setGroupPlaceTypes(id: string, placeTypes: string[]): void {
     patchGroup(id, {
       placeTypes,
@@ -285,6 +296,7 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     setGroupVisible,
     setGroupShowOnMainMap,
     setGroupDisplayMode,
+    setGroupLevelMode,
     setGroupPlaceTypes,
     setGroupColor,
     removeGroup,

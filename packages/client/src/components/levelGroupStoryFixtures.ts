@@ -48,6 +48,7 @@ export const storyGroupRowProps: Omit<GroupRowProps, "group"> = {
   renameGroup: noop,
   setGroupShowOnMainMap: noop,
   setGroupDisplayMode: noop,
+  setGroupLevelMode: noop,
   setGroupPlaceTypes: noop,
   setGroupColor: noop,
   removeGroup: noop,

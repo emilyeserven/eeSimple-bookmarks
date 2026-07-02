@@ -298,6 +298,28 @@ export const LOCATION_DISPLAY_MODES = ["pin", "area"] as const;
 export type LocationDisplayMode = typeof LOCATION_DISPLAY_MODES[number];
 
 /**
+ * Which levels a map shows relative to its "current" level(s) — the map "Levels" overlay's "Show"
+ * button group: only the current level, the current level plus broader (`above`) levels, or plus
+ * narrower (`below`) levels. The current level is always shown. Stored per level group
+ * ({@link PlaceTypeLevelGroup.levelMode} — applied when a viewed place's own level is that group)
+ * and once for bookmark maps (`DisplayPreferenceSettings.bookmarkMapLevelMode`). Derived tuple =
+ * the single source for the middleware Fastify JSON-Schema enums (don't hand-mirror this list).
+ */
+export const LOCATION_MAP_LEVEL_MODES = ["above", "current", "below"] as const;
+export type LocationMapLevelMode = typeof LOCATION_MAP_LEVEL_MODES[number];
+
+/** Default {@link LocationMapLevelMode} when a group / the bookmark pref hasn't set one. */
+export const DEFAULT_LOCATION_MAP_LEVEL_MODE: LocationMapLevelMode = "current";
+
+/**
+ * Normalize a user/stored value into a {@link LocationMapLevelMode}, falling back to the default
+ * (`"current"`). Keeps a malformed jsonb row or a stray client value from reaching the map.
+ */
+export function normalizeLevelMode(input: unknown): LocationMapLevelMode {
+  return LOCATION_MAP_LEVEL_MODES.find(mode => mode === input) ?? DEFAULT_LOCATION_MAP_LEVEL_MODE;
+}
+
+/**
  * Leaflet's built-in vector/marker color. Used as the map fallback when a level has no custom color,
  * and as the swatch the Settings color picker starts from.
  */
@@ -487,6 +509,14 @@ export interface PlaceTypeLevelGroup {
    * the viewed place's level instead. Absent → treated as the group's `visible` (legacy default).
    */
   showOnMainMap?: boolean;
+  /**
+   * The default "Show" mode for maps anchored at this level — which other level groups a place's
+   * pages (or a bookmark's map) show alongside it when the viewed place's own place type belongs to
+   * this group: broader levels (`above`), narrower levels (`below`), or just this one (`current`).
+   * Absent → `current`. Edited on Settings → Locations → Level Groups and written through by the
+   * map "Levels" overlay's "Show" button group.
+   */
+  levelMode?: LocationMapLevelMode;
   /** Ordering weight among groups (lower sorts first). */
   sortOrder: number;
   /**

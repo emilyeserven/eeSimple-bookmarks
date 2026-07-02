@@ -12,7 +12,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { IMPORT_BLACKLIST_KINDS, LOCATION_DISPLAY_MODES } from "@eesimple/types";
+import { IMPORT_BLACKLIST_KINDS, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import { getDatabaseUsageReport } from "@/services/databaseUsage";
 import {
@@ -301,6 +301,7 @@ const displayPreferenceBody = {
     "minAreaPinThresholdKm2",
     "bookmarksPerPage",
     "mapPinScale",
+    "bookmarkMapLevelMode",
   ],
   additionalProperties: false,
   properties: {
@@ -378,6 +379,10 @@ const displayPreferenceBody = {
       minimum: 0.5,
       maximum: 2,
     },
+    bookmarkMapLevelMode: {
+      type: "string",
+      enum: [...LOCATION_MAP_LEVEL_MODES],
+    },
   },
 } as const;
 
@@ -411,6 +416,10 @@ const placeTypeLevelGroupsBody = {
       },
       showOnMainMap: {
         type: "boolean",
+      },
+      levelMode: {
+        type: "string",
+        enum: [...LOCATION_MAP_LEVEL_MODES],
       },
       sortOrder: {
         type: "number",

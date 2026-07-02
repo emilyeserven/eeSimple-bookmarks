@@ -16,6 +16,7 @@ export interface GroupRowProps {
   renameGroup: Levels["renameGroup"];
   setGroupShowOnMainMap: Levels["setGroupShowOnMainMap"];
   setGroupDisplayMode: Levels["setGroupDisplayMode"];
+  setGroupLevelMode: Levels["setGroupLevelMode"];
   setGroupPlaceTypes: Levels["setGroupPlaceTypes"];
   setGroupColor: Levels["setGroupColor"];
   removeGroup: Levels["removeGroup"];

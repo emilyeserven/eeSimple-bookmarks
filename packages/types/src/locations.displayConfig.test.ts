@@ -10,6 +10,7 @@ import {
   locationLacksLevel,
   normalizeHexColor,
   normalizeIconName,
+  normalizeLevelMode,
   placeTypeKey,
   placeTypeOrder,
   resolveLocationColor,
@@ -351,6 +352,18 @@ test("normalizeIconName trims a usable name and rejects empty/over-long/non-stri
   assert.equal(normalizeIconName("x".repeat(65)), null);
   assert.equal(normalizeIconName(null), null);
   assert.equal(normalizeIconName(42), null);
+});
+
+// --- normalizeLevelMode ---
+
+test("normalizeLevelMode keeps a valid mode and falls back to 'current' otherwise", () => {
+  assert.equal(normalizeLevelMode("above"), "above");
+  assert.equal(normalizeLevelMode("current"), "current");
+  assert.equal(normalizeLevelMode("below"), "below");
+  assert.equal(normalizeLevelMode("sideways"), "current");
+  assert.equal(normalizeLevelMode(null), "current");
+  assert.equal(normalizeLevelMode(undefined), "current");
+  assert.equal(normalizeLevelMode(42), "current");
 });
 
 // --- resolveLocationIcon ---

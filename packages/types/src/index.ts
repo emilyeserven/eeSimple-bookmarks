@@ -8,7 +8,7 @@
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
-import type { BookmarkLocation } from "./locations.js";
+import type { BookmarkLocation, LocationMapLevelMode } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
 export * from "./conditions.js";
@@ -412,6 +412,13 @@ export interface DisplayPreferenceSettings {
   bookmarksPerPage: number;
   /** Scale factor applied to every rendered map pin's size (1 = default size). */
   mapPinScale: number;
+  /**
+   * The default "Show" mode for a bookmark's locations map — which level groups it shows relative
+   * to the bookmark's tagged locations' own levels (`above` / `current` / `below`). The bookmark
+   * sibling of the per-group {@link PlaceTypeLevelGroup.levelMode}; edited on Settings → Locations
+   * → Level Groups and written through by the map "Levels" overlay's "Show" button group.
+   */
+  bookmarkMapLevelMode: LocationMapLevelMode;
 }
 
 /** Minimum allowed value for {@link DisplayPreferenceSettings.mapPinScale}. */

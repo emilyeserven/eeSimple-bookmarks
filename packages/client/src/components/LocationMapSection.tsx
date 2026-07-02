@@ -1,7 +1,6 @@
 import type { MapView } from "./LocationMap";
 import type { AncestorChildrenScopeControls, LevelScope, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 import type { MapAncestryDebug } from "../lib/locationMapDebug";
-import type { LocationMapLevelMode } from "../stores/uiStore";
 import type { LocationNode } from "@eesimple/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -15,6 +14,7 @@ import { LocationMap } from "./LocationMap";
 import { useLocationPlaceTypeColors, useLocationPlaceTypeIcons } from "../hooks/useAppSettings";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 import { useRefreshLocationBoundary } from "../hooks/useLocations";
+import { useMapLevelMode } from "../hooks/useMapLevelMode";
 import { computePopulatedLevelGroupIds, computeVisibleLevelGroupIds } from "../lib/locationLevels";
 import { buildLayersDebug } from "../lib/locationMapDebug";
 import { flattenTree, selectedSubtrees } from "../lib/tagTree";
@@ -42,9 +42,9 @@ interface LocationMapSectionProps {
   showLevels?: boolean;
   /**
    * How this map decides which levels are visible by default: the main index map (`showOnMainMap`),
-   * a place's pages (the viewed place's level ± the shared mode), or a bookmark map (the tagged
-   * locations' levels ± its own "current"-by-default mode — see the `bookmarkLevelMode` state below).
-   * Defaults to a location scope with no current place type (shows all levels).
+   * a place's pages (the viewed place's level ± that level group's persisted "Show" mode), or a
+   * bookmark map (the tagged locations' levels ± the persisted `bookmarkMapLevelMode` preference) —
+   * see `useMapLevelMode`. Defaults to a location scope with no current place type (shows all levels).
    */
   scope?: LevelScope;
   /**
@@ -100,27 +100,14 @@ export function LocationMapSection({
     [tree, filterIds],
   );
 
-  // Per-map level state: which level groups show is resolved from this map's scope + the shared mode,
-  // with a temporary local override for individual checkbox tweaks (reset when the mode/scope change).
+  // Per-map level state: which level groups show is resolved from this map's scope + its persisted
+  // "Show" mode, with a temporary local override for individual checkbox tweaks (reset when the
+  // mode/scope change).
   const {
     groups,
   } = useLocationLevels({
     notify: false,
   });
-  const sharedLevelMode = useUiStore(state => state.locationMapLevelMode);
-  const setSharedLevelMode = useUiStore(state => state.setLocationMapLevelMode);
-
-  // Bookmark maps get their own per-map "Show" mode, always starting at "current" — they don't share
-  // the location pages' mode (a user who left a location page on "above" shouldn't land on a
-  // bookmark's map already expanded). Reset to "current" whenever this map's key changes (a different
-  // bookmark's map re-mounts with the same LocationMapSection instance in the panel/tab).
-  const [bookmarkLevelMode, setBookmarkLevelMode] = useState<LocationMapLevelMode>("current");
-  useEffect(() => {
-    setBookmarkLevelMode("current");
-  }, [mapKey]);
-
-  const levelMode = scope.kind === "bookmark" ? bookmarkLevelMode : sharedLevelMode;
-  const setLevelMode = scope.kind === "bookmark" ? setBookmarkLevelMode : setSharedLevelMode;
   const hideAdminBorders = useUiStore(state => state.hideLocationMapAdminBorders);
   const setHideAdminBorders = useUiStore(state => state.setHideLocationMapAdminBorders);
 
@@ -129,6 +116,12 @@ export function LocationMapSection({
   const scopeKind = scope.kind;
   const currentPlaceType = scope.kind === "location" ? scope.currentPlaceType : null;
   const bookmarkPlaceTypes = scope.kind === "bookmark" ? scope.placeTypes : EMPTY_PLACE_TYPES;
+
+  // The persisted "Show" mode for this map's anchor (the current level group / the bookmark-map
+  // preference); the setter writes straight through to it — see useMapLevelMode.
+  const {
+    levelMode, setLevelMode,
+  } = useMapLevelMode(scopeKind, currentPlaceType, groups);
   // Join into a stable string key — callers reconstruct the `placeTypes` array inline each render,
   // so depending on its reference directly would thrash the memo/effect below on every render.
   const bookmarkPlaceTypesKey = bookmarkPlaceTypes.join(" ");

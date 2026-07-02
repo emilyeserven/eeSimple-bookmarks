@@ -22,6 +22,7 @@ const displayPreferences: DisplayPreferenceSettings = {
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,
   mapPinScale: 1,
+  bookmarkMapLevelMode: "current",
 };
 
 const meta = {

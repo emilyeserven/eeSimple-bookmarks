@@ -48,6 +48,7 @@ const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,
   mapPinScale: 1,
+  bookmarkMapLevelMode: "current",
 };
 
 const AUTOMATION_DEFAULTS: AutomationSettings = {

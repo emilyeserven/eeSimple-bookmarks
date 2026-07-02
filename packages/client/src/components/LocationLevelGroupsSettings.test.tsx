@@ -41,6 +41,7 @@ vi.mock("../hooks/useAppSettings", () => ({
     isPending: false,
   }),
   useMinAreaPinThresholdKm2: () => 0,
+  useBookmarkMapLevelMode: () => "current",
   useDisplayPreferenceSettings: () => ({
     data: undefined,
   }),
