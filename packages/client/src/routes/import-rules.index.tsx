@@ -3,37 +3,32 @@ import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { AddImportRuleModal } from "../components/AddImportRuleModal";
-import { ImportRulesList } from "../components/ImportRulesList";
-import { useImportRules } from "../hooks/useImportRules";
+import { ListingScaffold } from "../components/ListingScaffold";
+import { importRuleListingConfig } from "../entities/importRule";
 import { useSetListingPage } from "../hooks/useListingPage";
-import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
+import { useListingScaffold } from "../hooks/useListingScaffold";
 
 import { Badge } from "@/components/ui/badge";
-import { useUiStore } from "@/stores/uiStore";
 
 export const Route = createFileRoute("/import-rules/")({
   component: ImportRulesListPage,
 });
 
 function ImportRulesListPage() {
-  const {
-    data: rules,
-  } = useImportRules();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   useSetListingPage("import-rules-listing", {
     createAction: () => setModalOpen(true),
   });
-  useRegisterHeaderSearch();
-  const query = useUiStore(state => state.headerSearchQuery);
+  const state = useListingScaffold(importRuleListingConfig);
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <h2 className="text-xl font-semibold">Import Rules</h2>
-          {rules
-            ? <Badge variant="secondary">{rules.length}</Badge>
+          {!state.isLoading
+            ? <Badge variant="secondary">{state.items.length}</Badge>
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
@@ -51,7 +46,10 @@ function ImportRulesListPage() {
         </p>
       </div>
 
-      <ImportRulesList query={query} />
+      <ListingScaffold
+        config={importRuleListingConfig}
+        state={state}
+      />
 
       <AddImportRuleModal
         open={modalOpen}

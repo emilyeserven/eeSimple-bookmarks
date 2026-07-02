@@ -25,10 +25,14 @@ const ACTION_LABELS: Record<ImportRuleAction, string> = {
 
 interface ImportRuleListItemProps {
   rule: ImportRule;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
 }
 
 export function ImportRuleListItem({
-  rule,
+  rule, selectable, selected, onSelectToggle, inSelectionMode,
 }: ImportRuleListItemProps) {
   const viewClick = useViewPanelClick();
   const editClick = useEditPanelClick();
@@ -36,6 +40,10 @@ export function ImportRuleListItem({
 
   return (
     <StandardListingCard
+      selectable={selectable}
+      selected={selected}
+      onSelectToggle={onSelectToggle}
+      inSelectionMode={inSelectionMode}
       title={rule.name}
       titleAdornment={(
         <Badge variant={ACTION_BADGE_VARIANTS[rule.action]}>

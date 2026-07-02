@@ -4,12 +4,14 @@ import type {
   UpdateImportRuleInput,
 } from "@eesimple/types";
 import {
+  bulkDeleteImportRules,
   createImportRule,
   deleteImportRule,
   getImportRuleBySlug,
   listImportRules,
   updateImportRule,
 } from "@/services/importRules";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const ruleParams = {
   type: "object",
@@ -66,6 +68,13 @@ const updateRuleBody = {
 
 /** CRUD routes for import rules, mounted under `/api/import-rules`. */
 export async function importRulesRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(
+    app,
+    "/api/import-rules",
+    "import-rules",
+    bulkDeleteImportRules,
+  );
+
   app.get("/api/import-rules", {
     schema: {
       tags: ["import-rules"],

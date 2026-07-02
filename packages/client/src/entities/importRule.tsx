@@ -1,0 +1,76 @@
+import type { EntityDescriptor, EntityListingConfig } from "./types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { ImportRule, UpdateImportRuleInput } from "@eesimple/types";
+
+import { ImportRuleListItem } from "../components/ImportRuleListItem";
+import { ImportRuleTable } from "../components/ImportRuleTable";
+import { importRuleWorkbench } from "../components/workbench/importRule";
+import { useBulkDeleteImportRules, useImportRules } from "../hooks/useImportRules";
+import { importRulesApi } from "../lib/api/importRules";
+import { summarizeConditions } from "../lib/conditionsSummary";
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const IMPORT_RULE_ROUTE: EntityRoute = {
+  kind: "import-rule",
+  prefix: "/import-rules",
+  slugIndex: 1,
+  listLabel: "Import Rules",
+  singular: "Rule",
+  switcher: "import-rule",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const IMPORT_RULE_PALETTE: EntityPaletteConfig = {
+  queryKey: ["import-rules"],
+  listFn: () => importRulesApi.list(),
+  updateFn: (id, patch) => importRulesApi.update(id, patch as UpdateImportRuleInput),
+  extraEditTabs: [
+    {
+      label: "Edit Conditions",
+      tab: "conditions",
+    },
+  ],
+};
+
+export const importRuleListingConfig: EntityListingConfig<ImportRule> = {
+  pageKey: "import-rules-listing",
+  useItems: useImportRules,
+  matches: (rule, query) => rule.name.toLowerCase().includes(query)
+    || summarizeConditions(rule.conditions).toLowerCase().includes(query),
+  useBulkDelete: useBulkDeleteImportRules,
+  noun: ["import rule", "import rules"],
+  loadingLabel: "Loading rules…",
+  entityPlural: "rules",
+  emptyMessage: (
+    <p className="text-muted-foreground">
+      No import rules yet. Create one to get started.
+    </p>
+  ),
+  renderListItem: ({
+    entity, allItems, ...rest
+  }) => (
+    <ImportRuleListItem
+      rule={entity}
+      {...rest}
+    />
+  ),
+  renderTable: ({
+    entities, selection,
+  }) => (
+    <ImportRuleTable
+      rules={entities}
+      selection={selection}
+    />
+  ),
+};
+
+/** Batch-3 `EntityDescriptor` migration (issue #860). */
+export const importRuleDescriptor: EntityDescriptor<ImportRule> = {
+  kind: "import-rule",
+  route: IMPORT_RULE_ROUTE,
+  palette: IMPORT_RULE_PALETTE,
+  workbench: importRuleWorkbench,
+  listing: importRuleListingConfig,
+};

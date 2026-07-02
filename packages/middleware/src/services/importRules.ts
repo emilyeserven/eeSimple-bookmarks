@@ -1,5 +1,6 @@
 import { asc, eq, isNull, ne } from "drizzle-orm";
 import type {
+  BulkDeleteResult,
   ConditionInput,
   ConditionTree,
   CreateImportRuleInput,
@@ -9,6 +10,7 @@ import type {
 } from "@eesimple/types";
 import { emptyConditionTree, evaluateConditions } from "@eesimple/types";
 import { db } from "@/db";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { importRules, type ImportRuleRow } from "@/db/schema";
 import { slugify } from "@/utils/slug";
 
@@ -109,6 +111,11 @@ export async function deleteImportRule(id: string): Promise<boolean> {
     id: importRules.id,
   });
   return rows.length > 0;
+}
+
+/** Delete many import rules, reporting per-item outcomes. */
+export function bulkDeleteImportRules(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, deleteImportRule);
 }
 
 /**

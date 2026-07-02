@@ -5,6 +5,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { importRulesApi } from "../lib/api/importRules";
 import { notifySuccess } from "../lib/notifications";
 
@@ -68,5 +69,14 @@ export function useDeleteImportRule() {
       });
       notifySuccess("Import rule deleted");
     },
+  });
+}
+
+export function useBulkDeleteImportRules() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(importRulesApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: IMPORT_RULES_KEY,
+    });
   });
 }
