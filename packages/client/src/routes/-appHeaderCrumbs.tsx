@@ -1,6 +1,7 @@
 import type { TaxonomyName } from "./-appHeaderData";
 import type { SwitcherSpec } from "@/components/BreadcrumbSwitcher";
 import type { BreadcrumbSegment } from "@/components/header/HeaderBreadcrumbs";
+import type { EntityRoute } from "@/lib/entityRoutes";
 import type { LocationNode, MediaTypeNode, TagNode } from "@eesimple/types";
 
 import { slugFor, useTaxonomyCrumbData } from "./-appHeaderData";
@@ -10,6 +11,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useLocationTree } from "@/hooks/useLocations";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
+import { ENTITY_ROUTES } from "@/lib/entityRoutes";
 import { findAncestorPath } from "@/lib/tagTree";
 
 /** Labels for path segments whose human form differs from a plain title-cased slug. */
@@ -52,136 +54,36 @@ interface TaxonomyDescriptor {
   makeSwitcher?: (slug: string) => SwitcherSpec;
 }
 
-// Every slug-routed entity whose breadcrumb is `List → Name → [Section]`. Categories and Websites
-// live here too — they share the exact same shape. (Tags and Bookmarks stay bespoke: tags carry an
-// ancestor chain, bookmarks a category + title.) When you add a new slug-routed entity, add its
-// descriptor here AND resolve its name in `AppHeader` below — see the `add-entity` skill.
-const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
-  {
-    prefix: "/categories",
-    listLabel: "Categories",
-    singular: "Category",
-    slugIndex: 1,
-    makeSwitcher: slug => ({
+/** The name-crumb switcher builder for an entity route's `switcher` declaration. */
+function makeSwitcherFor(route: EntityRoute): ((slug: string) => SwitcherSpec) | undefined {
+  const entity = route.switcher;
+  if (!entity) return undefined;
+  if (entity === "category") {
+    return slug => ({
       kind: "category",
       currentSlug: slug,
-    }),
-  },
-  {
-    prefix: "/taxonomies/websites",
-    listLabel: "Websites",
-    singular: "Website",
-    slugIndex: 2,
-    makeSwitcher: slug => ({
-      kind: "taxonomy",
-      entity: "website",
-      currentSlug: slug,
-    }),
-  },
-  {
-    prefix: "/taxonomies/media-types",
-    listLabel: "Media Types",
-    singular: "Media Type",
-    slugIndex: 2,
-  },
-  {
-    prefix: "/taxonomies/place-types",
-    listLabel: "Place Types",
-    singular: "Place Type",
-    slugIndex: 2,
-  },
-  {
-    prefix: "/taxonomies/youtube-channels",
-    listLabel: "YouTube Channels",
-    singular: "Channel",
-    slugIndex: 2,
-    makeSwitcher: slug => ({
-      kind: "taxonomy",
-      entity: "youtube-channel",
-      currentSlug: slug,
-    }),
-  },
-  {
-    prefix: "/taxonomies/newsletters",
-    listLabel: "Imports",
-    singular: "Import",
-    slugIndex: 2,
-  },
-  {
-    prefix: "/taxonomies/authors",
-    listLabel: "Authors",
-    singular: "Author",
-    slugIndex: 2,
-  },
-  {
-    prefix: "/taxonomies/publishers",
-    listLabel: "Publishers",
-    singular: "Publisher",
-    slugIndex: 2,
-  },
-  {
-    prefix: "/taxonomies/property-groups",
-    listLabel: "Property Groups",
-    singular: "Property Group",
-    slugIndex: 2,
-    makeSwitcher: slug => ({
-      kind: "taxonomy",
-      entity: "property-group",
-      currentSlug: slug,
-    }),
-  },
-  {
-    prefix: "/taxonomies/relationship-types",
-    listLabel: "Relationship Types",
-    singular: "Relationship Type",
-    slugIndex: 2,
-  },
-  {
-    prefix: "/custom-properties",
-    listLabel: "Custom Properties",
-    singular: "Custom Property",
-    slugIndex: 1,
-    makeSwitcher: slug => ({
-      kind: "taxonomy",
-      entity: "custom-property",
-      currentSlug: slug,
-    }),
-  },
-  {
-    prefix: "/autofill",
-    listLabel: "Autofill Rules",
-    singular: "Rule",
-    slugIndex: 1,
-    makeSwitcher: slug => ({
-      kind: "taxonomy",
-      entity: "autofill",
-      currentSlug: slug,
-    }),
-  },
-  {
-    prefix: "/import-rules",
-    listLabel: "Import Rules",
-    singular: "Rule",
-    slugIndex: 1,
-    makeSwitcher: slug => ({
-      kind: "taxonomy",
-      entity: "import-rule",
-      currentSlug: slug,
-    }),
-  },
-  {
-    prefix: "/saved-filters",
-    listLabel: "Saved Filters",
-    singular: "Saved Filter",
-    slugIndex: 1,
-  },
-  {
-    prefix: "/card-display-rules",
-    listLabel: "Card Display Rules",
-    singular: "Card Display Rule",
-    slugIndex: 1,
-  },
-] as const;
+    });
+  }
+  return slug => ({
+    kind: "taxonomy",
+    entity,
+    currentSlug: slug,
+  });
+}
+
+// Every slug-routed entity whose breadcrumb is `List → Name → [Section]`, derived from the shared
+// ENTITY_ROUTES data (tree/bespoke-crumb taxonomies — Tags, Locations — declare `flatCrumbs: false`
+// there and stay out; Bookmarks are bespoke below). Adding a slug-routed entity means adding its
+// ENTITY_ROUTES entry AND resolving its name in `AppHeader` — see the `add-entity` skill.
+const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = ENTITY_ROUTES
+  .filter(route => route.flatCrumbs)
+  .map(route => ({
+    prefix: route.prefix,
+    listLabel: route.listLabel,
+    singular: route.singular,
+    slugIndex: route.slugIndex,
+    makeSwitcher: makeSwitcherFor(route),
+  }));
 
 /**
  * Breadcrumbs for a slug-routed taxonomy entity: `List(link) → Name` on the detail/view tabs, and

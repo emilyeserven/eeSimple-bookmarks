@@ -1,57 +1,34 @@
-import type { Author, Website } from "@eesimple/types";
+import type { Author } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HttpResponse, http } from "msw";
 
 import { WebsiteAuthorsForm, WebsiteAuthorsView } from "./WebsiteAuthorsForm";
+import { makeAuthor, makeWebsite } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const website: Website = {
+const website = makeWebsite({
   id: "site-github",
   domain: "github.com",
   siteName: "GitHub",
   slug: "github",
-  builtIn: false,
-  shortenedLinks: [],
-  paramRules: [],
-  createdAt: NOW,
   bookmarkCount: 42,
-  imageUrl: null,
-  socialLinks: [],
-  alternateNames: [],
-};
+});
 
 const sampleAuthors: Author[] = [
-  {
+  makeAuthor({
     id: "author-1",
     name: "Kyle Simpson",
     slug: "kyle-simpson",
-    createdAt: NOW,
     bookmarkCount: 9,
-    authorWebsiteUrl: null,
-    biographyUrl: null,
-    imageUrl: null,
-    socialLinks: [],
-    youtubeChannelIds: [],
     websiteIds: ["site-github"],
-    publisherIds: [],
-  },
-  {
+  }),
+  makeAuthor({
     id: "author-2",
     name: "Sarah Drasner",
     slug: "sarah-drasner",
-    createdAt: NOW,
     bookmarkCount: 4,
-    authorWebsiteUrl: null,
-    biographyUrl: null,
-    imageUrl: null,
-    socialLinks: [],
-    youtubeChannelIds: [],
-    websiteIds: [],
-    publisherIds: [],
-  },
+  }),
 ];
 
 const meta = {

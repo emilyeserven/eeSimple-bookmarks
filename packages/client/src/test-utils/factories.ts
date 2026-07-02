@@ -1,4 +1,17 @@
-import type { Bookmark, BookmarkImage, Category, CustomProperty, Location } from "@eesimple/types";
+import type {
+  Author,
+  Bookmark,
+  BookmarkImage,
+  Category,
+  CustomProperty,
+  Location,
+  MediaType,
+  Newsletter,
+  Publisher,
+  Tag,
+  Website,
+  YouTubeChannel,
+} from "@eesimple/types";
 
 /**
  * Shared test/story factories for the full shared entity shapes.
@@ -166,6 +179,136 @@ export function makeCategory(overrides: Partial<Category> = {}): Category {
     builtIn: false,
     isHomepage: false,
     createdAt: NOW,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `Tag` (a root tag with zero counts by default). */
+export function makeTag(overrides: Partial<Tag> = {}): Tag {
+  return {
+    id: "tag",
+    name: "Tag",
+    romanizedName: null,
+    slug: "tag",
+    parentId: null,
+    createdAt: NOW,
+    bookmarkCount: 0,
+    ownBookmarkCount: 0,
+    editableOnCard: false,
+    excludeFromBackfill: false,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `Website` (a non-built-in site with no associations by default). */
+export function makeWebsite(overrides: Partial<Website> = {}): Website {
+  return {
+    id: "site",
+    domain: "example.com",
+    siteName: "Example",
+    slug: "example",
+    builtIn: false,
+    shortenedLinks: [],
+    paramRules: [],
+    createdAt: NOW,
+    bookmarkCount: 0,
+    imageUrl: null,
+    faviconAutoGrabError: null,
+    category: null,
+    tagIds: [],
+    mediaTypeId: null,
+    socialLinks: [],
+    youtubeChannelIds: [],
+    alternateNames: [],
+    redirectResolutionFailure: false,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `MediaType` (a root, non-built-in type by default). */
+export function makeMediaType(overrides: Partial<MediaType> = {}): MediaType {
+  return {
+    id: "mt",
+    name: "Media Type",
+    romanizedName: null,
+    slug: "media-type",
+    icon: null,
+    builtIn: false,
+    sortOrder: 0,
+    parentId: null,
+    createdAt: NOW,
+    bookmarkCount: 0,
+    ownBookmarkCount: 0,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `YouTubeChannel` with no associations by default. */
+export function makeYouTubeChannel(overrides: Partial<YouTubeChannel> = {}): YouTubeChannel {
+  return {
+    id: "chan",
+    channelKey: "@channel",
+    name: "Channel",
+    slug: "channel",
+    createdAt: NOW,
+    bookmarkCount: 0,
+    selfIds: [],
+    imageUrl: null,
+    category: null,
+    tagIds: [],
+    mediaTypeId: null,
+    websiteIds: [],
+    ...overrides,
+  };
+}
+
+/** A fully-populated `Publisher` with no website association by default. */
+export function makePublisher(overrides: Partial<Publisher> = {}): Publisher {
+  return {
+    id: "pub",
+    name: "Publisher",
+    romanizedName: null,
+    slug: "publisher",
+    websiteId: null,
+    website: null,
+    createdAt: NOW,
+    bookmarkCount: 0,
+    socialLinks: [],
+    ...overrides,
+  };
+}
+
+/** A fully-populated `Author` with no links or associations by default. */
+export function makeAuthor(overrides: Partial<Author> = {}): Author {
+  return {
+    id: "author",
+    name: "Author",
+    romanizedName: null,
+    slug: "author",
+    createdAt: NOW,
+    bookmarkCount: 0,
+    authorWebsiteUrl: null,
+    biographyUrl: null,
+    imageUrl: null,
+    socialLinks: [],
+    youtubeChannelIds: [],
+    websiteIds: [],
+    publisherIds: [],
+    ...overrides,
+  };
+}
+
+/** A fully-populated `Newsletter` with no defaults assigned. */
+export function makeNewsletter(overrides: Partial<Newsletter> = {}): Newsletter {
+  return {
+    id: "nl",
+    name: "Newsletter",
+    slug: "newsletter",
+    createdAt: NOW,
+    bookmarkCount: 0,
+    category: null,
+    tagIds: [],
+    mediaTypeId: null,
     ...overrides,
   };
 }

@@ -28,7 +28,9 @@ function AutofillListPage() {
     listProps, noCategory,
   } = useAutofillFacets(search);
   const newRule = useNewAutofillRule();
-  useSetListingPage("autofill-rules-listing", false, false, false, newRule.openModal);
+  useSetListingPage("autofill-rules-listing", false, false, false, newRule.openModal, false, {
+    createLabel: "New rule",
+  });
 
   function onChange(patch: Partial<AutofillListSearch>) {
     void navigate({

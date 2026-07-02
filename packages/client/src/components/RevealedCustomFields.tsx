@@ -4,12 +4,14 @@ import type { CustomProperty } from "@eesimple/types";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import {
+  CHAPTERS_SLUG,
   CONTENT_STATUS_SLUG,
   DATE_POSTED_SLUG,
   PAGE_PROGRESS_SLUG,
   PAGE_RANGE_SLUG,
   PAGE_SECTIONS_SLUG,
   RUNTIME_SLUG,
+  URL_SECTIONS_SLUG,
 } from "./bookmarkFormSchema";
 
 export interface RevealedCustomFieldsProps extends CustomFieldControls {
@@ -65,6 +67,8 @@ export function RevealedCustomFields({
             PAGE_PROGRESS_SLUG,
             PAGE_RANGE_SLUG,
             PAGE_SECTIONS_SLUG,
+            CHAPTERS_SLUG,
+            URL_SECTIONS_SLUG,
           ]}
           numberInputs={numberInputs}
           booleanInputs={booleanInputs}

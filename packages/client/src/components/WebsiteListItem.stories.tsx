@@ -1,26 +1,16 @@
-import type { Website } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { WebsiteListItem } from "./WebsiteListItem";
+import { makeWebsite } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const website: Website = {
+const website = makeWebsite({
   id: "site-github",
   domain: "github.com",
   siteName: "GitHub",
   slug: "github",
-  builtIn: false,
-  shortenedLinks: [],
-  paramRules: [],
-  createdAt: NOW,
   bookmarkCount: 42,
-  imageUrl: null,
-  category: null,
-  socialLinks: [],
-  alternateNames: [],
-};
+});
 
 const meta = {
   title: "Components/WebsiteListItem",

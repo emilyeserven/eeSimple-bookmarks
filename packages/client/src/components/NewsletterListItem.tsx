@@ -13,13 +13,27 @@ import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier"
 /** A single row in the newsletter listing: an icon, a body link to its issues, and hover Edit / Info. */
 export function NewsletterListItem({
   newsletter,
-}: { newsletter: Newsletter }) {
+  selectable,
+  selected,
+  onSelectToggle,
+  inSelectionMode,
+}: {
+  newsletter: Newsletter;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
+}) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
 
   return (
     <StandardListingCard
+      selectable={selectable}
+      selected={selected}
+      onSelectToggle={onSelectToggle}
+      inSelectionMode={inSelectionMode}
       icon={(
         <span
           className="

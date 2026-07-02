@@ -1,22 +1,22 @@
 import type { CreateKind } from "./commandPaletteModals";
 import type { TaxonomyMode } from "./commandPaletteSubPalettes";
+import type { EntityChoiceField } from "@/lib/entityPaletteRegistry";
+import type { SettingsPage } from "@/lib/settingsPages";
 
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 import {
-  BookmarkIcon,
   CheckIcon,
   Columns2Icon,
   FolderIcon,
-  HomeIcon,
-  InboxIcon,
   PencilIcon,
   PlusIcon,
   SettingsIcon,
-  TagIcon,
+  StarIcon,
 } from "lucide-react";
 
+import { AddChildModal } from "./AddChildModal";
 import { CommandPaletteModals } from "./commandPaletteModals";
 import {
   AuthorsSubPalette,
@@ -30,6 +30,7 @@ import {
   RatingSubPalette,
   TagsSubPalette,
 } from "./commandPaletteSubPalettes";
+import { EntityChoiceSubPalette, EntityCommandGroup } from "./EntityCommandGroup";
 import { useCommandPaletteData } from "./useCommandPaletteData";
 
 import {
@@ -46,162 +47,54 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useSettingsFavorite } from "@/hooks/useSettingsFavorite";
+import { SETTINGS_TAB_SECTIONS } from "@/lib/settingsNav";
+import {
+  ACTION_LISTING_PAGES,
+  CUSTOMIZATION_LISTING_PAGES,
+  SETTINGS_PAGES,
+  TAXONOMY_LISTING_PAGES,
+} from "@/lib/settingsPages";
+import { navItems } from "@/lib/sidebarNavItems";
 import { useUiStore } from "@/stores/uiStore";
 
+// The nav groups derive from the sidebar / settings nav data (via lib/settingsPages.ts), so a new
+// sidebar entry or settings tab shows up here automatically — don't hand-list paths.
 const PAGES = [
-  {
-    label: "Home",
-    path: "/",
-    icon: HomeIcon,
-  },
-  {
-    label: "Bookmarks",
-    path: "/bookmarks",
-    icon: BookmarkIcon,
-  },
-  {
-    label: "Inbox",
-    path: "/inbox",
-    icon: InboxIcon,
-  },
-] as const;
+  ...navItems.map(item => ({
+    label: item.title,
+    path: item.to as string,
+    icon: item.icon,
+  })),
+  ...ACTION_LISTING_PAGES.map(page => ({
+    label: page.label,
+    path: page.path,
+    icon: page.icon,
+  })),
+];
 
-const TAXONOMIES = [
-  {
-    label: "Categories",
-    path: "/categories",
-  },
-  {
-    label: "Tags",
-    path: "/tags",
-  },
-  {
-    label: "Websites",
-    path: "/taxonomies/websites",
-  },
-  {
-    label: "Media Types",
-    path: "/taxonomies/media-types",
-  },
-  {
-    label: "YouTube Channels",
-    path: "/taxonomies/youtube-channels",
-  },
-  {
-    label: "Custom Properties",
-    path: "/custom-properties",
-  },
-  {
-    label: "Property Groups",
-    path: "/taxonomies/property-groups",
-  },
-  {
-    label: "Autofill Rules",
-    path: "/autofill",
-  },
-  {
-    label: "Import Rules",
-    path: "/import-rules",
-  },
-  {
-    label: "Newsletters",
-    path: "/taxonomies/newsletters",
-  },
-  {
-    label: "Authors",
-    path: "/taxonomies/authors",
-  },
-  {
-    label: "Relationship Types",
-    path: "/taxonomies/relationship-types",
-  },
-  {
-    label: "Card Display Rules",
-    path: "/card-display-rules",
-  },
-] as const;
+const TAXONOMIES = [...TAXONOMY_LISTING_PAGES, ...CUSTOMIZATION_LISTING_PAGES];
 
 const SETTINGS = [
-  {
-    label: "Display",
-    path: "/settings/display",
-  },
-  {
-    label: "Homepage",
-    path: "/settings/display/homepage",
-  },
-  {
-    label: "Drawer",
-    path: "/settings/display/drawer",
-  },
-  {
-    label: "Media Types",
-    path: "/settings/media-types",
-  },
-  {
-    label: "Websites",
-    path: "/settings/websites",
-  },
-  {
-    label: "YouTube Channels",
-    path: "/settings/youtube-channels",
-  },
-  {
-    label: "Autofill",
-    path: "/settings/autofill",
-  },
-  {
-    label: "Automations",
-    path: "/settings/automations",
-  },
-  {
-    label: "Imports",
-    path: "/settings/automations/imports",
-  },
-  {
-    label: "Relationships",
-    path: "/settings/relationships",
-  },
-  {
-    label: "Custom Properties",
-    path: "/settings/custom-properties",
-  },
-  {
-    label: "Card Display Rules",
-    path: "/settings/card-display-rules",
-  },
-  {
-    label: "Link Parsing",
-    path: "/settings/automations/link-parsing",
-  },
-  {
-    label: "Manage Media",
-    path: "/settings/advanced/manage-media",
-  },
-  {
-    label: "Advanced",
-    path: "/settings/advanced",
-  },
-  {
-    label: "Saved Filters",
-    path: "/saved-filters",
-  },
-  {
-    label: "Extension",
-    path: "/settings/extension",
-  },
-] as const;
+  ...SETTINGS_TAB_SECTIONS.map(section => ({
+    label: section.section,
+    path: section.path as string,
+    icon: SettingsIcon,
+  })),
+  ...SETTINGS_PAGES.filter(page => page.path.startsWith("/settings/")),
+];
 
 // ─── State hook ──────────────────────────────────────────────────────────────
 
 function useCommandPaletteTaxonomyState() {
-  const [taxonomyMode, setTaxonomyMode] = useState<TaxonomyMode | null>(null);
+  const [taxonomyMode, setTaxonomyMode] = useState<TaxonomyMode | "entity-choice" | null>(null);
   const [pendingTagIds, setPendingTagIds] = useState<string[]>([]);
   const [pendingLocationIds, setPendingLocationIds] = useState<string[]>([]);
   const [pendingAuthorIds, setPendingAuthorIds] = useState<string[]>([]);
   const [choicesPropertyId, setChoicesPropertyId] = useState<string | null>(null);
   const [pendingChoiceValues, setPendingChoiceValues] = useState<string[]>([]);
   const [ratingPropertyId, setRatingPropertyId] = useState<string | null>(null);
+  const [entityChoiceField, setEntityChoiceField] = useState<EntityChoiceField | null>(null);
 
   function enterMode(
     mode: TaxonomyMode,
@@ -226,16 +119,23 @@ function useCommandPaletteTaxonomyState() {
     setRatingPropertyId(propId);
   }
 
+  function enterEntityChoiceMode(field: EntityChoiceField) {
+    setTaxonomyMode("entity-choice");
+    setEntityChoiceField(field);
+  }
+
   function exitMode() {
     setTaxonomyMode(null);
     setChoicesPropertyId(null);
     setRatingPropertyId(null);
+    setEntityChoiceField(null);
   }
 
   function reset() {
     setTaxonomyMode(null);
     setChoicesPropertyId(null);
     setRatingPropertyId(null);
+    setEntityChoiceField(null);
     setPendingChoiceValues([]);
   }
 
@@ -251,9 +151,11 @@ function useCommandPaletteTaxonomyState() {
     pendingChoiceValues,
     setPendingChoiceValues,
     ratingPropertyId,
+    entityChoiceField,
     enterMode,
     enterChoicesMode,
     enterRatingMode,
+    enterEntityChoiceMode,
     exitMode,
     reset,
   };
@@ -323,6 +225,36 @@ function useCreateModalState() {
   };
 }
 
+/**
+ * Favorite/unfavorite the current settings page — the palette twin of the header star button
+ * (`settingsFavoriteAction`). Mounted only when a settings page matches, so `useSettingsFavorite`'s
+ * non-null `page` requirement holds.
+ */
+function SettingsFavoriteCommandItem({
+  page,
+  onDone,
+}: {
+  page: SettingsPage;
+  onDone: () => void;
+}) {
+  const {
+    isFavorited, toggle,
+  } = useSettingsFavorite(page);
+  const label = isFavorited ? "Unfavorite This Page" : "Favorite This Page";
+  return (
+    <CommandItem
+      value={label}
+      onSelect={() => {
+        toggle();
+        onDone();
+      }}
+    >
+      <StarIcon className={isFavorited ? "fill-current" : undefined} />
+      {label}
+    </CommandItem>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function CommandPalette() {
@@ -350,13 +282,18 @@ export function CommandPalette() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // The header add-child modal, opened from the matched entity's "New sub-tag/sub-type" item.
+  const [addChild, setAddChild] = useState<{ kind: "tag" | "mediaType";
+    parentId: string; } | null>(null);
+
   const {
     bookmarks,
     taxonomyContext,
     detailLayout,
     setDetailLayout,
     listingCtx,
-    savedFilterCtx,
+    entityCtx,
+    settingsPage,
     matchingCardRules,
   } = useCommandPaletteData(open, targetBookmarkId);
 
@@ -374,10 +311,6 @@ export function CommandPalette() {
     customProperties,
     updateBookmark,
   } = taxonomyContext;
-
-  const {
-    filterId, savedFilter, updateFilter,
-  } = savedFilterCtx;
 
   const handleOpenChange = (value: boolean) => {
     setOpen(value);
@@ -513,7 +446,9 @@ export function CommandPalette() {
           ? `Search ${(customProperties.find(p => p.id === taxonomy.choicesPropertyId)?.name ?? "options")}…`
           : taxonomy.taxonomyMode === "rating-property" && taxonomy.ratingPropertyId
             ? `Select ${(customProperties.find(p => p.id === taxonomy.ratingPropertyId)?.name ?? "rating")}…`
-            : `Search ${taxonomy.taxonomyMode}…`
+            : taxonomy.taxonomyMode === "entity-choice"
+              ? `Search ${taxonomy.entityChoiceField?.label.toLowerCase() ?? "options"}…`
+              : `Search ${taxonomy.taxonomyMode}…`
     : "Search pages and bookmarks…";
 
   return (
@@ -701,6 +636,24 @@ export function CommandPalette() {
                         ],
                       },
                     });
+                    handleOpenChange(false);
+                  }}
+                />
+              )}
+
+              {taxonomy.taxonomyMode === "entity-choice" && entityCtx.matched && taxonomy.entityChoiceField && (
+                <EntityChoiceSubPalette
+                  matched={entityCtx.matched}
+                  field={taxonomy.entityChoiceField}
+                  choiceOptions={entityCtx.choiceOptions}
+                  onBack={handleExitMode}
+                  onSelect={(id) => {
+                    const field = taxonomy.entityChoiceField;
+                    if (field) {
+                      entityCtx.matched?.saveField(field.label, {
+                        [field.key]: id,
+                      });
+                    }
                     handleOpenChange(false);
                   }}
                 />
@@ -1032,32 +985,36 @@ export function CommandPalette() {
                   {!bookmarkFromHover && bookmarkTaxonomiesGroup}
                   {!bookmarkFromHover && cardDisplayRulesGroup}
 
-                  {filterId && savedFilter && (
+                  {settingsPage && (
                     <>
-                      <CommandGroup heading="Saved Filter">
-                        <CommandItem
-                          value="Toggle Sidebar Shortcut"
-                          onSelect={() => {
-                            updateFilter.mutate({
-                              id: filterId,
-                              input: {
-                                viewableOnline: !savedFilter.viewableOnline,
-                              },
-                            });
-                            handleOpenChange(false);
-                          }}
-                        >
-                          {savedFilter.viewableOnline && (
-                            <CheckIcon className="text-primary" />
-                          )}
-                          <span className="flex min-w-0 flex-col gap-0.5">
-                            <span>Sidebar Shortcut</span>
-                            <span className="text-xs text-muted-foreground">
-                              {savedFilter.viewableOnline ? "Shown" : "Hidden"}
-                            </span>
-                          </span>
-                        </CommandItem>
+                      <CommandGroup heading="Current Page">
+                        <SettingsFavoriteCommandItem
+                          page={settingsPage}
+                          onDone={() => handleOpenChange(false)}
+                        />
                       </CommandGroup>
+                      <CommandSeparator />
+                    </>
+                  )}
+
+                  {entityCtx.matched && (
+                    <>
+                      <EntityCommandGroup
+                        matched={entityCtx.matched}
+                        onNavigate={handleSelect}
+                        onEnterChoiceField={(field) => {
+                          taxonomy.enterEntityChoiceMode(field);
+                          setInputValue("");
+                        }}
+                        onAddChild={(kind, parentId) => {
+                          handleOpenChange(false);
+                          setAddChild({
+                            kind,
+                            parentId,
+                          });
+                        }}
+                        onClose={() => handleOpenChange(false)}
+                      />
                       <CommandSeparator />
                     </>
                   )}
@@ -1133,6 +1090,13 @@ export function CommandPalette() {
                       <PlusIcon />
                       New Location
                     </CommandItem>
+                    <CommandItem
+                      value="New Custom Property"
+                      onSelect={() => handleCreate("custom-property")}
+                    >
+                      <PlusIcon />
+                      New Custom Property
+                    </CommandItem>
                   </CommandGroup>
 
                   <CommandSeparator />
@@ -1156,14 +1120,14 @@ export function CommandPalette() {
 
                   <CommandGroup heading="Taxonomies">
                     {TAXONOMIES.map(({
-                      label, path,
+                      label, path, icon: Icon,
                     }) => (
                       <CommandItem
                         key={path}
                         value={label}
                         onSelect={() => handleSelect(path)}
                       >
-                        <TagIcon />
+                        <Icon />
                         {label}
                       </CommandItem>
                     ))}
@@ -1173,14 +1137,14 @@ export function CommandPalette() {
 
                   <CommandGroup heading="Settings">
                     {SETTINGS.map(({
-                      label, path,
+                      label, path, icon: Icon,
                     }) => (
                       <CommandItem
                         key={path}
                         value={`Settings ${label}`}
                         onSelect={() => handleSelect(path)}
                       >
-                        <SettingsIcon />
+                        <Icon />
                         {label}
                       </CommandItem>
                     ))}
@@ -1229,6 +1193,15 @@ export function CommandPalette() {
         bookmark={bookmark}
         updateBookmark={updateBookmark}
       />
+
+      {addChild && (
+        <AddChildModal
+          kind={addChild.kind}
+          parentId={addChild.parentId}
+          open
+          onOpenChange={openState => !openState && setAddChild(null)}
+        />
+      )}
     </>
   );
 }

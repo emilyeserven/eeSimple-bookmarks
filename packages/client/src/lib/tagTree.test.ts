@@ -3,14 +3,15 @@ import type { TagNode } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import { expandableIds, findAncestorPath, flattenTree, selectedSubtrees, subtreeIds } from "./tagTree";
+import { makeTag as tagBase } from "../test-utils/factories";
 
 function makeTag(id: string, slug: string, children: TagNode[] = []): TagNode {
   return {
-    id,
-    name: id,
-    slug,
-    parentId: null,
-    createdAt: "2026-06-01T00:00:00.000Z",
+    ...tagBase({
+      id,
+      name: id,
+      slug,
+    }),
     children,
   };
 }

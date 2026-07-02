@@ -1,24 +1,15 @@
-import type { Website } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { WebsiteGeneralView } from "./websiteViews";
+import { makeWebsite } from "../../test-utils/factories";
 import { apiHandlers } from "../../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const github: Website = {
+const github = makeWebsite({
   id: "site-github",
   domain: "github.com",
   siteName: "GitHub",
   slug: "github",
-  builtIn: false,
-  shortenedLinks: [],
-  paramRules: [],
-  createdAt: NOW,
   bookmarkCount: 14,
-  imageUrl: null,
-  category: null,
-  tagIds: [],
   mediaTypeId: "media-article",
   socialLinks: [
     {
@@ -27,7 +18,7 @@ const github: Website = {
     },
   ],
   alternateNames: ["GH"],
-};
+});
 
 const meta = {
   title: "Workbench/WebsiteGeneralView",

@@ -3,13 +3,17 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddNewsletterModal } from "./AddNewsletterModal";
+import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
 import { NewsletterListItem } from "./NewsletterListItem";
+import { NewsletterTable } from "./NewsletterTable";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
-import { useNewsletters } from "../hooks/useNewsletters";
+import { useBulkDeleteNewsletters, useNewsletters } from "../hooks/useNewsletters";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { useListSelection } from "../lib/useListSelection";
 
 /** Browsable, searchable newsletter listing with an inline add modal. */
 export function NewslettersListing() {
@@ -23,6 +27,7 @@ export function NewslettersListing() {
   });
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("newsletters-listing");
+  const viewMode = useViewMode("newsletters-listing");
   const navigate = useNavigate();
 
   const newsletters = allNewsletters ?? [];
@@ -32,6 +37,11 @@ export function NewslettersListing() {
     newsletters,
     (n, query) => n.name.toLowerCase().includes(query),
   );
+
+  const deletableIds = filtered.map(n => n.id);
+  const selection = useListSelection("newsletters-listing", deletableIds);
+  useRegisterBulkSelect("newsletters-listing");
+  const bulkDelete = useBulkDeleteNewsletters();
 
   return (
     <div className="space-y-4">
@@ -51,7 +61,23 @@ export function NewslettersListing() {
         )}
       />
 
-      {filtered.length > 0
+      <TaxonomyBulkBar
+        selection={selection}
+        totalSelectable={deletableIds.length}
+        bulkDelete={bulkDelete}
+        noun={["newsletter", "newsletters"]}
+      />
+
+      {filtered.length > 0 && viewMode === "table"
+        ? (
+          <NewsletterTable
+            newsletters={filtered}
+            selection={selection}
+          />
+        )
+        : null}
+
+      {filtered.length > 0 && viewMode !== "table"
         ? (
           <div
             className={`
@@ -63,6 +89,10 @@ export function NewslettersListing() {
               <NewsletterListItem
                 key={newsletter.id}
                 newsletter={newsletter}
+                selectable
+                selected={selection.isSelected(newsletter.id)}
+                onSelectToggle={() => selection.toggle(newsletter.id)}
+                inSelectionMode={selection.mode}
               />
             ))}
           </div>

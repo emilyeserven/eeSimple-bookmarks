@@ -2,6 +2,7 @@ import type { CreatePlaceTypeInput, UpdatePlaceTypeInput } from "@eesimple/types
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { placeTypesApi } from "../lib/api/taxonomies";
 
 const PLACE_TYPES_KEY = ["place-types"] as const;
@@ -66,5 +67,17 @@ export function useDeletePlaceType() {
         queryKey: ["locations"],
       });
     },
+  });
+}
+
+export function useBulkDeletePlaceTypes() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(placeTypesApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: PLACE_TYPES_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: ["locations"],
+    });
   });
 }

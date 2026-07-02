@@ -1,9 +1,12 @@
+import { emptyConditionTree } from "@eesimple/types";
 import { createFileRoute } from "@tanstack/react-router";
 import { X } from "lucide-react";
 
 import { CardDisplayRulesList } from "../components/CardDisplayRulesList";
 import { CardDisplayRulesSettings } from "../components/CardDisplayRulesSettings";
+import { useCreateCardDisplayRule } from "../hooks/useCardDisplayRules";
 import { CARD_DISPLAY_SCOPE_LABELS, useCardDisplayScope } from "../hooks/useCardDisplayScope";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { validateCardDisplayListSearch } from "../lib/cardDisplayScope";
 
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,33 @@ function CardDisplayRulesPage() {
   const {
     active, label, listProps,
   } = useCardDisplayScope(scope, scopeSlug);
+  const create = useCreateCardDisplayRule();
+
+  /** Create a blank rule and jump straight to its edit page (create flow, then per-field auto-save). */
+  function handleAddRule() {
+    create.mutate(
+      {
+        name: "New rule",
+        conditions: emptyConditionTree(),
+      },
+      {
+        onSuccess: (rule) => {
+          if (rule.slug) {
+            void navigate({
+              to: "/card-display-rules/$ruleSlug/edit/general",
+              params: {
+                ruleSlug: rule.slug,
+              },
+            });
+          }
+        },
+      },
+    );
+  }
+
+  useSetListingPage("card-display-rules-listing", false, false, false, handleAddRule, false, {
+    createLabel: "New rule",
+  });
 
   return (
     <section className="space-y-6">

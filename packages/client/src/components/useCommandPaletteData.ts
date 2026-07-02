@@ -1,6 +1,8 @@
+import { useRouterState } from "@tanstack/react-router";
+
 import { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
+import { useEntityCommandContext } from "./useEntityCommandContext";
 import { useListingPageContext } from "./useListingPageContext";
-import { useSavedFilterContext } from "./useSavedFilterContext";
 
 import {
   useBookmarkDetailLayout,
@@ -10,6 +12,7 @@ import {
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { useMatchingCardDisplayRules } from "@/lib/cardDisplayRules";
 import { notifyError, notifySuccess } from "@/lib/notifications";
+import { findSettingsPage } from "@/lib/settingsPages";
 
 /**
  * Owns the command palette's data/context wiring: the bookmark list, the hovered/URL bookmark's
@@ -31,7 +34,15 @@ export function useCommandPaletteData(open: boolean, targetBookmarkId: string | 
   const updateDisplayPrefs = useUpdateDisplayPreferenceSettings();
 
   const listingCtx = useListingPageContext();
-  const savedFilterCtx = useSavedFilterContext();
+
+  // The slug-routed entity behind the current page (registry-driven; list query gated on `open`).
+  const entityCtx = useEntityCommandContext(open);
+
+  // The favoritable settings page for the current pathname (mirrors the header star button).
+  const pathname = useRouterState({
+    select: state => state.location.pathname,
+  });
+  const settingsPage = findSettingsPage(pathname) ?? null;
 
   // Empty (no bookmark / no matches) renders nothing — CardDisplayRulesGroup returns null — so no
   // extra guard is needed at the call sites beyond the hover/detail position check.
@@ -55,7 +66,8 @@ export function useCommandPaletteData(open: boolean, targetBookmarkId: string | 
     detailLayout,
     setDetailLayout,
     listingCtx,
-    savedFilterCtx,
+    entityCtx,
+    settingsPage,
     matchingCardRules,
   };
 }

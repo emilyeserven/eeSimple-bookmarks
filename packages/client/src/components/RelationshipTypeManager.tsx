@@ -1,26 +1,46 @@
+import { useState } from "react";
+
 import { ArrowRight } from "lucide-react";
 
-import { AddRelationshipTypeRow } from "./AddRelationshipTypeRow";
+import { AddRelationshipTypeModal } from "./AddRelationshipTypeModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { ListingStatusMessages } from "./ListingStatusMessages";
 import { RelationshipTypeCard } from "./RelationshipTypeCard";
+import { RelationshipTypeTable } from "./RelationshipTypeTable";
+import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
+import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import {
   useBulkDeleteRelationshipTypes,
   useRelationshipTypes,
 } from "../hooks/useRelationshipTypes";
+import { useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
 
 /** Browsable relationship-type listing. Each card opens its detail page; hover to Edit / view Info. */
 export function RelationshipTypesListing() {
   const {
-    data: relationshipTypes, isLoading, error,
+    data: allRelationshipTypes, isLoading, error,
   } = useRelationshipTypes();
-  const deletableIds = (relationshipTypes ?? []).filter(rt => !rt.builtIn).map(rt => rt.id);
+  const [modalOpen, setModalOpen] = useState(false);
+  useRegisterHeaderSearch();
+  const viewMode = useViewMode("relationship-types-listing");
+
+  const relationshipTypes = allRelationshipTypes ?? [];
+  const {
+    rawQuery, hasQuery, filtered,
+  } = useHeaderSearchFilter(
+    relationshipTypes,
+    (rt, query) => rt.name.toLowerCase().includes(query),
+  );
+
+  const deletableIds = filtered.filter(rt => !rt.builtIn).map(rt => rt.id);
   const selection = useListSelection("relationship-types-listing", deletableIds);
   useRegisterBulkSelect("relationship-types-listing");
-  useSetListingPage("relationship-types-listing", false, false, false, undefined, false, {
+  useSetListingPage("relationship-types-listing", false, false, false, () => setModalOpen(true), false, {
     addBookmark: {},
+    createLabel: "New relationship type",
   });
   const bulkDelete = useBulkDeleteRelationshipTypes();
 
@@ -34,8 +54,21 @@ export function RelationshipTypesListing() {
         {" from either bookmark."}
       </p>
 
-      {isLoading ? <p className="text-muted-foreground">Loading relationship types…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
+      <ListingStatusMessages
+        isLoading={isLoading}
+        error={error}
+        totalCount={relationshipTypes.length}
+        filteredCount={filtered.length}
+        rawQuery={rawQuery}
+        hasQuery={hasQuery}
+        loadingLabel="Loading relationship types…"
+        entityPlural="relationship types"
+        emptyMessage={(
+          <p className="text-muted-foreground">
+            No relationship types yet.
+          </p>
+        )}
+      />
 
       <TaxonomyBulkBar
         selection={selection}
@@ -44,20 +77,36 @@ export function RelationshipTypesListing() {
         noun={["relationship type", "relationship types"]}
       />
 
-      <div className="space-y-2">
-        {(relationshipTypes ?? []).map(rt => (
-          <RelationshipTypeCard
-            key={rt.id}
-            relationshipType={rt}
-            selectable={!rt.builtIn}
-            selected={selection.isSelected(rt.id)}
-            onSelectToggle={() => selection.toggle(rt.id)}
-            inSelectionMode={selection.mode}
+      {filtered.length > 0 && viewMode === "table"
+        ? (
+          <RelationshipTypeTable
+            data={filtered}
+            selection={selection}
           />
-        ))}
-      </div>
+        )
+        : null}
 
-      <AddRelationshipTypeRow />
+      {filtered.length > 0 && viewMode !== "table"
+        ? (
+          <div className="space-y-2">
+            {filtered.map(rt => (
+              <RelationshipTypeCard
+                key={rt.id}
+                relationshipType={rt}
+                selectable={!rt.builtIn}
+                selected={selection.isSelected(rt.id)}
+                onSelectToggle={() => selection.toggle(rt.id)}
+                inSelectionMode={selection.mode}
+              />
+            ))}
+          </div>
+        )
+        : null}
+
+      <AddRelationshipTypeModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
     </div>
   );
 }

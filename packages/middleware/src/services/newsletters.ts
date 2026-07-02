@@ -1,6 +1,7 @@
 import { asc, eq, inArray } from "drizzle-orm";
-import type { CreateNewsletterInput, Newsletter, UpdateNewsletterInput } from "@eesimple/types";
+import type { BulkDeleteResult, CreateNewsletterInput, Newsletter, UpdateNewsletterInput } from "@eesimple/types";
 import { db } from "@/db";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { bookmarks, categories, type NewsletterRow, newsletters, newsletterTags } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -194,6 +195,11 @@ export async function deleteNewsletter(id: string): Promise<boolean> {
     id: newsletters.id,
   });
   return rows.length > 0;
+}
+
+/** Delete many newsletters, reporting per-item outcomes. */
+export function bulkDeleteNewsletters(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, deleteNewsletter);
 }
 
 /** Resolve a newsletter's default category id, or `null` when absent/unset. */

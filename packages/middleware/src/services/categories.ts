@@ -8,6 +8,9 @@ import type {
   UpdateCategoryInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+// From the version leaf module (not bookmarkCache) — the cache loads `ensureDefaultCategory` from
+// this file, so importing the cache back would be circular.
+import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
   bookmarks,
@@ -168,6 +171,8 @@ export async function deleteCategory(id: string): Promise<boolean> {
     await db.update(bookmarks).set({
       categoryId: defaultId,
     }).where(isNull(bookmarks.categoryId));
+    // The reassignment changes bookmarks' matchable categoryId (category condition leaves).
+    invalidateBookmarkCache();
   }
   return rows.length > 0;
 }

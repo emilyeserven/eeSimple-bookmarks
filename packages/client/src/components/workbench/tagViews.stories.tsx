@@ -2,25 +2,26 @@ import type { TagNode } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { TagGeneralEdit, TagGeneralView } from "./tagViews";
+import { makeTag } from "../../test-utils/factories";
 import { apiHandlers } from "../../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
 const tools: TagNode = {
-  id: "tag-tools",
-  name: "tools",
-  slug: "tools",
-  parentId: "tag-dev",
-  createdAt: NOW,
-  bookmarkCount: 9,
-  ownBookmarkCount: 3,
+  ...makeTag({
+    id: "tag-tools",
+    name: "tools",
+    slug: "tools",
+    parentId: "tag-dev",
+    bookmarkCount: 9,
+    ownBookmarkCount: 3,
+  }),
   children: [
     {
-      id: "tag-cli",
-      name: "cli",
-      slug: "cli",
-      parentId: "tag-tools",
-      createdAt: NOW,
+      ...makeTag({
+        id: "tag-cli",
+        name: "cli",
+        slug: "cli",
+        parentId: "tag-tools",
+      }),
       children: [],
     },
   ],
@@ -50,12 +51,12 @@ export const General: Story = {};
 export const GeneralRoot: Story = {
   args: {
     entity: {
-      id: "tag-dev",
-      name: "dev",
-      slug: "dev",
-      parentId: null,
-      createdAt: NOW,
-      bookmarkCount: 12,
+      ...makeTag({
+        id: "tag-dev",
+        name: "dev",
+        slug: "dev",
+        bookmarkCount: 12,
+      }),
       children: [],
     },
   },

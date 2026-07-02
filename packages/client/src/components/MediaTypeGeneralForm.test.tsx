@@ -4,6 +4,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MediaTypeGeneralForm } from "./MediaTypeGeneralForm";
+import { makeMediaType as mediaTypeBase } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const updateMutate
@@ -15,17 +16,13 @@ const updateMutate
 let mutationBehavior: "success" | "error" = "success";
 
 function makeMediaType(overrides: Partial<MediaType> = {}): MediaType {
-  return {
+  return mediaTypeBase({
     id: "mt-1",
     name: "Video",
     slug: "video",
     icon: "play",
-    builtIn: false,
-    sortOrder: 0,
-    parentId: null,
-    createdAt: "2024-01-01T00:00:00.000Z",
     ...overrides,
-  };
+  });
 }
 
 vi.mock("@/hooks/useMediaTypes", () => ({

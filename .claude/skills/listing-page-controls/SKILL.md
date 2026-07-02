@@ -7,7 +7,8 @@ description: >-
   listing page", "make column count adjustable on X", "show counts on listing
   pages", "fix inaccurate counts", "add display controls to a listing page", or
   "show counts in the sidebar". Covers the patterns used by the Categories,
-  Websites, Media Types, and YouTube Channels listing pages.
+  Websites, Media Types, YouTube Channels, Publishers, Authors, Newsletters, Place Types,
+  Relationship Types, and Saved Filters listing pages.
 ---
 
 # Listing-page display controls

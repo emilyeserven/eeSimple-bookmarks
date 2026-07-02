@@ -66,11 +66,14 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   Bypass one push with `SKIP_MERGED_TYPECHECK=1 git push`.
 - **Shared test factories** (`packages/client/src/test-utils/factories.ts`): construct full shared
   entity objects in tests, stories, and MSW mocks with `makeCustomProperty` / `makeBookmark` /
-  `makeCategory` (override only the fields a test cares about) — **never** re-list every field in an
+  `makeCategory` / `makeTag` / `makeWebsite` / `makeMediaType` / `makeYouTubeChannel` /
+  `makePublisher` / `makeAuthor` / `makeNewsletter` / `makeLocation` / `makeBookmarkImage`
+  (override only the fields a test cares about) — **never** re-list every field in an
   inline object literal. Inline literals of these types silently drift when a field is added/removed
   from the shared type and only surface as a CI typecheck failure (one such stray literal is what
-  reddened PR #363). When you add or remove a field on `CustomProperty` / `Bookmark` / `Category`,
-  update the factory's defaults — that is the single edit point.
+  reddened PR #363). When you add or remove a field on one of these shared types,
+  update the factory's defaults — that is the single edit point. A new shared entity type that
+  tests/stories construct gets a factory here in the same change.
 - **Path alias:** the middleware uses `@/*` → `src/*` (resolved at build time by `tsc-alias`).
 - **`.js` import extensions in `@eesimple/types`:** the types package emits native ESM, so its
   intra-package imports/re-exports must carry explicit `.js` extensions (e.g.
@@ -107,7 +110,7 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   ratings) are better filled after creation. To hide a built-in slug:
   1. Export a `*_SLUG` constant for it in `packages/client/src/components/bookmarkFormSchema.ts`
      (alongside `RUNTIME_SLUG`, `DATE_POSTED_SLUG`, `CONTENT_STATUS_SLUG`, `PAGE_PROGRESS_SLUG`,
-     `PAGE_RANGE_SLUG`, `PAGE_SECTIONS_SLUG`).
+     `PAGE_RANGE_SLUG`, `PAGE_SECTIONS_SLUG`, `CHAPTERS_SLUG`, `URL_SECTIONS_SLUG`).
   2. Add it to the `hiddenSlugs` array in `RevealedCustomFields.tsx`.
   The `BookmarkPropertiesForm` (edit-mode properties tab) does **not** use this list — hidden-from-create
   properties remain editable after creation. Only omit a slug from `hiddenSlugs` when the property is
@@ -123,9 +126,10 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   before choosing how a detail/edit page or panel lays out its content.
 - **Card Display Rules** (`Settings → Card Display Rules`) govern **per-card** display — field
   visibility + image presentation (aspect/visibility/layout/corner overlays) — for bookmark cards on
-  listing pages. A rule is a `conditions` tree + display overrides + `sortOrder`, modeled on
-  `homepage_sections` (inline drag-sortable list, no slug/detail pages). **Precedence is a layered
-  merge**: for each attribute the highest-priority (lowest `sortOrder`) matching rule that sets a
+  listing pages. A rule is a `conditions` tree + display overrides + `sortOrder`. Rules are now a
+  full slug-routed entity (tabbed View/Edit pages at `/card-display-rules/$ruleSlug`, workbench
+  descriptor, panel registration) whose listing keeps the inline drag-sortable priority list.
+  **Precedence is a layered merge**: for each attribute the highest-priority (lowest `sortOrder`) matching rule that sets a
   non-null value wins; lower rules fill the rest; a seeded, **non-deletable Default rule** (`isDefault`,
   always matches, pinned last, fully concrete — `ensureDefaultCardDisplayRule()` boot step) is the
   baseline. This differs from autofill's single-target last-writer merge — don't "fix" it to match.
@@ -216,28 +220,35 @@ that matches the surface — don't invent a new structure for a one-off page.
   over the shared **`TabbedShell.tsx`** + `navLinkClass` + `navStripClass`) — a `header` over a
   horizontal tab `nav` strip and a `min-w-0` content pane holding `<Outlet/>`. The strip
   (`navStripClass`: `flex items-center gap-1 overflow-x-auto border-b pb-1`) scrolls horizontally
-  when the tabs overflow, so the same component serves the page, mobile, and the panel — there is no
-  longer a vertical-sidebar mode. A `group` nav entry collapses into a trailing **"More" dropdown**
+  when the tabs overflow, so the same component serves the page, mobile, and the panel — **entity**
+  pages have no vertical-sidebar mode. (`VerticalTabbedLayout` is the sanctioned **settings-section**
+  pattern — the tabbed Display/Automations/Locations/Advanced sections render through it; never use
+  it for a slug-routed entity.) A `group` nav entry collapses into a trailing **"More" dropdown**
   (active state resolved via `useMatchRoute`, so it works for both `$slug` and static routes); this
   is also what the **Settings** page (`routes/settings.tsx`) renders through. The shell for
   slug-routed entities: Categories, Custom
-  Properties, Websites, Media Types, YouTube Channels, Tags, Property Groups, Autofill. Each tab's
+  Properties, Websites, Media Types, YouTube Channels, Tags, Property Groups, Autofill, Import
+  Rules, Card Display Rules, Saved Filters, and the taxonomy entities. Each tab's
   body comes from the entity's **`EntityWorkbench` descriptor** (see the right-panel bullet under
   **Content hierarchies → URL-driven right panel**): the route renders one tab via
   `workbench/WorkbenchRouteTab.tsx`, and the right panel renders all tabs via
   `workbench/EntityWorkbenchView.tsx` — one source for both surfaces. Each tab body is itself a flat
   `LabeledSection` stack.
   - **Hierarchy tab rule:** every taxonomy whose schema row has a `parentId` tree — currently
-    **Tags** and **Media Types** — gets a view-only **"Hierarchy"** tab (a "Parents" ancestor chain
-    + a "Children" subtree), modeled on `routes/tags.$tagSlug._view.hierarchy.tsx`. It is added to
+    **Tags**, **Media Types**, and **Locations** — gets a view-only **"Hierarchy"** tab (a "Parents"
+    ancestor chain + a "Children" subtree), modeled on `routes/tags.$tagSlug._view.hierarchy.tsx`.
+    It is added to
     `viewNav` only (omit it from `VIEW_TO_EDIT` so Edit falls back to General), resolves the node
     *with children* from the `use*Tree()` query (not the flat `use*BySlug`), reuses the generic
     `findAncestorPath`/`flattenTree` from `lib/tagTree.ts`, and renders the entity's `*TreeList`. The
     shared **`HierarchyView`** component (`components/HierarchyView.tsx`) renders the "Parents" +
     "Children" body, and the **`useExpandedSet`** hook (`hooks/useExpandedSet.ts`) tracks expanded
     nodes — a new tree taxonomy passes its `ancestors`, a `renderAncestorLink`, and its `*TreeList`
-    rather than re-implementing the markup. Flat taxonomies (Categories, Websites, YouTube Channels,
-    Property Groups) do **not** get one.
+    rather than re-implementing the markup. **Websites are the sanctioned derived-tree exception**:
+    no `parentId` column, but their Hierarchy tab renders the domain/subdomain tree derived by
+    `useWebsiteTree` (`websiteHierarchyView.tsx`) — a *derived* tree is legitimate for a view-only
+    Hierarchy tab when a real containment relation exists in the data. Genuinely flat taxonomies
+    (Categories, YouTube Channels, Property Groups) do **not** get one.
 - **Entity-scoped bookmarks page** — the `$entitySlug/index` route for entities whose bookmarks can
   be meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels) renders a full
   `BookmarkSearchView` scoped to that entity's bookmarks. **Do not redirect to `/bookmarks?<filter>=…`
@@ -254,13 +265,10 @@ that matches the surface — don't invent a new structure for a one-off page.
   added to `taxonomyViewLink` (the per-entity `pathParts` → `…/general` switch); a new entity-scoped
   page just needs a branch there. The page `header` is only the `<h1>` title (plus any
   entity-specific chrome like the sub-items chip row).
-- **Flat no-tab detail wrapper** (`packages/client/src/components/TaxonomyDetailLayout.tsx`) — a
-  loading/error/not-found wrapper that renders its children flat (a `LabeledSection` stack), no
-  tabs. Used by Autofill rules.
 - **Card boxes** — two distinct uses of the card token, never for detail/edit page content:
   - **List/row cards**: use `<RowCard>` from `@/components/ui/card` (renders `rounded-lg border
     bg-card`). Pass padding (`p-4`) or layout utilities (`group relative`) via `className`. Used in
-    `CategoryManager`, `WebsiteManager`, `MediaTypeManager`, `YouTubeChannelManager`,
+    `WebsiteManager`, `MediaTypeManager`, `YouTubeChannelManager`,
     `CategoryPreviewCard` (row variant), `BookmarkSearchView`, `HomepageSectionBlock`,
     `CustomPropertyManager`, `AutofillRulesList`.
   - **Settings panels**: use the shadcn `<Card>` with `<CardHeader>`, `<CardContent>`, etc.
@@ -565,23 +573,27 @@ See `packages/middleware/.env.example`.
 
 ## Settings page starring
 
-**Every settings sub-page must be registered as favoritable.** The header star button, the sidebar
-Settings favorites flyout, and the persisted favorite (`favorite_settings_pages` table /
-`FavoriteSettingsPage`) all key off one registry: `SETTINGS_PAGES` in
-`packages/client/src/lib/settingsPages.ts` (`{ path, label, icon }`, resolved by exact pathname via
-`findSettingsPage()`). A page not in this list silently gets no star button — `useSettingsFavorite`
-and `HeaderSettingsFavoriteButton` only render once `findSettingsPage(pathname)` returns a match
-(wired through `ctx.settingsPage` in `routes/-appHeaderToolbar.ts` →
-`settingsFavoriteAction` in `components/header/toolbarEntityActions.tsx`). **When adding a new
-`/settings/*` leaf page (or a new tab inside an existing tabbed section like Display/Automations/
-Advanced), add a matching entry to `SETTINGS_PAGES` in the same change** — label mirrors the section
-+ tab name (e.g. `"Automations: Backfill"`), icon is a `lucide-react` icon distinct from sibling
-entries. Don't register the tabbed section's own index/parent path (`/settings/automations`, not
-just its tabs) — it redirects to the first tab and is never the live pathname, so an entry for it
-can never match. This also applies to the management/customization listing pages that live outside
-`/settings/*` (Categories, Tags, Websites, …) — see the existing second half of the `SETTINGS_PAGES`
-array. Add the new leaf path to the relevant test list in `packages/client/src/lib/settingsPages.test.ts`
-too.
+**Every settings sub-page must be favoritable — and registration is now derived, not hand-listed.**
+The header star button, the sidebar Settings favorites flyout, and the persisted favorite
+(`favorite_settings_pages` table / `FavoriteSettingsPage`) all key off one registry:
+`SETTINGS_PAGES` in `packages/client/src/lib/settingsPages.ts` (`{ path, label, icon }`, resolved by
+exact pathname via `findSettingsPage()`). A page not in this list silently gets no star button —
+`useSettingsFavorite` and `HeaderSettingsFavoriteButton` only render once `findSettingsPage(pathname)`
+returns a match (wired through `ctx.settingsPage` in `routes/-appHeaderToolbar.ts` →
+`settingsFavoriteAction` in `components/header/toolbarEntityActions.tsx`). The registry **derives**
+from the two nav data modules, so favoritability comes for free:
+- A **new tab inside a tabbed settings section** (Display/Automations/Locations/Advanced): add it to
+  the section's nav array in `lib/settingsNav.ts` with a `lucide-react` `icon` distinct from its
+  siblings — the label derives as `"Section: Tab"`. Section index/parent paths are intentionally
+  never registered (they redirect to their first tab and can't be the live pathname).
+- A **management/customization listing page** (Categories, Tags, Websites, Authors, Saved Filters, …):
+  its sidebar entry in `lib/sidebarNavItems.ts` *is* the registration (`SIDEBAR_LABEL_OVERRIDES` in
+  `settingsPages.ts` covers a label that must differ from the sidebar title, e.g. newsletters).
+- Only a page on **neither surface** (e.g. `/settings/extension`, `/taxonomies/place-types`) goes in
+  the hand-listed `STANDALONE_PAGES` remainder in `settingsPages.ts`.
+`settingsPages.test.ts` asserts the derivation (every sidebar item / settings tab resolves) — extend
+it only for standalone pages. The CMD+K palette's Pages/Taxonomies/Settings nav groups derive from
+the same modules (`CommandPalette.tsx`), so they also pick the page up automatically.
 
 ## CMD+K palette sync
 
@@ -601,16 +613,18 @@ hooks:
   properties) — uses `useBookmarkTaxonomyContext`; gate on `bookmarkId !== null`. Boolean properties
   toggle directly; choices properties enter a sub-palette (`"choices-property"` mode). For a new
   field type, add an item here or navigate to the edit tab.
+- **Slug-routed entity quick-actions** ("Current \<Entity\>" group: boolean toggles, choice
+  sub-palettes, View/Edit navigation, Pin/Unpin, New sub-tag/sub-type) — **registry-driven**, one
+  generic gated hook for every entity (`useEntityCommandContext` + `EntityCommandGroup`), never a
+  per-entity `use<Entity>Context` hook. Route matching derives from `ENTITY_ROUTES`
+  (`lib/entityRoutes.ts` — the same data the breadcrumb descriptors derive from); the hand-authored
+  data layer is one exhaustive entry per kind in `ENTITY_PALETTE_CONFIGS`
+  (`lib/entityPaletteRegistry.ts`), so a missing entry fails `tsc`. **Adding CMD+K wiring for a new
+  slug-routed entity = adding its registry entry** — see the **`cmd-k-entity-context`** skill for
+  the recipe, field rules (toggle vs sub-palette vs navigate-to-edit), and the gating rationale
+  (the palette mounts app-wide; queries must stay gated on `open && matched`).
 
 New toolbar action → new `CommandItem` in the "Current Page" group (or the "Bookmark Taxonomies"
 group for bookmark-specific fields). New bookmark entity field → extend `useBookmarkTaxonomyContext`
-and add an item to the palette's bookmark section.
-
-**Adding CMD+K wiring for a new slug-routed entity detail page:** create a `use<Entity>Context`
-hook (modelled on `useSavedFilterContext` / `useBookmarkTaxonomyContext`) that extracts the entity
-slug from the URL via `useRouterState`, fetches the entity, and exposes its update mutation. Then
-add a named group to the palette's `{taxonomyMode === null}` block gated on `entityId !== null`.
-Surface boolean fields as direct toggles and choices/select fields as sub-palettes; text/number
-fields that require input should navigate to the edit route instead. Reference files:
-`packages/client/src/components/useSavedFilterContext.ts` (simplest example),
-`packages/client/src/components/useBookmarkTaxonomyContext.ts` (richer example with sub-palettes).
+and add an item to the palette's bookmark section. New slug-routed entity or entity field → a
+registry entry / `fields` entry per the `cmd-k-entity-context` skill.

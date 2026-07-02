@@ -4,36 +4,31 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HttpResponse, http } from "msw";
 
 import { MediaTypeGeneralView, MediaTypeHierarchyView } from "./mediaTypeViews";
+import { makeMediaType } from "../../test-utils/factories";
 import { apiHandlers, sampleMediaTypes } from "../../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const article: MediaType = {
+const article: MediaType = makeMediaType({
   id: "media-article",
   name: "Article",
   slug: "article",
   icon: "FileText",
   builtIn: true,
   sortOrder: 1,
-  parentId: null,
-  createdAt: NOW,
   bookmarkCount: 7,
-};
+});
 
 const tree: MediaTypeNode[] = [
   {
     ...article,
     children: [
       {
-        id: "media-longread",
-        name: "Long Read",
-        slug: "long-read",
-        icon: null,
-        builtIn: false,
-        sortOrder: 0,
-        parentId: "media-article",
-        createdAt: NOW,
-        bookmarkCount: 2,
+        ...makeMediaType({
+          id: "media-longread",
+          name: "Long Read",
+          slug: "long-read",
+          parentId: "media-article",
+          bookmarkCount: 2,
+        }),
         children: [],
       },
     ],

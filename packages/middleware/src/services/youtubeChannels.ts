@@ -1,6 +1,7 @@
 import { asc, eq, inArray, isNull } from "drizzle-orm";
 import type { BulkDeleteResult, CreateYouTubeChannelInput, UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
+import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { bookmarks, categories, websiteYoutubeChannels, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannelTags, youtubeChannels } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
@@ -406,6 +407,8 @@ export async function deleteYouTubeChannel(id: string): Promise<boolean> {
   const rows = await db.delete(youtubeChannels).where(eq(youtubeChannels.id, id)).returning({
     id: youtubeChannels.id,
   });
+  // The FK sets bookmarks.youtubeChannelId to NULL — matchable data (youtube-channel conditions).
+  if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
 }
 

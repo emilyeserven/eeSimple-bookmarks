@@ -7,7 +7,8 @@ description: >-
   listing", "let me select multiple X and delete them", "add a bulk action bar to X", "wire up
   multi-select on a manager", or "add bulk editing to a listing page". Mirrors how the Bookmarks page
   and every taxonomy listing (Categories, Websites, Media Types, YouTube Channels, Tags, Property
-  Groups, Relationship Types, Custom Properties, Autofill) got bulk select + delete.
+  Groups, Relationship Types, Custom Properties, Autofill, Publishers, Authors, Newsletters, Place
+  Types, Saved Filters) got bulk select + delete.
 ---
 
 # Bulk listing actions

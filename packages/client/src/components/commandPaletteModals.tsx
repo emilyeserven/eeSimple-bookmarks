@@ -4,6 +4,7 @@ import type { Bookmark } from "@eesimple/types";
 import { AddAuthorModal } from "./AddAuthorModal";
 import { AddBookmarkModal } from "./AddBookmarkModal";
 import { AddCategoryModal } from "./AddCategoryModal";
+import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { AddLocationModal } from "./AddLocationModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
@@ -21,7 +22,8 @@ export type CreateKind
     | "property-group"
     | "youtube-channel"
     | "newsletter"
-    | "location";
+    | "location"
+    | "custom-property";
 
 /**
  * Every modal the command palette can open: the Add Bookmark draft plus the inline-create modals for
@@ -111,6 +113,10 @@ export function CommandPaletteModals({
       />
       <AddPropertyGroupModal
         open={createKind === "property-group"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddCustomPropertyModal
+        open={createKind === "custom-property"}
         onOpenChange={open => !open && closeCreate()}
       />
       <AddYouTubeChannelModal

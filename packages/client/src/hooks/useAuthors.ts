@@ -2,6 +2,7 @@ import type { CreateAuthorInput, SocialMediaPlatform, UpdateAuthorInput } from "
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { authorsApi } from "../lib/api/taxonomies";
 import { ApiError, describeError } from "../lib/apiError";
@@ -79,6 +80,18 @@ export function useDeleteAuthor() {
         queryKey: BOOKMARKS_KEY,
       });
     },
+  });
+}
+
+export function useBulkDeleteAuthors() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(authorsApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: AUTHORS_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    });
   });
 }
 

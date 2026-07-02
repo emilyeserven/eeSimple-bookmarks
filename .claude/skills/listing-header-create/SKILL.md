@@ -36,12 +36,19 @@ useSetListingPage(
   showsImages?: boolean,
   hasFilters?: boolean,
   showsCards?: boolean,
-  createAction?: () => void,  // ← new 5th argument
+  createAction?: (event?: ReactMouseEvent) => void,
+  hasSort?: boolean,
+  options?: { addBookmark?: { categoryId?: string }; createLabel?: string },
 )
 ```
 
 The hook uses a **ref pattern** internally so callers can pass an inline arrow function safely
 (no `useCallback` required, no re-registration on every render).
+
+**Always pass `options.createLabel`** (e.g. `"New relationship type"`) alongside `createAction` —
+it labels the entity-create entry when the Plus becomes a dropdown (with `addBookmark`) and the
+mobile More-menu item. Omitting it leaves a generic label; the Autofill listing shipped exactly
+that omission once.
 
 ## Shape A — name-only (Categories, Media Types, Property Groups, Tags, Autofill Rules)
 
@@ -87,10 +94,11 @@ export function AddWidgetModal({ open, onOpenChange, onCreated }: AddWidgetModal
 Key contract: **do not** call `onOpenChange(false)` yourself — `done()` does that plus resets the
 field. `AddCategoryModal` and `AddPropertyGroupModal` are working examples.
 
-## Shape B — two text fields (Websites: domain + optional name; YouTube Channels: URL + name)
+## Shape B — two fields (Websites: domain + optional name; YouTube Channels: URL + name; Relationship Types: name + directional checkbox)
 
 `InlineCreateModal` is name-only; these entities need two fields. Build a small custom `Dialog`
-with `useAppForm`. See `AddWebsiteModal` and `AddYouTubeChannelModal` for working examples.
+with `useAppForm`. See `AddWebsiteModal`, `AddYouTubeChannelModal`, and `AddRelationshipTypeModal`
+for working examples.
 
 ```tsx
 // packages/client/src/components/AddWidgetModal.tsx
@@ -215,6 +223,15 @@ export function WidgetsListing() {
 | Custom Properties | `"custom-properties-listing"` |
 | Property Groups | `"property-groups-listing"` |
 | Autofill Rules | `"autofill-rules-listing"` |
+| Relationship Types | `"relationship-types-listing"` |
+| Card Display Rules | `"card-display-rules-listing"` |
+
+## Card Display Rules special case — create-and-navigate, no modal
+
+Card display rules have no name-first modal: the header `+` creates a blank rule (`name: "New
+rule"`, empty condition tree) and navigates straight to its edit page, where per-field auto-save
+takes over. The registration lives in the **route** (`routes/card-display-rules.index.tsx`) so the
+button shows on both the sortable full list and the scoped (`?scope=…`) view.
 
 ## Autofill special case
 
@@ -223,7 +240,9 @@ instead of modal). Pass `newRule.openModal` (not `newRule.onClick`) as the `crea
 
 ```ts
 const newRule = useNewAutofillRule();
-useSetListingPage("autofill-rules-listing", false, false, false, newRule.openModal);
+useSetListingPage("autofill-rules-listing", false, false, false, newRule.openModal, false, {
+  createLabel: "New rule",
+});
 ```
 
 Then render `{newRule.modal}` in the route's JSX. The panel-based create path still works for
