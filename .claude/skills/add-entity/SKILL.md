@@ -114,7 +114,7 @@ reuse the submit create form for edit (right-panel parity invariant in CLAUDE.md
   component). This is the **single source** both the main pane and the panel render.
 - **Main-pane routes**: each `_view.*` / `edit.*` route body is a one-line `WorkbenchRouteTab`
   (`workbench={<entity>Workbench}` + `tabKey` + `mode` + `slug`) — see `routes/taxonomies.media-types.*`.
-- **Panel registration** (`packages/client/src/components/panel/contentTypes.tsx`):
+- **Panel registration** (`packages/client/src/components/panel/contentTypes.ts`):
   - Add the type string to the `DrawerContentType` union **and** `DRAWER_CONTENT_TYPES` array in
     `packages/client/src/lib/drawerSearch.ts`.
   - Add a `use<Entity>List` adapter and `View`/`Edit` that each render
