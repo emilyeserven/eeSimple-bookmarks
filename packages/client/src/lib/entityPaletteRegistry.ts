@@ -1,11 +1,9 @@
 import type { EntityRouteKind } from "./entityRoutes";
 import type {
-  Category,
   CustomProperty,
   Tag,
   UpdateAutofillRuleInput,
   UpdateCardDisplayRuleInput,
-  UpdateCategoryInput,
   UpdateCustomPropertyInput,
   UpdateImportRuleInput,
   UpdateLocationInput,
@@ -20,7 +18,6 @@ import { autofillApi } from "./api/autofill";
 import { importRulesApi } from "./api/importRules";
 import { cardDisplayRulesApi } from "./api/settings";
 import {
-  categoriesApi,
   customPropertiesApi,
   locationsApi,
   mediaTypesApi,
@@ -29,6 +26,7 @@ import {
   youtubeChannelsApi,
 } from "./api/taxonomies";
 import { AUTHOR_PALETTE } from "../entities/author";
+import { CATEGORY_PALETTE } from "../entities/category";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
 import { PROPERTY_GROUP_PALETTE } from "../entities/propertyGroup";
 import { PUBLISHER_PALETTE } from "../entities/publisher";
@@ -94,20 +92,7 @@ const BOOKMARKS_KEY = ["bookmarks"] as const;
  * `cmd-k-entity-context` skill for the recipe).
  */
 export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig> = {
-  "category": {
-    queryKey: ["categories"],
-    listFn: () => categoriesApi.list(),
-    updateFn: (id, patch) => categoriesApi.update(id, patch as UpdateCategoryInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-    fields: [
-      {
-        type: "boolean",
-        key: "isHomepage",
-        label: "Homepage Category",
-        getValue: entity => (entity as Category).isHomepage,
-      },
-    ],
-  },
+  "category": CATEGORY_PALETTE,
   "tag": {
     queryKey: ["tags"],
     listFn: () => tagsApi.list(),
