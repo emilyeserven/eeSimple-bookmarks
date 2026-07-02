@@ -3,7 +3,8 @@ import type { Bookmark } from "@eesimple/types";
 import { BookImage, BookOpen, Search, Sparkles } from "lucide-react";
 
 import { BookmarkImagePicker } from "./BookmarkImagePicker";
-import { SCREENSHOT_SIZE_PRESETS, useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
+import { SCREENSHOT_SIZE_PRESETS } from "./screenshotSizePresets";
+import { useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
 
 import { Button } from "@/components/ui/button";
 

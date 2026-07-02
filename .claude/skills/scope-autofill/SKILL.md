@@ -37,7 +37,7 @@ This skill focuses on the autofill/condition plumbing. For the surrounding tabbe
    scoped empty message. (Category filter is already hidden whenever `scoped`.)
 2. **Default a new rule** — the "New Autofill Rule" button opens the right panel
    (`openAutofill(NEW_SENTINEL)`). The panel's `CreateAutofillRule`
-   (`packages/client/src/components/panel/AutofillRulePanel.tsx`) reads the entity slug from the URL
+   (`packages/client/src/components/panel/AutofillRuleForms.tsx`) reads the entity slug from the URL
    via `useParams({ strict: false })` and passes a `default<Entity>Id` to `AutofillRuleForm`, which
    seeds the relevant form field. Mirror that.
 3. Render `<AutofillRulesList <scope>={entity.id} query="" />` inside the entity's view + edit autofill
@@ -56,7 +56,7 @@ Condition-based scoping has two halves:
    whatever the leaf stores (websites store **domain strings**, so resolve `website.id → domain` via
    `useWebsites()`), and filter `scopedRules` by walking each rule's `conditions` for a matching leaf.
    Then default a new rule by resolving the entity from the URL slug in
-   `AutofillRulePanel.CreateAutofillRule` and passing a `default…` prop that `AutofillRuleForm` seeds
+   `AutofillRuleForms.CreateAutofillRule` and passing a `default…` prop that `AutofillRuleForm` seeds
    into the initial `conditions` tree (see `seedConditions`) — same as step A.2.
 
 ## Route files (both A and B)

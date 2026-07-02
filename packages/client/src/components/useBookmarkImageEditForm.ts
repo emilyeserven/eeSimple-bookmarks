@@ -1,51 +1,17 @@
 import type { ImageIntent } from "./bookmarkImageIntent";
 import type { Bookmark, ImageCandidate } from "@eesimple/types";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { ISBN_SLUG } from "./bookmarkFormSchema";
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { applyImageIntent } from "./bookmarkSubmit";
-import { useDisplayPreferenceSettings } from "../hooks/useAppSettings";
-import {
-  useAddBookmarkImage,
-  useAutoBookmarkImage,
-  useBookmarkImagesFromCandidates,
-  useDeleteBookmarkImageById,
-  useDeleteBookmarkScreenshot,
-  useIsbnCoverImage,
-  useKavitaCoverImage,
-  useSetMainBookmarkImage,
-  useTakeBookmarkScreenshot,
-} from "../hooks/useBookmarks";
+import { useBookmarkImageMutations } from "./useBookmarkImageMutations";
+import { useScreenshotSettingsState } from "./useScreenshotSettingsState";
 import { useConnectors } from "../hooks/useConnectors";
 import { usePropertyBySlug } from "../hooks/useCustomProperties";
 import { metadataApi } from "../lib/api/metadata";
 import { notifySuccess } from "../lib/notifications";
-
-/** Common Browserless screenshot viewport sizes offered in the size picker. */
-export const SCREENSHOT_SIZE_PRESETS = [
-  {
-    width: 1280,
-    height: 720,
-    label: "1280 × 720 (16:9)",
-  },
-  {
-    width: 1920,
-    height: 1080,
-    label: "1920 × 1080 (16:9)",
-  },
-  {
-    width: 1024,
-    height: 768,
-    label: "1024 × 768 (4:3)",
-  },
-  {
-    width: 800,
-    height: 600,
-    label: "800 × 600 (4:3)",
-  },
-] as const;
 
 /** Everything `BookmarkImageEditForm`'s JSX needs, with every hook consolidated into this one call. */
 export interface BookmarkImageEditFormController {
@@ -102,51 +68,20 @@ export interface BookmarkImageEditFormController {
  * exists here, so a save applies the same multi-image {@link applyImageIntent} the create form uses.
  */
 export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditFormController {
-  const autoImage = useAutoBookmarkImage();
-  const kavitaCover = useKavitaCoverImage();
-  const isbnCover = useIsbnCoverImage();
+  const mutations = useBookmarkImageMutations();
   const {
     data: connectors,
   } = useConnectors();
   const {
     property: isbnProperty,
   } = usePropertyBySlug(ISBN_SLUG);
-  const addImage = useAddBookmarkImage();
-  const imagesFromCandidates = useBookmarkImagesFromCandidates();
-  const setMainImage = useSetMainBookmarkImage();
-  const deleteImageById = useDeleteBookmarkImageById();
-  const takeScreenshot = useTakeBookmarkScreenshot();
-  const deleteScreenshot = useDeleteBookmarkScreenshot();
-  const {
-    data: displayPreferences,
-  } = useDisplayPreferenceSettings();
 
   const imageIntentRef = useRef<ImageIntent>(EMPTY_IMAGE_INTENT);
   const [imageFieldKey, setImageFieldKey] = useState(0);
   const [isPending, setIsPending] = useState(false);
   const [candidates, setCandidates] = useState<ImageCandidate[]>([]);
   const [isScanning, setIsScanning] = useState(false);
-  const savedSettings = bookmark.screenshotSettings;
-  const [screenshotDelayMs, setScreenshotDelayMs] = useState(savedSettings?.delayMs ?? 0);
-  const [screenshotWidth, setScreenshotWidth] = useState<number>(
-    savedSettings?.width ?? SCREENSHOT_SIZE_PRESETS[0].width,
-  );
-  const [screenshotHeight, setScreenshotHeight] = useState<number>(
-    savedSettings?.height ?? SCREENSHOT_SIZE_PRESETS[0].height,
-  );
-  const [screenshotScrollDistance, setScreenshotScrollDistance] = useState(savedSettings?.scrollDistance ?? 0);
-
-  // Apply the Settings → Media → Screenshot Defaults once they load, but only before the user has
-  // touched a control (a ref, not state, so applying the defaults doesn't itself trigger a re-sync).
-  const screenshotDefaultsAppliedRef = useRef(false);
-  useEffect(() => {
-    if (screenshotDefaultsAppliedRef.current || !displayPreferences) return;
-    screenshotDefaultsAppliedRef.current = true;
-    setScreenshotDelayMs(displayPreferences.screenshotDefaultDelayMs);
-    setScreenshotWidth(displayPreferences.screenshotDefaultWidth);
-    setScreenshotHeight(displayPreferences.screenshotDefaultHeight);
-    setScreenshotScrollDistance(displayPreferences.screenshotDefaultScrollDistance);
-  }, [displayPreferences]);
+  const screenshotSettings = useScreenshotSettingsState(bookmark.screenshotSettings);
 
   async function handleFindImages(): Promise<void> {
     if (!bookmark.url) return;
@@ -169,13 +104,7 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     event.preventDefault();
     setIsPending(true);
     try {
-      await applyImageIntent(bookmark.id, bookmark.url ?? "", imageIntentRef.current, {
-        autoImage,
-        addImage,
-        imagesFromCandidates,
-        setMainImage,
-        deleteImageById,
-      });
+      await applyImageIntent(bookmark.id, bookmark.url ?? "", imageIntentRef.current, mutations);
       notifySuccess("Changes saved");
       imageIntentRef.current = EMPTY_IMAGE_INTENT;
       setCandidates([]);
@@ -189,60 +118,39 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
   return {
     imageFieldKey,
     isPending,
-    isMutating: addImage.isPending || autoImage.isPending || kavitaCover.isPending
-      || isbnCover.isPending
-      || imagesFromCandidates.isPending
-      || setMainImage.isPending || deleteImageById.isPending || takeScreenshot.isPending
-      || deleteScreenshot.isPending,
-    mutationError: addImage.error ?? imagesFromCandidates.error ?? setMainImage.error
-      ?? deleteImageById.error ?? autoImage.error ?? kavitaCover.error ?? isbnCover.error,
+    isMutating: mutations.isMutating,
+    mutationError: mutations.mutationError,
     candidates,
     isScanning,
     onFindImages: () => void handleFindImages(),
-    getPageImagePending: autoImage.isPending,
-    onGetPageImage: () => autoImage.mutate({
+    getPageImagePending: mutations.autoImage.isPending,
+    onGetPageImage: () => mutations.autoImage.mutate({
       id: bookmark.id,
       sourceUrl: bookmark.url ?? "",
     }),
     canUseKavitaCover: Boolean(connectors?.kavita.enabled) && bookmark.kavitaSeriesId !== null,
-    kavitaCoverPending: kavitaCover.isPending,
-    onUseKavitaCover: () => kavitaCover.mutate(bookmark.id),
+    kavitaCoverPending: mutations.kavitaCover.isPending,
+    onUseKavitaCover: () => mutations.kavitaCover.mutate(bookmark.id),
     canUseIsbnCover: Boolean(
       isbnProperty
       && bookmark.textValues.some(v => v.propertyId === isbnProperty.id && v.value.trim()),
     ),
-    isbnCoverPending: isbnCover.isPending,
-    onUseIsbnCover: () => isbnCover.mutate(bookmark.id),
+    isbnCoverPending: mutations.isbnCover.isPending,
+    onUseIsbnCover: () => mutations.isbnCover.mutate(bookmark.id),
     onImageChange: (intent) => {
       imageIntentRef.current = intent;
     },
     onSubmit: event => void handleSubmit(event),
-    screenshotDelayMs,
-    setScreenshotDelayMs: (ms) => {
-      screenshotDefaultsAppliedRef.current = true;
-      setScreenshotDelayMs(ms);
-    },
-    screenshotWidth,
-    screenshotHeight,
-    setScreenshotSize: (width, height) => {
-      screenshotDefaultsAppliedRef.current = true;
-      setScreenshotWidth(width);
-      setScreenshotHeight(height);
-    },
-    screenshotScrollDistance,
-    setScreenshotScrollDistance: (px) => {
-      screenshotDefaultsAppliedRef.current = true;
-      setScreenshotScrollDistance(px);
-    },
-    takeScreenshotPending: takeScreenshot.isPending,
-    deleteScreenshotPending: deleteScreenshot.isPending,
-    onTakeScreenshot: () => void takeScreenshot.mutateAsync({
+    ...screenshotSettings,
+    takeScreenshotPending: mutations.takeScreenshot.isPending,
+    deleteScreenshotPending: mutations.deleteScreenshot.isPending,
+    onTakeScreenshot: () => void mutations.takeScreenshot.mutateAsync({
       id: bookmark.id,
-      delayMs: screenshotDelayMs || undefined,
-      width: screenshotWidth,
-      height: screenshotHeight,
-      scrollDistance: screenshotScrollDistance || undefined,
+      delayMs: screenshotSettings.screenshotDelayMs || undefined,
+      width: screenshotSettings.screenshotWidth,
+      height: screenshotSettings.screenshotHeight,
+      scrollDistance: screenshotSettings.screenshotScrollDistance || undefined,
     }),
-    onDeleteScreenshot: () => void deleteScreenshot.mutateAsync(bookmark.id),
+    onDeleteScreenshot: () => void mutations.deleteScreenshot.mutateAsync(bookmark.id),
   };
 }

@@ -32,7 +32,7 @@ adjustable columns, an accurate filtered count, or sidebar badges.
 
 | Component / export | File | Notes |
 |---|---|---|
-| `ColumnsSwitcher` | `packages/client/src/components/ColumnsSwitcher.tsx` | Reuse as-is; pass a stable `pageKey`. |
+| `ListingDisplayControls` | `packages/client/src/components/ListingDisplayControls.tsx` | Rendered by the app-header toolbar for the registered listing page (never inline in the page); register via `useSetListingPage(pageKey, …)` from `hooks/useListingPage.ts`. |
 | `COLUMN_CLASS` | `packages/client/src/lib/bookmarkColumns.ts` | Maps column count to responsive Tailwind grid classes. |
 | `useBookmarkColumns(pageKey)` | same | Reads chosen column count from `uiStore`. |
 | `SidebarMenuBadge` | `packages/client/src/components/ui/sidebar.tsx` | Exported alongside the other sidebar primitives. |
@@ -100,27 +100,31 @@ export function WidgetsListing() {
 
 ## 2. Adjustable column count
 
-### Add the switcher next to the search bar
+### Register the page; the switcher renders in the app header
+
+The column-count control no longer sits next to the search bar — it lives in the
+**app-header toolbar** (`ListingDisplayControls` inside
+`components/header/toolbarListingActions.tsx`, collapsing into the
+`DisplayOptionsPopover` on small screens). A listing page gets it by
+**registering itself** with `useListingPage` (`hooks/useListingPage.ts`), which
+sets `uiStore.listingPage`; the page body only *reads* the chosen count:
 
 ```tsx
-import { ColumnsSwitcher } from "./ColumnsSwitcher";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 // inside the component:
-const columns = useBookmarkColumns("widgets-listing"); // stable key — see table below
+useSetListingPage("widgets-listing"); // stable key — see table below; later params add cards/filters/create affordances
+const columns = useBookmarkColumns("widgets-listing");
 
-// replace the search + list section:
 return (
   <div className="space-y-4">
-    <div className="flex items-center gap-4">
-      <Input
-        placeholder="Search by name…"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="max-w-sm"
-      />
-      <ColumnsSwitcher pageKey="widgets-listing" />
-    </div>
+    <Input
+      placeholder="Search by name…"
+      value={search}
+      onChange={e => setSearch(e.target.value)}
+      className="max-w-sm"
+    />
 
     {/* …status messages… */}
 
@@ -182,7 +186,7 @@ when the query is active and the filtered count differs from the total:
   : null}
 ```
 
-Place this immediately after the `<Input>` (and `<ColumnsSwitcher>` row),
+Place this immediately after the `<Input>`,
 before the status messages.
 
 ### Bookmark count per entity (list items)
@@ -271,7 +275,7 @@ cross-cutting change to the sidebar.
 | YouTube Channels | `routes/taxonomies.youtube-channels.index.tsx` | `YouTubeChannelManager.tsx` | columns, filtered count |
 
 Categories is different: its listing lives directly in the route file (not a
-reusable Manager), so add `ColumnsSwitcher` and the filtered-count label there
+reusable Manager), so call `useSetListingPage` and add the filtered-count label there
 directly.
 
 ---

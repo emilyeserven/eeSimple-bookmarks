@@ -1,14 +1,12 @@
-import type { AutofillRule, ConditionTree, UpdateAutofillRuleInput } from "@eesimple/types";
-
-import { useState } from "react";
+import type { AutofillRule, UpdateAutofillRuleInput } from "@eesimple/types";
 
 import { emptyConditionTree } from "@eesimple/types";
 
 import { ConditionsField } from "./conditions/ConditionsField";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
 import { useAutofillRuleFormData } from "./useAutofillRuleFormData";
+import { useAutoSavedConditions } from "../hooks/useAutoSavedConditions";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-import { autofillConditionsValidator } from "../lib/conditionsSchema";
 
 import { LabeledSection } from "@/components/LabeledSection";
 import { Separator } from "@/components/ui/separator";
@@ -40,19 +38,9 @@ export function AutofillRuleConditionsForm({
     },
   });
 
-  const [conditions, setConditions] = useState<ConditionTree>(rule.conditions ?? emptyConditionTree());
-  const [conditionsError, setConditionsError] = useState<string | null>(null);
-
-  function handleChange(next: ConditionTree) {
-    setConditions(next);
-    const parsed = autofillConditionsValidator.safeParse(next);
-    if (!parsed.success) {
-      setConditionsError(parsed.error.issues.map(i => i.message).join(" "));
-      return;
-    }
-    setConditionsError(null);
-    autoSave.saveField("conditions", next);
-  }
+  const {
+    conditions, conditionsError, handleChange,
+  } = useAutoSavedConditions(rule.conditions, next => autoSave.saveField("conditions", next));
 
   return (
     <div className="space-y-6">

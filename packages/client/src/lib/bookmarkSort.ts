@@ -10,7 +10,6 @@ import type {
   SortDirection,
 } from "@eesimple/types";
 
-export { BUILTIN_SORT_FIELDS } from "@eesimple/types";
 export type {
   BookmarkFieldSort,
   BookmarkRandomSort,

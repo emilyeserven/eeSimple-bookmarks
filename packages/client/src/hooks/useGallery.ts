@@ -21,24 +21,24 @@ export function useGallery() {
   });
 }
 
-/**
- * Poll the background image auto-fetch job status. Self-stopping: only refetches while running,
- * then idles until a start mutation invalidates the key.
- */
-export function useAutoFetchStatus() {
+/** Shared self-stopping status poll for a background fetch job: refetch only while running. */
+function useJobStatus(
+  queryKey: readonly string[],
+  queryFn: () => Promise<AutoFetchJobStatus>,
+) {
   return useQuery({
-    queryKey: AUTO_FETCH_STATUS_KEY,
-    queryFn: galleryApi.autoFetchStatus,
+    queryKey,
+    queryFn,
     refetchInterval: query =>
       (query.state.data?.status === "running" ? AUTO_FETCH_POLL_MS : false),
   });
 }
 
 /**
- * Watch the auto-fetch status and fire a completion toast when the job transitions from running to
- * done, then refresh the gallery catalog. Mount once (the header indicator).
+ * Shared completion watcher for a background fetch job: fire a toast when the job transitions from
+ * running to done, then refresh the gallery catalog.
  */
-export function useAutoFetchCompletionToast(status: AutoFetchJobStatus | undefined) {
+function useJobCompletionToast(status: AutoFetchJobStatus | undefined) {
   const queryClient = useQueryClient();
   const previous = useRef<AutoFetchJobStatus | undefined>(undefined);
   useEffect(() => {
@@ -64,6 +64,22 @@ export function useAutoFetchCompletionToast(status: AutoFetchJobStatus | undefin
     }
     previous.current = status;
   }, [status, queryClient]);
+}
+
+/**
+ * Poll the background image auto-fetch job status. Self-stopping: only refetches while running,
+ * then idles until a start mutation invalidates the key.
+ */
+export function useAutoFetchStatus() {
+  return useJobStatus(AUTO_FETCH_STATUS_KEY, galleryApi.autoFetchStatus);
+}
+
+/**
+ * Watch the auto-fetch status and fire a completion toast when the job transitions from running to
+ * done, then refresh the gallery catalog. Mount once (the header indicator).
+ */
+export function useAutoFetchCompletionToast(status: AutoFetchJobStatus | undefined) {
+  useJobCompletionToast(status);
 }
 
 /** Reconcile the manifest against the live bucket, then refresh the cached catalog with the result. */
@@ -108,12 +124,7 @@ const AUTO_FETCH_FALLBACK_STATUS_KEY = ["gallery", "auto-fetch-fallback-status"]
  * while running, then idles until a start mutation invalidates the key.
  */
 export function useAutoFetchWithFallbackStatus() {
-  return useQuery({
-    queryKey: AUTO_FETCH_FALLBACK_STATUS_KEY,
-    queryFn: galleryApi.autoFetchWithFallbackStatus,
-    refetchInterval: query =>
-      (query.state.data?.status === "running" ? AUTO_FETCH_POLL_MS : false),
-  });
+  return useJobStatus(AUTO_FETCH_FALLBACK_STATUS_KEY, galleryApi.autoFetchWithFallbackStatus);
 }
 
 /**
@@ -121,31 +132,7 @@ export function useAutoFetchWithFallbackStatus() {
  * refresh the gallery catalog.
  */
 export function useAutoFetchWithFallbackCompletionToast(status: AutoFetchJobStatus | undefined) {
-  const queryClient = useQueryClient();
-  const previous = useRef<AutoFetchJobStatus | undefined>(undefined);
-  useEffect(() => {
-    if (
-      previous.current?.status === "running"
-      && status?.status === "done"
-    ) {
-      const {
-        fetched, failed,
-      } = status;
-      notifySuccess(
-        `Fetched ${fetched} image${fetched === 1 ? "" : "s"}${failed > 0 ? `, ${failed} failed` : ""}.`,
-        {
-          link: {
-            href: "/settings/media/manage",
-            label: "View in Manage Media",
-          },
-        },
-      );
-      void queryClient.invalidateQueries({
-        queryKey: GALLERY_KEY,
-      });
-    }
-    previous.current = status;
-  }, [status, queryClient]);
+  useJobCompletionToast(status);
 }
 
 /** Start a background bulk auto-fetch-with-screenshot-fallback job. Kicks the status poll. */

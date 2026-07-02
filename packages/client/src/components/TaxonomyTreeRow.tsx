@@ -1,12 +1,10 @@
 import type { ReactNode } from "react";
 
-import { ChevronDown, ChevronRight, ChevronsUpDown, MapPin } from "lucide-react";
+import { TaxonomyTreeRowInner } from "./TaxonomyTreeRowInner";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
 import { COLUMN_CLASS } from "@/lib/bookmarkColumns";
-import { CategoryIcon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 export interface TaxonomyTreeNode {
@@ -51,8 +49,7 @@ interface TaxonomyTreeListProps {
 
 /** Grid wrapper for a collapsible taxonomy tree. Each root node gets its own RowCard. */
 export function TaxonomyTreeList({
-  tree, expanded, onToggle, columns, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
-  onExpandSubtree, onToggleFilter, isFiltered,
+  tree, columns, ...rowProps
 }: TaxonomyTreeListProps) {
   return (
     <div
@@ -69,15 +66,7 @@ export function TaxonomyTreeList({
           <TaxonomyTreeRow
             node={node}
             depth={0}
-            expanded={expanded}
-            onToggle={onToggle}
-            renderNameLink={renderNameLink}
-            renderEditLink={renderEditLink}
-            renderInfoLink={renderInfoLink}
-            renderIcon={renderIcon}
-            onExpandSubtree={onExpandSubtree}
-            onToggleFilter={onToggleFilter}
-            isFiltered={isFiltered}
+            {...rowProps}
           />
         </RowCard>
       ))}
@@ -99,151 +88,73 @@ interface TaxonomyTreeRowProps {
   isFiltered?: (node: TaxonomyTreeNode) => boolean;
 }
 
-/** Standard hover-revealed ghost button for the edit / info controls in a tree row. */
-function HoverGhostButton({
-  children,
+/**
+ * The italic "No Child" bucket row shown under an expanded node whose own (no-descendant) bookmark
+ * count is non-zero.
+ */
+function NoChildRow({
+  node, indentDepth,
 }: {
-  children: ReactNode;
+  node: TaxonomyTreeNode;
+  indentDepth: number;
 }) {
+  if ((node.ownBookmarkCount ?? 0) === 0) return null;
   return (
-    <Button
-      asChild
-      variant="ghost"
-      size="sm"
+    <li
       className="
-        opacity-0 transition-opacity
-        group-hover:opacity-100
-        focus-visible:opacity-100
+        flex items-center gap-2 px-3 py-2 text-muted-foreground/70 italic
       "
+      style={{
+        paddingLeft: `${0.75 + indentDepth * 1.25}rem`,
+      }}
     >
-      {children}
-    </Button>
+      <span
+        className="inline-block size-4"
+        aria-hidden="true"
+      />
+      <span className="flex-1 truncate">No Child</span>
+      <Badge variant="outline">{node.ownBookmarkCount}</Badge>
+    </li>
   );
 }
 
-function TaxonomyTreeRow({
-  node, depth, expanded, onToggle, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
-  onExpandSubtree, onToggleFilter, isFiltered,
-}: TaxonomyTreeRowProps) {
+function TaxonomyTreeRow(props: TaxonomyTreeRowProps) {
+  const {
+    node, depth, expanded, onToggle, isFiltered,
+  } = props;
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
   // Zero-count nodes are de-emphasized (still clickable); each row mutes independently.
   const muted = node.bookmarkCount === 0;
-  const filtered = isFiltered?.(node) ?? false;
 
   const rowInner = (
-    <>
-      {renderIcon
-        ? renderIcon(node)
-        : (
-          <CategoryIcon
-            name={node.icon ?? null}
-            className="size-4 shrink-0 text-muted-foreground"
-          />
-        )}
-      {hasChildren
-        ? (
-          <button
-            type="button"
-            aria-label={isOpen ? `Collapse ${node.name}` : `Expand ${node.name}`}
-            aria-expanded={isOpen}
-            onClick={() => onToggle(node.id)}
-            className="
-              flex size-4 items-center justify-center text-muted-foreground
-              hover:text-foreground
-            "
-          >
-            {isOpen
-              ? <ChevronDown className="size-4" />
-              : <ChevronRight className="size-4" />}
-          </button>
-        )
-        : (
-          <span
-            className="inline-block size-4"
-            aria-hidden="true"
-          />
-        )}
-
-      {renderNameLink(node)}
-
-      {node.builtIn ? <Badge variant="outline">Built-in</Badge> : null}
-
-      <HoverGhostButton>{renderEditLink(node)}</HoverGhostButton>
-      <HoverGhostButton>{renderInfoLink(node)}</HoverGhostButton>
-
-      {onExpandSubtree && hasChildren
-        ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            aria-label={`Expand all under ${node.name}`}
-            title="Expand all"
-            onClick={() => onExpandSubtree(node)}
-            className="
-              opacity-0 transition-opacity
-              group-hover:opacity-100
-              focus-visible:opacity-100
-            "
-          >
-            <ChevronsUpDown className="size-4" />
-          </Button>
-        )
-        : null}
-
-      {onToggleFilter
-        ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            aria-label={filtered ? `Remove ${node.name} from map filter` : `Filter map to ${node.name}`}
-            aria-pressed={filtered}
-            title={filtered ? "Filtering map (click to clear)" : "Filter on map"}
-            onClick={() => onToggleFilter(node)}
-            className={cn(
-              "transition-opacity",
-              filtered
-                ? "text-primary opacity-100"
-                : `
-                  opacity-0
-                  group-hover:opacity-100
-                  focus-visible:opacity-100
-                `,
-            )}
-          >
-            <MapPin className="size-4" />
-          </Button>
-        )
-        : null}
-
-      {node.bookmarkCount != null
-        ? <Badge variant="secondary">{node.bookmarkCount}</Badge>
-        : null}
-    </>
+    <TaxonomyTreeRowInner
+      {...props}
+      hasChildren={hasChildren}
+      isOpen={isOpen}
+      onToggle={onToggle}
+      filtered={isFiltered?.(node) ?? false}
+    />
   );
 
-  const noChildRow = (indentDepth: number) =>
-    (node.ownBookmarkCount ?? 0) > 0
-      ? (
-        <li
-          className="
-            flex items-center gap-2 px-3 py-2 text-muted-foreground/70 italic
-          "
-          style={{
-            paddingLeft: `${0.75 + indentDepth * 1.25}rem`,
-          }}
-        >
-          <span
-            className="inline-block size-4"
-            aria-hidden="true"
+  const childRows = hasChildren && isOpen
+    ? (
+      <>
+        <NoChildRow
+          node={node}
+          indentDepth={depth + 1}
+        />
+        {node.children.map(child => (
+          <TaxonomyTreeRow
+            key={child.id}
+            {...props}
+            node={child}
+            depth={depth + 1}
           />
-          <span className="flex-1 truncate">No Child</span>
-          <Badge variant="outline">{node.ownBookmarkCount}</Badge>
-        </li>
-      )
-      : null;
+        ))}
+      </>
+    )
+    : null;
 
   if (depth === 0) {
     return (
@@ -255,29 +166,7 @@ function TaxonomyTreeRow({
         >
           {rowInner}
         </div>
-        {hasChildren && isOpen
-          ? (
-            <ul className="divide-y border-t">
-              {noChildRow(1)}
-              {node.children.map(child => (
-                <TaxonomyTreeRow
-                  key={child.id}
-                  node={child}
-                  depth={1}
-                  expanded={expanded}
-                  onToggle={onToggle}
-                  renderNameLink={renderNameLink}
-                  renderEditLink={renderEditLink}
-                  renderInfoLink={renderInfoLink}
-                  renderIcon={renderIcon}
-                  onExpandSubtree={onExpandSubtree}
-                  onToggleFilter={onToggleFilter}
-                  isFiltered={isFiltered}
-                />
-              ))}
-            </ul>
-          )
-          : null}
+        {childRows ? <ul className="divide-y border-t">{childRows}</ul> : null}
       </>
     );
   }
@@ -294,29 +183,7 @@ function TaxonomyTreeRow({
       >
         {rowInner}
       </li>
-      {hasChildren && isOpen
-        ? (
-          <>
-            {noChildRow(depth + 1)}
-            {node.children.map(child => (
-              <TaxonomyTreeRow
-                key={child.id}
-                node={child}
-                depth={depth + 1}
-                expanded={expanded}
-                onToggle={onToggle}
-                renderNameLink={renderNameLink}
-                renderEditLink={renderEditLink}
-                renderInfoLink={renderInfoLink}
-                renderIcon={renderIcon}
-                onExpandSubtree={onExpandSubtree}
-                onToggleFilter={onToggleFilter}
-                isFiltered={isFiltered}
-              />
-            ))}
-          </>
-        )
-        : null}
+      {childRows}
     </>
   );
 }

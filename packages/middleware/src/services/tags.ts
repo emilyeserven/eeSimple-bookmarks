@@ -6,6 +6,10 @@ import { bookmarkTags, categoryRootTags, tags, type TagRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { InvalidRootTagError } from "@/services/categories";
+import {
+  collectSubtreeIds as collectParentTreeSubtreeIds,
+  computeSubtreeBookmarkCounts,
+} from "@/utils/parentTree";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a reparent would put a tag under itself or one of its descendants. */
@@ -58,19 +62,6 @@ export async function listTagNames(): Promise<TitleTagCandidate[]> {
     .from(tags);
 }
 
-/** Build a parent→children id map from a flat tag list. Pure helper. */
-function buildChildrenByParent(all: { id: string;
-  parentId: string | null; }[]): Map<string, string[]> {
-  const map = new Map<string, string[]>();
-  for (const tag of all) {
-    if (!tag.parentId) continue;
-    const siblings = map.get(tag.parentId) ?? [];
-    siblings.push(tag.id);
-    map.set(tag.parentId, siblings);
-  }
-  return map;
-}
-
 /**
  * Compute each tag's distinct subtree bookmark count and its "own" (no-descendant) count from a
  * flat tag list and the bookmark↔tag links. Distinct counting dedupes bookmarks tagged with both a
@@ -82,33 +73,10 @@ export function computeTagBookmarkCounts(
   links: { tagId: string;
     bookmarkId: string; }[],
 ): Map<string, TagBookmarkCounts> {
-  const directSets = new Map<string, Set<string>>(all.map(tag => [tag.id, new Set<string>()]));
-  for (const link of links) directSets.get(link.tagId)?.add(link.bookmarkId);
-
-  const childrenByParent = buildChildrenByParent(all);
-
-  const result = new Map<string, TagBookmarkCounts>();
-  for (const tag of all) {
-    const ownDirect = directSets.get(tag.id) ?? new Set<string>();
-    const subtree = new Set<string>(ownDirect);
-    const descendants = new Set<string>();
-    const stack = [...(childrenByParent.get(tag.id) ?? [])];
-    while (stack.length > 0) {
-      const id = stack.pop()!;
-      for (const bookmarkId of directSets.get(id) ?? []) {
-        subtree.add(bookmarkId);
-        descendants.add(bookmarkId);
-      }
-      for (const child of childrenByParent.get(id) ?? []) stack.push(child);
-    }
-    let own = 0;
-    for (const bookmarkId of ownDirect) if (!descendants.has(bookmarkId)) own += 1;
-    result.set(tag.id, {
-      subtree: subtree.size,
-      own,
-    });
-  }
-  return result;
+  return computeSubtreeBookmarkCounts(all, links.map(link => ({
+    nodeId: link.tagId,
+    bookmarkId: link.bookmarkId,
+  })));
 }
 
 /** Existing tag slugs, optionally excluding one tag id (when renaming). */
@@ -141,28 +109,11 @@ export function buildTagTree(all: Tag[]): TagNode[] {
 }
 
 /**
- * Resolve a tag id to the set of ids in its subtree (inclusive). Pure — operates
- * on a flat list so it can be unit-tested without a database.
- */
-export function collectSubtreeIds(all: Tag[], rootId: string): Set<string> {
-  const childrenByParent = buildChildrenByParent(all);
-  const result = new Set<string>();
-  const stack = [rootId];
-  while (stack.length > 0) {
-    const id = stack.pop()!;
-    if (result.has(id)) continue;
-    result.add(id);
-    for (const child of childrenByParent.get(id) ?? []) stack.push(child);
-  }
-  return result;
-}
-
-/**
  * Whether reparenting `id` under `newParentId` would create a cycle (the new
  * parent is the tag itself or one of its descendants). Pure helper.
  */
 export function wouldCreateCycle(all: Tag[], id: string, newParentId: string): boolean {
-  return collectSubtreeIds(all, id).has(newParentId);
+  return collectParentTreeSubtreeIds(all, id).has(newParentId);
 }
 
 export async function listTags(): Promise<Tag[]> {

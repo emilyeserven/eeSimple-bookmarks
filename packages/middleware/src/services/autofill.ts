@@ -13,7 +13,6 @@ import type {
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   BulkDeleteResult,
-  ConditionInput,
   ConditionMatchField,
   ConditionMatchOperator,
   ConditionNode,
@@ -23,7 +22,7 @@ import type {
   GlobalAutofillBackfillResult,
   UpdateAutofillRuleInput,
 } from "@eesimple/types";
-import { emptyConditionTree, evaluateConditions, normalizeDomain } from "@eesimple/types";
+import { emptyConditionTree, evaluateConditions, mergeMatchingAutofillRules, normalizeDomain } from "@eesimple/types";
 import { db } from "@/db";
 import {
   autofillRuleBooleanValues,
@@ -282,62 +281,7 @@ export async function suggestAutofillForBookmark(input: {
     };
   }
   const rules = await hydrate(rows);
-
-  let categoryId: string | null = null;
-  let mediaTypeId: string | null = null;
-  const tagIds = new Set<string>();
-  const locationIds = new Set<string>();
-  const numberByProperty = new Map<string, number>();
-  const booleanByProperty = new Map<string, boolean>();
-  const dateTimeByProperty = new Map<string, string>();
-
-  const projection: ConditionInput = {
-    url: input.url,
-    title: input.title,
-    categoryId: "",
-    tagIds: new Set(),
-    locationIds: new Set(),
-    youtubeChannelId: null,
-    mediaTypeId: null,
-    numberValues: new Map(),
-    booleanValues: new Map(),
-    dateTimeValues: new Map(),
-    fileValues: new Set(),
-    relationshipTypeIds: new Set(),
-    choicesValues: new Map(),
-    sectionsValues: new Map(),
-    textValues: new Map(),
-  };
-
-  for (const rule of rules) {
-    if (!evaluateConditions(rule.conditions, projection)) continue;
-    if (rule.setCategoryId) categoryId = rule.setCategoryId;
-    if (rule.setMediaTypeId) mediaTypeId = rule.setMediaTypeId;
-    for (const tagId of rule.tagIds) tagIds.add(tagId);
-    for (const locationId of rule.locationIds) locationIds.add(locationId);
-    for (const entry of rule.numberValues) numberByProperty.set(entry.propertyId, entry.value);
-    for (const entry of rule.booleanValues) booleanByProperty.set(entry.propertyId, entry.value);
-    for (const entry of rule.dateTimeValues) dateTimeByProperty.set(entry.propertyId, entry.value);
-  }
-
-  return {
-    categoryId,
-    mediaTypeId,
-    tagIds: [...tagIds],
-    locationIds: [...locationIds],
-    numberValues: [...numberByProperty].map(([propertyId, value]) => ({
-      propertyId,
-      value,
-    })),
-    booleanValues: [...booleanByProperty].map(([propertyId, value]) => ({
-      propertyId,
-      value,
-    })),
-    dateTimeValues: [...dateTimeByProperty].map(([propertyId, value]) => ({
-      propertyId,
-      value,
-    })),
-  };
+  return mergeMatchingAutofillRules(input, rules);
 }
 
 export async function listAutofillRules(): Promise<AutofillRule[]> {

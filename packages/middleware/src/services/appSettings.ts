@@ -154,25 +154,25 @@ function asDetailLayout(value: string | null | undefined): BookmarkDetailLayout 
 }
 
 /** Clamp a stored cropped dimension to a positive integer (mirrors the old client setter). */
-function asCropped(value: number | null | undefined, fallback: number): number {
+export function asCropped(value: number | null | undefined, fallback: number): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
   return Math.max(1, Math.round(value));
 }
 
 /** Clamp the stored min-area-pin threshold (km²) to a non-negative number; `0` disables it. */
-function asMinAreaThreshold(value: number | null | undefined): number {
+export function asMinAreaThreshold(value: number | null | undefined): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return 0;
   return Math.max(0, value);
 }
 
 /** Clamp the stored map-pin scale to [MAP_PIN_SCALE_MIN, MAP_PIN_SCALE_MAX], defaulting to 1. */
-function asMapPinScale(value: number | null | undefined): number {
+export function asMapPinScale(value: number | null | undefined): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return MAP_PIN_SCALE_DEFAULT;
   return Math.min(MAP_PIN_SCALE_MAX, Math.max(MAP_PIN_SCALE_MIN, value));
 }
 
 /** Clamp a stored screenshot-default numeric field to an integer within [min, max]. */
-function asScreenshotDefault(
+export function asScreenshotDefault(
   value: number | null | undefined,
   fallback: number,
   min: number,
@@ -183,7 +183,7 @@ function asScreenshotDefault(
 }
 
 /** Coerce breakpoints to a deduped, sorted array of positive integers. */
-function asBreakpoints(value: number[] | null | undefined): number[] {
+export function asBreakpoints(value: number[] | null | undefined): number[] {
   if (!Array.isArray(value)) return [...DEFAULT_DISPLAY_PREFERENCES.drawerUnpinnedBreakpoints];
   const cleaned = value
     .filter(n => typeof n === "number" && Number.isFinite(n) && n > 0)
@@ -621,7 +621,7 @@ export async function updateAutomationSettings(
  * boolean `visible`, finite `sortOrder`) under a normalized placeType key. Tolerates arbitrary
  * client/stored shapes so a malformed jsonb row never crashes the map.
  */
-function normalizePlaceTypeDisplay(input: unknown): PlaceTypeDisplayConfig {
+export function normalizePlaceTypeDisplay(input: unknown): PlaceTypeDisplayConfig {
   if (input === null || typeof input !== "object") return {};
   const out: PlaceTypeDisplayConfig = {};
   for (const [rawKey, rawValue] of Object.entries(input as Record<string, unknown>)) {
@@ -684,7 +684,7 @@ export async function updatePlaceTypeDisplay(
  * valid `displayMode`, an array of normalized member place-type keys), coercing `visible`/`sortOrder`.
  * Tolerates arbitrary client/stored shapes so a malformed jsonb row never crashes the map.
  */
-function normalizePlaceTypeLevelGroups(input: unknown): PlaceTypeLevelGroupConfig {
+export function normalizePlaceTypeLevelGroups(input: unknown): PlaceTypeLevelGroupConfig {
   if (!Array.isArray(input)) return [];
   const out: PlaceTypeLevelGroupConfig = [];
   input.forEach((rawGroup, index) => {
@@ -762,7 +762,7 @@ export async function updatePlaceTypeLevelGroups(
  * non-empty place-type key and whose value is a usable Lucide icon name. Tolerates arbitrary
  * client/stored shapes so a malformed jsonb row never crashes the map.
  */
-function normalizePlaceTypeIcons(input: unknown): PlaceTypeIconConfig {
+export function normalizePlaceTypeIcons(input: unknown): PlaceTypeIconConfig {
   if (input === null || typeof input !== "object" || Array.isArray(input)) return {};
   const out: PlaceTypeIconConfig = {};
   for (const [rawKey, rawValue] of Object.entries(input as Record<string, unknown>)) {
@@ -810,7 +810,7 @@ export async function updatePlaceTypeIcons(
  * non-empty place-type key and whose value is a valid `#rgb`/`#rrggbb` hex color. Tolerates arbitrary
  * client/stored shapes so a malformed jsonb row never crashes the map.
  */
-function normalizePlaceTypeColors(input: unknown): PlaceTypeColorConfig {
+export function normalizePlaceTypeColors(input: unknown): PlaceTypeColorConfig {
   if (input === null || typeof input !== "object" || Array.isArray(input)) return {};
   const out: PlaceTypeColorConfig = {};
   for (const [rawKey, rawValue] of Object.entries(input as Record<string, unknown>)) {

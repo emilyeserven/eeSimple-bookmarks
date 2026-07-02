@@ -14,13 +14,57 @@ import {
   StatusBadge,
 } from "./InboxRowActions";
 import { NewsletterContextBlock } from "./NewsletterContextBlock";
+import { ReviewRowHoverShell, SwipeableReviewCard } from "./ReviewRowShell";
 import { formatAdded } from "./tables/inboxColumns";
 import { useReviewRowController } from "./useReviewRowController";
 
 import { Badge } from "@/components/ui/badge";
 import { RowCard } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
-import { useUiStore } from "@/stores/uiStore";
+
+/** The per-item taxonomy pre-fill editor, shown only while the item is still pending. */
+function ReviewRowAdvancedEdit({
+  item, open, onOpenChange, itemPreFill, patchItemPreFill,
+}: {
+  item: InboxItem;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  itemPreFill: InboxPreFillDefaults;
+  patchItemPreFill: (patch: Partial<InboxPreFillDefaults>) => void;
+}) {
+  if (item.status !== "pending") return null;
+  return (
+    <ImportItemAdvancedEdit
+      item={item}
+      open={open}
+      onOpenChange={onOpenChange}
+      categoryId={itemPreFill.categoryId ?? undefined}
+      mediaTypeId={itemPreFill.mediaTypeId ?? undefined}
+      tagIds={itemPreFill.tagIds ?? []}
+      locationIds={itemPreFill.locationIds ?? []}
+      authorIds={itemPreFill.authorIds ?? []}
+      publisherId={itemPreFill.publisherId ?? undefined}
+      onCategoryChange={id => patchItemPreFill({
+        categoryId: id,
+      })}
+      onMediaTypeChange={id => patchItemPreFill({
+        mediaTypeId: id,
+      })}
+      onTagsChange={ids => patchItemPreFill({
+        tagIds: ids,
+      })}
+      onLocationsChange={ids => patchItemPreFill({
+        locationIds: ids,
+      })}
+      onAuthorsChange={ids => patchItemPreFill({
+        authorIds: ids,
+      })}
+      onPublisherChange={id => patchItemPreFill({
+        publisherId: id,
+      })}
+    />
+  );
+}
 
 function ReviewRow({
   item,
@@ -34,131 +78,57 @@ function ReviewRow({
     itemPreFill, effectivePreFill, isMobile, muted, categoryName, swipe,
     patchItemPreFill,
   } = useReviewRowController(item, preFill, onDismiss);
-  const setHoveredBookmarkId = useUiStore(state => state.setHoveredBookmarkId);
 
-  const rowActions = (
-    <RowActions
+  const body = (
+    <ReviewItemBody
       item={item}
-      preFill={effectivePreFill}
+      categoryName={categoryName}
+      contextOpen={contextOpen}
+      onContextOpenChange={setContextOpen}
+      trailing={(
+        <RowActions
+          item={item}
+          preFill={effectivePreFill}
+        />
+      )}
+      advancedEdit={(
+        <ReviewRowAdvancedEdit
+          item={item}
+          open={advancedEditOpen}
+          onOpenChange={setAdvancedEditOpen}
+          itemPreFill={itemPreFill}
+          patchItemPreFill={patchItemPreFill}
+        />
+      )}
     />
   );
-  const advancedEdit = item.status === "pending"
-    ? (
-      <ImportItemAdvancedEdit
-        item={item}
-        open={advancedEditOpen}
-        onOpenChange={setAdvancedEditOpen}
-        categoryId={itemPreFill.categoryId ?? undefined}
-        mediaTypeId={itemPreFill.mediaTypeId ?? undefined}
-        tagIds={itemPreFill.tagIds ?? []}
-        locationIds={itemPreFill.locationIds ?? []}
-        authorIds={itemPreFill.authorIds ?? []}
-        publisherId={itemPreFill.publisherId ?? undefined}
-        onCategoryChange={id => patchItemPreFill({
-          categoryId: id,
-        })}
-        onMediaTypeChange={id => patchItemPreFill({
-          mediaTypeId: id,
-        })}
-        onTagsChange={ids => patchItemPreFill({
-          tagIds: ids,
-        })}
-        onLocationsChange={ids => patchItemPreFill({
-          locationIds: ids,
-        })}
-        onAuthorsChange={ids => patchItemPreFill({
-          authorIds: ids,
-        })}
-        onPublisherChange={id => patchItemPreFill({
-          publisherId: id,
-        })}
-      />
-    )
-    : null;
 
   const hoverId = item.createdBookmarkId ?? null;
-  const hoverCmdk = hoverId
-    ? (
-      <span
-        className="
-          pointer-events-none absolute right-2 bottom-2 z-20 rounded-sm border
-          bg-background/90 px-1.5 py-0.5 text-xs text-muted-foreground opacity-0
-          shadow-sm transition-opacity
-          group-hover:opacity-100
-        "
-      >
-        ⌘K to edit
-      </span>
-    )
-    : null;
 
   if (isMobile && item.status === "pending") {
-    const swipeRight = swipe.displacement >= 80;
-    const swipeLeft = swipe.displacement <= -80;
-
     return (
-      <div
-        className="group relative"
-        onMouseEnter={hoverId ? () => setHoveredBookmarkId(hoverId) : undefined}
-        onMouseLeave={hoverId ? () => setHoveredBookmarkId(null) : undefined}
-      >
-        <div
-          className="relative overflow-hidden rounded-lg"
-          onTouchStart={advancedEditOpen ? undefined : swipe.onTouchStart}
-          onTouchMove={advancedEditOpen ? undefined : swipe.onTouchMove}
-          onTouchEnd={advancedEditOpen ? undefined : swipe.onTouchEnd}
+      <ReviewRowHoverShell hoverId={hoverId}>
+        <SwipeableReviewCard
+          swipe={swipe}
+          disabled={advancedEditOpen}
         >
-          <div
-            className={`
-              absolute inset-0 transition-colors
-              ${swipeRight ? "bg-green-500/20" : swipeLeft ? "bg-red-500/20" : ""}
-            `}
-          />
-          <RowCard
-            className="relative z-10 p-4"
-            style={{
-              transform: `translateX(${swipe.displacement}px)`,
-              transition: swipe.displacement === 0 ? "transform 0.2s ease" : "none",
-            }}
-          >
-            <ReviewItemBody
-              item={item}
-              categoryName={categoryName}
-              contextOpen={contextOpen}
-              onContextOpenChange={setContextOpen}
-              trailing={rowActions}
-              advancedEdit={advancedEdit}
-            />
-          </RowCard>
-        </div>
-        {hoverCmdk}
-      </div>
+          {body}
+        </SwipeableReviewCard>
+      </ReviewRowHoverShell>
     );
   }
 
   return (
-    <div
-      className="group relative"
-      onMouseEnter={hoverId ? () => setHoveredBookmarkId(hoverId) : undefined}
-      onMouseLeave={hoverId ? () => setHoveredBookmarkId(null) : undefined}
-    >
+    <ReviewRowHoverShell hoverId={hoverId}>
       <RowCard
         className={`
           p-4
           ${muted ? "opacity-60" : ""}
         `}
       >
-        <ReviewItemBody
-          item={item}
-          categoryName={categoryName}
-          contextOpen={contextOpen}
-          onContextOpenChange={setContextOpen}
-          trailing={rowActions}
-          advancedEdit={advancedEdit}
-        />
+        {body}
       </RowCard>
-      {hoverCmdk}
-    </div>
+    </ReviewRowHoverShell>
   );
 }
 
