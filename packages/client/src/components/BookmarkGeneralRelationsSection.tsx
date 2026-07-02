@@ -1,12 +1,11 @@
 import type { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 
 import { AddAuthorModal } from "./AddAuthorModal";
-import { AddLocationModal } from "./AddLocationModal";
-import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddTagModal } from "./AddTagModal";
 import { GatedTagPicker } from "./BookmarkTagsField";
 import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { Label } from "@/components/ui/label";
 import { mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
@@ -23,12 +22,8 @@ export function BookmarkGeneralRelationsSection({
     locationTree,
     mediaTypes,
     authors,
-    addMediaTypeOpen,
-    setAddMediaTypeOpen,
     addTagOpen,
     setAddTagOpen,
-    addLocationOpen,
-    setAddLocationOpen,
     addAuthorOpen,
     setAddAuthorOpen,
     saveTags,
@@ -38,6 +33,16 @@ export function BookmarkGeneralRelationsSection({
     saveAuthors,
     touchedRef,
   } = ctrl;
+  const mediaTypeCreate = useEntityCreateOption("media-type", mediaType => form.setFieldValue("mediaTypeId", mediaType.id));
+  const locationCreate = useEntityCreateOption("location", (location) => {
+    touchedRef.current.add("locations");
+    const current = form.getFieldValue("locationIds");
+    if (!current.includes(location.id)) {
+      const newLocationIds = [...current, location.id];
+      form.setFieldValue("locationIds", newLocationIds);
+      saveLocations(newLocationIds);
+    }
+  });
   return (
     <>
       <form.AppField name="mediaTypeId">
@@ -47,19 +52,12 @@ export function BookmarkGeneralRelationsSection({
             placeholder="No media type"
             searchPlaceholder="Search media types…"
             emptyText="No media types found."
-            createOption={{
-              label: "Create media type",
-              onSelect: () => setAddMediaTypeOpen(true),
-            }}
+            createOption={mediaTypeCreate.createOption}
             options={mediaTypeTreeComboboxOptions(mediaTypes ?? [])}
           />
         )}
       </form.AppField>
-      <AddMediaTypeModal
-        open={addMediaTypeOpen}
-        onOpenChange={setAddMediaTypeOpen}
-        onCreated={mediaType => form.setFieldValue("mediaTypeId", mediaType.id)}
-      />
+      {mediaTypeCreate.modal}
 
       <form.Subscribe selector={state => state.values.categoryId}>
         {categoryId => (
@@ -138,27 +136,12 @@ export function BookmarkGeneralRelationsSection({
                 field.handleChange(newLocationIds);
                 saveLocations(newLocationIds);
               }}
-              createOption={{
-                label: "Create location",
-                onSelect: () => setAddLocationOpen(true),
-              }}
+              createOption={locationCreate.createOption}
             />
           </div>
         )}
       </form.Field>
-      <AddLocationModal
-        open={addLocationOpen}
-        onOpenChange={setAddLocationOpen}
-        onCreated={(location) => {
-          touchedRef.current.add("locations");
-          const current = form.getFieldValue("locationIds");
-          if (!current.includes(location.id)) {
-            const newLocationIds = [...current, location.id];
-            form.setFieldValue("locationIds", newLocationIds);
-            saveLocations(newLocationIds);
-          }
-        }}
-      />
+      {locationCreate.modal}
 
       <form.Field name="blacklistedLocationIds">
         {field => (

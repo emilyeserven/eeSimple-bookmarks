@@ -29,8 +29,6 @@ function PropertyDisplaySectionHost() {
       form={form}
       idPrefix="story"
       groupOptions={groupOptions}
-      addGroupOpen={false}
-      setAddGroupOpen={() => {}}
     />
   );
 }

@@ -1,7 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { useState } from "react";
-
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
 import { BookmarkFormHost } from "../test-utils/bookmarkFormHost";
 import { apiHandlers, sampleCategories } from "../test-utils/story-mocks";
@@ -25,7 +23,6 @@ function CategoryFieldHost({
 }: {
   selectedId?: string;
 }) {
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   return (
     <BookmarkFormHost
       initialValues={selectedId
@@ -38,8 +35,6 @@ function CategoryFieldHost({
         <BookmarkCategoryField
           form={form}
           categories={sampleCategories}
-          addCategoryOpen={addCategoryOpen}
-          setAddCategoryOpen={setAddCategoryOpen}
         />
       )}
     </BookmarkFormHost>

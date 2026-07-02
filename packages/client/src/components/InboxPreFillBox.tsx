@@ -5,6 +5,7 @@ import { InboxPreFillModals } from "./InboxPreFillModals";
 import { InboxPreFillTags } from "./InboxPreFillTags";
 import { InboxPropertyField } from "./InboxPropertyField";
 import { MultiCombobox } from "./MultiCombobox";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useInboxPreFillBox } from "./useInboxPreFillBox";
 
 import { Button } from "@/components/ui/button";
@@ -26,12 +27,6 @@ export function InboxPreFillBox({
   onReset: () => void;
 }) {
   const {
-    addCategoryOpen,
-    setAddCategoryOpen,
-    addMediaTypeOpen,
-    setAddMediaTypeOpen,
-    addPublisherOpen,
-    setAddPublisherOpen,
     addAuthorOpen,
     setAddAuthorOpen,
     tagTree,
@@ -45,6 +40,19 @@ export function InboxPreFillBox({
     publisherOptions,
     selectedTagNames,
   } = useInboxPreFillBox(preFill);
+
+  const categoryCreate = useEntityCreateOption("category", c => setPreFill({
+    ...preFill,
+    categoryId: c.id,
+  }));
+  const mediaTypeCreate = useEntityCreateOption("media-type", m => setPreFill({
+    ...preFill,
+    mediaTypeId: m.id,
+  }));
+  const publisherCreate = useEntityCreateOption("publisher", p => setPreFill({
+    ...preFill,
+    publisherId: p.id,
+  }));
 
   const selectedAuthorIds = preFill.authorIds ?? [];
   const isEmpty = isPreFillEmpty(preFill);
@@ -87,10 +95,7 @@ export function InboxPreFillBox({
                 searchPlaceholder="Search categories…"
                 emptyText="No categories."
                 aria-label="Default category"
-                createOption={{
-                  label: "Create category",
-                  onSelect: () => setAddCategoryOpen(true),
-                }}
+                createOption={categoryCreate.createOption}
               />
             </div>
 
@@ -109,10 +114,7 @@ export function InboxPreFillBox({
                   searchPlaceholder="Search media types…"
                   emptyText="No media types."
                   aria-label="Default media type"
-                  createOption={{
-                    label: "Create media type",
-                    onSelect: () => setAddMediaTypeOpen(true),
-                  }}
+                  createOption={mediaTypeCreate.createOption}
                 />
               </div>
             )}
@@ -132,10 +134,7 @@ export function InboxPreFillBox({
                   searchPlaceholder="Search publishers…"
                   emptyText="No publishers."
                   aria-label="Default publisher"
-                  createOption={{
-                    label: "Create publisher",
-                    onSelect: () => setAddPublisherOpen(true),
-                  }}
+                  createOption={publisherCreate.createOption}
                 />
               </div>
             )}
@@ -183,15 +182,12 @@ export function InboxPreFillBox({
           />
         </div>
       </RowCard>
+      {categoryCreate.modal}
+      {mediaTypeCreate.modal}
+      {publisherCreate.modal}
       <InboxPreFillModals
         preFill={preFill}
         setPreFill={setPreFill}
-        addCategoryOpen={addCategoryOpen}
-        setAddCategoryOpen={setAddCategoryOpen}
-        addMediaTypeOpen={addMediaTypeOpen}
-        setAddMediaTypeOpen={setAddMediaTypeOpen}
-        addPublisherOpen={addPublisherOpen}
-        setAddPublisherOpen={setAddPublisherOpen}
         addAuthorOpen={addAuthorOpen}
         setAddAuthorOpen={setAddAuthorOpen}
       />

@@ -52,8 +52,6 @@ export const Default: Story = {
           form={form}
           mediaTypes={mediaTypeNodes}
           sourceDefaults={sourceDefaults()}
-          addMediaTypeOpen={false}
-          onAddMediaTypeOpenChange={() => {}}
         />
       )}
     </BookmarkFormHost>
@@ -76,8 +74,6 @@ export const WithSourceDefaultOffer: Story = {
             label: "example.com",
             showMediaTypeDefault: true,
           })}
-          addMediaTypeOpen={false}
-          onAddMediaTypeOpenChange={() => {}}
         />
       )}
     </BookmarkFormHost>

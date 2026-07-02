@@ -8,8 +8,6 @@ import type {
 } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { useState } from "react";
-
 import {
   CREATE_DEFAULTS,
   payloadFromValues,
@@ -86,7 +84,6 @@ export function PropertyForm({
   section,
 }: PropertyFormProps) {
   const isBuiltIn = mode === "edit" && Boolean(property?.builtIn);
-  const [addGroupOpen, setAddGroupOpen] = useState(false);
   const groupOptions = [...propertyGroups]
     .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name))
     .map(group => ({
@@ -225,8 +222,6 @@ export function PropertyForm({
             form={form}
             idPrefix={idPrefix}
             groupOptions={groupOptions}
-            addGroupOpen={addGroupOpen}
-            setAddGroupOpen={setAddGroupOpen}
           />
         )
         : null}

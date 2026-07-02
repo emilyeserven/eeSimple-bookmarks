@@ -2,9 +2,8 @@ import type { ComboboxOption } from "./Combobox";
 
 import { useId, useState } from "react";
 
-import { AddCategoryModal } from "./AddCategoryModal";
-import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { Combobox } from "./Combobox";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { Label } from "@/components/ui/label";
 
@@ -45,8 +44,8 @@ export function SourceDefaultFields({
   const mediaTypeFieldId = useId();
   const [categoryId, setCategoryId] = useState(initialCategoryId);
   const [mediaTypeId, setMediaTypeId] = useState(initialMediaTypeId);
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
+  const categoryCreate = useEntityCreateOption("category", category => setCategoryId(category.id));
+  const mediaTypeCreate = useEntityCreateOption("media-type", mediaType => setMediaTypeId(mediaType.id));
 
   return (
     <>
@@ -60,10 +59,7 @@ export function SourceDefaultFields({
           placeholder="No category"
           searchPlaceholder="Search categories…"
           emptyText="No categories found."
-          createOption={{
-            label: "Create category",
-            onSelect: () => setAddCategoryOpen(true),
-          }}
+          createOption={categoryCreate.createOption}
           onValueChange={(value) => {
             const id = value || null;
             setCategoryId(id);
@@ -71,11 +67,7 @@ export function SourceDefaultFields({
           }}
         />
       </div>
-      <AddCategoryModal
-        open={addCategoryOpen}
-        onOpenChange={setAddCategoryOpen}
-        onCreated={category => setCategoryId(category.id)}
-      />
+      {categoryCreate.modal}
 
       <div className="space-y-1">
         <Label htmlFor={mediaTypeFieldId}>{mediaTypeLabel}</Label>
@@ -87,10 +79,7 @@ export function SourceDefaultFields({
           placeholder="No media type"
           searchPlaceholder="Search media types…"
           emptyText="No media types found."
-          createOption={{
-            label: "Create media type",
-            onSelect: () => setAddMediaTypeOpen(true),
-          }}
+          createOption={mediaTypeCreate.createOption}
           onValueChange={(value) => {
             const id = value || null;
             setMediaTypeId(id);
@@ -98,11 +87,7 @@ export function SourceDefaultFields({
           }}
         />
       </div>
-      <AddMediaTypeModal
-        open={addMediaTypeOpen}
-        onOpenChange={setAddMediaTypeOpen}
-        onCreated={mediaType => setMediaTypeId(mediaType.id)}
-      />
+      {mediaTypeCreate.modal}
       <p className="text-sm text-muted-foreground">{note}</p>
     </>
   );

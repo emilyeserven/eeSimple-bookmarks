@@ -12,15 +12,25 @@ description: >-
 
 ## The rule
 
-Every `<Combobox>`, `<MultiCombobox>`, or `<TreeMultiCombobox>` that lets the user pick a
-**user-creatable entity** MUST pass a `createOption` prop. There is no exception for "simple" or
-"small" forms — the pattern is uniform across the app.
+**Every combobox that picks a user-creatable taxonomy/entity value MUST allow creation.** Every
+`<Combobox>`, `<MultiCombobox>`, or `<TreeMultiCombobox>` that lets the user pick one of Category,
+Media Type, Website, YouTube Channel, Tag, Author, Publisher, Newsletter, Property Group, Location,
+Custom Property, or Place Type MUST pass a `createOption` prop wired through
+`useEntityCreateOption` (below). There is no exception for "simple" or "small" forms, and no
+picker is exempt except the closed list under **Explicit exemptions** — anything not on that list
+is a defect: either add `createOption`, or if the entity kind isn't in `CREATABLE_ENTITY_PICKERS`
+yet, register it there first (one entry — see **Wiring pattern**).
 
 ```tsx
-createOption={{
-  label: "Create category",
-  onSelect: () => setAddCategoryOpen(true),
-}}
+const categoryCreate = useEntityCreateOption("category", category => setValue(category.id));
+
+<Combobox
+  options={categoryOptions}
+  value={value}
+  onValueChange={setValue}
+  createOption={categoryCreate.createOption}
+/>
+{categoryCreate.modal}
 ```
 
 ---
@@ -45,9 +55,9 @@ createOption={{
 
 ## Wiring pattern
 
-**Preferred: `useEntityCreateOption`** (`components/useEntityCreateOption.tsx`) — the registry-backed
-hook owns the modal state and label, so a picker wired through it cannot lack inline create or drift
-from the entity's modal:
+**`useEntityCreateOption`** (`components/useEntityCreateOption.tsx`) is the *only* sanctioned way to
+wire inline create — the registry-backed hook owns the modal state and label, so a picker wired
+through it cannot lack inline create or drift from the entity's modal:
 
 ```tsx
 const tagCreate = useEntityCreateOption("tag", tag => onToggle(tag.id));
@@ -61,79 +71,73 @@ const tagCreate = useEntityCreateOption("tag", tag => onToggle(tag.id));
 {tagCreate.modal}
 ```
 
-Growing the registry is one entry in `CREATABLE_ENTITY_PICKERS` (all Add-modals share the
-`open`/`onOpenChange`/`onCreated` contract). Entities not yet in the registry use the manual
-pattern below — migrate them into the registry as you touch them (tracked in the picker-migration
-issue).
+`CREATABLE_ENTITY_PICKERS` registers all twelve user-creatable entity kinds (`tag`, `author`,
+`place-type`, `category`, `media-type`, `website`, `youtube-channel`, `publisher`, `newsletter`,
+`property-group`, `location`, `custom-property`) — growing it further is one entry (all Add-modals
+share the `open`/`onOpenChange`/`onCreated` contract). Call `useEntityCreateOption` **in the
+component that owns the combobox and its `onCreated` selection logic**, not lifted into a parent
+just to centralize modal state — see `BookmarkAdvancedCategoryField.tsx` /
+`BookmarkAdvancedMediaTypeField.tsx` / `BookmarkAdvancedPublisherField.tsx` for the pattern (each
+calls the hook itself using the `form` prop it already has, no state threaded from the parent).
 
-**Manual pattern** — the opener holds modal-open state and passes `onCreated` to select the new
-entity:
+**Never hand-roll `useState(false)` + `<Add*Modal>` JSX for an entity already in the registry** —
+that's exactly the boilerplate the hook exists to remove. A hand-rolled picker for a registered
+entity kind is a regression, not a stylistic choice.
 
-```tsx
-// 1. State (in the component that owns the combobox)
-const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-
-// 2. On the combobox
-<Combobox
-  options={categoryOptions}
-  value={value}
-  onValueChange={setValue}
-  createOption={{
-    label: "Create category",
-    onSelect: () => setAddCategoryOpen(true),
-  }}
-/>
-
-// 3. Modal sibling (outside the combobox, inside the same fragment/parent)
-<AddCategoryModal
-  open={addCategoryOpen}
-  onOpenChange={setAddCategoryOpen}
-  onCreated={category => setValue(category.id)}   // single-select
-  // onCreated={category => setValues(v => [...v, category.id])} // multi-select
-/>
-```
-
-For `form.AppField` / `ComboboxField`, pass `createOption` directly and manage modal state in the
-surrounding component or controller hook. See `BookmarkCategoryField.tsx` (receives
-`addCategoryOpen`/`setAddCategoryOpen` from `useBookmarkInlineCreateModals`) and
-`SourceDefaultFields.tsx` (manages its own state internally).
-
-**Multiple modals in one component:** group the `useState` flags into a sub-hook if adding them
-would push the component past fallow's complexity cap. See `useBookmarkInlineCreateModals.ts` for
-the bookmark form's five-flag example.
+**Multiple modals in one component that must stay manual** (an entity kind genuinely not yet in
+the registry): group the `useState` flags into a sub-hook if adding them would push the component
+past fallow's complexity cap — see `useBookmarkInlineCreateModals.ts` for the bookmark form's
+Tag/Author example (the only entities still wired this way; every other kind goes through the hook).
 
 ---
 
 ## Where it is already wired (do not duplicate)
 
-- **Bookmark General/Advanced form** — category, media type, tags, authors, publisher
-  (`BookmarkCategoryField`, `BookmarkAdvancedMediaTypeField`, `BookmarkAdvancedCategoryField`,
-  `BookmarkAdvancedDescriptionTagsField`, `BookmarkAdvancedPublisherField`, `BookmarkGeneralForm`)
-- **Import item form** — category, media type, tags, authors, publisher (`ImportItemAdvancedEdit`)
-- **Import form** — category, newsletter (`ImportForm`)
+All of the following go through `useEntityCreateOption`; components/hooks not named here for a
+given entity don't need their own inline-create — reuse the shared wrapper where one exists
+(`TagPickerWithCreate`, `LocationPickerWithCreate`).
+
+- **Bookmark Advanced section** — category, media type, publisher, author
+  (`BookmarkAdvancedCategoryField`, `BookmarkAdvancedMediaTypeField`,
+  `BookmarkAdvancedPublisherField`, `BookmarkAdvancedSection` for author)
+- **Bookmark General (edit) form** — category (`BookmarkCategoryField`), media type + location
+  (`BookmarkGeneralRelationsSection`), publisher (`useBookmarkGeneralForm` +
+  `BookmarkAdvancedPublisherField`); tag/author stay manual via `useBookmarkInlineCreateModals`
+- **Import item advanced edit** — category, media type, publisher, location
+  (`useImportItemAdvancedEdit`, consumed by `ImportItemAdvancedEditFields`/`Modals`); tag/author
+  stay manual
+- **Import form** — category, newsletter (`ImportForm`, inline `createOption` on the comboboxes)
 - **Condition editors** — category (`CategoryConditionEditor`), media type
-  (`MediaTypeConditionEditor`), YouTube channel (`YouTubeChannelConditionEditor`), website
-  (`WebsiteConditionEditor`)
-- **Source default fields** — category, media type (`SourceDefaultFields`)
+  (`MediaTypeConditionEditor`), YouTube channel (`YouTubeChannelConditionEditor`) all select the
+  newly created entity into the condition's id array; location
+  (`LocationConditionEditor`) inherits create-and-select for free via `LocationPickerWithCreate`.
+  Website (`WebsiteConditionEditor`) is a documented exemption — see below.
+- **Source default fields** — category, media type (`SourceDefaultFields`) — inline-create updates
+  the picker's local display state only, intentionally not persisting (matches the field's
+  "display state, persist on real selection" contract)
 - **Tag pickers** — `TagPickerWithCreate`, `DefaultTagsField`, `RuleTagsField`
-- **Publisher general form** — website (`PublisherGeneralForm`)
+- **Location pickers** — `LocationPickerWithCreate` (used by `BookmarkGeneralRelationsSection`,
+  `AutofillRulePrefillPickers`, `LocationConditionEditor`, `ImportItemAdvancedEdit`)
+- **Publisher general form** — website (`usePublisherGeneralForm` + `PublisherGeneralForm`)
 - **Property display section** — property group (`PropertyDisplaySection`)
 - **Autofill prefill pickers** — category, media type (`AutofillRulePrefillPickers`)
-- **Inbox pre-fill box** — category, media type, publisher, authors (`InboxPreFillBox`)
+- **Inbox pre-fill box** — category, media type, publisher (`InboxPreFillBox`); author stays manual
+  via the remaining `AddAuthorModal` in `InboxPreFillModals`
 - **Channel websites field** — website (`ChannelWebsitesField`)
 - **Website channels field** — YouTube channel (`WebsiteYouTubeChannelsField`)
 
 ---
 
-## Explicit exemptions (do NOT add createOption)
+## Explicit exemptions (do NOT add createOption) — closed list
+
+Only these are exempt. Anything else missing `createOption` is a defect, not a judgment call:
 
 - `MarkAsShortenerDialog` website picker — a *reassign-to-existing* flow ("which existing site
   owns this shortener domain"), not an entity-minting context.
 - `LevelGroupEditRow` place-types picker — options are the *discovered* place-type keys present on
   locations, not the Place Type CRUD entity; minting a row there would not add a discovered key.
-
-These comboboxes correctly omit `createOption` because they pick non-entity or non-creatable values:
-
+- `WebsiteConditionEditor` — matches by raw domain string via `useCreateWebsite` directly, not
+  `AddWebsiteModal`/an entity id; architecturally distinct from the id-based condition editors.
 - **Choices property value pickers** (`InboxPreFillBox.InboxPropertyField`, `BookmarkCustomFields`) —
   select from a fixed `choices` list defined on the property; users can't add new choice values from
   here.
@@ -143,6 +147,10 @@ These comboboxes correctly omit `createOption` because they pick non-entity or n
   existing records; creating a bookmark from the relationships editor is out of scope.
 - **`PinManager`** — pins existing entities to the sidebar; doesn't create.
 - **`CardDisplayRuleInspector`** — debug/inspect selector for bookmarks; read-only.
+- **CMD+K quick-create** (`commandPaletteModals.tsx`, `useCommandPaletteState`) — a separate
+  quick-create mechanism, not a combobox `createOption` site.
+- **Listing-page "New X" header buttons** — the page-level create action, not an inline picker
+  affordance; see the `listing-header-create` skill instead.
 
 ---
 

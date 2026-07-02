@@ -69,13 +69,7 @@ interface BookmarkAdvancedSectionProps {
   customProperties: CustomProperty[];
   mediaTypes: MediaTypeNode[];
   sourceDefaults: SourceDefaults;
-  addCategoryOpen: boolean;
-  onAddCategoryOpenChange: (open: boolean) => void;
-  addMediaTypeOpen: boolean;
-  onAddMediaTypeOpenChange: (open: boolean) => void;
   publishers?: Publisher[];
-  addPublisherOpen: boolean;
-  onAddPublisherOpenChange: (open: boolean) => void;
   /** Remount key for the image field so a form reset clears it. */
   imageFieldKey: number;
   existingImages: BookmarkImage[];
@@ -133,23 +127,17 @@ export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
           lockedCategoryId={props.lockedCategoryId}
           categories={props.categories}
           sourceDefaults={props.sourceDefaults}
-          addCategoryOpen={props.addCategoryOpen}
-          onAddCategoryOpenChange={props.onAddCategoryOpenChange}
         />
 
         <BookmarkAdvancedMediaTypeField
           form={form}
           mediaTypes={props.mediaTypes}
           sourceDefaults={props.sourceDefaults}
-          addMediaTypeOpen={props.addMediaTypeOpen}
-          onAddMediaTypeOpenChange={props.onAddMediaTypeOpenChange}
         />
 
         <BookmarkAdvancedPublisherField
           form={form}
           publishers={props.publishers ?? []}
-          addPublisherOpen={props.addPublisherOpen}
-          onAddPublisherOpenChange={props.onAddPublisherOpenChange}
         />
 
         <BookmarkAdvancedDescriptionTagsField

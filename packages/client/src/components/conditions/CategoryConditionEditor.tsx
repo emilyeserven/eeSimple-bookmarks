@@ -1,9 +1,9 @@
 import type { Category, CategoryCondition } from "@eesimple/types";
 
-import { createElement, useState } from "react";
+import { createElement } from "react";
 
-import { AddCategoryModal } from "../AddCategoryModal";
 import { MultiCombobox } from "../MultiCombobox";
+import { useEntityCreateOption } from "../useEntityCreateOption";
 
 import { CategoryIcon } from "@/lib/icons";
 
@@ -17,7 +17,11 @@ interface CategoryConditionEditorProps {
 export function CategoryConditionEditor({
   value, categories, onChange,
 }: CategoryConditionEditorProps) {
-  const [addOpen, setAddOpen] = useState(false);
+  const categoryCreate = useEntityCreateOption("category", category =>
+    onChange({
+      ...value,
+      categoryIds: [...value.categoryIds, category.id],
+    }));
 
   return (
     <>
@@ -39,15 +43,9 @@ export function CategoryConditionEditor({
             ...value,
             categoryIds,
           })}
-        createOption={{
-          label: "Create category",
-          onSelect: () => setAddOpen(true),
-        }}
+        createOption={categoryCreate.createOption}
       />
-      <AddCategoryModal
-        open={addOpen}
-        onOpenChange={setAddOpen}
-      />
+      {categoryCreate.modal}
     </>
   );
 }

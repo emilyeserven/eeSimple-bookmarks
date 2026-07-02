@@ -9,12 +9,6 @@ const meta = {
   args: {
     preFill: {},
     setPreFill: () => {},
-    addCategoryOpen: false,
-    setAddCategoryOpen: () => {},
-    addMediaTypeOpen: false,
-    setAddMediaTypeOpen: () => {},
-    addPublisherOpen: false,
-    setAddPublisherOpen: () => {},
     addAuthorOpen: false,
     setAddAuthorOpen: () => {},
   },
@@ -29,15 +23,8 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** All four modals closed — nothing is rendered. */
+/** The modal closed — nothing is rendered. */
 export const Default: Story = {};
-
-/** The "Add category" modal opened from the pre-fill box. */
-export const CategoryOpen: Story = {
-  args: {
-    addCategoryOpen: true,
-  },
-};
 
 /** The "Add author" modal opened from the pre-fill box. */
 export const AuthorOpen: Story = {

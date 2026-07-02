@@ -91,13 +91,7 @@ interface BookmarkRevealedFieldsProps extends BookmarkCustomFieldControls {
 
   // Advanced section.
   categories: Category[];
-  addCategoryOpen: boolean;
-  onAddCategoryOpenChange: (open: boolean) => void;
-  addMediaTypeOpen: boolean;
-  onAddMediaTypeOpenChange: (open: boolean) => void;
   publishers?: Publisher[];
-  addPublisherOpen: boolean;
-  onAddPublisherOpenChange: (open: boolean) => void;
   imageFieldKey: number;
   existingImages: BookmarkImage[];
   imageCandidates: ImageCandidate[];

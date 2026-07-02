@@ -49,6 +49,10 @@ export function ImportItemAdvancedEditFields({
     handleTagToggle,
     handleLocationToggle,
     addModalState,
+    categoryCreate,
+    mediaTypeCreate,
+    publisherCreate,
+    locationCreate,
   } = state;
 
   return (
@@ -62,10 +66,7 @@ export function ImportItemAdvancedEditFields({
           placeholder="No category"
           searchPlaceholder="Search categories…"
           emptyText="No categories found."
-          createOption={{
-            label: "Create category",
-            onSelect: () => addModalState.setAddCategoryOpen(true),
-          }}
+          createOption={categoryCreate.createOption}
         />
       </div>
 
@@ -78,10 +79,7 @@ export function ImportItemAdvancedEditFields({
           placeholder="No media type"
           searchPlaceholder="Search media types…"
           emptyText="No media types found."
-          createOption={{
-            label: "Create media type",
-            onSelect: () => addModalState.setAddMediaTypeOpen(true),
-          }}
+          createOption={mediaTypeCreate.createOption}
         />
       </div>
 
@@ -104,10 +102,7 @@ export function ImportItemAdvancedEditFields({
           tree={locationTree}
           selectedIds={locationIds}
           onToggle={handleLocationToggle}
-          createOption={{
-            label: "Create location",
-            onSelect: () => addModalState.setAddLocationOpen(true),
-          }}
+          createOption={locationCreate.createOption}
         />
       </div>
 
@@ -144,10 +139,7 @@ export function ImportItemAdvancedEditFields({
           placeholder="No publisher"
           searchPlaceholder="Search publishers…"
           emptyText="No publishers found."
-          createOption={{
-            label: "Create publisher",
-            onSelect: () => addModalState.setAddPublisherOpen(true),
-          }}
+          createOption={publisherCreate.createOption}
         />
       </div>
 

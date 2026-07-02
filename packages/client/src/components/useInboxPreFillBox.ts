@@ -14,13 +14,12 @@ import { flattenTree } from "../lib/tagTree";
 
 /**
  * Loads the taxonomies the inbox pre-fill box offers as defaults, derives their combobox option
- * lists and the inbox-enabled custom properties, and owns the four inline "Add new X" modal
- * open-states. Splitting the hook-dense data layer out of `InboxPreFillBox` keeps the component thin.
+ * lists and the inbox-enabled custom properties, and owns the still-manual "Add author" modal
+ * open-state (Category/Media Type/Publisher own their inline-create via `useEntityCreateOption` in
+ * `InboxPreFillBox` itself). Splitting the hook-dense data layer out of `InboxPreFillBox` keeps the
+ * component thin.
  */
 export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
-  const [addPublisherOpen, setAddPublisherOpen] = useState(false);
   const [addAuthorOpen, setAddAuthorOpen] = useState(false);
 
   const {
@@ -68,12 +67,6 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     .filter(Boolean) as string[];
 
   return {
-    addCategoryOpen,
-    setAddCategoryOpen,
-    addMediaTypeOpen,
-    setAddMediaTypeOpen,
-    addPublisherOpen,
-    setAddPublisherOpen,
     addAuthorOpen,
     setAddAuthorOpen,
     tagTree: tagTree as TagNode[],

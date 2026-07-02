@@ -167,13 +167,7 @@ export function BookmarkForm({
           onSectionsChange={c.prefill.handleSectionsChange}
           onTextChange={c.prefill.handleTextChange}
           categories={c.categories ?? []}
-          addCategoryOpen={c.addCategoryOpen}
-          onAddCategoryOpenChange={c.setAddCategoryOpen}
-          addMediaTypeOpen={c.addMediaTypeOpen}
-          onAddMediaTypeOpenChange={c.setAddMediaTypeOpen}
           publishers={c.publishers ?? []}
-          addPublisherOpen={c.addPublisherOpen}
-          onAddPublisherOpenChange={c.setAddPublisherOpen}
           sourceDefaults={c.sourceDefaults}
           imageFieldKey={c.imageFieldKey}
           existingImages={c.bookmark?.images ?? []}

@@ -1,11 +1,10 @@
 import type { Publisher, UpdatePublisherInput } from "@eesimple/types";
 
-import { useState } from "react";
-
 import { useNavigate } from "@tanstack/react-router";
 import { Globe } from "lucide-react";
 import { z } from "zod";
 
+import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdatePublisher } from "../hooks/usePublishers";
 import { useWebsites } from "../hooks/useWebsites";
@@ -34,7 +33,6 @@ const LABELS: Partial<Record<keyof UpdatePublisherInput, string>> = {
 export function usePublisherGeneralForm(publisher: Publisher) {
   const navigate = useNavigate();
   const update = useUpdatePublisher();
-  const [addWebsiteOpen, setAddWebsiteOpen] = useState(false);
   const {
     data: websites,
   } = useWebsites();
@@ -70,6 +68,8 @@ export function usePublisherGeneralForm(publisher: Publisher) {
     },
   });
 
+  const websiteCreate = useEntityCreateOption("website", website => form.setFieldValue("websiteId", website.id));
+
   function saveName(value: string, valid: boolean): void {
     autoSave.saveField("name", value.trim(), {
       valid,
@@ -92,7 +92,6 @@ export function usePublisherGeneralForm(publisher: Publisher) {
     saveField: autoSave.saveField,
     saveName,
     websiteOptions,
-    addWebsiteOpen,
-    setAddWebsiteOpen,
+    websiteCreate,
   };
 }

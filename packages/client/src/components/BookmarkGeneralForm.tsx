@@ -27,8 +27,6 @@ export function BookmarkGeneralForm({
     fetchTitle,
     fetchMetadata,
     publishers,
-    addPublisherOpen,
-    setAddPublisherOpen,
     updateBookmark,
     websiteLookup,
     channelHintRef,
@@ -138,8 +136,6 @@ export function BookmarkGeneralForm({
       <BookmarkCategoryField
         form={form}
         categories={categories ?? []}
-        addCategoryOpen={ctrl.addCategoryOpen}
-        setAddCategoryOpen={ctrl.setAddCategoryOpen}
       />
 
       <AuthorSocialAccountOffer
@@ -155,8 +151,6 @@ export function BookmarkGeneralForm({
       <BookmarkAdvancedPublisherField
         form={form}
         publishers={publishers ?? []}
-        addPublisherOpen={addPublisherOpen}
-        onAddPublisherOpenChange={setAddPublisherOpen}
       />
 
       <BookmarkKavitaField

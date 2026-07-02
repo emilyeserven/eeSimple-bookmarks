@@ -1,7 +1,7 @@
 import type { PropertyFormApi } from "./propertyFormSchema";
 import type { CustomProperty, PropertyGroup, UpdateCustomPropertyInput } from "@eesimple/types";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { PropertyDisplaySection, propertySchema, valuesFromProperty } from "./propertyFormParts";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
@@ -66,7 +66,6 @@ export function PropertyDisplayEditForm({
   property,
   propertyGroups,
 }: PropertyDisplayEditFormProps) {
-  const [addGroupOpen, setAddGroupOpen] = useState(false);
   const updateProperty = useUpdateCustomProperty();
   const {
     saveField,
@@ -106,8 +105,6 @@ export function PropertyDisplayEditForm({
         form={form}
         idPrefix={`property-${property.id}`}
         groupOptions={groupOptions}
-        addGroupOpen={addGroupOpen}
-        setAddGroupOpen={setAddGroupOpen}
       />
       <form.Subscribe
         selector={state => ({

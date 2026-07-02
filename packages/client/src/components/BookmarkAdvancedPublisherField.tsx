@@ -1,13 +1,11 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { Publisher } from "@eesimple/types";
 
-import { AddPublisherModal } from "./AddPublisherModal";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 
 interface BookmarkAdvancedPublisherFieldProps {
   form: BookmarkFormApi;
   publishers: Publisher[];
-  addPublisherOpen: boolean;
-  onAddPublisherOpenChange: (open: boolean) => void;
 }
 
 /**
@@ -15,8 +13,10 @@ interface BookmarkAdvancedPublisherFieldProps {
  * create modal.
  */
 export function BookmarkAdvancedPublisherField({
-  form, publishers, addPublisherOpen, onAddPublisherOpenChange,
+  form, publishers,
 }: BookmarkAdvancedPublisherFieldProps) {
+  const publisherCreate = useEntityCreateOption("publisher", publisher => form.setFieldValue("publisherId", publisher.id));
+
   return (
     <>
       <form.AppField name="publisherId">
@@ -26,10 +26,7 @@ export function BookmarkAdvancedPublisherField({
             placeholder="No publisher"
             searchPlaceholder="Search publishers…"
             emptyText="No publishers found."
-            createOption={{
-              label: "Create publisher",
-              onSelect: () => onAddPublisherOpenChange(true),
-            }}
+            createOption={publisherCreate.createOption}
             options={publishers.map(p => ({
               value: p.id,
               label: p.name,
@@ -37,11 +34,7 @@ export function BookmarkAdvancedPublisherField({
           />
         )}
       </form.AppField>
-      <AddPublisherModal
-        open={addPublisherOpen}
-        onOpenChange={onAddPublisherOpenChange}
-        onCreated={publisher => form.setFieldValue("publisherId", publisher.id)}
-      />
+      {publisherCreate.modal}
     </>
   );
 }

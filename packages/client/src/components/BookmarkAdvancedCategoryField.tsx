@@ -2,8 +2,8 @@ import type { SourceDefaults } from "./BookmarkAdvancedSection";
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { Category } from "@eesimple/types";
 
-import { AddCategoryModal } from "./AddCategoryModal";
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { CategoryIcon } from "@/lib/icons";
 
@@ -12,8 +12,6 @@ interface BookmarkAdvancedCategoryFieldProps {
   lockedCategoryId?: string;
   categories: Category[];
   sourceDefaults: SourceDefaults;
-  addCategoryOpen: boolean;
-  onAddCategoryOpenChange: (open: boolean) => void;
 }
 
 /**
@@ -22,8 +20,10 @@ interface BookmarkAdvancedCategoryFieldProps {
  * checkbox shown once a category is chosen.
  */
 export function BookmarkAdvancedCategoryField({
-  form, lockedCategoryId, categories, sourceDefaults, addCategoryOpen, onAddCategoryOpenChange,
+  form, lockedCategoryId, categories, sourceDefaults,
 }: BookmarkAdvancedCategoryFieldProps) {
+  const categoryCreate = useEntityCreateOption("category", category => form.setFieldValue("categoryId", category.id));
+
   return (
     <>
       {lockedCategoryId
@@ -48,10 +48,7 @@ export function BookmarkAdvancedCategoryField({
                 placeholder="Select a category"
                 searchPlaceholder="Search categories…"
                 emptyText="No categories found."
-                createOption={{
-                  label: "Create category",
-                  onSelect: () => onAddCategoryOpenChange(true),
-                }}
+                createOption={categoryCreate.createOption}
                 options={categories.map(category => ({
                   value: category.id,
                   label: category.name,
@@ -67,11 +64,7 @@ export function BookmarkAdvancedCategoryField({
           </form.AppField>
         )}
 
-      <AddCategoryModal
-        open={addCategoryOpen}
-        onOpenChange={onAddCategoryOpenChange}
-        onCreated={category => form.setFieldValue("categoryId", category.id)}
-      />
+      {categoryCreate.modal}
 
       {/* "Set as default category for <source>" — directly under the Category combobox. */}
       {sourceDefaults.showSourceDefault && (
