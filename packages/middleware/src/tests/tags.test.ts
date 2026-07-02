@@ -3,12 +3,12 @@ import { test } from "node:test";
 import type { Tag } from "@eesimple/types";
 import {
   buildTagTree,
-  collectSubtreeIds,
   computeTagBookmarkCounts,
   matchTagIdsByTitle,
   titleMatchesTerm,
   wouldCreateCycle,
 } from "@/services/tags";
+import { collectSubtreeIds } from "@/utils/parentTree";
 
 // Pure-helper tests run without a live database, matching the `isValidUrl` style.
 

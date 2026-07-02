@@ -109,19 +109,11 @@ export function buildTagTree(all: Tag[]): TagNode[] {
 }
 
 /**
- * Resolve a tag id to the set of ids in its subtree (inclusive). Pure — operates
- * on a flat list so it can be unit-tested without a database.
- */
-export function collectSubtreeIds(all: Tag[], rootId: string): Set<string> {
-  return collectParentTreeSubtreeIds(all, rootId);
-}
-
-/**
  * Whether reparenting `id` under `newParentId` would create a cycle (the new
  * parent is the tag itself or one of its descendants). Pure helper.
  */
 export function wouldCreateCycle(all: Tag[], id: string, newParentId: string): boolean {
-  return collectSubtreeIds(all, id).has(newParentId);
+  return collectParentTreeSubtreeIds(all, id).has(newParentId);
 }
 
 export async function listTags(): Promise<Tag[]> {
