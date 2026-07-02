@@ -41,6 +41,26 @@ interface Upload {
 }
 
 /**
+ * While mounted, stop the browser from navigating to a file dropped just *outside* the dropzone.
+ * Without this, a slightly-missed drop opens the raw `file://` in the tab — silently discarding the
+ * user's unsaved image edits and looking like "drag & drop is broken". Scoped to file drags only, so
+ * it never interferes with element DnD (dnd-kit uses pointer events, not native drag with `Files`).
+ */
+function usePreventWindowFileDrop(): void {
+  useEffect(() => {
+    const guard = (event: DragEvent) => {
+      if (event.dataTransfer?.types.includes("Files")) event.preventDefault();
+    };
+    window.addEventListener("dragover", guard);
+    window.addEventListener("drop", guard);
+    return () => {
+      window.removeEventListener("dragover", guard);
+      window.removeEventListener("drop", guard);
+    };
+  }, []);
+}
+
+/**
  * Multi-image control for the bookmark form. Shows the bookmark's existing images (edit), the URL
  * scan's candidate images (e.g. every slide of an Instagram carousel), and any uploaded/dropped
  * files in one grid. The user keeps any subset and picks which kept image is the main one. It
@@ -60,6 +80,8 @@ export function BookmarkImagePicker({
   const [dragDepth, setDragDepth] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const dragActive = dragDepth > 0;
+
+  usePreventWindowFileDrop();
 
   // Keep `onChange` in a ref so the emit effect doesn't depend on the parent's callback identity.
   const onChangeRef = useRef(onChange);
@@ -157,8 +179,10 @@ export function BookmarkImagePicker({
       <div
         data-testid="image-dropzone"
         className={cn(
-          "rounded-md p-1 transition-shadow",
-          dragActive && "ring-2 ring-ring ring-offset-2 ring-offset-background",
+          "rounded-md border border-dashed p-3 transition-colors",
+          dragActive
+            ? "border-ring bg-accent/40 ring-2 ring-ring"
+            : "border-border",
         )}
         onPaste={(event) => {
           if (event.clipboardData.files.length > 0) {
@@ -219,23 +243,25 @@ export function BookmarkImagePicker({
           : (
             <div
               className="
-                flex size-28 items-center justify-center rounded-md border
-                bg-muted/30
+                flex min-h-28 flex-col items-center justify-center gap-1
+                text-center text-muted-foreground
               "
             >
               {defaultAuto
                 ? (
-                  <div
-                    className="flex flex-col items-center justify-center gap-1"
-                  >
-                    <Sparkles className="size-5 text-muted-foreground" />
-                    <span
-                      className="px-2 text-center text-xs text-muted-foreground"
-                    >Page image on save
-                    </span>
-                  </div>
+                  <>
+                    <Sparkles className="size-5" />
+                    <span className="px-2 text-xs">Page image on save</span>
+                  </>
                 )
-                : <ImagePlus className="size-6 text-muted-foreground" />}
+                : (
+                  <>
+                    <ImagePlus className="size-6" />
+                    <span className="px-2 text-xs">
+                      Drag &amp; drop images here, or use “Add image”
+                    </span>
+                  </>
+                )}
             </div>
           )}
       </div>
