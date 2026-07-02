@@ -7,6 +7,7 @@ import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { LocationAncestorsSection } from "./LocationAncestorsSection";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 import { ROOT, useLocationGeneralForm } from "./useLocationGeneralForm";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,10 @@ export function LocationGeneralForm({
     autofillWikipediaLinks, isAutofillingWikipediaLinks,
     addPlaceTypeOpen, setAddPlaceTypeOpen,
   } = useLocationGeneralForm(node);
+
+  const tagCreate = useEntityCreateOption("tag", (tag) => {
+    if (!tagIds.includes(tag.id)) saveTagIds([...tagIds, tag.id]);
+  });
 
   return (
     <div className="space-y-4">
@@ -289,11 +294,13 @@ export function LocationGeneralForm({
           placeholder="Select tags…"
           searchPlaceholder="Search tags…"
           emptyText="No tags found."
+          createOption={tagCreate.createOption}
         />
         <p className="text-xs text-muted-foreground">
           Looser mood / biome tags associated with this location.
         </p>
       </div>
+      {tagCreate.modal}
     </div>
   );
 }

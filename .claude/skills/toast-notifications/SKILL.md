@@ -32,6 +32,12 @@ The `<Toaster />` is already mounted once in `routes/-rootLayout.tsx` — don't 
    `useHomepageSections.ts`.
 2. **Reference the saved thing in the message.** Prefer "Section saved", "Homepage content saved",
    "<name> deleted" over a bare "Saved", so the log entry is self-explanatory.
+3. **Prefer toasting inside the mutation hook, not at each call site.** A hook that toasts in its
+   own `onSuccess`/`onError` makes a silent bare `.mutate()` impossible (the LinkParsingSettings
+   bug class). `useUpdateShortenerIgnoreList` / `useUpdateRedirectIgnoreList` /
+   `useUpdateCustomStripParams` and `useSetCategoryDefaults` toast internally — new settings hooks
+   should too, and existing call-site toasts migrate hookward as touched (tracked in the
+   toast-unification issue). Never both: one toast per save.
 
 ## Convert Save buttons to debounced auto-save
 

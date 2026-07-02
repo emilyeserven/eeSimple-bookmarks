@@ -5,6 +5,7 @@ import { Combobox } from "./Combobox";
 import { LocationAncestorChainEditor } from "./LocationAncestorChainEditor";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 import { ROOT, useLocationForm } from "./useLocationForm";
 
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,11 @@ export function LocationForm({
     handleSubmit,
     applyCandidate,
   } = useLocationForm(onCreated);
+
+  const placeTypeCreate = useEntityCreateOption("place-type", pt => setPlaceType(pt.slug));
+  const tagCreate = useEntityCreateOption("tag", (tag) => {
+    setTagIds(prev => (prev.includes(tag.id) ? prev : [...prev, tag.id]));
+  });
 
   return (
     <form
@@ -156,6 +162,7 @@ export function LocationForm({
             placeholder="Select a place type…"
             searchPlaceholder="Search place types…"
             emptyText="No place types found."
+            createOption={placeTypeCreate.createOption}
           />
         </div>
         <div className="space-y-1">
@@ -213,8 +220,11 @@ export function LocationForm({
           placeholder="Select tags…"
           searchPlaceholder="Search tags…"
           emptyText="No tags found."
+          createOption={tagCreate.createOption}
         />
       </div>
+      {placeTypeCreate.modal}
+      {tagCreate.modal}
 
       <Button
         type="submit"

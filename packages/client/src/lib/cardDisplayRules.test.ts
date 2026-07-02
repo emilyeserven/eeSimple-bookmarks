@@ -6,51 +6,17 @@ import { describe, expect, it } from "vitest";
 import { buildTagDescendants, defaultCardZoneLayouts, emptyCardFieldZones } from "@eesimple/types";
 
 import { bookmarkToConditionInput, inspectBookmarkRules, resolveCardDisplay } from "./cardDisplayRules";
+import { makeBookmark as makeSharedBookmark } from "../test-utils/factories";
 
-/** Build a Bookmark so tests only specify the fields that matter. */
+/** The shared Bookmark factory, pinned to the ids/url/date this suite's assertions rely on. */
 function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
-  return {
+  return makeSharedBookmark({
     id: "b1",
     url: "https://example.com/post",
-    originalUrl: null,
-    title: "Example",
-    romanizedTitle: null,
-    description: null,
-    image: null,
-    images: [],
-    screenshot: null,
-    screenshotSettings: null,
-    reelArchive: null,
-    imageAutoGrabError: null,
     categoryId: "cat-1",
-    website: null,
-    mediaType: null,
-    youtubeChannel: null,
-    newsletter: null,
-    import: null,
-    tags: [],
-    blacklistedTagIds: [],
-    numberValues: [],
-    booleanValues: [],
-    dateTimeValues: [],
-    fileValues: [],
-    choicesValues: [],
-    progressValues: [],
-    sectionsValues: [],
-    textValues: [],
-    authors: [],
-    relationships: [],
-    locations: [],
-    blacklistedLocationIds: [],
-    publisher: null,
-    kavitaSeriesId: null,
-    kavitaLibraryId: null,
-    kavitaSeriesName: null,
-    priority: 0,
     createdAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: null,
     ...overrides,
-  };
+  });
 }
 
 /** Build a CardDisplayRule with sensible (all-inherit) defaults. */

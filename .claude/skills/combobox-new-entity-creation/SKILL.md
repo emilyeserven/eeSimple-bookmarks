@@ -36,6 +36,7 @@ createOption={{
 | Author | `AddAuthorModal` | Uses `InlineCreateModal`; name only |
 | Publisher | `AddPublisherModal` | Uses `InlineCreateModal`; name only |
 | Property Group | `AddPropertyGroupModal` | Uses `InlineCreateModal`; name only |
+| Place Type | `AddPlaceTypeModal` | Uses `InlineCreateModal`; name only |
 | Website | `AddWebsiteModal` | Custom dialog — takes domain + optional name (NOT `InlineCreateModal`) |
 | YouTube Channel | `AddYouTubeChannelModal` | Custom dialog — takes channelUrl + name (NOT `InlineCreateModal`) |
 | Newsletter | `AddNewsletterModal` | Uses `InlineCreateModal`; name only |
@@ -44,7 +45,29 @@ createOption={{
 
 ## Wiring pattern
 
-The opener holds modal-open state and passes `onCreated` to select the new entity.
+**Preferred: `useEntityCreateOption`** (`components/useEntityCreateOption.tsx`) — the registry-backed
+hook owns the modal state and label, so a picker wired through it cannot lack inline create or drift
+from the entity's modal:
+
+```tsx
+const tagCreate = useEntityCreateOption("tag", tag => onToggle(tag.id));
+
+<TreeMultiCombobox
+  options={tagOptions}
+  values={tagIds}
+  onValuesChange={setTagIds}
+  createOption={tagCreate.createOption}
+/>
+{tagCreate.modal}
+```
+
+Growing the registry is one entry in `CREATABLE_ENTITY_PICKERS` (all Add-modals share the
+`open`/`onOpenChange`/`onCreated` contract). Entities not yet in the registry use the manual
+pattern below — migrate them into the registry as you touch them (tracked in the picker-migration
+issue).
+
+**Manual pattern** — the opener holds modal-open state and passes `onCreated` to select the new
+entity:
 
 ```tsx
 // 1. State (in the component that owns the combobox)
@@ -103,6 +126,11 @@ the bookmark form's five-flag example.
 ---
 
 ## Explicit exemptions (do NOT add createOption)
+
+- `MarkAsShortenerDialog` website picker — a *reassign-to-existing* flow ("which existing site
+  owns this shortener domain"), not an entity-minting context.
+- `LevelGroupEditRow` place-types picker — options are the *discovered* place-type keys present on
+  locations, not the Place Type CRUD entity; minting a row there would not add a discovered key.
 
 These comboboxes correctly omit `createOption` because they pick non-entity or non-creatable values:
 

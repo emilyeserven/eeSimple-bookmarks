@@ -36,6 +36,18 @@ export function useSetListingPage(
   const createLabel = options?.createLabel;
 
   useEffect(() => {
+    // Exactly one surface (usually the route) may register a listing page: React runs cleanups
+    // before the next registration on navigation and dep changes, so a live registration here means
+    // two components are competing and the later one clobbers the first's create/filter affordances.
+    if (import.meta.env.DEV) {
+      const live = useUiStore.getState().listingPage;
+      if (live !== null) {
+        console.warn(
+          `useSetListingPage("${key}"): "${live.key}" is already registered. Register once per `
+          + "page — usually in the route, not the manager component.",
+        );
+      }
+    }
     setListingPage({
       key,
       showsImages,

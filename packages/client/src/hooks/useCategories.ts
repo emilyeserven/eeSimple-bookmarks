@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { categoriesApi } from "../lib/api/taxonomies";
+import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { notifySuccess } from "../lib/notifications";
 
 const CATEGORIES_KEY = ["categories"] as const;
@@ -121,6 +122,8 @@ export function useSetCategoryDefaults(categoryId: string) {
       void queryClient.invalidateQueries({
         queryKey: [...CATEGORIES_KEY, categoryId, "defaults"],
       });
+      notifyFieldSaved("Default property values");
     },
+    onError: () => notifyFieldSaveError("Default property values"),
   });
 }

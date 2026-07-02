@@ -70,9 +70,12 @@ boolean knobs are the reference):
 1. **Type.** Add the optional prop to `CardFieldPlacement` (`packages/types/src/index.ts`). Document
    which fields/zones it applies to. If "absent = a non-false default" (like `showLabelColon`),
    say so.
-2. **Server schema (mirror).** Add it to the hand-listed `displayProperties.fieldZones` items in
-   `packages/middleware/src/routes/cardDisplayRules.ts` (`additionalProperties: false` rejects
-   un-listed props). No DB change — `field_zones` is jsonb.
+2. **Server schema.** Add its JSON schema to `PLACEMENT_PROP_SCHEMAS` in
+   `packages/middleware/src/routes/cardFieldZonesSchema.ts` — the map is checked exhaustive
+   against `CardFieldPlacement` via `satisfies`, so after step 1 this file **fails `tsc`** until
+   you add the entry (`additionalProperties: false` rejects un-listed props at the API). Zone
+   names derive from `CARD_FIELD_ZONES`/`CARD_BODY_ZONES` automatically. No DB change —
+   `field_zones` is jsonb.
 3. **Resolve it.** Add the field to `ResolvedFieldPlacement` and `resolveFieldPlacements()` in
    `packages/client/src/lib/bookmarkCardValues.ts` (apply the default there). Preserve it across a
    drag in `CardFieldZoneBoard.moveKey()`.

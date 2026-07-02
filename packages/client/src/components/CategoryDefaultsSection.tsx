@@ -1,6 +1,6 @@
 import type { Category } from "@eesimple/types";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
 
@@ -12,7 +12,6 @@ import {
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 interface CategoryDefaultsSectionProps {
@@ -22,6 +21,8 @@ interface CategoryDefaultsSectionProps {
 /**
  * Editor for a category's default custom-property values, applied to new bookmarks added to it.
  * Only properties assigned to this category are shown; calculate properties are computed on save.
+ * Auto-saves per the edit-tab standard: the Yes/No selects persist on change, the scalar inputs on
+ * blur (one "Default property values" section toast per save — fired by the mutation hook).
  */
 export function CategoryDefaultsSection({
   category,
@@ -53,19 +54,22 @@ export function CategoryDefaultsSection({
     ));
   }, [defaults]);
 
+  // Scalar (number/date/rating) edits mark the section dirty; the save fires when focus leaves it.
+  const dirtyRef = useRef(false);
+
   const categoryProps = (properties ?? []).filter(property =>
     propertyAppliesToCategory(property, category.id)
     && property.type !== "calculate"
     && property.allowDefault !== false);
   if (categoryProps.length === 0) return null;
 
-  function save() {
+  function persist(nextBooleanInputs: Record<string, boolean | undefined> = booleanInputs) {
     const numberValues = buildNumberValuesFromInputs(categoryProps, numberInputs);
     const booleanValues = categoryProps
       .filter(property => property.type === "boolean")
       .map(property => ({
         propertyId: property.id,
-        value: booleanInputs[property.id],
+        value: nextBooleanInputs[property.id],
       }))
       // Only persist properties given an explicit Yes/No; "No default" is left unset.
       .filter((entry): entry is { propertyId: string;
@@ -89,12 +93,18 @@ export function CategoryDefaultsSection({
       <Label>Default property values</Label>
       <p className="text-xs text-muted-foreground">
         Prefilled when you add a bookmark to this category. You can still change them per bookmark.
+        Changes save automatically.
       </p>
       <div
         className="
           grid gap-3
           sm:grid-cols-2
         "
+        onBlur={() => {
+          if (!dirtyRef.current) return;
+          dirtyRef.current = false;
+          persist();
+        }}
       >
         {categoryProps.map(property => (
           <CategoryDefaultField
@@ -104,32 +114,31 @@ export function CategoryDefaultsSection({
             numberInputs={numberInputs}
             booleanInputs={booleanInputs}
             dateTimeInputs={dateTimeInputs}
-            onNumberChange={(propertyId, value) =>
+            onNumberChange={(propertyId, value) => {
+              dirtyRef.current = true;
               setNumberInputs(current => ({
                 ...current,
                 [propertyId]: value,
-              }))}
-            onBooleanChange={(propertyId, value) =>
-              setBooleanInputs(currentInputs => ({
-                ...currentInputs,
+              }));
+            }}
+            onBooleanChange={(propertyId, value) => {
+              const next = {
+                ...booleanInputs,
                 [propertyId]: value,
-              }))}
-            onDateTimeChange={(propertyId, value) =>
+              };
+              setBooleanInputs(next);
+              persist(next);
+            }}
+            onDateTimeChange={(propertyId, value) => {
+              dirtyRef.current = true;
               setDateTimeInputs(current => ({
                 ...current,
                 [propertyId]: value,
-              }))}
+              }));
+            }}
           />
         ))}
       </div>
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        onClick={save}
-      >
-        Save defaults
-      </Button>
     </div>
   );
 }
