@@ -28,6 +28,7 @@ function makeSection(overrides: Partial<HomepageSection>): HomepageSection {
     cornerOverlays: false,
     hideWebsiteForYouTube: false,
     sort: null,
+    bookmarkLimit: null,
     createdAt: NOW,
     ...overrides,
   };

@@ -25,6 +25,7 @@ const value: SectionDisplayValue = {
   fieldZones: emptyCardFieldZones(),
   cardZoneLayouts: defaultCardZoneLayouts(),
   hideWebsiteForYouTube: false,
+  bookmarkLimit: null,
 };
 
 const meta = {

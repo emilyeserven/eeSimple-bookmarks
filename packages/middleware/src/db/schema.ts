@@ -1448,6 +1448,9 @@ export const homepageSections = pgTable("homepage_sections", {
   // Bookmark ordering for this section (matches the Listings page Sort control), or NULL for the
   // default order. Applied client-side. Nullable jsonb = push-safe additive.
   sort: jsonb("sort").$type<BookmarkSort>(),
+  // Maximum number of bookmarks to show in this section, applied client-side after sorting, or NULL
+  // for no limit. Nullable integer = push-safe additive.
+  bookmarkLimit: integer("bookmark_limit"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

@@ -16,6 +16,7 @@ const display: SectionDisplayValue = {
   fieldZones: emptyCardFieldZones(),
   cardZoneLayouts: defaultCardZoneLayouts(),
   hideWebsiteForYouTube: false,
+  bookmarkLimit: null,
 };
 
 const conditions: ConditionTree = emptyConditionTree();

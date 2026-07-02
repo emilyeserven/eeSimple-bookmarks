@@ -37,6 +37,7 @@ export function HomepageSectionView({
     fieldZones: section.fieldZones ?? defaultZones ?? defaultCardFieldZones(properties ?? []),
     cardZoneLayouts: section.cardZoneLayouts ?? defaultCardZoneLayouts(),
     hideWebsiteForYouTube: section.hideWebsiteForYouTube,
+    bookmarkLimit: section.bookmarkLimit,
   };
 
   return (
