@@ -5,8 +5,10 @@ import type {
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   CustomProperty,
+  CustomPropertyType,
   SectionEntry,
 } from "@eesimple/types";
+import type { ReactElement } from "react";
 
 import { useEffect } from "react";
 
@@ -141,110 +143,164 @@ interface CategoryPropertyFieldProps extends CustomPropertyInputBundle {
   bookmark: Bookmark | null;
 }
 
-/** Renders the single input appropriate to one custom property's type. */
-function CategoryPropertyField({
-  property, bookmark, numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs,
-  sectionsInputs, textInputs, onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange,
-  onProgressChange, onSectionsChange, onTextChange, onIsbnFetch, isIsbnFetchPending,
-  onSectionsImport, isSectionsImportPending,
+function NumberField({
+  property, numberInputs, onNumberChange,
 }: CategoryPropertyFieldProps) {
-  const fieldId = `property-${property.id}`;
+  return (
+    <NumberPropertyField
+      property={property}
+      fieldId={`property-${property.id}`}
+      value={numberInputs[property.id] ?? ""}
+      onChange={value => onNumberChange(property.id, value)}
+    />
+  );
+}
 
-  switch (property.type) {
-    case "number":
-      return (
-        <NumberPropertyField
-          property={property}
-          fieldId={fieldId}
-          value={numberInputs[property.id] ?? ""}
-          onChange={value => onNumberChange(property.id, value)}
-        />
-      );
-    case "boolean":
-      return (
-        <BooleanPropertyField
-          property={property}
-          fieldId={fieldId}
-          checked={booleanInputs[property.id] ?? false}
-          onChange={value => onBooleanChange(property.id, value)}
-        />
-      );
-    case "datetime":
-      return (
-        <DateTimePropertyField
-          property={property}
-          fieldId={fieldId}
-          value={dateTimeInputs[property.id] ?? null}
-          onChange={value => onDateTimeChange(property.id, value)}
-        />
-      );
-    case "ratingScale":
-      return (
-        <RatingScalePropertyField
-          property={property}
-          raw={numberInputs[property.id]}
-          onChange={value => onNumberChange(property.id, value)}
-        />
-      );
-    case "image":
-    case "file":
-      return (
-        <CategoryPropertyFileField
-          property={property}
-          bookmark={bookmark}
-        />
-      );
-    case "choices":
-      return (
-        <ChoicesPropertyField
-          property={property}
-          selectedValues={choicesInputs[property.id] ?? []}
-          onChange={values => onChoicesChange(property.id, values)}
-        />
-      );
-    case "itemInItems":
-      return (
-        <ItemInItemsPropertyField
-          property={property}
-          progress={progressInputs[property.id]}
-          onChange={(field, value) => onProgressChange(property.id, field, value)}
-        />
-      );
-    case "sections":
-      return (
-        <SectionsPropertyField
-          property={property}
-          value={sectionsInputs[property.id] ?? {
-            exhaustive: false,
-            sections: [],
-          }}
-          onChange={value => onSectionsChange(property.id, value)}
-          onImport={property.slug === PAGE_SECTIONS_SLUG && onSectionsImport
-            ? () => onSectionsImport(property.id)
-            : undefined}
-          isImportPending={property.slug === PAGE_SECTIONS_SLUG ? isSectionsImportPending : undefined}
-        />
-      );
-    case "text":
-      return (
-        <TextPropertyField
-          property={property}
-          fieldId={fieldId}
-          value={textInputs[property.id] ?? ""}
-          onChange={value => onTextChange(property.id, value)}
-          onFetch={property.slug === ISBN_SLUG ? onIsbnFetch : undefined}
-          isFetchPending={property.slug === ISBN_SLUG ? isIsbnFetchPending : undefined}
-        />
-      );
-    default:
-      // calculate: computed server-side; shown read-only so the user knows it exists.
-      return (
-        <div className="space-y-1">
-          <Label>{property.name}</Label>
-          <p className="text-xs text-muted-foreground">Calculated automatically when saved.</p>
-        </div>
-      );
-  }
+function BooleanField({
+  property, booleanInputs, onBooleanChange,
+}: CategoryPropertyFieldProps) {
+  return (
+    <BooleanPropertyField
+      property={property}
+      fieldId={`property-${property.id}`}
+      checked={booleanInputs[property.id] ?? false}
+      onChange={value => onBooleanChange(property.id, value)}
+    />
+  );
+}
+
+function DateTimeField({
+  property, dateTimeInputs, onDateTimeChange,
+}: CategoryPropertyFieldProps) {
+  return (
+    <DateTimePropertyField
+      property={property}
+      fieldId={`property-${property.id}`}
+      value={dateTimeInputs[property.id] ?? null}
+      onChange={value => onDateTimeChange(property.id, value)}
+    />
+  );
+}
+
+function RatingScaleField({
+  property, numberInputs, onNumberChange,
+}: CategoryPropertyFieldProps) {
+  return (
+    <RatingScalePropertyField
+      property={property}
+      raw={numberInputs[property.id]}
+      onChange={value => onNumberChange(property.id, value)}
+    />
+  );
+}
+
+function FileField({
+  property, bookmark,
+}: CategoryPropertyFieldProps) {
+  return (
+    <CategoryPropertyFileField
+      property={property}
+      bookmark={bookmark}
+    />
+  );
+}
+
+function ChoicesField({
+  property, choicesInputs, onChoicesChange,
+}: CategoryPropertyFieldProps) {
+  return (
+    <ChoicesPropertyField
+      property={property}
+      selectedValues={choicesInputs[property.id] ?? []}
+      onChange={values => onChoicesChange(property.id, values)}
+    />
+  );
+}
+
+function ItemInItemsField({
+  property, progressInputs, onProgressChange,
+}: CategoryPropertyFieldProps) {
+  return (
+    <ItemInItemsPropertyField
+      property={property}
+      progress={progressInputs[property.id]}
+      onChange={(field, value) => onProgressChange(property.id, field, value)}
+    />
+  );
+}
+
+function SectionsField({
+  property, sectionsInputs, onSectionsChange, onSectionsImport, isSectionsImportPending,
+}: CategoryPropertyFieldProps) {
+  return (
+    <SectionsPropertyField
+      property={property}
+      value={sectionsInputs[property.id] ?? {
+        exhaustive: false,
+        sections: [],
+      }}
+      onChange={value => onSectionsChange(property.id, value)}
+      onImport={property.slug === PAGE_SECTIONS_SLUG && onSectionsImport
+        ? () => onSectionsImport(property.id)
+        : undefined}
+      isImportPending={property.slug === PAGE_SECTIONS_SLUG ? isSectionsImportPending : undefined}
+    />
+  );
+}
+
+function TextField({
+  property, textInputs, onTextChange, onIsbnFetch, isIsbnFetchPending,
+}: CategoryPropertyFieldProps) {
+  return (
+    <TextPropertyField
+      property={property}
+      fieldId={`property-${property.id}`}
+      value={textInputs[property.id] ?? ""}
+      onChange={value => onTextChange(property.id, value)}
+      onFetch={property.slug === ISBN_SLUG ? onIsbnFetch : undefined}
+      isFetchPending={property.slug === ISBN_SLUG ? isIsbnFetchPending : undefined}
+    />
+  );
+}
+
+/** calculate: computed server-side; shown read-only so the user knows it exists. */
+function CalculatedField({
+  property,
+}: CategoryPropertyFieldProps) {
+  return (
+    <div className="space-y-1">
+      <Label>{property.name}</Label>
+      <p className="text-xs text-muted-foreground">Calculated automatically when saved.</p>
+    </div>
+  );
+}
+
+/**
+ * Per-type field renderer, exhaustive over {@link CustomPropertyType} so a new property type
+ * missing an input fails `tsc` instead of silently rendering nothing (the `PropertyDetail`
+ * `OPTIONS_FIELDS` technique).
+ */
+const PROPERTY_FIELD_RENDERERS: Record<
+  CustomPropertyType,
+  (props: CategoryPropertyFieldProps) => ReactElement
+> = {
+  number: NumberField,
+  boolean: BooleanField,
+  calculate: CalculatedField,
+  datetime: DateTimeField,
+  ratingScale: RatingScaleField,
+  image: FileField,
+  file: FileField,
+  choices: ChoicesField,
+  itemInItems: ItemInItemsField,
+  sections: SectionsField,
+  text: TextField,
+};
+
+/** Renders the single input appropriate to one custom property's type. */
+function CategoryPropertyField(props: CategoryPropertyFieldProps) {
+  const Renderer = PROPERTY_FIELD_RENDERERS[props.property.type];
+  return <Renderer {...props} />;
 }
 
 interface CategoryDefaultsApplierProps {
