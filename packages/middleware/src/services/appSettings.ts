@@ -117,6 +117,10 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   mapPinScale: MAP_PIN_SCALE_DEFAULT,
+  screenshotDefaultDelayMs: 0,
+  screenshotDefaultWidth: 1280,
+  screenshotDefaultHeight: 720,
+  screenshotDefaultScrollDistance: 0,
 };
 
 /** Coerce a stored width string to the typed union, defaulting to "full". */
@@ -165,6 +169,17 @@ function asMinAreaThreshold(value: number | null | undefined): number {
 function asMapPinScale(value: number | null | undefined): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return MAP_PIN_SCALE_DEFAULT;
   return Math.min(MAP_PIN_SCALE_MAX, Math.max(MAP_PIN_SCALE_MIN, value));
+}
+
+/** Clamp a stored screenshot-default numeric field to an integer within [min, max]. */
+function asScreenshotDefault(
+  value: number | null | undefined,
+  fallback: number,
+  min: number,
+  max: number,
+): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(value)));
 }
 
 /** Coerce breakpoints to a deduped, sorted array of positive integers. */
@@ -1028,6 +1043,10 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       minAreaPinThresholdKm2: appSettings.minAreaPinThresholdKm2,
       bookmarksPerPage: appSettings.bookmarksPerPage,
       mapPinScale: appSettings.mapPinScale,
+      screenshotDefaultDelayMs: appSettings.screenshotDefaultDelayMs,
+      screenshotDefaultWidth: appSettings.screenshotDefaultWidth,
+      screenshotDefaultHeight: appSettings.screenshotDefaultHeight,
+      screenshotDefaultScrollDistance: appSettings.screenshotDefaultScrollDistance,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -1049,6 +1068,15 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     minAreaPinThresholdKm2: asMinAreaThreshold(row.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(row.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
     mapPinScale: asMapPinScale(row.mapPinScale),
+    screenshotDefaultDelayMs: asScreenshotDefault(row.screenshotDefaultDelayMs, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultDelayMs, 0, 30000),
+    screenshotDefaultWidth: asScreenshotDefault(row.screenshotDefaultWidth, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultWidth, 200, 3840),
+    screenshotDefaultHeight: asScreenshotDefault(row.screenshotDefaultHeight, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultHeight, 200, 2160),
+    screenshotDefaultScrollDistance: asScreenshotDefault(
+      row.screenshotDefaultScrollDistance,
+      DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultScrollDistance,
+      0,
+      10000,
+    ),
   };
 }
 
@@ -1309,6 +1337,15 @@ export async function updateDisplayPreferenceSettings(
     minAreaPinThresholdKm2: asMinAreaThreshold(input.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(input.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
     mapPinScale: asMapPinScale(input.mapPinScale),
+    screenshotDefaultDelayMs: asScreenshotDefault(input.screenshotDefaultDelayMs, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultDelayMs, 0, 30000),
+    screenshotDefaultWidth: asScreenshotDefault(input.screenshotDefaultWidth, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultWidth, 200, 3840),
+    screenshotDefaultHeight: asScreenshotDefault(input.screenshotDefaultHeight, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultHeight, 200, 2160),
+    screenshotDefaultScrollDistance: asScreenshotDefault(
+      input.screenshotDefaultScrollDistance,
+      DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultScrollDistance,
+      0,
+      10000,
+    ),
   };
   await db
     .insert(appSettings)

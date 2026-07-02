@@ -305,6 +305,10 @@ const displayPreferenceBody = {
     "minAreaPinThresholdKm2",
     "bookmarksPerPage",
     "mapPinScale",
+    "screenshotDefaultDelayMs",
+    "screenshotDefaultWidth",
+    "screenshotDefaultHeight",
+    "screenshotDefaultScrollDistance",
   ],
   additionalProperties: false,
   properties: {
@@ -381,6 +385,26 @@ const displayPreferenceBody = {
       type: "number",
       minimum: 0.5,
       maximum: 2,
+    },
+    screenshotDefaultDelayMs: {
+      type: "integer",
+      minimum: 0,
+      maximum: 30000,
+    },
+    screenshotDefaultWidth: {
+      type: "integer",
+      minimum: 200,
+      maximum: 3840,
+    },
+    screenshotDefaultHeight: {
+      type: "integer",
+      minimum: 200,
+      maximum: 2160,
+    },
+    screenshotDefaultScrollDistance: {
+      type: "integer",
+      minimum: 0,
+      maximum: 10000,
     },
   },
 } as const;

@@ -14,6 +14,10 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Display",
   },
   {
+    to: "/settings/media",
+    label: "Media",
+  },
+  {
     to: "/settings/automations",
     label: "Automations",
   },

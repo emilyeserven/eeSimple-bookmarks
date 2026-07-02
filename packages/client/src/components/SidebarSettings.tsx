@@ -48,6 +48,10 @@ const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,
   mapPinScale: 1,
+  screenshotDefaultDelayMs: 0,
+  screenshotDefaultWidth: 1280,
+  screenshotDefaultHeight: 720,
+  screenshotDefaultScrollDistance: 0,
 };
 
 const AUTOMATION_DEFAULTS: AutomationSettings = {

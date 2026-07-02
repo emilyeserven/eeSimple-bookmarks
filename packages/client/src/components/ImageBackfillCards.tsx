@@ -85,7 +85,7 @@ export function BookmarkImageBackfillCard() {
           on the
           {" "}
           <Link
-            to="/settings/advanced/manage-media"
+            to="/settings/media/manage"
             className="underline underline-offset-2"
           >
             Manage Media

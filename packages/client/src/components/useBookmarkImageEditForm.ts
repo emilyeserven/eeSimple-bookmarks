@@ -1,11 +1,12 @@
 import type { ImageIntent } from "./bookmarkImageIntent";
 import type { Bookmark, ImageCandidate } from "@eesimple/types";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ISBN_SLUG } from "./bookmarkFormSchema";
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { applyImageIntent } from "./bookmarkSubmit";
+import { useDisplayPreferenceSettings } from "../hooks/useAppSettings";
 import {
   useAddBookmarkImage,
   useAutoBookmarkImage,
@@ -116,6 +117,9 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
   const deleteImageById = useDeleteBookmarkImageById();
   const takeScreenshot = useTakeBookmarkScreenshot();
   const deleteScreenshot = useDeleteBookmarkScreenshot();
+  const {
+    data: displayPreferences,
+  } = useDisplayPreferenceSettings();
 
   const imageIntentRef = useRef<ImageIntent>(EMPTY_IMAGE_INTENT);
   const [imageFieldKey, setImageFieldKey] = useState(0);
@@ -131,6 +135,18 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     savedSettings?.height ?? SCREENSHOT_SIZE_PRESETS[0].height,
   );
   const [screenshotScrollDistance, setScreenshotScrollDistance] = useState(savedSettings?.scrollDistance ?? 0);
+
+  // Apply the Settings → Media → Screenshot Defaults once they load, but only before the user has
+  // touched a control (a ref, not state, so applying the defaults doesn't itself trigger a re-sync).
+  const screenshotDefaultsAppliedRef = useRef(false);
+  useEffect(() => {
+    if (screenshotDefaultsAppliedRef.current || !displayPreferences) return;
+    screenshotDefaultsAppliedRef.current = true;
+    setScreenshotDelayMs(displayPreferences.screenshotDefaultDelayMs);
+    setScreenshotWidth(displayPreferences.screenshotDefaultWidth);
+    setScreenshotHeight(displayPreferences.screenshotDefaultHeight);
+    setScreenshotScrollDistance(displayPreferences.screenshotDefaultScrollDistance);
+  }, [displayPreferences]);
 
   async function handleFindImages(): Promise<void> {
     if (!bookmark.url) return;
@@ -202,15 +218,22 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     },
     onSubmit: event => void handleSubmit(event),
     screenshotDelayMs,
-    setScreenshotDelayMs,
+    setScreenshotDelayMs: (ms) => {
+      screenshotDefaultsAppliedRef.current = true;
+      setScreenshotDelayMs(ms);
+    },
     screenshotWidth,
     screenshotHeight,
     setScreenshotSize: (width, height) => {
+      screenshotDefaultsAppliedRef.current = true;
       setScreenshotWidth(width);
       setScreenshotHeight(height);
     },
     screenshotScrollDistance,
-    setScreenshotScrollDistance,
+    setScreenshotScrollDistance: (px) => {
+      screenshotDefaultsAppliedRef.current = true;
+      setScreenshotScrollDistance(px);
+    },
     takeScreenshotPending: takeScreenshot.isPending,
     deleteScreenshotPending: deleteScreenshot.isPending,
     onTakeScreenshot: () => void takeScreenshot.mutateAsync({
