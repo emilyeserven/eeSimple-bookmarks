@@ -11,7 +11,7 @@ import type {
 import { useEffect } from "react";
 
 import { selectVisibleFormProperties } from "./bookmarkFormProperties";
-import { DATE_POSTED_SLUG, ISBN_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
+import { DATE_POSTED_SLUG, ISBN_SLUG, PAGE_SECTIONS_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
 import {
   BooleanPropertyField,
   CategoryPropertyFileField,
@@ -44,6 +44,9 @@ interface CustomPropertyInputBundle extends CustomPropertyInputs {
   /** Called when the user clicks "Fetch metadata" on the ISBN field. */
   onIsbnFetch?: (isbn: string) => void;
   isIsbnFetchPending?: boolean;
+  /** Called when the user clicks "Import from Kavita" on the Page Sections field. */
+  onSectionsImport?: (propertyId: string) => void;
+  isSectionsImportPending?: boolean;
 }
 
 interface CategoryCustomFieldsProps extends CustomPropertyInputBundle {
@@ -143,6 +146,7 @@ function CategoryPropertyField({
   property, bookmark, numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs,
   sectionsInputs, textInputs, onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange,
   onProgressChange, onSectionsChange, onTextChange, onIsbnFetch, isIsbnFetchPending,
+  onSectionsImport, isSectionsImportPending,
 }: CategoryPropertyFieldProps) {
   const fieldId = `property-${property.id}`;
 
@@ -215,6 +219,10 @@ function CategoryPropertyField({
             sections: [],
           }}
           onChange={value => onSectionsChange(property.id, value)}
+          onImport={property.slug === PAGE_SECTIONS_SLUG && onSectionsImport
+            ? () => onSectionsImport(property.id)
+            : undefined}
+          isImportPending={property.slug === PAGE_SECTIONS_SLUG ? isSectionsImportPending : undefined}
         />
       );
     case "text":

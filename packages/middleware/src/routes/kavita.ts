@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { fetchKavitaSeriesCover, kavitaEnabledAsync, searchKavitaSeries } from "@/services/kavita";
+import { fetchKavitaSeriesCover, fetchKavitaToc, kavitaEnabledAsync, searchKavitaSeries } from "@/services/kavita";
 import { processImage } from "@/utils/image";
 
 const seriesQuery = {
@@ -21,6 +21,18 @@ const seriesCoverParams = {
   properties: {
     seriesId: {
       type: "integer",
+    },
+  },
+} as const;
+
+const tocQuery = {
+  type: "object",
+  required: ["seriesId"],
+  additionalProperties: false,
+  properties: {
+    seriesId: {
+      type: "integer",
+      minimum: 1,
     },
   },
 } as const;
@@ -78,5 +90,35 @@ export async function kavitaRoutes(app: FastifyInstance): Promise<void> {
     reply.header("Content-Type", processed.contentType);
     reply.header("Cache-Control", "public, max-age=3600");
     return reply.send(processed.body);
+  });
+
+  // Table of contents for a series' book file. EPUB via Kavita's book API; PDF by downloading the
+  // file and parsing its embedded outline server-side. `entries: []` = the book has no ToC.
+  app.get("/api/kavita/toc", {
+    schema: {
+      tags: ["connectors"],
+      querystring: tocQuery,
+    },
+  }, async (req, reply) => {
+    if (!(await kavitaEnabledAsync())) {
+      return reply.code(503).send({
+        message: "Kavita is not configured",
+      });
+    }
+    const {
+      seriesId,
+    } = req.query as { seriesId: number };
+    const outcome = await fetchKavitaToc(seriesId);
+    if (outcome.status === "no_chapter") {
+      return reply.code(404).send({
+        message: "No EPUB or PDF file found for this series",
+      });
+    }
+    if (outcome.status === "unavailable") {
+      return reply.code(502).send({
+        message: "Could not read the table of contents from Kavita",
+      });
+    }
+    return outcome.result;
   });
 }

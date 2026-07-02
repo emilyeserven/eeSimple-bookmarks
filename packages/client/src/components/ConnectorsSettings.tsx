@@ -455,7 +455,7 @@ export function ConnectorsSettings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <KavitaForm />
-            <Provides items={["Link bookmarks to a Kavita series", "View on Kavita link-out", "Series cover import"]} />
+            <Provides items={["Link bookmarks to a Kavita series", "View on Kavita link-out", "Series cover import", "Table of contents import"]} />
           </CardContent>
         </Card>
       ),

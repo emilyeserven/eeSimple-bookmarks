@@ -6,54 +6,12 @@ import {
   resetKavitaAuthCache,
   searchKavitaSeries,
 } from "@/services/kavita";
-
-const ENV_KEYS = ["KAVITA_ENDPOINT", "KAVITA_API_KEY"];
+import { clearKavitaEnv, configureKavitaEnv as configure, stubFetchSequence } from "@/tests/kavitaTestUtils";
 
 afterEach(() => {
-  for (const k of ENV_KEYS) delete process.env[k];
+  clearKavitaEnv();
   resetKavitaAuthCache();
 });
-
-function configure(): void {
-  process.env.KAVITA_ENDPOINT = "http://kavita:5000";
-  process.env.KAVITA_API_KEY = "secret-key";
-}
-
-interface RecordedRequest {
-  url: string;
-  init?: RequestInit;
-}
-
-/**
- * Stub `global.fetch` to answer each call from a queue of responses (the last one repeats), while
- * recording every request. Returns the recorded requests and a restore fn.
- */
-function stubFetchSequence(
-  responses: { status: number;
-    body?: string | ArrayBuffer; }[],
-): { requests: RecordedRequest[];
-  restore: () => void; } {
-  const original = global.fetch;
-  const requests: RecordedRequest[] = [];
-  let index = 0;
-  global.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
-    requests.push({
-      url: String(input),
-      init,
-    });
-    const spec = responses[Math.min(index, responses.length - 1)];
-    index += 1;
-    return new Response(spec.body ?? null, {
-      status: spec.status,
-    });
-  }) as typeof global.fetch;
-  return {
-    requests,
-    restore: () => {
-      global.fetch = original;
-    },
-  };
-}
 
 const SEARCH_BODY = JSON.stringify({
   series: [

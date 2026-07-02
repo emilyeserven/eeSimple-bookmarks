@@ -37,6 +37,9 @@ export function BookmarkPropertiesForm({
     handleProgressChange,
     handleSectionsChange,
     handleTextChange,
+    canImportSections,
+    handleSectionsImport,
+    isSectionsImportPending,
     handleSubmit,
     runtimeProp,
     datePostedProp,
@@ -96,6 +99,10 @@ export function BookmarkPropertiesForm({
     onProgressChange: handleProgressChange,
     onSectionsChange: handleSectionsChange,
     onTextChange: handleTextChange,
+    // The Page Sections ToC import — offered only when the Kavita connector is enabled and the
+    // bookmark is linked to a series (the field itself additionally slug-gates the button).
+    onSectionsImport: canImportSections ? (propertyId: string) => void handleSectionsImport(propertyId) : undefined,
+    isSectionsImportPending,
   };
 
   return (
