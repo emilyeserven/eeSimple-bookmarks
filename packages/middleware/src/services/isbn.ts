@@ -13,7 +13,7 @@ import { db } from "@/db";
 import { bookmarkTextValues, customProperties } from "@/db/schema";
 import { addBookmarkImage, type SetImageResult } from "@/services/bookmarkImages";
 import { ISBN_SLUG } from "@/services/customProperties";
-import { kavitaEnabledAsync, kavitaSeriesCoverUrl, searchKavitaByIsbn, searchKavitaSeries } from "@/services/kavita";
+import { kavitaEnabledAsync, kavitaSeriesCoverUrl, searchKavitaByIsbn } from "@/services/kavita";
 import { downloadImage, isPublicHttpUrl } from "@/services/metadata";
 
 const ISBN_TIMEOUT_MS = 10_000;
