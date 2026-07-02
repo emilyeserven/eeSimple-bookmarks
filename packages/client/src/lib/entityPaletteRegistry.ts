@@ -97,6 +97,14 @@ export interface EntityPaletteConfig {
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
+/** Hoisted so `entities/publisher.ts`'s `EntityDescriptor` can reference this entry by identity. */
+export const PUBLISHER_PALETTE: EntityPaletteConfig = {
+  queryKey: ["publishers"],
+  listFn: () => publishersApi.list(),
+  updateFn: (id, patch) => publishersApi.update(id, patch as UpdatePublisherInput),
+  extraInvalidateKeys: [BOOKMARKS_KEY],
+};
+
 /**
  * One entry per slug-routed entity kind. Exhaustive over `EntityRouteKind`, so adding an entity to
  * `ENTITY_ROUTES` without registering its data layer here fails `tsc` (see the
@@ -212,12 +220,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
     updateFn: (id, patch) => authorsApi.update(id, patch as UpdateAuthorInput),
     extraInvalidateKeys: [BOOKMARKS_KEY],
   },
-  "publisher": {
-    queryKey: ["publishers"],
-    listFn: () => publishersApi.list(),
-    updateFn: (id, patch) => publishersApi.update(id, patch as UpdatePublisherInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-  },
+  "publisher": PUBLISHER_PALETTE,
   "property-group": {
     queryKey: ["property-groups"],
     listFn: () => propertyGroupsApi.list(),
