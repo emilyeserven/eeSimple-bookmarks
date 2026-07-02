@@ -210,7 +210,7 @@ test("fetchYouTubeMetadata uses the Data API for duration/date when YOUTUBE_API_
 
 // --- fetchChannelAvatarUrlViaApi: Tier 2 channel-avatar lookup ---
 
-test("fetchChannelAvatarUrlViaApi returns null when YOUTUBE_API_KEY is unset", async () => {
+test("fetchChannelAvatarUrlViaApi returns null when no YouTube API key is configured", async () => {
   assert.equal(await fetchChannelAvatarUrlViaApi("@veritasium"), null);
 });
 

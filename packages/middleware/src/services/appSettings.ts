@@ -1065,6 +1065,7 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
       archiveBoxEndpoint: appSettings.archiveBoxEndpoint,
       kavitaEndpoint: appSettings.kavitaEndpoint,
       kavitaApiKey: appSettings.kavitaApiKey,
+      youtubeApiKey: appSettings.youtubeApiKey,
       imageUrlBlacklist: appSettings.imageUrlBlacklist,
     })
     .from(appSettings)
@@ -1081,6 +1082,7 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
     archiveBoxEndpoint: row?.archiveBoxEndpoint ?? process.env.ARCHIVEBOX_ENDPOINT ?? "",
     kavitaEndpoint: row?.kavitaEndpoint ?? process.env.KAVITA_ENDPOINT ?? "",
     kavitaApiKeySet: Boolean(row?.kavitaApiKey) || Boolean(process.env.KAVITA_API_KEY),
+    youtubeApiKeySet: Boolean(row?.youtubeApiKey) || Boolean(process.env.YOUTUBE_API_KEY),
     imageUrlBlacklist: row?.imageUrlBlacklist ?? [],
   };
 }
@@ -1224,6 +1226,29 @@ export async function getDecryptedKavitaApiKey(): Promise<string | null> {
   return process.env.KAVITA_API_KEY ?? null;
 }
 
+/**
+ * Retrieve the decrypted YouTube Data API v3 key. Checks the database first (decrypting if
+ * encrypted), then falls back to the `YOUTUBE_API_KEY` env var.
+ */
+export async function getDecryptedYoutubeApiKey(): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select({
+        youtubeApiKey: appSettings.youtubeApiKey,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    if (row?.youtubeApiKey) {
+      const decrypted = maybeDecrypt(row.youtubeApiKey);
+      if (decrypted) return decrypted;
+    }
+  }
+  catch {
+    // DB unavailable (e.g. test environment) — fall through to env var.
+  }
+  return process.env.YOUTUBE_API_KEY ?? null;
+}
+
 /** Replace the hosted-metadata connector settings, upserting the singleton. */
 export async function updateConnectorsSettings(
   input: UpdateConnectorsSettingsInput,
@@ -1246,6 +1271,11 @@ export async function updateConnectorsSettings(
   if (input.kavitaApiKey !== null) {
     set.kavitaApiKey = input.kavitaApiKey.trim()
       ? maybeEncrypt(input.kavitaApiKey.trim())
+      : null;
+  }
+  if (input.youtubeApiKey !== null) {
+    set.youtubeApiKey = input.youtubeApiKey.trim()
+      ? maybeEncrypt(input.youtubeApiKey.trim())
       : null;
   }
   await db

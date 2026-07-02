@@ -458,14 +458,20 @@ configuration are explicitly opt-in (Tier 2, below).
   image/icon URL passes `isPublicHttpUrl` before fetch.
 - **ISBN has a keyless fallback chain.** `services/isbn.ts` tries Open Library, then Google Books;
   the route maps the discriminated outcome to 200 / 404 (not found) / 502 (providers unreachable).
-- **Tier 2 providers are env-gated and default off.** `services/hostedMetadata.ts`
+- **Tier 2 providers are gated (DB value or env var) and default off.** `services/hostedMetadata.ts`
   (`HOSTED_METADATA_ENDPOINT`/`_API_KEY`/`_PROVIDER`, Microlink-compatible) and the YouTube Data API
-  path in `services/youtube.ts` (`YOUTUBE_API_KEY`) are **active iff their env vars are set** — mirror
-  `docsEnabled()` / `isObjectStoreConfigured()`. Both **fall back to the keyless path** when
-  unconfigured, so behavior is identical out of the box and nothing leaves the box unless an operator
-  opts in. Keys are secrets → **env vars only, never the unauthenticated `app_settings` API.**
-  `GET /api/connectors` (`routes/connectors.ts`) reports their on/off status (no secrets) for the
-  **Settings → Connectors** page (`components/ConnectorsSettings.tsx`).
+  path in `services/youtube.ts` (`youtubeApiEnabledAsync`, key from Settings → Connectors or
+  `YOUTUBE_API_KEY`) are **active iff a key resolves** — mirror `docsEnabled()` /
+  `isObjectStoreConfigured()`. Both **fall back to the keyless path** when unconfigured, so behavior
+  is identical out of the box and nothing leaves the box unless an operator opts in. Keys are secrets
+  → set via env var, or via **Settings → Connectors**, where they're stored **encrypted at rest**
+  when `APP_SECRET` is configured (`getDecryptedHostedApiKey` / `getDecryptedYoutubeApiKey` in
+  `services/appSettings.ts`; DB value wins over the env var) — the same pattern as the Kavita
+  connector. `GET /api/connectors` (`routes/connectors.ts`) reports their on/off status (no secrets);
+  `GET`/`PUT /api/app-settings/connectors` is the authenticated pair that reads/writes the keys
+  themselves (never the raw value on GET — only a `*ApiKeySet` boolean). Both are surfaced on the
+  **Settings → Connectors** page (`components/ConnectorsSettings.tsx`,
+  `components/ConnectorMetadataForms.tsx`).
 
 ## Generated files (do not edit)
 
@@ -555,7 +561,7 @@ readiness uses `DB_WAIT_TIMEOUT_MS`).
 | `HOSTED_METADATA_ENDPOINT` | middleware / gateway | **Optional, default off.** Tier 2 hosted metadata provider — a Microlink-compatible API endpoint (e.g. `https://api.microlink.io/`, or a self-hosted Microlink). When set, hard pages (JS-rendered, bot-protected) are resolved by the hosted service and merged over the direct scrape; when unset the pipeline behaves identically (direct scrape only). Setting it is what sends URLs off-box — privacy-preserving by default. Surfaced on Settings → Connectors. |
 | `HOSTED_METADATA_API_KEY` | middleware / gateway | Optional API key for the hosted metadata provider, sent as the `x-api-key` header. |
 | `HOSTED_METADATA_PROVIDER` | middleware / gateway | Optional provider label (e.g. `microlink`) shown on the Connectors settings page; does not affect behavior. |
-| `YOUTUBE_API_KEY` | middleware / gateway | **Optional, default off.** Tier 2 — when set, a YouTube video's duration/publish-date/description come from the YouTube Data API v3 (`videos.list`) instead of the brittle `ytInitialPlayerResponse` watch-page scrape, and a YouTube channel's avatar comes from `channels.list`'s thumbnail instead of scraping the channel page's `og:image` (`fetchChannelAvatarUrlViaApi` in `services/youtube.ts`, used by `services/youtubeChannelImages.ts`) — YouTube increasingly 403s non-browser requests to channel pages, so the scrape alone is unreliable; unset falls back to the scrape. Video title/thumbnail/channel-name stay on keyless oEmbed either way. |
+| `YOUTUBE_API_KEY` | middleware / gateway | **Optional, default off.** Tier 2 — when a key resolves, a YouTube video's duration/publish-date/description come from the YouTube Data API v3 (`videos.list`) instead of the brittle `ytInitialPlayerResponse` watch-page scrape, and a YouTube channel's avatar comes from `channels.list`'s thumbnail instead of scraping the channel page's `og:image` (`fetchChannelAvatarUrlViaApi` in `services/youtube.ts`, used by `services/youtubeChannelImages.ts`) — YouTube increasingly 403s non-browser requests to channel pages, so the scrape alone is unreliable; unset falls back to the scrape. Video title/thumbnail/channel-name stay on keyless oEmbed either way. Surfaced on Settings → Connectors with a link to the Google Cloud Console to create a key. Secret — set via env var, or via Settings → Connectors where it's stored encrypted at rest when `APP_SECRET` is set (the `hostedMetadataApiKey`/Kavita pattern; DB value wins over the env var). |
 | `INSTAGRAM_API_KEY` | middleware / gateway | **Optional, default off.** Tier 2 — when set (with `INSTAGRAM_API_ENDPOINT`), an Instagram account's avatar/profile data come from a third-party profile API instead of the keyless public-embed scrape; unset (or on failure) falls back to the keyless scrape, so behavior is identical out of the box. Powers pulling an author's image from a connected Instagram account. Surfaced on Settings → Connectors. Keys are secrets → env vars only. |
 | `INSTAGRAM_API_ENDPOINT` | middleware / gateway | Optional URL template for the Instagram profile API, with a `{handle}` placeholder (e.g. `https://provider.example/ig/{handle}`); the endpoint must return JSON carrying `profile_pic_url_hd` / `profile_pic_url`. `INSTAGRAM_API_KEY` is sent as a `Bearer` token. Only used when both vars are set. |
 | `ARCHIVEBOX_ENDPOINT` | middleware / gateway | **Optional, default off.** Base URL of a self-hosted [ArchiveBox](https://archivebox.io/) instance. **Link-out only** — when set, bookmarks gain UI (detail header, the placeable `archiveLink` card field, an "Archive now" action) that opens the archived snapshot (`<base>/?q=<url>`) or the add view (`<base>/add?url=<url>`) in a new tab. **No token is sent and the middleware makes no calls to ArchiveBox** — the user's browser opens the links against their own instance. The base URL is non-secret and returned on `GET /api/connectors` so the client can build the links. A DB value (Settings → Connectors) overrides this env var. |

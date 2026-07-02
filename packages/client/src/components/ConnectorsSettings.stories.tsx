@@ -49,6 +49,7 @@ const connectorsSettings: ConnectorsAppSettings = {
   archiveBoxEndpoint: "",
   kavitaEndpoint: "",
   kavitaApiKeySet: false,
+  youtubeApiKeySet: false,
   imageUrlBlacklist: [],
 };
 
@@ -103,6 +104,7 @@ export const ProvidersActive: Story = {
           archiveBoxEndpoint: "http://localhost:8000",
           kavitaEndpoint: "http://localhost:5000",
           kavitaApiKeySet: true,
+          youtubeApiKeySet: true,
         } satisfies ConnectorsAppSettings)),
         ...apiHandlers,
       ],

@@ -1,4 +1,5 @@
 import type { CheckUrlResult } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import { useEffect, useState } from "react";
 
@@ -51,7 +52,7 @@ function ApiKeyHint({
 }: { apiKeySet: boolean;
   encryptionEnabled: boolean;
   /** Copy shown while no key is stored, telling the user where the key comes from. */
-  unsetHint?: string; }) {
+  unsetHint?: ReactNode; }) {
   return (
     <p className="text-xs text-muted-foreground">
       {apiKeySet
@@ -120,6 +121,7 @@ export function HostedMetadataForm() {
         archiveBoxEndpoint: data.archiveBoxEndpoint,
         kavitaEndpoint: data.kavitaEndpoint,
         kavitaApiKey: null,
+        youtubeApiKey: null,
         imageUrlBlacklist: data.imageUrlBlacklist,
       },
       {
@@ -283,6 +285,7 @@ export function ArchiveBoxForm() {
         archiveBoxEndpoint: endpoint,
         kavitaEndpoint: data.kavitaEndpoint,
         kavitaApiKey: null,
+        youtubeApiKey: null,
         imageUrlBlacklist: data.imageUrlBlacklist,
       },
       {
@@ -413,6 +416,7 @@ export function KavitaForm() {
         archiveBoxEndpoint: data.archiveBoxEndpoint,
         kavitaEndpoint: endpoint,
         kavitaApiKey: field === "apiKey" ? apiKey : null,
+        youtubeApiKey: null,
         imageUrlBlacklist: data.imageUrlBlacklist,
       },
       {
@@ -517,6 +521,104 @@ export function KavitaForm() {
 }
 
 /**
+ * Editable form for the YouTube Data API v3 connector: a single API key field, saving on blur with
+ * a named toast. The raw key is never returned by the API — only `youtubeApiKeySet: boolean`. The
+ * connectors PUT body requires every field, so the other connectors' values are echoed from the
+ * loaded settings (their API keys left unchanged).
+ */
+export function YoutubeForm() {
+  const {
+    data,
+  } = useConnectorsSettings();
+  const update = useUpdateConnectorsSettings();
+
+  // apiKey field is always blank on load; user must type to set/replace/clear the stored key.
+  const [apiKey, setApiKey] = useState("");
+  const [apiKeyDirty, setApiKeyDirty] = useState(false);
+
+  function saveApiKey(): void {
+    if (!data || !apiKeyDirty) return;
+    update.mutate(
+      {
+        // Echo the other connectors' fields unchanged (null preserves the stored API keys).
+        hostedMetadataEndpoint: data.hostedMetadataEndpoint,
+        hostedMetadataProvider: data.hostedMetadataProvider,
+        hostedMetadataApiKey: null,
+        archiveBoxEndpoint: data.archiveBoxEndpoint,
+        kavitaEndpoint: data.kavitaEndpoint,
+        kavitaApiKey: null,
+        youtubeApiKey: apiKey,
+        imageUrlBlacklist: data.imageUrlBlacklist,
+      },
+      {
+        onSuccess: () => {
+          notifyFieldSaved("YouTube API key");
+          setApiKeyDirty(false);
+          setApiKey("");
+        },
+        onError: (err: Error) => notifyFieldSaveError("YouTube API key", err.message),
+      },
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Title, thumbnail, and channel always come from YouTube&apos;s keyless oEmbed endpoint. Adding
+        a YouTube Data API v3 key makes duration, publish date, description, and channel avatars come
+        from the stable API instead of scraping YouTube&apos;s pages, which is more reliable — YouTube
+        increasingly blocks non-browser requests to its pages. Saves on blur.
+      </p>
+      <div className="space-y-1.5">
+        <Label htmlFor="yt-apikey">YouTube API key</Label>
+        <Input
+          id="yt-apikey"
+          type="password"
+          placeholder={data?.youtubeApiKeySet ? "••••••••" : "No key stored"}
+          value={apiKey}
+          onChange={(e) => {
+            setApiKey(e.target.value);
+            setApiKeyDirty(true);
+          }}
+          onBlur={saveApiKey}
+        />
+        <ApiKeyHint
+          apiKeySet={data?.youtubeApiKeySet ?? false}
+          encryptionEnabled={data?.encryptionEnabled ?? true}
+          unsetHint={(
+            <>
+              Get a free key from the
+              {" "}
+              <a
+                href="https://console.cloud.google.com/apis/library/youtube.googleapis.com"
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2"
+              >
+                Google Cloud Console
+              </a>
+              : create (or select) a project, enable the &quot;YouTube Data API v3&quot;, then create
+              an API key under Credentials. See the
+              {" "}
+              <a
+                href="https://developers.google.com/youtube/v3/getting-started"
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2"
+              >
+                getting-started guide
+              </a>
+              {" "}
+              for details.
+            </>
+          )}
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
  * Editor for the image-URL blacklist: patterns that exclude matching candidate images from a URL
  * scan (e.g. ad/CDN hosts). Each add/remove persists the whole list via the connectors settings with
  * a named toast. The connectors PUT body requires every field, so the other connector values are
@@ -540,6 +642,7 @@ export function ImageBlacklistForm() {
         archiveBoxEndpoint: data.archiveBoxEndpoint,
         kavitaEndpoint: data.kavitaEndpoint,
         kavitaApiKey: null,
+        youtubeApiKey: null,
         imageUrlBlacklist: patterns,
       },
       {
