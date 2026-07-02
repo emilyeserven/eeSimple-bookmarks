@@ -1,6 +1,6 @@
 import type { DisplayPreferenceSettings } from "@eesimple/types";
 
-import { SCREENSHOT_SIZE_PRESETS } from "./useBookmarkImageEditForm";
+import { SCREENSHOT_SIZE_PRESETS } from "./screenshotSizePresets";
 import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
