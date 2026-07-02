@@ -12,7 +12,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /**
- * The inline image-capture + import progress indicators. Idle by default — each renders only while
- * its respective background job is in flight.
+ * The consolidated header "Background activity" indicator (imports + reel archiving + image
+ * auto-fetch + channel-avatar backfill). Idle by default — it renders only while at least one
+ * background job is in flight.
  */
 export const Default: Story = {};
