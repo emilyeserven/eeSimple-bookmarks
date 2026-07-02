@@ -145,9 +145,11 @@ export function kavitaSeriesCoverUrl(seriesId: number): string {
 }
 
 /**
- * Search the Kavita server for series matching `query`. Returns `[]` when the connector is
- * unconfigured or any step fails. Never throws. Kavita's search endpoint matches series/volume/
- * chapter metadata — including ISBN — so this also serves as the ISBN fallback lookup.
+ * Search the Kavita server for series matching `query` by name. Returns `[]` when the connector is
+ * unconfigured or any step fails. Never throws. This deliberately omits chapters/files
+ * (`includeChapterAndFiles=false`) for speed — Kavita's series-name query only matches
+ * `Series.Name`/`OriginalName`/`LocalizedName`/`NormalizedName`, **not** ISBN, so this alone cannot
+ * find a book by ISBN. Use {@link searchKavitaByIsbn} for that.
  */
 export async function searchKavitaSeries(query: string): Promise<KavitaSeriesResult[]> {
   const trimmed = query.trim();
@@ -165,6 +167,82 @@ export async function searchKavitaSeries(query: string): Promise<KavitaSeriesRes
   }
   catch {
     return [];
+  }
+}
+
+/** Shape of the `GET /api/Search/series-for-chapter` response used to resolve an ISBN-matched chapter's series. */
+interface KavitaSeriesDto {
+  id?: unknown;
+  libraryId?: unknown;
+  name?: unknown;
+  libraryName?: unknown;
+}
+
+function toSeriesResultFromSeriesDto(raw: KavitaSeriesDto): KavitaSeriesResult | null {
+  if (typeof raw.id !== "number" || typeof raw.libraryId !== "number") return null;
+  if (typeof raw.name !== "string" || !raw.name) return null;
+  return {
+    seriesId: raw.id,
+    libraryId: raw.libraryId,
+    name: raw.name,
+    libraryName: typeof raw.libraryName === "string" && raw.libraryName ? raw.libraryName : null,
+    // Not available on the series-for-chapter response; the ISBN fallback leaves it blank.
+    releaseYear: null,
+  };
+}
+
+/** Outcome of an ISBN search against Kavita, distinguishing a genuine miss from an unreachable server. */
+export type KavitaIsbnSearchOutcome
+  = | { status: "ok";
+    result: KavitaSeriesResult; }
+    | { status: "no_match" }
+    | { status: "unreachable" };
+
+/**
+ * Look up a Kavita series by ISBN. Kavita only matches ISBN against **Chapter.ISBN** (parsed from a
+ * book's ComicInfo/EPUB metadata) — never against series name — and only runs that match when
+ * `includeChapterAndFiles=true` (the general {@link searchKavitaSeries} name search always passes
+ * `false` and would never surface an ISBN hit). This resolves the matching chapter's parent series
+ * via `GET /api/Search/series-for-chapter` since the chapter search result carries no series info.
+ */
+export async function searchKavitaByIsbn(isbn: string): Promise<KavitaIsbnSearchOutcome> {
+  const trimmed = isbn.trim();
+  if (!trimmed) return {
+    status: "no_match",
+  };
+  const res = await kavitaFetch(
+    `/api/Search/search?queryString=${encodeURIComponent(trimmed)}&includeChapterAndFiles=true`,
+  );
+  if (!res?.ok) return {
+    status: "unreachable",
+  };
+  try {
+    const body = (await res.json()) as { chapters?: unknown };
+    if (!Array.isArray(body.chapters)) return {
+      status: "unreachable",
+    };
+    const chapterId = (body.chapters as { id?: unknown }[]).find(c => typeof c.id === "number")?.id;
+    if (typeof chapterId !== "number") return {
+      status: "no_match",
+    };
+    const seriesRes = await kavitaFetch(`/api/Search/series-for-chapter?chapterId=${chapterId}`);
+    if (!seriesRes?.ok) return {
+      status: "unreachable",
+    };
+    const result = toSeriesResultFromSeriesDto((await seriesRes.json()) as KavitaSeriesDto);
+    return result
+      ? {
+        status: "ok",
+        result,
+      }
+      : {
+        status: "unreachable",
+      };
+  }
+  catch {
+    return {
+      status: "unreachable",
+    };
   }
 }
 

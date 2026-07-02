@@ -50,7 +50,8 @@ const GOOGLE_BOOKS_HIT = JSON.stringify({
 function stubByHost(handlers: {
   openLibrary?: () => Response;
   google?: () => Response;
-  kavita?: () => Response;
+  kavitaSearch?: () => Response;
+  kavitaSeriesForChapter?: () => Response;
 }): () => void {
   const original = global.fetch;
   global.fetch = (async (input: string | URL | Request) => {
@@ -73,8 +74,14 @@ function stubByHost(handlers: {
           status: 200,
         });
       }
-      return handlers.kavita?.() ?? new Response(JSON.stringify({
+      if (url.includes("/api/Search/series-for-chapter")) {
+        return handlers.kavitaSeriesForChapter?.() ?? new Response("{}", {
+          status: 404,
+        });
+      }
+      return handlers.kavitaSearch?.() ?? new Response(JSON.stringify({
         series: [],
+        chapters: [],
       }), {
         status: 200,
       });
@@ -155,6 +162,7 @@ test("fetchIsbnMetadata reports not_found when both providers miss", async () =>
   try {
     const outcome = await fetchIsbnMetadata(ISBN);
     assert.equal(outcome.kind, "not_found");
+    assert.match(outcome.kind === "not_found" ? (outcome.debug ?? "") : "", /no server configured/);
   }
   finally {
     restore();
@@ -177,14 +185,20 @@ test("fetchIsbnMetadata falls back to Kavita when both public providers miss and
         "content-type": "application/json",
       },
     }),
-    kavita: () => new Response(JSON.stringify({
-      series: [{
-        seriesId: 12,
-        libraryId: 3,
-        name: "The Hitchhiker's Guide to the Galaxy",
-        libraryName: "Books",
-        releaseYear: 1995,
+    kavitaSearch: () => new Response(JSON.stringify({
+      series: [],
+      chapters: [{
+        id: 77,
+        isbn: ISBN,
       }],
+    }), {
+      status: 200,
+    }),
+    kavitaSeriesForChapter: () => new Response(JSON.stringify({
+      id: 12,
+      libraryId: 3,
+      name: "The Hitchhiker's Guide to the Galaxy",
+      libraryName: "Books",
     }), {
       status: 200,
     }),
@@ -221,6 +235,7 @@ test("fetchIsbnMetadata still reports not_found when Kavita is configured but ha
   try {
     const outcome = await fetchIsbnMetadata(ISBN);
     assert.equal(outcome.kind, "not_found");
+    assert.match(outcome.kind === "not_found" ? (outcome.debug ?? "") : "", /no book has this ISBN/);
   }
   finally {
     restore();
