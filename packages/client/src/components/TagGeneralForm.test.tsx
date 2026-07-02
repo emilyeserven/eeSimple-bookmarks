@@ -4,6 +4,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TagGeneralForm } from "./TagGeneralForm";
+import { makeTag } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const updateMutate
@@ -54,13 +55,14 @@ vi.mock("../lib/autoSave", () => ({
 
 function makeTagNode(overrides: Partial<TagNode> = {}): TagNode {
   return {
-    id: "tag-1",
-    name: "Reading",
-    slug: "reading",
-    parentId: null,
+    ...makeTag({
+      id: "tag-1",
+      name: "Reading",
+      slug: "reading",
+    }),
     children: [],
     ...overrides,
-  } as TagNode;
+  };
 }
 
 const node = makeTagNode();

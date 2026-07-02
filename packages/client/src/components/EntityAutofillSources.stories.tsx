@@ -1,24 +1,16 @@
-import type { Website, YouTubeChannel } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HttpResponse, http } from "msw";
 
 import { EntityAutofillSources } from "./EntityAutofillSources";
+import { makeWebsite, makeYouTubeChannel } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const website: Website = {
+const website = makeWebsite({
   id: "site-github",
   domain: "github.com",
   siteName: "GitHub",
   slug: "github",
-  builtIn: false,
-  shortenedLinks: [],
-  paramRules: [],
-  createdAt: NOW,
-  socialLinks: [],
-  alternateNames: [],
   category: {
     id: "cat-workflow",
     name: "Workflow",
@@ -27,15 +19,13 @@ const website: Website = {
   },
   mediaTypeId: "media-article",
   tagIds: ["tag-dev"],
-};
+});
 
-const channel: YouTubeChannel = {
+const channel = makeYouTubeChannel({
   id: "channel-fireship",
   channelKey: "@fireship",
   name: "Fireship",
   slug: "fireship",
-  createdAt: NOW,
-  selfIds: [],
   category: {
     id: "cat-workflow",
     name: "Workflow",
@@ -44,7 +34,7 @@ const channel: YouTubeChannel = {
   },
   mediaTypeId: "media-article",
   tagIds: ["tag-dev"],
-};
+});
 
 const matchingHandlers = [
   ...apiHandlers,

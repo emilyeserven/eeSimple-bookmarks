@@ -4,6 +4,7 @@ import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { TagTreeList } from "./TagTreeList";
+import { makeTag } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const openItem = vi.fn();
@@ -16,18 +17,19 @@ vi.mock("./panel/usePanelControls", () => ({
 
 const tree: TagNode[] = [
   {
-    id: "dev",
-    name: "dev",
-    slug: "dev",
-    parentId: null,
-    createdAt: "2026-06-01T00:00:00.000Z",
+    ...makeTag({
+      id: "dev",
+      name: "dev",
+      slug: "dev",
+    }),
     children: [
       {
-        id: "tools",
-        name: "tools",
-        slug: "tools",
-        parentId: "dev",
-        createdAt: "2026-06-01T00:00:00.000Z",
+        ...makeTag({
+          id: "tools",
+          name: "tools",
+          slug: "tools",
+          parentId: "dev",
+        }),
         children: [],
       },
     ],

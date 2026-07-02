@@ -1,8 +1,8 @@
 import type { useAuthorGeneralForm } from "./useAuthorGeneralForm";
-import type { Author, Website, YouTubeChannel } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { AuthorAvatarActions } from "./AuthorAvatarActions";
+import { makeAuthor, makeWebsite, makeYouTubeChannel } from "../test-utils/factories";
 
 type Controller = ReturnType<typeof useAuthorGeneralForm>;
 
@@ -11,40 +11,31 @@ const noopMutation = {
   mutate: () => undefined,
 } as unknown as Controller["autoAvatar"];
 
-const author: Author = {
+const author = makeAuthor({
   id: "author-1",
   name: "Jane Author",
-  romanizedName: null,
   slug: "jane-author",
-  createdAt: "2026-06-01T00:00:00.000Z",
   bookmarkCount: 3,
   authorWebsiteUrl: "https://janeauthor.example.com",
   biographyUrl: "https://janeauthor.example.com/bio",
-  imageUrl: null,
-  socialLinks: [],
-  youtubeChannelIds: [],
-  websiteIds: [],
-  publisherIds: [],
-};
+});
 
-const channels: YouTubeChannel[] = [
-  {
+const channels = [
+  makeYouTubeChannel({
     id: "channel-1",
     channelKey: "@janeauthor",
     name: "Jane Author Channel",
     slug: "jane-author-channel",
-    selfIds: [],
-    createdAt: "2026-06-01T00:00:00.000Z",
-  },
+  }),
 ];
 
-const websites: Website[] = [
-  {
+const websites = [
+  makeWebsite({
     id: "site-1",
     domain: "janeauthor.example.com",
     siteName: "Jane Author",
     slug: "jane-author",
-  } as Website,
+  }),
 ];
 
 const meta = {

@@ -1,10 +1,10 @@
-import type { Website } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { BulkExpandSection } from "./BulkExpandSection";
+import { makeWebsite } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const website: Website = {
+const website = makeWebsite({
   id: "site-youtube",
   domain: "youtube.com",
   siteName: "YouTube",
@@ -21,10 +21,7 @@ const website: Website = {
     pathSuffix: "/watch",
     params: ["v"],
   }],
-  createdAt: "2026-06-01T00:00:00.000Z",
-  socialLinks: [],
-  alternateNames: [],
-};
+});
 
 const meta = {
   title: "Components/BulkExpandSection",

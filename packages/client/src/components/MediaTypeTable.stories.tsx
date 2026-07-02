@@ -3,20 +3,11 @@ import type { MediaTypeNode } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { MediaTypeTable } from "./MediaTypeTable";
-
-const NOW = "2026-06-01T00:00:00.000Z";
+import { makeMediaType } from "../test-utils/factories";
 
 function node(overrides: Partial<MediaTypeNode>, children: MediaTypeNode[] = []): MediaTypeNode {
   return {
-    id: "media",
-    name: "Media",
-    romanizedName: null,
-    slug: "media",
-    icon: null,
-    builtIn: false,
-    sortOrder: 0,
-    parentId: null,
-    createdAt: NOW,
+    ...makeMediaType(),
     children,
     ...overrides,
   };

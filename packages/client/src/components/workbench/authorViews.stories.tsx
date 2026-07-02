@@ -1,31 +1,23 @@
-import type { Author } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { AuthorGeneralView } from "./authorViews";
+import { makeAuthor } from "../../test-utils/factories";
 import { apiHandlers } from "../../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const author: Author = {
+const author = makeAuthor({
   id: "author-1",
   name: "Jane Doe",
-  romanizedName: null,
   slug: "jane-doe",
-  createdAt: NOW,
   bookmarkCount: 12,
   authorWebsiteUrl: "https://janedoe.example.com",
   biographyUrl: "https://en.wikipedia.org/wiki/Jane_Doe",
-  imageUrl: null,
   socialLinks: [
     {
       platform: "x",
       url: "https://x.com/janedoe",
     },
   ],
-  youtubeChannelIds: [],
-  websiteIds: [],
-  publisherIds: [],
-};
+});
 
 const meta = {
   title: "Components/Workbench/AuthorGeneralView",

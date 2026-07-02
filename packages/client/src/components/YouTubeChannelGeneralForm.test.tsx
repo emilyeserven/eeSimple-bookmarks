@@ -4,6 +4,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { YouTubeChannelGeneralForm } from "./YouTubeChannelGeneralForm";
+import { makeYouTubeChannel } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const updateMutate
@@ -15,18 +16,13 @@ const updateMutate
 let mutationBehavior: "success" | "error" = "success";
 
 function makeChannel(overrides: Partial<YouTubeChannel> = {}): YouTubeChannel {
-  return {
+  return makeYouTubeChannel({
     id: "ch-1",
     channelKey: "@veritasium",
     name: "Veritasium",
     slug: "veritasium",
-    createdAt: "2026-06-01T00:00:00.000Z",
-    selfIds: [],
-    category: null,
-    tagIds: [],
-    mediaTypeId: null,
     ...overrides,
-  };
+  });
 }
 
 vi.mock("@/hooks/useYouTubeChannels", () => ({

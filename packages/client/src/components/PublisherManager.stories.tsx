@@ -1,15 +1,13 @@
-import type { Publisher } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HttpResponse, http } from "msw";
 
 import { PublishersListing } from "./PublisherManager";
+import { makePublisher } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const samplePublishers: Publisher[] = [
-  {
+const samplePublishers = [
+  makePublisher({
     id: "pub-oreilly",
     name: "O'Reilly Media",
     slug: "oreilly-media",
@@ -19,20 +17,14 @@ const samplePublishers: Publisher[] = [
       domain: "oreilly.com",
       siteName: "O'Reilly",
     },
-    createdAt: NOW,
     bookmarkCount: 12,
-    socialLinks: [],
-  },
-  {
+  }),
+  makePublisher({
     id: "pub-manning",
     name: "Manning Publications",
     slug: "manning",
-    websiteId: null,
-    website: null,
-    createdAt: NOW,
     bookmarkCount: 4,
-    socialLinks: [],
-  },
+  }),
 ];
 
 const meta = {

@@ -2,7 +2,7 @@ import type { Category, MediaType, PropertyGroup } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { PropertyForm } from "./PropertyForm";
-import { makeCategory, makeCustomProperty } from "../test-utils/factories";
+import { makeCategory, makeCustomProperty, makeMediaType } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
 const NOW = "2026-06-01T00:00:00.000Z";
@@ -21,16 +21,11 @@ const categories: Category[] = [
 ];
 
 const mediaTypes: MediaType[] = [
-  {
+  makeMediaType({
     id: "mt-book",
     name: "Book",
     slug: "book",
-    parentId: null,
-    builtIn: false,
-    icon: null,
-    sortOrder: 0,
-    createdAt: NOW,
-  },
+  }),
 ];
 
 const propertyGroups: PropertyGroup[] = [

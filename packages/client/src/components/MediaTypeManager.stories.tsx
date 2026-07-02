@@ -4,21 +4,12 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HttpResponse, http } from "msw";
 
 import { MediaTypesListing } from "./MediaTypeManager";
+import { makeMediaType } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
-
-const NOW = "2026-06-01T00:00:00.000Z";
 
 function node(overrides: Partial<MediaTypeNode>, children: MediaTypeNode[] = []): MediaTypeNode {
   return {
-    id: "media",
-    name: "Media",
-    romanizedName: null,
-    slug: "media",
-    icon: null,
-    builtIn: false,
-    sortOrder: 0,
-    parentId: null,
-    createdAt: NOW,
+    ...makeMediaType(),
     children,
     ...overrides,
   };

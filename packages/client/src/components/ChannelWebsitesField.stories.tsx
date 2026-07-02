@@ -2,29 +2,28 @@ import type { Website } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { ChannelWebsitesField } from "./ChannelWebsitesField";
+import { makeWebsite } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-function makeWebsite(id: string, siteName: string, domain: string): Website {
-  return {
-    id,
-    domain,
-    siteName,
-    slug: domain.replace(/\..*$/, ""),
-    builtIn: false,
-    shortenedLinks: [],
-    paramRules: [],
-    socialLinks: [],
-    alternateNames: [],
-    createdAt: NOW,
-  };
-}
-
 const websites: Website[] = [
-  makeWebsite("site-github", "GitHub", "github.com"),
-  makeWebsite("site-youtube", "YouTube", "youtube.com"),
-  makeWebsite("site-mdn", "MDN Web Docs", "developer.mozilla.org"),
+  makeWebsite({
+    id: "site-github",
+    siteName: "GitHub",
+    domain: "github.com",
+    slug: "github",
+  }),
+  makeWebsite({
+    id: "site-youtube",
+    siteName: "YouTube",
+    domain: "youtube.com",
+    slug: "youtube",
+  }),
+  makeWebsite({
+    id: "site-mdn",
+    siteName: "MDN Web Docs",
+    domain: "developer.mozilla.org",
+    slug: "developer",
+  }),
 ];
 
 const meta = {

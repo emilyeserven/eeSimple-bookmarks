@@ -1,9 +1,8 @@
-import type { Website } from "@eesimple/types";
-
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { WebsitesListing } from "./WebsiteManager";
+import { makeWebsite } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const openItem = vi.fn();
@@ -14,19 +13,13 @@ vi.mock("./panel/usePanelControls", () => ({
   }),
 }));
 
-const website: Website = {
+const website = makeWebsite({
   id: "33333333-3333-3333-3333-333333333333",
   domain: "github.com",
   siteName: "GitHub",
   slug: "github",
-  builtIn: false,
-  shortenedLinks: [],
-  paramRules: [],
-  createdAt: "2026-06-01T00:00:00.000Z",
   bookmarkCount: 2,
-  socialLinks: [],
-  alternateNames: [],
-};
+});
 
 vi.mock("../hooks/useWebsites", () => ({
   useWebsites: () => ({

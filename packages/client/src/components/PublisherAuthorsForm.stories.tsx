@@ -1,53 +1,32 @@
-import type { Author, Publisher } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HttpResponse, http } from "msw";
 
 import { PublisherAuthorsForm, PublisherAuthorsView } from "./PublisherAuthorsForm";
+import { makeAuthor, makePublisher } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const publisher: Publisher = {
+const publisher = makePublisher({
   id: "pub-oreilly",
   name: "O'Reilly Media",
   slug: "oreilly-media",
-  websiteId: null,
-  website: null,
-  createdAt: NOW,
   bookmarkCount: 12,
-  socialLinks: [],
-};
+});
 
-const authors: Author[] = [
-  {
+const authors = [
+  makeAuthor({
     id: "author-kyle",
     name: "Kyle Simpson",
     slug: "kyle-simpson",
-    createdAt: NOW,
     bookmarkCount: 9,
-    authorWebsiteUrl: null,
-    biographyUrl: null,
-    imageUrl: null,
-    socialLinks: [],
-    youtubeChannelIds: [],
-    websiteIds: [],
     publisherIds: ["pub-oreilly"],
-  },
-  {
+  }),
+  makeAuthor({
     id: "author-marijn",
     name: "Marijn Haverbeke",
     slug: "marijn-haverbeke",
-    createdAt: NOW,
     bookmarkCount: 5,
-    authorWebsiteUrl: null,
-    biographyUrl: null,
-    imageUrl: null,
-    socialLinks: [],
-    youtubeChannelIds: [],
-    websiteIds: [],
-    publisherIds: [],
-  },
+  }),
 ];
 
 const authorHandlers = [

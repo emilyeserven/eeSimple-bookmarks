@@ -4,14 +4,15 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
 import { TagConditionEditor } from "./TagConditionEditor";
+import { makeTag } from "../../test-utils/factories";
 
 function tag(id: string, name: string, children: TagNode[] = []): TagNode {
   return {
-    id,
-    name,
-    slug: id,
-    parentId: null,
-    createdAt: "2026-01-01T00:00:00.000Z",
+    ...makeTag({
+      id,
+      name,
+      slug: id,
+    }),
     children,
   };
 }

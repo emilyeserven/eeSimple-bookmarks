@@ -2,25 +2,15 @@ import type { WebsiteNode } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { WebsiteTreeList } from "./WebsiteTreeList";
+import { makeWebsite } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-function makeNode(overrides: Partial<WebsiteNode>): WebsiteNode {
+function makeNode({
+  children = [], ...overrides
+}: Partial<WebsiteNode>): WebsiteNode {
   return {
-    id: "site-root",
-    domain: "github.com",
-    siteName: "GitHub",
-    slug: "github",
-    builtIn: false,
-    shortenedLinks: [],
-    paramRules: [],
-    createdAt: NOW,
-    bookmarkCount: 12,
-    socialLinks: [],
-    alternateNames: [],
-    children: [],
-    ...overrides,
+    ...makeWebsite(overrides),
+    children,
   };
 }
 

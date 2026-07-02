@@ -6,9 +6,7 @@ import {
   MediaTypeCheckboxList,
   OperandCheckboxList,
 } from "./PropertyFormFields";
-import { makeCategory, makeCustomProperty } from "../test-utils/factories";
-
-const NOW = "2026-06-01T00:00:00.000Z";
+import { makeCategory, makeCustomProperty, makeMediaType } from "../test-utils/factories";
 
 const categories: Category[] = [
   makeCategory({
@@ -29,26 +27,18 @@ const categories: Category[] = [
 ];
 
 const mediaTypes: MediaType[] = [
-  {
+  makeMediaType({
     id: "mt-book",
     name: "Book",
     slug: "book",
-    parentId: null,
-    builtIn: false,
-    icon: null,
-    sortOrder: 0,
-    createdAt: NOW,
-  },
-  {
+  }),
+  makeMediaType({
     id: "mt-ebook",
     name: "E-book",
     slug: "e-book",
     parentId: "mt-book",
-    builtIn: false,
-    icon: null,
     sortOrder: 1,
-    createdAt: NOW,
-  },
+  }),
 ];
 
 const meta = {

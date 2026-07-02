@@ -2,23 +2,20 @@ import type { Website } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
+import { makeWebsite } from "../test-utils/factories";
 
 const websites: Website[] = [
-  {
+  makeWebsite({
     id: "site-youtube",
     domain: "youtube.com",
     siteName: "YouTube",
     slug: "youtube",
     builtIn: true,
-    shortenedLinks: [],
     paramRules: [{
       pathSuffix: "/watch",
       params: ["v"],
     }],
-    createdAt: "2026-06-01T00:00:00.000Z",
-    socialLinks: [],
-    alternateNames: [],
-  },
+  }),
 ];
 
 const meta = {

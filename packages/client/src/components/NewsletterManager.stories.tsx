@@ -4,31 +4,21 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HttpResponse, http } from "msw";
 
 import { NewslettersListing } from "./NewsletterManager";
+import { makeNewsletter } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
 const sampleNewsletters: Newsletter[] = [
-  {
+  makeNewsletter({
     id: "newsletter-1",
     name: "Weekly Digest",
     slug: "weekly-digest",
-    createdAt: NOW,
     bookmarkCount: 8,
-    category: null,
-    tagIds: [],
-    mediaTypeId: null,
-  },
-  {
+  }),
+  makeNewsletter({
     id: "newsletter-2",
     name: "Engineering Notes",
     slug: "engineering-notes",
-    createdAt: NOW,
-    bookmarkCount: 0,
-    category: null,
-    tagIds: [],
-    mediaTypeId: null,
-  },
+  }),
 ];
 
 const meta = {

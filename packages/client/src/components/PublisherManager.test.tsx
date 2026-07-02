@@ -1,24 +1,19 @@
-import type { Publisher } from "@eesimple/types";
-
 import { fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PublishersListing } from "./PublisherManager";
 import { useUiStore } from "../stores/uiStore";
+import { makePublisher } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const bulkDeleteMutate = vi.fn();
 
-const publisher: Publisher = {
+const publisher = makePublisher({
   id: "55555555-5555-5555-5555-555555555555",
   name: "O'Reilly Media",
   slug: "oreilly-media",
-  websiteId: null,
-  website: null,
-  createdAt: "2026-06-01T00:00:00.000Z",
   bookmarkCount: 3,
-  socialLinks: [],
-};
+});
 
 vi.mock("../hooks/usePublishers", () => ({
   usePublishers: () => ({

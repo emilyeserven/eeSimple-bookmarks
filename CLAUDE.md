@@ -66,11 +66,14 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   Bypass one push with `SKIP_MERGED_TYPECHECK=1 git push`.
 - **Shared test factories** (`packages/client/src/test-utils/factories.ts`): construct full shared
   entity objects in tests, stories, and MSW mocks with `makeCustomProperty` / `makeBookmark` /
-  `makeCategory` (override only the fields a test cares about) — **never** re-list every field in an
+  `makeCategory` / `makeTag` / `makeWebsite` / `makeMediaType` / `makeYouTubeChannel` /
+  `makePublisher` / `makeAuthor` / `makeNewsletter` / `makeLocation` / `makeBookmarkImage`
+  (override only the fields a test cares about) — **never** re-list every field in an
   inline object literal. Inline literals of these types silently drift when a field is added/removed
   from the shared type and only surface as a CI typecheck failure (one such stray literal is what
-  reddened PR #363). When you add or remove a field on `CustomProperty` / `Bookmark` / `Category`,
-  update the factory's defaults — that is the single edit point.
+  reddened PR #363). When you add or remove a field on one of these shared types,
+  update the factory's defaults — that is the single edit point. A new shared entity type that
+  tests/stories construct gets a factory here in the same change.
 - **Path alias:** the middleware uses `@/*` → `src/*` (resolved at build time by `tsc-alias`).
 - **`.js` import extensions in `@eesimple/types`:** the types package emits native ESM, so its
   intra-package imports/re-exports must carry explicit `.js` extensions (e.g.

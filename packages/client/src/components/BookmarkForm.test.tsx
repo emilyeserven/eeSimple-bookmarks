@@ -4,7 +4,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BookmarkForm } from "./BookmarkForm";
-import { makeBookmark } from "../test-utils/factories";
+import { makeBookmark, makeWebsite } from "../test-utils/factories";
 import { sampleProperties } from "../test-utils/story-mocks";
 
 // The form pulls data from several query hooks and the UI store; stub them so the
@@ -64,13 +64,12 @@ function emptyScan(url: string): ScanResult {
 
 // A built-in YouTube website carrying the param rule that keeps only `v` on `/watch`.
 function youtubeWebsite(): Website {
-  return {
+  return makeWebsite({
     id: "yt",
     domain: "youtube.com",
     siteName: "YouTube",
     slug: "youtube",
     builtIn: true,
-    shortenedLinks: [],
     paramRules: [
       {
         pathSuffix: "/watch",
@@ -78,9 +77,7 @@ function youtubeWebsite(): Website {
       },
     ],
     createdAt: "2026-01-01T00:00:00.000Z",
-    socialLinks: [],
-    alternateNames: [],
-  };
+  });
 }
 
 vi.mock("sonner", () => ({

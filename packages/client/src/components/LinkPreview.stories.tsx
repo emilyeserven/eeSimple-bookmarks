@@ -1,24 +1,16 @@
-import type { Website } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { LinkPreview } from "./LinkPreview";
-
-const NOW = "2026-06-01T00:00:00.000Z";
+import { makeWebsite } from "../test-utils/factories";
 
 const sampleWebsites = [
-  {
+  makeWebsite({
     id: "site-github",
     domain: "github.com",
     siteName: "GitHub",
     slug: "github",
-    builtIn: false,
-    shortenedLinks: [],
-    paramRules: [],
-    socialLinks: [],
-    alternateNames: [],
-    createdAt: NOW,
-  },
-] satisfies Website[];
+  }),
+];
 
 const meta = {
   title: "Components/LinkPreview",
