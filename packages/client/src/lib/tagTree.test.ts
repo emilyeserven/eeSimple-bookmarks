@@ -3,7 +3,7 @@ import type { TagNode } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { expandableIds, findAncestorPath, flattenTree, selectedSubtrees, subtreeIds } from "./tagTree";
+import { countNodes, expandableIds, filterTreeByMatch, findAncestorPath, flattenTree, selectedSubtrees, subtreeIds } from "./tagTree";
 import { makeTag as tagBase } from "../test-utils/factories";
 
 function makeTag(id: string, slug: string, children: TagNode[] = []): TagNode {
@@ -94,6 +94,44 @@ describe("selectedSubtrees", () => {
 
   it("returns an empty forest when nothing is selected", () => {
     expect(selectedSubtrees(forest, new Set())).toEqual([]);
+  });
+});
+
+describe("filterTreeByMatch", () => {
+  it("keeps a matching node with its full subtree", () => {
+    // b matches → b keeps c; ancestor a is retained as the pruned path to b.
+    const result = filterTreeByMatch(forest, node => node.id === "b");
+    expect(result.map(n => n.id)).toEqual(["a"]);
+    expect(result[0].children.map(n => n.id)).toEqual(["b"]);
+    // The matching node keeps its whole subtree untouched.
+    expect(result[0].children[0]).toBe(b);
+  });
+
+  it("retains ancestors of a deep match while pruning non-matching siblings", () => {
+    const result = filterTreeByMatch(forest, node => node.id === "c");
+    expect(result.map(n => n.id)).toEqual(["a"]);
+    expect(result[0].children.map(n => n.id)).toEqual(["b"]);
+    expect(result[0].children[0].children.map(n => n.id)).toEqual(["c"]);
+  });
+
+  it("drops subtrees with no match and returns everything when all match", () => {
+    expect(filterTreeByMatch(forest, () => false)).toEqual([]);
+    expect(filterTreeByMatch(forest, () => true).map(n => n.id)).toEqual(["a", "e"]);
+  });
+
+  it("does not mutate the input tree", () => {
+    filterTreeByMatch(forest, node => node.id === "c");
+    expect(a.children.map(n => n.id)).toEqual(["b", "d"]);
+  });
+});
+
+describe("countNodes", () => {
+  it("counts every node at all depths", () => {
+    expect(countNodes(forest)).toBe(5);
+  });
+
+  it("returns zero for an empty forest", () => {
+    expect(countNodes<TagNode>([])).toBe(0);
   });
 });
 

@@ -39,6 +39,33 @@ export function expandableIds<T extends { id: string;
 }
 
 /**
+ * Prune a tree to the nodes matching `predicate`, with tree-search semantics: a matching node is
+ * kept **with its full subtree**; a non-matching node is kept (children pruned recursively) only
+ * when it has a matching descendant. Used by the tree listing scaffold's header search; returns a
+ * new tree, input not mutated.
+ */
+export function filterTreeByMatch<T extends { children: T[] }>(
+  nodes: T[],
+  predicate: (node: T) => boolean,
+): T[] {
+  return nodes.flatMap((node) => {
+    if (predicate(node)) return [node];
+    const children = filterTreeByMatch(node.children, predicate);
+    return children.length > 0
+      ? [{
+        ...node,
+        children,
+      }]
+      : [];
+  });
+}
+
+/** Count every node in a tree (all depths) — the tree listings' "N items" total. */
+export function countNodes<T extends { children: T[] }>(nodes: T[]): number {
+  return nodes.reduce((sum, node) => sum + 1 + countNodes(node.children), 0);
+}
+
+/**
  * Prune a tree to just the selected nodes, each kept **with its full subtree**. Ancestors and
  * siblings of a selection are dropped (recursing into an unselected node's children keeps any
  * deeper selection). Used to focus a map/list on chosen items; returns a new tree.

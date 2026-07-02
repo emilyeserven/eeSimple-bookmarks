@@ -12,8 +12,8 @@ import { COLUMN_CLASS } from "@/lib/bookmarkColumns";
 /**
  * The shared search/counts/bulk-bar/table-or-card shell for a flat-entity listing page, configured
  * per entity via `EntityListingConfig`. Pair with `useListingScaffold` (`hooks/useListingScaffold.ts`)
- * for the state. Covers listing shape 1 only (flat + search + bulk + table/card toggle) — tree
- * entities (Tags, Media Types, Locations) and Bookmarks are not scaffold-eligible.
+ * for the state. Tree taxonomies (Tags, Media Types, Locations) use the sibling
+ * `TreeListingScaffold`; Bookmarks and bespoke listings (Card Display Rules) stay outside both.
  */
 export function ListingScaffold<E extends { id: string }>({
   config,

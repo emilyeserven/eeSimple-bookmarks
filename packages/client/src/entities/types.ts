@@ -7,10 +7,11 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 /**
- * The wiring a flat (non-tree, non-Bookmarks) entity needs to render through `ListingScaffold` —
- * the search/counts/bulk-select/table-or-card shell shared by taxonomy listing pages. Tree entities
- * (Tags, Media Types, Locations) and Bookmarks render their own bespoke listings and never get one
- * of these.
+ * The wiring a flat entity needs to render through `ListingScaffold` — the search/counts/
+ * bulk-select/table-or-card shell shared by taxonomy listing pages. Tree taxonomies (Tags, Media
+ * Types, Locations) use the sibling `EntityTreeListingConfig`/`TreeListingScaffold` instead; only
+ * Bookmarks and genuinely bespoke listings (Card Display Rules' drag-sortable priority list) stay
+ * outside both.
  */
 export interface EntityListingConfig<E extends { id: string }> {
   /** Key this listing registers under for header search, columns, view mode, and selection. */
@@ -50,6 +51,13 @@ export interface EntityListingConfig<E extends { id: string }> {
   /** Per-item override for whether a row/card can be bulk-selected. Defaults to always selectable. */
   isSelectable?: (item: E) => boolean;
   /**
+   * Page-owned predicate applied before the header-search filter — for listings whose route owns
+   * richer filter state than `secondaryFilter`'s single scaffold-owned string (e.g. Autofill's
+   * 6-facet URL-driven sidebar). The route computes it from its own state and rebuilds the config
+   * via a factory + `useMemo` (the PlaceType pattern). Counts still read "N of M" with M = all items.
+   */
+  externalFilter?: (item: E) => boolean;
+  /**
    * An extra facet filter alongside the header search box (e.g. YouTubeChannel's category filter).
    * `ListingScaffold` renders `render`'s UI above the status/bulk-bar row and combines `matches` with
    * the header-search predicate (both must pass). State is scaffold-owned (per `pageKey`), not
@@ -80,19 +88,76 @@ export interface EntityListingConfig<E extends { id: string }> {
 }
 
 /**
+ * The wiring a tree taxonomy (Tags, Media Types, Locations) needs to render through
+ * `TreeListingScaffold` — the search/counts/bulk-bar/expand-toggle/tree-or-table shell. The flat
+ * sibling is `EntityListingConfig` above; the shared low-level row primitives
+ * (`TaxonomyTreeList`/`TaxonomyTreeRow`) stay entity-agnostic underneath `renderTree`.
+ */
+export interface EntityTreeListingConfig<N extends { id: string;
+  children: N[]; }> {
+  /** Key this listing registers under for header search, columns, view mode, and selection. */
+  pageKey: string;
+  useTree: () => { data: N[] | undefined;
+    isLoading: boolean;
+    error: Error | null; };
+  /**
+   * Header-search predicate for a single node (self-match only). The scaffold prunes the tree to
+   * nodes that match or have a matching descendant (a matching node keeps its whole subtree) and
+   * force-expands all remaining parents while a query is active. Omit for a search-less page.
+   */
+  matches?: (node: N, query: string) => boolean;
+  /** Ids eligible for bulk select/delete, from the filtered tree — Media Types exclude `builtIn`. */
+  deletableIds: (tree: N[]) => string[];
+  useBulkDelete: () => UseMutationResult<BulkDeleteResult[], Error, string[]>;
+  /** Singular/plural noun for the bulk-delete confirm copy, e.g. `["tag", "tags"]`. */
+  noun: [string, string];
+  loadingLabel: string;
+  entityPlural: string;
+  emptyMessage: ReactNode;
+  /**
+   * Client-side re-sort applied to the filtered tree before render. A hook slot (not a pure fn) so
+   * entities can read settings stores — Tags: romanized sort; Locations: place-type sort. Must be a
+   * stable hook per `pageKey` (same rule as `useBulkDelete`). Defaults to identity.
+   */
+  useSortedTree?: (tree: N[]) => N[];
+  /** Extra controls rendered left of the ExpandAllToggle (e.g. Locations' sort ToggleGroup). */
+  renderToolbar?: () => ReactNode;
+  renderTree: (props: {
+    sortedTree: N[];
+    expanded: Set<string>;
+    onToggle: (id: string) => void;
+    /** Union-expand a subtree (per-row "Expand all") without collapsing other branches. */
+    onExpandMany: (ids: string[]) => void;
+    columns: number;
+    selection: ListSelection;
+  }) => ReactNode;
+  renderTable: (props: { sortedTree: N[];
+    selection: ListSelection; }) => ReactNode;
+}
+
+/**
  * Composes the four existing per-entity registries (`ENTITY_ROUTES`, `ENTITY_PALETTE_CONFIGS`,
- * `EntityWorkbench`, and — for scaffold-eligible flat entities — a listing config) into one module.
+ * `EntityWorkbench`, and — for scaffold-eligible entities — a listing config) into one module.
  * Each field *references* the entity's existing registry object rather than redefining its shape, so
  * none of `entityRoutes.ts`, `entityPaletteRegistry.ts`, or `components/workbench/*`'s consumers need
  * to change. `entities/publisher.ts` is the pilot migration (issue #860); a registry aggregating all
  * migrated entities lands in a later PR once there's an actual consumer (`matchEntityRoute`, the
  * CMD+K lookup, or the workbench route/panel components).
+ *
+ * The second generic is the tree-node type for tree taxonomies (`EntityDescriptor<MediaType,
+ * MediaTypeNode>`) — the workbench operates on the flat entity while the listing renders nodes.
  */
-export interface EntityDescriptor<E extends { id: string }> {
+export interface EntityDescriptor<
+  E extends { id: string },
+  N extends { id: string;
+    children: N[]; } = never,
+> {
   kind: EntityRouteKind;
   route: EntityRoute;
   palette: EntityPaletteConfig;
   workbench: EntityWorkbench<E>;
-  /** Omitted for tree entities and Bookmarks — see `EntityListingConfig`'s doc comment. */
+  /** Flat listing. Omitted for tree entities (see `treeListing`), Bookmarks, and bespoke listings. */
   listing?: EntityListingConfig<E>;
+  /** Tree listing — mutually exclusive with `listing`. */
+  treeListing?: EntityTreeListingConfig<N>;
 }
