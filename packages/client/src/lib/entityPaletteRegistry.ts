@@ -1,13 +1,10 @@
 import type { EntityRouteKind } from "./entityRoutes";
 import type {
-  Category,
   Tag,
   UpdateAutofillRuleInput,
   UpdateCardDisplayRuleInput,
-  UpdateCategoryInput,
   UpdateImportRuleInput,
   UpdateLocationInput,
-  UpdateMediaTypeInput,
   UpdateTagInput,
 } from "@eesimple/types";
 
@@ -15,12 +12,12 @@ import { autofillApi } from "./api/autofill";
 import { importRulesApi } from "./api/importRules";
 import { cardDisplayRulesApi } from "./api/settings";
 import {
-  categoriesApi,
   locationsApi,
-  mediaTypesApi,
   tagsApi,
 } from "./api/taxonomies";
 import { AUTHOR_PALETTE } from "../entities/author";
+import { CATEGORY_PALETTE } from "../entities/category";
+import { MEDIA_TYPE_PALETTE } from "../entities/mediaType";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
 import { PLACE_TYPE_PALETTE } from "../entities/placeType";
 import { CUSTOM_PROPERTY_PALETTE } from "../entities/property";
@@ -89,20 +86,7 @@ const BOOKMARKS_KEY = ["bookmarks"] as const;
  * `cmd-k-entity-context` skill for the recipe).
  */
 export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig> = {
-  "category": {
-    queryKey: ["categories"],
-    listFn: () => categoriesApi.list(),
-    updateFn: (id, patch) => categoriesApi.update(id, patch as UpdateCategoryInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-    fields: [
-      {
-        type: "boolean",
-        key: "isHomepage",
-        label: "Homepage Category",
-        getValue: entity => (entity as Category).isHomepage,
-      },
-    ],
-  },
+  "category": CATEGORY_PALETTE,
   "tag": {
     queryKey: ["tags"],
     listFn: () => tagsApi.list(),
@@ -124,12 +108,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
     ],
   },
   "website": WEBSITE_PALETTE,
-  "media-type": {
-    queryKey: ["media-types"],
-    listFn: () => mediaTypesApi.list(),
-    updateFn: (id, patch) => mediaTypesApi.update(id, patch as UpdateMediaTypeInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-  },
+  "media-type": MEDIA_TYPE_PALETTE,
   "location": {
     queryKey: ["locations"],
     listFn: () => locationsApi.list(),

@@ -1,6 +1,8 @@
 import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { AUTHOR_ROUTE } from "../entities/author";
+import { CATEGORY_ROUTE } from "../entities/category";
+import { MEDIA_TYPE_ROUTE } from "../entities/mediaType";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
 import { PLACE_TYPE_ROUTE } from "../entities/placeType";
 import { CUSTOM_PROPERTY_ROUTE } from "../entities/property";
@@ -59,15 +61,7 @@ export interface EntityRoute {
 }
 
 export const ENTITY_ROUTES: readonly EntityRoute[] = [
-  {
-    kind: "category",
-    prefix: "/categories",
-    slugIndex: 1,
-    listLabel: "Categories",
-    singular: "Category",
-    switcher: "category",
-    flatCrumbs: true,
-  },
+  CATEGORY_ROUTE,
   {
     kind: "tag",
     prefix: "/tags",
@@ -77,14 +71,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
     flatCrumbs: false,
   },
   WEBSITE_ROUTE,
-  {
-    kind: "media-type",
-    prefix: "/taxonomies/media-types",
-    slugIndex: 2,
-    listLabel: "Media Types",
-    singular: "Media Type",
-    flatCrumbs: true,
-  },
+  MEDIA_TYPE_ROUTE,
   {
     kind: "location",
     prefix: "/taxonomies/locations",
