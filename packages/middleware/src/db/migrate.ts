@@ -919,6 +919,18 @@ const migrations: RuntimeMigration[] = [
       ALTER TABLE IF EXISTS "app_settings" DROP COLUMN IF EXISTS "show_location_ancestors_on_map"
     `),
   },
+  {
+    // The single global `bookmark_map_level_mode` display preference was removed — a bookmark's
+    // locations map now resolves each tagged location's "Show" default from its own level group's
+    // `levelMode` (already stored per group in `place_type_level_groups`), independently per anchor,
+    // instead of one shared setting for every group. Dropping the column is destructive, so do it
+    // here (before push) to keep push's diff additive and avoid an interactive drop prompt in the
+    // non-TTY deploy. Idempotent via IF EXISTS.
+    name: "drop legacy app_settings.bookmark_map_level_mode",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings" DROP COLUMN IF EXISTS "bookmark_map_level_mode"
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

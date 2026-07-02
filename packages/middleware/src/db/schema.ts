@@ -123,6 +123,13 @@ export const bookmarkScreenshots = pgTable("bookmark_screenshots", {
   byteSize: integer("byte_size").notNull(),
   // Always "screenshot" — kept as text so existing infrastructure (source column) stays consistent.
   source: text("source").notNull(),
+  // The capture settings last used to take this screenshot, remembered so the edit form can prefill
+  // them next time. Nullable: null when a setting wasn't explicitly requested (e.g. the bulk
+  // auto-fetch fallback, which calls takeAndStoreScreenshot with no options).
+  delayMs: integer("delay_ms"),
+  viewportWidth: integer("viewport_width"),
+  viewportHeight: integer("viewport_height"),
+  scrollDistance: integer("scroll_distance"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -1359,6 +1366,10 @@ export const appSettings = pgTable("app_settings", {
   // API key for the Kavita server; stored encrypted when APP_SECRET is configured.
   // KAVITA_API_KEY env var is used as fallback when null.
   kavitaApiKey: text("kavita_api_key"),
+  // API key for the YouTube Data API v3, configured from Settings → Connectors; stored encrypted
+  // when APP_SECRET is configured. Nullable = push-safe additive; the YOUTUBE_API_KEY env var is
+  // used as fallback when null.
+  youtubeApiKey: text("youtube_api_key"),
   // Image-URL blacklist (Settings → Connectors): patterns that exclude matching candidate images
   // from a URL scan. Display/scan-only, never touches the bookmark cache. Nullable = push-safe
   // additive; the service reads `?? []`.
@@ -1392,11 +1403,13 @@ export const appSettings = pgTable("app_settings", {
   // Scale factor applied to every rendered map pin's size (1 = default size). Nullable = push-safe
   // additive; the service clamps to [MAP_PIN_SCALE_MIN, MAP_PIN_SCALE_MAX] and falls back to 1 when null.
   mapPinScale: real("map_pin_scale"),
-  // Default "Show" mode (above/current/below) for a bookmark's locations map, relative to the
-  // bookmark's tagged locations' own levels. The per-level-group sibling lives inside
-  // placeTypeLevelGroups (each group's levelMode). Nullable = push-safe additive; the service
-  // coerces to a LocationMapLevelMode and falls back to "current" when null.
-  bookmarkMapLevelMode: text("bookmark_map_level_mode"),
+  // Default values pre-filled into the "Page screenshot" controls on a bookmark's Edit → Image tab
+  // (Settings → Media → Screenshot Defaults). Nullable = push-safe additive; the service clamps and
+  // falls back to the hardcoded capture defaults (no delay, 1280x720, no scroll) when null.
+  screenshotDefaultDelayMs: integer("screenshot_default_delay_ms"),
+  screenshotDefaultWidth: integer("screenshot_default_width"),
+  screenshotDefaultHeight: integer("screenshot_default_height"),
+  screenshotDefaultScrollDistance: integer("screenshot_default_scroll_distance"),
 });
 
 /**

@@ -382,7 +382,9 @@ export function BookmarkCardDetails({
     return (
       <div
         key={zone}
-        className="space-y-2"
+        className={zone === "card-single-bottom"
+          ? "mt-auto space-y-2"
+          : "space-y-2"}
       >
         {hasHeader
           ? (
@@ -417,7 +419,12 @@ export function BookmarkCardDetails({
   }
 
   return (
-    <div className={hasImageAbove ? "mt-2 space-y-2" : "space-y-2"}>
+    <div
+      className={`
+        flex h-full flex-col gap-2
+        ${hasImageAbove ? "mt-2" : ""}
+      `}
+    >
       {CARD_BODY_ZONES.map(zone => renderZone(zone))}
     </div>
   );

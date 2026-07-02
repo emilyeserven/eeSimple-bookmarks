@@ -249,7 +249,7 @@ const placeTypeDisplayBody = {
 
 const connectorsBody = {
   type: "object",
-  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaApiKey", "imageUrlBlacklist"],
+  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaApiKey", "youtubeApiKey", "imageUrlBlacklist"],
   additionalProperties: false,
   properties: {
     hostedMetadataEndpoint: {
@@ -271,6 +271,10 @@ const connectorsBody = {
       type: "string",
     },
     kavitaApiKey: {
+      // null = leave the stored key unchanged; "" = clear; any other string = set new key.
+      type: ["string", "null"],
+    },
+    youtubeApiKey: {
       // null = leave the stored key unchanged; "" = clear; any other string = set new key.
       type: ["string", "null"],
     },
@@ -301,7 +305,10 @@ const displayPreferenceBody = {
     "minAreaPinThresholdKm2",
     "bookmarksPerPage",
     "mapPinScale",
-    "bookmarkMapLevelMode",
+    "screenshotDefaultDelayMs",
+    "screenshotDefaultWidth",
+    "screenshotDefaultHeight",
+    "screenshotDefaultScrollDistance",
   ],
   additionalProperties: false,
   properties: {
@@ -379,9 +386,25 @@ const displayPreferenceBody = {
       minimum: 0.5,
       maximum: 2,
     },
-    bookmarkMapLevelMode: {
-      type: "string",
-      enum: [...LOCATION_MAP_LEVEL_MODES],
+    screenshotDefaultDelayMs: {
+      type: "integer",
+      minimum: 0,
+      maximum: 30000,
+    },
+    screenshotDefaultWidth: {
+      type: "integer",
+      minimum: 200,
+      maximum: 3840,
+    },
+    screenshotDefaultHeight: {
+      type: "integer",
+      minimum: 200,
+      maximum: 2160,
+    },
+    screenshotDefaultScrollDistance: {
+      type: "integer",
+      minimum: 0,
+      maximum: 10000,
     },
   },
 } as const;

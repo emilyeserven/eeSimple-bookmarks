@@ -8,7 +8,7 @@
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
-import type { BookmarkLocation, LocationMapLevelMode } from "./locations.js";
+import type { BookmarkLocation } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
 export * from "./conditions.js";
@@ -413,12 +413,13 @@ export interface DisplayPreferenceSettings {
   /** Scale factor applied to every rendered map pin's size (1 = default size). */
   mapPinScale: number;
   /**
-   * The default "Show" mode for a bookmark's locations map — which level groups it shows relative
-   * to the bookmark's tagged locations' own levels (`above` / `current` / `below`). The bookmark
-   * sibling of the per-group {@link PlaceTypeLevelGroup.levelMode}; edited on Settings → Locations
-   * → Level Groups and written through by the map "Levels" overlay's "Show" button group.
+   * Default values pre-filled into the "Page screenshot" controls on a bookmark's Edit → Image tab
+   * (`BookmarkImageEditForm`). Edited on Settings → Media → Screenshot Defaults.
    */
-  bookmarkMapLevelMode: LocationMapLevelMode;
+  screenshotDefaultDelayMs: number;
+  screenshotDefaultWidth: number;
+  screenshotDefaultHeight: number;
+  screenshotDefaultScrollDistance: number;
 }
 
 /** Minimum allowed value for {@link DisplayPreferenceSettings.mapPinScale}. */
@@ -854,6 +855,18 @@ export interface BookmarkImage {
   sortOrder: number;
 }
 
+/** The Browserless capture settings last used for a bookmark's screenshot. See {@link Bookmark.screenshotSettings}. */
+export interface BookmarkScreenshotSettings {
+  /** Post-load delay before capture, in milliseconds. */
+  delayMs: number | null;
+  /** Requested browser viewport width (CSS pixels) before capture. */
+  width: number | null;
+  /** Requested browser viewport height (CSS pixels) before capture. */
+  height: number | null;
+  /** Distance scrolled down (CSS pixels) after the delay, before capture. */
+  scrollDistance: number | null;
+}
+
 /**
  * A self-contained archive of an Instagram reel's video, captured on demand and stored in the app's
  * own object storage so it survives the reel later being deleted from Instagram. At most one per
@@ -1002,6 +1015,13 @@ export interface Bookmark {
   images: BookmarkImage[];
   /** A Browserless-captured page screenshot, or `null` when none has been taken. Used as image fallback when `image` is null. */
   screenshot: BookmarkImage | null;
+  /**
+   * The capture settings last used to take {@link screenshot}, remembered so the image-edit form can
+   * prefill them the next time this bookmark's screenshot is retaken. `null` when no screenshot has
+   * been captured yet; individual fields are `null` when that setting wasn't explicitly requested for
+   * the stored capture (e.g. the bulk auto-fetch fallback, which takes a screenshot with no options).
+   */
+  screenshotSettings: BookmarkScreenshotSettings | null;
   /** A self-contained capture of the bookmark's Instagram reel video, or `null` when none has been archived. */
   reelArchive: InstagramReelArchive | null;
   /** Specific reason the last image auto-grab attempt failed, or `null` when not yet attempted or the last attempt succeeded. */
@@ -2604,6 +2624,8 @@ export interface ConnectorsAppSettings {
   kavitaEndpoint: string;
   /** Whether a Kavita API key is stored (encrypted or plain); the raw value is never returned. */
   kavitaApiKeySet: boolean;
+  /** Whether a YouTube Data API v3 key is stored (encrypted or plain); the raw value is never returned. */
+  youtubeApiKeySet: boolean;
   /**
    * Patterns that exclude matching candidate images from a URL scan. Each entry is a case-insensitive
    * substring, or a simple `*` glob (e.g. `*.doubleclick.net/*`). Applied to every candidate image
@@ -2634,6 +2656,13 @@ export interface UpdateConnectorsSettingsInput {
    * Any other string = encrypt and store as the new key.
    */
   kavitaApiKey: string | null;
+  /**
+   * Raw YouTube Data API v3 key to store (encrypted when `APP_SECRET` is set).
+   * `null` = leave the stored key unchanged.
+   * `""` = clear the stored key.
+   * Any other string = encrypt and store as the new key.
+   */
+  youtubeApiKey: string | null;
   /** Image-URL blacklist patterns; replaces the stored list wholesale. */
   imageUrlBlacklist: string[];
 }
@@ -2709,6 +2738,12 @@ export interface FetchIsbnMetadataResult {
   year: string | null;
   /** Canonical Open Library URL for this book, or `null` when unavailable. */
   openLibraryUrl: string | null;
+  /**
+   * Set only when this result came from the operator's Kavita library fallback: the matched
+   * series' id, needed to fetch the cover through the authenticated Kavita API (`coverUrl` is a
+   * middleware-relative proxy path for that case, not a directly downloadable URL).
+   */
+  kavitaSeriesId?: number | null;
 }
 
 /** A named snapshot of bookmark listing filter state, reusable on any listing page. */

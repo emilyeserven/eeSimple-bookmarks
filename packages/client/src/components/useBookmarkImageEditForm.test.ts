@@ -1,5 +1,5 @@
 import type { ImageIntent } from "./bookmarkImageIntent";
-import type { Bookmark } from "@eesimple/types";
+import type { Bookmark, DisplayPreferenceSettings } from "@eesimple/types";
 
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -76,6 +76,14 @@ vi.mock("../hooks/useConnectors", () => ({
   }),
 }));
 
+let displayPreferencesData: DisplayPreferenceSettings | undefined;
+
+vi.mock("../hooks/useAppSettings", () => ({
+  useDisplayPreferenceSettings: () => ({
+    data: displayPreferencesData,
+  }),
+}));
+
 vi.mock("../hooks/useCustomProperties", () => ({
   usePropertyBySlug: () => ({
     property: undefined,
@@ -120,6 +128,7 @@ async function submitWith(over: Partial<ImageIntent>) {
 describe("useBookmarkImageEditForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    displayPreferencesData = undefined;
   });
 
   afterEach(() => {
@@ -284,6 +293,44 @@ describe("useBookmarkImageEditForm", () => {
     });
   });
 
+  it("pre-fills the screenshot controls from the Screenshot Defaults settings", async () => {
+    displayPreferencesData = {
+      bookmarkDetailImageSize: "medium",
+      bookmarkDetailVideoSize: "standard",
+      bookmarkDetailLayout: "single",
+      filtersInDrawer: false,
+      filtersHidden: false,
+      panelPinned: false,
+      drawerUnpinnedBreakpoints: [768],
+      croppedWidth: 16,
+      croppedHeight: 9,
+      customPropertyTypeIcons: null,
+      onDemandFilters: [],
+      showRomanizedByDefault: false,
+      sortByRomanized: true,
+      minAreaPinThresholdKm2: 0,
+      bookmarksPerPage: 25,
+      mapPinScale: 1,
+      screenshotDefaultDelayMs: 10000,
+      screenshotDefaultWidth: 1920,
+      screenshotDefaultHeight: 1080,
+      screenshotDefaultScrollDistance: 2000,
+    };
+    const {
+      result,
+    } = renderHook(() => useBookmarkImageEditForm(bookmark));
+    await act(async () => {
+      result.current.onTakeScreenshot();
+    });
+    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+      id: bookmark.id,
+      delayMs: 10000,
+      width: 1920,
+      height: 1080,
+      scrollDistance: 2000,
+    });
+  });
+
   it("takes a screenshot with the selected scroll distance", async () => {
     const {
       result,
@@ -299,6 +346,37 @@ describe("useBookmarkImageEditForm", () => {
       delayMs: undefined,
       width: 1280,
       height: 720,
+      scrollDistance: 2000,
+    });
+  });
+
+  it("prefills the screenshot settings from the bookmark's last-used settings", async () => {
+    const bookmarkWithSettings = makeBookmark({
+      id: bookmark.id,
+      url: bookmark.url,
+      screenshotSettings: {
+        delayMs: 5000,
+        width: 1920,
+        height: 1080,
+        scrollDistance: 2000,
+      },
+    });
+    const {
+      result,
+    } = renderHook(() => useBookmarkImageEditForm(bookmarkWithSettings));
+    expect(result.current.screenshotDelayMs).toBe(5000);
+    expect(result.current.screenshotWidth).toBe(1920);
+    expect(result.current.screenshotHeight).toBe(1080);
+    expect(result.current.screenshotScrollDistance).toBe(2000);
+
+    act(() => {
+      result.current.onTakeScreenshot();
+    });
+    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+      id: bookmark.id,
+      delayMs: 5000,
+      width: 1920,
+      height: 1080,
       scrollDistance: 2000,
     });
   });

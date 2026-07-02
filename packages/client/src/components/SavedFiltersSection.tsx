@@ -37,7 +37,9 @@ export function SavedFiltersSection({
   const createMutation = useCreateSavedFilter();
   const [saveModalOpen, setSaveModalOpen] = useState(false);
 
-  const hasActive = hasAnyActiveFilter(search);
+  // A sort with no other filters is still worth naming/saving, even though it doesn't
+  // narrow which bookmarks match (hasAnyActiveFilter is deliberately blind to it).
+  const hasActive = hasAnyActiveFilter(search) || search.sort != null;
 
   if (!hasActive && savedFilters.length === 0 && !isLoading) return null;
 

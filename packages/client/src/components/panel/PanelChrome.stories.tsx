@@ -22,7 +22,10 @@ const displayPreferences: DisplayPreferenceSettings = {
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,
   mapPinScale: 1,
-  bookmarkMapLevelMode: "current",
+  screenshotDefaultDelayMs: 0,
+  screenshotDefaultWidth: 1280,
+  screenshotDefaultHeight: 720,
+  screenshotDefaultScrollDistance: 0,
 };
 
 const meta = {

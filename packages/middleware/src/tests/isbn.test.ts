@@ -209,6 +209,9 @@ test("fetchIsbnMetadata falls back to Kavita when both public providers miss and
     assert.equal(outcome.kind === "ok" ? outcome.result.title : null, "The Hitchhiker's Guide to the Galaxy");
     assert.equal(outcome.kind === "ok" ? outcome.result.publisher : null, "Books");
     assert.equal(outcome.kind === "ok" ? outcome.result.coverUrl : null, "/api/kavita/series/12/cover");
+    // The matched series id travels with the result so `importIsbnCover` can fetch the cover via
+    // the authenticated Kavita API instead of downloading the (unauthenticated) proxy path.
+    assert.equal(outcome.kind === "ok" ? outcome.result.kavitaSeriesId : null, 12);
   }
   finally {
     restore();

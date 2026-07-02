@@ -217,7 +217,7 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
 }
 
 function gallerySection(bookmark: Bookmark): BookmarkDetailSection | null {
-  if (bookmark.images.length === 0) return null;
+  if (bookmark.images.length === 0 && bookmark.screenshot === null) return null;
   return {
     id: "gallery",
     label: "Gallery",

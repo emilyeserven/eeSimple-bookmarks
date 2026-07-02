@@ -15,7 +15,8 @@ function group(overrides: Partial<PlaceTypeLevelGroup> & Pick<PlaceTypeLevelGrou
   };
 }
 
-// Country (0) → Region (1) → City (2), most-general first.
+// Country (0) → Region (1) → City (2), most-general first. `levelMode` is absent (→ "current") on
+// every group unless a test overrides it via `withLevelMode`.
 const groups: PlaceTypeLevelGroup[] = [
   group({
     id: "country",
@@ -37,11 +38,21 @@ const groups: PlaceTypeLevelGroup[] = [
   }),
 ];
 
+/** `groups` with one group's persisted `levelMode` overridden — the expansion direction it reads as an anchor. */
+function withLevelMode(id: string, levelMode: PlaceTypeLevelGroup["levelMode"]): PlaceTypeLevelGroup[] {
+  return groups.map(g => (g.id === id
+    ? {
+      ...g,
+      levelMode,
+    }
+    : g));
+}
+
 describe("computeVisibleLevelGroupIds", () => {
   it("main scope shows only the groups flagged for the main map", () => {
     const ids = computeVisibleLevelGroupIds(groups, {
       kind: "main",
-    }, "current");
+    });
     expect([...ids].sort()).toEqual(["city", "country"]);
   });
 
@@ -52,7 +63,7 @@ describe("computeVisibleLevelGroupIds", () => {
     }));
     const ids = computeVisibleLevelGroupIds(legacy, {
       kind: "main",
-    }, "current");
+    });
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
@@ -60,7 +71,7 @@ describe("computeVisibleLevelGroupIds", () => {
     const ids = computeVisibleLevelGroupIds(groups, {
       kind: "bookmark",
       placeTypes: ["region"],
-    }, "current");
+    });
     expect([...ids]).toEqual(["region"]);
   });
 
@@ -68,23 +79,23 @@ describe("computeVisibleLevelGroupIds", () => {
     const ids = computeVisibleLevelGroupIds(groups, {
       kind: "bookmark",
       placeTypes: ["country", "city"],
-    }, "current");
+    });
     expect([...ids].sort()).toEqual(["city", "country"]);
   });
 
-  it("bookmark 'above' adds levels broader than the broadest anchor", () => {
-    const ids = computeVisibleLevelGroupIds(groups, {
+  it("bookmark 'above' adds levels broader than the anchor, per its own persisted levelMode", () => {
+    const ids = computeVisibleLevelGroupIds(withLevelMode("city", "above"), {
       kind: "bookmark",
       placeTypes: ["city"],
-    }, "above");
+    });
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
-  it("bookmark 'below' adds levels narrower than the narrowest anchor", () => {
-    const ids = computeVisibleLevelGroupIds(groups, {
+  it("bookmark 'below' adds levels narrower than the anchor, per its own persisted levelMode", () => {
+    const ids = computeVisibleLevelGroupIds(withLevelMode("country", "below"), {
       kind: "bookmark",
       placeTypes: ["country"],
-    }, "below");
+    });
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
@@ -92,7 +103,7 @@ describe("computeVisibleLevelGroupIds", () => {
     const ids = computeVisibleLevelGroupIds(groups, {
       kind: "bookmark",
       placeTypes: ["continent"],
-    }, "current");
+    });
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
@@ -100,31 +111,70 @@ describe("computeVisibleLevelGroupIds", () => {
     const ids = computeVisibleLevelGroupIds(groups, {
       kind: "bookmark",
       placeTypes: [],
-    }, "current");
+    });
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
+  });
+
+  it("bookmark scope expands each anchor independently, per its own levelMode", () => {
+    // 5 levels so the middle ("region") is reachable by neither anchor's own direction — proving
+    // the anchors expand independently rather than uniformly across the whole tagged set.
+    const wide: PlaceTypeLevelGroup[] = [
+      group({
+        id: "continent",
+        placeTypes: ["continent"],
+        sortOrder: 0,
+      }),
+      group({
+        id: "country",
+        placeTypes: ["country"],
+        sortOrder: 1,
+        levelMode: "above",
+      }),
+      group({
+        id: "region",
+        placeTypes: ["region"],
+        sortOrder: 2,
+      }),
+      group({
+        id: "city",
+        placeTypes: ["city"],
+        sortOrder: 3,
+        levelMode: "below",
+      }),
+      group({
+        id: "district",
+        placeTypes: ["district"],
+        sortOrder: 4,
+      }),
+    ];
+    const ids = computeVisibleLevelGroupIds(wide, {
+      kind: "bookmark",
+      placeTypes: ["country", "city"],
+    });
+    expect([...ids].sort()).toEqual(["city", "continent", "country", "district"]);
   });
 
   it("location 'current' shows only the viewed place's own level", () => {
     const ids = computeVisibleLevelGroupIds(groups, {
       kind: "location",
       currentPlaceType: "region",
-    }, "current");
+    });
     expect([...ids]).toEqual(["region"]);
   });
 
   it("location 'above' adds broader levels and always keeps the current", () => {
-    const ids = computeVisibleLevelGroupIds(groups, {
+    const ids = computeVisibleLevelGroupIds(withLevelMode("city", "above"), {
       kind: "location",
       currentPlaceType: "city",
-    }, "above");
+    });
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
   it("location 'below' adds narrower levels and always keeps the current", () => {
-    const ids = computeVisibleLevelGroupIds(groups, {
+    const ids = computeVisibleLevelGroupIds(withLevelMode("country", "below"), {
       kind: "location",
       currentPlaceType: "country",
-    }, "below");
+    });
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
@@ -132,7 +182,7 @@ describe("computeVisibleLevelGroupIds", () => {
     const ids = computeVisibleLevelGroupIds(groups, {
       kind: "location",
       currentPlaceType: "CITY",
-    }, "current");
+    });
     expect([...ids]).toEqual(["city"]);
   });
 
@@ -140,7 +190,7 @@ describe("computeVisibleLevelGroupIds", () => {
     const ids = computeVisibleLevelGroupIds(groups, {
       kind: "location",
       currentPlaceType: "continent",
-    }, "current");
+    });
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
@@ -148,7 +198,7 @@ describe("computeVisibleLevelGroupIds", () => {
     const ids = computeVisibleLevelGroupIds(groups, {
       kind: "location",
       currentPlaceType: null,
-    }, "current");
+    });
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
@@ -163,23 +213,33 @@ describe("computeVisibleLevelGroupIds", () => {
     it("excludes a hidden group from the main map default", () => {
       const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
         kind: "main",
-      }, "current");
+      });
       expect([...ids].sort()).toEqual(["city"]);
     });
 
     it("excludes a hidden group from an 'above' expansion that would otherwise include it", () => {
-      const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
+      const ids = computeVisibleLevelGroupIds(withHiddenCountry.map(g => (g.id === "city"
+        ? {
+          ...g,
+          levelMode: "above" as const,
+        }
+        : g)), {
         kind: "location",
         currentPlaceType: "city",
-      }, "above");
+      });
       expect([...ids].sort()).toEqual(["city", "region"]);
     });
 
     it("excludes a hidden group from a bookmark 'above' expansion", () => {
-      const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
+      const ids = computeVisibleLevelGroupIds(withHiddenCountry.map(g => (g.id === "city"
+        ? {
+          ...g,
+          levelMode: "above" as const,
+        }
+        : g)), {
         kind: "bookmark",
         placeTypes: ["city"],
-      }, "above");
+      });
       expect([...ids].sort()).toEqual(["city", "region"]);
     });
 
@@ -187,7 +247,7 @@ describe("computeVisibleLevelGroupIds", () => {
       const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
         kind: "location",
         currentPlaceType: "country",
-      }, "current");
+      });
       expect([...ids]).toEqual([]);
     });
 
@@ -195,7 +255,7 @@ describe("computeVisibleLevelGroupIds", () => {
       const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
         kind: "location",
         currentPlaceType: "continent",
-      }, "current");
+      });
       expect([...ids].sort()).toEqual(["city", "region"]);
     });
   });

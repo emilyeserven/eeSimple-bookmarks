@@ -2,23 +2,22 @@ import { ArrowUpDown } from "lucide-react";
 
 import { BookmarkSortEditor } from "./BookmarkSortFields";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { withSort } from "../lib/bookmarkSearch";
 import { cn } from "../lib/utils";
 import { useUiStore } from "../stores/uiStore";
 import { Button } from "./ui/button";
 import { ResponsivePopover } from "./ui/responsive-popover";
 
 interface BookmarkSortPopoverProps {
-  pageKey: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
 export function BookmarkSortPopover({
-  pageKey,
   open,
   onOpenChange,
 }: BookmarkSortPopoverProps) {
-  const isActive = useUiStore(s => s.bookmarkSort[pageKey] != null);
+  const isActive = useUiStore(s => s.filterContext?.search.sort != null);
   return (
     <ResponsivePopover
       title="Sort"
@@ -44,21 +43,14 @@ export function BookmarkSortPopover({
         </Button>
       )}
     >
-      <BookmarkSortControls pageKey={pageKey} />
+      <BookmarkSortControls />
     </ResponsivePopover>
   );
 }
 
-interface BookmarkSortControlsProps {
-  pageKey: string;
-}
-
-function BookmarkSortControls({
-  pageKey,
-}: BookmarkSortControlsProps) {
-  const sort = useUiStore(s => s.bookmarkSort[pageKey]);
-  const setBookmarkSort = useUiStore(s => s.setBookmarkSort);
-  const clearBookmarkSort = useUiStore(s => s.clearBookmarkSort);
+function BookmarkSortControls() {
+  const filterContext = useUiStore(s => s.filterContext);
+  const sort = filterContext?.search.sort;
   const {
     data: allProperties = [],
   } = useCustomProperties();
@@ -67,8 +59,7 @@ function BookmarkSortControls({
     <BookmarkSortEditor
       value={sort}
       onChange={(next) => {
-        if (next) setBookmarkSort(pageKey, next);
-        else clearBookmarkSort(pageKey);
+        if (filterContext) filterContext.onSearchChange(withSort(filterContext.search, next));
       }}
       properties={allProperties}
       allowRandom

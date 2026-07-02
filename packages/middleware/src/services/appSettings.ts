@@ -117,7 +117,10 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   mapPinScale: MAP_PIN_SCALE_DEFAULT,
-  bookmarkMapLevelMode: "current",
+  screenshotDefaultDelayMs: 0,
+  screenshotDefaultWidth: 1280,
+  screenshotDefaultHeight: 720,
+  screenshotDefaultScrollDistance: 0,
 };
 
 /** Coerce a stored width string to the typed union, defaulting to "full". */
@@ -166,6 +169,17 @@ function asMinAreaThreshold(value: number | null | undefined): number {
 function asMapPinScale(value: number | null | undefined): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return MAP_PIN_SCALE_DEFAULT;
   return Math.min(MAP_PIN_SCALE_MAX, Math.max(MAP_PIN_SCALE_MIN, value));
+}
+
+/** Clamp a stored screenshot-default numeric field to an integer within [min, max]. */
+function asScreenshotDefault(
+  value: number | null | undefined,
+  fallback: number,
+  min: number,
+  max: number,
+): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(value)));
 }
 
 /** Coerce breakpoints to a deduped, sorted array of positive integers. */
@@ -1029,7 +1043,10 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       minAreaPinThresholdKm2: appSettings.minAreaPinThresholdKm2,
       bookmarksPerPage: appSettings.bookmarksPerPage,
       mapPinScale: appSettings.mapPinScale,
-      bookmarkMapLevelMode: appSettings.bookmarkMapLevelMode,
+      screenshotDefaultDelayMs: appSettings.screenshotDefaultDelayMs,
+      screenshotDefaultWidth: appSettings.screenshotDefaultWidth,
+      screenshotDefaultHeight: appSettings.screenshotDefaultHeight,
+      screenshotDefaultScrollDistance: appSettings.screenshotDefaultScrollDistance,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -1051,7 +1068,15 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     minAreaPinThresholdKm2: asMinAreaThreshold(row.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(row.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
     mapPinScale: asMapPinScale(row.mapPinScale),
-    bookmarkMapLevelMode: normalizeLevelMode(row.bookmarkMapLevelMode),
+    screenshotDefaultDelayMs: asScreenshotDefault(row.screenshotDefaultDelayMs, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultDelayMs, 0, 30000),
+    screenshotDefaultWidth: asScreenshotDefault(row.screenshotDefaultWidth, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultWidth, 200, 3840),
+    screenshotDefaultHeight: asScreenshotDefault(row.screenshotDefaultHeight, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultHeight, 200, 2160),
+    screenshotDefaultScrollDistance: asScreenshotDefault(
+      row.screenshotDefaultScrollDistance,
+      DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultScrollDistance,
+      0,
+      10000,
+    ),
   };
 }
 
@@ -1065,6 +1090,7 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
       archiveBoxEndpoint: appSettings.archiveBoxEndpoint,
       kavitaEndpoint: appSettings.kavitaEndpoint,
       kavitaApiKey: appSettings.kavitaApiKey,
+      youtubeApiKey: appSettings.youtubeApiKey,
       imageUrlBlacklist: appSettings.imageUrlBlacklist,
     })
     .from(appSettings)
@@ -1081,6 +1107,7 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
     archiveBoxEndpoint: row?.archiveBoxEndpoint ?? process.env.ARCHIVEBOX_ENDPOINT ?? "",
     kavitaEndpoint: row?.kavitaEndpoint ?? process.env.KAVITA_ENDPOINT ?? "",
     kavitaApiKeySet: Boolean(row?.kavitaApiKey) || Boolean(process.env.KAVITA_API_KEY),
+    youtubeApiKeySet: Boolean(row?.youtubeApiKey) || Boolean(process.env.YOUTUBE_API_KEY),
     imageUrlBlacklist: row?.imageUrlBlacklist ?? [],
   };
 }
@@ -1224,6 +1251,29 @@ export async function getDecryptedKavitaApiKey(): Promise<string | null> {
   return process.env.KAVITA_API_KEY ?? null;
 }
 
+/**
+ * Retrieve the decrypted YouTube Data API v3 key. Checks the database first (decrypting if
+ * encrypted), then falls back to the `YOUTUBE_API_KEY` env var.
+ */
+export async function getDecryptedYoutubeApiKey(): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select({
+        youtubeApiKey: appSettings.youtubeApiKey,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    if (row?.youtubeApiKey) {
+      const decrypted = maybeDecrypt(row.youtubeApiKey);
+      if (decrypted) return decrypted;
+    }
+  }
+  catch {
+    // DB unavailable (e.g. test environment) — fall through to env var.
+  }
+  return process.env.YOUTUBE_API_KEY ?? null;
+}
+
 /** Replace the hosted-metadata connector settings, upserting the singleton. */
 export async function updateConnectorsSettings(
   input: UpdateConnectorsSettingsInput,
@@ -1246,6 +1296,11 @@ export async function updateConnectorsSettings(
   if (input.kavitaApiKey !== null) {
     set.kavitaApiKey = input.kavitaApiKey.trim()
       ? maybeEncrypt(input.kavitaApiKey.trim())
+      : null;
+  }
+  if (input.youtubeApiKey !== null) {
+    set.youtubeApiKey = input.youtubeApiKey.trim()
+      ? maybeEncrypt(input.youtubeApiKey.trim())
       : null;
   }
   await db
@@ -1282,7 +1337,15 @@ export async function updateDisplayPreferenceSettings(
     minAreaPinThresholdKm2: asMinAreaThreshold(input.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(input.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
     mapPinScale: asMapPinScale(input.mapPinScale),
-    bookmarkMapLevelMode: normalizeLevelMode(input.bookmarkMapLevelMode),
+    screenshotDefaultDelayMs: asScreenshotDefault(input.screenshotDefaultDelayMs, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultDelayMs, 0, 30000),
+    screenshotDefaultWidth: asScreenshotDefault(input.screenshotDefaultWidth, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultWidth, 200, 3840),
+    screenshotDefaultHeight: asScreenshotDefault(input.screenshotDefaultHeight, DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultHeight, 200, 2160),
+    screenshotDefaultScrollDistance: asScreenshotDefault(
+      input.screenshotDefaultScrollDistance,
+      DEFAULT_DISPLAY_PREFERENCES.screenshotDefaultScrollDistance,
+      0,
+      10000,
+    ),
   };
   await db
     .insert(appSettings)

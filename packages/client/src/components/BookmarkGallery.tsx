@@ -12,12 +12,15 @@ interface BookmarkGalleryProps {
  * The bookmark Gallery tab: a big image on the left with a vertical strip of thumbnails on the
  * right (shown only when there's more than one kept image) to switch which one is displayed.
  * The main image fills the available width; only its height is capped at 1200px so a large
- * source image can't blow out the layout.
+ * source image can't blow out the layout. Includes the auto-captured page screenshot (if any)
+ * alongside the bookmark's kept images.
  */
 export function BookmarkGallery({
   bookmark,
 }: BookmarkGalleryProps) {
-  const images = bookmark.images;
+  const images = bookmark.screenshot
+    ? [...bookmark.images, bookmark.screenshot]
+    : bookmark.images;
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const selected = images.find(img => img.id === selectedId)
@@ -46,7 +49,7 @@ export function BookmarkGallery({
               <button
                 key={img.id}
                 type="button"
-                aria-label={img.isMain ? "Main image" : "Show image"}
+                aria-label={img.isMain ? "Main image" : img.source === "screenshot" ? "Page screenshot" : "Show image"}
                 aria-pressed={img.id === selected.id}
                 onClick={() => setSelectedId(img.id)}
                 className={cn(

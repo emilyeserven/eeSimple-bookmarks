@@ -1,10 +1,11 @@
 import { useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, MapPin, MapPinned } from "lucide-react";
+import { ChevronDown, ChevronRight, MapPin, MapPinned } from "lucide-react";
 
 import { useIsMobile } from "../hooks/use-mobile";
 
+import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import {
   SidebarMenuAction,
@@ -15,8 +16,10 @@ import {
 /** The Place Types shortcut revealed by the Locations flyout — shared by desktop popover + mobile inline. */
 function PlaceTypesLink({
   onNavigate,
+  placeTypesCount,
 }: {
   onNavigate: () => void;
+  placeTypesCount?: number;
 }) {
   return (
     <Link
@@ -28,27 +31,45 @@ function PlaceTypesLink({
       "
     >
       <MapPinned className="size-3.5 shrink-0 text-muted-foreground" />
-      <span className="truncate">Place Types</span>
+      <span className="flex-1 truncate">Place Types</span>
+      {placeTypesCount != null && placeTypesCount > 0
+        ? (
+          <Badge
+            variant="secondary"
+            className="shrink-0"
+          >
+            {placeTypesCount}
+          </Badge>
+        )
+        : null}
     </Link>
   );
 }
 
 /**
  * The sidebar "Locations" entry with a hover flyout surfacing its Place Types taxonomy. On desktop,
- * hovering the button (or the flyout) opens a popover to the right; on mobile, a chevron expands the
- * shortcut inline (hover popovers don't work on touch). Clicking the button still navigates to the
- * Locations listing. Mirrors {@link SettingsFavoritesFlyout}.
+ * hovering the button (or the flyout) opens a popover to the right — a chevron affordance on the
+ * button signals the flyout even before hovering; on mobile, the same chevron doubles as the expand
+ * toggle (hover popovers don't work on touch). Clicking the button still navigates to the Locations
+ * listing. Mirrors {@link SettingsFavoritesFlyout}.
  */
 export function LocationsSidebarItem({
   pathname,
+  locationsCount,
+  placeTypesCount,
+  sidebarState,
 }: {
   pathname: string;
+  locationsCount?: number;
+  placeTypesCount?: number;
+  sidebarState?: string;
 }) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isActive = pathname.startsWith("/taxonomies/locations");
+  const showTrailingContent = sidebarState !== "collapsed";
 
   function cancelClose() {
     if (closeTimer.current) {
@@ -75,7 +96,26 @@ export function LocationsSidebarItem({
     >
       <Link to="/taxonomies/locations">
         <MapPin />
-        <span>Locations</span>
+        <span className="flex-1 truncate">Locations</span>
+        {showTrailingContent && locationsCount != null && locationsCount > 0
+          ? (
+            <Badge
+              variant="secondary"
+              className="shrink-0"
+            >
+              {locationsCount}
+            </Badge>
+          )
+          : null}
+        {/* Signals the hover flyout even before the user hovers — desktop only, mobile has its own toggle. */}
+        {showTrailingContent && !isMobile
+          ? (
+            <ChevronRight
+              aria-hidden="true"
+              className="size-3.5 shrink-0 text-muted-foreground"
+            />
+          )
+          : null}
       </Link>
     </SidebarMenuButton>
   );
@@ -101,7 +141,10 @@ export function LocationsSidebarItem({
         {expanded
           ? (
             <SidebarMenuItem className="px-1 pb-1">
-              <PlaceTypesLink onNavigate={() => setExpanded(false)} />
+              <PlaceTypesLink
+                onNavigate={() => setExpanded(false)}
+                placeTypesCount={placeTypesCount}
+              />
             </SidebarMenuItem>
           )
           : null}
@@ -134,7 +177,10 @@ export function LocationsSidebarItem({
           <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">
             Locations
           </p>
-          <PlaceTypesLink onNavigate={() => setOpen(false)} />
+          <PlaceTypesLink
+            onNavigate={() => setOpen(false)}
+            placeTypesCount={placeTypesCount}
+          />
         </PopoverContent>
       </Popover>
     </SidebarMenuItem>

@@ -52,6 +52,21 @@ describe("buildBookmarkDetailSections", () => {
     expect(build(makeBookmark())).not.toContain("gallery");
   });
 
+  it("adds the Gallery section when the bookmark only has a screenshot", () => {
+    const withScreenshot = makeBookmark({
+      screenshot: {
+        id: "b1",
+        url: "https://example.com/screenshot.png",
+        width: 100,
+        height: 100,
+        source: "screenshot",
+        isMain: false,
+        sortOrder: 0,
+      },
+    });
+    expect(build(withScreenshot)).toContain("gallery");
+  });
+
   it("adds the Video section when the bookmark has an archived reel, omitting it otherwise", () => {
     const withReel = makeBookmark({
       reelArchive: {

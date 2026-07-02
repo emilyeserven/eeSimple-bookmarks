@@ -1,5 +1,5 @@
 import type { DragEndEvent } from "@dnd-kit/core";
-import type { LocationMapLevelMode, PlaceTypeLevelGroup } from "@eesimple/types";
+import type { PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
@@ -20,17 +20,13 @@ import {
 import { LOCATION_MAP_PALETTES } from "@eesimple/types";
 import { ArrowLeftRight, Plus } from "lucide-react";
 
-import { LocationLevelModeToggle } from "./LocationLevelModeToggle";
 import { SortableGroupRow } from "./SortableLevelGroupRow";
 import {
-  useBookmarkMapLevelMode,
   useDisplayPreferenceSettings,
   useMinAreaPinThresholdKm2,
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
 import { useLocationLevels } from "../hooks/useLocationLevels";
-import { BOOKMARK_MAP_LEVEL_MODE_LABEL } from "../hooks/useMapLevelMode";
-import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
@@ -119,18 +115,6 @@ export function LocationLevelGroupsSettings() {
     });
   }
 
-  const bookmarkMapLevelMode = useBookmarkMapLevelMode();
-  function setBookmarkMapLevelMode(mode: LocationMapLevelMode) {
-    if (!displayPrefs || mode === bookmarkMapLevelMode) return;
-    updatePrefs.mutate({
-      ...displayPrefs,
-      bookmarkMapLevelMode: mode,
-    }, {
-      onSuccess: () => notifyFieldSaved(BOOKMARK_MAP_LEVEL_MODE_LABEL),
-      onError: error => notifyFieldSaveError(BOOKMARK_MAP_LEVEL_MODE_LABEL, error.message),
-    });
-  }
-
   // Local ordered IDs, re-synced when the saved groups change.
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
   useEffect(() => {
@@ -201,19 +185,6 @@ export function LocationLevelGroupsSettings() {
             />
             <span className="text-sm text-muted-foreground">km²</span>
           </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <span className="text-sm font-medium">Bookmark maps</span>
-          <p className="text-xs text-muted-foreground">
-            Which levels a bookmark&rsquo;s locations map shows by default, relative to its tagged
-            locations&rsquo; own levels. Each level below carries its own &ldquo;Show&rdquo; default
-            (edit a level to change it), used when a place of that level is viewed.
-          </p>
-          <LocationLevelModeToggle
-            value={bookmarkMapLevelMode}
-            onChange={setBookmarkMapLevelMode}
-          />
         </div>
 
         {groups.length > 0

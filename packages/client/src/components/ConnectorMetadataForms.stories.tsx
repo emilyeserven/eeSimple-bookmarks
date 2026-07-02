@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HttpResponse, http } from "msw";
 
-import { ArchiveBoxForm, HostedMetadataForm, KavitaForm } from "./ConnectorMetadataForms";
+import { ArchiveBoxForm, HostedMetadataForm, KavitaForm, YoutubeForm } from "./ConnectorMetadataForms";
 import { apiHandlers } from "../test-utils/story-mocks";
 
 const connectorsSettings: ConnectorsAppSettings = {
@@ -14,6 +14,7 @@ const connectorsSettings: ConnectorsAppSettings = {
   archiveBoxEndpoint: "",
   kavitaEndpoint: "",
   kavitaApiKeySet: false,
+  youtubeApiKeySet: false,
   imageUrlBlacklist: [],
 };
 
@@ -76,6 +77,27 @@ export const KavitaConfigured: Story = {
           ...connectorsSettings,
           kavitaEndpoint: "http://localhost:5000",
           kavitaApiKeySet: true,
+        } satisfies ConnectorsAppSettings)),
+        ...apiHandlers,
+      ],
+    },
+  },
+};
+
+/** The YouTube Data API v3 connector form — a single API key field. */
+export const Youtube: Story = {
+  render: () => <YoutubeForm />,
+};
+
+/** YouTube already configured with a stored API key. */
+export const YoutubeConfigured: Story = {
+  render: () => <YoutubeForm />,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/app-settings/connectors", () => HttpResponse.json({
+          ...connectorsSettings,
+          youtubeApiKeySet: true,
         } satisfies ConnectorsAppSettings)),
         ...apiHandlers,
       ],

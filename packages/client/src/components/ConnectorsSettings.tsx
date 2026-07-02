@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { OEMBED_PROVIDERS } from "@eesimple/types";
 
-import { ArchiveBoxForm, HostedMetadataForm, ImageBlacklistForm, KavitaForm } from "./ConnectorMetadataForms";
+import { ArchiveBoxForm, HostedMetadataForm, ImageBlacklistForm, KavitaForm, YoutubeForm } from "./ConnectorMetadataForms";
 import { useConnectors } from "../hooks/useConnectors";
 
 import { Badge } from "@/components/ui/badge";
@@ -294,16 +294,17 @@ export function ConnectorsSettings() {
             </div>
             <CardDescription>
               Title, thumbnail, and channel always come from YouTube&apos;s keyless oEmbed endpoint. When
-              a
+              an API key is configured (below, or the
               {" "}
               <code>YOUTUBE_API_KEY</code>
               {" "}
-              is configured, duration, publish date, and description come from the YouTube Data API v3
-              instead of the watch-page scrape; otherwise the scrape is used.
+              env var), duration, publish date, description, and channel avatars come from the YouTube
+              Data API v3 instead of scraping YouTube&apos;s pages; otherwise the scrape is used.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Provides items={["Title", "Channel", "Thumbnail image", "Duration", "Publish date", "Description"]} />
+          <CardContent className="space-y-4">
+            <YoutubeForm />
+            <Provides items={["Title", "Channel", "Thumbnail image", "Duration", "Publish date", "Description", "Channel avatar"]} />
           </CardContent>
         </Card>
       ),

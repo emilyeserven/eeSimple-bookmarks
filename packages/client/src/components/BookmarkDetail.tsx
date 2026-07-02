@@ -1,8 +1,9 @@
 import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 
 import { youtubeEmbedUrl } from "@eesimple/types";
+import { BookOpen } from "lucide-react";
 
-import { BookmarkArchiveLinkButton, BookmarkArchiveNowButton, BookmarkKavitaLinkButton } from "./BookmarkCardActions";
+import { BookmarkArchiveLinkButton, BookmarkArchiveNowButton } from "./BookmarkCardActions";
 import { BookmarkDetailBody } from "./BookmarkDetailBody";
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
@@ -10,6 +11,7 @@ import { DetailHeaderActions } from "./DetailHeaderActions";
 import { RomanizedLabel } from "./RomanizedLabel";
 import { useBookmarkDetailLayout } from "../hooks/useAppSettings";
 import { useConnectors } from "../hooks/useConnectors";
+import { kavitaSeriesUrl } from "../lib/kavita";
 
 interface BookmarkDetailProps {
   bookmark: Bookmark;
@@ -82,14 +84,6 @@ export function BookmarkDetail({
               </a>
             </h1>
             <div className="flex items-center gap-1">
-              {showKavita && kavitaBaseUrl !== null
-                && bookmark.kavitaLibraryId !== null && bookmark.kavitaSeriesId !== null && (
-                <BookmarkKavitaLinkButton
-                  baseUrl={kavitaBaseUrl}
-                  libraryId={bookmark.kavitaLibraryId}
-                  seriesId={bookmark.kavitaSeriesId}
-                />
-              )}
               {showArchive && archiveBaseUrl !== null && bookmark.url && (
                 <>
                   <BookmarkArchiveLinkButton
@@ -108,6 +102,21 @@ export function BookmarkDetail({
               />
             </div>
           </div>
+          {showKavita && kavitaBaseUrl !== null
+            && bookmark.kavitaLibraryId !== null && bookmark.kavitaSeriesId !== null && (
+            <a
+              href={kavitaSeriesUrl(kavitaBaseUrl, bookmark.kavitaLibraryId, bookmark.kavitaSeriesId)}
+              target="_blank"
+              rel="noreferrer"
+              className="
+                flex w-fit items-center gap-1 text-sm text-muted-foreground
+                hover:underline
+              "
+            >
+              <BookOpen className="size-3.5" />
+              View on Kavita
+            </a>
+          )}
           <a
             href={bookmark.url ?? undefined}
             target="_blank"

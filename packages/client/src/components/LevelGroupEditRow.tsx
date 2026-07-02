@@ -181,9 +181,9 @@ export function LevelGroupEditRow({
           onChange={mode => setGroupLevelMode(group.id, mode)}
         />
         <p className="text-xs text-muted-foreground">
-          Which levels a place&rsquo;s map shows by default when this is its own level — broader
-          levels too, only this level, or narrower levels. The map&rsquo;s Levels overlay edits the
-          same default.
+          Which levels a place&rsquo;s map (or a bookmark&rsquo;s map, when one of its tagged
+          locations is this level) shows by default when this is its own level — broader levels too,
+          only this level, or narrower levels. The map&rsquo;s Levels overlay edits the same default.
         </p>
       </div>
 

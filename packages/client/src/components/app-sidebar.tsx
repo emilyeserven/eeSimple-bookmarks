@@ -79,6 +79,7 @@ function ExpandableLinkSection({
   pathname,
   sidebarState,
   seeMoreTooltip,
+  placeTypesCount,
 }: {
   sectionKey: string;
   label: string;
@@ -89,6 +90,7 @@ function ExpandableLinkSection({
   pathname: string;
   sidebarState: string;
   seeMoreTooltip: string;
+  placeTypesCount?: number;
 }) {
   const renderItem = (item: LinkSidebarItem) => {
     // Locations gets a hover flyout surfacing its Place Types taxonomy; every other item is a plain link.
@@ -97,6 +99,9 @@ function ExpandableLinkSection({
         <LocationsSidebarItem
           key={item.key}
           pathname={pathname}
+          locationsCount={item.count}
+          placeTypesCount={placeTypesCount}
+          sidebarState={sidebarState}
         />
       );
     }
@@ -191,6 +196,7 @@ export function AppSidebar({
     allBookmarks,
     inboxCount,
     aiSummarizationCount,
+    placeTypesCount,
     modifier,
     viewClick,
     hiddenSidebarGroups,
@@ -508,6 +514,7 @@ export function AppSidebar({
               pathname={pathname}
               sidebarState={state}
               seeMoreTooltip="Show more taxonomy links"
+              placeTypesCount={placeTypesCount}
             />
           )
           : null}

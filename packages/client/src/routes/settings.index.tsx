@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  Image,
   Monitor,
   Puzzle,
   Sparkles,
@@ -20,6 +21,12 @@ const SETTINGS_TILES = [
     description: "Personalize how the app looks.",
     icon: Monitor,
     to: "/settings/display" as const,
+  },
+  {
+    label: "Media",
+    description: "Bookmark media display, stored images, and screenshot defaults.",
+    icon: Image,
+    to: "/settings/media" as const,
   },
   {
     label: "Automations",

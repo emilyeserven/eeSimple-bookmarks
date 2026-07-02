@@ -60,6 +60,7 @@ vi.mock("../hooks/useAppSettings", () => ({
       archiveBoxEndpoint: "",
       kavitaEndpoint: "",
       kavitaApiKeySet: false,
+      youtubeApiKeySet: false,
     },
   }),
   useUpdateConnectorsSettings: () => ({
@@ -83,6 +84,8 @@ describe("ConnectorsSettings", () => {
     // The Kavita card renders with its editable form (API key field).
     expect(screen.getAllByText("Kavita").length).toBeGreaterThan(0);
     expect(screen.getByLabelText("API key")).toBeInTheDocument();
+    // The YouTube card renders with its editable form (API key field).
+    expect(screen.getByLabelText("YouTube API key")).toBeInTheDocument();
 
     // YouTube Data API is enabled → an Active badge; the hosted provider is disabled → Inactive.
     expect(screen.getAllByText("Active").length).toBeGreaterThan(0);
