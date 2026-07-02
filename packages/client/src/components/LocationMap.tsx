@@ -20,6 +20,7 @@ import { geoJSON, latLngBounds } from "leaflet";
 import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
 import { LocationMapDebugModal } from "./LocationMapDebugModal";
+import { LocationMapFootnotes } from "./LocationMapFootnotes";
 import { RomanizedLabel } from "./RomanizedLabel";
 import { useMapPinScale, useMinAreaPinThresholdKm2 } from "../hooks/useAppSettings";
 import { boundaryContainsPoint } from "../lib/locationGeo";
@@ -431,6 +432,68 @@ interface LocationMapProps {
   ancestryDebug?: MapAncestryDebug | null;
 }
 
+/** One plotted location: its area polygon when it has one (and isn't pinned), else its pin. */
+function LocationMapItem({
+  item,
+  areaNodes,
+  pinScale,
+}: {
+  item: RenderItem;
+  areaNodes: MappedNode[];
+  pinScale: number;
+}) {
+  const {
+    node, kind, color, icon,
+  } = item;
+  if (kind === "area" && node.boundary) {
+    return (
+      <GeoJSON
+        key={`${node.id}:${color ?? ""}:${JSON.stringify(node.boundary)}`}
+        data={toFeature(node.boundary)}
+        style={color === null
+          ? undefined
+          : {
+            color,
+            fillColor: color,
+          }}
+      />
+    );
+  }
+  if (!node.position) return null;
+  return (
+    <Marker
+      position={node.position}
+      icon={markerIconFor(color, icon, pinScale)}
+    >
+      <PinPopup
+        node={node}
+        areas={areaNodes}
+      />
+    </Marker>
+  );
+}
+
+/** The desktop-only floating slot for the "Levels" overlay in the map's top-right corner. */
+function MapOverlaySlot({
+  overlay,
+}: {
+  overlay: ReactNode | undefined;
+}) {
+  if (!overlay) return null;
+  return (
+    <div
+      className="
+        pointer-events-none absolute inset-0 z-1000 hidden
+        md:block
+      "
+    >
+      <div className="pointer-events-auto absolute top-2 right-2">
+        {overlay}
+      </div>
+    </div>
+  );
+}
+
 /**
  * Map for the Locations taxonomy. Each location renders as its **area polygon** or a **pin** per the
  * per-placeType display config (a place type can be set to always-pin, or hidden entirely); both
@@ -516,107 +579,23 @@ export function LocationMap({
           />
           {lastViewRef ? <ViewportRecorder viewRef={lastViewRef} /> : null}
           <AreaClickPopup items={items} />
-          {items.map(({
-            node, kind, color, icon,
-          }) => (
-            kind === "area" && node.boundary
-              ? (
-                <GeoJSON
-                  key={`${node.id}:${color ?? ""}:${JSON.stringify(node.boundary)}`}
-                  data={toFeature(node.boundary)}
-                  style={color === null
-                    ? undefined
-                    : {
-                      color,
-                      fillColor: color,
-                    }}
-                />
-              )
-              : node.position
-                ? (
-                  <Marker
-                    key={node.id}
-                    position={node.position}
-                    icon={markerIconFor(color, icon, pinScale)}
-                  >
-                    <PinPopup
-                      node={node}
-                      areas={areaNodes}
-                    />
-                  </Marker>
-                )
-                : null
+          {items.map(item => (
+            <LocationMapItem
+              key={item.node.id}
+              item={item}
+              areaNodes={areaNodes}
+              pinScale={pinScale}
+            />
           ))}
         </MapContainer>
-        {overlay
-          ? (
-            <div
-              className="
-                pointer-events-none absolute inset-0 z-1000 hidden
-                md:block
-              "
-            >
-              <div className="pointer-events-auto absolute top-2 right-2">
-                {overlay}
-              </div>
-            </div>
-          )
-          : null}
+        <MapOverlaySlot overlay={overlay} />
       </div>
-      {omitted > 0
-        ? (
-          <p className="text-xs text-muted-foreground">
-            {omitted}
-            {omitted === 1 ? " location has" : " locations have"}
-            {" "}
-            no coordinates and {omitted === 1 ? "isn’t" : "aren’t"} shown.
-          </p>
-        )
-        : null}
-      {hiddenByLevel > 0
-        ? (
-          <p className="text-xs text-muted-foreground">
-            {hiddenByLevel}
-            {hiddenByLevel === 1 ? " location is" : " locations are"}
-            {" "}
-            hidden by the current level filter.
-          </p>
-        )
-        : null}
-      {noPlaceTypeCount > 0
-        ? (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span
-              className="size-2.5 shrink-0 rounded-full"
-              style={{
-                backgroundColor: NO_PLACE_TYPE_MAP_COLOR,
-              }}
-              aria-hidden="true"
-            />
-            {noPlaceTypeCount}
-            {noPlaceTypeCount === 1 ? " location has" : " locations have"}
-            {" "}
-            no place type.
-          </p>
-        )
-        : null}
-      {noLevelCount > 0
-        ? (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span
-              className="size-2.5 shrink-0 rounded-full"
-              style={{
-                backgroundColor: NO_LEVEL_MAP_COLOR,
-              }}
-              aria-hidden="true"
-            />
-            {noLevelCount}
-            {noLevelCount === 1 ? " location has" : " locations have"}
-            {" "}
-            a place type with no level.
-          </p>
-        )
-        : null}
+      <LocationMapFootnotes
+        omitted={omitted}
+        hiddenByLevel={hiddenByLevel}
+        noPlaceTypeCount={noPlaceTypeCount}
+        noLevelCount={noLevelCount}
+      />
       <div className="flex justify-end">
         <LocationMapDebugModal debug={debugInfo} />
       </div>
