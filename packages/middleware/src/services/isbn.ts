@@ -1,10 +1,14 @@
 /**
  * ISBN/book metadata lookup with a keyless provider fallback chain: Open Library first, then Google
- * Books. Both are public and require no API key. Each provider reports a discriminated outcome so
- * the route can distinguish "no book found" (→ 404) from "couldn't reach the provider" (→ 502).
+ * Books, then — when both public providers miss and an operator has configured a Kavita server —
+ * the operator's own Kavita library (catches self-published/indie titles the public databases don't
+ * know about). Each provider reports a discriminated outcome so the route can distinguish "no book
+ * found" (→ 404) from "couldn't reach the provider" (→ 502).
  */
 
 import type { FetchIsbnMetadataResult } from "@eesimple/types";
+
+import { kavitaEnabledAsync, kavitaSeriesCoverUrl, searchKavitaSeries } from "@/services/kavita";
 
 const ISBN_TIMEOUT_MS = 10_000;
 const ISBN_USER_AGENT = "eeSimple-bookmarks/1.0";
@@ -137,8 +141,39 @@ export async function fetchGoogleBooks(isbn: string): Promise<IsbnLookupOutcome>
 }
 
 /**
+ * Look up a book by ISBN on the operator's own Kavita server, when configured. Kavita's search
+ * indexes series/volume/chapter metadata (including ISBN), so searching by the ISBN string itself
+ * finds a matching series when one exists in the library. Returns `not_found` when Kavita is
+ * unconfigured or has no match — never `error`, since an unconfigured/unreachable Kavita server
+ * shouldn't override a definitive miss from the public providers.
+ */
+async function fetchKavita(isbn: string): Promise<IsbnLookupOutcome> {
+  if (!(await kavitaEnabledAsync())) return {
+    kind: "not_found",
+  };
+  const matches = await searchKavitaSeries(isbn);
+  const match = matches[0];
+  if (!match) return {
+    kind: "not_found",
+  };
+  return {
+    kind: "ok",
+    result: {
+      title: match.name,
+      description: null,
+      coverUrl: kavitaSeriesCoverUrl(match.seriesId),
+      authors: [],
+      publisher: match.libraryName,
+      year: match.releaseYear ? String(match.releaseYear) : null,
+      openLibraryUrl: null,
+    },
+  };
+}
+
+/**
  * Resolve ISBN metadata via the fallback chain: Open Library first; fall back to Google Books when
- * Open Library has no titled result. Returns the first usable result, else a definitive
+ * Open Library has no titled result; fall back to the operator's Kavita library when neither public
+ * provider turned up anything usable. Returns the first usable result, else a definitive
  * `not_found` (at least one provider answered), else `error` (all providers were unreachable).
  */
 export async function fetchIsbnMetadata(isbn: string): Promise<IsbnLookupOutcome> {
@@ -150,6 +185,12 @@ export async function fetchIsbnMetadata(isbn: string): Promise<IsbnLookupOutcome
 
   // Google Books added nothing usable — keep a titleless Open Library hit if we have one.
   if (ol.kind === "ok") return ol;
+
+  // Neither public provider had a titled result — try the operator's own Kavita library before
+  // giving up.
+  const kv = await fetchKavita(isbn);
+  if (kv.kind === "ok") return kv;
+
   if (ol.kind === "not_found" || gb.kind === "not_found") return {
     kind: "not_found",
   };
