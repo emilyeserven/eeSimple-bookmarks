@@ -9,7 +9,7 @@ description: >-
   standard hover Edit/Info buttons to a listing", "make a listing card link to the term's own page",
   "add a count badge / de-emphasize empty items on a listing", or when adding a new listing page that
   should adopt the standard. Mirrors Categories, Websites, YouTube Channels, Media Types, Tags,
-  Property Groups, Relationship Types, Publishers, Authors, and Autofill.
+  Property Groups, Relationship Types, Publishers, Authors, Autofill, and Saved Filters.
 ---
 
 # Standard listing card
@@ -131,6 +131,7 @@ card.
 | Publishers *(detail)* | `PublisherManager.tsx` | `BookOpen` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
 | Authors *(detail)* | `AuthorManager.tsx` | `UserRound` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
 | Autofill *(detail, no Info)* | `AutofillRuleListItem.tsx` | `Wand2` | info `/autofill/$slug` (`viewClick`), no Info button | `matchCount` |
+| Saved Filters *(detail, no count)* | `SavedFilterCard.tsx` | `ListFilter` | detail `…/$slug/general` (`viewClick`) | — (footer keeps the viewable-online checkbox) |
 
 ## Tree taxonomies (Tags, Media Types)
 

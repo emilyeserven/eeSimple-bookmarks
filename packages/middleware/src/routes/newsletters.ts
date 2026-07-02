@@ -5,6 +5,7 @@ import type {
 } from "@eesimple/types";
 import { listNewsletterIssues } from "@/services/imports";
 import {
+  bulkDeleteNewsletters,
   createNewsletter,
   deleteNewsletter,
   DuplicateNewsletterError,
@@ -12,6 +13,7 @@ import {
   listNewsletters,
   updateNewsletter,
 } from "@/services/newsletters";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const idParam = {
   type: "object",
@@ -64,6 +66,8 @@ const updateNewsletterBody = {
 
 /** The "Newsletters" publication taxonomy — CRUD plus a newsletter's issues (= its imports). */
 export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/newsletters", "newsletters", bulkDeleteNewsletters);
+
   // List all newsletters.
   app.get("/api/newsletters", {
     schema: {
