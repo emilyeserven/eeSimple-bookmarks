@@ -2,6 +2,7 @@ import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { AUTHOR_ROUTE } from "../entities/author";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
+import { CUSTOM_PROPERTY_ROUTE } from "../entities/property";
 import { PROPERTY_GROUP_ROUTE } from "../entities/propertyGroup";
 import { PUBLISHER_ROUTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_ROUTE } from "../entities/relationshipType";
@@ -105,15 +106,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   PUBLISHER_ROUTE,
   PROPERTY_GROUP_ROUTE,
   RELATIONSHIP_TYPE_ROUTE,
-  {
-    kind: "custom-property",
-    prefix: "/custom-properties",
-    slugIndex: 1,
-    listLabel: "Custom Properties",
-    singular: "Custom Property",
-    switcher: "custom-property",
-    flatCrumbs: true,
-  },
+  CUSTOM_PROPERTY_ROUTE,
   {
     kind: "autofill",
     prefix: "/autofill",
