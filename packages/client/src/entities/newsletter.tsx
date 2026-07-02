@@ -43,7 +43,7 @@ export const newsletterListingConfig: EntityListingConfig<Newsletter> = {
     </p>
   ),
   renderListItem: ({
-    entity, ...rest
+    entity, allItems, ...rest
   }) => (
     <NewsletterListItem
       newsletter={entity}

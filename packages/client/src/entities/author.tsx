@@ -43,7 +43,7 @@ export const authorListingConfig: EntityListingConfig<Author> = {
     </p>
   ),
   renderListItem: ({
-    entity, ...rest
+    entity, allItems, ...rest
   }) => (
     <AuthorListItem
       author={entity}

@@ -43,7 +43,7 @@ export const publisherListingConfig: EntityListingConfig<Publisher> = {
     </p>
   ),
   renderListItem: ({
-    entity, ...rest
+    entity, allItems, ...rest
   }) => (
     <PublisherListItem
       publisher={entity}

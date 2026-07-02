@@ -58,7 +58,7 @@ export const relationshipTypeListingConfig: EntityListingConfig<RelationshipType
     </p>
   ),
   renderListItem: ({
-    entity, ...rest
+    entity, allItems, ...rest
   }) => (
     <RelationshipTypeCard
       relationshipType={entity}
