@@ -2669,6 +2669,12 @@ export interface FetchIsbnMetadataResult {
   year: string | null;
   /** Canonical Open Library URL for this book, or `null` when unavailable. */
   openLibraryUrl: string | null;
+  /**
+   * Set only when this result came from the operator's Kavita library fallback: the matched
+   * series' id, needed to fetch the cover through the authenticated Kavita API (`coverUrl` is a
+   * middleware-relative proxy path for that case, not a directly downloadable URL).
+   */
+  kavitaSeriesId?: number | null;
 }
 
 /** A named snapshot of bookmark listing filter state, reusable on any listing page. */

@@ -1,11 +1,12 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
-import type { Author, CustomProperty, MediaType, Publisher } from "@eesimple/types";
+import type { Author, CustomProperty, ImageCandidate, MediaType, Publisher } from "@eesimple/types";
 
 import { ISBN_SLUG, normalizeIsbn } from "./bookmarkFormSchema";
 import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
 import { ApiError, describeError } from "../lib/apiError";
 import { notifyError } from "../lib/notifications";
+import { isFetchableUrl } from "../lib/url";
 
 type Actions = ReturnType<typeof useBookmarkFormActions>;
 
@@ -20,6 +21,7 @@ interface UseBookmarkIsbnParams {
   handleTextChange: (id: string, value: string) => void;
   setHideNameField: (value: boolean) => void;
   setScanned: (value: boolean) => void;
+  setImageCandidates: (candidates: ImageCandidate[]) => void;
 }
 
 /**
@@ -39,6 +41,7 @@ export function useBookmarkIsbn({
   handleTextChange,
   setHideNameField,
   setScanned,
+  setImageCandidates,
 }: UseBookmarkIsbnParams) {
   const isbnFetch = useFetchIsbnMetadata();
 
@@ -78,6 +81,18 @@ export function useBookmarkIsbn({
         createPublisher,
         id => form.setFieldValue("publisherId", id),
       );
+    }
+    // Feed the cover into the same image-candidate picker the URL scan uses, so the existing
+    // auto-keep-first-candidate behavior picks it up as the main image on save. A Kavita-sourced
+    // cover is a middleware-relative proxy path (not a fetchable absolute URL) and is excluded —
+    // it isn't downloadable until the bookmark exists and can be imported via the ISBN cover button.
+    if (result.coverUrl && isFetchableUrl(result.coverUrl)) {
+      setImageCandidates([{
+        url: result.coverUrl,
+        width: null,
+        height: null,
+        source: "og",
+      }]);
     }
   }
 

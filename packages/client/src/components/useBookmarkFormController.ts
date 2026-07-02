@@ -119,7 +119,7 @@ export function useBookmarkFormController({
     autoFetchImage,
   });
   const {
-    imageIntentRef, imageFieldKey, imageCandidates,
+    imageIntentRef, imageFieldKey, imageCandidates, setImageCandidates,
   } = imageState;
 
   const form = useAppForm({
@@ -161,6 +161,7 @@ export function useBookmarkFormController({
     handleTextChange: prefill.handleTextChange,
     setHideNameField,
     setScanned,
+    setImageCandidates,
   });
   const {
     isbnFetch, handleIsbnFetch, handleLookupIsbn,
