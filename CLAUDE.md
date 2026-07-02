@@ -126,9 +126,10 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   before choosing how a detail/edit page or panel lays out its content.
 - **Card Display Rules** (`Settings → Card Display Rules`) govern **per-card** display — field
   visibility + image presentation (aspect/visibility/layout/corner overlays) — for bookmark cards on
-  listing pages. A rule is a `conditions` tree + display overrides + `sortOrder`, modeled on
-  `homepage_sections` (inline drag-sortable list, no slug/detail pages). **Precedence is a layered
-  merge**: for each attribute the highest-priority (lowest `sortOrder`) matching rule that sets a
+  listing pages. A rule is a `conditions` tree + display overrides + `sortOrder`. Rules are now a
+  full slug-routed entity (tabbed View/Edit pages at `/card-display-rules/$ruleSlug`, workbench
+  descriptor, panel registration) whose listing keeps the inline drag-sortable priority list.
+  **Precedence is a layered merge**: for each attribute the highest-priority (lowest `sortOrder`) matching rule that sets a
   non-null value wins; lower rules fill the rest; a seeded, **non-deletable Default rule** (`isDefault`,
   always matches, pinned last, fully concrete — `ensureDefaultCardDisplayRule()` boot step) is the
   baseline. This differs from autofill's single-target last-writer merge — don't "fix" it to match.
@@ -219,28 +220,35 @@ that matches the surface — don't invent a new structure for a one-off page.
   over the shared **`TabbedShell.tsx`** + `navLinkClass` + `navStripClass`) — a `header` over a
   horizontal tab `nav` strip and a `min-w-0` content pane holding `<Outlet/>`. The strip
   (`navStripClass`: `flex items-center gap-1 overflow-x-auto border-b pb-1`) scrolls horizontally
-  when the tabs overflow, so the same component serves the page, mobile, and the panel — there is no
-  longer a vertical-sidebar mode. A `group` nav entry collapses into a trailing **"More" dropdown**
+  when the tabs overflow, so the same component serves the page, mobile, and the panel — **entity**
+  pages have no vertical-sidebar mode. (`VerticalTabbedLayout` is the sanctioned **settings-section**
+  pattern — the tabbed Display/Automations/Locations/Advanced sections render through it; never use
+  it for a slug-routed entity.) A `group` nav entry collapses into a trailing **"More" dropdown**
   (active state resolved via `useMatchRoute`, so it works for both `$slug` and static routes); this
   is also what the **Settings** page (`routes/settings.tsx`) renders through. The shell for
   slug-routed entities: Categories, Custom
-  Properties, Websites, Media Types, YouTube Channels, Tags, Property Groups, Autofill. Each tab's
+  Properties, Websites, Media Types, YouTube Channels, Tags, Property Groups, Autofill, Import
+  Rules, Card Display Rules, Saved Filters, and the taxonomy entities. Each tab's
   body comes from the entity's **`EntityWorkbench` descriptor** (see the right-panel bullet under
   **Content hierarchies → URL-driven right panel**): the route renders one tab via
   `workbench/WorkbenchRouteTab.tsx`, and the right panel renders all tabs via
   `workbench/EntityWorkbenchView.tsx` — one source for both surfaces. Each tab body is itself a flat
   `LabeledSection` stack.
   - **Hierarchy tab rule:** every taxonomy whose schema row has a `parentId` tree — currently
-    **Tags** and **Media Types** — gets a view-only **"Hierarchy"** tab (a "Parents" ancestor chain
-    + a "Children" subtree), modeled on `routes/tags.$tagSlug._view.hierarchy.tsx`. It is added to
+    **Tags**, **Media Types**, and **Locations** — gets a view-only **"Hierarchy"** tab (a "Parents"
+    ancestor chain + a "Children" subtree), modeled on `routes/tags.$tagSlug._view.hierarchy.tsx`.
+    It is added to
     `viewNav` only (omit it from `VIEW_TO_EDIT` so Edit falls back to General), resolves the node
     *with children* from the `use*Tree()` query (not the flat `use*BySlug`), reuses the generic
     `findAncestorPath`/`flattenTree` from `lib/tagTree.ts`, and renders the entity's `*TreeList`. The
     shared **`HierarchyView`** component (`components/HierarchyView.tsx`) renders the "Parents" +
     "Children" body, and the **`useExpandedSet`** hook (`hooks/useExpandedSet.ts`) tracks expanded
     nodes — a new tree taxonomy passes its `ancestors`, a `renderAncestorLink`, and its `*TreeList`
-    rather than re-implementing the markup. Flat taxonomies (Categories, Websites, YouTube Channels,
-    Property Groups) do **not** get one.
+    rather than re-implementing the markup. **Websites are the sanctioned derived-tree exception**:
+    no `parentId` column, but their Hierarchy tab renders the domain/subdomain tree derived by
+    `useWebsiteTree` (`websiteHierarchyView.tsx`) — a *derived* tree is legitimate for a view-only
+    Hierarchy tab when a real containment relation exists in the data. Genuinely flat taxonomies
+    (Categories, YouTube Channels, Property Groups) do **not** get one.
 - **Entity-scoped bookmarks page** — the `$entitySlug/index` route for entities whose bookmarks can
   be meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels) renders a full
   `BookmarkSearchView` scoped to that entity's bookmarks. **Do not redirect to `/bookmarks?<filter>=…`
@@ -257,9 +265,6 @@ that matches the surface — don't invent a new structure for a one-off page.
   added to `taxonomyViewLink` (the per-entity `pathParts` → `…/general` switch); a new entity-scoped
   page just needs a branch there. The page `header` is only the `<h1>` title (plus any
   entity-specific chrome like the sub-items chip row).
-- **Flat no-tab detail wrapper** (`packages/client/src/components/TaxonomyDetailLayout.tsx`) — a
-  loading/error/not-found wrapper that renders its children flat (a `LabeledSection` stack), no
-  tabs. Used by Autofill rules.
 - **Card boxes** — two distinct uses of the card token, never for detail/edit page content:
   - **List/row cards**: use `<RowCard>` from `@/components/ui/card` (renders `rounded-lg border
     bg-card`). Pass padding (`p-4`) or layout utilities (`group relative`) via `className`. Used in
