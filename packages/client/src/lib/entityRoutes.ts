@@ -57,6 +57,16 @@ export const PUBLISHER_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
+/** Hoisted so `entities/author.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const AUTHOR_ROUTE: EntityRoute = {
+  kind: "author",
+  prefix: "/taxonomies/authors",
+  slugIndex: 2,
+  listLabel: "Authors",
+  singular: "Author",
+  flatCrumbs: true,
+};
+
 export const ENTITY_ROUTES: readonly EntityRoute[] = [
   {
     kind: "category",
@@ -125,14 +135,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
     singular: "Import",
     flatCrumbs: true,
   },
-  {
-    kind: "author",
-    prefix: "/taxonomies/authors",
-    slugIndex: 2,
-    listLabel: "Authors",
-    singular: "Author",
-    flatCrumbs: true,
-  },
+  AUTHOR_ROUTE,
   PUBLISHER_ROUTE,
   {
     kind: "property-group",
