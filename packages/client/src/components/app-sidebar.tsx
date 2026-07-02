@@ -10,9 +10,10 @@ import {
 } from "./app-sidebar-sections";
 import { LocationsSidebarItem } from "./LocationsSidebarItem";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
+import { SidebarCategoryMenuItem } from "./SidebarCategoryMenuItem";
+import { SidebarCountBadge } from "./SidebarCountBadge";
 import { useAppSidebarData } from "./useAppSidebarData";
 
-import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
   SidebarContent,
@@ -21,14 +22,11 @@ import {
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { CategoryIcon } from "@/lib/icons";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import {
   actionItems,
   customizationItems,
@@ -37,24 +35,6 @@ import {
 } from "@/lib/sidebarNavItems";
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
-
-/** Renders a sidebar count badge when count is non-null and the sidebar is not icon-collapsed. */
-function SidebarCountBadge({
-  count,
-  sidebarState,
-  minCount = 0,
-}: {
-  count: number | null | undefined;
-  sidebarState: string;
-  minCount?: number;
-}) {
-  if (count == null || sidebarState === "collapsed" || count < minCount) return null;
-  return (
-    <SidebarMenuBadge>
-      <Badge variant="secondary">{count}</Badge>
-    </SidebarMenuBadge>
-  );
-}
 
 interface LinkSidebarItem {
   key: string;
@@ -411,34 +391,16 @@ export function AppSidebar({
               label="Categories"
             >
               <SidebarMenu>
-                {visibleCategories.map((category) => {
-                  const isActive = pathname.startsWith(`/categories/${category.slug}`);
-                  return (
-                    <SidebarMenuItem key={category.id}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={category.name}
-                      >
-                        <Link
-                          to="/categories/$categorySlug"
-                          params={{
-                            categorySlug: category.slug,
-                          }}
-                          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                          onClick={event => viewClick(event, "category", category.id)}
-                        >
-                          <CategoryIcon name={category.icon} />
-                          <span>{category.name}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                      <SidebarCountBadge
-                        count={category.bookmarkCount}
-                        sidebarState={state}
-                      />
-                    </SidebarMenuItem>
-                  );
-                })}
+                {visibleCategories.map(category => (
+                  <SidebarCategoryMenuItem
+                    key={category.id}
+                    category={category}
+                    pathname={pathname}
+                    modifier={modifier}
+                    sidebarState={state}
+                    onViewClick={(event, id) => viewClick(event, "category", id)}
+                  />
+                ))}
                 {seeMoreCategories.length > 0 && !categoriesExpanded && state !== "collapsed"
                   ? (
                     <SidebarMenuItem>
@@ -454,34 +416,16 @@ export function AppSidebar({
                   )
                   : null}
                 {categoriesExpanded
-                  ? seeMoreCategories.map((category) => {
-                    const isActive = pathname.startsWith(`/categories/${category.slug}`);
-                    return (
-                      <SidebarMenuItem key={category.id}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={isActive}
-                          tooltip={category.name}
-                        >
-                          <Link
-                            to="/categories/$categorySlug"
-                            params={{
-                              categorySlug: category.slug,
-                            }}
-                            title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                            onClick={event => viewClick(event, "category", category.id)}
-                          >
-                            <CategoryIcon name={category.icon} />
-                            <span>{category.name}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                        <SidebarCountBadge
-                          count={category.bookmarkCount}
-                          sidebarState={state}
-                        />
-                      </SidebarMenuItem>
-                    );
-                  })
+                  ? seeMoreCategories.map(category => (
+                    <SidebarCategoryMenuItem
+                      key={category.id}
+                      category={category}
+                      pathname={pathname}
+                      modifier={modifier}
+                      sidebarState={state}
+                      onViewClick={(event, id) => viewClick(event, "category", id)}
+                    />
+                  ))
                   : null}
                 {seeMoreCategories.length > 0 && categoriesExpanded && state !== "collapsed"
                   ? (

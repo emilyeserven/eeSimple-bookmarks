@@ -16,6 +16,10 @@ import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { geocodeLocation, refreshLocationBoundary } from "@/services/geocoding";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { resolveWikipediaLinks } from "@/services/wikidataGeocoding";
+import {
+  collectSubtreeIds as collectParentTreeSubtreeIds,
+  computeSubtreeBookmarkCounts,
+} from "@/utils/parentTree";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a reparent would put a location under itself or one of its descendants. */
@@ -88,19 +92,6 @@ export async function listLocationNames(): Promise<LocationTitleCandidate[]> {
   }));
 }
 
-/** Build a parent→children id map from a flat location list. Pure helper. */
-function buildChildrenByParent(all: { id: string;
-  parentId: string | null; }[]): Map<string, string[]> {
-  const map = new Map<string, string[]>();
-  for (const loc of all) {
-    if (!loc.parentId) continue;
-    const siblings = map.get(loc.parentId) ?? [];
-    siblings.push(loc.id);
-    map.set(loc.parentId, siblings);
-  }
-  return map;
-}
-
 /**
  * Compute each location's distinct subtree bookmark count and its "own" (no-descendant) count.
  * Pure — operates on in-memory data so it can be unit-tested. Mirrors `computeTagBookmarkCounts`.
@@ -111,33 +102,10 @@ export function computeLocationBookmarkCounts(
   links: { locationId: string;
     bookmarkId: string; }[],
 ): Map<string, LocationBookmarkCounts> {
-  const directSets = new Map<string, Set<string>>(all.map(loc => [loc.id, new Set<string>()]));
-  for (const link of links) directSets.get(link.locationId)?.add(link.bookmarkId);
-
-  const childrenByParent = buildChildrenByParent(all);
-
-  const result = new Map<string, LocationBookmarkCounts>();
-  for (const loc of all) {
-    const ownDirect = directSets.get(loc.id) ?? new Set<string>();
-    const subtree = new Set<string>(ownDirect);
-    const descendants = new Set<string>();
-    const stack = [...(childrenByParent.get(loc.id) ?? [])];
-    while (stack.length > 0) {
-      const id = stack.pop()!;
-      for (const bookmarkId of directSets.get(id) ?? []) {
-        subtree.add(bookmarkId);
-        descendants.add(bookmarkId);
-      }
-      for (const child of childrenByParent.get(id) ?? []) stack.push(child);
-    }
-    let own = 0;
-    for (const bookmarkId of ownDirect) if (!descendants.has(bookmarkId)) own += 1;
-    result.set(loc.id, {
-      subtree: subtree.size,
-      own,
-    });
-  }
-  return result;
+  return computeSubtreeBookmarkCounts(all, links.map(link => ({
+    nodeId: link.locationId,
+    bookmarkId: link.bookmarkId,
+  })));
 }
 
 /**
@@ -186,16 +154,7 @@ export function buildLocationTree(all: Location[]): LocationNode[] {
 
 /** Resolve a location id to the set of ids in its subtree (inclusive). Pure. */
 export function collectLocationSubtreeIds(all: Location[], rootId: string): Set<string> {
-  const childrenByParent = buildChildrenByParent(all);
-  const result = new Set<string>();
-  const stack = [rootId];
-  while (stack.length > 0) {
-    const id = stack.pop()!;
-    if (result.has(id)) continue;
-    result.add(id);
-    for (const child of childrenByParent.get(id) ?? []) stack.push(child);
-  }
-  return result;
+  return collectParentTreeSubtreeIds(all, rootId);
 }
 
 /** Whether reparenting `id` under `newParentId` would create a cycle. Pure helper. */

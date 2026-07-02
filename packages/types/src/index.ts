@@ -11,6 +11,7 @@ import type { ImportBlacklistKind } from "./importBlacklist.js";
 import type { BookmarkLocation } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
+export * from "./autofillMerge.js";
 export * from "./conditions.js";
 export * from "./customProperties.js";
 export * from "./importBlacklist.js";
