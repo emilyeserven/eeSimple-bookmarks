@@ -6,6 +6,7 @@ description: >-
   "add an Add-new-X button to a combobox", "add a quick-create modal", or when a form's
   entity-picker needs to mint a new entity without leaving the page. Mirrors `AddCategoryModal` and
   `AddPropertyGroupModal`.
+  Also covers maintaining one — "add a field to the Add-X modal" (usually the wrong move; see When NOT to use it), "rename the inline-create dialog".
 ---
 
 # Inline-create modal
@@ -75,3 +76,13 @@ the `AddCategoryModal` usage inside `BookmarkForm`.
 **Required, not optional.** The `combobox-new-entity-creation` skill is the authoritative checklist
 of which comboboxes must wire `createOption` and which are exempt. When you build a new `Add*Modal`,
 check that skill to see which existing pickers for that entity type still need to be wired.
+
+## Maintaining an existing inline-create modal
+
+- **"Add a field to the Add-X modal"** is usually the wrong move — the modal is deliberately
+  name-only (see *When NOT to use it*). Extra fields belong on the entity's edit tabs after
+  creation, or the flow graduates to the full create form. Push back before widening one.
+- **Renaming the entity**: the dialog title/placeholder live in the thin wrapper
+  (`Add<X>Modal.tsx`); the shared `InlineCreateModal` needs no change.
+- **Auditing which pickers offer inline create** is the `combobox-new-entity-creation` skill —
+  use its checklist rather than grepping ad hoc.

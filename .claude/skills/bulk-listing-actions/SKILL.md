@@ -9,6 +9,7 @@ description: >-
   and every taxonomy listing (Categories, Websites, Media Types, YouTube Channels, Tags, Property
   Groups, Relationship Types, Custom Properties, Autofill, Publishers, Authors, Newsletters, Place
   Types, Saved Filters) got bulk select + delete.
+  Also covers maintaining bulk actions — "add another bulk action to X's bar", "bulk select is broken on X".
 ---
 
 # Bulk listing actions
@@ -75,3 +76,14 @@ For the **Bookmarks page**, swap step 5's `TaxonomyBulkBar` for a `BulkActionBar
   `allSelected` ignore built-ins.
 - **Keep selection keyed.** Use a stable `pageKey` per listing; selection survives navigation via
   `uiStore`.
+
+## Maintaining existing bulk actions
+
+- **Add another action to an existing bar**: extend that entity's `*BulkActions` component beside
+  the shared `BulkActionBar` — reuse the confirm-dialog + `notifyBulkResult` pattern; every bulk
+  endpoint stays loop-and-report (partial success reports counts, never throws midway).
+- **Keep `pageKey`s stable**: selection state and the bar's registration key off the listing
+  `pageKey`; renaming one orphans persisted listing prefs.
+- **"Bulk select is broken on X"**: check the listing still registers via `useRegisterBulkSelect`
+  and that row cards pass the selection props — the shared hook and bar rarely regress; the wiring
+  does.

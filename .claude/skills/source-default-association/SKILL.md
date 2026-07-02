@@ -7,6 +7,7 @@ description: >-
   bookmarks from this site/channel", "associate a media type/category/tag with a website or channel",
   or "show which sources feed this X". Mirrors how a source's default Category, default Tags, and
   default Media Type are stored and surfaced (the latter added on top of PR #279).
+  Also covers maintaining defaults — "change how a source default applies", "remove the default X from websites/channels".
 ---
 
 # Source default association (Website / YouTube channel → bookmark default)
@@ -86,3 +87,15 @@ Then `pnpm dev`: set the default on a Website and a YouTube channel General tab 
 reload); save a new bookmark from that domain/channel with no explicit value and confirm it inherits
 the default; the chosen X's page lists the source under `EntityAutofillSources`, and the source's
 page shows the inline `SourceAutofillDefaults` line.
+
+## Maintaining existing source defaults
+
+- **How defaults apply is centralized**: `promoteSourceDefaults` in
+  `components/bookmarkSubmit.ts` (create form) — change application semantics there and extend its
+  unit tests, not in the per-source UI.
+- **Remove a default field**: reverse the recipe; the nullable column can stay in the schema
+  (push-safe, additive) — drop the UI + application wiring first, then retire the column via an
+  idempotent `migrate.ts` step only when certain.
+- **Adding a new source kind** (beyond Websites / YouTube channels): mirror both ends — the
+  source's edit tab picker *and* the target entity's "sources feeding this" surface — or the
+  association is invisible from one side.

@@ -6,6 +6,7 @@ description: >-
   share `ConditionsField` + `evaluateConditions`). Use when asked to "add a new filter/condition
   type", "let rules/sections match on X", "add a Tag/Category/Website-style condition", or "split a
   match condition out into its own leaf". Mirrors the Website / Category / Tag / Property leaves.
+  Also covers maintaining an existing leaf — "rename/extend/remove a condition type", "add an operator to X conditions".
 ---
 
 # Add a condition leaf type
@@ -69,3 +70,19 @@ pnpm lint:fix        # always from repo root
 Then `pnpm dev`: both the **autofill rule builder** and the **Homepage section filter** show the new
 condition section and round-trip a saved value; a rule/section using it matches the expected
 bookmarks.
+
+## Maintaining an existing leaf
+
+The add-checklist above doubles as the sync-point list — walk the same touch points for any change:
+
+- **Add an operator / field to a leaf**: the shared type + `evaluateConditions` arm
+  (`packages/types/src/conditions.ts`), its editor in `conditions/conditionEditors.tsx`, the
+  summary in `lib/conditionsSummary.ts`, and the middleware `routes/conditionSchema.ts` `oneOf`.
+  Extend `conditions.test.ts` for the new semantics in the same change.
+- **The root-builder split**: `conditions/conditionsFieldTree.ts` (`splitRootConditions` /
+  `buildRootChildren`) hand-lists every root leaf — a new or removed leaf type must be
+  added/removed there too, and `conditionsFieldTree.test.ts` extended, or the builder silently
+  drops it from saved trees.
+- **Remove a leaf type**: reverse the checklist, but stored `conditions` jsonb may still carry old
+  leaves — keep `evaluateConditions` tolerant of the retired `type` (return non-match) or add a
+  `migrate.ts` step that strips it; never let an unknown leaf throw.
