@@ -64,11 +64,21 @@ vi.mock("../hooks/useBookmarks", () => ({
     mutate: vi.fn(),
     ...pendingFalse,
   }),
+  useIsbnCoverImage: () => ({
+    mutate: vi.fn(),
+    ...pendingFalse,
+  }),
 }));
 
 vi.mock("../hooks/useConnectors", () => ({
   useConnectors: () => ({
     data: undefined,
+  }),
+}));
+
+vi.mock("../hooks/useCustomProperties", () => ({
+  usePropertyBySlug: () => ({
+    property: undefined,
   }),
 }));
 

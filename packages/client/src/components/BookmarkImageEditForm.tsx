@@ -1,6 +1,6 @@
 import type { Bookmark } from "@eesimple/types";
 
-import { BookOpen, Search, Sparkles } from "lucide-react";
+import { BookImage, BookOpen, Search, Sparkles } from "lucide-react";
 
 import { BookmarkImagePicker } from "./BookmarkImagePicker";
 import { SCREENSHOT_SIZE_PRESETS, useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
@@ -78,6 +78,21 @@ export function BookmarkImageEditForm({
             >
               <BookOpen className="size-4" />
               {c.kavitaCoverPending ? "Importing…" : "Use Kavita cover"}
+            </Button>
+          )
+          : null}
+        {c.canUseIsbnCover
+          ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={c.isbnCoverPending}
+              title="Look up the bookmark's ISBN/ASIN and use its cover as the main image"
+              onClick={c.onUseIsbnCover}
+            >
+              <BookImage className="size-4" />
+              {c.isbnCoverPending ? "Importing…" : "Pull cover from ISBN"}
             </Button>
           )
           : null}

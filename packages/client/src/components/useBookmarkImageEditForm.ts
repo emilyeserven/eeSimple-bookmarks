@@ -3,6 +3,7 @@ import type { Bookmark, ImageCandidate } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
+import { ISBN_SLUG } from "./bookmarkFormSchema";
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { applyImageIntent } from "./bookmarkSubmit";
 import {
@@ -11,11 +12,13 @@ import {
   useBookmarkImagesFromCandidates,
   useDeleteBookmarkImageById,
   useDeleteBookmarkScreenshot,
+  useIsbnCoverImage,
   useKavitaCoverImage,
   useSetMainBookmarkImage,
   useTakeBookmarkScreenshot,
 } from "../hooks/useBookmarks";
 import { useConnectors } from "../hooks/useConnectors";
+import { usePropertyBySlug } from "../hooks/useCustomProperties";
 import { metadataApi } from "../lib/api/metadata";
 import { notifySuccess } from "../lib/notifications";
 
@@ -69,6 +72,12 @@ export interface BookmarkImageEditFormController {
   kavitaCoverPending: boolean;
   /** Import the linked Kavita series' cover as the bookmark's main image. */
   onUseKavitaCover: () => void;
+  /** Whether the "Pull cover from ISBN" action applies (bookmark has a non-empty ISBN/ASIN value). */
+  canUseIsbnCover: boolean;
+  /** Whether the ISBN cover import is in flight. */
+  isbnCoverPending: boolean;
+  /** Look up the bookmark's stored ISBN/ASIN and import its cover as the bookmark's main image. */
+  onUseIsbnCover: () => void;
   /** Stage the chosen image intent (uploads / kept candidates / main / removals) for the next save. */
   onImageChange: (intent: ImageIntent) => void;
   /** Persist the staged image intent. */
@@ -92,9 +101,13 @@ export interface BookmarkImageEditFormController {
 export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditFormController {
   const autoImage = useAutoBookmarkImage();
   const kavitaCover = useKavitaCoverImage();
+  const isbnCover = useIsbnCoverImage();
   const {
     data: connectors,
   } = useConnectors();
+  const {
+    property: isbnProperty,
+  } = usePropertyBySlug(ISBN_SLUG);
   const addImage = useAddBookmarkImage();
   const imagesFromCandidates = useBookmarkImagesFromCandidates();
   const setMainImage = useSetMainBookmarkImage();
@@ -153,11 +166,12 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     imageFieldKey,
     isPending,
     isMutating: addImage.isPending || autoImage.isPending || kavitaCover.isPending
+      || isbnCover.isPending
       || imagesFromCandidates.isPending
       || setMainImage.isPending || deleteImageById.isPending || takeScreenshot.isPending
       || deleteScreenshot.isPending,
     mutationError: addImage.error ?? imagesFromCandidates.error ?? setMainImage.error
-      ?? deleteImageById.error ?? autoImage.error ?? kavitaCover.error,
+      ?? deleteImageById.error ?? autoImage.error ?? kavitaCover.error ?? isbnCover.error,
     candidates,
     isScanning,
     onFindImages: () => void handleFindImages(),
@@ -169,6 +183,12 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     canUseKavitaCover: Boolean(connectors?.kavita.enabled) && bookmark.kavitaSeriesId !== null,
     kavitaCoverPending: kavitaCover.isPending,
     onUseKavitaCover: () => kavitaCover.mutate(bookmark.id),
+    canUseIsbnCover: Boolean(
+      isbnProperty
+      && bookmark.textValues.some(v => v.propertyId === isbnProperty.id && v.value.trim()),
+    ),
+    isbnCoverPending: isbnCover.isPending,
+    onUseIsbnCover: () => isbnCover.mutate(bookmark.id),
     onImageChange: (intent) => {
       imageIntentRef.current = intent;
     },
