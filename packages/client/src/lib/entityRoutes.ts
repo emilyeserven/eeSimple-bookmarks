@@ -1,6 +1,7 @@
 import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { AUTHOR_ROUTE } from "../entities/author";
+import { CATEGORY_ROUTE } from "../entities/category";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
 import { PROPERTY_GROUP_ROUTE } from "../entities/propertyGroup";
 import { PUBLISHER_ROUTE } from "../entities/publisher";
@@ -56,15 +57,7 @@ export interface EntityRoute {
 }
 
 export const ENTITY_ROUTES: readonly EntityRoute[] = [
-  {
-    kind: "category",
-    prefix: "/categories",
-    slugIndex: 1,
-    listLabel: "Categories",
-    singular: "Category",
-    switcher: "category",
-    flatCrumbs: true,
-  },
+  CATEGORY_ROUTE,
   {
     kind: "tag",
     prefix: "/tags",

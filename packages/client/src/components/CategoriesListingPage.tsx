@@ -1,41 +1,33 @@
+import { useState } from "react";
+
+import { useNavigate } from "@tanstack/react-router";
+
 import { AddCategoryModal } from "./AddCategoryModal";
-import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
-import { CategoriesTable } from "./CategoriesTable";
-import { CategoryPreviewCard } from "./CategoryPreviewCard";
-import { ListingStatusMessages } from "./ListingStatusMessages";
-import { useCategoriesListing } from "./useCategoriesListing";
-import { COLUMN_CLASS } from "../lib/bookmarkColumns";
+import { ListingScaffold } from "./ListingScaffold";
 
 import { Badge } from "@/components/ui/badge";
+import { categoryListingConfig } from "@/entities/category";
+import { useSetListingPage } from "@/hooks/useListingPage";
+import { useListingScaffold } from "@/hooks/useListingScaffold";
 
 /** Browse view for the Categories taxonomy: a searchable list with preview info; each row opens the category. */
 export function CategoriesListingPage() {
-  const {
-    categories,
-    isLoading,
-    error,
-    allCategories,
-    filtered,
-    rawQuery,
-    hasQuery,
-    columns,
-    viewMode,
-    selection,
-    deletableIds,
-    bulkDelete,
-    modalOpen,
-    setModalOpen,
-    goToEdit,
-    goToView,
-  } = useCategoriesListing();
+  const [modalOpen, setModalOpen] = useState(false);
+  const navigate = useNavigate();
+  useSetListingPage("categories-listing", {
+    createAction: () => setModalOpen(true),
+    addBookmark: {},
+    createLabel: "New category",
+  });
+  const state = useListingScaffold(categoryListingConfig);
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold">Categories</h1>
-          {categories
-            ? <Badge variant="secondary">{categories.length}</Badge>
+          {!state.isLoading
+            ? <Badge variant="secondary">{state.items.length}</Badge>
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
@@ -44,65 +36,22 @@ export function CategoriesListingPage() {
         </p>
       </div>
 
-      <div className="space-y-4">
-        <ListingStatusMessages
-          isLoading={isLoading}
-          error={error}
-          totalCount={allCategories.length}
-          filteredCount={filtered.length}
-          rawQuery={rawQuery}
-          hasQuery={hasQuery}
-          loadingLabel="Loading categories…"
-          entityPlural="categories"
-          emptyMessage={<p className="text-muted-foreground">No categories yet.</p>}
-        />
-
-        <TaxonomyBulkBar
-          selection={selection}
-          totalSelectable={deletableIds.length}
-          bulkDelete={bulkDelete}
-          noun={["category", "categories"]}
-        />
-
-        {filtered.length > 0 && viewMode === "table"
-          ? (
-            <CategoriesTable
-              data={filtered}
-              selection={selection}
-              onView={goToView}
-              onEdit={goToEdit}
-            />
-          )
-          : null}
-
-        {filtered.length > 0 && viewMode !== "table"
-          ? (
-            <ul
-              className={`
-                grid gap-2
-                ${COLUMN_CLASS[columns]}
-              `}
-            >
-              {filtered.map(category => (
-                <CategoryPreviewCard
-                  key={category.id}
-                  category={category}
-                  variant="row"
-                  selectable={!category.builtIn}
-                  selected={selection.isSelected(category.id)}
-                  onSelectToggle={() => selection.toggle(category.id)}
-                  inSelectionMode={selection.mode}
-                />
-              ))}
-            </ul>
-          )
-          : null}
-      </div>
+      <ListingScaffold
+        config={categoryListingConfig}
+        state={state}
+      />
 
       <AddCategoryModal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        onCreated={category => goToEdit(category.slug)}
+        onCreated={(category) => {
+          void navigate({
+            to: "/categories/$categorySlug/edit/general",
+            params: {
+              categorySlug: category.slug,
+            },
+          });
+        }}
       />
     </section>
   );
