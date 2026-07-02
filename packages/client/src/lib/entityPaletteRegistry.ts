@@ -3,13 +3,11 @@ import type {
   Tag,
   UpdateAutofillRuleInput,
   UpdateCardDisplayRuleInput,
-  UpdateImportRuleInput,
   UpdateLocationInput,
   UpdateTagInput,
 } from "@eesimple/types";
 
 import { autofillApi } from "./api/autofill";
-import { importRulesApi } from "./api/importRules";
 import { cardDisplayRulesApi } from "./api/settings";
 import {
   locationsApi,
@@ -17,6 +15,7 @@ import {
 } from "./api/taxonomies";
 import { AUTHOR_PALETTE } from "../entities/author";
 import { CATEGORY_PALETTE } from "../entities/category";
+import { IMPORT_RULE_PALETTE } from "../entities/importRule";
 import { MEDIA_TYPE_PALETTE } from "../entities/mediaType";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
 import { PLACE_TYPE_PALETTE } from "../entities/placeType";
@@ -139,17 +138,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
       },
     ],
   },
-  "import-rule": {
-    queryKey: ["import-rules"],
-    listFn: () => importRulesApi.list(),
-    updateFn: (id, patch) => importRulesApi.update(id, patch as UpdateImportRuleInput),
-    extraEditTabs: [
-      {
-        label: "Edit Conditions",
-        tab: "conditions",
-      },
-    ],
-  },
+  "import-rule": IMPORT_RULE_PALETTE,
   "saved-filter": SAVED_FILTER_PALETTE,
   "card-display-rule": {
     queryKey: ["card-display-rules"],

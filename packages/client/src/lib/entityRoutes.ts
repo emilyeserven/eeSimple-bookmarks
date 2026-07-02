@@ -2,6 +2,7 @@ import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { AUTHOR_ROUTE } from "../entities/author";
 import { CATEGORY_ROUTE } from "../entities/category";
+import { IMPORT_RULE_ROUTE } from "../entities/importRule";
 import { MEDIA_TYPE_ROUTE } from "../entities/mediaType";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
 import { PLACE_TYPE_ROUTE } from "../entities/placeType";
@@ -97,15 +98,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
     switcher: "autofill",
     flatCrumbs: true,
   },
-  {
-    kind: "import-rule",
-    prefix: "/import-rules",
-    slugIndex: 1,
-    listLabel: "Import Rules",
-    singular: "Rule",
-    switcher: "import-rule",
-    flatCrumbs: true,
-  },
+  IMPORT_RULE_ROUTE,
   SAVED_FILTER_ROUTE,
   {
     kind: "card-display-rule",
