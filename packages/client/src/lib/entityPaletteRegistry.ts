@@ -97,6 +97,14 @@ export interface EntityPaletteConfig {
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
+/** Hoisted so `entities/newsletter.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const NEWSLETTER_PALETTE: EntityPaletteConfig = {
+  queryKey: ["newsletters"],
+  listFn: () => newslettersApi.list(),
+  updateFn: (id, patch) => newslettersApi.update(id, patch as UpdateNewsletterInput),
+  extraInvalidateKeys: [BOOKMARKS_KEY],
+};
+
 /** Hoisted so `entities/author.tsx`'s `EntityDescriptor` can reference this entry by identity. */
 export const AUTHOR_PALETTE: EntityPaletteConfig = {
   queryKey: ["authors"],
@@ -224,12 +232,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
       },
     ],
   },
-  "newsletter": {
-    queryKey: ["newsletters"],
-    listFn: () => newslettersApi.list(),
-    updateFn: (id, patch) => newslettersApi.update(id, patch as UpdateNewsletterInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-  },
+  "newsletter": NEWSLETTER_PALETTE,
   "author": AUTHOR_PALETTE,
   "publisher": PUBLISHER_PALETTE,
   "property-group": PROPERTY_GROUP_PALETTE,

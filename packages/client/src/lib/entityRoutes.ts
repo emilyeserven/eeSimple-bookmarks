@@ -68,6 +68,16 @@ export const PROPERTY_GROUP_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
+/** Hoisted so `entities/newsletter.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const NEWSLETTER_ROUTE: EntityRoute = {
+  kind: "newsletter",
+  prefix: "/taxonomies/newsletters",
+  slugIndex: 2,
+  listLabel: "Imports",
+  singular: "Import",
+  flatCrumbs: true,
+};
+
 /** Hoisted so `entities/author.tsx`'s `EntityDescriptor` can reference this entry by identity. */
 export const AUTHOR_ROUTE: EntityRoute = {
   kind: "author",
@@ -138,14 +148,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
     switcher: "youtube-channel",
     flatCrumbs: true,
   },
-  {
-    kind: "newsletter",
-    prefix: "/taxonomies/newsletters",
-    slugIndex: 2,
-    listLabel: "Imports",
-    singular: "Import",
-    flatCrumbs: true,
-  },
+  NEWSLETTER_ROUTE,
   AUTHOR_ROUTE,
   PUBLISHER_ROUTE,
   PROPERTY_GROUP_ROUTE,
