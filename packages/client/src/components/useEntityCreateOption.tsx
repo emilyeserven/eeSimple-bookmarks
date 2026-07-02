@@ -1,4 +1,4 @@
-import type { Author, PlaceType, Tag } from "@eesimple/types";
+import type { Author, PlaceType, Tag, Website } from "@eesimple/types";
 import type { ComponentType, ReactNode } from "react";
 
 import { useState } from "react";
@@ -6,12 +6,14 @@ import { useState } from "react";
 import { AddAuthorModal } from "./AddAuthorModal";
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AddTagModal } from "./AddTagModal";
+import { AddWebsiteModal } from "./AddWebsiteModal";
 
 /** What each creatable entity's Add-modal hands back to the opener. */
 interface CreatedByEntity {
   "tag": Tag;
   "author": Author;
   "place-type": PlaceType;
+  "website": Website;
 }
 
 export type CreatableEntityKind = keyof CreatedByEntity;
@@ -44,6 +46,10 @@ const CREATABLE_ENTITY_PICKERS: {
   "place-type": {
     createLabel: "Create place type",
     Modal: AddPlaceTypeModal,
+  },
+  "website": {
+    createLabel: "Create website",
+    Modal: AddWebsiteModal,
   },
 };
 

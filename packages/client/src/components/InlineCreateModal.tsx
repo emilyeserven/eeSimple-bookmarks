@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
@@ -28,6 +30,12 @@ interface InlineCreateModalProps {
   submitLabel: string;
   /** Submit button label while the create is pending. */
   pendingLabel?: string;
+  /**
+   * Extra field(s) rendered between the name field and the submit row, e.g. a single flag
+   * checkbox. The caller owns this field's state and folds it into its own `onSubmit` mutation —
+   * `InlineCreateModal` stays name-only internally. See `AddRelationshipTypeModal`.
+   */
+  extraFields?: ReactNode;
   /** Whether the underlying create mutation errored. */
   isError: boolean;
   /** Error message to surface when `isError`. */
@@ -40,9 +48,10 @@ interface InlineCreateModalProps {
 }
 
 /**
- * Minimal name-only modal for inline entity creation (e.g. from a form combobox's "Add new X").
- * Owns the Dialog chrome, the name field, validation, and form reset; callers supply the labels
- * and wire `onSubmit` to their `useCreate*` mutation. See `AddCategoryModal` / `AddPropertyGroupModal`.
+ * Minimal name-(+one-flag) modal for inline entity creation (e.g. from a form combobox's "Add new
+ * X"). Owns the Dialog chrome, the name field, validation, and form reset; callers supply the
+ * labels and wire `onSubmit` to their `useCreate*` mutation. See `AddCategoryModal` /
+ * `AddPropertyGroupModal` for the name-only case and `AddRelationshipTypeModal` for `extraFields`.
  */
 export function InlineCreateModal({
   open,
@@ -52,6 +61,7 @@ export function InlineCreateModal({
   placeholder,
   submitLabel,
   pendingLabel = "Adding…",
+  extraFields,
   isError,
   errorMessage,
   onSubmit,
@@ -100,6 +110,8 @@ export function InlineCreateModal({
               />
             )}
           </form.AppField>
+
+          {extraFields}
 
           {isError
             ? <p className="text-sm text-destructive">{errorMessage}</p>
