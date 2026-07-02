@@ -10,6 +10,7 @@ import {
   looksLikeYouTube,
   RUNTIME_SLUG,
 } from "./bookmarkFormSchema";
+import { useKavitaSectionsImport } from "./useKavitaSectionsImport";
 import { useSeededPropertyInputs } from "./useSeededPropertyInputs";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
@@ -119,6 +120,15 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
     }));
   }
 
+  const {
+    canImportSections,
+    handleSectionsImport,
+    isSectionsImportPending,
+  } = useKavitaSectionsImport({
+    bookmark,
+    onApply: handleSectionsChange,
+  });
+
   async function handleSubmit(event: React.FormEvent): Promise<void> {
     event.preventDefault();
     setIsPending(true);
@@ -175,6 +185,9 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
     handleProgressChange,
     handleSectionsChange,
     handleTextChange,
+    canImportSections,
+    handleSectionsImport,
+    isSectionsImportPending,
     handleSubmit,
     runtimeProp,
     datePostedProp,

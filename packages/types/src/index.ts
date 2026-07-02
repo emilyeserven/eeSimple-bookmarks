@@ -2619,6 +2619,24 @@ export interface KavitaSeriesResult {
   releaseYear: number | null;
 }
 
+/** One flattened table-of-contents entry from a linked Kavita book (`GET /api/kavita/toc`). */
+export interface KavitaTocEntry {
+  /** Section title from the EPUB navigation or the PDF's embedded outline. */
+  title: string;
+  /** 1-based start page of the section. */
+  page: number;
+}
+
+/**
+ * Response of `GET /api/kavita/toc?seriesId=` — the linked book's table of contents, in document
+ * order with the top two outline levels flattened. `entries` is empty when the book has no ToC.
+ */
+export interface KavitaTocResult {
+  entries: KavitaTocEntry[];
+  /** Total pages of the resolved book file (for end-page computation), or `null` when unknown. */
+  pages: number | null;
+}
+
 /** Result of probing a URL for reachability (`GET /api/check-url`). */
 export interface CheckUrlResult {
   /** Whether the link resolved with an ok (2xx) response. */

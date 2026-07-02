@@ -6,7 +6,7 @@ import type {
 } from "@eesimple/types";
 
 import { SECTION_ENTRY_TYPES, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
-import { Loader2, Sparkles } from "lucide-react";
+import { BookOpen, Loader2, Sparkles } from "lucide-react";
 
 import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
 import { ChoicesCheckboxList } from "./ChoicesCheckboxList";
@@ -285,13 +285,16 @@ export function ChoicesPropertyField({
 }
 
 export function SectionsPropertyField({
-  property, value, onChange,
+  property, value, onChange, onImport, isImportPending,
 }: {
   property: CustomProperty;
   value: { exhaustive: boolean;
     sections: SectionEntry[]; };
   onChange: (value: { exhaustive: boolean;
     sections: SectionEntry[]; }) => void;
+  /** When set, renders an "Import from Kavita" button that replaces the current sections. */
+  onImport?: () => void;
+  isImportPending?: boolean;
 }) {
   const allowedTypes = property.sectionsAllowedTypes ?? [...SECTION_ENTRY_TYPES];
   const defaultType: SectionEntryType = (property.sectionsDefaultType ?? allowedTypes[0] ?? "url") as SectionEntryType;
@@ -448,6 +451,23 @@ export function SectionsPropertyField({
             Exhaustive
           </Label>
         </div>
+        {onImport
+          ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isImportPending}
+              title="Import the linked book's table of contents (replaces the current list)"
+              onClick={onImport}
+            >
+              {isImportPending
+                ? <Loader2 className="size-4 animate-spin" />
+                : <BookOpen className="size-4" />}
+              Import from Kavita
+            </Button>
+          )
+          : null}
       </div>
       <FieldDescription text={property.description} />
     </div>
