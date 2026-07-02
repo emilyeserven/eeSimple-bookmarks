@@ -40,6 +40,8 @@ const meta = {
     setHideIfEmpty: () => {},
     conditions,
     setConditions: () => {},
+    sort: null,
+    setSort: () => {},
     displayDefaultOpen: false,
     filterDefaultOpen: false,
     categories: sampleCategories,
@@ -60,5 +62,11 @@ export const AllExpanded: Story = {
   args: {
     displayDefaultOpen: true,
     filterDefaultOpen: true,
+    sort: {
+      primary: {
+        field: "title",
+        direction: "asc",
+      },
+    },
   },
 };

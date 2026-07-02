@@ -1,10 +1,12 @@
 import type { SectionDisplayValue } from "./SectionDisplaySettings";
-import type { Category, ConditionTree, CustomProperty, TagNode } from "@eesimple/types";
+import type { BookmarkSort, Category, ConditionTree, CustomProperty, TagNode } from "@eesimple/types";
 
+import { BookmarkSortEditor } from "./BookmarkSortFields";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { ConditionsField } from "./conditions/ConditionsField";
 import { conditionsDetailedLabel } from "./conditions/summarizeConditions";
 import { SectionDisplaySettings } from "./SectionDisplaySettings";
+import { sortSummaryLabel } from "../lib/bookmarkSort";
 import { sectionDisplayPreview } from "../lib/sectionDisplayPreview";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,6 +27,8 @@ interface HomepageSectionFieldsProps {
   setHideIfEmpty: (value: boolean) => void;
   conditions: ConditionTree;
   setConditions: (value: ConditionTree) => void;
+  sort: BookmarkSort | null;
+  setSort: (value: BookmarkSort | null) => void;
   displayDefaultOpen: boolean;
   filterDefaultOpen: boolean;
   categories: Category[];
@@ -40,6 +44,7 @@ export function HomepageSectionFields({
   display, onDisplayChange,
   hideIfEmpty, setHideIfEmpty,
   conditions, setConditions,
+  sort, setSort,
   displayDefaultOpen,
   filterDefaultOpen,
   categories,
@@ -126,6 +131,22 @@ export function HomepageSectionFields({
           categories={categories}
           properties={properties}
           tagTree={tagTree}
+        />
+      </CollapsibleFormSection>
+
+      <Separator />
+
+      <CollapsibleFormSection
+        title="Sorting"
+        description="Choose how this section's bookmarks are ordered. Uses the same sort options as the Listings page."
+        defaultOpen={sort != null}
+        preview={sortSummaryLabel(sort, properties)}
+      >
+        <BookmarkSortEditor
+          value={sort ?? undefined}
+          onChange={next => setSort(next ?? null)}
+          properties={properties}
+          allowRandom
         />
       </CollapsibleFormSection>
     </>

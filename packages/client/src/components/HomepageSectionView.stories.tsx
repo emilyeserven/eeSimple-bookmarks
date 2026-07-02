@@ -25,6 +25,7 @@ const section: HomepageSection = {
   hiddenCardFields: [],
   cornerOverlays: false,
   hideWebsiteForYouTube: false,
+  sort: null,
   createdAt: NOW,
 };
 

@@ -187,6 +187,7 @@ export function HomepageSectionsSettings() {
                       fieldZones: values.fieldZones,
                       cardZoneLayouts: values.cardZoneLayouts,
                       hideWebsiteForYouTube: values.hideWebsiteForYouTube,
+                      sort: values.sort,
                     },
                     {
                       onSuccess: () => setAddingNew(false),

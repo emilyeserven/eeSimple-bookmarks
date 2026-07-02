@@ -1,28 +1,87 @@
-import type { Bookmark, CustomProperty, CustomPropertyType } from "@eesimple/types";
+import type {
+  BookmarkFieldSort,
+  BookmarkRandomSort,
+  BookmarkSort,
+  BookmarkSortDimension,
+  Bookmark,
+  BuiltinSortField,
+  CustomProperty,
+  CustomPropertyType,
+  SortDirection,
+} from "@eesimple/types";
 
-export const BUILTIN_SORT_FIELDS = ["title", "createdAt", "updatedAt"] as const;
-export type BuiltinSortField = typeof BUILTIN_SORT_FIELDS[number];
-export type SortDirection = "asc" | "desc";
+export { BUILTIN_SORT_FIELDS } from "@eesimple/types";
+export type {
+  BookmarkFieldSort,
+  BookmarkRandomSort,
+  BookmarkSort,
+  BookmarkSortDimension,
+  BuiltinSortField,
+  SortDirection,
+};
 
-export interface BookmarkSortDimension {
-  /** A built-in field name or a custom property ID. */
-  field: BuiltinSortField | string;
-  direction: SortDirection;
+export const RANDOM_FIELD = "random";
+
+interface SortFieldOption {
+  value: string;
+  label: string;
 }
 
-export interface BookmarkFieldSort {
-  primary: BookmarkSortDimension;
-  secondary?: BookmarkSortDimension;
+/** The field choices for a Sort control: built-in fields, then sortable custom properties. */
+export function sortFieldOptions(
+  properties: CustomProperty[],
+  opts?: { includeRandom?: boolean },
+): SortFieldOption[] {
+  const sortableProperties = properties.filter(
+    p => (SORTABLE_PROPERTY_TYPES as readonly string[]).includes(p.type),
+  );
+  return [
+    ...(opts?.includeRandom
+      ? [{
+        value: RANDOM_FIELD,
+        label: "Random",
+      }]
+      : []),
+    {
+      value: "title",
+      label: "Title",
+    },
+    {
+      value: "createdAt",
+      label: "Date Added",
+    },
+    {
+      value: "updatedAt",
+      label: "Date Updated",
+    },
+    ...sortableProperties.map(p => ({
+      value: p.id,
+      label: p.name,
+    })),
+  ];
 }
 
-/** Shuffles bookmarks in a stable pseudo-random order derived from `seed`. */
-export interface BookmarkRandomSort {
-  random: true;
-  /** Re-rolled each time the user picks "Random" or clicks "Shuffle again". */
-  seed: number;
+/** The display label for a single built-in field or custom-property id. */
+function describeSortField(field: string, properties: CustomProperty[]): string {
+  if (field === "title") return "Title";
+  if (field === "createdAt") return "Date Added";
+  if (field === "updatedAt") return "Date Updated";
+  return properties.find(p => p.id === field)?.name ?? "Custom property";
 }
 
-export type BookmarkSort = BookmarkFieldSort | BookmarkRandomSort;
+/** A one-line summary of a `BookmarkSort`, e.g. for a collapsed section preview. */
+export function sortSummaryLabel(
+  sort: BookmarkSort | null | undefined,
+  properties: CustomProperty[],
+): string {
+  if (!sort) return "Default order";
+  if ("random" in sort) return "Random order";
+  const dirArrow = (d: SortDirection) => (d === "asc" ? "↑" : "↓");
+  const primary = `${describeSortField(sort.primary.field, properties)} ${dirArrow(sort.primary.direction)}`;
+  if (!sort.secondary) return primary;
+  const secondary = `${describeSortField(sort.secondary.field, properties)} ${dirArrow(sort.secondary.direction)}`;
+  return `${primary}, then ${secondary}`;
+}
 
 /** Custom property types whose values can be meaningfully compared for sorting. */
 export const SORTABLE_PROPERTY_TYPES = [

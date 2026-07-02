@@ -101,6 +101,8 @@ export function HomepageSectionForm({
         setHideIfEmpty={v => setField("hideIfEmpty", v)}
         conditions={values.conditions}
         setConditions={v => setField("conditions", v)}
+        sort={values.sort}
+        setSort={v => setField("sort", v)}
         displayDefaultOpen={!section}
         filterDefaultOpen={(section?.conditions.children.length ?? 0) > 0}
         categories={categories ?? []}
