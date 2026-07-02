@@ -1,12 +1,10 @@
 import type { EntityRouteKind } from "./entityRoutes";
 import type {
   Category,
-  CustomProperty,
   Tag,
   UpdateAutofillRuleInput,
   UpdateCardDisplayRuleInput,
   UpdateCategoryInput,
-  UpdateCustomPropertyInput,
   UpdateImportRuleInput,
   UpdateLocationInput,
   UpdateMediaTypeInput,
@@ -19,7 +17,6 @@ import { importRulesApi } from "./api/importRules";
 import { cardDisplayRulesApi } from "./api/settings";
 import {
   categoriesApi,
-  customPropertiesApi,
   locationsApi,
   mediaTypesApi,
   placeTypesApi,
@@ -27,6 +24,7 @@ import {
 } from "./api/taxonomies";
 import { AUTHOR_PALETTE } from "../entities/author";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
+import { CUSTOM_PROPERTY_PALETTE } from "../entities/property";
 import { PROPERTY_GROUP_PALETTE } from "../entities/propertyGroup";
 import { PUBLISHER_PALETTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_PALETTE } from "../entities/relationshipType";
@@ -151,38 +149,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "publisher": PUBLISHER_PALETTE,
   "property-group": PROPERTY_GROUP_PALETTE,
   "relationship-type": RELATIONSHIP_TYPE_PALETTE,
-  "custom-property": {
-    queryKey: ["custom-properties"],
-    listFn: () => customPropertiesApi.list(),
-    updateFn: (id, patch) => customPropertiesApi.update(id, patch as UpdateCustomPropertyInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-    fields: [
-      {
-        type: "boolean",
-        key: "enabled",
-        label: "Enabled",
-        getValue: entity => (entity as CustomProperty).enabled,
-      },
-      {
-        type: "boolean",
-        key: "editableOnCard",
-        label: "Editable on Card",
-        getValue: entity => (entity as CustomProperty).editableOnCard,
-      },
-      {
-        type: "boolean",
-        key: "editableViaCmdk",
-        label: "Editable via CMD+K",
-        getValue: entity => (entity as CustomProperty).editableViaCmdk,
-      },
-      {
-        type: "boolean",
-        key: "enabledInInbox",
-        label: "Enabled in Inbox",
-        getValue: entity => (entity as CustomProperty).enabledInInbox,
-      },
-    ],
-  },
+  "custom-property": CUSTOM_PROPERTY_PALETTE,
   "autofill": {
     queryKey: ["autofill-rules"],
     listFn: () => autofillApi.list(),
