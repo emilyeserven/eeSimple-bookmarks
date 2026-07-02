@@ -148,6 +148,26 @@ export function BookmarkImageEditForm({
               ))}
             </select>
           </label>
+          <label
+            className="flex items-center gap-1.5 text-xs text-muted-foreground"
+          >
+            Scroll
+            <select
+              className="
+                rounded-sm border bg-background px-1.5 py-1 text-xs
+                text-foreground
+              "
+              value={c.screenshotScrollDistance}
+              disabled={c.isMutating}
+              onChange={e => c.setScreenshotScrollDistance(Number(e.target.value))}
+            >
+              <option value={0}>None</option>
+              <option value={500}>500 px</option>
+              <option value={1000}>1000 px</option>
+              <option value={2000}>2000 px</option>
+              <option value={5000}>5000 px</option>
+            </select>
+          </label>
           <Button
             type="button"
             variant="outline"

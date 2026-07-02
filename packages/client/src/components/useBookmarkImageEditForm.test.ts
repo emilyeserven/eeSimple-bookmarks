@@ -230,6 +230,7 @@ describe("useBookmarkImageEditForm", () => {
       delayMs: 5000,
       width: 1280,
       height: 720,
+      scrollDistance: undefined,
     });
 
     act(() => {
@@ -250,6 +251,7 @@ describe("useBookmarkImageEditForm", () => {
       delayMs: undefined,
       width: 1280,
       height: 720,
+      scrollDistance: undefined,
     });
   });
 
@@ -268,6 +270,26 @@ describe("useBookmarkImageEditForm", () => {
       delayMs: undefined,
       width: 1920,
       height: 1080,
+      scrollDistance: undefined,
+    });
+  });
+
+  it("takes a screenshot with the selected scroll distance", async () => {
+    const {
+      result,
+    } = renderHook(() => useBookmarkImageEditForm(bookmark));
+    act(() => {
+      result.current.setScreenshotScrollDistance(2000);
+    });
+    act(() => {
+      result.current.onTakeScreenshot();
+    });
+    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+      id: bookmark.id,
+      delayMs: undefined,
+      width: 1280,
+      height: 720,
+      scrollDistance: 2000,
     });
   });
 });

@@ -126,7 +126,7 @@ export const bookmarksApi = {
     request<undefined>(`/bookmarks/${id}/images/${imageId}`, {
       method: "DELETE",
     }),
-  takeScreenshot: (id: string, delayMs?: number, width?: number, height?: number) =>
+  takeScreenshot: (id: string, delayMs?: number, width?: number, height?: number, scrollDistance?: number) =>
     request<BookmarkImage>(`/bookmarks/${id}/screenshot`, {
       method: "POST",
       body: JSON.stringify({
@@ -138,6 +138,9 @@ export const bookmarksApi = {
         }),
         ...(height != null && {
           height,
+        }),
+        ...(scrollDistance != null && {
+          scrollDistance,
         }),
       }),
     }),

@@ -131,6 +131,7 @@ export async function takeAndStoreScreenshot(
   bookmarkId: string,
   delayMs?: number,
   viewport?: ScreenshotViewport,
+  scrollDistance?: number,
 ): Promise<BookmarkImage | "not_found" | "not_configured" | "bad_image"> {
   const [bookmark] = await db.select({
     id: bookmarks.id,
@@ -162,6 +163,14 @@ export async function takeAndStoreScreenshot(
   // makes v2 reject the request (its body schema disallows unknown properties), which surfaced as a
   // 502 "Screenshot could not be captured" whenever a delay was requested.
   if (delayMs && delayMs > 0) screenshotBody.waitForTimeout = delayMs;
+  // Browserless applies `waitForTimeout` before `addScriptTag`, so this scroll runs after the wait
+  // above completes — letting a page settle, then scrolling a fixed distance to bring
+  // below-the-fold content into the captured viewport before the screenshot is taken.
+  if (scrollDistance && scrollDistance > 0) {
+    screenshotBody.addScriptTag = [{
+      content: `window.scrollBy(0, ${scrollDistance});`,
+    }];
+  }
 
   let rawBytes: Buffer | null = null;
   try {
