@@ -19,7 +19,12 @@ import {
   locations,
   tags,
 } from "@/db/schema";
+import { bookmarkCacheVersion } from "@/services/bookmarkCacheVersion";
 import { ensureDefaultCategory } from "@/services/categories";
+
+// Re-exported so writers keep one import site; the counter lives in a leaf module purely to let
+// `services/categories.ts` (which the cache loads from) invalidate without a circular import.
+export { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 
 /**
  * In-memory cache of everything needed to evaluate a condition tree against every bookmark in one
@@ -44,17 +49,8 @@ export interface BookmarkEvaluationData {
   locationDescendants: TagDescendants;
 }
 
-let version = 0;
 let snapshot: { version: number;
   data: BookmarkEvaluationData; } | null = null;
-
-/**
- * Mark the cached bookmark evaluation data stale so the next {@link getBookmarkEvaluationData} call
- * rebuilds it. Cheap (a counter bump) — the rebuild is deferred to the next read.
- */
-export function invalidateBookmarkCache(): void {
-  version += 1;
-}
 
 /**
  * Return the (cached) {@link BookmarkEvaluationData}, rebuilding it whenever the cached snapshot
@@ -62,12 +58,12 @@ export function invalidateBookmarkCache(): void {
  * caller to rebuild again, so callers never observe data older than the moment they called.
  */
 export async function getBookmarkEvaluationData(): Promise<BookmarkEvaluationData> {
-  if (snapshot && snapshot.version === version) return snapshot.data;
-  const target = version;
+  if (snapshot && snapshot.version === bookmarkCacheVersion()) return snapshot.data;
+  const target = bookmarkCacheVersion();
   const data = await loadEvaluationData();
   // Publish only if no invalidation landed mid-load; otherwise leave the snapshot stale so the
   // next call rebuilds with the newer data.
-  if (target === version) {
+  if (target === bookmarkCacheVersion()) {
     snapshot = {
       version: target,
       data,

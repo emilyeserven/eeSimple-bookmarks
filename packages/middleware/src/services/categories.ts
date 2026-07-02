@@ -8,7 +8,9 @@ import type {
   UpdateCategoryInput,
 } from "@eesimple/types";
 import { db } from "@/db";
-import { invalidateBookmarkCache } from "@/services/bookmarkCache";
+// From the version leaf module (not bookmarkCache) — the cache loads `ensureDefaultCategory` from
+// this file, so importing the cache back would be circular.
+import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
   bookmarks,
