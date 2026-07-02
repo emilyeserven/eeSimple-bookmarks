@@ -2,6 +2,7 @@ import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { AUTHOR_ROUTE } from "../entities/author";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
+import { PLACE_TYPE_ROUTE } from "../entities/placeType";
 import { CUSTOM_PROPERTY_ROUTE } from "../entities/property";
 import { PROPERTY_GROUP_ROUTE } from "../entities/propertyGroup";
 import { PUBLISHER_ROUTE } from "../entities/publisher";
@@ -92,14 +93,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
     singular: "Location",
     flatCrumbs: false,
   },
-  {
-    kind: "place-type",
-    prefix: "/taxonomies/place-types",
-    slugIndex: 2,
-    listLabel: "Place Types",
-    singular: "Place Type",
-    flatCrumbs: true,
-  },
+  PLACE_TYPE_ROUTE,
   YOUTUBE_CHANNEL_ROUTE,
   NEWSLETTER_ROUTE,
   AUTHOR_ROUTE,
