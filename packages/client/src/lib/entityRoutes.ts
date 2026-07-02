@@ -1,6 +1,7 @@
 import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { AUTHOR_ROUTE } from "../entities/author";
+import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
 import { CATEGORY_ROUTE } from "../entities/category";
 import { IMPORT_RULE_ROUTE } from "../entities/importRule";
 import { MEDIA_TYPE_ROUTE } from "../entities/mediaType";
@@ -100,14 +101,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   },
   IMPORT_RULE_ROUTE,
   SAVED_FILTER_ROUTE,
-  {
-    kind: "card-display-rule",
-    prefix: "/card-display-rules",
-    slugIndex: 1,
-    listLabel: "Card Display Rules",
-    singular: "Card Display Rule",
-    flatCrumbs: true,
-  },
+  CARD_DISPLAY_RULE_ROUTE,
 ] as const;
 
 /** Non-slug segments that can sit where an entity slug would (create pages, fixed sub-pages). */
