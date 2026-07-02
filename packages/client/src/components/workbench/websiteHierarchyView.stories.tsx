@@ -1,28 +1,11 @@
-import type { Website, WebsiteNode } from "@eesimple/types";
+import type { WebsiteNode } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HttpResponse, http } from "msw";
 
 import { WebsiteHierarchyView } from "./websiteHierarchyView";
+import { makeWebsite as site } from "../../test-utils/factories";
 import { apiHandlers } from "../../test-utils/story-mocks";
-
-const NOW = "2026-06-01T00:00:00.000Z";
-
-function site(overrides: Partial<Website>): Website {
-  return {
-    id: "site",
-    domain: "example.com",
-    siteName: "Example",
-    slug: "example",
-    builtIn: false,
-    shortenedLinks: [],
-    paramRules: [],
-    createdAt: NOW,
-    socialLinks: [],
-    alternateNames: [],
-    ...overrides,
-  };
-}
 
 const github = site({
   id: "site-github",

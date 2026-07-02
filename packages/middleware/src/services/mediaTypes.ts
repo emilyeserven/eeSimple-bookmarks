@@ -7,6 +7,7 @@ import type {
   UpdateMediaTypeInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { bookmarks, mediaTypes, type MediaTypeRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -347,6 +348,8 @@ export async function deleteMediaType(id: string): Promise<boolean> {
   const rows = await db.delete(mediaTypes).where(eq(mediaTypes.id, id)).returning({
     id: mediaTypes.id,
   });
+  // The FK sets bookmarks.mediaTypeId to NULL — matchable data (media-type condition leaves).
+  if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
 }
 

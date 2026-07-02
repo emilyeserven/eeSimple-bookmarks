@@ -1,30 +1,7 @@
 import * as React from "react";
 
 import { Link } from "@tanstack/react-router";
-import {
-  Bookmark,
-  Building2,
-  ChevronDown,
-  ChevronUp,
-  Clapperboard,
-  FileInput,
-  FolderOpen,
-  Globe,
-  Home,
-  Inbox,
-  Layers,
-  LayoutGrid,
-  ListFilter,
-  Mail,
-  MapPin,
-  MonitorPlay,
-  Share2,
-  SlidersHorizontal,
-  Sparkles,
-  Tags,
-  UserRound,
-  Wand2,
-} from "lucide-react";
+import { Bookmark, ChevronDown, ChevronUp } from "lucide-react";
 
 import {
   CollapsibleSection,
@@ -52,134 +29,12 @@ import {
 } from "@/components/ui/sidebar";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-
-const navItems = [
-  {
-    title: "Home",
-    to: "/",
-    icon: Home,
-  },
-  {
-    title: "Inbox",
-    to: "/inbox",
-    icon: Inbox,
-  },
-  {
-    title: "Bookmarks",
-    to: "/bookmarks",
-    icon: Bookmark,
-  },
-] as const;
-
-const taxonomyItems = [
-  {
-    key: "categories",
-    title: "Categories",
-    to: "/categories",
-    icon: FolderOpen,
-  },
-  {
-    key: "tags",
-    title: "Tags",
-    to: "/tags",
-    icon: Tags,
-  },
-  {
-    key: "websites",
-    title: "Websites",
-    to: "/taxonomies/websites",
-    icon: Globe,
-  },
-  {
-    key: "media-types",
-    title: "Media Types",
-    to: "/taxonomies/media-types",
-    icon: Clapperboard,
-  },
-  {
-    key: "locations",
-    title: "Locations",
-    to: "/taxonomies/locations",
-    icon: MapPin,
-  },
-  {
-    key: "youtube-channels",
-    title: "YouTube Channels",
-    to: "/taxonomies/youtube-channels",
-    icon: MonitorPlay,
-  },
-  {
-    key: "newsletters",
-    title: "Imports",
-    to: "/taxonomies/newsletters",
-    icon: Mail,
-  },
-  {
-    key: "authors",
-    title: "Authors",
-    to: "/taxonomies/authors",
-    icon: UserRound,
-  },
-  {
-    key: "publishers",
-    title: "Publishers",
-    to: "/taxonomies/publishers",
-    icon: Building2,
-  },
-] as const;
-
-const actionItems = [
-  {
-    title: "AI Summarization",
-    to: "/ai-summarization",
-    icon: Sparkles,
-  },
-] as const;
-
-const customizationItems = [
-  {
-    key: "custom-properties",
-    title: "Custom Properties",
-    to: "/custom-properties",
-    icon: SlidersHorizontal,
-  },
-  {
-    key: "property-groups",
-    title: "Property Groups",
-    to: "/taxonomies/property-groups",
-    icon: Layers,
-  },
-  {
-    key: "relationship-types",
-    title: "Relationship Types",
-    to: "/taxonomies/relationship-types",
-    icon: Share2,
-  },
-  {
-    key: "autofill",
-    title: "Autofill Rules",
-    to: "/autofill",
-    icon: Wand2,
-  },
-  {
-    key: "card-display-rules",
-    title: "Card Display Rules",
-    to: "/card-display-rules",
-    icon: LayoutGrid,
-  },
-  {
-    key: "import-rules",
-    title: "Import Rules",
-    to: "/import-rules",
-    icon: FileInput,
-  },
-  {
-    key: "saved-filters",
-    title: "Saved Filters",
-    to: "/saved-filters",
-    icon: ListFilter,
-  },
-] as const;
+import {
+  actionItems,
+  customizationItems,
+  navItems,
+  taxonomyItems,
+} from "@/lib/sidebarNavItems";
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 

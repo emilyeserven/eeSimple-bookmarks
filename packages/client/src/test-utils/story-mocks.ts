@@ -7,31 +7,40 @@ import type {
 
 import { HttpResponse, http } from "msw";
 
-import { makeBookmark, makeCustomProperty } from "./factories";
+import {
+  makeBookmark,
+  makeCategory,
+  makeCustomProperty,
+  makeMediaType,
+  makeTag,
+  makeYouTubeChannel,
+} from "./factories";
 
 const NOW = "2026-06-01T00:00:00.000Z";
 
 export const sampleTagTree: TagNode[] = [
   {
-    id: "tag-dev",
-    name: "dev",
-    slug: "dev",
-    parentId: null,
-    createdAt: NOW,
+    ...makeTag({
+      id: "tag-dev",
+      name: "dev",
+      slug: "dev",
+    }),
     children: [
       {
-        id: "tag-tools",
-        name: "tools",
-        slug: "tools",
-        parentId: "tag-dev",
-        createdAt: NOW,
+        ...makeTag({
+          id: "tag-tools",
+          name: "tools",
+          slug: "tools",
+          parentId: "tag-dev",
+        }),
         children: [
           {
-            id: "tag-cli",
-            name: "cli",
-            slug: "cli",
-            parentId: "tag-tools",
-            createdAt: NOW,
+            ...makeTag({
+              id: "tag-cli",
+              name: "cli",
+              slug: "cli",
+              parentId: "tag-tools",
+            }),
             children: [],
           },
         ],
@@ -41,36 +50,28 @@ export const sampleTagTree: TagNode[] = [
 ];
 
 export const sampleCategories: Category[] = [
-  {
+  makeCategory({
     id: "cat-default",
     name: "Default",
     slug: "default",
     description: "The category bookmarks use when none is chosen.",
-    icon: null,
     builtIn: true,
     isHomepage: true,
-    createdAt: NOW,
-  },
-  {
+  }),
+  makeCategory({
     id: "cat-workflow",
     name: "Workflow",
     slug: "workflow",
     description: "Properties that drive triage and ordering.",
     icon: "Workflow",
-    builtIn: false,
-    isHomepage: false,
-    createdAt: NOW,
-  },
-  {
+  }),
+  makeCategory({
     id: "cat-content",
     name: "Content",
     slug: "content",
     description: "Properties that describe what a bookmark is about.",
     icon: "BookOpen",
-    builtIn: false,
-    isHomepage: false,
-    createdAt: NOW,
-  },
+  }),
 ];
 
 export const sampleProperties = [
@@ -113,60 +114,45 @@ export const sampleProperties = [
 ];
 
 export const sampleMediaTypes: MediaType[] = [
-  {
+  makeMediaType({
     id: "media-video",
     name: "Video",
     slug: "video",
-    icon: null,
     builtIn: true,
-    sortOrder: 0,
-    parentId: null,
-    createdAt: NOW,
     bookmarkCount: 4,
-  },
-  {
+  }),
+  makeMediaType({
     id: "media-article",
     name: "Article",
     slug: "article",
-    icon: null,
     builtIn: true,
     sortOrder: 1,
-    parentId: null,
-    createdAt: NOW,
     bookmarkCount: 7,
-  },
-  {
+  }),
+  makeMediaType({
     id: "media-newsletter",
     name: "Newsletter",
     slug: "newsletter",
-    icon: null,
-    builtIn: false,
     sortOrder: 2,
-    parentId: null,
-    createdAt: NOW,
     bookmarkCount: 1,
-  },
+  }),
 ];
 
 export const sampleChannels: YouTubeChannel[] = [
-  {
+  makeYouTubeChannel({
     id: "channel-veritasium",
     channelKey: "@veritasium",
     name: "Veritasium",
     slug: "veritasium",
-    selfIds: [],
-    createdAt: NOW,
     bookmarkCount: 3,
-  },
-  {
+  }),
+  makeYouTubeChannel({
     id: "channel-fireship",
     channelKey: "@fireship",
     name: "Fireship",
     slug: "fireship",
-    selfIds: [],
-    createdAt: NOW,
     bookmarkCount: 5,
-  },
+  }),
 ];
 
 export const sampleBookmark = makeBookmark({

@@ -11,6 +11,7 @@ import {
   setAuthorImageFromBytes,
 } from "@/services/authorImages";
 import {
+  bulkDeleteAuthors,
   createAuthor,
   deleteAuthor,
   detectAuthorSocialLinksFromWebsite,
@@ -18,6 +19,7 @@ import {
   listAuthors,
   updateAuthor,
 } from "@/services/authors";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 
 const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
@@ -133,6 +135,8 @@ const autoImageBody = {
 
 /** Routes for the Authors taxonomy, mounted under `/api/authors`. */
 export async function authorRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/authors", "authors", bulkDeleteAuthors);
+
   app.get("/api/authors", {
     schema: {
       tags: ["authors"],

@@ -9,10 +9,22 @@ import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useEntityImage } from "../hooks/useEntityImage";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "../lib/sidebarModifier";
 
+interface AuthorListItemProps {
+  author: Author;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
+}
+
 /** A single row in the author listing: name, bookmark count, and hover Edit / Info. */
 export function AuthorListItem({
   author,
-}: { author: Author }) {
+  selectable,
+  selected,
+  onSelectToggle,
+  inSelectionMode,
+}: AuthorListItemProps) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -23,6 +35,10 @@ export function AuthorListItem({
 
   return (
     <StandardListingCard
+      selectable={selectable}
+      selected={selected}
+      onSelectToggle={onSelectToggle}
+      inSelectionMode={inSelectionMode}
       icon={(
         <span
           className="

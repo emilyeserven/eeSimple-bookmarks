@@ -1,24 +1,16 @@
-import type { Author } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { AuthorGeneralForm } from "./AuthorGeneralForm";
+import { makeAuthor } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const author: Author = {
+const author = makeAuthor({
   id: "author-1",
   name: "Jane Author",
-  romanizedName: null,
   slug: "jane-author",
-  createdAt: "2026-06-01T00:00:00.000Z",
   bookmarkCount: 3,
   authorWebsiteUrl: "https://janeauthor.example.com",
-  biographyUrl: null,
-  imageUrl: null,
-  socialLinks: [],
-  youtubeChannelIds: [],
-  websiteIds: [],
-  publisherIds: [],
-};
+});
 
 const meta = {
   title: "Components/AuthorGeneralForm",

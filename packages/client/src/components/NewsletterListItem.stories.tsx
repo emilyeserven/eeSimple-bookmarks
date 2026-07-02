@@ -1,16 +1,13 @@
-import type { Newsletter } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { NewsletterListItem } from "./NewsletterListItem";
+import { makeNewsletter } from "../test-utils/factories";
 import { apiHandlers, sampleCategories } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const newsletter: Newsletter = {
+const newsletter = makeNewsletter({
   id: "newsletter-1",
   name: "Weekly Digest",
   slug: "weekly-digest",
-  createdAt: NOW,
   bookmarkCount: 8,
   category: {
     id: sampleCategories[0].id,
@@ -18,9 +15,7 @@ const newsletter: Newsletter = {
     slug: sampleCategories[0].slug,
     icon: sampleCategories[0].icon,
   },
-  tagIds: [],
-  mediaTypeId: null,
-};
+});
 
 const meta = {
   title: "Components/NewsletterListItem",

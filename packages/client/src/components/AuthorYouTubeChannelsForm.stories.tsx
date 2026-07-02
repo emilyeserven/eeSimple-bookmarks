@@ -1,25 +1,16 @@
-import type { Author } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { AuthorYouTubeChannelsForm, AuthorYouTubeChannelsView } from "./AuthorYouTubeChannelsForm";
+import { makeAuthor } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const author: Author = {
+const author = makeAuthor({
   id: "author-1",
   name: "Derek Muller",
   slug: "derek-muller",
-  createdAt: NOW,
   bookmarkCount: 9,
-  authorWebsiteUrl: null,
-  biographyUrl: null,
-  imageUrl: null,
-  socialLinks: [],
   youtubeChannelIds: ["channel-veritasium"],
-  websiteIds: [],
-  publisherIds: [],
-};
+});
 
 const meta = {
   title: "Components/AuthorYouTubeChannelsForm",

@@ -42,6 +42,7 @@ import {
   removeBookmarkReelArchive,
 } from "@/services/reelArchive";
 import { quickSaveToInbox } from "@/services/imports";
+import { importIsbnCover } from "@/services/isbn";
 import { importKavitaSeriesCover, kavitaEnabledAsync } from "@/services/kavita";
 import { getObjectRange, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { isValidUrl } from "@/utils/url";
@@ -830,6 +831,55 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
     if (result === "cover_unavailable") {
       return reply.code(502).send({
         message: "Could not fetch the cover from Kavita",
+      });
+    }
+    if (result === "too_many") {
+      return reply.code(409).send({
+        message: "This bookmark already has the maximum number of images",
+      });
+    }
+    if (result === "bad_image") {
+      return reply.code(415).send({
+        message: "Unsupported or invalid image",
+      });
+    }
+    return reply.code(201).send(result);
+  });
+
+  // Import the cover from the bookmark's stored ISBN/ASIN as its main image (keeps other images).
+  app.post("/api/bookmarks/:id/isbn-cover", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    const result = await importIsbnCover(id);
+    if (result === "no_isbn") {
+      return reply.code(400).send({
+        message: "Bookmark has no ISBN/ASIN set",
+      });
+    }
+    if (result === "isbn_not_found") {
+      return reply.code(404).send({
+        message: "No book found for that ISBN/ASIN",
+      });
+    }
+    if (result === "cover_unavailable") {
+      return reply.code(502).send({
+        message: "Could not fetch a cover image for that ISBN/ASIN",
+      });
+    }
+    if (result === "not_found") {
+      return reply.code(404).send({
+        message: "Bookmark not found",
       });
     }
     if (result === "too_many") {

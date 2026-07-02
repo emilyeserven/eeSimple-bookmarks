@@ -1,11 +1,12 @@
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
 import { PublisherListItem } from "./PublisherListItem";
+import { PublisherTable } from "./PublisherTable";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useBulkDeletePublishers, usePublishers } from "../hooks/usePublishers";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
 
 /** Browsable, searchable publisher listing. Shared by the Publishers taxonomy page. */
@@ -15,6 +16,7 @@ export function PublishersListing() {
   } = usePublishers();
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("publishers-listing");
+  const viewMode = useViewMode("publishers-listing");
 
   const publishers = allPublishers ?? [];
   const {
@@ -54,7 +56,16 @@ export function PublishersListing() {
         noun={["publisher", "publishers"]}
       />
 
-      {filtered.length > 0
+      {filtered.length > 0 && viewMode === "table"
+        ? (
+          <PublisherTable
+            publishers={filtered}
+            selection={selection}
+          />
+        )
+        : null}
+
+      {filtered.length > 0 && viewMode !== "table"
         ? (
           <div
             className={`

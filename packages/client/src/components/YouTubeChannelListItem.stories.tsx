@@ -1,20 +1,16 @@
-import type { YouTubeChannel } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { YouTubeChannelListItem } from "./YouTubeChannelListItem";
+import { makeYouTubeChannel } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const channel: YouTubeChannel = {
+const channel = makeYouTubeChannel({
   id: "channel-veritasium",
   channelKey: "@veritasium",
   name: "Veritasium",
   slug: "veritasium",
-  selfIds: [],
-  createdAt: "2026-06-01T00:00:00.000Z",
   bookmarkCount: 8,
-  imageUrl: null,
-  category: null,
-};
+});
 
 const meta = {
   title: "Components/YouTubeChannelListItem",

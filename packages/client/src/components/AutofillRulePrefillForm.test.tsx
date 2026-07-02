@@ -5,6 +5,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AutofillRulePrefillForm } from "./AutofillRulePrefillForm";
+import { makeCategory, makeMediaType } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const updateMutate
@@ -32,21 +33,21 @@ vi.mock("../hooks/useAutofill", () => ({
 }));
 
 const categories: Category[] = [
-  {
+  makeCategory({
     id: "cat-1",
     name: "Recipes",
     slug: "recipes",
-    description: null,
-    icon: null,
-  } as Category,
+  }),
 ];
 const mediaTypeTree: MediaTypeNode[] = [
   {
-    id: "mt-1",
-    name: "Article",
-    slug: "article",
+    ...makeMediaType({
+      id: "mt-1",
+      name: "Article",
+      slug: "article",
+    }),
     children: [] as MediaTypeNode[],
-  } as unknown as MediaTypeNode,
+  },
 ];
 
 vi.mock("../hooks/useCategories", () => ({

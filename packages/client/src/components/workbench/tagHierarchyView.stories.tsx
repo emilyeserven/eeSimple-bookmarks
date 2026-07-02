@@ -2,23 +2,24 @@ import type { TagNode } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { TagHierarchyView } from "./tagHierarchyView";
+import { makeTag } from "../../test-utils/factories";
 import { apiHandlers } from "../../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
 const tools: TagNode = {
-  id: "tag-tools",
-  name: "tools",
-  slug: "tools",
-  parentId: "tag-dev",
-  createdAt: NOW,
+  ...makeTag({
+    id: "tag-tools",
+    name: "tools",
+    slug: "tools",
+    parentId: "tag-dev",
+  }),
   children: [
     {
-      id: "tag-cli",
-      name: "cli",
-      slug: "cli",
-      parentId: "tag-tools",
-      createdAt: NOW,
+      ...makeTag({
+        id: "tag-cli",
+        name: "cli",
+        slug: "cli",
+        parentId: "tag-tools",
+      }),
       children: [],
     },
   ],
@@ -48,11 +49,12 @@ export const Default: Story = {};
 export const Leaf: Story = {
   args: {
     entity: {
-      id: "tag-cli",
-      name: "cli",
-      slug: "cli",
-      parentId: "tag-tools",
-      createdAt: NOW,
+      ...makeTag({
+        id: "tag-cli",
+        name: "cli",
+        slug: "cli",
+        parentId: "tag-tools",
+      }),
       children: [],
     },
   },

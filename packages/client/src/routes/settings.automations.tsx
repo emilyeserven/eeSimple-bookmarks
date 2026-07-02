@@ -1,39 +1,12 @@
-import type { TabNavItem } from "../components/TabbedEntityLayout";
-
 import { createFileRoute } from "@tanstack/react-router";
 
 import { VerticalTabbedLayout } from "../components/VerticalTabbedLayout";
 
+import { automationsNav } from "@/lib/settingsNav";
+
 export const Route = createFileRoute("/settings/automations")({
   component: AutomationsLayout,
 });
-
-const automationsNav: readonly TabNavItem[] = [
-  {
-    to: "/settings/automations/global",
-    label: "Global",
-  },
-  {
-    to: "/settings/automations/backfill",
-    label: "Backfill",
-  },
-  {
-    to: "/settings/automations/link-parsing",
-    label: "Link Parsing",
-  },
-  {
-    to: "/settings/automations/check-links",
-    label: "Check Links",
-  },
-  {
-    to: "/settings/automations/redirect-failures",
-    label: "Redirect failures",
-  },
-  {
-    to: "/settings/automations/imports",
-    label: "Imports",
-  },
-] as const;
 
 function AutomationsLayout() {
   return (

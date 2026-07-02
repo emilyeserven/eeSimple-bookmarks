@@ -3,24 +3,8 @@ import type { Website } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { WebsiteTable } from "./WebsiteTable";
+import { makeWebsite } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
-
-const NOW = "2026-06-01T00:00:00.000Z";
-
-function makeWebsite(overrides: Partial<Website> & Pick<Website, "id" | "domain" | "siteName" | "slug">): Website {
-  return {
-    builtIn: false,
-    shortenedLinks: [],
-    paramRules: [],
-    createdAt: NOW,
-    bookmarkCount: 0,
-    imageUrl: null,
-    category: null,
-    socialLinks: [],
-    alternateNames: [],
-    ...overrides,
-  };
-}
 
 const websites: Website[] = [
   makeWebsite({

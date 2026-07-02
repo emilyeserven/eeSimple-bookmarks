@@ -1,35 +1,12 @@
-import type { TabNavItem } from "../components/TabbedEntityLayout";
-
 import { createFileRoute } from "@tanstack/react-router";
 
 import { VerticalTabbedLayout } from "../components/VerticalTabbedLayout";
 
+import { advancedNav } from "@/lib/settingsNav";
+
 export const Route = createFileRoute("/settings/advanced")({
   component: AdvancedLayout,
 });
-
-const advancedNav: readonly TabNavItem[] = [
-  {
-    to: "/settings/advanced/connectors",
-    label: "Connectors",
-  },
-  {
-    to: "/settings/advanced/manage-data",
-    label: "Manage Data",
-  },
-  {
-    to: "/settings/advanced/updates",
-    label: "Updates",
-  },
-  {
-    to: "/settings/advanced/database-usage",
-    label: "Database usage",
-  },
-  {
-    to: "/settings/advanced/manage-media",
-    label: "Manage Media",
-  },
-] as const;
 
 function AdvancedLayout() {
   return (

@@ -5,6 +5,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { savedFiltersApi } from "../lib/api/settings";
 import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
@@ -57,6 +58,15 @@ export function useUpdateSavedFilter() {
     onError: (err: Error) => {
       notifyError(describeError(err, "Failed to update filter"));
     },
+  });
+}
+
+export function useBulkDeleteSavedFilters() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(savedFiltersApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: SAVED_FILTERS_KEY,
+    });
   });
 }
 

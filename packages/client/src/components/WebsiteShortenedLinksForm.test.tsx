@@ -4,6 +4,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WebsiteShortenedLinksForm } from "./WebsiteShortenedLinksForm";
+import { makeWebsite as makeWebsiteEntity } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const updateMutate
@@ -15,19 +16,13 @@ const updateMutate
 let mutationBehavior: "success" | "error" = "success";
 
 function makeWebsite(overrides: Partial<Website> = {}): Website {
-  return {
+  return makeWebsiteEntity({
     id: "site-1",
     domain: "youtube.com",
     siteName: "YouTube",
     slug: "youtube",
-    builtIn: false,
-    shortenedLinks: [],
-    paramRules: [],
-    createdAt: "2026-06-01T00:00:00.000Z",
-    socialLinks: [],
-    alternateNames: [],
     ...overrides,
-  };
+  });
 }
 
 vi.mock("../hooks/useWebsites", () => ({

@@ -151,6 +151,54 @@ describe("computeVisibleLevelGroupIds", () => {
     }, "current");
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
+
+  describe("visible: false", () => {
+    const withHiddenCountry = groups.map(g => (g.id === "country"
+      ? {
+        ...g,
+        visible: false,
+      }
+      : g));
+
+    it("excludes a hidden group from the main map default", () => {
+      const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
+        kind: "main",
+      }, "current");
+      expect([...ids].sort()).toEqual(["city"]);
+    });
+
+    it("excludes a hidden group from an 'above' expansion that would otherwise include it", () => {
+      const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
+        kind: "location",
+        currentPlaceType: "city",
+      }, "above");
+      expect([...ids].sort()).toEqual(["city", "region"]);
+    });
+
+    it("excludes a hidden group from a bookmark 'above' expansion", () => {
+      const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
+        kind: "bookmark",
+        placeTypes: ["city"],
+      }, "above");
+      expect([...ids].sort()).toEqual(["city", "region"]);
+    });
+
+    it("excludes a hidden group even as the anchor/current level itself", () => {
+      const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
+        kind: "location",
+        currentPlaceType: "country",
+      }, "current");
+      expect([...ids]).toEqual([]);
+    });
+
+    it("excludes a hidden group from the no-anchor fall-back-to-all case", () => {
+      const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
+        kind: "location",
+        currentPlaceType: "continent",
+      }, "current");
+      expect([...ids].sort()).toEqual(["city", "region"]);
+    });
+  });
 });
 
 describe("findAnchorGroup", () => {

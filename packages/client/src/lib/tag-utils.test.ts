@@ -2,14 +2,15 @@ import type { TagNode } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import { rootOnly, toggleId } from "./tag-utils";
+import { makeTag } from "../test-utils/factories";
 
 function node(id: string, children: TagNode[] = []): TagNode {
   return {
-    id,
-    name: id,
-    slug: id,
-    parentId: null,
-    createdAt: "2026-01-01T00:00:00.000Z",
+    ...makeTag({
+      id,
+      name: id,
+      slug: id,
+    }),
     children,
   };
 }

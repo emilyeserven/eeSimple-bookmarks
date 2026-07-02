@@ -3,9 +3,10 @@ import type { ShortenedLink, Website } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import { canonicalize, cleanUrl } from "./urlCleanup";
+import { makeWebsite } from "../test-utils/factories";
 
 function youtube(shortened?: Partial<ShortenedLink>): Website {
-  return {
+  return makeWebsite({
     id: "yt",
     domain: "youtube.com",
     siteName: "YouTube",
@@ -29,10 +30,7 @@ function youtube(shortened?: Partial<ShortenedLink>): Website {
         params: ["list"],
       },
     ],
-    createdAt: "2020-01-01T00:00:00Z",
-    socialLinks: [],
-    alternateNames: [],
-  };
+  });
 }
 
 const ignoreList = ["bit.ly", "t.co"];

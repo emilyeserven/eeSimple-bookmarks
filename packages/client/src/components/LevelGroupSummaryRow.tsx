@@ -1,7 +1,7 @@
 import type { GroupRowProps, SortableHandle } from "./levelGroupRowTypes";
 
 import { DEFAULT_LOCATION_MAP_COLOR } from "@eesimple/types";
-import { ArrowDown, ArrowUp, Map as MapIcon, MapPin, Shapes, TriangleAlert } from "lucide-react";
+import { ArrowDown, ArrowUp, EyeOff, Map as MapIcon, MapPin, Shapes, TriangleAlert } from "lucide-react";
 
 import { LevelGroupDragHandle } from "./LevelGroupDragHandle";
 
@@ -70,6 +70,21 @@ export function LevelGroupSummaryRow({
             : <MapPin className="size-3" />}
           {group.displayMode === "area" ? "Area" : "Pin"}
         </span>
+
+        {group.visible === false
+          ? (
+            <span
+              className="
+                flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs
+                text-muted-foreground
+              "
+              title="Excluded from every map's default shown levels"
+            >
+              <EyeOff className="size-3" />
+              Hidden by default
+            </span>
+          )
+          : null}
 
         {group.showOnMainMap !== false
           ? (

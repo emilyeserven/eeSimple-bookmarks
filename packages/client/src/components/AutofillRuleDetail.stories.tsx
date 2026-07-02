@@ -6,19 +6,18 @@ import {
   AutofillGeneralFields,
   AutofillPrefillFields,
 } from "./AutofillRuleDetail";
-import { makeLocation } from "../test-utils/factories";
+import { makeLocation, makeTag } from "../test-utils/factories";
 import { sampleCategories, sampleMediaTypes, sampleProperties } from "../test-utils/story-mocks";
 
 const NOW = "2026-06-01T00:00:00.000Z";
 
 const tags: Tag[] = [
-  {
+  makeTag({
     id: "tag-cli",
     name: "cli",
     slug: "cli",
     parentId: "tag-tools",
-    createdAt: NOW,
-  },
+  }),
 ];
 
 const locations = [makeLocation({

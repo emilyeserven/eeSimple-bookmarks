@@ -41,3 +41,13 @@ export const WithDuplicatePlaceType: Story = {
     }),
   },
 };
+
+/** A level excluded from every map's default shown levels — "above"/"below" and the main map. */
+export const HiddenByDefault: Story = {
+  args: {
+    group: makeStoryGroup({
+      name: "Country",
+      visible: false,
+    }),
+  },
+};

@@ -4,21 +4,23 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { TagPicker } from "./TagPicker";
+import { makeTag } from "../test-utils/factories";
 
 const tree: TagNode[] = [
   {
-    id: "dev",
-    name: "dev",
-    slug: "dev",
-    parentId: null,
-    createdAt: "2026-06-01T00:00:00.000Z",
+    ...makeTag({
+      id: "dev",
+      name: "dev",
+      slug: "dev",
+    }),
     children: [
       {
-        id: "tools",
-        name: "tools",
-        slug: "tools",
-        parentId: "dev",
-        createdAt: "2026-06-01T00:00:00.000Z",
+        ...makeTag({
+          id: "tools",
+          name: "tools",
+          slug: "tools",
+          parentId: "dev",
+        }),
         children: [],
       },
     ],

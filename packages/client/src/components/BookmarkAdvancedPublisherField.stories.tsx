@@ -1,29 +1,21 @@
-import type { Publisher } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { BookmarkFormHost } from "../test-utils/bookmarkFormHost";
+import { makePublisher } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const samplePublishers: Publisher[] = [
-  {
+const samplePublishers = [
+  makePublisher({
     id: "pub-oreilly",
     name: "O'Reilly Media",
     slug: "oreilly-media",
-    websiteId: null,
-    createdAt: NOW,
-    socialLinks: [],
-  },
-  {
+  }),
+  makePublisher({
     id: "pub-penguin",
     name: "Penguin Random House",
     slug: "penguin-random-house",
-    websiteId: null,
-    createdAt: NOW,
-    socialLinks: [],
-  },
+  }),
 ];
 
 const meta = {

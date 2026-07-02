@@ -7,8 +7,14 @@
  */
 
 import type { FetchIsbnMetadataResult } from "@eesimple/types";
+import { and, eq } from "drizzle-orm";
 
-import { kavitaEnabledAsync, kavitaSeriesCoverUrl, searchKavitaByIsbn } from "@/services/kavita";
+import { db } from "@/db";
+import { bookmarkTextValues, customProperties } from "@/db/schema";
+import { addBookmarkImage, type SetImageResult } from "@/services/bookmarkImages";
+import { ISBN_SLUG } from "@/services/customProperties";
+import { kavitaEnabledAsync, kavitaSeriesCoverUrl, searchKavitaByIsbn, searchKavitaSeries } from "@/services/kavita";
+import { downloadImage, isPublicHttpUrl } from "@/services/metadata";
 
 const ISBN_TIMEOUT_MS = 10_000;
 const ISBN_USER_AGENT = "eeSimple-bookmarks/1.0";
@@ -212,4 +218,44 @@ export async function fetchIsbnMetadata(isbn: string): Promise<IsbnLookupOutcome
     kind: "error",
     debug: kv.debug,
   };
+}
+
+/** Why an ISBN cover import failed, beyond `addBookmarkImage`'s own outcomes. */
+export type IsbnCoverImportResult
+  = | SetImageResult
+    | "too_many"
+    | "no_isbn"
+    | "isbn_not_found"
+    | "cover_unavailable";
+
+/**
+ * Look up the bookmark's stored ISBN/ASIN value and import the resulting cover (if any) as the
+ * bookmark's main image, keeping its other images. The cover URL comes from a public lookup
+ * provider (or, via the Kavita fallback, a middleware-relative proxy path) — only an absolute
+ * `isPublicHttpUrl` is downloaded, so an internal Kavita path is correctly treated as unavailable
+ * here (its bytes are only reachable through the authenticated Kavita proxy, not a bare fetch).
+ */
+export async function importIsbnCover(bookmarkId: string): Promise<IsbnCoverImportResult> {
+  const [row] = await db
+    .select({
+      value: bookmarkTextValues.value,
+    })
+    .from(bookmarkTextValues)
+    .innerJoin(customProperties, eq(bookmarkTextValues.propertyId, customProperties.id))
+    .where(and(
+      eq(bookmarkTextValues.bookmarkId, bookmarkId),
+      eq(customProperties.slug, ISBN_SLUG),
+    ));
+  const isbn = row?.value.trim();
+  if (!isbn) return "no_isbn";
+
+  const outcome = await fetchIsbnMetadata(isbn);
+  if (outcome.kind !== "ok" || !outcome.result.coverUrl || !isPublicHttpUrl(outcome.result.coverUrl)) {
+    return outcome.kind === "not_found" ? "isbn_not_found" : "cover_unavailable";
+  }
+  const bytes = await downloadImage(outcome.result.coverUrl);
+  if (!bytes) return "cover_unavailable";
+  return addBookmarkImage(bookmarkId, bytes, "og", {
+    setMain: true,
+  });
 }

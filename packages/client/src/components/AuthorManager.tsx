@@ -4,12 +4,16 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { AddAuthorModal } from "./AddAuthorModal";
 import { AuthorListItem } from "./AuthorListItem";
+import { AuthorTable } from "./AuthorTable";
+import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
-import { useAuthors } from "../hooks/useAuthors";
+import { useAuthors, useBulkDeleteAuthors } from "../hooks/useAuthors";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { useListSelection } from "../lib/useListSelection";
 
 /** Browsable, searchable author listing with an inline add modal. */
 export function AuthorsListing() {
@@ -23,6 +27,7 @@ export function AuthorsListing() {
   });
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("authors-listing");
+  const viewMode = useViewMode("authors-listing");
   const navigate = useNavigate();
 
   const authors = allAuthors ?? [];
@@ -32,6 +37,11 @@ export function AuthorsListing() {
     authors,
     (a, query) => a.name.toLowerCase().includes(query),
   );
+
+  const deletableIds = filtered.map(a => a.id);
+  const selection = useListSelection("authors-listing", deletableIds);
+  useRegisterBulkSelect("authors-listing");
+  const bulkDelete = useBulkDeleteAuthors();
 
   return (
     <div className="space-y-4">
@@ -51,7 +61,23 @@ export function AuthorsListing() {
         )}
       />
 
-      {filtered.length > 0
+      <TaxonomyBulkBar
+        selection={selection}
+        totalSelectable={deletableIds.length}
+        bulkDelete={bulkDelete}
+        noun={["author", "authors"]}
+      />
+
+      {filtered.length > 0 && viewMode === "table"
+        ? (
+          <AuthorTable
+            authors={filtered}
+            selection={selection}
+          />
+        )
+        : null}
+
+      {filtered.length > 0 && viewMode !== "table"
         ? (
           <div
             className={`
@@ -63,6 +89,10 @@ export function AuthorsListing() {
               <AuthorListItem
                 key={author.id}
                 author={author}
+                selectable
+                selected={selection.isSelected(author.id)}
+                onSelectToggle={() => selection.toggle(author.id)}
+                inSelectionMode={selection.mode}
               />
             ))}
           </div>

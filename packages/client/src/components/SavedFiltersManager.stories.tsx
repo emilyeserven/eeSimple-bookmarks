@@ -50,7 +50,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** A list of saved filters with delete + "viewable online" controls. */
+/** A list of saved filters with hover Edit / Info + "viewable online" controls. */
 export const Default: Story = {};
 
 /** Empty state — no saved filters yet. */

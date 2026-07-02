@@ -3,6 +3,7 @@ import type { AutofillRule, ConditionTree, InboxItem, Website } from "@eesimple/
 import { describe, expect, it } from "vitest";
 
 import { computeInboxPrefillSeed } from "./inboxPrefillSeed";
+import { makeWebsite } from "../test-utils/factories";
 
 /** A single-match AND tree on the URL/title. */
 function match(pattern: string, field: "url" | "title" = "title"): ConditionTree {
@@ -49,12 +50,11 @@ function item(overrides: Partial<InboxItem> = {}): InboxItem {
 }
 
 function website(overrides: Partial<Website> = {}): Website {
-  return {
-    id: "site",
+  return makeWebsite({
     domain: "101cookbooks.com",
     siteName: "101 Cookbooks",
     ...overrides,
-  } as Website;
+  });
 }
 
 describe("computeInboxPrefillSeed", () => {

@@ -24,6 +24,7 @@ const EDIT_PATHS: Partial<Record<DrawerContentType, (slug: string) => string>> =
   "newsletter": slug => `/taxonomies/newsletters/${slug}/edit/general`,
   "author": slug => `/taxonomies/authors/${slug}/edit/general`,
   "relationship-type": slug => `/taxonomies/relationship-types/${slug}/edit/general`,
+  "saved-filter": slug => `/saved-filters/${slug}/edit/general`,
   "autofill": slug => `/autofill/${slug}/edit/general`,
   "import-rule": slug => `/import-rules/${slug}/edit/general`,
 };

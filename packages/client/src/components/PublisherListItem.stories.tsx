@@ -1,11 +1,9 @@
-import type { Publisher } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { PublisherListItem } from "./PublisherListItem";
+import { makePublisher } from "../test-utils/factories";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const publisher: Publisher = {
+const publisher = makePublisher({
   id: "pub-oreilly",
   name: "O'Reilly Media",
   slug: "oreilly-media",
@@ -15,10 +13,8 @@ const publisher: Publisher = {
     domain: "oreilly.com",
     siteName: "O'Reilly",
   },
-  createdAt: NOW,
   bookmarkCount: 12,
-  socialLinks: [],
-};
+});
 
 const meta = {
   title: "Components/PublisherListItem",

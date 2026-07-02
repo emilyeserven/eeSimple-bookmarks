@@ -124,6 +124,13 @@ View side (pathless `_view` layout keeps URLs clean, e.g. `/custom-properties/:s
   The Edit link must navigate to the **same tab** the user is currently viewing. Use a module-scope
   `VIEW_TO_EDIT` map that keys every view tab to its edit route. Any view tab with no edit
   counterpart (e.g. Tags' `hierarchy`) simply falls back to `general` by being absent from the map.
+
+  **Hierarchy tab:** a taxonomy with a `parentId` tree (Tags, Media Types, Locations) gets a
+  view-only `hierarchy` tab (see CLAUDE.md → Content hierarchies → Hierarchy tab rule). **Websites
+  are the sanctioned derived-tree exception** — no `parentId` column, but their Hierarchy tab
+  renders the domain/subdomain tree derived by `useWebsiteTree` (`websiteHierarchyView.tsx`). A
+  derived tree qualifies only when a real containment relation exists in the data; don't add a
+  Hierarchy tab to a genuinely flat taxonomy.
   Read the current tab from the last URL segment via `useRouterState`:
 
   ```tsx

@@ -1,6 +1,7 @@
 import { asc, count, eq, inArray, isNull } from "drizzle-orm";
-import type { Author, CreateAuthorInput, SocialLink, UpdateAuthorInput } from "@eesimple/types";
+import type { Author, BulkDeleteResult, CreateAuthorInput, SocialLink, UpdateAuthorInput } from "@eesimple/types";
 import { db } from "@/db";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
   authorImages,
   authorPublishers,
@@ -13,6 +14,7 @@ import {
 import { getAuthorImageRow } from "@/services/authorImages";
 import { extractSocialProfileLinks, fetchBodyHtmlResult } from "@/services/metadata";
 import { buildStringMap } from "@/utils/mapUtils";
+import { deleteObject } from "@/utils/objectStore";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -316,6 +318,20 @@ export async function deleteAuthor(id: string): Promise<boolean> {
     id: authors.id,
   });
   return rows.length > 0;
+}
+
+/**
+ * Bulk delete authors, reporting per-item outcomes without aborting the batch. Each author's stored
+ * avatar object is removed after a successful delete, matching the single-delete route's cleanup.
+ */
+export async function bulkDeleteAuthors(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, async (id) => {
+    // Look up the avatar's object key before the delete cascades the image row away.
+    const imageRow = await getAuthorImageRow(id);
+    const deleted = await deleteAuthor(id);
+    if (deleted && imageRow) await deleteObject(imageRow.objectKey).catch(() => undefined);
+    return deleted;
+  });
 }
 
 /** Fill in slugs for any authors missing one (e.g. rows that predate the `slug` column). */

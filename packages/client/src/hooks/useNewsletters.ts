@@ -2,6 +2,7 @@ import type { CreateNewsletterInput, UpdateNewsletterInput } from "@eesimple/typ
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { newslettersApi } from "../lib/api/imports";
 
 const NEWSLETTERS_KEY = ["newsletters"] as const;
@@ -75,5 +76,17 @@ export function useDeleteNewsletter() {
         queryKey: BOOKMARKS_KEY,
       });
     },
+  });
+}
+
+export function useBulkDeleteNewsletters() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(newslettersApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: NEWSLETTERS_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    });
   });
 }

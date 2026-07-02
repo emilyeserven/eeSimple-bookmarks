@@ -12,7 +12,7 @@ import {
   relationshipTypes,
   type RelationshipTypeRow,
 } from "@/db/schema";
-import { getBookmarkEvaluationData } from "@/services/bookmarkCache";
+import { getBookmarkEvaluationData, invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -193,6 +193,8 @@ export async function deleteRelationshipType(id: string): Promise<boolean> {
   const rows = await db.delete(relationshipTypes).where(eq(relationshipTypes.id, id)).returning({
     id: relationshipTypes.id,
   });
+  // Cascade removes bookmark_relationships edges — matchable data (relationship-type conditions).
+  if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
 }
 
