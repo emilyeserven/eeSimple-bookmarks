@@ -65,17 +65,23 @@ describe("useServerUnreachableToast", () => {
   });
 
   it("does not show a banner when offline (useOfflineToast handles that case)", async () => {
-    setOnline(false);
-    const fetchSpy = vi.fn();
-    vi.stubGlobal("fetch", fetchSpy);
+    vi.useFakeTimers();
+    try {
+      setOnline(false);
+      const fetchSpy = vi.fn();
+      vi.stubGlobal("fetch", fetchSpy);
 
-    renderHook(() => useServerUnreachableToast());
+      renderHook(() => useServerUnreachableToast());
 
-    // Wait a tick to ensure any async work settles.
-    await new Promise(resolve => setTimeout(resolve, 50));
+      // Flush the mount probe (and one full probe interval) without waiting in real time.
+      await vi.advanceTimersByTimeAsync(15_000);
 
-    expect(fetchSpy).not.toHaveBeenCalled();
-    expect(toast.warning).not.toHaveBeenCalled();
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(toast.warning).not.toHaveBeenCalled();
+    }
+    finally {
+      vi.useRealTimers();
+    }
   });
 
   it("dismisses the banner and shows a reconnected toast when the server comes back", async () => {
