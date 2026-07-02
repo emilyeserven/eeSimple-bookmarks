@@ -44,7 +44,9 @@ export interface EntityListingConfig<E extends { id: string }> {
  * `EntityWorkbench`, and — for scaffold-eligible flat entities — a listing config) into one module.
  * Each field *references* the entity's existing registry object rather than redefining its shape, so
  * none of `entityRoutes.ts`, `entityPaletteRegistry.ts`, or `components/workbench/*`'s consumers need
- * to change. See the `entities/registry.ts` `ENTITY_DESCRIPTORS` map for which entities have migrated.
+ * to change. `entities/publisher.ts` is the pilot migration (issue #860); a registry aggregating all
+ * migrated entities lands in a later PR once there's an actual consumer (`matchEntityRoute`, the
+ * CMD+K lookup, or the workbench route/panel components).
  */
 export interface EntityDescriptor<E extends { id: string }> {
   kind: EntityRouteKind;
