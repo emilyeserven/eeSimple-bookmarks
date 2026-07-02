@@ -1313,6 +1313,10 @@ export const appSettings = pgTable("app_settings", {
   hiddenManagementItems: jsonb("hidden_management_items").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   // Group keys for entire sidebar sections that are disabled.
   hiddenSidebarGroups: jsonb("hidden_sidebar_groups").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Connector link-out keys hidden from the sidebar's Connectors section. Nullable (read as `?? []`).
+  hiddenConnectorLinks: jsonb("hidden_connector_links").$type<string[]>(),
+  // Connector link-out keys shown under "See More" in the Connectors section. Nullable (read as `?? []`).
+  seeMoreConnectorLinks: jsonb("see_more_connector_links").$type<string[]>(),
   // --- Automation & behavior (group B). ---
   // When on, blurring the bookmark URL field auto-fetches the page title.
   autoFetchTitle: boolean("auto_fetch_title").notNull().default(true),

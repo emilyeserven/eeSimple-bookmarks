@@ -11,6 +11,7 @@ const connectorsStatus: ConnectorsStatus = {
   hostedMetadata: {
     enabled: false,
     provider: null,
+    baseUrl: null,
   },
   youtubeDataApi: {
     enabled: false,

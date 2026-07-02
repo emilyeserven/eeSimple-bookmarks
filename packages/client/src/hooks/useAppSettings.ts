@@ -208,6 +208,8 @@ const SIDEBAR_CUSTOMIZATION_DEFAULTS: SidebarCustomizationSettings = {
   seeMoreCustomizationItems: [],
   hiddenManagementItems: [],
   hiddenSidebarGroups: [],
+  hiddenConnectorLinks: [],
+  seeMoreConnectorLinks: [],
 };
 
 const AUTOMATION_DEFAULTS = {

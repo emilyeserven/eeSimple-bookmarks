@@ -10,6 +10,7 @@ const connectorsStatus: ConnectorsStatus = {
   hostedMetadata: {
     enabled: false,
     provider: null,
+    baseUrl: null,
   },
   youtubeDataApi: {
     enabled: false,
@@ -90,6 +91,7 @@ export const ProvidersActive: Story = {
           hostedMetadata: {
             enabled: true,
             provider: "browserless",
+            baseUrl: "http://localhost:3000",
           },
           youtubeDataApi: {
             enabled: true,

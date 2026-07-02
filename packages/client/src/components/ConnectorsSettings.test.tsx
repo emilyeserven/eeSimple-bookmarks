@@ -10,6 +10,7 @@ vi.mock("../hooks/useConnectors", () => ({
       hostedMetadata: {
         enabled: false,
         provider: null,
+        baseUrl: null,
       },
       youtubeDataApi: {
         enabled: true,

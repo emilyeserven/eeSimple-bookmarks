@@ -6,6 +6,7 @@ import { Bookmark, ChevronDown, ChevronUp } from "lucide-react";
 import {
   CollapsibleSection,
   SidebarAdvancedSection,
+  SidebarConnectorsSection,
   SidebarResizeHandle,
 } from "./app-sidebar-sections";
 import { LocationsSidebarItem } from "./LocationsSidebarItem";
@@ -322,6 +323,8 @@ export function AppSidebar({
             </CollapsibleSection>
           )
           : null}
+
+        <SidebarConnectorsSection />
 
         <SidebarAdvancedSection advanced={advanced} />
       </SidebarContent>

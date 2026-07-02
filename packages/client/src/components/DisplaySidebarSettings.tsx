@@ -23,6 +23,7 @@ import {
 
 import { PinnedItemsCard } from "./PinnedItemsCard";
 import { SidebarCategoryVisibilityList } from "./SidebarCategoryVisibilityList";
+import { SidebarConnectorLinksSettings } from "./SidebarConnectorLinksSettings";
 import { SidebarExternalLinksSettings } from "./SidebarExternalLinksSettings";
 import { SidebarItemsMatrix } from "./SidebarItemsCard";
 import { useSidebarSettings } from "../hooks/useSidebarSettings";
@@ -269,6 +270,8 @@ export function DisplaySidebarSettings() {
         )}
 
       </div>
+
+      <SidebarConnectorLinksSettings />
 
       <SidebarExternalLinksSettings />
     </div>

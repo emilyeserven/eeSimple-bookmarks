@@ -83,6 +83,8 @@ const DEFAULT_SIDEBAR_CUSTOMIZATION: SidebarCustomizationSettings = {
   seeMoreCustomizationItems: [],
   hiddenManagementItems: [],
   hiddenSidebarGroups: [],
+  hiddenConnectorLinks: [],
+  seeMoreConnectorLinks: [],
 };
 
 /** Default automation settings (auto-fetch on, Alt modifier), used when seeding / when row absent. */
@@ -525,6 +527,8 @@ export async function getSidebarCustomizationSettings(): Promise<SidebarCustomiz
       seeMoreCustomizationItems: appSettings.seeMoreCustomizationItems,
       hiddenManagementItems: appSettings.hiddenManagementItems,
       hiddenSidebarGroups: appSettings.hiddenSidebarGroups,
+      hiddenConnectorLinks: appSettings.hiddenConnectorLinks,
+      seeMoreConnectorLinks: appSettings.seeMoreConnectorLinks,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -538,6 +542,8 @@ export async function getSidebarCustomizationSettings(): Promise<SidebarCustomiz
     seeMoreCustomizationItems: row.seeMoreCustomizationItems ?? [],
     hiddenManagementItems: row.hiddenManagementItems ?? [],
     hiddenSidebarGroups: row.hiddenSidebarGroups ?? [],
+    hiddenConnectorLinks: row.hiddenConnectorLinks ?? [],
+    seeMoreConnectorLinks: row.seeMoreConnectorLinks ?? [],
   };
 }
 
@@ -554,6 +560,8 @@ export async function updateSidebarCustomizationSettings(
     seeMoreCustomizationItems: [...input.seeMoreCustomizationItems],
     hiddenManagementItems: [...input.hiddenManagementItems],
     hiddenSidebarGroups: [...input.hiddenSidebarGroups],
+    hiddenConnectorLinks: [...input.hiddenConnectorLinks],
+    seeMoreConnectorLinks: [...input.seeMoreConnectorLinks],
   };
   await db
     .insert(appSettings)

@@ -409,6 +409,10 @@ export interface SidebarCustomizationSettings {
   seeMoreCustomizationItems: string[];
   hiddenManagementItems: string[];
   hiddenSidebarGroups: string[];
+  /** Connector link-out keys hidden from the sidebar's Connectors section. */
+  hiddenConnectorLinks: string[];
+  /** Connector link-out keys shown under a "See More" expansion in the Connectors section. */
+  seeMoreConnectorLinks: string[];
 }
 
 /** Payload for replacing the sidebar-customization settings. */
@@ -2625,9 +2629,14 @@ export interface ScanResult {
  * icons) are always on and described client-side; only the env-gated ones report status here.
  */
 export interface ConnectorsStatus {
-  /** Hosted metadata provider (Microlink/iframely/opengraph) — active only when its env vars are set. */
+  /**
+   * Hosted metadata provider (Microlink/iframely/opengraph, or a self-hosted Browserless) — active
+   * only when its env vars are set. The base URL is not a secret and is returned so the client can
+   * build a link-out to the provider's instance (e.g. the Browserless debugger UI).
+   */
   hostedMetadata: { enabled: boolean;
-    provider: string | null; };
+    provider: string | null;
+    baseUrl: string | null; };
   /** YouTube Data API v3 — active only when `YOUTUBE_API_KEY` is set (else the watch-page scrape runs). */
   youtubeDataApi: { enabled: boolean };
   /**
