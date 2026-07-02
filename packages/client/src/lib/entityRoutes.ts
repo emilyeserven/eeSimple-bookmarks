@@ -5,6 +5,7 @@ import { AUTOFILL_ROUTE } from "../entities/autofillRule";
 import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
 import { CATEGORY_ROUTE } from "../entities/category";
 import { IMPORT_RULE_ROUTE } from "../entities/importRule";
+import { LOCATION_ROUTE } from "../entities/location";
 import { MEDIA_TYPE_ROUTE } from "../entities/mediaType";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
 import { PLACE_TYPE_ROUTE } from "../entities/placeType";
@@ -69,14 +70,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   TAG_ROUTE,
   WEBSITE_ROUTE,
   MEDIA_TYPE_ROUTE,
-  {
-    kind: "location",
-    prefix: "/taxonomies/locations",
-    slugIndex: 2,
-    listLabel: "Locations",
-    singular: "Location",
-    flatCrumbs: false,
-  },
+  LOCATION_ROUTE,
   PLACE_TYPE_ROUTE,
   YOUTUBE_CHANNEL_ROUTE,
   NEWSLETTER_ROUTE,

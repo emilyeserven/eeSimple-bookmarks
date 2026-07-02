@@ -1,16 +1,11 @@
 import type { EntityRouteKind } from "./entityRoutes";
-import type {
-  UpdateLocationInput,
-} from "@eesimple/types";
 
-import {
-  locationsApi,
-} from "./api/taxonomies";
 import { AUTHOR_PALETTE } from "../entities/author";
 import { AUTOFILL_PALETTE } from "../entities/autofillRule";
 import { CARD_DISPLAY_RULE_PALETTE } from "../entities/cardDisplayRule";
 import { CATEGORY_PALETTE } from "../entities/category";
 import { IMPORT_RULE_PALETTE } from "../entities/importRule";
+import { LOCATION_PALETTE } from "../entities/location";
 import { MEDIA_TYPE_PALETTE } from "../entities/mediaType";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
 import { PLACE_TYPE_PALETTE } from "../entities/placeType";
@@ -73,8 +68,6 @@ export interface EntityPaletteConfig {
   fields?: readonly EntityPaletteField[];
 }
 
-const BOOKMARKS_KEY = ["bookmarks"] as const;
-
 /**
  * One entry per slug-routed entity kind. Exhaustive over `EntityRouteKind`, so adding an entity to
  * `ENTITY_ROUTES` without registering its data layer here fails `tsc` (see the
@@ -85,12 +78,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "tag": TAG_PALETTE,
   "website": WEBSITE_PALETTE,
   "media-type": MEDIA_TYPE_PALETTE,
-  "location": {
-    queryKey: ["locations"],
-    listFn: () => locationsApi.list(),
-    updateFn: (id, patch) => locationsApi.update(id, patch as UpdateLocationInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-  },
+  "location": LOCATION_PALETTE,
   "place-type": PLACE_TYPE_PALETTE,
   "youtube-channel": YOUTUBE_CHANNEL_PALETTE,
   "newsletter": NEWSLETTER_PALETTE,
