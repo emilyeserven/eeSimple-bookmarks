@@ -1,36 +1,37 @@
-import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
-import { LocationMapSection } from "./LocationMapSection";
-import { LocationTableView } from "./LocationTableView";
-import { LocationTreeView } from "./LocationTreeView";
-import { useLocationsListing } from "../hooks/useLocationsListing";
+import { useCallback, useMemo, useState } from "react";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { LocationMapSection } from "./LocationMapSection";
+import { TreeListingScaffold } from "./TreeListingScaffold";
+
+import { buildLocationTreeListingConfig } from "@/entities/location";
+import { useTreeListingScaffold } from "@/hooks/useTreeListingScaffold";
 
 /** Browsable, collapsible location taxonomy tree. Shared by the Locations taxonomy page and the Settings page. */
 export function LocationsListing() {
-  const {
-    tree, isLoading, error, expanded, onToggle, expandAll, expandMany, collapseAll, viewMode,
-    deletableIds, selection, bulkDelete, sortMode, setSortMode, sortedTree,
-    filterIds, setFilterIds, toggleFilterId,
-  } = useLocationsListing();
+  // Map filter: the location ids the map is focused on. Empty = show every location. Shared by the
+  // overlay Filter combobox and the tree rows' per-row "Filter on map" buttons, which is why the
+  // state lives here (above both the map and the scaffold) and the config is a memoized factory.
+  const [filterIds, setFilterIds] = useState<string[]>([]);
+  const toggleFilterId = useCallback((id: string) => {
+    setFilterIds(prev => (prev.includes(id) ? prev.filter(value => value !== id) : [...prev, id]));
+  }, []);
+
+  const config = useMemo(
+    () => buildLocationTreeListingConfig({
+      filterIds,
+      onToggleFilter: toggleFilterId,
+    }),
+    [filterIds, toggleFilterId],
+  );
+  const state = useTreeListingScaffold(config);
 
   return (
     <div className="space-y-4">
-      {isLoading ? <p className="text-muted-foreground">Loading locations…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && tree && tree.length === 0
-        ? (
-          <p className="text-muted-foreground">
-            No locations yet.
-          </p>
-        )
-        : null}
-
-      {tree && tree.length > 0
+      {state.tree.length > 0
         ? (
           <LocationMapSection
             mapKey="listing"
-            tree={tree}
+            tree={state.tree}
             showLevels
             scope={{
               kind: "main",
@@ -43,58 +44,10 @@ export function LocationsListing() {
         )
         : null}
 
-      <TaxonomyBulkBar
-        selection={selection}
-        totalSelectable={deletableIds.length}
-        bulkDelete={bulkDelete}
-        noun={["location", "locations"]}
+      <TreeListingScaffold
+        config={config}
+        state={state}
       />
-
-      {tree && tree.length > 0
-        ? (
-          <div className="flex items-center justify-end gap-2">
-            <span className="text-sm text-muted-foreground">Sort</span>
-            <ToggleGroup
-              type="single"
-              size="sm"
-              variant="outline"
-              value={sortMode}
-              onValueChange={(value) => {
-                if (value === "default" || value === "place-type") setSortMode(value);
-              }}
-              aria-label="Sort locations"
-            >
-              <ToggleGroupItem value="default">Default</ToggleGroupItem>
-              <ToggleGroupItem value="place-type">Place type</ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-        )
-        : null}
-
-      {tree && tree.length > 0 && viewMode === "table"
-        ? (
-          <LocationTableView
-            sortedTree={sortedTree}
-            selection={selection}
-          />
-        )
-        : null}
-
-      {tree && tree.length > 0 && viewMode !== "table"
-        ? (
-          <LocationTreeView
-            tree={tree}
-            sortedTree={sortedTree}
-            expanded={expanded}
-            onToggle={onToggle}
-            onExpandAll={expandAll}
-            onExpandMany={expandMany}
-            onCollapseAll={collapseAll}
-            filterIds={filterIds}
-            onToggleFilter={toggleFilterId}
-          />
-        )
-        : null}
     </div>
   );
 }
