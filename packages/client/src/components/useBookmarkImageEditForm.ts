@@ -87,6 +87,8 @@ export interface BookmarkImageEditFormController {
   screenshotWidth: number;
   screenshotHeight: number;
   setScreenshotSize: (width: number, height: number) => void;
+  screenshotScrollDistance: number;
+  setScreenshotScrollDistance: (px: number) => void;
   takeScreenshotPending: boolean;
   deleteScreenshotPending: boolean;
   onTakeScreenshot: () => void;
@@ -123,6 +125,7 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
   const [screenshotDelayMs, setScreenshotDelayMs] = useState(0);
   const [screenshotWidth, setScreenshotWidth] = useState<number>(SCREENSHOT_SIZE_PRESETS[0].width);
   const [screenshotHeight, setScreenshotHeight] = useState<number>(SCREENSHOT_SIZE_PRESETS[0].height);
+  const [screenshotScrollDistance, setScreenshotScrollDistance] = useState(0);
 
   async function handleFindImages(): Promise<void> {
     if (!bookmark.url) return;
@@ -201,6 +204,8 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
       setScreenshotWidth(width);
       setScreenshotHeight(height);
     },
+    screenshotScrollDistance,
+    setScreenshotScrollDistance,
     takeScreenshotPending: takeScreenshot.isPending,
     deleteScreenshotPending: deleteScreenshot.isPending,
     onTakeScreenshot: () => void takeScreenshot.mutateAsync({
@@ -208,6 +213,7 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
       delayMs: screenshotDelayMs || undefined,
       width: screenshotWidth,
       height: screenshotHeight,
+      scrollDistance: screenshotScrollDistance || undefined,
     }),
     onDeleteScreenshot: () => void deleteScreenshot.mutateAsync(bookmark.id),
   };

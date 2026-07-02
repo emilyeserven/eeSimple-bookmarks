@@ -387,12 +387,13 @@ export function useTakeBookmarkScreenshot() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
-      id, delayMs, width, height,
+      id, delayMs, width, height, scrollDistance,
     }: { id: string;
       delayMs?: number;
       width?: number;
-      height?: number; }) =>
-      bookmarksApi.takeScreenshot(id, delayMs, width, height),
+      height?: number;
+      scrollDistance?: number; }) =>
+      bookmarksApi.takeScreenshot(id, delayMs, width, height, scrollDistance),
     onMutate: () => {
       const toastId = toast.loading("Generating screenshot…");
       return {
