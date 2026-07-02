@@ -1,12 +1,33 @@
 import type { EntityDescriptor, EntityListingConfig } from "./types";
-import type { Author } from "@eesimple/types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { Author, UpdateAuthorInput } from "@eesimple/types";
 
 import { AuthorListItem } from "../components/AuthorListItem";
 import { AuthorTable } from "../components/AuthorTable";
 import { authorWorkbench } from "../components/workbench/author";
 import { useAuthors, useBulkDeleteAuthors } from "../hooks/useAuthors";
-import { AUTHOR_PALETTE } from "../lib/entityPaletteRegistry";
-import { AUTHOR_ROUTE } from "../lib/entityRoutes";
+import { authorsApi } from "../lib/api/taxonomies";
+
+const BOOKMARKS_KEY = ["bookmarks"] as const;
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const AUTHOR_ROUTE: EntityRoute = {
+  kind: "author",
+  prefix: "/taxonomies/authors",
+  slugIndex: 2,
+  listLabel: "Authors",
+  singular: "Author",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const AUTHOR_PALETTE: EntityPaletteConfig = {
+  queryKey: ["authors"],
+  listFn: () => authorsApi.list(),
+  updateFn: (id, patch) => authorsApi.update(id, patch as UpdateAuthorInput),
+  extraInvalidateKeys: [BOOKMARKS_KEY],
+};
 
 export const authorListingConfig: EntityListingConfig<Author> = {
   pageKey: "authors-listing",

@@ -1,12 +1,33 @@
 import type { EntityDescriptor, EntityListingConfig } from "./types";
-import type { Publisher } from "@eesimple/types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { Publisher, UpdatePublisherInput } from "@eesimple/types";
 
 import { PublisherListItem } from "../components/PublisherListItem";
 import { PublisherTable } from "../components/PublisherTable";
 import { publisherWorkbench } from "../components/workbench/publisher";
 import { useBulkDeletePublishers, usePublishers } from "../hooks/usePublishers";
-import { PUBLISHER_PALETTE } from "../lib/entityPaletteRegistry";
-import { PUBLISHER_ROUTE } from "../lib/entityRoutes";
+import { publishersApi } from "../lib/api/taxonomies";
+
+const BOOKMARKS_KEY = ["bookmarks"] as const;
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const PUBLISHER_ROUTE: EntityRoute = {
+  kind: "publisher",
+  prefix: "/taxonomies/publishers",
+  slugIndex: 2,
+  listLabel: "Publishers",
+  singular: "Publisher",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const PUBLISHER_PALETTE: EntityPaletteConfig = {
+  queryKey: ["publishers"],
+  listFn: () => publishersApi.list(),
+  updateFn: (id, patch) => publishersApi.update(id, patch as UpdatePublisherInput),
+  extraInvalidateKeys: [BOOKMARKS_KEY],
+};
 
 export const publisherListingConfig: EntityListingConfig<Publisher> = {
   pageKey: "publishers-listing",

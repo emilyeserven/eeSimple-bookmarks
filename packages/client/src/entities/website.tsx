@@ -1,13 +1,52 @@
 import type { EntityDescriptor, EntityListingConfig } from "./types";
-import type { Website } from "@eesimple/types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { UpdateWebsiteInput, Website } from "@eesimple/types";
 
 import { WebsiteBulkActions } from "../components/bulk/WebsiteBulkActions";
 import { WebsiteListItem } from "../components/WebsiteListItem";
 import { WebsiteTable } from "../components/WebsiteTable";
 import { websiteWorkbench } from "../components/workbench/website";
 import { useWebsites } from "../hooks/useWebsites";
-import { WEBSITE_PALETTE } from "../lib/entityPaletteRegistry";
-import { WEBSITE_ROUTE } from "../lib/entityRoutes";
+import { websitesApi } from "../lib/api/taxonomies";
+
+const BOOKMARKS_KEY = ["bookmarks"] as const;
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const WEBSITE_ROUTE: EntityRoute = {
+  kind: "website",
+  prefix: "/taxonomies/websites",
+  slugIndex: 2,
+  listLabel: "Websites",
+  singular: "Website",
+  switcher: "website",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const WEBSITE_PALETTE: EntityPaletteConfig = {
+  queryKey: ["websites"],
+  listFn: () => websitesApi.list(),
+  updateFn: (id, patch) => websitesApi.update(id, patch as UpdateWebsiteInput),
+  extraInvalidateKeys: [BOOKMARKS_KEY],
+  getName: entity => (entity as Website).siteName,
+  fields: [
+    {
+      type: "choice",
+      key: "categoryId",
+      label: "Category",
+      options: "categories",
+      getValue: entity => (entity as Website).category?.id ?? null,
+    },
+    {
+      type: "choice",
+      key: "mediaTypeId",
+      label: "Default Media Type",
+      options: "media-types",
+      getValue: entity => (entity as Website).mediaTypeId ?? null,
+    },
+  ],
+};
 
 export const websiteListingConfig: EntityListingConfig<Website> = {
   pageKey: "websites-listing",

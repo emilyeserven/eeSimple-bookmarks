@@ -1,11 +1,37 @@
 import type { EntityDescriptor, EntityListingConfig } from "./types";
-import type { SavedFilter } from "@eesimple/types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { SavedFilter, UpdateSavedFilterInput } from "@eesimple/types";
 
 import { SavedFilterCard } from "../components/SavedFilterCard";
 import { savedFilterWorkbench } from "../components/workbench/savedFilter";
 import { useBulkDeleteSavedFilters, useSavedFilters } from "../hooks/useSavedFilters";
-import { SAVED_FILTER_PALETTE } from "../lib/entityPaletteRegistry";
-import { SAVED_FILTER_ROUTE } from "../lib/entityRoutes";
+import { savedFiltersApi } from "../lib/api/settings";
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const SAVED_FILTER_ROUTE: EntityRoute = {
+  kind: "saved-filter",
+  prefix: "/saved-filters",
+  slugIndex: 1,
+  listLabel: "Saved Filters",
+  singular: "Saved Filter",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const SAVED_FILTER_PALETTE: EntityPaletteConfig = {
+  queryKey: ["saved-filters"],
+  listFn: () => savedFiltersApi.list(),
+  updateFn: (id, patch) => savedFiltersApi.update(id, patch as UpdateSavedFilterInput),
+  fields: [
+    {
+      type: "boolean",
+      key: "viewableOnline",
+      label: "Sidebar Shortcut",
+      getValue: entity => (entity as SavedFilter).viewableOnline,
+    },
+  ],
+};
 
 export const savedFilterListingConfig: EntityListingConfig<SavedFilter> = {
   pageKey: "saved-filters-listing",
