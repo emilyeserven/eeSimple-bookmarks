@@ -15,6 +15,7 @@ import type {
   BookmarkProgressValue,
   BookmarkPublisher,
   BookmarkRelationship,
+  BookmarkScreenshotSettings,
   BookmarkSectionsValue,
   BookmarkTag,
   BookmarkTextValue,
@@ -58,7 +59,7 @@ import {
   youtubeChannelImages,
   youtubeChannels,
 } from "@/db/schema";
-import { bookmarkImageFromRow, bookmarkScreenshotFromRow } from "@/services/bookmarkImages";
+import { bookmarkImageFromRow, bookmarkScreenshotFromRow, bookmarkScreenshotSettingsFromRow } from "@/services/bookmarkImages";
 import { reelArchiveFromRow } from "@/services/reelArchive";
 import { bookmarkFileValueFromRow } from "@/services/bookmarkPropertyFiles";
 import { ensureDefaultCategory } from "@/services/categories";
@@ -87,6 +88,7 @@ interface BookmarkExtras {
   fileValues: BookmarkFileValue[];
   images: BookmarkImage[];
   screenshot: BookmarkImage | null;
+  screenshotSettings: BookmarkScreenshotSettings | null;
   reelArchive: InstagramReelArchive | null;
   relationships: BookmarkRelationship[];
 }
@@ -113,6 +115,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   fileValues: [],
   images: [],
   screenshot: null,
+  screenshotSettings: null,
   reelArchive: null,
   relationships: [],
 };
@@ -153,6 +156,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     image: extras.images.find(img => img.isMain) ?? extras.images[0] ?? null,
     images: extras.images,
     screenshot: extras.screenshot,
+    screenshotSettings: extras.screenshotSettings,
     reelArchive: extras.reelArchive,
     imageAutoGrabError: (row.imageAutoGrabError as "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null) ?? null,
     priority: row.priority,
@@ -691,9 +695,15 @@ async function imagesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
   return byId;
 }
 
+/** A hydrated screenshot: the wire image plus the capture settings last used to take it. */
+interface ScreenshotHydration {
+  image: BookmarkImage;
+  settings: BookmarkScreenshotSettings;
+}
+
 /** Load screenshots for a set of bookmarks in a single query, keyed by bookmark id. */
-async function screenshotsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkImage>> {
-  const byId = new Map<string, BookmarkImage>();
+async function screenshotsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, ScreenshotHydration>> {
+  const byId = new Map<string, ScreenshotHydration>();
   if (bookmarkIds.length === 0) return byId;
 
   const rows = await db
@@ -702,7 +712,10 @@ async function screenshotsByBookmarkId(bookmarkIds: string[]): Promise<Map<strin
     .where(inArray(bookmarkScreenshots.bookmarkId, bookmarkIds));
 
   for (const row of rows) {
-    byId.set(row.bookmarkId, bookmarkScreenshotFromRow(row));
+    byId.set(row.bookmarkId, {
+      image: bookmarkScreenshotFromRow(row),
+      settings: bookmarkScreenshotSettingsFromRow(row),
+    });
   }
   return byId;
 }
@@ -855,7 +868,8 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       textValues: textMap.get(id) ?? [],
       fileValues: fileMap.get(id) ?? [],
       images: imageMap.get(id) ?? [],
-      screenshot: screenshotMap.get(id) ?? null,
+      screenshot: screenshotMap.get(id)?.image ?? null,
+      screenshotSettings: screenshotMap.get(id)?.settings ?? null,
       reelArchive: reelArchiveMap.get(id) ?? null,
       relationships: relationshipsMap.get(id) ?? [],
     });

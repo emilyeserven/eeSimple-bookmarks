@@ -275,6 +275,7 @@ export function useCardDisplayRulePreview({
         },
       ],
       screenshot: null,
+      screenshotSettings: null,
       reelArchive: null,
       imageAutoGrabError: null,
       categoryId: realCategory?.id ?? "__sample-category__",

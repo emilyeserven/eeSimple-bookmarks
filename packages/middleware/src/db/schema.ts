@@ -123,6 +123,13 @@ export const bookmarkScreenshots = pgTable("bookmark_screenshots", {
   byteSize: integer("byte_size").notNull(),
   // Always "screenshot" — kept as text so existing infrastructure (source column) stays consistent.
   source: text("source").notNull(),
+  // The capture settings last used to take this screenshot, remembered so the edit form can prefill
+  // them next time. Nullable: null when a setting wasn't explicitly requested (e.g. the bulk
+  // auto-fetch fallback, which calls takeAndStoreScreenshot with no options).
+  delayMs: integer("delay_ms"),
+  viewportWidth: integer("viewport_width"),
+  viewportHeight: integer("viewport_height"),
+  scrollDistance: integer("scroll_distance"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
