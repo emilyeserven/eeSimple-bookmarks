@@ -97,6 +97,31 @@ export interface EntityPaletteConfig {
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
+/** Hoisted so `entities/website.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const WEBSITE_PALETTE: EntityPaletteConfig = {
+  queryKey: ["websites"],
+  listFn: () => websitesApi.list(),
+  updateFn: (id, patch) => websitesApi.update(id, patch as UpdateWebsiteInput),
+  extraInvalidateKeys: [BOOKMARKS_KEY],
+  getName: entity => (entity as Website).siteName,
+  fields: [
+    {
+      type: "choice",
+      key: "categoryId",
+      label: "Category",
+      options: "categories",
+      getValue: entity => (entity as Website).category?.id ?? null,
+    },
+    {
+      type: "choice",
+      key: "mediaTypeId",
+      label: "Default Media Type",
+      options: "media-types",
+      getValue: entity => (entity as Website).mediaTypeId ?? null,
+    },
+  ],
+};
+
 /** Hoisted so `entities/relationshipType.tsx`'s `EntityDescriptor` can reference this entry by identity. */
 export const RELATIONSHIP_TYPE_PALETTE: EntityPaletteConfig = {
   queryKey: ["relationship-types"],
@@ -201,29 +226,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
       },
     ],
   },
-  "website": {
-    queryKey: ["websites"],
-    listFn: () => websitesApi.list(),
-    updateFn: (id, patch) => websitesApi.update(id, patch as UpdateWebsiteInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-    getName: entity => (entity as Website).siteName,
-    fields: [
-      {
-        type: "choice",
-        key: "categoryId",
-        label: "Category",
-        options: "categories",
-        getValue: entity => (entity as Website).category?.id ?? null,
-      },
-      {
-        type: "choice",
-        key: "mediaTypeId",
-        label: "Default Media Type",
-        options: "media-types",
-        getValue: entity => (entity as Website).mediaTypeId ?? null,
-      },
-    ],
-  },
+  "website": WEBSITE_PALETTE,
   "media-type": {
     queryKey: ["media-types"],
     listFn: () => mediaTypesApi.list(),

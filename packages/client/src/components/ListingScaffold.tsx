@@ -3,6 +3,7 @@ import type { ListingScaffoldState } from "../hooks/useListingScaffold";
 
 import { Fragment } from "react";
 
+import { BulkActionBar } from "./bulk/BulkActionBar";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
 
@@ -39,12 +40,31 @@ export function ListingScaffold<E extends { id: string }>({
         emptyMessage={config.emptyMessage}
       />
 
-      <TaxonomyBulkBar
-        selection={selection}
-        totalSelectable={deletableIds.length}
-        bulkDelete={bulkDelete}
-        noun={config.noun}
-      />
+      {config.renderBulkActions
+        ? (
+          <BulkActionBar
+            count={selection.count}
+            totalSelectable={deletableIds.length}
+            allSelected={selection.allSelected}
+            onSelectAll={selection.selectAll}
+            onClear={selection.clear}
+          >
+            {config.renderBulkActions({
+              selectedIds: selection.selectedIds,
+              onDone: selection.clear,
+            })}
+          </BulkActionBar>
+        )
+        : bulkDelete && config.noun
+          ? (
+            <TaxonomyBulkBar
+              selection={selection}
+              totalSelectable={deletableIds.length}
+              bulkDelete={bulkDelete}
+              noun={config.noun}
+            />
+          )
+          : null}
 
       {filtered.length > 0 && config.renderTable != null && viewMode === "table"
         ? config.renderTable({
