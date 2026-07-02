@@ -68,6 +68,26 @@ export const PROPERTY_GROUP_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
+/** Hoisted so `entities/relationshipType.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const RELATIONSHIP_TYPE_ROUTE: EntityRoute = {
+  kind: "relationship-type",
+  prefix: "/taxonomies/relationship-types",
+  slugIndex: 2,
+  listLabel: "Relationship Types",
+  singular: "Relationship Type",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entities/savedFilter.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const SAVED_FILTER_ROUTE: EntityRoute = {
+  kind: "saved-filter",
+  prefix: "/saved-filters",
+  slugIndex: 1,
+  listLabel: "Saved Filters",
+  singular: "Saved Filter",
+  flatCrumbs: true,
+};
+
 /** Hoisted so `entities/newsletter.tsx`'s `EntityDescriptor` can reference this entry by identity. */
 export const NEWSLETTER_ROUTE: EntityRoute = {
   kind: "newsletter",
@@ -152,14 +172,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   AUTHOR_ROUTE,
   PUBLISHER_ROUTE,
   PROPERTY_GROUP_ROUTE,
-  {
-    kind: "relationship-type",
-    prefix: "/taxonomies/relationship-types",
-    slugIndex: 2,
-    listLabel: "Relationship Types",
-    singular: "Relationship Type",
-    flatCrumbs: true,
-  },
+  RELATIONSHIP_TYPE_ROUTE,
   {
     kind: "custom-property",
     prefix: "/custom-properties",
@@ -187,14 +200,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
     switcher: "import-rule",
     flatCrumbs: true,
   },
-  {
-    kind: "saved-filter",
-    prefix: "/saved-filters",
-    slugIndex: 1,
-    listLabel: "Saved Filters",
-    singular: "Saved Filter",
-    flatCrumbs: true,
-  },
+  SAVED_FILTER_ROUTE,
   {
     kind: "card-display-rule",
     prefix: "/card-display-rules",

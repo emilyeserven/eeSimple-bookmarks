@@ -46,26 +46,28 @@ export function ListingScaffold<E extends { id: string }>({
         noun={config.noun}
       />
 
-      {filtered.length > 0 && viewMode === "table"
+      {filtered.length > 0 && config.renderTable != null && viewMode === "table"
         ? config.renderTable({
           entities: filtered,
           selection,
         })
         : null}
 
-      {filtered.length > 0 && viewMode !== "table"
+      {filtered.length > 0 && (config.renderTable == null || viewMode !== "table")
         ? (
           <div
-            className={`
-              grid gap-2
-              ${COLUMN_CLASS[columns]}
-            `}
+            className={config.layout === "list"
+              ? "space-y-2"
+              : `
+                grid gap-2
+                ${COLUMN_CLASS[columns]}
+              `}
           >
             {filtered.map(entity => (
               <Fragment key={entity.id}>
                 {config.renderListItem({
                   entity,
-                  selectable: true,
+                  selectable: config.isSelectable ? config.isSelectable(entity) : true,
                   selected: selection.isSelected(entity.id),
                   onSelectToggle: () => selection.toggle(entity.id),
                   inSelectionMode: selection.mode,

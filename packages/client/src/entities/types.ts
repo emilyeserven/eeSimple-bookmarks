@@ -28,6 +28,15 @@ export interface EntityListingConfig<E extends { id: string }> {
   loadingLabel: string;
   entityPlural: string;
   emptyMessage: ReactNode;
+  /**
+   * Card-view arrangement. `"grid"` (default) is the adjustable-column grid most entities use.
+   * `"list"` is a fixed single-column stack (e.g. RelationshipType, SavedFilter) — the header's
+   * Columns control is still shown (a page-agnostic control) but has no effect, matching those
+   * entities' pre-scaffold behavior.
+   */
+  layout?: "grid" | "list";
+  /** Per-item override for whether a row/card can be bulk-selected. Defaults to always selectable. */
+  isSelectable?: (item: E) => boolean;
   renderListItem: (props: {
     entity: E;
     selectable?: boolean;
@@ -35,7 +44,12 @@ export interface EntityListingConfig<E extends { id: string }> {
     onSelectToggle?: () => void;
     inSelectionMode?: boolean;
   }) => ReactNode;
-  renderTable: (props: { entities: E[];
+  /**
+   * Table view. Omit entirely when the entity has no table view (e.g. SavedFilter) — the header's
+   * Cards/Table toggle still appears (page-agnostic) but selecting Table has no effect, matching
+   * that entity's pre-scaffold behavior.
+   */
+  renderTable?: (props: { entities: E[];
     selection: ListSelection; }) => ReactNode;
 }
 

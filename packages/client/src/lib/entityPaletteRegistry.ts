@@ -97,6 +97,38 @@ export interface EntityPaletteConfig {
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
+/** Hoisted so `entities/relationshipType.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const RELATIONSHIP_TYPE_PALETTE: EntityPaletteConfig = {
+  queryKey: ["relationship-types"],
+  listFn: () => relationshipTypesApi.list(),
+  updateFn: (id, patch) => relationshipTypesApi.update(id, patch as UpdateRelationshipTypeInput),
+  extraInvalidateKeys: [BOOKMARKS_KEY],
+  fields: [
+    {
+      type: "boolean",
+      key: "directional",
+      label: "Directional",
+      getValue: entity => (entity as RelationshipType).directional,
+      isEditable: entity => !(entity as RelationshipType).builtIn,
+    },
+  ],
+};
+
+/** Hoisted so `entities/savedFilter.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const SAVED_FILTER_PALETTE: EntityPaletteConfig = {
+  queryKey: ["saved-filters"],
+  listFn: () => savedFiltersApi.list(),
+  updateFn: (id, patch) => savedFiltersApi.update(id, patch as UpdateSavedFilterInput),
+  fields: [
+    {
+      type: "boolean",
+      key: "viewableOnline",
+      label: "Sidebar Shortcut",
+      getValue: entity => (entity as SavedFilter).viewableOnline,
+    },
+  ],
+};
+
 /** Hoisted so `entities/newsletter.tsx`'s `EntityDescriptor` can reference this entry by identity. */
 export const NEWSLETTER_PALETTE: EntityPaletteConfig = {
   queryKey: ["newsletters"],
@@ -236,21 +268,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "author": AUTHOR_PALETTE,
   "publisher": PUBLISHER_PALETTE,
   "property-group": PROPERTY_GROUP_PALETTE,
-  "relationship-type": {
-    queryKey: ["relationship-types"],
-    listFn: () => relationshipTypesApi.list(),
-    updateFn: (id, patch) => relationshipTypesApi.update(id, patch as UpdateRelationshipTypeInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-    fields: [
-      {
-        type: "boolean",
-        key: "directional",
-        label: "Directional",
-        getValue: entity => (entity as RelationshipType).directional,
-        isEditable: entity => !(entity as RelationshipType).builtIn,
-      },
-    ],
-  },
+  "relationship-type": RELATIONSHIP_TYPE_PALETTE,
   "custom-property": {
     queryKey: ["custom-properties"],
     listFn: () => customPropertiesApi.list(),
@@ -310,19 +328,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
       },
     ],
   },
-  "saved-filter": {
-    queryKey: ["saved-filters"],
-    listFn: () => savedFiltersApi.list(),
-    updateFn: (id, patch) => savedFiltersApi.update(id, patch as UpdateSavedFilterInput),
-    fields: [
-      {
-        type: "boolean",
-        key: "viewableOnline",
-        label: "Sidebar Shortcut",
-        getValue: entity => (entity as SavedFilter).viewableOnline,
-      },
-    ],
-  },
+  "saved-filter": SAVED_FILTER_PALETTE,
   "card-display-rule": {
     queryKey: ["card-display-rules"],
     listFn: () => cardDisplayRulesApi.list(),
