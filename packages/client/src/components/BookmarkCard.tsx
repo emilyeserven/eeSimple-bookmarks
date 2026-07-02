@@ -168,10 +168,10 @@ export function BookmarkCard({
 
   if (imageLeft) {
     return (
-      <div className="flex gap-4">
+      <div className="flex flex-1 gap-4">
         {imageEl}
-        <div className="min-w-0 flex-1">
-          {details}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex-1">{details}</div>
           {isbnLinksEl}
         </div>
       </div>
@@ -179,9 +179,9 @@ export function BookmarkCard({
   }
 
   return (
-    <div>
+    <div className="flex flex-1 flex-col">
       {imageEl}
-      {details}
+      <div className="flex-1">{details}</div>
       {isbnLinksEl}
     </div>
   );
