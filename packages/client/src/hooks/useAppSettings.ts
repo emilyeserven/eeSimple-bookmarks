@@ -202,6 +202,10 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   mapPinScale: MAP_PIN_SCALE_DEFAULT,
+  screenshotDefaultDelayMs: 0,
+  screenshotDefaultWidth: 1280,
+  screenshotDefaultHeight: 720,
+  screenshotDefaultScrollDistance: 0,
 };
 
 /** Sidebar-customization settings (group A): which left-sidebar items/groups are hidden. */
@@ -524,6 +528,39 @@ export function useCroppedHeight(): number {
     data,
   } = useDisplayPreferenceSettings();
   return data?.croppedHeight ?? DISPLAY_PREFERENCE_DEFAULTS.croppedHeight;
+}
+
+/** Default wait (ms) before a bookmark "Page screenshot" capture (default 0 = none). */
+export function useScreenshotDefaultDelayMs(): number {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.screenshotDefaultDelayMs ?? DISPLAY_PREFERENCE_DEFAULTS.screenshotDefaultDelayMs;
+}
+
+/** Default viewport width (px) for a bookmark "Page screenshot" capture (default 1280). */
+export function useScreenshotDefaultWidth(): number {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.screenshotDefaultWidth ?? DISPLAY_PREFERENCE_DEFAULTS.screenshotDefaultWidth;
+}
+
+/** Default viewport height (px) for a bookmark "Page screenshot" capture (default 720). */
+export function useScreenshotDefaultHeight(): number {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.screenshotDefaultHeight ?? DISPLAY_PREFERENCE_DEFAULTS.screenshotDefaultHeight;
+}
+
+/** Default scroll distance (px) before a bookmark "Page screenshot" capture (default 0 = none). */
+export function useScreenshotDefaultScrollDistance(): number {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.screenshotDefaultScrollDistance
+    ?? DISPLAY_PREFERENCE_DEFAULTS.screenshotDefaultScrollDistance;
 }
 
 const AI_SUMMARIZATION_DEFAULTS: AiSummarizationSettings = {

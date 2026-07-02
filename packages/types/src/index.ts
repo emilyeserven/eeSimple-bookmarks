@@ -412,6 +412,14 @@ export interface DisplayPreferenceSettings {
   bookmarksPerPage: number;
   /** Scale factor applied to every rendered map pin's size (1 = default size). */
   mapPinScale: number;
+  /**
+   * Default values pre-filled into the "Page screenshot" controls on a bookmark's Edit → Image tab
+   * (`BookmarkImageEditForm`). Edited on Settings → Media → Screenshot Defaults.
+   */
+  screenshotDefaultDelayMs: number;
+  screenshotDefaultWidth: number;
+  screenshotDefaultHeight: number;
+  screenshotDefaultScrollDistance: number;
 }
 
 /** Minimum allowed value for {@link DisplayPreferenceSettings.mapPinScale}. */

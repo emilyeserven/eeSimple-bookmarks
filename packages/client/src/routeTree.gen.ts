@@ -49,6 +49,7 @@ import { Route as SettingsSavedFiltersRouteImport } from './routes/settings.save
 import { Route as SettingsRelationshipsRouteImport } from './routes/settings.relationships'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
 import { Route as SettingsMediaManagementRouteImport } from './routes/settings.media-management'
+import { Route as SettingsMediaRouteImport } from './routes/settings.media'
 import { Route as SettingsLocationsRouteImport } from './routes/settings.locations'
 import { Route as SettingsLinkParsingRouteImport } from './routes/settings.link-parsing'
 import { Route as SettingsImportsRouteImport } from './routes/settings.imports'
@@ -82,6 +83,7 @@ import { Route as TaxonomiesMediaTypesIndexRouteImport } from './routes/taxonomi
 import { Route as TaxonomiesLocationsIndexRouteImport } from './routes/taxonomies.locations.index'
 import { Route as TaxonomiesAuthorsIndexRouteImport } from './routes/taxonomies.authors.index'
 import { Route as TagsTagSlugIndexRouteImport } from './routes/tags.$tagSlug.index'
+import { Route as SettingsMediaIndexRouteImport } from './routes/settings.media.index'
 import { Route as SettingsLocationsIndexRouteImport } from './routes/settings.locations.index'
 import { Route as SettingsDisplayIndexRouteImport } from './routes/settings.display.index'
 import { Route as SettingsAutomationsIndexRouteImport } from './routes/settings.automations.index'
@@ -106,6 +108,9 @@ import { Route as TaxonomiesLocationsLocationSlugRouteImport } from './routes/ta
 import { Route as TaxonomiesAuthorsAuthorSlugRouteImport } from './routes/taxonomies.authors.$authorSlug'
 import { Route as TagsTagSlugEditRouteImport } from './routes/tags.$tagSlug.edit'
 import { Route as TagsTagSlugViewRouteImport } from './routes/tags.$tagSlug._view'
+import { Route as SettingsMediaScreenshotDefaultsRouteImport } from './routes/settings.media.screenshot-defaults'
+import { Route as SettingsMediaManageRouteImport } from './routes/settings.media.manage'
+import { Route as SettingsMediaDisplayRouteImport } from './routes/settings.media.display'
 import { Route as SettingsLocationsPlaceTypesRouteImport } from './routes/settings.locations.place-types'
 import { Route as SettingsLocationsPinStyleRouteImport } from './routes/settings.locations.pin-style'
 import { Route as SettingsLocationsLevelGroupsRouteImport } from './routes/settings.locations.level-groups'
@@ -503,6 +508,11 @@ const SettingsMediaManagementRoute = SettingsMediaManagementRouteImport.update({
   path: '/media-management',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsMediaRoute = SettingsMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsLocationsRoute = SettingsLocationsRouteImport.update({
   id: '/locations',
   path: '/locations',
@@ -680,6 +690,11 @@ const TagsTagSlugIndexRoute = TagsTagSlugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TagsTagSlugRoute,
 } as any)
+const SettingsMediaIndexRoute = SettingsMediaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsMediaRoute,
+} as any)
 const SettingsLocationsIndexRoute = SettingsLocationsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -815,6 +830,22 @@ const TagsTagSlugEditRoute = TagsTagSlugEditRouteImport.update({
 const TagsTagSlugViewRoute = TagsTagSlugViewRouteImport.update({
   id: '/_view',
   getParentRoute: () => TagsTagSlugRoute,
+} as any)
+const SettingsMediaScreenshotDefaultsRoute =
+  SettingsMediaScreenshotDefaultsRouteImport.update({
+    id: '/screenshot-defaults',
+    path: '/screenshot-defaults',
+    getParentRoute: () => SettingsMediaRoute,
+  } as any)
+const SettingsMediaManageRoute = SettingsMediaManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => SettingsMediaRoute,
+} as any)
+const SettingsMediaDisplayRoute = SettingsMediaDisplayRouteImport.update({
+  id: '/display',
+  path: '/display',
+  getParentRoute: () => SettingsMediaRoute,
 } as any)
 const SettingsLocationsPlaceTypesRoute =
   SettingsLocationsPlaceTypesRouteImport.update({
@@ -1981,6 +2012,7 @@ export interface FileRoutesByFullPath {
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/locations': typeof SettingsLocationsRouteWithChildren
+  '/settings/media': typeof SettingsMediaRouteWithChildren
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
@@ -2035,6 +2067,9 @@ export interface FileRoutesByFullPath {
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
   '/settings/locations/pin-style': typeof SettingsLocationsPinStyleRoute
   '/settings/locations/place-types': typeof SettingsLocationsPlaceTypesRoute
+  '/settings/media/display': typeof SettingsMediaDisplayRoute
+  '/settings/media/manage': typeof SettingsMediaManageRoute
+  '/settings/media/screenshot-defaults': typeof SettingsMediaScreenshotDefaultsRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
   '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugViewRouteWithChildren
   '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugViewRouteWithChildren
@@ -2058,6 +2093,7 @@ export interface FileRoutesByFullPath {
   '/settings/automations/': typeof SettingsAutomationsIndexRoute
   '/settings/display/': typeof SettingsDisplayIndexRoute
   '/settings/locations/': typeof SettingsLocationsIndexRoute
+  '/settings/media/': typeof SettingsMediaIndexRoute
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
@@ -2277,6 +2313,9 @@ export interface FileRoutesByTo {
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
   '/settings/locations/pin-style': typeof SettingsLocationsPinStyleRoute
   '/settings/locations/place-types': typeof SettingsLocationsPlaceTypesRoute
+  '/settings/media/display': typeof SettingsMediaDisplayRoute
+  '/settings/media/manage': typeof SettingsMediaManageRoute
+  '/settings/media/screenshot-defaults': typeof SettingsMediaScreenshotDefaultsRoute
   '/tags/$tagSlug': typeof TagsTagSlugIndexRoute
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdIndexRoute
@@ -2284,6 +2323,7 @@ export interface FileRoutesByTo {
   '/settings/automations': typeof SettingsAutomationsIndexRoute
   '/settings/display': typeof SettingsDisplayIndexRoute
   '/settings/locations': typeof SettingsLocationsIndexRoute
+  '/settings/media': typeof SettingsMediaIndexRoute
   '/taxonomies/authors': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/locations': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesIndexRoute
@@ -2474,6 +2514,7 @@ export interface FileRoutesById {
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/locations': typeof SettingsLocationsRouteWithChildren
+  '/settings/media': typeof SettingsMediaRouteWithChildren
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
@@ -2534,6 +2575,9 @@ export interface FileRoutesById {
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
   '/settings/locations/pin-style': typeof SettingsLocationsPinStyleRoute
   '/settings/locations/place-types': typeof SettingsLocationsPlaceTypesRoute
+  '/settings/media/display': typeof SettingsMediaDisplayRoute
+  '/settings/media/manage': typeof SettingsMediaManageRoute
+  '/settings/media/screenshot-defaults': typeof SettingsMediaScreenshotDefaultsRoute
   '/tags/$tagSlug/_view': typeof TagsTagSlugViewRouteWithChildren
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
   '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugRouteWithChildren
@@ -2558,6 +2602,7 @@ export interface FileRoutesById {
   '/settings/automations/': typeof SettingsAutomationsIndexRoute
   '/settings/display/': typeof SettingsDisplayIndexRoute
   '/settings/locations/': typeof SettingsLocationsIndexRoute
+  '/settings/media/': typeof SettingsMediaIndexRoute
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
@@ -2768,6 +2813,7 @@ export interface FileRouteTypes {
     | '/settings/imports'
     | '/settings/link-parsing'
     | '/settings/locations'
+    | '/settings/media'
     | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/relationships'
@@ -2822,6 +2868,9 @@ export interface FileRouteTypes {
     | '/settings/locations/level-groups'
     | '/settings/locations/pin-style'
     | '/settings/locations/place-types'
+    | '/settings/media/display'
+    | '/settings/media/manage'
+    | '/settings/media/screenshot-defaults'
     | '/tags/$tagSlug/edit'
     | '/taxonomies/authors/$authorSlug'
     | '/taxonomies/locations/$locationSlug'
@@ -2845,6 +2894,7 @@ export interface FileRouteTypes {
     | '/settings/automations/'
     | '/settings/display/'
     | '/settings/locations/'
+    | '/settings/media/'
     | '/tags/$tagSlug/'
     | '/taxonomies/authors/'
     | '/taxonomies/locations/'
@@ -3064,6 +3114,9 @@ export interface FileRouteTypes {
     | '/settings/locations/level-groups'
     | '/settings/locations/pin-style'
     | '/settings/locations/place-types'
+    | '/settings/media/display'
+    | '/settings/media/manage'
+    | '/settings/media/screenshot-defaults'
     | '/tags/$tagSlug'
     | '/taxonomies/locations/new'
     | '/bookmarks/$bookmarkId'
@@ -3071,6 +3124,7 @@ export interface FileRouteTypes {
     | '/settings/automations'
     | '/settings/display'
     | '/settings/locations'
+    | '/settings/media'
     | '/taxonomies/authors'
     | '/taxonomies/locations'
     | '/taxonomies/media-types'
@@ -3260,6 +3314,7 @@ export interface FileRouteTypes {
     | '/settings/imports'
     | '/settings/link-parsing'
     | '/settings/locations'
+    | '/settings/media'
     | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/relationships'
@@ -3320,6 +3375,9 @@ export interface FileRouteTypes {
     | '/settings/locations/level-groups'
     | '/settings/locations/pin-style'
     | '/settings/locations/place-types'
+    | '/settings/media/display'
+    | '/settings/media/manage'
+    | '/settings/media/screenshot-defaults'
     | '/tags/$tagSlug/_view'
     | '/tags/$tagSlug/edit'
     | '/taxonomies/authors/$authorSlug'
@@ -3344,6 +3402,7 @@ export interface FileRouteTypes {
     | '/settings/automations/'
     | '/settings/display/'
     | '/settings/locations/'
+    | '/settings/media/'
     | '/tags/$tagSlug/'
     | '/taxonomies/authors/'
     | '/taxonomies/locations/'
@@ -3825,6 +3884,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsMediaManagementRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/media': {
+      id: '/settings/media'
+      path: '/media'
+      fullPath: '/settings/media'
+      preLoaderRoute: typeof SettingsMediaRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/settings/locations': {
       id: '/settings/locations'
       path: '/locations'
@@ -4056,6 +4122,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TagsTagSlugIndexRouteImport
       parentRoute: typeof TagsTagSlugRoute
     }
+    '/settings/media/': {
+      id: '/settings/media/'
+      path: '/'
+      fullPath: '/settings/media/'
+      preLoaderRoute: typeof SettingsMediaIndexRouteImport
+      parentRoute: typeof SettingsMediaRoute
+    }
     '/settings/locations/': {
       id: '/settings/locations/'
       path: '/'
@@ -4223,6 +4296,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/tags/$tagSlug'
       preLoaderRoute: typeof TagsTagSlugViewRouteImport
       parentRoute: typeof TagsTagSlugRoute
+    }
+    '/settings/media/screenshot-defaults': {
+      id: '/settings/media/screenshot-defaults'
+      path: '/screenshot-defaults'
+      fullPath: '/settings/media/screenshot-defaults'
+      preLoaderRoute: typeof SettingsMediaScreenshotDefaultsRouteImport
+      parentRoute: typeof SettingsMediaRoute
+    }
+    '/settings/media/manage': {
+      id: '/settings/media/manage'
+      path: '/manage'
+      fullPath: '/settings/media/manage'
+      preLoaderRoute: typeof SettingsMediaManageRouteImport
+      parentRoute: typeof SettingsMediaRoute
+    }
+    '/settings/media/display': {
+      id: '/settings/media/display'
+      path: '/display'
+      fullPath: '/settings/media/display'
+      preLoaderRoute: typeof SettingsMediaDisplayRouteImport
+      parentRoute: typeof SettingsMediaRoute
     }
     '/settings/locations/place-types': {
       id: '/settings/locations/place-types'
@@ -6204,6 +6298,24 @@ const SettingsLocationsRouteChildren: SettingsLocationsRouteChildren = {
 const SettingsLocationsRouteWithChildren =
   SettingsLocationsRoute._addFileChildren(SettingsLocationsRouteChildren)
 
+interface SettingsMediaRouteChildren {
+  SettingsMediaDisplayRoute: typeof SettingsMediaDisplayRoute
+  SettingsMediaManageRoute: typeof SettingsMediaManageRoute
+  SettingsMediaScreenshotDefaultsRoute: typeof SettingsMediaScreenshotDefaultsRoute
+  SettingsMediaIndexRoute: typeof SettingsMediaIndexRoute
+}
+
+const SettingsMediaRouteChildren: SettingsMediaRouteChildren = {
+  SettingsMediaDisplayRoute: SettingsMediaDisplayRoute,
+  SettingsMediaManageRoute: SettingsMediaManageRoute,
+  SettingsMediaScreenshotDefaultsRoute: SettingsMediaScreenshotDefaultsRoute,
+  SettingsMediaIndexRoute: SettingsMediaIndexRoute,
+}
+
+const SettingsMediaRouteWithChildren = SettingsMediaRoute._addFileChildren(
+  SettingsMediaRouteChildren,
+)
+
 interface SettingsRouteChildren {
   SettingsAdvancedRoute: typeof SettingsAdvancedRouteWithChildren
   SettingsAutofillRoute: typeof SettingsAutofillRoute
@@ -6217,6 +6329,7 @@ interface SettingsRouteChildren {
   SettingsImportsRoute: typeof SettingsImportsRoute
   SettingsLinkParsingRoute: typeof SettingsLinkParsingRoute
   SettingsLocationsRoute: typeof SettingsLocationsRouteWithChildren
+  SettingsMediaRoute: typeof SettingsMediaRouteWithChildren
   SettingsMediaManagementRoute: typeof SettingsMediaManagementRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
   SettingsRelationshipsRoute: typeof SettingsRelationshipsRoute
@@ -6239,6 +6352,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsImportsRoute: SettingsImportsRoute,
   SettingsLinkParsingRoute: SettingsLinkParsingRoute,
   SettingsLocationsRoute: SettingsLocationsRouteWithChildren,
+  SettingsMediaRoute: SettingsMediaRouteWithChildren,
   SettingsMediaManagementRoute: SettingsMediaManagementRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
   SettingsRelationshipsRoute: SettingsRelationshipsRoute,

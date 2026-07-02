@@ -1396,6 +1396,13 @@ export const appSettings = pgTable("app_settings", {
   // Scale factor applied to every rendered map pin's size (1 = default size). Nullable = push-safe
   // additive; the service clamps to [MAP_PIN_SCALE_MIN, MAP_PIN_SCALE_MAX] and falls back to 1 when null.
   mapPinScale: real("map_pin_scale"),
+  // Default values pre-filled into the "Page screenshot" controls on a bookmark's Edit → Image tab
+  // (Settings → Media → Screenshot Defaults). Nullable = push-safe additive; the service clamps and
+  // falls back to the hardcoded capture defaults (no delay, 1280x720, no scroll) when null.
+  screenshotDefaultDelayMs: integer("screenshot_default_delay_ms"),
+  screenshotDefaultWidth: integer("screenshot_default_width"),
+  screenshotDefaultHeight: integer("screenshot_default_height"),
+  screenshotDefaultScrollDistance: integer("screenshot_default_scroll_distance"),
 });
 
 /**

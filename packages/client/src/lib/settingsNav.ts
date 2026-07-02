@@ -3,8 +3,10 @@ import type { LucideIcon } from "lucide-react";
 
 import {
   Cable,
+  Camera,
   Database,
   Filter,
+  FolderOpen,
   Forward,
   HardDrive,
   History,
@@ -40,11 +42,6 @@ export const displayNav: readonly SettingsTabNavItem[] = [
     icon: Monitor,
   },
   {
-    to: "/settings/display/media",
-    label: "Media",
-    icon: Image,
-  },
-  {
     to: "/settings/display/sidebar",
     label: "Sidebar",
     icon: PanelLeft,
@@ -63,6 +60,24 @@ export const displayNav: readonly SettingsTabNavItem[] = [
     to: "/settings/display/homepage",
     label: "Homepage",
     icon: LayoutTemplate,
+  },
+] as const;
+
+export const mediaNav: readonly SettingsTabNavItem[] = [
+  {
+    to: "/settings/media/display",
+    label: "Display",
+    icon: Image,
+  },
+  {
+    to: "/settings/media/manage",
+    label: "Manage Media",
+    icon: FolderOpen,
+  },
+  {
+    to: "/settings/media/screenshot-defaults",
+    label: "Screenshot Defaults",
+    icon: Camera,
   },
 ] as const;
 
@@ -138,11 +153,6 @@ export const advancedNav: readonly SettingsTabNavItem[] = [
     label: "Database usage",
     icon: HardDrive,
   },
-  {
-    to: "/settings/advanced/manage-media",
-    label: "Manage Media",
-    icon: Image,
-  },
 ] as const;
 
 /** Every tabbed settings section with its favorite-label prefix, in settings-nav order. */
@@ -151,6 +161,11 @@ export const SETTINGS_TAB_SECTIONS = [
     section: "Display",
     path: "/settings/display",
     items: displayNav,
+  },
+  {
+    section: "Media",
+    path: "/settings/media",
+    items: mediaNav,
   },
   {
     section: "Automations",
