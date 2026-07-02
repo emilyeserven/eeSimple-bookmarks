@@ -2,7 +2,7 @@ import type { PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { computePopulatedLevelGroupIds, computeVisibleLevelGroupIds, placeTypeChoices } from "./locationLevels";
+import { computePopulatedLevelGroupIds, computeVisibleLevelGroupIds, findAnchorGroup, placeTypeChoices } from "./locationLevels";
 
 function group(overrides: Partial<PlaceTypeLevelGroup> & Pick<PlaceTypeLevelGroup, "id">): PlaceTypeLevelGroup {
   return {
@@ -150,6 +150,19 @@ describe("computeVisibleLevelGroupIds", () => {
       currentPlaceType: null,
     }, "current");
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
+  });
+});
+
+describe("findAnchorGroup", () => {
+  it("returns the group containing the viewed place's normalized type", () => {
+    expect(findAnchorGroup(groups, " City ")?.id).toBe("city");
+    expect(findAnchorGroup(groups, "state")?.id).toBe("region");
+  });
+
+  it("returns undefined for a blank type or a type in no group", () => {
+    expect(findAnchorGroup(groups, null)).toBeUndefined();
+    expect(findAnchorGroup(groups, "  ")).toBeUndefined();
+    expect(findAnchorGroup(groups, "hamlet")).toBeUndefined();
   });
 });
 

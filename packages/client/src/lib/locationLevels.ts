@@ -1,5 +1,4 @@
-import type { LocationMapLevelMode } from "../stores/uiStore";
-import type { LocationNode, PlaceTypeLevelGroup } from "@eesimple/types";
+import type { LocationMapLevelMode, LocationNode, PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { placeTypeKey } from "@eesimple/types";
 
@@ -97,12 +96,13 @@ export function computePopulatedLevelGroupIds(
  * How a given map decides which level groups are visible by default:
  * - `main`: the all-locations index map — the groups flagged "Show by default on main map".
  * - `location`: a specific place's pages — relative to the **current** group (the one containing the
- *   viewed place's own place type), expanded up/down per the shared {@link LocationMapLevelMode}.
+ *   viewed place's own place type), expanded up/down per that group's persisted
+ *   {@link LocationMapLevelMode} (`levelMode`, default `"current"`).
  * - `bookmark`: a bookmark's locations map — relative to the **current** groups (every group
  *   containing one of the bookmark's tagged locations' place types — there can be several, since a
- *   bookmark may tag locations of different levels), expanded up/down per an
- *   {@link LocationMapLevelMode} that defaults to `"current"` and is **not** shared with location
- *   pages — same expansion rules as `location` but with multiple anchors and its own mode state.
+ *   bookmark may tag locations of different levels), expanded up/down per the persisted
+ *   `bookmarkMapLevelMode` display preference (default `"current"`, independent of the per-group
+ *   modes) — same expansion rules as `location` but with multiple anchors.
  */
 export type LevelScope
   = | { kind: "main" }
@@ -113,8 +113,11 @@ export type LevelScope
 
 /**
  * The per-map level controls handed to the "Levels" overlays. Visibility is a **temporary per-map
- * override** (it does not write the shared/global group config); the `levelMode` button group is the
- * shared control and is omitted (button group hidden) on maps without a "current" level.
+ * override** (it does not write the shared/global group config); the `levelMode` button group edits
+ * the **persisted default** for this map's anchor — the current level group's `levelMode` on a
+ * place's pages, the `bookmarkMapLevelMode` display preference on a bookmark map (both configurable
+ * on Settings → Locations → Level Groups) — and is omitted (button group hidden) on maps without a
+ * "current" level.
  */
 export interface LevelsControls {
   /** Group ids currently shown on this map. */
@@ -126,7 +129,7 @@ export interface LevelsControls {
    * disabled. See {@link computePopulatedLevelGroupIds}.
    */
   disabledIds: Set<string>;
-  /** Shared above/current/below mode; omitted hides the button group (the main map only). */
+  /** The map's persisted above/current/below "Show" mode; omitted hides the button group (the main map only). */
   levelMode?: LocationMapLevelMode;
   onLevelModeChange?: (mode: LocationMapLevelMode) => void;
   /**
@@ -152,7 +155,7 @@ export interface AncestorChildrenScopeControls {
 }
 
 /**
- * The set of level-group ids a map shows by default, given its scope and the shared level mode.
+ * The set of level-group ids a map shows by default, given its scope and its resolved level mode.
  *
  * For a `location` scope the **current** group (the one whose `placeTypes` contains the viewed
  * place's own place type) is always included; `above` adds every broader group (lower `sortOrder`)
@@ -178,11 +181,24 @@ function resolveAnchorGroups(
     const anchorKeys = new Set(scope.placeTypes.map(placeTypeKey).filter(key => key !== ""));
     return groups.filter(group => group.placeTypes.some(pt => anchorKeys.has(pt)));
   }
-  const currentKey = placeTypeKey(scope.currentPlaceType);
-  const current = currentKey === ""
+  const current = findAnchorGroup(groups, scope.currentPlaceType);
+  return current ? [current] : [];
+}
+
+/**
+ * The single level group anchoring a place's pages — the group whose `placeTypes` contains the
+ * viewed place's own place type — or `undefined` when the type is blank / belongs to no group.
+ * Location detail maps read (and the "Levels" overlay's "Show" button group writes) this group's
+ * persisted `levelMode`. Pure — unit-tested.
+ */
+export function findAnchorGroup(
+  groups: PlaceTypeLevelGroup[],
+  currentPlaceType: string | null,
+): PlaceTypeLevelGroup | undefined {
+  const currentKey = placeTypeKey(currentPlaceType);
+  return currentKey === ""
     ? undefined
     : groups.find(group => group.placeTypes.includes(currentKey));
-  return current ? [current] : [];
 }
 
 /**

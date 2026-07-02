@@ -6,6 +6,7 @@ import { MapPin, Shapes, Trash2, TriangleAlert } from "lucide-react";
 
 import { LevelColorControl } from "./LevelColorControl";
 import { LevelGroupDragHandle } from "./LevelGroupDragHandle";
+import { LocationLevelModeToggle } from "./LocationLevelModeToggle";
 import { MultiCombobox } from "./MultiCombobox";
 
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ export function LevelGroupEditRow({
   renameGroup,
   setGroupShowOnMainMap,
   setGroupDisplayMode,
+  setGroupLevelMode,
   setGroupPlaceTypes,
   setGroupColor,
   removeGroup,
@@ -148,7 +150,20 @@ export function LevelGroupEditRow({
         </Label>
       </div>
 
-      {/* Row 4: place type assignment */}
+      {/* Row 4: default "Show" mode for maps anchored at this level */}
+      <div className="space-y-1 pl-6">
+        <LocationLevelModeToggle
+          value={group.levelMode ?? "current"}
+          onChange={mode => setGroupLevelMode(group.id, mode)}
+        />
+        <p className="text-xs text-muted-foreground">
+          Which levels a place&rsquo;s map shows by default when this is its own level — broader
+          levels too, only this level, or narrower levels. The map&rsquo;s Levels overlay edits the
+          same default.
+        </p>
+      </div>
+
+      {/* Row 5: place type assignment */}
       <div className="space-y-1 pl-6">
         <Label className="text-xs text-muted-foreground">Place types</Label>
         <MultiCombobox

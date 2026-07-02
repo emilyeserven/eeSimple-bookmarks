@@ -1,7 +1,7 @@
 import type { GroupRowProps, SortableHandle } from "./levelGroupRowTypes";
 
 import { DEFAULT_LOCATION_MAP_COLOR } from "@eesimple/types";
-import { Map as MapIcon, MapPin, Shapes, TriangleAlert } from "lucide-react";
+import { ArrowDown, ArrowUp, Map as MapIcon, MapPin, Shapes, TriangleAlert } from "lucide-react";
 
 import { LevelGroupDragHandle } from "./LevelGroupDragHandle";
 
@@ -82,6 +82,25 @@ export function LevelGroupSummaryRow({
             >
               <MapIcon className="size-3" />
               Main map
+            </span>
+          )
+          : null}
+
+        {group.levelMode === "above" || group.levelMode === "below"
+          ? (
+            <span
+              className="
+                flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs
+                text-muted-foreground
+              "
+              title={`Maps of places at this level also show the levels ${group.levelMode} it by default`}
+            >
+              {group.levelMode === "above"
+                ? <ArrowUp className="size-3" />
+                : <ArrowDown className="size-3" />}
+              Shows
+              {" "}
+              {group.levelMode}
             </span>
           )
           : null}

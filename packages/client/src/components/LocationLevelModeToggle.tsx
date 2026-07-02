@@ -1,4 +1,4 @@
-import type { LocationMapLevelMode } from "../stores/uiStore";
+import type { LocationMapLevelMode } from "@eesimple/types";
 
 import { ArrowDown, ArrowUp, Circle } from "lucide-react";
 
@@ -27,10 +27,12 @@ const MODE_OPTIONS: { value: LocationMapLevelMode;
 ];
 
 /**
- * The "Show:" button group in the map "Levels" overlay for a place's pages: pick whether the map
- * shows levels above the viewed place's own level, only it, or levels below it (the current level is
- * always shown). Each button carries a hover/focus label. Drives the shared
- * {@link LocationMapLevelMode}, which applies to all location maps (not bookmark maps).
+ * The "Show:" button group for a map's levels: pick whether the map shows levels above its
+ * "current" level(s), only them, or levels below (the current level is always shown). Each button
+ * carries a hover/focus label. A controlled {@link LocationMapLevelMode} input — the map "Levels"
+ * overlay binds it to the map's persisted anchor default (the current level group's `levelMode`, or
+ * the bookmark-map preference), and Settings → Locations → Level Groups binds it to each group and
+ * to the bookmark-map preference directly.
  */
 export function LocationLevelModeToggle({
   value,

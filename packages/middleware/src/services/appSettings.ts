@@ -27,7 +27,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARKS_PER_PAGE, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, placeTypeKey } from "@eesimple/types";
+import { CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARKS_PER_PAGE, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, normalizeLevelMode, placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
@@ -117,6 +117,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   mapPinScale: MAP_PIN_SCALE_DEFAULT,
+  bookmarkMapLevelMode: "current",
 };
 
 /** Coerce a stored width string to the typed union, defaulting to "full". */
@@ -699,6 +700,7 @@ function normalizePlaceTypeLevelGroups(input: unknown): PlaceTypeLevelGroupConfi
       // Absent → fall back to `visible` so existing configs keep the current main-map appearance
       // (today every visible group shows on the main map).
       showOnMainMap: typeof value.showOnMainMap === "boolean" ? value.showOnMainMap : visible,
+      levelMode: normalizeLevelMode(value.levelMode),
       sortOrder: typeof value.sortOrder === "number" && Number.isFinite(value.sortOrder)
         ? value.sortOrder
         : index,
@@ -1027,6 +1029,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       minAreaPinThresholdKm2: appSettings.minAreaPinThresholdKm2,
       bookmarksPerPage: appSettings.bookmarksPerPage,
       mapPinScale: appSettings.mapPinScale,
+      bookmarkMapLevelMode: appSettings.bookmarkMapLevelMode,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -1048,6 +1051,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     minAreaPinThresholdKm2: asMinAreaThreshold(row.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(row.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
     mapPinScale: asMapPinScale(row.mapPinScale),
+    bookmarkMapLevelMode: normalizeLevelMode(row.bookmarkMapLevelMode),
   };
 }
 
@@ -1278,6 +1282,7 @@ export async function updateDisplayPreferenceSettings(
     minAreaPinThresholdKm2: asMinAreaThreshold(input.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(input.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
     mapPinScale: asMapPinScale(input.mapPinScale),
+    bookmarkMapLevelMode: normalizeLevelMode(input.bookmarkMapLevelMode),
   };
   await db
     .insert(appSettings)
