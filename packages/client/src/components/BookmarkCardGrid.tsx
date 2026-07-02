@@ -52,12 +52,14 @@ export function BookmarkCardGrid({
         return (
           <div
             key={bookmark.id}
-            className="group relative"
+            className="group relative h-full"
             onMouseEnter={() => setHoveredBookmarkId(bookmark.id)}
             onMouseLeave={() => setHoveredBookmarkId(null)}
           >
             <RowCard
-              className={cn("p-4", selected && "ring-2 ring-primary")}
+              className={cn("flex h-full flex-col p-4", selected && `
+                ring-2 ring-primary
+              `)}
               data-bookmark-card-sample
             >
               <BookmarkCard
