@@ -105,6 +105,14 @@ export const AUTHOR_PALETTE: EntityPaletteConfig = {
   extraInvalidateKeys: [BOOKMARKS_KEY],
 };
 
+/** Hoisted so `entities/propertyGroup.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const PROPERTY_GROUP_PALETTE: EntityPaletteConfig = {
+  queryKey: ["property-groups"],
+  listFn: () => propertyGroupsApi.list(),
+  updateFn: (id, patch) => propertyGroupsApi.update(id, patch as UpdatePropertyGroupInput),
+  extraInvalidateKeys: [["custom-properties"]],
+};
+
 /** Hoisted so `entities/publisher.ts`'s `EntityDescriptor` can reference this entry by identity. */
 export const PUBLISHER_PALETTE: EntityPaletteConfig = {
   queryKey: ["publishers"],
@@ -224,12 +232,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   },
   "author": AUTHOR_PALETTE,
   "publisher": PUBLISHER_PALETTE,
-  "property-group": {
-    queryKey: ["property-groups"],
-    listFn: () => propertyGroupsApi.list(),
-    updateFn: (id, patch) => propertyGroupsApi.update(id, patch as UpdatePropertyGroupInput),
-    extraInvalidateKeys: [["custom-properties"]],
-  },
+  "property-group": PROPERTY_GROUP_PALETTE,
   "relationship-type": {
     queryKey: ["relationship-types"],
     listFn: () => relationshipTypesApi.list(),
