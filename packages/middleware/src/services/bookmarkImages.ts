@@ -3,7 +3,7 @@
  * (`utils/objectStore`), and the `bookmark_images` table together so the routes stay thin.
  */
 
-import type { BookmarkImage, BulkAutoFetchResult } from "@eesimple/types";
+import type { BookmarkImage, BookmarkScreenshotSettings, BulkAutoFetchResult } from "@eesimple/types";
 import { findOEmbedProvider } from "@eesimple/types";
 import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
@@ -92,6 +92,16 @@ export function bookmarkScreenshotFromRow(row: BookmarkScreenshotRow): BookmarkI
     source: "screenshot",
     isMain: false,
     sortOrder: 0,
+  };
+}
+
+/** Map a screenshot row's stored capture settings to the shared wire type. */
+export function bookmarkScreenshotSettingsFromRow(row: BookmarkScreenshotRow): BookmarkScreenshotSettings {
+  return {
+    delayMs: row.delayMs ?? null,
+    width: row.viewportWidth ?? null,
+    height: row.viewportHeight ?? null,
+    scrollDistance: row.scrollDistance ?? null,
   };
 }
 
@@ -209,6 +219,10 @@ export async function takeAndStoreScreenshot(
     height: processed.height,
     byteSize: processed.body.byteLength,
     source: "screenshot",
+    delayMs: delayMs ?? null,
+    viewportWidth: viewport?.width ?? null,
+    viewportHeight: viewport?.height ?? null,
+    scrollDistance: scrollDistance ?? null,
     createdAt: new Date(),
   };
   const [row] = await db

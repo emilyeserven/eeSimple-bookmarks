@@ -854,6 +854,18 @@ export interface BookmarkImage {
   sortOrder: number;
 }
 
+/** The Browserless capture settings last used for a bookmark's screenshot. See {@link Bookmark.screenshotSettings}. */
+export interface BookmarkScreenshotSettings {
+  /** Post-load delay before capture, in milliseconds. */
+  delayMs: number | null;
+  /** Requested browser viewport width (CSS pixels) before capture. */
+  width: number | null;
+  /** Requested browser viewport height (CSS pixels) before capture. */
+  height: number | null;
+  /** Distance scrolled down (CSS pixels) after the delay, before capture. */
+  scrollDistance: number | null;
+}
+
 /**
  * A self-contained archive of an Instagram reel's video, captured on demand and stored in the app's
  * own object storage so it survives the reel later being deleted from Instagram. At most one per
@@ -1002,6 +1014,13 @@ export interface Bookmark {
   images: BookmarkImage[];
   /** A Browserless-captured page screenshot, or `null` when none has been taken. Used as image fallback when `image` is null. */
   screenshot: BookmarkImage | null;
+  /**
+   * The capture settings last used to take {@link screenshot}, remembered so the image-edit form can
+   * prefill them the next time this bookmark's screenshot is retaken. `null` when no screenshot has
+   * been captured yet; individual fields are `null` when that setting wasn't explicitly requested for
+   * the stored capture (e.g. the bulk auto-fetch fallback, which takes a screenshot with no options).
+   */
+  screenshotSettings: BookmarkScreenshotSettings | null;
   /** A self-contained capture of the bookmark's Instagram reel video, or `null` when none has been archived. */
   reelArchive: InstagramReelArchive | null;
   /** Specific reason the last image auto-grab attempt failed, or `null` when not yet attempted or the last attempt succeeded. */

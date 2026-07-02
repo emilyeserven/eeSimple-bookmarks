@@ -122,10 +122,15 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
   const [isPending, setIsPending] = useState(false);
   const [candidates, setCandidates] = useState<ImageCandidate[]>([]);
   const [isScanning, setIsScanning] = useState(false);
-  const [screenshotDelayMs, setScreenshotDelayMs] = useState(0);
-  const [screenshotWidth, setScreenshotWidth] = useState<number>(SCREENSHOT_SIZE_PRESETS[0].width);
-  const [screenshotHeight, setScreenshotHeight] = useState<number>(SCREENSHOT_SIZE_PRESETS[0].height);
-  const [screenshotScrollDistance, setScreenshotScrollDistance] = useState(0);
+  const savedSettings = bookmark.screenshotSettings;
+  const [screenshotDelayMs, setScreenshotDelayMs] = useState(savedSettings?.delayMs ?? 0);
+  const [screenshotWidth, setScreenshotWidth] = useState<number>(
+    savedSettings?.width ?? SCREENSHOT_SIZE_PRESETS[0].width,
+  );
+  const [screenshotHeight, setScreenshotHeight] = useState<number>(
+    savedSettings?.height ?? SCREENSHOT_SIZE_PRESETS[0].height,
+  );
+  const [screenshotScrollDistance, setScreenshotScrollDistance] = useState(savedSettings?.scrollDistance ?? 0);
 
   async function handleFindImages(): Promise<void> {
     if (!bookmark.url) return;

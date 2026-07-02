@@ -302,4 +302,35 @@ describe("useBookmarkImageEditForm", () => {
       scrollDistance: 2000,
     });
   });
+
+  it("prefills the screenshot settings from the bookmark's last-used settings", async () => {
+    const bookmarkWithSettings = makeBookmark({
+      id: bookmark.id,
+      url: bookmark.url,
+      screenshotSettings: {
+        delayMs: 5000,
+        width: 1920,
+        height: 1080,
+        scrollDistance: 2000,
+      },
+    });
+    const {
+      result,
+    } = renderHook(() => useBookmarkImageEditForm(bookmarkWithSettings));
+    expect(result.current.screenshotDelayMs).toBe(5000);
+    expect(result.current.screenshotWidth).toBe(1920);
+    expect(result.current.screenshotHeight).toBe(1080);
+    expect(result.current.screenshotScrollDistance).toBe(2000);
+
+    act(() => {
+      result.current.onTakeScreenshot();
+    });
+    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+      id: bookmark.id,
+      delayMs: 5000,
+      width: 1920,
+      height: 1080,
+      scrollDistance: 2000,
+    });
+  });
 });
