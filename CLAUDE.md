@@ -163,9 +163,11 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     **card header** is no longer fixed: `title`, `externalLink`, and `more` are standard placeable
     fields (in `STANDARD_CARD_FIELDS` / `STANDARD_CARD_FIELD_KEYS`), rendered by `describeField` and laid
     out as a justified header row when co-located in a single zone; they're kept out of the image
-    corners. The Fastify route body (`routes/cardDisplayRules.ts`) **hand-lists** the zone names +
-    placement props (and the `cardZoneLayouts` body-zone keys) — keep it mirrored with
-    `CARD_FIELD_ZONES`/`CardFieldPlacement`/`CARD_BODY_ZONES`. The legacy single
+    corners. The shared Fastify schema fragments (`routes/cardFieldZonesSchema.ts`, used by the
+    card-display-rules **and** homepage-sections routes) **derive** their zone-name sets from
+    `CARD_FIELD_ZONES`/`CARD_BODY_ZONES` and check the placement-prop map exhaustive against
+    `CardFieldPlacement` via `satisfies` — a new zone flows through automatically; a new placement
+    prop fails `tsc` there until its schema is added. The legacy single
     `card` zone is migrated to `card-labels` by the idempotent boot step
     `backfillCardDisplayRuleSubZones()`; the header fields are injected into existing rules by
     `backfillCardDisplayRuleHeaderFields()` (both jsonb, no schema change). **To add a field or a

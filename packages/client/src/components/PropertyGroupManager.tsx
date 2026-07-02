@@ -2,7 +2,6 @@ import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
 import { PropertyGroupListBody } from "./PropertyGroupListBody";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
-import { useSetListingPage } from "../hooks/useListingPage";
 import { useBulkDeletePropertyGroups, usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
@@ -13,7 +12,8 @@ export function PropertyGroupsListing() {
   const {
     data: allGroups, isLoading, error,
   } = usePropertyGroups();
-  useSetListingPage("property-groups-listing");
+  // The route (taxonomies.property-groups.index) owns the useSetListingPage registration — a second
+  // bare call here would clobber its create-button affordances.
   useRegisterHeaderSearch();
 
   const groups = allGroups ?? [];

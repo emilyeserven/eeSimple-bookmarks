@@ -24,6 +24,7 @@ import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
 import { BookmarkImagePicker } from "./BookmarkImagePicker";
 import { MultiCombobox } from "./MultiCombobox";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import {
   Collapsible,
@@ -106,6 +107,10 @@ export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
   const {
     form, customProperties, customFields, authors, onIsbnFetch, isIsbnFetchPending,
   } = props;
+  const authorCreate = useEntityCreateOption("author", (author) => {
+    const current = form.getFieldValue("authorIds");
+    if (!current.includes(author.id)) form.setFieldValue("authorIds", [...current, author.id]);
+  });
   return (
     <Collapsible className="group/advanced space-y-3">
       <CollapsibleTrigger
@@ -171,11 +176,13 @@ export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
                   placeholder="Select authors…"
                   searchPlaceholder="Search authors…"
                   emptyText="No authors found."
+                  createOption={authorCreate.createOption}
                 />
               </div>
             )}
           </form.Field>
         )}
+        {authorCreate.modal}
 
         <form.Subscribe selector={state => state.values.url}>
           {url => (

@@ -24,6 +24,7 @@ import { DEFAULT_BOOKMARKS_PER_PAGE, expandLevelGroupsToDisplayConfig, MAP_PIN_S
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { appSettingsApi } from "../lib/api/settings";
+import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 
 const CONNECTORS_SETTINGS_KEY = ["app-settings", "connectors"] as const;
 const SHORTENER_IGNORE_LIST_KEY = ["app-settings", "shortener-ignore-list"] as const;
@@ -62,7 +63,9 @@ export function useUpdateShortenerIgnoreList() {
     mutationFn: (domains: string[]) => appSettingsApi.updateShortenerIgnoreList(domains),
     onSuccess: (saved) => {
       queryClient.setQueryData(SHORTENER_IGNORE_LIST_KEY, saved);
+      notifyFieldSaved("Shortener ignore list");
     },
+    onError: () => notifyFieldSaveError("Shortener ignore list"),
   });
 }
 
@@ -80,7 +83,9 @@ export function useUpdateCustomStripParams() {
     mutationFn: (params: string[]) => appSettingsApi.updateCustomStripParams(params),
     onSuccess: (saved) => {
       queryClient.setQueryData(CUSTOM_STRIP_PARAMS_KEY, saved);
+      notifyFieldSaved("Custom strip parameters");
     },
+    onError: () => notifyFieldSaveError("Custom strip parameters"),
   });
 }
 
@@ -98,7 +103,9 @@ export function useUpdateRedirectIgnoreList() {
     mutationFn: (domains: string[]) => appSettingsApi.updateRedirectIgnoreList(domains),
     onSuccess: (saved) => {
       queryClient.setQueryData(REDIRECT_IGNORE_LIST_KEY, saved);
+      notifyFieldSaved("Redirect ignore list");
     },
+    onError: () => notifyFieldSaveError("Redirect ignore list"),
   });
 }
 
