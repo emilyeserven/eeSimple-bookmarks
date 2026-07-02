@@ -120,6 +120,7 @@ export function CategoryFilterSection({
     label: category.name,
   }));
   const selectedCategories = search.categories ?? [];
+  const allSelected = categoryOptions.length > 0 && selectedCategories.length === categoryOptions.length;
 
   return (
     <Collapsible
@@ -148,18 +149,38 @@ export function CategoryFilterSection({
           placeholder="All categories"
           aria-label="Filter by category"
         />
-        {selectedCategories.length > 0
+        {categoryOptions.length > 0 || selectedCategories.length > 0
           ? (
-            <button
-              type="button"
-              className="
-                text-xs text-primary
-                hover:underline
-              "
-              onClick={() => onSearchChange(withCategories(search, []))}
-            >
-              Reset
-            </button>
+            <div className="flex items-center gap-3">
+              {!allSelected
+                ? (
+                  <button
+                    type="button"
+                    className="
+                      text-xs text-primary
+                      hover:underline
+                    "
+                    onClick={() => onSearchChange(withCategories(search, categoryOptions.map(option => option.value)))}
+                  >
+                    Select all
+                  </button>
+                )
+                : null}
+              {selectedCategories.length > 0
+                ? (
+                  <button
+                    type="button"
+                    className="
+                      text-xs text-primary
+                      hover:underline
+                    "
+                    onClick={() => onSearchChange(withCategories(search, []))}
+                  >
+                    Reset
+                  </button>
+                )
+                : null}
+            </div>
           )
           : null}
       </CollapsibleContent>
