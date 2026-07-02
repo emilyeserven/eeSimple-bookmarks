@@ -1,38 +1,38 @@
 import type { EntityRouteKind } from "./entityRoutes";
 import type {
+  Category,
   CustomProperty,
   Tag,
   UpdateAutofillRuleInput,
   UpdateCardDisplayRuleInput,
+  UpdateCategoryInput,
   UpdateCustomPropertyInput,
   UpdateImportRuleInput,
   UpdateLocationInput,
   UpdateMediaTypeInput,
   UpdatePlaceTypeInput,
   UpdateTagInput,
-  UpdateYouTubeChannelInput,
-  YouTubeChannel,
 } from "@eesimple/types";
 
 import { autofillApi } from "./api/autofill";
 import { importRulesApi } from "./api/importRules";
 import { cardDisplayRulesApi } from "./api/settings";
 import {
+  categoriesApi,
   customPropertiesApi,
   locationsApi,
   mediaTypesApi,
   placeTypesApi,
   tagsApi,
-  youtubeChannelsApi,
 } from "./api/taxonomies";
 import { AUTHOR_PALETTE } from "../entities/author";
-import { CATEGORY_PALETTE } from "../entities/category";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
 import { PROPERTY_GROUP_PALETTE } from "../entities/propertyGroup";
 import { PUBLISHER_PALETTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_PALETTE } from "../entities/relationshipType";
 import { SAVED_FILTER_PALETTE } from "../entities/savedFilter";
 import { WEBSITE_PALETTE } from "../entities/website";
+import { YOUTUBE_CHANNEL_PALETTE } from "../entities/youtubeChannel";
 
 /** The minimal shape the CMD+K entity context needs from any slug-routed entity. */
 export interface PaletteEntity {
@@ -92,7 +92,20 @@ const BOOKMARKS_KEY = ["bookmarks"] as const;
  * `cmd-k-entity-context` skill for the recipe).
  */
 export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig> = {
-  "category": CATEGORY_PALETTE,
+  "category": {
+    queryKey: ["categories"],
+    listFn: () => categoriesApi.list(),
+    updateFn: (id, patch) => categoriesApi.update(id, patch as UpdateCategoryInput),
+    extraInvalidateKeys: [BOOKMARKS_KEY],
+    fields: [
+      {
+        type: "boolean",
+        key: "isHomepage",
+        label: "Homepage Category",
+        getValue: entity => (entity as Category).isHomepage,
+      },
+    ],
+  },
   "tag": {
     queryKey: ["tags"],
     listFn: () => tagsApi.list(),
@@ -132,28 +145,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
     updateFn: (id, patch) => placeTypesApi.update(id, patch as UpdatePlaceTypeInput),
     extraInvalidateKeys: [["locations"]],
   },
-  "youtube-channel": {
-    queryKey: ["youtube-channels"],
-    listFn: () => youtubeChannelsApi.list(),
-    updateFn: (id, patch) => youtubeChannelsApi.update(id, patch as UpdateYouTubeChannelInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-    fields: [
-      {
-        type: "choice",
-        key: "categoryId",
-        label: "Category",
-        options: "categories",
-        getValue: entity => (entity as YouTubeChannel).category?.id ?? null,
-      },
-      {
-        type: "choice",
-        key: "mediaTypeId",
-        label: "Default Media Type",
-        options: "media-types",
-        getValue: entity => (entity as YouTubeChannel).mediaTypeId ?? null,
-      },
-    ],
-  },
+  "youtube-channel": YOUTUBE_CHANNEL_PALETTE,
   "newsletter": NEWSLETTER_PALETTE,
   "author": AUTHOR_PALETTE,
   "publisher": PUBLISHER_PALETTE,

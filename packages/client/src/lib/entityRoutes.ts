@@ -1,13 +1,13 @@
 import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { AUTHOR_ROUTE } from "../entities/author";
-import { CATEGORY_ROUTE } from "../entities/category";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
 import { PROPERTY_GROUP_ROUTE } from "../entities/propertyGroup";
 import { PUBLISHER_ROUTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_ROUTE } from "../entities/relationshipType";
 import { SAVED_FILTER_ROUTE } from "../entities/savedFilter";
 import { WEBSITE_ROUTE } from "../entities/website";
+import { YOUTUBE_CHANNEL_ROUTE } from "../entities/youtubeChannel";
 
 /** Stable identifier for each slug-routed entity (used by the CMD+K registry and pin mapping). */
 export type EntityRouteKind
@@ -57,7 +57,15 @@ export interface EntityRoute {
 }
 
 export const ENTITY_ROUTES: readonly EntityRoute[] = [
-  CATEGORY_ROUTE,
+  {
+    kind: "category",
+    prefix: "/categories",
+    slugIndex: 1,
+    listLabel: "Categories",
+    singular: "Category",
+    switcher: "category",
+    flatCrumbs: true,
+  },
   {
     kind: "tag",
     prefix: "/tags",
@@ -91,15 +99,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
     singular: "Place Type",
     flatCrumbs: true,
   },
-  {
-    kind: "youtube-channel",
-    prefix: "/taxonomies/youtube-channels",
-    slugIndex: 2,
-    listLabel: "YouTube Channels",
-    singular: "Channel",
-    switcher: "youtube-channel",
-    flatCrumbs: true,
-  },
+  YOUTUBE_CHANNEL_ROUTE,
   NEWSLETTER_ROUTE,
   AUTHOR_ROUTE,
   PUBLISHER_ROUTE,
