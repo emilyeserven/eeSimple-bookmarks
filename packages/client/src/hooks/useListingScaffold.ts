@@ -13,9 +13,12 @@ import { useListSelection } from "../lib/useListSelection";
  * bulk-select state for one flat-entity listing. Split from the render so a page can still branch
  * on the derived state (e.g. a create-modal open flag) without re-running the hooks.
  *
- * Covers listing shape 1 only — flat + search + bulk + table/card toggle (see `EntityListingConfig`).
- * Tree entities (Tags, Media Types, Locations) and Bookmarks are not scaffold-eligible: they render
- * their own bespoke listings and never construct an `EntityListingConfig`.
+ * Covers the flat listing shape — flat + search + bulk + table/card toggle (see
+ * `EntityListingConfig`). Tree taxonomies (Tags, Media Types, Locations) use the sibling
+ * `useTreeListingScaffold`; Bookmarks and bespoke listings (Card Display Rules) stay outside both.
+ *
+ * `config.externalFilter` (page-owned facet state, e.g. Autofill's sidebar) is applied before the
+ * header-search filter, so the "N of M" counts keep M = all items.
  */
 export function useListingScaffold<E extends { id: string }>(config: EntityListingConfig<E>) {
   const {
@@ -26,9 +29,10 @@ export function useListingScaffold<E extends { id: string }>(config: EntityListi
   const viewMode = useViewMode(config.pageKey);
 
   const items = data ?? [];
+  const externallyFiltered = config.externalFilter ? items.filter(config.externalFilter) : items;
   const {
     rawQuery, hasQuery, filtered: textFiltered,
-  } = useHeaderSearchFilter(items, config.matches);
+  } = useHeaderSearchFilter(externallyFiltered, config.matches);
 
   const [secondaryFilterValue, setSecondaryFilterValue] = useState<string | null>(null);
   const {
