@@ -38,6 +38,7 @@ const meta = {
     options: sampleOptions,
     takenPlaceTypes: new Set<string>(),
     renameGroup: noop,
+    setGroupVisible: noop,
     setGroupShowOnMainMap: noop,
     setGroupDisplayMode: noop,
     setGroupLevelMode: noop,

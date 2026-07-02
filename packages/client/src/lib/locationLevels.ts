@@ -166,7 +166,16 @@ export interface AncestorChildrenScopeControls {
  * bookmark's tagged locations' place types. `current` shows just those anchor groups; `above` adds
  * every group broader than the broadest anchor; `below` adds every group narrower than the
  * narrowest anchor. No anchors (no tagged location's type belongs to any group) falls back to every
- * group, same as `location`. Pure — unit-tested.
+ * group, same as `location`.
+ *
+ * A group with `visible: false` is dropped from the result **in addition to** the scope/mode
+ * computation above — it stays excluded from a main-map default, from an "above"/"below" expansion
+ * that would otherwise have pulled it in, and even as the anchor/current level itself. This is the
+ * per-group "visible by default" override (`LevelGroupEditRow`'s "Visible by default" checkbox): it
+ * lets a level (e.g. "Country") be excluded from every default computation — "show everything above,
+ * but don't show countries" — without touching the `levelMode`/`showOnMainMap` "Show" settings. It
+ * only affects **defaults**; a map's per-map Levels overlay checkbox can still turn the level back on
+ * for that one map. Pure — unit-tested.
  */
 /**
  * The **anchor** groups a non-main scope expands around: for a `location` the single group owning
@@ -227,13 +236,17 @@ export function computeVisibleLevelGroupIds(
   scope: LevelScope,
   mode: LocationMapLevelMode,
 ): Set<string> {
+  const dropHidden = (ids: Set<string>): Set<string> => {
+    const hiddenIds = new Set(groups.filter(group => group.visible === false).map(group => group.id));
+    return new Set([...ids].filter(id => !hiddenIds.has(id)));
+  };
   if (scope.kind === "main") {
-    return new Set(groups.filter(group => group.showOnMainMap !== false).map(group => group.id));
+    return dropHidden(new Set(groups.filter(group => group.showOnMainMap !== false).map(group => group.id)));
   }
   const anchors = resolveAnchorGroups(groups, scope);
-  // No anchor (viewed type belongs to no group / no tagged locations) → show every group.
-  if (anchors.length === 0) return new Set(groups.map(group => group.id));
-  return expandAnchorsByMode(groups, anchors, mode);
+  // No anchor (viewed type belongs to no group / no tagged locations) → show every visible group.
+  if (anchors.length === 0) return dropHidden(new Set(groups.map(group => group.id)));
+  return dropHidden(expandAnchorsByMode(groups, anchors, mode));
 }
 
 /**

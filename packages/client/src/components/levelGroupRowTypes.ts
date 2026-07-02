@@ -14,6 +14,7 @@ export interface GroupRowProps {
   /** Place types already assigned to other groups — shown disabled in the combobox. */
   takenPlaceTypes: Set<string>;
   renameGroup: Levels["renameGroup"];
+  setGroupVisible: Levels["setGroupVisible"];
   setGroupShowOnMainMap: Levels["setGroupShowOnMainMap"];
   setGroupDisplayMode: Levels["setGroupDisplayMode"];
   setGroupLevelMode: Levels["setGroupLevelMode"];

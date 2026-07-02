@@ -56,6 +56,7 @@ const meta = {
     options: OPTIONS,
     takenPlaceTypes: new Set<string>(),
     renameGroup: noop,
+    setGroupVisible: noop,
     setGroupShowOnMainMap: noop,
     setGroupDisplayMode: noop,
     setGroupLevelMode: noop,

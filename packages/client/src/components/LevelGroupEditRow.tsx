@@ -26,6 +26,7 @@ export function LevelGroupEditRow({
   options,
   takenPlaceTypes,
   renameGroup,
+  setGroupVisible,
   setGroupShowOnMainMap,
   setGroupDisplayMode,
   setGroupLevelMode,
@@ -148,6 +149,29 @@ export function LevelGroupEditRow({
         >
           Show by default on main map
         </Label>
+      </div>
+
+      {/* Row 3b: granular default visibility, independent of the Show buttons below */}
+      <div className="space-y-1 pl-6">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id={`level-visible-${group.id}`}
+            checked={group.visible !== false}
+            onCheckedChange={checked => setGroupVisible(group.id, checked === true)}
+          />
+          <Label
+            htmlFor={`level-visible-${group.id}`}
+            className="cursor-pointer text-xs font-normal"
+          >
+            Visible by default
+          </Label>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Unchecking excludes this level from every default — the main map, and an
+          &ldquo;above&rdquo;/&ldquo;below&rdquo; expansion below — even when those would otherwise
+          include it (e.g. show everything above, but never Country). A map&rsquo;s Levels overlay
+          can still turn it back on for that map.
+        </p>
       </div>
 
       {/* Row 4: default "Show" mode for maps anchored at this level */}

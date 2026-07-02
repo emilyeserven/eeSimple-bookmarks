@@ -46,6 +46,7 @@ export const storyGroupRowProps: Omit<GroupRowProps, "group"> = {
   ],
   takenPlaceTypes: new Set(["country"]),
   renameGroup: noop,
+  setGroupVisible: noop,
   setGroupShowOnMainMap: noop,
   setGroupDisplayMode: noop,
   setGroupLevelMode: noop,
