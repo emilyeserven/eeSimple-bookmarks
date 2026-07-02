@@ -4,7 +4,7 @@ import type { Author, CustomProperty, MediaType, Publisher } from "@eesimple/typ
 
 import { ISBN_SLUG, normalizeIsbn } from "./bookmarkFormSchema";
 import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
-import { describeError } from "../lib/apiError";
+import { ApiError, describeError } from "../lib/apiError";
 import { notifyError } from "../lib/notifications";
 
 type Actions = ReturnType<typeof useBookmarkFormActions>;
@@ -50,7 +50,11 @@ export function useBookmarkIsbn({
       });
     }
     catch (err) {
-      notifyError(describeError(err, "Could not fetch book metadata"));
+      const message = describeError(err, "Could not fetch book metadata");
+      // The ISBN 404/502 carries a `detail` clause explaining what the Kavita fallback found (or
+      // why it couldn't run) — surface it so a miss is debuggable without opening devtools.
+      const detail = err instanceof ApiError && err.detail ? ` ${err.detail}` : "";
+      notifyError(`${message}${detail}`);
       return;
     }
     if (result.title && !form.getFieldValue("title").trim()) {

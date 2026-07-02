@@ -4,6 +4,7 @@ import {
   fetchKavitaSeriesCover,
   kavitaEnabledAsync,
   resetKavitaAuthCache,
+  searchKavitaByIsbn,
   searchKavitaSeries,
 } from "@/services/kavita";
 import { clearKavitaEnv, configureKavitaEnv as configure, stubFetchSequence } from "@/tests/kavitaTestUtils";
@@ -207,6 +208,112 @@ test("searchKavitaSeries returns [] when authentication fails", async () => {
   ]);
   try {
     assert.deepEqual(await searchKavitaSeries("dune"), []);
+  }
+  finally {
+    restore();
+  }
+});
+
+test("searchKavitaByIsbn passes includeChapterAndFiles=true and resolves the matching chapter's series", async () => {
+  configure();
+  const {
+    requests, restore,
+  } = stubFetchSequence([
+    {
+      status: 200,
+      body: JSON.stringify({
+        token: "jwt-token",
+      }),
+    },
+    {
+      status: 200,
+      body: JSON.stringify({
+        series: [],
+        chapters: [{
+          id: 77,
+          isbn: "9780345391803",
+        }],
+      }),
+    },
+    {
+      status: 200,
+      body: JSON.stringify({
+        id: 12,
+        libraryId: 3,
+        name: "The Hitchhiker's Guide to the Galaxy",
+        libraryName: "Books",
+      }),
+    },
+  ]);
+  try {
+    const outcome = await searchKavitaByIsbn("9780345391803");
+    assert.deepEqual(outcome, {
+      status: "ok",
+      result: {
+        seriesId: 12,
+        libraryId: 3,
+        name: "The Hitchhiker's Guide to the Galaxy",
+        libraryName: "Books",
+        releaseYear: null,
+      },
+    });
+    assert.ok(requests[1].url.includes("includeChapterAndFiles=true"));
+    assert.ok(requests[1].url.includes("queryString=9780345391803"));
+    assert.ok(requests[2].url.startsWith("http://kavita:5000/api/Search/series-for-chapter?chapterId=77"));
+  }
+  finally {
+    restore();
+  }
+});
+
+test("searchKavitaByIsbn reports no_match when no chapter's ISBN matched", async () => {
+  configure();
+  const {
+    restore,
+  } = stubFetchSequence([
+    {
+      status: 200,
+      body: JSON.stringify({
+        token: "jwt-token",
+      }),
+    },
+    {
+      status: 200,
+      body: JSON.stringify({
+        series: [],
+        chapters: [],
+      }),
+    },
+  ]);
+  try {
+    assert.deepEqual(await searchKavitaByIsbn("9780345391803"), {
+      status: "no_match",
+    });
+  }
+  finally {
+    restore();
+  }
+});
+
+test("searchKavitaByIsbn reports unreachable when the search request fails", async () => {
+  configure();
+  const {
+    restore,
+  } = stubFetchSequence([
+    {
+      status: 200,
+      body: JSON.stringify({
+        token: "jwt-token",
+      }),
+    },
+    {
+      status: 500,
+    },
+  ]);
+  try {
+    assert.deepEqual(await searchKavitaByIsbn("9780345391803"), {
+      status: "unreachable",
+    });
   }
   finally {
     restore();

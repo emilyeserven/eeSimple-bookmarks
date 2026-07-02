@@ -13,18 +13,24 @@ import { db } from "@/db";
 import { bookmarkTextValues, customProperties } from "@/db/schema";
 import { addBookmarkImage, type SetImageResult } from "@/services/bookmarkImages";
 import { ISBN_SLUG } from "@/services/customProperties";
-import { kavitaEnabledAsync, kavitaSeriesCoverUrl, searchKavitaSeries } from "@/services/kavita";
+import { kavitaEnabledAsync, kavitaSeriesCoverUrl, searchKavitaByIsbn } from "@/services/kavita";
 import { downloadImage, isPublicHttpUrl } from "@/services/metadata";
 
 const ISBN_TIMEOUT_MS = 10_000;
 const ISBN_USER_AGENT = "eeSimple-bookmarks/1.0";
 
-/** A lookup outcome: a usable result, a definitive "not found", or a transport failure. */
+/**
+ * A lookup outcome: a usable result, a definitive "not found", or a transport failure. `not_found`
+ * and `error` may carry a `debug` clause — currently only set from the Kavita step — surfaced by the
+ * route as the error toast's diagnostic detail.
+ */
 export type IsbnLookupOutcome
   = | { kind: "ok";
     result: FetchIsbnMetadataResult; }
-    | { kind: "not_found" }
-    | { kind: "error" };
+    | { kind: "not_found";
+      debug?: string; }
+      | { kind: "error";
+        debug?: string; };
 
 /** Upgrade an `http://` cover URL to `https://` (Google Books serves http thumbnails), else pass through. */
 function toHttps(url: string | undefined | null): string | null {
@@ -147,21 +153,28 @@ export async function fetchGoogleBooks(isbn: string): Promise<IsbnLookupOutcome>
 }
 
 /**
- * Look up a book by ISBN on the operator's own Kavita server, when configured. Kavita's search
- * indexes series/volume/chapter metadata (including ISBN), so searching by the ISBN string itself
- * finds a matching series when one exists in the library. Returns `not_found` when Kavita is
- * unconfigured or has no match — never `error`, since an unconfigured/unreachable Kavita server
- * shouldn't override a definitive miss from the public providers.
+ * Look up a book by ISBN on the operator's own Kavita server, when configured. Kavita matches ISBN
+ * only against a **Chapter**'s parsed ComicInfo/EPUB metadata — see {@link searchKavitaByIsbn} — so
+ * this resolves the matching chapter's series. Returns `not_found` when Kavita is unconfigured or
+ * has no match — never `error`, since an unconfigured/unreachable Kavita server shouldn't override a
+ * definitive miss from the public providers. The `debug` clause explains which of those it was, for
+ * the error toast.
  */
 async function fetchKavita(isbn: string): Promise<IsbnLookupOutcome> {
   if (!(await kavitaEnabledAsync())) return {
     kind: "not_found",
+    debug: "Kavita lookup skipped — no server configured under Settings → Connectors.",
   };
-  const matches = await searchKavitaSeries(isbn);
-  const match = matches[0];
-  if (!match) return {
+  const outcome = await searchKavitaByIsbn(isbn);
+  if (outcome.status === "unreachable") return {
     kind: "not_found",
+    debug: "Could not reach your Kavita library — check the endpoint/API key under Settings → Connectors.",
   };
+  if (outcome.status === "no_match") return {
+    kind: "not_found",
+    debug: "Searched your Kavita library — no book has this ISBN yet. If you just added it, run a library scan in Kavita first.",
+  };
+  const match = outcome.result;
   return {
     kind: "ok",
     result: {
@@ -199,9 +212,11 @@ export async function fetchIsbnMetadata(isbn: string): Promise<IsbnLookupOutcome
 
   if (ol.kind === "not_found" || gb.kind === "not_found") return {
     kind: "not_found",
+    debug: kv.debug,
   };
   return {
     kind: "error",
+    debug: kv.debug,
   };
 }
 

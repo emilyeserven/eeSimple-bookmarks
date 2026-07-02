@@ -447,10 +447,12 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     if (outcome.kind === "not_found") {
       return reply.code(404).send({
         message: "No book found for that ISBN in Open Library, Google Books, or your Kavita library. Check the ISBN and try again.",
+        detail: outcome.debug,
       }) as unknown as FetchIsbnMetadataResult;
     }
     return reply.code(502).send({
       message: "Couldn't reach the book metadata providers. Check your connection and try again.",
+      detail: outcome.debug,
     }) as unknown as FetchIsbnMetadataResult;
   });
 
