@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 
 import { composeDateTime, dateToYmd, parseDatePart, parseTimePart } from "./datetime";

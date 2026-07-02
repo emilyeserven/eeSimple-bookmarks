@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { CardFieldZones } from "@eesimple/types";
 
 import { emptyCardFieldZones } from "@eesimple/types";

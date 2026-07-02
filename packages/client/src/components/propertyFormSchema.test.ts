@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 
 import { CREATE_DEFAULTS, payloadFromValues, sectionVisibility } from "./propertyFormSchema";
