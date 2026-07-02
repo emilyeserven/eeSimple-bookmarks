@@ -95,6 +95,7 @@ export function HomepageSectionForm({
           fieldZones: values.fieldZones,
           cardZoneLayouts: values.cardZoneLayouts,
           hideWebsiteForYouTube: values.hideWebsiteForYouTube,
+          bookmarkLimit: values.bookmarkLimit,
         }}
         onDisplayChange={setFields}
         hideIfEmpty={values.hideIfEmpty}

@@ -188,6 +188,7 @@ export function HomepageSectionsSettings() {
                       cardZoneLayouts: values.cardZoneLayouts,
                       hideWebsiteForYouTube: values.hideWebsiteForYouTube,
                       sort: values.sort,
+                      bookmarkLimit: values.bookmarkLimit,
                     },
                     {
                       onSuccess: () => setAddingNew(false),

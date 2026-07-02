@@ -26,6 +26,7 @@ const section: HomepageSection = {
   cornerOverlays: false,
   hideWebsiteForYouTube: false,
   sort: null,
+  bookmarkLimit: null,
   createdAt: NOW,
 };
 

@@ -28,6 +28,7 @@ export interface HomepageSectionFormValues {
   cardZoneLayouts: CardZoneLayouts;
   hideWebsiteForYouTube: boolean;
   sort: BookmarkSort | null;
+  bookmarkLimit: number | null;
 }
 
 /**
@@ -55,5 +56,6 @@ export function buildHomepageSectionInitialValues(
     cardZoneLayouts: section?.cardZoneLayouts ?? defaultCardZoneLayouts(),
     hideWebsiteForYouTube: section?.hideWebsiteForYouTube ?? false,
     sort: section?.sort ?? null,
+    bookmarkLimit: section?.bookmarkLimit ?? null,
   };
 }

@@ -128,6 +128,11 @@ const createBody = {
       type: "boolean",
     },
     sort: bookmarkSortSchema,
+    bookmarkLimit: {
+      type: "integer",
+      nullable: true,
+      minimum: 1,
+    },
   },
 } as const;
 
@@ -184,6 +189,11 @@ const updateBody = {
       type: "boolean",
     },
     sort: bookmarkSortSchema,
+    bookmarkLimit: {
+      type: "integer",
+      nullable: true,
+      minimum: 1,
+    },
   },
 } as const;
 

@@ -38,6 +38,7 @@ function toSection(row: SectionRow): HomepageSection {
     cornerOverlays: row.cornerOverlays,
     hideWebsiteForYouTube: row.hideWebsiteForYouTube,
     sort: row.sort ?? null,
+    bookmarkLimit: row.bookmarkLimit ?? null,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
@@ -85,6 +86,7 @@ export async function createHomepageSection(
       cornerOverlays: input.cornerOverlays ?? true,
       hideWebsiteForYouTube: input.hideWebsiteForYouTube ?? false,
       sort: input.sort ?? null,
+      bookmarkLimit: input.bookmarkLimit ?? null,
     })
     .returning();
   return toSection(row);
@@ -112,6 +114,7 @@ export async function updateHomepageSection(
   if (input.cornerOverlays !== undefined) updates.cornerOverlays = input.cornerOverlays;
   if (input.hideWebsiteForYouTube !== undefined) updates.hideWebsiteForYouTube = input.hideWebsiteForYouTube;
   if (input.sort !== undefined) updates.sort = input.sort;
+  if (input.bookmarkLimit !== undefined) updates.bookmarkLimit = input.bookmarkLimit;
 
   if (Object.keys(updates).length === 0) {
     const [existing] = await db

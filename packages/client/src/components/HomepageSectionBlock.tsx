@@ -24,7 +24,10 @@ export function HomepageSectionBlock({
   const {
     section, bookmarks: unsortedBookmarks,
   } = data;
-  const bookmarks = sortBookmarks(unsortedBookmarks, section.sort ?? undefined, customProperties);
+  const sortedBookmarks = sortBookmarks(unsortedBookmarks, section.sort ?? undefined, customProperties);
+  const bookmarks = section.bookmarkLimit
+    ? sortedBookmarks.slice(0, section.bookmarkLimit)
+    : sortedBookmarks;
   const columns = section.columns;
   const imageMode = section.imageMode;
   const imageVisibility = section.imageVisibility;

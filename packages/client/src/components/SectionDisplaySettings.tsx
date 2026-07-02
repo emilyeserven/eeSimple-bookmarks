@@ -13,6 +13,7 @@ import { CardZoneLayoutControls } from "./CardZoneLayoutControls";
 import { OnOffToggleGroup } from "./DisplayControlPrimitives";
 import { DisplaySettingsControlsBase } from "./DisplaySettingsControls";
 
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
@@ -28,6 +29,8 @@ export interface SectionDisplayValue {
   /** Per-body-zone Flex/Grid layout. Concrete in the editor. */
   cardZoneLayouts: CardZoneLayouts;
   hideWebsiteForYouTube: boolean;
+  /** Maximum number of bookmarks to show in this section, or `null` for no limit. */
+  bookmarkLimit: number | null;
 }
 
 interface SectionDisplaySettingsProps {
@@ -91,6 +94,33 @@ export function SectionDisplaySettings({
         </div>
         <p className="text-xs text-muted-foreground">
           Hides the website pill on this section&rsquo;s cards that also have a YouTube channel.
+        </p>
+      </div>
+
+      <div className="space-y-1">
+        <Label
+          htmlFor={`${idPrefix}-bookmark-limit`}
+          className="text-sm font-medium"
+        >
+          Bookmark limit
+        </Label>
+        <Input
+          id={`${idPrefix}-bookmark-limit`}
+          type="number"
+          min={1}
+          step={1}
+          value={value.bookmarkLimit ?? ""}
+          placeholder="No limit"
+          onChange={(e) => {
+            const raw = e.target.value;
+            onChange({
+              bookmarkLimit: raw === "" ? null : Math.max(1, Math.trunc(Number(raw))),
+            });
+          }}
+          className="max-w-32"
+        />
+        <p className="text-xs text-muted-foreground">
+          Maximum number of bookmarks shown in this section, applied after sorting. Leave blank for no limit.
         </p>
       </div>
 

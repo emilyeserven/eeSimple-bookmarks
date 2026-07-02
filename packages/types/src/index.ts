@@ -2397,6 +2397,8 @@ export interface HomepageSection {
   cornerOverlays: boolean;
   /** When true, the website pill is hidden on this section's cards for a bookmark that also has a YouTube channel. Defaults to false. Owned per-section so homepage cards never inherit the Default card display rule. */
   hideWebsiteForYouTube: boolean;
+  /** Maximum number of bookmarks to show in this section, applied after sorting, or `null` for no limit. */
+  bookmarkLimit: number | null;
   createdAt: string;
 }
 
@@ -2424,6 +2426,7 @@ export interface CreateHomepageSectionInput {
   cornerOverlays?: boolean;
   hideWebsiteForYouTube?: boolean;
   sort?: BookmarkSort | null;
+  bookmarkLimit?: number | null;
 }
 
 /** Payload for partially updating a homepage section. */
