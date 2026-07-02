@@ -14,7 +14,7 @@ import type {
 } from "@eesimple/types";
 import { IMPORT_BLACKLIST_KINDS, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
-import { getDatabaseUsageReport } from "@/services/databaseUsage";
+import { getDatabaseTableDetail, getDatabaseUsageReport } from "@/services/databaseUsage";
 import {
   getAdvancedSettings,
   getAiSummarizationSettings,
@@ -679,6 +679,23 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       tags: ["app-settings"],
     },
   }, async () => getDatabaseUsageReport());
+
+  app.get("/api/app-settings/database-usage/:tableName", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async (req, reply) => {
+    const {
+      tableName,
+    } = req.params as { tableName: string };
+    const detail = await getDatabaseTableDetail(tableName);
+    if (!detail) {
+      return reply.code(404).send({
+        message: "Table not found",
+      });
+    }
+    return detail;
+  });
 
   app.get("/api/app-settings/ai-summarization", {
     schema: {
