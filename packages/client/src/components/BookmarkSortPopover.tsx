@@ -3,6 +3,7 @@ import type { BookmarkSort, SortDirection } from "../lib/bookmarkSort";
 import { ArrowUpDown } from "lucide-react";
 
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { withSort } from "../lib/bookmarkSearch";
 import { SORTABLE_PROPERTY_TYPES } from "../lib/bookmarkSort";
 import { cn } from "../lib/utils";
 import { useUiStore } from "../stores/uiStore";
@@ -18,17 +19,15 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 
 interface BookmarkSortPopoverProps {
-  pageKey: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
 export function BookmarkSortPopover({
-  pageKey,
   open,
   onOpenChange,
 }: BookmarkSortPopoverProps) {
-  const isActive = useUiStore(s => s.bookmarkSort[pageKey] != null);
+  const isActive = useUiStore(s => s.filterContext?.search.sort != null);
   return (
     <ResponsivePopover
       title="Sort"
@@ -54,23 +53,22 @@ export function BookmarkSortPopover({
         </Button>
       )}
     >
-      <BookmarkSortControls pageKey={pageKey} />
+      <BookmarkSortControls />
     </ResponsivePopover>
   );
 }
 
-interface BookmarkSortControlsProps {
-  pageKey: string;
-}
-
 const RANDOM_FIELD = "random";
 
-function BookmarkSortControls({
-  pageKey,
-}: BookmarkSortControlsProps) {
-  const sort = useUiStore(s => s.bookmarkSort[pageKey]);
-  const setBookmarkSort = useUiStore(s => s.setBookmarkSort);
-  const clearBookmarkSort = useUiStore(s => s.clearBookmarkSort);
+function BookmarkSortControls() {
+  const filterContext = useUiStore(s => s.filterContext);
+  const sort = filterContext?.search.sort;
+  const setBookmarkSort = (next: BookmarkSort) => {
+    if (filterContext) filterContext.onSearchChange(withSort(filterContext.search, next));
+  };
+  const clearBookmarkSort = () => {
+    if (filterContext) filterContext.onSearchChange(withSort(filterContext.search, undefined));
+  };
   const {
     data: allProperties = [],
   } = useCustomProperties();
@@ -112,11 +110,11 @@ function BookmarkSortControls({
 
   function setPrimary(field: string | null, direction: SortDirection = primaryDir) {
     if (!field) {
-      clearBookmarkSort(pageKey);
+      clearBookmarkSort();
       return;
     }
     if (field === RANDOM_FIELD) {
-      setBookmarkSort(pageKey, {
+      setBookmarkSort({
         random: true,
         seed: Math.random(),
       });
@@ -129,12 +127,12 @@ function BookmarkSortControls({
       },
       secondary: fieldsSort?.secondary,
     };
-    setBookmarkSort(pageKey, next);
+    setBookmarkSort(next);
   }
 
   function setPrimaryDir(direction: SortDirection) {
     if (!fieldsSort) return;
-    setBookmarkSort(pageKey, {
+    setBookmarkSort({
       primary: {
         field: fieldsSort.primary.field,
         direction,
@@ -145,7 +143,7 @@ function BookmarkSortControls({
 
   function setSecondary(field: string | null, direction: SortDirection = secondaryDir) {
     if (!fieldsSort) return;
-    setBookmarkSort(pageKey, {
+    setBookmarkSort({
       primary: fieldsSort.primary,
       secondary: field
         ? {
@@ -158,7 +156,7 @@ function BookmarkSortControls({
 
   function setSecondaryDir(direction: SortDirection) {
     if (!fieldsSort || !secondaryField) return;
-    setBookmarkSort(pageKey, {
+    setBookmarkSort({
       primary: fieldsSort.primary,
       secondary: {
         field: secondaryField,
@@ -168,7 +166,7 @@ function BookmarkSortControls({
   }
 
   function reshuffle() {
-    setBookmarkSort(pageKey, {
+    setBookmarkSort({
       random: true,
       seed: Math.random(),
     });
@@ -223,7 +221,7 @@ function BookmarkSortControls({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => clearBookmarkSort(pageKey)}
+            onClick={() => clearBookmarkSort()}
           >
             Clear sort
           </Button>

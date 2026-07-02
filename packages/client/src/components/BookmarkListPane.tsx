@@ -122,14 +122,13 @@ export function BookmarkListPane({
   afterAddForm,
 }: BookmarkListPaneProps) {
   useRegisterBulkSelect(pageKey);
-  const sort = useUiStore(s => s.bookmarkSort[pageKey]);
   const headerSearchQuery = useUiStore(s => s.headerSearchQuery);
   const perPage = useBookmarksPerPage();
   const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
-  const visibleBookmarks = sortBookmarks(filtered, sort, properties);
+  const visibleBookmarks = sortBookmarks(filtered, search.sort, properties);
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
 
-  const resetKey = `${pageKey}|${sort ?? ""}|${headerSearchQuery}|${JSON.stringify(search)}`;
+  const resetKey = `${pageKey}|${headerSearchQuery}|${JSON.stringify(search)}`;
   const {
     page, totalPages, pageItems, total, rangeStart, rangeEnd, setPage,
   } = useListingPagination(visibleBookmarks, perPage, resetKey);

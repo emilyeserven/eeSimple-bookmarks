@@ -94,17 +94,15 @@ export function bulkSelectAction(ctx: ToolbarContext): ToolbarAction | null {
 
 export function sortAction(ctx: ToolbarContext): ToolbarAction | null {
   if (!ctx.listingPage?.hasSort) return null;
-  const pageKey = ctx.listingPage.key;
   return {
     key: "sort",
-    desktop: <BookmarkSortPopover pageKey={pageKey} />,
+    desktop: <BookmarkSortPopover />,
     mobile: {
       kind: "modal",
       icon: ArrowUpDown,
       label: "Sort",
       renderModal: (open, onOpenChange) => (
         <BookmarkSortPopover
-          pageKey={pageKey}
           open={open}
           onOpenChange={onOpenChange}
         />

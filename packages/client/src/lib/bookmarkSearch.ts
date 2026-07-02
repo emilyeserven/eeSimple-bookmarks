@@ -1,3 +1,4 @@
+import type { BookmarkSort, BookmarkSortDimension, BuiltinSortField, SortDirection } from "./bookmarkSort";
 import type { Bookmark, BookmarkAuthor, BookmarkLocation, BookmarkTag, SectionEntryType } from "@eesimple/types";
 
 import { placeTypeKey } from "@eesimple/types";
@@ -56,6 +57,8 @@ export interface BookmarkSearch {
   sectionsPresence?: "has" | "missing" | "exclude";
   /** Filter bookmarks to those with at least one section entry of one of these types (OR semantics). In "exclude" sectionsPresence mode, bookmarks must have none of these types. */
   sectionTypes?: SectionEntryType[];
+  /** Active sort order (primary + optional secondary dimension, or a random shuffle). Absent = server's default `createdAt DESC` order. */
+  sort?: BookmarkSort;
 }
 
 function parseNumRecord(raw: unknown): Record<string, [number, number]> {
@@ -142,6 +145,49 @@ function validSectionTypes(value: unknown): SectionEntryType[] | undefined {
   return valid.length > 0 ? valid : undefined;
 }
 
+function validSortDirection(value: unknown): SortDirection | undefined {
+  return value === "asc" || value === "desc" ? value : undefined;
+}
+
+/** Narrow an unknown value to a `BookmarkSortDimension` (a built-in field name or a custom property id, plus a direction). */
+function validSortDimension(value: unknown): BookmarkSortDimension | undefined {
+  if (value === null || typeof value !== "object") return undefined;
+  const {
+    field, direction,
+  } = value as Record<string, unknown>;
+  const dir = validSortDirection(direction);
+  if (typeof field !== "string" || field === "" || !dir) return undefined;
+  return {
+    field,
+    direction: dir,
+  };
+}
+
+/** Narrow an unknown value to a `BookmarkSort`, dropping anything malformed. */
+function validSort(value: unknown): BookmarkSort | undefined {
+  if (value === null || typeof value !== "object") return undefined;
+  const raw = value as Record<string, unknown>;
+  if (raw.random === true) {
+    return typeof raw.seed === "number"
+      ? {
+        random: true,
+        seed: raw.seed,
+      }
+      : undefined;
+  }
+  const primary = validSortDimension(raw.primary);
+  if (!primary) return undefined;
+  const secondary = validSortDimension(raw.secondary);
+  return secondary
+    ? {
+      primary,
+      secondary,
+    }
+    : {
+      primary,
+    };
+}
+
 /** Narrow an unknown search record into a `BookmarkSearch`, dropping anything malformed or absent. */
 export function validateBookmarkSearch(search: Record<string, unknown>): BookmarkSearch {
   const candidates: BookmarkSearch = {
@@ -164,6 +210,7 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     choices: nonEmptyRecord(parseChoicesRecord(search.choices)),
     sectionsPresence: validPresence(search.sectionsPresence),
     sectionTypes: validSectionTypes(search.sectionTypes),
+    sort: validSort(search.sort),
   };
 
   // Drop the keys that came back undefined so the result has no empty/absent filter entries.
@@ -639,6 +686,16 @@ export function withSectionTypes(search: BookmarkSearch, types: SectionEntryType
   return next;
 }
 
+/** Return a copy of `search` with the sort set, or cleared when `sort` is undefined. */
+export function withSort(search: BookmarkSearch, sort: BookmarkSort | undefined): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (sort === undefined) delete next.sort;
+  else next.sort = sort;
+  return next;
+}
+
 /** Return a copy of `search` with a property-presence filter set or cleared. */
 export function withPresenceFilter(
   search: BookmarkSearch,
@@ -721,6 +778,20 @@ function sectionPresencePart(presence: string | undefined): string | null {
   return presence === "exclude" ? "sections: excluded types" : `sections: ${presence}`;
 }
 
+const SORT_FIELD_LABELS: Record<BuiltinSortField, string> = {
+  title: "title",
+  createdAt: "date added",
+  updatedAt: "date updated",
+};
+
+/** Format the active-sort summary fragment, e.g. "sorted by title (asc)" or "sorted randomly". */
+function sortSummaryPart(sort: BookmarkSort | undefined): string | null {
+  if (!sort) return null;
+  if ("random" in sort) return "sorted randomly";
+  const label = SORT_FIELD_LABELS[sort.primary.field as BuiltinSortField] ?? "a property";
+  return `sorted by ${label} (${sort.primary.direction})`;
+}
+
 export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
   const search = validateBookmarkSearch(raw);
   const propCount
@@ -741,6 +812,7 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     countPart(propCount, "property", "properties"),
     sectionPresencePart(search.sectionsPresence),
     search.sectionTypes && search.sectionTypes.length > 0 ? `section types: ${search.sectionTypes.join(", ")}` : null,
+    sortSummaryPart(search.sort),
   ];
   return parts.filter((part): part is string => part !== null).join(" · ") || "No filters";
 }
