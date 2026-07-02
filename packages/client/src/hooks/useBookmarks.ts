@@ -293,6 +293,21 @@ export function useKavitaCoverImage() {
   });
 }
 
+/** Import the cover from the bookmark's stored ISBN/ASIN as its main image. */
+export function useIsbnCoverImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => bookmarksApi.isbnCover(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      notifySuccess("ISBN cover added");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not fetch a cover for that ISBN/ASIN")),
+  });
+}
+
 /** Remove a bookmark's image. */
 export function useDeleteBookmarkImage() {
   const queryClient = useQueryClient();
