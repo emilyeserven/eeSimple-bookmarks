@@ -71,8 +71,14 @@ Mirror Media Types / YouTube Channels. The entity must already be a fetched taxo
 **Do not** copy `MediaTypeFilterSection` — it lacks the presence/exclusion controls. Mirror
 `YouTubeChannelFilterSection` or `WebsiteFilterSection` instead.
 
-`FilterSidebar` (the caller of `FilterSections`) derives whether to show the section from the
-entity list being non-empty — wire the new prop the same way `youtubeChannels` is.
+`FilterSidebar` (the caller of `FilterSections`) no longer derives visibility inline — it calls
+`computeFilterSidebarVisibility` (`packages/client/src/lib/filterSidebarVisibility.ts`), which
+combines data presence with the on-demand reveal state. Wiring a new facet therefore means:
+add the entity list to `FilterFacetInputs` + `computeFacetData` there, add the facet's
+`{ key, label }` to `FILTER_FACETS` and its arm to `facetHasActiveSelection`
+(`lib/filterFacets.ts`), and read `facetVisible["<key>"]` in `FilterSidebar` — the same way
+`channels` is wired. `filterSidebarVisibility.test.ts` covers the reveal rules; extend it for the
+new facet.
 
 ### 3. Route files that render `BookmarkSearchView`
 `BookmarkSearchView` already accepts optional `mediaTypes?` / `youtubeChannels?` — add `<entity>s?:

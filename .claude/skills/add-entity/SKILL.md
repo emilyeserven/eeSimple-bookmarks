@@ -130,7 +130,7 @@ Adding the listing page to the sidebar (`lib/sidebarNavItems.ts` — `taxonomyIt
 - **Favoritable settings page** (header star + Settings favorites flyout): `SETTINGS_PAGES` in
   `lib/settingsPages.ts` derives from the sidebar items. Only a listing page on **no** sidebar
   (e.g. Place Types) needs a `STANDALONE_PAGES` entry there.
-- **CMD+K nav groups**: the palette's Pages/Taxonomies/Settings groups (`CommandPalette.tsx`)
+- **CMD+K nav groups**: the palette's Pages/Taxonomies/Settings groups (`CommandPaletteNavGroups.tsx`)
   derive from the same modules.
 
 ### 11. Route data + CMD+K quick-actions

@@ -223,12 +223,15 @@ const { data: allChannels } = useYouTubeChannels();
 // categories is already fetched for the categories collapsible section
 ```
 
-Add counts to the nav links by rendering a `SidebarMenuBadge` next to each item.
-`AppSidebar` builds its nav sections with the `CollapsibleSection` wrapper from
-`app-sidebar-sections.tsx` and maps the `taxonomyItems` / `customizationItems`
-arrays to inline `SidebarMenuItem` / `SidebarMenuButton` rows directly in
-`app-sidebar.tsx` — there is no separate `SidebarNavSection` component, so the
-count badge goes into that inline map.
+Add counts to the nav links via the shared `SidebarCountBadge`
+(`packages/client/src/components/SidebarCountBadge.tsx` — renders nothing when
+the count is null or the sidebar is icon-collapsed). `AppSidebar` renders the
+`taxonomyItems` / `customizationItems` arrays through its `ExpandableLinkSection`
+(still in `app-sidebar.tsx`), which already places a `SidebarCountBadge` per
+item; the static top nav lives in `SidebarPrimaryNav.tsx` and the Categories /
+Saved Filters sections in `SidebarCategoriesSection.tsx` /
+`SidebarSavedFiltersSection.tsx`. So a new nav item only needs a `count` on its
+`LinkSidebarItem` — no badge markup.
 
 ### In `app-sidebar.tsx`
 
