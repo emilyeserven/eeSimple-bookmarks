@@ -501,7 +501,15 @@ export interface PlaceTypeLevelGroup {
   placeTypes: string[];
   /** How locations in this group render: `area` (boundary when present, else pin) or `pin`. */
   displayMode: LocationDisplayMode;
-  /** Whether locations in this group are shown on the map at all. */
+  /**
+   * Whether this level is included in any map's **default** shown levels — the main map's
+   * `showOnMainMap` list, a place/bookmark map's anchor, and its `levelMode` "above"/"below"
+   * expansion all drop this group when `false`, regardless of what those settings would otherwise
+   * include. This is a granular, per-level override layered on top of those "Show" settings (e.g.
+   * "show everything above, but don't show countries") — it only affects defaults; a map's Levels
+   * overlay checkbox can still turn the level back on for that one map. Edited via the "Visible by
+   * default" checkbox on Settings → Locations → Level Groups.
+   */
   visible: boolean;
   /**
    * Whether this level is shown by default on the **main** all-locations map (`/taxonomies/locations`).

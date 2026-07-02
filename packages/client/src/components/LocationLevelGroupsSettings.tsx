@@ -81,6 +81,7 @@ export function LocationLevelGroupsSettings() {
     unassignedPlaceTypes,
     addGroupOfMode,
     renameGroup,
+    setGroupVisible,
     setGroupShowOnMainMap,
     setGroupDisplayMode,
     setGroupLevelMode,
@@ -338,6 +339,7 @@ export function LocationLevelGroupsSettings() {
                         options={placeTypeOptions}
                         takenPlaceTypes={takenPlaceTypesByGroup.get(group.id) ?? new Set()}
                         renameGroup={renameGroup}
+                        setGroupVisible={setGroupVisible}
                         setGroupShowOnMainMap={setGroupShowOnMainMap}
                         setGroupDisplayMode={setGroupDisplayMode}
                         setGroupLevelMode={setGroupLevelMode}
