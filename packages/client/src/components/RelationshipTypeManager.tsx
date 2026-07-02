@@ -1,6 +1,8 @@
+import { useState } from "react";
+
 import { ArrowRight } from "lucide-react";
 
-import { AddRelationshipTypeRow } from "./AddRelationshipTypeRow";
+import { AddRelationshipTypeModal } from "./AddRelationshipTypeModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { RelationshipTypeCard } from "./RelationshipTypeCard";
 import { useSetListingPage } from "../hooks/useListingPage";
@@ -16,11 +18,13 @@ export function RelationshipTypesListing() {
   const {
     data: relationshipTypes, isLoading, error,
   } = useRelationshipTypes();
+  const [modalOpen, setModalOpen] = useState(false);
   const deletableIds = (relationshipTypes ?? []).filter(rt => !rt.builtIn).map(rt => rt.id);
   const selection = useListSelection("relationship-types-listing", deletableIds);
   useRegisterBulkSelect("relationship-types-listing");
-  useSetListingPage("relationship-types-listing", false, false, false, undefined, false, {
+  useSetListingPage("relationship-types-listing", false, false, false, () => setModalOpen(true), false, {
     addBookmark: {},
+    createLabel: "New relationship type",
   });
   const bulkDelete = useBulkDeleteRelationshipTypes();
 
@@ -57,7 +61,10 @@ export function RelationshipTypesListing() {
         ))}
       </div>
 
-      <AddRelationshipTypeRow />
+      <AddRelationshipTypeModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
     </div>
   );
 }
