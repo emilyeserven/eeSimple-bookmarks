@@ -20,7 +20,8 @@ function TagsListingPage() {
   } = useTags();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("tags-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("tags-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New tag",
   });

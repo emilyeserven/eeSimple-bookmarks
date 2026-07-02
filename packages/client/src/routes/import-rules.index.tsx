@@ -21,7 +21,9 @@ function ImportRulesListPage() {
   } = useImportRules();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("import-rules-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("import-rules-listing", {
+    createAction: () => setModalOpen(true),
+  });
   useRegisterHeaderSearch();
   const query = useUiStore(state => state.headerSearchQuery);
 

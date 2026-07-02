@@ -20,7 +20,8 @@ function MediaTypesTaxonomyPage() {
   } = useMediaTypes();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("media-types-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("media-types-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New media type",
   });

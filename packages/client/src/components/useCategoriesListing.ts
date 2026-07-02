@@ -40,7 +40,8 @@ export function useCategoriesListing(): CategoriesListingState {
   } = useCategories();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("categories-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("categories-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New category",
   });

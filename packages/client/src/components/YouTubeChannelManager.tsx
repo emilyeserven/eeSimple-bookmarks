@@ -24,7 +24,8 @@ export function YouTubeChannelsListing() {
   } = useCategories();
   const [modalOpen, setModalOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>();
-  useSetListingPage("youtube-channels-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("youtube-channels-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New channel",
   });

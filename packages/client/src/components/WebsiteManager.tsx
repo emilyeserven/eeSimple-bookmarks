@@ -16,7 +16,8 @@ export function WebsitesListing() {
     data: allWebsites, isLoading, error,
   } = useWebsites();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("websites-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("websites-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New website",
   });

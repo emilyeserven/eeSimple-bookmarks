@@ -18,7 +18,8 @@ export function useCustomPropertyManager() {
   } = useCustomProperties();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("custom-properties-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("custom-properties-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New property",
   });

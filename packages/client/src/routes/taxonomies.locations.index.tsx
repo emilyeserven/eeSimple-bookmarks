@@ -38,7 +38,8 @@ function LocationsTaxonomyPage() {
       to: "/taxonomies/locations/new",
     });
   };
-  useSetListingPage("locations-listing", false, false, false, createLocation, false, {
+  useSetListingPage("locations-listing", {
+    createAction: createLocation,
     addBookmark: {},
     createLabel: "New location",
   });

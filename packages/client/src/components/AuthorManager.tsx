@@ -21,7 +21,8 @@ export function AuthorsListing() {
     data: allAuthors, isLoading, error,
   } = useAuthors();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("authors-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("authors-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New author",
   });

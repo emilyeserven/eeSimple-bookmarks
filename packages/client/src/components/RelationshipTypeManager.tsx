@@ -38,7 +38,8 @@ export function RelationshipTypesListing() {
   const deletableIds = filtered.filter(rt => !rt.builtIn).map(rt => rt.id);
   const selection = useListSelection("relationship-types-listing", deletableIds);
   useRegisterBulkSelect("relationship-types-listing");
-  useSetListingPage("relationship-types-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("relationship-types-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New relationship type",
   });
