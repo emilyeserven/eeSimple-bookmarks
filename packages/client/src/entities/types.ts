@@ -22,9 +22,21 @@ export interface EntityListingConfig<E extends { id: string }> {
   matches: (item: E, query: string) => boolean;
   /** Ids eligible for bulk-select/delete, derived from the filtered list. Defaults to every id. */
   deletableIds?: (items: E[]) => string[];
-  useBulkDelete: () => UseMutationResult<BulkDeleteResult[], Error, string[]>;
-  /** Singular/plural noun for the bulk-delete confirm copy, e.g. `["publisher", "publishers"]`. */
-  noun: [string, string];
+  /** Required unless `renderBulkActions` is provided (which owns its own delete UI). */
+  useBulkDelete?: () => UseMutationResult<BulkDeleteResult[], Error, string[]>;
+  /**
+   * Singular/plural noun for the bulk-delete confirm copy, e.g. `["publisher", "publishers"]`.
+   * Required unless `renderBulkActions` is provided.
+   */
+  noun?: [string, string];
+  /**
+   * Replaces the default `TaxonomyBulkBar` (delete-only) with custom bulk-action content — e.g.
+   * Website's "set category/media type", "add/remove tags", and delete dialogs. `ListingScaffold`
+   * still renders the shared `BulkActionBar` chrome (count, Select-all, Clear); only the actions
+   * inside it are swapped. When provided, `useBulkDelete`/`noun` are unused.
+   */
+  renderBulkActions?: (props: { selectedIds: string[];
+    onDone: () => void; }) => ReactNode;
   loadingLabel: string;
   entityPlural: string;
   emptyMessage: ReactNode;

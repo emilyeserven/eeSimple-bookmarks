@@ -68,6 +68,17 @@ export const PROPERTY_GROUP_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
+/** Hoisted so `entities/website.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const WEBSITE_ROUTE: EntityRoute = {
+  kind: "website",
+  prefix: "/taxonomies/websites",
+  slugIndex: 2,
+  listLabel: "Websites",
+  singular: "Website",
+  switcher: "website",
+  flatCrumbs: true,
+};
+
 /** Hoisted so `entities/relationshipType.tsx`'s `EntityDescriptor` can reference this entry by identity. */
 export const RELATIONSHIP_TYPE_ROUTE: EntityRoute = {
   kind: "relationship-type",
@@ -126,15 +137,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
     singular: "Tag",
     flatCrumbs: false,
   },
-  {
-    kind: "website",
-    prefix: "/taxonomies/websites",
-    slugIndex: 2,
-    listLabel: "Websites",
-    singular: "Website",
-    switcher: "website",
-    flatCrumbs: true,
-  },
+  WEBSITE_ROUTE,
   {
     kind: "media-type",
     prefix: "/taxonomies/media-types",
