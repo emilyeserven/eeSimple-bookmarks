@@ -8,6 +8,7 @@ description: >-
   "make X slug-routed", or "register a panel content type". Mirrors how categories, websites,
   custom-properties, autofill, media-types, youtube-channels, tags, and property-groups were each
   built.
+  Also the map for maintaining an entity — renaming it, adding fields, or removing it (each step below is a sync point; see the sibling skills it links for field-level changes).
 ---
 
 # Add a slug-routed entity
@@ -130,7 +131,7 @@ Adding the listing page to the sidebar (`lib/sidebarNavItems.ts` — `taxonomyIt
 - **Favoritable settings page** (header star + Settings favorites flyout): `SETTINGS_PAGES` in
   `lib/settingsPages.ts` derives from the sidebar items. Only a listing page on **no** sidebar
   (e.g. Place Types) needs a `STANDALONE_PAGES` entry there.
-- **CMD+K nav groups**: the palette's Pages/Taxonomies/Settings groups (`CommandPalette.tsx`)
+- **CMD+K nav groups**: the palette's Pages/Taxonomies/Settings groups (`CommandPaletteNavGroups.tsx`)
   derive from the same modules.
 
 ### 11. Route data + CMD+K quick-actions
@@ -163,3 +164,19 @@ Then check manually that the entity:
   the **same** tabbed bodies + responsive shell as the main pane via `EntityWorkbenchView` (from the
   `<entity>Workbench` descriptor), not a panel-only editor or view card. Drag the docked drawer narrow
   to confirm the tab nav collapses to the horizontal strip.
+
+## Maintaining an existing entity
+
+The checklist above is the sync-point map; for changes, jump to the sibling skill that owns the
+change kind rather than re-running the whole scaffold:
+
+- **Expose or edit a field** → `surface-entity-field`; **new tab** → `tabbed-pages`; **palette
+  fields** → `cmd-k-entity-context`; **listing affordances** → `listing-page-controls` /
+  `listing-table-view` / `bulk-listing-actions` / `standard-listing-card`.
+- **Rename an entity**: label sources are centralized — `crumbLabel()`/`LABEL_OVERRIDES` in the
+  breadcrumb helpers, `TAXONOMY_DESCRIPTORS`, `lib/sidebarNavItems.ts`, and `ENTITY_ROUTES` — but
+  slugs are persisted; keep route prefixes and `pageKey`s stable even if display names change.
+- **Remove an entity**: reverse the checklist. The exhaustive registries
+  (`ENTITY_PALETTE_CONFIGS`, workbench descriptors, panel content types) fail `tsc` on leftovers —
+  chase compile errors, then drop the table via an idempotent `migrate.ts` step (never a bare
+  schema edit; push must stay additive).

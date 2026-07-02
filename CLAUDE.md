@@ -10,7 +10,10 @@ tooling and architecture of [course-tracker](https://github.com/emilyeserven/cou
 - **Runtime & build:** Node 22, pnpm 10, TypeScript 5.9 (strict, ES2022, `moduleResolution: bundler`)
 - **Frontend:** React 19, Vite, TanStack Router/Query/Form, Tailwind CSS 4
 - **Backend:** Fastify 5, Drizzle ORM, PostgreSQL, Swagger UI
-- **Testing:** Vitest + Testing Library (client), Node test runner (middleware)
+- **Testing:** Vitest + Testing Library (client), Node test runner (middleware). Pure client
+  `.test.ts` files opt into the faster `node` environment with a first-line
+  `// @vitest-environment node` pragma — see the **`vitest-node-environment`** skill for the
+  decision rule.
 
 ## Monorepo layout
 
@@ -330,7 +333,12 @@ This is the **state-orchestration** sibling to **PropertyForm**'s section-compon
 **Content hierarchies**): PropertyForm divides the *rendered UI* into section components typed via the
 shared form-API sample type; the bookmark form additionally moves the *state + handlers* out of the
 component. Reach for a controller hook when the cap pressure is hook-density rather than inline JSX
-branching. Don't reintroduce a `// fallow-ignore-next-line complexity` to dodge this.
+branching. Don't reintroduce a `// fallow-ignore-next-line complexity` to dodge this. The
+**CMD+K palette** is the same pattern at coordinator scale: its state hooks live in
+`useCommandPaletteState.ts` and each command group is its own component
+(`CommandPaletteNavGroups` / `ListingPageCommandGroup` / `CommandPaletteTaxonomyModes` / …), leaving
+`CommandPalette.tsx` as handlers + composition — split a new over-cap coordinator along the same
+group seams rather than growing it inline.
 
 ## Edit-tab auto-save standard
 
@@ -387,9 +395,11 @@ instead.
 
 **Patterns to mirror** (the middleware already does the heavy lifting — follow these):
 
-- **Counts** — `computeTagBookmarkCounts` (subtree + own counts) in `services/tags.ts`; the category
-  bookmark-count subquery in `services/categories.ts`. The client renders the number; it doesn't
-  tally rows.
+- **Counts** — `computeTagBookmarkCounts` (subtree + own counts) in `services/tags.ts` and its
+  locations twin, both thin wrappers over the generic `parentId`-tree helpers in
+  `utils/parentTree.ts` (children map, subtree ids, subtree bookmark counts — reuse these for any
+  new tree taxonomy); the category bookmark-count subquery in `services/categories.ts`. The client
+  renders the number; it doesn't tally rows.
 - **Trees** — `buildTagTree` / the media-type tree returned by `/api/tags/tree` and
   `/api/media-types/tree`. The client only flattens for indentation.
 - **Batched hydration** — `hydrateBookmarkRows` (`services/bookmarkHydration.ts`) joins
@@ -399,7 +409,10 @@ instead.
   (`services/autofill.ts`) both load via the **bookmark cache** (below) and run the **shared**
   `evaluateConditions` from `@eesimple/types`. Server-side processing that shares logic with the
   client must call the same `@eesimple/types` function — never a re-implementation or a parallel SQL
-  translation of the same predicate.
+  translation of the same predicate. The autofill **last-writer merge** follows the same rule:
+  `mergeMatchingAutofillRules` / `urlTitleConditionInput` live in `@eesimple/types`
+  (`autofillMerge.ts`) and are the single implementation behind both the client form prefill
+  (`lib/autofill.ts`) and server-side creation (`suggestAutofillForBookmark`).
 
 **Sanctioned exceptions that stay client-side** (don't "fix" these by adding endpoints):
 
@@ -599,15 +612,20 @@ from the two nav data modules, so favoritability comes for free:
   the hand-listed `STANDALONE_PAGES` remainder in `settingsPages.ts`.
 `settingsPages.test.ts` asserts the derivation (every sidebar item / settings tab resolves) — extend
 it only for standalone pages. The CMD+K palette's Pages/Taxonomies/Settings nav groups derive from
-the same modules (`CommandPalette.tsx`), so they also pick the page up automatically.
+the same modules (`CommandPaletteNavGroups.tsx`), so they also pick the page up automatically.
 
 ## CMD+K palette sync
 
 **The CMD+K palette must mirror every header toolbar action.** `buildToolbarActions` in
 `packages/client/src/components/header/toolbarActions.tsx` is the canonical list of contextual header
-actions. When a new action is added there, also add a corresponding `CommandItem` in
-`packages/client/src/components/CommandPalette.tsx`. The four action categories and their palette
-hooks:
+actions. When a new action is added there, also add a corresponding `CommandItem` in the palette.
+`CommandPalette.tsx` is only the coordinator — the items live in per-group components beside it:
+listing display / filter-location / bulk-select items in `ListingPageCommandGroup.tsx`, the
+Actions + Pages/Taxonomies/Settings tail in `CommandPaletteNavGroups.tsx`, the bookmark-detail
+"Current Page" actions in `BookmarkViewPageCommandGroup.tsx`, the bookmark taxonomy quick-edits in
+`commandPaletteSubPalettes.tsx` (`BookmarkTaxonomiesGroup`), and the drilled-in sub-palette modes in
+`CommandPaletteTaxonomyModes.tsx` (state hooks in `useCommandPaletteState.ts`). The four action
+categories and their palette hooks:
 
 - **Listing display** (view mode, columns) — reads/writes `uiStore` via `useListingPageContext`;
   gate on `listingCtx.listingPage !== null`.
@@ -630,7 +648,8 @@ hooks:
   the recipe, field rules (toggle vs sub-palette vs navigate-to-edit), and the gating rationale
   (the palette mounts app-wide; queries must stay gated on `open && matched`).
 
-New toolbar action → new `CommandItem` in the "Current Page" group (or the "Bookmark Taxonomies"
-group for bookmark-specific fields). New bookmark entity field → extend `useBookmarkTaxonomyContext`
-and add an item to the palette's bookmark section. New slug-routed entity or entity field → a
-registry entry / `fields` entry per the `cmd-k-entity-context` skill.
+New toolbar action → new `CommandItem` in the "Current Page" group (`ListingPageCommandGroup.tsx`,
+or the "Bookmark Taxonomies" group for bookmark-specific fields). New bookmark entity field →
+extend `useBookmarkTaxonomyContext` and add an item to the palette's bookmark section. New
+slug-routed entity or entity field → a registry entry / `fields` entry per the
+`cmd-k-entity-context` skill.

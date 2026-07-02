@@ -8,6 +8,7 @@ description: >-
   for X", "add a new filter/condition type", or "split a match condition out". Mirrors how
   categories (`setCategoryId`), custom properties (value arrays), and websites (Website condition)
   each scope autofill rules.
+  Also covers maintaining scoping — "the X autofill tab is stale", "remove autofill scoping from X", "the rule field for X was renamed".
 ---
 
 # Scope autofill rules to an entity
@@ -88,3 +89,14 @@ pnpm lint:fix        # always from repo root
 Then `pnpm dev`: the entity's Autofill tab lists only its scoped rules (correct empty message);
 "New Autofill Rule" pre-fills the entity; for a new condition type, both the rule builder and the
 Homepage filter show the new section and round-trip a saved value.
+
+## Maintaining existing scoping
+
+- **Entity field renamed/retired**: action-based scoping reads the rule's `set*`/value arrays —
+  update `lib/autofillRulesFilter.ts` (which rules target this entity) and the entity tab's list
+  in the same change, or the tab silently shows nothing.
+- **Condition-leaf changes** (operators, shape) belong to the `add-condition-type` skill's
+  maintenance section — the leaf is shared with Homepage sections, so never fork it for autofill.
+- **Remove scoping from an entity**: drop the tab route + workbench entry (Edit falls back to
+  General automatically) and the quick-create seeding prop; existing rules keep working — scoping
+  is a view, not data.

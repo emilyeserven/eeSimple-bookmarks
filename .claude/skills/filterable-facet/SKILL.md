@@ -5,6 +5,7 @@ description: >-
   like Media Types / YouTube Channels) and add a quick "create an autofill rule with this entity
   preselected" shortcut in eeSimple Bookmarks. Use when asked to "let filters filter on X", "add X
   as a filter facet", "filter bookmarks by X", or "add a quick-create-autofill-rule button to X".
+  Also covers maintaining facets — "rename/remove the X filter", "the X facet shows when empty", "change a facet's label".
   Mirrors how Media Types and YouTube Channels became facets. The full entity-scoped Autofill Rules
   *tab* is a separate concern — see the `scope-autofill` skill.
 ---
@@ -71,8 +72,14 @@ Mirror Media Types / YouTube Channels. The entity must already be a fetched taxo
 **Do not** copy `MediaTypeFilterSection` — it lacks the presence/exclusion controls. Mirror
 `YouTubeChannelFilterSection` or `WebsiteFilterSection` instead.
 
-`FilterSidebar` (the caller of `FilterSections`) derives whether to show the section from the
-entity list being non-empty — wire the new prop the same way `youtubeChannels` is.
+`FilterSidebar` (the caller of `FilterSections`) no longer derives visibility inline — it calls
+`computeFilterSidebarVisibility` (`packages/client/src/lib/filterSidebarVisibility.ts`), which
+combines data presence with the on-demand reveal state. Wiring a new facet therefore means:
+add the entity list to `FilterFacetInputs` + `computeFacetData` there, add the facet's
+`{ key, label }` to `FILTER_FACETS` and its arm to `facetHasActiveSelection`
+(`lib/filterFacets.ts`), and read `facetVisible["<key>"]` in `FilterSidebar` — the same way
+`channels` is wired. `filterSidebarVisibility.test.ts` covers the reveal rules; extend it for the
+new facet.
 
 ### 3. Route files that render `BookmarkSearchView`
 `BookmarkSearchView` already accepts optional `mediaTypes?` / `youtubeChannels?` — add `<entity>s?:
@@ -138,3 +145,16 @@ Then `pnpm dev`:
   Tag facets still work.
 - On the entity's view page, "New Autofill Rule" opens the panel with the entity preselected (the
   set-field or condition leaf is already populated) and a saved rule round-trips.
+
+## Maintaining an existing facet
+
+- **Rename the label**: one edit in `FILTER_FACETS` (`lib/filterFacets.ts`) — the rail section
+  heading, the Add-filter menu, and Settings → Display → Filters all derive from it.
+- **Never rename a facet `key`**: it is persisted in `DisplayPreferenceSettings.onDemandFilters`
+  and in saved-filter URLs; a renamed key silently orphans users' on-demand configuration.
+- **Remove a facet**: delete its `FILTER_FACETS` entry + `facetHasActiveSelection` arm, its
+  `FilterFacetInputs`/`computeFacetData` field (`lib/filterSidebarVisibility.ts`), its
+  `FilterSections` row, and its `BookmarkSearch` params in `lib/bookmarkSearch.ts`. Old URLs
+  carrying the retired params must be ignored, not crash search-param validation.
+- **"Shows when empty" bugs** live in `computeFilterSidebarVisibility` — extend
+  `filterSidebarVisibility.test.ts` with the failing case before fixing.

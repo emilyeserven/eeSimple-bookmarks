@@ -135,8 +135,9 @@ card.
 
 ## Tree taxonomies (Tags, Media Types)
 
-`TaxonomyTreeRow.tsx` is shared by both and keeps the collapsible chevron + the "No Child"
-own-count sub-row. It renders the icon **first** (`CategoryIcon name={node.icon ?? null}`), then the
+`TaxonomyTreeRow.tsx` is shared by both and keeps the recursion + the "No Child" own-count
+sub-row; the row content itself (icon, chevron, links, badges, hover actions) lives in
+`TaxonomyTreeRowInner.tsx`. The row renders the icon **first** (`CategoryIcon name={node.icon ?? null}`), then the
 chevron/spacer, the name link, the hover Edit + Info ghost buttons, and the count badge; each row
 mutes independently (`node.bookmarkCount === 0 → opacity-60`). The wrappers supply three render
 props: `renderNameLink` (the plain link to the term's **own bookmarks page** — `/tags/$slug`,

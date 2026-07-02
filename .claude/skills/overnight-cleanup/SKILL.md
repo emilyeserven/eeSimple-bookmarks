@@ -48,7 +48,7 @@ reset; compare against them at the end of every loop iteration.
 # Full health snapshot — the overall score lives at .health_score in the JSON
 pnpm exec fallow health --hotspots --targets --file-scores --format json --quiet 2>/dev/null || true
 
-# Dead-code count — compare against the intentional 31-export baseline
+# Dead-code count — target 0 (ui/ exports are config-excluded and never counted)
 pnpm exec fallow dead-code --format json --quiet 2>/dev/null || true
 
 # Duplication percentage — threshold is 6.0% (from .fallowrc.jsonc)
@@ -63,7 +63,7 @@ Key values to record:
 | Metric | Location in JSON | Target |
 |---|---|---|
 | Health score | `.health_score` (top-level, `fallow health` output) | ≥ 8.0 |
-| Dead-code issues | `.total_issues` (`fallow dead-code` output) | ≤ 31 (baseline) |
+| Dead-code issues | `.total_issues` (`fallow dead-code` output) | 0 |
 | Duplication % | `.stats.duplication_percentage` (`fallow dupes` output) | < 6.0 % |
 | Complexity findings | `.findings[]` where `kind` contains `"complexity"` | 0 above caps |
 | Untested high-risk files | cross-ref `.refactoring_targets[]` / complexity `.findings[]` against the test-file map (Phase 2.1) | trending down |
@@ -79,9 +79,9 @@ not a precise percentage. That is intentional; see Phase 2.
 1. **Never touch `packages/client/src/routeTree.gen.ts`** — it is generated; fallow's
    `ignorePatterns` already excludes it, but do not hand-edit it under any circumstances.
 2. **Never remove exports from `packages/client/src/components/ui/**`** — the shadcn/ui override
-   in `.fallowrc.jsonc` silences `unused-export` there intentionally. The baseline has exactly
-   31 unused exports from this directory. Do not remove them, do not add `fallow-ignore` comments
-   to them, and do not treat them as cleanup targets.
+   in `.fallowrc.jsonc` silences `unused-export` there intentionally, so they never appear in the
+   live report. Do not remove them, do not add `fallow-ignore` comments to them, and do not treat
+   them as cleanup targets.
 3. **Verify before every commit** — always run the full suite in this order:
    ```bash
    pnpm lint:fix       # always from repo root, never from inside a package
@@ -98,8 +98,9 @@ not a precise percentage. That is intentional; see Phase 2.
 7. **Always pass `--format json --quiet 2>/dev/null || true`** to every fallow command.
 8. **`fallow fix --yes` is required** — the environment is non-TTY; omitting `--yes` exits with
    code 2.
-9. **Do not modify `.fallow/dead-code-baseline.json`** unless explicitly asked. It tracks the
-   intentional 31-export baseline for CI.
+9. **Do not modify `.fallow/dead-code-baseline.json`** unless explicitly asked. It is the CI
+   snapshot the `fallow-audit` workflow compares against (recorded under an older config where the
+   ui/ exports still counted — its `total_issues: 31` is historical, not the live target).
 
 ---
 
@@ -111,12 +112,10 @@ not a precise percentage. That is intentional; see Phase 2.
 pnpm exec fallow dead-code --format json --quiet 2>/dev/null || true
 ```
 
-Parse the JSON. Focus only on `unused_exports` and `unused_files`. Ignore anything in
-`packages/client/src/components/ui/**` — those are shadcn/ui primitives covered by the config
-override.
-
-The intentional baseline is **31 unused exports**, all in `packages/client/src/components/ui/**`.
-Any unused export or file **outside** that directory is a real cleanup target.
+Parse the JSON. Focus on `unused_exports`, `unused_files`, and `duplicate_exports`. The
+shadcn/ui primitives under `packages/client/src/components/ui/**` are excluded by the config
+override and never appear here — **every issue in the live report is a real cleanup target**. The
+suite reached `total_issues: 0` in the 2026-07 sweep; that is the standing target.
 
 To confirm which exports are safe to remove before touching them:
 
@@ -170,8 +169,8 @@ git commit -m "refactor: remove dead code (Phase 1)"
 pnpm exec fallow dead-code --format json --quiet 2>/dev/null || true
 ```
 
-`total_issues` must equal exactly 31 (the shadcn baseline) or fewer — never more.
-If it is greater than 31, you have introduced new dead code; fix before proceeding.
+`total_issues` must be **0** — the config already excludes the sanctioned shadcn/ui exports,
+so any non-zero count means dead code (or a duplicate export) remains; fix before proceeding.
 
 ---
 
@@ -308,9 +307,9 @@ to hunt flakes — it burns the overnight budget. Look for the structural causes
   There are **none** in the suite today — keep it that way.
 - **Non-deterministic inputs** — a test that calls `new Date()` / `Date.now()` / `Math.random()` (or
   asserts on output that does) drifts with wall-clock / locale. Pin it with `vi.setSystemTime(…)` or
-  the shared factory's fixed `NOW` (`packages/client/src/test-utils/factories.ts`). The live
-  `new Date().toISOString()` in `packages/client/src/stores/notificationStore.test.ts` is the kind of
-  input to pin.
+  the shared factory's fixed `NOW` (`packages/client/src/test-utils/factories.ts`). (A live
+  `new Date().toISOString()` in `notificationStore.test.ts` was exactly this and has been pinned —
+  don't reintroduce one.)
 - **Broad `waitFor` / `findBy*`** — one that wraps a synchronous assertion, or polls on several
   things at once, is slow and racy. Narrow it to the single observable you actually wait on; **do not
   raise the timeout.**
@@ -333,6 +332,9 @@ to hunt flakes — it burns the overnight budget. Look for the structural causes
 - Hoist a **truly static** fixture out of `beforeEach` so it is built once — only when no test ever
   mutates it (never share mutable state to save time).
 - Prefer fake timers over a real-time debounce wait.
+- A new pure `.test.ts` file takes the first-line `// @vitest-environment node` pragma (jsdom setup
+  is the suite's dominant cost) — decision rule and verification in the **`vitest-node-environment`**
+  skill; never force a DOM-dependent file onto node.
 - **Do not** add a `retry`, `pool`, or relaxed-timeout setting to the Vitest config to make the suite
   "pass" — that masks flakes instead of fixing them. The config (`packages/client/vite.config.ts`)
   intentionally has no `retry`; keep it so.
@@ -815,7 +817,7 @@ Before each new loop iteration, note (and append to the scratch run-log from Pre
 ```
 Iteration N:
   Health score before: X.X
-  Dead-code issues: N (baseline 31)
+  Dead-code issues: N (target 0)
   Duplication %: N.N %
   Tests added this iteration: N (areas: …)
   Phases with commits: [list phases that produced commits]
@@ -875,7 +877,7 @@ pnpm fallow --format json --quiet 2>/dev/null || true
 # Health score (confirm ≥ 8.0 or report actual)
 pnpm exec fallow health --format json --quiet 2>/dev/null || true
 
-# Dead-code count (confirm ≤ 31)
+# Dead-code count (confirm 0)
 pnpm exec fallow dead-code --format json --quiet 2>/dev/null || true
 
 # Duplication % (confirm < 6.0 %)
@@ -889,7 +891,7 @@ pnpm test
 
 Report these final numbers:
 - Health score achieved
-- Dead-code issues remaining (vs. 31 baseline)
+- Dead-code issues remaining (target 0)
 - Final duplication percentage
 - Tests added (count + areas), and any high-risk code still untested (with file paths — e.g. note
   `evaluateConditions` if its harness wasn't stood up)

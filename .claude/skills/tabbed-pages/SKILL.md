@@ -7,6 +7,7 @@ description: >-
   "make X's detail/edit pages tabbed like Categories/Settings", "split the X page into tabs", or "add
   an autofill tab to X". Mirrors how Custom Properties / Websites / Media Types / YouTube Channels /
   Categories / Tags / Property Groups view and edit pages were tabbed.
+  Also covers maintaining tabs — "add/rename/remove a tab on X", "reorder X's tabs", "the panel and page tabs disagree".
 ---
 
 # Convert detail/edit pages to a horizontal-tabbed layout
@@ -207,3 +208,14 @@ Then run `pnpm dev` and check that the entity:
 - (if added) shows only the autofill rules scoped to the entity on its Autofill tab, and
 - still works in the right panel via the whole `*Detail` / `*Form`.
 ```
+
+## Maintaining an existing tabbed entity
+
+- **Add / rename / remove a tab in one place**: the entity's `EntityWorkbench` descriptor
+  (`components/workbench/<entity>.tsx`) — the main-pane routes (`WorkbenchRouteTab`) and the right
+  panel (`EntityWorkbenchView`) both derive from it. A rename needs no breadcrumb work
+  (`crumbLabel()` title-cases the slug; only oddities go in `LABEL_OVERRIDES`).
+- **Removing a tab**: also delete its route file and its `viewNav`/`VIEW_TO_EDIT` entries; a
+  view-only tab (e.g. Hierarchy) must never appear in `VIEW_TO_EDIT`.
+- **Panel/page drift** ("the drawer shows a different tab set") means someone bypassed the
+  descriptor — fold the stray tab back into it rather than patching one surface.

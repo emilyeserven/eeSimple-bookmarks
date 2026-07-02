@@ -5,6 +5,7 @@ description: >-
   source) to the Add Bookmark prefill pipeline in eeSimple Bookmarks. Use when asked to "add an
   oEmbed provider", "support metadata from site X", "add a new data source for scanning", "add a
   metadata API", "wire a new connector into /api/scan", or "add a provider to the Connectors page".
+  Also covers maintaining connectors — "the X provider broke / changed its endpoint", "rotate/remove a connector", "update a provider's URL".
   Mirrors how Vimeo/Spotify/TikTok (oEmbed), Open Library → Google Books (ISBN), and the hosted
   provider / YouTube Data API (Tier 2) were added.
 ---
@@ -79,3 +80,17 @@ keyless fallback** — mirror `services/hostedMetadata.ts` and the YouTube Data 
 - Don't wire `services/scanCache.ts` into `invalidateBookmarkCache()` — scan data is display-only.
 - Don't fetch a client-supplied image URL for capture — `fetchAndStoreOgImage` derives it from the
   bookmark's own stored URL (SSRF-safe).
+
+## Maintaining an existing connector
+
+- **oEmbed provider changed its endpoint/domains**: `OEMBED_PROVIDERS` in
+  `packages/types/src/oembed.ts` is the single edit point — the middleware and the Connectors
+  settings page both derive from it. Update `oembed.test.ts` fixtures alongside.
+- **Removing a provider**: delete its registry entry (Case A) or its service + env rows (Case C);
+  the Connectors page updates by derivation. For Tier 2, also remove the env vars from
+  CLAUDE.md's table and `.env.example`, and the encrypted-key read/write pair in
+  `services/appSettings.ts` if it had one.
+- **Key rotation / outage**: keyed providers must keep falling back to the keyless path when the
+  key stops resolving — if a report says scans hang on a dead provider, check the timeout + fallback
+  in its service before touching the pipeline. Stale scan metadata self-heals via the
+  `scanCache.ts` TTL; never wire the cache into bookmark invalidation.

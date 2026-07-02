@@ -8,6 +8,7 @@ description: >-
   definitions for X", or "wire X into the DataTable". Mirrors how Categories, Websites, Media Types,
   YouTube Channels, Tags, Custom Properties, Property Groups, Autofill rules, Authors, Publishers,
   Relationship Types, Newsletters, and Place Types got their table views.
+  Also covers maintaining a table — "add/remove a column on the X table", "change how a column renders/sorts".
 ---
 
 # Listing table view — DataTable + per-entity columns
@@ -81,3 +82,15 @@ const entityColumns = use<Entity>Columns();
   factory) living beside them. Put factories in `columnHelpers.tsx`.
 - **Mark interactive cells `data-no-row-click`** (or use `<button>`/`<a>`) so an `onRowClick` on the
   `DataTable` doesn't fire when the user clicks a control inside the row — see `isInteractiveTarget`.
+
+## Maintaining an existing table view
+
+- **Add/remove/change a column**: edit only the entity's column file under
+  `components/tables/` — reuse the shared formatters (`bookmarkColumnFormat.ts`) instead of
+  inlining date/number/boolean rendering.
+- **Keep column `id`s stable**: per-column widths persist in `uiStore.tableColumnWidths` keyed by
+  column id; renaming an id silently drops users' saved widths. Rename the `header` label, not the
+  id.
+- **New entity field**: adding a column is opt-in per entity — decide whether the field earns a
+  column here, and mirror the decision in the card via the `standard-listing-card` /
+  `card-field-area` patterns where applicable.
