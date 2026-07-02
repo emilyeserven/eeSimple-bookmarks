@@ -1,19 +1,5 @@
-import type {
-  Category,
-  CategoryCondition,
-  ConditionNode,
-  ConditionTree,
-  CustomProperty,
-  LocationCondition,
-  MatchCondition,
-  MediaTypeCondition,
-  PropertyCondition,
-  RelationshipTypeCondition,
-  TagCondition,
-  TagNode,
-  WebsiteCondition,
-  YouTubeChannelCondition,
-} from "@eesimple/types";
+import type { Category, ConditionTree, CustomProperty, MatchCondition, TagNode } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import {
   CategoryConditionEditor,
@@ -27,6 +13,7 @@ import {
   YouTubeChannelConditionEditor,
 } from "./conditionEditors";
 import { Section } from "./ConditionsFieldSection";
+import { buildRootChildren, splitRootConditions } from "./conditionsFieldTree";
 
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -40,72 +27,83 @@ interface ConditionsFieldProps {
   openCustomProperties?: boolean;
 }
 
+/** A collapsible section whose "N selected" summary and default-open state derive from a count. */
+function CountSection({
+  title,
+  count,
+  summarySuffix = " selected",
+  forceOpen = false,
+  children,
+}: {
+  title: string;
+  count: number;
+  /** Appended to the count in the summary; pass "" for a bare count. */
+  summarySuffix?: string;
+  /** Open the section even when nothing is selected yet (e.g. a deep link into properties). */
+  forceOpen?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <Section
+      title={title}
+      summary={count > 0 ? `${count}${summarySuffix}` : undefined}
+      defaultOpen={forceOpen || count > 0}
+    >
+      {children}
+    </Section>
+  );
+}
+
+/** One editable Title/Name match row with its Remove button. */
+function MatchConditionRow({
+  match,
+  onChange,
+  onRemove,
+}: {
+  match: MatchCondition;
+  onChange: (next: MatchCondition) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="space-y-2 rounded-md border p-2">
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+        >
+          Remove
+        </Button>
+      </div>
+      <MatchConditionEditor
+        value={match}
+        onChange={onChange}
+      />
+    </div>
+  );
+}
+
 /**
- * The composable "Conditions and Filter" builder. Renders the root condition group as four
- * collapsible sections (match / category / tags / custom properties) combined by a single
+ * The composable "Conditions and Filter" builder. Renders the root condition group as
+ * collapsible sections (match / category / tags / custom properties / …) combined by a single
  * AND/OR toggle. The underlying value is a recursive {@link ConditionTree}, so nested groups can
  * be layered on later without changing the data shape.
  */
 export function ConditionsField({
   value, onChange, categories, properties, tagTree, openCustomProperties,
 }: ConditionsFieldProps) {
-  const matches = value.children.filter((child): child is MatchCondition => child.type === "match");
-  const categoryLeaf = value.children.find((child): child is CategoryCondition => child.type === "category");
-  const websiteLeaf = value.children.find((child): child is WebsiteCondition => child.type === "website");
-  const tagLeaf = value.children.find((child): child is TagCondition => child.type === "tag");
-  const locationLeaf = value.children.find((child): child is LocationCondition => child.type === "location");
-  const youtubeChannelLeaf = value.children.find((child): child is YouTubeChannelCondition => child.type === "youtube-channel");
-  const mediaTypeLeaf = value.children.find((child): child is MediaTypeCondition => child.type === "media-type");
-  const relationshipTypeLeaf = value.children.find((child): child is RelationshipTypeCondition => child.type === "relationship-type");
-  const propertyLeaves = value.children.filter((child): child is PropertyCondition => child.type === "property");
-  // Preserve any nested groups (not editable in this v1 UI) so the tree round-trips.
-  const nestedGroups = value.children.filter(child => child.type === "group");
+  const leaves = splitRootConditions(value);
+  const {
+    matches, categoryLeaf, websiteLeaf, tagLeaf, locationLeaf, youtubeChannelLeaf, mediaTypeLeaf,
+    relationshipTypeLeaf, propertyLeaves, counts,
+  } = leaves;
 
-  function commit(next: {
-    matches?: MatchCondition[];
-    category?: CategoryCondition | null;
-    website?: WebsiteCondition | null;
-    tag?: TagCondition | null;
-    location?: LocationCondition | null;
-    youtubeChannel?: YouTubeChannelCondition | null;
-    mediaType?: MediaTypeCondition | null;
-    relationshipType?: RelationshipTypeCondition | null;
-    properties?: PropertyCondition[];
-  }) {
-    const nextMatches = next.matches ?? matches;
-    const nextCategory = next.category === undefined ? categoryLeaf : next.category;
-    const nextWebsite = next.website === undefined ? websiteLeaf : next.website;
-    const nextTag = next.tag === undefined ? tagLeaf : next.tag;
-    const nextLocation = next.location === undefined ? locationLeaf : next.location;
-    const nextYoutubeChannel = next.youtubeChannel === undefined ? youtubeChannelLeaf : next.youtubeChannel;
-    const nextMediaType = next.mediaType === undefined ? mediaTypeLeaf : next.mediaType;
-    const nextRelationshipType = next.relationshipType === undefined ? relationshipTypeLeaf : next.relationshipType;
-    const nextProperties = next.properties ?? propertyLeaves;
-    const children: ConditionNode[] = [
-      ...nextMatches,
-      ...(nextCategory && nextCategory.categoryIds.length > 0 ? [nextCategory] : []),
-      ...(nextWebsite && nextWebsite.domains.length > 0 ? [nextWebsite] : []),
-      ...(nextTag && nextTag.tagIds.length > 0 ? [nextTag] : []),
-      ...(nextLocation && nextLocation.locationIds.length > 0 ? [nextLocation] : []),
-      ...(nextYoutubeChannel && nextYoutubeChannel.channelIds.length > 0 ? [nextYoutubeChannel] : []),
-      ...(nextMediaType && nextMediaType.mediaTypeIds.length > 0 ? [nextMediaType] : []),
-      ...(nextRelationshipType && nextRelationshipType.relationshipTypeIds.length > 0 ? [nextRelationshipType] : []),
-      ...nextProperties,
-      ...nestedGroups,
-    ];
+  const commit = (next: Parameters<typeof buildRootChildren>[1]) =>
     onChange({
       ...value,
-      children,
+      children: buildRootChildren(leaves, next),
     });
-  }
-
-  const categoryCount = categoryLeaf?.categoryIds.length ?? 0;
-  const websiteCount = websiteLeaf?.domains.length ?? 0;
-  const tagCount = tagLeaf?.tagIds.length ?? 0;
-  const locationCount = locationLeaf?.locationIds.length ?? 0;
-  const channelCount = youtubeChannelLeaf?.channelIds.length ?? 0;
-  const mediaTypeCount = mediaTypeLeaf?.mediaTypeIds.length ?? 0;
-  const relationshipTypeCount = relationshipTypeLeaf?.relationshipTypeIds.length ?? 0;
 
   return (
     <div className="space-y-3">
@@ -130,39 +128,25 @@ export function ConditionsField({
         <span className="text-sm text-muted-foreground">of the following:</span>
       </div>
 
-      <Section
+      <CountSection
         title="Title / Name"
-        summary={matches.length > 0 ? `${matches.length}` : undefined}
-        defaultOpen={matches.length > 0}
+        count={matches.length}
+        summarySuffix=""
       >
         <div className="space-y-3">
           {matches.map((match, index) => (
-            <div
-
+            <MatchConditionRow
               key={index}
-              className="space-y-2 rounded-md border p-2"
-            >
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    commit({
-                      matches: matches.filter((_, current) => current !== index),
-                    })}
-                >
-                  Remove
-                </Button>
-              </div>
-              <MatchConditionEditor
-                value={match}
-                onChange={next =>
-                  commit({
-                    matches: matches.map((existing, current) => (current === index ? next : existing)),
-                  })}
-              />
-            </div>
+              match={match}
+              onChange={next =>
+                commit({
+                  matches: matches.map((existing, current) => (current === index ? next : existing)),
+                })}
+              onRemove={() =>
+                commit({
+                  matches: matches.filter((_, current) => current !== index),
+                })}
+            />
           ))}
           <Button
             type="button"
@@ -181,12 +165,11 @@ export function ConditionsField({
             Add title condition
           </Button>
         </div>
-      </Section>
+      </CountSection>
 
-      <Section
+      <CountSection
         title="Category"
-        summary={categoryCount > 0 ? `${categoryCount} selected` : undefined}
-        defaultOpen={categoryCount > 0}
+        count={counts.category}
       >
         <CategoryConditionEditor
           value={categoryLeaf ?? {
@@ -199,12 +182,11 @@ export function ConditionsField({
               category: next.categoryIds.length > 0 ? next : null,
             })}
         />
-      </Section>
+      </CountSection>
 
-      <Section
+      <CountSection
         title="Website"
-        summary={websiteCount > 0 ? `${websiteCount} selected` : undefined}
-        defaultOpen={websiteCount > 0}
+        count={counts.website}
       >
         <WebsiteConditionEditor
           value={websiteLeaf ?? {
@@ -216,12 +198,11 @@ export function ConditionsField({
               website: next.domains.length > 0 ? next : null,
             })}
         />
-      </Section>
+      </CountSection>
 
-      <Section
+      <CountSection
         title="YouTube Channel"
-        summary={channelCount > 0 ? `${channelCount} selected` : undefined}
-        defaultOpen={channelCount > 0}
+        count={counts.youtubeChannel}
       >
         <YouTubeChannelConditionEditor
           value={youtubeChannelLeaf ?? {
@@ -233,12 +214,11 @@ export function ConditionsField({
               youtubeChannel: next.channelIds.length > 0 ? next : null,
             })}
         />
-      </Section>
+      </CountSection>
 
-      <Section
+      <CountSection
         title="Media Type"
-        summary={mediaTypeCount > 0 ? `${mediaTypeCount} selected` : undefined}
-        defaultOpen={mediaTypeCount > 0}
+        count={counts.mediaType}
       >
         <MediaTypeConditionEditor
           value={mediaTypeLeaf ?? {
@@ -250,12 +230,11 @@ export function ConditionsField({
               mediaType: next.mediaTypeIds.length > 0 ? next : null,
             })}
         />
-      </Section>
+      </CountSection>
 
-      <Section
+      <CountSection
         title="Relationship Type"
-        summary={relationshipTypeCount > 0 ? `${relationshipTypeCount} selected` : undefined}
-        defaultOpen={relationshipTypeCount > 0}
+        count={counts.relationshipType}
       >
         <RelationshipTypeConditionEditor
           value={relationshipTypeLeaf ?? {
@@ -267,12 +246,11 @@ export function ConditionsField({
               relationshipType: next.relationshipTypeIds.length > 0 ? next : null,
             })}
         />
-      </Section>
+      </CountSection>
 
-      <Section
+      <CountSection
         title="Tags"
-        summary={tagCount > 0 ? `${tagCount} selected` : undefined}
-        defaultOpen={tagCount > 0}
+        count={counts.tag}
       >
         <TagConditionEditor
           value={tagLeaf ?? {
@@ -285,12 +263,11 @@ export function ConditionsField({
               tag: next.tagIds.length > 0 ? next : null,
             })}
         />
-      </Section>
+      </CountSection>
 
-      <Section
+      <CountSection
         title="Locations"
-        summary={locationCount > 0 ? `${locationCount} selected` : undefined}
-        defaultOpen={locationCount > 0}
+        count={counts.location}
       >
         <LocationConditionEditor
           value={locationLeaf ?? {
@@ -302,12 +279,13 @@ export function ConditionsField({
               location: next.locationIds.length > 0 ? next : null,
             })}
         />
-      </Section>
+      </CountSection>
 
-      <Section
+      <CountSection
         title="Custom properties"
-        summary={propertyLeaves.length > 0 ? `${propertyLeaves.length}` : undefined}
-        defaultOpen={openCustomProperties || propertyLeaves.length > 0}
+        count={propertyLeaves.length}
+        summarySuffix=""
+        forceOpen={openCustomProperties}
       >
         <PropertyConditionEditor
           value={propertyLeaves}
@@ -319,7 +297,7 @@ export function ConditionsField({
               properties: next,
             })}
         />
-      </Section>
+      </CountSection>
     </div>
   );
 }
