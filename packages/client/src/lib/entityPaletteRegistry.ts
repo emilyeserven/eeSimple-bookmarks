@@ -8,7 +8,6 @@ import type {
   UpdateImportRuleInput,
   UpdateLocationInput,
   UpdateMediaTypeInput,
-  UpdatePlaceTypeInput,
   UpdateTagInput,
 } from "@eesimple/types";
 
@@ -19,11 +18,11 @@ import {
   categoriesApi,
   locationsApi,
   mediaTypesApi,
-  placeTypesApi,
   tagsApi,
 } from "./api/taxonomies";
 import { AUTHOR_PALETTE } from "../entities/author";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
+import { PLACE_TYPE_PALETTE } from "../entities/placeType";
 import { CUSTOM_PROPERTY_PALETTE } from "../entities/property";
 import { PROPERTY_GROUP_PALETTE } from "../entities/propertyGroup";
 import { PUBLISHER_PALETTE } from "../entities/publisher";
@@ -137,12 +136,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
     updateFn: (id, patch) => locationsApi.update(id, patch as UpdateLocationInput),
     extraInvalidateKeys: [BOOKMARKS_KEY],
   },
-  "place-type": {
-    queryKey: ["place-types"],
-    listFn: () => placeTypesApi.list(),
-    updateFn: (id, patch) => placeTypesApi.update(id, patch as UpdatePlaceTypeInput),
-    extraInvalidateKeys: [["locations"]],
-  },
+  "place-type": PLACE_TYPE_PALETTE,
   "youtube-channel": YOUTUBE_CHANNEL_PALETTE,
   "newsletter": NEWSLETTER_PALETTE,
   "author": AUTHOR_PALETTE,
