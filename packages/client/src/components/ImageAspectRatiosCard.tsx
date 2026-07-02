@@ -9,7 +9,6 @@ import {
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
 import { useCreateCustomAspectRatio, useCustomAspectRatios, useDeleteCustomAspectRatio } from "../hooks/useCustomAspectRatios";
-import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -57,15 +56,15 @@ export function ImageAspectRatiosCard() {
   const [newWidth, setNewWidth] = useState("");
   const [newHeight, setNewHeight] = useState("");
 
-  /** Persist a Cropped-ratio change, merging the whole display group, and fire the named toast. */
+  /** Persist a Cropped-ratio change, merging the whole display group; the hook fires the toast. */
   function saveCropped(patch: { croppedWidth: number } | { croppedHeight: number }): void {
     if (!displayData) return;
     updateDisplay.mutate({
-      ...displayData,
-      ...patch,
-    }, {
-      onSuccess: () => notifySuccess("Cropped ratio updated"),
-      onError: error => notifyError(error.message),
+      input: {
+        ...displayData,
+        ...patch,
+      },
+      successMessage: "Cropped ratio updated",
     });
   }
 

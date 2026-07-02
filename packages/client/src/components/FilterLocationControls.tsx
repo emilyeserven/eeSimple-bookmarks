@@ -4,7 +4,6 @@ import {
   useFiltersInDrawer,
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
-import { notifyError, notifySuccess } from "../lib/notifications";
 import { usePanelControls } from "./panel/usePanelControls";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -55,12 +54,12 @@ export function FilterLocationControls() {
       filtersHidden: hidden, filtersInDrawer: inDrawer, message,
     } = LOCATION_PATCH[next];
     update.mutate({
-      ...displayData,
-      filtersHidden: hidden,
-      filtersInDrawer: inDrawer,
-    }, {
-      onSuccess: () => notifySuccess(message),
-      onError: error => notifyError(error.message),
+      input: {
+        ...displayData,
+        filtersHidden: hidden,
+        filtersInDrawer: inDrawer,
+      },
+      successMessage: message,
     });
     // Drawer open/close is local UI — apply it immediately regardless of the save round-trip.
     if (next === "sidebar") {

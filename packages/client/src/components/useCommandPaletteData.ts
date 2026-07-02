@@ -11,7 +11,6 @@ import {
 } from "@/hooks/useAppSettings";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { useMatchingCardDisplayRules } from "@/lib/cardDisplayRules";
-import { notifyError, notifySuccess } from "@/lib/notifications";
 import { findSettingsPage } from "@/lib/settingsPages";
 
 /**
@@ -51,11 +50,11 @@ export function useCommandPaletteData(open: boolean, targetBookmarkId: string | 
   const setDetailLayout = (layout: "single" | "tabbed") => {
     if (displayPrefs) {
       updateDisplayPrefs.mutate({
-        ...displayPrefs,
-        bookmarkDetailLayout: layout,
-      }, {
-        onSuccess: () => notifySuccess(`Detail layout: ${layout}`),
-        onError: error => notifyError(error.message),
+        input: {
+          ...displayPrefs,
+          bookmarkDetailLayout: layout,
+        },
+        successMessage: `Detail layout: ${layout}`,
       });
     }
   };

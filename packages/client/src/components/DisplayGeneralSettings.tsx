@@ -11,7 +11,6 @@ import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
-import { notifyError, notifySuccess } from "../lib/notifications";
 import { useUiStore } from "../stores/uiStore";
 
 import {
@@ -62,15 +61,15 @@ export function DisplayGeneralSettings() {
     ...displayData,
   };
 
-  /** Persist a single display-preference field and fire the named toast. */
+  /** Persist a single display-preference field; the hook fires the named toast. */
   function saveDisplay(patch: Partial<DisplayPreferenceSettings>, message: string): void {
     if (!displayData) return;
     updateDisplay.mutate({
-      ...displayData,
-      ...patch,
-    }, {
-      onSuccess: () => notifySuccess(message),
-      onError: error => notifyError(error.message),
+      input: {
+        ...displayData,
+        ...patch,
+      },
+      successMessage: message,
     });
   }
 

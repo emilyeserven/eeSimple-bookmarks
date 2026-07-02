@@ -2,7 +2,6 @@ import type { AutomationSettings } from "@eesimple/types";
 
 import { useAutomationSettings, useUpdateAutomationSettings } from "../hooks/useAppSettings";
 import { useBackfillTitleLocations, useBackfillTitleTags } from "../hooks/useBookmarks";
-import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,11 +32,11 @@ function useSaveAutomationSetting() {
 
   function save(patch: Partial<AutomationSettings>, message: string): void {
     update.mutate({
-      ...settings,
-      ...patch,
-    }, {
-      onSuccess: () => notifySuccess(message),
-      onError: error => notifyError(error.message),
+      input: {
+        ...settings,
+        ...patch,
+      },
+      successMessage: message,
     });
   }
 

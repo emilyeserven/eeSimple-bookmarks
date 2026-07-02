@@ -10,7 +10,6 @@ import {
   useUpdateAutomationSettings,
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
-import { notifyError, notifySuccess } from "../lib/notifications";
 import { usePanelControls } from "./panel/usePanelControls";
 
 import {
@@ -78,14 +77,14 @@ export function SidebarSettings() {
     open, isOpen,
   } = usePanelControls();
 
-  /** Persist a single display-preference field and fire the named toast. */
+  /** Persist a single display-preference field; the hook fires the named toast. */
   function saveDisplay(patch: Partial<DisplayPreferenceSettings>, message: string): void {
     updateDisplay.mutate({
-      ...display,
-      ...patch,
-    }, {
-      onSuccess: () => notifySuccess(message),
-      onError: error => notifyError(error.message),
+      input: {
+        ...display,
+        ...patch,
+      },
+      successMessage: message,
     });
   }
 
@@ -101,11 +100,11 @@ export function SidebarSettings() {
 
   function setSidebarOpenModifier(value: SidebarOpenModifier) {
     updateAutomation.mutate({
-      ...automation,
-      sidebarOpenModifier: value,
-    }, {
-      onSuccess: () => notifySuccess("Open-in-drawer key updated"),
-      onError: error => notifyError(error.message),
+      input: {
+        ...automation,
+        sidebarOpenModifier: value,
+      },
+      successMessage: "Open-in-drawer key updated",
     });
   }
 

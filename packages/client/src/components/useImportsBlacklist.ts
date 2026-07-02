@@ -5,7 +5,6 @@ import { useState } from "react";
 import { KIND_LABEL } from "./tables/importBlacklistColumns";
 import { useImportBlacklist, useUpdateImportBlacklist } from "../hooks/useAppSettings";
 import { entryFromInput } from "../lib/importBlacklist";
-import { notifyError, notifySuccess } from "../lib/notifications";
 
 /**
  * State + mutation orchestration for {@link ImportsBlacklistCard}: the blacklist query, the add/
@@ -36,17 +35,19 @@ export function useImportsBlacklist() {
       setValue("");
       return;
     }
-    update.mutate([...entries, entry], {
-      onSuccess: () => notifySuccess(`Blocked ${KIND_LABEL[entry.kind]} ${entry.value}`),
-      onError: () => notifyError("Couldn't update the imports blacklist"),
+    update.mutate({
+      input: [...entries, entry],
+      successMessage: `Blocked ${KIND_LABEL[entry.kind]} ${entry.value}`,
+      errorMessage: "Couldn't update the imports blacklist",
     });
     setValue("");
   }
 
   function remove(entry: ImportBlacklistEntry): void {
-    update.mutate(entries.filter(e => !(e.kind === entry.kind && e.value === entry.value)), {
-      onSuccess: () => notifySuccess(`Unblocked ${entry.value}`),
-      onError: () => notifyError("Couldn't update the imports blacklist"),
+    update.mutate({
+      input: entries.filter(e => !(e.kind === entry.kind && e.value === entry.value)),
+      successMessage: `Unblocked ${entry.value}`,
+      errorMessage: "Couldn't update the imports blacklist",
     });
   }
 

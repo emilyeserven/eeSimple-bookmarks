@@ -9,7 +9,6 @@ import {
   usePanelPinned,
   useUpdateDisplayPreferenceSettings,
 } from "@/hooks/useAppSettings";
-import { notifyError, notifySuccess } from "@/lib/notifications";
 
 interface PanelChromeProps {
   /** Whether the panel is docked inline (vs. a floating overlay). */
@@ -36,11 +35,11 @@ export function PanelChrome({
     if (!displayData) return;
     const next = !pinned;
     update.mutate({
-      ...displayData,
-      panelPinned: next,
-    }, {
-      onSuccess: () => notifySuccess(next ? "Drawer pinned" : "Drawer unpinned"),
-      onError: error => notifyError(error.message),
+      input: {
+        ...displayData,
+        panelPinned: next,
+      },
+      successMessage: next ? "Drawer pinned" : "Drawer unpinned",
     });
   }
 
