@@ -173,6 +173,15 @@ export function useDatabaseUsage() {
   });
 }
 
+/** Diagnostic detail for a single table, fetched lazily when a Database usage row is expanded. */
+export function useDatabaseTableDetail(tableName: string | null) {
+  return useQuery({
+    queryKey: [...DATABASE_USAGE_KEY, tableName],
+    queryFn: () => appSettingsApi.getDatabaseTableDetail(tableName as string),
+    enabled: tableName !== null,
+  });
+}
+
 /** Defaults that mirror the former `useUiStore` initial state, used while the query is loading. */
 const SIDEBAR_CUSTOMIZATION_DEFAULTS: SidebarCustomizationSettings = {
   hiddenCategoryIds: [],

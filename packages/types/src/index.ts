@@ -342,6 +342,56 @@ export interface DatabaseUsageReport {
   capturedAt: string;
 }
 
+/** Size of a single index on a table, in bytes. */
+export interface DatabaseTableIndexUsage {
+  indexName: string;
+  bytes: number;
+}
+
+/** A single column of a table (name + reported Postgres data type). */
+export interface DatabaseTableColumnInfo {
+  columnName: string;
+  dataType: string;
+}
+
+/**
+ * Diagnostic detail for a single table, fetched on demand when a row in the Database usage table
+ * is expanded — enough to explain *why* a table is bulky (bloat, oversized columns, missing
+ * vacuum/analyze, redundant indexes).
+ */
+export interface DatabaseTableDetail {
+  /** The table name in the `public` schema. */
+  tableName: string;
+  /** On-disk size of the table heap only (`pg_relation_size`). */
+  heapBytes: number;
+  /** Combined on-disk size of all indexes (`pg_indexes_size`). */
+  indexBytes: number;
+  /** On-disk size of the table's TOAST storage (large/overflow column values). */
+  toastBytes: number;
+  /** Total on-disk size (heap + indexes + TOAST). */
+  totalBytes: number;
+  /** Estimated live-row count (`pg_stat_user_tables.n_live_tup`). */
+  rowEstimate: number;
+  /** Estimated dead-row count awaiting vacuum (`pg_stat_user_tables.n_dead_tup`). */
+  deadRowEstimate: number;
+  /** Sequential scan count since the last stats reset. */
+  sequentialScans: number;
+  /** Index scan count since the last stats reset. */
+  indexScans: number;
+  /** ISO timestamp of the last manual `VACUUM`, or `null` if never. */
+  lastVacuum: string | null;
+  /** ISO timestamp of the last autovacuum run, or `null` if never. */
+  lastAutoVacuum: string | null;
+  /** ISO timestamp of the last manual `ANALYZE`, or `null` if never. */
+  lastAnalyze: string | null;
+  /** ISO timestamp of the last autoanalyze run, or `null` if never. */
+  lastAutoAnalyze: string | null;
+  /** Columns in ordinal order. */
+  columns: DatabaseTableColumnInfo[];
+  /** Indexes on the table, largest first. */
+  indexes: DatabaseTableIndexUsage[];
+}
+
 /**
  * The subset of {@link AppSettings} that drives left-sidebar customization (which categories,
  * taxonomy items, customization tools, management pages, and whole groups are shown). Persisted

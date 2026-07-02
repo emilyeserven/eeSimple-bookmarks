@@ -14,6 +14,7 @@ import type {
   CreatePinnedSidebarItemInput,
   CreateSavedFilterInput,
   CustomAspectRatio,
+  DatabaseTableDetail,
   DatabaseUsageReport,
   DisplayPreferenceSettings,
   FavoriteSettingsPage,
@@ -90,6 +91,8 @@ export const appSettingsApi = {
       body: JSON.stringify(input),
     }),
   getDatabaseUsage: () => request<DatabaseUsageReport>("/app-settings/database-usage"),
+  getDatabaseTableDetail: (tableName: string) =>
+    request<DatabaseTableDetail>(`/app-settings/database-usage/${encodeURIComponent(tableName)}`),
   getSidebarCustomization: () =>
     request<SidebarCustomizationSettings>("/app-settings/sidebar-customization"),
   updateSidebarCustomization: (input: UpdateSidebarCustomizationInput) =>
