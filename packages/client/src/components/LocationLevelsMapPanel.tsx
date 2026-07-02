@@ -1,10 +1,8 @@
 import type { AncestorChildrenScopeControls, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 
-import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
-import { MapPin, Settings, Shapes, Square } from "lucide-react";
+import { MapPin, Settings, Shapes } from "lucide-react";
 
-import { LocationLevelModeToggle } from "./LocationLevelModeToggle";
-import { LocationMapFilterSection } from "./LocationMapFilterSection";
+import { LevelGroupGlyph, LevelsFooter } from "./locationLevelsShared";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
 import { Button } from "@/components/ui/button";
@@ -141,26 +139,7 @@ export function LocationLevelsMapPanel({
                   disabled={controls.disabledIds.has(group.id)}
                   onCheckedChange={checked => controls.onToggleVisible(group.id, checked === true)}
                 />
-                {group.displayMode === "pin"
-                  ? (
-                    <MapPin
-                      className="size-3 shrink-0"
-                      style={{
-                        color: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
-                      }}
-                      aria-hidden="true"
-                    />
-                  )
-                  : (
-                    <Square
-                      className="size-3 shrink-0"
-                      style={{
-                        color: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
-                        fill: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
-                      }}
-                      aria-hidden="true"
-                    />
-                  )}
+                <LevelGroupGlyph group={group} />
                 <Label
                   htmlFor={`map-level-${group.id}`}
                   className="cursor-pointer text-xs"
@@ -172,50 +151,12 @@ export function LocationLevelsMapPanel({
           </ul>
         )}
 
-      {controls.levelMode && controls.onLevelModeChange
-        ? (
-          <div className="mt-2 border-t pt-2">
-            <LocationLevelModeToggle
-              value={controls.levelMode}
-              onChange={controls.onLevelModeChange}
-            />
-          </div>
-        )
-        : null}
-
-      <div className="mt-2 flex items-center gap-2 border-t pt-2">
-        <Checkbox
-          id="map-hide-admin-borders"
-          checked={controls.hideAdminBorders}
-          onCheckedChange={checked => controls.onHideAdminBordersChange(checked === true)}
-        />
-        <Label
-          htmlFor="map-hide-admin-borders"
-          className="cursor-pointer text-xs"
-        >
-          Hide map borders
-        </Label>
-      </div>
-
-      {ancestorChildrenScope
-        ? (
-          <div className="mt-2 flex items-start gap-2 border-t pt-2">
-            <Checkbox
-              id="map-levels-only-direct-relatives"
-              checked={ancestorChildrenScope.onlyDirect}
-              onCheckedChange={checked => ancestorChildrenScope.onToggle(checked === true)}
-            />
-            <Label
-              htmlFor="map-levels-only-direct-relatives"
-              className="cursor-pointer text-xs"
-            >
-              Only show direct ancestors/children of current location
-            </Label>
-          </div>
-        )
-        : null}
-
-      {filter ? <LocationMapFilterSection filter={filter} /> : null}
+      <LevelsFooter
+        controls={controls}
+        ancestorChildrenScope={ancestorChildrenScope}
+        filter={filter}
+        compact
+      />
     </div>
   );
 }

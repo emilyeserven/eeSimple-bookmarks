@@ -18,6 +18,16 @@ import { useUiStore } from "../stores/uiStore";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Default scope for a section not given one: a location map with no "current" place type. Hoisted to a
+ * module constant so the destructuring default doesn't mint a fresh object each render (which would
+ * churn the scope identity the level-controls hook depends on — see `useLocationMapLevelControls`).
+ */
+const DEFAULT_LEVEL_SCOPE: LevelScope = {
+  kind: "location",
+  currentPlaceType: null,
+};
+
 interface LocationMapSectionProps {
   /** Stable collapse key: `"listing"` for the listing page, the location id on a detail page. */
   mapKey: string;
@@ -71,10 +81,7 @@ export function LocationMapSection({
   mapClassName,
   autoRefreshLocationId,
   showLevels = false,
-  scope = {
-    kind: "location",
-    currentPlaceType: null,
-  },
+  scope = DEFAULT_LEVEL_SCOPE,
   filter,
   ancestorChildrenScope,
   ancestryDebug,
