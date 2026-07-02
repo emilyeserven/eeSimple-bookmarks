@@ -1,5 +1,6 @@
 import type { CreateKind } from "./commandPaletteModals";
 import type { TaxonomyMode } from "./commandPaletteSubPalettes";
+import type { EntityChoiceField } from "@/lib/entityPaletteRegistry";
 import type { SettingsPage } from "@/lib/settingsPages";
 
 import { useEffect, useState } from "react";
@@ -15,6 +16,7 @@ import {
   StarIcon,
 } from "lucide-react";
 
+import { AddChildModal } from "./AddChildModal";
 import { CommandPaletteModals } from "./commandPaletteModals";
 import {
   AuthorsSubPalette,
@@ -28,6 +30,7 @@ import {
   RatingSubPalette,
   TagsSubPalette,
 } from "./commandPaletteSubPalettes";
+import { EntityChoiceSubPalette, EntityCommandGroup } from "./EntityCommandGroup";
 import { useCommandPaletteData } from "./useCommandPaletteData";
 
 import {
@@ -84,13 +87,14 @@ const SETTINGS = [
 // ─── State hook ──────────────────────────────────────────────────────────────
 
 function useCommandPaletteTaxonomyState() {
-  const [taxonomyMode, setTaxonomyMode] = useState<TaxonomyMode | null>(null);
+  const [taxonomyMode, setTaxonomyMode] = useState<TaxonomyMode | "entity-choice" | null>(null);
   const [pendingTagIds, setPendingTagIds] = useState<string[]>([]);
   const [pendingLocationIds, setPendingLocationIds] = useState<string[]>([]);
   const [pendingAuthorIds, setPendingAuthorIds] = useState<string[]>([]);
   const [choicesPropertyId, setChoicesPropertyId] = useState<string | null>(null);
   const [pendingChoiceValues, setPendingChoiceValues] = useState<string[]>([]);
   const [ratingPropertyId, setRatingPropertyId] = useState<string | null>(null);
+  const [entityChoiceField, setEntityChoiceField] = useState<EntityChoiceField | null>(null);
 
   function enterMode(
     mode: TaxonomyMode,
@@ -115,16 +119,23 @@ function useCommandPaletteTaxonomyState() {
     setRatingPropertyId(propId);
   }
 
+  function enterEntityChoiceMode(field: EntityChoiceField) {
+    setTaxonomyMode("entity-choice");
+    setEntityChoiceField(field);
+  }
+
   function exitMode() {
     setTaxonomyMode(null);
     setChoicesPropertyId(null);
     setRatingPropertyId(null);
+    setEntityChoiceField(null);
   }
 
   function reset() {
     setTaxonomyMode(null);
     setChoicesPropertyId(null);
     setRatingPropertyId(null);
+    setEntityChoiceField(null);
     setPendingChoiceValues([]);
   }
 
@@ -140,9 +151,11 @@ function useCommandPaletteTaxonomyState() {
     pendingChoiceValues,
     setPendingChoiceValues,
     ratingPropertyId,
+    entityChoiceField,
     enterMode,
     enterChoicesMode,
     enterRatingMode,
+    enterEntityChoiceMode,
     exitMode,
     reset,
   };
@@ -269,13 +282,17 @@ export function CommandPalette() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // The header add-child modal, opened from the matched entity's "New sub-tag/sub-type" item.
+  const [addChild, setAddChild] = useState<{ kind: "tag" | "mediaType";
+    parentId: string; } | null>(null);
+
   const {
     bookmarks,
     taxonomyContext,
     detailLayout,
     setDetailLayout,
     listingCtx,
-    savedFilterCtx,
+    entityCtx,
     settingsPage,
     matchingCardRules,
   } = useCommandPaletteData(open, targetBookmarkId);
@@ -294,10 +311,6 @@ export function CommandPalette() {
     customProperties,
     updateBookmark,
   } = taxonomyContext;
-
-  const {
-    filterId, savedFilter, updateFilter,
-  } = savedFilterCtx;
 
   const handleOpenChange = (value: boolean) => {
     setOpen(value);
@@ -433,7 +446,9 @@ export function CommandPalette() {
           ? `Search ${(customProperties.find(p => p.id === taxonomy.choicesPropertyId)?.name ?? "options")}…`
           : taxonomy.taxonomyMode === "rating-property" && taxonomy.ratingPropertyId
             ? `Select ${(customProperties.find(p => p.id === taxonomy.ratingPropertyId)?.name ?? "rating")}…`
-            : `Search ${taxonomy.taxonomyMode}…`
+            : taxonomy.taxonomyMode === "entity-choice"
+              ? `Search ${taxonomy.entityChoiceField?.label.toLowerCase() ?? "options"}…`
+              : `Search ${taxonomy.taxonomyMode}…`
     : "Search pages and bookmarks…";
 
   return (
@@ -621,6 +636,24 @@ export function CommandPalette() {
                         ],
                       },
                     });
+                    handleOpenChange(false);
+                  }}
+                />
+              )}
+
+              {taxonomy.taxonomyMode === "entity-choice" && entityCtx.matched && taxonomy.entityChoiceField && (
+                <EntityChoiceSubPalette
+                  matched={entityCtx.matched}
+                  field={taxonomy.entityChoiceField}
+                  choiceOptions={entityCtx.choiceOptions}
+                  onBack={handleExitMode}
+                  onSelect={(id) => {
+                    const field = taxonomy.entityChoiceField;
+                    if (field) {
+                      entityCtx.matched?.saveField(field.label, {
+                        [field.key]: id,
+                      });
+                    }
                     handleOpenChange(false);
                   }}
                 />
@@ -964,32 +997,24 @@ export function CommandPalette() {
                     </>
                   )}
 
-                  {filterId && savedFilter && (
+                  {entityCtx.matched && (
                     <>
-                      <CommandGroup heading="Saved Filter">
-                        <CommandItem
-                          value="Toggle Sidebar Shortcut"
-                          onSelect={() => {
-                            updateFilter.mutate({
-                              id: filterId,
-                              input: {
-                                viewableOnline: !savedFilter.viewableOnline,
-                              },
-                            });
-                            handleOpenChange(false);
-                          }}
-                        >
-                          {savedFilter.viewableOnline && (
-                            <CheckIcon className="text-primary" />
-                          )}
-                          <span className="flex min-w-0 flex-col gap-0.5">
-                            <span>Sidebar Shortcut</span>
-                            <span className="text-xs text-muted-foreground">
-                              {savedFilter.viewableOnline ? "Shown" : "Hidden"}
-                            </span>
-                          </span>
-                        </CommandItem>
-                      </CommandGroup>
+                      <EntityCommandGroup
+                        matched={entityCtx.matched}
+                        onNavigate={handleSelect}
+                        onEnterChoiceField={(field) => {
+                          taxonomy.enterEntityChoiceMode(field);
+                          setInputValue("");
+                        }}
+                        onAddChild={(kind, parentId) => {
+                          handleOpenChange(false);
+                          setAddChild({
+                            kind,
+                            parentId,
+                          });
+                        }}
+                        onClose={() => handleOpenChange(false)}
+                      />
                       <CommandSeparator />
                     </>
                   )}
@@ -1168,6 +1193,15 @@ export function CommandPalette() {
         bookmark={bookmark}
         updateBookmark={updateBookmark}
       />
+
+      {addChild && (
+        <AddChildModal
+          kind={addChild.kind}
+          parentId={addChild.parentId}
+          open
+          onOpenChange={openState => !openState && setAddChild(null)}
+        />
+      )}
     </>
   );
 }

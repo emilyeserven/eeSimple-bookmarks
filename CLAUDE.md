@@ -263,7 +263,7 @@ that matches the surface — don't invent a new structure for a one-off page.
 - **Card boxes** — two distinct uses of the card token, never for detail/edit page content:
   - **List/row cards**: use `<RowCard>` from `@/components/ui/card` (renders `rounded-lg border
     bg-card`). Pass padding (`p-4`) or layout utilities (`group relative`) via `className`. Used in
-    `CategoryManager`, `WebsiteManager`, `MediaTypeManager`, `YouTubeChannelManager`,
+    `WebsiteManager`, `MediaTypeManager`, `YouTubeChannelManager`,
     `CategoryPreviewCard` (row variant), `BookmarkSearchView`, `HomepageSectionBlock`,
     `CustomPropertyManager`, `AutofillRulesList`.
   - **Settings panels**: use the shadcn `<Card>` with `<CardHeader>`, `<CardContent>`, etc.
@@ -608,16 +608,18 @@ hooks:
   properties) — uses `useBookmarkTaxonomyContext`; gate on `bookmarkId !== null`. Boolean properties
   toggle directly; choices properties enter a sub-palette (`"choices-property"` mode). For a new
   field type, add an item here or navigate to the edit tab.
+- **Slug-routed entity quick-actions** ("Current \<Entity\>" group: boolean toggles, choice
+  sub-palettes, View/Edit navigation, Pin/Unpin, New sub-tag/sub-type) — **registry-driven**, one
+  generic gated hook for every entity (`useEntityCommandContext` + `EntityCommandGroup`), never a
+  per-entity `use<Entity>Context` hook. Route matching derives from `ENTITY_ROUTES`
+  (`lib/entityRoutes.ts` — the same data the breadcrumb descriptors derive from); the hand-authored
+  data layer is one exhaustive entry per kind in `ENTITY_PALETTE_CONFIGS`
+  (`lib/entityPaletteRegistry.ts`), so a missing entry fails `tsc`. **Adding CMD+K wiring for a new
+  slug-routed entity = adding its registry entry** — see the **`cmd-k-entity-context`** skill for
+  the recipe, field rules (toggle vs sub-palette vs navigate-to-edit), and the gating rationale
+  (the palette mounts app-wide; queries must stay gated on `open && matched`).
 
 New toolbar action → new `CommandItem` in the "Current Page" group (or the "Bookmark Taxonomies"
 group for bookmark-specific fields). New bookmark entity field → extend `useBookmarkTaxonomyContext`
-and add an item to the palette's bookmark section.
-
-**Adding CMD+K wiring for a new slug-routed entity detail page:** create a `use<Entity>Context`
-hook (modelled on `useSavedFilterContext` / `useBookmarkTaxonomyContext`) that extracts the entity
-slug from the URL via `useRouterState`, fetches the entity, and exposes its update mutation. Then
-add a named group to the palette's `{taxonomyMode === null}` block gated on `entityId !== null`.
-Surface boolean fields as direct toggles and choices/select fields as sub-palettes; text/number
-fields that require input should navigate to the edit route instead. Reference files:
-`packages/client/src/components/useSavedFilterContext.ts` (simplest example),
-`packages/client/src/components/useBookmarkTaxonomyContext.ts` (richer example with sub-palettes).
+and add an item to the palette's bookmark section. New slug-routed entity or entity field → a
+registry entry / `fields` entry per the `cmd-k-entity-context` skill.

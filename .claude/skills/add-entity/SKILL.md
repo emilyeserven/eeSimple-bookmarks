@@ -133,6 +133,15 @@ Adding the listing page to the sidebar (`lib/sidebarNavItems.ts` — `taxonomyIt
 - **CMD+K nav groups**: the palette's Pages/Taxonomies/Settings groups (`CommandPalette.tsx`)
   derive from the same modules.
 
+### 11. Route data + CMD+K quick-actions
+
+Add the entity to `ENTITY_ROUTES` in `lib/entityRoutes.ts` (`kind`, `prefix`, `slugIndex`, labels,
+optional breadcrumb `switcher`, `flatCrumbs`) — the breadcrumb `TAXONOMY_DESCRIPTORS` derive from
+it — and add its exhaustive-record entry to `ENTITY_PALETTE_CONFIGS` in
+`lib/entityPaletteRegistry.ts` (tsc fails until you do). That gives the entity breadcrumbs and the
+palette's "Current \<Entity\>" View/Edit quick-actions; add boolean/choice `fields` only where
+useful. See the **`cmd-k-entity-context`** skill.
+
 ## Verify
 
 ```

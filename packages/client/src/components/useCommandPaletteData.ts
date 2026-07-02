@@ -1,8 +1,8 @@
 import { useRouterState } from "@tanstack/react-router";
 
 import { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
+import { useEntityCommandContext } from "./useEntityCommandContext";
 import { useListingPageContext } from "./useListingPageContext";
-import { useSavedFilterContext } from "./useSavedFilterContext";
 
 import {
   useBookmarkDetailLayout,
@@ -34,7 +34,9 @@ export function useCommandPaletteData(open: boolean, targetBookmarkId: string | 
   const updateDisplayPrefs = useUpdateDisplayPreferenceSettings();
 
   const listingCtx = useListingPageContext();
-  const savedFilterCtx = useSavedFilterContext();
+
+  // The slug-routed entity behind the current page (registry-driven; list query gated on `open`).
+  const entityCtx = useEntityCommandContext(open);
 
   // The favoritable settings page for the current pathname (mirrors the header star button).
   const pathname = useRouterState({
@@ -64,7 +66,7 @@ export function useCommandPaletteData(open: boolean, targetBookmarkId: string | 
     detailLayout,
     setDetailLayout,
     listingCtx,
-    savedFilterCtx,
+    entityCtx,
     settingsPage,
     matchingCardRules,
   };
