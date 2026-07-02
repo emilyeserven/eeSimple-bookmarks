@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";

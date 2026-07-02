@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { AutofillRule, ConditionNode, ConditionTree } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";

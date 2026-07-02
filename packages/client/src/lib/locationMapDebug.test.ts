@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { MapDebugInput } from "./locationMapDebug";
 import type { LocationBoundary, LocationNode, PlaceTypeLevelGroup } from "@eesimple/types";
 

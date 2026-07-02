@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { youtubeEmbedUrl } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 

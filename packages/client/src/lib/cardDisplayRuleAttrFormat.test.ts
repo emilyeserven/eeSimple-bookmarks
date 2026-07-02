@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { RuleAttrInspection } from "./cardDisplayRules";
 import type { CardFieldZones, CardZoneLayouts } from "@eesimple/types";
 

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { LocationNode, PlaceTypeDisplayConfig } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";

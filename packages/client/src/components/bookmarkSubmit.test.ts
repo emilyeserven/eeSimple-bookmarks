@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { ImageIntent } from "./bookmarkImageIntent";
 
 import { describe, expect, it, vi } from "vitest";

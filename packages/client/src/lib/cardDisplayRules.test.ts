@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { Bookmark, CardDisplayRule } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";

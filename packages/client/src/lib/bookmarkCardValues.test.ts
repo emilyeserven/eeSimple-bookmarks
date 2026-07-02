@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { ResolvedFieldPlacement } from "./bookmarkCardValues";
 import type { Bookmark, CardImageCorner } from "@eesimple/types";
 

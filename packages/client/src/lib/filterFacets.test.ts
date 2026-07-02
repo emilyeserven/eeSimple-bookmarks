@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { BookmarkSearch } from "./bookmarkSearch";
 
 import { describe, expect, it } from "vitest";

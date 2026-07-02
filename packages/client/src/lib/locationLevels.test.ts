@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
