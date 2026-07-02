@@ -9,7 +9,6 @@ import {
 } from "../hooks/useAppSettings";
 import { DEFAULT_BOOKMARK_COLUMNS, DEFAULT_VIEW_MODE } from "../lib/bookmarkColumns";
 import { withSort } from "../lib/bookmarkSearch";
-import { notifyError, notifySuccess } from "../lib/notifications";
 import { clampColumns, useUiStore } from "../stores/uiStore";
 import { usePanelControls } from "./panel/usePanelControls";
 
@@ -71,17 +70,14 @@ export function useListingPageContext() {
     const {
       filtersHidden: h, filtersInDrawer: d, message,
     } = FILTER_LOCATION_PATCH[next];
-    update.mutate(
-      {
+    update.mutate({
+      input: {
         ...displayData,
         filtersHidden: h,
         filtersInDrawer: d,
       },
-      {
-        onSuccess: () => notifySuccess(message),
-        onError: err => notifyError(err.message),
-      },
-    );
+      successMessage: message,
+    });
     if (next === "sidebar" && dCT === "filters") close();
     else if (next === "drawer") openType("filters");
   }

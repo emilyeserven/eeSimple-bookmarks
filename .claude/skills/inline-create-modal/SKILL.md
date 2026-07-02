@@ -1,11 +1,12 @@
 ---
 name: inline-create-modal
 description: >-
-  Add a name-only "Add new X" inline-create dialog in eeSimple Bookmarks, backed by the shared
-  `InlineCreateModal` component. Use when asked to "let me create a category/tag/group inline",
-  "add an Add-new-X button to a combobox", "add a quick-create modal", or when a form's
-  entity-picker needs to mint a new entity without leaving the page. Mirrors `AddCategoryModal` and
-  `AddPropertyGroupModal`.
+  Add a name-only (or name + one flag) "Add new X" inline-create dialog in eeSimple Bookmarks,
+  backed by the shared `InlineCreateModal` component. Use when asked to "let me create a
+  category/tag/group inline", "add an Add-new-X button to a combobox", "add a quick-create modal",
+  or when a form's entity-picker needs to mint a new entity without leaving the page. Mirrors
+  `AddCategoryModal`, `AddPropertyGroupModal`, and `AddRelationshipTypeModal` (the `extraFields`
+  case).
   Also covers maintaining one — "add a field to the Add-X modal" (usually the wrong move; see When NOT to use it), "rename the inline-create dialog".
 ---
 
@@ -60,10 +61,20 @@ Contract:
   closes the dialog and resets the field for the next open. Don't close the dialog yourself.
 - **`onCreated`** (your wrapper's prop) — hand the created entity back so the combobox can select it.
 
+## Name + one flag
+
+A single extra field (e.g. a boolean checkbox) is still supported — pass `extraFields` (a
+`ReactNode`) to render it between the name field and the submit row. `InlineCreateModal` stays
+name-only internally: the flag's state is owned by **your wrapper** (a plain `useState`), and your
+`onSubmit` closure folds it into the mutation payload alongside the trimmed name. Reset the flag in
+the mutation's `onSuccess`, right before calling `done()`. See `AddRelationshipTypeModal.tsx`
+(`directional`) for the reference implementation.
+
 ## When NOT to use it
 
-- The create needs **more than a name** (parent, type, options) → it's a different shape. `AddTagModal`
-  uses the full `TagForm` (parent selection) inside a plain `Dialog`, not `InlineCreateModal`.
+- The create needs **more than a name + one flag** (parent selection, multiple fields, options) →
+  it's a different shape. `AddTagModal` uses the full `TagForm` (parent selection) inside a plain
+  `Dialog`, not `InlineCreateModal`.
 - It's a full create **page/route**, not a modal → that's the `add-entity` skill.
 
 ## Wire it into a combobox

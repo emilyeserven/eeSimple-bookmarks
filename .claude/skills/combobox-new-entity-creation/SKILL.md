@@ -110,8 +110,9 @@ given entity don't need their own inline-create — reuse the shared wrapper whe
 - **Condition editors** — category (`CategoryConditionEditor`), media type
   (`MediaTypeConditionEditor`), YouTube channel (`YouTubeChannelConditionEditor`) all select the
   newly created entity into the condition's id array; location
-  (`LocationConditionEditor`) inherits create-and-select for free via `LocationPickerWithCreate`.
-  Website (`WebsiteConditionEditor`) is a documented exemption — see below.
+  (`LocationConditionEditor`) inherits create-and-select for free via `LocationPickerWithCreate`;
+  website (`WebsiteConditionEditor`) matches the created website's `domain` into the condition's
+  `domains` array — the one condition editor that selects by domain string rather than id.
 - **Source default fields** — category, media type (`SourceDefaultFields`) — inline-create updates
   the picker's local display state only, intentionally not persisting (matches the field's
   "display state, persist on real selection" contract)
@@ -136,8 +137,6 @@ Only these are exempt. Anything else missing `createOption` is a defect, not a j
   owns this shortener domain"), not an entity-minting context.
 - `LevelGroupEditRow` place-types picker — options are the *discovered* place-type keys present on
   locations, not the Place Type CRUD entity; minting a row there would not add a discovered key.
-- `WebsiteConditionEditor` — matches by raw domain string via `useCreateWebsite` directly, not
-  `AddWebsiteModal`/an entity id; architecturally distinct from the id-based condition editors.
 - **Choices property value pickers** (`InboxPreFillBox.InboxPropertyField`, `BookmarkCustomFields`) —
   select from a fixed `choices` list defined on the property; users can't add new choice values from
   here.

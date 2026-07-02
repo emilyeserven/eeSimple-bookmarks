@@ -27,7 +27,6 @@ import {
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
 import { useLocationLevels } from "../hooks/useLocationLevels";
-import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,11 +106,11 @@ export function LocationLevelGroupsSettings() {
     setMinAreaInput(String(parsed));
     if (parsed === minAreaKm2 || !displayPrefs) return;
     updatePrefs.mutate({
-      ...displayPrefs,
-      minAreaPinThresholdKm2: parsed,
-    }, {
-      onSuccess: () => notifySuccess("Minimum area threshold updated"),
-      onError: error => notifyError(error.message),
+      input: {
+        ...displayPrefs,
+        minAreaPinThresholdKm2: parsed,
+      },
+      successMessage: "Minimum area threshold updated",
     });
   }
 

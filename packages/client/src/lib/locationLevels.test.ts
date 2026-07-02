@@ -3,7 +3,7 @@ import type { PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { computePopulatedLevelGroupIds, computeVisibleLevelGroupIds, findAnchorGroup, placeTypeChoices } from "./locationLevels";
+import { computePopulatedLevelGroupIds, computeVisibleLevelGroupIds, findAnchorGroup, placeTypeChoices, resolveVisibleLevelGroupIds } from "./locationLevels";
 
 function group(overrides: Partial<PlaceTypeLevelGroup> & Pick<PlaceTypeLevelGroup, "id">): PlaceTypeLevelGroup {
   return {
@@ -324,6 +324,44 @@ describe("computePopulatedLevelGroupIds", () => {
 
   it("returns no ids when there are no plotted locations", () => {
     const ids = computePopulatedLevelGroupIds(groups, []);
+    expect(ids.size).toBe(0);
+  });
+});
+
+describe("resolveVisibleLevelGroupIds", () => {
+  it("uses the default set when there is no override, intersected with populated", () => {
+    const ids = resolveVisibleLevelGroupIds(
+      new Set(["country", "region", "city"]),
+      null,
+      new Set(["country", "region"]),
+    );
+    expect([...ids].sort()).toEqual(["country", "region"]);
+  });
+
+  it("uses the override set over the default when present, still intersected with populated", () => {
+    const ids = resolveVisibleLevelGroupIds(
+      new Set(["country"]),
+      new Set(["region", "city"]),
+      new Set(["country", "region", "city"]),
+    );
+    expect([...ids].sort()).toEqual(["city", "region"]);
+  });
+
+  it("drops ids that are not populated, even when the override includes them", () => {
+    const ids = resolveVisibleLevelGroupIds(
+      new Set(["country"]),
+      new Set(["country", "region", "city"]),
+      new Set(["country"]),
+    );
+    expect([...ids]).toEqual(["country"]);
+  });
+
+  it("treats an empty override set as an explicit 'nothing visible' (not a fall-back to default)", () => {
+    const ids = resolveVisibleLevelGroupIds(
+      new Set(["country", "region"]),
+      new Set(),
+      new Set(["country", "region"]),
+    );
     expect(ids.size).toBe(0);
   });
 });

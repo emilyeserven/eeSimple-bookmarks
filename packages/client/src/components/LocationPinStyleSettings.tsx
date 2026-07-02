@@ -7,7 +7,6 @@ import {
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
 import { useLocationLevels } from "../hooks/useLocationLevels";
-import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -24,11 +23,11 @@ function PinSizeCard() {
   function commitScale(next: number) {
     if (next === pinScale || !displayPrefs) return;
     updatePrefs.mutate({
-      ...displayPrefs,
-      mapPinScale: next,
-    }, {
-      onSuccess: () => notifySuccess("Pin size updated"),
-      onError: error => notifyError(error.message),
+      input: {
+        ...displayPrefs,
+        mapPinScale: next,
+      },
+      successMessage: "Pin size updated",
     });
   }
 

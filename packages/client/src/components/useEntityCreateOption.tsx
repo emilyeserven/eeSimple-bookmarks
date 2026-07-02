@@ -75,7 +75,7 @@ const CREATABLE_ENTITY_PICKERS: {
     Modal: AddMediaTypeModal,
   },
   "website": {
-    createLabel: "Add website",
+    createLabel: "Create website",
     Modal: AddWebsiteModal,
   },
   "youtube-channel": {

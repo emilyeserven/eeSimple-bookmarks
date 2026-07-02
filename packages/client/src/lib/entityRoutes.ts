@@ -47,6 +47,26 @@ export interface EntityRoute {
   flatCrumbs: boolean;
 }
 
+/** Hoisted so `entities/publisher.ts`'s `EntityDescriptor` can reference this entry by identity. */
+export const PUBLISHER_ROUTE: EntityRoute = {
+  kind: "publisher",
+  prefix: "/taxonomies/publishers",
+  slugIndex: 2,
+  listLabel: "Publishers",
+  singular: "Publisher",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entities/author.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const AUTHOR_ROUTE: EntityRoute = {
+  kind: "author",
+  prefix: "/taxonomies/authors",
+  slugIndex: 2,
+  listLabel: "Authors",
+  singular: "Author",
+  flatCrumbs: true,
+};
+
 export const ENTITY_ROUTES: readonly EntityRoute[] = [
   {
     kind: "category",
@@ -115,22 +135,8 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
     singular: "Import",
     flatCrumbs: true,
   },
-  {
-    kind: "author",
-    prefix: "/taxonomies/authors",
-    slugIndex: 2,
-    listLabel: "Authors",
-    singular: "Author",
-    flatCrumbs: true,
-  },
-  {
-    kind: "publisher",
-    prefix: "/taxonomies/publishers",
-    slugIndex: 2,
-    listLabel: "Publishers",
-    singular: "Publisher",
-    flatCrumbs: true,
-  },
+  AUTHOR_ROUTE,
+  PUBLISHER_ROUTE,
   {
     kind: "property-group",
     prefix: "/taxonomies/property-groups",

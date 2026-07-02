@@ -84,11 +84,7 @@ export function MarkAsShortenerDialog({
         return;
       }
       updateIgnoreList.mutate([...ignoreList, domain], {
-        onSuccess: () => {
-          notifySuccess(`Added ${domain} to shortener ignore list`);
-          onClose();
-        },
-        onError: () => notifyError("Couldn't update the shortener ignore list"),
+        onSuccess: () => onClose(),
       });
     }
     else {

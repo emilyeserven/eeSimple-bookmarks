@@ -12,7 +12,6 @@ import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
 } from "@/hooks/useAppSettings";
-import { notifyError, notifySuccess } from "@/lib/notifications";
 
 const BREAKPOINT_OPTIONS = [
   {
@@ -53,11 +52,11 @@ export function DrawerBreakpointsPopover() {
       ? displayData.drawerUnpinnedBreakpoints.filter(b => b !== px)
       : [...displayData.drawerUnpinnedBreakpoints, px];
     update.mutate({
-      ...displayData,
-      drawerUnpinnedBreakpoints: next,
-    }, {
-      onSuccess: () => notifySuccess("Drawer breakpoints updated"),
-      onError: error => notifyError(error.message),
+      input: {
+        ...displayData,
+        drawerUnpinnedBreakpoints: next,
+      },
+      successMessage: "Drawer breakpoints updated",
     });
   }
 
