@@ -43,7 +43,7 @@ export const propertyGroupListingConfig: EntityListingConfig<PropertyGroup> = {
     </p>
   ),
   renderListItem: ({
-    entity, ...rest
+    entity, allItems, ...rest
   }) => (
     <PropertyGroupListItem
       group={entity}

@@ -71,7 +71,7 @@ export const websiteListingConfig: EntityListingConfig<Website> = {
     </p>
   ),
   renderListItem: ({
-    entity, ...rest
+    entity, allItems, ...rest
   }) => (
     <WebsiteListItem
       website={entity}

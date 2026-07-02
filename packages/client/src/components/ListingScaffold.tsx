@@ -24,10 +24,18 @@ export function ListingScaffold<E extends { id: string }>({
 }) {
   const {
     items, isLoading, error, columns, viewMode, rawQuery, hasQuery, filtered, deletableIds, selection, bulkDelete,
+    secondaryFilterValue, setSecondaryFilterValue,
   } = state;
 
   return (
     <div className="space-y-4">
+      {config.secondaryFilter
+        ? config.secondaryFilter.render({
+          value: secondaryFilterValue,
+          onChange: setSecondaryFilterValue,
+        })
+        : null}
+
       <ListingStatusMessages
         isLoading={isLoading}
         error={error}
@@ -87,6 +95,7 @@ export function ListingScaffold<E extends { id: string }>({
               <Fragment key={entity.id}>
                 {config.renderListItem({
                   entity,
+                  allItems: items,
                   selectable: config.isSelectable ? config.isSelectable(entity) : true,
                   selected: selection.isSelected(entity.id),
                   onSelectToggle: () => selection.toggle(entity.id),

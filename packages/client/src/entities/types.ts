@@ -49,8 +49,22 @@ export interface EntityListingConfig<E extends { id: string }> {
   layout?: "grid" | "list";
   /** Per-item override for whether a row/card can be bulk-selected. Defaults to always selectable. */
   isSelectable?: (item: E) => boolean;
+  /**
+   * An extra facet filter alongside the header search box (e.g. YouTubeChannel's category filter).
+   * `ListingScaffold` renders `render`'s UI above the status/bulk-bar row and combines `matches` with
+   * the header-search predicate (both must pass). State is scaffold-owned (per `pageKey`), not
+   * entity-file-local, so it resets correctly on navigation like the header search does.
+   */
+  secondaryFilter?: {
+    render: (props: { value: string | null;
+      onChange: (value: string | null) => void; }) => ReactNode;
+    matches: (item: E, value: string | null) => boolean;
+  };
   renderListItem: (props: {
     entity: E;
+    /** The full unfiltered list, for entities whose card needs cross-item lookups (e.g. a
+     * CustomProperty's "calculate" type resolving its operand names from sibling properties). */
+    allItems: E[];
     selectable?: boolean;
     selected?: boolean;
     onSelectToggle?: () => void;

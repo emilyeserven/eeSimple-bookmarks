@@ -48,7 +48,7 @@ export const savedFilterListingConfig: EntityListingConfig<SavedFilter> = {
     </p>
   ),
   renderListItem: ({
-    entity, ...rest
+    entity, allItems, ...rest
   }) => (
     <SavedFilterCard
       filter={entity}

@@ -1,5 +1,7 @@
 import type { EntityListingConfig } from "../entities/types";
 
+import { useState } from "react";
+
 import { useHeaderSearchFilter } from "./useHeaderSearchFilter";
 import { useRegisterBulkSelect } from "./useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "./useRegisterHeaderSearch";
@@ -25,8 +27,16 @@ export function useListingScaffold<E extends { id: string }>(config: EntityListi
 
   const items = data ?? [];
   const {
-    rawQuery, hasQuery, filtered,
+    rawQuery, hasQuery, filtered: textFiltered,
   } = useHeaderSearchFilter(items, config.matches);
+
+  const [secondaryFilterValue, setSecondaryFilterValue] = useState<string | null>(null);
+  const {
+    secondaryFilter,
+  } = config;
+  const filtered = secondaryFilter
+    ? textFiltered.filter(item => secondaryFilter.matches(item, secondaryFilterValue))
+    : textFiltered;
 
   const deletableIds = (config.deletableIds ?? (all => all.map(item => item.id)))(filtered);
   const selection = useListSelection(config.pageKey, deletableIds);
@@ -45,6 +55,8 @@ export function useListingScaffold<E extends { id: string }>(config: EntityListi
     deletableIds,
     selection,
     bulkDelete,
+    secondaryFilterValue,
+    setSecondaryFilterValue,
   };
 }
 
