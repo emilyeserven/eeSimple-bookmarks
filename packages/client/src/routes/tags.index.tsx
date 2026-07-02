@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { AddTagModal } from "../components/AddTagModal";
-import { TagManager } from "../components/TagManager";
+import { TreeListingScaffold } from "../components/TreeListingScaffold";
+import { buildTagTreeListingConfig } from "../entities/tag";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useTags } from "../hooks/useTags";
+import { useTreeListingScaffold } from "../hooks/useTreeListingScaffold";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -26,6 +28,12 @@ function TagsListingPage() {
     createLabel: "New tag",
   });
 
+  // The config is a factory only because the empty state's "Add your first tag" button opens the modal.
+  const config = useMemo(() => buildTagTreeListingConfig({
+    onNew: () => setModalOpen(true),
+  }), []);
+  const state = useTreeListingScaffold(config);
+
   return (
     <section className="space-y-6">
       <div className="space-y-1">
@@ -40,7 +48,10 @@ function TagsListingPage() {
         </p>
       </div>
 
-      <TagManager onNew={() => setModalOpen(true)} />
+      <TreeListingScaffold
+        config={config}
+        state={state}
+      />
 
       <AddTagModal
         open={modalOpen}

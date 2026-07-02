@@ -1,13 +1,10 @@
 import type { EntityRouteKind } from "./entityRoutes";
 import type {
-  Tag,
   UpdateLocationInput,
-  UpdateTagInput,
 } from "@eesimple/types";
 
 import {
   locationsApi,
-  tagsApi,
 } from "./api/taxonomies";
 import { AUTHOR_PALETTE } from "../entities/author";
 import { AUTOFILL_PALETTE } from "../entities/autofillRule";
@@ -22,6 +19,7 @@ import { PROPERTY_GROUP_PALETTE } from "../entities/propertyGroup";
 import { PUBLISHER_PALETTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_PALETTE } from "../entities/relationshipType";
 import { SAVED_FILTER_PALETTE } from "../entities/savedFilter";
+import { TAG_PALETTE } from "../entities/tag";
 import { WEBSITE_PALETTE } from "../entities/website";
 import { YOUTUBE_CHANNEL_PALETTE } from "../entities/youtubeChannel";
 
@@ -84,26 +82,7 @@ const BOOKMARKS_KEY = ["bookmarks"] as const;
  */
 export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig> = {
   "category": CATEGORY_PALETTE,
-  "tag": {
-    queryKey: ["tags"],
-    listFn: () => tagsApi.list(),
-    updateFn: (id, patch) => tagsApi.update(id, patch as UpdateTagInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-    fields: [
-      {
-        type: "boolean",
-        key: "editableOnCard",
-        label: "Editable on Card",
-        getValue: entity => (entity as Tag).editableOnCard ?? false,
-      },
-      {
-        type: "boolean",
-        key: "excludeFromBackfill",
-        label: "Exclude from Backfill",
-        getValue: entity => (entity as Tag).excludeFromBackfill ?? false,
-      },
-    ],
-  },
+  "tag": TAG_PALETTE,
   "website": WEBSITE_PALETTE,
   "media-type": MEDIA_TYPE_PALETTE,
   "location": {

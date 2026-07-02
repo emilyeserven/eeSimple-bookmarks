@@ -13,6 +13,7 @@ import { PROPERTY_GROUP_ROUTE } from "../entities/propertyGroup";
 import { PUBLISHER_ROUTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_ROUTE } from "../entities/relationshipType";
 import { SAVED_FILTER_ROUTE } from "../entities/savedFilter";
+import { TAG_ROUTE } from "../entities/tag";
 import { WEBSITE_ROUTE } from "../entities/website";
 import { YOUTUBE_CHANNEL_ROUTE } from "../entities/youtubeChannel";
 
@@ -65,14 +66,7 @@ export interface EntityRoute {
 
 export const ENTITY_ROUTES: readonly EntityRoute[] = [
   CATEGORY_ROUTE,
-  {
-    kind: "tag",
-    prefix: "/tags",
-    slugIndex: 1,
-    listLabel: "Tags",
-    singular: "Tag",
-    flatCrumbs: false,
-  },
+  TAG_ROUTE,
   WEBSITE_ROUTE,
   MEDIA_TYPE_ROUTE,
   {
