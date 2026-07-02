@@ -1392,11 +1392,6 @@ export const appSettings = pgTable("app_settings", {
   // Scale factor applied to every rendered map pin's size (1 = default size). Nullable = push-safe
   // additive; the service clamps to [MAP_PIN_SCALE_MIN, MAP_PIN_SCALE_MAX] and falls back to 1 when null.
   mapPinScale: real("map_pin_scale"),
-  // Default "Show" mode (above/current/below) for a bookmark's locations map, relative to the
-  // bookmark's tagged locations' own levels. The per-level-group sibling lives inside
-  // placeTypeLevelGroups (each group's levelMode). Nullable = push-safe additive; the service
-  // coerces to a LocationMapLevelMode and falls back to "current" when null.
-  bookmarkMapLevelMode: text("bookmark_map_level_mode"),
 });
 
 /**

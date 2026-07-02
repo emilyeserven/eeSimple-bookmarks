@@ -301,9 +301,10 @@ export type LocationDisplayMode = typeof LOCATION_DISPLAY_MODES[number];
  * Which levels a map shows relative to its "current" level(s) — the map "Levels" overlay's "Show"
  * button group: only the current level, the current level plus broader (`above`) levels, or plus
  * narrower (`below`) levels. The current level is always shown. Stored per level group
- * ({@link PlaceTypeLevelGroup.levelMode} — applied when a viewed place's own level is that group)
- * and once for bookmark maps (`DisplayPreferenceSettings.bookmarkMapLevelMode`). Derived tuple =
- * the single source for the middleware Fastify JSON-Schema enums (don't hand-mirror this list).
+ * ({@link PlaceTypeLevelGroup.levelMode}) — applied when a viewed place's own level is that group,
+ * or, on a bookmark map, when one of the bookmark's tagged locations' levels is that group (each
+ * anchor group expands independently by its own `levelMode`). Derived tuple = the single source
+ * for the middleware Fastify JSON-Schema enums (don't hand-mirror this list).
  */
 export const LOCATION_MAP_LEVEL_MODES = ["above", "current", "below"] as const;
 export type LocationMapLevelMode = typeof LOCATION_MAP_LEVEL_MODES[number];
@@ -519,10 +520,12 @@ export interface PlaceTypeLevelGroup {
   showOnMainMap?: boolean;
   /**
    * The default "Show" mode for maps anchored at this level — which other level groups a place's
-   * pages (or a bookmark's map) show alongside it when the viewed place's own place type belongs to
-   * this group: broader levels (`above`), narrower levels (`below`), or just this one (`current`).
-   * Absent → `current`. Edited on Settings → Locations → Level Groups and written through by the
-   * map "Levels" overlay's "Show" button group.
+   * pages (or a bookmark's map, when one of its tagged locations' place types belongs to this
+   * group) show alongside it: broader levels (`above`), narrower levels (`below`), or just this one
+   * (`current`). A bookmark map with several tagged locations expands each anchor group by its own
+   * `levelMode` independently, so differently-leveled tagged locations can each carry their own
+   * default. Absent → `current`. Edited on Settings → Locations → Level Groups and written through
+   * by the map "Levels" overlay's "Show" button group.
    */
   levelMode?: LocationMapLevelMode;
   /** Ordering weight among groups (lower sorts first). */
