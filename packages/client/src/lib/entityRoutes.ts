@@ -57,6 +57,17 @@ export const PUBLISHER_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
+/** Hoisted so `entities/propertyGroup.tsx`'s `EntityDescriptor` can reference this entry by identity. */
+export const PROPERTY_GROUP_ROUTE: EntityRoute = {
+  kind: "property-group",
+  prefix: "/taxonomies/property-groups",
+  slugIndex: 2,
+  listLabel: "Property Groups",
+  singular: "Property Group",
+  switcher: "property-group",
+  flatCrumbs: true,
+};
+
 /** Hoisted so `entities/author.tsx`'s `EntityDescriptor` can reference this entry by identity. */
 export const AUTHOR_ROUTE: EntityRoute = {
   kind: "author",
@@ -137,15 +148,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   },
   AUTHOR_ROUTE,
   PUBLISHER_ROUTE,
-  {
-    kind: "property-group",
-    prefix: "/taxonomies/property-groups",
-    slugIndex: 2,
-    listLabel: "Property Groups",
-    singular: "Property Group",
-    switcher: "property-group",
-    flatCrumbs: true,
-  },
+  PROPERTY_GROUP_ROUTE,
   {
     kind: "relationship-type",
     prefix: "/taxonomies/relationship-types",
