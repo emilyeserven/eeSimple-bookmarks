@@ -1,8 +1,16 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { afterEach, test } from "node:test";
 import { fetchIsbnMetadata } from "@/services/isbn";
+import { resetKavitaAuthCache } from "@/services/kavita";
 
 const ISBN = "9780345391803";
+
+const KAVITA_ENV_KEYS = ["KAVITA_ENDPOINT", "KAVITA_API_KEY"];
+
+afterEach(() => {
+  for (const k of KAVITA_ENV_KEYS) delete process.env[k];
+  resetKavitaAuthCache();
+});
 
 const OPEN_LIBRARY_HIT = JSON.stringify({
   [`ISBN:${ISBN}`]: {
@@ -42,6 +50,7 @@ const GOOGLE_BOOKS_HIT = JSON.stringify({
 function stubByHost(handlers: {
   openLibrary?: () => Response;
   google?: () => Response;
+  kavita?: () => Response;
 }): () => void {
   const original = global.fetch;
   global.fetch = (async (input: string | URL | Request) => {
@@ -53,6 +62,20 @@ function stubByHost(handlers: {
     }
     if (url.includes("googleapis.com")) {
       return handlers.google?.() ?? new Response("{}", {
+        status: 200,
+      });
+    }
+    if (url.includes("kavita-server")) {
+      if (url.includes("/api/Plugin/authenticate")) {
+        return new Response(JSON.stringify({
+          token: "test-jwt",
+        }), {
+          status: 200,
+        });
+      }
+      return handlers.kavita?.() ?? new Response(JSON.stringify({
+        series: [],
+      }), {
         status: 200,
       });
     }
@@ -115,6 +138,72 @@ test("fetchIsbnMetadata falls back to Google Books when Open Library misses", as
 });
 
 test("fetchIsbnMetadata reports not_found when both providers miss", async () => {
+  const restore = stubByHost({
+    openLibrary: () => new Response("{}", {
+      headers: {
+        "content-type": "application/json",
+      },
+    }),
+    google: () => new Response(JSON.stringify({
+      totalItems: 0,
+    }), {
+      headers: {
+        "content-type": "application/json",
+      },
+    }),
+  });
+  try {
+    const outcome = await fetchIsbnMetadata(ISBN);
+    assert.equal(outcome.kind, "not_found");
+  }
+  finally {
+    restore();
+  }
+});
+
+test("fetchIsbnMetadata falls back to Kavita when both public providers miss and Kavita is configured", async () => {
+  process.env.KAVITA_ENDPOINT = "http://kavita-server:5000";
+  process.env.KAVITA_API_KEY = "secret-key";
+  const restore = stubByHost({
+    openLibrary: () => new Response("{}", {
+      headers: {
+        "content-type": "application/json",
+      },
+    }),
+    google: () => new Response(JSON.stringify({
+      totalItems: 0,
+    }), {
+      headers: {
+        "content-type": "application/json",
+      },
+    }),
+    kavita: () => new Response(JSON.stringify({
+      series: [{
+        seriesId: 12,
+        libraryId: 3,
+        name: "The Hitchhiker's Guide to the Galaxy",
+        libraryName: "Books",
+        releaseYear: 1995,
+      }],
+    }), {
+      status: 200,
+    }),
+  });
+  try {
+    const outcome = await fetchIsbnMetadata(ISBN);
+    assert.equal(outcome.kind, "ok");
+    assert.equal(outcome.kind === "ok" ? outcome.result.title : null, "The Hitchhiker's Guide to the Galaxy");
+    assert.equal(outcome.kind === "ok" ? outcome.result.publisher : null, "Books");
+    assert.equal(outcome.kind === "ok" ? outcome.result.coverUrl : null, "/api/kavita/series/12/cover");
+  }
+  finally {
+    restore();
+  }
+});
+
+test("fetchIsbnMetadata still reports not_found when Kavita is configured but has no match", async () => {
+  process.env.KAVITA_ENDPOINT = "http://kavita-server:5000";
+  process.env.KAVITA_API_KEY = "secret-key";
   const restore = stubByHost({
     openLibrary: () => new Response("{}", {
       headers: {
