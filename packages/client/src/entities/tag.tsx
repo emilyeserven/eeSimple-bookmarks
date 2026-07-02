@@ -1,0 +1,117 @@
+import type { EntityDescriptor, EntityTreeListingConfig } from "./types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { Tag, TagNode, UpdateTagInput } from "@eesimple/types";
+
+import { TagTable } from "../components/TagTable";
+import { TagTreeList } from "../components/TagTreeList";
+import { tagWorkbench } from "../components/workbench/tag";
+import { useSortByRomanized } from "../hooks/useAppSettings";
+import { useBulkDeleteTags, useTagTree } from "../hooks/useTags";
+import { tagsApi } from "../lib/api/taxonomies";
+import { flattenTree, sortTagTreeByRomanized } from "../lib/tagTree";
+
+const BOOKMARKS_KEY = ["bookmarks"] as const;
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const TAG_ROUTE: EntityRoute = {
+  kind: "tag",
+  prefix: "/tags",
+  slugIndex: 1,
+  listLabel: "Tags",
+  singular: "Tag",
+  flatCrumbs: false,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const TAG_PALETTE: EntityPaletteConfig = {
+  queryKey: ["tags"],
+  listFn: () => tagsApi.list(),
+  updateFn: (id, patch) => tagsApi.update(id, patch as UpdateTagInput),
+  extraInvalidateKeys: [BOOKMARKS_KEY],
+  fields: [
+    {
+      type: "boolean",
+      key: "editableOnCard",
+      label: "Editable on Card",
+      getValue: entity => (entity as Tag).editableOnCard ?? false,
+    },
+    {
+      type: "boolean",
+      key: "excludeFromBackfill",
+      label: "Exclude from Backfill",
+      getValue: entity => (entity as Tag).excludeFromBackfill ?? false,
+    },
+  ],
+};
+
+/** Romanized re-sort for the filtered tag tree — the `useSortedTree` slot (see the config's doc). */
+function useRomanizedSortedTree(tree: TagNode[]): TagNode[] {
+  const sortByRomanized = useSortByRomanized();
+  return sortTagTreeByRomanized(tree, sortByRomanized);
+}
+
+/**
+ * A factory (rather than a static config) only because the empty-state copy embeds an "Add your
+ * first tag" button, whose handler is owned by the listing route (it opens `AddTagModal`).
+ */
+export function buildTagTreeListingConfig(opts: { onNew: () => void }): EntityTreeListingConfig<TagNode> {
+  return {
+    pageKey: "tags-listing",
+    useTree: useTagTree,
+    matches: (node, query) =>
+      node.name.toLowerCase().includes(query)
+      || node.slug.toLowerCase().includes(query)
+      || (node.romanizedName ?? "").toLowerCase().includes(query),
+    deletableIds: tree => flattenTree(tree).map(f => f.node.id),
+    useBulkDelete: useBulkDeleteTags,
+    noun: ["tag", "tags"],
+    loadingLabel: "Loading tags…",
+    entityPlural: "tags",
+    emptyMessage: (
+      <p className="text-muted-foreground">
+        {"No tags yet. "}
+        <button
+          type="button"
+          className="
+            underline
+            hover:no-underline
+          "
+          onClick={opts.onNew}
+        >
+          Add your first tag.
+        </button>
+      </p>
+    ),
+    useSortedTree: useRomanizedSortedTree,
+    renderTree: ({
+      sortedTree, expanded, onToggle, columns,
+    }) => (
+      <TagTreeList
+        tree={sortedTree}
+        expanded={expanded}
+        onToggle={onToggle}
+        columns={columns}
+      />
+    ),
+    renderTable: ({
+      sortedTree, selection,
+    }) => (
+      <TagTable
+        tree={sortedTree}
+        selection={selection}
+      />
+    ),
+  };
+}
+
+/** Thirteenth `EntityDescriptor` migration — the second tree taxonomy on the tree scaffold (issue #860, batch 3). */
+export const tagDescriptor: EntityDescriptor<TagNode, TagNode> = {
+  kind: "tag",
+  route: TAG_ROUTE,
+  palette: TAG_PALETTE,
+  workbench: tagWorkbench,
+  treeListing: buildTagTreeListingConfig({
+    onNew: () => undefined,
+  }),
+};

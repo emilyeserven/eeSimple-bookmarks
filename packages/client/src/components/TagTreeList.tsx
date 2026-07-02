@@ -1,8 +1,6 @@
 import type { TaxonomyTreeNode } from "./TaxonomyTreeRow";
 import type { TagNode } from "@eesimple/types";
 
-import { useMemo } from "react";
-
 import { Link } from "@tanstack/react-router";
 import { Folder, Info, Pencil } from "lucide-react";
 
@@ -10,8 +8,7 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 import { RomanizedLabel } from "./RomanizedLabel";
 import { TagCategoriesPopover } from "./TagCategoriesPopover";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
-import { useSidebarOpenModifier, useSortByRomanized } from "../hooks/useAppSettings";
-import { sortTagTreeByRomanized } from "../lib/tagTree";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
@@ -26,22 +23,20 @@ interface TagTreeListProps {
   columns: number;
 }
 
-/** Read-only, collapsible tag tree. Each root node is its own card; cards flow in a responsive grid. */
+/**
+ * Read-only, collapsible tag tree. Each root node is its own card; cards flow in a responsive grid.
+ * Callers own the sort order (the tree scaffold's `useSortedTree` applies the romanized re-sort).
+ */
 export function TagTreeList({
   tree, expanded, onToggle, columns,
 }: TagTreeListProps) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
-  const sortByRomanized = useSortByRomanized();
-  const sortedTree = useMemo(
-    () => sortTagTreeByRomanized(tree, sortByRomanized),
-    [tree, sortByRomanized],
-  );
 
   return (
     <TaxonomyTreeList
-      tree={sortedTree}
+      tree={tree}
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
