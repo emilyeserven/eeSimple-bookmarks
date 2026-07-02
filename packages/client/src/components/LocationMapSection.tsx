@@ -42,7 +42,8 @@ interface LocationMapSectionProps {
    * none yet — used on detail pages so the polygon appears on first view and is cached server-side.
    */
   autoRefreshLocationId?: string;
-  /** Whether to show the "Levels" overlay control (listing page only; off on single-location maps). */
+  /** Whether to show the "Levels" overlay control. Off by default; on for the listing map, the
+   * bookmark map, and the location detail page's General-tab map. */
   showLevels?: boolean;
   /**
    * How this map decides which levels are visible by default: the main index map (`showOnMainMap`),
