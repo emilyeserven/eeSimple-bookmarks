@@ -16,25 +16,38 @@ export interface AutofillRulesFilters {
   query: string;
 }
 
+/**
+ * Does one rule pass the active facet filters (AND)? The pure per-rule predicate behind
+ * `applyFacets` — also handed to `ListingScaffold` as the unscoped listing's `externalFilter`.
+ * The free-text `query` is deliberately not part of this: text search is the header search's job.
+ * `websiteId` with no resolved `websiteDomain` matches nothing (rules reference websites by domain).
+ */
+export function ruleMatchesFacets(
+  rule: AutofillRule,
+  filters: Omit<AutofillRulesFilters, "query">,
+  websiteDomain: string | undefined,
+): boolean {
+  const {
+    categoryId, propertyId, websiteId, tagId, mediaTypeId, locationId, channelId, noCategory,
+  } = filters;
+  if (categoryId && rule.setCategoryId !== categoryId) return false;
+  if (noCategory && rule.setCategoryId !== null) return false;
+  if (propertyId && !ruleSetsProperty(rule, propertyId)) return false;
+  if (websiteId && (!websiteDomain || !ruleTargetsWebsite(rule, websiteDomain))) return false;
+  if (tagId && !ruleSetsTag(rule, tagId)) return false;
+  if (mediaTypeId && !ruleSetsMediaType(rule, mediaTypeId)) return false;
+  if (locationId && !ruleSetsLocation(rule, locationId)) return false;
+  if (channelId && !ruleTargetsYoutubeChannel(rule, channelId)) return false;
+  return true;
+}
+
 /** Apply the active facet filters (AND) to the rules, before the text search. */
 export function applyFacets(
   rules: AutofillRule[],
   filters: Omit<AutofillRulesFilters, "query">,
   websiteDomain: string | undefined,
 ): AutofillRule[] {
-  const {
-    categoryId, propertyId, websiteId, tagId, mediaTypeId, locationId, channelId, noCategory,
-  } = filters;
-  let list = rules;
-  if (categoryId) list = list.filter(rule => rule.setCategoryId === categoryId);
-  if (noCategory) list = list.filter(rule => rule.setCategoryId === null);
-  if (propertyId) list = list.filter(rule => ruleSetsProperty(rule, propertyId));
-  if (websiteId) list = websiteDomain ? list.filter(rule => ruleTargetsWebsite(rule, websiteDomain)) : [];
-  if (tagId) list = list.filter(rule => ruleSetsTag(rule, tagId));
-  if (mediaTypeId) list = list.filter(rule => ruleSetsMediaType(rule, mediaTypeId));
-  if (locationId) list = list.filter(rule => ruleSetsLocation(rule, locationId));
-  if (channelId) list = list.filter(rule => ruleTargetsYoutubeChannel(rule, channelId));
-  return list;
+  return rules.filter(rule => ruleMatchesFacets(rule, filters, websiteDomain));
 }
 
 /** Narrow the rules by the active facets, then by the free-text query (name + condition summary). */

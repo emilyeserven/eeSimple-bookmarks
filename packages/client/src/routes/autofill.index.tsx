@@ -1,17 +1,25 @@
 import type { AutofillListSearch } from "../lib/autofillScope";
+import type { AutofillRule } from "@eesimple/types";
+
+import { useEffect, useMemo } from "react";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { AutofillFilterSidebar } from "../components/AutofillFilterSidebar";
-import { AutofillRulesList } from "../components/AutofillRulesList";
+import { ruleMatchesFacets } from "../components/autofillRulesFacets";
+import { ListingScaffold } from "../components/ListingScaffold";
+import { buildAutofillListingConfig } from "../entities/autofillRule";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useAutofillFacets } from "../hooks/useAutofillScope";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useListingScaffold } from "../hooks/useListingScaffold";
 import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
+import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
 import { validateAutofillListSearch } from "../lib/autofillScope";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useUiStore } from "@/stores/uiStore";
 
 export const Route = createFileRoute("/autofill/")({
   validateSearch: validateAutofillListSearch,
@@ -32,6 +40,48 @@ function AutofillListPage() {
     createAction: newRule.openModal,
     createLabel: "New rule",
   });
+
+  // The scoping website's normalized domain (rules reference websites by domain, not id).
+  const {
+    categoryId, propertyId, websiteId, tagId, mediaTypeId, channelId,
+  } = listProps;
+  const websiteDomain = useWebsiteDomain(websiteId);
+
+  const matchesFacets = useMemo(
+    () => (rule: AutofillRule) => ruleMatchesFacets(rule, {
+      categoryId,
+      propertyId,
+      websiteId,
+      tagId,
+      mediaTypeId,
+      channelId,
+      noCategory,
+    }, websiteDomain),
+    [categoryId, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, channelId, noCategory],
+  );
+  const config = useMemo(() => buildAutofillListingConfig({
+    matchesFacets,
+  }), [matchesFacets]);
+  const state = useListingScaffold(config);
+
+  // Legacy `?q=` deeplinks: the text search moved to the header search box, so seed the query into
+  // it and strip `q` from the URL (it stays accepted by `validateAutofillListSearch`). This effect
+  // sits after `useListingScaffold` on purpose: `useRegisterHeaderSearch` clears the query in its
+  // unmount cleanup, so under StrictMode's mount → cleanup → remount the seed must re-run on the
+  // second mount (keyed on `search.q`, which the async navigate hasn't stripped yet) — a run-once
+  // ref here would leave the query wiped.
+  const setHeaderSearchQuery = useUiStore(state => state.setHeaderSearchQuery);
+  useEffect(() => {
+    if (!search.q) return;
+    setHeaderSearchQuery(search.q);
+    void navigate({
+      search: prev => ({
+        ...prev,
+        q: undefined,
+      }),
+      replace: true,
+    });
+  }, [search.q, setHeaderSearchQuery, navigate]);
 
   function onChange(patch: Partial<AutofillListSearch>) {
     void navigate({
@@ -78,10 +128,9 @@ function AutofillListPage() {
         />
 
         <div>
-          <AutofillRulesList
-            {...listProps}
-            noCategory={noCategory}
-            query={search.q ?? ""}
+          <ListingScaffold
+            config={config}
+            state={state}
           />
         </div>
       </div>

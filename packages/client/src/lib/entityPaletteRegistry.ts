@@ -1,17 +1,16 @@
 import type { EntityRouteKind } from "./entityRoutes";
 import type {
   Tag,
-  UpdateAutofillRuleInput,
   UpdateLocationInput,
   UpdateTagInput,
 } from "@eesimple/types";
 
-import { autofillApi } from "./api/autofill";
 import {
   locationsApi,
   tagsApi,
 } from "./api/taxonomies";
 import { AUTHOR_PALETTE } from "../entities/author";
+import { AUTOFILL_PALETTE } from "../entities/autofillRule";
 import { CARD_DISPLAY_RULE_PALETTE } from "../entities/cardDisplayRule";
 import { CATEGORY_PALETTE } from "../entities/category";
 import { IMPORT_RULE_PALETTE } from "../entities/importRule";
@@ -121,22 +120,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "property-group": PROPERTY_GROUP_PALETTE,
   "relationship-type": RELATIONSHIP_TYPE_PALETTE,
   "custom-property": CUSTOM_PROPERTY_PALETTE,
-  "autofill": {
-    queryKey: ["autofill-rules"],
-    listFn: () => autofillApi.list(),
-    updateFn: (id, patch) => autofillApi.update(id, patch as UpdateAutofillRuleInput),
-    extraInvalidateKeys: [BOOKMARKS_KEY],
-    extraEditTabs: [
-      {
-        label: "Edit Conditions",
-        tab: "conditions",
-      },
-      {
-        label: "Edit Prefill",
-        tab: "prefill",
-      },
-    ],
-  },
+  "autofill": AUTOFILL_PALETTE,
   "import-rule": IMPORT_RULE_PALETTE,
   "saved-filter": SAVED_FILTER_PALETTE,
   "card-display-rule": CARD_DISPLAY_RULE_PALETTE,
