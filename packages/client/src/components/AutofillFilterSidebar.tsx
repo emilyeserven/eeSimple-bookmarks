@@ -7,7 +7,6 @@ import { useAutofillFilterData } from "../hooks/useAutofillScope";
 import { AUTOFILL_FACET_KEYS, NO_CATEGORY } from "../lib/autofillScope";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SelectItem } from "@/components/ui/select";
 
 interface AutofillFilterSidebarProps {
@@ -15,7 +14,7 @@ interface AutofillFilterSidebarProps {
   onChange: (patch: Partial<AutofillListSearch>) => void;
 }
 
-/** The autofill-rules listing filter rail: a search box plus a facet select per scopable entity. */
+/** The autofill-rules listing filter rail: a facet select per scopable entity (text search lives in the header search). */
 export function AutofillFilterSidebar({
   search, onChange,
 }: AutofillFilterSidebarProps) {
@@ -27,16 +26,6 @@ export function AutofillFilterSidebar({
 
   return (
     <aside className="flex flex-col gap-3">
-      <Input
-        type="search"
-        value={search.q ?? ""}
-        placeholder="Search rules…"
-        aria-label="Search autofill rules"
-        onChange={event => onChange({
-          q: event.target.value || undefined,
-        })}
-      />
-
       <FacetSelect
         label="categories"
         value={search.category}

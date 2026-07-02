@@ -24,11 +24,10 @@ type Story = StoryObj<typeof meta>;
 /** The filter rail with no facets active. */
 export const Default: Story = {};
 
-/** A search query and a category facet are active, so the "Clear filters" button shows. */
+/** A category facet is active, so the "Clear filters" button shows. */
 export const WithActiveFilters: Story = {
   args: {
     search: {
-      q: "recipe",
       category: "workflow",
     },
   },

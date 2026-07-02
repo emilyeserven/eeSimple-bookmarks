@@ -1,6 +1,7 @@
 import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { AUTHOR_ROUTE } from "../entities/author";
+import { AUTOFILL_ROUTE } from "../entities/autofillRule";
 import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
 import { CATEGORY_ROUTE } from "../entities/category";
 import { IMPORT_RULE_ROUTE } from "../entities/importRule";
@@ -90,15 +91,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   PROPERTY_GROUP_ROUTE,
   RELATIONSHIP_TYPE_ROUTE,
   CUSTOM_PROPERTY_ROUTE,
-  {
-    kind: "autofill",
-    prefix: "/autofill",
-    slugIndex: 1,
-    listLabel: "Autofill Rules",
-    singular: "Rule",
-    switcher: "autofill",
-    flatCrumbs: true,
-  },
+  AUTOFILL_ROUTE,
   IMPORT_RULE_ROUTE,
   SAVED_FILTER_ROUTE,
   CARD_DISPLAY_RULE_ROUTE,
