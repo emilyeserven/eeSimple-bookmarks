@@ -10,16 +10,16 @@ import {
 } from "./app-sidebar-sections";
 import { LocationsSidebarItem } from "./LocationsSidebarItem";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
-import { SidebarCategoryMenuItem } from "./SidebarCategoryMenuItem";
+import { SidebarCategoriesSection } from "./SidebarCategoriesSection";
 import { SidebarCountBadge } from "./SidebarCountBadge";
+import { SidebarPrimaryNav } from "./SidebarPrimaryNav";
+import { SidebarSavedFiltersSection } from "./SidebarSavedFiltersSection";
 import { useAppSidebarData } from "./useAppSidebarData";
 
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -30,7 +30,6 @@ import {
 import {
   actionItems,
   customizationItems,
-  navItems,
   taxonomyItems,
 } from "@/lib/sidebarNavItems";
 
@@ -182,9 +181,6 @@ export function AppSidebar({
     hiddenSidebarGroups,
     advanced,
   } = useAppSidebarData(taxonomyItems, customizationItems);
-  const {
-    visiblePins, hasShowMore, hasSeeAll, hasShowLess,
-  } = pagination;
 
   // On mobile the sidebar is an overlay sheet; collapse it once navigation lands
   // on a new route so the tapped destination isn't hidden behind it.
@@ -224,225 +220,38 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => {
-                const isActive
-                  = item.to === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(item.to);
-                return (
-                  <SidebarMenuItem key={item.to}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={item.title}
-                    >
-                      <Link to={item.to}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    {item.to === "/inbox"
-                      ? (
-                        <SidebarCountBadge
-                          count={inboxCount}
-                          sidebarState={state}
-                        />
-                      )
-                      : null}
-                    {item.to === "/bookmarks"
-                      ? (
-                        <SidebarCountBadge
-                          count={allBookmarks?.length}
-                          sidebarState={state}
-                        />
-                      )
-                      : null}
-                  </SidebarMenuItem>
-                );
-              })}
-              {resolvedPins.length > 0
-                ? (
-                  <>
-                    {visiblePins.map((pin) => {
-                      return (
-                        <SidebarMenuItem key={pin.id}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={pin.isActive}
-                            tooltip={pin.label}
-                          >
-                            {pin.link.kind === "path"
-                              ? (
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                <Link to={pin.link.path as any}>
-                                  {pin.icon}
-                                  <span>{pin.label}</span>
-                                </Link>
-                              )
-                              : (
-                                <Link
-                                  to="/bookmarks"
-                                  search={pin.link.search}
-                                >
-                                  {pin.icon}
-                                  <span>{pin.label}</span>
-                                </Link>
-                              )}
-                          </SidebarMenuButton>
-                          <SidebarCountBadge
-                            count={pin.bookmarkCount}
-                            sidebarState={state}
-                          />
-                        </SidebarMenuItem>
-                      );
-                    })}
-                    {hasShowMore && state !== "collapsed"
-                      ? (
-                        <SidebarMenuItem>
-                          <SidebarMenuButton
-                            tooltip="Show more pinned items"
-                            onClick={() => setPinnedExpanded(true)}
-                            className="text-xs text-muted-foreground"
-                          >
-                            <ChevronDown className="size-4" />
-                            <span>Show More</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      )
-                      : null}
-                    {hasSeeAll && state !== "collapsed"
-                      ? (
-                        <SidebarMenuItem>
-                          <SidebarMenuButton
-                            tooltip="Show all pinned items"
-                            onClick={() => setPinnedShowAll(true)}
-                            className="text-xs text-muted-foreground"
-                          >
-                            <ChevronDown className="size-4" />
-                            <span>See All</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      )
-                      : null}
-                    {hasShowLess && state !== "collapsed"
-                      ? (
-                        <SidebarMenuItem>
-                          <SidebarMenuButton
-                            tooltip="Show fewer pinned items"
-                            onClick={() => {
-                              setPinnedExpanded(false);
-                              setPinnedShowAll(false);
-                            }}
-                            className="text-xs text-muted-foreground"
-                          >
-                            <ChevronUp className="size-4" />
-                            <span>Show Less</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      )
-                      : null}
-                  </>
-                )
-                : null}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <SidebarPrimaryNav
+          pathname={pathname}
+          sidebarState={state}
+          inboxCount={inboxCount}
+          bookmarkCount={allBookmarks?.length}
+          resolvedPins={resolvedPins}
+          pagination={pagination}
+          setPinnedExpanded={setPinnedExpanded}
+          setPinnedShowAll={setPinnedShowAll}
+        />
 
         {viewableFilters.length > 0
           ? (
-            <CollapsibleSection
-              sectionKey="saved-filters"
-              label="Saved Filters"
-            >
-              <SidebarMenu>
-                {viewableFilters.map(filter => (
-                  <SidebarMenuItem key={filter.id}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={filter.isActive}
-                      tooltip={filter.label}
-                    >
-                      <Link
-                        to="/bookmarks"
-                        search={filter.link.kind === "filter" ? filter.link.search : undefined}
-                      >
-                        {filter.icon}
-                        <span>{filter.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    <SidebarCountBadge
-                      count={filter.bookmarkCount}
-                      sidebarState={state}
-                    />
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </CollapsibleSection>
+            <SidebarSavedFiltersSection
+              viewableFilters={viewableFilters}
+              sidebarState={state}
+            />
           )
           : null}
 
         {!hiddenSidebarGroups.includes("categories") && (visibleCategories.length > 0 || seeMoreCategories.length > 0)
           ? (
-            <CollapsibleSection
-              sectionKey="categories"
-              label="Categories"
-            >
-              <SidebarMenu>
-                {visibleCategories.map(category => (
-                  <SidebarCategoryMenuItem
-                    key={category.id}
-                    category={category}
-                    pathname={pathname}
-                    modifier={modifier}
-                    sidebarState={state}
-                    onViewClick={(event, id) => viewClick(event, "category", id)}
-                  />
-                ))}
-                {seeMoreCategories.length > 0 && !categoriesExpanded && state !== "collapsed"
-                  ? (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        tooltip="Show more categories"
-                        onClick={() => setCategoriesExpanded(true)}
-                        className="text-xs text-muted-foreground"
-                      >
-                        <ChevronDown className="size-4" />
-                        <span>See More</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                  : null}
-                {categoriesExpanded
-                  ? seeMoreCategories.map(category => (
-                    <SidebarCategoryMenuItem
-                      key={category.id}
-                      category={category}
-                      pathname={pathname}
-                      modifier={modifier}
-                      sidebarState={state}
-                      onViewClick={(event, id) => viewClick(event, "category", id)}
-                    />
-                  ))
-                  : null}
-                {seeMoreCategories.length > 0 && categoriesExpanded && state !== "collapsed"
-                  ? (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        tooltip="Show fewer categories"
-                        onClick={() => setCategoriesExpanded(false)}
-                        className="text-xs text-muted-foreground"
-                      >
-                        <ChevronUp className="size-4" />
-                        <span>See Less</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                  : null}
-              </SidebarMenu>
-            </CollapsibleSection>
+            <SidebarCategoriesSection
+              visibleCategories={visibleCategories}
+              seeMoreCategories={seeMoreCategories}
+              expanded={categoriesExpanded}
+              setExpanded={setCategoriesExpanded}
+              pathname={pathname}
+              modifier={modifier}
+              sidebarState={state}
+              onViewClick={(event, id) => viewClick(event, "category", id)}
+            />
           )
           : null}
 
