@@ -8,8 +8,9 @@
  * used to grab it directly (no favicon-style icon-link preference needed, unlike websites). YouTube
  * has since tightened bot-detection on channel pages specifically — they now routinely 403
  * non-browser requests even with browser-shaped headers — so the scrape alone is no longer reliable.
- * When `YOUTUBE_API_KEY` is set (Tier 2), the stable Data API `channels.list` thumbnail is preferred;
- * the scrape remains the keyless fallback so behavior is unchanged when the key isn't configured.
+ * When a YouTube Data API key is configured (Tier 2 — Settings → Connectors or the `YOUTUBE_API_KEY`
+ * env var), the stable Data API `channels.list` thumbnail is preferred; the scrape remains the
+ * keyless fallback so behavior is unchanged when the key isn't configured.
  */
 
 import type { BulkAutoFetchResult } from "@eesimple/types";
@@ -19,7 +20,7 @@ import { db } from "@/db";
 import { type YouTubeChannelImageRow, youtubeChannelImages, youtubeChannels } from "@/db/schema";
 import { batchFetch } from "@/services/batchFetch";
 import { downloadImage, type EntityImageResult, fetchOgImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
-import { fetchChannelAvatarUrlViaApi, youtubeApiEnabled } from "@/services/youtube";
+import { fetchChannelAvatarUrlViaApi } from "@/services/youtube";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 
@@ -135,12 +136,10 @@ export async function removeYouTubeChannelImage(channelId: string): Promise<bool
 
 /** Fetch and store a channel's avatar from its already-known `channelKey`, avoiding a re-lookup. */
 async function fetchAndStoreChannelAvatar(channelId: string, channelKey: string): Promise<ChannelImageResult> {
-  if (youtubeApiEnabled()) {
-    const apiImageUrl = await fetchChannelAvatarUrlViaApi(channelKey);
-    if (apiImageUrl && isPublicHttpUrl(apiImageUrl)) {
-      const bytes = await downloadImage(apiImageUrl);
-      if (bytes) return setYouTubeChannelImage(channelId, bytes, "og");
-    }
+  const apiImageUrl = await fetchChannelAvatarUrlViaApi(channelKey);
+  if (apiImageUrl && isPublicHttpUrl(apiImageUrl)) {
+    const bytes = await downloadImage(apiImageUrl);
+    if (bytes) return setYouTubeChannelImage(channelId, bytes, "og");
   }
 
   const url = channelUrlFromKey(channelKey);

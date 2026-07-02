@@ -7,7 +7,7 @@ import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/servi
 import { instagramApiEnabled } from "@/services/socialImages";
 import { kavitaEnabledAsync } from "@/services/kavita";
 import { getActiveKavitaEndpoint } from "@/services/appSettings";
-import { youtubeApiEnabled } from "@/services/youtube";
+import { youtubeApiEnabledAsync } from "@/services/youtube";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 
 /**
@@ -30,7 +30,7 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
         provider: await hostedMetadataProviderAsync(),
       },
       youtubeDataApi: {
-        enabled: youtubeApiEnabled(),
+        enabled: await youtubeApiEnabledAsync(),
       },
       instagram: {
         apiKey: instagramApiEnabled(),

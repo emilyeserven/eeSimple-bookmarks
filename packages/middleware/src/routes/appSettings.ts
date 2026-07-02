@@ -249,7 +249,7 @@ const placeTypeDisplayBody = {
 
 const connectorsBody = {
   type: "object",
-  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaApiKey", "imageUrlBlacklist"],
+  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaApiKey", "youtubeApiKey", "imageUrlBlacklist"],
   additionalProperties: false,
   properties: {
     hostedMetadataEndpoint: {
@@ -271,6 +271,10 @@ const connectorsBody = {
       type: "string",
     },
     kavitaApiKey: {
+      // null = leave the stored key unchanged; "" = clear; any other string = set new key.
+      type: ["string", "null"],
+    },
+    youtubeApiKey: {
       // null = leave the stored key unchanged; "" = clear; any other string = set new key.
       type: ["string", "null"],
     },

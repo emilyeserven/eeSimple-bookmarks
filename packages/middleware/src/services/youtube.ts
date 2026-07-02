@@ -14,6 +14,7 @@
 
 import { isYouTubeVideoUrl, parseYouTubeVideo } from "@eesimple/types";
 
+import { getDecryptedYoutubeApiKey } from "@/services/appSettings";
 import { downloadImage, fetchBodyHtmlResult, isPublicHttpUrl, metaContent } from "@/services/metadata";
 
 // Re-exported so existing intra-package importers (and tests) keep their `@/services/youtube` path;
@@ -184,18 +185,21 @@ async function fetchWatchPageMeta(videoId: string): Promise<WatchPageMeta> {
   };
 }
 
-/** Whether the YouTube Data API v3 is configured (Tier 2 — `YOUTUBE_API_KEY` is set). */
-export function youtubeApiEnabled(): boolean {
-  return Boolean(process.env.YOUTUBE_API_KEY);
+/**
+ * Whether the YouTube Data API v3 is configured (Tier 2 — a key is set via Settings → Connectors or
+ * the `YOUTUBE_API_KEY` env var, database value wins).
+ */
+export async function youtubeApiEnabledAsync(): Promise<boolean> {
+  return Boolean(await getDecryptedYoutubeApiKey());
 }
 
 /**
- * Fetch duration / publish date / description from the YouTube Data API v3 (when `YOUTUBE_API_KEY`
- * is set) instead of scraping the watch page. Returns `null` on any failure so the caller falls back
- * to the scrape. The API is stable where `ytInitialPlayerResponse` scraping is brittle.
+ * Fetch duration / publish date / description from the YouTube Data API v3 (when a key is
+ * configured) instead of scraping the watch page. Returns `null` on any failure so the caller falls
+ * back to the scrape. The API is stable where `ytInitialPlayerResponse` scraping is brittle.
  */
 async function fetchVideoViaApi(videoId: string): Promise<WatchPageMeta | null> {
-  const key = process.env.YOUTUBE_API_KEY;
+  const key = await getDecryptedYoutubeApiKey();
   if (!key) return null;
   const endpoint
     = "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails"
@@ -233,23 +237,21 @@ async function fetchVideoViaApi(videoId: string): Promise<WatchPageMeta | null> 
 
 /** Resolve watch-page metadata: prefer the Data API when configured, else scrape the watch page. */
 async function resolveWatchMeta(videoId: string): Promise<WatchPageMeta> {
-  if (youtubeApiEnabled()) {
-    const api = await fetchVideoViaApi(videoId);
-    if (api) return api;
-  }
+  const api = await fetchVideoViaApi(videoId);
+  if (api) return api;
   return fetchWatchPageMeta(videoId);
 }
 
 /**
- * Fetch a channel's avatar image URL from the YouTube Data API v3 (when `YOUTUBE_API_KEY` is set),
- * or `null` when unconfigured or the lookup fails. Preferred over scraping the channel page's
+ * Fetch a channel's avatar image URL from the YouTube Data API v3 (when a key is configured), or
+ * `null` when unconfigured or the lookup fails. Preferred over scraping the channel page's
  * `og:image`: YouTube has tightened bot-detection on channel pages (they now routinely 403
  * non-browser requests, unlike video watch pages / oEmbed), making the scrape unreliable even with
  * browser-shaped headers. `channelKey` is routed to the matching lookup param: `@handle` → `forHandle`,
  * a channel id (`UC…`) → `id`, anything else (a legacy vanity name) → `forUsername`.
  */
 export async function fetchChannelAvatarUrlViaApi(channelKey: string): Promise<string | null> {
-  const key = process.env.YOUTUBE_API_KEY;
+  const key = await getDecryptedYoutubeApiKey();
   if (!key) return null;
   const trimmed = channelKey.trim();
   const lookupParam = trimmed.startsWith("@")

@@ -2564,6 +2564,8 @@ export interface ConnectorsAppSettings {
   kavitaEndpoint: string;
   /** Whether a Kavita API key is stored (encrypted or plain); the raw value is never returned. */
   kavitaApiKeySet: boolean;
+  /** Whether a YouTube Data API v3 key is stored (encrypted or plain); the raw value is never returned. */
+  youtubeApiKeySet: boolean;
   /**
    * Patterns that exclude matching candidate images from a URL scan. Each entry is a case-insensitive
    * substring, or a simple `*` glob (e.g. `*.doubleclick.net/*`). Applied to every candidate image
@@ -2594,6 +2596,13 @@ export interface UpdateConnectorsSettingsInput {
    * Any other string = encrypt and store as the new key.
    */
   kavitaApiKey: string | null;
+  /**
+   * Raw YouTube Data API v3 key to store (encrypted when `APP_SECRET` is set).
+   * `null` = leave the stored key unchanged.
+   * `""` = clear the stored key.
+   * Any other string = encrypt and store as the new key.
+   */
+  youtubeApiKey: string | null;
   /** Image-URL blacklist patterns; replaces the stored list wholesale. */
   imageUrlBlacklist: string[];
 }
