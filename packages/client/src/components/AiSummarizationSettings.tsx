@@ -70,10 +70,7 @@ export function AiSummarizationSettings() {
     if (!isSeededRef.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      update.mutate(formRef.current, {
-        onSuccess: () => notifySuccess("AI summarization prompt saved"),
-        onError: error => notifyError(describeError(error)),
-      });
+      update.mutate(formRef.current);
     }, AUTOSAVE_DELAY_MS);
   }
 

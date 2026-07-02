@@ -8,7 +8,7 @@ import { CheckCircle2, Loader2, Plus, X, XCircle } from "lucide-react";
 
 import { useConnectorsSettings, useUpdateConnectorsSettings } from "../hooks/useAppSettings";
 import { metadataApi } from "../lib/api/metadata";
-import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
+import { notifyFieldSaveError } from "../lib/autoSave";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -113,26 +113,27 @@ export function HostedMetadataForm() {
     const label = field === "endpoint" ? "Endpoint" : field === "provider" ? "Provider" : "API key";
     update.mutate(
       {
-        hostedMetadataEndpoint: endpoint,
-        hostedMetadataProvider: provider,
-        // null = server preserves the existing key; only send the value when the user typed.
-        hostedMetadataApiKey: field === "apiKey" ? apiKey : null,
-        // The connectors PUT body requires every field; preserve the other connectors' values.
-        archiveBoxEndpoint: data.archiveBoxEndpoint,
-        kavitaEndpoint: data.kavitaEndpoint,
-        kavitaApiKey: null,
-        youtubeApiKey: null,
-        imageUrlBlacklist: data.imageUrlBlacklist,
+        input: {
+          hostedMetadataEndpoint: endpoint,
+          hostedMetadataProvider: provider,
+          // null = server preserves the existing key; only send the value when the user typed.
+          hostedMetadataApiKey: field === "apiKey" ? apiKey : null,
+          // The connectors PUT body requires every field; preserve the other connectors' values.
+          archiveBoxEndpoint: data.archiveBoxEndpoint,
+          kavitaEndpoint: data.kavitaEndpoint,
+          kavitaApiKey: null,
+          youtubeApiKey: null,
+          imageUrlBlacklist: data.imageUrlBlacklist,
+        },
+        successMessage: label,
       },
       {
         onSuccess: () => {
-          notifyFieldSaved(label);
           if (field === "apiKey") {
             setApiKeyDirty(false);
             setApiKey("");
           }
         },
-        onError: (err: Error) => notifyFieldSaveError(label, err.message),
       },
     );
   }
@@ -276,8 +277,8 @@ export function ArchiveBoxForm() {
 
   function saveEndpoint(): void {
     if (!data) return;
-    update.mutate(
-      {
+    update.mutate({
+      input: {
         // Echo the other connectors' fields unchanged (null preserves the stored API keys).
         hostedMetadataEndpoint: data.hostedMetadataEndpoint,
         hostedMetadataProvider: data.hostedMetadataProvider,
@@ -288,11 +289,8 @@ export function ArchiveBoxForm() {
         youtubeApiKey: null,
         imageUrlBlacklist: data.imageUrlBlacklist,
       },
-      {
-        onSuccess: () => notifyFieldSaved("ArchiveBox URL"),
-        onError: (err: Error) => notifyFieldSaveError("ArchiveBox URL", err.message),
-      },
-    );
+      successMessage: "ArchiveBox URL",
+    });
   }
 
   return (
@@ -409,25 +407,26 @@ export function KavitaForm() {
     const label = field === "endpoint" ? "Kavita URL" : "Kavita API key";
     update.mutate(
       {
-        // Echo the other connectors' fields unchanged (null preserves the stored API keys).
-        hostedMetadataEndpoint: data.hostedMetadataEndpoint,
-        hostedMetadataProvider: data.hostedMetadataProvider,
-        hostedMetadataApiKey: null,
-        archiveBoxEndpoint: data.archiveBoxEndpoint,
-        kavitaEndpoint: endpoint,
-        kavitaApiKey: field === "apiKey" ? apiKey : null,
-        youtubeApiKey: null,
-        imageUrlBlacklist: data.imageUrlBlacklist,
+        input: {
+          // Echo the other connectors' fields unchanged (null preserves the stored API keys).
+          hostedMetadataEndpoint: data.hostedMetadataEndpoint,
+          hostedMetadataProvider: data.hostedMetadataProvider,
+          hostedMetadataApiKey: null,
+          archiveBoxEndpoint: data.archiveBoxEndpoint,
+          kavitaEndpoint: endpoint,
+          kavitaApiKey: field === "apiKey" ? apiKey : null,
+          youtubeApiKey: null,
+          imageUrlBlacklist: data.imageUrlBlacklist,
+        },
+        successMessage: label,
       },
       {
         onSuccess: () => {
-          notifyFieldSaved(label);
           if (field === "apiKey") {
             setApiKeyDirty(false);
             setApiKey("");
           }
         },
-        onError: (err: Error) => notifyFieldSaveError(label, err.message),
       },
     );
   }
@@ -540,23 +539,24 @@ export function YoutubeForm() {
     if (!data || !apiKeyDirty) return;
     update.mutate(
       {
-        // Echo the other connectors' fields unchanged (null preserves the stored API keys).
-        hostedMetadataEndpoint: data.hostedMetadataEndpoint,
-        hostedMetadataProvider: data.hostedMetadataProvider,
-        hostedMetadataApiKey: null,
-        archiveBoxEndpoint: data.archiveBoxEndpoint,
-        kavitaEndpoint: data.kavitaEndpoint,
-        kavitaApiKey: null,
-        youtubeApiKey: apiKey,
-        imageUrlBlacklist: data.imageUrlBlacklist,
+        input: {
+          // Echo the other connectors' fields unchanged (null preserves the stored API keys).
+          hostedMetadataEndpoint: data.hostedMetadataEndpoint,
+          hostedMetadataProvider: data.hostedMetadataProvider,
+          hostedMetadataApiKey: null,
+          archiveBoxEndpoint: data.archiveBoxEndpoint,
+          kavitaEndpoint: data.kavitaEndpoint,
+          kavitaApiKey: null,
+          youtubeApiKey: apiKey,
+          imageUrlBlacklist: data.imageUrlBlacklist,
+        },
+        successMessage: "YouTube API key",
       },
       {
         onSuccess: () => {
-          notifyFieldSaved("YouTube API key");
           setApiKeyDirty(false);
           setApiKey("");
         },
-        onError: (err: Error) => notifyFieldSaveError("YouTube API key", err.message),
       },
     );
   }
@@ -634,8 +634,8 @@ export function ImageBlacklistForm() {
 
   function persist(patterns: string[]): void {
     if (!data) return;
-    update.mutate(
-      {
+    update.mutate({
+      input: {
         hostedMetadataEndpoint: data.hostedMetadataEndpoint,
         hostedMetadataProvider: data.hostedMetadataProvider,
         hostedMetadataApiKey: null,
@@ -645,11 +645,8 @@ export function ImageBlacklistForm() {
         youtubeApiKey: null,
         imageUrlBlacklist: patterns,
       },
-      {
-        onSuccess: () => notifyFieldSaved("Image blacklist"),
-        onError: (err: Error) => notifyFieldSaveError("Image blacklist", err.message),
-      },
-    );
+      successMessage: "Image blacklist",
+    });
   }
 
   function addPattern(): void {

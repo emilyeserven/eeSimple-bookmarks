@@ -175,9 +175,11 @@ describe("RightPanel", () => {
     fireEvent.click(screen.getByLabelText("Pin panel"));
     expect(updateMutate).toHaveBeenCalledWith(
       expect.objectContaining({
-        panelPinned: true,
+        input: expect.objectContaining({
+          panelPinned: true,
+        }),
+        successMessage: expect.any(String),
       }),
-      expect.anything(),
     );
   });
 

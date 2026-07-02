@@ -5,7 +5,6 @@ import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
-import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -24,11 +23,11 @@ export function BookmarkDetailLayoutControls() {
   function setLayout(next: BookmarkDetailLayout) {
     if (!data) return;
     update.mutate({
-      ...data,
-      bookmarkDetailLayout: next,
-    }, {
-      onSuccess: () => notifySuccess(next === "tabbed" ? "Detail layout: tabbed" : "Detail layout: single"),
-      onError: error => notifyError(error.message),
+      input: {
+        ...data,
+        bookmarkDetailLayout: next,
+      },
+      successMessage: next === "tabbed" ? "Detail layout: tabbed" : "Detail layout: single",
     });
   }
 

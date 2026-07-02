@@ -7,8 +7,6 @@ import {
   useHomepageContentSettings,
   useUpdateHomepageContentSettings,
 } from "../hooks/useAppSettings";
-import { describeError } from "../lib/apiError";
-import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -65,10 +63,7 @@ export function HomepageContentSettings() {
     if (!isSeededRef.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      update.mutate(formRef.current, {
-        onSuccess: () => notifySuccess("Homepage content saved"),
-        onError: error => notifyError(describeError(error)),
-      });
+      update.mutate(formRef.current);
     }, AUTOSAVE_DELAY_MS);
   }
 

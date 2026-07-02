@@ -24,7 +24,9 @@ import { DEFAULT_BOOKMARKS_PER_PAGE, expandLevelGroupsToDisplayConfig, MAP_PIN_S
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { appSettingsApi } from "../lib/api/settings";
+import { describeError } from "../lib/apiError";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const CONNECTORS_SETTINGS_KEY = ["app-settings", "connectors"] as const;
 const SHORTENER_IGNORE_LIST_KEY = ["app-settings", "shortener-ignore-list"] as const;
@@ -48,6 +50,16 @@ const PLACE_TYPE_COLORS_KEY = ["app-settings", "place-type-colors"] as const;
 const EMPTY_PLACE_TYPE_COLORS: PlaceTypeColorConfig = {};
 const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
 const AI_SUMMARIZATION_KEY = ["app-settings", "ai-summarization"] as const;
+
+/**
+ * Variables for a mutation shared by many differently-worded call sites: each call supplies its own
+ * toast text rather than the hook flattening every field into one generic "Updated <label>" message.
+ */
+interface ToastedMutationVars<TInput> {
+  input: TInput;
+  successMessage: string;
+  errorMessage?: string;
+}
 
 /** The generic URL-shortener ignore list (e.g. bit.ly) used to nudge for un-expandable links. */
 export function useShortenerIgnoreList() {
@@ -120,11 +132,13 @@ export function useImportBlacklist() {
 export function useUpdateImportBlacklist() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (entries: ImportBlacklistEntry[]) =>
-      appSettingsApi.updateImportBlacklist(entries),
-    onSuccess: (saved) => {
+    mutationFn: (vars: ToastedMutationVars<ImportBlacklistEntry[]>) =>
+      appSettingsApi.updateImportBlacklist(vars.input),
+    onSuccess: (saved, vars) => {
       queryClient.setQueryData(IMPORT_BLACKLIST_KEY, saved);
+      notifySuccess(vars.successMessage);
     },
+    onError: (error, vars) => notifyError(vars.errorMessage ?? error.message),
   });
 }
 
@@ -143,7 +157,9 @@ export function useUpdateHomepageContentSettings() {
       appSettingsApi.updateHomepageContent(input),
     onSuccess: (saved) => {
       queryClient.setQueryData(HOMEPAGE_CONTENT_KEY, saved);
+      notifySuccess("Homepage content saved");
     },
+    onError: error => notifyError(describeError(error)),
   });
 }
 
@@ -253,10 +269,13 @@ export function useAutomationSettings() {
 export function useUpdateAutomationSettings() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: UpdateAutomationInput) => appSettingsApi.updateAutomation(input),
-    onSuccess: (saved) => {
+    mutationFn: (vars: ToastedMutationVars<UpdateAutomationInput>) =>
+      appSettingsApi.updateAutomation(vars.input),
+    onSuccess: (saved, vars) => {
       queryClient.setQueryData(AUTOMATION_KEY, saved);
+      notifySuccess(vars.successMessage);
     },
+    onError: (error, vars) => notifyError(vars.errorMessage ?? error.message),
   });
 }
 
@@ -409,11 +428,13 @@ export function useDisplayPreferenceSettings() {
 export function useUpdateDisplayPreferenceSettings() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: UpdateDisplayPreferenceInput) =>
-      appSettingsApi.updateDisplayPreferences(input),
-    onSuccess: (saved) => {
+    mutationFn: (vars: ToastedMutationVars<UpdateDisplayPreferenceInput>) =>
+      appSettingsApi.updateDisplayPreferences(vars.input),
+    onSuccess: (saved, vars) => {
       queryClient.setQueryData(DISPLAY_PREFERENCES_KEY, saved);
+      notifySuccess(vars.successMessage);
     },
+    onError: (error, vars) => notifyError(vars.errorMessage ?? error.message),
   });
 }
 
@@ -556,7 +577,9 @@ export function useUpdateAiSummarizationSettings() {
       appSettingsApi.updateAiSummarization(input),
     onSuccess: (saved) => {
       queryClient.setQueryData(AI_SUMMARIZATION_KEY, saved);
+      notifySuccess("AI summarization prompt saved");
     },
+    onError: error => notifyError(describeError(error)),
   });
 }
 
@@ -573,14 +596,16 @@ export function useConnectorsSettings() {
 export function useUpdateConnectorsSettings() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: UpdateConnectorsSettingsInput) =>
-      appSettingsApi.updateConnectorsSettings(input),
-    onSuccess: (saved: ConnectorsAppSettings) => {
+    mutationFn: (vars: ToastedMutationVars<UpdateConnectorsSettingsInput>) =>
+      appSettingsApi.updateConnectorsSettings(vars.input),
+    onSuccess: (saved: ConnectorsAppSettings, vars) => {
       queryClient.setQueryData(CONNECTORS_SETTINGS_KEY, saved);
       // Refresh the live status badge on the Connectors page.
       void queryClient.invalidateQueries({
         queryKey: ["connectors"],
       });
+      notifyFieldSaved(vars.successMessage);
     },
+    onError: (error, vars) => notifyFieldSaveError(vars.successMessage, error.message),
   });
 }

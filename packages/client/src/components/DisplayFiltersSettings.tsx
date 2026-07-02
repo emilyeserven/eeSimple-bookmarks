@@ -4,7 +4,6 @@ import {
 } from "../hooks/useAppSettings";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { FILTER_FACETS } from "../lib/filterFacets";
-import { notifyError, notifySuccess } from "../lib/notifications";
 
 import {
   Card,
@@ -94,11 +93,11 @@ export function DisplayFiltersSettings() {
       ? [...onDemand.filter(x => x !== key), key]
       : onDemand.filter(x => x !== key);
     update.mutate({
-      ...prefs,
-      onDemandFilters: next,
-    }, {
-      onSuccess: () => notifySuccess("Filters updated"),
-      onError: error => notifyError(error.message),
+      input: {
+        ...prefs,
+        onDemandFilters: next,
+      },
+      successMessage: "Filters updated",
     });
   }
 
