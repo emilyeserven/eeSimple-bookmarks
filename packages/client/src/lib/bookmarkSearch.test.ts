@@ -13,6 +13,7 @@ import {
   withCategories,
   withMediaTypes,
   withNumberFilter,
+  withSort,
   withTags,
   withWebsitePresence,
   withWebsites,
@@ -191,6 +192,105 @@ describe("validateBookmarkSearch", () => {
     const result = validateBookmarkSearch({});
     expect(Object.keys(result)).toEqual([]);
   });
+
+  it("keeps a well-formed field sort and drops an invalid one", () => {
+    expect(validateBookmarkSearch({
+      sort: {
+        primary: {
+          field: "title",
+          direction: "asc",
+        },
+      },
+    })).toEqual({
+      sort: {
+        primary: {
+          field: "title",
+          direction: "asc",
+        },
+      },
+    });
+    expect(validateBookmarkSearch({
+      sort: {
+        primary: {
+          field: "title",
+          direction: "sideways",
+        },
+      },
+    })).toEqual({});
+    expect(validateBookmarkSearch({
+      sort: {
+        primary: {
+          direction: "asc",
+        },
+      },
+    })).toEqual({});
+    expect(validateBookmarkSearch({
+      sort: "nope",
+    })).toEqual({});
+  });
+
+  it("keeps a well-formed secondary sort dimension and drops a malformed one", () => {
+    expect(validateBookmarkSearch({
+      sort: {
+        primary: {
+          field: "createdAt",
+          direction: "desc",
+        },
+        secondary: {
+          field: "title",
+          direction: "asc",
+        },
+      },
+    })).toEqual({
+      sort: {
+        primary: {
+          field: "createdAt",
+          direction: "desc",
+        },
+        secondary: {
+          field: "title",
+          direction: "asc",
+        },
+      },
+    });
+    expect(validateBookmarkSearch({
+      sort: {
+        primary: {
+          field: "createdAt",
+          direction: "desc",
+        },
+        secondary: {
+          field: "title",
+        },
+      },
+    })).toEqual({
+      sort: {
+        primary: {
+          field: "createdAt",
+          direction: "desc",
+        },
+      },
+    });
+  });
+
+  it("keeps a random sort with a numeric seed and drops one without", () => {
+    expect(validateBookmarkSearch({
+      sort: {
+        random: true,
+        seed: 42,
+      },
+    })).toEqual({
+      sort: {
+        random: true,
+        seed: 42,
+      },
+    });
+    expect(validateBookmarkSearch({
+      sort: {
+        random: true,
+      },
+    })).toEqual({});
+  });
 });
 
 describe("with* helpers", () => {
@@ -288,6 +388,24 @@ describe("with* helpers", () => {
     });
     expect(withBooleanFilter(withBool, "p2", undefined)).toEqual({
       bool: undefined,
+    });
+  });
+
+  it("sets and clears the sort", () => {
+    const sort = {
+      primary: {
+        field: "title",
+        direction: "asc" as const,
+      },
+    };
+    expect(withSort({}, sort)).toEqual({
+      sort,
+    });
+    expect(withSort({
+      sort,
+      categories: ["cat-1"],
+    }, undefined)).toEqual({
+      categories: ["cat-1"],
     });
   });
 });
@@ -602,6 +720,28 @@ describe("bookmarkSearchEquals", () => {
     expect(bookmarkSearchEquals({
       tags: ["t1"],
     }, {})).toBe(false);
+  });
+
+  it("treats sort as part of the compared state", () => {
+    const sort = {
+      primary: {
+        field: "title",
+        direction: "asc",
+      },
+    };
+    expect(bookmarkSearchEquals({
+      tags: ["t1"],
+      sort,
+    }, {
+      tags: ["t1"],
+      sort,
+    })).toBe(true);
+    expect(bookmarkSearchEquals({
+      tags: ["t1"],
+      sort,
+    }, {
+      tags: ["t1"],
+    })).toBe(false);
   });
 });
 
@@ -1048,5 +1188,37 @@ describe("summarizeBookmarkSearch", () => {
       tags: "not-an-array",
       invalid: 999,
     })).toBe("No filters");
+  });
+
+  it("describes a field sort", () => {
+    expect(summarizeBookmarkSearch({
+      sort: {
+        primary: {
+          field: "createdAt",
+          direction: "desc",
+        },
+      },
+    })).toBe("sorted by date added (desc)");
+  });
+
+  it("describes a random sort", () => {
+    expect(summarizeBookmarkSearch({
+      sort: {
+        random: true,
+        seed: 1,
+      },
+    })).toBe("sorted randomly");
+  });
+
+  it("combines a sort with other filters", () => {
+    expect(summarizeBookmarkSearch({
+      categories: ["cat-1"],
+      sort: {
+        primary: {
+          field: "title",
+          direction: "asc",
+        },
+      },
+    })).toBe("1 category · sorted by title (asc)");
   });
 });

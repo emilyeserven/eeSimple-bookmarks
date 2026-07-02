@@ -8,6 +8,7 @@ import {
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
 import { DEFAULT_BOOKMARK_COLUMNS, DEFAULT_VIEW_MODE } from "../lib/bookmarkColumns";
+import { withSort } from "../lib/bookmarkSearch";
 import { notifyError, notifySuccess } from "../lib/notifications";
 import { clampColumns, useUiStore } from "../stores/uiStore";
 import { usePanelControls } from "./panel/usePanelControls";
@@ -45,9 +46,8 @@ export function useListingPageContext() {
   const currentColumns = useUiStore(s => s.bookmarkColumns[pageKey] ?? DEFAULT_BOOKMARK_COLUMNS);
   const setViewModeFn = useUiStore(s => s.setViewMode);
   const setColumnsFn = useUiStore(s => s.setBookmarkColumns);
-  const currentSort = useUiStore(s => s.bookmarkSort[pageKey]);
-  const setBookmarkSortFn = useUiStore(s => s.setBookmarkSort);
-  const clearBookmarkSortFn = useUiStore(s => s.clearBookmarkSort);
+  const filterContext = useUiStore(s => s.filterContext);
+  const currentSort = filterContext?.search.sort;
 
   const bulkSelectPageKey = useUiStore(s => s.bulkSelectPageKey);
   const selectionMode = useUiStore(s =>
@@ -95,8 +95,12 @@ export function useListingPageContext() {
     filterLocation,
     setFilterLocation,
     currentSort,
-    setSort: (s: BookmarkSort) => setBookmarkSortFn(pageKey, s),
-    clearSort: () => clearBookmarkSortFn(pageKey),
+    setSort: (s: BookmarkSort) => {
+      if (filterContext) filterContext.onSearchChange(withSort(filterContext.search, s));
+    },
+    clearSort: () => {
+      if (filterContext) filterContext.onSearchChange(withSort(filterContext.search, undefined));
+    },
     bulkSelectPageKey,
     selectionMode,
     setSelectionMode: (on: boolean) => {
