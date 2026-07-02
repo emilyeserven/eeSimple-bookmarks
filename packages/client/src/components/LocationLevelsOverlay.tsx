@@ -1,10 +1,8 @@
 import type { AncestorChildrenScopeControls, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 
-import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
-import { Layers, MapPin, Shapes, Square } from "lucide-react";
+import { Layers, MapPin, Shapes } from "lucide-react";
 
-import { LocationLevelModeToggle } from "./LocationLevelModeToggle";
-import { LocationMapFilterSection } from "./LocationMapFilterSection";
+import { LevelGroupGlyph, LevelsFooter } from "./locationLevelsShared";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
 import { Button } from "@/components/ui/button";
@@ -70,26 +68,7 @@ export function LocationLevelsOverlay({
                     disabled={controls.disabledIds.has(group.id)}
                     onCheckedChange={checked => controls.onToggleVisible(group.id, checked === true)}
                   />
-                  {group.displayMode === "pin"
-                    ? (
-                      <MapPin
-                        className="size-3 shrink-0"
-                        style={{
-                          color: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
-                        }}
-                        aria-hidden="true"
-                      />
-                    )
-                    : (
-                      <Square
-                        className="size-3 shrink-0"
-                        style={{
-                          color: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
-                          fill: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
-                        }}
-                        aria-hidden="true"
-                      />
-                    )}
+                  <LevelGroupGlyph group={group} />
                   <Label
                     htmlFor={`level-${group.id}`}
                     className="cursor-pointer"
@@ -127,50 +106,11 @@ export function LocationLevelsOverlay({
           </ul>
         )}
 
-      {controls.levelMode && controls.onLevelModeChange
-        ? (
-          <div className="mt-3 border-t pt-3">
-            <LocationLevelModeToggle
-              value={controls.levelMode}
-              onChange={controls.onLevelModeChange}
-            />
-          </div>
-        )
-        : null}
-
-      <div className="mt-3 flex items-center gap-2 border-t pt-3">
-        <Checkbox
-          id="levels-hide-admin-borders"
-          checked={controls.hideAdminBorders}
-          onCheckedChange={checked => controls.onHideAdminBordersChange(checked === true)}
-        />
-        <Label
-          htmlFor="levels-hide-admin-borders"
-          className="cursor-pointer"
-        >
-          Hide map borders
-        </Label>
-      </div>
-
-      {ancestorChildrenScope
-        ? (
-          <div className="mt-3 flex items-center gap-2 border-t pt-3">
-            <Checkbox
-              id="levels-only-direct-relatives"
-              checked={ancestorChildrenScope.onlyDirect}
-              onCheckedChange={checked => ancestorChildrenScope.onToggle(checked === true)}
-            />
-            <Label
-              htmlFor="levels-only-direct-relatives"
-              className="cursor-pointer"
-            >
-              Only show direct ancestors/children of current location
-            </Label>
-          </div>
-        )
-        : null}
-
-      {filter ? <LocationMapFilterSection filter={filter} /> : null}
+      <LevelsFooter
+        controls={controls}
+        ancestorChildrenScope={ancestorChildrenScope}
+        filter={filter}
+      />
     </ResponsivePopover>
   );
 }

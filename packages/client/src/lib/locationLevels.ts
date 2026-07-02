@@ -1,3 +1,64 @@
+/**
+ * # The Locations "Levels-overlay" model
+ *
+ * This module is the pure, unit-tested core of the map "Levels" overlay — the little panel that
+ * decides which location levels show on a map and how each renders. It has no React and no I/O;
+ * `hooks/useLocationMapLevelControls.ts` wires it to state and `components/LocationMap*.tsx` render
+ * the result. Read this before touching the subsystem — it is the spec the corrective PRs
+ * (#794/#804/#811/#813/#814/#815) each lacked. The companion `.claude/skills/locations-map` skill
+ * covers the whole subsystem (rendering, place types, geocoding); this block is just the state model.
+ *
+ * ## Level group
+ * A `PlaceTypeLevelGroup` (`@eesimple/types`) is a named, ordered bucket of normalized `placeType`
+ * keys — e.g. "Country" = `{country}`, "City" = `{city, town, …}`. `sortOrder` orders them, **lower =
+ * broader** (Country before City). Each group carries a `displayMode` (pin/area), `color`, a `visible`
+ * "visible by default" override, a `showOnMainMap` flag, and a `levelMode` (above/current/below). The
+ * groups array is the single source of truth, persisted on the `app_settings` singleton and read/written
+ * through `hooks/useLocationLevels.ts` (shared with Settings → Locations → Level Groups).
+ *
+ * ## Scope + anchors
+ * Every map declares a {@link LevelScope}: `main` (the all-locations index map), `location` (a place's
+ * own pages — carries that place's `currentPlaceType`), or `bookmark` (a bookmark's map — carries its
+ * tagged locations' `placeTypes`). A non-`main` scope resolves **anchor** groups
+ * ({@link resolveAnchorGroups} / {@link findAnchorGroup}): the group(s) owning the viewed/tagged place
+ * type(s). Each anchor then expands up or down per **its own** `levelMode`
+ * ({@link expandAnchorsByOwnMode}) — a `bookmark` can anchor on several differently-leveled groups, each
+ * expanding independently. No anchor ⇒ show every group (avoids an empty map). See
+ * {@link computeVisibleLevelGroupIds}.
+ *
+ * ## Visibility layering
+ * The set a map actually shows is a three-layer composition (see {@link resolveVisibleLevelGroupIds}):
+ *
+ *     visibleIds = (overrideIds ?? defaultVisibleIds) ∩ populatedIds
+ *
+ * - `defaultVisibleIds` = {@link computeVisibleLevelGroupIds} for the scope, minus any `visible:false`
+ *   group (the per-group "visible by default" override).
+ * - `overrideIds` = the user's temporary per-map checkbox tweaks (null until they touch a checkbox).
+ * - `populatedIds` = {@link computePopulatedLevelGroupIds}: groups with a plotted node of their own type
+ *   **plus** their broader ancestors; everything else is disabled so it can never show.
+ *
+ * ## Three persistence tiers (the part that trips fixes)
+ * State lives at three different lifetimes, and two controls sitting on the **same overlay row** persist
+ * differently — read this before "fixing" an overlay control:
+ * - **Server / global** — the level groups themselves (pin/area `displayMode`, `color`, `levelMode`,
+ *   `visible`, `showOnMainMap`). The overlay's pin/area toggle, color glyph, and "Show" (level-mode)
+ *   button write straight through to these, mutating the same rows as Settings → Locations and firing a
+ *   toast — a change here is global, on every map.
+ * - **uiStore / per-device** — map collapse state and `hideLocationMapAdminBorders` (the "Hide map
+ *   borders" checkbox).
+ * - **Session / local** — `overrideIds` (the per-map visibility checkboxes) and the anchor-less
+ *   `fallbackMode`. These reset on scope/mode change and never persist.
+ *
+ * So on one row the **visibility checkbox** is a throwaway per-map override while the **pin/area
+ * toggle** next to it is a global server write. That asymmetry is intentional; don't unify them.
+ *
+ * ## Two distinct prune operations (don't conflate them)
+ * - **Filter-pruning** — `selectedSubtrees(tree, filterIds)` in `LocationMapSection` keeps each selected
+ *   node **with its subtree**, focusing the map while preserving hierarchy.
+ * - **PlaceType-flattening** — {@link filterTreeByPlaceType} (and `collectMapped` in `LocationMap`)
+ *   **drops** hierarchy, because a placeType filter crosses branches (a matching node can sit anywhere).
+ * Several corrective PRs conflated these; they are different operations for different jobs.
+ */
 import type { LocationMapLevelMode, LocationNode, PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { DEFAULT_LOCATION_MAP_LEVEL_MODE, placeTypeKey } from "@eesimple/types";
@@ -90,6 +151,25 @@ export function computePopulatedLevelGroupIds(
   return new Set(
     groups.filter(group => group.sortOrder <= deepestSortOrder).map(group => group.id),
   );
+}
+
+/**
+ * Compose the three visibility layers into the set of level-group ids a map actually shows:
+ *
+ *     visibleIds = (overrideIds ?? defaultVisibleIds) ∩ populatedIds
+ *
+ * `overrideIds` is the user's temporary per-map checkbox state (null until they touch a checkbox, in
+ * which case the {@link computeVisibleLevelGroupIds} default applies); the result is intersected with
+ * `populatedIds` ({@link computePopulatedLevelGroupIds}) so a group with nothing plotted can never show
+ * even if the default/override would include it. Pure — unit-tested.
+ */
+export function resolveVisibleLevelGroupIds(
+  defaultVisibleIds: Set<string>,
+  overrideIds: Set<string> | null,
+  populatedIds: Set<string>,
+): Set<string> {
+  const base = overrideIds ?? defaultVisibleIds;
+  return new Set([...base].filter(id => populatedIds.has(id)));
 }
 
 /**
