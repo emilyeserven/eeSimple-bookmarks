@@ -21,7 +21,7 @@ function InboxPage() {
   } = useInboxItems();
   const setAddImportModalOpen = useUiStore(s => s.setAddImportModalOpen);
   const controller = useInboxReviewController(items ?? [], isFetching ?? false);
-  useSetListingPage("inbox", false, false, false);
+  useSetListingPage("inbox");
   const hasItems = items && items.length > 0;
 
   return (

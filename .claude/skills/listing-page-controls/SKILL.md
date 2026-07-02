@@ -114,7 +114,7 @@ import { useSetListingPage } from "../hooks/useListingPage";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 // inside the component:
-useSetListingPage("widgets-listing"); // stable key — see table below; later params add cards/filters/create affordances
+useSetListingPage("widgets-listing"); // stable key — see table below; an options object adds cards/filters/create affordances
 const columns = useBookmarkColumns("widgets-listing");
 
 return (

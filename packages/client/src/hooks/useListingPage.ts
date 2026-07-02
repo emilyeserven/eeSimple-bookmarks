@@ -5,35 +5,38 @@ import { useEffect, useRef } from "react";
 import { useUiStore } from "../stores/uiStore";
 
 /**
- * Options controlling the header Plus button for a listing page.
+ * Options controlling a listing page's registration in uiStore.
+ * - `showsImages` / `hasFilters` / `showsCards` / `hasSort`: which header controls apply.
+ * - `createAction`: shows a header Plus button that invokes this on click.
  * - `addBookmark`: when present, the header Plus offers an "Add bookmark" action (opening the
  *   app-level modal); its optional `categoryId` locks the new bookmark to a category.
  * - `createLabel`: label for the entity-create option when the Plus becomes a dropdown.
  */
 export interface ListingPageOptions {
+  showsImages?: boolean;
+  hasFilters?: boolean;
+  showsCards?: boolean;
+  hasSort?: boolean;
+  createAction?: (event?: ReactMouseEvent) => void;
   addBookmark?: { categoryId?: string };
   createLabel?: string;
 }
 
 /** Registers the current page as a listing page in uiStore so AppHeader can show the Options and Create buttons. Clears on unmount. */
-export function useSetListingPage(
-  key: string,
-  showsImages = false,
-  hasFilters = false,
-  showsCards = false,
-  createAction?: (event?: ReactMouseEvent) => void,
-  hasSort = false,
-  options?: ListingPageOptions,
-) {
+export function useSetListingPage(key: string, options?: ListingPageOptions) {
   const setListingPage = useUiStore(state => state.setListingPage);
+
+  const {
+    showsImages = false, hasFilters = false, showsCards = false, hasSort = false,
+    createAction, addBookmark, createLabel,
+  } = options ?? {};
 
   // Ref so the stable wrapper always delegates to the latest createAction without re-registering.
   const createActionRef = useRef(createAction);
   createActionRef.current = createAction;
 
-  const addBookmarkCategoryId = options?.addBookmark?.categoryId;
-  const hasAddBookmark = options?.addBookmark != null;
-  const createLabel = options?.createLabel;
+  const addBookmarkCategoryId = addBookmark?.categoryId;
+  const hasAddBookmark = addBookmark != null;
 
   useEffect(() => {
     // Exactly one surface (usually the route) may register a listing page: React runs cleanups

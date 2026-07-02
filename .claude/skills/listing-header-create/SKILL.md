@@ -32,13 +32,16 @@ Every entity listing page that supports creation follows a single pattern:
 ```ts
 // packages/client/src/hooks/useListingPage.ts
 useSetListingPage(
-  key: string,         // stable page key (see pageKey table below)
-  showsImages?: boolean,
-  hasFilters?: boolean,
-  showsCards?: boolean,
-  createAction?: (event?: ReactMouseEvent) => void,
-  hasSort?: boolean,
-  options?: { addBookmark?: { categoryId?: string }; createLabel?: string },
+  key: string,          // stable page key (see pageKey table below)
+  options?: {
+    showsImages?: boolean;
+    hasFilters?: boolean;
+    showsCards?: boolean;
+    hasSort?: boolean;
+    createAction?: (event?: ReactMouseEvent) => void;
+    addBookmark?: { categoryId?: string };
+    createLabel?: string;
+  },
 )
 ```
 
@@ -157,7 +160,7 @@ the working implementation.
 // In the route component (e.g. categories.index.tsx, tags.index.tsx)
 const [modalOpen, setModalOpen] = useState(false);
 const navigate = useNavigate();
-useSetListingPage("widgets-listing", false, false, false, () => setModalOpen(true));
+useSetListingPage("widgets-listing", { createAction: () => setModalOpen(true) });
 
 return (
   <section className="space-y-6">
@@ -193,7 +196,7 @@ YouTube Channels), add the `createAction` there:
 export function WidgetsListing() {
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("widgets-listing", false, false, false, () => setModalOpen(true));
+  useSetListingPage("widgets-listing", { createAction: () => setModalOpen(true) });
   // ...
 
   return (
@@ -240,7 +243,8 @@ instead of modal). Pass `newRule.openModal` (not `newRule.onClick`) as the `crea
 
 ```ts
 const newRule = useNewAutofillRule();
-useSetListingPage("autofill-rules-listing", false, false, false, newRule.openModal, false, {
+useSetListingPage("autofill-rules-listing", {
+  createAction: newRule.openModal,
   createLabel: "New rule",
 });
 ```

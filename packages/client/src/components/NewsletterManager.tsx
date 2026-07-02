@@ -21,7 +21,8 @@ export function NewslettersListing() {
     data: allNewsletters, isLoading, error,
   } = useNewsletters();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("newsletters-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("newsletters-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New newsletter",
   });

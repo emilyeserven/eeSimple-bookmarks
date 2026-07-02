@@ -20,7 +20,8 @@ function PublishersTaxonomyPage() {
   } = usePublishers();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("publishers-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("publishers-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New publisher",
   });

@@ -28,7 +28,8 @@ function AutofillListPage() {
     listProps, noCategory,
   } = useAutofillFacets(search);
   const newRule = useNewAutofillRule();
-  useSetListingPage("autofill-rules-listing", false, false, false, newRule.openModal, false, {
+  useSetListingPage("autofill-rules-listing", {
+    createAction: newRule.openModal,
     createLabel: "New rule",
   });
 

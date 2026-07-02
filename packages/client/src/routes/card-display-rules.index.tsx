@@ -56,7 +56,8 @@ function CardDisplayRulesPage() {
     );
   }
 
-  useSetListingPage("card-display-rules-listing", false, false, false, handleAddRule, false, {
+  useSetListingPage("card-display-rules-listing", {
+    createAction: handleAddRule,
     createLabel: "New rule",
   });
 

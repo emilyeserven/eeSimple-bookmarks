@@ -20,7 +20,8 @@ function PropertyGroupsPage() {
   } = usePropertyGroups();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("property-groups-listing", false, false, false, () => setModalOpen(true), false, {
+  useSetListingPage("property-groups-listing", {
+    createAction: () => setModalOpen(true),
     addBookmark: {},
     createLabel: "New property group",
   });

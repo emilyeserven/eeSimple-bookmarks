@@ -53,7 +53,11 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     addFormCategoryId,
   } = data;
 
-  useSetListingPage(pageKey, true, true, true, undefined, true, {
+  useSetListingPage(pageKey, {
+    showsImages: true,
+    hasFilters: true,
+    showsCards: true,
+    hasSort: true,
     addBookmark: {
       categoryId: addFormCategoryId,
     },
