@@ -2,48 +2,39 @@ import type { EntityRouteKind } from "./entityRoutes";
 import type {
   Category,
   CustomProperty,
-  RelationshipType,
-  SavedFilter,
   Tag,
   UpdateAutofillRuleInput,
-  UpdateAuthorInput,
   UpdateCardDisplayRuleInput,
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
   UpdateImportRuleInput,
   UpdateLocationInput,
   UpdateMediaTypeInput,
-  UpdateNewsletterInput,
   UpdatePlaceTypeInput,
-  UpdatePropertyGroupInput,
-  UpdatePublisherInput,
-  UpdateRelationshipTypeInput,
-  UpdateSavedFilterInput,
   UpdateTagInput,
-  UpdateWebsiteInput,
   UpdateYouTubeChannelInput,
-  Website,
   YouTubeChannel,
 } from "@eesimple/types";
 
 import { autofillApi } from "./api/autofill";
 import { importRulesApi } from "./api/importRules";
-import { newslettersApi } from "./api/imports";
-import { cardDisplayRulesApi, savedFiltersApi } from "./api/settings";
+import { cardDisplayRulesApi } from "./api/settings";
 import {
-  authorsApi,
   categoriesApi,
   customPropertiesApi,
   locationsApi,
   mediaTypesApi,
   placeTypesApi,
-  propertyGroupsApi,
-  publishersApi,
-  relationshipTypesApi,
   tagsApi,
-  websitesApi,
   youtubeChannelsApi,
 } from "./api/taxonomies";
+import { AUTHOR_PALETTE } from "../entities/author";
+import { NEWSLETTER_PALETTE } from "../entities/newsletter";
+import { PROPERTY_GROUP_PALETTE } from "../entities/propertyGroup";
+import { PUBLISHER_PALETTE } from "../entities/publisher";
+import { RELATIONSHIP_TYPE_PALETTE } from "../entities/relationshipType";
+import { SAVED_FILTER_PALETTE } from "../entities/savedFilter";
+import { WEBSITE_PALETTE } from "../entities/website";
 
 /** The minimal shape the CMD+K entity context needs from any slug-routed entity. */
 export interface PaletteEntity {
@@ -96,95 +87,6 @@ export interface EntityPaletteConfig {
 }
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
-
-/** Hoisted so `entities/website.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const WEBSITE_PALETTE: EntityPaletteConfig = {
-  queryKey: ["websites"],
-  listFn: () => websitesApi.list(),
-  updateFn: (id, patch) => websitesApi.update(id, patch as UpdateWebsiteInput),
-  extraInvalidateKeys: [BOOKMARKS_KEY],
-  getName: entity => (entity as Website).siteName,
-  fields: [
-    {
-      type: "choice",
-      key: "categoryId",
-      label: "Category",
-      options: "categories",
-      getValue: entity => (entity as Website).category?.id ?? null,
-    },
-    {
-      type: "choice",
-      key: "mediaTypeId",
-      label: "Default Media Type",
-      options: "media-types",
-      getValue: entity => (entity as Website).mediaTypeId ?? null,
-    },
-  ],
-};
-
-/** Hoisted so `entities/relationshipType.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const RELATIONSHIP_TYPE_PALETTE: EntityPaletteConfig = {
-  queryKey: ["relationship-types"],
-  listFn: () => relationshipTypesApi.list(),
-  updateFn: (id, patch) => relationshipTypesApi.update(id, patch as UpdateRelationshipTypeInput),
-  extraInvalidateKeys: [BOOKMARKS_KEY],
-  fields: [
-    {
-      type: "boolean",
-      key: "directional",
-      label: "Directional",
-      getValue: entity => (entity as RelationshipType).directional,
-      isEditable: entity => !(entity as RelationshipType).builtIn,
-    },
-  ],
-};
-
-/** Hoisted so `entities/savedFilter.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const SAVED_FILTER_PALETTE: EntityPaletteConfig = {
-  queryKey: ["saved-filters"],
-  listFn: () => savedFiltersApi.list(),
-  updateFn: (id, patch) => savedFiltersApi.update(id, patch as UpdateSavedFilterInput),
-  fields: [
-    {
-      type: "boolean",
-      key: "viewableOnline",
-      label: "Sidebar Shortcut",
-      getValue: entity => (entity as SavedFilter).viewableOnline,
-    },
-  ],
-};
-
-/** Hoisted so `entities/newsletter.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const NEWSLETTER_PALETTE: EntityPaletteConfig = {
-  queryKey: ["newsletters"],
-  listFn: () => newslettersApi.list(),
-  updateFn: (id, patch) => newslettersApi.update(id, patch as UpdateNewsletterInput),
-  extraInvalidateKeys: [BOOKMARKS_KEY],
-};
-
-/** Hoisted so `entities/author.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const AUTHOR_PALETTE: EntityPaletteConfig = {
-  queryKey: ["authors"],
-  listFn: () => authorsApi.list(),
-  updateFn: (id, patch) => authorsApi.update(id, patch as UpdateAuthorInput),
-  extraInvalidateKeys: [BOOKMARKS_KEY],
-};
-
-/** Hoisted so `entities/propertyGroup.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const PROPERTY_GROUP_PALETTE: EntityPaletteConfig = {
-  queryKey: ["property-groups"],
-  listFn: () => propertyGroupsApi.list(),
-  updateFn: (id, patch) => propertyGroupsApi.update(id, patch as UpdatePropertyGroupInput),
-  extraInvalidateKeys: [["custom-properties"]],
-};
-
-/** Hoisted so `entities/publisher.ts`'s `EntityDescriptor` can reference this entry by identity. */
-export const PUBLISHER_PALETTE: EntityPaletteConfig = {
-  queryKey: ["publishers"],
-  listFn: () => publishersApi.list(),
-  updateFn: (id, patch) => publishersApi.update(id, patch as UpdatePublisherInput),
-  extraInvalidateKeys: [BOOKMARKS_KEY],
-};
 
 /**
  * One entry per slug-routed entity kind. Exhaustive over `EntityRouteKind`, so adding an entity to

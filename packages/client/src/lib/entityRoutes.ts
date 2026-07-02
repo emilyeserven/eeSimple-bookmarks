@@ -1,5 +1,13 @@
 import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
+import { AUTHOR_ROUTE } from "../entities/author";
+import { NEWSLETTER_ROUTE } from "../entities/newsletter";
+import { PROPERTY_GROUP_ROUTE } from "../entities/propertyGroup";
+import { PUBLISHER_ROUTE } from "../entities/publisher";
+import { RELATIONSHIP_TYPE_ROUTE } from "../entities/relationshipType";
+import { SAVED_FILTER_ROUTE } from "../entities/savedFilter";
+import { WEBSITE_ROUTE } from "../entities/website";
+
 /** Stable identifier for each slug-routed entity (used by the CMD+K registry and pin mapping). */
 export type EntityRouteKind
   = | "category"
@@ -46,78 +54,6 @@ export interface EntityRoute {
    */
   flatCrumbs: boolean;
 }
-
-/** Hoisted so `entities/publisher.ts`'s `EntityDescriptor` can reference this entry by identity. */
-export const PUBLISHER_ROUTE: EntityRoute = {
-  kind: "publisher",
-  prefix: "/taxonomies/publishers",
-  slugIndex: 2,
-  listLabel: "Publishers",
-  singular: "Publisher",
-  flatCrumbs: true,
-};
-
-/** Hoisted so `entities/propertyGroup.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const PROPERTY_GROUP_ROUTE: EntityRoute = {
-  kind: "property-group",
-  prefix: "/taxonomies/property-groups",
-  slugIndex: 2,
-  listLabel: "Property Groups",
-  singular: "Property Group",
-  switcher: "property-group",
-  flatCrumbs: true,
-};
-
-/** Hoisted so `entities/website.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const WEBSITE_ROUTE: EntityRoute = {
-  kind: "website",
-  prefix: "/taxonomies/websites",
-  slugIndex: 2,
-  listLabel: "Websites",
-  singular: "Website",
-  switcher: "website",
-  flatCrumbs: true,
-};
-
-/** Hoisted so `entities/relationshipType.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const RELATIONSHIP_TYPE_ROUTE: EntityRoute = {
-  kind: "relationship-type",
-  prefix: "/taxonomies/relationship-types",
-  slugIndex: 2,
-  listLabel: "Relationship Types",
-  singular: "Relationship Type",
-  flatCrumbs: true,
-};
-
-/** Hoisted so `entities/savedFilter.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const SAVED_FILTER_ROUTE: EntityRoute = {
-  kind: "saved-filter",
-  prefix: "/saved-filters",
-  slugIndex: 1,
-  listLabel: "Saved Filters",
-  singular: "Saved Filter",
-  flatCrumbs: true,
-};
-
-/** Hoisted so `entities/newsletter.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const NEWSLETTER_ROUTE: EntityRoute = {
-  kind: "newsletter",
-  prefix: "/taxonomies/newsletters",
-  slugIndex: 2,
-  listLabel: "Imports",
-  singular: "Import",
-  flatCrumbs: true,
-};
-
-/** Hoisted so `entities/author.tsx`'s `EntityDescriptor` can reference this entry by identity. */
-export const AUTHOR_ROUTE: EntityRoute = {
-  kind: "author",
-  prefix: "/taxonomies/authors",
-  slugIndex: 2,
-  listLabel: "Authors",
-  singular: "Author",
-  flatCrumbs: true,
-};
 
 export const ENTITY_ROUTES: readonly EntityRoute[] = [
   {
