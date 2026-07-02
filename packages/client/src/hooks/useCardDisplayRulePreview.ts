@@ -303,6 +303,9 @@ export function useCardDisplayRulePreview({
       kavitaSeriesId: null,
       kavitaLibraryId: null,
       kavitaSeriesName: null,
+      plexRatingKey: null,
+      plexItemType: null,
+      plexItemTitle: null,
       import: null,
       tags: [
         {

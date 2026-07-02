@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 
 import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
 
-import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkKavitaLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
+import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkKavitaLinkButton, BookmarkMoreMenu, BookmarkPlexLinkButton } from "./BookmarkCardActions";
 import { badgeNode, ratingStars } from "./bookmarkCardFieldRenders";
 import { describeTaxonomyField } from "./bookmarkCardTaxonomyFields";
 import { BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
@@ -159,6 +159,19 @@ export function BookmarkCardDetails({
       />
     )
     : null;
+  // Plex deep link; the plexLink field renders nothing when unconfigured, unlinked, or the server's
+  // machineIdentifier isn't known yet.
+  const plexConnector = connectors?.plex.enabled ? connectors.plex : null;
+  const plexLinkNode = plexConnector?.baseUrl && plexConnector.machineIdentifier
+    && bookmark.plexRatingKey !== null
+    ? (
+      <BookmarkPlexLinkButton
+        baseUrl={plexConnector.baseUrl}
+        machineIdentifier={plexConnector.machineIdentifier}
+        ratingKey={bookmark.plexRatingKey}
+      />
+    )
+    : null;
   const moreNode = (
     <BookmarkMoreMenu
       bookmark={bookmark}
@@ -209,6 +222,16 @@ export function BookmarkCardDetails({
           block: kavitaLinkNode,
           tableName: "Kavita",
           tableValue: kavitaLinkNode,
+        };
+      }
+      case "plexLink": {
+        // Hidden when Plex isn't configured or the bookmark isn't linked to an item.
+        if (plexLinkNode === null) return null;
+        return {
+          inline: plexLinkNode,
+          block: plexLinkNode,
+          tableName: "Plex",
+          tableValue: plexLinkNode,
         };
       }
       case "more": {

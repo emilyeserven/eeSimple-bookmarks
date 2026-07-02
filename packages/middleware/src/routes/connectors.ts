@@ -6,7 +6,8 @@ import { wikidataEnabled, wikidataEndpoint } from "@/services/wikidataGeocoding"
 import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/services/hostedMetadata";
 import { instagramApiEnabled } from "@/services/socialImages";
 import { kavitaEnabledAsync } from "@/services/kavita";
-import { getActiveKavitaEndpoint } from "@/services/appSettings";
+import { getPlexMachineIdentifier, plexEnabledAsync } from "@/services/plex";
+import { getActiveKavitaEndpoint, getActivePlexEndpoint } from "@/services/appSettings";
 import { youtubeApiEnabledAsync } from "@/services/youtube";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 
@@ -53,6 +54,14 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
         // (non-secret) so the client can build series deep links.
         enabled: await kavitaEnabledAsync(),
         baseUrl: await getActiveKavitaEndpoint(),
+      },
+      plex: {
+        // Enabled requires both the base URL and the token. The base URL and the server's
+        // machineIdentifier (non-secret) are returned so the client can build item deep links; the
+        // machineIdentifier is null until Plex is reachable (it's read from /identity and cached).
+        enabled: await plexEnabledAsync(),
+        baseUrl: await getActivePlexEndpoint(),
+        machineIdentifier: await getPlexMachineIdentifier(),
       },
       geocoding: {
         enabled: geocodingEnabled(),

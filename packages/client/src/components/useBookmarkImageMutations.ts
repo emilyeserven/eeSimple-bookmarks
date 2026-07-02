@@ -6,6 +6,7 @@ import {
   useDeleteBookmarkScreenshot,
   useIsbnCoverImage,
   useKavitaCoverImage,
+  usePlexPosterImage,
   useSetMainBookmarkImage,
   useTakeBookmarkScreenshot,
 } from "../hooks/useBookmarks";
@@ -17,6 +18,7 @@ import {
 export function useBookmarkImageMutations() {
   const autoImage = useAutoBookmarkImage();
   const kavitaCover = useKavitaCoverImage();
+  const plexPoster = usePlexPosterImage();
   const isbnCover = useIsbnCoverImage();
   const addImage = useAddBookmarkImage();
   const imagesFromCandidates = useBookmarkImagesFromCandidates();
@@ -26,16 +28,19 @@ export function useBookmarkImageMutations() {
   const deleteScreenshot = useDeleteBookmarkScreenshot();
 
   const isMutating = addImage.isPending || autoImage.isPending || kavitaCover.isPending
+    || plexPoster.isPending
     || isbnCover.isPending
     || imagesFromCandidates.isPending
     || setMainImage.isPending || deleteImageById.isPending || takeScreenshot.isPending
     || deleteScreenshot.isPending;
   const mutationError = addImage.error ?? imagesFromCandidates.error ?? setMainImage.error
-    ?? deleteImageById.error ?? autoImage.error ?? kavitaCover.error ?? isbnCover.error;
+    ?? deleteImageById.error ?? autoImage.error ?? kavitaCover.error ?? plexPoster.error
+    ?? isbnCover.error;
 
   return {
     autoImage,
     kavitaCover,
+    plexPoster,
     isbnCover,
     addImage,
     imagesFromCandidates,

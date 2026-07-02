@@ -122,6 +122,8 @@ export function HostedMetadataForm() {
           archiveBoxEndpoint: data.archiveBoxEndpoint,
           kavitaEndpoint: data.kavitaEndpoint,
           kavitaApiKey: null,
+          plexEndpoint: data.plexEndpoint,
+          plexToken: null,
           youtubeApiKey: null,
           imageUrlBlacklist: data.imageUrlBlacklist,
         },
@@ -286,6 +288,8 @@ export function ArchiveBoxForm() {
         archiveBoxEndpoint: endpoint,
         kavitaEndpoint: data.kavitaEndpoint,
         kavitaApiKey: null,
+        plexEndpoint: data.plexEndpoint,
+        plexToken: null,
         youtubeApiKey: null,
         imageUrlBlacklist: data.imageUrlBlacklist,
       },
@@ -415,6 +419,8 @@ export function KavitaForm() {
           archiveBoxEndpoint: data.archiveBoxEndpoint,
           kavitaEndpoint: endpoint,
           kavitaApiKey: field === "apiKey" ? apiKey : null,
+          plexEndpoint: data.plexEndpoint,
+          plexToken: null,
           youtubeApiKey: null,
           imageUrlBlacklist: data.imageUrlBlacklist,
         },
@@ -520,6 +526,179 @@ export function KavitaForm() {
 }
 
 /**
+ * Editable form for the Plex connector: base URL and `X-Plex-Token`, each saving on blur with a
+ * named toast. The raw token is never returned by the API — only `plexTokenSet: boolean`. The
+ * connectors PUT body requires every field, so the other connectors' values are echoed from the
+ * loaded settings (their keys left unchanged).
+ */
+export function PlexForm() {
+  const {
+    data,
+  } = useConnectorsSettings();
+  const update = useUpdateConnectorsSettings();
+
+  const [endpoint, setEndpoint] = useState(data?.plexEndpoint ?? "");
+  // token field is always blank on load; user must type to set/replace/clear the stored token.
+  const [token, setToken] = useState("");
+  const [tokenDirty, setTokenDirty] = useState(false);
+  const [checkResult, setCheckResult] = useState<CheckUrlResult | null>(null);
+
+  const checkConnection = useMutation({
+    // Plex's /identity endpoint responds without a token, so this probes reachability only — the
+    // token is validated by the first item search.
+    mutationFn: () => metadataApi.checkUrl({
+      url: `${endpoint.replace(/\/$/, "")}/identity`,
+    }),
+    onSuccess: result => setCheckResult(result),
+    onError: (err: Error) => notifyFieldSaveError("Connection check", err.message),
+  });
+
+  useEffect(() => {
+    if (data) {
+      setEndpoint(data.plexEndpoint);
+      setCheckResult(null);
+    }
+  }, [data]);
+
+  function saveField(field: "endpoint" | "token"): void {
+    if (!data) return;
+    // token field: skip when the user hasn't typed anything (would silently no-op server-side).
+    if (field === "token" && !tokenDirty) return;
+    const label = field === "endpoint" ? "Plex URL" : "Plex token";
+    update.mutate(
+      {
+        input: {
+          // Echo the other connectors' fields unchanged (null preserves the stored keys).
+          hostedMetadataEndpoint: data.hostedMetadataEndpoint,
+          hostedMetadataProvider: data.hostedMetadataProvider,
+          hostedMetadataApiKey: null,
+          archiveBoxEndpoint: data.archiveBoxEndpoint,
+          kavitaEndpoint: data.kavitaEndpoint,
+          kavitaApiKey: null,
+          plexEndpoint: endpoint,
+          plexToken: field === "token" ? token : null,
+          youtubeApiKey: null,
+          imageUrlBlacklist: data.imageUrlBlacklist,
+        },
+        successMessage: label,
+      },
+      {
+        onSuccess: () => {
+          if (field === "token") {
+            setTokenDirty(false);
+            setToken("");
+          }
+        },
+      },
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Point this at your self-hosted
+        {" "}
+        <a
+          href="https://www.plex.tv/"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2"
+        >
+          Plex
+        </a>
+        {" "}
+        media server. When set, bookmarks can be linked to a movie, show, or track, gain a &quot;View
+        on Plex&quot; link-out, and can import the item&apos;s poster as their image. The token stays
+        on the server — searches and poster fetches are proxied so it never reaches the browser. Each
+        field saves on blur.
+      </p>
+      <div className="space-y-1.5">
+        <Label htmlFor="plex-endpoint">Base URL</Label>
+        <Input
+          id="plex-endpoint"
+          type="url"
+          placeholder="http://localhost:32400"
+          value={endpoint}
+          onChange={(e) => {
+            setEndpoint(e.target.value);
+            setCheckResult(null);
+          }}
+          onBlur={() => saveField("endpoint")}
+        />
+        <p className="text-xs text-muted-foreground">
+          Base URL of your Plex server (e.g.
+          {" "}
+          <code>http://localhost:32400</code>
+          ). Item links open the matching page in Plex&apos;s web UI on this host in a new tab.
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!endpoint || checkConnection.isPending}
+            onClick={() => {
+              setCheckResult(null);
+              checkConnection.mutate();
+            }}
+          >
+            {checkConnection.isPending
+              ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Checking…
+                </>
+              )
+              : "Check connection"}
+          </Button>
+          <CheckConnectionResult result={checkResult} />
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="plex-token">Plex token</Label>
+        <Input
+          id="plex-token"
+          type="password"
+          placeholder={data?.plexTokenSet ? "••••••••" : "No token stored"}
+          value={token}
+          onChange={(e) => {
+            setToken(e.target.value);
+            setTokenDirty(true);
+          }}
+          onBlur={() => saveField("token")}
+        />
+        <ApiKeyHint
+          apiKeySet={data?.plexTokenSet ?? false}
+          encryptionEnabled={data?.encryptionEnabled ?? true}
+          unsetHint={(
+            <>
+              Your
+              {" "}
+              <code>X-Plex-Token</code>
+              . See
+              {" "}
+              <a
+                href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/"
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2"
+              >
+                Finding an authentication token
+              </a>
+              . Sent as the
+              {" "}
+              <code>X-Plex-Token</code>
+              {" "}
+              header on server-side requests; it is never sent to the browser.
+            </>
+          )}
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
  * Editable form for the YouTube Data API v3 connector: a single API key field, saving on blur with
  * a named toast. The raw key is never returned by the API — only `youtubeApiKeySet: boolean`. The
  * connectors PUT body requires every field, so the other connectors' values are echoed from the
@@ -547,6 +726,8 @@ export function YoutubeForm() {
           archiveBoxEndpoint: data.archiveBoxEndpoint,
           kavitaEndpoint: data.kavitaEndpoint,
           kavitaApiKey: null,
+          plexEndpoint: data.plexEndpoint,
+          plexToken: null,
           youtubeApiKey: apiKey,
           imageUrlBlacklist: data.imageUrlBlacklist,
         },
@@ -642,6 +823,8 @@ export function ImageBlacklistForm() {
         archiveBoxEndpoint: data.archiveBoxEndpoint,
         kavitaEndpoint: data.kavitaEndpoint,
         kavitaApiKey: null,
+        plexEndpoint: data.plexEndpoint,
+        plexToken: null,
         youtubeApiKey: null,
         imageUrlBlacklist: patterns,
       },

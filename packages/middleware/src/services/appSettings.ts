@@ -1090,6 +1090,8 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
       archiveBoxEndpoint: appSettings.archiveBoxEndpoint,
       kavitaEndpoint: appSettings.kavitaEndpoint,
       kavitaApiKey: appSettings.kavitaApiKey,
+      plexEndpoint: appSettings.plexEndpoint,
+      plexToken: appSettings.plexToken,
       youtubeApiKey: appSettings.youtubeApiKey,
       imageUrlBlacklist: appSettings.imageUrlBlacklist,
     })
@@ -1107,6 +1109,8 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
     archiveBoxEndpoint: row?.archiveBoxEndpoint ?? process.env.ARCHIVEBOX_ENDPOINT ?? "",
     kavitaEndpoint: row?.kavitaEndpoint ?? process.env.KAVITA_ENDPOINT ?? "",
     kavitaApiKeySet: Boolean(row?.kavitaApiKey) || Boolean(process.env.KAVITA_API_KEY),
+    plexEndpoint: row?.plexEndpoint ?? process.env.PLEX_ENDPOINT ?? "",
+    plexTokenSet: Boolean(row?.plexToken) || Boolean(process.env.PLEX_TOKEN),
     youtubeApiKeySet: Boolean(row?.youtubeApiKey) || Boolean(process.env.YOUTUBE_API_KEY),
     imageUrlBlacklist: row?.imageUrlBlacklist ?? [],
   };
@@ -1252,6 +1256,48 @@ export async function getDecryptedKavitaApiKey(): Promise<string | null> {
 }
 
 /**
+ * Get the active Plex base URL: database value wins over env var.
+ * Returns null when neither is configured.
+ */
+export async function getActivePlexEndpoint(): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select({
+        plexEndpoint: appSettings.plexEndpoint,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    return row?.plexEndpoint || process.env.PLEX_ENDPOINT || null;
+  }
+  catch {
+    return process.env.PLEX_ENDPOINT || null;
+  }
+}
+
+/**
+ * Retrieve the decrypted Plex `X-Plex-Token`. Checks the database first (decrypting if encrypted),
+ * then falls back to the `PLEX_TOKEN` env var.
+ */
+export async function getDecryptedPlexToken(): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select({
+        plexToken: appSettings.plexToken,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    if (row?.plexToken) {
+      const decrypted = maybeDecrypt(row.plexToken);
+      if (decrypted) return decrypted;
+    }
+  }
+  catch {
+    // DB unavailable (e.g. test environment) — fall through to env var.
+  }
+  return process.env.PLEX_TOKEN ?? null;
+}
+
+/**
  * Retrieve the decrypted YouTube Data API v3 key. Checks the database first (decrypting if
  * encrypted), then falls back to the `YOUTUBE_API_KEY` env var.
  */
@@ -1285,6 +1331,7 @@ export async function updateConnectorsSettings(
     hostedMetadataProvider: input.hostedMetadataProvider.trim(),
     archiveBoxEndpoint: input.archiveBoxEndpoint.trim(),
     kavitaEndpoint: input.kavitaEndpoint.trim(),
+    plexEndpoint: input.plexEndpoint.trim(),
     // Normalize the blacklist: trim entries, drop blanks, dedupe — store a clean list.
     imageUrlBlacklist: [...new Set(input.imageUrlBlacklist.map(p => p.trim()).filter(Boolean))],
   };
@@ -1296,6 +1343,11 @@ export async function updateConnectorsSettings(
   if (input.kavitaApiKey !== null) {
     set.kavitaApiKey = input.kavitaApiKey.trim()
       ? maybeEncrypt(input.kavitaApiKey.trim())
+      : null;
+  }
+  if (input.plexToken !== null) {
+    set.plexToken = input.plexToken.trim()
+      ? maybeEncrypt(input.plexToken.trim())
       : null;
   }
   if (input.youtubeApiKey !== null) {

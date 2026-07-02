@@ -101,6 +101,10 @@ export const bookmarksApi = {
     request<BookmarkImage>(`/bookmarks/${id}/kavita-cover`, {
       method: "POST",
     }),
+  plexPoster: (id: string) =>
+    request<BookmarkImage>(`/bookmarks/${id}/plex-poster`, {
+      method: "POST",
+    }),
   isbnCover: (id: string) =>
     request<BookmarkImage>(`/bookmarks/${id}/isbn-cover`, {
       method: "POST",

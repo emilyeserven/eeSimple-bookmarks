@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HttpResponse, http } from "msw";
 
-import { ArchiveBoxForm, HostedMetadataForm, KavitaForm, YoutubeForm } from "./ConnectorMetadataForms";
+import { ArchiveBoxForm, HostedMetadataForm, KavitaForm, PlexForm, YoutubeForm } from "./ConnectorMetadataForms";
 import { apiHandlers } from "../test-utils/story-mocks";
 
 const connectorsSettings: ConnectorsAppSettings = {
@@ -14,6 +14,8 @@ const connectorsSettings: ConnectorsAppSettings = {
   archiveBoxEndpoint: "",
   kavitaEndpoint: "",
   kavitaApiKeySet: false,
+  plexEndpoint: "",
+  plexTokenSet: false,
   youtubeApiKeySet: false,
   imageUrlBlacklist: [],
 };
@@ -77,6 +79,28 @@ export const KavitaConfigured: Story = {
           ...connectorsSettings,
           kavitaEndpoint: "http://localhost:5000",
           kavitaApiKeySet: true,
+        } satisfies ConnectorsAppSettings)),
+        ...apiHandlers,
+      ],
+    },
+  },
+};
+
+/** The Plex connector form — base URL and token. */
+export const Plex: Story = {
+  render: () => <PlexForm />,
+};
+
+/** Plex already configured with a stored token. */
+export const PlexConfigured: Story = {
+  render: () => <PlexForm />,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/app-settings/connectors", () => HttpResponse.json({
+          ...connectorsSettings,
+          plexEndpoint: "http://localhost:32400",
+          plexTokenSet: true,
         } satisfies ConnectorsAppSettings)),
         ...apiHandlers,
       ],

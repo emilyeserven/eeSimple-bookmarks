@@ -11,6 +11,7 @@ import { BookmarkGallery } from "./BookmarkGallery";
 import { BookmarkKavitaDetailLink } from "./BookmarkKavitaField";
 import { BookmarkLocationsBox } from "./BookmarkLocationsBox";
 import { BookmarkLocationsTabContent } from "./BookmarkLocationsTabContent";
+import { BookmarkPlexDetailLink } from "./BookmarkPlexField";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
 import { BookmarkReelArchivePlayer } from "./BookmarkReelArchive";
 import { hasBookmarkPropertyRows } from "../lib/bookmarkProperties";
@@ -193,6 +194,14 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
               ? (
                 <DetailField label="Kavita">
                   <BookmarkKavitaDetailLink bookmark={bookmark} />
+                </DetailField>
+              )
+              : null}
+
+            {bookmark.plexRatingKey !== null
+              ? (
+                <DetailField label="Plex">
+                  <BookmarkPlexDetailLink bookmark={bookmark} />
                 </DetailField>
               )
               : null}

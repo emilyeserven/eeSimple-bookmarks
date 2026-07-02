@@ -31,6 +31,11 @@ vi.mock("../hooks/useConnectors", () => ({
         enabled: false,
         baseUrl: null,
       },
+      plex: {
+        enabled: false,
+        baseUrl: null,
+        machineIdentifier: null,
+      },
       geocoding: {
         enabled: true,
         endpoint: "https://nominatim.openstreetmap.org",
@@ -60,6 +65,8 @@ vi.mock("../hooks/useAppSettings", () => ({
       archiveBoxEndpoint: "",
       kavitaEndpoint: "",
       kavitaApiKeySet: false,
+      plexEndpoint: "",
+      plexTokenSet: false,
       youtubeApiKeySet: false,
     },
   }),

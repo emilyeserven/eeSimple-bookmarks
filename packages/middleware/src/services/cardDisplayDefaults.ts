@@ -17,6 +17,7 @@ export const STANDARD_CARD_FIELD_KEYS = [
   "externalLink",
   "archiveLink",
   "kavitaLink",
+  "plexLink",
   "more",
 ] as const;
 
