@@ -13,6 +13,56 @@ import {
 } from "@/services/homepageSections";
 import { cardZoneLayoutsSchema, fieldZonesSchema } from "@/routes/cardFieldZonesSchema";
 
+/**
+ * `sort`: a `BookmarkSort` (@eesimple/types) — either a primary/secondary field ordering or a
+ * random shuffle, matching the Listings page Sort control. `null`/omitted = default order.
+ */
+const bookmarkSortDimensionSchema = {
+  type: "object",
+  required: ["field", "direction"],
+  additionalProperties: false,
+  properties: {
+    field: {
+      type: "string",
+    },
+    direction: {
+      type: "string",
+      enum: ["asc", "desc"],
+    },
+  },
+} as const;
+
+const bookmarkSortSchema = {
+  oneOf: [
+    {
+      type: "null",
+    },
+    {
+      type: "object",
+      required: ["primary"],
+      additionalProperties: false,
+      properties: {
+        primary: bookmarkSortDimensionSchema,
+        secondary: bookmarkSortDimensionSchema,
+      },
+    },
+    {
+      type: "object",
+      required: ["random", "seed"],
+      additionalProperties: false,
+      properties: {
+        random: {
+          type: "boolean",
+          enum: [true],
+        },
+        seed: {
+          type: "number",
+        },
+      },
+    },
+  ],
+} as const;
+
 const sectionParams = {
   type: "object",
   required: ["id"],
@@ -77,6 +127,7 @@ const createBody = {
     hideWebsiteForYouTube: {
       type: "boolean",
     },
+    sort: bookmarkSortSchema,
   },
 } as const;
 
@@ -132,6 +183,7 @@ const updateBody = {
     hideWebsiteForYouTube: {
       type: "boolean",
     },
+    sort: bookmarkSortSchema,
   },
 } as const;
 

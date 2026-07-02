@@ -7,6 +7,7 @@ import { HomepageSectionTable } from "./HomepageSectionTable";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { flattenFieldZonesToCard, hiddenFieldKeysFromZones, restrictFieldZones } from "../lib/bookmarkCardValues";
 import { COLUMN_CLASS } from "../lib/bookmarkColumns";
+import { sortBookmarks } from "../lib/bookmarkSort";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
@@ -21,8 +22,9 @@ export function HomepageSectionBlock({
   data, customProperties,
 }: HomepageSectionBlockProps) {
   const {
-    section, bookmarks,
+    section, bookmarks: unsortedBookmarks,
   } = data;
+  const bookmarks = sortBookmarks(unsortedBookmarks, section.sort ?? undefined, customProperties);
   const columns = section.columns;
   const imageMode = section.imageMode;
   const imageVisibility = section.imageVisibility;

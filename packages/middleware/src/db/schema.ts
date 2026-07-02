@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -1445,6 +1445,9 @@ export const homepageSections = pgTable("homepage_sections", {
   // YouTube channel. Owned per-section so homepage cards never fall back to the Default card display
   // rule. NOT NULL DEFAULT false on the populated table → pre-applied in migrate.ts to keep push additive.
   hideWebsiteForYouTube: boolean("hide_website_for_youtube").notNull().default(false),
+  // Bookmark ordering for this section (matches the Listings page Sort control), or NULL for the
+  // default order. Applied client-side. Nullable jsonb = push-safe additive.
+  sort: jsonb("sort").$type<BookmarkSort>(),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

@@ -27,6 +27,7 @@ function makeSection(overrides: Partial<HomepageSection>): HomepageSection {
     hiddenCardFields: [],
     cornerOverlays: false,
     hideWebsiteForYouTube: false,
+    sort: null,
     createdAt: NOW,
     ...overrides,
   };

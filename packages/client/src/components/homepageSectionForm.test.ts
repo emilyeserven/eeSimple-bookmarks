@@ -17,6 +17,7 @@ describe("buildHomepageSectionInitialValues", () => {
     expect(values.hideIfEmpty).toBe(false);
     expect(values.hideWebsiteForYouTube).toBe(false);
     expect(values.conditions.children).toEqual([]);
+    expect(values.sort).toBeNull();
   });
 
   it("carries over the editing section's values", () => {
@@ -29,6 +30,12 @@ describe("buildHomepageSectionInitialValues", () => {
       viewMode: "table",
       hideIfEmpty: true,
       hideWebsiteForYouTube: true,
+      sort: {
+        primary: {
+          field: "title",
+          direction: "asc",
+        },
+      },
     } as unknown as HomepageSection;
     const values = buildHomepageSectionInitialValues(section, undefined, []);
     expect(values.title).toBe("My Section");
@@ -38,6 +45,12 @@ describe("buildHomepageSectionInitialValues", () => {
     expect(values.viewMode).toBe("table");
     expect(values.hideIfEmpty).toBe(true);
     expect(values.hideWebsiteForYouTube).toBe(true);
+    expect(values.sort).toEqual({
+      primary: {
+        field: "title",
+        direction: "asc",
+      },
+    });
   });
 
   it("prefers the section zones, then the default-rule zones, then standard defaults", () => {

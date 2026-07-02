@@ -1,5 +1,6 @@
 import type {
   BookmarkImageVisibility,
+  BookmarkSort,
   CardFieldZones,
   CardZoneLayouts,
   ConditionTree,
@@ -26,6 +27,7 @@ export interface HomepageSectionFormValues {
   fieldZones: CardFieldZones;
   cardZoneLayouts: CardZoneLayouts;
   hideWebsiteForYouTube: boolean;
+  sort: BookmarkSort | null;
 }
 
 /**
@@ -52,5 +54,6 @@ export function buildHomepageSectionInitialValues(
     fieldZones: section?.fieldZones ?? defaultZones ?? defaultCardFieldZones(properties ?? []),
     cardZoneLayouts: section?.cardZoneLayouts ?? defaultCardZoneLayouts(),
     hideWebsiteForYouTube: section?.hideWebsiteForYouTube ?? false,
+    sort: section?.sort ?? null,
   };
 }

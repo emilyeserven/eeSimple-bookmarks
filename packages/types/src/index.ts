@@ -2278,6 +2278,33 @@ export type BookmarkDetailLayout = "single" | "tabbed";
  */
 export type BookmarkImageMode = "natural" | "cropped" | "square" | "opengraph" | string;
 
+/** Built-in bookmark fields that a Sort control can order by, alongside sortable custom properties. */
+export const BUILTIN_SORT_FIELDS = ["title", "createdAt", "updatedAt"] as const;
+export type BuiltinSortField = typeof BUILTIN_SORT_FIELDS[number];
+export type SortDirection = "asc" | "desc";
+
+/** One sort dimension: a built-in field name or a custom property id, plus its direction. */
+export interface BookmarkSortDimension {
+  field: BuiltinSortField | string;
+  direction: SortDirection;
+}
+
+/** A primary (required) and optional secondary tie-breaking sort dimension. */
+export interface BookmarkFieldSort {
+  primary: BookmarkSortDimension;
+  secondary?: BookmarkSortDimension;
+}
+
+/** Shuffles bookmarks in a stable pseudo-random order derived from `seed`. */
+export interface BookmarkRandomSort {
+  random: true;
+  /** Re-rolled each time the user picks "Random" or clicks "Shuffle again". */
+  seed: number;
+}
+
+/** The bookmark ordering used by the Listings page Sort control and a homepage section's Sorting field. */
+export type BookmarkSort = BookmarkFieldSort | BookmarkRandomSort;
+
 /** A named, ordered section on the homepage with its own condition filter. */
 export interface HomepageSection {
   id: string;
@@ -2286,6 +2313,11 @@ export interface HomepageSection {
   conditions: ConditionTree;
   sortOrder: number;
   hideIfEmpty: boolean;
+  /**
+   * Bookmark ordering for this section, or `null` for the default order (matches the Listings
+   * page's Sort control). Applied client-side after the section's bookmarks are fetched.
+   */
+  sort: BookmarkSort | null;
   /** Bookmark grid column count (1–4). */
   columns: number;
   /** Image display mode: "natural", "cropped", "square", "opengraph", or a custom ratio UUID. */
@@ -2340,6 +2372,7 @@ export interface CreateHomepageSectionInput {
   hiddenCardFields?: string[];
   cornerOverlays?: boolean;
   hideWebsiteForYouTube?: boolean;
+  sort?: BookmarkSort | null;
 }
 
 /** Payload for partially updating a homepage section. */
