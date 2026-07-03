@@ -35,15 +35,18 @@ function PlexItemValue({
   );
 }
 
-/** Read-only General view for a Movie / TV Show — shared by both workbench descriptors. */
+/** Read-only General view for any Plex-backed taxonomy row — shared by all workbench descriptors. */
 export function PlexTitleGeneralView({
   entity,
   createdAt,
   bookmarkCount,
+  renderExtra,
 }: {
   entity: PlexTitle;
   createdAt: string;
   bookmarkCount?: number;
+  /** Extra read-only rows (parent link / artists) appended below the standard fields. */
+  renderExtra?: import("react").ReactNode;
 }) {
   const {
     data: mediaProperties,
@@ -83,6 +86,7 @@ export function PlexTitleGeneralView({
             </>
           )
           : null}
+        {renderExtra}
       </dl>
     </div>
   );

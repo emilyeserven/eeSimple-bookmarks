@@ -1,3 +1,6 @@
+import type { PlexTaxoKey } from "./useBookmarkPlexItemField";
+import type { PlexKind } from "@/lib/plexParent";
+
 import { useState } from "react";
 
 import { PlexTitleForm } from "./PlexTitleForm";
@@ -11,27 +14,65 @@ import {
 } from "@/components/ui/dialog";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-/** Which taxonomy the created Plex title landed in, plus its id — lets the opener set the right FK. */
+/** Which Plex FK the created title fills in, plus its id — lets the opener set the right bookmark FK. */
 export interface CreatedPlexTitle {
-  kind: "movie" | "show";
+  key: PlexTaxoKey;
   id: string;
 }
+
+/** Each create kind, its toggle label, and the bookmark FK a created row of that kind fills in. */
+const KIND_OPTIONS: { kind: PlexKind;
+  label: string;
+  key: PlexTaxoKey; }[] = [
+  {
+    kind: "movie",
+    label: "Movie",
+    key: "movieId",
+  },
+  {
+    kind: "show",
+    label: "TV Show",
+    key: "tvShowId",
+  },
+  {
+    kind: "episode",
+    label: "Episode",
+    key: "episodeId",
+  },
+  {
+    kind: "album",
+    label: "Album",
+    key: "albumId",
+  },
+  {
+    kind: "artist",
+    label: "Artist",
+    key: "artistId",
+  },
+  {
+    kind: "track",
+    label: "Track",
+    key: "trackId",
+  },
+];
 
 interface AddPlexTitleModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Called with the created Movie/TV Show (kind + id) so the opener can link it. */
+  /** Called with the created title (FK key + id) so the opener can link it. */
   onCreated?: (created: CreatedPlexTitle) => void;
 }
 
 /**
- * Create a Movie or a TV Show from one dialog — a kind toggle over the shared `PlexTitleForm`. Used by
- * the bookmark's unified Plex-item picker so inline-create works for both kinds from a single combobox.
+ * Create any of the six Plex-backed taxonomy rows from one dialog — a kind toggle over the shared
+ * `PlexTitleForm`. Used by the bookmark's unified Plex-item picker so inline-create works for every
+ * kind from a single combobox.
  */
 export function AddPlexTitleModal({
   open, onOpenChange, onCreated,
 }: AddPlexTitleModalProps) {
-  const [kind, setKind] = useState<"movie" | "show">("movie");
+  const [kind, setKind] = useState<PlexKind>("movie");
+  const active = KIND_OPTIONS.find(option => option.kind === kind) ?? KIND_OPTIONS[0];
 
   return (
     <Dialog
@@ -42,7 +83,8 @@ export function AddPlexTitleModal({
         <DialogHeader>
           <DialogTitle>New Plex title</DialogTitle>
           <DialogDescription>
-            Create a movie or TV show, or look it up on Plex to fill in its details automatically.
+            Create a movie, TV show, episode, album, artist, or track — or look it up on Plex to fill
+            in its details automatically.
           </DialogDescription>
         </DialogHeader>
 
@@ -50,19 +92,25 @@ export function AddPlexTitleModal({
           type="single"
           value={kind}
           onValueChange={(value) => {
-            if (value === "movie" || value === "show") setKind(value);
+            if (KIND_OPTIONS.some(option => option.kind === value)) setKind(value as PlexKind);
           }}
-          className="justify-start"
+          className="flex-wrap justify-start"
         >
-          <ToggleGroupItem value="movie">Movie</ToggleGroupItem>
-          <ToggleGroupItem value="show">TV Show</ToggleGroupItem>
+          {KIND_OPTIONS.map(option => (
+            <ToggleGroupItem
+              key={option.kind}
+              value={option.kind}
+            >
+              {option.label}
+            </ToggleGroupItem>
+          ))}
         </ToggleGroup>
 
         <PlexTitleForm
           kind={kind}
           onCreated={(item) => {
             onCreated?.({
-              kind,
+              key: active.key,
               id: item.id,
             });
             onOpenChange(false);

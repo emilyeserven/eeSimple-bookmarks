@@ -64,6 +64,10 @@ function ExpandableLinkSection({
   booksCount,
   moviesCount,
   tvShowsCount,
+  episodesCount,
+  albumsCount,
+  artistsCount,
+  tracksCount,
 }: {
   sectionKey: string;
   label: string;
@@ -78,6 +82,10 @@ function ExpandableLinkSection({
   booksCount?: number;
   moviesCount?: number;
   tvShowsCount?: number;
+  episodesCount?: number;
+  albumsCount?: number;
+  artistsCount?: number;
+  tracksCount?: number;
 }) {
   const renderItem = (item: LinkSidebarItem) => {
     // Locations gets a hover flyout surfacing its Place Types taxonomy; every other item is a plain link.
@@ -102,6 +110,10 @@ function ExpandableLinkSection({
           booksCount={booksCount}
           moviesCount={moviesCount}
           tvShowsCount={tvShowsCount}
+          episodesCount={episodesCount}
+          albumsCount={albumsCount}
+          artistsCount={artistsCount}
+          tracksCount={tracksCount}
           sidebarState={sidebarState}
         />
       );
@@ -201,6 +213,10 @@ export function AppSidebar({
     booksCount,
     moviesCount,
     tvShowsCount,
+    episodesCount,
+    albumsCount,
+    artistsCount,
+    tracksCount,
     modifier,
     viewClick,
     hiddenSidebarGroups,
@@ -296,6 +312,10 @@ export function AppSidebar({
               booksCount={booksCount}
               moviesCount={moviesCount}
               tvShowsCount={tvShowsCount}
+              episodesCount={episodesCount}
+              albumsCount={albumsCount}
+              artistsCount={artistsCount}
+              tracksCount={tracksCount}
             />
           )
           : null}

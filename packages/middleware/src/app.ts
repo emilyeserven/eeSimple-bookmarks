@@ -38,6 +38,10 @@ import { mediaPropertyRoutes } from "@/routes/mediaProperties";
 import { bookRoutes } from "@/routes/books";
 import { movieRoutes } from "@/routes/movies";
 import { tvShowRoutes } from "@/routes/tvShows";
+import { episodeRoutes } from "@/routes/episodes";
+import { albumRoutes } from "@/routes/albums";
+import { artistRoutes } from "@/routes/artists";
+import { trackRoutes } from "@/routes/tracks";
 import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
@@ -199,6 +203,22 @@ export async function buildApp(): Promise<FastifyInstance> {
             name: "tv-shows",
             description: "TV Shows taxonomy: CRUD; bookmarks link to a TV Show instead of a live Plex item",
           },
+          {
+            name: "episodes",
+            description: "Episodes taxonomy: CRUD; child of a TV Show, Plex-backed",
+          },
+          {
+            name: "albums",
+            description: "Albums taxonomy: CRUD; many-to-many with Artists, Plex-backed",
+          },
+          {
+            name: "artists",
+            description: "Artists taxonomy: CRUD; many-to-many with Albums, Plex-backed",
+          },
+          {
+            name: "tracks",
+            description: "Tracks taxonomy: CRUD; child of an Album, Plex-backed",
+          },
         ],
       },
     });
@@ -250,6 +270,10 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(bookRoutes);
   await app.register(movieRoutes);
   await app.register(tvShowRoutes);
+  await app.register(episodeRoutes);
+  await app.register(albumRoutes);
+  await app.register(artistRoutes);
+  await app.register(trackRoutes);
   await app.register(relationshipTypeRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);

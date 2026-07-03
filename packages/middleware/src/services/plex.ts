@@ -30,10 +30,14 @@ const PLEX_IDENTITY_TIMEOUT_MS = 5000;
 const LINKABLE_TYPES = new Set(["movie", "show", "season", "episode", "artist", "album", "track"]);
 
 /** A `kind` filter narrows the search to a single family of Plex item types. */
-export type PlexSearchKind = "movie" | "show";
+export type PlexSearchKind = "movie" | "show" | "episode" | "album" | "artist" | "track";
 const KIND_TYPES: Record<PlexSearchKind, ReadonlySet<string>> = {
   movie: new Set(["movie"]),
   show: new Set(["show"]),
+  episode: new Set(["episode"]),
+  album: new Set(["album"]),
+  artist: new Set(["artist"]),
+  track: new Set(["track"]),
 };
 
 let cachedMachineId: string | null = null;
@@ -122,11 +126,23 @@ interface PlexMetadata {
   thumb?: unknown;
   librarySectionTitle?: unknown;
   grandparentTitle?: unknown;
+  grandparentRatingKey?: unknown;
   parentTitle?: unknown;
+  parentRatingKey?: unknown;
 }
 
 function grandparentTitleOf(raw: PlexMetadata): string | null {
   return typeof raw.grandparentTitle === "string" && raw.grandparentTitle ? raw.grandparentTitle : null;
+}
+
+/** A parent/grandparent ratingKey (Plex returns these as numeric or string), or `null`. */
+function ratingKeyOf(value: unknown): string | null {
+  if (typeof value === "number") return String(value);
+  return typeof value === "string" && value ? value : null;
+}
+
+function parentTitleOf(raw: PlexMetadata): string | null {
+  return typeof raw.parentTitle === "string" && raw.parentTitle ? raw.parentTitle : null;
 }
 
 function librarySectionTitleOf(raw: PlexMetadata): string | null {
@@ -159,6 +175,10 @@ function toItemResult(raw: PlexMetadata): PlexItemResult | null {
     librarySectionTitle,
     subtitle: composeSubtitle(raw),
     groupTitle: grandparentTitleOf(raw) ?? librarySectionTitle,
+    parentTitle: parentTitleOf(raw),
+    parentRatingKey: ratingKeyOf(raw.parentRatingKey),
+    grandparentTitle: grandparentTitleOf(raw),
+    grandparentRatingKey: ratingKeyOf(raw.grandparentRatingKey),
   };
 }
 
@@ -250,13 +270,17 @@ export async function importPlexPoster(bookmarkId: string): Promise<PlexPosterIm
     .select({
       movieId: bookmarks.movieId,
       tvShowId: bookmarks.tvShowId,
+      episodeId: bookmarks.episodeId,
+      albumId: bookmarks.albumId,
+      artistId: bookmarks.artistId,
+      trackId: bookmarks.trackId,
       plexRatingKey: bookmarks.plexRatingKey,
     })
     .from(bookmarks)
     .where(eq(bookmarks.id, bookmarkId));
   if (!row) return "not_found";
-  // Prefer the linked Movie/TV Show's Plex rating key, falling back to the bookmark's legacy key.
-  const ratingKey = await resolveBookmarkPlexRatingKey(row.movieId, row.tvShowId, row.plexRatingKey);
+  // Prefer the linked taxonomy row's Plex rating key, falling back to the bookmark's legacy key.
+  const ratingKey = await resolveBookmarkPlexRatingKey(row, row.plexRatingKey);
   if (ratingKey === null) return "not_linked";
   const bytes = await fetchPlexPoster(ratingKey);
   if (!bytes) return "poster_unavailable";

@@ -14,6 +14,10 @@ import type {
   CreateMediaPropertyInput,
   CreateMovieInput,
   CreateTvShowInput,
+  CreateEpisodeInput,
+  CreateAlbumInput,
+  CreateArtistInput,
+  CreateTrackInput,
   CreateMediaTypeInput,
   CreatePlaceTypeInput,
   CreatePropertyGroupInput,
@@ -33,13 +37,21 @@ import type {
   MediaType,
   MediaTypeNode,
   Movie,
-  PlaceType,
   TvShow,
+  Episode,
+  Album,
+  Artist,
+  Track,
+  PlaceType,
   UpdateBookInput,
   UpdateLocationInput,
   UpdateMediaPropertyInput,
   UpdateMovieInput,
   UpdateTvShowInput,
+  UpdateEpisodeInput,
+  UpdateAlbumInput,
+  UpdateArtistInput,
+  UpdateTrackInput,
   UpdatePlaceTypeInput,
   PropertyGroup,
   Publisher,
@@ -215,6 +227,14 @@ export const booksApi = createCrudApi<Book, CreateBookInput, UpdateBookInput>("b
 export const moviesApi = createCrudApi<Movie, CreateMovieInput, UpdateMovieInput>("movies");
 
 export const tvShowsApi = createCrudApi<TvShow, CreateTvShowInput, UpdateTvShowInput>("tv-shows");
+
+export const episodesApi = createCrudApi<Episode, CreateEpisodeInput, UpdateEpisodeInput>("episodes");
+
+export const albumsApi = createCrudApi<Album, CreateAlbumInput, UpdateAlbumInput>("albums");
+
+export const artistsApi = createCrudApi<Artist, CreateArtistInput, UpdateArtistInput>("artists");
+
+export const tracksApi = createCrudApi<Track, CreateTrackInput, UpdateTrackInput>("tracks");
 
 export const relationshipTypesApi = createCrudApi<RelationshipType, CreateRelationshipTypeInput, UpdateRelationshipTypeInput>("relationship-types");
 

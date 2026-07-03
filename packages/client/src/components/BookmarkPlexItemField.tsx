@@ -21,20 +21,20 @@ interface BookmarkPlexItemFieldProps {
 }
 
 /**
- * Link a bookmark to a movie/show from the Movies / TV Shows taxonomies, or directly to any other
- * Plex item (season, episode, artist, album, track) via the legacy `plexRatingKey`/`plexItemType`/
- * `plexItemTitle` columns — those kinds have no taxonomy of their own. One combobox covers both:
- * typing filters the already-curated Movies/TV Shows locally (instant), and once the query is long
- * enough it also live-searches the connected Plex server across every item type and appends the
- * results below as a collapsible tree grouped by media type. "Create a Plex title…" still opens the
- * movie/TV-show create dialog for curating a new title into the taxonomy.
+ * Link a bookmark to a curated Plex-backed taxonomy row (Movie / TV Show / Episode / Album / Artist /
+ * Track), or directly to any other Plex item (e.g. a season) via the legacy `plexRatingKey`/
+ * `plexItemType`/`plexItemTitle` columns for kinds with no taxonomy. One combobox covers both: typing
+ * filters the already-curated taxonomy lists locally (instant), and once the query is long enough it
+ * also live-searches the connected Plex server across every item type and appends the results below as
+ * a collapsible tree grouped by media type — a live result that matches a curated row by rating key
+ * links that row instead of a bare item. "Create a Plex title…" opens the create dialog for any kind.
  */
 export function BookmarkPlexItemField({
   bookmark,
   onSelect,
 }: BookmarkPlexItemFieldProps) {
   const ctrl = useBookmarkPlexItemField(bookmark, onSelect);
-  const noBrowseMatches = ctrl.filteredMovies.length === 0 && ctrl.filteredTvShows.length === 0;
+  const noBrowseMatches = ctrl.sections.every(section => section.items.length === 0);
   const noLiveMatches = ctrl.liveSearchSettled && (ctrl.liveSearch.data?.length ?? 0) === 0;
 
   return (
@@ -73,7 +73,7 @@ export function BookmarkPlexItemField({
         >
           <div className="relative">
             <Input
-              placeholder="Search movies, TV shows, episodes, tracks…"
+              placeholder="Search movies, shows, episodes, albums, artists, tracks…"
               value={ctrl.query}
               onChange={event => ctrl.setQuery(event.target.value)}
             />
@@ -104,63 +104,35 @@ export function BookmarkPlexItemField({
             )
             : null}
 
-          {ctrl.filteredMovies.length > 0
+          {ctrl.sections.map(section => (section.items.length > 0
             ? (
-              <div>
+              <div key={section.key}>
                 <p
                   className="
                     px-2 py-1.5 text-xs font-medium text-muted-foreground
                   "
-                >Movies
+                >
+                  {section.heading}
                 </p>
                 <ul className="space-y-1">
-                  {ctrl.filteredMovies.map(movie => (
-                    <li key={movie.id}>
+                  {section.items.map(item => (
+                    <li key={item.id}>
                       <button
                         type="button"
                         className="
                           w-full rounded-sm px-2 py-1 text-left text-sm
                           hover:bg-accent hover:text-accent-foreground
                         "
-                        onClick={() => ctrl.selectTitle("movie", movie.id)}
+                        onClick={() => ctrl.selectTitle(section.key, item.id)}
                       >
-                        {movie.name}
+                        {item.name}
                       </button>
                     </li>
                   ))}
                 </ul>
               </div>
             )
-            : null}
-
-          {ctrl.filteredTvShows.length > 0
-            ? (
-              <div>
-                <p
-                  className="
-                    px-2 py-1.5 text-xs font-medium text-muted-foreground
-                  "
-                >TV Shows
-                </p>
-                <ul className="space-y-1">
-                  {ctrl.filteredTvShows.map(show => (
-                    <li key={show.id}>
-                      <button
-                        type="button"
-                        className="
-                          w-full rounded-sm px-2 py-1 text-left text-sm
-                          hover:bg-accent hover:text-accent-foreground
-                        "
-                        onClick={() => ctrl.selectTitle("show", show.id)}
-                      >
-                        {show.name}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )
-            : null}
+            : null))}
 
           {ctrl.liveSearch.isError
             ? <p className="text-xs text-destructive">{ctrl.liveSearch.error.message}</p>
@@ -187,7 +159,7 @@ export function BookmarkPlexItemField({
           {noBrowseMatches && (ctrl.query.trim().length === 0 || noLiveMatches)
             ? (
               <p className="px-2 py-1.5 text-xs text-muted-foreground">
-                {ctrl.query.trim().length === 0 ? "No movies or TV shows yet." : "No matching items found."}
+                {ctrl.query.trim().length === 0 ? "No Plex titles yet." : "No matching items found."}
               </p>
             )
             : null}
@@ -212,7 +184,7 @@ export function BookmarkPlexItemField({
       <AddPlexTitleModal
         open={ctrl.addOpen}
         onOpenChange={ctrl.setAddOpen}
-        onCreated={created => ctrl.createTitle(created.kind, created.id)}
+        onCreated={created => ctrl.createTitle(created.key, created.id)}
       />
     </div>
   );

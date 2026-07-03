@@ -1,10 +1,13 @@
 import type { TaxonomyName } from "./-appHeaderData";
 
+import { useAlbumBySlug } from "@/hooks/useAlbums";
+import { useArtistBySlug } from "@/hooks/useArtists";
 import { useAuthorBySlug } from "@/hooks/useAuthors";
 import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
 import { useBookBySlug } from "@/hooks/useBooks";
 import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
+import { useEpisodeBySlug } from "@/hooks/useEpisodes";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
 import { useMediaPropertyBySlug } from "@/hooks/useMediaProperties";
 import { useMovieBySlug } from "@/hooks/useMovies";
@@ -14,6 +17,7 @@ import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { usePublisherBySlug } from "@/hooks/usePublishers";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useSavedFilterBySlug } from "@/hooks/useSavedFilters";
+import { useTrackBySlug } from "@/hooks/useTracks";
 import { useTvShowBySlug } from "@/hooks/useTvShows";
 
 /** The per-prefix slugs the named-entity hooks resolve. The caller computes these (it already owns
@@ -28,6 +32,10 @@ export interface TaxonomyNameSlugs {
   book: string;
   movie: string;
   tvShow: string;
+  episode: string;
+  album: string;
+  artist: string;
+  track: string;
   relationshipType: string;
   property: string;
   autofill: string;
@@ -73,6 +81,18 @@ export function useTaxonomyNameMap(
   const {
     tvShow,
   } = useTvShowBySlug(slugs.tvShow);
+  const {
+    episode,
+  } = useEpisodeBySlug(slugs.episode);
+  const {
+    album,
+  } = useAlbumBySlug(slugs.album);
+  const {
+    artist,
+  } = useArtistBySlug(slugs.artist);
+  const {
+    track,
+  } = useTrackBySlug(slugs.track);
   const {
     relationshipType,
   } = useRelationshipTypeBySlug(slugs.relationshipType);
@@ -121,6 +141,18 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/tv-shows": {
       name: tvShow?.name,
+    },
+    "/taxonomies/episodes": {
+      name: episode?.name,
+    },
+    "/taxonomies/albums": {
+      name: album?.name,
+    },
+    "/taxonomies/artists": {
+      name: artist?.name,
+    },
+    "/taxonomies/tracks": {
+      name: track?.name,
     },
     "/taxonomies/relationship-types": {
       name: relationshipType?.name,

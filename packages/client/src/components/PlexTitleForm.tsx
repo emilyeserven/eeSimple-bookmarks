@@ -1,4 +1,6 @@
-import type { Movie, PlexItemResult, TvShow } from "@eesimple/types";
+import type { PlexKind } from "@/lib/plexParent";
+import type { Album, Artist, Episode, Movie, PlexItemResult, Track, TvShow } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import { useState } from "react";
 
@@ -6,8 +8,12 @@ import { Clapperboard, X } from "lucide-react";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
 import { PlexItemLookup } from "./PlexItemLookup";
+import { useCreateAlbum } from "../hooks/useAlbums";
+import { useCreateArtist } from "../hooks/useArtists";
+import { useCreateEpisode } from "../hooks/useEpisodes";
 import { useMediaProperties } from "../hooks/useMediaProperties";
 import { useCreateMovie } from "../hooks/useMovies";
+import { useCreateTrack } from "../hooks/useTracks";
 import { useCreateTvShow } from "../hooks/useTvShows";
 
 import { Combobox } from "@/components/Combobox";
@@ -28,30 +34,58 @@ const EMPTY_PLEX: PlexLink = {
   year: null,
 };
 
+/** Any of the six Plex-backed taxonomy rows a create returns. */
+type PlexCreatedTitle = Movie | TvShow | Episode | Album | Artist | Track;
+
+const NOUNS: Record<PlexKind, string> = {
+  movie: "movie",
+  show: "TV show",
+  episode: "episode",
+  album: "album",
+  artist: "artist",
+  track: "track",
+};
+
 interface PlexTitleFormProps {
   /** Which taxonomy this form creates — narrows the Plex lookup and the create mutation. */
-  kind: "movie" | "show";
-  /** Called with the created Movie/TV Show (to select it, or navigate to its edit page). */
-  onCreated?: (item: Movie | TvShow) => void;
+  kind: PlexKind;
+  /** Called with the created row (to select it, or navigate to its edit page). */
+  onCreated?: (item: PlexCreatedTitle) => void;
+  /** Extra inputs rendered below the media-property picker (e.g. an Episode's parent TV Show). */
+  extraFields?: ReactNode;
+  /** Extra create-payload keys merged into the mutation input (e.g. `{ tvShowId }`). */
+  buildExtraInput?: () => Record<string, unknown>;
+  /** Invoked when a Plex search result is picked, for parent autofill in the wrapper. */
+  onCandidateSelected?: (item: PlexItemResult) => void;
 }
 
 /**
- * Shared create form for a Movie or TV Show (chosen by `kind`). Modeled on `BookForm`: enter a name,
- * or look the title up on Plex to autofill the name / rating key / year. Optionally group it under a
- * media property. Submit-driven (create keeps a Save button); the edit tabs auto-save.
+ * Shared create form for any Plex-backed taxonomy (chosen by `kind`). Enter a name, or look the title
+ * up on Plex to autofill the name / rating key / year. Optionally group it under a media property.
+ * Wrappers with a parent association (Episodes → TV Show, Tracks → Album) pass `extraFields` (the
+ * parent picker), `buildExtraInput` (its create-payload key), and `onCandidateSelected` (parent
+ * autofill). Submit-driven; the edit tabs auto-save.
  *
  * The media-property picker intentionally uses the manual `useState` + `AddMediaPropertyModal` pattern
- * rather than `useEntityCreateOption` — `AddMovieModal`/`AddTvShowModal` wrap this component and are
- * imported by `useEntityCreateOption`'s registry, so calling the hook here would create an import
- * cycle. Same rationale as `BookForm` / `LocationForm`.
+ * rather than `useEntityCreateOption` — the `AddXModal`s wrap this component and are imported by
+ * `useEntityCreateOption`'s registry, so calling the hook here would create an import cycle. Same
+ * rationale as `BookForm` / `LocationForm`.
  */
 export function PlexTitleForm({
   kind,
   onCreated,
+  extraFields,
+  buildExtraInput,
+  onCandidateSelected,
 }: PlexTitleFormProps) {
-  const createMovie = useCreateMovie();
-  const createTvShow = useCreateTvShow();
-  const create = kind === "movie" ? createMovie : createTvShow;
+  const create = {
+    movie: useCreateMovie(),
+    show: useCreateTvShow(),
+    episode: useCreateEpisode(),
+    album: useCreateAlbum(),
+    artist: useCreateArtist(),
+    track: useCreateTrack(),
+  }[kind];
   const {
     data: mediaProperties,
   } = useMediaProperties();
@@ -69,6 +103,7 @@ export function PlexTitleForm({
       plexItemType: item.type,
       year: item.year,
     });
+    onCandidateSelected?.(item);
   }
 
   function handleSubmit(event: React.FormEvent) {
@@ -80,14 +115,13 @@ export function PlexTitleForm({
         name: trimmed,
         mediaPropertyId: mediaPropertyId || null,
         ...plex,
+        ...buildExtraInput?.(),
       },
       {
         onSuccess: onCreated,
       },
     );
   }
-
-  const noun = kind === "movie" ? "movie" : "TV show";
 
   return (
     <form
@@ -103,7 +137,7 @@ export function PlexTitleForm({
         <Label htmlFor="plex-title-name">Name</Label>
         <Input
           id="plex-title-name"
-          placeholder={kind === "movie" ? "e.g. The Fellowship of the Ring" : "e.g. The Expanse"}
+          placeholder="e.g. The title"
           value={name}
           onChange={event => setName(event.target.value)}
           autoFocus
@@ -160,6 +194,8 @@ export function PlexTitleForm({
         onCreated={mediaProperty => setMediaPropertyId(mediaProperty.id)}
       />
 
+      {extraFields}
+
       {create.isError
         ? <p className="text-sm text-destructive">{create.error.message}</p>
         : null}
@@ -168,7 +204,7 @@ export function PlexTitleForm({
         type="submit"
         disabled={create.isPending || name.trim().length === 0}
       >
-        {create.isPending ? "Creating…" : `Create ${noun}`}
+        {create.isPending ? "Creating…" : `Create ${NOUNS[kind]}`}
       </Button>
     </form>
   );

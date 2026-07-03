@@ -4,18 +4,29 @@ import { useEffect, useState } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 
+import { useAlbums } from "../hooks/useAlbums";
+import { useArtists } from "../hooks/useArtists";
 import { useConnectors } from "../hooks/useConnectors";
+import { useEpisodes } from "../hooks/useEpisodes";
 import { useMovies } from "../hooks/useMovies";
+import { useTracks } from "../hooks/useTracks";
 import { useTvShows } from "../hooks/useTvShows";
 import { plexApi } from "../lib/api/plex";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
 
-/** A Plex-item link selection: exactly one of the taxonomy pair or the direct-item trio is set. */
+/** The bookmark FK column each Plex-backed taxonomy fills in (exactly one is ever set). */
+export type PlexTaxoKey = "movieId" | "tvShowId" | "episodeId" | "albumId" | "artistId" | "trackId";
+
+/** A Plex-item link selection: exactly one taxonomy FK, or the direct-item trio, is set. */
 export interface PlexItemSelection {
   movieId: string | null;
   tvShowId: string | null;
+  episodeId: string | null;
+  albumId: string | null;
+  artistId: string | null;
+  trackId: string | null;
   plexRatingKey: string | null;
   plexItemType: string | null;
   plexItemTitle: string | null;
@@ -24,25 +35,114 @@ export interface PlexItemSelection {
 export const EMPTY_PLEX_SELECTION: PlexItemSelection = {
   movieId: null,
   tvShowId: null,
+  episodeId: null,
+  albumId: null,
+  artistId: null,
+  trackId: null,
   plexRatingKey: null,
   plexItemType: null,
   plexItemTitle: null,
 };
 
-/**
- * Owns the state and selection logic behind `BookmarkPlexItemField`: the popover/search state, the
- * locally-filtered Movies/TV Shows taxonomy lists, the debounced live Plex search (all item types),
- * and the handlers that resolve a click into a `PlexItemSelection`. Kept separate from the component
- * so the JSX stays a thin shell (the `useBookmarkFormController` pattern — see the
- * `decompose-over-cap` skill).
- */
-export function useBookmarkPlexItemField(bookmark: Bookmark, onSelect: (selection: PlexItemSelection) => void) {
+/** The minimal shape each taxonomy row contributes to the picker. */
+interface TaxoRow {
+  id: string;
+  name: string;
+  plexRatingKey: string | null;
+}
+
+/** Ordered FK columns + section headings for the six Plex-backed taxonomies. */
+const SECTION_META: { key: PlexTaxoKey;
+  heading: string; }[] = [
+  {
+    key: "movieId",
+    heading: "Movies",
+  },
+  {
+    key: "tvShowId",
+    heading: "TV Shows",
+  },
+  {
+    key: "episodeId",
+    heading: "Episodes",
+  },
+  {
+    key: "albumId",
+    heading: "Albums",
+  },
+  {
+    key: "artistId",
+    heading: "Artists",
+  },
+  {
+    key: "trackId",
+    heading: "Tracks",
+  },
+];
+
+/** Maps a live Plex item `type` to the taxonomy FK it curates into (missing = direct-item only). */
+const TYPE_TO_KEY: Record<string, PlexTaxoKey | undefined> = {
+  movie: "movieId",
+  show: "tvShowId",
+  episode: "episodeId",
+  album: "albumId",
+  artist: "artistId",
+  track: "trackId",
+};
+
+/** All six Plex-backed taxonomy lists, loaded once (own hook to spread the hook density). */
+function usePlexTaxonomyLists(): Record<PlexTaxoKey, TaxoRow[]> {
   const {
     data: movies,
   } = useMovies();
   const {
     data: tvShows,
   } = useTvShows();
+  const {
+    data: episodes,
+  } = useEpisodes();
+  const {
+    data: albums,
+  } = useAlbums();
+  const {
+    data: artists,
+  } = useArtists();
+  const {
+    data: tracks,
+  } = useTracks();
+  return {
+    movieId: movies ?? [],
+    tvShowId: tvShows ?? [],
+    episodeId: episodes ?? [],
+    albumId: albums ?? [],
+    artistId: artists ?? [],
+    trackId: tracks ?? [],
+  };
+}
+
+/** The linked taxonomy row's name for the trigger label, or null when none is linked by FK. */
+function linkedRowName(bookmark: Bookmark, lists: Record<PlexTaxoKey, TaxoRow[]>): string | null {
+  for (const {
+    key,
+  } of SECTION_META) {
+    const fk = bookmark[key];
+    if (fk) {
+      const row = lists[key].find(candidate => candidate.id === fk);
+      if (row) return row.name;
+    }
+  }
+  return null;
+}
+
+/**
+ * Owns the state and selection logic behind `BookmarkPlexItemField`: the popover/search state, the
+ * locally-filtered Plex-backed taxonomy lists (Movies / TV Shows / Episodes / Albums / Artists /
+ * Tracks), the debounced live Plex search (all item types), and the handlers that resolve a click
+ * into a `PlexItemSelection`. Kept separate from the component so the JSX stays a thin shell (the
+ * `useBookmarkFormController` pattern — see the `decompose-over-cap` skill).
+ */
+export function useBookmarkPlexItemField(bookmark: Bookmark, onSelect: (selection: PlexItemSelection) => void) {
+  const lists = usePlexTaxonomyLists();
   const {
     data: connectors,
   } = useConnectors();
@@ -70,13 +170,13 @@ export function useBookmarkPlexItemField(bookmark: Bookmark, onSelect: (selectio
   const liveSearchSettled = !liveSearchApplicable || liveSearch.isSuccess || liveSearch.isError;
 
   const term = query.trim().toLowerCase();
-  const filteredMovies = (movies ?? []).filter(movie => movie.name.toLowerCase().includes(term));
-  const filteredTvShows = (tvShows ?? []).filter(show => show.name.toLowerCase().includes(term));
+  // Each taxonomy's locally-filtered rows, in section order — the browsable half of the picker.
+  const sections = SECTION_META.map(meta => ({
+    ...meta,
+    items: lists[meta.key].filter(row => row.name.toLowerCase().includes(term)),
+  }));
 
-  const linkedMovie = (movies ?? []).find(movie => movie.id === bookmark.movieId);
-  const linkedTvShow = (tvShows ?? []).find(show => show.id === bookmark.tvShowId);
-  const selectedLabel = linkedMovie?.name
-    ?? linkedTvShow?.name
+  const selectedLabel = linkedRowName(bookmark, lists)
     ?? (bookmark.plexRatingKey !== null ? (bookmark.plexItemTitle ?? `Item ${bookmark.plexRatingKey}`) : null);
 
   function closeAndReset(): void {
@@ -84,23 +184,22 @@ export function useBookmarkPlexItemField(bookmark: Bookmark, onSelect: (selectio
     setQuery("");
   }
 
-  function selectTitle(kind: "movie" | "show", id: string): void {
+  /** Link the bookmark to a curated taxonomy row (clears every other FK + the direct-item trio). */
+  function selectTitle(key: PlexTaxoKey, id: string): void {
     onSelect({
       ...EMPTY_PLEX_SELECTION,
-      movieId: kind === "movie" ? id : null,
-      tvShowId: kind === "show" ? id : null,
+      [key]: id,
     });
     closeAndReset();
   }
 
-  /** Reuses an already-curated title's id when a live result matches one by rating key. */
+  /** Reuses an already-curated title's id when a live result matches one by rating key + type. */
   function selectItem(item: PlexItemResult): void {
-    if (item.type === "movie" || item.type === "show") {
-      const existingId = item.type === "movie"
-        ? (movies ?? []).find(movie => movie.plexRatingKey === item.ratingKey)?.id
-        : (tvShows ?? []).find(show => show.plexRatingKey === item.ratingKey)?.id;
+    const key = TYPE_TO_KEY[item.type];
+    if (key) {
+      const existingId = lists[key].find(row => row.plexRatingKey === item.ratingKey)?.id;
       if (existingId) {
-        selectTitle(item.type, existingId);
+        selectTitle(key, existingId);
         return;
       }
     }
@@ -118,8 +217,8 @@ export function useBookmarkPlexItemField(bookmark: Bookmark, onSelect: (selectio
     setOpen(false);
   }
 
-  function createTitle(kind: "movie" | "show", id: string): void {
-    selectTitle(kind, id);
+  function createTitle(key: PlexTaxoKey, id: string): void {
+    selectTitle(key, id);
   }
 
   return {
@@ -132,8 +231,7 @@ export function useBookmarkPlexItemField(bookmark: Bookmark, onSelect: (selectio
     trimmedQuery,
     liveSearch,
     liveSearchSettled,
-    filteredMovies,
-    filteredTvShows,
+    sections,
     selectedLabel,
     isLinked: selectedLabel !== null,
     selectTitle,

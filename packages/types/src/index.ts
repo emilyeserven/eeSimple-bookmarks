@@ -12,13 +12,17 @@ import type { BookmarkLocation } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
 export * from "./autofillMerge.js";
+export * from "./albums.js";
+export * from "./artists.js";
 export * from "./books.js";
+export * from "./episodes.js";
 export * from "./conditions.js";
 export * from "./customProperties.js";
 export * from "./importBlacklist.js";
 export * from "./locations.js";
 export * from "./mediaProperties.js";
 export * from "./movies.js";
+export * from "./tracks.js";
 export * from "./tvShows.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";
@@ -1103,6 +1107,14 @@ export interface Bookmark {
   movieId: string | null;
   /** Id of the linked TV Show (TV Shows taxonomy), or `null` when unset. */
   tvShowId: string | null;
+  /** Id of the linked Episode (Episodes taxonomy), or `null` when unset. */
+  episodeId: string | null;
+  /** Id of the linked Album (Albums taxonomy), or `null` when unset. */
+  albumId: string | null;
+  /** Id of the linked Artist (Artists taxonomy), or `null` when unset. */
+  artistId: string | null;
+  /** Id of the linked Track (Tracks taxonomy), or `null` when unset. */
+  trackId: string | null;
   /** Id of the linked series on the connected Kavita server, or `null` when not linked. */
   kavitaSeriesId: number | null;
   /** Id of the Kavita library containing the linked series (needed for the web UI deep link). */
@@ -1214,6 +1226,14 @@ export interface CreateBookmarkInput {
   movieId?: string | null;
   /** Id of the TV Show (TV Shows taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
   tvShowId?: string | null;
+  /** Id of the Episode (Episodes taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
+  episodeId?: string | null;
+  /** Id of the Album (Albums taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
+  albumId?: string | null;
+  /** Id of the Artist (Artists taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
+  artistId?: string | null;
+  /** Id of the Track (Tracks taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
+  trackId?: string | null;
   /** Id of the Kavita series to link, or `null` to unlink. Omit to leave unchanged. */
   kavitaSeriesId?: number | null;
   /** Id of the Kavita library containing the linked series, or `null` to clear. Omit to leave unchanged. */
@@ -2815,6 +2835,15 @@ export interface PlexItemResult {
    * neither is reported.
    */
   groupTitle: string | null;
+  /**
+   * Parent-linkage metadata, surfaced so the Episodes / Tracks / Albums taxonomies can auto-link
+   * their parent (a Track's Album, an Album's Artist via `parent*`; an Episode's Show via
+   * `grandparent*`). `null` when the item has no such relation or Plex didn't report it.
+   */
+  parentTitle: string | null;
+  parentRatingKey: string | null;
+  grandparentTitle: string | null;
+  grandparentRatingKey: string | null;
 }
 
 /** One flattened table-of-contents entry from a linked Kavita book (`GET /api/kavita/toc`). */

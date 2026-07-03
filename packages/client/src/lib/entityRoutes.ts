@@ -1,10 +1,13 @@
 import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
+import { ALBUM_ROUTE } from "../entities/album";
+import { ARTIST_ROUTE } from "../entities/artist";
 import { AUTHOR_ROUTE } from "../entities/author";
 import { AUTOFILL_ROUTE } from "../entities/autofillRule";
 import { BOOK_ROUTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
 import { CATEGORY_ROUTE } from "../entities/category";
+import { EPISODE_ROUTE } from "../entities/episode";
 import { IMPORT_RULE_ROUTE } from "../entities/importRule";
 import { LOCATION_ROUTE } from "../entities/location";
 import { MEDIA_PROPERTY_ROUTE } from "../entities/mediaProperty";
@@ -18,6 +21,7 @@ import { PUBLISHER_ROUTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_ROUTE } from "../entities/relationshipType";
 import { SAVED_FILTER_ROUTE } from "../entities/savedFilter";
 import { TAG_ROUTE } from "../entities/tag";
+import { TRACK_ROUTE } from "../entities/track";
 import { TV_SHOW_ROUTE } from "../entities/tvShow";
 import { WEBSITE_ROUTE } from "../entities/website";
 import { YOUTUBE_CHANNEL_ROUTE } from "../entities/youtubeChannel";
@@ -39,6 +43,10 @@ export type EntityRouteKind
     | "book"
     | "movie"
     | "tv-show"
+    | "episode"
+    | "album"
+    | "artist"
+    | "track"
     | "relationship-type"
     | "custom-property"
     | "autofill"
@@ -89,6 +97,10 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   BOOK_ROUTE,
   MOVIE_ROUTE,
   TV_SHOW_ROUTE,
+  EPISODE_ROUTE,
+  ALBUM_ROUTE,
+  ARTIST_ROUTE,
+  TRACK_ROUTE,
   RELATIONSHIP_TYPE_ROUTE,
   CUSTOM_PROPERTY_ROUTE,
   AUTOFILL_ROUTE,
