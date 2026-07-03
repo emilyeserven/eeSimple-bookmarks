@@ -124,6 +124,6 @@ describe("CONNECTOR_LINKS", () => {
     });
     expect(link("hosted-metadata").isConfigured(status)).toBe(true);
     expect(link("hosted-metadata").label(status)).toBe("Browserless");
-    expect(link("hosted-metadata").href(status)).toBe("http://localhost:3000");
+    expect(link("hosted-metadata").href(status)).toBe("http://localhost:3000/docs");
   });
 });
