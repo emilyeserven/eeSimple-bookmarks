@@ -125,14 +125,20 @@ interface PlexMetadata {
   parentTitle?: unknown;
 }
 
+function grandparentTitleOf(raw: PlexMetadata): string | null {
+  return typeof raw.grandparentTitle === "string" && raw.grandparentTitle ? raw.grandparentTitle : null;
+}
+
+function librarySectionTitleOf(raw: PlexMetadata): string | null {
+  return typeof raw.librarySectionTitle === "string" && raw.librarySectionTitle
+    ? raw.librarySectionTitle
+    : null;
+}
+
 /** Compose a one-line context subtitle: show/artist · year · library. */
 function composeSubtitle(raw: PlexMetadata): string | null {
   const year = typeof raw.year === "number" && raw.year > 0 ? String(raw.year) : null;
-  const parts = [
-    typeof raw.grandparentTitle === "string" && raw.grandparentTitle ? raw.grandparentTitle : null,
-    year,
-    typeof raw.librarySectionTitle === "string" && raw.librarySectionTitle ? raw.librarySectionTitle : null,
-  ].filter(Boolean);
+  const parts = [grandparentTitleOf(raw), year, librarySectionTitleOf(raw)].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
@@ -144,14 +150,15 @@ function toItemResult(raw: PlexMetadata): PlexItemResult | null {
   if (!ratingKey) return null;
   if (typeof raw.type !== "string" || !LINKABLE_TYPES.has(raw.type)) return null;
   if (typeof raw.title !== "string" || !raw.title) return null;
+  const librarySectionTitle = librarySectionTitleOf(raw);
   return {
     ratingKey,
     type: raw.type,
     title: raw.title,
     year: typeof raw.year === "number" && raw.year > 0 ? raw.year : null,
-    librarySectionTitle:
-      typeof raw.librarySectionTitle === "string" && raw.librarySectionTitle ? raw.librarySectionTitle : null,
+    librarySectionTitle,
     subtitle: composeSubtitle(raw),
+    groupTitle: grandparentTitleOf(raw) ?? librarySectionTitle,
   };
 }
 
