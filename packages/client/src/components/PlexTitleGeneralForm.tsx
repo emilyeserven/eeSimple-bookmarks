@@ -1,22 +1,21 @@
-import type { PlexAutofetchResult } from "../lib/api/taxonomies";
+import type { createTaxonomyImageApi } from "../lib/api/taxonomyImages";
+import type { PlexTitleSyncField } from "../lib/syncSources/plexTitleDiff";
 import type { PlexKind } from "@/lib/plexParent";
 import type { PlexItemResult } from "@eesimple/types";
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
-import { Clapperboard, DownloadCloud, X } from "lucide-react";
+import { Clapperboard, X } from "lucide-react";
 import { z } from "zod";
 
 import { PlexItemLookup } from "./PlexItemLookup";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import { usePlexTitleSyncRegistration } from "../hooks/usePlexTitleSyncRegistration";
 
-import { Button } from "@/components/ui/button";
-import { useConnectors } from "@/hooks/useConnectors";
 import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { notifyFieldSaved, notifyFieldSaveError } from "@/lib/autoSave";
 import { useAppForm } from "@/lib/form";
-import { notifyError, notifySuccess } from "@/lib/notifications";
 
 /** The subset of any Plex-backed taxonomy row the shared edit form reads (all entities satisfy it). */
 export interface PlexTitle {
@@ -89,8 +88,11 @@ interface PlexTitleGeneralFormProps<E extends PlexTitle> {
   renderExtra?: ReactNode;
   /** Invoked when a Plex search result is picked, for parent/artist autofill in the wrapper. */
   onPlexSelected?: (item: PlexItemResult) => void;
-  /** The entity's Plex-autofetch mutation (`useMoviePlexAutofetch()` / …); enables the button. */
-  autofetch?: UseMutationResult<PlexAutofetchResult, Error, string>;
+  /** REST base path segment for this taxonomy (e.g. `"movies"` / `"tv-shows"`) — the sync preview endpoint. */
+  base: string;
+  /** This taxonomy's image gallery api + cache-key prefix, for the sync flow's poster row. */
+  imagesApi: ReturnType<typeof createTaxonomyImageApi>;
+  queryKeyPrefix: string;
 }
 
 /**
@@ -107,15 +109,13 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
   onRenamed,
   renderExtra,
   onPlexSelected,
-  autofetch,
+  base,
+  imagesApi,
+  queryKeyPrefix,
 }: PlexTitleGeneralFormProps<E>) {
   const {
     data: mediaProperties,
   } = useMediaProperties();
-  const {
-    data: connectors,
-  } = useConnectors();
-  const canAutofetch = Boolean(connectors?.plex.enabled) && entity.plexRatingKey !== null && Boolean(autofetch);
   const autoSave = useFieldAutoSave<PlexTitleUpdateInput, E>({
     id: entity.id,
     update,
@@ -207,26 +207,31 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
     );
   }
 
-  /** Combined "Autofetch from Plex": import poster + resolve native/romanized names + Wikipedia links. */
-  function runAutofetch(): void {
-    if (!autofetch) return;
-    autofetch.mutate(entity.id, {
-      onSuccess: (result) => {
-        const parts: string[] = [];
-        if (result.wikidataMatched) parts.push("names + Wikipedia links");
-        if (result.posterImported) parts.push("poster");
-        notifySuccess(
-          parts.length > 0
-            ? `Autofetched ${parts.join(" and ")} from Plex`
-            : "No Wikidata match or poster found for this title",
-        );
-        if (result.slug && result.slug !== entity.slug) onRenamed(result.slug);
-      },
-      onError: error => notifyError(
-        `Couldn't autofetch from Plex: ${error instanceof Error ? error.message : "unknown error"}`,
-      ),
-    });
+  /** Stage a synced text field into the form + persist it (per-field auto-save); a name change follows the slug. */
+  function applyText(field: PlexTitleSyncField, value: string): void {
+    form.setFieldValue(field, value);
+    if (field === "name") {
+      autoSave.saveField("name", value.trim(), {
+        valid: value.trim() !== "",
+        onSuccess: (updated) => {
+          if (updated.slug !== entity.slug) onRenamed(updated.slug);
+        },
+      });
+    }
+    else {
+      autoSave.saveField(field, value.trim());
+    }
   }
+
+  // Publish the Plex "Sync from source" provider (header button + review modal) while this edit form
+  // is mounted — reviews native/romanized names + Wikipedia links (staged) and the poster (immediate).
+  usePlexTitleSyncRegistration({
+    entity,
+    base,
+    imagesApi,
+    queryKeyPrefix,
+    applyText,
+  });
 
   return (
     <div className="space-y-4">
@@ -342,21 +347,6 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       {renderExtra}
 
       <div className="space-y-1.5">
-        {canAutofetch
-          ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full"
-              disabled={autofetch?.isPending}
-              onClick={runAutofetch}
-            >
-              <DownloadCloud className="size-4" />
-              {autofetch?.isPending ? "Autofetching…" : "Autofetch from Plex"}
-            </Button>
-          )
-          : null}
         {entity.plexRatingKey !== null
           ? (
             <div

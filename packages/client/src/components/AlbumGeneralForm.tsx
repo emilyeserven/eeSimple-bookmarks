@@ -4,8 +4,9 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { AlbumArtistsSection } from "./AlbumArtistsSection";
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
-import { useAlbumPlexAutofetch, useUpdateAlbum } from "../hooks/useAlbums";
+import { useUpdateAlbum } from "../hooks/useAlbums";
 import { useArtists, useCreateArtist } from "../hooks/useArtists";
+import { albumsApi } from "../lib/api/taxonomies";
 import { resolveArtistNames, splitArtistNames } from "../lib/artistNames";
 
 import { notifyFieldSaved } from "@/lib/autoSave";
@@ -22,7 +23,6 @@ export function AlbumGeneralForm({
 }) {
   const navigate = useNavigate();
   const update = useUpdateAlbum();
-  const autofetch = useAlbumPlexAutofetch();
   const {
     data: artists,
   } = useArtists();
@@ -62,7 +62,9 @@ export function AlbumGeneralForm({
       })}
       renderExtra={<AlbumArtistsSection album={album} />}
       onPlexSelected={item => void handlePlexSelected(item)}
-      autofetch={autofetch}
+      base="albums"
+      imagesApi={albumsApi.images}
+      queryKeyPrefix="album-images"
     />
   );
 }

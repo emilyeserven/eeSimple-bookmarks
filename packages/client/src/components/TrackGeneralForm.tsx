@@ -5,7 +5,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
 import { TrackAlbumField } from "./TrackAlbumField";
 import { useAlbums } from "../hooks/useAlbums";
-import { useTrackPlexAutofetch, useUpdateTrack } from "../hooks/useTracks";
+import { useUpdateTrack } from "../hooks/useTracks";
+import { tracksApi } from "../lib/api/taxonomies";
 import { matchPlexParentId } from "../lib/plexParent";
 
 import { notifyFieldSaved } from "@/lib/autoSave";
@@ -21,7 +22,6 @@ export function TrackGeneralForm({
 }) {
   const navigate = useNavigate();
   const update = useUpdateTrack();
-  const autofetch = useTrackPlexAutofetch();
   const {
     data: albums,
   } = useAlbums();
@@ -59,7 +59,9 @@ export function TrackGeneralForm({
       })}
       renderExtra={<TrackAlbumField track={track} />}
       onPlexSelected={handlePlexSelected}
-      autofetch={autofetch}
+      base="tracks"
+      imagesApi={tracksApi.images}
+      queryKeyPrefix="track-images"
     />
   );
 }

@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import {
-  autofetchPlexTaxonomyMetadata,
   plexEnabledAsync,
+  resolvePlexTaxonomyMetadata,
   type PlexTaxonomyOwnerType,
 } from "@/services/plex";
 
@@ -17,20 +17,19 @@ const ownerParams = {
 } as const;
 
 /**
- * Register the shared `POST ${basePath}/:id/plex-autofetch` action for one Plex-backed media taxonomy.
- * One click imports the linked Plex item's poster and resolves its Wikidata item (via the item's
- * external IDs, falling back to a title search) to overwrite the native/romanized names + Wikipedia
- * links. Gated on the Plex connector being configured; the poster half additionally no-ops without
- * object storage. Returns the {@link autofetchPlexTaxonomyMetadata} result (including the possibly
- * renamed slug) so the client can follow a rename.
+ * Register the shared `GET ${basePath}/:id/plex-metadata-preview` action for one Plex-backed media
+ * taxonomy — the source side of the "Sync from source" review. It resolves the linked item's Wikidata
+ * metadata (native name, romanized name, Wikipedia links) via the Plex item's external IDs (title-search
+ * fallback) **without applying**; the client's edit form persists the rows the user picks. Gated on the
+ * Plex connector being configured.
  */
-export function registerPlexAutofetchRoute(
+export function registerPlexMetadataPreviewRoute(
   app: FastifyInstance,
   basePath: string,
   ownerType: PlexTaxonomyOwnerType,
   tag: string,
 ): void {
-  app.post(`${basePath}/:id/plex-autofetch`, {
+  app.get(`${basePath}/:id/plex-metadata-preview`, {
     schema: {
       tags: [tag],
       params: ownerParams,
@@ -44,7 +43,7 @@ export function registerPlexAutofetchRoute(
         message: "Plex is not configured",
       });
     }
-    const result = await autofetchPlexTaxonomyMetadata(ownerType, id);
+    const result = await resolvePlexTaxonomyMetadata(ownerType, id);
     if (result === "not_found") {
       return reply.code(404).send({
         message: "Not found",

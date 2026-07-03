@@ -10,7 +10,7 @@ import {
 } from "@/services/episodes";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
-import { registerPlexAutofetchRoute } from "@/routes/plexAutofetchRoute";
+import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const episodeParams = {
@@ -172,5 +172,5 @@ export async function episodeRoutes(app: FastifyInstance): Promise<void> {
     },
   ]);
 
-  registerPlexAutofetchRoute(app, "/api/episodes", "episode", "episodes");
+  registerPlexMetadataPreviewRoute(app, "/api/episodes", "episode", "episodes");
 }

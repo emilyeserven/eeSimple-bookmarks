@@ -10,7 +10,7 @@ import {
 } from "@/services/movies";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
-import { registerPlexAutofetchRoute } from "@/routes/plexAutofetchRoute";
+import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const movieParams = {
@@ -168,5 +168,5 @@ export async function movieRoutes(app: FastifyInstance): Promise<void> {
     },
   ]);
 
-  registerPlexAutofetchRoute(app, "/api/movies", "movie", "movies");
+  registerPlexMetadataPreviewRoute(app, "/api/movies", "movie", "movies");
 }

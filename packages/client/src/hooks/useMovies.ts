@@ -158,21 +158,6 @@ export function useDeleteMovie() {
   });
 }
 
-/** One-click "Autofetch from Plex": poster + Wikipedia links + native/romanized names. */
-export function useMoviePlexAutofetch() {
-  const invalidate = useInvalidateMovieConsumers();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => moviesApi.autofetch(id),
-    onSuccess: () => {
-      invalidate();
-      void queryClient.invalidateQueries({
-        queryKey: ["movie-images"],
-      });
-    },
-  });
-}
-
 export function useBulkDeleteMovies() {
   return useBulkDeleteEntity(moviesApi.bulkDelete, useInvalidateMovieConsumers());
 }

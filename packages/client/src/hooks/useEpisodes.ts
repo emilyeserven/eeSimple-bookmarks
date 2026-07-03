@@ -68,21 +68,6 @@ export function useDeleteEpisode() {
   });
 }
 
-/** One-click "Autofetch from Plex": poster + Wikipedia links + native/romanized names. */
-export function useEpisodePlexAutofetch() {
-  const invalidate = useInvalidateEpisodeConsumers();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => episodesApi.autofetch(id),
-    onSuccess: () => {
-      invalidate();
-      void queryClient.invalidateQueries({
-        queryKey: ["episode-images"],
-      });
-    },
-  });
-}
-
 export function useBulkDeleteEpisodes() {
   return useBulkDeleteEntity(episodesApi.bulkDelete, useInvalidateEpisodeConsumers());
 }

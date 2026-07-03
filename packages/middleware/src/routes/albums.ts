@@ -10,7 +10,7 @@ import {
 } from "@/services/albums";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
-import { registerPlexAutofetchRoute } from "@/routes/plexAutofetchRoute";
+import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const albumParams = {
@@ -175,5 +175,5 @@ export async function albumRoutes(app: FastifyInstance): Promise<void> {
     },
   ]);
 
-  registerPlexAutofetchRoute(app, "/api/albums", "album", "albums");
+  registerPlexMetadataPreviewRoute(app, "/api/albums", "album", "albums");
 }

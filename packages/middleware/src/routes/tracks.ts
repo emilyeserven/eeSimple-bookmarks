@@ -10,7 +10,7 @@ import {
 } from "@/services/tracks";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
-import { registerPlexAutofetchRoute } from "@/routes/plexAutofetchRoute";
+import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const trackParams = {
@@ -172,5 +172,5 @@ export async function trackRoutes(app: FastifyInstance): Promise<void> {
     },
   ]);
 
-  registerPlexAutofetchRoute(app, "/api/tracks", "track", "tracks");
+  registerPlexMetadataPreviewRoute(app, "/api/tracks", "track", "tracks");
 }

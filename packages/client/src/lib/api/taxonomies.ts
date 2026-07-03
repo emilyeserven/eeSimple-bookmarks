@@ -86,23 +86,6 @@ import type {
 import { createCrudApi, request, uploadImageFile } from "./client";
 import { createTaxonomyImageApi } from "./taxonomyImages";
 
-/** The success payload of a Plex "Autofetch from Plex" action (error sentinels become HTTP errors). */
-export interface PlexAutofetchResult {
-  status: "ok";
-  /** Whether the linked item's poster was imported as the main image. */
-  posterImported: boolean;
-  /** Whether a Wikidata item matched (native/romanized names + Wikipedia links written). */
-  wikidataMatched: boolean;
-  /** The entity's (possibly renamed) slug, so callers can follow a rename. */
-  slug: string | null;
-}
-
-/** POST the shared `${base}/:id/plex-autofetch` action for a Plex-backed media taxonomy. */
-const plexAutofetch = (base: string) => (id: string) =>
-  request<PlexAutofetchResult>(`${base}/${id}/plex-autofetch`, {
-    method: "POST",
-  });
-
 export const peopleApi = {
   ...createCrudApi<Person, CreatePersonInput, UpdatePersonInput>("people"),
   uploadImage: (id: string, file: File) =>
@@ -256,37 +239,31 @@ export const booksApi = {
 export const moviesApi = {
   ...createCrudApi<Movie, CreateMovieInput, UpdateMovieInput>("movies"),
   images: createTaxonomyImageApi("/movies"),
-  autofetch: plexAutofetch("/movies"),
 };
 
 export const tvShowsApi = {
   ...createCrudApi<TvShow, CreateTvShowInput, UpdateTvShowInput>("tv-shows"),
   images: createTaxonomyImageApi("/tv-shows"),
-  autofetch: plexAutofetch("/tv-shows"),
 };
 
 export const episodesApi = {
   ...createCrudApi<Episode, CreateEpisodeInput, UpdateEpisodeInput>("episodes"),
   images: createTaxonomyImageApi("/episodes"),
-  autofetch: plexAutofetch("/episodes"),
 };
 
 export const albumsApi = {
   ...createCrudApi<Album, CreateAlbumInput, UpdateAlbumInput>("albums"),
   images: createTaxonomyImageApi("/albums"),
-  autofetch: plexAutofetch("/albums"),
 };
 
 export const artistsApi = {
   ...createCrudApi<Artist, CreateArtistInput, UpdateArtistInput>("artists"),
   images: createTaxonomyImageApi("/artists"),
-  autofetch: plexAutofetch("/artists"),
 };
 
 export const tracksApi = {
   ...createCrudApi<Track, CreateTrackInput, UpdateTrackInput>("tracks"),
   images: createTaxonomyImageApi("/tracks"),
-  autofetch: plexAutofetch("/tracks"),
 };
 
 export const relationshipTypesApi = createCrudApi<RelationshipType, CreateRelationshipTypeInput, UpdateRelationshipTypeInput>("relationship-types");

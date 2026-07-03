@@ -68,21 +68,6 @@ export function useDeleteTrack() {
   });
 }
 
-/** One-click "Autofetch from Plex": poster + Wikipedia links + native/romanized names. */
-export function useTrackPlexAutofetch() {
-  const invalidate = useInvalidateTrackConsumers();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => tracksApi.autofetch(id),
-    onSuccess: () => {
-      invalidate();
-      void queryClient.invalidateQueries({
-        queryKey: ["track-images"],
-      });
-    },
-  });
-}
-
 export function useBulkDeleteTracks() {
   return useBulkDeleteEntity(tracksApi.bulkDelete, useInvalidateTrackConsumers());
 }

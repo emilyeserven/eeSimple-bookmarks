@@ -10,7 +10,7 @@ import {
 } from "@/services/artists";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
-import { registerPlexAutofetchRoute } from "@/routes/plexAutofetchRoute";
+import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const artistParams = {
@@ -175,5 +175,5 @@ export async function artistRoutes(app: FastifyInstance): Promise<void> {
     },
   ]);
 
-  registerPlexAutofetchRoute(app, "/api/artists", "artist", "artists");
+  registerPlexMetadataPreviewRoute(app, "/api/artists", "artist", "artists");
 }

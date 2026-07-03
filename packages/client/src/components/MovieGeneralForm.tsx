@@ -3,8 +3,9 @@ import type { Movie } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
+import { moviesApi } from "../lib/api/taxonomies";
 
-import { useMoviePlexAutofetch, useUpdateMovie } from "@/hooks/useMovies";
+import { useUpdateMovie } from "@/hooks/useMovies";
 
 /** Edit a movie's name, sort order, media property, year, and Plex link. Auto-saves. */
 export function MovieGeneralForm({
@@ -14,7 +15,6 @@ export function MovieGeneralForm({
 }) {
   const navigate = useNavigate();
   const update = useUpdateMovie();
-  const autofetch = useMoviePlexAutofetch();
   return (
     <PlexTitleGeneralForm
       entity={movie}
@@ -26,7 +26,9 @@ export function MovieGeneralForm({
           movieSlug: slug,
         },
       })}
-      autofetch={autofetch}
+      base="movies"
+      imagesApi={moviesApi.images}
+      queryKeyPrefix="movie-images"
     />
   );
 }
