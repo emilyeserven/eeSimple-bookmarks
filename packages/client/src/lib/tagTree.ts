@@ -78,15 +78,21 @@ export function selectedSubtrees<T extends { id: string;
       : selectedSubtrees(node.children, selected));
 }
 
-/** Convert a TagNode tree into TreeComboboxOption format for use with TreeMultiCombobox. */
-export function tagNodesToOptions(nodes: TagNode[]): TreeComboboxOption[] {
-  return nodes.map(n => ({
-    value: n.id,
-    label: n.name,
-    // Carry the romanized form so the combobox search matches it too.
-    searchAlias: n.romanizedName ?? undefined,
-    children: tagNodesToOptions(n.children),
-  }));
+/**
+ * Convert a TagNode tree into TreeComboboxOption format for use with TreeCombobox/TreeMultiCombobox.
+ * `excludeIds` (e.g. a tag's own subtree, so it can't become its own parent) drops a matching node
+ * and everything beneath it, since a filtered-out node is never recursed into.
+ */
+export function tagNodesToOptions(nodes: TagNode[], excludeIds?: Set<string>): TreeComboboxOption[] {
+  return nodes
+    .filter(n => !excludeIds?.has(n.id))
+    .map(n => ({
+      value: n.id,
+      label: n.name,
+      // Carry the romanized form so the combobox search matches it too.
+      searchAlias: n.romanizedName ?? undefined,
+      children: tagNodesToOptions(n.children, excludeIds),
+    }));
 }
 
 /** Convert a LocationNode tree into TreeComboboxOption format for use with TreeMultiCombobox. */

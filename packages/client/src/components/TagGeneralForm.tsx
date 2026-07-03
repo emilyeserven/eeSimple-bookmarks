@@ -1,4 +1,3 @@
-import type { ComboboxOption } from "./Combobox";
 import type { Tag, TagNode, UpdateTagInput } from "@eesimple/types";
 
 import { useState } from "react";
@@ -13,10 +12,7 @@ import { Label } from "./ui/label";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateTag } from "../hooks/useTags";
 import { useAppForm } from "../lib/form";
-import { flattenTree } from "../lib/tagTree";
-
-/** Sentinel for the "(root)" option; an empty value reads as "no selection" in the combobox. */
-const ROOT = "__root__";
+import { tagNodesToOptions } from "../lib/tagTree";
 
 const LABELS: Record<keyof UpdateTagInput, string> = {
   name: "Name",
@@ -57,26 +53,13 @@ export function TagGeneralForm({
     },
   });
 
-  const parentOptions: ComboboxOption[] = [
-    {
-      value: ROOT,
-      label: "(root)",
-    },
-    ...flattenTree(allTags)
-      .filter(item => !forbiddenIds.has(item.node.id))
-      .map(item => ({
-        value: item.node.id,
-        label: item.node.name,
-        depth: item.depth,
-        romanized: item.node.romanizedName,
-      })),
-  ];
+  const parentOptions = tagNodesToOptions(allTags, forbiddenIds);
 
   const form = useAppForm({
     defaultValues: {
       name: node.name,
       romanizedName: node.romanizedName ?? "",
-      parent: node.parentId ?? ROOT,
+      parent: node.parentId ?? "",
     },
     validators: {
       onChange: tagSchema,
@@ -124,18 +107,21 @@ export function TagGeneralForm({
 
       <form.AppField name="parent">
         {field => (
-          <field.ComboboxField
+          <field.TreeComboboxField
             label="Parent"
             options={parentOptions}
             placeholder="Choose a parent"
             searchPlaceholder="Search tags…"
             emptyText="No tags found."
+            leadingOption={{
+              value: "",
+              label: "(root)",
+            }}
             createOption={{
               label: "Create tag",
               onSelect: () => setAddTagOpen(true),
             }}
-            onValueChange={value =>
-              autoSave.saveField("parentId", value && value !== ROOT ? value : null)}
+            onValueChange={value => autoSave.saveField("parentId", value || null)}
           />
         )}
       </form.AppField>

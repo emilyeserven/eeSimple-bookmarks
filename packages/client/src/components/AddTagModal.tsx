@@ -69,6 +69,15 @@ export function AddTagModal({
               },
             },
           )}
+          renderParentCreateModal={({
+            open: nestedOpen, onOpenChange: setNestedOpen, onCreated: onNestedCreated,
+          }) => (
+            <AddTagModal
+              open={nestedOpen}
+              onOpenChange={setNestedOpen}
+              onCreated={onNestedCreated}
+            />
+          )}
         />
       </DialogContent>
     </Dialog>
