@@ -3,10 +3,16 @@ import type React from "react";
 
 import { Fragment, useState } from "react";
 
-import { AddTagModal } from "./AddTagModal";
 import { tagSchema } from "./tagFormSchema";
 import { useAppForm } from "../lib/form";
 import { tagNodesToOptions } from "../lib/tagTree";
+
+/** Props handed to `renderParentCreateModal` — everything it needs to wire up an `AddTagModal`. */
+interface ParentCreateModalRenderProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (tag: Tag) => void;
+}
 
 interface TagFormProps {
   /** Full tag tree, used to build the parent select options. */
@@ -30,6 +36,13 @@ interface TagFormProps {
   onSubmit: (value: { name: string;
     romanizedName: string | null;
     parentId: string | null; }) => void;
+  /**
+   * Renders the parent picker's inline "Create tag" modal (an `AddTagModal`). Taken as a render
+   * prop rather than imported directly: `AddTagModal` renders this form, so a direct import here
+   * would create a circular dependency (`AddTagModal` → `TagForm` → `AddTagModal`) — the caller
+   * (`AddTagModal.tsx`) supplies its own nested instance instead. Only needed when `showParent`.
+   */
+  renderParentCreateModal?: (props: ParentCreateModalRenderProps) => React.ReactNode;
 }
 
 /**
@@ -48,6 +61,7 @@ export function TagForm({
   errorMessage,
   SubmitWrapper = Fragment,
   onSubmit,
+  renderParentCreateModal,
 }: TagFormProps) {
   const [addTagOpen, setAddTagOpen] = useState(false);
   const parentOptions = tagNodesToOptions(allTags, forbiddenIds);
@@ -126,11 +140,11 @@ export function TagForm({
               )}
             </form.AppField>
 
-            <AddTagModal
-              open={addTagOpen}
-              onOpenChange={setAddTagOpen}
-              onCreated={(tag: Tag) => form.setFieldValue("parent", tag.id)}
-            />
+            {renderParentCreateModal?.({
+              open: addTagOpen,
+              onOpenChange: setAddTagOpen,
+              onCreated: (tag: Tag) => form.setFieldValue("parent", tag.id),
+            })}
           </>
         )
         : null}
