@@ -9,7 +9,7 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 
 interface RenderWithRouterOptions {
   /**
@@ -23,6 +23,12 @@ interface RenderWithRouterOptions {
  * Render a component that uses TanStack Router primitives (e.g. `<Link>`) inside a minimal
  * in-memory router. Pass `paths` for every route a rendered `<Link>` targets. Awaits the router's
  * initial load so the rendered tree is ready for synchronous queries.
+ *
+ * The mount itself is wrapped in an async `act(...)`: `RouterProvider` settles its match state
+ * (`MatchInnerImpl`) in a microtask-scheduled update after mount, which — left unwrapped — lands
+ * outside React's `act` scope and prints the intermittent "not wrapped in act(...)" warning on
+ * slower/loaded environments (it races the sync render on fast ones). Flushing the settle inside
+ * `act` here silences it once for every caller of this helper.
  */
 export async function renderWithRouter(ui: ReactNode, {
   paths = [],
@@ -58,9 +64,13 @@ export async function renderWithRouter(ui: ReactNode, {
     },
   });
   await router.load();
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
-  );
+  let result!: ReturnType<typeof render>;
+  await act(async () => {
+    result = render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+  });
+  return result;
 }
