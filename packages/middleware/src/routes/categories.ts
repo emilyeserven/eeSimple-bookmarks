@@ -10,6 +10,7 @@ import {
   BuiltInCategoryError,
   createCategory,
   deleteCategory,
+  getAvailableRootTagsForCategory,
   getCategoryDefaults,
   getCategoryRootTags,
   InvalidRootTagError,
@@ -219,6 +220,20 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
     } = req.params as { id: string };
     return {
       tagIds: await getCategoryRootTags(id),
+    };
+  });
+
+  app.get("/api/categories/:id/available-tags", {
+    schema: {
+      tags: ["categories"],
+      params: categoryParams,
+    },
+  }, async (req) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    return {
+      tagIds: await getAvailableRootTagsForCategory(id),
     };
   });
 

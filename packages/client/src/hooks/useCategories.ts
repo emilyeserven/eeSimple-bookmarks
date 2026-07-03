@@ -100,7 +100,25 @@ export function useSetCategoryRootTags(categoryId: string) {
       void queryClient.invalidateQueries({
         queryKey: [...CATEGORIES_KEY, categoryId, "root-tags"],
       });
+      // Changing one category's explicit allowlist can change which tags are "globally
+      // unassigned," which affects every category's available-tags set.
+      void queryClient.invalidateQueries({
+        predicate: query =>
+          query.queryKey[0] === CATEGORIES_KEY[0]
+          && query.queryKey[query.queryKey.length - 1] === "available-tags",
+      });
     },
+  });
+}
+
+/**
+ * A category's available tags for tagging bookmarks: root tags explicitly assigned to this
+ * category, plus root tags with no category assignment at all.
+ */
+export function useCategoryAvailableTags(categoryId: string) {
+  return useQuery({
+    queryKey: [...CATEGORIES_KEY, categoryId, "available-tags"],
+    queryFn: () => categoriesApi.availableTags(categoryId).then(result => result.tagIds),
   });
 }
 

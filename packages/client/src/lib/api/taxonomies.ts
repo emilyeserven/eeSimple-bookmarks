@@ -406,6 +406,8 @@ export const categoriesApi = {
   ...createCrudApi<Category, CreateCategoryInput, UpdateCategoryInput>("categories"),
   rootTags: (id: string) =>
     request<{ tagIds: string[] }>(`/categories/${id}/root-tags`),
+  availableTags: (id: string) =>
+    request<{ tagIds: string[] }>(`/categories/${id}/available-tags`),
   setRootTags: (id: string, tagIds: string[]) =>
     request<{ tagIds: string[] }>(`/categories/${id}/root-tags`, {
       method: "PUT",
