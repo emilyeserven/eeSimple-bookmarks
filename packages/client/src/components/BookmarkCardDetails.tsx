@@ -9,7 +9,7 @@ import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
 import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkKavitaLinkButton, BookmarkMoreMenu, BookmarkPlexLinkButton } from "./BookmarkCardActions";
 import { badgeNode, ratingStars } from "./bookmarkCardFieldRenders";
 import { describeTaxonomyField } from "./bookmarkCardTaxonomyFields";
-import { BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
+import { BookmarkRomanizedField, BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
 import { useBookmarkKavitaLink } from "../hooks/useBooks";
 import { useConnectors } from "../hooks/useConnectors";
 import { useBookmarkPlexLink } from "../hooks/useMovies";
@@ -200,16 +200,17 @@ export function BookmarkCardDetails({
           tableValue: titleNode,
         };
       }
-      case "romanizedTitle": {
-        if (!bookmark.romanizedTitle) return null;
-        const romanizedTitleNode = (
-          <span className="truncate text-sm text-muted-foreground">{bookmark.romanizedTitle}</span>
-        );
+      case "romanizedName": {
+        // Only hidden when there is no romanized value at all; when present, BookmarkRomanizedField
+        // renders the toggle-aware secondary (romanized, or the native title when "show romanized
+        // first" is on) so the title/romanized pair matches every other surface.
+        if (!bookmark.romanizedName) return null;
+        const romanizedNameNode = <BookmarkRomanizedField bookmark={bookmark} />;
         return {
-          inline: romanizedTitleNode,
-          block: romanizedTitleNode,
+          inline: romanizedNameNode,
+          block: romanizedNameNode,
           tableName: "Romanized Title",
-          tableValue: romanizedTitleNode,
+          tableValue: romanizedNameNode,
         };
       }
       case "externalLink": {

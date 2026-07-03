@@ -27,6 +27,7 @@ import type {
   LocationLookupCandidate,
   LocationLookupResult,
 } from "@eesimple/types";
+import { deriveRomanizedName } from "@eesimple/types";
 import { mapUrlFor, nominatimGeocode } from "@/services/nominatimGeocoding";
 import {
   asString,
@@ -241,7 +242,7 @@ function buildCandidate(
     ja, en,
   } = entityLabels(entity);
   const name = ja ?? en ?? "";
-  const romanizedName = en && en !== name ? en : null;
+  const romanizedName = deriveRomanizedName(name, en);
   const countryCode = resolveCountryCode(entity, labels);
   const ancestors = buildAncestors(entity, labels, countryCode);
   const placeTypeId = claimEntityIds(entity, "P31")[0];

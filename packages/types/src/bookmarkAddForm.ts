@@ -47,7 +47,7 @@ export const BOOKMARK_FORM_DETAIL_SLUGS = [
  */
 export const BOOKMARK_ADD_FORM_STANDARD_FIELDS = [
   "title",
-  "romanizedTitle",
+  "romanizedName",
   "categoryId",
   "mediaTypeId",
   "languageId",

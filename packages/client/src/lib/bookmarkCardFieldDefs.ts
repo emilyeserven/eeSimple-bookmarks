@@ -12,7 +12,7 @@ export const STANDARD_CARD_FIELDS = [
     label: "Title",
   },
   {
-    key: "romanizedTitle",
+    key: "romanizedName",
     label: "Romanized Title",
   },
   {

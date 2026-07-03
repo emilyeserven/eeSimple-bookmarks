@@ -18,7 +18,7 @@ import { formatBoolean, formatBooleanBadge, formatChoices, formatDateTime, forma
  * seeded/migrated and client-default zones agree.
  */
 export function defaultBodyZone(key: string): CardFieldZone {
-  return key === "description" || key === "romanizedTitle"
+  return key === "description" || key === "romanizedName"
     || (HEADER_CARD_FIELD_KEYS as readonly string[]).includes(key)
     ? "card-single-top"
     : "card-labels";

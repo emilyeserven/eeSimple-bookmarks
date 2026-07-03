@@ -805,13 +805,34 @@ const migrations: RuntimeMigration[] = [
     // singleton makes drizzle-kit push prompt (the same non-TTY crash as the other NOT NULL column
     // cases above), so pre-apply them here to keep push's diff additive-only. One `ALTER TABLE` with
     // two `ADD COLUMN` clauses is a single statement, safe over the extended protocol. (The companion
-    // nullable `tags.romanized_name` and `bookmarks.romanized_title` text columns are push-safe and
-    // need no step.)
+    // nullable `tags.romanized_name` text column is push-safe and needs no step; the bookmark column
+    // is renamed by the step just below.)
     name: "add app_settings romanized display-preference columns",
     run: db => db.execute(sql`
       ALTER TABLE IF EXISTS "app_settings"
         ADD COLUMN IF NOT EXISTS "show_romanized_by_default" boolean NOT NULL DEFAULT false,
         ADD COLUMN IF NOT EXISTS "sort_by_romanized" boolean NOT NULL DEFAULT true
+    `),
+  },
+  {
+    // The bookmark romanized column was renamed `romanized_title` → `romanized_name` to unify with
+    // every other entity's `romanized_name`. A rename is DESTRUCTIVE (push would drop+recreate,
+    // losing values), so pre-apply it here, guarded to fire only on existing installs that still
+    // carry the old column; fresh installs get `romanized_name` directly from push. Mirrors the
+    // `bookmarks.newsletter_import_id` → `import_id` rename above.
+    name: "rename bookmarks.romanized_title column to romanized_name",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'bookmarks' AND column_name = 'romanized_title'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'bookmarks' AND column_name = 'romanized_name'
+        ) THEN
+          ALTER TABLE "bookmarks" RENAME COLUMN "romanized_title" TO "romanized_name";
+        END IF;
+      END $$
     `),
   },
   {

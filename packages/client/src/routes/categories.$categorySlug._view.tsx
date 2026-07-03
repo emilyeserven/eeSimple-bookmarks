@@ -1,5 +1,6 @@
 import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useCategoryBySlug, useDeleteCategory } from "../hooks/useCategories";
 
@@ -86,7 +87,14 @@ function CategoryViewLayout() {
                 name={category?.icon ?? null}
                 className="size-6 shrink-0"
               />
-              {isLoading ? "Category" : (category?.name ?? "Category not found")}
+              {category
+                ? (
+                  <RomanizedLabel
+                    name={category.name}
+                    romanized={category.romanizedName}
+                  />
+                )
+                : (isLoading ? "Category" : "Category not found")}
               {category?.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
             </h1>
             {category

@@ -49,7 +49,7 @@ const PLACEMENT_OPTIONS = [
 /** A distinct lucide icon per standard field. */
 const STANDARD_FIELD_ICONS: Record<BookmarkAddFormStandardField, LucideIcon> = {
   title: Type,
-  romanizedTitle: CaseSensitive,
+  romanizedName: CaseSensitive,
   categoryId: FolderOpen,
   mediaTypeId: Clapperboard,
   languageId: Languages,

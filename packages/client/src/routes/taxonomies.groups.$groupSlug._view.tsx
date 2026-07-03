@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteGroup, useGroupBySlug } from "../hooks/useGroups";
 
@@ -30,7 +31,14 @@ function GroupViewLayout() {
         <div className="space-y-1">
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl font-bold">
-              {isLoading ? "Group" : (group?.name ?? "Group not found")}
+              {group
+                ? (
+                  <RomanizedLabel
+                    name={group.name}
+                    romanized={group.romanizedName}
+                  />
+                )
+                : (isLoading ? "Group" : "Group not found")}
             </h1>
             {group
               ? (

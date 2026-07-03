@@ -6,6 +6,7 @@ import { Pencil } from "lucide-react";
 
 import { getContentType } from "./contentTypes";
 import { usePanelControls } from "./usePanelControls";
+import { RomanizedLabel } from "../RomanizedLabel";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +36,8 @@ export function PanelList({
     if (!needle) return items;
     return items.filter(item =>
       item.label.toLowerCase().includes(needle)
-      || (item.sublabel?.toLowerCase().includes(needle) ?? false));
+      || (item.sublabel?.toLowerCase().includes(needle) ?? false)
+      || (item.romanized?.toLowerCase().includes(needle) ?? false));
   }, [items, query]);
 
   return (
@@ -75,7 +77,16 @@ export function PanelList({
               "
               onClick={() => openItem(type, item.id, "view")}
             >
-              <span className="w-full truncate text-sm font-medium">{item.label}</span>
+              <span className="w-full truncate text-sm font-medium">
+                {item.romanized
+                  ? (
+                    <RomanizedLabel
+                      name={item.label}
+                      romanized={item.romanized}
+                    />
+                  )
+                  : item.label}
+              </span>
               {item.sublabel
                 ? (
                   <span

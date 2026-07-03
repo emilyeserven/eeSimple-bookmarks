@@ -9,7 +9,7 @@ export function BookmarkRomanizedNameField({
   form,
 }: BookmarkRomanizedNameFieldProps) {
   return (
-    <form.AppField name="romanizedTitle">
+    <form.AppField name="romanizedName">
       {field => (
         <field.TextField
           label="Romanized name"

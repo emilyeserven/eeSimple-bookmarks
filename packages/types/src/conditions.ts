@@ -257,7 +257,7 @@ export interface ConditionInput {
   url: string;
   title: string;
   /** The bookmark's romanized title, or `null`/empty when none — matched alongside `title`. */
-  romanizedTitle?: string | null;
+  romanizedName?: string | null;
   /** The bookmark's resolved category id. */
   categoryId: string;
   /** The bookmark's own tag ids (NOT expanded for cascade). */
@@ -375,7 +375,7 @@ function evaluateMatch(condition: MatchCondition, input: ConditionInput): boolea
   // the romanized form fires on a title in another script and vice-versa. `url` has no romanized form.
   const haystacks = condition.field === "url"
     ? [input.url]
-    : [input.title, input.romanizedTitle ?? ""];
+    : [input.title, input.romanizedName ?? ""];
   const candidates = haystacks.filter(text => text !== "");
   if (candidates.length === 0) return false;
 

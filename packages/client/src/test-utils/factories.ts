@@ -92,7 +92,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     url: "https://example.com",
     originalUrl: null,
     title: "Example",
-    romanizedTitle: null,
+    romanizedName: null,
     description: null,
     image: null,
     images: [],

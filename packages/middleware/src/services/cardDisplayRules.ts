@@ -408,32 +408,47 @@ export async function backfillCardDisplayRuleLocationsField(): Promise<void> {
 }
 
 /**
- * One-time boot backfill: place the `romanizedTitle` field into rules whose stored `field_zones`
+ * One-time boot backfill: place the `romanizedName` field into rules whose stored `field_zones`
  * predate it (it used to render baked into the `title` field). It's appended to its default body
  * zone ({@link defaultBodyZone} → `card-single-top`), so it keeps showing below the title header row.
- * Idempotent — a rule already carrying `romanizedTitle` in any zone is skipped, and inheriting rules
- * (`field_zones IS NULL`) are left untouched. Must run after
- * `ensureDefaultCardDisplayRule`/`backfillCardDisplayRuleFieldZones`.
+ * Also rewrites any stray legacy `romanizedTitle` placement key to `romanizedName` — only possible on
+ * a dev database that ran an earlier revision of this branch before the field was renamed; a no-op in
+ * production, where the placeable romanized field never shipped. Idempotent — a rule already carrying
+ * `romanizedName` (and no `romanizedTitle`) is skipped, and inheriting rules (`field_zones IS NULL`)
+ * are left untouched. Must run after `ensureDefaultCardDisplayRule`/`backfillCardDisplayRuleFieldZones`.
  */
-export async function backfillCardDisplayRuleRomanizedTitleField(): Promise<void> {
+export async function backfillCardDisplayRuleRomanizedNameField(): Promise<void> {
   const rows = await db.select().from(cardDisplayRules);
   for (const row of rows) {
     const stored = row.fieldZones as Record<string, CardFieldPlacement[]> | null;
     if (!stored) continue;
 
-    const placed = new Set(
-      CARD_FIELD_ZONES.flatMap(zone => (stored[zone] ?? []).map(p => p.key)),
-    );
-    if (placed.has("romanizedTitle")) continue;
-
+    // Copy every zone, rewriting a legacy `romanizedTitle` placement key to `romanizedName`.
+    let changed = false;
     const next = emptyCardFieldZones();
     for (const zone of CARD_FIELD_ZONES) {
-      if (Array.isArray(stored[zone])) next[zone] = [...stored[zone]];
+      if (!Array.isArray(stored[zone])) continue;
+      next[zone] = stored[zone].map((placement) => {
+        if (placement.key !== "romanizedTitle") return placement;
+        changed = true;
+        return {
+          ...placement,
+          key: "romanizedName",
+        };
+      });
     }
-    next[defaultBodyZone("romanizedTitle")].push({
-      key: "romanizedTitle",
-    });
 
+    const placed = new Set(
+      CARD_FIELD_ZONES.flatMap(zone => next[zone].map(p => p.key)),
+    );
+    if (!placed.has("romanizedName")) {
+      next[defaultBodyZone("romanizedName")].push({
+        key: "romanizedName",
+      });
+      changed = true;
+    }
+
+    if (!changed) continue;
     await db
       .update(cardDisplayRules)
       .set({
