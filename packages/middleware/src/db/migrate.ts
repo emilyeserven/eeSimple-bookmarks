@@ -258,6 +258,24 @@ const migrations: RuntimeMigration[] = [
     },
   },
   {
+    // Same composite-unique non-convergence as `tags_parent_name_unique` above: the language-usage
+    // tables (added in #914) declared their COMPOSITE uniques as table `unique()` constraints, so
+    // `drizzle-kit push` re-proposes them on every deploy — prompting to truncate the populated
+    // `language_usage_levels` table and crashing the non-TTY deploy, which silently skips the rest
+    // of push's additive diff (the missing-column/table 500s). schema.ts now declares both as
+    // `uniqueIndex`es; migrate existing prod DBs from the CONSTRAINT to the INDEX before push runs so
+    // its diff for these tables stays empty. Idempotent (guarded by IF [NOT] EXISTS); each execute is
+    // a single statement (the extended protocol runs only the first statement of a multi-statement
+    // string).
+    name: "migrate language_usage composite uniques from constraints to unique indexes",
+    run: async (db) => {
+      await db.execute(sql`ALTER TABLE IF EXISTS "language_usage_levels" DROP CONSTRAINT IF EXISTS "language_usage_levels_kind_name_unique"`);
+      await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "language_usage_levels_kind_name_unique" ON "language_usage_levels" ("kind", "name")`);
+      await db.execute(sql`ALTER TABLE IF EXISTS "language_usages" DROP CONSTRAINT IF EXISTS "language_usages_owner_lang_level_unique"`);
+      await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "language_usages_owner_lang_level_unique" ON "language_usages" ("owner_type", "owner_id", "language_id", "usage_level_id")`);
+    },
+  },
+  {
     // `app_settings.homepage_header_hidden` is NOT NULL DEFAULT false. Adding a NOT NULL column to
     // the populated singleton makes drizzle-kit push prompt — the same non-TTY crash as above — so
     // pre-apply it here to keep push's diff additive-only.
