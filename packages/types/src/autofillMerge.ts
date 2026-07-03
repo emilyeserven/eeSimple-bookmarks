@@ -47,6 +47,7 @@ export function urlTitleConditionInput(input: AutofillMatchInput): ConditionInpu
     dateTimeValues: new Map(),
     fileValues: new Set(),
     relationshipTypeIds: new Set(),
+    languageUsages: [],
     choicesValues: new Map(),
     sectionsValues: new Map(),
     textValues: new Map(),

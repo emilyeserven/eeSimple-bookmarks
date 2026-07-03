@@ -1,6 +1,7 @@
 import {
   Bookmark,
   Building2,
+  Captions,
   Clapperboard,
   FileInput,
   FolderOpen,
@@ -79,6 +80,12 @@ export const taxonomyItems = [
     title: "Languages",
     to: "/taxonomies/languages",
     icon: Languages,
+  },
+  {
+    key: "language-usage-levels",
+    title: "Usage Levels",
+    to: "/taxonomies/language-usage-levels",
+    icon: Captions,
   },
   {
     key: "media-properties",

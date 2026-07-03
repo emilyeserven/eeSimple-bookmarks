@@ -20,6 +20,13 @@ import type {
   CreateTrackInput,
   CreateMediaTypeInput,
   CreateLanguageInput,
+  CreateLanguageUsageLevelInput,
+  UpdateLanguageUsageLevelInput,
+  LanguageUsageLevel,
+  LanguageUsageKind,
+  LanguageUsage,
+  LanguageUsageOwnerType,
+  UpdateLanguageUsageEntry,
   CreatePlaceTypeInput,
   CreatePropertyGroupInput,
   CreateGroupInput,
@@ -225,6 +232,33 @@ export const placeTypesApi = {
         method: "DELETE",
       },
     ),
+};
+
+export const languageUsageLevelsApi = {
+  ...createCrudApi<LanguageUsageLevel, CreateLanguageUsageLevelInput, UpdateLanguageUsageLevelInput>("language-usage-levels"),
+  // Optionally filter to a single kind (availability vs. proficiency) for the pickers.
+  list: (kind?: LanguageUsageKind) =>
+    request<LanguageUsageLevel[]>(`/language-usage-levels${kind ? `?kind=${kind}` : ""}`),
+  // Deleting a level can reassign its associations to another level instead of dropping them.
+  remove: (id: string, reassignTo?: string) =>
+    request<undefined>(
+      `/language-usage-levels/${id}${reassignTo ? `?reassignTo=${encodeURIComponent(reassignTo)}` : ""}`,
+      {
+        method: "DELETE",
+      },
+    ),
+};
+
+export const languageUsagesApi = {
+  get: (ownerType: LanguageUsageOwnerType, ownerId: string) =>
+    request<LanguageUsage[]>(`/language-usages/${ownerType}/${ownerId}`),
+  put: (ownerType: LanguageUsageOwnerType, ownerId: string, entries: UpdateLanguageUsageEntry[]) =>
+    request<LanguageUsage[]>(`/language-usages/${ownerType}/${ownerId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        entries,
+      }),
+    }),
 };
 
 export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");

@@ -3,6 +3,7 @@ import type { Website } from "@eesimple/types";
 
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
+import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { ParamRulesList } from "../ParamRulesList";
 import { ShortenedLinksList } from "../ShortenedLinksList";
 import { WebsiteGeneralForm } from "../WebsiteGeneralForm";
@@ -186,6 +187,35 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
         render: ({
           entity,
         }) => <CardDisplayRulesList websiteId={entity.id} />,
+      },
+    },
+    {
+      key: "languages",
+      label: "Languages",
+      view: {
+        title: "Languages",
+        description: "Languages this website's content is available in and how.",
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabView
+            ownerType="website"
+            ownerId={entity.id}
+          />
+        ),
+      },
+      edit: {
+        title: "Languages",
+        description: "Record which languages this website offers (dub, subtitles, …).",
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabEditor
+            ownerType="website"
+            ownerId={entity.id}
+            kind="availability"
+          />
+        ),
       },
     },
   ],

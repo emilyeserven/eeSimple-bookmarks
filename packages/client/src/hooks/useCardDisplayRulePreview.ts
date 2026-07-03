@@ -294,6 +294,7 @@ export function useCardDisplayRulePreview({
         parentId: null,
       },
       language: null,
+      languageUsages: [],
       youtubeChannel: {
         id: "__sample-channel__",
         name: "Sample Channel",

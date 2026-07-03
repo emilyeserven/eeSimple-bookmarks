@@ -17,8 +17,11 @@ shared "when" used by **autofill rules** *and* the **Homepage section filter** �
 up in both surfaces automatically.
 
 Current leaves (copy whichever is closest): **Match** (title/name text), **Category**, **Tag**,
-**Property** (custom-property value), **Website** (domain set). **Website** is the cleanest recent
-template for a multi-select-of-entity leaf — follow it.
+**Property** (custom-property value), **Website** (domain set), **Language usage** (two id arrays —
+languages + usage levels — matched per bookmark-owned association row). **Website** is the cleanest
+recent template for a multi-select-of-entity leaf; **Language usage** is the template for a leaf that
+tests **per-bookmark relation data** that isn't derivable from the url/title (see the `ConditionInput`
+projection note in touch point 1).
 
 > Adding a scoped **Autofill Rules tab** to an entity (so its page lists the rules that reference it)
 > is the sibling task — see the **`scope-autofill`** skill. This skill is just the condition leaf.
@@ -32,6 +35,13 @@ template for a multi-select-of-entity leaf — follow it.
      browser and in `homepageSections.ts`. Website matches on `hostOf(input.url)` so it needs no
      resolver; if your leaf needs lookups, follow the `tagDescendants` resolver precedent in
      `EvaluateOptions` rather than reaching for a DB.
+   - **If the leaf tests per-bookmark relation data** (like `language-usage`), add a new **projection
+     field to `ConditionInput`** (e.g. `languageUsages: { languageId; usageLevelId }[]`) and populate
+     it in `services/bookmarkCache.ts`'s `buildConditionInputs` (a batched query grouped by bookmark
+     id) **and** in every other `ConditionInput` construction site (`autofillMerge.ts`
+     `urlTitleConditionInput`, `importRules.ts`, `lib/cardDisplayRules.ts`). A **required** field makes
+     those sites tsc-enforced; the *content* of the `bookmarkCache` query is silent-drift — a wrong
+     query compiles but the leaf never matches.
    - Adding to the union is enforced by exhaustive `switch`es — `lib/conditionsSummary.ts` will fail
      to compile until you add the case, which is your checklist.
 2. **Server schema** — `packages/middleware/src/routes/conditionSchema.ts`: add a node schema and

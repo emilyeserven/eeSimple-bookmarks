@@ -8,6 +8,7 @@
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
+import type { LanguageUsage } from "./languageUsages.js";
 import type { BookmarkLocation } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
@@ -20,6 +21,7 @@ export * from "./conditions.js";
 export * from "./customProperties.js";
 export * from "./groupTypes.js";
 export * from "./importBlacklist.js";
+export * from "./languageUsages.js";
 export * from "./locations.js";
 export * from "./mediaProperties.js";
 export * from "./movies.js";
@@ -163,6 +165,8 @@ export interface Website {
   alternateNames: string[];
   /** When true, redirect chains from this site resolve unreliably; its bookmarks appear in Settings → Redirect Failures. */
   redirectResolutionFailure?: boolean;
+  /** Languages associated with this website, each qualified by a usage level. Populated by get endpoints. */
+  languageUsages?: LanguageUsage[];
 }
 
 /** A website enriched with its domain-derived subdomain children for tree rendering. */
@@ -797,6 +801,8 @@ export interface YouTubeChannel {
   mediaTypeId?: string | null;
   /** Ids of websites this channel is associated with. Populated by list/get endpoints. */
   websiteIds?: string[];
+  /** Languages associated with this channel, each qualified by a usage level. Populated by get endpoints. */
+  languageUsages?: LanguageUsage[];
 }
 
 /** Lightweight channel shape carried on a bookmark. */
@@ -887,6 +893,8 @@ export interface Person {
   websiteIds: string[];
   /** IDs of groups associated with this person. */
   groupIds: string[];
+  /** Languages this person uses, each qualified by a proficiency level. Populated by get endpoints. */
+  languageUsages?: LanguageUsage[];
 }
 
 /** Lightweight person shape carried on a bookmark. */
@@ -1149,6 +1157,8 @@ export interface Bookmark {
   mediaType: BookmarkMediaType | null;
   /** The language of this bookmark's content, or `null` when unset. */
   language: BookmarkLanguage | null;
+  /** Languages associated with this bookmark, each qualified by a usage level (dub/subtitles/…). */
+  languageUsages: LanguageUsage[];
   /** The YouTube channel this bookmark belongs to (auto-linked for YouTube videos), or `null`. */
   youtubeChannel: BookmarkYouTubeChannel | null;
   /** The newsletter this bookmark was imported from, or `null`. */

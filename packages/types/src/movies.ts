@@ -1,3 +1,5 @@
+import type { LanguageUsage } from "./languageUsages.js";
+
 /**
  * A Movie in the "Movies" taxonomy. Bookmarks link to a Movie (via `bookmark.movieId`) rather than a
  * live Plex item; the Movie carries the Plex linkage so poster/deep-link features resolve the Plex
@@ -33,6 +35,8 @@ export interface Movie {
   createdAt: string;
   /** Number of bookmarks linked to this movie (populated by list endpoints). */
   bookmarkCount?: number;
+  /** Languages associated with this movie, each qualified by a usage level. Populated by get endpoints. */
+  languageUsages?: LanguageUsage[];
 }
 
 /** Payload for creating a movie. */

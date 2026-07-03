@@ -1,3 +1,5 @@
+import type { LanguageUsage } from "./languageUsages.js";
+
 /**
  * A TV Show in the "TV Shows" taxonomy. Bookmarks link to a TV Show (via `bookmark.tvShowId`) rather
  * than a live Plex item; the TV Show carries the Plex linkage so poster/deep-link features resolve the
@@ -33,6 +35,8 @@ export interface TvShow {
   createdAt: string;
   /** Number of bookmarks linked to this show (populated by list endpoints). */
   bookmarkCount?: number;
+  /** Languages associated with this show, each qualified by a usage level. Populated by get endpoints. */
+  languageUsages?: LanguageUsage[];
 }
 
 /** Payload for creating a TV show. */

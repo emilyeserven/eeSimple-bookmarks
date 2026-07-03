@@ -86,6 +86,10 @@ export function bookmarkToConditionInput(bookmark: Bookmark): ConditionInput {
     dateTimeValues: new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value])),
     fileValues: new Set(bookmark.fileValues.map(v => v.propertyId)),
     relationshipTypeIds: new Set(bookmark.relationships.map(r => r.relationshipTypeId)),
+    languageUsages: bookmark.languageUsages.map(u => ({
+      languageId: u.language.id,
+      usageLevelId: u.level.id,
+    })),
     choicesValues: new Map(bookmark.choicesValues.map(v => [v.propertyId, v.values])),
     sectionsValues: new Map(bookmark.sectionsValues.map(v => [v.propertyId, v])),
     textValues: new Map(bookmark.textValues.map(v => [v.propertyId, v.value])),

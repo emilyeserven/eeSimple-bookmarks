@@ -19,6 +19,8 @@ export interface ConditionSummary {
   mediaTypes: number;
   /** Number of selected relationship type ids (a single relationship-type leaf can hold several). */
   relationshipTypes: number;
+  /** Number of language-usage leaves in the tree. */
+  languageUsages: number;
   properties: number;
   combinator: "and" | "or";
 }
@@ -33,6 +35,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   let channels = 0;
   let mediaTypes = 0;
   let relationshipTypes = 0;
+  let languageUsages = 0;
   let properties = 0;
   for (const child of tree.children) {
     if (child.type === "match") match += 1;
@@ -43,6 +46,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     else if (child.type === "youtube-channel") channels += child.channelIds.length;
     else if (child.type === "media-type") mediaTypes += child.mediaTypeIds.length;
     else if (child.type === "relationship-type") relationshipTypes += child.relationshipTypeIds.length;
+    else if (child.type === "language-usage") languageUsages += 1;
     else if (child.type === "property") properties += 1;
   }
   return {
@@ -55,6 +59,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     channels,
     mediaTypes,
     relationshipTypes,
+    languageUsages,
     properties,
     combinator: tree.combinator,
   };
@@ -122,6 +127,11 @@ const BREAKDOWN_LABELS: {
     key: "relationshipTypes",
     singular: "relationship type",
     plural: "relationship types",
+  },
+  {
+    key: "languageUsages",
+    singular: "language usage",
+    plural: "language usages",
   },
   {
     key: "properties",

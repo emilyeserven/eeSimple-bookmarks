@@ -7,6 +7,7 @@ import { MonitorPlay } from "lucide-react";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityImagePreview } from "../EntityImageField";
+import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
 import { YouTubeChannelGeneralForm } from "../YouTubeChannelGeneralForm";
 
@@ -152,6 +153,35 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
         render: ({
           entity,
         }) => <CardDisplayRulesList channelId={entity.id} />,
+      },
+    },
+    {
+      key: "languages",
+      label: "Languages",
+      view: {
+        title: "Languages",
+        description: "Languages this channel's content is available in and how.",
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabView
+            ownerType="youtubeChannel"
+            ownerId={entity.id}
+          />
+        ),
+      },
+      edit: {
+        title: "Languages",
+        description: "Record which languages this channel offers (dub, subtitles, …).",
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabEditor
+            ownerType="youtubeChannel"
+            ownerId={entity.id}
+            kind="availability"
+          />
+        ),
       },
     },
   ],

@@ -59,7 +59,25 @@ describe("splitRootConditions", () => {
       youtubeChannel: 0,
       mediaType: 0,
       relationshipType: 0,
+      languageUsage: 0,
     });
+  });
+
+  it("splits a language-usage leaf and counts its languages + levels", () => {
+    const withLangUsage: ConditionTree = {
+      type: "group",
+      combinator: "and",
+      children: [
+        {
+          type: "language-usage",
+          languageIds: ["en", "ja"],
+          usageLevelIds: ["dub"],
+        },
+      ],
+    };
+    const leaves = splitRootConditions(withLangUsage);
+    expect(leaves.languageUsageLeaf?.languageIds).toEqual(["en", "ja"]);
+    expect(leaves.counts.languageUsage).toBe(3);
   });
 });
 

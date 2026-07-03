@@ -3,12 +3,14 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, SectionEntryType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { SECTION_ENTRY_TYPE_LABELS, SECTION_ENTRY_TYPES } from "@eesimple/types";
-import { ChevronDown, Globe, MapPin, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
+import { Captions, ChevronDown, Globe, Languages, MapPin, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { FacetChips, FacetPresenceToggle } from "./FilterFacetControls";
 import { MultiCombobox } from "./MultiCombobox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
+import { useLanguages } from "../hooks/useLanguages";
+import { useLanguageUsageLevels } from "../hooks/useLanguageUsageLevels";
 import { tagNodesToOptions } from "../lib/tagTree";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Separator } from "./ui/separator";
@@ -20,6 +22,8 @@ import {
   withDateTimeFilter,
   withMediaTypes,
   withNumberFilter,
+  withLanguageUsageLanguages,
+  withLanguageUsageLevels,
   withPlaceTypePresence,
   withPlaceTypes,
   withPresenceFilter,
@@ -581,6 +585,95 @@ export function RelationshipTypeFilterSection({
                 hover:underline
               "
               onClick={() => onSearchChange(withRelationshipTypes(search, []))}
+            >
+              Reset
+            </button>
+          )
+          : null}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/**
+ * Two multi-selects — languages and usage levels — filtering to bookmarks whose language usages
+ * satisfy both on a single association row. Self-fetches its options; hidden when neither vocabulary
+ * has any entries.
+ */
+export function LanguageUsageFilterSection({
+  search, onSearchChange,
+}: {
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const {
+    data: languages = [],
+  } = useLanguages();
+  const {
+    data: levels = [],
+  } = useLanguageUsageLevels();
+
+  if (languages.length === 0 && levels.length === 0) return null;
+
+  const selectedLanguages = search.languageUsageLanguages ?? [];
+  const selectedLevels = search.languageUsageLevels ?? [];
+
+  return (
+    <Collapsible
+      defaultOpen
+      className="group/language-usage space-y-3"
+    >
+      <CollapsibleTrigger
+        className="
+          flex items-center gap-1.5 text-sm font-semibold
+          hover:text-foreground
+        "
+      >
+        <ChevronDown
+          className="
+            size-3.5 shrink-0 transition-transform
+            group-data-[state=open]/language-usage:rotate-180
+          "
+        />
+        Language usage
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3">
+        <MultiCombobox
+          options={languages.map(l => ({
+            value: l.id,
+            label: l.name,
+            icon: <Languages className="size-4 shrink-0 text-muted-foreground" />,
+          }))}
+          values={selectedLanguages}
+          onValuesChange={ids => onSearchChange(withLanguageUsageLanguages(search, ids))}
+          placeholder="Any language"
+          searchPlaceholder="Search languages…"
+          emptyText="No languages found."
+          aria-label="Filter by language"
+        />
+        <MultiCombobox
+          options={levels.map(l => ({
+            value: l.id,
+            label: l.name,
+            icon: <Captions className="size-4 shrink-0 text-muted-foreground" />,
+          }))}
+          values={selectedLevels}
+          onValuesChange={ids => onSearchChange(withLanguageUsageLevels(search, ids))}
+          placeholder="Any usage level"
+          searchPlaceholder="Search usage levels…"
+          emptyText="No usage levels found."
+          aria-label="Filter by usage level"
+        />
+        {(selectedLanguages.length > 0 || selectedLevels.length > 0)
+          ? (
+            <button
+              type="button"
+              className="
+                text-xs text-primary
+                hover:underline
+              "
+              onClick={() =>
+                onSearchChange(withLanguageUsageLevels(withLanguageUsageLanguages(search, []), []))}
             >
               Reset
             </button>

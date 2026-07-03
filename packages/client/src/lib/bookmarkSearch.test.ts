@@ -453,6 +453,7 @@ describe("bookmarkMatchesSearch", () => {
     sectionsValues: [],
     people: [],
     relationships: [],
+    languageUsages: [],
   };
 
   it("passes when no filters are active", () => {
@@ -597,6 +598,67 @@ describe("bookmarkMatchesSearch", () => {
     // A bookmark with no relationships never matches a relationship-type filter.
     expect(bookmarkMatchesSearch(bookmark, {
       relationshipTypes: ["rt-1"],
+    })).toBe(false);
+  });
+
+  it("applies the language-usage facets per association row", () => {
+    const withUsages = {
+      ...bookmark,
+      languageUsages: [
+        {
+          id: "lu1",
+          language: {
+            id: "en",
+            name: "English",
+            slug: "english",
+            isoCode: "en",
+          },
+          level: {
+            id: "dub",
+            name: "Dub",
+            slug: "dub",
+            kind: "availability" as const,
+          },
+          note: null,
+        },
+        {
+          id: "lu2",
+          language: {
+            id: "ja",
+            name: "Japanese",
+            slug: "japanese",
+            isoCode: "ja",
+          },
+          level: {
+            id: "subs",
+            name: "Subtitles",
+            slug: "subtitles",
+            kind: "availability" as const,
+          },
+          note: null,
+        },
+      ],
+    };
+    // language-only and level-only match.
+    expect(bookmarkMatchesSearch(withUsages, {
+      languageUsageLanguages: ["ja"],
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withUsages, {
+      languageUsageLevels: ["dub"],
+    })).toBe(true);
+    // both on one row match.
+    expect(bookmarkMatchesSearch(withUsages, {
+      languageUsageLanguages: ["ja"],
+      languageUsageLevels: ["subs"],
+    })).toBe(true);
+    // cross-product does NOT match (no Japanese dub).
+    expect(bookmarkMatchesSearch(withUsages, {
+      languageUsageLanguages: ["ja"],
+      languageUsageLevels: ["dub"],
+    })).toBe(false);
+    // a bookmark with no usages never matches.
+    expect(bookmarkMatchesSearch(bookmark, {
+      languageUsageLanguages: ["en"],
     })).toBe(false);
   });
 
@@ -911,6 +973,7 @@ describe("bookmarkMatchesSearch — exclude mode", () => {
     sectionsValues: [],
     people: [],
     relationships: [],
+    languageUsages: [],
   };
 
   describe("tag exclusion", () => {

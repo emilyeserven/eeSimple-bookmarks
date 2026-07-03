@@ -27,6 +27,7 @@ describe("summarizeConditions", () => {
       channels: 0,
       mediaTypes: 0,
       relationshipTypes: 0,
+      languageUsages: 0,
       properties: 0,
       combinator: "and",
     });

@@ -6,6 +6,7 @@ import type {
   UpdateMovieInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { albums, artists, bookmarks, episodes, movies, tracks, tvShows, type MovieRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -141,6 +142,7 @@ export async function deleteMovie(id: string): Promise<boolean> {
   const rows = await db.delete(movies).where(eq(movies.id, id)).returning({
     id: movies.id,
   });
+  if (rows.length > 0) await deleteLanguageUsagesForOwner("movie", id);
   return rows.length > 0;
 }
 

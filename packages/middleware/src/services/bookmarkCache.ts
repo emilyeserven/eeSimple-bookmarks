@@ -1,4 +1,4 @@
-import { inArray, or } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 import type { BookmarkSectionsValue, ConditionInput, SectionEntry, TagDescendants } from "@eesimple/types";
 import { buildLocationDescendants, buildTagDescendants } from "@eesimple/types";
 import { db } from "@/db";
@@ -16,6 +16,7 @@ import {
   bookmarks,
   type BookmarkRow,
   bookmarkTags,
+  languageUsages,
   locations,
   tags,
 } from "@/db/schema";
@@ -142,7 +143,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, locationRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows] = await Promise.all([
+  const [tagRows, locationRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows, languageUsageRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -234,6 +235,14 @@ async function buildConditionInputs(
           inArray(bookmarkRelationships.bookmarkBId, ids),
         ),
       ),
+    db
+      .select({
+        bookmarkId: languageUsages.ownerId,
+        languageId: languageUsages.languageId,
+        usageLevelId: languageUsages.usageLevelId,
+      })
+      .from(languageUsages)
+      .where(and(eq(languageUsages.ownerType, "bookmark"), inArray(languageUsages.ownerId, ids))),
   ]);
 
   const tagsByBid = groupToSets(tagRows, r => r.bookmarkId, r => r.tagId);
@@ -277,6 +286,17 @@ async function buildConditionInputs(
     addRelType(r.bookmarkBId, r.relationshipTypeId);
   }
 
+  const languageUsagesByBid = new Map<string, { languageId: string;
+    usageLevelId: string; }[]>();
+  for (const r of languageUsageRows) {
+    const list = languageUsagesByBid.get(r.bookmarkId) ?? [];
+    list.push({
+      languageId: r.languageId,
+      usageLevelId: r.usageLevelId,
+    });
+    languageUsagesByBid.set(r.bookmarkId, list);
+  }
+
   const result = new Map<string, ConditionInput>();
   for (const row of baseRows) {
     result.set(row.id, {
@@ -296,6 +316,7 @@ async function buildConditionInputs(
       fileValues: filesByBid.get(row.id) ?? new Set(),
       textValues: textsByBid.get(row.id) ?? new Map(),
       relationshipTypeIds: relTypesByBid.get(row.id) ?? new Set(),
+      languageUsages: languageUsagesByBid.get(row.id) ?? [],
     });
   }
   return result;
