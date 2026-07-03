@@ -25,18 +25,40 @@ export function useBookBySlug(slug: string) {
   };
 }
 
+/** The Kavita linkage resolved for a bookmark's detail/deep-link display. */
+export interface BookmarkKavitaLink {
+  seriesId: number;
+  libraryId: number | null;
+  seriesName: string | null;
+}
+
 /**
- * The effective Kavita series id for a bookmark: the linked Book's `kavitaSeriesId` when a book is
- * linked and carries one, else the bookmark's legacy `kavitaSeriesId`. Powers the cover / ToC
- * import gates now that book selection flows through the Books taxonomy (mirrors the middleware's
- * `resolveBookmarkKavitaSeriesId`). Returns `null` when neither is available.
+ * The effective Kavita linkage for a bookmark: the linked Book's Kavita fields when a book is linked
+ * and carries them, else the bookmark's legacy `kavitaSeriesId`/`kavitaLibraryId`/`kavitaSeriesName`.
+ * Powers the cover / ToC import gates and the "View on Kavita" link-outs now that book selection
+ * flows through the Books taxonomy (mirrors the middleware's `resolveBookmarkKavitaSeriesId`).
+ * Returns `null` when neither is available.
  */
-export function useBookmarkKavitaSeriesId(bookmark: Bookmark): number | null {
+export function useBookmarkKavitaLink(bookmark: Bookmark): BookmarkKavitaLink | null {
   const {
     data,
   } = useBooks();
   const linkedBook = bookmark.bookId ? (data ?? []).find(item => item.id === bookmark.bookId) : undefined;
-  return linkedBook?.kavitaSeriesId ?? bookmark.kavitaSeriesId ?? null;
+  const seriesId = linkedBook?.kavitaSeriesId ?? bookmark.kavitaSeriesId ?? null;
+  if (seriesId === null) return null;
+  return {
+    seriesId,
+    libraryId: linkedBook?.kavitaLibraryId ?? bookmark.kavitaLibraryId ?? null,
+    seriesName: linkedBook?.kavitaSeriesName ?? bookmark.kavitaSeriesName ?? null,
+  };
+}
+
+/**
+ * The effective Kavita series id for a bookmark — the numeric-only projection of
+ * {@link useBookmarkKavitaLink}. Powers the cover / ToC import gates.
+ */
+export function useBookmarkKavitaSeriesId(bookmark: Bookmark): number | null {
+  return useBookmarkKavitaLink(bookmark)?.seriesId ?? null;
 }
 
 /** Invalidate every query whose rendering depends on book definitions. */

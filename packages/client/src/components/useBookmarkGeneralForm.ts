@@ -1,4 +1,4 @@
-import type { PlexItemSelection } from "./useBookmarkPlexItemField";
+import type { MediaSelection } from "./useBookmarkMediaField";
 import type { Bookmark, BookmarkUrlDuplicateResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 
 import { useRef, useState } from "react";
@@ -209,48 +209,22 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     );
   }
 
-  // The Book link lives outside the zod form state (immediate-save, like tags/authors), so the
-  // tab's Save-changes submit never touches it. Book selection now flows through the Books taxonomy
-  // (bookId) instead of a direct Kavita series link; cover/ToC resolve the series id from the Book.
-  function saveBook(bookId: string | null): void {
+  // The Media link lives outside the zod form state (immediate-save, like tags/authors), so the
+  // tab's Save-changes submit never touches it. Selection flows through one of the seven Media
+  // Properties taxonomy FKs (Book/Movie/TV Show/Episode/Album/Artist/Track) rather than a raw
+  // Kavita/Plex item; exactly one is ever set — selecting one clears the rest (the selection carries
+  // all-null baselines). Cover/ToC/deep-link features resolve through the linked taxonomy row.
+  function saveMedia(selection: MediaSelection): void {
     updateBookmark.mutate(
       {
         id: bookmark.id,
         input: {
-          bookId,
+          ...selection,
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Book"),
-        onError: e => notifyFieldSaveError("Book", describeError(e)),
-      },
-    );
-  }
-
-  // The Plex link also lives outside the zod form state (immediate-save, like the Book link). A
-  // selection is either a Plex-backed taxonomy title (movie/TV show/episode/album/artist/track FK;
-  // poster/deep-link resolve the rating key from the linked title) or a direct Plex item (the legacy
-  // plexRatingKey/plexItemType/plexItemTitle columns — for kinds with no taxonomy, e.g. a Season).
-  // Exactly one is ever set; selecting one clears the rest (the selection carries all-null baselines).
-  function savePlexItem(selection: PlexItemSelection): void {
-    updateBookmark.mutate(
-      {
-        id: bookmark.id,
-        input: {
-          movieId: selection.movieId,
-          tvShowId: selection.tvShowId,
-          episodeId: selection.episodeId,
-          albumId: selection.albumId,
-          artistId: selection.artistId,
-          trackId: selection.trackId,
-          plexRatingKey: selection.plexRatingKey,
-          plexItemType: selection.plexItemType,
-          plexItemTitle: selection.plexItemTitle,
-        },
-      },
-      {
-        onSuccess: () => notifyFieldSaved("Plex item"),
-        onError: e => notifyFieldSaveError("Plex item", describeError(e)),
+        onSuccess: () => notifyFieldSaved("Media"),
+        onError: e => notifyFieldSaveError("Media", describeError(e)),
       },
     );
   }
@@ -397,8 +371,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveBlacklistedTagIds,
     saveBlacklistedLocationIds,
     saveAuthors,
-    saveBook,
-    savePlexItem,
+    saveMedia,
     fetchTitle,
     fetchMetadata,
     websiteLookup,

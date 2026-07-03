@@ -30,24 +30,42 @@ export function useMovieBySlug(slug: string) {
   };
 }
 
-/** Find the linked row's `plexRatingKey` in one cached list, given the bookmark's FK for it. */
-function ratingKeyFrom(
-  fkId: string | null,
-  items: readonly { id: string;
-    plexRatingKey: string | null; }[] | undefined,
-): string | null {
-  if (!fkId) return null;
-  return (items ?? []).find(item => item.id === fkId)?.plexRatingKey ?? null;
+/** The minimal shape a Plex-backed taxonomy row contributes to the FK scan below. */
+interface PlexTaxoRow {
+  id: string;
+  name: string;
+  plexRatingKey: string | null;
 }
 
 /**
- * The effective Plex rating key for a bookmark: the linked Movie / TV Show / Episode / Album / Artist
- * / Track's `plexRatingKey` when one is linked and carries it, else the bookmark's legacy
- * `plexRatingKey`. Powers the "Use Plex poster" gate now that Plex-item selection flows through the
- * Plex-backed taxonomies (mirrors the middleware's `resolveBookmarkPlexRatingKey`). Returns `null`
- * when none is available.
+ * Find the linked row in one cached list, given the bookmark's FK for it — but only when that row
+ * actually carries a `plexRatingKey`. A found-but-unlinked-to-Plex row is treated as no match so the
+ * `??` scan falls through to the next FK (and eventually the bookmark's legacy columns), matching
+ * the original priority-chain behavior.
  */
-export function useBookmarkPlexRatingKey(bookmark: Bookmark): string | null {
+function linkedRowFrom(
+  fkId: string | null,
+  items: readonly PlexTaxoRow[] | undefined,
+): PlexTaxoRow | null {
+  if (!fkId) return null;
+  const row = (items ?? []).find(item => item.id === fkId);
+  return row?.plexRatingKey ? row : null;
+}
+
+/** The Plex linkage resolved for a bookmark's detail/deep-link/poster display. */
+export interface BookmarkPlexLink {
+  ratingKey: string;
+  title: string;
+}
+
+/**
+ * The effective Plex linkage for a bookmark: the linked Movie / TV Show / Episode / Album / Artist /
+ * Track's `plexRatingKey` + name when one is linked and carries it, else the bookmark's legacy
+ * `plexRatingKey`/`plexItemTitle`. Powers the "View on Plex" link-outs now that Plex-item selection
+ * flows through the Plex-backed taxonomies (mirrors the middleware's `resolveBookmarkPlexRatingKey`).
+ * Returns `null` when neither is available.
+ */
+export function useBookmarkPlexLink(bookmark: Bookmark): BookmarkPlexLink | null {
   const {
     data: movies,
   } = useMovies();
@@ -66,14 +84,33 @@ export function useBookmarkPlexRatingKey(bookmark: Bookmark): string | null {
   const {
     data: tracks,
   } = useTracks();
-  return ratingKeyFrom(bookmark.movieId, movies)
-    ?? ratingKeyFrom(bookmark.tvShowId, tvShows)
-    ?? ratingKeyFrom(bookmark.episodeId, episodes)
-    ?? ratingKeyFrom(bookmark.albumId, albums)
-    ?? ratingKeyFrom(bookmark.artistId, artists)
-    ?? ratingKeyFrom(bookmark.trackId, tracks)
-    ?? bookmark.plexRatingKey
-    ?? null;
+  const linked = linkedRowFrom(bookmark.movieId, movies)
+    ?? linkedRowFrom(bookmark.tvShowId, tvShows)
+    ?? linkedRowFrom(bookmark.episodeId, episodes)
+    ?? linkedRowFrom(bookmark.albumId, albums)
+    ?? linkedRowFrom(bookmark.artistId, artists)
+    ?? linkedRowFrom(bookmark.trackId, tracks);
+  if (linked?.plexRatingKey) {
+    return {
+      ratingKey: linked.plexRatingKey,
+      title: linked.name,
+    };
+  }
+  if (bookmark.plexRatingKey !== null) {
+    return {
+      ratingKey: bookmark.plexRatingKey,
+      title: bookmark.plexItemTitle ?? `Item ${bookmark.plexRatingKey}`,
+    };
+  }
+  return null;
+}
+
+/**
+ * The effective Plex rating key for a bookmark — the string-only projection of
+ * {@link useBookmarkPlexLink}. Powers the "Use Plex poster" gate.
+ */
+export function useBookmarkPlexRatingKey(bookmark: Bookmark): string | null {
+  return useBookmarkPlexLink(bookmark)?.ratingKey ?? null;
 }
 
 /** Invalidate every query whose rendering depends on movie definitions. */
