@@ -50,7 +50,9 @@ export function BookmarkTitleLink({
  * The placeable `romanizedName` card field: the **secondary** of the title / romanized pair per the
  * global "Show Romanized by default" toggle (romanized when the toggle is off, the native title when
  * it's on), de-emphasized. Renders nothing when there is no romanized value. Owns its own
- * `useShowRomanizedByDefault` hook so it stays out of `BookmarkCardDetails`'s hook count.
+ * `useShowRomanizedByDefault` hook so it stays out of `BookmarkCardDetails`'s hook count. Wraps onto
+ * multiple lines (`wrap-break-word`, matching the title link) rather than truncating, so a long
+ * romanized title stays fully readable on a card instead of being clipped to a single line.
  */
 export function BookmarkRomanizedField({
   bookmark,
@@ -60,7 +62,7 @@ export function BookmarkRomanizedField({
     secondary,
   } = orderRomanized(bookmark.title, bookmark.romanizedName, showRomanizedFirst);
   if (!secondary) return null;
-  return <span className="truncate text-sm text-muted-foreground">{secondary}</span>;
+  return <span className="text-sm wrap-break-word text-muted-foreground">{secondary}</span>;
 }
 
 /**
