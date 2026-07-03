@@ -1,14 +1,12 @@
-import type { TagNode } from "@eesimple/types";
+import type { Tag, TagNode } from "@eesimple/types";
 import type React from "react";
 
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 
+import { AddTagModal } from "./AddTagModal";
 import { tagSchema } from "./tagFormSchema";
 import { useAppForm } from "../lib/form";
-import { flattenTree } from "../lib/tagTree";
-
-/** Sentinel for the "(root)" option, since Radix Select forbids an empty-string value. */
-const ROOT = "__root__";
+import { tagNodesToOptions } from "../lib/tagTree";
 
 interface TagFormProps {
   /** Full tag tree, used to build the parent select options. */
@@ -51,25 +49,14 @@ export function TagForm({
   SubmitWrapper = Fragment,
   onSubmit,
 }: TagFormProps) {
-  const parentOptions = [
-    {
-      value: ROOT,
-      label: "(root)",
-    },
-    ...flattenTree(allTags)
-      .filter(item => !forbiddenIds?.has(item.node.id))
-      .map(item => ({
-        value: item.node.id,
-        label: `${"– ".repeat(item.depth)}${item.node.name}`,
-        romanized: item.node.romanizedName,
-      })),
-  ];
+  const [addTagOpen, setAddTagOpen] = useState(false);
+  const parentOptions = tagNodesToOptions(allTags, forbiddenIds);
 
   const form = useAppForm({
     defaultValues: {
       name: defaultName,
       romanizedName: "",
-      parent: defaultParentId ?? ROOT,
+      parent: defaultParentId ?? "",
     },
     validators: {
       onChange: tagSchema,
@@ -81,11 +68,10 @@ export function TagForm({
         name: value.name.trim(),
         romanizedName: value.romanizedName.trim() || null,
         // With the parent select hidden, honor the fixed `defaultParentId` (used by the header's
-        // "New sub-X" quick-add); otherwise read the chosen parent, treating ROOT as null.
+        // "New sub-X" quick-add); otherwise read the chosen parent, treating "" (root) as null.
         parentId: !showParent
           ? (defaultParentId ?? null)
-          // ComboboxField can clear to "" (re-selecting the active option); treat that as "(root)".
-          : value.parent === ROOT || value.parent === "" ? null : value.parent,
+          : value.parent || null,
       });
     },
   });
@@ -119,17 +105,33 @@ export function TagForm({
 
       {showParent
         ? (
-          <form.AppField name="parent">
-            {field => (
-              <field.ComboboxField
-                label="Parent"
-                options={parentOptions}
-                placeholder="Choose a parent"
-                searchPlaceholder="Search tags…"
-                emptyText="No tags found."
-              />
-            )}
-          </form.AppField>
+          <>
+            <form.AppField name="parent">
+              {field => (
+                <field.TreeComboboxField
+                  label="Parent"
+                  options={parentOptions}
+                  placeholder="Choose a parent"
+                  searchPlaceholder="Search tags…"
+                  emptyText="No tags found."
+                  leadingOption={{
+                    value: "",
+                    label: "(root)",
+                  }}
+                  createOption={{
+                    label: "Create tag",
+                    onSelect: () => setAddTagOpen(true),
+                  }}
+                />
+              )}
+            </form.AppField>
+
+            <AddTagModal
+              open={addTagOpen}
+              onOpenChange={setAddTagOpen}
+              onCreated={(tag: Tag) => form.setFieldValue("parent", tag.id)}
+            />
+          </>
         )
         : null}
 
