@@ -299,6 +299,7 @@ export function makePublisher(overrides: Partial<Publisher> = {}): Publisher {
     slug: "publisher",
     websiteId: null,
     website: null,
+    mediaPropertyId: null,
     createdAt: NOW,
     bookmarkCount: 0,
     socialLinks: [],

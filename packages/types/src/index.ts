@@ -649,6 +649,8 @@ export interface Publisher {
   website?: { id: string;
     domain: string;
     siteName: string; } | null;
+  /** Id of the media property (franchise/IP grouping) this publisher belongs to, or null. */
+  mediaPropertyId: string | null;
   /** ISO-8601 timestamp of when the publisher was created. */
   createdAt: string;
   /** Distinct bookmarks with this publisher (populated by list endpoints). */
@@ -666,6 +668,8 @@ export interface CreatePublisherInput {
   romanizedName?: string | null;
   /** Id of the website to associate with this publisher; null to leave unset. */
   websiteId?: string | null;
+  /** Id of the media property to group this publisher under; null to leave unset. */
+  mediaPropertyId?: string | null;
 }
 
 /** Payload for updating a publisher. */
@@ -674,6 +678,8 @@ export interface UpdatePublisherInput {
   romanizedName?: string | null;
   /** Id of the website to associate with this publisher; null to clear it. */
   websiteId?: string | null;
+  /** Id of the media property to group this publisher under; null to clear it. */
+  mediaPropertyId?: string | null;
   /** Social media links for this publisher. Replaces the full list; omit to leave unchanged. */
   socialLinks?: SocialLink[];
 }

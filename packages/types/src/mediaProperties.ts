@@ -14,6 +14,8 @@ export interface MediaProperty {
   createdAt: string;
   /** Number of books that belong to this media property (populated by list endpoints). */
   bookCount?: number;
+  /** Number of publishers that belong to this media property (populated by list endpoints). */
+  publisherCount?: number;
 }
 
 /** Payload for creating a media property. */

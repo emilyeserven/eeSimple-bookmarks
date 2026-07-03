@@ -7,6 +7,7 @@ import { mediaPropertiesApi } from "../lib/api/taxonomies";
 
 const MEDIA_PROPERTIES_KEY = ["media-properties"] as const;
 const BOOKS_KEY = ["books"] as const;
+const PUBLISHERS_KEY = ["publishers"] as const;
 
 export function useMediaProperties() {
   return useQuery({
@@ -34,6 +35,10 @@ function useInvalidateMediaPropertyConsumers() {
     // A media property's name/existence surfaces on its member books.
     void queryClient.invalidateQueries({
       queryKey: BOOKS_KEY,
+    });
+    // …and on its member publishers.
+    void queryClient.invalidateQueries({
+      queryKey: PUBLISHERS_KEY,
     });
   };
 }

@@ -34,6 +34,7 @@ function toPublisher(
     slug: row.slug ?? slugify(row.name),
     websiteId: row.websiteId,
     website: website ?? null,
+    mediaPropertyId: row.mediaPropertyId,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount,
     socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
@@ -122,6 +123,7 @@ export async function createPublisher(input: CreatePublisherInput): Promise<Publ
       romanizedName: input.romanizedName ?? null,
       slug,
       websiteId: input.websiteId ?? null,
+      mediaPropertyId: input.mediaPropertyId ?? null,
     })
     .returning();
   return getPublisherById(row.id) as Promise<Publisher>;
@@ -159,6 +161,9 @@ export async function updatePublisher(id: string, input: UpdatePublisherInput): 
   }
   if ("websiteId" in input) {
     updates.websiteId = input.websiteId ?? null;
+  }
+  if ("mediaPropertyId" in input) {
+    updates.mediaPropertyId = input.mediaPropertyId ?? null;
   }
   if ("socialLinks" in input) {
     updates.socialLinks = input.socialLinks ?? [];

@@ -49,6 +49,10 @@ const createPublisherBody = {
       type: ["string", "null"],
       format: "uuid",
     },
+    mediaPropertyId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
   },
 } as const;
 

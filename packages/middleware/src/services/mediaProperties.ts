@@ -7,7 +7,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { books, mediaProperties, type MediaPropertyRow } from "@/db/schema";
+import { books, mediaProperties, type MediaPropertyRow, publishers } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -20,7 +20,10 @@ export class DuplicateMediaPropertyError extends Error {
 }
 
 /** Map a DB row to the shared `MediaProperty` wire type. */
-function toMediaProperty(row: MediaPropertyRow & { bookCount?: number }): MediaProperty {
+function toMediaProperty(
+  row: MediaPropertyRow & { bookCount?: number;
+    publisherCount?: number; },
+): MediaProperty {
   return {
     id: row.id,
     name: row.name,
@@ -29,6 +32,7 @@ function toMediaProperty(row: MediaPropertyRow & { bookCount?: number }): MediaP
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookCount: row.bookCount,
+    publisherCount: row.publisherCount,
   };
 }
 
@@ -46,6 +50,7 @@ export async function listMediaProperties(): Promise<MediaProperty[]> {
       sortOrder: mediaProperties.sortOrder,
       createdAt: mediaProperties.createdAt,
       bookCount: db.$count(books, eq(books.mediaPropertyId, mediaProperties.id)),
+      publisherCount: db.$count(publishers, eq(publishers.mediaPropertyId, mediaProperties.id)),
     })
     .from(mediaProperties)
     .orderBy(asc(mediaProperties.sortOrder), asc(mediaProperties.name));

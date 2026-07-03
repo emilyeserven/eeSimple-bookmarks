@@ -399,6 +399,10 @@ export const publishers = pgTable("publishers", {
   websiteId: uuid("website_id").references((): AnyPgColumn => websites.id, {
     onDelete: "set null",
   }),
+  // Optional franchise/IP grouping. set null when the media property is deleted. Nullable → push-safe.
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
   // Social media profile links. NOT NULL; pre-applied in migrate.ts.
   socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at", {
