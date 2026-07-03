@@ -12,15 +12,18 @@ import { Label } from "@/components/ui/label";
 interface SourceDefaultFieldsProps {
   /** Initial selected ids — the component owns the picker display state from here on. */
   initialCategoryId: string | null;
-  initialMediaTypeId: string | null;
   categoryOptions: ComboboxOption[];
-  mediaTypeOptions: TreeComboboxOption[];
   /** Persist the new default when the picker value changes. */
   onCategoryChange: (id: string | null) => void;
-  onMediaTypeChange: (id: string | null) => void;
   /** Footer note explaining the auto-apply behavior (copy differs per source). */
   note: string;
   categoryLabel?: string;
+  /** Set to `false` to omit the media-type picker entirely (e.g. YouTube channels, which have no
+   * default-media-type concept). Defaults to `true`. */
+  showMediaType?: boolean;
+  initialMediaTypeId?: string | null;
+  mediaTypeOptions?: TreeComboboxOption[];
+  onMediaTypeChange?: (id: string | null) => void;
   mediaTypeLabel?: string;
 }
 
@@ -33,13 +36,14 @@ interface SourceDefaultFieldsProps {
  */
 export function SourceDefaultFields({
   initialCategoryId,
-  initialMediaTypeId,
   categoryOptions,
-  mediaTypeOptions,
   onCategoryChange,
-  onMediaTypeChange,
   note,
   categoryLabel = "Category",
+  showMediaType = true,
+  initialMediaTypeId = null,
+  mediaTypeOptions = [],
+  onMediaTypeChange,
   mediaTypeLabel = "Media type",
 }: SourceDefaultFieldsProps) {
   const categoryFieldId = useId();
@@ -71,25 +75,31 @@ export function SourceDefaultFields({
       </div>
       {categoryCreate.modal}
 
-      <div className="space-y-1">
-        <Label htmlFor={mediaTypeFieldId}>{mediaTypeLabel}</Label>
-        <TreeCombobox
-          id={mediaTypeFieldId}
-          aria-label={mediaTypeLabel}
-          options={mediaTypeOptions}
-          value={mediaTypeId || undefined}
-          placeholder="No media type"
-          searchPlaceholder="Search media types…"
-          emptyText="No media types found."
-          createOption={mediaTypeCreate.createOption}
-          onValueChange={(value) => {
-            const id = value || null;
-            setMediaTypeId(id);
-            onMediaTypeChange(id);
-          }}
-        />
-      </div>
-      {mediaTypeCreate.modal}
+      {showMediaType
+        ? (
+          <>
+            <div className="space-y-1">
+              <Label htmlFor={mediaTypeFieldId}>{mediaTypeLabel}</Label>
+              <TreeCombobox
+                id={mediaTypeFieldId}
+                aria-label={mediaTypeLabel}
+                options={mediaTypeOptions}
+                value={mediaTypeId || undefined}
+                placeholder="No media type"
+                searchPlaceholder="Search media types…"
+                emptyText="No media types found."
+                createOption={mediaTypeCreate.createOption}
+                onValueChange={(value) => {
+                  const id = value || null;
+                  setMediaTypeId(id);
+                  onMediaTypeChange?.(id);
+                }}
+              />
+            </div>
+            {mediaTypeCreate.modal}
+          </>
+        )
+        : null}
       <p className="text-sm text-muted-foreground">{note}</p>
     </>
   );

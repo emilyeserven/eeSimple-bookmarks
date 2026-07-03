@@ -9,6 +9,7 @@ import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateGroup } from "../hooks/useGroups";
 import { useGroupTypes } from "../hooks/useGroupTypes";
 import { useWebsites } from "../hooks/useWebsites";
+import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { useAppForm } from "../lib/form";
 import { socialLinkSchema } from "../lib/socialLinks";
 
@@ -26,6 +27,7 @@ const LABELS: Partial<Record<keyof UpdateGroupInput, string>> = {
   websiteId: "Website",
   groupTypeId: "Group type",
   socialLinks: "Social media links",
+  youtubeChannelIds: "YouTube channels",
 };
 
 /**
@@ -42,6 +44,9 @@ export function useGroupGeneralForm(group: Group) {
   const {
     data: groupTypes,
   } = useGroupTypes();
+  const {
+    data: youtubeChannels,
+  } = useYouTubeChannels();
 
   const autoSave = useFieldAutoSave<UpdateGroupInput, Group>({
     id: group.id,
@@ -53,6 +58,7 @@ export function useGroupGeneralForm(group: Group) {
       websiteId: group.websiteId ?? null,
       groupTypeId: group.groupTypeId ?? null,
       socialLinks: group.socialLinks,
+      youtubeChannelIds: group.youtubeChannelIds,
     },
   });
 
@@ -115,5 +121,6 @@ export function useGroupGeneralForm(group: Group) {
     websiteCreate,
     groupTypeOptions,
     groupTypeCreate,
+    youtubeChannels: youtubeChannels ?? [],
   };
 }

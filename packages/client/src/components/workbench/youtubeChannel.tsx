@@ -11,6 +11,7 @@ import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsage
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
 import { YouTubeChannelGeneralForm } from "../YouTubeChannelGeneralForm";
 
+import { useGroups } from "@/hooks/useGroups";
 import { useDeleteYouTubeChannel, useYouTubeChannelBySlug, useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 
 function YouTubeChannelGeneralView({
@@ -18,6 +19,11 @@ function YouTubeChannelGeneralView({
 }: {
   entity: YouTubeChannel;
 }) {
+  const {
+    data: groups,
+  } = useGroups();
+  const connectedGroups = (groups ?? []).filter(group => (ch.groupIds ?? []).includes(group.id));
+
   return (
     <div className="space-y-4">
       <EntityImagePreview
@@ -46,11 +52,18 @@ function YouTubeChannelGeneralView({
             </>
           )
           : null}
+        {connectedGroups.length > 0
+          ? (
+            <>
+              <dt className="text-muted-foreground">Groups</dt>
+              <dd>{connectedGroups.map(group => group.name).join(", ")}</dd>
+            </>
+          )
+          : null}
       </dl>
       <SourceAutofillDefaults
         kind="channel"
         category={ch.category}
-        mediaTypeId={ch.mediaTypeId}
         tagIds={ch.tagIds}
       />
     </div>

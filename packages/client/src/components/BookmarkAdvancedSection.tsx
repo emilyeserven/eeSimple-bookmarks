@@ -34,14 +34,18 @@ export interface SourceDefaults {
   label: string | null;
   /** Whether to offer "set as default" for category/tags (source is new). */
   showSourceDefault: boolean;
-  /** Whether to offer "set as default media type" (source has no default media type yet). */
+  /**
+   * Whether to offer "set as default media type" (source has no default media type yet). Always
+   * `false` for a YouTube channel source — channels have no default-media-type concept, only
+   * websites do — in which case `setMediaType`/`onSetMediaType` are omitted.
+   */
   showMediaTypeDefault: boolean;
   setCategory: boolean;
   setTags: boolean;
-  setMediaType: boolean;
+  setMediaType?: boolean;
   onSetCategory: (v: boolean) => void;
   onSetTags: (v: boolean) => void;
-  onSetMediaType: (v: boolean) => void;
+  onSetMediaType?: (v: boolean) => void;
 }
 
 /** The custom-property field state + handlers, grouped so the section's prop list stays cohesive. */

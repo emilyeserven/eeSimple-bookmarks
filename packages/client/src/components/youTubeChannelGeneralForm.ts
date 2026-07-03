@@ -10,9 +10,9 @@ export const CHANNEL_LABELS: Partial<Record<keyof UpdateYouTubeChannelInput, str
   name: "Name",
   selfIds: "Self-identifiers",
   categoryId: "Category",
-  mediaTypeId: "Media type",
   tagIds: "Default tags",
   websiteIds: "Websites",
+  groupIds: "Groups",
 };
 
 /** The autosave snapshot for a channel's editable fields, with nullable defaults applied. */
@@ -21,8 +21,8 @@ export function channelAutoSaveInitial(channel: YouTubeChannel): UpdateYouTubeCh
     name: channel.name,
     selfIds: channel.selfIds,
     categoryId: channel.category?.id ?? null,
-    mediaTypeId: channel.mediaTypeId ?? null,
     tagIds: channel.tagIds ?? [],
     websiteIds: channel.websiteIds ?? [],
+    groupIds: channel.groupIds ?? [],
   };
 }

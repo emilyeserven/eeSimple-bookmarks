@@ -13,7 +13,6 @@ export function useSourceDefaultFlags() {
   const [setWebsiteMediaType, setSetWebsiteMediaType] = useState(false);
   const [setChannelCategory, setSetChannelCategory] = useState(false);
   const [setChannelTags, setSetChannelTags] = useState(false);
-  const [setChannelMediaType, setSetChannelMediaType] = useState(false);
 
   function resetFlags(): void {
     setSetWebsiteCategory(false);
@@ -21,7 +20,6 @@ export function useSourceDefaultFlags() {
     setSetWebsiteMediaType(false);
     setSetChannelCategory(false);
     setSetChannelTags(false);
-    setSetChannelMediaType(false);
   }
 
   return {
@@ -30,13 +28,11 @@ export function useSourceDefaultFlags() {
     setWebsiteMediaType,
     setChannelCategory,
     setChannelTags,
-    setChannelMediaType,
     setSetWebsiteCategory,
     setSetWebsiteTags,
     setSetWebsiteMediaType,
     setSetChannelCategory,
     setSetChannelTags,
-    setSetChannelMediaType,
     resetFlags,
   };
 }

@@ -42,7 +42,6 @@ import {
   captureYouTubeThumbnail,
   channelHintFrom,
   getChannelCategoryId,
-  getChannelMediaTypeId,
   getChannelTagIds,
   resolveYouTubeMeta,
   videoMediaTypeId,
@@ -491,17 +490,13 @@ async function mergeCreateLocationIds(input: CreateBookmarkInput): Promise<strin
   return [...new Set([...(input.locationIds ?? []), ...titleLocationIds])];
 }
 
-/** Media-type precedence: user-provided > channel default > website default > "Video" (YouTube). */
+/** Media-type precedence: user-provided > website default > "Video" (YouTube). */
 async function resolveCreateMediaTypeId(
   input: CreateBookmarkInput,
-  channelHint: ChannelHint,
   siteData: SiteData,
   meta: YouTubeMeta,
 ): Promise<string | null> {
   let mediaTypeId = input.mediaTypeId ?? null;
-  if (!mediaTypeId && channelHint) {
-    mediaTypeId = await getChannelMediaTypeId(channelHint.key);
-  }
   if (!mediaTypeId && siteData?.mediaTypeId) {
     mediaTypeId = siteData.mediaTypeId;
   }
@@ -540,7 +535,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   const categoryId = await resolveCreateCategoryId(input, defaultId, channelHint, siteData);
   const mergedTagIds = await mergeCreateTagIds(input, channelHint, siteData);
   const mergedLocationIds = await mergeCreateLocationIds(input);
-  const mediaTypeId = await resolveCreateMediaTypeId(input, channelHint, siteData, meta);
+  const mediaTypeId = await resolveCreateMediaTypeId(input, siteData, meta);
 
   const numberValues = await withRuntime(input.numberValues ?? [], meta, "create");
   const dateTimeValues = await withDatePosted(input.dateTimeValues ?? [], meta, "create");

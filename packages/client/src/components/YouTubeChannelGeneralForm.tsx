@@ -3,6 +3,7 @@ import type { YouTubeChannel } from "@eesimple/types";
 import { channelUrlFromKey } from "@eesimple/types";
 import { MonitorPlay } from "lucide-react";
 
+import { ChannelGroupsField } from "./ChannelGroupsField";
 import { ChannelWebsitesField } from "./ChannelWebsitesField";
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
@@ -25,7 +26,7 @@ export function YouTubeChannelGeneralForm({
   const {
     form, avatarBusy, selfIds, newSelfId, setNewSelfId, tagIds,
     saveField, saveName, addSelfId, removeSelfId, toggleTag,
-    uploadAvatar, autoAvatar, deleteAvatar, categoryOptions, mediaTypeOptions, tagTree, websites,
+    uploadAvatar, autoAvatar, deleteAvatar, categoryOptions, tagTree, websites, groups,
   } = useYouTubeChannelGeneralForm(channel);
 
   // Register the header "Sync from source" button (preview + re-fetch the channel avatar).
@@ -72,12 +73,10 @@ export function YouTubeChannelGeneralForm({
 
       <SourceDefaultFields
         initialCategoryId={channel.category?.id ?? null}
-        initialMediaTypeId={channel.mediaTypeId ?? null}
         categoryOptions={categoryOptions}
-        mediaTypeOptions={mediaTypeOptions}
         onCategoryChange={id => saveField("categoryId", id)}
-        onMediaTypeChange={id => saveField("mediaTypeId", id)}
-        note="Media type applied automatically to bookmarks saved from this channel."
+        showMediaType={false}
+        note="Category applied automatically to bookmarks saved from this channel."
       />
 
       <Separator />
@@ -106,6 +105,14 @@ export function YouTubeChannelGeneralForm({
         websites={websites}
         selectedIds={channel.websiteIds ?? []}
         onChange={ids => saveField("websiteIds", ids)}
+      />
+
+      <Separator />
+
+      <ChannelGroupsField
+        groups={groups}
+        selectedIds={channel.groupIds ?? []}
+        onChange={ids => saveField("groupIds", ids)}
       />
 
       <Separator />

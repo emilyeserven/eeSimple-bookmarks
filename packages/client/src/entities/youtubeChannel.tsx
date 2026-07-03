@@ -41,13 +41,6 @@ export const YOUTUBE_CHANNEL_PALETTE: EntityPaletteConfig = {
       options: "categories",
       getValue: entity => (entity as YouTubeChannel).category?.id ?? null,
     },
-    {
-      type: "choice",
-      key: "mediaTypeId",
-      label: "Default Media Type",
-      options: "media-types",
-      getValue: entity => (entity as YouTubeChannel).mediaTypeId ?? null,
-    },
   ],
 };
 

@@ -838,10 +838,10 @@ export interface YouTubeChannel {
   category?: YouTubeChannelCategory | null;
   /** Default tag ids applied to bookmarks saved from this channel. */
   tagIds?: string[];
-  /** Default media type id applied to new bookmarks saved from this channel, or `null` when unset. */
-  mediaTypeId?: string | null;
   /** Ids of websites this channel is associated with. Populated by list/get endpoints. */
   websiteIds?: string[];
+  /** Ids of groups this channel is associated with. Populated by list/get endpoints. */
+  groupIds?: string[];
   /** Languages associated with this channel, each qualified by a usage level. Populated by get endpoints. */
   languageUsages?: LanguageUsage[];
 }
@@ -879,10 +879,10 @@ export interface UpdateYouTubeChannelInput {
   categoryId?: string | null;
   /** Full replacement list of default tag ids. Omit to leave unchanged. */
   tagIds?: string[];
-  /** Default media type to apply to new bookmarks from this channel. `null` clears it; omit to leave unchanged. */
-  mediaTypeId?: string | null;
   /** Full replacement list of associated website ids. Omit to leave unchanged. */
   websiteIds?: string[];
+  /** Full replacement list of associated group ids. Omit to leave unchanged. */
+  groupIds?: string[];
 }
 
 /**
