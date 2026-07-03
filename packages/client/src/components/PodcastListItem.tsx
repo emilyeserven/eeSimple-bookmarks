@@ -7,6 +7,7 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
+import { useEntityImage } from "@/hooks/useEntityImage";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /**
@@ -29,6 +30,10 @@ export function PodcastListItem({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const {
+    showImage,
+    onError,
+  } = useEntityImage(podcast.imageUrl);
 
   return (
     <StandardListingCard
@@ -36,7 +41,25 @@ export function PodcastListItem({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
-      icon={<PodcastIcon className="size-5 shrink-0 text-muted-foreground" />}
+      icon={(
+        <span
+          className="
+            flex size-8 shrink-0 items-center justify-center overflow-hidden
+            rounded-sm bg-muted text-muted-foreground
+          "
+        >
+          {showImage
+            ? (
+              <img
+                src={podcast.imageUrl ?? undefined}
+                alt=""
+                className="size-full object-contain"
+                onError={onError}
+              />
+            )
+            : <PodcastIcon className="size-4" />}
+        </span>
+      )}
       title={podcast.name}
       subtitle={podcast.author ?? undefined}
       count={podcast.bookmarkCount}

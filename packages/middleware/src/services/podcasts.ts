@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreatePodcastInput,
@@ -8,7 +8,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { bookmarks, podcasts, type PodcastRow } from "@/db/schema";
+import { bookmarks, podcasts, taxonomyImages, type PodcastRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -20,8 +20,22 @@ export class DuplicatePodcastError extends Error {
   }
 }
 
+/** Build the same versioned URL `taxonomyImageFromRow` produces, from just the id/createdAt. */
+function mainImageUrl(image: { id: string;
+  createdAt: Date | string; } | null): string | null {
+  if (!image) return null;
+  const created = image.createdAt instanceof Date ? image.createdAt : new Date(image.createdAt);
+  return `/api/taxonomy-images/${image.id}?v=${created.getTime()}`;
+}
+
 /** Map a DB row to the shared `Podcast` wire type. */
-function toPodcast(row: PodcastRow & { bookmarkCount?: number }): Podcast {
+function toPodcast(
+  row: PodcastRow & {
+    bookmarkCount?: number;
+    mainImage?: { id: string;
+      createdAt: Date | string; } | null;
+  },
+): Podcast {
   return {
     id: row.id,
     name: row.name,
@@ -41,6 +55,7 @@ function toPodcast(row: PodcastRow & { bookmarkCount?: number }): Podcast {
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
+    imageUrl: mainImageUrl(row.mainImage ?? null),
   };
 }
 
@@ -93,10 +108,25 @@ export async function listPodcasts(): Promise<Podcast[]> {
       description: podcasts.description,
       createdAt: podcasts.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.podcastId, podcasts.id)),
+      mainImage: {
+        id: taxonomyImages.id,
+        createdAt: taxonomyImages.createdAt,
+      },
     })
     .from(podcasts)
+    .leftJoin(
+      taxonomyImages,
+      and(
+        eq(taxonomyImages.ownerType, "podcast"),
+        eq(taxonomyImages.ownerId, podcasts.id),
+        eq(taxonomyImages.isMain, true),
+      ),
+    )
     .orderBy(asc(podcasts.sortOrder), asc(podcasts.name));
-  return rows.map(toPodcast);
+  return rows.map(row => toPodcast({
+    ...row,
+    mainImage: row.mainImage?.id ? row.mainImage : null,
+  }));
 }
 
 /** Fetch a single podcast by id, or `null` when it doesn't exist. */
