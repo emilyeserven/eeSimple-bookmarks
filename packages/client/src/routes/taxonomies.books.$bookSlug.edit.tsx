@@ -12,6 +12,10 @@ const editNav = [
     to: "/taxonomies/books/$bookSlug/edit/general",
     label: "General",
   },
+  {
+    to: "/taxonomies/books/$bookSlug/edit/image",
+    label: "Image",
+  },
 ] as const;
 
 function BookEditLayout() {

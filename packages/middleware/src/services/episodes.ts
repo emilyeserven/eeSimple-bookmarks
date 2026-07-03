@@ -24,12 +24,14 @@ function toEpisode(row: EpisodeRow & { bookmarkCount?: number }): Episode {
   return {
     id: row.id,
     name: row.name,
+    romanizedName: row.romanizedName ?? null,
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
     mediaPropertyId: row.mediaPropertyId ?? null,
     tvShowId: row.tvShowId ?? null,
     plexRatingKey: row.plexRatingKey ?? null,
     plexItemType: row.plexItemType ?? null,
+    plexItemTitle: row.plexItemTitle ?? null,
     year: row.year ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -44,7 +46,7 @@ const takenSlugs = (excludeId?: string) =>
 /** The Plex/media-property/parent columns settable on create and patchable on update. */
 type EpisodeDataColumns = Pick<
   EpisodeRow,
-  "mediaPropertyId" | "tvShowId" | "plexRatingKey" | "plexItemType" | "year"
+  "mediaPropertyId" | "tvShowId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year" | "romanizedName"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -54,7 +56,9 @@ function dataFromInput(input: CreateEpisodeInput | UpdateEpisodeInput): Partial<
   if (input.tvShowId !== undefined) patch.tvShowId = input.tvShowId ?? null;
   if (input.plexRatingKey !== undefined) patch.plexRatingKey = input.plexRatingKey ?? null;
   if (input.plexItemType !== undefined) patch.plexItemType = input.plexItemType ?? null;
+  if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
   if (input.year !== undefined) patch.year = input.year ?? null;
+  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   return patch;
 }
 
@@ -64,12 +68,14 @@ export async function listEpisodes(): Promise<Episode[]> {
     .select({
       id: episodes.id,
       name: episodes.name,
+      romanizedName: episodes.romanizedName,
       slug: episodes.slug,
       sortOrder: episodes.sortOrder,
       mediaPropertyId: episodes.mediaPropertyId,
       tvShowId: episodes.tvShowId,
       plexRatingKey: episodes.plexRatingKey,
       plexItemType: episodes.plexItemType,
+      plexItemTitle: episodes.plexItemTitle,
       year: episodes.year,
       createdAt: episodes.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.episodeId, episodes.id)),

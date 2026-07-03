@@ -8,7 +8,9 @@ import {
   listTvShows,
   updateTvShow,
 } from "@/services/tvShows";
+import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const tvShowParams = {
   type: "object",
@@ -36,8 +38,14 @@ const tvShowDataFields = {
   plexItemType: {
     type: ["string", "null"],
   },
+  plexItemTitle: {
+    type: ["string", "null"],
+  },
   year: {
     type: ["integer", "null"],
+  },
+  romanizedName: {
+    type: ["string", "null"],
   },
 } as const;
 
@@ -138,4 +146,15 @@ export async function tvShowRoutes(app: FastifyInstance): Promise<void> {
     });
     return reply.code(204).send();
   });
+
+  registerTaxonomyImageRoutes(app, "/api/tv-shows", "tvShow", "tv-shows", [
+    {
+      path: "plex-poster",
+      run: id => importPlexPosterForTaxonomy("tvShow", id),
+      errorMessages: {
+        not_linked: "TV show is not linked to a Plex item",
+        poster_unavailable: "Could not fetch the poster from Plex",
+      },
+    },
+  ]);
 }

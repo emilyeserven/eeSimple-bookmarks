@@ -7,6 +7,8 @@ export interface Book {
   id: string;
   /** Display name. Unique. */
   name: string;
+  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
+  romanizedName?: string | null;
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
   /** Display ordering weight; lower sorts first. */
@@ -19,7 +21,9 @@ export interface Book {
   kavitaLibraryId: number | null;
   /** Denormalized Kavita series name for display without a Kavita round-trip. */
   kavitaSeriesName: string | null;
-  /** Optional release year surfaced by the Kavita search. */
+  /** ISBN/ASIN, captured from the Add form's ISBN lookup or entered by hand. Powers re-fetching a cover. */
+  isbn: string | null;
+  /** Optional release year surfaced by the Kavita search or ISBN lookup. */
   releaseYear: number | null;
   /** ISO-8601 timestamp of when the book was created. */
   createdAt: string;
@@ -30,21 +34,25 @@ export interface Book {
 /** Payload for creating a book. */
 export interface CreateBookInput {
   name: string;
+  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   kavitaSeriesId?: number | null;
   kavitaLibraryId?: number | null;
   kavitaSeriesName?: string | null;
+  isbn?: string | null;
   releaseYear?: number | null;
 }
 
 /** Payload for updating a book (rename, reorder, re-link Kavita/media property). */
 export interface UpdateBookInput {
   name?: string;
+  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   kavitaSeriesId?: number | null;
   kavitaLibraryId?: number | null;
   kavitaSeriesName?: string | null;
+  isbn?: string | null;
   releaseYear?: number | null;
 }

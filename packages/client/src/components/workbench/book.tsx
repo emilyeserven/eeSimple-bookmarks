@@ -3,6 +3,7 @@ import type { EntityWorkbench } from "./types";
 import type { Book } from "@eesimple/types";
 
 import { BookGeneralForm } from "../BookGeneralForm";
+import { BookImageTab } from "../BookImageTab";
 
 import { useBookBySlug, useBooks, useDeleteBook } from "@/hooks/useBooks";
 import { useConnectors } from "@/hooks/useConnectors";
@@ -137,6 +138,29 @@ export const bookWorkbench: EntityWorkbench<Book> = {
         render: ({
           entity,
         }) => <BookGeneralForm book={entity} />,
+      },
+    },
+    {
+      key: "image",
+      label: "Image",
+      view: {
+        title: "Image",
+        description: "The book's cover image.",
+        render: ({
+          entity,
+        }) => (
+          <BookImageTab
+            book={entity}
+            readOnly
+          />
+        ),
+      },
+      edit: {
+        title: "Image",
+        description: "Upload a cover, or pull it from Kavita or the book's ISBN.",
+        render: ({
+          entity,
+        }) => <BookImageTab book={entity} />,
       },
     },
   ],

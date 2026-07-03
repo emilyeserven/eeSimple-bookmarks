@@ -13,14 +13,15 @@
  * from the item's own metadata — never a client value.
  */
 
-import type { PlexItemResult } from "@eesimple/types";
+import type { PlexItemResult, TaxonomyImageOwnerType } from "@eesimple/types";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { bookmarks } from "@/db/schema";
+import { albums, artists, bookmarks, episodes, movies, tracks, tvShows } from "@/db/schema";
 import { getActivePlexEndpoint, getDecryptedPlexToken } from "@/services/appSettings";
 import { addBookmarkImage } from "@/services/bookmarkImages";
 import { resolveBookmarkPlexRatingKey } from "@/services/movies";
+import { addTaxonomyImage, type AddTaxonomyImageResult } from "@/services/taxonomyImages";
 
 const PLEX_TIMEOUT_MS = 10000;
 // /identity is polled indirectly by the frequently-called /api/connectors endpoint; keep it snappy
@@ -285,6 +286,48 @@ export async function importPlexPoster(bookmarkId: string): Promise<PlexPosterIm
   const bytes = await fetchPlexPoster(ratingKey);
   if (!bytes) return "poster_unavailable";
   return addBookmarkImage(bookmarkId, bytes, "og", {
+    setMain: true,
+  });
+}
+
+/** The Plex-backed taxonomy tables, keyed by their `TaxonomyImageOwnerType`. */
+const PLEX_TAXONOMY_TABLES = {
+  movie: movies,
+  tvShow: tvShows,
+  episode: episodes,
+  artist: artists,
+  album: albums,
+  track: tracks,
+} as const;
+
+/** A Plex-backed taxonomy's own kind, narrowing `TaxonomyImageOwnerType` (excludes Books/Kavita). */
+export type PlexTaxonomyOwnerType = keyof typeof PLEX_TAXONOMY_TABLES;
+
+/** Why a taxonomy Plex-poster import failed, beyond `addTaxonomyImage`'s own outcomes. */
+export type PlexTaxonomyPosterImportResult
+  = | AddTaxonomyImageResult
+    | "not_found"
+    | "not_linked"
+    | "poster_unavailable";
+
+/**
+ * Import a Plex-backed taxonomy entity's own linked poster from Plex into its image gallery, keeping
+ * its other images. Reads the entity's own `plexRatingKey` column directly (no bookmark indirection
+ * needed — unlike bookmarks, these taxonomy rows carry the Plex link themselves).
+ */
+export async function importPlexPosterForTaxonomy(
+  ownerType: PlexTaxonomyOwnerType,
+  ownerId: string,
+): Promise<PlexTaxonomyPosterImportResult> {
+  const table = PLEX_TAXONOMY_TABLES[ownerType];
+  const [row] = await db.select({
+    plexRatingKey: table.plexRatingKey,
+  }).from(table).where(eq(table.id, ownerId));
+  if (!row) return "not_found";
+  if (!row.plexRatingKey) return "not_linked";
+  const bytes = await fetchPlexPoster(row.plexRatingKey);
+  if (!bytes) return "poster_unavailable";
+  return addTaxonomyImage(ownerType as TaxonomyImageOwnerType, ownerId, bytes, "plex", {
     setMain: true,
   });
 }

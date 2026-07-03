@@ -3,9 +3,11 @@ import type { Artist } from "@eesimple/types";
 
 import { ArtistAlbumsValue } from "../ArtistAlbumsSection";
 import { ArtistGeneralForm } from "../ArtistGeneralForm";
+import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
 
 import { useArtistBySlug, useArtists, useDeleteArtist } from "@/hooks/useArtists";
+import { artistsApi } from "@/lib/api/taxonomies";
 
 /** Single source of truth for an artist's view/edit UI (main pane routes + right panel). */
 export const artistWorkbench: EntityWorkbench<Artist> = {
@@ -66,6 +68,37 @@ export const artistWorkbench: EntityWorkbench<Artist> = {
         render: ({
           entity,
         }) => <ArtistGeneralForm artist={entity} />,
+      },
+    },
+    {
+      key: "image",
+      label: "Image",
+      view: {
+        title: "Image",
+        description: "The artist's image.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={artistsApi.images}
+            queryKeyPrefix="artist-images"
+            readOnly
+          />
+        ),
+      },
+      edit: {
+        title: "Image",
+        description: "Upload an image, or pull it from the linked Plex item.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={artistsApi.images}
+            queryKeyPrefix="artist-images"
+          />
+        ),
       },
     },
   ],

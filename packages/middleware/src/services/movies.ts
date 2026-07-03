@@ -24,11 +24,13 @@ function toMovie(row: MovieRow & { bookmarkCount?: number }): Movie {
   return {
     id: row.id,
     name: row.name,
+    romanizedName: row.romanizedName ?? null,
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
     mediaPropertyId: row.mediaPropertyId ?? null,
     plexRatingKey: row.plexRatingKey ?? null,
     plexItemType: row.plexItemType ?? null,
+    plexItemTitle: row.plexItemTitle ?? null,
     year: row.year ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -43,7 +45,7 @@ const takenSlugs = (excludeId?: string) =>
 /** The Plex/media-property columns settable on create and patchable on update. */
 type MovieDataColumns = Pick<
   MovieRow,
-  "mediaPropertyId" | "plexRatingKey" | "plexItemType" | "year"
+  "mediaPropertyId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year" | "romanizedName"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -52,7 +54,9 @@ function dataFromInput(input: CreateMovieInput | UpdateMovieInput): Partial<Movi
   if (input.mediaPropertyId !== undefined) patch.mediaPropertyId = input.mediaPropertyId ?? null;
   if (input.plexRatingKey !== undefined) patch.plexRatingKey = input.plexRatingKey ?? null;
   if (input.plexItemType !== undefined) patch.plexItemType = input.plexItemType ?? null;
+  if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
   if (input.year !== undefined) patch.year = input.year ?? null;
+  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   return patch;
 }
 
@@ -62,11 +66,13 @@ export async function listMovies(): Promise<Movie[]> {
     .select({
       id: movies.id,
       name: movies.name,
+      romanizedName: movies.romanizedName,
       slug: movies.slug,
       sortOrder: movies.sortOrder,
       mediaPropertyId: movies.mediaPropertyId,
       plexRatingKey: movies.plexRatingKey,
       plexItemType: movies.plexItemType,
+      plexItemTitle: movies.plexItemTitle,
       year: movies.year,
       createdAt: movies.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.movieId, movies.id)),

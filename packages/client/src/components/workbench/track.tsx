@@ -1,11 +1,13 @@
 import type { EntityWorkbench } from "./types";
 import type { Track } from "@eesimple/types";
 
+import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
 import { TrackAlbumValue } from "../TrackAlbumField";
 import { TrackGeneralForm } from "../TrackGeneralForm";
 
 import { useDeleteTrack, useTrackBySlug, useTracks } from "@/hooks/useTracks";
+import { tracksApi } from "@/lib/api/taxonomies";
 
 /** Single source of truth for a track's view/edit UI (main pane routes + right panel). */
 export const trackWorkbench: EntityWorkbench<Track> = {
@@ -66,6 +68,37 @@ export const trackWorkbench: EntityWorkbench<Track> = {
         render: ({
           entity,
         }) => <TrackGeneralForm track={entity} />,
+      },
+    },
+    {
+      key: "image",
+      label: "Image",
+      view: {
+        title: "Image",
+        description: "The track's cover image.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={tracksApi.images}
+            queryKeyPrefix="track-images"
+            readOnly
+          />
+        ),
+      },
+      edit: {
+        title: "Image",
+        description: "Upload a cover image, or pull it from the linked Plex item.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={tracksApi.images}
+            queryKeyPrefix="track-images"
+          />
+        ),
       },
     },
   ],

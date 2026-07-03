@@ -27,6 +27,7 @@ export * from "./tvShows.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";
 export * from "./socialMedia.js";
+export * from "./taxonomyImages.js";
 export * from "./titleTags.js";
 export * from "./urlCleanup.js";
 export * from "./youtube.js";

@@ -331,9 +331,13 @@ import { Route as TaxonomiesWebsitesWebsiteSlugViewGeneralRouteImport } from './
 import { Route as TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.display-rules'
 import { Route as TaxonomiesWebsitesWebsiteSlugViewAutofillRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.autofill'
 import { Route as TaxonomiesWebsitesWebsiteSlugViewAuthorsRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.authors'
+import { Route as TaxonomiesTvShowsTvShowSlugEditImageRouteImport } from './routes/taxonomies.tv-shows.$tvShowSlug.edit.image'
 import { Route as TaxonomiesTvShowsTvShowSlugEditGeneralRouteImport } from './routes/taxonomies.tv-shows.$tvShowSlug.edit.general'
+import { Route as TaxonomiesTvShowsTvShowSlugViewImageRouteImport } from './routes/taxonomies.tv-shows.$tvShowSlug._view.image'
 import { Route as TaxonomiesTvShowsTvShowSlugViewGeneralRouteImport } from './routes/taxonomies.tv-shows.$tvShowSlug._view.general'
+import { Route as TaxonomiesTracksTrackSlugEditImageRouteImport } from './routes/taxonomies.tracks.$trackSlug.edit.image'
 import { Route as TaxonomiesTracksTrackSlugEditGeneralRouteImport } from './routes/taxonomies.tracks.$trackSlug.edit.general'
+import { Route as TaxonomiesTracksTrackSlugViewImageRouteImport } from './routes/taxonomies.tracks.$trackSlug._view.image'
 import { Route as TaxonomiesTracksTrackSlugViewGeneralRouteImport } from './routes/taxonomies.tracks.$trackSlug._view.general'
 import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug.edit.general'
 import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugViewGeneralRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug._view.general'
@@ -348,7 +352,9 @@ import { Route as TaxonomiesPlaceTypesPlaceTypeSlugViewGeneralRouteImport } from
 import { Route as TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.issues.$issueId'
 import { Route as TaxonomiesNewslettersNewsletterSlugEditGeneralRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.edit.general'
 import { Route as TaxonomiesNewslettersNewsletterSlugViewGeneralRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug._view.general'
+import { Route as TaxonomiesMoviesMovieSlugEditImageRouteImport } from './routes/taxonomies.movies.$movieSlug.edit.image'
 import { Route as TaxonomiesMoviesMovieSlugEditGeneralRouteImport } from './routes/taxonomies.movies.$movieSlug.edit.general'
+import { Route as TaxonomiesMoviesMovieSlugViewImageRouteImport } from './routes/taxonomies.movies.$movieSlug._view.image'
 import { Route as TaxonomiesMoviesMovieSlugViewGeneralRouteImport } from './routes/taxonomies.movies.$movieSlug._view.general'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugEditGeneralRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit.general'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit.display-rules'
@@ -369,9 +375,13 @@ import { Route as TaxonomiesLocationsLocationSlugViewDisplayRulesRouteImport } f
 import { Route as TaxonomiesLocationsLocationSlugViewAutofillRouteImport } from './routes/taxonomies.locations.$locationSlug._view.autofill'
 import { Route as TaxonomiesLanguagesLanguageSlugEditGeneralRouteImport } from './routes/taxonomies.languages.$languageSlug.edit.general'
 import { Route as TaxonomiesLanguagesLanguageSlugViewGeneralRouteImport } from './routes/taxonomies.languages.$languageSlug._view.general'
+import { Route as TaxonomiesEpisodesEpisodeSlugEditImageRouteImport } from './routes/taxonomies.episodes.$episodeSlug.edit.image'
 import { Route as TaxonomiesEpisodesEpisodeSlugEditGeneralRouteImport } from './routes/taxonomies.episodes.$episodeSlug.edit.general'
+import { Route as TaxonomiesEpisodesEpisodeSlugViewImageRouteImport } from './routes/taxonomies.episodes.$episodeSlug._view.image'
 import { Route as TaxonomiesEpisodesEpisodeSlugViewGeneralRouteImport } from './routes/taxonomies.episodes.$episodeSlug._view.general'
+import { Route as TaxonomiesBooksBookSlugEditImageRouteImport } from './routes/taxonomies.books.$bookSlug.edit.image'
 import { Route as TaxonomiesBooksBookSlugEditGeneralRouteImport } from './routes/taxonomies.books.$bookSlug.edit.general'
+import { Route as TaxonomiesBooksBookSlugViewImageRouteImport } from './routes/taxonomies.books.$bookSlug._view.image'
 import { Route as TaxonomiesBooksBookSlugViewGeneralRouteImport } from './routes/taxonomies.books.$bookSlug._view.general'
 import { Route as TaxonomiesAuthorsAuthorSlugEditYoutubeChannelsRouteImport } from './routes/taxonomies.authors.$authorSlug.edit.youtube-channels'
 import { Route as TaxonomiesAuthorsAuthorSlugEditWebsitesRouteImport } from './routes/taxonomies.authors.$authorSlug.edit.websites'
@@ -381,9 +391,13 @@ import { Route as TaxonomiesAuthorsAuthorSlugViewYoutubeChannelsRouteImport } fr
 import { Route as TaxonomiesAuthorsAuthorSlugViewWebsitesRouteImport } from './routes/taxonomies.authors.$authorSlug._view.websites'
 import { Route as TaxonomiesAuthorsAuthorSlugViewPublishersRouteImport } from './routes/taxonomies.authors.$authorSlug._view.publishers'
 import { Route as TaxonomiesAuthorsAuthorSlugViewGeneralRouteImport } from './routes/taxonomies.authors.$authorSlug._view.general'
+import { Route as TaxonomiesArtistsArtistSlugEditImageRouteImport } from './routes/taxonomies.artists.$artistSlug.edit.image'
 import { Route as TaxonomiesArtistsArtistSlugEditGeneralRouteImport } from './routes/taxonomies.artists.$artistSlug.edit.general'
+import { Route as TaxonomiesArtistsArtistSlugViewImageRouteImport } from './routes/taxonomies.artists.$artistSlug._view.image'
 import { Route as TaxonomiesArtistsArtistSlugViewGeneralRouteImport } from './routes/taxonomies.artists.$artistSlug._view.general'
+import { Route as TaxonomiesAlbumsAlbumSlugEditImageRouteImport } from './routes/taxonomies.albums.$albumSlug.edit.image'
 import { Route as TaxonomiesAlbumsAlbumSlugEditGeneralRouteImport } from './routes/taxonomies.albums.$albumSlug.edit.general'
+import { Route as TaxonomiesAlbumsAlbumSlugViewImageRouteImport } from './routes/taxonomies.albums.$albumSlug._view.image'
 import { Route as TaxonomiesAlbumsAlbumSlugViewGeneralRouteImport } from './routes/taxonomies.albums.$albumSlug._view.general'
 
 const TagsRoute = TagsRouteImport.update({
@@ -2191,11 +2205,23 @@ const TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute =
     path: '/authors',
     getParentRoute: () => TaxonomiesWebsitesWebsiteSlugViewRoute,
   } as any)
+const TaxonomiesTvShowsTvShowSlugEditImageRoute =
+  TaxonomiesTvShowsTvShowSlugEditImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesTvShowsTvShowSlugEditRoute,
+  } as any)
 const TaxonomiesTvShowsTvShowSlugEditGeneralRoute =
   TaxonomiesTvShowsTvShowSlugEditGeneralRouteImport.update({
     id: '/general',
     path: '/general',
     getParentRoute: () => TaxonomiesTvShowsTvShowSlugEditRoute,
+  } as any)
+const TaxonomiesTvShowsTvShowSlugViewImageRoute =
+  TaxonomiesTvShowsTvShowSlugViewImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesTvShowsTvShowSlugViewRoute,
   } as any)
 const TaxonomiesTvShowsTvShowSlugViewGeneralRoute =
   TaxonomiesTvShowsTvShowSlugViewGeneralRouteImport.update({
@@ -2203,11 +2229,23 @@ const TaxonomiesTvShowsTvShowSlugViewGeneralRoute =
     path: '/general',
     getParentRoute: () => TaxonomiesTvShowsTvShowSlugViewRoute,
   } as any)
+const TaxonomiesTracksTrackSlugEditImageRoute =
+  TaxonomiesTracksTrackSlugEditImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesTracksTrackSlugEditRoute,
+  } as any)
 const TaxonomiesTracksTrackSlugEditGeneralRoute =
   TaxonomiesTracksTrackSlugEditGeneralRouteImport.update({
     id: '/general',
     path: '/general',
     getParentRoute: () => TaxonomiesTracksTrackSlugEditRoute,
+  } as any)
+const TaxonomiesTracksTrackSlugViewImageRoute =
+  TaxonomiesTracksTrackSlugViewImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesTracksTrackSlugViewRoute,
   } as any)
 const TaxonomiesTracksTrackSlugViewGeneralRoute =
   TaxonomiesTracksTrackSlugViewGeneralRouteImport.update({
@@ -2295,11 +2333,23 @@ const TaxonomiesNewslettersNewsletterSlugViewGeneralRoute =
     path: '/general',
     getParentRoute: () => TaxonomiesNewslettersNewsletterSlugViewRoute,
   } as any)
+const TaxonomiesMoviesMovieSlugEditImageRoute =
+  TaxonomiesMoviesMovieSlugEditImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesMoviesMovieSlugEditRoute,
+  } as any)
 const TaxonomiesMoviesMovieSlugEditGeneralRoute =
   TaxonomiesMoviesMovieSlugEditGeneralRouteImport.update({
     id: '/general',
     path: '/general',
     getParentRoute: () => TaxonomiesMoviesMovieSlugEditRoute,
+  } as any)
+const TaxonomiesMoviesMovieSlugViewImageRoute =
+  TaxonomiesMoviesMovieSlugViewImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesMoviesMovieSlugViewRoute,
   } as any)
 const TaxonomiesMoviesMovieSlugViewGeneralRoute =
   TaxonomiesMoviesMovieSlugViewGeneralRouteImport.update({
@@ -2421,11 +2471,23 @@ const TaxonomiesLanguagesLanguageSlugViewGeneralRoute =
     path: '/general',
     getParentRoute: () => TaxonomiesLanguagesLanguageSlugViewRoute,
   } as any)
+const TaxonomiesEpisodesEpisodeSlugEditImageRoute =
+  TaxonomiesEpisodesEpisodeSlugEditImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesEpisodesEpisodeSlugEditRoute,
+  } as any)
 const TaxonomiesEpisodesEpisodeSlugEditGeneralRoute =
   TaxonomiesEpisodesEpisodeSlugEditGeneralRouteImport.update({
     id: '/general',
     path: '/general',
     getParentRoute: () => TaxonomiesEpisodesEpisodeSlugEditRoute,
+  } as any)
+const TaxonomiesEpisodesEpisodeSlugViewImageRoute =
+  TaxonomiesEpisodesEpisodeSlugViewImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesEpisodesEpisodeSlugViewRoute,
   } as any)
 const TaxonomiesEpisodesEpisodeSlugViewGeneralRoute =
   TaxonomiesEpisodesEpisodeSlugViewGeneralRouteImport.update({
@@ -2433,11 +2495,23 @@ const TaxonomiesEpisodesEpisodeSlugViewGeneralRoute =
     path: '/general',
     getParentRoute: () => TaxonomiesEpisodesEpisodeSlugViewRoute,
   } as any)
+const TaxonomiesBooksBookSlugEditImageRoute =
+  TaxonomiesBooksBookSlugEditImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesBooksBookSlugEditRoute,
+  } as any)
 const TaxonomiesBooksBookSlugEditGeneralRoute =
   TaxonomiesBooksBookSlugEditGeneralRouteImport.update({
     id: '/general',
     path: '/general',
     getParentRoute: () => TaxonomiesBooksBookSlugEditRoute,
+  } as any)
+const TaxonomiesBooksBookSlugViewImageRoute =
+  TaxonomiesBooksBookSlugViewImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesBooksBookSlugViewRoute,
   } as any)
 const TaxonomiesBooksBookSlugViewGeneralRoute =
   TaxonomiesBooksBookSlugViewGeneralRouteImport.update({
@@ -2493,11 +2567,23 @@ const TaxonomiesAuthorsAuthorSlugViewGeneralRoute =
     path: '/general',
     getParentRoute: () => TaxonomiesAuthorsAuthorSlugViewRoute,
   } as any)
+const TaxonomiesArtistsArtistSlugEditImageRoute =
+  TaxonomiesArtistsArtistSlugEditImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesArtistsArtistSlugEditRoute,
+  } as any)
 const TaxonomiesArtistsArtistSlugEditGeneralRoute =
   TaxonomiesArtistsArtistSlugEditGeneralRouteImport.update({
     id: '/general',
     path: '/general',
     getParentRoute: () => TaxonomiesArtistsArtistSlugEditRoute,
+  } as any)
+const TaxonomiesArtistsArtistSlugViewImageRoute =
+  TaxonomiesArtistsArtistSlugViewImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesArtistsArtistSlugViewRoute,
   } as any)
 const TaxonomiesArtistsArtistSlugViewGeneralRoute =
   TaxonomiesArtistsArtistSlugViewGeneralRouteImport.update({
@@ -2505,11 +2591,23 @@ const TaxonomiesArtistsArtistSlugViewGeneralRoute =
     path: '/general',
     getParentRoute: () => TaxonomiesArtistsArtistSlugViewRoute,
   } as any)
+const TaxonomiesAlbumsAlbumSlugEditImageRoute =
+  TaxonomiesAlbumsAlbumSlugEditImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesAlbumsAlbumSlugEditRoute,
+  } as any)
 const TaxonomiesAlbumsAlbumSlugEditGeneralRoute =
   TaxonomiesAlbumsAlbumSlugEditGeneralRouteImport.update({
     id: '/general',
     path: '/general',
     getParentRoute: () => TaxonomiesAlbumsAlbumSlugEditRoute,
+  } as any)
+const TaxonomiesAlbumsAlbumSlugViewImageRoute =
+  TaxonomiesAlbumsAlbumSlugViewImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => TaxonomiesAlbumsAlbumSlugViewRoute,
   } as any)
 const TaxonomiesAlbumsAlbumSlugViewGeneralRoute =
   TaxonomiesAlbumsAlbumSlugViewGeneralRouteImport.update({
@@ -2780,9 +2878,13 @@ export interface FileRoutesByFullPath {
   '/taxonomies/websites/$websiteSlug/': typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
   '/taxonomies/youtube-channels/$channelSlug/': typeof TaxonomiesYoutubeChannelsChannelSlugIndexRoute
   '/taxonomies/albums/$albumSlug/general': typeof TaxonomiesAlbumsAlbumSlugViewGeneralRoute
+  '/taxonomies/albums/$albumSlug/image': typeof TaxonomiesAlbumsAlbumSlugViewImageRoute
   '/taxonomies/albums/$albumSlug/edit/general': typeof TaxonomiesAlbumsAlbumSlugEditGeneralRoute
+  '/taxonomies/albums/$albumSlug/edit/image': typeof TaxonomiesAlbumsAlbumSlugEditImageRoute
   '/taxonomies/artists/$artistSlug/general': typeof TaxonomiesArtistsArtistSlugViewGeneralRoute
+  '/taxonomies/artists/$artistSlug/image': typeof TaxonomiesArtistsArtistSlugViewImageRoute
   '/taxonomies/artists/$artistSlug/edit/general': typeof TaxonomiesArtistsArtistSlugEditGeneralRoute
+  '/taxonomies/artists/$artistSlug/edit/image': typeof TaxonomiesArtistsArtistSlugEditImageRoute
   '/taxonomies/authors/$authorSlug/general': typeof TaxonomiesAuthorsAuthorSlugViewGeneralRoute
   '/taxonomies/authors/$authorSlug/publishers': typeof TaxonomiesAuthorsAuthorSlugViewPublishersRoute
   '/taxonomies/authors/$authorSlug/websites': typeof TaxonomiesAuthorsAuthorSlugViewWebsitesRoute
@@ -2792,9 +2894,13 @@ export interface FileRoutesByFullPath {
   '/taxonomies/authors/$authorSlug/edit/websites': typeof TaxonomiesAuthorsAuthorSlugEditWebsitesRoute
   '/taxonomies/authors/$authorSlug/edit/youtube-channels': typeof TaxonomiesAuthorsAuthorSlugEditYoutubeChannelsRoute
   '/taxonomies/books/$bookSlug/general': typeof TaxonomiesBooksBookSlugViewGeneralRoute
+  '/taxonomies/books/$bookSlug/image': typeof TaxonomiesBooksBookSlugViewImageRoute
   '/taxonomies/books/$bookSlug/edit/general': typeof TaxonomiesBooksBookSlugEditGeneralRoute
+  '/taxonomies/books/$bookSlug/edit/image': typeof TaxonomiesBooksBookSlugEditImageRoute
   '/taxonomies/episodes/$episodeSlug/general': typeof TaxonomiesEpisodesEpisodeSlugViewGeneralRoute
+  '/taxonomies/episodes/$episodeSlug/image': typeof TaxonomiesEpisodesEpisodeSlugViewImageRoute
   '/taxonomies/episodes/$episodeSlug/edit/general': typeof TaxonomiesEpisodesEpisodeSlugEditGeneralRoute
+  '/taxonomies/episodes/$episodeSlug/edit/image': typeof TaxonomiesEpisodesEpisodeSlugEditImageRoute
   '/taxonomies/languages/$languageSlug/general': typeof TaxonomiesLanguagesLanguageSlugViewGeneralRoute
   '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/autofill': typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
@@ -2815,7 +2921,9 @@ export interface FileRoutesByFullPath {
   '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules': typeof TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/general': typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute
   '/taxonomies/movies/$movieSlug/general': typeof TaxonomiesMoviesMovieSlugViewGeneralRoute
+  '/taxonomies/movies/$movieSlug/image': typeof TaxonomiesMoviesMovieSlugViewImageRoute
   '/taxonomies/movies/$movieSlug/edit/general': typeof TaxonomiesMoviesMovieSlugEditGeneralRoute
+  '/taxonomies/movies/$movieSlug/edit/image': typeof TaxonomiesMoviesMovieSlugEditImageRoute
   '/taxonomies/newsletters/$newsletterSlug/general': typeof TaxonomiesNewslettersNewsletterSlugViewGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/general': typeof TaxonomiesNewslettersNewsletterSlugEditGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
@@ -2830,9 +2938,13 @@ export interface FileRoutesByFullPath {
   '/taxonomies/relationship-types/$relationshipTypeSlug/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewGeneralRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute
   '/taxonomies/tracks/$trackSlug/general': typeof TaxonomiesTracksTrackSlugViewGeneralRoute
+  '/taxonomies/tracks/$trackSlug/image': typeof TaxonomiesTracksTrackSlugViewImageRoute
   '/taxonomies/tracks/$trackSlug/edit/general': typeof TaxonomiesTracksTrackSlugEditGeneralRoute
+  '/taxonomies/tracks/$trackSlug/edit/image': typeof TaxonomiesTracksTrackSlugEditImageRoute
   '/taxonomies/tv-shows/$tvShowSlug/general': typeof TaxonomiesTvShowsTvShowSlugViewGeneralRoute
+  '/taxonomies/tv-shows/$tvShowSlug/image': typeof TaxonomiesTvShowsTvShowSlugViewImageRoute
   '/taxonomies/tv-shows/$tvShowSlug/edit/general': typeof TaxonomiesTvShowsTvShowSlugEditGeneralRoute
+  '/taxonomies/tv-shows/$tvShowSlug/edit/image': typeof TaxonomiesTvShowsTvShowSlugEditImageRoute
   '/taxonomies/websites/$websiteSlug/authors': typeof TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute
   '/taxonomies/websites/$websiteSlug/autofill': typeof TaxonomiesWebsitesWebsiteSlugViewAutofillRoute
   '/taxonomies/websites/$websiteSlug/display-rules': typeof TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRoute
@@ -3046,9 +3158,13 @@ export interface FileRoutesByTo {
   '/saved-filters/$filterSlug/edit': typeof SavedFiltersFilterSlugEditIndexRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditIndexRoute
   '/taxonomies/albums/$albumSlug/general': typeof TaxonomiesAlbumsAlbumSlugViewGeneralRoute
+  '/taxonomies/albums/$albumSlug/image': typeof TaxonomiesAlbumsAlbumSlugViewImageRoute
   '/taxonomies/albums/$albumSlug/edit/general': typeof TaxonomiesAlbumsAlbumSlugEditGeneralRoute
+  '/taxonomies/albums/$albumSlug/edit/image': typeof TaxonomiesAlbumsAlbumSlugEditImageRoute
   '/taxonomies/artists/$artistSlug/general': typeof TaxonomiesArtistsArtistSlugViewGeneralRoute
+  '/taxonomies/artists/$artistSlug/image': typeof TaxonomiesArtistsArtistSlugViewImageRoute
   '/taxonomies/artists/$artistSlug/edit/general': typeof TaxonomiesArtistsArtistSlugEditGeneralRoute
+  '/taxonomies/artists/$artistSlug/edit/image': typeof TaxonomiesArtistsArtistSlugEditImageRoute
   '/taxonomies/authors/$authorSlug/general': typeof TaxonomiesAuthorsAuthorSlugViewGeneralRoute
   '/taxonomies/authors/$authorSlug/publishers': typeof TaxonomiesAuthorsAuthorSlugViewPublishersRoute
   '/taxonomies/authors/$authorSlug/websites': typeof TaxonomiesAuthorsAuthorSlugViewWebsitesRoute
@@ -3058,9 +3174,13 @@ export interface FileRoutesByTo {
   '/taxonomies/authors/$authorSlug/edit/websites': typeof TaxonomiesAuthorsAuthorSlugEditWebsitesRoute
   '/taxonomies/authors/$authorSlug/edit/youtube-channels': typeof TaxonomiesAuthorsAuthorSlugEditYoutubeChannelsRoute
   '/taxonomies/books/$bookSlug/general': typeof TaxonomiesBooksBookSlugViewGeneralRoute
+  '/taxonomies/books/$bookSlug/image': typeof TaxonomiesBooksBookSlugViewImageRoute
   '/taxonomies/books/$bookSlug/edit/general': typeof TaxonomiesBooksBookSlugEditGeneralRoute
+  '/taxonomies/books/$bookSlug/edit/image': typeof TaxonomiesBooksBookSlugEditImageRoute
   '/taxonomies/episodes/$episodeSlug/general': typeof TaxonomiesEpisodesEpisodeSlugViewGeneralRoute
+  '/taxonomies/episodes/$episodeSlug/image': typeof TaxonomiesEpisodesEpisodeSlugViewImageRoute
   '/taxonomies/episodes/$episodeSlug/edit/general': typeof TaxonomiesEpisodesEpisodeSlugEditGeneralRoute
+  '/taxonomies/episodes/$episodeSlug/edit/image': typeof TaxonomiesEpisodesEpisodeSlugEditImageRoute
   '/taxonomies/languages/$languageSlug/general': typeof TaxonomiesLanguagesLanguageSlugViewGeneralRoute
   '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/autofill': typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
@@ -3081,7 +3201,9 @@ export interface FileRoutesByTo {
   '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules': typeof TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/general': typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute
   '/taxonomies/movies/$movieSlug/general': typeof TaxonomiesMoviesMovieSlugViewGeneralRoute
+  '/taxonomies/movies/$movieSlug/image': typeof TaxonomiesMoviesMovieSlugViewImageRoute
   '/taxonomies/movies/$movieSlug/edit/general': typeof TaxonomiesMoviesMovieSlugEditGeneralRoute
+  '/taxonomies/movies/$movieSlug/edit/image': typeof TaxonomiesMoviesMovieSlugEditImageRoute
   '/taxonomies/newsletters/$newsletterSlug/general': typeof TaxonomiesNewslettersNewsletterSlugViewGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/general': typeof TaxonomiesNewslettersNewsletterSlugEditGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
@@ -3096,9 +3218,13 @@ export interface FileRoutesByTo {
   '/taxonomies/relationship-types/$relationshipTypeSlug/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewGeneralRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute
   '/taxonomies/tracks/$trackSlug/general': typeof TaxonomiesTracksTrackSlugViewGeneralRoute
+  '/taxonomies/tracks/$trackSlug/image': typeof TaxonomiesTracksTrackSlugViewImageRoute
   '/taxonomies/tracks/$trackSlug/edit/general': typeof TaxonomiesTracksTrackSlugEditGeneralRoute
+  '/taxonomies/tracks/$trackSlug/edit/image': typeof TaxonomiesTracksTrackSlugEditImageRoute
   '/taxonomies/tv-shows/$tvShowSlug/general': typeof TaxonomiesTvShowsTvShowSlugViewGeneralRoute
+  '/taxonomies/tv-shows/$tvShowSlug/image': typeof TaxonomiesTvShowsTvShowSlugViewImageRoute
   '/taxonomies/tv-shows/$tvShowSlug/edit/general': typeof TaxonomiesTvShowsTvShowSlugEditGeneralRoute
+  '/taxonomies/tv-shows/$tvShowSlug/edit/image': typeof TaxonomiesTvShowsTvShowSlugEditImageRoute
   '/taxonomies/websites/$websiteSlug/authors': typeof TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute
   '/taxonomies/websites/$websiteSlug/autofill': typeof TaxonomiesWebsitesWebsiteSlugViewAutofillRoute
   '/taxonomies/websites/$websiteSlug/display-rules': typeof TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRoute
@@ -3425,9 +3551,13 @@ export interface FileRoutesById {
   '/taxonomies/websites/$websiteSlug/': typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
   '/taxonomies/youtube-channels/$channelSlug/': typeof TaxonomiesYoutubeChannelsChannelSlugIndexRoute
   '/taxonomies/albums/$albumSlug/_view/general': typeof TaxonomiesAlbumsAlbumSlugViewGeneralRoute
+  '/taxonomies/albums/$albumSlug/_view/image': typeof TaxonomiesAlbumsAlbumSlugViewImageRoute
   '/taxonomies/albums/$albumSlug/edit/general': typeof TaxonomiesAlbumsAlbumSlugEditGeneralRoute
+  '/taxonomies/albums/$albumSlug/edit/image': typeof TaxonomiesAlbumsAlbumSlugEditImageRoute
   '/taxonomies/artists/$artistSlug/_view/general': typeof TaxonomiesArtistsArtistSlugViewGeneralRoute
+  '/taxonomies/artists/$artistSlug/_view/image': typeof TaxonomiesArtistsArtistSlugViewImageRoute
   '/taxonomies/artists/$artistSlug/edit/general': typeof TaxonomiesArtistsArtistSlugEditGeneralRoute
+  '/taxonomies/artists/$artistSlug/edit/image': typeof TaxonomiesArtistsArtistSlugEditImageRoute
   '/taxonomies/authors/$authorSlug/_view/general': typeof TaxonomiesAuthorsAuthorSlugViewGeneralRoute
   '/taxonomies/authors/$authorSlug/_view/publishers': typeof TaxonomiesAuthorsAuthorSlugViewPublishersRoute
   '/taxonomies/authors/$authorSlug/_view/websites': typeof TaxonomiesAuthorsAuthorSlugViewWebsitesRoute
@@ -3437,9 +3567,13 @@ export interface FileRoutesById {
   '/taxonomies/authors/$authorSlug/edit/websites': typeof TaxonomiesAuthorsAuthorSlugEditWebsitesRoute
   '/taxonomies/authors/$authorSlug/edit/youtube-channels': typeof TaxonomiesAuthorsAuthorSlugEditYoutubeChannelsRoute
   '/taxonomies/books/$bookSlug/_view/general': typeof TaxonomiesBooksBookSlugViewGeneralRoute
+  '/taxonomies/books/$bookSlug/_view/image': typeof TaxonomiesBooksBookSlugViewImageRoute
   '/taxonomies/books/$bookSlug/edit/general': typeof TaxonomiesBooksBookSlugEditGeneralRoute
+  '/taxonomies/books/$bookSlug/edit/image': typeof TaxonomiesBooksBookSlugEditImageRoute
   '/taxonomies/episodes/$episodeSlug/_view/general': typeof TaxonomiesEpisodesEpisodeSlugViewGeneralRoute
+  '/taxonomies/episodes/$episodeSlug/_view/image': typeof TaxonomiesEpisodesEpisodeSlugViewImageRoute
   '/taxonomies/episodes/$episodeSlug/edit/general': typeof TaxonomiesEpisodesEpisodeSlugEditGeneralRoute
+  '/taxonomies/episodes/$episodeSlug/edit/image': typeof TaxonomiesEpisodesEpisodeSlugEditImageRoute
   '/taxonomies/languages/$languageSlug/_view/general': typeof TaxonomiesLanguagesLanguageSlugViewGeneralRoute
   '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/_view/autofill': typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
@@ -3460,7 +3594,9 @@ export interface FileRoutesById {
   '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules': typeof TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/general': typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute
   '/taxonomies/movies/$movieSlug/_view/general': typeof TaxonomiesMoviesMovieSlugViewGeneralRoute
+  '/taxonomies/movies/$movieSlug/_view/image': typeof TaxonomiesMoviesMovieSlugViewImageRoute
   '/taxonomies/movies/$movieSlug/edit/general': typeof TaxonomiesMoviesMovieSlugEditGeneralRoute
+  '/taxonomies/movies/$movieSlug/edit/image': typeof TaxonomiesMoviesMovieSlugEditImageRoute
   '/taxonomies/newsletters/$newsletterSlug/_view/general': typeof TaxonomiesNewslettersNewsletterSlugViewGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/general': typeof TaxonomiesNewslettersNewsletterSlugEditGeneralRoute
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
@@ -3475,9 +3611,13 @@ export interface FileRoutesById {
   '/taxonomies/relationship-types/$relationshipTypeSlug/_view/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewGeneralRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute
   '/taxonomies/tracks/$trackSlug/_view/general': typeof TaxonomiesTracksTrackSlugViewGeneralRoute
+  '/taxonomies/tracks/$trackSlug/_view/image': typeof TaxonomiesTracksTrackSlugViewImageRoute
   '/taxonomies/tracks/$trackSlug/edit/general': typeof TaxonomiesTracksTrackSlugEditGeneralRoute
+  '/taxonomies/tracks/$trackSlug/edit/image': typeof TaxonomiesTracksTrackSlugEditImageRoute
   '/taxonomies/tv-shows/$tvShowSlug/_view/general': typeof TaxonomiesTvShowsTvShowSlugViewGeneralRoute
+  '/taxonomies/tv-shows/$tvShowSlug/_view/image': typeof TaxonomiesTvShowsTvShowSlugViewImageRoute
   '/taxonomies/tv-shows/$tvShowSlug/edit/general': typeof TaxonomiesTvShowsTvShowSlugEditGeneralRoute
+  '/taxonomies/tv-shows/$tvShowSlug/edit/image': typeof TaxonomiesTvShowsTvShowSlugEditImageRoute
   '/taxonomies/websites/$websiteSlug/_view/authors': typeof TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute
   '/taxonomies/websites/$websiteSlug/_view/autofill': typeof TaxonomiesWebsitesWebsiteSlugViewAutofillRoute
   '/taxonomies/websites/$websiteSlug/_view/display-rules': typeof TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRoute
@@ -3779,9 +3919,13 @@ export interface FileRouteTypes {
     | '/taxonomies/websites/$websiteSlug/'
     | '/taxonomies/youtube-channels/$channelSlug/'
     | '/taxonomies/albums/$albumSlug/general'
+    | '/taxonomies/albums/$albumSlug/image'
     | '/taxonomies/albums/$albumSlug/edit/general'
+    | '/taxonomies/albums/$albumSlug/edit/image'
     | '/taxonomies/artists/$artistSlug/general'
+    | '/taxonomies/artists/$artistSlug/image'
     | '/taxonomies/artists/$artistSlug/edit/general'
+    | '/taxonomies/artists/$artistSlug/edit/image'
     | '/taxonomies/authors/$authorSlug/general'
     | '/taxonomies/authors/$authorSlug/publishers'
     | '/taxonomies/authors/$authorSlug/websites'
@@ -3791,9 +3935,13 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/$authorSlug/edit/websites'
     | '/taxonomies/authors/$authorSlug/edit/youtube-channels'
     | '/taxonomies/books/$bookSlug/general'
+    | '/taxonomies/books/$bookSlug/image'
     | '/taxonomies/books/$bookSlug/edit/general'
+    | '/taxonomies/books/$bookSlug/edit/image'
     | '/taxonomies/episodes/$episodeSlug/general'
+    | '/taxonomies/episodes/$episodeSlug/image'
     | '/taxonomies/episodes/$episodeSlug/edit/general'
+    | '/taxonomies/episodes/$episodeSlug/edit/image'
     | '/taxonomies/languages/$languageSlug/general'
     | '/taxonomies/languages/$languageSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/autofill'
@@ -3814,7 +3962,9 @@ export interface FileRouteTypes {
     | '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/general'
     | '/taxonomies/movies/$movieSlug/general'
+    | '/taxonomies/movies/$movieSlug/image'
     | '/taxonomies/movies/$movieSlug/edit/general'
+    | '/taxonomies/movies/$movieSlug/edit/image'
     | '/taxonomies/newsletters/$newsletterSlug/general'
     | '/taxonomies/newsletters/$newsletterSlug/edit/general'
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
@@ -3829,9 +3979,13 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types/$relationshipTypeSlug/general'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
     | '/taxonomies/tracks/$trackSlug/general'
+    | '/taxonomies/tracks/$trackSlug/image'
     | '/taxonomies/tracks/$trackSlug/edit/general'
+    | '/taxonomies/tracks/$trackSlug/edit/image'
     | '/taxonomies/tv-shows/$tvShowSlug/general'
+    | '/taxonomies/tv-shows/$tvShowSlug/image'
     | '/taxonomies/tv-shows/$tvShowSlug/edit/general'
+    | '/taxonomies/tv-shows/$tvShowSlug/edit/image'
     | '/taxonomies/websites/$websiteSlug/authors'
     | '/taxonomies/websites/$websiteSlug/autofill'
     | '/taxonomies/websites/$websiteSlug/display-rules'
@@ -4045,9 +4199,13 @@ export interface FileRouteTypes {
     | '/saved-filters/$filterSlug/edit'
     | '/tags/$tagSlug/edit'
     | '/taxonomies/albums/$albumSlug/general'
+    | '/taxonomies/albums/$albumSlug/image'
     | '/taxonomies/albums/$albumSlug/edit/general'
+    | '/taxonomies/albums/$albumSlug/edit/image'
     | '/taxonomies/artists/$artistSlug/general'
+    | '/taxonomies/artists/$artistSlug/image'
     | '/taxonomies/artists/$artistSlug/edit/general'
+    | '/taxonomies/artists/$artistSlug/edit/image'
     | '/taxonomies/authors/$authorSlug/general'
     | '/taxonomies/authors/$authorSlug/publishers'
     | '/taxonomies/authors/$authorSlug/websites'
@@ -4057,9 +4215,13 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/$authorSlug/edit/websites'
     | '/taxonomies/authors/$authorSlug/edit/youtube-channels'
     | '/taxonomies/books/$bookSlug/general'
+    | '/taxonomies/books/$bookSlug/image'
     | '/taxonomies/books/$bookSlug/edit/general'
+    | '/taxonomies/books/$bookSlug/edit/image'
     | '/taxonomies/episodes/$episodeSlug/general'
+    | '/taxonomies/episodes/$episodeSlug/image'
     | '/taxonomies/episodes/$episodeSlug/edit/general'
+    | '/taxonomies/episodes/$episodeSlug/edit/image'
     | '/taxonomies/languages/$languageSlug/general'
     | '/taxonomies/languages/$languageSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/autofill'
@@ -4080,7 +4242,9 @@ export interface FileRouteTypes {
     | '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/general'
     | '/taxonomies/movies/$movieSlug/general'
+    | '/taxonomies/movies/$movieSlug/image'
     | '/taxonomies/movies/$movieSlug/edit/general'
+    | '/taxonomies/movies/$movieSlug/edit/image'
     | '/taxonomies/newsletters/$newsletterSlug/general'
     | '/taxonomies/newsletters/$newsletterSlug/edit/general'
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
@@ -4095,9 +4259,13 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types/$relationshipTypeSlug/general'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
     | '/taxonomies/tracks/$trackSlug/general'
+    | '/taxonomies/tracks/$trackSlug/image'
     | '/taxonomies/tracks/$trackSlug/edit/general'
+    | '/taxonomies/tracks/$trackSlug/edit/image'
     | '/taxonomies/tv-shows/$tvShowSlug/general'
+    | '/taxonomies/tv-shows/$tvShowSlug/image'
     | '/taxonomies/tv-shows/$tvShowSlug/edit/general'
+    | '/taxonomies/tv-shows/$tvShowSlug/edit/image'
     | '/taxonomies/websites/$websiteSlug/authors'
     | '/taxonomies/websites/$websiteSlug/autofill'
     | '/taxonomies/websites/$websiteSlug/display-rules'
@@ -4423,9 +4591,13 @@ export interface FileRouteTypes {
     | '/taxonomies/websites/$websiteSlug/'
     | '/taxonomies/youtube-channels/$channelSlug/'
     | '/taxonomies/albums/$albumSlug/_view/general'
+    | '/taxonomies/albums/$albumSlug/_view/image'
     | '/taxonomies/albums/$albumSlug/edit/general'
+    | '/taxonomies/albums/$albumSlug/edit/image'
     | '/taxonomies/artists/$artistSlug/_view/general'
+    | '/taxonomies/artists/$artistSlug/_view/image'
     | '/taxonomies/artists/$artistSlug/edit/general'
+    | '/taxonomies/artists/$artistSlug/edit/image'
     | '/taxonomies/authors/$authorSlug/_view/general'
     | '/taxonomies/authors/$authorSlug/_view/publishers'
     | '/taxonomies/authors/$authorSlug/_view/websites'
@@ -4435,9 +4607,13 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/$authorSlug/edit/websites'
     | '/taxonomies/authors/$authorSlug/edit/youtube-channels'
     | '/taxonomies/books/$bookSlug/_view/general'
+    | '/taxonomies/books/$bookSlug/_view/image'
     | '/taxonomies/books/$bookSlug/edit/general'
+    | '/taxonomies/books/$bookSlug/edit/image'
     | '/taxonomies/episodes/$episodeSlug/_view/general'
+    | '/taxonomies/episodes/$episodeSlug/_view/image'
     | '/taxonomies/episodes/$episodeSlug/edit/general'
+    | '/taxonomies/episodes/$episodeSlug/edit/image'
     | '/taxonomies/languages/$languageSlug/_view/general'
     | '/taxonomies/languages/$languageSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/_view/autofill'
@@ -4458,7 +4634,9 @@ export interface FileRouteTypes {
     | '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/general'
     | '/taxonomies/movies/$movieSlug/_view/general'
+    | '/taxonomies/movies/$movieSlug/_view/image'
     | '/taxonomies/movies/$movieSlug/edit/general'
+    | '/taxonomies/movies/$movieSlug/edit/image'
     | '/taxonomies/newsletters/$newsletterSlug/_view/general'
     | '/taxonomies/newsletters/$newsletterSlug/edit/general'
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
@@ -4473,9 +4651,13 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types/$relationshipTypeSlug/_view/general'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
     | '/taxonomies/tracks/$trackSlug/_view/general'
+    | '/taxonomies/tracks/$trackSlug/_view/image'
     | '/taxonomies/tracks/$trackSlug/edit/general'
+    | '/taxonomies/tracks/$trackSlug/edit/image'
     | '/taxonomies/tv-shows/$tvShowSlug/_view/general'
+    | '/taxonomies/tv-shows/$tvShowSlug/_view/image'
     | '/taxonomies/tv-shows/$tvShowSlug/edit/general'
+    | '/taxonomies/tv-shows/$tvShowSlug/edit/image'
     | '/taxonomies/websites/$websiteSlug/_view/authors'
     | '/taxonomies/websites/$websiteSlug/_view/autofill'
     | '/taxonomies/websites/$websiteSlug/_view/display-rules'
@@ -6805,12 +6987,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugViewAuthorsRouteImport
       parentRoute: typeof TaxonomiesWebsitesWebsiteSlugViewRoute
     }
+    '/taxonomies/tv-shows/$tvShowSlug/edit/image': {
+      id: '/taxonomies/tv-shows/$tvShowSlug/edit/image'
+      path: '/image'
+      fullPath: '/taxonomies/tv-shows/$tvShowSlug/edit/image'
+      preLoaderRoute: typeof TaxonomiesTvShowsTvShowSlugEditImageRouteImport
+      parentRoute: typeof TaxonomiesTvShowsTvShowSlugEditRoute
+    }
     '/taxonomies/tv-shows/$tvShowSlug/edit/general': {
       id: '/taxonomies/tv-shows/$tvShowSlug/edit/general'
       path: '/general'
       fullPath: '/taxonomies/tv-shows/$tvShowSlug/edit/general'
       preLoaderRoute: typeof TaxonomiesTvShowsTvShowSlugEditGeneralRouteImport
       parentRoute: typeof TaxonomiesTvShowsTvShowSlugEditRoute
+    }
+    '/taxonomies/tv-shows/$tvShowSlug/_view/image': {
+      id: '/taxonomies/tv-shows/$tvShowSlug/_view/image'
+      path: '/image'
+      fullPath: '/taxonomies/tv-shows/$tvShowSlug/image'
+      preLoaderRoute: typeof TaxonomiesTvShowsTvShowSlugViewImageRouteImport
+      parentRoute: typeof TaxonomiesTvShowsTvShowSlugViewRoute
     }
     '/taxonomies/tv-shows/$tvShowSlug/_view/general': {
       id: '/taxonomies/tv-shows/$tvShowSlug/_view/general'
@@ -6819,12 +7015,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesTvShowsTvShowSlugViewGeneralRouteImport
       parentRoute: typeof TaxonomiesTvShowsTvShowSlugViewRoute
     }
+    '/taxonomies/tracks/$trackSlug/edit/image': {
+      id: '/taxonomies/tracks/$trackSlug/edit/image'
+      path: '/image'
+      fullPath: '/taxonomies/tracks/$trackSlug/edit/image'
+      preLoaderRoute: typeof TaxonomiesTracksTrackSlugEditImageRouteImport
+      parentRoute: typeof TaxonomiesTracksTrackSlugEditRoute
+    }
     '/taxonomies/tracks/$trackSlug/edit/general': {
       id: '/taxonomies/tracks/$trackSlug/edit/general'
       path: '/general'
       fullPath: '/taxonomies/tracks/$trackSlug/edit/general'
       preLoaderRoute: typeof TaxonomiesTracksTrackSlugEditGeneralRouteImport
       parentRoute: typeof TaxonomiesTracksTrackSlugEditRoute
+    }
+    '/taxonomies/tracks/$trackSlug/_view/image': {
+      id: '/taxonomies/tracks/$trackSlug/_view/image'
+      path: '/image'
+      fullPath: '/taxonomies/tracks/$trackSlug/image'
+      preLoaderRoute: typeof TaxonomiesTracksTrackSlugViewImageRouteImport
+      parentRoute: typeof TaxonomiesTracksTrackSlugViewRoute
     }
     '/taxonomies/tracks/$trackSlug/_view/general': {
       id: '/taxonomies/tracks/$trackSlug/_view/general'
@@ -6924,12 +7134,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesNewslettersNewsletterSlugViewGeneralRouteImport
       parentRoute: typeof TaxonomiesNewslettersNewsletterSlugViewRoute
     }
+    '/taxonomies/movies/$movieSlug/edit/image': {
+      id: '/taxonomies/movies/$movieSlug/edit/image'
+      path: '/image'
+      fullPath: '/taxonomies/movies/$movieSlug/edit/image'
+      preLoaderRoute: typeof TaxonomiesMoviesMovieSlugEditImageRouteImport
+      parentRoute: typeof TaxonomiesMoviesMovieSlugEditRoute
+    }
     '/taxonomies/movies/$movieSlug/edit/general': {
       id: '/taxonomies/movies/$movieSlug/edit/general'
       path: '/general'
       fullPath: '/taxonomies/movies/$movieSlug/edit/general'
       preLoaderRoute: typeof TaxonomiesMoviesMovieSlugEditGeneralRouteImport
       parentRoute: typeof TaxonomiesMoviesMovieSlugEditRoute
+    }
+    '/taxonomies/movies/$movieSlug/_view/image': {
+      id: '/taxonomies/movies/$movieSlug/_view/image'
+      path: '/image'
+      fullPath: '/taxonomies/movies/$movieSlug/image'
+      preLoaderRoute: typeof TaxonomiesMoviesMovieSlugViewImageRouteImport
+      parentRoute: typeof TaxonomiesMoviesMovieSlugViewRoute
     }
     '/taxonomies/movies/$movieSlug/_view/general': {
       id: '/taxonomies/movies/$movieSlug/_view/general'
@@ -7071,12 +7295,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugViewGeneralRouteImport
       parentRoute: typeof TaxonomiesLanguagesLanguageSlugViewRoute
     }
+    '/taxonomies/episodes/$episodeSlug/edit/image': {
+      id: '/taxonomies/episodes/$episodeSlug/edit/image'
+      path: '/image'
+      fullPath: '/taxonomies/episodes/$episodeSlug/edit/image'
+      preLoaderRoute: typeof TaxonomiesEpisodesEpisodeSlugEditImageRouteImport
+      parentRoute: typeof TaxonomiesEpisodesEpisodeSlugEditRoute
+    }
     '/taxonomies/episodes/$episodeSlug/edit/general': {
       id: '/taxonomies/episodes/$episodeSlug/edit/general'
       path: '/general'
       fullPath: '/taxonomies/episodes/$episodeSlug/edit/general'
       preLoaderRoute: typeof TaxonomiesEpisodesEpisodeSlugEditGeneralRouteImport
       parentRoute: typeof TaxonomiesEpisodesEpisodeSlugEditRoute
+    }
+    '/taxonomies/episodes/$episodeSlug/_view/image': {
+      id: '/taxonomies/episodes/$episodeSlug/_view/image'
+      path: '/image'
+      fullPath: '/taxonomies/episodes/$episodeSlug/image'
+      preLoaderRoute: typeof TaxonomiesEpisodesEpisodeSlugViewImageRouteImport
+      parentRoute: typeof TaxonomiesEpisodesEpisodeSlugViewRoute
     }
     '/taxonomies/episodes/$episodeSlug/_view/general': {
       id: '/taxonomies/episodes/$episodeSlug/_view/general'
@@ -7085,12 +7323,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesEpisodesEpisodeSlugViewGeneralRouteImport
       parentRoute: typeof TaxonomiesEpisodesEpisodeSlugViewRoute
     }
+    '/taxonomies/books/$bookSlug/edit/image': {
+      id: '/taxonomies/books/$bookSlug/edit/image'
+      path: '/image'
+      fullPath: '/taxonomies/books/$bookSlug/edit/image'
+      preLoaderRoute: typeof TaxonomiesBooksBookSlugEditImageRouteImport
+      parentRoute: typeof TaxonomiesBooksBookSlugEditRoute
+    }
     '/taxonomies/books/$bookSlug/edit/general': {
       id: '/taxonomies/books/$bookSlug/edit/general'
       path: '/general'
       fullPath: '/taxonomies/books/$bookSlug/edit/general'
       preLoaderRoute: typeof TaxonomiesBooksBookSlugEditGeneralRouteImport
       parentRoute: typeof TaxonomiesBooksBookSlugEditRoute
+    }
+    '/taxonomies/books/$bookSlug/_view/image': {
+      id: '/taxonomies/books/$bookSlug/_view/image'
+      path: '/image'
+      fullPath: '/taxonomies/books/$bookSlug/image'
+      preLoaderRoute: typeof TaxonomiesBooksBookSlugViewImageRouteImport
+      parentRoute: typeof TaxonomiesBooksBookSlugViewRoute
     }
     '/taxonomies/books/$bookSlug/_view/general': {
       id: '/taxonomies/books/$bookSlug/_view/general'
@@ -7155,12 +7407,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesAuthorsAuthorSlugViewGeneralRouteImport
       parentRoute: typeof TaxonomiesAuthorsAuthorSlugViewRoute
     }
+    '/taxonomies/artists/$artistSlug/edit/image': {
+      id: '/taxonomies/artists/$artistSlug/edit/image'
+      path: '/image'
+      fullPath: '/taxonomies/artists/$artistSlug/edit/image'
+      preLoaderRoute: typeof TaxonomiesArtistsArtistSlugEditImageRouteImport
+      parentRoute: typeof TaxonomiesArtistsArtistSlugEditRoute
+    }
     '/taxonomies/artists/$artistSlug/edit/general': {
       id: '/taxonomies/artists/$artistSlug/edit/general'
       path: '/general'
       fullPath: '/taxonomies/artists/$artistSlug/edit/general'
       preLoaderRoute: typeof TaxonomiesArtistsArtistSlugEditGeneralRouteImport
       parentRoute: typeof TaxonomiesArtistsArtistSlugEditRoute
+    }
+    '/taxonomies/artists/$artistSlug/_view/image': {
+      id: '/taxonomies/artists/$artistSlug/_view/image'
+      path: '/image'
+      fullPath: '/taxonomies/artists/$artistSlug/image'
+      preLoaderRoute: typeof TaxonomiesArtistsArtistSlugViewImageRouteImport
+      parentRoute: typeof TaxonomiesArtistsArtistSlugViewRoute
     }
     '/taxonomies/artists/$artistSlug/_view/general': {
       id: '/taxonomies/artists/$artistSlug/_view/general'
@@ -7169,12 +7435,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesArtistsArtistSlugViewGeneralRouteImport
       parentRoute: typeof TaxonomiesArtistsArtistSlugViewRoute
     }
+    '/taxonomies/albums/$albumSlug/edit/image': {
+      id: '/taxonomies/albums/$albumSlug/edit/image'
+      path: '/image'
+      fullPath: '/taxonomies/albums/$albumSlug/edit/image'
+      preLoaderRoute: typeof TaxonomiesAlbumsAlbumSlugEditImageRouteImport
+      parentRoute: typeof TaxonomiesAlbumsAlbumSlugEditRoute
+    }
     '/taxonomies/albums/$albumSlug/edit/general': {
       id: '/taxonomies/albums/$albumSlug/edit/general'
       path: '/general'
       fullPath: '/taxonomies/albums/$albumSlug/edit/general'
       preLoaderRoute: typeof TaxonomiesAlbumsAlbumSlugEditGeneralRouteImport
       parentRoute: typeof TaxonomiesAlbumsAlbumSlugEditRoute
+    }
+    '/taxonomies/albums/$albumSlug/_view/image': {
+      id: '/taxonomies/albums/$albumSlug/_view/image'
+      path: '/image'
+      fullPath: '/taxonomies/albums/$albumSlug/image'
+      preLoaderRoute: typeof TaxonomiesAlbumsAlbumSlugViewImageRouteImport
+      parentRoute: typeof TaxonomiesAlbumsAlbumSlugViewRoute
     }
     '/taxonomies/albums/$albumSlug/_view/general': {
       id: '/taxonomies/albums/$albumSlug/_view/general'
@@ -7950,12 +8230,15 @@ const TagsRouteWithChildren = TagsRoute._addFileChildren(TagsRouteChildren)
 
 interface TaxonomiesAlbumsAlbumSlugViewRouteChildren {
   TaxonomiesAlbumsAlbumSlugViewGeneralRoute: typeof TaxonomiesAlbumsAlbumSlugViewGeneralRoute
+  TaxonomiesAlbumsAlbumSlugViewImageRoute: typeof TaxonomiesAlbumsAlbumSlugViewImageRoute
 }
 
 const TaxonomiesAlbumsAlbumSlugViewRouteChildren: TaxonomiesAlbumsAlbumSlugViewRouteChildren =
   {
     TaxonomiesAlbumsAlbumSlugViewGeneralRoute:
       TaxonomiesAlbumsAlbumSlugViewGeneralRoute,
+    TaxonomiesAlbumsAlbumSlugViewImageRoute:
+      TaxonomiesAlbumsAlbumSlugViewImageRoute,
   }
 
 const TaxonomiesAlbumsAlbumSlugViewRouteWithChildren =
@@ -7965,6 +8248,7 @@ const TaxonomiesAlbumsAlbumSlugViewRouteWithChildren =
 
 interface TaxonomiesAlbumsAlbumSlugEditRouteChildren {
   TaxonomiesAlbumsAlbumSlugEditGeneralRoute: typeof TaxonomiesAlbumsAlbumSlugEditGeneralRoute
+  TaxonomiesAlbumsAlbumSlugEditImageRoute: typeof TaxonomiesAlbumsAlbumSlugEditImageRoute
   TaxonomiesAlbumsAlbumSlugEditIndexRoute: typeof TaxonomiesAlbumsAlbumSlugEditIndexRoute
 }
 
@@ -7972,6 +8256,8 @@ const TaxonomiesAlbumsAlbumSlugEditRouteChildren: TaxonomiesAlbumsAlbumSlugEditR
   {
     TaxonomiesAlbumsAlbumSlugEditGeneralRoute:
       TaxonomiesAlbumsAlbumSlugEditGeneralRoute,
+    TaxonomiesAlbumsAlbumSlugEditImageRoute:
+      TaxonomiesAlbumsAlbumSlugEditImageRoute,
     TaxonomiesAlbumsAlbumSlugEditIndexRoute:
       TaxonomiesAlbumsAlbumSlugEditIndexRoute,
   }
@@ -8016,12 +8302,15 @@ const TaxonomiesAlbumsRouteWithChildren =
 
 interface TaxonomiesArtistsArtistSlugViewRouteChildren {
   TaxonomiesArtistsArtistSlugViewGeneralRoute: typeof TaxonomiesArtistsArtistSlugViewGeneralRoute
+  TaxonomiesArtistsArtistSlugViewImageRoute: typeof TaxonomiesArtistsArtistSlugViewImageRoute
 }
 
 const TaxonomiesArtistsArtistSlugViewRouteChildren: TaxonomiesArtistsArtistSlugViewRouteChildren =
   {
     TaxonomiesArtistsArtistSlugViewGeneralRoute:
       TaxonomiesArtistsArtistSlugViewGeneralRoute,
+    TaxonomiesArtistsArtistSlugViewImageRoute:
+      TaxonomiesArtistsArtistSlugViewImageRoute,
   }
 
 const TaxonomiesArtistsArtistSlugViewRouteWithChildren =
@@ -8031,6 +8320,7 @@ const TaxonomiesArtistsArtistSlugViewRouteWithChildren =
 
 interface TaxonomiesArtistsArtistSlugEditRouteChildren {
   TaxonomiesArtistsArtistSlugEditGeneralRoute: typeof TaxonomiesArtistsArtistSlugEditGeneralRoute
+  TaxonomiesArtistsArtistSlugEditImageRoute: typeof TaxonomiesArtistsArtistSlugEditImageRoute
   TaxonomiesArtistsArtistSlugEditIndexRoute: typeof TaxonomiesArtistsArtistSlugEditIndexRoute
 }
 
@@ -8038,6 +8328,8 @@ const TaxonomiesArtistsArtistSlugEditRouteChildren: TaxonomiesArtistsArtistSlugE
   {
     TaxonomiesArtistsArtistSlugEditGeneralRoute:
       TaxonomiesArtistsArtistSlugEditGeneralRoute,
+    TaxonomiesArtistsArtistSlugEditImageRoute:
+      TaxonomiesArtistsArtistSlugEditImageRoute,
     TaxonomiesArtistsArtistSlugEditIndexRoute:
       TaxonomiesArtistsArtistSlugEditIndexRoute,
   }
@@ -8167,12 +8459,15 @@ const TaxonomiesAuthorsRouteWithChildren =
 
 interface TaxonomiesBooksBookSlugViewRouteChildren {
   TaxonomiesBooksBookSlugViewGeneralRoute: typeof TaxonomiesBooksBookSlugViewGeneralRoute
+  TaxonomiesBooksBookSlugViewImageRoute: typeof TaxonomiesBooksBookSlugViewImageRoute
 }
 
 const TaxonomiesBooksBookSlugViewRouteChildren: TaxonomiesBooksBookSlugViewRouteChildren =
   {
     TaxonomiesBooksBookSlugViewGeneralRoute:
       TaxonomiesBooksBookSlugViewGeneralRoute,
+    TaxonomiesBooksBookSlugViewImageRoute:
+      TaxonomiesBooksBookSlugViewImageRoute,
   }
 
 const TaxonomiesBooksBookSlugViewRouteWithChildren =
@@ -8182,6 +8477,7 @@ const TaxonomiesBooksBookSlugViewRouteWithChildren =
 
 interface TaxonomiesBooksBookSlugEditRouteChildren {
   TaxonomiesBooksBookSlugEditGeneralRoute: typeof TaxonomiesBooksBookSlugEditGeneralRoute
+  TaxonomiesBooksBookSlugEditImageRoute: typeof TaxonomiesBooksBookSlugEditImageRoute
   TaxonomiesBooksBookSlugEditIndexRoute: typeof TaxonomiesBooksBookSlugEditIndexRoute
 }
 
@@ -8189,6 +8485,8 @@ const TaxonomiesBooksBookSlugEditRouteChildren: TaxonomiesBooksBookSlugEditRoute
   {
     TaxonomiesBooksBookSlugEditGeneralRoute:
       TaxonomiesBooksBookSlugEditGeneralRoute,
+    TaxonomiesBooksBookSlugEditImageRoute:
+      TaxonomiesBooksBookSlugEditImageRoute,
     TaxonomiesBooksBookSlugEditIndexRoute:
       TaxonomiesBooksBookSlugEditIndexRoute,
   }
@@ -8234,12 +8532,15 @@ const TaxonomiesBooksRouteWithChildren = TaxonomiesBooksRoute._addFileChildren(
 
 interface TaxonomiesEpisodesEpisodeSlugViewRouteChildren {
   TaxonomiesEpisodesEpisodeSlugViewGeneralRoute: typeof TaxonomiesEpisodesEpisodeSlugViewGeneralRoute
+  TaxonomiesEpisodesEpisodeSlugViewImageRoute: typeof TaxonomiesEpisodesEpisodeSlugViewImageRoute
 }
 
 const TaxonomiesEpisodesEpisodeSlugViewRouteChildren: TaxonomiesEpisodesEpisodeSlugViewRouteChildren =
   {
     TaxonomiesEpisodesEpisodeSlugViewGeneralRoute:
       TaxonomiesEpisodesEpisodeSlugViewGeneralRoute,
+    TaxonomiesEpisodesEpisodeSlugViewImageRoute:
+      TaxonomiesEpisodesEpisodeSlugViewImageRoute,
   }
 
 const TaxonomiesEpisodesEpisodeSlugViewRouteWithChildren =
@@ -8249,6 +8550,7 @@ const TaxonomiesEpisodesEpisodeSlugViewRouteWithChildren =
 
 interface TaxonomiesEpisodesEpisodeSlugEditRouteChildren {
   TaxonomiesEpisodesEpisodeSlugEditGeneralRoute: typeof TaxonomiesEpisodesEpisodeSlugEditGeneralRoute
+  TaxonomiesEpisodesEpisodeSlugEditImageRoute: typeof TaxonomiesEpisodesEpisodeSlugEditImageRoute
   TaxonomiesEpisodesEpisodeSlugEditIndexRoute: typeof TaxonomiesEpisodesEpisodeSlugEditIndexRoute
 }
 
@@ -8256,6 +8558,8 @@ const TaxonomiesEpisodesEpisodeSlugEditRouteChildren: TaxonomiesEpisodesEpisodeS
   {
     TaxonomiesEpisodesEpisodeSlugEditGeneralRoute:
       TaxonomiesEpisodesEpisodeSlugEditGeneralRoute,
+    TaxonomiesEpisodesEpisodeSlugEditImageRoute:
+      TaxonomiesEpisodesEpisodeSlugEditImageRoute,
     TaxonomiesEpisodesEpisodeSlugEditIndexRoute:
       TaxonomiesEpisodesEpisodeSlugEditIndexRoute,
   }
@@ -8612,12 +8916,15 @@ const TaxonomiesMediaTypesRouteWithChildren =
 
 interface TaxonomiesMoviesMovieSlugViewRouteChildren {
   TaxonomiesMoviesMovieSlugViewGeneralRoute: typeof TaxonomiesMoviesMovieSlugViewGeneralRoute
+  TaxonomiesMoviesMovieSlugViewImageRoute: typeof TaxonomiesMoviesMovieSlugViewImageRoute
 }
 
 const TaxonomiesMoviesMovieSlugViewRouteChildren: TaxonomiesMoviesMovieSlugViewRouteChildren =
   {
     TaxonomiesMoviesMovieSlugViewGeneralRoute:
       TaxonomiesMoviesMovieSlugViewGeneralRoute,
+    TaxonomiesMoviesMovieSlugViewImageRoute:
+      TaxonomiesMoviesMovieSlugViewImageRoute,
   }
 
 const TaxonomiesMoviesMovieSlugViewRouteWithChildren =
@@ -8627,6 +8934,7 @@ const TaxonomiesMoviesMovieSlugViewRouteWithChildren =
 
 interface TaxonomiesMoviesMovieSlugEditRouteChildren {
   TaxonomiesMoviesMovieSlugEditGeneralRoute: typeof TaxonomiesMoviesMovieSlugEditGeneralRoute
+  TaxonomiesMoviesMovieSlugEditImageRoute: typeof TaxonomiesMoviesMovieSlugEditImageRoute
   TaxonomiesMoviesMovieSlugEditIndexRoute: typeof TaxonomiesMoviesMovieSlugEditIndexRoute
 }
 
@@ -8634,6 +8942,8 @@ const TaxonomiesMoviesMovieSlugEditRouteChildren: TaxonomiesMoviesMovieSlugEditR
   {
     TaxonomiesMoviesMovieSlugEditGeneralRoute:
       TaxonomiesMoviesMovieSlugEditGeneralRoute,
+    TaxonomiesMoviesMovieSlugEditImageRoute:
+      TaxonomiesMoviesMovieSlugEditImageRoute,
     TaxonomiesMoviesMovieSlugEditIndexRoute:
       TaxonomiesMoviesMovieSlugEditIndexRoute,
   }
@@ -9033,12 +9343,15 @@ const TaxonomiesRelationshipTypesRouteWithChildren =
 
 interface TaxonomiesTracksTrackSlugViewRouteChildren {
   TaxonomiesTracksTrackSlugViewGeneralRoute: typeof TaxonomiesTracksTrackSlugViewGeneralRoute
+  TaxonomiesTracksTrackSlugViewImageRoute: typeof TaxonomiesTracksTrackSlugViewImageRoute
 }
 
 const TaxonomiesTracksTrackSlugViewRouteChildren: TaxonomiesTracksTrackSlugViewRouteChildren =
   {
     TaxonomiesTracksTrackSlugViewGeneralRoute:
       TaxonomiesTracksTrackSlugViewGeneralRoute,
+    TaxonomiesTracksTrackSlugViewImageRoute:
+      TaxonomiesTracksTrackSlugViewImageRoute,
   }
 
 const TaxonomiesTracksTrackSlugViewRouteWithChildren =
@@ -9048,6 +9361,7 @@ const TaxonomiesTracksTrackSlugViewRouteWithChildren =
 
 interface TaxonomiesTracksTrackSlugEditRouteChildren {
   TaxonomiesTracksTrackSlugEditGeneralRoute: typeof TaxonomiesTracksTrackSlugEditGeneralRoute
+  TaxonomiesTracksTrackSlugEditImageRoute: typeof TaxonomiesTracksTrackSlugEditImageRoute
   TaxonomiesTracksTrackSlugEditIndexRoute: typeof TaxonomiesTracksTrackSlugEditIndexRoute
 }
 
@@ -9055,6 +9369,8 @@ const TaxonomiesTracksTrackSlugEditRouteChildren: TaxonomiesTracksTrackSlugEditR
   {
     TaxonomiesTracksTrackSlugEditGeneralRoute:
       TaxonomiesTracksTrackSlugEditGeneralRoute,
+    TaxonomiesTracksTrackSlugEditImageRoute:
+      TaxonomiesTracksTrackSlugEditImageRoute,
     TaxonomiesTracksTrackSlugEditIndexRoute:
       TaxonomiesTracksTrackSlugEditIndexRoute,
   }
@@ -9099,12 +9415,15 @@ const TaxonomiesTracksRouteWithChildren =
 
 interface TaxonomiesTvShowsTvShowSlugViewRouteChildren {
   TaxonomiesTvShowsTvShowSlugViewGeneralRoute: typeof TaxonomiesTvShowsTvShowSlugViewGeneralRoute
+  TaxonomiesTvShowsTvShowSlugViewImageRoute: typeof TaxonomiesTvShowsTvShowSlugViewImageRoute
 }
 
 const TaxonomiesTvShowsTvShowSlugViewRouteChildren: TaxonomiesTvShowsTvShowSlugViewRouteChildren =
   {
     TaxonomiesTvShowsTvShowSlugViewGeneralRoute:
       TaxonomiesTvShowsTvShowSlugViewGeneralRoute,
+    TaxonomiesTvShowsTvShowSlugViewImageRoute:
+      TaxonomiesTvShowsTvShowSlugViewImageRoute,
   }
 
 const TaxonomiesTvShowsTvShowSlugViewRouteWithChildren =
@@ -9114,6 +9433,7 @@ const TaxonomiesTvShowsTvShowSlugViewRouteWithChildren =
 
 interface TaxonomiesTvShowsTvShowSlugEditRouteChildren {
   TaxonomiesTvShowsTvShowSlugEditGeneralRoute: typeof TaxonomiesTvShowsTvShowSlugEditGeneralRoute
+  TaxonomiesTvShowsTvShowSlugEditImageRoute: typeof TaxonomiesTvShowsTvShowSlugEditImageRoute
   TaxonomiesTvShowsTvShowSlugEditIndexRoute: typeof TaxonomiesTvShowsTvShowSlugEditIndexRoute
 }
 
@@ -9121,6 +9441,8 @@ const TaxonomiesTvShowsTvShowSlugEditRouteChildren: TaxonomiesTvShowsTvShowSlugE
   {
     TaxonomiesTvShowsTvShowSlugEditGeneralRoute:
       TaxonomiesTvShowsTvShowSlugEditGeneralRoute,
+    TaxonomiesTvShowsTvShowSlugEditImageRoute:
+      TaxonomiesTvShowsTvShowSlugEditImageRoute,
     TaxonomiesTvShowsTvShowSlugEditIndexRoute:
       TaxonomiesTvShowsTvShowSlugEditIndexRoute,
   }

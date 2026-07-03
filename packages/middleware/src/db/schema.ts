@@ -464,6 +464,8 @@ export const books = pgTable("books", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
   sortOrder: integer("sort_order").notNull().default(0),
   // Optional franchise/IP grouping. set null when the media property is deleted.
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
@@ -474,6 +476,9 @@ export const books = pgTable("books", {
   kavitaSeriesId: integer("kavita_series_id"),
   kavitaLibraryId: integer("kavita_library_id"),
   kavitaSeriesName: text("kavita_series_name"),
+  // ISBN/ASIN captured from the Add form's ISBN lookup (or entered/edited by hand). Nullable so
+  // `drizzle-kit push` applies cleanly; also powers a later "pull cover from ISBN" re-fetch.
+  isbn: text("isbn"),
   // Optional release year surfaced by the Kavita search.
   releaseYear: integer("release_year"),
   createdAt: timestamp("created_at", {
@@ -495,15 +500,20 @@ export const movies = pgTable("movies", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
   sortOrder: integer("sort_order").notNull().default(0),
   // Optional franchise/IP grouping. set null when the media property is deleted.
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
     onDelete: "set null",
   }),
   // Plex linkage (mirrors what the bookmark used to store): rating key builds the web-UI deep link;
-  // the item type is denormalized for the deep-link label without a Plex round-trip.
+  // the item type is denormalized for the deep-link label without a Plex round-trip. The title is
+  // also denormalized at link time (from the Plex search result) so the "Linked to Plex" display can
+  // show the actual item name without a Plex round-trip.
   plexRatingKey: text("plex_rating_key"),
   plexItemType: text("plex_item_type"),
+  plexItemTitle: text("plex_item_title"),
   // Optional release year surfaced by the Plex search.
   year: integer("year"),
   createdAt: timestamp("created_at", {
@@ -524,12 +534,17 @@ export const tvShows = pgTable("tv_shows", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
   sortOrder: integer("sort_order").notNull().default(0),
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
     onDelete: "set null",
   }),
   plexRatingKey: text("plex_rating_key"),
   plexItemType: text("plex_item_type"),
+  // Denormalized at link time from the Plex search result, so the "Linked to Plex" display can show
+  // the actual item name without a Plex round-trip.
+  plexItemTitle: text("plex_item_title"),
   year: integer("year"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -548,6 +563,8 @@ export const episodes = pgTable("episodes", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
   sortOrder: integer("sort_order").notNull().default(0),
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
     onDelete: "set null",
@@ -558,6 +575,9 @@ export const episodes = pgTable("episodes", {
   }),
   plexRatingKey: text("plex_rating_key"),
   plexItemType: text("plex_item_type"),
+  // Denormalized at link time from the Plex search result, so the "Linked to Plex" display can show
+  // the actual item name without a Plex round-trip.
+  plexItemTitle: text("plex_item_title"),
   year: integer("year"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -575,12 +595,17 @@ export const artists = pgTable("artists", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
   sortOrder: integer("sort_order").notNull().default(0),
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
     onDelete: "set null",
   }),
   plexRatingKey: text("plex_rating_key"),
   plexItemType: text("plex_item_type"),
+  // Denormalized at link time from the Plex search result, so the "Linked to Plex" display can show
+  // the actual item name without a Plex round-trip.
+  plexItemTitle: text("plex_item_title"),
   year: integer("year"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -598,12 +623,17 @@ export const albums = pgTable("albums", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
   sortOrder: integer("sort_order").notNull().default(0),
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
     onDelete: "set null",
   }),
   plexRatingKey: text("plex_rating_key"),
   plexItemType: text("plex_item_type"),
+  // Denormalized at link time from the Plex search result, so the "Linked to Plex" display can show
+  // the actual item name without a Plex round-trip.
+  plexItemTitle: text("plex_item_title"),
   year: integer("year"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -622,6 +652,8 @@ export const tracks = pgTable("tracks", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
   sortOrder: integer("sort_order").notNull().default(0),
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
     onDelete: "set null",
@@ -632,6 +664,9 @@ export const tracks = pgTable("tracks", {
   }),
   plexRatingKey: text("plex_rating_key"),
   plexItemType: text("plex_item_type"),
+  // Denormalized at link time from the Plex search result, so the "Linked to Plex" display can show
+  // the actual item name without a Plex round-trip.
+  plexItemTitle: text("plex_item_title"),
   year: integer("year"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -639,6 +674,35 @@ export const tracks = pgTable("tracks", {
 }, table => [
   unique("tracks_name_unique").on(table.name),
   unique("tracks_slug_unique").on(table.slug),
+]);
+
+/**
+ * `taxonomy_images` — a shared, polymorphic multi-image gallery for the Plex/Kavita-backed media
+ * taxonomies (Movies, TV Shows, Episodes, Artists, Albums, Tracks, Books). Mirrors `bookmark_images`
+ * (up to {@link MAX_TAXONOMY_IMAGES} per owner, one flagged `isMain`) but keyed by
+ * `(ownerType, ownerId)` instead of a single `bookmarkId` FK, since one physical table can't carry a
+ * foreign key into seven different owner tables. `ownerType` is one of `TAXONOMY_IMAGE_OWNER_TYPES`.
+ */
+export const TAXONOMY_IMAGE_OWNER_TYPES = ["movie", "tvShow", "episode", "artist", "album", "track", "book"] as const;
+
+export const taxonomyImages = pgTable("taxonomy_images", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerType: text("owner_type").notNull(),
+  ownerId: uuid("owner_id").notNull(),
+  objectKey: text("object_key").notNull(),
+  contentType: text("content_type").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  byteSize: integer("byte_size").notNull(),
+  // "upload" | "plex" | "kavita" | "isbn" — text so a new source can be added without a migration.
+  source: text("source").notNull(),
+  isMain: boolean("is_main").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  index("taxonomy_images_owner_idx").on(table.ownerType, table.ownerId),
 ]);
 
 /** `album_artists` join — M:M between albums and artists (an album has many artists and vice versa). */
@@ -2340,6 +2404,9 @@ export type ArtistRow = typeof artists.$inferSelect;
 export type TrackRow = typeof tracks.$inferSelect;
 export type AlbumArtistRow = typeof albumArtists.$inferSelect;
 export type NewBookRow = typeof books.$inferInsert;
+export type TaxonomyImageRow = typeof taxonomyImages.$inferSelect;
+export type NewTaxonomyImageRow = typeof taxonomyImages.$inferInsert;
+export type TaxonomyImageOwnerType = typeof TAXONOMY_IMAGE_OWNER_TYPES[number];
 export type RelationshipTypeRow = typeof relationshipTypes.$inferSelect;
 export type NewRelationshipTypeRow = typeof relationshipTypes.$inferInsert;
 export type YouTubeChannelRow = typeof youtubeChannels.$inferSelect;

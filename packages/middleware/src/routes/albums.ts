@@ -8,7 +8,9 @@ import {
   listAlbums,
   updateAlbum,
 } from "@/services/albums";
+import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const albumParams = {
   type: "object",
@@ -43,8 +45,14 @@ const albumDataFields = {
   plexItemType: {
     type: ["string", "null"],
   },
+  plexItemTitle: {
+    type: ["string", "null"],
+  },
   year: {
     type: ["integer", "null"],
+  },
+  romanizedName: {
+    type: ["string", "null"],
   },
 } as const;
 
@@ -145,4 +153,15 @@ export async function albumRoutes(app: FastifyInstance): Promise<void> {
     });
     return reply.code(204).send();
   });
+
+  registerTaxonomyImageRoutes(app, "/api/albums", "album", "albums", [
+    {
+      path: "plex-poster",
+      run: id => importPlexPosterForTaxonomy("album", id),
+      errorMessages: {
+        not_linked: "Album is not linked to a Plex item",
+        poster_unavailable: "Could not fetch the poster from Plex",
+      },
+    },
+  ]);
 }

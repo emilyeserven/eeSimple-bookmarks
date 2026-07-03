@@ -8,7 +8,9 @@ import {
   listArtists,
   updateArtist,
 } from "@/services/artists";
+import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const artistParams = {
   type: "object",
@@ -43,8 +45,14 @@ const artistDataFields = {
   plexItemType: {
     type: ["string", "null"],
   },
+  plexItemTitle: {
+    type: ["string", "null"],
+  },
   year: {
     type: ["integer", "null"],
+  },
+  romanizedName: {
+    type: ["string", "null"],
   },
 } as const;
 
@@ -145,4 +153,15 @@ export async function artistRoutes(app: FastifyInstance): Promise<void> {
     });
     return reply.code(204).send();
   });
+
+  registerTaxonomyImageRoutes(app, "/api/artists", "artist", "artists", [
+    {
+      path: "plex-poster",
+      run: id => importPlexPosterForTaxonomy("artist", id),
+      errorMessages: {
+        not_linked: "Artist is not linked to a Plex item",
+        poster_unavailable: "Could not fetch the poster from Plex",
+      },
+    },
+  ]);
 }

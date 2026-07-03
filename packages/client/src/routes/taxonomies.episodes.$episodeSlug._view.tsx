@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteEpisode, useEpisodeBySlug } from "../hooks/useEpisodes";
 
@@ -13,6 +14,10 @@ const viewNav = [
   {
     to: "/taxonomies/episodes/$episodeSlug/general",
     label: "General",
+  },
+  {
+    to: "/taxonomies/episodes/$episodeSlug/image",
+    label: "Image",
   },
 ] as const;
 
@@ -45,7 +50,16 @@ function EpisodeViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Episode" : (episode?.name ?? "Episode not found")}
+              {isLoading
+                ? "Episode"
+                : episode
+                  ? (
+                    <RomanizedLabel
+                      name={episode.name}
+                      romanized={episode.romanizedName}
+                    />
+                  )
+                  : "Episode not found"}
             </h1>
             {episode
               ? (

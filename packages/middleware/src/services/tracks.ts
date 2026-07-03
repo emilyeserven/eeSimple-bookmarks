@@ -24,12 +24,14 @@ function toTrack(row: TrackRow & { bookmarkCount?: number }): Track {
   return {
     id: row.id,
     name: row.name,
+    romanizedName: row.romanizedName ?? null,
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
     mediaPropertyId: row.mediaPropertyId ?? null,
     albumId: row.albumId ?? null,
     plexRatingKey: row.plexRatingKey ?? null,
     plexItemType: row.plexItemType ?? null,
+    plexItemTitle: row.plexItemTitle ?? null,
     year: row.year ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -44,7 +46,7 @@ const takenSlugs = (excludeId?: string) =>
 /** The Plex/media-property/parent columns settable on create and patchable on update. */
 type TrackDataColumns = Pick<
   TrackRow,
-  "mediaPropertyId" | "albumId" | "plexRatingKey" | "plexItemType" | "year"
+  "mediaPropertyId" | "albumId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year" | "romanizedName"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -54,7 +56,9 @@ function dataFromInput(input: CreateTrackInput | UpdateTrackInput): Partial<Trac
   if (input.albumId !== undefined) patch.albumId = input.albumId ?? null;
   if (input.plexRatingKey !== undefined) patch.plexRatingKey = input.plexRatingKey ?? null;
   if (input.plexItemType !== undefined) patch.plexItemType = input.plexItemType ?? null;
+  if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
   if (input.year !== undefined) patch.year = input.year ?? null;
+  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   return patch;
 }
 
@@ -64,12 +68,14 @@ export async function listTracks(): Promise<Track[]> {
     .select({
       id: tracks.id,
       name: tracks.name,
+      romanizedName: tracks.romanizedName,
       slug: tracks.slug,
       sortOrder: tracks.sortOrder,
       mediaPropertyId: tracks.mediaPropertyId,
       albumId: tracks.albumId,
       plexRatingKey: tracks.plexRatingKey,
       plexItemType: tracks.plexItemType,
+      plexItemTitle: tracks.plexItemTitle,
       year: tracks.year,
       createdAt: tracks.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.trackId, tracks.id)),

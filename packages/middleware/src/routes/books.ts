@@ -8,7 +8,10 @@ import {
   listBooks,
   updateBook,
 } from "@/services/books";
+import { importIsbnCoverForBook } from "@/services/isbn";
+import { importKavitaCoverForBook } from "@/services/kavita";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const bookParams = {
   type: "object",
@@ -39,8 +42,14 @@ const bookDataFields = {
   kavitaSeriesName: {
     type: ["string", "null"],
   },
+  isbn: {
+    type: ["string", "null"],
+  },
   releaseYear: {
     type: ["integer", "null"],
+  },
+  romanizedName: {
+    type: ["string", "null"],
   },
 } as const;
 
@@ -141,4 +150,24 @@ export async function bookRoutes(app: FastifyInstance): Promise<void> {
     });
     return reply.code(204).send();
   });
+
+  registerTaxonomyImageRoutes(app, "/api/books", "book", "books", [
+    {
+      path: "kavita-cover",
+      run: importKavitaCoverForBook,
+      errorMessages: {
+        not_linked: "Book is not linked to a Kavita series",
+        cover_unavailable: "Could not fetch the cover from Kavita",
+      },
+    },
+    {
+      path: "isbn-cover",
+      run: importIsbnCoverForBook,
+      errorMessages: {
+        no_isbn: "Book has no ISBN on file",
+        isbn_not_found: "No book found for that ISBN",
+        cover_unavailable: "Could not fetch a cover for that ISBN",
+      },
+    },
+  ]);
 }

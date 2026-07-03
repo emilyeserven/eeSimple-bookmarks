@@ -3,9 +3,11 @@ import type { Episode } from "@eesimple/types";
 
 import { EpisodeGeneralForm } from "../EpisodeGeneralForm";
 import { EpisodeTvShowValue } from "../EpisodeTvShowField";
+import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
 
 import { useDeleteEpisode, useEpisodeBySlug, useEpisodes } from "@/hooks/useEpisodes";
+import { episodesApi } from "@/lib/api/taxonomies";
 
 /** Single source of truth for an episode's view/edit UI (main pane routes + right panel). */
 export const episodeWorkbench: EntityWorkbench<Episode> = {
@@ -66,6 +68,37 @@ export const episodeWorkbench: EntityWorkbench<Episode> = {
         render: ({
           entity,
         }) => <EpisodeGeneralForm episode={entity} />,
+      },
+    },
+    {
+      key: "image",
+      label: "Image",
+      view: {
+        title: "Image",
+        description: "The episode's poster image.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={episodesApi.images}
+            queryKeyPrefix="episode-images"
+            readOnly
+          />
+        ),
+      },
+      edit: {
+        title: "Image",
+        description: "Upload a poster, or pull it from the linked Plex item.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={episodesApi.images}
+            queryKeyPrefix="episode-images"
+          />
+        ),
       },
     },
   ],

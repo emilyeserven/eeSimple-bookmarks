@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteArtist, useArtistBySlug } from "../hooks/useArtists";
 
@@ -13,6 +14,10 @@ const viewNav = [
   {
     to: "/taxonomies/artists/$artistSlug/general",
     label: "General",
+  },
+  {
+    to: "/taxonomies/artists/$artistSlug/image",
+    label: "Image",
   },
 ] as const;
 
@@ -45,7 +50,16 @@ function ArtistViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Artist" : (artist?.name ?? "Artist not found")}
+              {isLoading
+                ? "Artist"
+                : artist
+                  ? (
+                    <RomanizedLabel
+                      name={artist.name}
+                      romanized={artist.romanizedName}
+                    />
+                  )
+                  : "Artist not found"}
             </h1>
             {artist
               ? (

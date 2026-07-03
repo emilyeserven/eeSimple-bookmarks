@@ -12,6 +12,10 @@ const editNav = [
     to: "/taxonomies/tracks/$trackSlug/edit/general",
     label: "General",
   },
+  {
+    to: "/taxonomies/tracks/$trackSlug/edit/image",
+    label: "Image",
+  },
 ] as const;
 
 function TrackEditLayout() {

@@ -6,6 +6,8 @@ export interface Artist {
   id: string;
   /** Display name. Unique. */
   name: string;
+  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
+  romanizedName?: string | null;
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
   /** Display ordering weight; lower sorts first. */
@@ -18,6 +20,8 @@ export interface Artist {
   plexRatingKey: string | null;
   /** Denormalized Plex item type (e.g. `artist`) for the deep-link label. */
   plexItemType: string | null;
+  /** Display title of the linked Plex item, denormalized at link time. */
+  plexItemTitle: string | null;
   /** Optional release year surfaced by the Plex search. */
   year: number | null;
   /** ISO-8601 timestamp of when the artist was created. */
@@ -29,21 +33,25 @@ export interface Artist {
 /** Payload for creating an artist. */
 export interface CreateArtistInput {
   name: string;
+  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   albumIds?: string[];
   plexRatingKey?: string | null;
   plexItemType?: string | null;
+  plexItemTitle?: string | null;
   year?: number | null;
 }
 
 /** Payload for updating an artist (rename, reorder, re-link Plex/media property, set albums). */
 export interface UpdateArtistInput {
   name?: string;
+  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   albumIds?: string[];
   plexRatingKey?: string | null;
   plexItemType?: string | null;
+  plexItemTitle?: string | null;
   year?: number | null;
 }

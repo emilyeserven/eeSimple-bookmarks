@@ -44,6 +44,7 @@ import { albumRoutes } from "@/routes/albums";
 import { artistRoutes } from "@/routes/artists";
 import { trackRoutes } from "@/routes/tracks";
 import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
+import { registerTaxonomyImageServingRoute } from "@/routes/taxonomyImageRoutes";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
 import { youtubeChannelRoutes } from "@/routes/youtubeChannels";
@@ -269,6 +270,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(customPropertyRoutes);
   await app.register(propertyGroupRoutes);
   await app.register(mediaPropertyRoutes);
+  registerTaxonomyImageServingRoute(app);
   await app.register(bookRoutes);
   await app.register(movieRoutes);
   await app.register(tvShowRoutes);

@@ -30,12 +30,14 @@ function toArtist(
   return {
     id: row.id,
     name: row.name,
+    romanizedName: row.romanizedName ?? null,
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
     mediaPropertyId: row.mediaPropertyId ?? null,
     albumIds,
     plexRatingKey: row.plexRatingKey ?? null,
     plexItemType: row.plexItemType ?? null,
+    plexItemTitle: row.plexItemTitle ?? null,
     year: row.year ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -50,7 +52,7 @@ const takenSlugs = (excludeId?: string) =>
 /** The Plex/media-property columns settable on create and patchable on update (not the M2M). */
 type ArtistDataColumns = Pick<
   ArtistRow,
-  "mediaPropertyId" | "plexRatingKey" | "plexItemType" | "year"
+  "mediaPropertyId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year" | "romanizedName"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -59,7 +61,9 @@ function dataFromInput(input: CreateArtistInput | UpdateArtistInput): Partial<Ar
   if (input.mediaPropertyId !== undefined) patch.mediaPropertyId = input.mediaPropertyId ?? null;
   if (input.plexRatingKey !== undefined) patch.plexRatingKey = input.plexRatingKey ?? null;
   if (input.plexItemType !== undefined) patch.plexItemType = input.plexItemType ?? null;
+  if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
   if (input.year !== undefined) patch.year = input.year ?? null;
+  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   return patch;
 }
 
@@ -97,11 +101,13 @@ export async function listArtists(): Promise<Artist[]> {
     .select({
       id: artists.id,
       name: artists.name,
+      romanizedName: artists.romanizedName,
       slug: artists.slug,
       sortOrder: artists.sortOrder,
       mediaPropertyId: artists.mediaPropertyId,
       plexRatingKey: artists.plexRatingKey,
       plexItemType: artists.plexItemType,
+      plexItemTitle: artists.plexItemTitle,
       year: artists.year,
       createdAt: artists.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.artistId, artists.id)),

@@ -7,6 +7,8 @@ export interface Episode {
   id: string;
   /** Display name. Unique. */
   name: string;
+  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
+  romanizedName?: string | null;
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
   /** Display ordering weight; lower sorts first. */
@@ -19,6 +21,8 @@ export interface Episode {
   plexRatingKey: string | null;
   /** Denormalized Plex item type (e.g. `episode`) for the deep-link label. */
   plexItemType: string | null;
+  /** Display title of the linked Plex item, denormalized at link time. */
+  plexItemTitle: string | null;
   /** Optional release year surfaced by the Plex search. */
   year: number | null;
   /** ISO-8601 timestamp of when the episode was created. */
@@ -30,21 +34,25 @@ export interface Episode {
 /** Payload for creating an episode. */
 export interface CreateEpisodeInput {
   name: string;
+  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   tvShowId?: string | null;
   plexRatingKey?: string | null;
   plexItemType?: string | null;
+  plexItemTitle?: string | null;
   year?: number | null;
 }
 
 /** Payload for updating an episode (rename, reorder, re-link Plex/media property/parent). */
 export interface UpdateEpisodeInput {
   name?: string;
+  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   tvShowId?: string | null;
   plexRatingKey?: string | null;
   plexItemType?: string | null;
+  plexItemTitle?: string | null;
   year?: number | null;
 }

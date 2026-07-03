@@ -18,26 +18,33 @@ import { useAppForm } from "@/lib/form";
 export interface PlexTitle {
   id: string;
   name: string;
+  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
+  romanizedName?: string | null;
   slug: string;
   sortOrder: number;
   mediaPropertyId: string | null;
   plexRatingKey: string | null;
   plexItemType: string | null;
+  /** Display title of the linked Plex item, denormalized at link time. */
+  plexItemTitle?: string | null;
   year: number | null;
 }
 
 /** The partial-update payload the shared edit form writes (Movie / TV Show update inputs match this). */
 export interface PlexTitleUpdateInput {
   name?: string;
+  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   plexRatingKey?: string | null;
   plexItemType?: string | null;
+  plexItemTitle?: string | null;
   year?: number | null;
 }
 
 const plexTitleSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  romanizedName: z.string(),
   sortOrder: z.number().int(),
   year: z.number().int(),
   mediaPropertyId: z.string(),
@@ -45,11 +52,13 @@ const plexTitleSchema = z.object({
 
 const LABELS: Record<keyof PlexTitleUpdateInput, string> = {
   name: "Name",
+  romanizedName: "Romanized name",
   sortOrder: "Sort order",
   mediaPropertyId: "Media property",
   year: "Year",
   plexRatingKey: "Plex item",
   plexItemType: "Plex item",
+  plexItemTitle: "Plex item",
 };
 
 interface PlexTitleGeneralFormProps<E extends PlexTitle> {
@@ -91,6 +100,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
     labels: LABELS,
     initial: {
       name: entity.name,
+      romanizedName: entity.romanizedName ?? "",
       sortOrder: entity.sortOrder,
       year: entity.year,
     },
@@ -117,6 +127,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
   const form = useAppForm({
     defaultValues: {
       name: entity.name,
+      romanizedName: entity.romanizedName ?? "",
       sortOrder: entity.sortOrder,
       year: entity.year ?? 0,
       mediaPropertyId: entity.mediaPropertyId ?? "",
@@ -126,7 +137,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
     },
   });
 
-  /** Re-link Plex from a search pick: persist rating key + type + year in one save + one toast. */
+  /** Re-link Plex from a search pick: persist rating key + type + title + year in one save + one toast. */
   function applyPlex(item: PlexItemResult): void {
     form.setFieldValue("year", item.year ?? 0);
     update.mutate(
@@ -135,6 +146,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
         input: {
           plexRatingKey: item.ratingKey,
           plexItemType: item.type,
+          plexItemTitle: item.title,
           year: item.year,
         },
       },
@@ -156,6 +168,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
         input: {
           plexRatingKey: null,
           plexItemType: null,
+          plexItemTitle: null,
         },
       },
       {
@@ -210,6 +223,16 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
         </form.AppField>
       </div>
 
+      <form.AppField name="romanizedName">
+        {field => (
+          <field.TextField
+            label="Romanized name"
+            placeholder="Optional romanized form"
+            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
+          />
+        )}
+      </form.AppField>
+
       <form.AppField name="mediaPropertyId">
         {field => (
           <field.ComboboxField
@@ -261,7 +284,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
             >
               <Clapperboard className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate">
-                Linked to Plex
+                Linked to Plex: {entity.plexItemTitle ?? "Untitled"} (#{entity.plexRatingKey})
               </span>
               <button
                 type="button"
