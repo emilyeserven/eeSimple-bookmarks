@@ -29,6 +29,26 @@ describe("computeFacetData", () => {
     expect(data.websites).toBe(false);
   });
 
+  it("reports the Genres & Moods facet from its input list", () => {
+    const empty = computeFacetData({
+      tree: [],
+      properties: [],
+    });
+    expect(empty["genre-moods"]).toBe(false);
+    const withData = computeFacetData({
+      tree: [],
+      properties: [],
+      genreMoods: [{
+        id: "gm-1",
+        name: "Sci-Fi",
+        slug: "sci-fi",
+        parentId: null,
+        createdAt: "2026-01-01T00:00:00.000Z",
+      }],
+    });
+    expect(withData["genre-moods"]).toBe(true);
+  });
+
   it("ignores disabled properties for the sections facet", () => {
     const data = computeFacetData({
       tree: [],

@@ -31,6 +31,7 @@ export function FiltersPanel() {
     relationshipTypes,
     people,
     placeTypes,
+    genreMoods,
     bookmarks,
     search,
     onSearchChange,
@@ -44,6 +45,7 @@ export function FiltersPanel() {
   const hasRelationshipTypeFilter = (relationshipTypes?.length ?? 0) > 0;
   const hasPersonFilter = (people?.length ?? 0) > 0;
   const hasPlaceTypeFilter = (placeTypes?.length ?? 0) > 0;
+  const hasGenreMoodFilter = (genreMoods?.length ?? 0) > 0;
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
   const hasSectionsFilter = enabledProperties.some(p => p.type === "sections");
@@ -70,6 +72,7 @@ export function FiltersPanel() {
         relationshipTypes={relationshipTypes}
         people={people}
         placeTypes={placeTypes}
+        genreMoods={genreMoods}
         bookmarks={bookmarks}
         search={search}
         onSearchChange={onSearchChange}
@@ -82,6 +85,7 @@ export function FiltersPanel() {
         hasRelationshipTypeFilter={hasRelationshipTypeFilter}
         hasPersonFilter={hasPersonFilter}
         hasPlaceTypeFilter={hasPlaceTypeFilter}
+        hasGenreMoodFilter={hasGenreMoodFilter}
         hasSectionsFilter={hasSectionsFilter}
       />
     </div>

@@ -24,6 +24,7 @@ function BookmarksPage() {
     relationshipTypes,
     people,
     placeTypes,
+    genreMoods,
   } = useBookmarksPageData(tagsForServerQuery(search));
 
   return (
@@ -40,6 +41,7 @@ function BookmarksPage() {
       relationshipTypes={relationshipTypes ?? []}
       people={people ?? []}
       placeTypes={placeTypes ?? []}
+      genreMoods={genreMoods ?? []}
       bookmarks={bookmarks ?? []}
       search={search}
       onSearchChange={next => navigate({

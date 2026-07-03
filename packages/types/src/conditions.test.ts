@@ -16,6 +16,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     title: "An Example Article",
     categoryId: "cat-1",
     tagIds: new Set(),
+    genreMoodIds: new Set(),
     youtubeChannelId: null,
     mediaTypeId: null,
     relationshipTypeIds: new Set(),
@@ -350,6 +351,24 @@ test("language-usage matches both constraints on a single association row", () =
     type: "language-usage",
     languageIds: [],
     usageLevelIds: [],
+  }, input), false);
+});
+
+test("genre-mood matches on presence of any listed id; empty never matches", () => {
+  const input = makeInput({
+    genreMoodIds: new Set(["gm-a"]),
+  });
+  assert.equal(evaluateConditions({
+    type: "genre-mood",
+    genreMoodIds: ["gm-a", "gm-b"],
+  }, input), true);
+  assert.equal(evaluateConditions({
+    type: "genre-mood",
+    genreMoodIds: ["gm-z"],
+  }, input), false);
+  assert.equal(evaluateConditions({
+    type: "genre-mood",
+    genreMoodIds: [],
   }, input), false);
 });
 

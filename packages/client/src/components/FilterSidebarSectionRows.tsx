@@ -1,8 +1,8 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, SectionEntryType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, PropertyGroup, RelationshipType, SectionEntryType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { SECTION_ENTRY_TYPE_LABELS, SECTION_ENTRY_TYPES } from "@eesimple/types";
-import { Captions, ChevronDown, Globe, Languages, MapPin, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
+import { Captions, ChevronDown, Drama, Globe, Languages, MapPin, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { FacetChips, FacetPresenceToggle } from "./FilterFacetControls";
@@ -21,6 +21,8 @@ import {
   withCategories,
   withChoicesFilter,
   withDateTimeFilter,
+  withGenreMoodPresence,
+  withGenreMoods,
   withMediaTypes,
   withNumberFilter,
   withLanguageUsageLanguages,
@@ -417,6 +419,87 @@ export function PlaceTypeFilterSection({
                 hover:underline
               "
               onClick={() => onSearchChange(withPlaceTypePresence(withPlaceTypes(search, []), undefined))}
+            >
+              Reset
+            </button>
+          )
+          : null}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/** Multi-select Genres & Moods filter ("any match"), with a presence toggle. */
+export function GenreMoodFilterSection({
+  genreMoods, search, onSearchChange,
+}: {
+  genreMoods?: GenreMood[];
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const options = (genreMoods ?? []).map(genreMood => ({
+    value: genreMood.id,
+    label: genreMood.name,
+    icon: <Drama className="size-4 shrink-0 text-muted-foreground" />,
+  }));
+  const selected = search.genreMoods ?? [];
+  const filterActive = selected.length > 0 || search.genreMoodPresence !== undefined;
+
+  return (
+    <Collapsible
+      defaultOpen
+      className="group/genre-mood space-y-3"
+    >
+      <div className="flex items-center justify-between">
+        <CollapsibleTrigger
+          className="
+            flex items-center gap-1.5 text-sm font-semibold
+            hover:text-foreground
+          "
+        >
+          <ChevronDown
+            className="
+              size-3.5 shrink-0 transition-transform
+              group-data-[state=open]/genre-mood:rotate-180
+            "
+          />
+          Genres & Moods
+        </CollapsibleTrigger>
+        <FacetPresenceToggle
+          value={search.genreMoodPresence}
+          onChange={mode => onSearchChange(withGenreMoodPresence(search, mode))}
+          hasLabel="Has any"
+          missingLabel="Has none"
+        />
+      </div>
+      <CollapsibleContent className="space-y-3">
+        {search.genreMoodPresence !== "missing"
+          ? (
+            <>
+              <MultiCombobox
+                options={options}
+                values={selected}
+                onValuesChange={ids => onSearchChange(withGenreMoods(search, ids))}
+                placeholder="All Genres & Moods"
+                aria-label="Filter by Genres & Moods"
+              />
+              <FacetChips
+                options={options}
+                values={selected}
+                onValuesChange={ids => onSearchChange(withGenreMoods(search, ids))}
+              />
+            </>
+          )
+          : null}
+        {filterActive
+          ? (
+            <button
+              type="button"
+              className="
+                text-xs text-primary
+                hover:underline
+              "
+              onClick={() => onSearchChange(withGenreMoodPresence(withGenreMoods(search, []), undefined))}
             >
               Reset
             </button>

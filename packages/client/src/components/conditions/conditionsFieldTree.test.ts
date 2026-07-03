@@ -58,6 +58,7 @@ describe("splitRootConditions", () => {
       location: 0,
       youtubeChannel: 0,
       mediaType: 0,
+      genreMood: 0,
       relationshipType: 0,
       languageUsage: 0,
     });

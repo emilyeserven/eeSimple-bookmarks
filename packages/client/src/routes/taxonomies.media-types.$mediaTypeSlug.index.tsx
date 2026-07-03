@@ -30,6 +30,7 @@ function MediaTypeBookmarksPage() {
     relationshipTypes,
     people,
     placeTypes,
+    genreMoods,
   } = useCategoryPageData(tagsForServerQuery(search));
 
   const {
@@ -66,6 +67,7 @@ function MediaTypeBookmarksPage() {
       relationshipTypes={relationshipTypes ?? []}
       people={people ?? []}
       placeTypes={placeTypes ?? []}
+      genreMoods={genreMoods ?? []}
       bookmarks={mediaTypeBookmarks}
       search={search}
       onSearchChange={next => navigate({

@@ -2,7 +2,9 @@ import type { GenreMoodNode } from "@eesimple/types";
 
 import { GenreMoodGeneralForm } from "../GenreMoodGeneralForm";
 
+import { Button } from "@/components/ui/button";
 import { useGenreMoodTree } from "@/hooks/useGenreMoods";
+import { useNewAutofillRule } from "@/hooks/useNewAutofillRule";
 import { flattenTree, subtreeIds } from "@/lib/tagTree";
 
 export { GenreMoodHierarchyView } from "./genreMoodHierarchyView";
@@ -15,30 +17,45 @@ export function GenreMoodGeneralView({
   const {
     data,
   } = useGenreMoodTree();
+  const newRule = useNewAutofillRule();
   const parent = node.parentId
     ? flattenTree(data ?? []).find(item => item.node.id === node.parentId)?.node
     : null;
   return (
-    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-      <dt className="text-muted-foreground">Parent</dt>
-      <dd>{parent ? parent.name : "(root)"}</dd>
-      <dt className="text-muted-foreground">Children</dt>
-      <dd>{node.children.length}</dd>
-      <dt className="text-muted-foreground">Slug</dt>
-      <dd className="font-mono">{node.slug}</dd>
-      <dt className="text-muted-foreground">Bookmarks</dt>
-      <dd>{node.bookmarkCount ?? 0}</dd>
-      {node.children.length > 0 && (node.ownBookmarkCount ?? 0) > 0
-        ? (
-          <>
-            <dt className="text-muted-foreground/70 italic">No Child</dt>
-            <dd className="text-muted-foreground/70 italic">{node.ownBookmarkCount}</dd>
-          </>
-        )
-        : null}
-      <dt className="text-muted-foreground">Created</dt>
-      <dd>{new Date(node.createdAt).toLocaleDateString()}</dd>
-    </dl>
+    <div className="space-y-6">
+      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+        <dt className="text-muted-foreground">Parent</dt>
+        <dd>{parent ? parent.name : "(root)"}</dd>
+        <dt className="text-muted-foreground">Children</dt>
+        <dd>{node.children.length}</dd>
+        <dt className="text-muted-foreground">Slug</dt>
+        <dd className="font-mono">{node.slug}</dd>
+        <dt className="text-muted-foreground">Bookmarks</dt>
+        <dd>{node.bookmarkCount ?? 0}</dd>
+        {node.children.length > 0 && (node.ownBookmarkCount ?? 0) > 0
+          ? (
+            <>
+              <dt className="text-muted-foreground/70 italic">No Child</dt>
+              <dd className="text-muted-foreground/70 italic">{node.ownBookmarkCount}</dd>
+            </>
+          )
+          : null}
+        <dt className="text-muted-foreground">Created</dt>
+        <dd>{new Date(node.createdAt).toLocaleDateString()}</dd>
+      </dl>
+      <div>
+        <p className="mb-2 text-sm font-medium">Autofill</p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={newRule.onClick}
+        >
+          New Autofill Rule
+        </Button>
+        {newRule.modal}
+      </div>
+    </div>
   );
 }
 

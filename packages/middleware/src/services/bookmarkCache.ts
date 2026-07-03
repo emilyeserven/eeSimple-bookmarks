@@ -16,6 +16,7 @@ import {
   bookmarks,
   type BookmarkRow,
   bookmarkTags,
+  genreMoodAssignments,
   languageUsages,
   locations,
   tags,
@@ -143,7 +144,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, locationRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows, languageUsageRows] = await Promise.all([
+  const [tagRows, genreMoodRows, locationRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows, languageUsageRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -151,6 +152,16 @@ async function buildConditionInputs(
       })
       .from(bookmarkTags)
       .where(inArray(bookmarkTags.bookmarkId, ids)),
+    db
+      .select({
+        bookmarkId: genreMoodAssignments.ownerId,
+        genreMoodId: genreMoodAssignments.genreMoodId,
+      })
+      .from(genreMoodAssignments)
+      .where(and(
+        eq(genreMoodAssignments.ownerType, "bookmark"),
+        inArray(genreMoodAssignments.ownerId, ids),
+      )),
     db
       .select({
         bookmarkId: bookmarkLocations.bookmarkId,
@@ -246,6 +257,7 @@ async function buildConditionInputs(
   ]);
 
   const tagsByBid = groupToSets(tagRows, r => r.bookmarkId, r => r.tagId);
+  const genreMoodsByBid = groupToSets(genreMoodRows, r => r.bookmarkId, r => r.genreMoodId);
   const locationsByBid = groupToSets(locationRows, r => r.bookmarkId, r => r.locationId);
   const numsByBid = groupToMaps(numberRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
   const boolsByBid = groupToMaps(booleanRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
@@ -305,6 +317,7 @@ async function buildConditionInputs(
       romanizedTitle: row.romanizedTitle ?? null,
       categoryId: row.categoryId ?? defaultCategoryId,
       tagIds: tagsByBid.get(row.id) ?? new Set(),
+      genreMoodIds: genreMoodsByBid.get(row.id) ?? new Set(),
       locationIds: locationsByBid.get(row.id) ?? new Set(),
       youtubeChannelId: row.youtubeChannelId ?? null,
       mediaTypeId: row.mediaTypeId ?? null,

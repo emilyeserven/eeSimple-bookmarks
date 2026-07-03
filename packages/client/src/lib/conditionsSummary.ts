@@ -36,6 +36,10 @@ function summarizeNode(node: ConditionNode): string {
       return node.mediaTypeIds.length === 1
         ? "media type is (1)"
         : `media type is one of (${node.mediaTypeIds.length})`;
+    case "genre-mood":
+      return node.genreMoodIds.length === 1
+        ? "Genres & Moods is (1)"
+        : `Genres & Moods is one of (${node.genreMoodIds.length})`;
     case "relationship-type":
       return node.relationshipTypeIds.length === 1
         ? "has a relationship of type (1)"

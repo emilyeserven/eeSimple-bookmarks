@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useEffect } from "react";
 
@@ -23,6 +23,7 @@ export interface BookmarkSearchViewData {
   relationshipTypes?: RelationshipType[];
   people?: Person[];
   placeTypes?: PlaceType[];
+  genreMoods?: GenreMood[];
   bookmarks: Bookmark[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
@@ -49,7 +50,7 @@ export interface BookmarkSearchViewState {
 export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSearchViewState {
   const {
     pageKey, tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels,
-    websites, relationshipTypes, people, placeTypes, bookmarks, search, onSearchChange,
+    websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange,
     addFormCategoryId,
   } = data;
 
@@ -86,13 +87,14 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
       relationshipTypes,
       people,
       placeTypes,
+      genreMoods,
       bookmarks,
       search,
       onSearchChange,
     });
     return () => setFilterContext(null);
     // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
-  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, bookmarks, search, onSearchChange, setFilterContext]);
+  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange, setFilterContext]);
 
   // Only on mount — intentionally omit filtersInDrawer/isOpen/openType to avoid re-running.
   useEffect(() => {

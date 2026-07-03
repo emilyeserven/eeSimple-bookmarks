@@ -454,6 +454,7 @@ describe("bookmarkMatchesSearch", () => {
     people: [],
     relationships: [],
     languageUsages: [],
+    genreMoods: [],
   };
 
   it("passes when no filters are active", () => {
@@ -570,6 +571,44 @@ describe("bookmarkMatchesSearch", () => {
     expect(bookmarkMatchesSearch(withLocations, {
       placeTypes: ["region"],
       placeTypePresence: "exclude",
+    })).toBe(true);
+  });
+
+  it("applies Genres & Moods include, presence, and exclude filters", () => {
+    const withGenreMoods = {
+      ...bookmark,
+      genreMoods: [{
+        id: "gm-1",
+        name: "Sci-Fi",
+        slug: "sci-fi",
+        parentId: null,
+      }],
+    };
+    // include (any-of)
+    expect(bookmarkMatchesSearch(withGenreMoods, {
+      genreMoods: ["gm-1"],
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withGenreMoods, {
+      genreMoods: ["gm-2"],
+    })).toBe(false);
+    // presence
+    expect(bookmarkMatchesSearch(withGenreMoods, {
+      genreMoodPresence: "has",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      genreMoodPresence: "has",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(bookmark, {
+      genreMoodPresence: "missing",
+    })).toBe(true);
+    // exclude
+    expect(bookmarkMatchesSearch(withGenreMoods, {
+      genreMoods: ["gm-1"],
+      genreMoodPresence: "exclude",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(withGenreMoods, {
+      genreMoods: ["gm-2"],
+      genreMoodPresence: "exclude",
     })).toBe(true);
   });
 
@@ -974,6 +1013,7 @@ describe("bookmarkMatchesSearch — exclude mode", () => {
     people: [],
     relationships: [],
     languageUsages: [],
+    genreMoods: [],
   };
 
   describe("tag exclusion", () => {

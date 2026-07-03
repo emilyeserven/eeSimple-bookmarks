@@ -1,7 +1,7 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { LocationSortMode } from "../lib/locationSort";
 import type { SyncProvider } from "../lib/syncSources/syncSourceTypes";
-import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, LocationMapLevelMode, MediaType, PlaceType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, GenreMood, LocationMapLevelMode, MediaType, PlaceType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { create } from "zustand";
@@ -57,6 +57,7 @@ export interface FilterContextData {
   relationshipTypes?: RelationshipType[];
   people?: Person[];
   placeTypes?: PlaceType[];
+  genreMoods?: GenreMood[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;

@@ -5,6 +5,7 @@ import { useParams, useSearch } from "@tanstack/react-router";
 
 import { useCategories } from "./useCategories";
 import { useCustomProperties } from "./useCustomProperties";
+import { useGenreMoodBySlug } from "./useGenreMoods";
 import { useMediaTypes } from "./useMediaTypes";
 import { useTagBySlug } from "./useTags";
 import { useWebsites } from "./useWebsites";
@@ -28,6 +29,7 @@ export function useAutofillScopeDefaults(): AutofillScopeDefaults {
     tagSlug,
     mediaTypeSlug,
     channelSlug,
+    genreMoodSlug,
   } = useParams({
     strict: false,
   });
@@ -63,6 +65,9 @@ export function useAutofillScopeDefaults(): AutofillScopeDefaults {
   const {
     channel: preseedChannel,
   } = useYouTubeChannelBySlug(effectiveChannelSlug ?? "");
+  const {
+    genreMood: preseedGenreMood,
+  } = useGenreMoodBySlug(genreMoodSlug ?? "");
 
   return resolveAutofillScopeDefaults(
     {
@@ -72,6 +77,7 @@ export function useAutofillScopeDefaults(): AutofillScopeDefaults {
       tag: effectiveTagSlug,
       mediaType: effectiveMediaTypeSlug,
       channel: effectiveChannelSlug,
+      genreMood: genreMoodSlug,
     },
     {
       categories: categories ?? [],
@@ -80,6 +86,7 @@ export function useAutofillScopeDefaults(): AutofillScopeDefaults {
       mediaTypes: mediaTypes ?? [],
       tagId: preseedTag?.id,
       channelId: preseedChannel?.id,
+      genreMoodId: preseedGenreMood?.id,
     },
   );
 }

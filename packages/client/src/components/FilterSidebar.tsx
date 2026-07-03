@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -45,6 +45,8 @@ interface FilterSidebarProps {
   people?: Person[];
   /** Place types offered as a multi-select filter; rendered only when non-empty. */
   placeTypes?: PlaceType[];
+  /** Genres & Moods offered as a multi-select filter; rendered only when non-empty. */
+  genreMoods?: GenreMood[];
   /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
@@ -53,7 +55,7 @@ interface FilterSidebarProps {
 
 /** Left filter rail for the search pages: tiered tags plus custom-property filters. */
 export function FilterSidebar({
-  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, bookmarks, search, onSearchChange,
+  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
   const [sectionFilter, setSectionFilter] = useState("");
   // Filters configured as "on demand" (Settings → Display → Filters) are hidden until the user adds
@@ -74,6 +76,7 @@ export function FilterSidebar({
     relationshipTypes,
     people,
     placeTypes,
+    genreMoods,
   }, search, onDemand, added);
   const hasProperties = visibleProperties.length > 0;
 
@@ -189,6 +192,7 @@ export function FilterSidebar({
                     relationshipTypes={relationshipTypes}
                     people={people}
                     placeTypes={placeTypes}
+                    genreMoods={genreMoods}
                     bookmarks={bookmarks}
                     search={search}
                     onSearchChange={onSearchChange}
@@ -201,6 +205,7 @@ export function FilterSidebar({
                     hasRelationshipTypeFilter={facetVisible["relationship-types"]}
                     hasPersonFilter={facetVisible.people}
                     hasPlaceTypeFilter={facetVisible["place-types"]}
+                    hasGenreMoodFilter={facetVisible["genre-moods"]}
                     hasSectionsFilter={facetVisible.sections}
                     sectionFilter={sectionFilter}
                   />
