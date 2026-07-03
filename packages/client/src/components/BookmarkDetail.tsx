@@ -80,6 +80,7 @@ export function BookmarkDetail({
                 <RomanizedLabel
                   name={bookmark.title}
                   romanized={bookmark.romanizedTitle}
+                  stacked
                 />
               </a>
             </h1>
