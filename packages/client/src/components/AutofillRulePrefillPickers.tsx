@@ -6,6 +6,7 @@ import { LocationPickerWithCreate } from "./LocationPickerWithCreate";
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
 import { TreeCombobox } from "./TreeCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
+import { useGatedTagTree } from "../hooks/useGatedTagTree";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 
 import { Label } from "@/components/ui/label";
@@ -25,15 +26,21 @@ interface Props {
   onToggleTag: (id: string) => void;
   locationIds: string[];
   onToggleLocation: (id: string) => void;
+  /** The rule's own "Set category" action, resolved to a real id (or `null`) — gates "Apply tags". */
+  appliedCategoryId: string | null;
 }
 
 /** Category + media-type comboboxes and tag picker for the autofill rule prefill form. */
 export function AutofillRulePrefillPickers({
   categories, mediaTypeTree, tagTree, locationTree, setCategoryId, onCategoryChange,
   setMediaTypeId, onMediaTypeChange, tagIds, onToggleTag, locationIds, onToggleLocation,
+  appliedCategoryId,
 }: Props) {
   const categoryCreate = useEntityCreateOption("category", c => onCategoryChange(c.id));
   const mediaTypeCreate = useEntityCreateOption("media-type", m => onMediaTypeChange(m.id));
+  const {
+    tree: gatedTagTree,
+  } = useGatedTagTree(appliedCategoryId, tagTree);
 
   const categoryOptions = [
     {
@@ -76,7 +83,7 @@ export function AutofillRulePrefillPickers({
       <div className="space-y-1">
         <Label>Apply tags</Label>
         <TagPickerWithCreate
-          tree={tagTree}
+          tree={gatedTagTree}
           selectedIds={tagIds}
           onToggle={onToggleTag}
         />

@@ -1,9 +1,9 @@
 import type { ImportItemAdvancedEditState } from "./useImportItemAdvancedEdit";
 
+import { GatedTagPicker } from "./BookmarkTagsField";
 import { Combobox } from "./Combobox";
 import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
-import { TagPicker } from "./TagPicker";
 import { TreeCombobox } from "./TreeCombobox";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 
@@ -84,18 +84,16 @@ export function ImportItemAdvancedEditFields({
         />
       </div>
 
-      <div className="space-y-1">
-        <Label className="text-xs">Tags</Label>
-        <TagPicker
-          tree={tagTree}
-          selectedIds={tagIds}
-          onToggle={handleTagToggle}
-          createOption={{
-            label: "Create tag",
-            onSelect: () => addModalState.setAddTagOpen(true),
-          }}
-        />
-      </div>
+      <GatedTagPicker
+        categoryId={categoryId ?? ""}
+        tree={tagTree}
+        selectedIds={tagIds}
+        onToggle={handleTagToggle}
+        createOption={{
+          label: "Create tag",
+          onSelect: () => addModalState.setAddTagOpen(true),
+        }}
+      />
 
       <div className="space-y-1">
         <Label className="text-xs">Locations</Label>

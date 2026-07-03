@@ -61,6 +61,9 @@ vi.mock("@/hooks/useCategories", () => ({
   useCategories: () => ({
     data: [],
   }),
+  useCategoryAvailableTags: () => ({
+    data: undefined,
+  }),
   useCreateCategory: () => ({
     mutate: vi.fn(),
     isError: false,

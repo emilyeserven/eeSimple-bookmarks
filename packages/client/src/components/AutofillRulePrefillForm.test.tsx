@@ -54,6 +54,9 @@ vi.mock("../hooks/useCategories", () => ({
   useCategories: () => ({
     data: categories,
   }),
+  useCategoryAvailableTags: () => ({
+    data: undefined,
+  }),
 }));
 vi.mock("../hooks/useCustomProperties", () => ({
   useCustomProperties: () => ({
