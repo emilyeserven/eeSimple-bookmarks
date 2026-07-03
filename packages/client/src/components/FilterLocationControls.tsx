@@ -75,11 +75,33 @@ export function FilterLocationControls() {
       type="single"
       size="sm"
       value={current}
+      className="gap-0 overflow-hidden rounded-md border border-input"
       onValueChange={handleChange}
     >
-      <ToggleGroupItem value="sidebar">Sidebar</ToggleGroupItem>
-      <ToggleGroupItem value="drawer">Drawer</ToggleGroupItem>
-      <ToggleGroupItem value="hide">Hide</ToggleGroupItem>
+      <ToggleGroupItem
+        value="sidebar"
+        className="
+          rounded-none border-r border-input
+          first:rounded-l-sm
+        "
+      >
+        Sidebar
+      </ToggleGroupItem>
+      <ToggleGroupItem
+        value="drawer"
+        className="rounded-none border-r border-input"
+      >
+        Drawer
+      </ToggleGroupItem>
+      <ToggleGroupItem
+        value="hide"
+        className="
+          rounded-none
+          last:rounded-r-sm
+        "
+      >
+        Hide
+      </ToggleGroupItem>
     </ToggleGroup>
   );
 }

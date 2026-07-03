@@ -3,13 +3,6 @@ import type { ViewMode } from "../lib/bookmarkColumns";
 import { COLUMN_OPTIONS } from "../lib/bookmarkColumns";
 
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 /** Shared "View" cards/table toggle row used by listing + section display controls. */
@@ -60,24 +53,29 @@ export function ColumnsSelect({
   return (
     <div className="flex items-center justify-between gap-4">
       <Label className="text-sm font-medium">Columns</Label>
-      <Select
+      <ToggleGroup
+        type="single"
+        size="sm"
         value={String(value)}
-        onValueChange={next => onChange(Number(next))}
+        className="gap-0 overflow-hidden rounded-md border border-input"
+        onValueChange={(next) => {
+          if (next) onChange(Number(next));
+        }}
       >
-        <SelectTrigger className="h-7 w-16 text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {COLUMN_OPTIONS.map(option => (
-            <SelectItem
-              key={option}
-              value={String(option)}
-            >
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        {COLUMN_OPTIONS.map(option => (
+          <ToggleGroupItem
+            key={option}
+            value={String(option)}
+            className="
+              rounded-none border-r border-input
+              first:rounded-l-sm
+              last:rounded-r-sm last:border-r-0
+            "
+          >
+            {option}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
     </div>
   );
 }
