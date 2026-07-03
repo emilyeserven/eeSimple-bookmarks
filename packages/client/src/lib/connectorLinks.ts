@@ -61,7 +61,10 @@ export const CONNECTOR_LINKS: readonly ConnectorLink[] = [
     key: "hosted-metadata",
     icon: MonitorPlay,
     isConfigured: c => Boolean(c.hostedMetadata.baseUrl),
-    href: c => c.hostedMetadata.baseUrl,
+    // The bare base URL is the Browserless debugger UI, which requires a `?token=` query param we
+    // don't expose to the client — visiting it directly 401s. `/docs` serves the instance's
+    // interactive API docs without auth, so the link always lands somewhere useful.
+    href: c => (c.hostedMetadata.baseUrl ? `${c.hostedMetadata.baseUrl.replace(/\/$/, "")}/docs` : null),
     label: c => providerLabel(c.hostedMetadata.provider),
   },
 ];
