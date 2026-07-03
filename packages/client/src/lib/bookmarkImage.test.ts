@@ -1,8 +1,10 @@
 // @vitest-environment node
-import type { CustomAspectRatio } from "@eesimple/types";
+import type { Bookmark, CustomAspectRatio, ImageDisplayPreference } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
-import { bookmarkImageAspectStyle, bookmarkImageClass } from "./bookmarkImage";
+import { makeBookmarkImage } from "../test-utils/factories";
+
+import { bookmarkImageAspectStyle, bookmarkImageClass, resolveBookmarkDisplayImage } from "./bookmarkImage";
 
 describe("bookmarkImageClass", () => {
   it("uses fixed-width left layout, omitting object-cover for natural mode", () => {
@@ -58,5 +60,62 @@ describe("bookmarkImageAspectStyle", () => {
 
   it("falls back to no ratio for an unknown custom id", () => {
     expect(bookmarkImageAspectStyle("missing", 4, 3, customRatios)).toEqual({});
+  });
+});
+
+describe("resolveBookmarkDisplayImage", () => {
+  const image = makeBookmarkImage();
+  const screenshot = makeBookmarkImage({
+    id: "shot",
+    url: "https://example.com/shot.webp",
+    source: "screenshot",
+  });
+
+  function bookmarkWith(
+    preference: ImageDisplayPreference,
+    overrides: Partial<Pick<Bookmark, "image" | "screenshot">> = {},
+  ): Pick<Bookmark, "image" | "screenshot" | "imageDisplayPreference"> {
+    return {
+      image: null,
+      screenshot: null,
+      imageDisplayPreference: preference,
+      ...overrides,
+    };
+  }
+
+  it("auto prefers image over screenshot when both exist", () => {
+    expect(resolveBookmarkDisplayImage(bookmarkWith("auto", {
+      image,
+      screenshot,
+    }))).toBe(image);
+  });
+
+  it("auto falls back to screenshot when there is no image", () => {
+    expect(resolveBookmarkDisplayImage(bookmarkWith("auto", {
+      screenshot,
+    }))).toBe(screenshot);
+  });
+
+  it("auto returns null when neither exists", () => {
+    expect(resolveBookmarkDisplayImage(bookmarkWith("auto"))).toBeNull();
+  });
+
+  it("\"image\" preference falls back to screenshot when there is no image", () => {
+    expect(resolveBookmarkDisplayImage(bookmarkWith("image", {
+      screenshot,
+    }))).toBe(screenshot);
+  });
+
+  it("\"screenshot\" preference falls back to image when there is no screenshot", () => {
+    expect(resolveBookmarkDisplayImage(bookmarkWith("screenshot", {
+      image,
+    }))).toBe(image);
+  });
+
+  it("\"screenshot\" preference wins over image when both exist", () => {
+    expect(resolveBookmarkDisplayImage(bookmarkWith("screenshot", {
+      image,
+      screenshot,
+    }))).toBe(screenshot);
   });
 });

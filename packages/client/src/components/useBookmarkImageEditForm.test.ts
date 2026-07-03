@@ -18,6 +18,7 @@ const setMainMutateAsync = vi.fn(async () => undefined);
 const deleteByIdMutateAsync = vi.fn(async () => undefined);
 const takeScreenshotMutateAsync = vi.fn(async () => undefined);
 const deleteScreenshotMutateAsync = vi.fn(async () => undefined);
+const updateBookmarkMutate = vi.fn();
 const scanMock = vi.fn(async () => ({
   imageCandidates: [{
     url: "https://e.com/a.jpg",
@@ -70,6 +71,10 @@ vi.mock("../hooks/useBookmarks", () => ({
   }),
   useIsbnCoverImage: () => ({
     mutate: vi.fn(),
+    ...pendingFalse,
+  }),
+  useUpdateBookmark: () => ({
+    mutate: updateBookmarkMutate,
     ...pendingFalse,
   }),
 }));

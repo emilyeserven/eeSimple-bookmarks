@@ -26,7 +26,11 @@ export function BookmarkScreenshotSection({
       <p className="text-sm font-medium">Page screenshot</p>
       <p className="text-xs text-muted-foreground">
         {screenshot
-          ? "A screenshot has been captured. It is used as the bookmark image when no other image exists."
+          ? c.displayPreference === "screenshot"
+            ? "This screenshot is set to always display as the bookmark's cover image."
+            : c.displayPreference === "image"
+              ? "This screenshot is kept, but the normal image always displays as the cover instead."
+              : "A screenshot has been captured. It is used as the bookmark image when no other image exists."
           : "Take a screenshot of the page via Browserless. Used as a fallback image when no other image is set."}
       </p>
       {screenshot

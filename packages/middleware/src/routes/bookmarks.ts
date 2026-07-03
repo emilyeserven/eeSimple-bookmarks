@@ -408,6 +408,10 @@ const createBookmarkBody = {
     plexItemTitle: {
       type: ["string", "null"],
     },
+    imageDisplayPreference: {
+      type: "string",
+      enum: ["auto", "image", "screenshot"],
+    },
   },
 } as const;
 

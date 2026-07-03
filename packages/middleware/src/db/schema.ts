@@ -106,6 +106,10 @@ export const bookmarks = pgTable("bookmarks", {
   // applies cleanly to existing rows (push-safe additive change). NULL means never attempted or
   // the last attempt succeeded.
   imageAutoGrabError: text("image_auto_grab_error"),
+  // "image" | "screenshot" | null. null ("auto") reproduces today's fallback
+  // (prefer image, else screenshot). Nullable so `drizzle-kit push` applies cleanly to existing
+  // rows (push-safe additive change).
+  imageDisplayPreference: text("image_display_preference"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

@@ -1,5 +1,5 @@
 import type { ImageIntent } from "./bookmarkImageIntent";
-import type { Bookmark, ImageCandidate } from "@eesimple/types";
+import type { Bookmark, ImageCandidate, ImageDisplayPreference } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
@@ -68,6 +68,12 @@ export interface BookmarkImageEditFormController {
   deleteScreenshotPending: boolean;
   onTakeScreenshot: () => void;
   onDeleteScreenshot: () => void;
+  /** Which image source the cover currently displays. */
+  displayPreference: ImageDisplayPreference;
+  /** Whether the display-preference save is in flight. */
+  displayPreferencePending: boolean;
+  /** Persist a new display preference. */
+  onDisplayPreferenceChange: (preference: ImageDisplayPreference) => void;
 }
 
 /**
@@ -165,5 +171,17 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
       scrollDistance: screenshotSettings.screenshotScrollDistance || undefined,
     }),
     onDeleteScreenshot: () => void mutations.deleteScreenshot.mutateAsync(bookmark.id),
+    displayPreference: bookmark.imageDisplayPreference,
+    displayPreferencePending: mutations.updateDisplayPreference.isPending,
+    onDisplayPreferenceChange: (preference) => {
+      mutations.updateDisplayPreference.mutate({
+        id: bookmark.id,
+        input: {
+          imageDisplayPreference: preference,
+        },
+      }, {
+        onSuccess: () => notifySuccess("Updated cover image preference"),
+      });
+    },
   };
 }

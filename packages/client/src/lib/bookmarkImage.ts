@@ -1,4 +1,4 @@
-import type { CustomAspectRatio } from "@eesimple/types";
+import type { Bookmark, BookmarkImage, CustomAspectRatio } from "@eesimple/types";
 import type { CSSProperties } from "react";
 
 /** Tailwind classes sizing a bookmark card image for the given layout and display mode. */
@@ -36,4 +36,17 @@ export function bookmarkImageAspectStyle(
       aspectRatio: `${custom.width} / ${custom.height}`,
     }
     : {};
+}
+
+/**
+ * Resolves which image a bookmark's cover should display, honoring `imageDisplayPreference`.
+ * Falls back to whichever source exists when the preferred one is missing, rather than showing
+ * nothing.
+ */
+export function resolveBookmarkDisplayImage(
+  bookmark: Pick<Bookmark, "image" | "screenshot" | "imageDisplayPreference">,
+): BookmarkImage | null {
+  if (bookmark.imageDisplayPreference === "screenshot") return bookmark.screenshot ?? bookmark.image;
+  if (bookmark.imageDisplayPreference === "image") return bookmark.image ?? bookmark.screenshot;
+  return bookmark.image ?? bookmark.screenshot;
 }

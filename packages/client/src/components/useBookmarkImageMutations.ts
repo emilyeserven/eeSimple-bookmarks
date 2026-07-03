@@ -9,6 +9,7 @@ import {
   usePlexPosterImage,
   useSetMainBookmarkImage,
   useTakeBookmarkScreenshot,
+  useUpdateBookmark,
 } from "../hooks/useBookmarks";
 
 /**
@@ -26,16 +27,17 @@ export function useBookmarkImageMutations() {
   const deleteImageById = useDeleteBookmarkImageById();
   const takeScreenshot = useTakeBookmarkScreenshot();
   const deleteScreenshot = useDeleteBookmarkScreenshot();
+  const updateDisplayPreference = useUpdateBookmark();
 
   const isMutating = addImage.isPending || autoImage.isPending || kavitaCover.isPending
     || plexPoster.isPending
     || isbnCover.isPending
     || imagesFromCandidates.isPending
     || setMainImage.isPending || deleteImageById.isPending || takeScreenshot.isPending
-    || deleteScreenshot.isPending;
+    || deleteScreenshot.isPending || updateDisplayPreference.isPending;
   const mutationError = addImage.error ?? imagesFromCandidates.error ?? setMainImage.error
     ?? deleteImageById.error ?? autoImage.error ?? kavitaCover.error ?? plexPoster.error
-    ?? isbnCover.error;
+    ?? isbnCover.error ?? updateDisplayPreference.error;
 
   return {
     autoImage,
@@ -48,6 +50,7 @@ export function useBookmarkImageMutations() {
     deleteImageById,
     takeScreenshot,
     deleteScreenshot,
+    updateDisplayPreference,
     isMutating,
     mutationError,
   };

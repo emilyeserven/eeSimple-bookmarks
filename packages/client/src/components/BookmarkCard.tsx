@@ -16,6 +16,7 @@ import { useBookmarkCardSaves } from "./useBookmarkCardSaves";
 import { useCategories } from "../hooks/useCategories";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems, fieldPlacementsForCard } from "../lib/bookmarkCardValues";
+import { resolveBookmarkDisplayImage } from "../lib/bookmarkImage";
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -78,7 +79,7 @@ export function BookmarkCard({
   // Tags opted into the bookmark card's "More" menu quick-toggle.
   const editableTags = bookmark.tags.filter(t => t.editableOnCard);
 
-  const hasActualImage = !!(bookmark.image ?? bookmark.screenshot);
+  const hasActualImage = !!resolveBookmarkDisplayImage(bookmark);
   const imageEnabled = imageVisibility !== "off";
   const hasImage = hasActualImage && imageEnabled;
 
