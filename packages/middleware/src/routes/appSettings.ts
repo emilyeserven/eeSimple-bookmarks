@@ -182,6 +182,8 @@ const sidebarCustomizationBody = {
     "seeMoreCustomizationItems",
     "hiddenManagementItems",
     "hiddenSidebarGroups",
+    "hiddenConnectorLinks",
+    "seeMoreConnectorLinks",
   ],
   additionalProperties: false,
   properties: {
@@ -193,6 +195,8 @@ const sidebarCustomizationBody = {
     seeMoreCustomizationItems: stringArray,
     hiddenManagementItems: stringArray,
     hiddenSidebarGroups: stringArray,
+    hiddenConnectorLinks: stringArray,
+    seeMoreConnectorLinks: stringArray,
   },
 } as const;
 

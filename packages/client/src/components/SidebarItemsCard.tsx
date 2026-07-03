@@ -24,6 +24,8 @@ interface SidebarItemsMatrixProps {
   seeMoreItems?: string[];
   /** Set an item's display mode. */
   onSetMode: (key: string, mode: SidebarItemMode) => void;
+  /** Label for the "hidden" option (default "Listing only"; e.g. "Hide" for connector links). */
+  hiddenLabel?: string;
 }
 
 /**
@@ -31,7 +33,7 @@ interface SidebarItemsMatrixProps {
  * the consolidated Sidebar settings card and wrapped by {@link SidebarItemsCard}.
  */
 export function SidebarItemsMatrix({
-  items, hiddenItems, seeMoreItems, onSetMode,
+  items, hiddenItems, seeMoreItems, onSetMode, hiddenLabel = "Listing only",
 }: SidebarItemsMatrixProps) {
   const hasThreeStates = seeMoreItems !== undefined;
 
@@ -68,7 +70,7 @@ export function SidebarItemsMatrix({
             {hasThreeStates && (
               <ToggleGroupItem value="see-more">See More</ToggleGroupItem>
             )}
-            <ToggleGroupItem value="hidden">Listing only</ToggleGroupItem>
+            <ToggleGroupItem value="hidden">{hiddenLabel}</ToggleGroupItem>
           </ToggleGroup>
         </div>
       ))}
@@ -90,6 +92,8 @@ interface SidebarItemsCardProps {
   seeMoreItems?: string[];
   /** Set an item's display mode. */
   onSetMode: (key: string, mode: SidebarItemMode) => void;
+  /** Label for the "hidden" option (default "Listing only"; e.g. "Hide" for connector links). */
+  hiddenLabel?: string;
 }
 
 /**
@@ -99,7 +103,7 @@ interface SidebarItemsCardProps {
  * (Default / Listing only).
  */
 export function SidebarItemsCard({
-  title, description, items, hiddenItems, seeMoreItems, onSetMode,
+  title, description, items, hiddenItems, seeMoreItems, onSetMode, hiddenLabel,
 }: SidebarItemsCardProps) {
   return (
     <Card>
@@ -113,6 +117,7 @@ export function SidebarItemsCard({
           hiddenItems={hiddenItems}
           seeMoreItems={seeMoreItems}
           onSetMode={onSetMode}
+          hiddenLabel={hiddenLabel}
         />
       </CardContent>
     </Card>

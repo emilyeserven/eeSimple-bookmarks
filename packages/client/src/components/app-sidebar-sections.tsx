@@ -1,10 +1,14 @@
 import type { SidebarAdvanced } from "./useAppSidebarData";
+import type { ConnectorLink } from "../lib/connectorLinks";
 
 import * as React from "react";
 
-import { BookOpen, ChevronDown, Database, GitBranch, Palette, Server } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronUp, Database, GitBranch, Palette, Server } from "lucide-react";
 
+import { useSidebarVisibility } from "../hooks/useAppSettings";
+import { useConnectors } from "../hooks/useConnectors";
 import { useResizeHandle } from "../hooks/useResizeHandle";
+import { CONNECTOR_LINKS } from "../lib/connectorLinks";
 import { useUiStore } from "../stores/uiStore";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -135,6 +139,85 @@ export function SidebarAdvancedSection({
             />
           )
           : null}
+      </SidebarMenu>
+    </CollapsibleSection>
+  );
+}
+
+/**
+ * External-link "Connectors" group — one link-out per configured connector (Kavita / ArchiveBox /
+ * hosted-metadata a.k.a. Browserless). Each link's placement (visible / See More / hidden) comes from
+ * the sidebar-customization settings; unconfigured connectors never appear. Rendered just above the
+ * Advanced section.
+ */
+export function SidebarConnectorsSection() {
+  const {
+    state,
+  } = useSidebar();
+  const {
+    data: connectors,
+  } = useConnectors();
+  const {
+    hiddenConnectorLinks,
+    seeMoreConnectorLinks,
+  } = useSidebarVisibility();
+  const [expanded, setExpanded] = React.useState(false);
+
+  if (!connectors) return null;
+  const configured = CONNECTOR_LINKS.filter(link => link.isConfigured(connectors));
+  const visible = configured.filter(
+    link => !hiddenConnectorLinks.includes(link.key) && !seeMoreConnectorLinks.includes(link.key),
+  );
+  const seeMore = configured.filter(
+    link => !hiddenConnectorLinks.includes(link.key) && seeMoreConnectorLinks.includes(link.key),
+  );
+  if (visible.length === 0 && seeMore.length === 0) return null;
+
+  const renderLink = (link: ConnectorLink) => {
+    const href = link.href(connectors);
+    if (!href) return null;
+    return (
+      <SidebarExternalLink
+        key={link.key}
+        href={href}
+        label={link.label(connectors)}
+        icon={<link.icon />}
+      />
+    );
+  };
+
+  return (
+    <CollapsibleSection
+      sectionKey="connectors"
+      label="Connectors"
+    >
+      <SidebarMenu>
+        {visible.map(renderLink)}
+        {seeMore.length > 0 && !expanded && state !== "collapsed" && (
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="See more connectors"
+              onClick={() => setExpanded(true)}
+              className="text-xs text-muted-foreground"
+            >
+              <ChevronDown className="size-4" />
+              <span>See More</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
+        {expanded && seeMore.map(renderLink)}
+        {seeMore.length > 0 && expanded && state !== "collapsed" && (
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="See less"
+              onClick={() => setExpanded(false)}
+              className="text-xs text-muted-foreground"
+            >
+              <ChevronUp className="size-4" />
+              <span>See Less</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
       </SidebarMenu>
     </CollapsibleSection>
   );

@@ -7,7 +7,7 @@ import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/servi
 import { instagramApiEnabled } from "@/services/socialImages";
 import { kavitaEnabledAsync } from "@/services/kavita";
 import { getPlexMachineIdentifier, plexEnabledAsync } from "@/services/plex";
-import { getActiveKavitaEndpoint, getActivePlexEndpoint } from "@/services/appSettings";
+import { getActiveHostedEndpoint, getActiveKavitaEndpoint, getActivePlexEndpoint } from "@/services/appSettings";
 import { youtubeApiEnabledAsync } from "@/services/youtube";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 
@@ -29,6 +29,8 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
       hostedMetadata: {
         enabled: await hostedMetadataEnabledAsync(),
         provider: await hostedMetadataProviderAsync(),
+        // Non-secret base URL so the client can link out to the provider's instance (e.g. Browserless).
+        baseUrl: await getActiveHostedEndpoint(),
       },
       youtubeDataApi: {
         enabled: await youtubeApiEnabledAsync(),

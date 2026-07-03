@@ -77,6 +77,21 @@ export function useSidebarSettings() {
     });
   }
 
+  function setConnectorLinkMode(key: string, mode: CategoryDisplayMode): void {
+    updateSidebar.mutate({
+      ...sidebar,
+      hiddenConnectorLinks: mode === "hidden"
+        ? [...sidebar.hiddenConnectorLinks.filter(x => x !== key), key]
+        : sidebar.hiddenConnectorLinks.filter(x => x !== key),
+      seeMoreConnectorLinks: mode === "see-more"
+        ? [...sidebar.seeMoreConnectorLinks.filter(x => x !== key), key]
+        : sidebar.seeMoreConnectorLinks.filter(x => x !== key),
+    }, {
+      onSuccess: () => notifySuccess("Sidebar updated"),
+      onError: error => notifyError(error.message),
+    });
+  }
+
   const toggleSidebarGroup = (group: string) => toggleSidebarKey("hiddenSidebarGroups", group);
 
   return {
@@ -84,6 +99,7 @@ export function useSidebarSettings() {
     setCategoryMode,
     setTaxonomyItemMode,
     setCustomizationItemMode,
+    setConnectorLinkMode,
     toggleSidebarGroup,
   };
 }
