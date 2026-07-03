@@ -85,6 +85,21 @@ function applyBooleanFlagsToRuleZones(
 // Ordered list of idempotent, destructive/push-incompatible steps.
 const migrations: RuntimeMigration[] = [
   {
+    // The podcast author is now modeled as People/Group credits (`podcast_people`/`podcast_groups`),
+    // so the denormalized `podcasts.author` text column is gone from the schema. Dropping a column is
+    // destructive, so remove it here before push. Guarded by `to_regclass` so it no-ops on a fresh DB
+    // (where migrate runs before push has created `podcasts`); `IF EXISTS` makes the drop idempotent.
+    name: "drop podcasts.author column",
+    run: db => db.execute(sql`
+      DO $$
+      BEGIN
+        IF to_regclass('public.podcasts') IS NOT NULL THEN
+          ALTER TABLE "podcasts" DROP COLUMN IF EXISTS "author";
+        END IF;
+      END $$;
+    `),
+  },
+  {
     // `autofill_rules.slug` carries a UNIQUE constraint and was added to a table that already had
     // rows. `drizzle-kit push` won't add a new column + unique constraint to a populated table
     // without an interactive truncation confirmation, so in this non-TTY deploy it silently skips

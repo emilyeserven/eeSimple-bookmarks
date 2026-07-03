@@ -62,8 +62,19 @@ const podcastDataFields = {
     type: ["string", "null"],
     enum: [...PODCAST_LINK_PROVIDERS, null],
   },
-  author: {
-    type: ["string", "null"],
+  personIds: {
+    type: "array",
+    items: {
+      type: "string",
+      format: "uuid",
+    },
+  },
+  groupIds: {
+    type: "array",
+    items: {
+      type: "string",
+      format: "uuid",
+    },
   },
   description: {
     type: ["string", "null"],

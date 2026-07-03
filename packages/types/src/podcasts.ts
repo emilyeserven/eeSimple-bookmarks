@@ -57,8 +57,10 @@ export interface Podcast {
   pocketCastsUrl: string | null;
   /** Which service this podcast links out to by default, or null to fall back to the first available. */
   defaultLinkProvider: PodcastLinkProvider | null;
-  /** Denormalized podcast author/host string, or null. */
-  author: string | null;
+  /** People (individuals) credited as authors/hosts of this podcast. */
+  personIds: string[];
+  /** Groups (organizations/networks) credited as authors/hosts of this podcast. */
+  groupIds: string[];
   /** Podcast description scraped from the feed, or null. */
   description: string | null;
   /** ISO-8601 timestamp of when the podcast was created. */
@@ -82,7 +84,10 @@ export interface CreatePodcastInput {
   pocketCastsUuid?: string | null;
   pocketCastsUrl?: string | null;
   defaultLinkProvider?: PodcastLinkProvider | null;
-  author?: string | null;
+  /** People (individuals) credited as authors/hosts. Replaces the full set when present. */
+  personIds?: string[];
+  /** Groups (organizations/networks) credited as authors/hosts. Replaces the full set when present. */
+  groupIds?: string[];
   description?: string | null;
 }
 
@@ -99,7 +104,10 @@ export interface UpdatePodcastInput {
   pocketCastsUuid?: string | null;
   pocketCastsUrl?: string | null;
   defaultLinkProvider?: PodcastLinkProvider | null;
-  author?: string | null;
+  /** People (individuals) credited as authors/hosts. Replaces the full set when present. */
+  personIds?: string[];
+  /** Groups (organizations/networks) credited as authors/hosts. Replaces the full set when present. */
+  groupIds?: string[];
   description?: string | null;
 }
 

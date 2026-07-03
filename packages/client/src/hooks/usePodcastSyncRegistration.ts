@@ -74,7 +74,6 @@ export function usePodcastSyncRegistration({
       refs: {
         currentImageUrl,
         currentName: podcast.name,
-        currentAuthor: podcast.author ?? null,
         currentDescription: podcast.description ?? null,
         currentItunesUrl: podcast.itunesUrl ?? null,
         currentPocketCastsUrl: podcast.pocketCastsUrl ?? null,
@@ -82,7 +81,7 @@ export function usePodcastSyncRegistration({
       applyStaged,
     };
   }, [
-    podcast.id, podcast.name, podcast.author, podcast.description,
+    podcast.id, podcast.name, podcast.description,
     podcast.itunesUrl, podcast.pocketCastsUrl,
     currentImageUrl, enabled, applyStaged,
   ]);

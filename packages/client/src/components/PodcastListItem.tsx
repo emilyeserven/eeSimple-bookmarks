@@ -61,7 +61,6 @@ export function PodcastListItem({
         </span>
       )}
       title={podcast.name}
-      subtitle={podcast.author ?? undefined}
       count={podcast.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link

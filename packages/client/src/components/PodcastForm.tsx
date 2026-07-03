@@ -5,7 +5,9 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
+import { PodcastAuthorsFields } from "./PodcastAuthorsFields";
 import { PodcastSearchPicker } from "./PodcastSearchPicker";
+import { usePodcastAuthors } from "./usePodcastAuthors";
 import { useMediaProperties } from "../hooks/useMediaProperties";
 import { useCreatePodcast } from "../hooks/usePodcasts";
 
@@ -42,25 +44,33 @@ export function PodcastForm({
   const [romanizedName, setRomanizedName] = useState("");
   const [feedUrl, setFeedUrl] = useState("");
   const [spotifyUrl, setSpotifyUrl] = useState("");
-  const [author, setAuthor] = useState("");
   const [description, setDescription] = useState("");
   const [mediaPropertyId, setMediaPropertyId] = useState<string>("");
   const [addMediaPropertyOpen, setAddMediaPropertyOpen] = useState(false);
+  const [personIds, setPersonIds] = useState<string[]>([]);
+  const [groupIds, setGroupIds] = useState<string[]>([]);
   // Service linkage captured from the search picker, persisted on create.
   const [itunesId, setItunesId] = useState<number | null>(null);
   const [itunesUrl, setItunesUrl] = useState<string | null>(null);
   const [pocketCastsUuid, setPocketCastsUuid] = useState<string | null>(null);
   const [pocketCastsUrl, setPocketCastsUrl] = useState<string | null>(null);
 
-  /** Prefill the form from a chosen result (feed + searched-service linkage held for the create call). */
+  const authors = usePodcastAuthors({
+    personIds,
+    groupIds,
+    onPersonIdsChange: setPersonIds,
+    onGroupIdsChange: setGroupIds,
+  });
+
+  /** Prefill the form from a chosen result (feed + searched-service linkage); the author resolves to People. */
   function applyPickedPodcast(result: PodcastSearchResult): void {
     setName(result.name);
-    setAuthor(result.author ?? "");
     setFeedUrl(result.feedUrl ?? "");
     setItunesId(result.itunesId);
     setItunesUrl(result.itunesUrl);
     setPocketCastsUuid(result.pocketCastsUuid);
     setPocketCastsUrl(result.pocketCastsUrl);
+    void authors.applyAuthorName(result.author);
   }
 
   /** After create, cross-resolve the service links the pick didn't provide and persist any found. */
@@ -98,7 +108,8 @@ export function PodcastForm({
         mediaPropertyId: mediaPropertyId || null,
         feedUrl: feedUrl.trim() || null,
         spotifyUrl: spotifyUrl.trim() || null,
-        author: author.trim() || null,
+        personIds,
+        groupIds,
         description: description.trim() || null,
         itunesId,
         itunesUrl,
@@ -162,14 +173,17 @@ export function PodcastForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="podcast-author">Author</Label>
-        <Input
-          id="podcast-author"
-          placeholder="Host or publisher"
-          value={author}
-          onChange={event => setAuthor(event.target.value)}
+        <Label>Authors</Label>
+        <PodcastAuthorsFields
+          personIds={personIds}
+          groupIds={groupIds}
+          onPersonIdsChange={setPersonIds}
+          onGroupIdsChange={setGroupIds}
+          personCreateOption={authors.personCreateOption}
+          groupCreateOption={authors.groupCreateOption}
         />
       </div>
+      {authors.modals}
 
       <div className="space-y-1.5">
         <Label htmlFor="podcast-description">Description</Label>

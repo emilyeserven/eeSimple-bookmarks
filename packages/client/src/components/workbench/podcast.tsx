@@ -11,6 +11,7 @@ import {
   podcastLinkUrl,
   resolvePodcastDefaultLink,
 } from "../../lib/podcastLinks";
+import { PodcastAuthorsValue } from "../PodcastAuthorsFields";
 import { PodcastGeneralForm } from "../PodcastGeneralForm";
 import { PodcastImageTab } from "../PodcastImageTab";
 
@@ -41,8 +42,13 @@ function PodcastGeneralView({
         <dd className="font-mono">{podcast.slug}</dd>
         <dt className="text-muted-foreground">Media property</dt>
         <dd>{mediaProperty?.name ?? <span className="text-muted-foreground">None</span>}</dd>
-        <dt className="text-muted-foreground">Author</dt>
-        <dd>{podcast.author ?? <span className="text-muted-foreground">Unknown</span>}</dd>
+        <dt className="text-muted-foreground">Authors</dt>
+        <dd>
+          <PodcastAuthorsValue
+            personIds={podcast.personIds}
+            groupIds={podcast.groupIds}
+          />
+        </dd>
         <dt className="text-muted-foreground">Links to</dt>
         <dd>
           {defaultLink
@@ -141,12 +147,12 @@ export const podcastWorkbench: EntityWorkbench<Podcast> = {
       label: "General",
       view: {
         title: "General",
-        description: "Media property, feed, author, and metadata.",
+        description: "Media property, feed, authors, and metadata.",
         render: PodcastGeneralView,
       },
       edit: {
         title: "General",
-        description: "Name, media property, feed URL, author, and description.",
+        description: "Name, media property, feed URL, authors, and description.",
         render: ({
           entity,
         }) => <PodcastGeneralForm podcast={entity} />,

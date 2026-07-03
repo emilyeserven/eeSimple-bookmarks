@@ -5,7 +5,6 @@ import { buildPodcastDiff, type PodcastDiffCurrent, type PodcastDiffSource } fro
 
 const EMPTY_CURRENT: PodcastDiffCurrent = {
   name: null,
-  author: null,
   description: null,
   imageUrl: null,
   itunesUrl: null,
@@ -14,7 +13,6 @@ const EMPTY_CURRENT: PodcastDiffCurrent = {
 
 const EMPTY_SOURCE: PodcastDiffSource = {
   title: null,
-  author: null,
   description: null,
   imageUrl: null,
   itunesUrl: null,
@@ -26,17 +24,16 @@ describe("buildPodcastDiff", () => {
     expect(buildPodcastDiff(EMPTY_CURRENT, EMPTY_SOURCE, "Podcast feed").groups).toEqual([]);
   });
 
-  it("offers name/author/description + artwork (checked, fill-empty) when current is empty", () => {
+  it("offers name/description + artwork (checked, fill-empty) when current is empty", () => {
     const source: PodcastDiffSource = {
       ...EMPTY_SOURCE,
       title: "Reply All",
-      author: "Gimlet",
       description: "A podcast about the internet.",
       imageUrl: "https://cdn.example.com/art.jpg",
     };
     const diff = buildPodcastDiff(EMPTY_CURRENT, source, "Podcast feed");
     const rows = diff.groups[0].rows;
-    expect(rows.map(r => r.key)).toEqual(["name", "author", "description", "artwork"]);
+    expect(rows.map(r => r.key)).toEqual(["name", "description", "artwork"]);
     expect(rows.every(r => r.defaultChecked)).toBe(true);
     const artwork = rows.find(r => r.key === "artwork");
     expect(artwork?.kind).toBe("image");
@@ -82,12 +79,12 @@ describe("buildPodcastDiff", () => {
     const current: PodcastDiffCurrent = {
       ...EMPTY_CURRENT,
       name: "Same",
-      author: "Same Author",
+      description: "Same summary",
     };
     const source: PodcastDiffSource = {
       ...EMPTY_SOURCE,
       title: "Same",
-      author: "Same Author",
+      description: "Same summary",
     };
     expect(buildPodcastDiff(current, source, "Podcast feed").groups).toEqual([]);
   });

@@ -827,8 +827,6 @@ export const podcasts = pgTable("podcasts", {
   pocketCastsUuid: text("pocket_casts_uuid"),
   pocketCastsUrl: text("pocket_casts_url"),
   defaultLinkProvider: text("default_link_provider"),
-  // Denormalized from the feed so display needs no round-trip.
-  author: text("author"),
   description: text("description"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -892,6 +890,34 @@ export const albumGroups = pgTable("album_groups", {
 }, table => [
   primaryKey({
     columns: [table.albumId, table.groupId],
+  }),
+]);
+
+/** `podcast_people` join — M:M crediting a podcast to People (individual authors/hosts). */
+export const podcastPeople = pgTable("podcast_people", {
+  podcastId: uuid("podcast_id").notNull().references((): AnyPgColumn => podcasts.id, {
+    onDelete: "cascade",
+  }),
+  personId: uuid("person_id").notNull().references((): AnyPgColumn => people.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.podcastId, table.personId],
+  }),
+]);
+
+/** `podcast_groups` join — M:M crediting a podcast to Groups (organizations/networks). */
+export const podcastGroups = pgTable("podcast_groups", {
+  podcastId: uuid("podcast_id").notNull().references((): AnyPgColumn => podcasts.id, {
+    onDelete: "cascade",
+  }),
+  groupId: uuid("group_id").notNull().references((): AnyPgColumn => groups.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.podcastId, table.groupId],
   }),
 ]);
 
@@ -3012,6 +3038,32 @@ export const albumGroupsRelations = relations(albumGroups, ({
   }),
   group: one(groups, {
     fields: [albumGroups.groupId],
+    references: [groups.id],
+  }),
+}));
+
+export const podcastPeopleRelations = relations(podcastPeople, ({
+  one,
+}) => ({
+  podcast: one(podcasts, {
+    fields: [podcastPeople.podcastId],
+    references: [podcasts.id],
+  }),
+  person: one(people, {
+    fields: [podcastPeople.personId],
+    references: [people.id],
+  }),
+}));
+
+export const podcastGroupsRelations = relations(podcastGroups, ({
+  one,
+}) => ({
+  podcast: one(podcasts, {
+    fields: [podcastGroups.podcastId],
+    references: [podcasts.id],
+  }),
+  group: one(groups, {
+    fields: [podcastGroups.groupId],
     references: [groups.id],
   }),
 }));
