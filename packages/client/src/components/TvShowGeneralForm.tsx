@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
 
-import { useUpdateTvShow } from "@/hooks/useTvShows";
+import { useTvShowPlexAutofetch, useUpdateTvShow } from "@/hooks/useTvShows";
 
 /** Edit a TV show's name, sort order, media property, year, and Plex link. Auto-saves. */
 export function TvShowGeneralForm({
@@ -14,6 +14,7 @@ export function TvShowGeneralForm({
 }) {
   const navigate = useNavigate();
   const update = useUpdateTvShow();
+  const autofetch = useTvShowPlexAutofetch();
   return (
     <PlexTitleGeneralForm
       entity={tvShow}
@@ -25,6 +26,7 @@ export function TvShowGeneralForm({
           tvShowSlug: slug,
         },
       })}
+      autofetch={autofetch}
     />
   );
 }

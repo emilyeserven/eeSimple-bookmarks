@@ -24,6 +24,12 @@ export interface Album {
   plexItemTitle: string | null;
   /** Optional release year surfaced by the Plex search. */
   year: number | null;
+  /** Wikidata QID resolved by "Autofetch from Plex"; reused to re-resolve links. */
+  wikidataId: string | null;
+  /** English Wikipedia article URL, or null. */
+  wikipediaLinkEn: string | null;
+  /** Local-language Wikipedia article URL, or null. */
+  wikipediaLinkLocal: string | null;
   /** ISO-8601 timestamp of when the album was created. */
   createdAt: string;
   /** Number of bookmarks linked to this album (populated by list endpoints). */
@@ -41,6 +47,9 @@ export interface CreateAlbumInput {
   plexItemType?: string | null;
   plexItemTitle?: string | null;
   year?: number | null;
+  wikidataId?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
 }
 
 /** Payload for updating an album (rename, reorder, re-link Plex/media property, set artists). */
@@ -54,4 +63,7 @@ export interface UpdateAlbumInput {
   plexItemType?: string | null;
   plexItemTitle?: string | null;
   year?: number | null;
+  wikidataId?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
 }

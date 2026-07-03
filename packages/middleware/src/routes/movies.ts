@@ -10,6 +10,7 @@ import {
 } from "@/services/movies";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { registerPlexAutofetchRoute } from "@/routes/plexAutofetchRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const movieParams = {
@@ -45,6 +46,15 @@ const movieDataFields = {
     type: ["integer", "null"],
   },
   romanizedName: {
+    type: ["string", "null"],
+  },
+  wikidataId: {
+    type: ["string", "null"],
+  },
+  wikipediaLinkEn: {
+    type: ["string", "null"],
+  },
+  wikipediaLinkLocal: {
     type: ["string", "null"],
   },
 } as const;
@@ -157,4 +167,6 @@ export async function movieRoutes(app: FastifyInstance): Promise<void> {
       },
     },
   ]);
+
+  registerPlexAutofetchRoute(app, "/api/movies", "movie", "movies");
 }

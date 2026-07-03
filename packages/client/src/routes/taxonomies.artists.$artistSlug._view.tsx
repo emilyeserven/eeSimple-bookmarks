@@ -1,8 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { PlexTaxonomyViewHeader } from "../components/PlexTaxonomyViewHeader";
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteArtist, useArtistBySlug } from "../hooks/useArtists";
+import { artistsApi } from "../lib/api/taxonomies";
 
 import { Button } from "@/components/ui/button";
 
@@ -34,72 +36,69 @@ function ArtistViewLayout() {
   return (
     <TabbedEntityLayout
       header={(
-        <div className="space-y-1">
-          <Link
-            to="/taxonomies/artists"
-            className="
-              inline-block text-sm text-muted-foreground
-              hover:text-foreground
-            "
-          >
-            ← Back to artists
-          </Link>
-          <div className="flex items-start justify-between gap-4">
-            <h1
+        <PlexTaxonomyViewHeader
+          ownerId={artist?.id}
+          imagesApi={artistsApi.images}
+          queryKeyPrefix="artist-images"
+          backLink={(
+            <Link
+              to="/taxonomies/artists"
               className="
-                flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
+                inline-block text-sm text-muted-foreground
+                hover:text-foreground
               "
             >
-              {isLoading
-                ? "Artist"
-                : artist
-                  ? (
-                    <RomanizedLabel
-                      name={artist.name}
-                      romanized={artist.romanizedName}
-                    />
-                  )
-                  : "Artist not found"}
-            </h1>
-            {artist
+              ← Back to artists
+            </Link>
+          )}
+          title={isLoading
+            ? "Artist"
+            : artist
               ? (
-                <div className="flex shrink-0 items-center gap-1">
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Link
-                      to="/taxonomies/artists/$artistSlug/edit/general"
-                      params={{
-                        artistSlug,
-                      }}
-                    >
-                      Edit
-                    </Link>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="
-                      text-destructive
-                      hover:text-destructive
-                    "
-                    disabled={deleteArtist.isPending}
-                    onClick={() => deleteArtist.mutate(artist.id, {
-                      onSuccess: () => navigate({
-                        to: "/taxonomies/artists",
-                      }),
-                    })}
-                  >
-                    {deleteArtist.isPending ? "Deleting…" : "Delete"}
-                  </Button>
-                </div>
+                <RomanizedLabel
+                  name={artist.name}
+                  romanized={artist.romanizedName}
+                />
               )
-              : null}
-          </div>
-        </div>
+              : "Artist not found"}
+          actions={artist
+            ? (
+              <>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                >
+                  <Link
+                    to="/taxonomies/artists/$artistSlug/edit/general"
+                    params={{
+                      artistSlug,
+                    }}
+                  >
+                    Edit
+                  </Link>
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="
+                    text-destructive
+                    hover:text-destructive
+                  "
+                  disabled={deleteArtist.isPending}
+                  onClick={() => deleteArtist.mutate(artist.id, {
+                    onSuccess: () => navigate({
+                      to: "/taxonomies/artists",
+                    }),
+                  })}
+                >
+                  {deleteArtist.isPending ? "Deleting…" : "Delete"}
+                </Button>
+              </>
+            )
+            : undefined}
+        />
       )}
       nav={viewNav}
       params={{

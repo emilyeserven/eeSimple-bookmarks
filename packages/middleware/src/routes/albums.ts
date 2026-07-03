@@ -10,6 +10,7 @@ import {
 } from "@/services/albums";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { registerPlexAutofetchRoute } from "@/routes/plexAutofetchRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const albumParams = {
@@ -52,6 +53,15 @@ const albumDataFields = {
     type: ["integer", "null"],
   },
   romanizedName: {
+    type: ["string", "null"],
+  },
+  wikidataId: {
+    type: ["string", "null"],
+  },
+  wikipediaLinkEn: {
+    type: ["string", "null"],
+  },
+  wikipediaLinkLocal: {
     type: ["string", "null"],
   },
 } as const;
@@ -164,4 +174,6 @@ export async function albumRoutes(app: FastifyInstance): Promise<void> {
       },
     },
   ]);
+
+  registerPlexAutofetchRoute(app, "/api/albums", "album", "albums");
 }

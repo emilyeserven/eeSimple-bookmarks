@@ -23,6 +23,12 @@ export interface TvShow {
   plexItemTitle: string | null;
   /** Optional release year surfaced by the Plex search. */
   year: number | null;
+  /** Wikidata QID resolved by "Autofetch from Plex"; reused to re-resolve links. */
+  wikidataId: string | null;
+  /** English Wikipedia article URL, or null. */
+  wikipediaLinkEn: string | null;
+  /** Local-language Wikipedia article URL, or null. */
+  wikipediaLinkLocal: string | null;
   /** ISO-8601 timestamp of when the show was created. */
   createdAt: string;
   /** Number of bookmarks linked to this show (populated by list endpoints). */
@@ -39,6 +45,9 @@ export interface CreateTvShowInput {
   plexItemType?: string | null;
   plexItemTitle?: string | null;
   year?: number | null;
+  wikidataId?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
 }
 
 /** Payload for updating a TV show (rename, reorder, re-link Plex/media property). */
@@ -51,4 +60,7 @@ export interface UpdateTvShowInput {
   plexItemType?: string | null;
   plexItemTitle?: string | null;
   year?: number | null;
+  wikidataId?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
 }

@@ -1,8 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { PlexTaxonomyViewHeader } from "../components/PlexTaxonomyViewHeader";
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteTrack, useTrackBySlug } from "../hooks/useTracks";
+import { tracksApi } from "../lib/api/taxonomies";
 
 import { Button } from "@/components/ui/button";
 
@@ -34,72 +36,69 @@ function TrackViewLayout() {
   return (
     <TabbedEntityLayout
       header={(
-        <div className="space-y-1">
-          <Link
-            to="/taxonomies/tracks"
-            className="
-              inline-block text-sm text-muted-foreground
-              hover:text-foreground
-            "
-          >
-            ← Back to tracks
-          </Link>
-          <div className="flex items-start justify-between gap-4">
-            <h1
+        <PlexTaxonomyViewHeader
+          ownerId={track?.id}
+          imagesApi={tracksApi.images}
+          queryKeyPrefix="track-images"
+          backLink={(
+            <Link
+              to="/taxonomies/tracks"
               className="
-                flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
+                inline-block text-sm text-muted-foreground
+                hover:text-foreground
               "
             >
-              {isLoading
-                ? "Track"
-                : track
-                  ? (
-                    <RomanizedLabel
-                      name={track.name}
-                      romanized={track.romanizedName}
-                    />
-                  )
-                  : "Track not found"}
-            </h1>
-            {track
+              ← Back to tracks
+            </Link>
+          )}
+          title={isLoading
+            ? "Track"
+            : track
               ? (
-                <div className="flex shrink-0 items-center gap-1">
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Link
-                      to="/taxonomies/tracks/$trackSlug/edit/general"
-                      params={{
-                        trackSlug,
-                      }}
-                    >
-                      Edit
-                    </Link>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="
-                      text-destructive
-                      hover:text-destructive
-                    "
-                    disabled={deleteTrack.isPending}
-                    onClick={() => deleteTrack.mutate(track.id, {
-                      onSuccess: () => navigate({
-                        to: "/taxonomies/tracks",
-                      }),
-                    })}
-                  >
-                    {deleteTrack.isPending ? "Deleting…" : "Delete"}
-                  </Button>
-                </div>
+                <RomanizedLabel
+                  name={track.name}
+                  romanized={track.romanizedName}
+                />
               )
-              : null}
-          </div>
-        </div>
+              : "Track not found"}
+          actions={track
+            ? (
+              <>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                >
+                  <Link
+                    to="/taxonomies/tracks/$trackSlug/edit/general"
+                    params={{
+                      trackSlug,
+                    }}
+                  >
+                    Edit
+                  </Link>
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="
+                    text-destructive
+                    hover:text-destructive
+                  "
+                  disabled={deleteTrack.isPending}
+                  onClick={() => deleteTrack.mutate(track.id, {
+                    onSuccess: () => navigate({
+                      to: "/taxonomies/tracks",
+                    }),
+                  })}
+                >
+                  {deleteTrack.isPending ? "Deleting…" : "Delete"}
+                </Button>
+              </>
+            )
+            : undefined}
+        />
       )}
       nav={viewNav}
       params={{

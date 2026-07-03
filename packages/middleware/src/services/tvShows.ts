@@ -32,6 +32,9 @@ function toTvShow(row: TvShowRow & { bookmarkCount?: number }): TvShow {
     plexItemType: row.plexItemType ?? null,
     plexItemTitle: row.plexItemTitle ?? null,
     year: row.year ?? null,
+    wikidataId: row.wikidataId ?? null,
+    wikipediaLinkEn: row.wikipediaLinkEn ?? null,
+    wikipediaLinkLocal: row.wikipediaLinkLocal ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
@@ -46,6 +49,7 @@ const takenSlugs = (excludeId?: string) =>
 type TvShowDataColumns = Pick<
   TvShowRow,
   "mediaPropertyId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year" | "romanizedName"
+  | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -57,6 +61,9 @@ function dataFromInput(input: CreateTvShowInput | UpdateTvShowInput): Partial<Tv
   if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
   if (input.year !== undefined) patch.year = input.year ?? null;
   if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
+  if (input.wikidataId !== undefined) patch.wikidataId = input.wikidataId ?? null;
+  if (input.wikipediaLinkEn !== undefined) patch.wikipediaLinkEn = input.wikipediaLinkEn ?? null;
+  if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal ?? null;
   return patch;
 }
 
@@ -74,6 +81,9 @@ export async function listTvShows(): Promise<TvShow[]> {
       plexItemType: tvShows.plexItemType,
       plexItemTitle: tvShows.plexItemTitle,
       year: tvShows.year,
+      wikidataId: tvShows.wikidataId,
+      wikipediaLinkEn: tvShows.wikipediaLinkEn,
+      wikipediaLinkLocal: tvShows.wikipediaLinkLocal,
       createdAt: tvShows.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.tvShowId, tvShows.id)),
     })

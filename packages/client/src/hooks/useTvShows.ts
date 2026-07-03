@@ -70,6 +70,21 @@ export function useDeleteTvShow() {
   });
 }
 
+/** One-click "Autofetch from Plex": poster + Wikipedia links + native/romanized names. */
+export function useTvShowPlexAutofetch() {
+  const invalidate = useInvalidateTvShowConsumers();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => tvShowsApi.autofetch(id),
+    onSuccess: () => {
+      invalidate();
+      void queryClient.invalidateQueries({
+        queryKey: ["tvShow-images"],
+      });
+    },
+  });
+}
+
 export function useBulkDeleteTvShows() {
   return useBulkDeleteEntity(tvShowsApi.bulkDelete, useInvalidateTvShowConsumers());
 }

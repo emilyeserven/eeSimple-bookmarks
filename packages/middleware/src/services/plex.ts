@@ -18,10 +18,17 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { albums, artists, bookmarks, episodes, movies, tracks, tvShows } from "@/db/schema";
+import { updateAlbum } from "@/services/albums";
 import { getActivePlexEndpoint, getDecryptedPlexToken } from "@/services/appSettings";
+import { updateArtist } from "@/services/artists";
 import { addBookmarkImage } from "@/services/bookmarkImages";
-import { resolveBookmarkPlexRatingKey } from "@/services/movies";
+import { updateEpisode } from "@/services/episodes";
+import { resolveBookmarkPlexRatingKey, updateMovie } from "@/services/movies";
 import { addTaxonomyImage, type AddTaxonomyImageResult } from "@/services/taxonomyImages";
+import { updateTrack } from "@/services/tracks";
+import { updateTvShow } from "@/services/tvShows";
+import { resolveTitleWikidata, type WikidataExternalId } from "@/services/wikidataTitle";
+import { isObjectStoreConfigured } from "@/utils/objectStore";
 
 const PLEX_TIMEOUT_MS = 10000;
 // /identity is polled indirectly by the frequently-called /api/connectors endpoint; keep it snappy
@@ -130,6 +137,9 @@ interface PlexMetadata {
   grandparentRatingKey?: unknown;
   parentTitle?: unknown;
   parentRatingKey?: unknown;
+  // External-ID references (populated on the full `/library/metadata` item, not the search hub).
+  Guid?: { id?: unknown }[];
+  guid?: unknown;
 }
 
 function grandparentTitleOf(raw: PlexMetadata): string | null {
@@ -225,20 +235,77 @@ export async function searchPlexItems(
   }
 }
 
+/** External IDs (IMDb / TMDb / TVDB / MusicBrainz) parsed from a Plex item's `Guid` array. */
+export interface PlexGuids {
+  imdb: string | null;
+  tmdb: string | null;
+  tvdb: string | null;
+  musicBrainz: string | null;
+}
+
+const EMPTY_GUIDS: PlexGuids = {
+  imdb: null,
+  tmdb: null,
+  tvdb: null,
+  musicBrainz: null,
+};
+
+interface PlexItemMeta {
+  thumb: string | null;
+  guids: PlexGuids;
+}
+
 /**
- * Fetch a Plex item's poster image bytes. Resolves the item's `thumb` path from its metadata, then
- * fetches those bytes with the token as a query param. Returns `null` when unconfigured or on
- * failure. The image URL is derived from the item's own metadata — never a client value.
+ * Parse a Plex item's `Guid` array (plus the legacy top-level `guid`) into external IDs, e.g.
+ * `imdb://tt6751668` → `{ imdb: "tt6751668" }` and `mbid://<uuid>` → `{ musicBrainz: "<uuid>" }`.
  */
-export async function fetchPlexPoster(ratingKey: string): Promise<Buffer | null> {
-  const config = await resolveConfig();
-  if (!config) return null;
+function parseGuids(raw: PlexMetadata): PlexGuids {
+  const guids: PlexGuids = {
+    ...EMPTY_GUIDS,
+  };
+  const values: string[] = [];
+  if (Array.isArray(raw.Guid)) {
+    for (const entry of raw.Guid) {
+      const id = entry?.id;
+      if (typeof id === "string" && id) values.push(id);
+    }
+  }
+  if (typeof raw.guid === "string" && raw.guid) values.push(raw.guid);
+  for (const value of values) {
+    const sep = value.indexOf("://");
+    if (sep === -1) continue;
+    const scheme = value.slice(0, sep);
+    const id = value.slice(sep + 3).split("?")[0];
+    if (!id) continue;
+    if (scheme === "imdb" && !guids.imdb) guids.imdb = id;
+    else if (scheme === "tmdb" && !guids.tmdb) guids.tmdb = id;
+    else if (scheme === "tvdb" && !guids.tvdb) guids.tvdb = id;
+    else if (scheme === "mbid" && !guids.musicBrainz) guids.musicBrainz = id;
+  }
+  return guids;
+}
+
+/** Fetch a Plex item's metadata (poster `thumb` path + external IDs) in one `/library/metadata` call. */
+async function fetchPlexItemMeta(ratingKey: string): Promise<PlexItemMeta | null> {
   const metaRes = await plexFetch(`/library/metadata/${encodeURIComponent(ratingKey)}`);
   if (!metaRes?.ok) return null;
   try {
     const body = (await metaRes.json()) as { MediaContainer?: { Metadata?: PlexMetadata[] } };
-    const thumb = body.MediaContainer?.Metadata?.[0]?.thumb;
-    if (typeof thumb !== "string" || !thumb) return null;
+    const meta = body.MediaContainer?.Metadata?.[0];
+    if (!meta) return null;
+    return {
+      thumb: typeof meta.thumb === "string" && meta.thumb ? meta.thumb : null,
+      guids: parseGuids(meta),
+    };
+  }
+  catch {
+    return null;
+  }
+}
+
+/** Fetch the raw bytes behind a Plex `thumb` path, with the token appended as a query param. */
+async function fetchThumbBytes(config: PlexConfig, thumb: string): Promise<Buffer | null> {
+  try {
     const sep = thumb.includes("?") ? "&" : "?";
     const res = await fetch(
       `${config.baseUrl}${thumb}${sep}X-Plex-Token=${encodeURIComponent(config.token)}`,
@@ -253,6 +320,19 @@ export async function fetchPlexPoster(ratingKey: string): Promise<Buffer | null>
   catch {
     return null;
   }
+}
+
+/**
+ * Fetch a Plex item's poster image bytes. Resolves the item's `thumb` path from its metadata, then
+ * fetches those bytes with the token as a query param. Returns `null` when unconfigured or on
+ * failure. The image URL is derived from the item's own metadata — never a client value.
+ */
+export async function fetchPlexPoster(ratingKey: string): Promise<Buffer | null> {
+  const config = await resolveConfig();
+  if (!config) return null;
+  const meta = await fetchPlexItemMeta(ratingKey);
+  if (!meta?.thumb) return null;
+  return fetchThumbBytes(config, meta.thumb);
 }
 
 /** Why a Plex poster import failed, beyond `addBookmarkImage`'s own outcomes. */
@@ -330,4 +410,161 @@ export async function importPlexPosterForTaxonomy(
   return addTaxonomyImage(ownerType as TaxonomyImageOwnerType, ownerId, bytes, "plex", {
     setMain: true,
   });
+}
+
+/** The metadata fields "Autofetch from Plex" overwrites on a taxonomy row (subset of every Update*Input). */
+interface TaxonomyMetadataPatch {
+  name?: string;
+  romanizedName?: string | null;
+  wikidataId?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
+}
+
+/** Per-taxonomy update fn used to persist autofetched names/links (regenerating the slug on rename). */
+const TAXONOMY_UPDATERS: Record<
+  PlexTaxonomyOwnerType,
+  (id: string, input: TaxonomyMetadataPatch) => Promise<{ slug: string } | null>
+> = {
+  movie: updateMovie,
+  tvShow: updateTvShow,
+  episode: updateEpisode,
+  artist: updateArtist,
+  album: updateAlbum,
+  track: updateTrack,
+};
+
+/**
+ * Map a taxonomy's Plex guids to the Wikidata external-ID properties worth matching on, most-precise
+ * first. IMDb (`P345`) covers films/shows/episodes; TMDb splits by film (`P4947`) vs TV (`P4983`);
+ * music maps to the MusicBrainz artist/release-group/recording IDs.
+ */
+function buildExternalIds(ownerType: PlexTaxonomyOwnerType, guids: PlexGuids): WikidataExternalId[] {
+  const ids: WikidataExternalId[] = [];
+  const push = (property: string, value: string | null): void => {
+    if (value) ids.push({
+      property,
+      value,
+    });
+  };
+  switch (ownerType) {
+    case "movie":
+      push("P345", guids.imdb);
+      push("P4947", guids.tmdb);
+      break;
+    case "tvShow":
+    case "episode":
+      push("P345", guids.imdb);
+      push("P4983", guids.tmdb);
+      push("P4835", guids.tvdb);
+      break;
+    case "artist":
+      push("P434", guids.musicBrainz);
+      break;
+    case "album":
+      push("P436", guids.musicBrainz);
+      break;
+    case "track":
+      push("P4404", guids.musicBrainz);
+      break;
+  }
+  return ids;
+}
+
+/** Persist the patch, retrying without the (possibly clashing) rename if the new name is taken. */
+async function applyMetadataPatch(
+  ownerType: PlexTaxonomyOwnerType,
+  ownerId: string,
+  patch: TaxonomyMetadataPatch,
+): Promise<string | null> {
+  const updater = TAXONOMY_UPDATERS[ownerType];
+  try {
+    return (await updater(ownerId, patch))?.slug ?? null;
+  }
+  catch {
+    // A name clash (rare) — keep the metadata but drop the conflicting rename.
+    const rest = {
+      ...patch,
+    };
+    delete rest.name;
+    return (await updater(ownerId, rest))?.slug ?? null;
+  }
+}
+
+/** Outcome of {@link autofetchPlexTaxonomyMetadata}. */
+export type PlexAutofetchResult
+  = | { status: "ok";
+    posterImported: boolean;
+    wikidataMatched: boolean;
+    /** The entity's (possibly renamed) slug, so the client can follow a rename. */
+    slug: string | null; }
+    | "not_found"
+    | "not_linked";
+
+/**
+ * One-click "Autofetch from Plex" for a Plex-backed taxonomy row: import the linked item's poster as
+ * the main image, then resolve its Wikidata item (via the Plex item's external IDs, falling back to a
+ * title search) to overwrite the native-script `name`, English `romanizedName`, and Wikipedia links.
+ * Poster and Wikidata each degrade independently — a failure of one still applies the other. Display
+ * metadata only, so it never touches the bookmark cache.
+ */
+export async function autofetchPlexTaxonomyMetadata(
+  ownerType: PlexTaxonomyOwnerType,
+  ownerId: string,
+): Promise<PlexAutofetchResult> {
+  const table = PLEX_TAXONOMY_TABLES[ownerType];
+  const [row] = await db
+    .select({
+      name: table.name,
+      slug: table.slug,
+      plexRatingKey: table.plexRatingKey,
+      wikidataId: table.wikidataId,
+    })
+    .from(table)
+    .where(eq(table.id, ownerId));
+  if (!row) return "not_found";
+  if (!row.plexRatingKey) return "not_linked";
+
+  const config = await resolveConfig();
+  const meta = config ? await fetchPlexItemMeta(row.plexRatingKey) : null;
+
+  // 1) Poster — best-effort (needs object storage); a failure here still lets the metadata resolve.
+  let posterImported = false;
+  if (config && meta?.thumb && isObjectStoreConfigured()) {
+    const bytes = await fetchThumbBytes(config, meta.thumb);
+    if (bytes) {
+      const result = await addTaxonomyImage(ownerType as TaxonomyImageOwnerType, ownerId, bytes, "plex", {
+        setMain: true,
+      });
+      posterImported = typeof result !== "string";
+    }
+  }
+
+  // 2) Wikidata metadata — native/romanized names + Wikipedia links.
+  const resolution = await resolveTitleWikidata({
+    name: row.name,
+    wikidataId: row.wikidataId,
+    externalIds: buildExternalIds(ownerType, meta?.guids ?? EMPTY_GUIDS),
+  });
+
+  let slug = row.slug ?? null;
+  let wikidataMatched = false;
+  if (resolution) {
+    wikidataMatched = true;
+    const patch: TaxonomyMetadataPatch = {
+      wikidataId: resolution.wikidataId,
+    };
+    if (resolution.name) patch.name = resolution.name;
+    if (resolution.romanizedName !== null) patch.romanizedName = resolution.romanizedName;
+    if (resolution.wikipediaLinkEn !== null) patch.wikipediaLinkEn = resolution.wikipediaLinkEn;
+    if (resolution.wikipediaLinkLocal !== null) patch.wikipediaLinkLocal = resolution.wikipediaLinkLocal;
+    slug = (await applyMetadataPatch(ownerType, ownerId, patch)) ?? slug;
+  }
+
+  return {
+    status: "ok",
+    posterImported,
+    wikidataMatched,
+    slug,
+  };
 }

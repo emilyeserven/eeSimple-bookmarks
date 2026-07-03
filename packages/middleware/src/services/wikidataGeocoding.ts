@@ -9,12 +9,14 @@
  * `WIKIMEDIA_MAPS_ENDPOINT`). Every call degrades gracefully — any transport/parse failure resolves
  * to an empty result rather than throwing, so the form lookup never breaks.
  *
- * Area outlines: Wikidata stores only a point, so a region's `boundary` is resolved two ways, in
- * order — (1) a *linked* outline via Wikimedia's Kartographer geoshape service when the item links to
- * an OSM relation (`P402`) or a Commons geoshape (`P3896`); (2) failing that, *composed* from the
- * item's `P150` constituents (each a real admin unit Nominatim can outline), dissolved into one clean
- * outline with turf `union`. Only the top candidate's boundary is resolved, to keep the lookup fast
- * and Nominatim-friendly; the "Re-geocode" / boundary-backfill path fills a later pick on demand.
+ * The low-level Action-API plumbing (fetch, search, entity hydration, sitelinks, local-language
+ * detection) lives in the shared `./wikidata` module; this file keeps the geocoding-specific
+ * candidate/boundary assembly. Area outlines: Wikidata stores only a point, so a region's `boundary`
+ * is resolved two ways, in order — (1) a *linked* outline via Wikimedia's Kartographer geoshape
+ * service when the item links to an OSM relation (`P402`) or a Commons geoshape (`P3896`); (2)
+ * failing that, *composed* from the item's `P150` constituents (each a real admin unit Nominatim can
+ * outline), dissolved into one clean outline with turf `union`. Only the top candidate's boundary is
+ * resolved, to keep the lookup fast and Nominatim-friendly.
  */
 
 import { featureCollection, multiPolygon, polygon } from "@turf/helpers";
@@ -26,18 +28,27 @@ import type {
   LocationLookupResult,
 } from "@eesimple/types";
 import { mapUrlFor, nominatimGeocode } from "@/services/nominatimGeocoding";
+import {
+  asString,
+  claimEntityIds,
+  COUNTRY_LANGUAGE_FALLBACK,
+  detectWikipediaLanguage,
+  fetchJson,
+  fetchSitelinks,
+  firstClaimValue,
+  getEntities,
+  searchEntities,
+  wikidataEndpoint,
+  type WikidataEntity,
+  type WikidataSnakValue,
+} from "@/services/wikidata";
 
-const DEFAULT_ENDPOINT = "https://www.wikidata.org";
 const DEFAULT_MAPS_ENDPOINT = "https://maps.wikimedia.org";
-const WIKIDATA_TIMEOUT_MS = 10000;
-const USER_AGENT = "eeSimple-bookmarks/1.0 (location taxonomy geocoding)";
 /** Cap on constituents geocoded when composing a region's area, to stay Nominatim-rate-limit-friendly. */
 const MAX_CONSTITUENTS = 12;
 
-/** The Wikidata base URL in use (a self-hosted Wikibase when `WIKIDATA_ENDPOINT` is set). */
-export function wikidataEndpoint(): string {
-  return (process.env.WIKIDATA_ENDPOINT ?? DEFAULT_ENDPOINT).replace(/\/+$/, "");
-}
+/** Re-exported so the Connectors route can report the Wikidata base URL alongside the other sources. */
+export { wikidataEndpoint };
 
 /** The Kartographer geoshape base URL (overridable via `WIKIMEDIA_MAPS_ENDPOINT`). */
 export function wikimediaMapsEndpoint(): string {
@@ -49,79 +60,7 @@ export function wikidataEnabled(): boolean {
   return true;
 }
 
-// --- Wikidata Action API response shapes (only the fields we read) -------------------------------
-
-interface SearchResult {
-  id?: unknown;
-}
-
-interface WikidataSnakValue {
-  id?: unknown;
-  latitude?: unknown;
-  longitude?: unknown;
-}
-
-interface WikidataClaim {
-  mainsnak?: {
-    datavalue?: { value?: unknown };
-  };
-}
-
-interface WikidataEntity {
-  labels?: Record<string, { value?: unknown } | undefined>;
-  claims?: Record<string, WikidataClaim[] | undefined>;
-}
-
-// --- Small fetch + claim helpers -----------------------------------------------------------------
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim() !== "" ? value : null;
-}
-
-/** Fetch + parse JSON with a timeout and a descriptive User-Agent; `null` on any failure. */
-async function fetchJson(url: URL): Promise<unknown> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), WIKIDATA_TIMEOUT_MS);
-  try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent": USER_AGENT,
-        "Accept": "application/json",
-      },
-      signal: controller.signal,
-    });
-    if (!response.ok) return null;
-    return (await response.json()) as unknown;
-  }
-  catch {
-    return null;
-  }
-  finally {
-    clearTimeout(timer);
-  }
-}
-
-/** Detect whether a query is in Japanese (CJK / kana) so we ask Wikidata in the right language. */
-function detectLanguage(query: string): string {
-  return /[぀-ヿ㐀-鿿豈-﫿]/.test(query) ? "ja" : "en";
-}
-
-/** The `value` of an entity's first claim for a property, or `null`. */
-function firstClaimValue(entity: WikidataEntity, property: string): unknown {
-  return entity.claims?.[property]?.[0]?.mainsnak?.datavalue?.value ?? null;
-}
-
-/** The entity ids (`Q…`) referenced by an entity's claims for a property (e.g. P131, P150). */
-function claimEntityIds(entity: WikidataEntity, property: string): string[] {
-  const claims = entity.claims?.[property] ?? [];
-  const ids: string[] = [];
-  for (const claim of claims) {
-    const value = claim.mainsnak?.datavalue?.value as WikidataSnakValue | undefined;
-    const id = asString(value?.id);
-    if (id !== null) ids.push(id);
-  }
-  return ids;
-}
+// --- Label helpers (location prefers the local/ja label) -----------------------------------------
 
 /** A `{ ja, en }` label pair for an entity (either may be `null`). */
 function entityLabels(entity: WikidataEntity | undefined): { ja: string | null;
@@ -322,46 +261,6 @@ function buildCandidate(
   };
 }
 
-// --- API calls -----------------------------------------------------------------------------------
-
-/** Search Wikidata for items matching a free-text query, returning up to `limit` entity ids. */
-export async function searchEntities(query: string, limit: number): Promise<string[]> {
-  const language = detectLanguage(query);
-  const url = new URL(`${wikidataEndpoint()}/w/api.php`);
-  url.searchParams.set("action", "wbsearchentities");
-  url.searchParams.set("search", query);
-  url.searchParams.set("language", language);
-  url.searchParams.set("uselang", language);
-  url.searchParams.set("type", "item");
-  url.searchParams.set("limit", String(limit));
-  url.searchParams.set("format", "json");
-  const body = await fetchJson(url);
-  const results = (body as { search?: unknown })?.search;
-  if (!Array.isArray(results)) return [];
-  return results
-    .map(r => asString((r as SearchResult).id))
-    .filter((id): id is string => id !== null);
-}
-
-/** Hydrate a batch of entity ids with their labels (ja/en) and claims. */
-async function getEntities(ids: string[]): Promise<Map<string, WikidataEntity>> {
-  const map = new Map<string, WikidataEntity>();
-  if (ids.length === 0) return map;
-  const url = new URL(`${wikidataEndpoint()}/w/api.php`);
-  url.searchParams.set("action", "wbgetentities");
-  url.searchParams.set("ids", ids.join("|"));
-  url.searchParams.set("props", "labels|claims");
-  url.searchParams.set("languages", "ja|en");
-  url.searchParams.set("format", "json");
-  const body = await fetchJson(url);
-  const entities = (body as { entities?: Record<string, unknown> })?.entities;
-  if (entities === undefined || entities === null) return map;
-  for (const [id, entity] of Object.entries(entities)) {
-    if (entity !== null && typeof entity === "object") map.set(id, entity as WikidataEntity);
-  }
-  return map;
-}
-
 /**
  * Geocode a free-text place query via Wikidata. Returns up to 5 candidates; the top candidate's area
  * outline is resolved (linked or composed), the rest are pins. Empty result on any failure.
@@ -413,99 +312,6 @@ export async function wikidataGeocode(query: string): Promise<LocationLookupResu
 }
 
 // --- Wikipedia links (autofill) -------------------------------------------------------------------
-
-/** Best-effort ISO 3166-1 alpha-2 country → primary Wikipedia language code, used as the "local"
- * language guess when a location's title carries no distinguishing non-Latin script (e.g. a French
- * or German place). Not exhaustive — an unmapped country with a Latin-script title simply gets no
- * local link, which is fine for a best-effort convenience autofill.
- */
-const COUNTRY_LANGUAGE_FALLBACK: Record<string, string> = {
-  JP: "ja",
-  KR: "ko",
-  CN: "zh",
-  TW: "zh",
-  HK: "zh",
-  RU: "ru",
-  UA: "uk",
-  SA: "ar",
-  EG: "ar",
-  IL: "he",
-  IN: "hi",
-  TH: "th",
-  GR: "el",
-  FR: "fr",
-  DE: "de",
-  AT: "de",
-  ES: "es",
-  IT: "it",
-  PT: "pt",
-  BR: "pt",
-  NL: "nl",
-  BE: "nl",
-  PL: "pl",
-  SE: "sv",
-  NO: "no",
-  DK: "da",
-  FI: "fi",
-  CZ: "cs",
-  SK: "sk",
-  HU: "hu",
-  RO: "ro",
-  TR: "tr",
-  VN: "vi",
-  ID: "id",
-  MY: "ms",
-};
-
-/**
- * Unicode-script → Wikipedia language code guess for an unambiguously non-Latin title. `countryCode`
- * disambiguates bare CJK ideographs (Han characters with no kana/hangul alongside them) — a title
- * like 平泉寺白山神社 (a Japanese shrine with no hiragana/katakana) or a Korean place name written
- * only in hanja is otherwise indistinguishable from Chinese by script alone; the location's country
- * breaks the tie when it maps to ja/ko/zh, falling back to a Chinese guess only when the country is
- * unknown or unmapped.
- */
-function detectWikipediaLanguage(text: string, countryCode: string | null): string | null {
-  if (/[぀-ヿ]/.test(text)) return "ja"; // hiragana / katakana
-  if (/[가-힣]/.test(text)) return "ko"; // hangul
-  if (/[一-鿿]/.test(text)) {
-    const byCountry = countryCode ? COUNTRY_LANGUAGE_FALLBACK[countryCode.toUpperCase()] : undefined;
-    return byCountry === "ja" || byCountry === "ko" || byCountry === "zh" ? byCountry : "zh";
-  }
-  if (/[Ѐ-ӿ]/.test(text)) return "ru"; // cyrillic
-  if (/[؀-ۿ]/.test(text)) return "ar"; // arabic
-  if (/[฀-๿]/.test(text)) return "th"; // thai
-  if (/[ऀ-ॿ]/.test(text)) return "hi"; // devanagari
-  if (/[Ͱ-Ͽ]/.test(text)) return "el"; // greek
-  if (/[֐-׿]/.test(text)) return "he"; // hebrew
-  return null;
-}
-
-/** Fetch a Wikidata item's sitelinks (`{ enwiki: { title, url }, jawiki: {…}, … }`), or `null`. */
-async function fetchSitelinks(qid: string): Promise<Record<string, { title: string;
-  url: string; }> | null> {
-  const url = new URL(`${wikidataEndpoint()}/w/api.php`);
-  url.searchParams.set("action", "wbgetentities");
-  url.searchParams.set("ids", qid);
-  url.searchParams.set("props", "sitelinks/urls");
-  url.searchParams.set("format", "json");
-  const body = await fetchJson(url);
-  const entities = (body as { entities?: Record<string, unknown> })?.entities;
-  const entity = entities?.[qid] as { sitelinks?: Record<string, { title?: unknown;
-    url?: unknown; }>; } | undefined;
-  if (!entity?.sitelinks) return null;
-  const sitelinks: Record<string, { title: string;
-    url: string; }> = {};
-  for (const [site, value] of Object.entries(entity.sitelinks)) {
-    const title = asString(value?.title);
-    const siteUrl = asString(value?.url);
-    if (title !== null && siteUrl !== null) sitelinks[site] = {
-      title,
-      url: siteUrl,
-    };
-  }
-  return sitelinks;
-}
 
 /** Result of {@link resolveWikipediaLinks} — each field `null` when nothing could be resolved. */
 export interface WikipediaLinkResolution {

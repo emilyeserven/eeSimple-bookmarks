@@ -32,6 +32,9 @@ function toMovie(row: MovieRow & { bookmarkCount?: number }): Movie {
     plexItemType: row.plexItemType ?? null,
     plexItemTitle: row.plexItemTitle ?? null,
     year: row.year ?? null,
+    wikidataId: row.wikidataId ?? null,
+    wikipediaLinkEn: row.wikipediaLinkEn ?? null,
+    wikipediaLinkLocal: row.wikipediaLinkLocal ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
@@ -46,6 +49,7 @@ const takenSlugs = (excludeId?: string) =>
 type MovieDataColumns = Pick<
   MovieRow,
   "mediaPropertyId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year" | "romanizedName"
+  | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -57,6 +61,9 @@ function dataFromInput(input: CreateMovieInput | UpdateMovieInput): Partial<Movi
   if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
   if (input.year !== undefined) patch.year = input.year ?? null;
   if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
+  if (input.wikidataId !== undefined) patch.wikidataId = input.wikidataId ?? null;
+  if (input.wikipediaLinkEn !== undefined) patch.wikipediaLinkEn = input.wikipediaLinkEn ?? null;
+  if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal ?? null;
   return patch;
 }
 
@@ -74,6 +81,9 @@ export async function listMovies(): Promise<Movie[]> {
       plexItemType: movies.plexItemType,
       plexItemTitle: movies.plexItemTitle,
       year: movies.year,
+      wikidataId: movies.wikidataId,
+      wikipediaLinkEn: movies.wikipediaLinkEn,
+      wikipediaLinkLocal: movies.wikipediaLinkLocal,
       createdAt: movies.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.movieId, movies.id)),
     })

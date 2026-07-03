@@ -1,18 +1,22 @@
+import type { PlexAutofetchResult } from "../lib/api/taxonomies";
 import type { PlexKind } from "@/lib/plexParent";
 import type { PlexItemResult } from "@eesimple/types";
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
-import { Clapperboard, X } from "lucide-react";
+import { Clapperboard, DownloadCloud, X } from "lucide-react";
 import { z } from "zod";
 
 import { PlexItemLookup } from "./PlexItemLookup";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
+import { Button } from "@/components/ui/button";
+import { useConnectors } from "@/hooks/useConnectors";
 import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { notifyFieldSaved, notifyFieldSaveError } from "@/lib/autoSave";
 import { useAppForm } from "@/lib/form";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 
 /** The subset of any Plex-backed taxonomy row the shared edit form reads (all entities satisfy it). */
 export interface PlexTitle {
@@ -28,6 +32,9 @@ export interface PlexTitle {
   /** Display title of the linked Plex item, denormalized at link time. */
   plexItemTitle?: string | null;
   year: number | null;
+  wikidataId?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
 }
 
 /** The partial-update payload the shared edit form writes (Movie / TV Show update inputs match this). */
@@ -40,6 +47,9 @@ export interface PlexTitleUpdateInput {
   plexItemType?: string | null;
   plexItemTitle?: string | null;
   year?: number | null;
+  wikidataId?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
 }
 
 const plexTitleSchema = z.object({
@@ -48,6 +58,8 @@ const plexTitleSchema = z.object({
   sortOrder: z.number().int(),
   year: z.number().int(),
   mediaPropertyId: z.string(),
+  wikipediaLinkEn: z.string(),
+  wikipediaLinkLocal: z.string(),
 });
 
 const LABELS: Record<keyof PlexTitleUpdateInput, string> = {
@@ -59,6 +71,9 @@ const LABELS: Record<keyof PlexTitleUpdateInput, string> = {
   plexRatingKey: "Plex item",
   plexItemType: "Plex item",
   plexItemTitle: "Plex item",
+  wikidataId: "Wikidata",
+  wikipediaLinkEn: "Wikipedia (English)",
+  wikipediaLinkLocal: "Wikipedia (local)",
 };
 
 interface PlexTitleGeneralFormProps<E extends PlexTitle> {
@@ -74,6 +89,8 @@ interface PlexTitleGeneralFormProps<E extends PlexTitle> {
   renderExtra?: ReactNode;
   /** Invoked when a Plex search result is picked, for parent/artist autofill in the wrapper. */
   onPlexSelected?: (item: PlexItemResult) => void;
+  /** The entity's Plex-autofetch mutation (`useMoviePlexAutofetch()` / …); enables the button. */
+  autofetch?: UseMutationResult<PlexAutofetchResult, Error, string>;
 }
 
 /**
@@ -90,10 +107,15 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
   onRenamed,
   renderExtra,
   onPlexSelected,
+  autofetch,
 }: PlexTitleGeneralFormProps<E>) {
   const {
     data: mediaProperties,
   } = useMediaProperties();
+  const {
+    data: connectors,
+  } = useConnectors();
+  const canAutofetch = Boolean(connectors?.plex.enabled) && entity.plexRatingKey !== null && Boolean(autofetch);
   const autoSave = useFieldAutoSave<PlexTitleUpdateInput, E>({
     id: entity.id,
     update,
@@ -103,6 +125,8 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       romanizedName: entity.romanizedName ?? "",
       sortOrder: entity.sortOrder,
       year: entity.year,
+      wikipediaLinkEn: entity.wikipediaLinkEn ?? "",
+      wikipediaLinkLocal: entity.wikipediaLinkLocal ?? "",
     },
   });
 
@@ -131,6 +155,8 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       sortOrder: entity.sortOrder,
       year: entity.year ?? 0,
       mediaPropertyId: entity.mediaPropertyId ?? "",
+      wikipediaLinkEn: entity.wikipediaLinkEn ?? "",
+      wikipediaLinkLocal: entity.wikipediaLinkLocal ?? "",
     },
     validators: {
       onChange: plexTitleSchema,
@@ -179,6 +205,27 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
         ),
       },
     );
+  }
+
+  /** Combined "Autofetch from Plex": import poster + resolve native/romanized names + Wikipedia links. */
+  function runAutofetch(): void {
+    if (!autofetch) return;
+    autofetch.mutate(entity.id, {
+      onSuccess: (result) => {
+        const parts: string[] = [];
+        if (result.wikidataMatched) parts.push("names + Wikipedia links");
+        if (result.posterImported) parts.push("poster");
+        notifySuccess(
+          parts.length > 0
+            ? `Autofetched ${parts.join(" and ")} from Plex`
+            : "No Wikidata match or poster found for this title",
+        );
+        if (result.slug && result.slug !== entity.slug) onRenamed(result.slug);
+      },
+      onError: error => notifyError(
+        `Couldn't autofetch from Plex: ${error instanceof Error ? error.message : "unknown error"}`,
+      ),
+    });
   }
 
   return (
@@ -272,9 +319,44 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
         )}
       </form.AppField>
 
+      <form.AppField name="wikipediaLinkEn">
+        {field => (
+          <field.TextField
+            label="Wikipedia (English)"
+            placeholder="https://en.wikipedia.org/wiki/…"
+            onBlur={() => autoSave.saveField("wikipediaLinkEn", field.state.value.trim())}
+          />
+        )}
+      </form.AppField>
+
+      <form.AppField name="wikipediaLinkLocal">
+        {field => (
+          <field.TextField
+            label="Wikipedia (local)"
+            placeholder="https://<lang>.wikipedia.org/wiki/…"
+            onBlur={() => autoSave.saveField("wikipediaLinkLocal", field.state.value.trim())}
+          />
+        )}
+      </form.AppField>
+
       {renderExtra}
 
       <div className="space-y-1.5">
+        {canAutofetch
+          ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              disabled={autofetch?.isPending}
+              onClick={runAutofetch}
+            >
+              <DownloadCloud className="size-4" />
+              {autofetch?.isPending ? "Autofetching…" : "Autofetch from Plex"}
+            </Button>
+          )
+          : null}
         {entity.plexRatingKey !== null
           ? (
             <div

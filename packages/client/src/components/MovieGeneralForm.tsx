@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
 
-import { useUpdateMovie } from "@/hooks/useMovies";
+import { useMoviePlexAutofetch, useUpdateMovie } from "@/hooks/useMovies";
 
 /** Edit a movie's name, sort order, media property, year, and Plex link. Auto-saves. */
 export function MovieGeneralForm({
@@ -14,6 +14,7 @@ export function MovieGeneralForm({
 }) {
   const navigate = useNavigate();
   const update = useUpdateMovie();
+  const autofetch = useMoviePlexAutofetch();
   return (
     <PlexTitleGeneralForm
       entity={movie}
@@ -25,6 +26,7 @@ export function MovieGeneralForm({
           movieSlug: slug,
         },
       })}
+      autofetch={autofetch}
     />
   );
 }

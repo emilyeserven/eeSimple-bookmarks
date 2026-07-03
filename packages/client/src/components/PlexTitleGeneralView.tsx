@@ -77,6 +77,46 @@ export function PlexTitleGeneralView({
         <dd>
           <PlexItemValue title={entity} />
         </dd>
+        {entity.wikipediaLinkEn
+          ? (
+            <>
+              <dt className="text-muted-foreground">Wikipedia (English)</dt>
+              <dd>
+                <a
+                  href={entity.wikipediaLinkEn}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="
+                    break-all text-primary
+                    hover:underline
+                  "
+                >
+                  {entity.wikipediaLinkEn}
+                </a>
+              </dd>
+            </>
+          )
+          : null}
+        {entity.wikipediaLinkLocal
+          ? (
+            <>
+              <dt className="text-muted-foreground">Wikipedia (local)</dt>
+              <dd>
+                <a
+                  href={entity.wikipediaLinkLocal}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="
+                    break-all text-primary
+                    hover:underline
+                  "
+                >
+                  {entity.wikipediaLinkLocal}
+                </a>
+              </dd>
+            </>
+          )
+          : null}
         <dt className="text-muted-foreground">Sort order</dt>
         <dd>{entity.sortOrder}</dd>
         {bookmarkCount != null

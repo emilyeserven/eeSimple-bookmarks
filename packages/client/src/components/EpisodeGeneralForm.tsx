@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { EpisodeTvShowField } from "./EpisodeTvShowField";
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
-import { useUpdateEpisode } from "../hooks/useEpisodes";
+import { useEpisodePlexAutofetch, useUpdateEpisode } from "../hooks/useEpisodes";
 import { useTvShows } from "../hooks/useTvShows";
 import { matchPlexParentId } from "../lib/plexParent";
 
@@ -21,6 +21,7 @@ export function EpisodeGeneralForm({
 }) {
   const navigate = useNavigate();
   const update = useUpdateEpisode();
+  const autofetch = useEpisodePlexAutofetch();
   const {
     data: tvShows,
   } = useTvShows();
@@ -58,6 +59,7 @@ export function EpisodeGeneralForm({
       })}
       renderExtra={<EpisodeTvShowField episode={episode} />}
       onPlexSelected={handlePlexSelected}
+      autofetch={autofetch}
     />
   );
 }

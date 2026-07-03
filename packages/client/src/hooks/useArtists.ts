@@ -73,6 +73,21 @@ export function useDeleteArtist() {
   });
 }
 
+/** One-click "Autofetch from Plex": poster + Wikipedia links + native/romanized names. */
+export function useArtistPlexAutofetch() {
+  const invalidate = useInvalidateArtistConsumers();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => artistsApi.autofetch(id),
+    onSuccess: () => {
+      invalidate();
+      void queryClient.invalidateQueries({
+        queryKey: ["artist-images"],
+      });
+    },
+  });
+}
+
 export function useBulkDeleteArtists() {
   return useBulkDeleteEntity(artistsApi.bulkDelete, useInvalidateArtistConsumers());
 }

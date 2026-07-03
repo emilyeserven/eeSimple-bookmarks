@@ -1,8 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { PlexTaxonomyViewHeader } from "../components/PlexTaxonomyViewHeader";
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteTvShow, useTvShowBySlug } from "../hooks/useTvShows";
+import { tvShowsApi } from "../lib/api/taxonomies";
 
 import { Button } from "@/components/ui/button";
 
@@ -34,72 +36,69 @@ function TvShowViewLayout() {
   return (
     <TabbedEntityLayout
       header={(
-        <div className="space-y-1">
-          <Link
-            to="/taxonomies/tv-shows"
-            className="
-              inline-block text-sm text-muted-foreground
-              hover:text-foreground
-            "
-          >
-            ← Back to TV shows
-          </Link>
-          <div className="flex items-start justify-between gap-4">
-            <h1
+        <PlexTaxonomyViewHeader
+          ownerId={tvShow?.id}
+          imagesApi={tvShowsApi.images}
+          queryKeyPrefix="tvShow-images"
+          backLink={(
+            <Link
+              to="/taxonomies/tv-shows"
               className="
-                flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
+                inline-block text-sm text-muted-foreground
+                hover:text-foreground
               "
             >
-              {isLoading
-                ? "TV Show"
-                : tvShow
-                  ? (
-                    <RomanizedLabel
-                      name={tvShow.name}
-                      romanized={tvShow.romanizedName}
-                    />
-                  )
-                  : "TV show not found"}
-            </h1>
-            {tvShow
+              ← Back to TV shows
+            </Link>
+          )}
+          title={isLoading
+            ? "TV Show"
+            : tvShow
               ? (
-                <div className="flex shrink-0 items-center gap-1">
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Link
-                      to="/taxonomies/tv-shows/$tvShowSlug/edit/general"
-                      params={{
-                        tvShowSlug,
-                      }}
-                    >
-                      Edit
-                    </Link>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="
-                      text-destructive
-                      hover:text-destructive
-                    "
-                    disabled={deleteTvShow.isPending}
-                    onClick={() => deleteTvShow.mutate(tvShow.id, {
-                      onSuccess: () => navigate({
-                        to: "/taxonomies/tv-shows",
-                      }),
-                    })}
-                  >
-                    {deleteTvShow.isPending ? "Deleting…" : "Delete"}
-                  </Button>
-                </div>
+                <RomanizedLabel
+                  name={tvShow.name}
+                  romanized={tvShow.romanizedName}
+                />
               )
-              : null}
-          </div>
-        </div>
+              : "TV show not found"}
+          actions={tvShow
+            ? (
+              <>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                >
+                  <Link
+                    to="/taxonomies/tv-shows/$tvShowSlug/edit/general"
+                    params={{
+                      tvShowSlug,
+                    }}
+                  >
+                    Edit
+                  </Link>
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="
+                    text-destructive
+                    hover:text-destructive
+                  "
+                  disabled={deleteTvShow.isPending}
+                  onClick={() => deleteTvShow.mutate(tvShow.id, {
+                    onSuccess: () => navigate({
+                      to: "/taxonomies/tv-shows",
+                    }),
+                  })}
+                >
+                  {deleteTvShow.isPending ? "Deleting…" : "Delete"}
+                </Button>
+              </>
+            )
+            : undefined}
+        />
       )}
       nav={viewNav}
       params={{
