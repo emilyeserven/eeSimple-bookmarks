@@ -1110,6 +1110,22 @@ const migrations: RuntimeMigration[] = [
       sql`CREATE INDEX IF NOT EXISTS "genre_mood_assignments_owner_idx" ON "genre_mood_assignments" ("owner_type", "owner_id")`,
     ),
   },
+  {
+    // `bookmarks.image_display_preference` ("image" | "screenshot" | null) is a plain nullable text
+    // column — normally a push-safe additive change. But it shipped in the same release window as the
+    // brand-new `genre_mood_assignments` table (the step above), which `drizzle-kit push` treats as a
+    // "do you want to truncate?" (pgSuggestions) change. In this non-TTY deploy push bails at that
+    // prompt while still exiting 0, so every additive statement it hadn't applied yet — including this
+    // ADD COLUMN — is SILENTLY SKIPPED. The column then never exists on the live table and the plain
+    // `SELECT … FROM bookmarks` on the bookmarks listing 500s with `column
+    // "image_display_preference" does not exist`. Pre-add it here (idempotent `ADD COLUMN IF NOT
+    // EXISTS`, no FK/NOT NULL so it never prompts) so push's diff for it is always empty and it can't
+    // be skipped — the bookmarks-column twin of the genre_moods pre-create fix above.
+    name: "add bookmarks.image_display_preference column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "bookmarks" ADD COLUMN IF NOT EXISTS "image_display_preference" text
+    `),
+  },
 ];
 
 async function main(): Promise<void> {
