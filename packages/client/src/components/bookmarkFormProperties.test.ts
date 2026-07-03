@@ -156,4 +156,101 @@ describe("selectVisibleFormProperties", () => {
     ];
     expect(selectVisibleFormProperties(list, base)).toEqual([]);
   });
+
+  describe("placementOverrides", () => {
+    it("drops a property whose override is \"hidden\", regardless of showInForm", () => {
+      const list = [
+        prop({
+          id: "a",
+          slug: "a",
+          showInForm: true,
+        }),
+        prop({
+          id: "b",
+          slug: "b",
+          showInForm: false,
+        }),
+      ];
+      const overrides = {
+        a: "hidden" as const,
+        b: "hidden" as const,
+      };
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "default",
+        placementOverrides: overrides,
+      })).toEqual([]);
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "advanced",
+        placementOverrides: overrides,
+      })).toEqual([]);
+    });
+
+    it("moves a property between default/advanced placements, overriding showInForm", () => {
+      const list = [
+        // Normally shows in "default" (showInForm: true) but overridden to "advanced".
+        prop({
+          id: "movedToAdvanced",
+          slug: "movedToAdvanced",
+          showInForm: true,
+        }),
+        // Normally shows in "advanced" (showInForm: false) but overridden to "default".
+        prop({
+          id: "movedToDefault",
+          slug: "movedToDefault",
+          showInForm: false,
+        }),
+      ];
+      const overrides = {
+        movedToAdvanced: "advanced" as const,
+        movedToDefault: "default" as const,
+      };
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "default",
+        placementOverrides: overrides,
+      }).map(p => p.id)).toEqual(["movedToDefault"]);
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "advanced",
+        placementOverrides: overrides,
+      }).map(p => p.id)).toEqual(["movedToAdvanced"]);
+    });
+
+    it("falls through to showInForm when a slug has no override entry", () => {
+      const list = [
+        prop({
+          id: "noOverride",
+          slug: "noOverride",
+          showInForm: true,
+        }),
+      ];
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "default",
+        placementOverrides: {
+          otherSlug: "hidden",
+        },
+      }).map(p => p.id)).toEqual(["noOverride"]);
+    });
+
+    it("hiddenFromForm still wins over an override that would otherwise show the property", () => {
+      const list = [
+        prop({
+          id: "forcedHidden",
+          slug: "forcedHidden",
+          showInForm: true,
+          hiddenFromForm: true,
+        }),
+      ];
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "default",
+        placementOverrides: {
+          forcedHidden: "default",
+        },
+      })).toEqual([]);
+    });
+  });
 });
