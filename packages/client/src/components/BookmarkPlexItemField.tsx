@@ -65,7 +65,10 @@ export function BookmarkPlexItemField({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-(--radix-popover-trigger-width) space-y-2 p-2"
+          className="
+            max-h-[70vh] w-(--radix-popover-trigger-width) space-y-2
+            overflow-y-auto p-2
+          "
           align="start"
         >
           <div className="relative">
