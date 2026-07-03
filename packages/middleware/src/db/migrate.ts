@@ -1438,6 +1438,44 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // Listening-service link columns added to `podcasts` after its initial pre-create above. Plain
+    // nullable text, so each is push-safe on its own — but pre-add them anyway so they can never be
+    // silently skipped by a preceding pgSuggestions change in the same push run (the same cascade-skip
+    // risk the podcast_id column above guards against).
+    name: "add podcasts link columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "podcasts"
+        ADD COLUMN IF NOT EXISTS "spotify_url" text,
+        ADD COLUMN IF NOT EXISTS "pocket_casts_uuid" text,
+        ADD COLUMN IF NOT EXISTS "pocket_casts_url" text,
+        ADD COLUMN IF NOT EXISTS "default_link_provider" text
+    `),
+  },
+  {
+    // `podcast_people`/`podcast_groups` replaced the denormalized `podcasts.author` text column with
+    // real People/Group credits (mirroring `album_people`/`album_groups`). Brand-new tables on a
+    // populated database hit the same pgSuggestions "truncate?" silent-skip as `podcasts` itself above
+    // — pre-create them so push's diff is always empty; push adds the FK constraints afterward.
+    name: "create podcast_people join",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "podcast_people" (
+        "podcast_id" uuid NOT NULL,
+        "person_id" uuid NOT NULL,
+        CONSTRAINT "podcast_people_podcast_id_person_id_pk" PRIMARY KEY("podcast_id","person_id")
+      )
+    `),
+  },
+  {
+    name: "create podcast_groups join",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "podcast_groups" (
+        "podcast_id" uuid NOT NULL,
+        "group_id" uuid NOT NULL,
+        CONSTRAINT "podcast_groups_podcast_id_group_id_pk" PRIMARY KEY("podcast_id","group_id")
+      )
+    `),
+  },
+  {
     // New M:M join tables between groups and YouTube channels / websites, mirroring the existing
     // person_youtube_channels / person_websites tables. Pre-created here (composite PK names match
     // drizzle-kit's convention) so push's diff for these brand-new tables is always empty; push adds

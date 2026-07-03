@@ -6,7 +6,7 @@ import { backfillPersonSlugs } from "@/services/people";
 import { backfillGroupSlugs } from "@/services/groups";
 import { backfillGroupTypeSlugs, ensureDefaultGroupTypes } from "@/services/groupTypes";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
-import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleGroupsField, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleLanguageField, backfillCardDisplayRuleLocationsField, backfillCardDisplayRulePeopleField, backfillCardDisplayRulePodcastLinkField, backfillCardDisplayRuleRomanizedNameField, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
+import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleGroupsField, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleLocationsField, backfillCardDisplayRulePeopleField, backfillCardDisplayRulePodcastLinkField, backfillCardDisplayRuleRomanizedNameField, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillContentStatusOptions, backfillCustomPropertySlugs, ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
@@ -123,7 +123,6 @@ try {
   await backfillCardDisplayRuleLocationsField();
   await backfillCardDisplayRulePeopleField();
   await backfillCardDisplayRuleGroupsField();
-  await backfillCardDisplayRuleLanguageField();
   await backfillCardDisplayRuleRomanizedNameField();
   await backfillCardDisplayRulePodcastLinkField();
   await backfillCardDisplayRuleZoneLayouts();
