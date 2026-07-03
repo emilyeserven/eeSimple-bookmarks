@@ -2872,6 +2872,16 @@ export interface KavitaSeriesResult {
   releaseYear: number | null;
 }
 
+/** A linked series' current live values on Kavita (`GET /api/kavita/series/:seriesId`), used to flag drift against the local Book. */
+export interface KavitaSeriesDetail {
+  /** Kavita's numeric series id. */
+  seriesId: number;
+  /** Current series display name on Kavita. */
+  name: string;
+  /** Current release year on Kavita, or `null` when unknown/unreported. */
+  releaseYear: number | null;
+}
+
 /** One Plex library item matched by a search (`GET /api/plex/search?q=`). */
 export interface PlexItemResult {
   /** Plex's `ratingKey` — the stable id used to build metadata/deep-link URLs. */

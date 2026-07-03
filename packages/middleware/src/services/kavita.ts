@@ -13,7 +13,7 @@
  * the key in its query string — never log it.
  */
 
-import type { KavitaSeriesResult, KavitaTocEntry, KavitaTocResult } from "@eesimple/types";
+import type { KavitaSeriesDetail, KavitaSeriesResult, KavitaTocEntry, KavitaTocResult } from "@eesimple/types";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -168,6 +168,69 @@ export async function searchKavitaSeries(query: string): Promise<KavitaSeriesRes
   }
   catch {
     return [];
+  }
+}
+
+/** Shape of Kavita's `GET /api/Series/{id}` response (a `SeriesDto`) — only the field this needs. */
+interface KavitaSeriesDetailDto {
+  name?: unknown;
+}
+
+/** Shape of Kavita's `GET /api/Metadata/series/{id}` response (a `SeriesMetadataDto`) — only the field this needs. */
+interface KavitaSeriesMetadataDto {
+  releaseYear?: unknown;
+}
+
+/** Outcome of a series-detail fetch, mapped to HTTP statuses by the route. */
+export type KavitaSeriesDetailOutcome
+  = | { status: "ok";
+    result: KavitaSeriesDetail; }
+    | { status: "not_found" }
+    | { status: "unavailable" };
+
+/**
+ * Fetch a linked series' current live name and release year directly from Kavita, so the client can
+ * flag drift against the local Book's own values. Read-only — this never writes to Kavita (the
+ * connector has no write path; see the module doc). A metadata-fetch failure doesn't fail the whole
+ * call — `releaseYear` just comes back `null`. Never throws.
+ */
+export async function fetchKavitaSeriesDetail(seriesId: number): Promise<KavitaSeriesDetailOutcome> {
+  const seriesRes = await kavitaFetch(`/api/Series/${seriesId}`);
+  if (!seriesRes) return {
+    status: "unavailable",
+  };
+  if (seriesRes.status === 404) return {
+    status: "not_found",
+  };
+  if (!seriesRes.ok) return {
+    status: "unavailable",
+  };
+  try {
+    const series = (await seriesRes.json()) as KavitaSeriesDetailDto;
+    if (typeof series.name !== "string" || !series.name) return {
+      status: "unavailable",
+    };
+    let releaseYear: number | null = null;
+    const metadataRes = await kavitaFetch(`/api/Metadata/series/${seriesId}`);
+    if (metadataRes?.ok) {
+      const metadata = (await metadataRes.json()) as KavitaSeriesMetadataDto;
+      releaseYear = typeof metadata.releaseYear === "number" && metadata.releaseYear > 0
+        ? metadata.releaseYear
+        : null;
+    }
+    return {
+      status: "ok",
+      result: {
+        seriesId,
+        name: series.name,
+        releaseYear,
+      },
+    };
+  }
+  catch {
+    return {
+      status: "unavailable",
+    };
   }
 }
 

@@ -211,34 +211,47 @@ interface NumberFieldProps {
   hint?: string;
   /** Extra blur handler (runs after the field's own blur), e.g. auto-save-on-blur. */
   onBlur?: () => void;
+  /** Optional control rendered at the inline-end of the input (input-group pattern). */
+  action?: ReactNode;
 }
 
 /** Labelled numeric input; empty input maps to 0 to keep the value a number. */
 function NumberField({
-  label, placeholder, disabled, className, hint, onBlur,
+  label, placeholder, disabled, className, hint, onBlur, action,
 }: NumberFieldProps) {
   const field = useFieldContext<number>();
   const id = useId();
 
+  const input = (
+    <Input
+      id={id}
+      type="number"
+      placeholder={placeholder}
+      disabled={disabled}
+      className={action ? `pe-10 ${className ?? ""}`.trim() : className}
+      value={Number.isNaN(field.state.value) ? "" : field.state.value}
+      onBlur={() => {
+        field.handleBlur();
+        onBlur?.();
+      }}
+      onChange={(event) => {
+        const next = event.target.valueAsNumber;
+        field.handleChange(Number.isNaN(next) ? 0 : next);
+      }}
+    />
+  );
+
   return (
     <div className="space-y-1">
       <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        type="number"
-        placeholder={placeholder}
-        disabled={disabled}
-        className={className}
-        value={Number.isNaN(field.state.value) ? "" : field.state.value}
-        onBlur={() => {
-          field.handleBlur();
-          onBlur?.();
-        }}
-        onChange={(event) => {
-          const next = event.target.valueAsNumber;
-          field.handleChange(Number.isNaN(next) ? 0 : next);
-        }}
-      />
+      {action
+        ? (
+          <InputGroup>
+            {input}
+            <InputAddon align="inline-end">{action}</InputAddon>
+          </InputGroup>
+        )
+        : input}
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>

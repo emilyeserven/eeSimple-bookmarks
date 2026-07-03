@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import {
   fetchKavitaSeriesCover,
+  fetchKavitaSeriesDetail,
   kavitaEnabledAsync,
   resetKavitaAuthCache,
   searchKavitaByIsbn,
@@ -356,6 +357,141 @@ test("fetchKavitaSeriesCover returns null when unconfigured or on failure", asyn
   ]);
   try {
     assert.equal(await fetchKavitaSeriesCover(12), null);
+  }
+  finally {
+    restore();
+  }
+});
+
+test("fetchKavitaSeriesDetail reports unavailable when unconfigured", async () => {
+  assert.deepEqual(await fetchKavitaSeriesDetail(12), {
+    status: "unavailable",
+  });
+});
+
+test("fetchKavitaSeriesDetail fetches the current name and release year", async () => {
+  configure();
+  const {
+    requests, restore,
+  } = stubFetchSequence([
+    {
+      status: 200,
+      body: JSON.stringify({
+        token: "jwt-token",
+      }),
+    },
+    {
+      status: 200,
+      body: JSON.stringify({
+        name: "Berserk",
+      }),
+    },
+    {
+      status: 200,
+      body: JSON.stringify({
+        releaseYear: 1989,
+      }),
+    },
+  ]);
+  try {
+    const outcome = await fetchKavitaSeriesDetail(12);
+    assert.deepEqual(outcome, {
+      status: "ok",
+      result: {
+        seriesId: 12,
+        name: "Berserk",
+        releaseYear: 1989,
+      },
+    });
+    assert.ok(requests[1].url.startsWith("http://kavita:5000/api/Series/12"));
+    assert.ok(requests[2].url.startsWith("http://kavita:5000/api/Metadata/series/12"));
+  }
+  finally {
+    restore();
+  }
+});
+
+test("fetchKavitaSeriesDetail falls back to a null release year when the metadata call fails", async () => {
+  configure();
+  const {
+    restore,
+  } = stubFetchSequence([
+    {
+      status: 200,
+      body: JSON.stringify({
+        token: "jwt-token",
+      }),
+    },
+    {
+      status: 200,
+      body: JSON.stringify({
+        name: "Berserk",
+      }),
+    },
+    {
+      status: 500,
+    },
+  ]);
+  try {
+    const outcome = await fetchKavitaSeriesDetail(12);
+    assert.deepEqual(outcome, {
+      status: "ok",
+      result: {
+        seriesId: 12,
+        name: "Berserk",
+        releaseYear: null,
+      },
+    });
+  }
+  finally {
+    restore();
+  }
+});
+
+test("fetchKavitaSeriesDetail reports not_found on a 404", async () => {
+  configure();
+  const {
+    restore,
+  } = stubFetchSequence([
+    {
+      status: 200,
+      body: JSON.stringify({
+        token: "jwt-token",
+      }),
+    },
+    {
+      status: 404,
+    },
+  ]);
+  try {
+    assert.deepEqual(await fetchKavitaSeriesDetail(12), {
+      status: "not_found",
+    });
+  }
+  finally {
+    restore();
+  }
+});
+
+test("fetchKavitaSeriesDetail reports unavailable when the series request errors", async () => {
+  configure();
+  const {
+    restore,
+  } = stubFetchSequence([
+    {
+      status: 200,
+      body: JSON.stringify({
+        token: "jwt-token",
+      }),
+    },
+    {
+      status: 500,
+    },
+  ]);
+  try {
+    assert.deepEqual(await fetchKavitaSeriesDetail(12), {
+      status: "unavailable",
+    });
   }
   finally {
     restore();
