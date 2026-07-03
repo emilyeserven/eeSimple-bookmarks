@@ -751,12 +751,24 @@ push runs **without `--force`** on purpose: `--force` does not suppress drizzle-
 genuinely destructive diffs silently. The deploy stays safe by keeping push's diff **additive-only**
 — the runtime-migrations hook pre-applies everything that would otherwise make push prompt.
 
-- **Truly push-safe additive changes** (new tables; nullable columns on existing tables; new
-  indexes): just edit `src/db/schema.ts`. `push` applies them without prompting on `pnpm dev` and
-  on every deploy. No migration file, no `drizzle-kit generate`.
+- **Truly push-safe additive changes** (a **lone** nullable column on an existing table, or a new
+  index, with **no new table in the same release**): just edit `src/db/schema.ts`. `push` applies
+  them without prompting. No migration file, no `drizzle-kit generate`.
 - **Additive changes that trigger a push prompt** — `drizzle-kit push` runs non-interactively in
   production (non-TTY, stdin = `/dev/null`). Certain additive changes still cause an interactive
   confirmation that crashes the deploy (and `--force` does **not** bypass it):
+  - **A NEW TABLE** — against a *populated* database push treats a brand-new table as a
+    `pgSuggestions` "truncate?" change, **bails at the prompt while exiting 0**, and **silently
+    skips the table *and every additive statement it hadn't applied yet in the same run* — including
+    plain nullable `ADD COLUMN`s**. The deploy "succeeds" but the table/column never exists and
+    queries 500 with `relation … does not exist` / `column … does not exist`. This is the primary
+    "missing column/table" 500 cause (bit `genre_moods` #929, `bookmarks.image_display_preference`
+    #930, the `podcasts` #927 and `languages`/`language_usage_levels`/`language_usages` tables).
+    **Pre-create every new table and pre-add its companion columns** (e.g. a taxonomy's
+    `bookmarks.<x>_id` FK) in `migrate.ts` with idempotent `IF NOT EXISTS` DDL mirroring `schema.ts`.
+    Keep it **self-contained — declare FK columns as a plain `uuid`, no `REFERENCES` to a
+    push-created base table** (migrate runs *before* push); push adds the FK constraint afterward
+    (additive, never prompts). See the `genre_moods` / `podcasts` / language pre-create steps.
   - **Unique constraints added to an existing table with data** — push warns the constraint may
     fail and asks to truncate (the `pgSuggestions` prompt). With no TTY it crashes the push run.
   - **`NOT NULL` columns added to an existing table** (even with a column-level `DEFAULT`) — push
