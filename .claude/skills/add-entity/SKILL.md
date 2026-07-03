@@ -63,10 +63,11 @@ If you added a `backfill*`/`ensure*` helper, call it in the boot block **after**
 (the listen-before-boot ordering is intentional — see CLAUDE.md → Deployment).
 
 If the boot step seeds a **built-in custom property** that is a post-creation detail property
-(progress/range/sections/rating), also hide it from the Add Bookmark form: export a `*_SLUG`
-constant in `packages/client/src/components/bookmarkFormSchema.ts` and add it to `hiddenSlugs` in
-`RevealedCustomFields.tsx` (see CLAUDE.md → "Built-in custom properties and the Add Bookmark form";
-`chapters`/`url-sections` were once seeded without this and leaked into the create form).
+(progress/range/sections/rating), also hide it from the Add Bookmark form: add its slug to
+`BOOKMARK_FORM_DETAIL_SLUGS` in `packages/types/src/bookmarkAddForm.ts` — that single edit seeds it
+**hidden** by default and adds a configurable row under Settings → Display → Bookmark Add Form (see
+CLAUDE.md → "Add Bookmark form field placement" and the `bookmark-add-form` skill; `chapters`/
+`url-sections` were once seeded without this and leaked into the create form).
 
 ### 5. Shared types (`packages/types/src/index.ts`)
 Add the row + `Create*Input` / `Update*Input` types. **Intra-package imports/re-exports need
@@ -172,13 +173,17 @@ autofetch support).
    both create and update; skipping it makes Fastify's `additionalProperties: false` schema silently
    drop the field from incoming requests.
 6. **Add Bookmark form**, only if the field should be user-pickable at creation (skip if it's
-   purely autofetched/edited later, like media type today): add `bookmarkSchema`,
-   `SAMPLE_DEFAULT_VALUES`, and `buildBookmarkDefaultValues` entries in `bookmarkFormSchema.ts`; a
-   `BookmarkAdvanced<X>Field.tsx` (mirror `BookmarkAdvancedGroupField.tsx`) wired into
-   `BookmarkAdvancedSection.tsx` → `BookmarkRevealedFields.tsx` → `BookmarkForm.tsx`; thread the
-   entity's list through `useBookmarkFormData.ts` → `useBookmarkFormController.ts`, and the
-   `<x>Id` value through `useBookmarkFormHandlers.ts`'s `submitForm` and
-   `useBookmarkGeneralForm.ts`'s `onSubmit` payloads.
+   purely autofetched/edited later): add `bookmarkSchema`, `SAMPLE_DEFAULT_VALUES`, and
+   `buildBookmarkDefaultValues` entries in `bookmarkFormSchema.ts`, and a `BookmarkAdvanced<X>Field.tsx`
+   (mirror `BookmarkAdvancedGroupField.tsx`). Then make it a **placeable standard field** (the form no
+   longer hardcodes fields into `BookmarkAdvancedSection.tsx`): add its key to
+   `BOOKMARK_ADD_FORM_STANDARD_FIELDS` in `packages/types/src/bookmarkAddForm.ts` (+ its default bucket
+   in `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS`), a `BOOKMARK_ADD_FORM_STANDARD_LABELS` entry in
+   `useBookmarkAddFormSettingsPage.ts`, and a render entry in the exhaustive dispatch in
+   `bookmarkAddFormFields.tsx` (`BookmarkStandardFieldZone` — a missing entry **fails `tsc`**); the zone
+   is rendered by `BookmarkRevealedFields.tsx`. Thread the entity's list through `useBookmarkFormData.ts`
+   → `useBookmarkFormController.ts`, and the `<x>Id` value through `useBookmarkFormHandlers.ts`'s
+   `submitForm` and `useBookmarkGeneralForm.ts`'s `onSubmit` payloads. (See the `bookmark-add-form` skill.)
 7. **Test factory**: add the field's default to `makeBookmark` in
    `packages/client/src/test-utils/factories.ts` (see CLAUDE.md → "Shared test factories") and add a
    `make<X>` factory for the entity itself if tests/stories will construct one.
