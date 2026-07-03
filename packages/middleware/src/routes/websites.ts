@@ -5,6 +5,7 @@ import {
   fetchAndStoreWebsiteFavicon,
   getWebsiteFaviconRow,
   removeWebsiteFavicon,
+  resolveWebsiteFaviconUrl,
   setWebsiteFaviconFromBytes,
 } from "@/services/websiteFavicons";
 import {
@@ -15,6 +16,7 @@ import {
   createWebsite,
   deleteWebsite,
   DuplicateDomainError,
+  getWebsite,
   getWebsiteTree,
   InvalidDomainError,
   listRedirectFailureWebsites,
@@ -455,6 +457,28 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       });
     }
     return reply.code(201).send(result);
+  });
+
+  // Preview the site's source favicon URL WITHOUT storing it, so the client can show the NEW favicon
+  // before applying. Resolves the same candidate `POST /:id/image/auto` would grab.
+  app.get("/api/websites/:id/image/source-preview", {
+    schema: {
+      tags: ["websites"],
+      params: websiteParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const website = await getWebsite(id);
+    if (!website) {
+      return reply.code(404).send({
+        message: "Website not found",
+      });
+    }
+    return {
+      imageUrl: await resolveWebsiteFaviconUrl(id),
+    };
   });
 
   // Remove a website's favicon.

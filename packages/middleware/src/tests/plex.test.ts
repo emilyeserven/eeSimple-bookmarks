@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
+import { buildApp } from "@/app";
 import {
   getPlexMachineIdentifier,
   plexEnabledAsync,
@@ -173,4 +174,24 @@ test("getPlexMachineIdentifier reads /identity and caches it across calls", asyn
 
 test("getPlexMachineIdentifier returns null when unconfigured", async () => {
   assert.equal(await getPlexMachineIdentifier(), null);
+});
+
+test("GET /api/plex/poster rejects a request with no ratingKey", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "GET",
+    url: "/api/plex/poster",
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("GET /api/plex/poster returns 503 when Plex is not configured", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "GET",
+    url: "/api/plex/poster?ratingKey=101",
+  });
+  assert.equal(res.statusCode, 503);
+  await app.close();
 });

@@ -8,6 +8,7 @@ import {
   fetchAndStorePersonImageFromSocial,
   getPersonImageRow,
   removePersonImage,
+  resolvePersonImageUrl,
   setPersonImageFromBytes,
 } from "@/services/personImages";
 import {
@@ -17,6 +18,7 @@ import {
   detectPersonSocialLinksFromWebsite,
   DuplicatePersonError,
   listPeople,
+  personExists,
   updatePerson,
 } from "@/services/people";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
@@ -118,6 +120,22 @@ const updatePersonBody = {
 } as const;
 
 const autoImageBody = {
+  type: "object",
+  required: ["source"],
+  additionalProperties: false,
+  properties: {
+    source: {
+      type: "string",
+      enum: ["website", "biography", "social"],
+    },
+    platform: {
+      type: "string",
+      enum: SOCIAL_MEDIA_PLATFORMS,
+    },
+  },
+} as const;
+
+const sourcePreviewQuery = {
   type: "object",
   required: ["source"],
   additionalProperties: false,
@@ -292,6 +310,32 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
       });
     }
     return reply.code(201).send(result);
+  });
+
+  // Preview the person's source avatar URL WITHOUT storing it, so the client can show the NEW avatar
+  // before applying. Resolves the same candidate `POST /:id/image/auto` would grab.
+  app.get("/api/people/:id/image/source-preview", {
+    schema: {
+      tags: ["people"],
+      params: personParams,
+      querystring: sourcePreviewQuery,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const {
+      source, platform,
+    } = req.query as { source: "website" | "biography" | "social";
+      platform?: SocialMediaPlatform; };
+    if (!(await personExists(id))) {
+      return reply.code(404).send({
+        message: "Person not found",
+      });
+    }
+    return {
+      imageUrl: await resolvePersonImageUrl(id, source, platform),
+    };
   });
 
   // Remove an person's avatar.

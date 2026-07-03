@@ -6,6 +6,7 @@ import { EntityImageField } from "./EntityImageField";
 import { PersonAvatarActions } from "./PersonAvatarActions";
 import { SocialLinksField } from "./SocialLinksField";
 import { usePersonGeneralForm } from "./usePersonGeneralForm";
+import { useImageTaxonomySyncRegistration } from "../hooks/useImageTaxonomySyncRegistration";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -23,6 +24,24 @@ export function PersonGeneralForm({
     detectLinks, connectedChannelsWithImage, connectedWebsitesWithImage,
     saveField, saveName, detectSocialLinks, saveSocialLinks,
   } = usePersonGeneralForm(person);
+
+  // Register the header "Sync from source" button (preview + re-fetch the avatar from the person's
+  // website / biography og:image). Only offered when there's a source URL to resolve from.
+  const avatarSource = person.personWebsiteUrl ? "website" : person.biographyUrl ? "biography" : null;
+  useImageTaxonomySyncRegistration({
+    entityId: person.id,
+    entityLabel: person.name,
+    sourceLabel: "Website",
+    previewKind: "person",
+    currentImageUrl: person.imageUrl ?? null,
+    personSource: avatarSource ?? undefined,
+    applyImage: avatarSource
+      ? () => autoAvatar.mutate({
+        id: person.id,
+        source: avatarSource,
+      })
+      : null,
+  });
 
   return (
     <div className="space-y-4">

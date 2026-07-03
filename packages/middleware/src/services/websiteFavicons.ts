@@ -11,7 +11,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { type WebsiteFaviconRow, websiteFavicons, websites } from "@/db/schema";
-import { downloadImage, duckDuckGoIconUrl, type EntityImageResult, fetchFaviconImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
+import { downloadImage, duckDuckGoIconUrl, type EntityImageResult, extractFaviconUrls, fetchFaviconImage, fetchHeadOrImageError, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 
@@ -113,6 +113,34 @@ export async function removeWebsiteFavicon(websiteId: string): Promise<boolean> 
     faviconAutoGrabError: null,
   }).where(eq(websites.id, websiteId));
   return true;
+}
+
+/**
+ * Resolve a website's source favicon URL WITHOUT downloading or storing it — the same candidate the
+ * auto-fetch (`fetchAndStoreWebsiteFavicon`) would grab, so a client can preview the new favicon
+ * before applying. Scrapes the homepage's declared icon links and falls back to the DuckDuckGo icon
+ * service (which usually has an icon even when the site declares none). Returns a public http(s) URL,
+ * or `null` when the website is gone. The page URL is derived from the website's own normalized
+ * `domain` (never a client value — avoids an SSRF amplifier).
+ */
+export async function resolveWebsiteFaviconUrl(websiteId: string): Promise<string | null> {
+  const [website] = await db
+    .select({
+      domain: websites.domain,
+    })
+    .from(websites)
+    .where(eq(websites.id, websiteId));
+  if (!website) return null;
+
+  const pageUrl = `https://${website.domain}/`;
+  const html = await fetchHeadOrImageError(pageUrl);
+  if (typeof html === "string") {
+    for (const iconUrl of extractFaviconUrls(html, pageUrl)) {
+      if (isPublicHttpUrl(iconUrl)) return iconUrl;
+    }
+  }
+  const ddgUrl = duckDuckGoIconUrl(website.domain);
+  return isPublicHttpUrl(ddgUrl) ? ddgUrl : null;
 }
 
 /**

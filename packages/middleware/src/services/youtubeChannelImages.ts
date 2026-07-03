@@ -19,7 +19,7 @@ import { channelUrlFromKey } from "@eesimple/types";
 import { db } from "@/db";
 import { type YouTubeChannelImageRow, youtubeChannelImages, youtubeChannels } from "@/db/schema";
 import { batchFetch } from "@/services/batchFetch";
-import { downloadImage, type EntityImageResult, fetchOgImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
+import { downloadImage, type EntityImageResult, extractImageUrl, fetchHeadOrImageError, fetchOgImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
 import { fetchChannelAvatarUrlViaApi } from "@/services/youtube";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
@@ -163,6 +163,33 @@ export async function fetchAndStoreChannelImage(channelId: string): Promise<Chan
   if (!channel) return "not_found";
 
   return fetchAndStoreChannelAvatar(channelId, channel.channelKey);
+}
+
+/**
+ * Resolve a channel's source avatar URL WITHOUT downloading or storing it — the same candidate the
+ * auto-fetch (`fetchAndStoreChannelImage`) would grab, so a client can preview the new avatar before
+ * applying. Prefers the YouTube Data API thumbnail (when a key is configured), else scrapes the
+ * channel page's `og:image`. Returns the first public http(s) URL, or `null` when the channel is gone
+ * or nothing resolves. The page URL is reconstructed from the stored `channelKey` (never a client
+ * value — avoids an SSRF amplifier).
+ */
+export async function resolveChannelAvatarUrl(channelId: string): Promise<string | null> {
+  const [channel] = await db
+    .select({
+      channelKey: youtubeChannels.channelKey,
+    })
+    .from(youtubeChannels)
+    .where(eq(youtubeChannels.id, channelId));
+  if (!channel) return null;
+
+  const apiImageUrl = await fetchChannelAvatarUrlViaApi(channel.channelKey);
+  if (apiImageUrl && isPublicHttpUrl(apiImageUrl)) return apiImageUrl;
+
+  const pageUrl = channelUrlFromKey(channel.channelKey);
+  const html = await fetchHeadOrImageError(pageUrl);
+  if (typeof html !== "string") return null;
+  const imageUrl = extractImageUrl(html, pageUrl);
+  return imageUrl && isPublicHttpUrl(imageUrl) ? imageUrl : null;
 }
 
 /** Channels with no stored avatar row, eligible for bulk backfill. */

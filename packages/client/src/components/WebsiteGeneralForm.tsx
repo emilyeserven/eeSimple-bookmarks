@@ -10,6 +10,7 @@ import { SourceDefaultFields } from "./SourceDefaultFields";
 import { useWebsiteGeneralForm } from "./useWebsiteGeneralForm";
 import { WebsiteRedirectFailureField } from "./WebsiteRedirectFailureField";
 import { WebsiteYouTubeChannelsField } from "./WebsiteYouTubeChannelsField";
+import { useImageTaxonomySyncRegistration } from "../hooks/useImageTaxonomySyncRegistration";
 
 import { Separator } from "@/components/ui/separator";
 
@@ -26,6 +27,21 @@ export function WebsiteGeneralForm({
     saveField, saveSiteName, saveDomain, toggleTag, addAlternateName, removeAlternateName,
     uploadFavicon, autoFavicon, deleteFavicon, categoryOptions, mediaTypeOptions, tagTree, youtubeChannels,
   } = useWebsiteGeneralForm(website);
+
+  // Register the header "Sync from source" button (preview + re-fetch the site favicon).
+  useImageTaxonomySyncRegistration({
+    entityId: website.id,
+    entityLabel: website.siteName ?? website.domain,
+    sourceLabel: "Website",
+    previewKind: "website",
+    currentImageUrl: website.imageUrl ?? null,
+    applyImage: website.builtIn
+      ? null
+      : () => autoFavicon.mutate({
+        id: website.id,
+        sourceUrl: `https://${website.domain}`,
+      }),
+  });
 
   return (
     <div className="space-y-4">
