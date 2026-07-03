@@ -12,8 +12,13 @@ import { useUiStore } from "../stores/uiStore";
  */
 export function useRegisterSyncProvider(provider: SyncProvider | null) {
   const setSyncProvider = useUiStore(state => state.setSyncProvider);
+  const setSyncModalOpen = useUiStore(state => state.setSyncModalOpen);
   useEffect(() => {
     setSyncProvider(provider);
-    return () => setSyncProvider(null);
-  }, [provider, setSyncProvider]);
+    // Closing the modal on unmount keeps its open flag from leaking to the next entity's provider.
+    return () => {
+      setSyncProvider(null);
+      setSyncModalOpen(false);
+    };
+  }, [provider, setSyncProvider, setSyncModalOpen]);
 }

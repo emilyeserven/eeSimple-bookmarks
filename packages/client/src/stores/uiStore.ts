@@ -177,6 +177,9 @@ interface UiState {
   /** Transient: the mounted edit form's outside-source sync provider (drives the header "Sync from source" button + modal), or null. Never persisted. */
   syncProvider: SyncProvider | null;
   setSyncProvider: (provider: SyncProvider | null) => void;
+  /** Transient: whether the outside-source Sync modal is open. Opened by the header button, the mobile menu, and the CMD+K action. Never persisted. */
+  syncModalOpen: boolean;
+  setSyncModalOpen: (open: boolean) => void;
   /** Transient: id of the bookmark card currently under the cursor, for ⌘K quick-edit. Never persisted. */
   hoveredBookmarkId: string | null;
   setHoveredBookmarkId: (id: string | null) => void;
@@ -368,6 +371,10 @@ export const useUiStore = create<UiState>()(
       syncProvider: null,
       setSyncProvider: provider => set({
         syncProvider: provider,
+      }),
+      syncModalOpen: false,
+      setSyncModalOpen: open => set({
+        syncModalOpen: open,
       }),
       hoveredBookmarkId: null,
       setHoveredBookmarkId: id => set({

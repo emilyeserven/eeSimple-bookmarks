@@ -1,33 +1,21 @@
 import type { ToolbarAction, ToolbarContext } from "./toolbarActionTypes";
 
-import { RefreshCw } from "lucide-react";
-
-import { SyncActionButton } from "./SyncActionButton";
-
-import { SyncFromSourceModal } from "@/components/SyncFromSourceModal";
+import { SyncActionButton, SyncActionMenuItem } from "./SyncActionButton";
 
 /**
  * Header action that lets the user re-pull an entity's fields from its outside source. Present only
  * while a mounted edit form has registered a {@link SyncProvider} (`ctx.syncProvider`), so it shows on
- * the bookmark / location / image-taxonomy edit surfaces and nowhere else.
+ * the bookmark / location / image-taxonomy edit surfaces and nowhere else. Both surfaces open the one
+ * store-driven {@link AppSyncModal} instance.
  */
 export function syncFromSourceAction(ctx: ToolbarContext): ToolbarAction | null {
-  const provider = ctx.syncProvider;
-  if (!provider) return null;
+  if (!ctx.syncProvider) return null;
   return {
     key: "sync-from-source",
-    desktop: <SyncActionButton provider={provider} />,
+    desktop: <SyncActionButton />,
     mobile: {
-      kind: "modal",
-      icon: RefreshCw,
-      label: "Sync from source",
-      renderModal: (open, onOpenChange) => (
-        <SyncFromSourceModal
-          provider={provider}
-          open={open}
-          onOpenChange={onOpenChange}
-        />
-      ),
+      kind: "menuItem",
+      node: <SyncActionMenuItem />,
     },
   };
 }
