@@ -112,13 +112,14 @@ export interface UpdatePodcastInput {
 }
 
 /**
- * A single podcast returned by a keyless search provider (Apple Podcasts / Pocket Casts) — the shape
- * the create/edit search picker binds to. Selecting one fills the podcast's name/author/feed and links
- * the searched provider's id/url; the other services are backfilled by the cross-resolver.
+ * A single podcast returned by a keyless search provider (Apple Podcasts / Pocket Casts) or resolved
+ * directly from a pasted URL — the shape the create/edit search picker binds to. Selecting one fills
+ * the podcast's name/author/feed and links the searched provider's id/url; the other services are
+ * backfilled by the cross-resolver.
  */
 export interface PodcastSearchResult {
-  /** Which directory this hit came from. */
-  provider: PodcastSearchProvider;
+  /** Which directory this hit came from, or `"feed"` when resolved from a pasted RSS/XML feed URL. */
+  provider: PodcastSearchProvider | "feed";
   /** Apple Podcasts collection id, or null for a non-iTunes hit. */
   itunesId: number | null;
   /** Pocket Casts podcast uuid, or null for a non-Pocket-Casts hit. */

@@ -83,7 +83,7 @@ export function AddMediaTitleModal({
       open={open}
       onOpenChange={onOpenChange}
     >
-      <DialogContent>
+      <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>New media title</DialogTitle>
           <DialogDescription>

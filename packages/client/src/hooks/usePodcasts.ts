@@ -53,6 +53,20 @@ export function usePodcastSearch(term: string, provider: PodcastSearchProvider =
   });
 }
 
+/**
+ * Resolve a pasted podcast URL (an Apple Podcasts show page, or a raw RSS/XML feed URL) for the
+ * search picker's "paste a URL" mode. Gated on a non-empty URL; a 404 (no podcast found) surfaces
+ * as `query.isError` rather than being swallowed.
+ */
+export function usePodcastUrlResolve(url: string) {
+  return useQuery({
+    queryKey: ["podcasts", "resolve-url", url],
+    queryFn: () => podcastsApi.resolveUrl(url),
+    enabled: url.trim().length > 0,
+    retry: false,
+  });
+}
+
 /** Invalidate every query whose rendering depends on podcast definitions. */
 function useInvalidatePodcastConsumers() {
   const queryClient = useQueryClient();

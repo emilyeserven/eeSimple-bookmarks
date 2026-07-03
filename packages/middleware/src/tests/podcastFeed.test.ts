@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import {
+  extractApplePodcastsId,
   lookupPodcastByItunesId,
   parsePodcastFeed,
+  resolvePodcastByUrl,
   resolvePodcastFeed,
   resolvePodcastProviderLinks,
   searchPodcasts,
@@ -259,4 +261,80 @@ test("resolvePodcastFeed fetches + parses a feed and echoes the feedUrl", async 
 
 test("resolvePodcastFeed refuses a non-public feed url", async () => {
   assert.equal(await resolvePodcastFeed("http://localhost/feed.xml"), null);
+});
+
+// --- extractApplePodcastsId: pure URL parsing, no network ---
+
+test("extractApplePodcastsId parses a show page's trailing id", () => {
+  assert.equal(
+    extractApplePodcastsId("https://podcasts.apple.com/us/podcast/reply-all/id941907967"),
+    941907967,
+  );
+  assert.equal(
+    extractApplePodcastsId("https://itunes.apple.com/us/podcast/reply-all/id941907967?mt=2"),
+    941907967,
+  );
+});
+
+test("extractApplePodcastsId returns null for other hosts or missing id", () => {
+  assert.equal(extractApplePodcastsId("https://feeds.megaphone.fm/replyall"), null);
+  assert.equal(extractApplePodcastsId("https://podcasts.apple.com/us/podcast/reply-all"), null);
+  assert.equal(extractApplePodcastsId("not a url"), null);
+});
+
+// --- resolvePodcastByUrl: stub global.fetch ---
+
+test("resolvePodcastByUrl resolves an Apple Podcasts show URL via the iTunes lookup", async () => {
+  const restore = stubByHost({
+    itunes: () => new Response(ITUNES_SEARCH_HIT, {
+      status: 200,
+    }),
+  });
+  try {
+    const result = await resolvePodcastByUrl("https://podcasts.apple.com/us/podcast/reply-all/id941907967");
+    assert.equal(result?.provider, "itunes");
+    assert.equal(result?.itunesId, 941907967);
+  }
+  finally {
+    restore();
+  }
+});
+
+test("resolvePodcastByUrl falls back to parsing a raw feed URL", async () => {
+  const restore = stubByHost({
+    feed: () => new Response(SAMPLE_FEED, {
+      status: 200,
+    }),
+  });
+  try {
+    const result = await resolvePodcastByUrl("https://feeds.megaphone.fm/replyall");
+    assert.deepEqual(result, {
+      provider: "feed",
+      itunesId: null,
+      pocketCastsUuid: null,
+      name: "Reply All",
+      author: "Gimlet",
+      feedUrl: "https://feeds.megaphone.fm/replyall",
+      itunesUrl: null,
+      pocketCastsUrl: null,
+      artworkUrl: "https://cdn.example.com/replyall.jpg",
+    });
+  }
+  finally {
+    restore();
+  }
+});
+
+test("resolvePodcastByUrl returns null when the URL is neither an Apple show page nor a readable feed", async () => {
+  const restore = stubByHost({
+    feed: () => new Response("nope", {
+      status: 404,
+    }),
+  });
+  try {
+    assert.equal(await resolvePodcastByUrl("https://example.com/nothing"), null);
+  }
+  finally {
+    restore();
+  }
 });

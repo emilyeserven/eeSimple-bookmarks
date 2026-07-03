@@ -12,6 +12,7 @@ import {
 } from "@/services/podcasts";
 import {
   importPodcastArtwork,
+  resolvePodcastByUrl,
   resolvePodcastFeedPreview,
   resolvePodcastProviderLinks,
   searchPodcasts,
@@ -143,6 +144,46 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
     } = req.query as { q: string;
       provider?: (typeof PODCAST_SEARCH_PROVIDERS)[number]; };
     return provider === "pocketCasts" ? searchPodcastsPocketCasts(q) : searchPodcasts(q);
+  });
+
+  // Resolve-only: a pasted Apple Podcasts show URL or raw RSS/XML feed URL, for the search picker's
+  // "paste a URL" mode. Never writes.
+  app.get("/api/podcasts/resolve-url", {
+    schema: {
+      tags: ["podcasts"],
+      querystring: {
+        type: "object",
+        required: ["url"],
+        properties: {
+          url: {
+            type: "string",
+          },
+        },
+      },
+    },
+  }, async (req, reply) => {
+    const {
+      url,
+    } = req.query as { url: string };
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    }
+    catch {
+      return reply.code(400).send({
+        message: "Invalid URL",
+      });
+    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return reply.code(400).send({
+        message: "Invalid URL",
+      });
+    }
+    const result = await resolvePodcastByUrl(url);
+    if (!result) return reply.code(404).send({
+      message: "No podcast found at that URL",
+    });
+    return result;
   });
 
   app.post("/api/podcasts", {
