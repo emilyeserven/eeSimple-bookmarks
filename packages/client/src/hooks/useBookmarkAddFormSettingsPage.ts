@@ -27,6 +27,12 @@ export const BOOKMARK_ADD_FORM_STANDARD_LABELS: Record<BookmarkAddFormStandardFi
   descriptionTags: "Description & Tags",
   personIds: "People",
   image: "Image",
+  groupIds: "Groups",
+  genreMoodIds: "Genres & Moods",
+  locationIds: "Locations",
+  mediaLink: "Media (Book/Movie/TV…)",
+  blacklistedTagIds: "Excluded Tags",
+  blacklistedLocationIds: "Excluded Locations",
 };
 
 /** A built-in detail property row: its slug, resolved display label, and current placement. */
@@ -52,14 +58,12 @@ function titleCaseSlug(slug: string): string {
     .join(" ");
 }
 
-/** Membership-based placement of a standard field: hidden > advanced > default (the main area). */
+/** Resolved placement of a standard field from the config's placement map (defaulting to the main area). */
 export function standardFieldPlacement(
   config: BookmarkAddFormSettings,
   field: BookmarkAddFormStandardField,
 ): BookmarkAddFormPlacement {
-  if (config.hiddenFields.includes(field)) return "hidden";
-  if (config.advancedFields.includes(field)) return "advanced";
-  return "default";
+  return config.standardFieldPlacements[field] ?? "default";
 }
 
 /** A custom property's current placement, derived from its existing form-visibility flags. */
@@ -124,14 +128,12 @@ export function useBookmarkAddFormSettingsPage() {
     field: BookmarkAddFormStandardField,
     placement: BookmarkAddFormPlacement,
   ): void {
-    const advancedFields = config.advancedFields.filter(f => f !== field);
-    const hiddenFields = config.hiddenFields.filter(f => f !== field);
-    if (placement === "advanced") advancedFields.push(field);
-    if (placement === "hidden") hiddenFields.push(field);
     persistSettings({
       ...config,
-      advancedFields,
-      hiddenFields,
+      standardFieldPlacements: {
+        ...config.standardFieldPlacements,
+        [field]: placement,
+      },
     }, BOOKMARK_ADD_FORM_STANDARD_LABELS[field]);
   }
 

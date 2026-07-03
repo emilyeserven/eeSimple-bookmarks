@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { EMPTY_MEDIA_SELECTION, useBookmarkMediaField } from "./useBookmarkMediaField";
+import { EMPTY_MEDIA_SELECTION, mediaSelectionFromBookmark, useBookmarkMediaField } from "./useBookmarkMediaField";
 import { makeBookmark } from "../test-utils/factories";
 
 const MOVIES = [{
@@ -59,7 +59,7 @@ describe("useBookmarkMediaField", () => {
     const bookmark = makeBookmark();
     const {
       result,
-    } = renderHook(() => useBookmarkMediaField(bookmark, onSelect));
+    } = renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(bookmark), onSelect, bookmark));
 
     expect(result.current.isLinked).toBe(false);
     expect(result.current.selectedLabel).toBeNull();
@@ -77,7 +77,7 @@ describe("useBookmarkMediaField", () => {
     });
     const {
       result,
-    } = renderHook(() => useBookmarkMediaField(bookmark, vi.fn()));
+    } = renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(bookmark), vi.fn(), bookmark));
 
     expect(result.current.isLinked).toBe(true);
     expect(result.current.selectedLabel).toBe("Movie One");
@@ -87,7 +87,7 @@ describe("useBookmarkMediaField", () => {
     const bookmark = makeBookmark();
     const {
       result,
-    } = renderHook(() => useBookmarkMediaField(bookmark, vi.fn()));
+    } = renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(bookmark), vi.fn(), bookmark));
 
     const bookSection = () => result.current.sections.find(section => section.kind === "book")!;
     expect(bookSection().collapsed).toBe(false);
@@ -107,7 +107,7 @@ describe("useBookmarkMediaField", () => {
     const {
       result,
       rerender,
-    } = renderHook(() => useBookmarkMediaField(bookmark, vi.fn()));
+    } = renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(bookmark), vi.fn(), bookmark));
 
     const bookSection = () => result.current.sections.find(section => section.kind === "book")!;
     act(() => bookSection().onToggleCollapsed());
@@ -129,7 +129,7 @@ describe("useBookmarkMediaField", () => {
     const bookmark = makeBookmark();
     const {
       result,
-    } = renderHook(() => useBookmarkMediaField(bookmark, onSelect));
+    } = renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(bookmark), onSelect, bookmark));
 
     act(() => result.current.selectItem("movie", "movie-1"));
     expect(onSelect).toHaveBeenCalledWith({
@@ -145,7 +145,7 @@ describe("useBookmarkMediaField", () => {
     });
     const {
       result,
-    } = renderHook(() => useBookmarkMediaField(bookmark, onSelect));
+    } = renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(bookmark), onSelect, bookmark));
 
     act(() => result.current.selectItem("movie", "movie-1"));
     expect(onSelect).toHaveBeenCalledWith(EMPTY_MEDIA_SELECTION);
@@ -156,7 +156,7 @@ describe("useBookmarkMediaField", () => {
     const bookmark = makeBookmark();
     const {
       result,
-    } = renderHook(() => useBookmarkMediaField(bookmark, onSelect));
+    } = renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(bookmark), onSelect, bookmark));
 
     act(() => result.current.handleCreated({
       key: "tvShowId",
@@ -177,8 +177,8 @@ describe("useBookmarkMediaField", () => {
       kavitaSeriesId: 42,
     });
 
-    expect(renderHook(() => useBookmarkMediaField(linkedViaBook, vi.fn())).result.current.showLegacyKavita).toBe(false);
-    expect(renderHook(() => useBookmarkMediaField(legacyOnly, vi.fn())).result.current.showLegacyKavita).toBe(true);
+    expect(renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(linkedViaBook), vi.fn(), linkedViaBook)).result.current.showLegacyKavita).toBe(false);
+    expect(renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(legacyOnly), vi.fn(), legacyOnly)).result.current.showLegacyKavita).toBe(true);
   });
 
   it("shows the legacy Plex fallback only when no taxonomy FK is linked but a legacy rating key is set", () => {
@@ -190,7 +190,7 @@ describe("useBookmarkMediaField", () => {
       plexRatingKey: "abc",
     });
 
-    expect(renderHook(() => useBookmarkMediaField(linkedViaMovie, vi.fn())).result.current.showLegacyPlex).toBe(false);
-    expect(renderHook(() => useBookmarkMediaField(legacyOnly, vi.fn())).result.current.showLegacyPlex).toBe(true);
+    expect(renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(linkedViaMovie), vi.fn(), linkedViaMovie)).result.current.showLegacyPlex).toBe(false);
+    expect(renderHook(() => useBookmarkMediaField(mediaSelectionFromBookmark(legacyOnly), vi.fn(), legacyOnly)).result.current.showLegacyPlex).toBe(true);
   });
 });

@@ -20,6 +20,13 @@ interface BookmarkFormHostValues {
   personIds: string[];
   groupIds: string[];
   groupId: string;
+  bookId: string;
+  movieId: string;
+  tvShowId: string;
+  episodeId: string;
+  albumId: string;
+  trackId: string;
+  podcastId: string;
 }
 
 interface BookmarkFormHostProps {
@@ -56,6 +63,13 @@ export function BookmarkFormHost({
       personIds: [],
       groupIds: [],
       groupId: "",
+      bookId: "",
+      movieId: "",
+      tvShowId: "",
+      episodeId: "",
+      albumId: "",
+      trackId: "",
+      podcastId: "",
       ...initialValues,
     },
     validators: {

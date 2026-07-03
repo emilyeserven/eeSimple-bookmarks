@@ -44,6 +44,11 @@ export const BOOKMARK_FORM_DETAIL_SLUGS = [
 /**
  * The standard (non-custom-property) fields on the Add Bookmark form that can be placed into the
  * main area, the Advanced section, or hidden.
+ *
+ * The first nine are the original always-available fields; the remaining six are taxonomy / media /
+ * location relations that used to be editable only on the post-create edit surfaces. They default to
+ * `hidden` (see {@link DEFAULT_BOOKMARK_ADD_FORM_SETTINGS}) so the create form is unchanged until the
+ * user opts each one in.
  */
 export const BOOKMARK_ADD_FORM_STANDARD_FIELDS = [
   "title",
@@ -55,6 +60,12 @@ export const BOOKMARK_ADD_FORM_STANDARD_FIELDS = [
   "descriptionTags",
   "personIds",
   "image",
+  "groupIds",
+  "genreMoodIds",
+  "locationIds",
+  "mediaLink",
+  "blacklistedTagIds",
+  "blacklistedLocationIds",
 ] as const;
 
 /** A standard Add Bookmark form field. Derived from {@link BOOKMARK_ADD_FORM_STANDARD_FIELDS}. */
@@ -75,17 +86,16 @@ export type BookmarkAddFormPlacement = typeof BOOKMARK_ADD_FORM_PLACEMENTS[numbe
  * Settings controlling Add Bookmark form field placement, persisted server-side (Settings →
  * Display → Add Bookmark Form) so the choices follow the user across devices.
  *
- * `advancedFields`/`hiddenFields` use sidebar-style membership: a standard field's absence from
- * both arrays means it shows in the main area by default. `builtInPropertyPlacements` is instead
- * resolved as `{ ...DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements, ...stored }` so a
- * future built-in property that defaults to hidden stays hidden even for users with an existing
- * saved settings row that predates it.
+ * Both `standardFieldPlacements` and `builtInPropertyPlacements` are per-key placement maps resolved
+ * as `{ ...DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.<map>, ...stored }`: a key the user never touched
+ * inherits its default (so a newly-added field that defaults to `hidden` stays hidden even for users
+ * with a saved settings row that predates it), while an explicit choice — including `"default"` (the
+ * main area) — is stored as a real entry rather than being encoded as an absence. This replaced the
+ * old `advancedFields`/`hiddenFields` membership arrays, which could not express a per-field default.
  */
 export interface BookmarkAddFormSettings {
-  /** Standard field keys placed in the Advanced section. */
-  advancedFields: string[];
-  /** Standard field keys hidden from the form entirely. */
-  hiddenFields: string[];
+  /** Placement for each standard field, keyed by field. */
+  standardFieldPlacements: Record<string, BookmarkAddFormPlacement>;
   /** Placement for each built-in detail custom-property slug, keyed by slug. */
   builtInPropertyPlacements: Record<string, BookmarkAddFormPlacement>;
 }
@@ -94,21 +104,39 @@ export interface BookmarkAddFormSettings {
 export type UpdateBookmarkAddFormInput = BookmarkAddFormSettings;
 
 /**
- * Default placement settings: today's Advanced-section residents stay in Advanced, no standard
- * field is hidden, and every built-in detail property slug defaults to hidden (matching the
- * pre-existing `hiddenSlugs` behavior in `RevealedCustomFields.tsx`).
+ * Default placement for every standard Add Bookmark form field: `title`/`romanizedName` show in
+ * the main area, today's taxonomy fields (category/media type/language/group/description & tags/
+ * people/image) sit in Advanced, and the newer taxonomy/media/location relations
+ * (groups/genres & moods/locations/media link/blacklists) default to hidden so the create form is
+ * unchanged until the user opts them in.
+ */
+const DEFAULT_STANDARD_FIELD_PLACEMENTS: Record<BookmarkAddFormStandardField, BookmarkAddFormPlacement> = {
+  title: "default",
+  romanizedName: "default",
+  categoryId: "advanced",
+  mediaTypeId: "advanced",
+  languageId: "advanced",
+  groupId: "advanced",
+  descriptionTags: "advanced",
+  personIds: "advanced",
+  image: "advanced",
+  groupIds: "hidden",
+  genreMoodIds: "hidden",
+  locationIds: "hidden",
+  mediaLink: "hidden",
+  blacklistedTagIds: "hidden",
+  blacklistedLocationIds: "hidden",
+};
+
+/**
+ * Default placement settings: the standard-field defaults above, and every built-in detail property
+ * slug defaults to hidden (matching the pre-existing `hiddenSlugs` behavior in
+ * `RevealedCustomFields.tsx`).
  */
 export const DEFAULT_BOOKMARK_ADD_FORM_SETTINGS: BookmarkAddFormSettings = {
-  advancedFields: [
-    "categoryId",
-    "mediaTypeId",
-    "languageId",
-    "groupId",
-    "descriptionTags",
-    "personIds",
-    "image",
-  ],
-  hiddenFields: [],
+  standardFieldPlacements: {
+    ...DEFAULT_STANDARD_FIELD_PLACEMENTS,
+  },
   builtInPropertyPlacements: Object.fromEntries(
     BOOKMARK_FORM_DETAIL_SLUGS.map(slug => [slug, "hidden"]),
   ) as Record<string, BookmarkAddFormPlacement>,

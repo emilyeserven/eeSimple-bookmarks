@@ -2043,6 +2043,13 @@ export const appSettings = pgTable("app_settings", {
   // `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements` so a future built-in that defaults
   // to hidden stays hidden for users with a saved settings row that predates it.
   bookmarkFormBuiltInPlacements: jsonb("bookmark_form_built_in_placements").$type<Record<string, string>>(),
+  // Placement ("default" | "advanced" | "hidden") per standard field, keyed by field. Nullable =
+  // push-safe additive. The service merges this over
+  // `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.standardFieldPlacements` so a newly-added standard field
+  // inherits its default (e.g. hidden) for users with a saved settings row that predates it. This
+  // replaces the legacy `bookmarkFormAdvancedFields`/`bookmarkFormHiddenFields` arrays above, which
+  // are kept only so an existing row's choices can be derived on first read (see the service).
+  bookmarkFormStandardPlacements: jsonb("bookmark_form_standard_placements").$type<Record<string, string>>(),
 });
 
 /**

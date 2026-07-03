@@ -5,15 +5,21 @@ import { useState } from "react";
 
 import { BOOKMARK_ADD_FORM_PLACEMENTS, BOOKMARK_ADD_FORM_STANDARD_FIELDS } from "@eesimple/types";
 import {
+  Ban,
   Building2,
   CaseSensitive,
   Clapperboard,
+  Drama,
   Eye,
+  Film,
   FolderOpen,
   Image,
   Languages,
+  MapPin,
+  MapPinOff,
   Tags,
   Type,
+  Users,
   UserRound,
 } from "lucide-react";
 
@@ -62,6 +68,12 @@ const STANDARD_FIELD_ICONS: Record<BookmarkAddFormStandardField, LucideIcon> = {
   descriptionTags: Tags,
   personIds: UserRound,
   image: Image,
+  groupIds: Users,
+  genreMoodIds: Drama,
+  locationIds: MapPin,
+  mediaLink: Film,
+  blacklistedTagIds: Ban,
+  blacklistedLocationIds: MapPinOff,
 };
 
 function fieldIcon(Icon: LucideIcon) {

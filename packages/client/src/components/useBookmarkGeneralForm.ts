@@ -101,6 +101,13 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       personIds: (bookmark.people.map(a => a.id)) as string[],
       groupIds: (bookmark.groups.map(g => g.id)) as string[],
       groupId: bookmark.group?.id ?? "",
+      bookId: bookmark.bookId ?? "",
+      movieId: bookmark.movieId ?? "",
+      tvShowId: bookmark.tvShowId ?? "",
+      episodeId: bookmark.episodeId ?? "",
+      albumId: bookmark.albumId ?? "",
+      trackId: bookmark.trackId ?? "",
+      podcastId: bookmark.podcastId ?? "",
     },
     validators: {
       onChange: bookmarkSchema,

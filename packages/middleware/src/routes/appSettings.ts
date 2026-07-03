@@ -205,20 +205,20 @@ const sidebarCustomizationBody = {
 
 // Add Bookmark form field placement (Settings → Display → Add Bookmark Form). The placement enum
 // derives from the shared BOOKMARK_ADD_FORM_PLACEMENTS tuple (don't hand-mirror it).
+const placementMap = {
+  type: "object",
+  additionalProperties: {
+    type: "string",
+    enum: [...BOOKMARK_ADD_FORM_PLACEMENTS],
+  },
+} as const;
 const bookmarkAddFormBody = {
   type: "object",
-  required: ["advancedFields", "hiddenFields", "builtInPropertyPlacements"],
+  required: ["standardFieldPlacements", "builtInPropertyPlacements"],
   additionalProperties: false,
   properties: {
-    advancedFields: stringArray,
-    hiddenFields: stringArray,
-    builtInPropertyPlacements: {
-      type: "object",
-      additionalProperties: {
-        type: "string",
-        enum: [...BOOKMARK_ADD_FORM_PLACEMENTS],
-      },
-    },
+    standardFieldPlacements: placementMap,
+    builtInPropertyPlacements: placementMap,
   },
 } as const;
 

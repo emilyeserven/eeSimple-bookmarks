@@ -56,7 +56,7 @@ export interface BookmarkCustomFieldControls extends CustomFieldControls {
 /** The default set of standard fields shown in the Advanced section (today's fixed list). */
 const DEFAULT_ADVANCED_STANDARD_FIELDS: BookmarkAddFormStandardField[]
   = BOOKMARK_ADD_FORM_STANDARD_FIELDS.filter(field =>
-    (DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.advancedFields as readonly string[]).includes(field));
+    DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.standardFieldPlacements[field] === "advanced");
 
 interface BookmarkAdvancedSectionProps extends StandardFieldRenderProps {
   customProperties: CustomProperty[];
