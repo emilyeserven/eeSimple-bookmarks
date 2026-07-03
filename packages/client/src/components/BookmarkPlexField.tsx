@@ -61,10 +61,33 @@ interface BookmarkPlexFieldProps {
   onSelect: (selection: PlexItemResult | null) => void;
 }
 
-/** One-line summary of a search hit: title (Type) — show/artist · year · library. */
+/** One-line summary of a search hit: title — show/artist · year · library. */
 function itemSummary(item: PlexItemResult): string {
-  const head = `${item.title} (${plexTypeLabel(item.type)})`;
-  return item.subtitle ? `${head} — ${item.subtitle}` : head;
+  return item.subtitle ? `${item.title} — ${item.subtitle}` : item.title;
+}
+
+/** One media-type section of search results, in first-seen order. */
+interface PlexItemGroup {
+  type: string;
+  items: PlexItemResult[];
+}
+
+/** Groups search hits by Plex item type (media type), preserving first-seen type order. */
+function groupItemsByType(items: PlexItemResult[]): PlexItemGroup[] {
+  const groups: PlexItemGroup[] = [];
+  for (const item of items) {
+    const group = groups.find(candidate => candidate.type === item.type);
+    if (group) {
+      group.items.push(item);
+    }
+    else {
+      groups.push({
+        type: item.type,
+        items: [item],
+      });
+    }
+  }
+  return groups;
 }
 
 /**
@@ -169,25 +192,38 @@ export function BookmarkPlexField({
               : null}
             {search.isSuccess && search.data.length > 0
               ? (
-                <ul className="space-y-1 rounded-md border p-1">
-                  {search.data.map(item => (
-                    <li key={`${item.type}:${item.ratingKey}`}>
-                      <button
-                        type="button"
+                <div className="space-y-1 rounded-md border p-1">
+                  {groupItemsByType(search.data).map(group => (
+                    <div key={group.type}>
+                      <p
                         className="
-                          w-full rounded-sm px-2 py-1 text-left text-sm
-                          hover:bg-accent hover:text-accent-foreground
+                          px-2 py-1.5 text-xs font-medium text-muted-foreground
                         "
-                        onClick={() => {
-                          onSelect(item);
-                          setQuery("");
-                        }}
                       >
-                        {itemSummary(item)}
-                      </button>
-                    </li>
+                        {plexTypeLabel(group.type)}
+                      </p>
+                      <ul className="space-y-1">
+                        {group.items.map(item => (
+                          <li key={`${item.type}:${item.ratingKey}`}>
+                            <button
+                              type="button"
+                              className="
+                                w-full rounded-sm px-2 py-1 text-left text-sm
+                                hover:bg-accent hover:text-accent-foreground
+                              "
+                              onClick={() => {
+                                onSelect(item);
+                                setQuery("");
+                              }}
+                            >
+                              {itemSummary(item)}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
+                </div>
               )
               : null}
             <p className="text-xs text-muted-foreground">
