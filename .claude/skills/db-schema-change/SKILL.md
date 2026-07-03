@@ -20,10 +20,25 @@ prompt-free.** Route every change through this decision table:
 
 | Change | Where it goes |
 |---|---|
-| New table; **nullable** column on an existing table; new index | `schema.ts` only — push applies it silently. |
+| **New table**, or a **nullable** column shipped in the same release as one | `schema.ts` **plus** an idempotent `migrate.ts` **pre-create** (`CREATE TABLE` / `ADD COLUMN IF NOT EXISTS`). See the silent-skip caveat below — "push applies new tables silently" is **not** reliable in the non-TTY deploy. |
+| A lone **nullable** column or **new index** with no new table in the same release | `schema.ts` only — genuinely push-safe. |
 | **Unique constraint** on a table with data; **NOT NULL** column (even with a DEFAULT) | `schema.ts` **plus** a pre-step in `migrate.ts` — push alone hits the interactive `pgSuggestions` prompt and **crashes the non-TTY deploy** (`--force` does not bypass it). |
 | Drop / rename a column or table; `ALTER TYPE … ADD VALUE`; data-preserving transform | `migrate.ts` pre-step (guarded), then update `schema.ts` to match — push never destroys data itself. |
 | Seed rows / backfill values for existing rows | **Not** a migration — an `ensure*` / `backfill*` boot step in the middleware (below). |
+
+**Silent-skip caveat (new tables + companion columns).** Against a populated DB, `drizzle-kit push`
+treats a **new table** as a `pgSuggestions` "do you want to truncate?" change; in the non-TTY deploy it
+**bails at that prompt while exiting 0**, so the table — *and every additive statement it hadn't
+applied yet in the same run, including plain nullable `ADD COLUMN`s* — is **silently skipped**. The
+deploy "succeeds" but the table/column never exists and queries 500 with `relation … does not exist` /
+`column … does not exist` (this is what bit `genre_moods` #929, `bookmarks.image_display_preference`
+#930, and the `podcasts` taxonomy). So **pre-create every new table and pre-add its companion
+columns** (e.g. a taxonomy's `bookmarks.<x>_id` FK) in `migrate.ts` with idempotent `IF NOT EXISTS`
+DDL. Keep the pre-create **self-contained — no FK to a push-created table** (migrate runs before push,
+so a FK to `media_properties`/`bookmarks` fails on a DB that lacks it): declare FK columns as a plain
+`uuid` and let push add the FK constraint afterward (additive, never prompts). Verify against a real
+Postgres: run `migrate.ts` on a DB that has the base schema but not your new table, then confirm it
+recreates it and re-runs as a no-op.
 
 ## Writing a `migrate.ts` pre-step
 

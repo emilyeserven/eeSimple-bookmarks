@@ -26,10 +26,15 @@ keep the shared types compiling first.
 ### 1. Middleware — schema (`packages/middleware/src/db/schema.ts`)
 - Add the table. Include a `slug text` column (and a UNIQUE constraint where slugs must be unique).
 - Export the inferred row type (e.g. `export type MediaTypeRow = typeof mediaTypes.$inferSelect`).
-- **Gotcha:** if the table will already have rows in production and you add a UNIQUE or NOT NULL
-  column, `drizzle-kit push` can't apply it non-interactively. Add an idempotent step to
-  `src/db/migrate.ts` first — see CLAUDE.md → "Database schema changes" and the worked examples
-  already in `migrate.ts`.
+- **Pre-create the table (and its `bookmarks.<x>_id` FK column) in `migrate.ts` — required, not
+  optional.** A new table is silently **skipped** by `drizzle-kit push` in the non-TTY deploy (it
+  reads as a "truncate?" prompt, push bails exiting 0), so the table never gets created and every query
+  500s with `relation … does not exist` — the exact bug that hit `genre_moods` (#929) and `podcasts`.
+  Add idempotent `CREATE TABLE IF NOT EXISTS` + `ALTER TABLE bookmarks ADD COLUMN IF NOT EXISTS
+  "<x>_id" uuid` steps, **self-contained (no FK to a push-created table** — declare FK columns as plain
+  `uuid` and let push add the constraint). Mirror the `genre_moods` / `bookmarks.podcast_id` steps at
+  the end of `migrate.ts`. Same rule for a UNIQUE/NOT NULL column on an already-populated table. See
+  the **`db-schema-change`** skill's silent-skip caveat, and verify against a real Postgres.
 
 ### 2. Middleware — service (`packages/middleware/src/services/<entity>.ts`)
 Copy `services/mediaTypes.ts`. It provides the canonical shape:

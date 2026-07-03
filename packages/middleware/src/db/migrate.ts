@@ -1295,6 +1295,49 @@ const migrations: RuntimeMigration[] = [
     name: "drop artists table",
     run: db => db.execute(sql`DROP TABLE IF EXISTS "artists"`),
   },
+  {
+    // The `podcasts` taxonomy (a Media Property) is a brand-new table. Against a populated database
+    // `drizzle-kit push` treats a new table as a "do you want to truncate?" (pgSuggestions) change and,
+    // in this non-TTY deploy, SILENTLY SKIPS it while still exiting 0 — so the deploy succeeds but the
+    // table never gets created and every Podcasts query 500s with `relation "podcasts" does not exist`
+    // (the same failure mode as the genre_moods pre-create above). Pre-create it here so push's diff for
+    // it is always empty. Idempotent (`IF NOT EXISTS`). Like genre_moods, this deliberately carries NO
+    // foreign key to another table (only the intra-table name/slug unique constraints): migrate runs
+    // before push, so a `media_properties` FK here would fail on any DB that lacks that table. push adds
+    // the `media_property_id` FK afterward (additive, never prompts). Boot-time `backfillPodcastSlugs()`
+    // fills the NULL slugs.
+    name: "create podcasts table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "podcasts" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "slug" text,
+        "romanized_name" text,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "media_property_id" uuid,
+        "feed_url" text,
+        "itunes_id" integer,
+        "itunes_url" text,
+        "author" text,
+        "description" text,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+        CONSTRAINT "podcasts_name_unique" UNIQUE("name"),
+        CONSTRAINT "podcasts_slug_unique" UNIQUE("slug")
+      )
+    `),
+  },
+  {
+    // `bookmarks.podcast_id` links a bookmark to a Podcast. A new column on the populated `bookmarks`
+    // table can be SILENTLY SKIPPED by push whenever another pgSuggestions change (like the new
+    // `podcasts` table above) precedes it in the same diff — leaving the bookmarks listing to 500 with
+    // `column "podcast_id" does not exist` (the twin of the image_display_preference pre-add above).
+    // Pre-add it here as a plain nullable uuid (no FK/NOT NULL, so it never prompts and needs no other
+    // table — exactly like image_display_preference); push adds the set-null FK to `podcasts` afterward.
+    name: "add bookmarks.podcast_id column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "bookmarks" ADD COLUMN IF NOT EXISTS "podcast_id" uuid
+    `),
+  },
 ];
 
 async function main(): Promise<void> {
