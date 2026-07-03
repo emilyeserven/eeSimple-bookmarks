@@ -241,12 +241,27 @@ pnpm typecheck
 pnpm test
 pnpm lint:fix                              # always from repo root
 pnpm exec fallow dupes --format json --quiet   # duplication must stay ≤ 6.25%
+pnpm exec fallow dead-code --regression-baseline .fallow/dead-code-baseline.json \
+  --fail-on-regression --tolerance 0            # must not regress (see the baseline note below)
 ```
 
 If the fallow duplication check exceeds the budget, look for a shared utility rather than
 copying code — the most common culprit is the `takenSlugs` query (use `takenSlugsOf()`; see
 step 2) or the condition multi-select component (use `EntityMultiSelectCondition`; see
 `add-condition-type` skill).
+
+**A new entity trips the dead-code regression gate — regenerate the baseline.** The `fallow-audit`
+CI job runs `fallow dead-code` against `.fallow/dead-code-baseline.json` with **tolerance 0**, so
+*any* increase in unused exports fails the PR. A scaffolded entity's `entities/<name>.tsx`
+`<entity>Descriptor` aggregate is an **unused export by convention** — the registries import the
+individual pieces (`<ENTITY>_ROUTE`, `<ENTITY>_PALETTE`, `<entity>ListingConfig`, `<entity>Workbench`)
+directly, never the bundle — so every sibling descriptor already sits in the baseline. Adding one
+increments the count by 1. **First delete any *genuinely* removable unused exports** (a convenience
+service fn no route calls, a query hook nothing consumes — `fallow dead-code --format json` lists
+them by file), then **regenerate the baseline for the descriptor** that legitimately remains:
+`pnpm exec fallow dead-code --save-regression-baseline .fallow/dead-code-baseline.json`, and commit
+the updated JSON. This is what the Genres & Moods entity (#916) did. Don't blanket-baseline to dodge
+real dead code — only the `<entity>Descriptor` is the accepted-unused case.
 
 Then check manually that the entity:
 - has working list / detail / edit pages at its slug routes, and
