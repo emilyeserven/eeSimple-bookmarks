@@ -257,17 +257,83 @@ const migrations: RuntimeMigration[] = [
       await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "tags_parent_name_unique" ON "tags" ("parent_id", "name")`);
     },
   },
+  // ── Languages taxonomy + usage levels/associations (added #904 / #910 / #914) ────────────────────
+  // These tables + the `bookmarks.language_id` companion column all shipped WITHOUT a `migrate.ts`
+  // pre-create, so against a populated prod DB `drizzle-kit push` treats each brand-new table as a
+  // pgSuggestions "truncate?" change, bails in the non-TTY deploy while exiting 0, and SILENTLY SKIPS
+  // the table (and the rest of its additive diff) — the "relation … does not exist" / "column
+  // language_id does not exist" 500s. Pre-create them here (idempotent `IF NOT EXISTS`, DDL mirroring
+  // schema.ts). FK columns are declared as plain `uuid` (push adds the FK constraints afterward,
+  // additively); composite uniques are unique INDEXES, never `unique()` constraints (the
+  // `tags_parent_name_unique` rule). Ordered languages → levels → usages, but the FK-less pre-creates
+  // don't actually depend on each other. Boot-time `backfill*Slugs()` fill the NULL slugs.
   {
-    // Same composite-unique non-convergence as `tags_parent_name_unique` above: the language-usage
-    // tables (added in #914) declared their COMPOSITE uniques as table `unique()` constraints, so
-    // `drizzle-kit push` re-proposes them on every deploy — prompting to truncate the populated
-    // `language_usage_levels` table and crashing the non-TTY deploy, which silently skips the rest
-    // of push's additive diff (the missing-column/table 500s). schema.ts now declares both as
-    // `uniqueIndex`es; migrate existing prod DBs from the CONSTRAINT to the INDEX before push runs so
-    // its diff for these tables stays empty. Idempotent (guarded by IF [NOT] EXISTS); each execute is
-    // a single statement (the extended protocol runs only the first statement of a multi-statement
-    // string).
-    name: "migrate language_usage composite uniques from constraints to unique indexes",
+    name: "create languages table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "languages" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "iso_code" text,
+        "slug" text,
+        "built_in" boolean DEFAULT false NOT NULL,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+        CONSTRAINT "languages_name_unique" UNIQUE("name"),
+        CONSTRAINT "languages_slug_unique" UNIQUE("slug"),
+        CONSTRAINT "languages_iso_code_unique" UNIQUE("iso_code")
+      )
+    `),
+  },
+  {
+    // `bookmarks.language_id` — the bookmark's primary language FK (nullable). Plain `uuid`; push adds
+    // the FK to `languages`. Pre-add so it can't be silently skipped behind a new-table prompt.
+    name: "add bookmarks.language_id column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "bookmarks" ADD COLUMN IF NOT EXISTS "language_id" uuid
+    `),
+  },
+  {
+    name: "create language_usage_levels table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "language_usage_levels" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "slug" text,
+        "kind" text NOT NULL,
+        "built_in" boolean DEFAULT false NOT NULL,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+        CONSTRAINT "language_usage_levels_slug_unique" UNIQUE("slug")
+      )
+    `),
+  },
+  {
+    name: "create language_usages table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "language_usages" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "owner_type" text NOT NULL,
+        "owner_id" uuid NOT NULL,
+        "language_id" uuid NOT NULL,
+        "usage_level_id" uuid NOT NULL,
+        "note" text,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    name: "create language_usages owner index",
+    run: db => db.execute(
+      sql`CREATE INDEX IF NOT EXISTS "language_usages_owner_idx" ON "language_usages" ("owner_type", "owner_id")`,
+    ),
+  },
+  {
+    // Composite uniques as INDEXES (schema.ts declares `uniqueIndex`). Also converts any prod DB that
+    // predates this and carries the old composite `unique()` CONSTRAINT form: a composite `unique()`
+    // makes push re-propose it every deploy → truncate prompt → the same non-TTY silent-skip. DROP the
+    // old constraint (no-op if absent / freshly pre-created) then CREATE the unique index.
+    name: "converge language_usage composite uniques as unique indexes",
     run: async (db) => {
       await db.execute(sql`ALTER TABLE IF EXISTS "language_usage_levels" DROP CONSTRAINT IF EXISTS "language_usage_levels_kind_name_unique"`);
       await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "language_usage_levels_kind_name_unique" ON "language_usage_levels" ("kind", "name")`);
