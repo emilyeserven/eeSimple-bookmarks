@@ -8,10 +8,10 @@ import { Link } from "@tanstack/react-router";
 import { BookmarkCategoryLink } from "./BookmarkCategoryLink";
 import { BookmarkDetailDebug } from "./BookmarkDetailDebug";
 import { BookmarkGallery } from "./BookmarkGallery";
-import { BookmarkKavitaDetailLink } from "./BookmarkKavitaField";
+import { BookmarkKavitaDetailRow } from "./BookmarkKavitaField";
 import { BookmarkLocationsBox } from "./BookmarkLocationsBox";
 import { BookmarkLocationsTabContent } from "./BookmarkLocationsTabContent";
-import { BookmarkPlexDetailLink } from "./BookmarkPlexField";
+import { BookmarkPlexDetailRow } from "./BookmarkPlexField";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
 import { BookmarkReelArchivePlayer } from "./BookmarkReelArchive";
 import { hasBookmarkPropertyRows } from "../lib/bookmarkProperties";
@@ -190,21 +190,9 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
               )
               : null}
 
-            {bookmark.kavitaSeriesId !== null
-              ? (
-                <DetailField label="Kavita">
-                  <BookmarkKavitaDetailLink bookmark={bookmark} />
-                </DetailField>
-              )
-              : null}
+            <BookmarkKavitaDetailRow bookmark={bookmark} />
 
-            {bookmark.plexRatingKey !== null
-              ? (
-                <DetailField label="Plex">
-                  <BookmarkPlexDetailLink bookmark={bookmark} />
-                </DetailField>
-              )
-              : null}
+            <BookmarkPlexDetailRow bookmark={bookmark} />
           </dl>
         </LabeledSection>
         {hasProperties

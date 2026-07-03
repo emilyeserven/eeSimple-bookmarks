@@ -10,7 +10,9 @@ import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkKavitaLi
 import { badgeNode, ratingStars } from "./bookmarkCardFieldRenders";
 import { describeTaxonomyField } from "./bookmarkCardTaxonomyFields";
 import { BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
+import { useBookmarkKavitaLink } from "../hooks/useBooks";
 import { useConnectors } from "../hooks/useConnectors";
+import { useBookmarkPlexLink } from "../hooks/useMovies";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
@@ -147,28 +149,30 @@ export function BookmarkCardDetails({
       />
     )
     : null;
-  // Kavita deep link; the kavitaLink field renders nothing when unconfigured or unlinked.
+  // Kavita deep link; the kavitaLink field renders nothing when unconfigured or unlinked — resolved
+  // through the linked Book when one carries the Kavita linkage, else the bookmark's legacy columns.
   const kavitaBaseUrl = connectors?.kavita.enabled ? connectors.kavita.baseUrl : null;
-  const kavitaLinkNode = kavitaBaseUrl !== null
-    && bookmark.kavitaSeriesId !== null && bookmark.kavitaLibraryId !== null
+  const kavitaLink = useBookmarkKavitaLink(bookmark);
+  const kavitaLinkNode = kavitaBaseUrl !== null && kavitaLink !== null && kavitaLink.libraryId !== null
     ? (
       <BookmarkKavitaLinkButton
         baseUrl={kavitaBaseUrl}
-        libraryId={bookmark.kavitaLibraryId}
-        seriesId={bookmark.kavitaSeriesId}
+        libraryId={kavitaLink.libraryId}
+        seriesId={kavitaLink.seriesId}
       />
     )
     : null;
   // Plex deep link; the plexLink field renders nothing when unconfigured, unlinked, or the server's
-  // machineIdentifier isn't known yet.
+  // machineIdentifier isn't known yet — resolved through whichever Plex-backed taxonomy is linked,
+  // else the bookmark's legacy columns.
   const plexConnector = connectors?.plex.enabled ? connectors.plex : null;
-  const plexLinkNode = plexConnector?.baseUrl && plexConnector.machineIdentifier
-    && bookmark.plexRatingKey !== null
+  const plexLink = useBookmarkPlexLink(bookmark);
+  const plexLinkNode = plexConnector?.baseUrl && plexConnector.machineIdentifier && plexLink !== null
     ? (
       <BookmarkPlexLinkButton
         baseUrl={plexConnector.baseUrl}
         machineIdentifier={plexConnector.machineIdentifier}
-        ratingKey={bookmark.plexRatingKey}
+        ratingKey={plexLink.ratingKey}
       />
     )
     : null;

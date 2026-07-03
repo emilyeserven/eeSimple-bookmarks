@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, ExternalLink, Loader2, X } from "lucide-react";
 
+import { useBookmarkKavitaLink } from "../hooks/useBooks";
 import { useConnectors } from "../hooks/useConnectors";
 import { kavitaApi } from "../lib/api/kavita";
 import { kavitaSeriesUrl } from "../lib/kavita";
 
+import { DetailField } from "@/components/DetailField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +20,10 @@ const MIN_QUERY_LENGTH = 2;
 
 /**
  * The linked Kavita series as a detail-view value: the series name, deep-linked into Kavita's web
- * UI when the connector is enabled. Returns `null` when the bookmark isn't linked. Owns its
- * `useConnectors()` call so the pure detail-section builders can render it directly.
+ * UI when the connector is enabled. Resolves through the linked Book (`bookmark.bookId`) when one
+ * carries the Kavita linkage, else the bookmark's legacy columns — see `useBookmarkKavitaLink`.
+ * Returns `null` when the bookmark isn't linked either way. Owns its `useConnectors()` call so the
+ * pure detail-section builders can render it directly.
  */
 export function BookmarkKavitaDetailLink({
   bookmark,
@@ -27,19 +31,37 @@ export function BookmarkKavitaDetailLink({
   const {
     data: connectors,
   } = useConnectors();
-  if (bookmark.kavitaSeriesId === null) return null;
-  const name = bookmark.kavitaSeriesName ?? `Series #${bookmark.kavitaSeriesId}`;
+  const link = useBookmarkKavitaLink(bookmark);
+  if (!link) return null;
+  const name = link.seriesName ?? `Series #${link.seriesId}`;
   const baseUrl = connectors?.kavita.enabled ? connectors.kavita.baseUrl : null;
-  if (!baseUrl || bookmark.kavitaLibraryId === null) return <span>{name}</span>;
+  if (!baseUrl || link.libraryId === null) return <span>{name}</span>;
   return (
     <a
-      href={kavitaSeriesUrl(baseUrl, bookmark.kavitaLibraryId, bookmark.kavitaSeriesId)}
+      href={kavitaSeriesUrl(baseUrl, link.libraryId, link.seriesId)}
       target="_blank"
       rel="noreferrer"
       className="hover:underline"
     >
       {name}
     </a>
+  );
+}
+
+/**
+ * The bookmark detail page's "Kavita" `DetailField` row — self-gating: resolves the effective
+ * Kavita link and renders nothing when unlinked, so the pure `bookmarkDetailSections` builder (which
+ * can't call hooks itself) can render this row unconditionally.
+ */
+export function BookmarkKavitaDetailRow({
+  bookmark,
+}: { bookmark: Bookmark }) {
+  const link = useBookmarkKavitaLink(bookmark);
+  if (!link) return null;
+  return (
+    <DetailField label="Kavita">
+      <BookmarkKavitaDetailLink bookmark={bookmark} />
+    </DetailField>
   );
 }
 

@@ -1,26 +1,28 @@
 import type { Bookmark } from "@eesimple/types";
 
 import { useConnectors } from "../hooks/useConnectors";
+import { useBookmarkPlexLink } from "../hooks/useMovies";
 import { plexItemUrl } from "../lib/plex";
 
-/** The Plex web-UI deep link for a linked bookmark, or `null` when the link can't be built. */
-function linkedPlexUrl(
-  bookmark: Bookmark,
+import { DetailField } from "@/components/DetailField";
+
+/** The Plex web-UI deep link for a resolved rating key, or `null` when the link can't be built. */
+function plexUrlFor(
+  ratingKey: string,
   connectors: ReturnType<typeof useConnectors>["data"],
 ): string | null {
-  if (bookmark.plexRatingKey === null) return null;
   const plex = connectors?.plex;
   if (!plex?.enabled || !plex.baseUrl || !plex.machineIdentifier) return null;
-  return plexItemUrl(plex.baseUrl, plex.machineIdentifier, bookmark.plexRatingKey);
+  return plexItemUrl(plex.baseUrl, plex.machineIdentifier, ratingKey);
 }
 
 /**
- * The bookmark's direct Plex item link as a detail-view value (season/episode/artist/album/track, or
- * an ad-hoc movie/show not curated into the Movies/TV Shows taxonomies): the item title, deep-linked
- * into Plex's web UI when the connector is enabled and the server's machineIdentifier is known.
- * Returns `null` when the bookmark isn't directly linked — a taxonomy-linked bookmark (`movieId`/
- * `tvShowId`) clears these columns instead, so it renders nothing here (see `BookmarkPlexItemField`).
- * Owns its `useConnectors()` call so the pure detail-section builders can render it directly.
+ * The bookmark's linked Plex item as a detail-view value: the item title, deep-linked into Plex's
+ * web UI when the connector is enabled and the server's machineIdentifier is known. Resolves through
+ * whichever Plex-backed taxonomy FK is linked (Movie/TV Show/Episode/Album/Artist/Track), else the
+ * bookmark's legacy `plexRatingKey`/`plexItemTitle` columns — see `useBookmarkPlexLink`. Returns
+ * `null` when the bookmark isn't linked either way. Owns its `useConnectors()` call so the pure
+ * detail-section builders can render it directly.
  */
 export function BookmarkPlexDetailLink({
   bookmark,
@@ -28,10 +30,10 @@ export function BookmarkPlexDetailLink({
   const {
     data: connectors,
   } = useConnectors();
-  if (bookmark.plexRatingKey === null) return null;
-  const name = bookmark.plexItemTitle ?? `Item ${bookmark.plexRatingKey}`;
-  const url = linkedPlexUrl(bookmark, connectors);
-  if (!url) return <span>{name}</span>;
+  const link = useBookmarkPlexLink(bookmark);
+  if (!link) return null;
+  const url = plexUrlFor(link.ratingKey, connectors);
+  if (!url) return <span>{link.title}</span>;
   return (
     <a
       href={url}
@@ -39,7 +41,24 @@ export function BookmarkPlexDetailLink({
       rel="noreferrer"
       className="hover:underline"
     >
-      {name}
+      {link.title}
     </a>
+  );
+}
+
+/**
+ * The bookmark detail page's "Plex" `DetailField` row — self-gating: resolves the effective Plex
+ * link and renders nothing when unlinked, so the pure `bookmarkDetailSections` builder (which can't
+ * call hooks itself) can render this row unconditionally.
+ */
+export function BookmarkPlexDetailRow({
+  bookmark,
+}: { bookmark: Bookmark }) {
+  const link = useBookmarkPlexLink(bookmark);
+  if (!link) return null;
+  return (
+    <DetailField label="Plex">
+      <BookmarkPlexDetailLink bookmark={bookmark} />
+    </DetailField>
   );
 }

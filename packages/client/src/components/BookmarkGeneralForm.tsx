@@ -3,13 +3,12 @@ import type { Bookmark } from "@eesimple/types";
 import { AuthorSocialAccountOffer } from "./AuthorSocialAccountOffer";
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
-import { BookmarkBookField } from "./BookmarkBookField";
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
 import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
 import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSection";
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
+import { BookmarkMediaField } from "./BookmarkMediaField";
 import { BookmarkNameField } from "./BookmarkNameField";
-import { BookmarkPlexItemField } from "./BookmarkPlexItemField";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 
@@ -154,14 +153,9 @@ export function BookmarkGeneralForm({
         publishers={publishers ?? []}
       />
 
-      <BookmarkBookField
+      <BookmarkMediaField
         bookmark={bookmark}
-        onSelect={ctrl.saveBook}
-      />
-
-      <BookmarkPlexItemField
-        bookmark={bookmark}
-        onSelect={ctrl.savePlexItem}
+        onSelect={ctrl.saveMedia}
       />
 
       <form.AppForm>
