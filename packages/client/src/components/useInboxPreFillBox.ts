@@ -8,7 +8,7 @@ import { useGroups } from "../hooks/useGroups";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { usePeople } from "../hooks/usePeople";
 import { useTagTree } from "../hooks/useTags";
-import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "../lib/comboboxOptions";
+import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 import { INBOX_PREFILLABLE_TYPES } from "../lib/inboxPreFill";
 import { flattenTree } from "../lib/tagTree";
 
@@ -46,7 +46,7 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
   );
 
   const categoryOptions = iconComboboxOptions(categories);
-  const mediaTypeOptions = mediaTypeTreeComboboxOptions(mediaTypeTree);
+  const mediaTypeOptions = mediaTypeNodesToOptions(mediaTypeTree);
   const personOptions = people.map(a => ({
     value: a.id,
     label: a.name,

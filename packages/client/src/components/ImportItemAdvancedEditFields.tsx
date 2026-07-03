@@ -4,7 +4,8 @@ import { Combobox } from "./Combobox";
 import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
 import { TagPicker } from "./TagPicker";
-import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "../lib/comboboxOptions";
+import { TreeCombobox } from "./TreeCombobox";
+import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 
 import { Label } from "@/components/ui/label";
 
@@ -72,8 +73,8 @@ export function ImportItemAdvancedEditFields({
 
       <div className="space-y-1">
         <Label className="text-xs">Media type</Label>
-        <Combobox
-          options={mediaTypeTreeComboboxOptions(mediaTypeTree)}
+        <TreeCombobox
+          options={mediaTypeNodesToOptions(mediaTypeTree)}
           value={mediaTypeId}
           onValueChange={onMediaTypeChange}
           placeholder="No media type"

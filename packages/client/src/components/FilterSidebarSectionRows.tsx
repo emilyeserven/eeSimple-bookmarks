@@ -1,4 +1,3 @@
-import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, SectionEntryType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
@@ -11,6 +10,8 @@ import { MultiCombobox } from "./MultiCombobox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { useLanguages } from "../hooks/useLanguages";
 import { useLanguageUsageLevels } from "../hooks/useLanguageUsageLevels";
+import { mediaTypeNodesToOptions } from "../lib/comboboxOptions";
+import { buildMediaTypeTree } from "../lib/mediaTypeTree";
 import { tagNodesToOptions } from "../lib/tagTree";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Separator } from "./ui/separator";
@@ -192,21 +193,6 @@ export function CategoryFilterSection({
   );
 }
 
-function toMediaTypeTree(flat: MediaType[]): TreeComboboxOption[] {
-  const roots = flat.filter(m => m.parentId === null).sort((a, b) => a.sortOrder - b.sortOrder);
-  return roots.map(root => ({
-    value: root.id,
-    label: root.name,
-    children: flat
-      .filter(m => m.parentId === root.id)
-      .sort((a, b) => a.sortOrder - b.sortOrder)
-      .map(child => ({
-        value: child.id,
-        label: child.name,
-      })),
-  }));
-}
-
 /** Multi-select media-type filter with expandable parent groups; rendered wherever media types exist. */
 export function MediaTypeFilterSection({
   mediaTypes, search, onSearchChange,
@@ -215,7 +201,7 @@ export function MediaTypeFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
-  const options = toMediaTypeTree(mediaTypes ?? []);
+  const options = mediaTypeNodesToOptions(buildMediaTypeTree(mediaTypes ?? []));
   const selected = search.mediaTypes ?? [];
 
   return (

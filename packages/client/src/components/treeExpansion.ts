@@ -1,6 +1,15 @@
 import type { TreeComboboxOption } from "./TreeMultiCombobox";
 
 /**
+ * Flatten a tree of options into a depth-first list of every node (parents and descendants alike).
+ * Used to resolve a selected value's label/icon from anywhere in the tree. Pure — shared by both
+ * tree comboboxes and kept here so those component files only export a component.
+ */
+export function flattenOptions(nodes: TreeComboboxOption[]): TreeComboboxOption[] {
+  return nodes.flatMap(node => [node, ...flattenOptions(node.children ?? [])]);
+}
+
+/**
  * Return the set of node values that must be expanded so every selected item is visible in the
  * tree (i.e. all ancestor nodes of any selected item, across every branch). Pure — unit-tested
  * directly and kept out of `TreeMultiCombobox.tsx` so that component file only exports a component.

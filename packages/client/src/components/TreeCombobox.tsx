@@ -1,6 +1,8 @@
+import type { TreeComboboxOption } from "./TreeMultiCombobox";
+
 import * as React from "react";
 
-import { ChevronsUpDown, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 
 import { renderTreeComboboxRows } from "./treeComboboxRow";
 import { ancestorIdsForSelected, filterTreeByTerm, flattenOptions } from "./treeExpansion";
@@ -10,25 +12,17 @@ import {
   Command,
   CommandGroup,
   CommandInput,
+  CommandItem,
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-export interface TreeComboboxOption {
-  value: string;
-  label: string;
-  /** Optional secondary text (e.g. a romanized name) — matched by search and shown de-emphasized. */
-  searchAlias?: string;
-  icon?: React.ReactNode;
-  children?: TreeComboboxOption[];
-}
-
-interface TreeMultiComboboxProps {
+interface TreeComboboxProps {
   "options": TreeComboboxOption[];
-  "values": string[];
-  "onValuesChange": (values: string[]) => void;
+  "value"?: string;
+  "onValueChange": (value: string | undefined) => void;
   "placeholder"?: string;
   "searchPlaceholder"?: string;
   "emptyText"?: string;
@@ -37,9 +31,17 @@ interface TreeMultiComboboxProps {
   "id"?: string;
   "aria-label"?: string;
   /**
-   * Optional action pinned to the bottom of the dropdown (e.g. "Create tag…"). Rendered outside
-   * the filtered list so it stays visible regardless of the search query; selecting it closes the
-   * popover and runs `onSelect`.
+   * Optional non-tree row pinned above the tree that survives search (e.g. autofill's
+   * "— Leave unchanged —"). Selecting it sets `value` to its `value`; it is never filtered out.
+   */
+  "leadingOption"?: {
+    value: string;
+    label: string;
+  };
+  /**
+   * Optional action pinned to the bottom of the dropdown (e.g. "Create media type…"). Rendered
+   * outside the filtered list so it stays visible regardless of the search query; selecting it
+   * closes the popover and runs `onSelect`.
    */
   "createOption"?: {
     label: string;
@@ -48,73 +50,66 @@ interface TreeMultiComboboxProps {
 }
 
 /**
- * Searchable multi-select built from shadcn `Popover` + `Command`, with collapsible parent groups.
- * In tree mode (no search term) parent nodes show a chevron to expand/collapse their children. In
- * search mode the tree is pruned to matching nodes plus their ancestors (kept for context) and
- * rendered fully expanded, so indentation and parent/child relationships stay visible instead of
- * collapsing into a flat list.
+ * Searchable single-select built from shadcn `Popover` + `Command`, with collapsible parent groups —
+ * the single-select sibling of `TreeMultiCombobox`. Selecting the active option again clears it
+ * (shadcn-style `value` / `onValueChange`). In tree mode parent nodes show a chevron to
+ * expand/collapse; in search mode the tree is pruned to matching nodes plus their ancestors and
+ * rendered fully expanded, so the hierarchy stays visible instead of collapsing into a flat list.
  */
-export function TreeMultiCombobox({
+export function TreeCombobox({
   options,
-  values,
-  onValuesChange,
+  value,
+  onValueChange,
   placeholder = "Select…",
   searchPlaceholder = "Search…",
   emptyText = "No matches.",
   className,
   id,
   "aria-label": ariaLabel,
+  leadingOption,
   createOption,
-}: TreeMultiComboboxProps) {
+}: TreeComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
 
-  const selectedSet = new Set(values);
+  const allNodes = React.useMemo(() => flattenOptions(options), [options]);
+  const selectedNode = value === undefined ? undefined : allNodes.find(node => node.value === value);
+  const isLeadingSelected = leadingOption !== undefined && value === leadingOption.value;
 
   function handleOpenChange(nextOpen: boolean) {
-    if (nextOpen) {
-      const ancestors = ancestorIdsForSelected(options, selectedSet);
+    if (nextOpen && value !== undefined) {
+      const ancestors = ancestorIdsForSelected(options, new Set([value]));
       if (ancestors.size > 0) {
         setExpandedIds(prev => new Set([...prev, ...ancestors]));
       }
     }
     setOpen(nextOpen);
   }
-  const allNodes = React.useMemo(() => flattenOptions(options), [options]);
-  const selectedOptions = allNodes.filter(node => selectedSet.has(node.value));
 
-  const summary
-    = selectedOptions.length === 0
-      ? placeholder
-      : selectedOptions.length <= 2
-        ? selectedOptions.map(o => o.label).join(", ")
-        : `${selectedOptions.length} selected`;
-
-  function toggle(value: string) {
-    onValuesChange(
-      selectedSet.has(value)
-        ? values.filter(v => v !== value)
-        : [...values, value],
-    );
+  function select(nodeValue: string) {
+    onValueChange(nodeValue === value ? undefined : nodeValue);
+    setOpen(false);
   }
 
-  function toggleExpand(value: string) {
+  function toggleExpand(nodeValue: string) {
     setExpandedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
+      if (next.has(nodeValue)) next.delete(nodeValue);
+      else next.add(nodeValue);
       return next;
     });
   }
 
   const isSearching = searchTerm.trim().length > 0;
-  // While searching, the tree is already pruned to matches + their ancestors, so every remaining
-  // branch renders expanded — the hierarchy (indentation, ancestor labels) stays visible instead
-  // of collapsing into a flat list, and there's nothing left to manually expand/collapse.
+  // While searching the tree is pruned to matches + their ancestors and rendered fully expanded, so
+  // the hierarchy stays visible (see `filterTreeByTerm`); nothing is left to manually expand.
   const visibleNodes = isSearching ? filterTreeByTerm(options, searchTerm) : options;
-
   const isEmpty = isSearching && visibleNodes.length === 0;
+
+  const triggerLabel = isLeadingSelected
+    ? leadingOption.label
+    : (selectedNode?.label ?? placeholder);
 
   return (
     <Popover
@@ -129,16 +124,19 @@ export function TreeMultiCombobox({
           id={id}
           aria-expanded={open}
           aria-label={ariaLabel}
-          data-slot="tree-multi-combobox"
+          data-slot="tree-combobox"
           className={cn("w-full justify-between font-normal", className)}
         >
           <span
             className={cn(
               "flex min-w-0 items-center gap-2",
-              selectedOptions.length === 0 && "text-muted-foreground",
+              selectedNode === undefined && !isLeadingSelected && `
+                text-muted-foreground
+              `,
             )}
           >
-            <span className="truncate">{summary}</span>
+            {selectedNode?.icon}
+            <span className="truncate">{triggerLabel}</span>
           </span>
           <ChevronsUpDown className="opacity-50" />
         </Button>
@@ -154,15 +152,33 @@ export function TreeMultiCombobox({
             onValueChange={setSearchTerm}
           />
           <CommandList>
+            {leadingOption
+              ? (
+                <CommandItem
+                  value={leadingOption.value}
+                  onSelect={() => select(leadingOption.value)}
+                  className="flex items-center gap-1.5 px-2"
+                >
+                  <span className="size-4 shrink-0" />
+                  <span className="flex-1 truncate">{leadingOption.label}</span>
+                  <Check
+                    className={cn(
+                      "ml-auto size-4 shrink-0",
+                      isLeadingSelected ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                </CommandItem>
+              )
+              : null}
             {isEmpty
               ? <p className="py-6 text-center text-sm">{emptyText}</p>
               : (
                 <CommandGroup>
                   {renderTreeComboboxRows(visibleNodes, {
                     isSearching,
-                    isExpanded: value => expandedIds.has(value),
-                    isSelected: value => selectedSet.has(value),
-                    onSelect: toggle,
+                    isExpanded: nodeValue => expandedIds.has(nodeValue),
+                    isSelected: nodeValue => nodeValue === value,
+                    onSelect: select,
                     onToggleExpand: toggleExpand,
                   })}
                 </CommandGroup>

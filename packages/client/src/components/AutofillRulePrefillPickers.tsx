@@ -4,8 +4,9 @@ import { NO_CATEGORY, NO_MEDIA_TYPE } from "./AutofillRuleForm";
 import { Combobox } from "./Combobox";
 import { LocationPickerWithCreate } from "./LocationPickerWithCreate";
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
+import { TreeCombobox } from "./TreeCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
-import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "../lib/comboboxOptions";
+import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 
 import { Label } from "@/components/ui/label";
 
@@ -41,13 +42,6 @@ export function AutofillRulePrefillPickers({
     },
     ...iconComboboxOptions(categories),
   ];
-  const mediaTypeOptions = [
-    {
-      value: NO_MEDIA_TYPE,
-      label: LEAVE_UNCHANGED,
-    },
-    ...mediaTypeTreeComboboxOptions(mediaTypeTree),
-  ];
 
   return (
     <>
@@ -65,8 +59,12 @@ export function AutofillRulePrefillPickers({
 
       <div className="space-y-1">
         <Label>Set media type</Label>
-        <Combobox
-          options={mediaTypeOptions}
+        <TreeCombobox
+          options={mediaTypeNodesToOptions(mediaTypeTree)}
+          leadingOption={{
+            value: NO_MEDIA_TYPE,
+            label: LEAVE_UNCHANGED,
+          }}
           value={setMediaTypeId}
           onValueChange={v => onMediaTypeChange(v ?? NO_MEDIA_TYPE)}
           searchPlaceholder="Search media types…"

@@ -11,7 +11,7 @@ import { useUpdateNewsletter } from "../hooks/useNewsletters";
 import { useCategories } from "@/hooks/useCategories";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
-import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
+import { iconComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 import { useAppForm } from "@/lib/form";
 
 const newsletterGeneralSchema = z.object({
@@ -99,7 +99,7 @@ export function useNewsletterGeneralForm(newsletter: Newsletter) {
     saveCategoryId: (id: string | null) => autoSave.saveField("categoryId", id),
     saveMediaTypeId: (id: string | null) => autoSave.saveField("mediaTypeId", id),
     categoryOptions: iconComboboxOptions(categories ?? []),
-    mediaTypeOptions: mediaTypeTreeComboboxOptions(mediaTypeTree ?? []),
+    mediaTypeOptions: mediaTypeNodesToOptions(mediaTypeTree ?? []),
     tagTree: tagTree ?? [],
   };
 }

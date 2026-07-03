@@ -1,8 +1,10 @@
 import type { ComboboxOption } from "./Combobox";
+import type { TreeComboboxOption } from "./TreeMultiCombobox";
 
 import { useId, useState } from "react";
 
 import { Combobox } from "./Combobox";
+import { TreeCombobox } from "./TreeCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { Label } from "@/components/ui/label";
@@ -12,7 +14,7 @@ interface SourceDefaultFieldsProps {
   initialCategoryId: string | null;
   initialMediaTypeId: string | null;
   categoryOptions: ComboboxOption[];
-  mediaTypeOptions: ComboboxOption[];
+  mediaTypeOptions: TreeComboboxOption[];
   /** Persist the new default when the picker value changes. */
   onCategoryChange: (id: string | null) => void;
   onMediaTypeChange: (id: string | null) => void;
@@ -71,7 +73,7 @@ export function SourceDefaultFields({
 
       <div className="space-y-1">
         <Label htmlFor={mediaTypeFieldId}>{mediaTypeLabel}</Label>
-        <Combobox
+        <TreeCombobox
           id={mediaTypeFieldId}
           aria-label={mediaTypeLabel}
           options={mediaTypeOptions}

@@ -20,6 +20,12 @@ const mediaTypeOptions = [
   {
     value: "mt-1",
     label: "Blog",
+    children: [
+      {
+        value: "mt-1a",
+        label: "Personal blog",
+      },
+    ],
   },
   {
     value: "mt-2",

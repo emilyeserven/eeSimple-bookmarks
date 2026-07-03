@@ -1,4 +1,5 @@
 import type { ComboboxOption } from "./Combobox";
+import type { TreeComboboxOption } from "./TreeMultiCombobox";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
@@ -29,7 +30,7 @@ const categoryOptions: ComboboxOption[] = [
     label: "Videos",
   },
 ];
-const mediaTypeOptions: ComboboxOption[] = [{
+const mediaTypeOptions: TreeComboboxOption[] = [{
   value: "mt-1",
   label: "Blog",
 }];

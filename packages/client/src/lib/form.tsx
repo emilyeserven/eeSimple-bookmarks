@@ -2,6 +2,7 @@
 // hook they're wired into, so it intentionally exports a hook alongside components.
 /* eslint-disable react-refresh/only-export-components */
 import type { ComboboxOption } from "@/components/Combobox";
+import type { TreeComboboxOption } from "@/components/TreeMultiCombobox";
 import type { ReactNode } from "react";
 
 import { useId } from "react";
@@ -9,6 +10,7 @@ import { useId } from "react";
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 
 import { Combobox } from "@/components/Combobox";
+import { TreeCombobox } from "@/components/TreeCombobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputAddon, InputGroup } from "@/components/ui/input-group";
@@ -362,6 +364,56 @@ function ComboboxField({
   );
 }
 
+interface TreeComboboxFieldProps {
+  label: string;
+  options: TreeComboboxOption[];
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  className?: string;
+  /** Optional action pinned to the bottom of the dropdown (e.g. inline "Create…"). */
+  createOption?: {
+    label: string;
+    onSelect: () => void;
+  };
+  /** Extra change handler (runs after the field's own change), e.g. auto-save-on-change. */
+  onValueChange?: (value: string) => void;
+}
+
+/**
+ * Labelled searchable single-select bound to the surrounding field, like `ComboboxField` but built
+ * on `TreeCombobox` so a hierarchical taxonomy (media types) renders as a collapsible tree with
+ * hierarchy-preserving search.
+ */
+function TreeComboboxField({
+  label, options, placeholder, searchPlaceholder, emptyText, className, createOption, onValueChange,
+}: TreeComboboxFieldProps) {
+  const field = useFieldContext<string>();
+  const id = useId();
+
+  return (
+    <div className={`space-y-1 ${className ?? ""}`.trim()}>
+      <Label htmlFor={id}>{label}</Label>
+      <TreeCombobox
+        id={id}
+        aria-label={label}
+        options={options}
+        value={field.state.value || undefined}
+        onValueChange={(value) => {
+          field.handleChange(value ?? "");
+          field.handleBlur();
+          onValueChange?.(value ?? "");
+        }}
+        placeholder={placeholder}
+        searchPlaceholder={searchPlaceholder}
+        emptyText={emptyText}
+        createOption={createOption}
+      />
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
+    </div>
+  );
+}
+
 interface SubmitButtonProps {
   /** Label shown when idle. */
   label: string;
@@ -412,6 +464,7 @@ export const {
     NumberField,
     SelectField,
     ComboboxField,
+    TreeComboboxField,
   },
   formComponents: {
     SubmitButton,
