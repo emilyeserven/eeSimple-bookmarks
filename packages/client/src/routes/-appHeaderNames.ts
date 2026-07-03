@@ -2,9 +2,11 @@ import type { TaxonomyName } from "./-appHeaderData";
 
 import { useAuthorBySlug } from "@/hooks/useAuthors";
 import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
+import { useBookBySlug } from "@/hooks/useBooks";
 import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
+import { useMediaPropertyBySlug } from "@/hooks/useMediaProperties";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePlaceTypeBySlug } from "@/hooks/usePlaceTypes";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
@@ -20,6 +22,8 @@ export interface TaxonomyNameSlugs {
   publisher: string;
   placeType: string;
   propertyGroup: string;
+  mediaProperty: string;
+  book: string;
   relationshipType: string;
   property: string;
   autofill: string;
@@ -53,6 +57,12 @@ export function useTaxonomyNameMap(
   const {
     propertyGroup,
   } = usePropertyGroupBySlug(slugs.propertyGroup);
+  const {
+    mediaProperty,
+  } = useMediaPropertyBySlug(slugs.mediaProperty);
+  const {
+    book,
+  } = useBookBySlug(slugs.book);
   const {
     relationshipType,
   } = useRelationshipTypeBySlug(slugs.relationshipType);
@@ -89,6 +99,12 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/property-groups": {
       name: propertyGroup?.name,
+    },
+    "/taxonomies/media-properties": {
+      name: mediaProperty?.name,
+    },
+    "/taxonomies/books": {
+      name: book?.name,
     },
     "/taxonomies/relationship-types": {
       name: relationshipType?.name,

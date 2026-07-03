@@ -300,6 +300,7 @@ export function useCardDisplayRulePreview({
         imageUrl: null,
       },
       newsletter: null,
+      bookId: null,
       kavitaSeriesId: null,
       kavitaLibraryId: null,
       kavitaSeriesName: null,

@@ -1,5 +1,5 @@
 import type {
-  Author, Category, CustomProperty, Location, MediaType, Newsletter,
+  Author, Book, Category, CustomProperty, Location, MediaProperty, MediaType, Newsletter,
   PlaceType, Publisher, PropertyGroup, Tag, Website, YouTubeChannel,
 } from "@eesimple/types";
 import type { ComponentType, ReactNode } from "react";
@@ -7,9 +7,11 @@ import type { ComponentType, ReactNode } from "react";
 import { useState } from "react";
 
 import { AddAuthorModal } from "./AddAuthorModal";
+import { AddBookModal } from "./AddBookModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { AddLocationModal } from "./AddLocationModal";
+import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
@@ -33,6 +35,8 @@ interface CreatedByEntity {
   "property-group": PropertyGroup;
   "location": Location;
   "custom-property": CustomProperty;
+  "media-property": MediaProperty;
+  "book": Book;
 }
 
 export type CreatableEntityKind = keyof CreatedByEntity;
@@ -101,6 +105,14 @@ const CREATABLE_ENTITY_PICKERS: {
   "custom-property": {
     createLabel: "Create property",
     Modal: AddCustomPropertyModal,
+  },
+  "media-property": {
+    createLabel: "Create media property",
+    Modal: AddMediaPropertyModal,
+  },
+  "book": {
+    createLabel: "Create book",
+    Modal: AddBookModal,
   },
 };
 

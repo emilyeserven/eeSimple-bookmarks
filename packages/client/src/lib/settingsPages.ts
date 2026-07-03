@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { MapPinned, Puzzle } from "lucide-react";
+import { BookOpen, MapPinned, Puzzle } from "lucide-react";
 
 import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
@@ -41,6 +41,12 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
     path: "/taxonomies/place-types",
     label: "Place Types",
     icon: MapPinned,
+  },
+  {
+    // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
+    path: "/taxonomies/books",
+    label: "Books",
+    icon: BookOpen,
   },
 ];
 

@@ -1,14 +1,17 @@
 import type {
   Author,
   AutoFetchJobStatus,
+  Book,
   BulkBookmarkResult,
   BulkDeleteResult,
   Category,
   CategoryPropertyDefaults,
   CreateAuthorInput,
   SocialLink,
+  CreateBookInput,
   CreateCategoryInput,
   CreateCustomPropertyInput,
+  CreateMediaPropertyInput,
   CreateMediaTypeInput,
   CreatePlaceTypeInput,
   CreatePropertyGroupInput,
@@ -24,10 +27,13 @@ import type {
   Location,
   LocationLookupResult,
   LocationNode,
+  MediaProperty,
   MediaType,
   MediaTypeNode,
   PlaceType,
+  UpdateBookInput,
   UpdateLocationInput,
+  UpdateMediaPropertyInput,
   UpdatePlaceTypeInput,
   PropertyGroup,
   Publisher,
@@ -195,6 +201,10 @@ export const placeTypesApi = {
 };
 
 export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");
+
+export const mediaPropertiesApi = createCrudApi<MediaProperty, CreateMediaPropertyInput, UpdateMediaPropertyInput>("media-properties");
+
+export const booksApi = createCrudApi<Book, CreateBookInput, UpdateBookInput>("books");
 
 export const relationshipTypesApi = createCrudApi<RelationshipType, CreateRelationshipTypeInput, UpdateRelationshipTypeInput>("relationship-types");
 

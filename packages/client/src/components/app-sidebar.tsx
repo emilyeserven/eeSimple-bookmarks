@@ -10,6 +10,7 @@ import {
   SidebarResizeHandle,
 } from "./app-sidebar-sections";
 import { LocationsSidebarItem } from "./LocationsSidebarItem";
+import { MediaPropertiesSidebarItem } from "./MediaPropertiesSidebarItem";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
 import { SidebarCategoriesSection } from "./SidebarCategoriesSection";
 import { SidebarCountBadge } from "./SidebarCountBadge";
@@ -60,6 +61,7 @@ function ExpandableLinkSection({
   sidebarState,
   seeMoreTooltip,
   placeTypesCount,
+  booksCount,
 }: {
   sectionKey: string;
   label: string;
@@ -71,6 +73,7 @@ function ExpandableLinkSection({
   sidebarState: string;
   seeMoreTooltip: string;
   placeTypesCount?: number;
+  booksCount?: number;
 }) {
   const renderItem = (item: LinkSidebarItem) => {
     // Locations gets a hover flyout surfacing its Place Types taxonomy; every other item is a plain link.
@@ -81,6 +84,18 @@ function ExpandableLinkSection({
           pathname={pathname}
           locationsCount={item.count}
           placeTypesCount={placeTypesCount}
+          sidebarState={sidebarState}
+        />
+      );
+    }
+    // Media Properties gets a hover flyout surfacing its Books taxonomy.
+    if (item.key === "media-properties") {
+      return (
+        <MediaPropertiesSidebarItem
+          key={item.key}
+          pathname={pathname}
+          mediaPropertiesCount={item.count}
+          booksCount={booksCount}
           sidebarState={sidebarState}
         />
       );
@@ -177,6 +192,7 @@ export function AppSidebar({
     inboxCount,
     aiSummarizationCount,
     placeTypesCount,
+    booksCount,
     modifier,
     viewClick,
     hiddenSidebarGroups,
@@ -269,6 +285,7 @@ export function AppSidebar({
               sidebarState={state}
               seeMoreTooltip="Show more taxonomy links"
               placeTypesCount={placeTypesCount}
+              booksCount={booksCount}
             />
           )
           : null}

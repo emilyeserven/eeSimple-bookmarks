@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkUrlDuplicateResult, KavitaSeriesResult, PlexItemResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
+import type { Bookmark, BookmarkUrlDuplicateResult, PlexItemResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
@@ -204,21 +204,20 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     );
   }
 
-  // The Kavita link lives outside the zod form state (immediate-save, like tags/authors), so the
-  // tab's Save-changes submit never touches it.
-  function saveKavitaSeries(selection: KavitaSeriesResult | null): void {
+  // The Book link lives outside the zod form state (immediate-save, like tags/authors), so the
+  // tab's Save-changes submit never touches it. Book selection now flows through the Books taxonomy
+  // (bookId) instead of a direct Kavita series link; cover/ToC resolve the series id from the Book.
+  function saveBook(bookId: string | null): void {
     updateBookmark.mutate(
       {
         id: bookmark.id,
         input: {
-          kavitaSeriesId: selection?.seriesId ?? null,
-          kavitaLibraryId: selection?.libraryId ?? null,
-          kavitaSeriesName: selection?.name ?? null,
+          bookId,
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Kavita series"),
-        onError: e => notifyFieldSaveError("Kavita series", describeError(e)),
+        onSuccess: () => notifyFieldSaved("Book"),
+        onError: e => notifyFieldSaveError("Book", describeError(e)),
       },
     );
   }
@@ -378,7 +377,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveBlacklistedTagIds,
     saveBlacklistedLocationIds,
     saveAuthors,
-    saveKavitaSeries,
+    saveBook,
     savePlexItem,
     fetchTitle,
     fetchMetadata,

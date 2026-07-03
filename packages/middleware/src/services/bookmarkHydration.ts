@@ -135,6 +135,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     youtubeChannel: extras.youtubeChannel,
     newsletter: extras.newsletter,
     publisher: extras.publisher,
+    bookId: row.bookId,
     kavitaSeriesId: row.kavitaSeriesId,
     kavitaLibraryId: row.kavitaLibraryId,
     kavitaSeriesName: row.kavitaSeriesName,

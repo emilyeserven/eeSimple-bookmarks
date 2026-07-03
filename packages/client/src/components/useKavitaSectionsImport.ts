@@ -2,6 +2,7 @@ import type { Bookmark, SectionEntry } from "@eesimple/types";
 
 import { useMutation } from "@tanstack/react-query";
 
+import { useBookmarkKavitaSeriesId } from "../hooks/useBooks";
 import { useConnectors } from "../hooks/useConnectors";
 import { kavitaApi } from "../lib/api/kavita";
 import { describeError } from "../lib/apiError";
@@ -28,16 +29,17 @@ export function useKavitaSectionsImport({
   const {
     data: connectors,
   } = useConnectors();
+  const seriesId = useBookmarkKavitaSeriesId(bookmark);
   const tocFetch = useMutation({
-    mutationFn: (seriesId: number) => kavitaApi.getToc(seriesId),
+    mutationFn: (id: number) => kavitaApi.getToc(id),
   });
 
-  const canImportSections = Boolean(connectors?.kavita.enabled) && bookmark.kavitaSeriesId !== null;
+  const canImportSections = Boolean(connectors?.kavita.enabled) && seriesId !== null;
 
   async function handleSectionsImport(propertyId: string): Promise<void> {
-    if (bookmark.kavitaSeriesId === null) return;
+    if (seriesId === null) return;
     try {
-      const toc = await tocFetch.mutateAsync(bookmark.kavitaSeriesId);
+      const toc = await tocFetch.mutateAsync(seriesId);
       const sections = kavitaTocToSections(toc);
       if (sections.length === 0) {
         notifyError("This book has no table of contents in Kavita");

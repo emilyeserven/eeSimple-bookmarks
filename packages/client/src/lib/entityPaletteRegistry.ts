@@ -2,10 +2,12 @@ import type { EntityRouteKind } from "./entityRoutes";
 
 import { AUTHOR_PALETTE } from "../entities/author";
 import { AUTOFILL_PALETTE } from "../entities/autofillRule";
+import { BOOK_PALETTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_PALETTE } from "../entities/cardDisplayRule";
 import { CATEGORY_PALETTE } from "../entities/category";
 import { IMPORT_RULE_PALETTE } from "../entities/importRule";
 import { LOCATION_PALETTE } from "../entities/location";
+import { MEDIA_PROPERTY_PALETTE } from "../entities/mediaProperty";
 import { MEDIA_TYPE_PALETTE } from "../entities/mediaType";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
 import { PLACE_TYPE_PALETTE } from "../entities/placeType";
@@ -85,6 +87,8 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "author": AUTHOR_PALETTE,
   "publisher": PUBLISHER_PALETTE,
   "property-group": PROPERTY_GROUP_PALETTE,
+  "media-property": MEDIA_PROPERTY_PALETTE,
+  "book": BOOK_PALETTE,
   "relationship-type": RELATIONSHIP_TYPE_PALETTE,
   "custom-property": CUSTOM_PROPERTY_PALETTE,
   "autofill": AUTOFILL_PALETTE,

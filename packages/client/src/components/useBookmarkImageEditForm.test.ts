@@ -80,6 +80,10 @@ vi.mock("../hooks/useConnectors", () => ({
   }),
 }));
 
+vi.mock("../hooks/useBooks", () => ({
+  useBookmarkKavitaSeriesId: (bookmark: { kavitaSeriesId: number | null }) => bookmark.kavitaSeriesId,
+}));
+
 let displayPreferencesData: DisplayPreferenceSettings | undefined;
 
 vi.mock("../hooks/useAppSettings", () => ({
