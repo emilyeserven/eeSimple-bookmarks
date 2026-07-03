@@ -11,10 +11,10 @@ const searchQuery = {
       type: "string",
       minLength: 1,
     },
-    // Optional: narrow the results to a single media family for the Movies / TV Shows lookups.
+    // Optional: narrow the results to a single media family for the taxonomy lookups.
     kind: {
       type: "string",
-      enum: ["movie", "show"],
+      enum: ["movie", "show", "episode", "album", "artist", "track"],
     },
   },
 } as const;

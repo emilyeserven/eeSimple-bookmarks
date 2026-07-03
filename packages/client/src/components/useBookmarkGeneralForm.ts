@@ -224,10 +224,10 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
   }
 
   // The Plex link also lives outside the zod form state (immediate-save, like the Book link). A
-  // selection is either a Movies/TV Shows taxonomy title (movieId/tvShowId; poster/deep-link resolve
-  // the rating key from the linked title) or a direct Plex item (the legacy plexRatingKey/plexItemType/
-  // plexItemTitle columns — the only way to link an Episode/Track/Album/Artist/Season, since those
-  // don't have a taxonomy). Exactly one of the two pairs is ever set; selecting one clears the other.
+  // selection is either a Plex-backed taxonomy title (movie/TV show/episode/album/artist/track FK;
+  // poster/deep-link resolve the rating key from the linked title) or a direct Plex item (the legacy
+  // plexRatingKey/plexItemType/plexItemTitle columns — for kinds with no taxonomy, e.g. a Season).
+  // Exactly one is ever set; selecting one clears the rest (the selection carries all-null baselines).
   function savePlexItem(selection: PlexItemSelection): void {
     updateBookmark.mutate(
       {
@@ -235,6 +235,10 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
         input: {
           movieId: selection.movieId,
           tvShowId: selection.tvShowId,
+          episodeId: selection.episodeId,
+          albumId: selection.albumId,
+          artistId: selection.artistId,
+          trackId: selection.trackId,
           plexRatingKey: selection.plexRatingKey,
           plexItemType: selection.plexItemType,
           plexItemTitle: selection.plexItemTitle,

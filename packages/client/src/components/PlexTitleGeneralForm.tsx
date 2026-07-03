@@ -1,5 +1,7 @@
+import type { PlexKind } from "@/lib/plexParent";
 import type { PlexItemResult } from "@eesimple/types";
 import type { UseMutationResult } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 
 import { Clapperboard, X } from "lucide-react";
 import { z } from "zod";
@@ -12,7 +14,7 @@ import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { notifyFieldSaved, notifyFieldSaveError } from "@/lib/autoSave";
 import { useAppForm } from "@/lib/form";
 
-/** The subset of a Movie / TV Show the shared edit form reads (both entities satisfy it). */
+/** The subset of any Plex-backed taxonomy row the shared edit form reads (all entities satisfy it). */
 export interface PlexTitle {
   id: string;
   name: string;
@@ -53,17 +55,23 @@ const LABELS: Record<keyof PlexTitleUpdateInput, string> = {
 interface PlexTitleGeneralFormProps<E extends PlexTitle> {
   entity: E;
   /** Which taxonomy — narrows the Plex lookup. */
-  kind: "movie" | "show";
-  /** The entity's update mutation (`useUpdateMovie` / `useUpdateTvShow`). */
+  kind: PlexKind;
+  /** The entity's update mutation (`useUpdateMovie` / `useUpdateEpisode` / …). */
   update: UseMutationResult<E, Error, { id: string;
     input: PlexTitleUpdateInput; }>;
   /** Navigate to the new edit-tab slug after a rename (route-typed by the wrapper). */
   onRenamed: (slug: string) => void;
+  /** Extra auto-saving sections rendered after the fields (parent picker / artists M2M). */
+  renderExtra?: ReactNode;
+  /** Invoked when a Plex search result is picked, for parent/artist autofill in the wrapper. */
+  onPlexSelected?: (item: PlexItemResult) => void;
 }
 
 /**
- * Shared auto-save edit form for a Movie or TV Show. Both entities have the same field shape, so the
- * Movie/TV-Show wrappers just supply their entity, `kind`, update mutation, and slug-follow navigation.
+ * Shared auto-save edit form for any Plex-backed taxonomy row. All entities have the same core field
+ * shape, so the wrappers just supply their entity, `kind`, update mutation, and slug-follow navigation.
+ * Entities with a parent (Episode → TV Show, Track → Album) or an M2M (Album ↔ Artist) pass an extra
+ * auto-saving section via `renderExtra` and hook the Plex lookup via `onPlexSelected` for autofill.
  * Each field auto-saves; the Plex lookup persists rating key + type + year in one save + one toast.
  */
 export function PlexTitleGeneralForm<E extends PlexTitle>({
@@ -71,6 +79,8 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
   kind,
   update,
   onRenamed,
+  renderExtra,
+  onPlexSelected,
 }: PlexTitleGeneralFormProps<E>) {
   const {
     data: mediaProperties,
@@ -136,6 +146,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
         ),
       },
     );
+    onPlexSelected?.(item);
   }
 
   function clearPlex(): void {
@@ -237,6 +248,8 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
           />
         )}
       </form.AppField>
+
+      {renderExtra}
 
       <div className="space-y-1.5">
         {entity.plexRatingKey !== null

@@ -3,7 +3,18 @@ import type { LucideIcon } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { BookOpen, ChevronDown, ChevronRight, Film, Library, Tv } from "lucide-react";
+import {
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  Disc3,
+  Film,
+  Library,
+  Mic2,
+  Music,
+  Tv,
+  Tv2,
+} from "lucide-react";
 
 import { useIsMobile } from "../hooks/use-mobile";
 
@@ -23,7 +34,14 @@ function FlyoutChildLink({
   count,
   onNavigate,
 }: {
-  to: "/taxonomies/books" | "/taxonomies/movies" | "/taxonomies/tv-shows";
+  to:
+    | "/taxonomies/books"
+    | "/taxonomies/movies"
+    | "/taxonomies/tv-shows"
+    | "/taxonomies/episodes"
+    | "/taxonomies/albums"
+    | "/taxonomies/artists"
+    | "/taxonomies/tracks";
   icon: LucideIcon;
   label: string;
   count?: number;
@@ -54,16 +72,24 @@ function FlyoutChildLink({
   );
 }
 
-/** The three Media Properties flyout children, rendered for both the desktop popover and mobile inline. */
+/** The seven Media Properties flyout children, rendered for both the desktop popover and mobile inline. */
 function FlyoutChildren({
   booksCount,
   moviesCount,
   tvShowsCount,
+  episodesCount,
+  albumsCount,
+  artistsCount,
+  tracksCount,
   onNavigate,
 }: {
   booksCount?: number;
   moviesCount?: number;
   tvShowsCount?: number;
+  episodesCount?: number;
+  albumsCount?: number;
+  artistsCount?: number;
+  tracksCount?: number;
   onNavigate: () => void;
 }) {
   return (
@@ -89,6 +115,34 @@ function FlyoutChildren({
         count={tvShowsCount}
         onNavigate={onNavigate}
       />
+      <FlyoutChildLink
+        to="/taxonomies/episodes"
+        icon={Tv2}
+        label="Episodes"
+        count={episodesCount}
+        onNavigate={onNavigate}
+      />
+      <FlyoutChildLink
+        to="/taxonomies/albums"
+        icon={Disc3}
+        label="Albums"
+        count={albumsCount}
+        onNavigate={onNavigate}
+      />
+      <FlyoutChildLink
+        to="/taxonomies/artists"
+        icon={Mic2}
+        label="Artists"
+        count={artistsCount}
+        onNavigate={onNavigate}
+      />
+      <FlyoutChildLink
+        to="/taxonomies/tracks"
+        icon={Music}
+        label="Tracks"
+        count={tracksCount}
+        onNavigate={onNavigate}
+      />
     </>
   );
 }
@@ -106,6 +160,10 @@ export function MediaPropertiesSidebarItem({
   booksCount,
   moviesCount,
   tvShowsCount,
+  episodesCount,
+  albumsCount,
+  artistsCount,
+  tracksCount,
   sidebarState,
 }: {
   pathname: string;
@@ -113,6 +171,10 @@ export function MediaPropertiesSidebarItem({
   booksCount?: number;
   moviesCount?: number;
   tvShowsCount?: number;
+  episodesCount?: number;
+  albumsCount?: number;
+  artistsCount?: number;
+  tracksCount?: number;
   sidebarState?: string;
 }) {
   const isMobile = useIsMobile();
@@ -196,6 +258,10 @@ export function MediaPropertiesSidebarItem({
                 booksCount={booksCount}
                 moviesCount={moviesCount}
                 tvShowsCount={tvShowsCount}
+                episodesCount={episodesCount}
+                albumsCount={albumsCount}
+                artistsCount={artistsCount}
+                tracksCount={tracksCount}
                 onNavigate={() => setExpanded(false)}
               />
             </SidebarMenuItem>
@@ -234,6 +300,10 @@ export function MediaPropertiesSidebarItem({
             booksCount={booksCount}
             moviesCount={moviesCount}
             tvShowsCount={tvShowsCount}
+            episodesCount={episodesCount}
+            albumsCount={albumsCount}
+            artistsCount={artistsCount}
+            tracksCount={tracksCount}
             onNavigate={() => setOpen(false)}
           />
         </PopoverContent>

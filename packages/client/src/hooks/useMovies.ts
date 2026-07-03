@@ -2,7 +2,11 @@ import type { Bookmark, CreateMovieInput, UpdateMovieInput } from "@eesimple/typ
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useAlbums } from "./useAlbums";
+import { useArtists } from "./useArtists";
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
+import { useEpisodes } from "./useEpisodes";
+import { useTracks } from "./useTracks";
 import { useTvShows } from "./useTvShows";
 import { moviesApi } from "../lib/api/taxonomies";
 
@@ -26,11 +30,22 @@ export function useMovieBySlug(slug: string) {
   };
 }
 
+/** Find the linked row's `plexRatingKey` in one cached list, given the bookmark's FK for it. */
+function ratingKeyFrom(
+  fkId: string | null,
+  items: readonly { id: string;
+    plexRatingKey: string | null; }[] | undefined,
+): string | null {
+  if (!fkId) return null;
+  return (items ?? []).find(item => item.id === fkId)?.plexRatingKey ?? null;
+}
+
 /**
- * The effective Plex rating key for a bookmark: the linked Movie's or TV Show's `plexRatingKey` when
- * one is linked and carries it, else the bookmark's legacy `plexRatingKey`. Powers the "Use Plex
- * poster" gate now that Plex-item selection flows through the Movies / TV Shows taxonomies (mirrors
- * the middleware's `resolveBookmarkPlexRatingKey`). Returns `null` when none is available.
+ * The effective Plex rating key for a bookmark: the linked Movie / TV Show / Episode / Album / Artist
+ * / Track's `plexRatingKey` when one is linked and carries it, else the bookmark's legacy
+ * `plexRatingKey`. Powers the "Use Plex poster" gate now that Plex-item selection flows through the
+ * Plex-backed taxonomies (mirrors the middleware's `resolveBookmarkPlexRatingKey`). Returns `null`
+ * when none is available.
  */
 export function useBookmarkPlexRatingKey(bookmark: Bookmark): string | null {
   const {
@@ -39,15 +54,26 @@ export function useBookmarkPlexRatingKey(bookmark: Bookmark): string | null {
   const {
     data: tvShows,
   } = useTvShows();
-  const linkedMovie = bookmark.movieId
-    ? (movies ?? []).find(item => item.id === bookmark.movieId)
-    : undefined;
-  if (linkedMovie?.plexRatingKey) return linkedMovie.plexRatingKey;
-  const linkedShow = bookmark.tvShowId
-    ? (tvShows ?? []).find(item => item.id === bookmark.tvShowId)
-    : undefined;
-  if (linkedShow?.plexRatingKey) return linkedShow.plexRatingKey;
-  return bookmark.plexRatingKey ?? null;
+  const {
+    data: episodes,
+  } = useEpisodes();
+  const {
+    data: albums,
+  } = useAlbums();
+  const {
+    data: artists,
+  } = useArtists();
+  const {
+    data: tracks,
+  } = useTracks();
+  return ratingKeyFrom(bookmark.movieId, movies)
+    ?? ratingKeyFrom(bookmark.tvShowId, tvShows)
+    ?? ratingKeyFrom(bookmark.episodeId, episodes)
+    ?? ratingKeyFrom(bookmark.albumId, albums)
+    ?? ratingKeyFrom(bookmark.artistId, artists)
+    ?? ratingKeyFrom(bookmark.trackId, tracks)
+    ?? bookmark.plexRatingKey
+    ?? null;
 }
 
 /** Invalidate every query whose rendering depends on movie definitions. */

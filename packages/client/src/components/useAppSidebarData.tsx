@@ -126,6 +126,10 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   booksCount: number | undefined;
   moviesCount: number | undefined;
   tvShowsCount: number | undefined;
+  episodesCount: number | undefined;
+  albumsCount: number | undefined;
+  artistsCount: number | undefined;
+  tracksCount: number | undefined;
   currentBookmarkCategories: string[];
   modifier: ReturnType<typeof useSidebarOpenModifier>;
   viewClick: ReturnType<typeof useViewPanelClick>;
@@ -263,6 +267,10 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     booksCount: data.allBooks?.length,
     moviesCount: data.allMovies?.length,
     tvShowsCount: data.allTvShows?.length,
+    episodesCount: data.allEpisodes?.length,
+    albumsCount: data.allAlbums?.length,
+    artistsCount: data.allArtists?.length,
+    tracksCount: data.allTracks?.length,
     currentBookmarkCategories,
     modifier,
     viewClick,

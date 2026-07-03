@@ -63,14 +63,27 @@ export const bookmarks = pgTable("bookmarks", {
   kavitaSeriesId: integer("kavita_series_id"),
   kavitaLibraryId: integer("kavita_library_id"),
   kavitaSeriesName: text("kavita_series_name"),
-  // The Movie / TV Show (taxonomy) this bookmark is linked to. At most one is set. Nullable = push-safe
-  // additive; set null when the linked row is deleted. Plex-item selection now flows through these FKs
-  // instead of the legacy Plex columns below; poster/deep-link resolve the Plex rating key from the
-  // linked Movie/TV Show, falling back to the legacy `plex_rating_key` when unset.
+  // The Plex-backed taxonomy (Movie / TV Show / Episode / Album / Artist / Track) this bookmark is
+  // linked to. At most one is set. Nullable = push-safe additive; set null when the linked row is
+  // deleted. Plex-item selection flows through these FKs instead of the legacy Plex columns below;
+  // poster/deep-link resolve the Plex rating key from whichever is linked, falling back to the legacy
+  // `plex_rating_key` when none is set.
   movieId: uuid("movie_id").references((): AnyPgColumn => movies.id, {
     onDelete: "set null",
   }),
   tvShowId: uuid("tv_show_id").references((): AnyPgColumn => tvShows.id, {
+    onDelete: "set null",
+  }),
+  episodeId: uuid("episode_id").references((): AnyPgColumn => episodes.id, {
+    onDelete: "set null",
+  }),
+  albumId: uuid("album_id").references((): AnyPgColumn => albums.id, {
+    onDelete: "set null",
+  }),
+  artistId: uuid("artist_id").references((): AnyPgColumn => artists.id, {
+    onDelete: "set null",
+  }),
+  trackId: uuid("track_id").references((): AnyPgColumn => tracks.id, {
     onDelete: "set null",
   }),
   // Legacy: direct link to an item on the connected Plex server (Settings → Connectors). All nullable =
@@ -492,6 +505,122 @@ export const tvShows = pgTable("tv_shows", {
 }, table => [
   unique("tv_shows_name_unique").on(table.name),
   unique("tv_shows_slug_unique").on(table.slug),
+]);
+
+/**
+ * `episodes` table — a taxonomy of TV episodes. Same Plex-backed shape as `movies`, plus a nullable
+ * `tv_show_id` parent FK (set null when the show is deleted): an episode belongs to a TV Show, and the
+ * parent is auto-linked from Plex's grandparent metadata when it already exists.
+ */
+export const episodes = pgTable("episodes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
+  // Parent TV Show. set null when the show is deleted.
+  tvShowId: uuid("tv_show_id").references((): AnyPgColumn => tvShows.id, {
+    onDelete: "set null",
+  }),
+  plexRatingKey: text("plex_rating_key"),
+  plexItemType: text("plex_item_type"),
+  year: integer("year"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("episodes_name_unique").on(table.name),
+  unique("episodes_slug_unique").on(table.slug),
+]);
+
+/**
+ * `artists` table — a taxonomy of music artists. Plex-backed like `movies`. Associated with albums
+ * many-to-many via `album_artists`.
+ */
+export const artists = pgTable("artists", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
+  plexRatingKey: text("plex_rating_key"),
+  plexItemType: text("plex_item_type"),
+  year: integer("year"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("artists_name_unique").on(table.name),
+  unique("artists_slug_unique").on(table.slug),
+]);
+
+/**
+ * `albums` table — a taxonomy of music albums. Plex-backed like `movies`. Associated with artists
+ * many-to-many via `album_artists`.
+ */
+export const albums = pgTable("albums", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
+  plexRatingKey: text("plex_rating_key"),
+  plexItemType: text("plex_item_type"),
+  year: integer("year"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("albums_name_unique").on(table.name),
+  unique("albums_slug_unique").on(table.slug),
+]);
+
+/**
+ * `tracks` table — a taxonomy of music tracks. Same Plex-backed shape as `movies`, plus a nullable
+ * `album_id` parent FK (set null when the album is deleted): a track belongs to an Album, and the
+ * parent is auto-linked from Plex's parent metadata when it already exists.
+ */
+export const tracks = pgTable("tracks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
+  // Parent Album. set null when the album is deleted.
+  albumId: uuid("album_id").references((): AnyPgColumn => albums.id, {
+    onDelete: "set null",
+  }),
+  plexRatingKey: text("plex_rating_key"),
+  plexItemType: text("plex_item_type"),
+  year: integer("year"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("tracks_name_unique").on(table.name),
+  unique("tracks_slug_unique").on(table.slug),
+]);
+
+/** `album_artists` join — M:M between albums and artists (an album has many artists and vice versa). */
+export const albumArtists = pgTable("album_artists", {
+  albumId: uuid("album_id").notNull().references(() => albums.id, {
+    onDelete: "cascade",
+  }),
+  artistId: uuid("artist_id").notNull().references(() => artists.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.albumId, table.artistId],
+  }),
 ]);
 
 /**
@@ -2161,6 +2290,11 @@ export type NewMediaPropertyRow = typeof mediaProperties.$inferInsert;
 export type BookRow = typeof books.$inferSelect;
 export type MovieRow = typeof movies.$inferSelect;
 export type TvShowRow = typeof tvShows.$inferSelect;
+export type EpisodeRow = typeof episodes.$inferSelect;
+export type AlbumRow = typeof albums.$inferSelect;
+export type ArtistRow = typeof artists.$inferSelect;
+export type TrackRow = typeof tracks.$inferSelect;
+export type AlbumArtistRow = typeof albumArtists.$inferSelect;
 export type NewBookRow = typeof books.$inferInsert;
 export type RelationshipTypeRow = typeof relationshipTypes.$inferSelect;
 export type NewRelationshipTypeRow = typeof relationshipTypes.$inferInsert;

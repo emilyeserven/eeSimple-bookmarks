@@ -1,15 +1,18 @@
 import type {
-  Author, Book, Category, CustomProperty, Location, MediaProperty, MediaType, Movie, Newsletter,
-  PlaceType, Publisher, PropertyGroup, Tag, TvShow, Website, YouTubeChannel,
+  Album, Artist, Author, Book, Category, CustomProperty, Episode, Location, MediaProperty, MediaType,
+  Movie, Newsletter, PlaceType, Publisher, PropertyGroup, Tag, Track, TvShow, Website, YouTubeChannel,
 } from "@eesimple/types";
 import type { ComponentType, ReactNode } from "react";
 
 import { useState } from "react";
 
+import { AddAlbumModal } from "./AddAlbumModal";
+import { AddArtistModal } from "./AddArtistModal";
 import { AddAuthorModal } from "./AddAuthorModal";
 import { AddBookModal } from "./AddBookModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
+import { AddEpisodeModal } from "./AddEpisodeModal";
 import { AddLocationModal } from "./AddLocationModal";
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
@@ -19,6 +22,7 @@ import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { AddPublisherModal } from "./AddPublisherModal";
 import { AddTagModal } from "./AddTagModal";
+import { AddTrackModal } from "./AddTrackModal";
 import { AddTvShowModal } from "./AddTvShowModal";
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
@@ -41,6 +45,10 @@ interface CreatedByEntity {
   "book": Book;
   "movie": Movie;
   "tv-show": TvShow;
+  "episode": Episode;
+  "album": Album;
+  "artist": Artist;
+  "track": Track;
 }
 
 export type CreatableEntityKind = keyof CreatedByEntity;
@@ -125,6 +133,22 @@ const CREATABLE_ENTITY_PICKERS: {
   "tv-show": {
     createLabel: "Create TV show",
     Modal: AddTvShowModal,
+  },
+  "episode": {
+    createLabel: "Create episode",
+    Modal: AddEpisodeModal,
+  },
+  "album": {
+    createLabel: "Create album",
+    Modal: AddAlbumModal,
+  },
+  "artist": {
+    createLabel: "Create artist",
+    Modal: AddArtistModal,
+  },
+  "track": {
+    createLabel: "Create track",
+    Modal: AddTrackModal,
   },
 };
 

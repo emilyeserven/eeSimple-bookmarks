@@ -1,10 +1,13 @@
 import type { EntityRouteKind } from "./entityRoutes";
 
+import { ALBUM_PALETTE } from "../entities/album";
+import { ARTIST_PALETTE } from "../entities/artist";
 import { AUTHOR_PALETTE } from "../entities/author";
 import { AUTOFILL_PALETTE } from "../entities/autofillRule";
 import { BOOK_PALETTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_PALETTE } from "../entities/cardDisplayRule";
 import { CATEGORY_PALETTE } from "../entities/category";
+import { EPISODE_PALETTE } from "../entities/episode";
 import { IMPORT_RULE_PALETTE } from "../entities/importRule";
 import { LOCATION_PALETTE } from "../entities/location";
 import { MEDIA_PROPERTY_PALETTE } from "../entities/mediaProperty";
@@ -18,6 +21,7 @@ import { PUBLISHER_PALETTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_PALETTE } from "../entities/relationshipType";
 import { SAVED_FILTER_PALETTE } from "../entities/savedFilter";
 import { TAG_PALETTE } from "../entities/tag";
+import { TRACK_PALETTE } from "../entities/track";
 import { TV_SHOW_PALETTE } from "../entities/tvShow";
 import { WEBSITE_PALETTE } from "../entities/website";
 import { YOUTUBE_CHANNEL_PALETTE } from "../entities/youtubeChannel";
@@ -93,6 +97,10 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "book": BOOK_PALETTE,
   "movie": MOVIE_PALETTE,
   "tv-show": TV_SHOW_PALETTE,
+  "episode": EPISODE_PALETTE,
+  "album": ALBUM_PALETTE,
+  "artist": ARTIST_PALETTE,
+  "track": TRACK_PALETTE,
   "relationship-type": RELATIONSHIP_TYPE_PALETTE,
   "custom-property": CUSTOM_PROPERTY_PALETTE,
   "autofill": AUTOFILL_PALETTE,

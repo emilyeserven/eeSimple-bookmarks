@@ -100,6 +100,10 @@ test("searchPlexItems flattens hubs, maps items, and drops unlinkable/invalid en
         librarySectionTitle: "Movies",
         subtitle: "2021 · Movies",
         groupTitle: "Movies",
+        parentTitle: null,
+        parentRatingKey: null,
+        grandparentTitle: null,
+        grandparentRatingKey: null,
       },
       {
         ratingKey: "202",
@@ -109,6 +113,10 @@ test("searchPlexItems flattens hubs, maps items, and drops unlinkable/invalid en
         librarySectionTitle: "Music",
         subtitle: "Pink Floyd · Music",
         groupTitle: "Pink Floyd",
+        parentTitle: null,
+        parentRatingKey: null,
+        grandparentTitle: "Pink Floyd",
+        grandparentRatingKey: null,
       },
     ]);
     assert.equal(requests.length, 1);

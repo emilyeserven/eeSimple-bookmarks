@@ -1,3 +1,4 @@
+import type { PlexKind } from "@/lib/plexParent";
 import type { PlexItemResult } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
@@ -21,7 +22,7 @@ function itemSummary(item: PlexItemResult): string {
 
 interface PlexItemLookupProps {
   /** Narrows the Plex search to a single media family. */
-  kind: "movie" | "show";
+  kind: PlexKind;
   /** Called with a chosen item so the caller can prefill its fields. */
   onSelect: (item: PlexItemResult) => void;
 }
@@ -63,7 +64,7 @@ export function PlexItemLookup({
       <div className="relative">
         <Input
           id="plex-item-lookup"
-          placeholder={kind === "movie" ? "Search your Plex movies…" : "Search your Plex shows…"}
+          placeholder="Search your Plex library…"
           value={query}
           onChange={event => setQuery(event.target.value)}
         />

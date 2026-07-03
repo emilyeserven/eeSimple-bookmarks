@@ -551,6 +551,10 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         bookId: input.bookId ?? null,
         movieId: input.movieId ?? null,
         tvShowId: input.tvShowId ?? null,
+        episodeId: input.episodeId ?? null,
+        albumId: input.albumId ?? null,
+        artistId: input.artistId ?? null,
+        trackId: input.trackId ?? null,
         kavitaSeriesId: input.kavitaSeriesId ?? null,
         kavitaLibraryId: input.kavitaLibraryId ?? null,
         kavitaSeriesName: input.kavitaSeriesName ?? null,
@@ -604,7 +608,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "publisherId" | "bookId" | "movieId" | "tvShowId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority">
+  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "publisherId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "artistId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority">
 >;
 
 /**
@@ -628,6 +632,10 @@ export function scalarBookmarkPatch(
   if (input.bookId !== undefined) patch.bookId = input.bookId ?? null;
   if (input.movieId !== undefined) patch.movieId = input.movieId ?? null;
   if (input.tvShowId !== undefined) patch.tvShowId = input.tvShowId ?? null;
+  if (input.episodeId !== undefined) patch.episodeId = input.episodeId ?? null;
+  if (input.albumId !== undefined) patch.albumId = input.albumId ?? null;
+  if (input.artistId !== undefined) patch.artistId = input.artistId ?? null;
+  if (input.trackId !== undefined) patch.trackId = input.trackId ?? null;
   if (input.kavitaSeriesId !== undefined) patch.kavitaSeriesId = input.kavitaSeriesId ?? null;
   if (input.kavitaLibraryId !== undefined) patch.kavitaLibraryId = input.kavitaLibraryId ?? null;
   if (input.kavitaSeriesName !== undefined) patch.kavitaSeriesName = input.kavitaSeriesName ?? null;
@@ -776,6 +784,10 @@ export async function updateBookmark(
         | "bookId"
         | "movieId"
         | "tvShowId"
+        | "episodeId"
+        | "albumId"
+        | "artistId"
+        | "trackId"
         | "kavitaSeriesId"
         | "kavitaLibraryId"
         | "kavitaSeriesName"
