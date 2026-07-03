@@ -101,7 +101,7 @@ author/publisher name-resolution flow.
    entity's `useCreate<X>` mutation) and call it from `useBookmarkScanHandlers.ts`'s
    `applyScanMetadata`/`runYouTubeEnrichment` (URL path) and/or `useBookmarkIsbn.ts`'s
    `handleIsbnFetch` (ISBN path), gated on the target form field still being empty so it never
-   clobbers a user's pick — mirror `resolvePublisher`/`resolveAuthors` in `useBookmarkIsbn.ts` and
+   clobbers a user's pick — mirror `resolvePublisher`/`resolvePeople` in `useBookmarkIsbn.ts` and
    `applyLanguageFromCode` in `useBookmarkScanHandlers.ts`.
 5. If the display name has to be derived from the raw code rather than being present in the source
    data (e.g. `"en"` → `"English"`), use a platform API rather than hand-authoring a name table —

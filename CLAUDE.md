@@ -455,7 +455,7 @@ configuration are explicitly opt-in (Tier 2, below).
   + duplicate check + an instant favicon URL (`ScanResult` in `@eesimple/types`). The client's
   `performUrlScan` (`useBookmarkFormController.ts`) calls it once and applies the result via the pure
   helpers in `useBookmarkScanHandlers.ts` (`applyScanMetadata` / `applyYouTubeMeta` /
-  `applyAuthorsFromNames`). **The granular endpoints stay** (`/api/fetch-title`, `/api/fetch-metadata`,
+  `applyPeopleFromNames`). **The granular endpoints stay** (`/api/fetch-title`, `/api/fetch-metadata`,
   `/api/resolve-url`, `/api/websites/lookup`, `/api/bookmarks/url-check`) for the per-field manual
   buttons — don't delete them. Scan results are cached in `services/scanCache.ts` (short TTL,
   size-capped). **That cache is display/metadata-only — never wire it into `invalidateBookmarkCache()`**
@@ -479,7 +479,7 @@ configuration are explicitly opt-in (Tier 2, below).
   `defaultAudioLanguage`/`defaultLanguage`, and Open Library/Google Books' language fields all land as
   a raw normalized code (`utils/languageCodes.ts`) on `ScanResult`/`FetchIsbnMetadataResult`; the
   client resolves it to a `Language` row via match-or-create in `useBookmarkScanHandlers.ts`/
-  `useBookmarkIsbn.ts`, mirroring the pre-existing author/publisher name-resolution flow. See the
+  `useBookmarkIsbn.ts`, mirroring the pre-existing person (author-name)/publisher name-resolution flow. See the
   **`add-connector`** skill's Case D.
 - **Tier 2 providers are gated (DB value or env var) and default off.** `services/hostedMetadata.ts`
   (`HOSTED_METADATA_ENDPOINT`/`_API_KEY`/`_PROVIDER`, Microlink-compatible) and the YouTube Data API
@@ -632,7 +632,7 @@ from the two nav data modules, so favoritability comes for free:
   the section's nav array in `lib/settingsNav.ts` with a `lucide-react` `icon` distinct from its
   siblings — the label derives as `"Section: Tab"`. Section index/parent paths are intentionally
   never registered (they redirect to their first tab and can't be the live pathname).
-- A **management/customization listing page** (Categories, Tags, Websites, Authors, Saved Filters, …):
+- A **management/customization listing page** (Categories, Tags, Websites, People, Saved Filters, …):
   its sidebar entry in `lib/sidebarNavItems.ts` *is* the registration (`SIDEBAR_LABEL_OVERRIDES` in
   `settingsPages.ts` covers a label that must differ from the sidebar title, e.g. newsletters).
 - Only a page on **neither surface** (e.g. `/settings/extension`, `/taxonomies/place-types`) goes in
@@ -660,7 +660,7 @@ categories and their palette hooks:
   `useListingPageContext.setFilterLocation`; gate on `listingCtx.listingPage?.hasFilters`.
 - **Bulk select** — reads/writes `uiStore` via `useListingPageContext`; gate on
   `listingCtx.bulkSelectPageKey !== null`.
-- **Bookmark entity fields** (category, tags, media type, authors, boolean properties, choices
+- **Bookmark entity fields** (category, tags, media type, people, boolean properties, choices
   properties) — uses `useBookmarkTaxonomyContext`; gate on `bookmarkId !== null`. Boolean properties
   toggle directly; choices properties enter a sub-palette (`"choices-property"` mode). For a new
   field type, add an item here or navigate to the edit tab.

@@ -222,9 +222,34 @@ change kind rather than re-running the whole scaffold:
 - **Expose or edit a field** → `surface-entity-field`; **new tab** → `tabbed-pages`; **palette
   fields** → `cmd-k-entity-context`; **listing affordances** → `listing-page-controls` /
   `listing-table-view` / `bulk-listing-actions` / `standard-listing-card`.
-- **Rename an entity**: label sources are centralized — `crumbLabel()`/`LABEL_OVERRIDES` in the
-  breadcrumb helpers, `TAXONOMY_DESCRIPTORS`, `lib/sidebarNavItems.ts`, and `ENTITY_ROUTES` — but
-  slugs are persisted; keep route prefixes and `pageKey`s stable even if display names change.
+- **Rename an entity (label-only, the default):** label sources are centralized —
+  `crumbLabel()`/`LABEL_OVERRIDES` in the breadcrumb helpers, `TAXONOMY_DESCRIPTORS`,
+  `lib/sidebarNavItems.ts`, and `ENTITY_ROUTES` — but slugs are persisted; keep route prefixes and
+  `pageKey`s stable even if display names change. This is the low-risk path (no migration, no broken
+  deep-links) — prefer it unless a full rename is explicitly requested.
+- **Rename an entity (full: routes + API + identifiers + DB).** A much larger, migration-bearing change
+  that alters bookmarkable URLs — do it only when explicitly asked. The Authors→People rename (PR #907)
+  is the worked reference. Recipe:
+  1. **Scripted content rename with metadata-protecting lookaheads.** Run one ordered `perl -i -pe`
+     over `packages/*/src/**/*.{ts,tsx}` (plural→singular, PascalCase→PascalCase, all-caps→all-caps):
+     `s/Olds/News/g; s/Old(?![a-z]|Name|Url)/New/g; s/OLD/NEW/g; s/olds/news/g;
+     s/old(?!Name|Url|_name|[a-z])/new/g;`. The `(?!…)` lookaheads are what make a blanket rename safe —
+     they protect **metadata fields** that share the stem (`authorName(s)`/`authorUrl`/`author_name`,
+     `extractAuthorNames`) and **English words** (`authored`/`Authorization`/`authority`) from being
+     renamed. **Exclude** files where the bare plural stem is *metadata, not the entity* (here
+     `services/isbn.ts`, `hostedMetadata.ts`, their tests) and `routeTree.gen.ts` + `migrate.ts`; revert
+     any remaining metadata-field spots by hand (the ISBN result's `authors: string[]`).
+  2. **`git mv`** every entity-named file to its new name by applying the *same* rules to the path — the
+     scripted rename already rewrote the import-path strings, so the filenames must match.
+  3. **DB rename in `migrate.ts`, not a bare `schema.ts` edit.** Append idempotent `ALTER … RENAME`
+     steps (one `DO $$…$$` block per `db.execute`, guarded by `to_regclass` / `information_schema.columns`
+     / `pg_constraint`) for every table, `*_id` column, and named constraint — the `newsletter_* → imports`
+     block is the template. Then update `schema.ts`'s `pgTable("…")`/`uuid("…")` **string names** to match,
+     so push's diff against the renamed schema is empty. FK constraint names auto-reconcile — don't rename
+     them. See CLAUDE.md → "Database schema changes".
+  4. **Regenerate** `routeTree.gen.ts`, rebuild types, then **chase `tsc`** — the exhaustive registries
+     surface any missed spot. Keep bookmark-*metadata* field names (`authorNames`, oEmbed `authorName`,
+     ISBN `authors[]`) unchanged: only the taxonomy is renamed.
 - **Remove an entity**: reverse the checklist. The exhaustive registries
   (`ENTITY_PALETTE_CONFIGS`, workbench descriptors, panel content types) fail `tsc` on leftovers —
   chase compile errors, then drop the table via an idempotent `migrate.ts` step (never a bare
