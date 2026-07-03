@@ -7,6 +7,7 @@ import { emptyCardFieldZones } from "@eesimple/types";
  */
 export const STANDARD_CARD_FIELD_KEYS = [
   "title",
+  "romanizedTitle",
   "description",
   "category",
   "website",
@@ -32,7 +33,8 @@ export const HEADER_CARD_FIELD_KEYS = ["title", "externalLink", "more"] as const
  * Default-rule seed and the boot backfills so seeded and migrated rules agree.
  */
 export function defaultBodyZone(key: string): "card-single-top" | "card-labels" {
-  return key === "description" || (HEADER_CARD_FIELD_KEYS as readonly string[]).includes(key)
+  return key === "description" || key === "romanizedTitle"
+    || (HEADER_CARD_FIELD_KEYS as readonly string[]).includes(key)
     ? "card-single-top"
     : "card-labels";
 }

@@ -200,6 +200,18 @@ export function BookmarkCardDetails({
           tableValue: titleNode,
         };
       }
+      case "romanizedTitle": {
+        if (!bookmark.romanizedTitle) return null;
+        const romanizedTitleNode = (
+          <span className="truncate text-sm text-muted-foreground">{bookmark.romanizedTitle}</span>
+        );
+        return {
+          inline: romanizedTitleNode,
+          block: romanizedTitleNode,
+          tableName: "Romanized Title",
+          tableValue: romanizedTitleNode,
+        };
+      }
       case "externalLink": {
         return {
           inline: externalLinkNode,

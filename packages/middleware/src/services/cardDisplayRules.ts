@@ -408,6 +408,42 @@ export async function backfillCardDisplayRuleLocationsField(): Promise<void> {
 }
 
 /**
+ * One-time boot backfill: place the `romanizedTitle` field into rules whose stored `field_zones`
+ * predate it (it used to render baked into the `title` field). It's appended to its default body
+ * zone ({@link defaultBodyZone} → `card-single-top`), so it keeps showing below the title header row.
+ * Idempotent — a rule already carrying `romanizedTitle` in any zone is skipped, and inheriting rules
+ * (`field_zones IS NULL`) are left untouched. Must run after
+ * `ensureDefaultCardDisplayRule`/`backfillCardDisplayRuleFieldZones`.
+ */
+export async function backfillCardDisplayRuleRomanizedTitleField(): Promise<void> {
+  const rows = await db.select().from(cardDisplayRules);
+  for (const row of rows) {
+    const stored = row.fieldZones as Record<string, CardFieldPlacement[]> | null;
+    if (!stored) continue;
+
+    const placed = new Set(
+      CARD_FIELD_ZONES.flatMap(zone => (stored[zone] ?? []).map(p => p.key)),
+    );
+    if (placed.has("romanizedTitle")) continue;
+
+    const next = emptyCardFieldZones();
+    for (const zone of CARD_FIELD_ZONES) {
+      if (Array.isArray(stored[zone])) next[zone] = [...stored[zone]];
+    }
+    next[defaultBodyZone("romanizedTitle")].push({
+      key: "romanizedTitle",
+    });
+
+    await db
+      .update(cardDisplayRules)
+      .set({
+        fieldZones: next,
+      })
+      .where(eq(cardDisplayRules.id, row.id));
+  }
+}
+
+/**
  * One-time boot backfill: migrate rules whose stored `card_zone_layouts` still use the legacy bare
  * string form (`"flex"`/`"grid"`) into the `{ mode, gap?, align? }` object shape. Idempotent — rules
  * that are already fully object-shaped (or inherit via `card_zone_layouts IS NULL`) are left untouched.

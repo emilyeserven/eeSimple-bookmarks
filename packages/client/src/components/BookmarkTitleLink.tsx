@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { RomanizedLabel } from "./RomanizedLabel";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { entityLinkTitle } from "@/lib/sidebarModifier";
@@ -33,11 +32,7 @@ export function BookmarkTitleLink({
           hover:underline
         "
       >
-        <RomanizedLabel
-          name={bookmark.title}
-          romanized={bookmark.romanizedTitle}
-          secondaryClassName="ml-0 block"
-        />
+        {bookmark.title}
       </Link>
     </h3>
   );
