@@ -5,7 +5,7 @@ import { ImageOff } from "lucide-react";
 
 import { CardImageOverlays } from "./CardImageOverlays";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
-import { bookmarkImageAspectStyle, bookmarkImageClass } from "../lib/bookmarkImage";
+import { bookmarkImageAspectStyle, bookmarkImageClass, resolveBookmarkDisplayImage } from "../lib/bookmarkImage";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCroppedHeight, useCroppedWidth } from "@/hooks/useAppSettings";
@@ -47,7 +47,7 @@ export function BookmarkCardImage({
     data: customRatios = [],
   } = useCustomAspectRatios();
 
-  const displayImage = bookmark.image ?? bookmark.screenshot;
+  const displayImage = resolveBookmarkDisplayImage(bookmark);
 
   // "natural" has no fixed ratio; use opengraph (191:100) for skeleton and placeholder sizing.
   const noRatioFallback = imageMode === "natural" ? "opengraph" : imageMode;

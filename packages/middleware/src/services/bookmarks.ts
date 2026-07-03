@@ -579,6 +579,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         plexItemType: input.plexItemType ?? null,
         plexItemTitle: input.plexItemTitle ?? null,
         priority: input.priority ?? 0,
+        imageDisplayPreference: input.imageDisplayPreference ?? null,
       })
       .returning({
         id: bookmarks.id,
@@ -626,7 +627,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "artistId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority">
+  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "artistId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
 >;
 
 /**
@@ -662,6 +663,7 @@ export function scalarBookmarkPatch(
   if (input.plexItemType !== undefined) patch.plexItemType = input.plexItemType ?? null;
   if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
   if (input.priority !== undefined) patch.priority = input.priority;
+  if (input.imageDisplayPreference !== undefined) patch.imageDisplayPreference = input.imageDisplayPreference ?? null;
   return patch;
 }
 
@@ -822,6 +824,7 @@ export async function updateBookmark(
         | "plexItemType"
         | "plexItemTitle"
         | "priority"
+        | "imageDisplayPreference"
         | "updatedAt"
       >
     > = {

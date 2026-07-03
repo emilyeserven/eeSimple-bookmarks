@@ -3,6 +3,7 @@ import type { Bookmark } from "@eesimple/types";
 
 import { BookImage, BookOpen, Search, Sparkles, Tv } from "lucide-react";
 
+import { BookmarkImageDisplayToggle } from "./BookmarkImageDisplayToggle";
 import { BookmarkImagePicker } from "./BookmarkImagePicker";
 import { BookmarkScreenshotSection } from "./BookmarkScreenshotSection";
 import { useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
@@ -132,6 +133,13 @@ export function BookmarkImageEditForm({
       <ImageActionButtons
         pageUrl={bookmark.url}
         c={c}
+      />
+      <BookmarkImageDisplayToggle
+        value={c.displayPreference}
+        onChange={c.onDisplayPreferenceChange}
+        hasImage={bookmark.image !== null}
+        hasScreenshot={bookmark.screenshot !== null}
+        disabled={c.displayPreferencePending}
       />
       <BookmarkScreenshotSection
         screenshot={bookmark.screenshot}

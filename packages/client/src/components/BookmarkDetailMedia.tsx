@@ -1,6 +1,7 @@
 import type { Bookmark, BookmarkDetailImageSize, BookmarkDetailVideoSize } from "@eesimple/types";
 
 import { useBookmarkDetailImageSize, useBookmarkDetailVideoSize } from "../hooks/useAppSettings";
+import { resolveBookmarkDisplayImage } from "../lib/bookmarkImage";
 
 const IMAGE_SIZE_CLASS: Record<BookmarkDetailImageSize, string> = {
   small: "max-h-40 w-full rounded-md border object-contain @2xl:w-40 @2xl:shrink-0",
@@ -48,8 +49,7 @@ export function BookmarkDetailMedia({
     );
   }
 
-  // Prefer the main image, then the screenshot fallback.
-  const displayImage = bookmark.image ?? bookmark.screenshot;
+  const displayImage = resolveBookmarkDisplayImage(bookmark);
   if (displayImage) {
     return (
       <img

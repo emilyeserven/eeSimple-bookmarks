@@ -506,6 +506,14 @@ export const BOOKMARKS_PER_PAGE_OPTIONS = [15, 25, 50, 100] as const;
 /** Default number of bookmarks shown per listing page. */
 export const DEFAULT_BOOKMARKS_PER_PAGE = 25;
 
+/**
+ * Which image source a bookmark's cover should display: "auto" prefers the normal `image`,
+ * falling back to `screenshot" (today's only behavior); "image"/"screenshot" pin one source,
+ * falling back to the other when the pinned one doesn't exist.
+ */
+export const IMAGE_DISPLAY_PREFERENCES = ["auto", "image", "screenshot"] as const;
+export type ImageDisplayPreference = typeof IMAGE_DISPLAY_PREFERENCES[number];
+
 /** Payload for replacing the display-preference settings. */
 export type UpdateDisplayPreferenceInput = DisplayPreferenceSettings;
 
@@ -1147,6 +1155,8 @@ export interface Bookmark {
    * the stored capture (e.g. the bulk auto-fetch fallback, which takes a screenshot with no options).
    */
   screenshotSettings: BookmarkScreenshotSettings | null;
+  /** Which of `image`/`screenshot` the cover should display; always resolved to a concrete value (`null` in the database hydrates to `"auto"`). */
+  imageDisplayPreference: ImageDisplayPreference;
   /** A self-contained capture of the bookmark's Instagram reel video, or `null` when none has been archived. */
   reelArchive: InstagramReelArchive | null;
   /** Specific reason the last image auto-grab attempt failed, or `null` when not yet attempted or the last attempt succeeded. */
@@ -1318,6 +1328,8 @@ export interface CreateBookmarkInput {
   plexItemType?: string | null;
   /** Display title of the linked Plex item, or `null` to clear. Omit to leave unchanged. */
   plexItemTitle?: string | null;
+  /** Which of `image`/`screenshot` the cover should display. Omit to leave unchanged. */
+  imageDisplayPreference?: ImageDisplayPreference;
 }
 
 /** Payload for partially updating a bookmark. */

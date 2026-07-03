@@ -7,6 +7,7 @@ import { useCallback, useMemo, useRef } from "react";
 
 import { useAutoBookmarkImage } from "./useBookmarks";
 import { useRegisterSyncProvider } from "./useRegisterSyncProvider";
+import { resolveBookmarkDisplayImage } from "../lib/bookmarkImage";
 import { notifySuccess } from "../lib/notifications";
 
 type BookmarkForm = ReturnType<typeof useBookmarkGeneralForm>["form"];
@@ -29,7 +30,7 @@ export function useBookmarkSyncRegistration({
 }: BookmarkSyncRegistrationParams) {
   const autoImage = useAutoBookmarkImage();
   const scanUrl = bookmark.url ?? bookmark.originalUrl ?? "";
-  const currentImageUrl = bookmark.image?.url ?? bookmark.screenshot?.url ?? null;
+  const currentImageUrl = resolveBookmarkDisplayImage(bookmark)?.url ?? null;
 
   const ctxRef = useRef<{ bookmark: Bookmark;
     form: BookmarkForm;
