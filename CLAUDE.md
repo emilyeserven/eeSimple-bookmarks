@@ -686,8 +686,10 @@ listing display / filter-location / bulk-select items in `ListingPageCommandGrou
 Actions + Pages/Taxonomies/Settings tail in `CommandPaletteNavGroups.tsx`, the bookmark-detail
 "Current Page" actions in `BookmarkViewPageCommandGroup.tsx`, the bookmark taxonomy quick-edits in
 `commandPaletteSubPalettes.tsx` (`BookmarkTaxonomiesGroup`), and the drilled-in sub-palette modes in
-`CommandPaletteTaxonomyModes.tsx` (state hooks in `useCommandPaletteState.ts`). The four action
-categories and their palette hooks:
+`CommandPaletteTaxonomyModes.tsx` (state hooks in `useCommandPaletteState.ts`). The **"Sync from
+source"** action is mirrored by the store-gated `SyncFromSourceCommandItem` (gated on
+`uiStore.syncProvider`; see the **Outside-source sync** section) — not a per-entity item. The four
+action categories and their palette hooks:
 
 - **Listing display** (view mode, columns) — reads/writes `uiStore` via `useListingPageContext`;
   gate on `listingCtx.listingPage !== null`.

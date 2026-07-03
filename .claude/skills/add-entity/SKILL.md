@@ -192,6 +192,16 @@ If the entity is *also* something users detect from a scanned page/ISBN/YouTube 
 manually picked), see the **`add-connector`** skill's "detected field → taxonomy match-or-create"
 case.
 
+## Outside-source sync (optional)
+
+If the entity **pulls fields from an outside source** — a linked source image (avatar/favicon/poster),
+a geocode, a URL scan — give it the header-strip **"Sync from source"** button + review modal by
+registering a `SyncProvider` from its **edit** form (`useRegisterSyncProvider`). No header edit is
+needed (the button appears automatically once a provider registers) and no per-entity CMD+K item (the
+store-gated palette item already mirrors it). A single source image reuses the generic
+`useImageTaxonomySyncRegistration` + an `…/image/source-preview` endpoint. See the
+**`sync-from-source`** skill for the fetch-hook + pure-diff-builder + registration recipe.
+
 ## Verify
 
 ```

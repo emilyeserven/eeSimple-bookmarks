@@ -71,6 +71,10 @@ per entity would fetch every list on every page).
   label — don't add your own.
 - Bookmarks stay bespoke (`useBookmarkTaxonomyContext`) — they're id-routed and have a much richer
   action set. Don't fold them into the registry.
+- **The "Sync from source" palette item is NOT a registry `fields` entry.** It's a single
+  store-gated item (`CommandPalette` → `SyncFromSourceCommandItem`, gated on `uiStore.syncProvider`)
+  that mirrors the header Sync button for whatever entity registered a provider. Don't add a
+  per-entity sync action here — see the **`sync-from-source`** skill.
 
 ## Verify
 

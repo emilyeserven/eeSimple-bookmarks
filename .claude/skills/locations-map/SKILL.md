@@ -149,3 +149,7 @@ Then `pnpm dev` and exercise all three scopes:
 - **Hierarchy tab / entity plumbing** for Locations as a slug-routed taxonomy is a *separate* concern —
   see **`add-entity`** and **`tabbed-pages`**. Making Locations a filter facet is **`filterable-facet`**.
   Complexity cleanups on `LocationMapSection` / `LocationMap` follow **`decompose-over-cap`**.
+- **The header "Sync from source" re-geocode** (`useLocationSyncRegistration`) is *not* a new geocoding
+  path — it reuses `applyLookup` (`/api/locations/lookup`) + the force `repullCoordinates`
+  (`refresh-coordinates`). Its toggle is **default off** (fill empty fields only); on = force-overwrite
+  coordinates + boundary. See the **`sync-from-source`** skill; don't add a parallel geocode call there.

@@ -135,3 +135,8 @@ author/publisher name-resolution flow.
 - **A Case D detected-field normalization table needs another code/format**: extend the shared
   `utils/<x>Codes.ts` table (e.g. `LANGUAGE_CODES`/`EXTRA_ALT_CODES` in `utils/languageCodes.ts`) —
   don't add a one-off `if` in the extraction site; every extractor shares the same normalizer.
+- **A new scan field should be re-pullable on an existing bookmark**: the same `/api/scan` result
+  also backs the header **"Sync from source"** review modal. If a newly-scanned field belongs in that
+  current-vs-source diff, add it to `lib/syncSources/bookmarkDiff.ts` + the registration hook's
+  `applyStaged` — see the **`sync-from-source`** skill. The same applies to a new source **image**:
+  add a no-store `…/image/source-preview` resolver so the modal can preview it.
