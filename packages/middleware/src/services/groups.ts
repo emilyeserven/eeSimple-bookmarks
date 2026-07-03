@@ -8,7 +8,17 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { albumGroups, bookmarks, groupImages, groups, groupTypes, type GroupRow, websites } from "@/db/schema";
+import {
+  albumGroups,
+  bookmarks,
+  groupImages,
+  groups,
+  groupTypes,
+  groupWebsites,
+  groupYoutubeChannels,
+  type GroupRow,
+  websites,
+} from "@/db/schema";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { getGroupImageRow } from "@/services/groupImages";
 import { buildStringMap } from "@/utils/mapUtils";
@@ -96,12 +106,70 @@ async function setGroupAlbums(
   }
 }
 
+/** Load YouTube channel ids for a set of group ids as a map of groupId → channelId[]. */
+async function loadGroupYoutubeChannelMap(groupIds: string[]): Promise<Map<string, string[]>> {
+  if (groupIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      groupId: groupYoutubeChannels.groupId,
+      channelId: groupYoutubeChannels.channelId,
+    })
+    .from(groupYoutubeChannels)
+    .where(inArray(groupYoutubeChannels.groupId, groupIds));
+  return buildStringMap(rows, r => r.groupId, r => r.channelId);
+}
+
+/** Load website ids for a set of group ids as a map of groupId → websiteId[]. */
+async function loadGroupWebsiteMap(groupIds: string[]): Promise<Map<string, string[]>> {
+  if (groupIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      groupId: groupWebsites.groupId,
+      websiteId: groupWebsites.websiteId,
+    })
+    .from(groupWebsites)
+    .where(inArray(groupWebsites.groupId, groupIds));
+  return buildStringMap(rows, r => r.groupId, r => r.websiteId);
+}
+
+/** Replace the full set of associated YouTube channels for a group (delete-then-insert). */
+async function setGroupYoutubeChannels(
+  txOrDb: Tx | typeof db,
+  groupId: string,
+  channelIds: string[],
+): Promise<void> {
+  await txOrDb.delete(groupYoutubeChannels).where(eq(groupYoutubeChannels.groupId, groupId));
+  if (channelIds.length > 0) {
+    await txOrDb.insert(groupYoutubeChannels).values(channelIds.map(channelId => ({
+      groupId,
+      channelId,
+    })));
+  }
+}
+
+/** Replace the full set of associated websites for a group (delete-then-insert). */
+async function setGroupWebsites(
+  txOrDb: Tx | typeof db,
+  groupId: string,
+  websiteIds: string[],
+): Promise<void> {
+  await txOrDb.delete(groupWebsites).where(eq(groupWebsites.groupId, groupId));
+  if (websiteIds.length > 0) {
+    await txOrDb.insert(groupWebsites).values(websiteIds.map(websiteId => ({
+      groupId,
+      websiteId,
+    })));
+  }
+}
+
 function toGroup(
   row: GroupRow & { imageCreatedAt?: Date | string | null },
   website: WebsiteJoin,
   groupType: GroupTypeJoin,
   bookmarkCount?: number,
   albumIds: string[] = [],
+  youtubeChannelIds: string[] = [],
+  websiteIds: string[] = [],
 ): Group {
   return {
     id: row.id,
@@ -128,6 +196,8 @@ function toGroup(
     plexItemTitle: row.plexItemTitle ?? null,
     imageUrl: imageUrlFrom(row.id, row.imageCreatedAt ?? null),
     albumIds,
+    youtubeChannelIds,
+    websiteIds,
   };
 }
 
@@ -157,7 +227,12 @@ export async function listGroups(): Promise<Group[]> {
     )
     .orderBy(groups.name);
 
-  const albumMap = await loadGroupAlbumMap(rows.map(r => r.group.id));
+  const ids = rows.map(r => r.group.id);
+  const [albumMap, channelMap, websiteMap] = await Promise.all([
+    loadGroupAlbumMap(ids),
+    loadGroupYoutubeChannelMap(ids),
+    loadGroupWebsiteMap(ids),
+  ]);
   return rows.map(r =>
     toGroup(
       {
@@ -168,6 +243,8 @@ export async function listGroups(): Promise<Group[]> {
       r.groupType ?? null,
       r.bookmarkCount,
       albumMap.get(r.group.id) ?? [],
+      channelMap.get(r.group.id) ?? [],
+      websiteMap.get(r.group.id) ?? [],
     ));
 }
 
@@ -187,7 +264,11 @@ export async function getGroupBySlug(slug: string): Promise<Group | null> {
     .limit(1);
   if (rows.length === 0) return null;
   const r = rows[0];
-  const albumMap = await loadGroupAlbumMap([r.group.id]);
+  const [albumMap, channelMap, websiteMap] = await Promise.all([
+    loadGroupAlbumMap([r.group.id]),
+    loadGroupYoutubeChannelMap([r.group.id]),
+    loadGroupWebsiteMap([r.group.id]),
+  ]);
   return toGroup(
     {
       ...r.group,
@@ -197,6 +278,8 @@ export async function getGroupBySlug(slug: string): Promise<Group | null> {
     r.groupType ?? null,
     undefined,
     albumMap.get(r.group.id) ?? [],
+    channelMap.get(r.group.id) ?? [],
+    websiteMap.get(r.group.id) ?? [],
   );
 }
 
@@ -216,7 +299,11 @@ export async function getGroupById(id: string): Promise<Group | null> {
     .limit(1);
   if (rows.length === 0) return null;
   const r = rows[0];
-  const albumMap = await loadGroupAlbumMap([r.group.id]);
+  const [albumMap, channelMap, websiteMap] = await Promise.all([
+    loadGroupAlbumMap([r.group.id]),
+    loadGroupYoutubeChannelMap([r.group.id]),
+    loadGroupWebsiteMap([r.group.id]),
+  ]);
   return toGroup(
     {
       ...r.group,
@@ -226,6 +313,8 @@ export async function getGroupById(id: string): Promise<Group | null> {
     r.groupType ?? null,
     undefined,
     albumMap.get(r.group.id) ?? [],
+    channelMap.get(r.group.id) ?? [],
+    websiteMap.get(r.group.id) ?? [],
   );
 }
 
@@ -299,11 +388,26 @@ export async function updateGroup(id: string, input: UpdateGroupInput): Promise<
     updates.sortOrder = input.sortOrder;
   }
 
-  if (Object.keys(updates).length > 0) {
-    await db.update(groups).set(updates).where(eq(groups.id, id));
-  }
-  if (input.albumIds !== undefined) {
-    await setGroupAlbums(db, id, input.albumIds);
+  const hasAssociationChanges
+    = input.albumIds !== undefined
+      || input.youtubeChannelIds !== undefined
+      || input.websiteIds !== undefined;
+
+  if (Object.keys(updates).length > 0 || hasAssociationChanges) {
+    await db.transaction(async (tx) => {
+      if (Object.keys(updates).length > 0) {
+        await tx.update(groups).set(updates).where(eq(groups.id, id));
+      }
+      if (input.albumIds !== undefined) {
+        await setGroupAlbums(tx, id, input.albumIds);
+      }
+      if (input.youtubeChannelIds !== undefined) {
+        await setGroupYoutubeChannels(tx, id, input.youtubeChannelIds);
+      }
+      if (input.websiteIds !== undefined) {
+        await setGroupWebsites(tx, id, input.websiteIds);
+      }
+    });
   }
   return getGroupById(id) as Promise<Group>;
 }

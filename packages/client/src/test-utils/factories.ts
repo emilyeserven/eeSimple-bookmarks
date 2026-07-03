@@ -332,6 +332,8 @@ export function makeGroup(overrides: Partial<Group> = {}): Group {
     plexItemTitle: null,
     imageUrl: null,
     albumIds: [],
+    youtubeChannelIds: [],
+    websiteIds: [],
     ...overrides,
   };
 }

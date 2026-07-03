@@ -1422,6 +1422,30 @@ const migrations: RuntimeMigration[] = [
       ALTER TABLE IF EXISTS "bookmarks" ADD COLUMN IF NOT EXISTS "podcast_id" uuid
     `),
   },
+  {
+    // New M:M join tables between groups and YouTube channels / websites, mirroring the existing
+    // person_youtube_channels / person_websites tables. Pre-created here (composite PK names match
+    // drizzle-kit's convention) so push's diff for these brand-new tables is always empty; push adds
+    // the FK constraints afterward (additive, never prompts).
+    name: "create group_youtube_channels join",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "group_youtube_channels" (
+        "group_id" uuid NOT NULL,
+        "channel_id" uuid NOT NULL,
+        CONSTRAINT "group_youtube_channels_group_id_channel_id_pk" PRIMARY KEY("group_id","channel_id")
+      )
+    `),
+  },
+  {
+    name: "create group_websites join",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "group_websites" (
+        "group_id" uuid NOT NULL,
+        "website_id" uuid NOT NULL,
+        CONSTRAINT "group_websites_group_id_website_id_pk" PRIMARY KEY("group_id","website_id")
+      )
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

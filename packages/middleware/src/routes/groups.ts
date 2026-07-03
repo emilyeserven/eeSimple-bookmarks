@@ -121,6 +121,8 @@ const updateGroupBody = {
       type: ["string", "null"],
     },
     albumIds: uuidArraySchema,
+    youtubeChannelIds: uuidArraySchema,
+    websiteIds: uuidArraySchema,
   },
 } as const;
 
