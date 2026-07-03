@@ -1,5 +1,6 @@
 import type { AutofillRule, CustomProperty, ScanResult, Website } from "@eesimple/types";
 
+import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS } from "@eesimple/types";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -238,6 +239,7 @@ vi.mock("../hooks/useAppSettings", () => ({
   }),
   useAutoFetchTitle: () => autoFetchTitle,
   useAutoFetchImage: () => true,
+  useBookmarkAddFormConfig: () => DEFAULT_BOOKMARK_ADD_FORM_SETTINGS,
 }));
 vi.mock("../hooks/usePeople", () => ({
   usePeople: () => ({

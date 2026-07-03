@@ -1,11 +1,7 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 
-import { Loader2, Sparkles } from "lucide-react";
-
-import { TitleFetchFeedback } from "./BookmarkTitleFeedback";
-import { isFetchableUrl } from "../lib/url";
-
-import { Button } from "@/components/ui/button";
+import { BookmarkRomanizedNameField } from "./BookmarkRomanizedNameField";
+import { BookmarkTitleField } from "./BookmarkTitleField";
 
 export interface RevealedNameFieldProps {
   form: BookmarkFormApi;
@@ -25,101 +21,37 @@ export interface RevealedNameFieldProps {
   expectedTitle: string;
   onExpectedTitleChange: (v: string) => void;
   onCancelReporting: () => void;
+  /** Whether to render the Name (title) field. Defaults to true. */
+  showTitle?: boolean;
+  /** Whether to render the Romanized name field. Defaults to true. */
+  showRomanized?: boolean;
 }
 
-/** Right column: the Name field with its fetch-title button, undo line, and fetch feedback. */
+/**
+ * Right column of the banner grid: the Name field (title) with its fetch-title button, undo line,
+ * and fetch feedback, plus the Romanized name field. `showTitle`/`showRomanized` let the placement
+ * settings render either alone; with both (the default) the layout is identical to before —
+ * `BookmarkTitleField` renders the romanized field in its slot, between the title and feedback.
+ */
 export function RevealedNameField({
-  form,
-  onTitleBlur,
-  onTitleChange,
-  onFetchTitleClick,
-  isFetchTitlePending,
-  isFetchMetadataPending,
-  titleFetch,
-  onUndoTitleFetch,
-  fetchTitleIsSuccess,
-  fetchTitleIsError,
-  fetchTitleErrorMessage,
-  fetchedTitle,
-  isReportingTitle,
-  onStartReporting,
-  expectedTitle,
-  onExpectedTitleChange,
-  onCancelReporting,
+  showTitle = true,
+  showRomanized = true,
+  ...props
 }: RevealedNameFieldProps) {
-  return (
-    <div className="flex flex-col gap-4">
-      <form.Subscribe selector={state => state.values.url}>
-        {url => (
-          <form.AppField name="title">
-            {field => (
-              <field.TextareaField
-                label="Name"
-                rows={1}
-                inputClassName="min-h-9"
-                onBlur={onTitleBlur}
-                onChange={onTitleChange}
-                action={(
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    title="Fetch title from URL"
-                    aria-label="Fetch title from URL"
-                    disabled={!isFetchableUrl(url) || isFetchTitlePending || isFetchMetadataPending}
-                    onClick={() => onFetchTitleClick(url)}
-                  >
-                    {isFetchTitlePending || isFetchMetadataPending
-                      ? <Loader2 className="size-4 animate-spin" />
-                      : <Sparkles className="size-4" />}
-                  </Button>
-                )}
-              />
-            )}
-          </form.AppField>
-        )}
-      </form.Subscribe>
-
-      <form.AppField name="romanizedTitle">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-          />
-        )}
-      </form.AppField>
-
-      {titleFetch && (
-        <p className="text-sm text-muted-foreground">
-          Changed from
-          {" "}
-          <span className="font-mono">{titleFetch.previous}</span>
-          {" · "}
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="h-auto p-0"
-            onClick={onUndoTitleFetch}
-          >
-            Undo
-          </Button>
-        </p>
-      )}
-
-      <TitleFetchFeedback
-        isSuccess={fetchTitleIsSuccess}
-        isError={fetchTitleIsError}
-        errorMessage={fetchTitleErrorMessage}
-        fetchedTitle={fetchedTitle}
-        isReportingTitle={isReportingTitle}
-        onStartReporting={onStartReporting}
-        expectedTitle={expectedTitle}
-        onExpectedTitleChange={onExpectedTitleChange}
-        onCancelReporting={onCancelReporting}
-        getFormUrl={() => form.getFieldValue("url")}
-        getFormTitle={() => form.getFieldValue("title")}
+  if (showTitle) {
+    return (
+      <BookmarkTitleField
+        {...props}
+        romanizedSlot={showRomanized ? <BookmarkRomanizedNameField form={props.form} /> : undefined}
       />
-    </div>
-  );
+    );
+  }
+  if (showRomanized) {
+    return (
+      <div className="flex flex-col gap-4">
+        <BookmarkRomanizedNameField form={props.form} />
+      </div>
+    );
+  }
+  return null;
 }

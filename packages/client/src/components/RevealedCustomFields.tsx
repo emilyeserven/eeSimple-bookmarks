@@ -1,6 +1,6 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { CustomFieldControls } from "./customFieldControls";
-import type { CustomProperty } from "@eesimple/types";
+import type { BookmarkAddFormPlacement, CustomProperty } from "@eesimple/types";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import {
@@ -14,11 +14,31 @@ import {
   URL_SECTIONS_SLUG,
 } from "./bookmarkFormSchema";
 
+/**
+ * The built-in detail slugs hidden from the main (non-Advanced) form by default — used when no
+ * explicit `hiddenSlugs`/`placementOverrides` are provided (e.g. stories and the edit surface's
+ * fallback), matching the historical hardcoded behavior.
+ */
+const DEFAULT_MAIN_HIDDEN_SLUGS = [
+  RUNTIME_SLUG,
+  DATE_POSTED_SLUG,
+  CONTENT_STATUS_SLUG,
+  PAGE_PROGRESS_SLUG,
+  PAGE_RANGE_SLUG,
+  PAGE_SECTIONS_SLUG,
+  CHAPTERS_SLUG,
+  URL_SECTIONS_SLUG,
+];
+
 export interface RevealedCustomFieldsProps extends CustomFieldControls {
   form: BookmarkFormApi;
   customProperties: CustomProperty[];
   onIsbnFetch?: (isbn: string) => void;
   isIsbnFetchPending?: boolean;
+  /** Slugs to hide from the main property list. Defaults to the built-in detail slugs. */
+  hiddenSlugs?: string[];
+  /** Per-slug placement overrides from the Add Bookmark Form settings (create mode only). */
+  placementOverrides?: Record<string, BookmarkAddFormPlacement>;
 }
 
 /**
@@ -44,6 +64,8 @@ export function RevealedCustomFields({
   onTextChange,
   onIsbnFetch,
   isIsbnFetchPending,
+  hiddenSlugs = DEFAULT_MAIN_HIDDEN_SLUGS,
+  placementOverrides,
 }: RevealedCustomFieldsProps) {
   return (
     <form.Subscribe
@@ -60,16 +82,8 @@ export function RevealedCustomFields({
           categoryId={categoryId}
           mediaTypeId={mediaTypeId || null}
           properties={customProperties}
-          hiddenSlugs={[
-            RUNTIME_SLUG,
-            DATE_POSTED_SLUG,
-            CONTENT_STATUS_SLUG,
-            PAGE_PROGRESS_SLUG,
-            PAGE_RANGE_SLUG,
-            PAGE_SECTIONS_SLUG,
-            CHAPTERS_SLUG,
-            URL_SECTIONS_SLUG,
-          ]}
+          hiddenSlugs={hiddenSlugs}
+          placementOverrides={placementOverrides}
           numberInputs={numberInputs}
           booleanInputs={booleanInputs}
           dateTimeInputs={dateTimeInputs}

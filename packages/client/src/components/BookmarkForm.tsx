@@ -111,6 +111,7 @@ export function BookmarkForm({
       {c.scanned && (
         <BookmarkRevealedFields
           form={form}
+          isEdit={c.isEdit}
           hideNameField={c.hideNameField}
           lockedCategoryId={c.lockedCategoryId}
           urlCleanup={c.urlCleanup}

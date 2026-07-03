@@ -1,39 +1,28 @@
-import type { BookmarkFormApi } from "./bookmarkFormSchema";
-import type { ImageIntent } from "./bookmarkImageIntent";
+import type { StandardFieldRenderProps } from "./bookmarkAddFormFields";
 import type { CustomFieldControls } from "./customFieldControls";
 import type {
-  Person,
+  BookmarkAddFormPlacement,
+  BookmarkAddFormStandardField,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
-  BookmarkImage,
   BookmarkNumberValue,
-  Category,
   CustomProperty,
-  ImageCandidate,
-  Language,
-  MediaTypeNode,
-  Group,
-  TagNode,
 } from "@eesimple/types";
 
+import {
+  BOOKMARK_ADD_FORM_STANDARD_FIELDS,
+  DEFAULT_BOOKMARK_ADD_FORM_SETTINGS,
+} from "@eesimple/types";
 import { ChevronDown } from "lucide-react";
 
-import { BookmarkAdvancedCategoryField } from "./BookmarkAdvancedCategoryField";
-import { BookmarkAdvancedDescriptionTagsField } from "./BookmarkAdvancedDescriptionTagsField";
-import { BookmarkAdvancedGroupField } from "./BookmarkAdvancedGroupField";
-import { BookmarkAdvancedLanguageField } from "./BookmarkAdvancedLanguageField";
-import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
+import { BookmarkStandardFieldZone } from "./bookmarkAddFormFields";
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
-import { BookmarkImagePicker } from "./BookmarkImagePicker";
-import { MultiCombobox } from "./MultiCombobox";
-import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Label } from "@/components/ui/label";
 
 /**
  * The bookmark's "source" (website or YouTube channel) whose defaults the form can promote, plus the
@@ -64,50 +53,44 @@ export interface BookmarkCustomFieldControls extends CustomFieldControls {
   ) => void;
 }
 
-interface BookmarkAdvancedSectionProps {
-  form: BookmarkFormApi;
-  lockedCategoryId?: string;
-  categories: Category[];
+/** The default set of standard fields shown in the Advanced section (today's fixed list). */
+const DEFAULT_ADVANCED_STANDARD_FIELDS: BookmarkAddFormStandardField[]
+  = BOOKMARK_ADD_FORM_STANDARD_FIELDS.filter(field =>
+    (DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.advancedFields as readonly string[]).includes(field));
+
+interface BookmarkAdvancedSectionProps extends StandardFieldRenderProps {
   customProperties: CustomProperty[];
-  mediaTypes: MediaTypeNode[];
-  languages?: Language[];
-  sourceDefaults: SourceDefaults;
-  groups?: Group[];
-  /** Remount key for the image field so a form reset clears it. */
-  imageFieldKey: number;
-  existingImages: BookmarkImage[];
-  imageCandidates: ImageCandidate[];
-  defaultAuto: boolean;
-  autoGrabError: string | null;
-  onImageIntentChange: (intent: ImageIntent) => void;
-  tagTree: TagNode[];
-  onTagToggle: (id: string) => void;
-  people?: Person[];
+  /** The standard fields to render in the Advanced section. Defaults to today's fixed list. */
+  standardFields?: BookmarkAddFormStandardField[];
+  /** Slugs to hide from the Advanced property list. Defaults to the `CategoryCustomFields` default. */
+  hiddenSlugs?: string[];
+  /** Per-slug placement overrides from the Add Bookmark Form settings (create mode only). */
+  placementOverrides?: Record<string, BookmarkAddFormPlacement>;
   /** Custom-property inputs + change handlers (grouped). */
   customFields: BookmarkCustomFieldControls;
-  /** Called when the user clicks the description sparkle; receives the current URL. */
-  onFetchDescription?: (url: string) => void;
-  /** Whether a description fetch is in-flight (drives the spinner on the sparkle button). */
-  isFetchDescriptionPending?: boolean;
   /** Called when the user clicks "Fetch metadata" on the ISBN field. */
   onIsbnFetch?: (isbn: string) => void;
   isIsbnFetchPending?: boolean;
 }
 
 /**
- * The bookmark form's "Advanced" collapsible: the Category and Media Type comboboxes (each with
- * inline create and a "set as default for <source>" checkbox), the Description + Tags fields (Tags
- * also carrying a "set as default" checkbox), the image field, and the category/media-type custom
- * properties.
+ * The bookmark form's "Advanced" collapsible. The standard fields it holds are placement-driven (the
+ * category / media-type / language / group / description+tags / people / image controls by default),
+ * followed by the category/media-type custom properties. The Collapsible + trigger always render.
  */
-export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
+export function BookmarkAdvancedSection({
+  customProperties,
+  standardFields = DEFAULT_ADVANCED_STANDARD_FIELDS,
+  hiddenSlugs,
+  placementOverrides,
+  customFields,
+  onIsbnFetch,
+  isIsbnFetchPending,
+  ...renderProps
+}: BookmarkAdvancedSectionProps) {
   const {
-    form, customProperties, customFields, people, onIsbnFetch, isIsbnFetchPending,
-  } = props;
-  const personCreate = useEntityCreateOption("person", (person) => {
-    const current = form.getFieldValue("personIds");
-    if (!current.includes(person.id)) form.setFieldValue("personIds", [...current, person.id]);
-  });
+    form,
+  } = renderProps;
   return (
     <Collapsible className="group/advanced space-y-3">
       <CollapsibleTrigger
@@ -125,74 +108,10 @@ export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
         Advanced
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-4">
-        <BookmarkAdvancedCategoryField
-          form={form}
-          lockedCategoryId={props.lockedCategoryId}
-          categories={props.categories}
-          sourceDefaults={props.sourceDefaults}
+        <BookmarkStandardFieldZone
+          fields={standardFields}
+          {...renderProps}
         />
-
-        <BookmarkAdvancedMediaTypeField
-          form={form}
-          mediaTypes={props.mediaTypes}
-          sourceDefaults={props.sourceDefaults}
-        />
-
-        <BookmarkAdvancedLanguageField
-          form={form}
-          languages={props.languages ?? []}
-        />
-
-        <BookmarkAdvancedGroupField
-          form={form}
-          groups={props.groups ?? []}
-        />
-
-        <BookmarkAdvancedDescriptionTagsField
-          form={form}
-          tagTree={props.tagTree}
-          onTagToggle={props.onTagToggle}
-          sourceDefaults={props.sourceDefaults}
-          onFetchDescription={props.onFetchDescription}
-          isFetchDescriptionPending={props.isFetchDescriptionPending}
-        />
-
-        {(people?.length ?? 0) > 0 && (
-          <form.Field name="personIds">
-            {field => (
-              <div className="space-y-1">
-                <Label>People</Label>
-                <MultiCombobox
-                  options={(people ?? []).map(a => ({
-                    value: a.id,
-                    label: a.name,
-                  }))}
-                  values={field.state.value}
-                  onValuesChange={field.handleChange}
-                  placeholder="Select people…"
-                  searchPlaceholder="Search people…"
-                  emptyText="No people found."
-                  createOption={personCreate.createOption}
-                />
-              </div>
-            )}
-          </form.Field>
-        )}
-        {personCreate.modal}
-
-        <form.Subscribe selector={state => state.values.url}>
-          {url => (
-            <BookmarkImagePicker
-              key={props.imageFieldKey}
-              existingImages={props.existingImages}
-              candidates={props.imageCandidates}
-              pageUrl={url}
-              defaultAuto={props.defaultAuto}
-              autoGrabError={props.autoGrabError}
-              onChange={props.onImageIntentChange}
-            />
-          )}
-        </form.Subscribe>
 
         <form.Subscribe
           selector={state => ({
@@ -214,6 +133,8 @@ export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
                 categoryId={categoryId}
                 mediaTypeId={mediaTypeId || null}
                 properties={customProperties}
+                hiddenSlugs={hiddenSlugs}
+                placementOverrides={placementOverrides}
                 onIsbnFetch={onIsbnFetch}
                 isIsbnFetchPending={isIsbnFetchPending}
               />

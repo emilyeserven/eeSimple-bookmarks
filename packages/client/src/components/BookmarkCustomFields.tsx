@@ -1,5 +1,6 @@
 import type { CustomPropertyInputs } from "./bookmarkFormSchema";
 import type {
+  BookmarkAddFormPlacement,
   Bookmark,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
@@ -81,6 +82,11 @@ interface CategoryCustomFieldsProps extends CustomPropertyInputBundle {
    */
   hiddenSlugs?: string[];
   /**
+   * Per-slug placement overrides from the Add Bookmark Form settings (create mode only). Passed
+   * through to {@link selectVisibleFormProperties}; omitted on the edit/detail surfaces.
+   */
+  placementOverrides?: Record<string, BookmarkAddFormPlacement>;
+  /**
    * When provided, only properties whose `propertyGroupId` matches this value are rendered.
    * Pass `null` to render only ungrouped properties (groupId === null or unknown group).
    * Omit to render all properties regardless of group.
@@ -94,6 +100,7 @@ interface CategoryCustomFieldsProps extends CustomPropertyInputBundle {
 export function CategoryCustomFields({
   categoryId, mediaTypeId = null, properties, bookmark = null, placement, layout = "grid", className,
   hiddenSlugs = [RUNTIME_SLUG, DATE_POSTED_SLUG],
+  placementOverrides,
   groupId, hideHeading = false,
   // The per-type input maps + change handlers travel together to each field — keep them bundled and
   // spread them, rather than threading ~18 individual props through the JSX (a complexity driver).
@@ -105,6 +112,7 @@ export function CategoryCustomFields({
     placement,
     hiddenSlugs,
     groupId,
+    placementOverrides,
   });
   if (categoryProps.length === 0) return null;
 
