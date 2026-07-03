@@ -9,6 +9,7 @@ import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { ROOT, useLocationGeneralForm } from "./useLocationGeneralForm";
+import { useLocationSyncRegistration } from "../hooks/useLocationSyncRegistration";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -35,6 +36,15 @@ export function LocationGeneralForm({
 
   const tagCreate = useEntityCreateOption("tag", (tag) => {
     if (!tagIds.includes(tag.id)) saveTagIds([...tagIds, tag.id]);
+  });
+
+  // Register the header "Sync from source" button for this location (re-geocode).
+  useLocationSyncRegistration({
+    node,
+    form,
+    saveField,
+    repullCoordinates,
+    usesWikidataCoordinates,
   });
 
   return (
