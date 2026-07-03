@@ -85,12 +85,6 @@ export async function listPodcasts(): Promise<Podcast[]> {
   return rows.map(toPodcast);
 }
 
-/** Fetch a single podcast by id, or null when missing. */
-export async function getPodcast(id: string): Promise<Podcast | null> {
-  const [row] = await db.select().from(podcasts).where(eq(podcasts.id, id));
-  return row ? toPodcast(row) : null;
-}
-
 /** Add a podcast. Throws `DuplicatePodcastError` on a name clash. */
 export async function createPodcast(input: CreatePodcastInput): Promise<Podcast> {
   const name = input.name.trim();

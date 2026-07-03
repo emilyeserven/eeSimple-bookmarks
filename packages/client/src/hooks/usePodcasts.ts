@@ -37,15 +37,6 @@ export function usePodcastSearch(term: string) {
   });
 }
 
-/** Preview a podcast's feed metadata for the "Sync from source" review modal. Gated by `enabled`. */
-export function usePodcastFeedPreview(id: string, enabled: boolean) {
-  return useQuery({
-    queryKey: ["podcasts", "feed-preview", id],
-    queryFn: () => podcastsApi.feedPreview(id),
-    enabled,
-  });
-}
-
 /** Invalidate every query whose rendering depends on podcast definitions. */
 function useInvalidatePodcastConsumers() {
   const queryClient = useQueryClient();

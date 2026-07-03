@@ -1,10 +1,9 @@
 import type { PodcastDiffCurrent } from "../lib/syncSources/podcastDiff";
 import type { SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourceTypes";
-import type { PodcastFeedResult } from "@eesimple/types";
 
 import { useQuery } from "@tanstack/react-query";
 
-import { request } from "../lib/api/client";
+import { podcastsApi } from "../lib/api/taxonomies";
 import { buildPodcastDiff } from "../lib/syncSources/podcastDiff";
 
 /** Reads a string ref, treating missing/blank/non-string as null. */
@@ -19,11 +18,9 @@ function strRef(refs: SyncProvider["refs"], key: string): string | null {
  * current-vs-source diff. Only runs while the sync modal is open.
  */
 export function usePodcastSyncSource(provider: SyncProvider, enabled: boolean): SyncSourceFetch {
-  const path = `/podcasts/${provider.entityId}/feed-preview`;
-
   const query = useQuery({
-    queryKey: ["podcast-feed-preview", provider.entityId, path],
-    queryFn: () => request<PodcastFeedResult>(path),
+    queryKey: ["podcast-feed-preview", provider.entityId],
+    queryFn: () => podcastsApi.feedPreview(provider.entityId),
     enabled,
     staleTime: 60_000,
   });
