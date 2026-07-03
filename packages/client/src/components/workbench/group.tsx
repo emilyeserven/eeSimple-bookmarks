@@ -7,6 +7,8 @@ import { Building2 } from "lucide-react";
 import { EntityImagePreview } from "../EntityImageField";
 import { GroupGeneralForm } from "../GroupGeneralForm";
 import { GroupPeopleForm, GroupPeopleView } from "../GroupPeopleForm";
+import { GroupWebsitesForm, GroupWebsitesView } from "../GroupWebsitesForm";
+import { GroupYouTubeChannelsForm, GroupYouTubeChannelsView } from "../GroupYouTubeChannelsForm";
 
 import { useAlbums } from "@/hooks/useAlbums";
 import { useDeleteGroup, useGroupBySlug, useGroups } from "@/hooks/useGroups";
@@ -172,6 +174,42 @@ export const groupWorkbench: EntityWorkbench<Group> = {
         render: ({
           entity,
         }) => <GroupPeopleForm group={entity} />,
+      },
+    },
+    {
+      key: "youtube-channels",
+      label: "YouTube Channels",
+      view: {
+        title: "YouTube Channels",
+        description: "YouTube channels associated with this group.",
+        render: ({
+          entity,
+        }) => <GroupYouTubeChannelsView group={entity} />,
+      },
+      edit: {
+        title: "YouTube Channels",
+        description: "Connect YouTube channels to this group.",
+        render: ({
+          entity,
+        }) => <GroupYouTubeChannelsForm group={entity} />,
+      },
+    },
+    {
+      key: "websites",
+      label: "Websites",
+      view: {
+        title: "Websites",
+        description: "Websites associated with this group.",
+        render: ({
+          entity,
+        }) => <GroupWebsitesView group={entity} />,
+      },
+      edit: {
+        title: "Websites",
+        description: "Connect websites to this group.",
+        render: ({
+          entity,
+        }) => <GroupWebsitesForm group={entity} />,
       },
     },
   ],

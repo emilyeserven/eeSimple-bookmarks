@@ -2892,6 +2892,38 @@ export const personGroups = pgTable("person_groups", {
 
 export type PersonGroupRow = typeof personGroups.$inferSelect;
 
+/** `group_youtube_channels` join — M:M between groups and YouTube channels. */
+export const groupYoutubeChannels = pgTable("group_youtube_channels", {
+  groupId: uuid("group_id").notNull().references(() => groups.id, {
+    onDelete: "cascade",
+  }),
+  channelId: uuid("channel_id").notNull().references(() => youtubeChannels.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.groupId, table.channelId],
+  }),
+]);
+
+export type GroupYoutubeChannelRow = typeof groupYoutubeChannels.$inferSelect;
+
+/** `group_websites` join — M:M between groups and websites. */
+export const groupWebsites = pgTable("group_websites", {
+  groupId: uuid("group_id").notNull().references(() => groups.id, {
+    onDelete: "cascade",
+  }),
+  websiteId: uuid("website_id").notNull().references(() => websites.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.groupId, table.websiteId],
+  }),
+]);
+
+export type GroupWebsiteRow = typeof groupWebsites.$inferSelect;
+
 /**
  * `card_field_templates` — user-saved named configurations of card field zone placements.
  * Reusable across card display rules: save once, apply to any rule's Card Fields override.
@@ -2993,6 +3025,32 @@ export const personWebsitesRelations = relations(personWebsites, ({
   }),
   website: one(websites, {
     fields: [personWebsites.websiteId],
+    references: [websites.id],
+  }),
+}));
+
+export const groupYoutubeChannelsRelations = relations(groupYoutubeChannels, ({
+  one,
+}) => ({
+  group: one(groups, {
+    fields: [groupYoutubeChannels.groupId],
+    references: [groups.id],
+  }),
+  channel: one(youtubeChannels, {
+    fields: [groupYoutubeChannels.channelId],
+    references: [youtubeChannels.id],
+  }),
+}));
+
+export const groupWebsitesRelations = relations(groupWebsites, ({
+  one,
+}) => ({
+  group: one(groups, {
+    fields: [groupWebsites.groupId],
+    references: [groups.id],
+  }),
+  website: one(websites, {
+    fields: [groupWebsites.websiteId],
     references: [websites.id],
   }),
 }));

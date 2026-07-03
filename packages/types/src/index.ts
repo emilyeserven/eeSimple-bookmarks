@@ -692,6 +692,10 @@ export interface Group {
   imageUrl: string | null;
   /** Ids of the albums this publisher is credited on (many-to-many). */
   albumIds: string[];
+  /** IDs of YouTube channels associated with this group. */
+  youtubeChannelIds: string[];
+  /** IDs of websites associated with this group. */
+  websiteIds: string[];
 }
 
 /** Lightweight group shape carried on a bookmark. */
@@ -724,6 +728,10 @@ export interface UpdateGroupInput {
   plexItemTitle?: string | null;
   /** Ids of the albums to credit this publisher on; replaces the full set. Omit to leave unchanged. */
   albumIds?: string[];
+  /** IDs of YouTube channels to associate; replaces the full set. Omit to leave unchanged. */
+  youtubeChannelIds?: string[];
+  /** IDs of websites to associate; replaces the full set. Omit to leave unchanged. */
+  websiteIds?: string[];
 }
 
 /**
