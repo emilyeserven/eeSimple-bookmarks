@@ -17,6 +17,10 @@ const editNav = [
     label: "Properties",
   },
   {
+    to: "/bookmarks/$bookmarkId/edit/languages",
+    label: "Languages",
+  },
+  {
     to: "/bookmarks/$bookmarkId/edit/image",
     label: "Image",
   },

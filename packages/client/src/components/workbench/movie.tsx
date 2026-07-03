@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Movie } from "@eesimple/types";
 
+import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { MovieGeneralForm } from "../MovieGeneralForm";
 import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
@@ -95,6 +96,35 @@ export const movieWorkbench: EntityWorkbench<Movie> = {
             entity={entity}
             imagesApi={moviesApi.images}
             queryKeyPrefix="movie-images"
+          />
+        ),
+      },
+    },
+    {
+      key: "languages",
+      label: "Languages",
+      view: {
+        title: "Languages",
+        description: "Languages this movie is available in and how.",
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabView
+            ownerType="movie"
+            ownerId={entity.id}
+          />
+        ),
+      },
+      edit: {
+        title: "Languages",
+        description: "Record which languages this movie offers (dub, subtitles, …).",
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabEditor
+            ownerType="movie"
+            ownerId={entity.id}
+            kind="availability"
           />
         ),
       },

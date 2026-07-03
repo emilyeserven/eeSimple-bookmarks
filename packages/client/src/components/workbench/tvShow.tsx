@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { TvShow } from "@eesimple/types";
 
+import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
 import { TvShowGeneralForm } from "../TvShowGeneralForm";
@@ -95,6 +96,35 @@ export const tvShowWorkbench: EntityWorkbench<TvShow> = {
             entity={entity}
             imagesApi={tvShowsApi.images}
             queryKeyPrefix="tvShow-images"
+          />
+        ),
+      },
+    },
+    {
+      key: "languages",
+      label: "Languages",
+      view: {
+        title: "Languages",
+        description: "Languages this show is available in and how.",
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabView
+            ownerType="tvShow"
+            ownerId={entity.id}
+          />
+        ),
+      },
+      edit: {
+        title: "Languages",
+        description: "Record which languages this show offers (dub, subtitles, …).",
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabEditor
+            ownerType="tvShow"
+            ownerId={entity.id}
+            kind="availability"
           />
         ),
       },

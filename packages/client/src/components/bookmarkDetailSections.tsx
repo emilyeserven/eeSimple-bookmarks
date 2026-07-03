@@ -190,6 +190,23 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
               )
               : null}
 
+            {bookmark.languageUsages.length > 0
+              ? (
+                <DetailField label="Languages">
+                  <span className="flex flex-wrap gap-x-2 gap-y-1">
+                    {bookmark.languageUsages.map(usage => (
+                      <span key={usage.id}>
+                        {usage.language.name}
+                        {" — "}
+                        {usage.level.name}
+                        {usage.note ? ` (${usage.note})` : ""}
+                      </span>
+                    ))}
+                  </span>
+                </DetailField>
+              )
+              : null}
+
             <BookmarkKavitaDetailRow bookmark={bookmark} />
 
             <BookmarkPlexDetailRow bookmark={bookmark} />

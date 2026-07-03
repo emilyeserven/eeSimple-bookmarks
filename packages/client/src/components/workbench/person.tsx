@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Person } from "@eesimple/types";
 
+import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { PersonGeneralForm } from "../PersonGeneralForm";
 import { PersonGroupsForm, PersonGroupsView } from "../PersonGroupsForm";
 import { PersonWebsitesForm, PersonWebsitesView } from "../PersonWebsitesForm";
@@ -113,6 +114,35 @@ export const personWorkbench: EntityWorkbench<Person> = {
         render: ({
           entity,
         }) => <PersonGroupsForm person={entity} />,
+      },
+    },
+    {
+      key: "languages",
+      label: "Languages",
+      view: {
+        title: "Languages",
+        description: "Languages this person uses and their proficiency.",
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabView
+            ownerType="person"
+            ownerId={entity.id}
+          />
+        ),
+      },
+      edit: {
+        title: "Languages",
+        description: "Record this person's languages and proficiency levels.",
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabEditor
+            ownerType="person"
+            ownerId={entity.id}
+            kind="proficiency"
+          />
+        ),
       },
     },
   ],
