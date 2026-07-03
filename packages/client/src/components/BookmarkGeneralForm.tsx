@@ -1,5 +1,6 @@
 import type { Bookmark } from "@eesimple/types";
 
+import { BookmarkAdvancedLanguageField } from "./BookmarkAdvancedLanguageField";
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
@@ -26,6 +27,7 @@ export function BookmarkGeneralForm({
     categories,
     fetchTitle,
     fetchMetadata,
+    languages,
     publishers,
     updateBookmark,
     websiteLookup,
@@ -147,6 +149,11 @@ export function BookmarkGeneralForm({
       />
 
       <BookmarkGeneralRelationsSection ctrl={ctrl} />
+
+      <BookmarkAdvancedLanguageField
+        form={form}
+        languages={languages ?? []}
+      />
 
       <BookmarkAdvancedPublisherField
         form={form}
