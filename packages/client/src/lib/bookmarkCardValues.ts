@@ -66,6 +66,12 @@ export interface ResolvedFieldPlacement {
   clickableTags: boolean;
   /** Tags field, any zone: show the tag's ancestor chain in a hover popover. */
   showTagHierarchyOnHover: boolean;
+  /** Media Type field, any zone: show the media type's ancestor chain in a hover popover. */
+  showMediaTypeHierarchyOnHover: boolean;
+  /** Locations field, any zone: show a location's ancestor chain in a hover popover. */
+  showLocationHierarchyOnHover: boolean;
+  /** Genres & Moods field, any zone: show a genre/mood's ancestor chain in a hover popover. */
+  showGenreMoodHierarchyOnHover: boolean;
 }
 
 /** Build a `fieldKey → placement` lookup from a rule's {@link CardFieldZones}. Unlisted keys are hidden. */
@@ -88,6 +94,9 @@ export function resolveFieldPlacements(zones: CardFieldZones): Map<string, Resol
         showValueBeforeLabel: placement.showValueBeforeLabel ?? false,
         clickableTags: placement.clickableTags ?? false,
         showTagHierarchyOnHover: placement.showTagHierarchyOnHover ?? false,
+        showMediaTypeHierarchyOnHover: placement.showMediaTypeHierarchyOnHover ?? false,
+        showLocationHierarchyOnHover: placement.showLocationHierarchyOnHover ?? false,
+        showGenreMoodHierarchyOnHover: placement.showGenreMoodHierarchyOnHover ?? false,
       });
     }
   }
@@ -110,6 +119,9 @@ function bodyPlacement(zone: CardFieldZone): ResolvedFieldPlacement {
     showValueBeforeLabel: false,
     clickableTags: false,
     showTagHierarchyOnHover: false,
+    showMediaTypeHierarchyOnHover: false,
+    showLocationHierarchyOnHover: false,
+    showGenreMoodHierarchyOnHover: false,
   };
 }
 

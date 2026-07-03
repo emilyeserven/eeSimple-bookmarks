@@ -57,6 +57,18 @@ const PLACEMENT_PROP_SCHEMAS = {
   showTagHierarchyOnHover: {
     type: "boolean",
   },
+  // Media Type field, any zone (see CardFieldPlacement in @eesimple/types).
+  showMediaTypeHierarchyOnHover: {
+    type: "boolean",
+  },
+  // Locations field, any zone (see CardFieldPlacement in @eesimple/types).
+  showLocationHierarchyOnHover: {
+    type: "boolean",
+  },
+  // Genres & Moods field, any zone (see CardFieldPlacement in @eesimple/types).
+  showGenreMoodHierarchyOnHover: {
+    type: "boolean",
+  },
 } as const satisfies Record<keyof CardFieldPlacement, unknown>;
 
 /**

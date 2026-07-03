@@ -443,6 +443,55 @@ export async function backfillCardDisplayRulePodcastLinkField(): Promise<void> {
 }
 
 /**
+ * Shared body for the single-field "place this key into its default zone for every rule that
+ * predates it" backfill (mirrors {@link backfillCardDisplayRuleLocationsField}'s logic, generalized
+ * by key). Idempotent — a rule already carrying `key` in any zone is skipped; inheriting rules
+ * (`field_zones IS NULL`) are left untouched.
+ */
+async function backfillCardDisplayRuleField(key: string): Promise<void> {
+  const rows = await db.select().from(cardDisplayRules);
+  for (const row of rows) {
+    const stored = row.fieldZones as Record<string, CardFieldPlacement[]> | null;
+    if (!stored) continue;
+
+    const placed = new Set(
+      CARD_FIELD_ZONES.flatMap(zone => (stored[zone] ?? []).map(p => p.key)),
+    );
+    if (placed.has(key)) continue;
+
+    const next = emptyCardFieldZones();
+    for (const zone of CARD_FIELD_ZONES) {
+      if (Array.isArray(stored[zone])) next[zone] = [...stored[zone]];
+    }
+    next[defaultBodyZone(key)].push({
+      key,
+    });
+
+    await db
+      .update(cardDisplayRules)
+      .set({
+        fieldZones: next,
+      })
+      .where(eq(cardDisplayRules.id, row.id));
+  }
+}
+
+/** One-time boot backfill: place the `people` field into rules whose stored `field_zones` predate it. */
+export async function backfillCardDisplayRulePeopleField(): Promise<void> {
+  await backfillCardDisplayRuleField("people");
+}
+
+/** One-time boot backfill: place the `groups` field into rules whose stored `field_zones` predate it. */
+export async function backfillCardDisplayRuleGroupsField(): Promise<void> {
+  await backfillCardDisplayRuleField("groups");
+}
+
+/** One-time boot backfill: place the `language` field into rules whose stored `field_zones` predate it. */
+export async function backfillCardDisplayRuleLanguageField(): Promise<void> {
+  await backfillCardDisplayRuleField("language");
+}
+
+/**
  * One-time boot backfill: place the `romanizedName` field into rules whose stored `field_zones`
  * predate it (it used to render baked into the `title` field). It's appended to its default body
  * zone ({@link defaultBodyZone} → `card-single-top`), so it keeps showing below the title header row.

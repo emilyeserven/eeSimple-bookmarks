@@ -37,6 +37,9 @@ function placementMap(
     showValueBeforeLabel: false,
     clickableTags: false,
     showTagHierarchyOnHover: false,
+    showMediaTypeHierarchyOnHover: false,
+    showLocationHierarchyOnHover: false,
+    showGenreMoodHierarchyOnHover: false,
     ...extra,
   }]]);
 }

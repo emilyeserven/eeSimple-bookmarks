@@ -294,10 +294,13 @@ export function BookmarkCardDetails({
       case "category":
       case "website":
       case "mediaType":
+      case "language":
       case "youtubeChannel":
       case "tags":
       case "genreMoods":
-      case "locations": {
+      case "locations":
+      case "people":
+      case "groups": {
         return describeTaxonomyField(key, {
           bookmark,
           bookmarkCategory,

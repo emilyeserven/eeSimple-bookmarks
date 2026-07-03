@@ -1974,6 +1974,24 @@ export interface CardFieldPlacement {
    * Defaults to false.
    */
   showTagHierarchyOnHover?: boolean;
+  /**
+   * Media Type field, any zone. When true, hovering the media-type pill shows a popover with its
+   * ancestor chain (e.g. "Root → Parent → MediaTypeName"). Has no effect on a top-level media type
+   * (no ancestors). Defaults to false.
+   */
+  showMediaTypeHierarchyOnHover?: boolean;
+  /**
+   * Locations field, any zone. When true, hovering a location pill/link shows a popover with its
+   * ancestor chain (e.g. "Root → Parent → LocationName"). Has no effect on a top-level location (no
+   * ancestors). Defaults to false.
+   */
+  showLocationHierarchyOnHover?: boolean;
+  /**
+   * Genres & Moods field, any zone. When true, hovering a genre/mood badge shows a popover with its
+   * ancestor chain (e.g. "Root → Parent → GenreMoodName"). Has no effect on a top-level entry (no
+   * ancestors). Defaults to false.
+   */
+  showGenreMoodHierarchyOnHover?: boolean;
 }
 
 /**

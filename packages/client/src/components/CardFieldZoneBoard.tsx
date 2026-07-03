@@ -229,6 +229,9 @@ export function CardFieldZoneBoard({
       if (existing?.showValueBeforeLabel) placement.showValueBeforeLabel = true;
       if (existing?.clickableTags) placement.clickableTags = true;
       if (existing?.showTagHierarchyOnHover) placement.showTagHierarchyOnHover = true;
+      if (existing?.showMediaTypeHierarchyOnHover) placement.showMediaTypeHierarchyOnHover = true;
+      if (existing?.showLocationHierarchyOnHover) placement.showLocationHierarchyOnHover = true;
+      if (existing?.showGenreMoodHierarchyOnHover) placement.showGenreMoodHierarchyOnHover = true;
       const list = next[targetZone];
       const at = targetIndex === undefined ? list.length : Math.min(Math.max(targetIndex, 0), list.length);
       list.splice(at, 0, placement);
@@ -359,15 +362,25 @@ export function CardFieldZoneBoard({
                           onPatch={onPatch}
                         />
                       )
-                      : def.zone === "card-table"
+                      : HIERARCHY_HOVER_PROP[placement.key]
                         ? (
-                          <TablePlacementControls
+                          <HierarchyHoverControls
+                            zone={def.zone}
+                            fieldKey={placement.key}
                             placement={placement}
                             idPrefix={chipIdPrefix}
                             onPatch={onPatch}
                           />
                         )
-                        : null}
+                        : def.zone === "card-table"
+                          ? (
+                            <TablePlacementControls
+                              placement={placement}
+                              idPrefix={chipIdPrefix}
+                              onPatch={onPatch}
+                            />
+                          )
+                          : null}
                 </FieldChip>
               );
             })}
@@ -635,6 +648,48 @@ function TagsPlacementControls({
         onCheckedChange={showTagHierarchyOnHover => onPatch({
           showTagHierarchyOnHover,
         })}
+      />
+    </div>
+  );
+}
+
+/** Maps a hierarchical taxonomy field's key to the `CardFieldPlacement` boolean it toggles. */
+const HIERARCHY_HOVER_PROP: Partial<Record<string, keyof CardFieldPlacement>> = {
+  mediaType: "showMediaTypeHierarchyOnHover",
+  locations: "showLocationHierarchyOnHover",
+  genreMoods: "showGenreMoodHierarchyOnHover",
+};
+
+/**
+ * Controls for a hierarchical taxonomy field (Media Type / Locations / Genres & Moods) in whichever
+ * zone it's placed: a "Show hierarchy on hover" toggle (any zone — shows a popover with the field's
+ * ancestor chain), plus, in the `card-table` zone only, "Hide label" (the behavior these fields got
+ * via `TablePlacementControls` before this control claimed their dispatch branch).
+ */
+function HierarchyHoverControls({
+  zone, fieldKey, placement, idPrefix, onPatch,
+}: PlacementControlsProps & { zone: CardFieldZone;
+  fieldKey: string; }) {
+  const prop = HIERARCHY_HOVER_PROP[fieldKey];
+  if (!prop) return null;
+  return (
+    <div className="flex flex-col items-start gap-1.5 pl-5 text-xs">
+      {zone === "card-table"
+        ? (
+          <HideLabelToggle
+            placement={placement}
+            idPrefix={idPrefix}
+            onPatch={onPatch}
+          />
+        )
+        : null}
+      <PlacementCheckbox
+        id={`${idPrefix}-hover-hierarchy`}
+        label="Show hierarchy on hover"
+        checked={Boolean(placement[prop])}
+        onCheckedChange={checked => onPatch({
+          [prop]: checked,
+        } as Partial<CardFieldPlacement>)}
       />
     </div>
   );

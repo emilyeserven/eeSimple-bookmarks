@@ -5,6 +5,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
 
+import { LocationHierarchyHoverCard } from "./LocationHierarchyHoverCard";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
@@ -13,6 +14,8 @@ import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface LocationsBoxProps {
   locations: BookmarkLocation[];
+  /** Show each location's ancestor chain in a hover popover (the `showLocationHierarchyOnHover` placement knob). */
+  showHierarchyOnHover?: boolean;
 }
 
 /** Scrollable, fading box of a bookmark's location badges (each links to the location's page). */
@@ -96,31 +99,43 @@ export function BookmarkLocationsBox({
  * rather than sitting in its own bordered, scrollable container like {@link BookmarkLocationsBox}.
  */
 export function BookmarkLocationBadges({
-  locations,
+  locations, showHierarchyOnHover = false,
 }: LocationsBoxProps) {
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
   return (
     <div className="flex flex-wrap items-center gap-1">
-      {locations.map(location => (
-        <Link
-          key={location.id}
-          to="/taxonomies/locations/$locationSlug"
-          params={{
-            locationSlug: location.slug,
-          }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "location", location.id, location.slug)}
-        >
-          <Badge
-            variant="secondary"
-            className="inline-flex items-center gap-1"
+      {locations.map((location) => {
+        const link = (
+          <Link
+            to="/taxonomies/locations/$locationSlug"
+            params={{
+              locationSlug: location.slug,
+            }}
+            title={entityLinkTitle(modifier)}
+            onClick={event => viewClick(event, "location", location.id, location.slug)}
           >
-            <MapPin className="size-3 shrink-0" />
-            {location.name}
-          </Badge>
-        </Link>
-      ))}
+            <Badge
+              variant="secondary"
+              className="inline-flex items-center gap-1"
+            >
+              <MapPin className="size-3 shrink-0" />
+              {location.name}
+            </Badge>
+          </Link>
+        );
+        return (
+          <div key={location.id}>
+            {showHierarchyOnHover
+              ? (
+                <LocationHierarchyHoverCard location={location}>
+                  {link}
+                </LocationHierarchyHoverCard>
+              )
+              : link}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -131,15 +146,14 @@ export function BookmarkLocationBadges({
  * but laid out as plain inline text to fit the table value column. Mirrors {@link BookmarkTagLinks}.
  */
 export function BookmarkLocationLinks({
-  locations,
+  locations, showHierarchyOnHover = false,
 }: LocationsBoxProps) {
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
   return (
     <span className="text-sm">
-      {locations.map((location, index) => (
-        <Fragment key={location.id}>
-          {index > 0 ? ", " : null}
+      {locations.map((location, index) => {
+        const link = (
           <Link
             to="/taxonomies/locations/$locationSlug"
             params={{
@@ -154,8 +168,20 @@ export function BookmarkLocationLinks({
           >
             {location.name}
           </Link>
-        </Fragment>
-      ))}
+        );
+        return (
+          <Fragment key={location.id}>
+            {index > 0 ? ", " : null}
+            {showHierarchyOnHover
+              ? (
+                <LocationHierarchyHoverCard location={location}>
+                  {link}
+                </LocationHierarchyHoverCard>
+              )
+              : link}
+          </Fragment>
+        );
+      })}
     </span>
   );
 }

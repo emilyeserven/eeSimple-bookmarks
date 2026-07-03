@@ -2,6 +2,7 @@ import type { BookmarkMediaType } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
+import { MediaTypeHierarchyHoverCard } from "./MediaTypeHierarchyHoverCard";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
@@ -9,13 +10,19 @@ import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
 import { entityLinkTitle } from "@/lib/sidebarModifier";
 
+interface MediaTypePillProps {
+  mediaType: BookmarkMediaType;
+  /** Show the media type's ancestor chain in a hover popover (the `showMediaTypeHierarchyOnHover` placement knob). */
+  showHierarchyOnHover?: boolean;
+}
+
 /** A clickable pill showing a media type's icon and name. Navigates to the media type page; hold the modifier key to open in the sidebar. */
 export function MediaTypePill({
-  mediaType,
-}: { mediaType: BookmarkMediaType }) {
+  mediaType, showHierarchyOnHover = false,
+}: MediaTypePillProps) {
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
-  return (
+  const link = (
     <Link
       to="/taxonomies/media-types/$mediaTypeSlug"
       params={{
@@ -36,4 +43,11 @@ export function MediaTypePill({
       </Badge>
     </Link>
   );
+  return showHierarchyOnHover
+    ? (
+      <MediaTypeHierarchyHoverCard mediaType={mediaType}>
+        {link}
+      </MediaTypeHierarchyHoverCard>
+    )
+    : link;
 }

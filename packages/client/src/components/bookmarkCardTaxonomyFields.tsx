@@ -2,9 +2,13 @@ import type { ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
 import type { Bookmark, Category } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { BookmarkGroupBadges, BookmarkGroupLinks } from "./BookmarkGroupsBox";
 import { BookmarkLocationBadges, BookmarkLocationLinks } from "./BookmarkLocationsBox";
+import { BookmarkPeopleBadges, BookmarkPeopleLinks } from "./BookmarkPeopleBox";
 import { BookmarkTagLinks, BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
+import { GenreMoodHierarchyHoverCard } from "./GenreMoodHierarchyHoverCard";
+import { LanguagePill } from "./LanguagePill";
 import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
 
@@ -30,15 +34,16 @@ interface TaxonomyFieldArgs {
 }
 
 /**
- * The render forms for a taxonomy/relation field key (category, website, media type, YouTube channel,
- * tags, locations), or `null` when the field has nothing to show or `key` isn't a taxonomy field.
+ * The render forms for a taxonomy/relation field key (category, website, media type, language,
+ * YouTube channel, tags, genres & moods, locations, people, groups), or `null` when the field has
+ * nothing to show or `key` isn't a taxonomy field.
  */
 export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): FieldRender | null {
   const {
     bookmark, bookmarkCategory, effectiveHideWebsiteForYouTube, placements,
   } = args;
   const {
-    website, mediaType, youtubeChannel,
+    website, mediaType, language, youtubeChannel,
   } = bookmark;
   switch (key) {
     case "category": {
@@ -68,12 +73,28 @@ export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): Fie
     }
     case "mediaType": {
       if (!mediaType) return null;
-      const pill = <MediaTypePill mediaType={mediaType} />;
+      const showHierarchyOnHover = placements.get("mediaType")?.showMediaTypeHierarchyOnHover ?? false;
+      const pill = (
+        <MediaTypePill
+          mediaType={mediaType}
+          showHierarchyOnHover={showHierarchyOnHover}
+        />
+      );
       return {
         inline: pill,
         block: pill,
         tableName: "Media Type",
         tableValue: <span className="text-sm">{mediaType.name}</span>,
+      };
+    }
+    case "language": {
+      if (!language) return null;
+      const pill = <LanguagePill language={language} />;
+      return {
+        inline: pill,
+        block: pill,
+        tableName: "Language",
+        tableValue: <span className="text-sm">{language.name}</span>,
       };
     }
     case "youtubeChannel": {
@@ -120,16 +141,29 @@ export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): Fie
     }
     case "genreMoods": {
       if (bookmark.genreMoods.length === 0) return null;
+      const showHierarchyOnHover = placements.get("genreMoods")?.showGenreMoodHierarchyOnHover ?? false;
       const badges = (
         <div className="flex flex-wrap gap-1">
-          {bookmark.genreMoods.map(entry => (
-            <Badge
-              key={entry.id}
-              variant="secondary"
-            >
-              {entry.name}
-            </Badge>
-          ))}
+          {bookmark.genreMoods.map((entry) => {
+            const badge = (
+              <Badge
+                variant="secondary"
+              >
+                {entry.name}
+              </Badge>
+            );
+            return (
+              <div key={entry.id}>
+                {showHierarchyOnHover
+                  ? (
+                    <GenreMoodHierarchyHoverCard genreMood={entry}>
+                      {badge}
+                    </GenreMoodHierarchyHoverCard>
+                  )
+                  : badge}
+              </div>
+            );
+          })}
         </div>
       );
       return {
@@ -141,7 +175,13 @@ export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): Fie
     }
     case "locations": {
       if (bookmark.locations.length === 0) return null;
-      const badges = <BookmarkLocationBadges locations={bookmark.locations} />;
+      const showHierarchyOnHover = placements.get("locations")?.showLocationHierarchyOnHover ?? false;
+      const badges = (
+        <BookmarkLocationBadges
+          locations={bookmark.locations}
+          showHierarchyOnHover={showHierarchyOnHover}
+        />
+      );
       // Inline, unboxed badges — they flow alongside the card's other pills in the Labels zone
       // instead of sitting in their own bordered box (unlike Tags, which stays a block-level box).
       // The Table zone renders the names as clickable links.
@@ -149,7 +189,32 @@ export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): Fie
         inline: badges,
         block: badges,
         tableName: "Locations",
-        tableValue: <BookmarkLocationLinks locations={bookmark.locations} />,
+        tableValue: (
+          <BookmarkLocationLinks
+            locations={bookmark.locations}
+            showHierarchyOnHover={showHierarchyOnHover}
+          />
+        ),
+      };
+    }
+    case "people": {
+      if (bookmark.people.length === 0) return null;
+      const badges = <BookmarkPeopleBadges people={bookmark.people} />;
+      return {
+        inline: badges,
+        block: badges,
+        tableName: "People",
+        tableValue: <BookmarkPeopleLinks people={bookmark.people} />,
+      };
+    }
+    case "groups": {
+      if (bookmark.groups.length === 0) return null;
+      const badges = <BookmarkGroupBadges groups={bookmark.groups} />;
+      return {
+        inline: badges,
+        block: badges,
+        tableName: "Groups",
+        tableValue: <BookmarkGroupLinks groups={bookmark.groups} />,
       };
     }
     default:
