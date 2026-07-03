@@ -1,5 +1,6 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { LocationSortMode } from "../lib/locationSort";
+import type { SyncProvider } from "../lib/syncSources/syncSourceTypes";
 import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, LocationMapLevelMode, MediaType, PlaceType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
@@ -173,6 +174,9 @@ interface UiState {
   /** Transient: pageKey of the mounted listing that supports bulk multi-select (drives the header Select toggle), or null. Never persisted. */
   bulkSelectPageKey: string | null;
   setBulkSelectPageKey: (pageKey: string | null) => void;
+  /** Transient: the mounted edit form's outside-source sync provider (drives the header "Sync from source" button + modal), or null. Never persisted. */
+  syncProvider: SyncProvider | null;
+  setSyncProvider: (provider: SyncProvider | null) => void;
   /** Transient: id of the bookmark card currently under the cursor, for ⌘K quick-edit. Never persisted. */
   hoveredBookmarkId: string | null;
   setHoveredBookmarkId: (id: string | null) => void;
@@ -360,6 +364,10 @@ export const useUiStore = create<UiState>()(
       bulkSelectPageKey: null,
       setBulkSelectPageKey: pageKey => set({
         bulkSelectPageKey: pageKey,
+      }),
+      syncProvider: null,
+      setSyncProvider: provider => set({
+        syncProvider: provider,
       }),
       hoveredBookmarkId: null,
       setHoveredBookmarkId: id => set({

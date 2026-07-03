@@ -1,5 +1,6 @@
 import type { PinContext } from "@/components/HeaderPinButton";
 import type { SettingsPage } from "@/lib/settingsPages";
+import type { SyncProvider } from "@/lib/syncSources/syncSourceTypes";
 import type { LucideIcon } from "lucide-react";
 
 import React from "react";
@@ -48,6 +49,8 @@ export interface ToolbarContext {
   settingsPage: SettingsPage | null | undefined;
   pinContext: PinContext | null;
   openPanel: () => void;
+  /** The mounted edit form's outside-source sync provider, or null. Gates the "Sync from source" button. */
+  syncProvider: SyncProvider | null;
 }
 
 /**

@@ -18,9 +18,18 @@ function ctx(overrides: Partial<ToolbarContext> = {}): ToolbarContext {
     settingsPage: null,
     pinContext: null,
     openPanel: vi.fn(),
+    syncProvider: null,
     ...overrides,
   };
 }
+
+const SAMPLE_SYNC_PROVIDER: ToolbarContext["syncProvider"] = {
+  descriptorKind: "location",
+  entityLabel: "Tokyo",
+  entityId: "loc1",
+  supportsRegeocode: true,
+  applyStaged: vi.fn(),
+};
 
 const keys = (c: ToolbarContext) => buildToolbarActions(c).map(a => a.key);
 
@@ -82,6 +91,25 @@ describe("buildToolbarActions", () => {
     }))).toEqual([
       "bookmark-layout",
       "edit-bookmark",
+      "open-panel",
+    ]);
+  });
+
+  it("adds the sync-from-source action only when an edit form registers a sync provider", () => {
+    expect(keys(ctx())).not.toContain("sync-from-source");
+    expect(keys(ctx({
+      syncProvider: SAMPLE_SYNC_PROVIDER,
+    }))).toContain("sync-from-source");
+  });
+
+  it("places sync-from-source right after edit-bookmark on a bookmark edit surface", () => {
+    expect(keys(ctx({
+      isBookmarkDetail: true,
+      syncProvider: SAMPLE_SYNC_PROVIDER,
+    }))).toEqual([
+      "bookmark-layout",
+      "edit-bookmark",
+      "sync-from-source",
       "open-panel",
     ]);
   });

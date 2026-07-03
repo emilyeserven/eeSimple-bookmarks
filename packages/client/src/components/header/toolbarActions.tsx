@@ -20,6 +20,7 @@ import {
   searchAction,
   sortAction,
 } from "./toolbarListingActions";
+import { syncFromSourceAction } from "./toolbarSyncAction";
 
 export type { ToolbarAction, ToolbarContext, ToolbarMobile } from "./toolbarActionTypes";
 
@@ -38,6 +39,7 @@ export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
     bookmarkLayoutAction(ctx),
     viewDetailsAction(ctx),
     editBookmarkAction(ctx),
+    syncFromSourceAction(ctx),
     addChildAction(ctx),
     createListingAction(ctx),
     settingsFavoriteAction(ctx),
