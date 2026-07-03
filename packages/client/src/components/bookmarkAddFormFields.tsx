@@ -69,7 +69,7 @@ const FIELD_RENDERERS: Record<
   (props: StandardFieldRenderProps) => ReactNode
 > = {
   title: props => (props.hideNameField ? null : <BookmarkTitleField {...props} />),
-  romanizedTitle: props => <BookmarkRomanizedNameField form={props.form} />,
+  romanizedName: props => <BookmarkRomanizedNameField form={props.form} />,
   categoryId: props => (
     <BookmarkAdvancedCategoryField
       form={props.form}

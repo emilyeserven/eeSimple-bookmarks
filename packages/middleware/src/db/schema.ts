@@ -11,7 +11,7 @@ export const bookmarks = pgTable("bookmarks", {
   originalUrl: text("original_url"),
   title: text("title").notNull(),
   // Optional romanized form of the title. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedTitle: text("romanized_title"),
+  romanizedName: text("romanized_name"),
   description: text("description"),
   // Owning category. Nullable at the DB level so `drizzle-kit push` applies cleanly to
   // existing rows; the service layer resolves NULL to the built-in "Default" category.
@@ -89,6 +89,9 @@ export const bookmarks = pgTable("bookmarks", {
     onDelete: "set null",
   }),
   trackId: uuid("track_id").references((): AnyPgColumn => tracks.id, {
+    onDelete: "set null",
+  }),
+  podcastId: uuid("podcast_id").references((): AnyPgColumn => podcasts.id, {
     onDelete: "set null",
   }),
   // Legacy: direct link to an item on the connected Plex server (Settings → Connectors). All nullable =
@@ -408,7 +411,10 @@ export const languageUsageLevels = pgTable("language_usage_levels", {
 }, table => [
   // Names are unique per kind (a "Native" availability level and a "Native" proficiency level could
   // coexist, though the seeds don't overlap); slugs are globally unique for routing.
-  unique("language_usage_levels_kind_name_unique").on(table.kind, table.name),
+  // A composite `uniqueIndex`, NOT a table `unique()` constraint, on purpose — drizzle-kit 0.31.10
+  // re-proposes composite unique CONSTRAINTs on every push, prompting to truncate the populated
+  // table and crashing the non-TTY deploy (see the `tags_parent_name_unique` note in migrate.ts).
+  uniqueIndex("language_usage_levels_kind_name_unique").on(table.kind, table.name),
   unique("language_usage_levels_slug_unique").on(table.slug),
 ]);
 
@@ -445,7 +451,9 @@ export const languageUsages = pgTable("language_usages", {
   }).notNull().defaultNow(),
 }, table => [
   index("language_usages_owner_idx").on(table.ownerType, table.ownerId),
-  unique("language_usages_owner_lang_level_unique").on(
+  // A composite `uniqueIndex`, NOT a table `unique()` constraint — same drizzle-kit push
+  // non-convergence as the kind/name index above (and `tags_parent_name_unique`); see migrate.ts.
+  uniqueIndex("language_usages_owner_lang_level_unique").on(
     table.ownerType,
     table.ownerId,
     table.languageId,
@@ -792,13 +800,46 @@ export const tracks = pgTable("tracks", {
 ]);
 
 /**
+ * `podcasts` table — a taxonomy of podcasts, optionally grouped under a media property. Unlike the
+ * Plex-backed siblings, a Podcast is sourced keylessly from its public RSS/XML feed and/or Apple
+ * Podcasts (iTunes): `feed_url` is the sync source of truth, `itunes_id`/`itunes_url` link the Apple
+ * Podcasts entry, and `author`/`description` are denormalized from the feed. All source columns +
+ * `mediaPropertyId` nullable → push-safe additive. Nullable slug for clean `push`; backfilled at boot.
+ */
+export const podcasts = pgTable("podcasts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
+  // Podcast source linkage: the RSS/XML feed URL is the canonical sync source; the iTunes id/url link
+  // the Apple Podcasts entry (from the keyless search picker) for a deep link + re-resolution.
+  feedUrl: text("feed_url"),
+  itunesId: integer("itunes_id"),
+  itunesUrl: text("itunes_url"),
+  // Denormalized from the feed so display needs no round-trip.
+  author: text("author"),
+  description: text("description"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("podcasts_name_unique").on(table.name),
+  unique("podcasts_slug_unique").on(table.slug),
+]);
+
+/**
  * `taxonomy_images` — a shared, polymorphic multi-image gallery for the Plex/Kavita-backed media
  * taxonomies (Movies, TV Shows, Episodes, Albums, Tracks, Books). Mirrors `bookmark_images`
  * (up to {@link MAX_TAXONOMY_IMAGES} per owner, one flagged `isMain`) but keyed by
  * `(ownerType, ownerId)` instead of a single `bookmarkId` FK, since one physical table can't carry a
  * foreign key into six different owner tables. `ownerType` is one of `TAXONOMY_IMAGE_OWNER_TYPES`.
  */
-export const TAXONOMY_IMAGE_OWNER_TYPES = ["movie", "tvShow", "episode", "album", "track", "book"] as const;
+export const TAXONOMY_IMAGE_OWNER_TYPES = ["movie", "tvShow", "episode", "album", "track", "book", "podcast"] as const;
 
 export const taxonomyImages = pgTable("taxonomy_images", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2619,7 +2660,9 @@ export type AlbumRow = typeof albums.$inferSelect;
 export type TrackRow = typeof tracks.$inferSelect;
 export type AlbumPersonRow = typeof albumPeople.$inferSelect;
 export type AlbumGroupRow = typeof albumGroups.$inferSelect;
+export type PodcastRow = typeof podcasts.$inferSelect;
 export type NewBookRow = typeof books.$inferInsert;
+export type NewPodcastRow = typeof podcasts.$inferInsert;
 export type TaxonomyImageRow = typeof taxonomyImages.$inferSelect;
 export type NewTaxonomyImageRow = typeof taxonomyImages.$inferInsert;
 export type TaxonomyImageOwnerType = typeof TAXONOMY_IMAGE_OWNER_TYPES[number];

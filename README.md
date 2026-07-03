@@ -111,6 +111,31 @@ pnpm push:dev         # run the migrations hook, then push the schema to the loc
 
 To reset the database: `docker compose down -v && docker compose up --wait db && pnpm push:dev`.
 
+## Optional integrations: self-hosted services & accounts
+
+The base stack (client, middleware, gateway, Postgres, Garage) is everything you need to run
+eeSimple Bookmarks. Everything below is **opt-in** — each integration is off until you set its
+env vars (or fill them in on **Settings → Connectors**), and the app behaves identically without
+it. Full details for each are in `packages/middleware/.env.example`.
+
+| Integration | Kind | What it needs | Unlocks |
+|---|---|---|---|
+| Garage (or any S3-compatible store) | Self-hosted, **required for images** | `S3_ENDPOINT`/`S3_REGION`/`S3_BUCKET`/`S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY` | Bookmark image upload/auto-capture. See [Object storage (Garage)](#object-storage-garage-for-bookmark-images) above. |
+| [Browserless](https://www.browserless.io/) (or any Microlink-compatible endpoint) | Self-hosted (`docker run -p 3000:3000 ghcr.io/browserless/chromium`) or hosted account | `HOSTED_METADATA_ENDPOINT` (+ optional `HOSTED_METADATA_API_KEY`) | Metadata scraping for JS-rendered / bot-protected pages that the keyless scraper can't read. |
+| YouTube Data API v3 | Google account | `YOUTUBE_API_KEY` — create one for free in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) (enable "YouTube Data API v3", create an API key) | Reliable video duration/publish-date/description and channel avatars, replacing the scrape YouTube increasingly blocks. |
+| Instagram profile API | Third-party hosted account | `INSTAGRAM_API_KEY` + `INSTAGRAM_API_ENDPOINT` (a `{handle}`-templated URL to your provider) | Author avatar/profile pulled from Instagram instead of the keyless embed scrape. |
+| [ArchiveBox](https://archivebox.io/) | Self-hosted | `ARCHIVEBOX_ENDPOINT` | An "Archive now" link-out per bookmark, opened in your browser against your own instance (no token, no server-side calls). |
+| [Kavita](https://www.kavitareader.com/) | Self-hosted | `KAVITA_ENDPOINT` + `KAVITA_API_KEY` (from Kavita → User Settings → API Key) | Link a bookmark to a Kavita series, a "View on Kavita" link-out, series cover import, and table-of-contents import. |
+| [Plex](https://www.plex.tv/) | Self-hosted | `PLEX_ENDPOINT` + `PLEX_TOKEN` ([finding your token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)) | Link a bookmark to a Plex movie/show/music item, a "View on Plex" link-out, and poster import. |
+| Nominatim / Wikidata / Wikimedia Maps | Keyless, on by default; optionally self-hosted | `NOMINATIM_ENDPOINT` / `WIKIDATA_ENDPOINT` / `WIKIMEDIA_MAPS_ENDPOINT` | Locations geocoding. Works out of the box against the public instances; point these at self-hosted mirrors to keep lookups on-box. |
+| `APP_SECRET` | Self-generated, not a third-party account | A long random string, e.g. `openssl rand -hex 32` | Encrypts API keys entered on **Settings → Connectors** at rest. Without it, keys set via the UI are stored as plaintext (still never returned by the API). |
+
+None of these require a paid plan — Browserless, Kavita, Plex, and ArchiveBox are self-hosted
+open-source projects you run yourself, and the YouTube/Instagram integrations use free API tiers.
+Set the corresponding env vars (locally in `packages/middleware/.env`, or in Coolify's environment
+for production) or fill them in from **Settings → Connectors** in the running app — either path
+works, and a value set in the UI takes priority over the env var.
+
 ## Deploy to Coolify
 
 eeSimple Bookmarks is built to self-deploy. In production a single Docker image (the repo-root `Dockerfile`)

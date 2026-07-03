@@ -24,6 +24,7 @@ import type {
   LanguageUsageLevel,
   LanguageUsageKind,
   LanguageUsage,
+  LanguageUsageAssociation,
   LanguageUsageOwnerType,
   UpdateLanguageUsageEntry,
   CreatePlaceTypeInput,
@@ -57,6 +58,11 @@ import type {
   Album,
   Track,
   PlaceType,
+  Podcast,
+  CreatePodcastInput,
+  UpdatePodcastInput,
+  PodcastSearchResult,
+  PodcastFeedResult,
   UpdateBookInput,
   UpdateLocationInput,
   UpdateMediaPropertyInput,
@@ -259,6 +265,9 @@ export const languageUsageLevelsApi = {
   // Optionally filter to a single kind (availability vs. proficiency) for the pickers.
   list: (kind?: LanguageUsageKind) =>
     request<LanguageUsageLevel[]>(`/language-usage-levels${kind ? `?kind=${kind}` : ""}`),
+  // Distinct (language, level) pairings across all owners, with counts, for the overview page.
+  associations: () =>
+    request<LanguageUsageAssociation[]>("/language-usage-levels/associations"),
   // Deleting a level can reassign its associations to another level instead of dropping them.
   remove: (id: string, reassignTo?: string) =>
     request<undefined>(
@@ -288,6 +297,15 @@ export const mediaPropertiesApi = createCrudApi<MediaProperty, CreateMediaProper
 export const booksApi = {
   ...createCrudApi<Book, CreateBookInput, UpdateBookInput>("books"),
   images: createTaxonomyImageApi("/books"),
+};
+
+export const podcastsApi = {
+  ...createCrudApi<Podcast, CreatePodcastInput, UpdatePodcastInput>("podcasts"),
+  images: createTaxonomyImageApi("/podcasts"),
+  search: (q: string) =>
+    request<PodcastSearchResult[]>(`/podcasts/search?q=${encodeURIComponent(q)}`),
+  feedPreview: (id: string) =>
+    request<PodcastFeedResult>(`/podcasts/${id}/feed-preview`),
 };
 
 export const moviesApi = {

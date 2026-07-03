@@ -8,8 +8,9 @@ import {
   STANDARD_CARD_FIELD_KEYS,
 } from "@/services/cardDisplayDefaults";
 
-test("defaultBodyZone routes description and header fields to card-single-top", () => {
+test("defaultBodyZone routes description, romanizedName, and header fields to card-single-top", () => {
   assert.equal(defaultBodyZone("description"), "card-single-top");
+  assert.equal(defaultBodyZone("romanizedName"), "card-single-top");
   for (const key of HEADER_CARD_FIELD_KEYS) {
     assert.equal(defaultBodyZone(key), "card-single-top");
   }

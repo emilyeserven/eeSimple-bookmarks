@@ -41,9 +41,9 @@ so it shows on edit surfaces and nowhere else. There is no per-entity-type logic
 
 ## A provider has two halves
 
-`descriptorKind` (`"bookmark" | "location" | "image-taxonomy" | "plex-title"`) selects the **fetch
-hook**; the **registration hook** builds `applyStaged` closing over the live form. Split so fetching
-stays in the modal (gated on open) and applying has the form state.
+`descriptorKind` (`"bookmark" | "location" | "image-taxonomy" | "plex-title" | "podcast-feed"`) selects
+the **fetch hook**; the **registration hook** builds `applyStaged` closing over the live form. Split so
+fetching stays in the modal (gated on open) and applying has the form state.
 
 | Kind | Fetch hook | Diff builder (pure, tested) | Registration hook | applyStaged |
 |---|---|---|---|---|
@@ -51,6 +51,7 @@ stays in the modal (gated on open) and applying has the form state.
 | `location` | `useLocationSyncSource` (`/api/locations/lookup`) | `lib/syncSources/locationDiff.ts` | `useLocationSyncRegistration` (in `LocationGeneralForm`) | per-field `setFieldValue`+`saveField`; re-geocode on → force `repullCoordinates` for coord/boundary rows |
 | `image-taxonomy` | `useImageOnlyTaxonomySyncSource` (`…/image/source-preview` or the Plex poster proxy) | `lib/syncSources/imageTaxonomyDiff.ts` | `useImageTaxonomySyncRegistration` (in each general form + `PlexTaxonomyImageTab`) | the row → the caller's existing auto-fetch/import mutation (immediate) |
 | `plex-title` | `usePlexTitleSyncSource` (`…/:id/plex-metadata-preview` for the resolved Wikidata names/links + the Plex poster proxy) | `lib/syncSources/plexTitleDiff.ts` | `usePlexTitleSyncRegistration` (in `PlexTitleGeneralForm`) | text rows (native/romanized names + Wikipedia links) → `form.setFieldValue`+`saveField` (name follows the slug); poster row → the image gallery's `plex-poster` auto-fetch (immediate) |
+| `podcast-feed` | `usePodcastSyncSource` (`…/:id/feed-preview`, resolve-only RSS/iTunes metadata via `podcastsApi.feedPreview`) | `lib/syncSources/podcastDiff.ts` | `usePodcastSyncRegistration` (in `PodcastGeneralForm`) | text rows (name/author/description) → `form.setFieldValue`+`saveField` (name follows the slug); artwork row → the image gallery's `artwork` auto-fetch (immediate). **Keyless** — registers whenever the podcast has a `feedUrl` or `itunesId`, not gated on a connector |
 
 **Why Plex titles aren't `image-taxonomy`:** the five Plex media taxonomies (Movies/TV Shows/Episodes/
 Albums/Tracks) sync **text *and* image** — native/romanized names + Wikipedia links resolved

@@ -18,6 +18,7 @@ import { MOVIE_ROUTE } from "../entities/movie";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
 import { PERSON_ROUTE } from "../entities/person";
 import { PLACE_TYPE_ROUTE } from "../entities/placeType";
+import { PODCAST_ROUTE } from "../entities/podcast";
 import { CUSTOM_PROPERTY_ROUTE } from "../entities/property";
 import { PROPERTY_GROUP_ROUTE } from "../entities/propertyGroup";
 import { RELATIONSHIP_TYPE_ROUTE } from "../entities/relationshipType";
@@ -46,6 +47,7 @@ export type EntityRouteKind
     | "property-group"
     | "media-property"
     | "book"
+    | "podcast"
     | "movie"
     | "tv-show"
     | "episode"
@@ -102,6 +104,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   PROPERTY_GROUP_ROUTE,
   MEDIA_PROPERTY_ROUTE,
   BOOK_ROUTE,
+  PODCAST_ROUTE,
   MOVIE_ROUTE,
   TV_SHOW_ROUTE,
   EPISODE_ROUTE,

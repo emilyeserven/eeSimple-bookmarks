@@ -228,6 +228,7 @@ export function CardFieldZoneBoard({
       if (existing?.showLabelColon === false) placement.showLabelColon = false;
       if (existing?.showValueBeforeLabel) placement.showValueBeforeLabel = true;
       if (existing?.clickableTags) placement.clickableTags = true;
+      if (existing?.showTagHierarchyOnHover) placement.showTagHierarchyOnHover = true;
       const list = next[targetZone];
       const at = targetIndex === undefined ? list.length : Math.min(Math.max(targetIndex, 0), list.length);
       list.splice(at, 0, placement);
@@ -349,16 +350,24 @@ export function CardFieldZoneBoard({
                         onPatch={onPatch}
                       />
                     )
-                    : def.zone === "card-table"
+                    : placement.key === "tags"
                       ? (
-                        <TablePlacementControls
-                          fieldKey={placement.key}
+                        <TagsPlacementControls
+                          zone={def.zone}
                           placement={placement}
                           idPrefix={chipIdPrefix}
                           onPatch={onPatch}
                         />
                       )
-                      : null}
+                      : def.zone === "card-table"
+                        ? (
+                          <TablePlacementControls
+                            placement={placement}
+                            idPrefix={chipIdPrefix}
+                            onPatch={onPatch}
+                          />
+                        )
+                        : null}
                 </FieldChip>
               );
             })}
@@ -574,13 +583,10 @@ function HideLabelToggle({
   );
 }
 
-/**
- * Controls for a field placed in the card-body Table zone: Hide label, plus a "Clickable links"
- * toggle on the Tags field (renders the tag names as links to each tag's page instead of plain text).
- */
+/** Controls for a field placed in the card-body Table zone: just a "Hide label" checkbox. */
 function TablePlacementControls({
-  fieldKey, placement, idPrefix, onPatch,
-}: PlacementControlsProps & { fieldKey: string }) {
+  placement, idPrefix, onPatch,
+}: PlacementControlsProps) {
   return (
     <div className="flex flex-col items-start gap-1.5 pl-5 text-xs">
       <HideLabelToggle
@@ -588,18 +594,48 @@ function TablePlacementControls({
         idPrefix={idPrefix}
         onPatch={onPatch}
       />
-      {fieldKey === "tags"
+    </div>
+  );
+}
+
+/**
+ * Controls for the Tags field, in whichever zone it's placed: a "Show hierarchy on hover" toggle
+ * (any zone — shows a popover with the tag's ancestor chain), plus, in the `card-table` zone only,
+ * "Hide label" and a "Clickable links" toggle (renders the tag names as links to each tag's page
+ * instead of plain text).
+ */
+function TagsPlacementControls({
+  zone, placement, idPrefix, onPatch,
+}: PlacementControlsProps & { zone: CardFieldZone }) {
+  return (
+    <div className="flex flex-col items-start gap-1.5 pl-5 text-xs">
+      {zone === "card-table"
         ? (
-          <PlacementCheckbox
-            id={`${idPrefix}-clickable-tags`}
-            label="Clickable links"
-            checked={placement.clickableTags ?? false}
-            onCheckedChange={clickableTags => onPatch({
-              clickableTags,
-            })}
-          />
+          <>
+            <HideLabelToggle
+              placement={placement}
+              idPrefix={idPrefix}
+              onPatch={onPatch}
+            />
+            <PlacementCheckbox
+              id={`${idPrefix}-clickable-tags`}
+              label="Clickable links"
+              checked={placement.clickableTags ?? false}
+              onCheckedChange={clickableTags => onPatch({
+                clickableTags,
+              })}
+            />
+          </>
         )
         : null}
+      <PlacementCheckbox
+        id={`${idPrefix}-hover-hierarchy`}
+        label="Show hierarchy on hover"
+        checked={placement.showTagHierarchyOnHover ?? false}
+        onCheckedChange={showTagHierarchyOnHover => onPatch({
+          showTagHierarchyOnHover,
+        })}
+      />
     </div>
   );
 }

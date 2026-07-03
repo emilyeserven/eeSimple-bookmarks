@@ -200,6 +200,7 @@ export function BookmarkForm({
         form={form}
         scanned={c.scanned}
         isEdit={c.isEdit}
+        previewMode={c.previewMode}
         isScanning={c.isScanning}
         inputType={c.inputType}
         urlDuplicate={c.urlDuplicate}
@@ -223,6 +224,7 @@ interface BookmarkFormFooterProps {
   form: BookmarkFormApi;
   scanned: boolean;
   isEdit: boolean;
+  previewMode?: boolean;
   isScanning: boolean;
   inputType: BookmarkInputType;
   urlDuplicate: BookmarkUrlDuplicateResult | null;
@@ -246,6 +248,7 @@ function BookmarkFormFooter({
   form,
   scanned,
   isEdit,
+  previewMode,
   isScanning,
   inputType,
   urlDuplicate,
@@ -266,9 +269,9 @@ function BookmarkFormFooter({
           ? (
             <form.AppForm>
               <form.SubmitButton
-                label={isEdit ? "Save changes" : "Add Bookmark"}
+                label={previewMode ? "Preview only" : isEdit ? "Save changes" : "Add Bookmark"}
                 pendingLabel="Saving…"
-                disabledWhen={!isEdit && Boolean(urlDuplicate?.exactMatch)}
+                disabledWhen={previewMode || (!isEdit && Boolean(urlDuplicate?.exactMatch))}
               />
             </form.AppForm>
           )
@@ -277,6 +280,7 @@ function BookmarkFormFooter({
               inputType={inputType}
               isScanning={isScanning}
               saveIsPending={saveIsPending}
+              previewMode={previewMode}
               onCheckUrl={onCheckUrl}
               onAddNow={onAddNow}
               onAddOfflineBookmark={onAddOfflineBookmark}
@@ -316,6 +320,7 @@ interface PrescanActionsProps {
   inputType: BookmarkInputType;
   isScanning: boolean;
   saveIsPending: boolean;
+  previewMode?: boolean;
   onCheckUrl: () => void;
   onAddNow: () => void;
   onAddOfflineBookmark: () => void;
@@ -327,6 +332,7 @@ function PrescanActions({
   inputType,
   isScanning,
   saveIsPending,
+  previewMode,
   onCheckUrl,
   onAddNow,
   onAddOfflineBookmark,
@@ -371,7 +377,7 @@ function PrescanActions({
       <Button
         type="button"
         variant="link"
-        disabled={isScanning || saveIsPending}
+        disabled={isScanning || saveIsPending || previewMode}
         onClick={onAddNow}
       >
         Add Now

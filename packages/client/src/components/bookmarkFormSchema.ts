@@ -25,7 +25,7 @@ import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 export const bookmarkSchema = z.object({
   url: z.string(),
   title: z.string().min(1, "Title is required"),
-  romanizedTitle: z.string(),
+  romanizedName: z.string(),
   categoryId: z.string().min(1, "Category is required"),
   mediaTypeId: z.string(),
   languageId: z.string(),
@@ -45,6 +45,7 @@ export const bookmarkSchema = z.object({
   episodeId: z.string(),
   albumId: z.string(),
   trackId: z.string(),
+  podcastId: z.string(),
 });
 
 /**
@@ -139,7 +140,7 @@ export function openGitHubIssue(title: string, body: string): void {
 const SAMPLE_DEFAULT_VALUES: {
   url: string;
   title: string;
-  romanizedTitle: string;
+  romanizedName: string;
   categoryId: string;
   mediaTypeId: string;
   languageId: string;
@@ -158,10 +159,11 @@ const SAMPLE_DEFAULT_VALUES: {
   episodeId: string;
   albumId: string;
   trackId: string;
+  podcastId: string;
 } = {
   url: "",
   title: "",
-  romanizedTitle: "",
+  romanizedName: "",
   categoryId: "",
   mediaTypeId: "",
   languageId: "",
@@ -180,6 +182,7 @@ const SAMPLE_DEFAULT_VALUES: {
   episodeId: "",
   albumId: "",
   trackId: "",
+  podcastId: "",
 };
 
 /**
@@ -207,7 +210,7 @@ export type BookmarkFormApi = ReturnType<typeof _bookmarkFormApiSample>;
 export interface BookmarkInitialValues {
   url?: string;
   title?: string;
-  romanizedTitle?: string;
+  romanizedName?: string;
 }
 
 /**
@@ -223,7 +226,7 @@ export function buildBookmarkDefaultValues(
 ): {
   url: string;
   title: string;
-  romanizedTitle: string;
+  romanizedName: string;
   categoryId: string;
   mediaTypeId: string;
   languageId: string;
@@ -242,11 +245,12 @@ export function buildBookmarkDefaultValues(
   episodeId: string;
   albumId: string;
   trackId: string;
+  podcastId: string;
 } {
   return {
     url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
     title: bookmark?.title ?? initial.title ?? "",
-    romanizedTitle: bookmark?.romanizedTitle ?? initial.romanizedTitle ?? "",
+    romanizedName: bookmark?.romanizedName ?? initial.romanizedName ?? "",
     categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
     mediaTypeId: bookmark?.mediaType?.id ?? "",
     languageId: bookmark?.language?.id ?? "",
@@ -265,6 +269,7 @@ export function buildBookmarkDefaultValues(
     episodeId: bookmark?.episodeId ?? "",
     albumId: bookmark?.albumId ?? "",
     trackId: bookmark?.trackId ?? "",
+    podcastId: bookmark?.podcastId ?? "",
   };
 }
 

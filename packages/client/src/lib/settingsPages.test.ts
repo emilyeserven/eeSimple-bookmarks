@@ -55,6 +55,15 @@ describe("settingsPages registry", () => {
     expect(page?.icon).toBeDefined();
   });
 
+  it("resolves the Language Usage Levels overview reachable from the Languages flyout", () => {
+    const page = findSettingsPage("/taxonomies/language-usage-levels");
+    expect(page).toMatchObject({
+      path: "/taxonomies/language-usage-levels",
+      label: "Usage Levels",
+    });
+    expect(page?.icon).toBeDefined();
+  });
+
   it("derives an entry for every sidebar taxonomy/action/customization item", () => {
     for (const item of [...taxonomyItems, ...actionItems, ...customizationItems]) {
       const page = findSettingsPage(item.to);

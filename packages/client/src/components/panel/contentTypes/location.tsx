@@ -25,9 +25,10 @@ function useLocationList() {
     }) => ({
       id: node.id,
       label: `${"— ".repeat(depth)}${node.name}`,
-      sublabel: node.romanizedName?.trim()
-        ? node.romanizedName.trim()
-        : node.children.length > 0 ? `${node.children.length} children` : undefined,
+      // Romanized form renders beside the name via the shared toggle-aware RomanizedLabel; the
+      // children count is the de-emphasized sublabel.
+      romanized: node.romanizedName,
+      sublabel: node.children.length > 0 ? `${node.children.length} children` : undefined,
     })),
     [data],
   );

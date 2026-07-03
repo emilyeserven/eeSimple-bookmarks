@@ -7,7 +7,7 @@ import { useAppForm } from "../lib/form";
 interface BookmarkFormHostValues {
   url: string;
   title: string;
-  romanizedTitle: string;
+  romanizedName: string;
   categoryId: string;
   mediaTypeId: string;
   languageId: string;
@@ -26,6 +26,7 @@ interface BookmarkFormHostValues {
   episodeId: string;
   albumId: string;
   trackId: string;
+  podcastId: string;
 }
 
 interface BookmarkFormHostProps {
@@ -49,7 +50,7 @@ export function BookmarkFormHost({
     defaultValues: {
       url: "",
       title: "",
-      romanizedTitle: "",
+      romanizedName: "",
       categoryId: "",
       mediaTypeId: "",
       languageId: "",
@@ -68,6 +69,7 @@ export function BookmarkFormHost({
       episodeId: "",
       albumId: "",
       trackId: "",
+      podcastId: "",
       ...initialValues,
     },
     validators: {

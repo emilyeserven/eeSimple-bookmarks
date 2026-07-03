@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { usePersonBySlug, useDeletePerson } from "../hooks/usePeople";
 
@@ -30,7 +31,14 @@ function PersonViewLayout() {
         <div className="space-y-1">
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl font-bold">
-              {isLoading ? "Person" : (person?.name ?? "Person not found")}
+              {person
+                ? (
+                  <RomanizedLabel
+                    name={person.name}
+                    romanized={person.romanizedName}
+                  />
+                )
+                : (isLoading ? "Person" : "Person not found")}
             </h1>
             {person
               ? (

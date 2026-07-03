@@ -9,11 +9,13 @@ import { useEpisodeBySlug } from "@/hooks/useEpisodes";
 import { useGroupBySlug } from "@/hooks/useGroups";
 import { useGroupTypeBySlug } from "@/hooks/useGroupTypes";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
+import { useLanguageBySlug } from "@/hooks/useLanguages";
 import { useMediaPropertyBySlug } from "@/hooks/useMediaProperties";
 import { useMovieBySlug } from "@/hooks/useMovies";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePersonBySlug } from "@/hooks/usePeople";
 import { usePlaceTypeBySlug } from "@/hooks/usePlaceTypes";
+import { usePodcastBySlug } from "@/hooks/usePodcasts";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useSavedFilterBySlug } from "@/hooks/useSavedFilters";
@@ -27,10 +29,12 @@ export interface TaxonomyNameSlugs {
   person: string;
   group: string;
   groupType: string;
+  language: string;
   placeType: string;
   propertyGroup: string;
   mediaProperty: string;
   book: string;
+  podcast: string;
   movie: string;
   tvShow: string;
   episode: string;
@@ -67,6 +71,9 @@ export function useTaxonomyNameMap(
     groupType,
   } = useGroupTypeBySlug(slugs.groupType);
   const {
+    language,
+  } = useLanguageBySlug(slugs.language);
+  const {
     placeType,
   } = usePlaceTypeBySlug(slugs.placeType);
   const {
@@ -78,6 +85,9 @@ export function useTaxonomyNameMap(
   const {
     book,
   } = useBookBySlug(slugs.book);
+  const {
+    podcast,
+  } = usePodcastBySlug(slugs.podcast);
   const {
     movie,
   } = useMovieBySlug(slugs.movie);
@@ -127,6 +137,9 @@ export function useTaxonomyNameMap(
     "/taxonomies/group-types": {
       name: groupType?.name,
     },
+    "/taxonomies/languages": {
+      name: language?.name,
+    },
     "/taxonomies/place-types": {
       name: placeType?.name,
     },
@@ -138,6 +151,9 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/books": {
       name: book?.name,
+    },
+    "/taxonomies/podcasts": {
+      name: podcast?.name,
     },
     "/taxonomies/movies": {
       name: movie?.name,

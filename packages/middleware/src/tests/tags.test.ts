@@ -125,7 +125,7 @@ test("titleMatchesTerm is re-exported and keeps Latin whole-word semantics", () 
   assert.equal(titleMatchesTerm("Martin's blog", "art"), false);
 });
 
-test("matchTagIdsByTitle matches name and romanizedName across title and romanizedTitle", () => {
+test("matchTagIdsByTitle matches name and romanizedName across title and romanizedName", () => {
   const tagList = [
     {
       id: "t-react",
@@ -145,7 +145,7 @@ test("matchTagIdsByTitle matches name and romanizedName across title and romaniz
     matchTagIdsByTitle("Ferry from Busan to Fukuoka", null, tagList),
     ["t-busan"],
   );
-  // Latin whole-word plus a romanizedTitle haystack.
+  // Latin whole-word plus a romanizedName haystack.
   assert.deepEqual(matchTagIdsByTitle("Styling React with CSS", null, tagList), ["t-react"]);
   assert.deepEqual(matchTagIdsByTitle("旅行", "Busan trip", tagList), ["t-busan"]);
   assert.deepEqual(matchTagIdsByTitle("", null, tagList), []);

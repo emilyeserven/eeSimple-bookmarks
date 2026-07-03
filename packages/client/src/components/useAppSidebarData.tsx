@@ -124,6 +124,7 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   aiSummarizationCount: number | undefined;
   placeTypesCount: number | undefined;
   booksCount: number | undefined;
+  podcastsCount: number | undefined;
   moviesCount: number | undefined;
   tvShowsCount: number | undefined;
   episodesCount: number | undefined;
@@ -266,6 +267,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     aiSummarizationCount: data.aiSummaryQueue?.length,
     placeTypesCount: data.allPlaceTypes?.length,
     booksCount: data.allBooks?.length,
+    podcastsCount: data.allPodcasts?.length,
     moviesCount: data.allMovies?.length,
     tvShowsCount: data.allTvShows?.length,
     episodesCount: data.allEpisodes?.length,

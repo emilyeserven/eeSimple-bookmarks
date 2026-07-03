@@ -257,6 +257,90 @@ const migrations: RuntimeMigration[] = [
       await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "tags_parent_name_unique" ON "tags" ("parent_id", "name")`);
     },
   },
+  // ── Languages taxonomy + usage levels/associations (added #904 / #910 / #914) ────────────────────
+  // These tables + the `bookmarks.language_id` companion column all shipped WITHOUT a `migrate.ts`
+  // pre-create, so against a populated prod DB `drizzle-kit push` treats each brand-new table as a
+  // pgSuggestions "truncate?" change, bails in the non-TTY deploy while exiting 0, and SILENTLY SKIPS
+  // the table (and the rest of its additive diff) — the "relation … does not exist" / "column
+  // language_id does not exist" 500s. Pre-create them here (idempotent `IF NOT EXISTS`, DDL mirroring
+  // schema.ts). FK columns are declared as plain `uuid` (push adds the FK constraints afterward,
+  // additively); composite uniques are unique INDEXES, never `unique()` constraints (the
+  // `tags_parent_name_unique` rule). Ordered languages → levels → usages, but the FK-less pre-creates
+  // don't actually depend on each other. Boot-time `backfill*Slugs()` fill the NULL slugs.
+  {
+    name: "create languages table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "languages" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "iso_code" text,
+        "slug" text,
+        "built_in" boolean DEFAULT false NOT NULL,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+        CONSTRAINT "languages_name_unique" UNIQUE("name"),
+        CONSTRAINT "languages_slug_unique" UNIQUE("slug"),
+        CONSTRAINT "languages_iso_code_unique" UNIQUE("iso_code")
+      )
+    `),
+  },
+  {
+    // `bookmarks.language_id` — the bookmark's primary language FK (nullable). Plain `uuid`; push adds
+    // the FK to `languages`. Pre-add so it can't be silently skipped behind a new-table prompt.
+    name: "add bookmarks.language_id column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "bookmarks" ADD COLUMN IF NOT EXISTS "language_id" uuid
+    `),
+  },
+  {
+    name: "create language_usage_levels table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "language_usage_levels" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "slug" text,
+        "kind" text NOT NULL,
+        "built_in" boolean DEFAULT false NOT NULL,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+        CONSTRAINT "language_usage_levels_slug_unique" UNIQUE("slug")
+      )
+    `),
+  },
+  {
+    name: "create language_usages table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "language_usages" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "owner_type" text NOT NULL,
+        "owner_id" uuid NOT NULL,
+        "language_id" uuid NOT NULL,
+        "usage_level_id" uuid NOT NULL,
+        "note" text,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    name: "create language_usages owner index",
+    run: db => db.execute(
+      sql`CREATE INDEX IF NOT EXISTS "language_usages_owner_idx" ON "language_usages" ("owner_type", "owner_id")`,
+    ),
+  },
+  {
+    // Composite uniques as INDEXES (schema.ts declares `uniqueIndex`). Also converts any prod DB that
+    // predates this and carries the old composite `unique()` CONSTRAINT form: a composite `unique()`
+    // makes push re-propose it every deploy → truncate prompt → the same non-TTY silent-skip. DROP the
+    // old constraint (no-op if absent / freshly pre-created) then CREATE the unique index.
+    name: "converge language_usage composite uniques as unique indexes",
+    run: async (db) => {
+      await db.execute(sql`ALTER TABLE IF EXISTS "language_usage_levels" DROP CONSTRAINT IF EXISTS "language_usage_levels_kind_name_unique"`);
+      await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "language_usage_levels_kind_name_unique" ON "language_usage_levels" ("kind", "name")`);
+      await db.execute(sql`ALTER TABLE IF EXISTS "language_usages" DROP CONSTRAINT IF EXISTS "language_usages_owner_lang_level_unique"`);
+      await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "language_usages_owner_lang_level_unique" ON "language_usages" ("owner_type", "owner_id", "language_id", "usage_level_id")`);
+    },
+  },
   {
     // `app_settings.homepage_header_hidden` is NOT NULL DEFAULT false. Adding a NOT NULL column to
     // the populated singleton makes drizzle-kit push prompt — the same non-TTY crash as above — so
@@ -805,13 +889,34 @@ const migrations: RuntimeMigration[] = [
     // singleton makes drizzle-kit push prompt (the same non-TTY crash as the other NOT NULL column
     // cases above), so pre-apply them here to keep push's diff additive-only. One `ALTER TABLE` with
     // two `ADD COLUMN` clauses is a single statement, safe over the extended protocol. (The companion
-    // nullable `tags.romanized_name` and `bookmarks.romanized_title` text columns are push-safe and
-    // need no step.)
+    // nullable `tags.romanized_name` text column is push-safe and needs no step; the bookmark column
+    // is renamed by the step just below.)
     name: "add app_settings romanized display-preference columns",
     run: db => db.execute(sql`
       ALTER TABLE IF EXISTS "app_settings"
         ADD COLUMN IF NOT EXISTS "show_romanized_by_default" boolean NOT NULL DEFAULT false,
         ADD COLUMN IF NOT EXISTS "sort_by_romanized" boolean NOT NULL DEFAULT true
+    `),
+  },
+  {
+    // The bookmark romanized column was renamed `romanized_title` → `romanized_name` to unify with
+    // every other entity's `romanized_name`. A rename is DESTRUCTIVE (push would drop+recreate,
+    // losing values), so pre-apply it here, guarded to fire only on existing installs that still
+    // carry the old column; fresh installs get `romanized_name` directly from push. Mirrors the
+    // `bookmarks.newsletter_import_id` → `import_id` rename above.
+    name: "rename bookmarks.romanized_title column to romanized_name",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'bookmarks' AND column_name = 'romanized_title'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'bookmarks' AND column_name = 'romanized_name'
+        ) THEN
+          ALTER TABLE "bookmarks" RENAME COLUMN "romanized_title" TO "romanized_name";
+        END IF;
+      END $$
     `),
   },
   {
@@ -1273,6 +1378,49 @@ const migrations: RuntimeMigration[] = [
   {
     name: "drop artists table",
     run: db => db.execute(sql`DROP TABLE IF EXISTS "artists"`),
+  },
+  {
+    // The `podcasts` taxonomy (a Media Property) is a brand-new table. Against a populated database
+    // `drizzle-kit push` treats a new table as a "do you want to truncate?" (pgSuggestions) change and,
+    // in this non-TTY deploy, SILENTLY SKIPS it while still exiting 0 — so the deploy succeeds but the
+    // table never gets created and every Podcasts query 500s with `relation "podcasts" does not exist`
+    // (the same failure mode as the genre_moods pre-create above). Pre-create it here so push's diff for
+    // it is always empty. Idempotent (`IF NOT EXISTS`). Like genre_moods, this deliberately carries NO
+    // foreign key to another table (only the intra-table name/slug unique constraints): migrate runs
+    // before push, so a `media_properties` FK here would fail on any DB that lacks that table. push adds
+    // the `media_property_id` FK afterward (additive, never prompts). Boot-time `backfillPodcastSlugs()`
+    // fills the NULL slugs.
+    name: "create podcasts table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "podcasts" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "slug" text,
+        "romanized_name" text,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "media_property_id" uuid,
+        "feed_url" text,
+        "itunes_id" integer,
+        "itunes_url" text,
+        "author" text,
+        "description" text,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+        CONSTRAINT "podcasts_name_unique" UNIQUE("name"),
+        CONSTRAINT "podcasts_slug_unique" UNIQUE("slug")
+      )
+    `),
+  },
+  {
+    // `bookmarks.podcast_id` links a bookmark to a Podcast. A new column on the populated `bookmarks`
+    // table can be SILENTLY SKIPPED by push whenever another pgSuggestions change (like the new
+    // `podcasts` table above) precedes it in the same diff — leaving the bookmarks listing to 500 with
+    // `column "podcast_id" does not exist` (the twin of the image_display_preference pre-add above).
+    // Pre-add it here as a plain nullable uuid (no FK/NOT NULL, so it never prompts and needs no other
+    // table — exactly like image_display_preference); push adds the set-null FK to `podcasts` afterward.
+    name: "add bookmarks.podcast_id column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "bookmarks" ADD COLUMN IF NOT EXISTS "podcast_id" uuid
+    `),
   },
 ];
 

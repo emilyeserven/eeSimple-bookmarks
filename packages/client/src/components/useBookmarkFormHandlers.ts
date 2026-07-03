@@ -194,7 +194,7 @@ export function useBookmarkFormHandlers({
   async function submitForm(value: {
     url: string;
     title: string;
-    romanizedTitle: string;
+    romanizedName: string;
     categoryId: string;
     mediaTypeId: string;
     languageId: string;
@@ -228,7 +228,7 @@ export function useBookmarkFormHandlers({
       url: finalUrl,
       originalUrl,
       title: value.title,
-      romanizedTitle: value.romanizedTitle.trim() || null,
+      romanizedName: value.romanizedName.trim() || null,
       categoryId: value.categoryId,
       mediaTypeId: value.mediaTypeId || null,
       languageId: value.languageId || null,
@@ -247,6 +247,7 @@ export function useBookmarkFormHandlers({
       episodeId: form.getFieldValue("episodeId") || null,
       albumId: form.getFieldValue("albumId") || null,
       trackId: form.getFieldValue("trackId") || null,
+      podcastId: form.getFieldValue("podcastId") || null,
       numberValues,
       booleanValues,
       dateTimeValues,

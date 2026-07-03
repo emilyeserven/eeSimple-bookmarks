@@ -18,7 +18,8 @@ import { formatBoolean, formatBooleanBadge, formatChoices, formatDateTime, forma
  * seeded/migrated and client-default zones agree.
  */
 export function defaultBodyZone(key: string): CardFieldZone {
-  return key === "description" || (HEADER_CARD_FIELD_KEYS as readonly string[]).includes(key)
+  return key === "description" || key === "romanizedName"
+    || (HEADER_CARD_FIELD_KEYS as readonly string[]).includes(key)
     ? "card-single-top"
     : "card-labels";
 }
@@ -63,6 +64,8 @@ export interface ResolvedFieldPlacement {
   showValueBeforeLabel: boolean;
   /** Tags field in the `card-table` zone: render the tag names as clickable links to each tag's page. */
   clickableTags: boolean;
+  /** Tags field, any zone: show the tag's ancestor chain in a hover popover. */
+  showTagHierarchyOnHover: boolean;
 }
 
 /** Build a `fieldKey → placement` lookup from a rule's {@link CardFieldZones}. Unlisted keys are hidden. */
@@ -84,6 +87,7 @@ export function resolveFieldPlacements(zones: CardFieldZones): Map<string, Resol
         showLabelColon: placement.showLabelColon ?? true,
         showValueBeforeLabel: placement.showValueBeforeLabel ?? false,
         clickableTags: placement.clickableTags ?? false,
+        showTagHierarchyOnHover: placement.showTagHierarchyOnHover ?? false,
       });
     }
   }
@@ -105,6 +109,7 @@ function bodyPlacement(zone: CardFieldZone): ResolvedFieldPlacement {
     showLabelColon: true,
     showValueBeforeLabel: false,
     clickableTags: false,
+    showTagHierarchyOnHover: false,
   };
 }
 

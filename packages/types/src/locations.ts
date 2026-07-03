@@ -212,7 +212,7 @@ function isLocationAncestor(
 /**
  * The ids of locations implied by a bookmark's title. Each location's `name`, `romanizedName`, and
  * every `alternateNames[].value` are tested against both the bookmark's `title` and its
- * `romanizedTitle` via {@link titleMatchesTerm}. Pure helper — mirrors `matchTagIdsByTitle`.
+ * `romanizedName` via {@link titleMatchesTerm}. Pure helper — mirrors `matchTagIdsByTitle`.
  *
  * A matched location that is an ancestor of another matched (more specific) location is dropped —
  * a title mentioning both a place and its containing region (e.g. a temple's name and the city it's
@@ -220,10 +220,10 @@ function isLocationAncestor(
  */
 export function matchLocationIdsByTitle(
   title: string,
-  romanizedTitle: string | null | undefined,
+  romanizedName: string | null | undefined,
   locations: LocationTitleCandidate[],
 ): string[] {
-  const haystacks = [title, romanizedTitle ?? ""].filter(text => text.trim() !== "");
+  const haystacks = [title, romanizedName ?? ""].filter(text => text.trim() !== "");
   if (haystacks.length === 0) return [];
   const matched = locations.filter((loc) => {
     const terms = [

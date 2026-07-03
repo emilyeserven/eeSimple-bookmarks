@@ -26,10 +26,15 @@ keep the shared types compiling first.
 ### 1. Middleware — schema (`packages/middleware/src/db/schema.ts`)
 - Add the table. Include a `slug text` column (and a UNIQUE constraint where slugs must be unique).
 - Export the inferred row type (e.g. `export type MediaTypeRow = typeof mediaTypes.$inferSelect`).
-- **Gotcha:** if the table will already have rows in production and you add a UNIQUE or NOT NULL
-  column, `drizzle-kit push` can't apply it non-interactively. Add an idempotent step to
-  `src/db/migrate.ts` first — see CLAUDE.md → "Database schema changes" and the worked examples
-  already in `migrate.ts`.
+- **Pre-create the table (and its `bookmarks.<x>_id` FK column) in `migrate.ts` — required, not
+  optional.** A new table is silently **skipped** by `drizzle-kit push` in the non-TTY deploy (it
+  reads as a "truncate?" prompt, push bails exiting 0), so the table never gets created and every query
+  500s with `relation … does not exist` — the exact bug that hit `genre_moods` (#929) and `podcasts`.
+  Add idempotent `CREATE TABLE IF NOT EXISTS` + `ALTER TABLE bookmarks ADD COLUMN IF NOT EXISTS
+  "<x>_id" uuid` steps, **self-contained (no FK to a push-created table** — declare FK columns as plain
+  `uuid` and let push add the constraint). Mirror the `genre_moods` / `bookmarks.podcast_id` steps at
+  the end of `migrate.ts`. Same rule for a UNIQUE/NOT NULL column on an already-populated table. See
+  the **`db-schema-change`** skill's silent-skip caveat, and verify against a real Postgres.
 
 ### 2. Middleware — service (`packages/middleware/src/services/<entity>.ts`)
 Copy `services/mediaTypes.ts`. It provides the canonical shape:
@@ -243,12 +248,27 @@ pnpm typecheck
 pnpm test
 pnpm lint:fix                              # always from repo root
 pnpm exec fallow dupes --format json --quiet   # duplication must stay ≤ 6.25%
+pnpm exec fallow dead-code --regression-baseline .fallow/dead-code-baseline.json \
+  --fail-on-regression --tolerance 0            # must not regress (see the baseline note below)
 ```
 
 If the fallow duplication check exceeds the budget, look for a shared utility rather than
 copying code — the most common culprit is the `takenSlugs` query (use `takenSlugsOf()`; see
 step 2) or the condition multi-select component (use `EntityMultiSelectCondition`; see
 `add-condition-type` skill).
+
+**A new entity trips the dead-code regression gate — regenerate the baseline.** The `fallow-audit`
+CI job runs `fallow dead-code` against `.fallow/dead-code-baseline.json` with **tolerance 0**, so
+*any* increase in unused exports fails the PR. A scaffolded entity's `entities/<name>.tsx`
+`<entity>Descriptor` aggregate is an **unused export by convention** — the registries import the
+individual pieces (`<ENTITY>_ROUTE`, `<ENTITY>_PALETTE`, `<entity>ListingConfig`, `<entity>Workbench`)
+directly, never the bundle — so every sibling descriptor already sits in the baseline. Adding one
+increments the count by 1. **First delete any *genuinely* removable unused exports** (a convenience
+service fn no route calls, a query hook nothing consumes — `fallow dead-code --format json` lists
+them by file), then **regenerate the baseline for the descriptor** that legitimately remains:
+`pnpm exec fallow dead-code --save-regression-baseline .fallow/dead-code-baseline.json`, and commit
+the updated JSON. This is what the Genres & Moods entity (#916) did. Don't blanket-baseline to dodge
+real dead code — only the `<entity>Descriptor` is the accepted-unused case.
 
 Then check manually that the entity:
 - has working list / detail / edit pages at its slug routes, and

@@ -376,6 +376,11 @@ interface TreeComboboxFieldProps {
     label: string;
     onSelect: () => void;
   };
+  /** Optional non-tree row pinned above the tree that survives search (e.g. tags' "(root)"). */
+  leadingOption?: {
+    value: string;
+    label: string;
+  };
   /** Extra change handler (runs after the field's own change), e.g. auto-save-on-change. */
   onValueChange?: (value: string) => void;
 }
@@ -386,7 +391,8 @@ interface TreeComboboxFieldProps {
  * hierarchy-preserving search.
  */
 function TreeComboboxField({
-  label, options, placeholder, searchPlaceholder, emptyText, className, createOption, onValueChange,
+  label, options, placeholder, searchPlaceholder, emptyText, className, createOption, leadingOption,
+  onValueChange,
 }: TreeComboboxFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
@@ -408,6 +414,7 @@ function TreeComboboxField({
         searchPlaceholder={searchPlaceholder}
         emptyText={emptyText}
         createOption={createOption}
+        leadingOption={leadingOption}
       />
       {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>

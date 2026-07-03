@@ -27,10 +27,12 @@ export * from "./languageUsages.js";
 export * from "./locations.js";
 export * from "./mediaProperties.js";
 export * from "./movies.js";
+export * from "./podcasts.js";
 export * from "./tracks.js";
 export * from "./tvShows.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";
+export * from "./romanized.js";
 export * from "./socialMedia.js";
 export * from "./taxonomyImages.js";
 export * from "./titleTags.js";
@@ -1182,7 +1184,7 @@ export interface Bookmark {
   /** Human-friendly title, e.g. "GitHub". */
   title: string;
   /** Optional romanized form of the title, shown de-emphasized after the title when present. */
-  romanizedTitle: string | null;
+  romanizedName: string | null;
   /** Optional free-form description. */
   description: string | null;
   /** The main image attached to this bookmark, or `null` when none has been set. Mirrors the `isMain` entry of `images`. */
@@ -1232,6 +1234,8 @@ export interface Bookmark {
   albumId: string | null;
   /** Id of the linked Track (Tracks taxonomy), or `null` when unset. */
   trackId: string | null;
+  /** Id of the linked Podcast (Podcasts taxonomy), or `null` when unset. */
+  podcastId: string | null;
   /** Id of the linked series on the connected Kavita server, or `null` when not linked. */
   kavitaSeriesId: number | null;
   /** Id of the Kavita library containing the linked series (needed for the web UI deep link). */
@@ -1296,7 +1300,7 @@ export interface CreateBookmarkInput {
   /** Original URL before cleanup; omit when no cleanup was applied. */
   originalUrl?: string | null;
   title: string;
-  romanizedTitle?: string | null;
+  romanizedName?: string | null;
   description?: string | null;
   /** Id of the category to assign; omit to fall back to the built-in "Default" category. */
   categoryId?: string;
@@ -1359,6 +1363,8 @@ export interface CreateBookmarkInput {
   albumId?: string | null;
   /** Id of the Track (Tracks taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
   trackId?: string | null;
+  /** Id of the Podcast (Podcasts taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
+  podcastId?: string | null;
   /** Id of the Kavita series to link, or `null` to unlink. Omit to leave unchanged. */
   kavitaSeriesId?: number | null;
   /** Id of the Kavita library containing the linked series, or `null` to clear. Omit to leave unchanged. */
@@ -1953,6 +1959,13 @@ export interface CardFieldPlacement {
    * plain text. Defaults to false.
    */
   clickableTags?: boolean;
+  /**
+   * Tags field, any zone. When true, hovering a tag pill/link shows a popover with that tag's
+   * ancestor chain (e.g. "Root → Parent → TagName"). Has no effect on a top-level tag (no ancestors)
+   * or on the `card-table` zone's non-clickable plain-text fallback (no per-tag element to hover).
+   * Defaults to false.
+   */
+  showTagHierarchyOnHover?: boolean;
 }
 
 /**

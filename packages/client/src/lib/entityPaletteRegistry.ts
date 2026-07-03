@@ -18,6 +18,7 @@ import { MOVIE_PALETTE } from "../entities/movie";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
 import { PERSON_PALETTE } from "../entities/person";
 import { PLACE_TYPE_PALETTE } from "../entities/placeType";
+import { PODCAST_PALETTE } from "../entities/podcast";
 import { CUSTOM_PROPERTY_PALETTE } from "../entities/property";
 import { PROPERTY_GROUP_PALETTE } from "../entities/propertyGroup";
 import { RELATIONSHIP_TYPE_PALETTE } from "../entities/relationshipType";
@@ -100,6 +101,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "property-group": PROPERTY_GROUP_PALETTE,
   "media-property": MEDIA_PROPERTY_PALETTE,
   "book": BOOK_PALETTE,
+  "podcast": PODCAST_PALETTE,
   "movie": MOVIE_PALETTE,
   "tv-show": TV_SHOW_PALETTE,
   "episode": EPISODE_PALETTE,

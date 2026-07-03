@@ -21,7 +21,7 @@
  * text (native/romanized names + Wikipedia links) *and* the poster image. Each carries its specifics
  * in {@link SyncProvider.refs}.
  */
-export type SyncDescriptorKind = "bookmark" | "location" | "image-taxonomy" | "plex-title";
+export type SyncDescriptorKind = "bookmark" | "location" | "image-taxonomy" | "plex-title" | "podcast-feed";
 
 /**
  * One selectable field-diff row in the modal. `kind: "text"` renders `current | next` as text;

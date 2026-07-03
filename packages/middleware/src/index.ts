@@ -6,7 +6,7 @@ import { backfillPersonSlugs } from "@/services/people";
 import { backfillGroupSlugs } from "@/services/groups";
 import { backfillGroupTypeSlugs, ensureDefaultGroupTypes } from "@/services/groupTypes";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
-import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleLocationsField, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
+import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleLocationsField, backfillCardDisplayRuleRomanizedNameField, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillContentStatusOptions, backfillCustomPropertySlugs, ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
@@ -25,6 +25,7 @@ import { backfillTvShowSlugs } from "@/services/tvShows";
 import { backfillEpisodeSlugs } from "@/services/episodes";
 import { backfillAlbumSlugs } from "@/services/albums";
 import { backfillTrackSlugs } from "@/services/tracks";
+import { backfillPodcastSlugs } from "@/services/podcasts";
 import { backfillSavedFilterSlugs } from "@/services/savedFilters";
 import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
 import { backfillTagSlugs } from "@/services/tags";
@@ -93,6 +94,7 @@ try {
   await backfillEpisodeSlugs();
   await backfillAlbumSlugs();
   await backfillTrackSlugs();
+  await backfillPodcastSlugs();
   await backfillSavedFilterSlugs();
   await ensureBuiltInRelationshipTypes();
   await backfillYouTubeChannelSlugs();
@@ -119,6 +121,7 @@ try {
   await backfillCardDisplayRuleSubZones();
   await backfillCardDisplayRuleHeaderFields();
   await backfillCardDisplayRuleLocationsField();
+  await backfillCardDisplayRuleRomanizedNameField();
   await backfillCardDisplayRuleZoneLayouts();
   await backfillCardDisplayRuleSlugs();
   // A restart abandons any in-process import worker, so fail anything left queued/processing.

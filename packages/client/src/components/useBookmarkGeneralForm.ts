@@ -88,7 +88,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     defaultValues: {
       url: bookmark.originalUrl ?? bookmark.url ?? "",
       title: bookmark.title,
-      romanizedTitle: bookmark.romanizedTitle ?? "",
+      romanizedName: bookmark.romanizedName ?? "",
       categoryId: bookmark.categoryId ?? "",
       mediaTypeId: bookmark.mediaType?.id ?? "",
       languageId: bookmark.language?.id ?? "",
@@ -107,6 +107,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       episodeId: bookmark.episodeId ?? "",
       albumId: bookmark.albumId ?? "",
       trackId: bookmark.trackId ?? "",
+      podcastId: bookmark.podcastId ?? "",
     },
     validators: {
       onChange: bookmarkSchema,
@@ -124,7 +125,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
           url: finalUrl,
           originalUrl,
           title: value.title,
-          romanizedTitle: value.romanizedTitle.trim() || null,
+          romanizedName: value.romanizedName.trim() || null,
           categoryId: value.categoryId,
           mediaTypeId: value.mediaTypeId || null,
           languageId: value.languageId || null,

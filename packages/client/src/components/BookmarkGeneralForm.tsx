@@ -1,5 +1,7 @@
 import type { Bookmark } from "@eesimple/types";
 
+import { Link } from "@tanstack/react-router";
+
 import { BookmarkAdvancedGroupField } from "./BookmarkAdvancedGroupField";
 import { BookmarkAdvancedLanguageField } from "./BookmarkAdvancedLanguageField";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
@@ -88,7 +90,7 @@ export function BookmarkGeneralForm({
         onNameBlur={runAutofill}
       />
 
-      <form.AppField name="romanizedTitle">
+      <form.AppField name="romanizedName">
         {field => (
           <field.TextField
             label="Romanized name"
@@ -159,10 +161,28 @@ export function BookmarkGeneralForm({
 
       <BookmarkGeneralRelationsSection ctrl={ctrl} />
 
-      <BookmarkAdvancedLanguageField
-        form={form}
-        languages={languages ?? []}
-      />
+      <div className="space-y-1">
+        <BookmarkAdvancedLanguageField
+          form={form}
+          languages={languages ?? []}
+        />
+        <p className="text-xs text-muted-foreground">
+          {"This is the bookmark's primary language. Add more languages (dubs, subtitles, …) on the "}
+          <Link
+            to="/bookmarks/$bookmarkId/edit/languages"
+            params={{
+              bookmarkId: bookmark.id,
+            }}
+            className="
+              text-primary
+              hover:underline
+            "
+          >
+            Languages tab
+          </Link>
+          .
+        </p>
+      </div>
 
       <BookmarkAdvancedGroupField
         form={form}

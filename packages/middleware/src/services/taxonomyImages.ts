@@ -15,7 +15,7 @@ import { taxonomyImages, type TaxonomyImageRow } from "@/db/schema";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 
-export type TaxonomyImageSource = "upload" | "plex" | "kavita" | "isbn";
+export type TaxonomyImageSource = "upload" | "plex" | "kavita" | "isbn" | "podcast";
 export type AddTaxonomyImageResult = TaxonomyImage | "bad_image" | "too_many";
 
 /** Max kept images per owning entity — mirrors `MAX_BOOKMARK_IMAGES`. */

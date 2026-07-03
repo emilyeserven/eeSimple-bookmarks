@@ -25,6 +25,7 @@ export function BookmarkMediaLinkField({
         episodeId: state.values.episodeId || null,
         albumId: state.values.albumId || null,
         trackId: state.values.trackId || null,
+        podcastId: state.values.podcastId || null,
       })}
     >
       {value => (
@@ -37,6 +38,7 @@ export function BookmarkMediaLinkField({
             form.setFieldValue("episodeId", selection.episodeId ?? "");
             form.setFieldValue("albumId", selection.albumId ?? "");
             form.setFieldValue("trackId", selection.trackId ?? "");
+            form.setFieldValue("podcastId", selection.podcastId ?? "");
           }}
         />
       )}

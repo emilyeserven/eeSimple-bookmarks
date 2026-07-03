@@ -20,6 +20,14 @@ export function useLanguageUsageLevels(kind?: LanguageUsageKind) {
   });
 }
 
+/** Distinct (language, level) pairings across all owners, with counts — for the overview page. */
+export function useLanguageUsageAssociations() {
+  return useQuery({
+    queryKey: [...LEVELS_KEY, "associations"] as const,
+    queryFn: () => languageUsageLevelsApi.associations(),
+  });
+}
+
 function invalidateAll(queryClient: ReturnType<typeof useQueryClient>) {
   void queryClient.invalidateQueries({
     queryKey: LEVELS_KEY,

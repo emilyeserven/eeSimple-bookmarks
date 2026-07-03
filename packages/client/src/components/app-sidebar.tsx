@@ -10,6 +10,7 @@ import {
   SidebarResizeHandle,
 } from "./app-sidebar-sections";
 import { GroupsSidebarItem } from "./GroupsSidebarItem";
+import { LanguagesSidebarItem } from "./LanguagesSidebarItem";
 import { LocationsSidebarItem } from "./LocationsSidebarItem";
 import { MediaPropertiesSidebarItem } from "./MediaPropertiesSidebarItem";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
@@ -63,6 +64,7 @@ function ExpandableLinkSection({
   seeMoreTooltip,
   placeTypesCount,
   booksCount,
+  podcastsCount,
   moviesCount,
   tvShowsCount,
   episodesCount,
@@ -81,6 +83,7 @@ function ExpandableLinkSection({
   seeMoreTooltip: string;
   placeTypesCount?: number;
   booksCount?: number;
+  podcastsCount?: number;
   moviesCount?: number;
   tvShowsCount?: number;
   episodesCount?: number;
@@ -109,6 +112,7 @@ function ExpandableLinkSection({
           pathname={pathname}
           mediaPropertiesCount={item.count}
           booksCount={booksCount}
+          podcastsCount={podcastsCount}
           moviesCount={moviesCount}
           tvShowsCount={tvShowsCount}
           episodesCount={episodesCount}
@@ -126,6 +130,17 @@ function ExpandableLinkSection({
           pathname={pathname}
           groupsCount={item.count}
           groupTypesCount={groupTypesCount}
+          sidebarState={sidebarState}
+        />
+      );
+    }
+    // Languages gets a hover flyout surfacing its Usage Levels taxonomy.
+    if (item.key === "languages") {
+      return (
+        <LanguagesSidebarItem
+          key={item.key}
+          pathname={pathname}
+          languagesCount={item.count}
           sidebarState={sidebarState}
         />
       );
@@ -223,6 +238,7 @@ export function AppSidebar({
     aiSummarizationCount,
     placeTypesCount,
     booksCount,
+    podcastsCount,
     moviesCount,
     tvShowsCount,
     episodesCount,
@@ -322,6 +338,7 @@ export function AppSidebar({
               seeMoreTooltip="Show more taxonomy links"
               placeTypesCount={placeTypesCount}
               booksCount={booksCount}
+              podcastsCount={podcastsCount}
               moviesCount={moviesCount}
               tvShowsCount={tvShowsCount}
               episodesCount={episodesCount}

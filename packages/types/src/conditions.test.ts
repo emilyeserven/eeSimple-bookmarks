@@ -95,7 +95,7 @@ test("match: contains / starts_with are case-insensitive and field-scoped", () =
 test("match: the title field also matches the romanized title", () => {
   const input = makeInput({
     title: "東京タワー",
-    romanizedTitle: "Tokyo Tower",
+    romanizedName: "Tokyo Tower",
   });
   assert.equal(
     evaluateConditions({

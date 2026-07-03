@@ -47,6 +47,7 @@ import { tvShowRoutes } from "@/routes/tvShows";
 import { episodeRoutes } from "@/routes/episodes";
 import { albumRoutes } from "@/routes/albums";
 import { trackRoutes } from "@/routes/tracks";
+import { podcastRoutes } from "@/routes/podcasts";
 import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
 import { registerTaxonomyImageServingRoute } from "@/routes/taxonomyImageRoutes";
 import { tagRoutes } from "@/routes/tags";
@@ -286,6 +287,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(episodeRoutes);
   await app.register(albumRoutes);
   await app.register(trackRoutes);
+  await app.register(podcastRoutes);
   await app.register(relationshipTypeRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);

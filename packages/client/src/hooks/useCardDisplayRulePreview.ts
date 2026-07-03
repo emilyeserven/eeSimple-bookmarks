@@ -252,7 +252,7 @@ export function useCardDisplayRulePreview({
       url: "https://example.com/sample-bookmark",
       originalUrl: null,
       title: "Sample bookmark",
-      romanizedTitle: null,
+      romanizedName: null,
       description: "A placeholder bookmark showing every field with sample values.",
       image: {
         id: "__sample-image__",
@@ -309,6 +309,7 @@ export function useCardDisplayRulePreview({
       episodeId: null,
       albumId: null,
       trackId: null,
+      podcastId: null,
       kavitaSeriesId: null,
       kavitaLibraryId: null,
       kavitaSeriesName: null,

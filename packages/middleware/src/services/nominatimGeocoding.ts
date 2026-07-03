@@ -18,6 +18,7 @@ import type {
   LocationLookupCandidate,
   LocationLookupResult,
 } from "@eesimple/types";
+import { deriveRomanizedName } from "@eesimple/types";
 
 const DEFAULT_ENDPOINT = "https://nominatim.openstreetmap.org";
 const GEOCODE_TIMEOUT_MS = 10000;
@@ -155,7 +156,7 @@ function resolveNames(raw: NominatimResult, displayName: string): { name: string
   const localName = asString(details?.name);
   const englishName = asString(details?.["name:en"]);
   const name = localName ?? asString(raw.name) ?? displayName.split(",")[0]?.trim() ?? displayName;
-  const romanizedName = englishName && englishName !== name ? englishName : null;
+  const romanizedName = deriveRomanizedName(name, englishName);
   return {
     name,
     romanizedName,

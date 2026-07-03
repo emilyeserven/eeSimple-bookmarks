@@ -53,6 +53,10 @@ const PLACEMENT_PROP_SCHEMAS = {
   clickableTags: {
     type: "boolean",
   },
+  // Tags field, any zone (see CardFieldPlacement in @eesimple/types).
+  showTagHierarchyOnHover: {
+    type: "boolean",
+  },
 } as const satisfies Record<keyof CardFieldPlacement, unknown>;
 
 /**
