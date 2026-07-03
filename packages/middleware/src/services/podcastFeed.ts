@@ -328,6 +328,53 @@ export async function resolvePodcastFeed(feedUrl: string): Promise<PodcastFeedRe
 }
 
 /**
+ * Extract the numeric collection id from an Apple/Apple-Podcasts show page URL
+ * (`https://podcasts.apple.com/us/podcast/<slug>/id<digits>`). `null` for any other host, an
+ * unparsable URL, or a path with no trailing `id<digits>` segment.
+ */
+export function extractApplePodcastsId(url: string): number | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  }
+  catch {
+    return null;
+  }
+  const host = parsed.hostname.toLowerCase();
+  if (host !== "podcasts.apple.com" && host !== "itunes.apple.com") return null;
+  const match = /id(\d+)(?:[/?#]|$)/.exec(parsed.pathname);
+  if (!match) return null;
+  const id = Number(match[1]);
+  return Number.isInteger(id) ? id : null;
+}
+
+/**
+ * Resolve a pasted podcast URL for the search picker — an Apple Podcasts show page (via its
+ * collection id) or a raw RSS/XML feed URL. Keyless; `null` when the URL doesn't resolve to a
+ * podcast either way.
+ */
+export async function resolvePodcastByUrl(url: string): Promise<PodcastSearchResult | null> {
+  const appleId = extractApplePodcastsId(url);
+  if (appleId != null) {
+    const result = await lookupPodcastByItunesId(appleId);
+    if (result) return result;
+  }
+  const feed = await resolvePodcastFeed(url);
+  if (!feed) return null;
+  return {
+    provider: "feed",
+    itunesId: null,
+    pocketCastsUuid: null,
+    name: feed.title ?? url,
+    author: feed.author,
+    feedUrl: url,
+    itunesUrl: null,
+    pocketCastsUrl: null,
+    artworkUrl: feed.imageUrl,
+  };
+}
+
+/**
  * Resolve the current metadata for a stored podcast, for the "Sync from source" preview. Prefers the
  * stored `feedUrl`; when only an `itunesId` is stored, resolves the feed via the iTunes lookup first.
  * Returns `null` when the podcast has no usable source or the source can't be read.

@@ -308,6 +308,8 @@ export const podcastsApi = {
     request<PodcastSearchResult[]>(
       `/podcasts/search?q=${encodeURIComponent(q)}${provider ? `&provider=${provider}` : ""}`,
     ),
+  resolveUrl: (url: string) =>
+    request<PodcastSearchResult>(`/podcasts/resolve-url?url=${encodeURIComponent(url)}`),
   feedPreview: (id: string) =>
     request<PodcastFeedResult>(`/podcasts/${id}/feed-preview`),
   resolveLinks: (id: string) =>

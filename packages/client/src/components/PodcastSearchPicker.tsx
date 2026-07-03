@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { PODCAST_LINK_PROVIDER_LABELS, PODCAST_SEARCH_PROVIDERS } from "@eesimple/types";
 import { Loader2 } from "lucide-react";
 
-import { usePodcastSearch } from "../hooks/usePodcasts";
+import { usePodcastSearch, usePodcastUrlResolve } from "../hooks/usePodcasts";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,17 @@ function resultKey(result: PodcastSearchResult, index: number): string {
   return String(result.itunesId ?? result.pocketCastsUuid ?? result.feedUrl ?? index);
 }
 
+/** Whether a query looks like a pasted URL rather than a search term. */
+function isHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  }
+  catch {
+    return false;
+  }
+}
+
 interface PodcastSearchPickerProps {
   /** Called with a chosen podcast so the caller can prefill its fields (name/author/feed + provider link). */
   onSelect: (result: PodcastSearchResult) => void;
@@ -32,9 +43,11 @@ interface PodcastSearchPickerProps {
 /**
  * A debounced, keyless search box that resolves a query to podcasts. A provider selector (Apple
  * Podcasts / Pocket Casts) chosen before searching picks the directory; the middleware proxies the
- * request. Selecting a result hands it to `onSelect` to prefill a podcast's name / author / feed URL
- * and the searched service's link (the others are cross-resolved from the feed). Always shown (no
- * connector to configure); modeled on `KavitaSeriesLookup`, reused by the Podcast create + edit forms.
+ * request. Pasting a URL instead of a term — an Apple Podcasts show page or a raw RSS/XML feed link —
+ * resolves it directly, skipping the directory search. Selecting a result hands it to `onSelect` to
+ * prefill a podcast's name / author / feed URL and the searched service's link (the others are
+ * cross-resolved from the feed). Always shown (no connector to configure); modeled on
+ * `KavitaSeriesLookup`, reused by the Podcast create + edit forms.
  */
 export function PodcastSearchPicker({
   onSelect,
@@ -49,7 +62,22 @@ export function PodcastSearchPicker({
   }, [query]);
 
   const trimmedQuery = debouncedQuery.trim();
-  const search = usePodcastSearch(trimmedQuery.length >= MIN_QUERY_LENGTH ? trimmedQuery : "", provider);
+  const isUrlQuery = isHttpUrl(trimmedQuery);
+  const search = usePodcastSearch(
+    !isUrlQuery && trimmedQuery.length >= MIN_QUERY_LENGTH ? trimmedQuery : "",
+    provider,
+  );
+  const urlResolve = usePodcastUrlResolve(isUrlQuery ? trimmedQuery : "");
+
+  const isFetching = isUrlQuery ? urlResolve.isFetching : search.isFetching;
+  const errorMessage = isUrlQuery
+    ? (urlResolve.isError ? urlResolve.error.message : null)
+    : (search.isError ? search.error.message : null);
+  const results: PodcastSearchResult[] = isUrlQuery
+    ? (urlResolve.isSuccess ? [urlResolve.data] : [])
+    : (search.isSuccess ? search.data : []);
+  const showEmptyMessage = !isUrlQuery
+    && search.isSuccess && search.data.length === 0 && trimmedQuery.length >= MIN_QUERY_LENGTH;
 
   return (
     <div className="space-y-1.5">
@@ -76,11 +104,11 @@ export function PodcastSearchPicker({
       <div className="relative">
         <Input
           id="podcast-search-lookup"
-          placeholder="Search podcasts…"
+          placeholder="Search podcasts or paste a URL…"
           value={query}
           onChange={event => setQuery(event.target.value)}
         />
-        {search.isFetching
+        {isFetching
           ? (
             <Loader2
               className="
@@ -91,16 +119,16 @@ export function PodcastSearchPicker({
           )
           : null}
       </div>
-      {search.isError
-        ? <p className="text-xs text-destructive">{search.error.message}</p>
+      {errorMessage
+        ? <p className="text-xs text-destructive">{errorMessage}</p>
         : null}
-      {search.isSuccess && search.data.length === 0 && trimmedQuery.length >= MIN_QUERY_LENGTH
+      {showEmptyMessage
         ? <p className="text-xs text-muted-foreground">No matching podcasts found.</p>
         : null}
-      {search.isSuccess && search.data.length > 0
+      {results.length > 0
         ? (
           <ul className="space-y-1 rounded-md border p-1">
-            {search.data.map((result, index) => (
+            {results.map((result, index) => (
               <li key={resultKey(result, index)}>
                 <button
                   type="button"
@@ -121,8 +149,8 @@ export function PodcastSearchPicker({
         )
         : null}
       <p className="text-xs text-muted-foreground">
-        Search Apple Podcasts or Pocket Casts to fill in the podcast details automatically; links on the
-        other services are found from its feed.
+        Search Apple Podcasts or Pocket Casts, or paste its Apple Podcasts / RSS feed URL directly, to
+        fill in the podcast details automatically; links on the other services are found from its feed.
       </p>
     </div>
   );
