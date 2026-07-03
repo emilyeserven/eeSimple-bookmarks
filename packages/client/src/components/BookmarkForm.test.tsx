@@ -57,6 +57,7 @@ function emptyScan(url: string): ScanResult {
     thumbnailUrl: null,
     imageCandidates: [],
     authorNames: null,
+    languageCode: null,
     socialAccount: null,
     faviconUrl: null,
   };
@@ -257,6 +258,14 @@ vi.mock("../hooks/usePublishers", () => ({
     data: [],
   }),
   useCreatePublisher: () => ({
+    mutateAsync: vi.fn(),
+  }),
+}));
+vi.mock("../hooks/useLanguages", () => ({
+  useLanguages: () => ({
+    data: [],
+  }),
+  useCreateLanguage: () => ({
     mutateAsync: vi.fn(),
   }),
 }));

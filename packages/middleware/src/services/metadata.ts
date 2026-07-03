@@ -387,6 +387,20 @@ export function extractPublisher(html: string): string | null {
 }
 
 /**
+ * Pull the content language out of an HTML document: `og:locale` first (an explicit, structured
+ * signal), falling back to the `<html lang="…">` attribute. Returns the raw detected code
+ * unnormalized (e.g. `"en_US"`, `"en-GB"`) — callers normalize via `normalizeLanguageCode`. Pure —
+ * unit-testable like `extractPublisher`.
+ */
+export function extractLanguage(html: string): string | null {
+  const ogLocale = metaContent(html, /property=["']og:locale["']/i);
+  if (ogLocale) return ogLocale;
+  const htmlTag = /<html\b[^>]*>/i.exec(html)?.[0];
+  const lang = htmlTag ? /\blang=["']([^"']+)["']/i.exec(htmlTag)?.[1] : undefined;
+  return lang ?? null;
+}
+
+/**
  * Pull a representative image URL out of an HTML document's `<head>`: prefers Open Graph and
  * Twitter-card images, falling back to a declared icon. Relative URLs are resolved against
  * `pageUrl`. Returns an absolute http(s) URL or null. Pure — unit-testable like `extractTitle`.

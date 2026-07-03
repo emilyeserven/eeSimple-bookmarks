@@ -23,6 +23,7 @@ import { pinnedSidebarItemRoutes } from "@/routes/pinnedSidebarItems";
 import { favoriteSettingsPageRoutes } from "@/routes/favoriteSettingsPages";
 import { savedFilterRoutes } from "@/routes/savedFilters";
 import { maintenanceRoutes } from "@/routes/maintenance";
+import { languageRoutes } from "@/routes/languages";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { locationRoutes } from "@/routes/locations";
 import { placeTypeRoutes } from "@/routes/placeTypes";
@@ -261,6 +262,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(tagRoutes);
   await app.register(websiteRoutes);
   await app.register(mediaTypeRoutes);
+  await app.register(languageRoutes);
   await app.register(locationRoutes);
   await app.register(placeTypeRoutes);
   await app.register(youtubeChannelRoutes);

@@ -10,6 +10,7 @@ import type {
   Category,
   CustomProperty,
   ImageCandidate,
+  Language,
   MediaTypeNode,
   Publisher,
   SocialAccountRef,
@@ -92,6 +93,7 @@ interface BookmarkRevealedFieldsProps extends BookmarkCustomFieldControls {
   // Advanced section.
   categories: Category[];
   publishers?: Publisher[];
+  languages?: Language[];
   imageFieldKey: number;
   existingImages: BookmarkImage[];
   imageCandidates: ImageCandidate[];

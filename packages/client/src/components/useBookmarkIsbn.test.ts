@@ -25,6 +25,7 @@ function makeForm(): BookmarkFormApi {
     description: "",
     authorIds: [],
     publisherId: "",
+    languageId: "",
   };
   return {
     getFieldValue: (name: string) => values[name],
@@ -42,6 +43,7 @@ const BASE_RESULT: FetchIsbnMetadataResult = {
   publisher: null,
   year: null,
   openLibraryUrl: null,
+  language: null,
 };
 
 describe("useBookmarkIsbn handleIsbnFetch", () => {
@@ -63,10 +65,14 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       mediaTypes: [],
       authors: [],
       publishers: [],
+      languages: [],
       createAuthor: {
         mutateAsync: vi.fn(),
       } as never,
       createPublisher: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createLanguage: {
         mutateAsync: vi.fn(),
       } as never,
       handleTextChange: vi.fn(),
@@ -102,10 +108,14 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       mediaTypes: [],
       authors: [],
       publishers: [],
+      languages: [],
       createAuthor: {
         mutateAsync: vi.fn(),
       } as never,
       createPublisher: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createLanguage: {
         mutateAsync: vi.fn(),
       } as never,
       handleTextChange: vi.fn(),
@@ -130,10 +140,14 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       mediaTypes: [],
       authors: [],
       publishers: [],
+      languages: [],
       createAuthor: {
         mutateAsync: vi.fn(),
       } as never,
       createPublisher: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createLanguage: {
         mutateAsync: vi.fn(),
       } as never,
       handleTextChange: vi.fn(),

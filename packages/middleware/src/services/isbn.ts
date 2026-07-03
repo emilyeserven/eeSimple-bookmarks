@@ -20,6 +20,7 @@ import {
   searchKavitaByIsbn,
 } from "@/services/kavita";
 import { downloadImage, isPublicHttpUrl } from "@/services/metadata";
+import { normalizeLanguageCode } from "@/utils/languageCodes";
 
 const ISBN_TIMEOUT_MS = 10_000;
 const ISBN_USER_AGENT = "eeSimple-bookmarks/1.0";
@@ -80,6 +81,9 @@ export async function fetchOpenLibrary(isbn: string): Promise<IsbnLookupOutcome>
     medium?: string; } | undefined;
   const authorsRaw = data.authors as { name?: string }[] | undefined;
   const publishersRaw = data.publishers as { name?: string }[] | undefined;
+  // MARC/ISO 639-2 bibliographic codes, e.g. `[{ key: "/languages/eng" }]`.
+  const languagesRaw = data.languages as { key?: string }[] | undefined;
+  const rawLanguageCode = languagesRaw?.[0]?.key?.split("/").pop();
 
   return {
     kind: "ok",
@@ -91,6 +95,7 @@ export async function fetchOpenLibrary(isbn: string): Promise<IsbnLookupOutcome>
       publisher: publishersRaw?.[0]?.name ?? null,
       year: typeof data.publish_date === "string" ? data.publish_date : null,
       openLibraryUrl: typeof data.url === "string" ? data.url : null,
+      language: normalizeLanguageCode(rawLanguageCode),
     },
   };
 }
@@ -102,6 +107,8 @@ interface GoogleVolumeInfo {
   authors?: unknown;
   publisher?: unknown;
   publishedDate?: unknown;
+  /** ISO 639-1 code (e.g. `"en"`), already the format `Language.isoCode` uses. */
+  language?: unknown;
   imageLinks?: { thumbnail?: unknown;
     smallThumbnail?: unknown; };
 }
@@ -153,6 +160,7 @@ export async function fetchGoogleBooks(isbn: string): Promise<IsbnLookupOutcome>
       year: typeof info.publishedDate === "string" ? info.publishedDate : null,
       // Google Books results have no Open Library page.
       openLibraryUrl: null,
+      language: normalizeLanguageCode(typeof info.language === "string" ? info.language : null),
     },
   };
 }
@@ -190,6 +198,8 @@ async function fetchKavita(isbn: string): Promise<IsbnLookupOutcome> {
       publisher: match.libraryName,
       year: match.releaseYear ? String(match.releaseYear) : null,
       openLibraryUrl: null,
+      // Kavita's series-search match carries no language metadata.
+      language: null,
       kavitaSeriesId: match.seriesId,
     },
   };

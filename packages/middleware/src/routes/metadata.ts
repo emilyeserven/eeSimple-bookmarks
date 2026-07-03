@@ -9,6 +9,7 @@ import {
   duckDuckGoIconUrl,
   extractAuthorNames,
   extractDescription,
+  extractLanguage,
   extractTitle,
   fetchHeadHtml,
   fetchPageTitle,
@@ -21,6 +22,7 @@ import { getCachedScan, scanCacheKey, setCachedScan } from "@/services/scanCache
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
 import { channelKeyFromUrl, getYouTubeChannelByKey } from "@/services/youtubeChannels";
+import { normalizeLanguageCode } from "@/utils/languageCodes";
 import { isValidUrl } from "@/utils/url";
 
 const fetchTitleQuery = {
@@ -123,6 +125,7 @@ async function buildYouTubeMetadataResult(
     thumbnailUrl,
     imageCandidates,
     authorNames: null,
+    languageCode: meta?.languageCode ?? null,
     ...(warnings.length > 0 && {
       diagnostics: warnings,
     }),
@@ -182,6 +185,7 @@ async function buildGenericMetadataResult(
   });
   let description = html ? extractDescription(html) : null;
   let authorNames = html ? extractAuthorNames(html) : null;
+  const languageCode = html ? normalizeLanguageCode(extractLanguage(html)) : null;
   let thumbnailUrl: string | null = null;
   let datePosted: string | null = null;
 
@@ -230,6 +234,7 @@ async function buildGenericMetadataResult(
     thumbnailUrl: imageCandidates[0]?.url ?? thumbnailUrl,
     imageCandidates,
     authorNames,
+    languageCode,
   };
 }
 
@@ -541,6 +546,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       thumbnailUrl: metadata.thumbnailUrl,
       imageCandidates: metadata.imageCandidates,
       authorNames: metadata.authorNames,
+      languageCode: metadata.languageCode,
       // The social account `finalUrl` points at, if any (pure of `finalUrl`, so cache-safe).
       socialAccount: socialAccountFromUrl(finalUrl),
       // An instant icon for display via the DuckDuckGo icon service (no scrape, no object storage).

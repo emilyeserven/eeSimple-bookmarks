@@ -544,6 +544,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         categoryId,
         websiteId,
         mediaTypeId,
+        languageId: input.languageId ?? null,
         youtubeChannelId,
         newsletterId: input.newsletterId ?? null,
         importId: input.importId ?? null,
@@ -608,7 +609,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "publisherId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "artistId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority">
+  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "publisherId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "artistId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority">
 >;
 
 /**
@@ -628,6 +629,7 @@ export function scalarBookmarkPatch(
   if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
   if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;
   else if (mediaTypeDefault !== undefined) patch.mediaTypeId = mediaTypeDefault;
+  if (input.languageId !== undefined) patch.languageId = input.languageId ?? null;
   if (input.publisherId !== undefined) patch.publisherId = input.publisherId ?? null;
   if (input.bookId !== undefined) patch.bookId = input.bookId ?? null;
   if (input.movieId !== undefined) patch.movieId = input.movieId ?? null;
@@ -779,6 +781,7 @@ export async function updateBookmark(
         | "categoryId"
         | "websiteId"
         | "mediaTypeId"
+        | "languageId"
         | "youtubeChannelId"
         | "publisherId"
         | "bookId"

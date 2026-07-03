@@ -28,6 +28,12 @@ export const bookmarks = pgTable("bookmarks", {
   mediaTypeId: uuid("media_type_id").references((): AnyPgColumn => mediaTypes.id, {
     onDelete: "set null",
   }),
+  // The language (built-in taxonomy) this bookmark's content is in. Nullable; user-chosen or
+  // auto-detected from the scanned page (`<html lang>`/`og:locale`), the ISBN provider, or YouTube's
+  // video metadata. `set null` so deleting a language is non-destructive.
+  languageId: uuid("language_id").references((): AnyPgColumn => languages.id, {
+    onDelete: "set null",
+  }),
   // The YouTube channel (built-in taxonomy) this bookmark belongs to, auto-linked from a video's
   // fetched metadata. Nullable; only set for recognized YouTube videos.
   youtubeChannelId: uuid("youtube_channel_id").references((): AnyPgColumn => youtubeChannels.id, {
@@ -349,6 +355,32 @@ export const mediaTypes = pgTable("media_types", {
 }, table => [
   unique("media_types_name_unique").on(table.name),
   unique("media_types_slug_unique").on(table.slug),
+]);
+
+/**
+ * `languages` table — the built-in "Languages" taxonomy. A flat, seeded vocabulary (English,
+ * Spanish, Japanese, …) classifying what language a bookmark's content is in. A bookmark's language
+ * is chosen in the form or auto-detected from the scanned page / ISBN provider / YouTube metadata.
+ */
+export const languages = pgTable("languages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // ISO 639-1 code (e.g. "en") when known; nullable since a fully custom language may not have one.
+  // Unique so autofetch can match a detected code to an existing row instead of creating a duplicate.
+  isoCode: text("iso_code"),
+  // Nullable for clean `push`; backfilled at boot.
+  slug: text("slug"),
+  // Seeded built-ins (English, Spanish, …) can't be renamed or deleted; users may add custom ones.
+  builtIn: boolean("built_in").notNull().default(false),
+  // Display ordering; lower sorts first. Seeded built-ins get a stable order.
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("languages_name_unique").on(table.name),
+  unique("languages_slug_unique").on(table.slug),
+  unique("languages_iso_code_unique").on(table.isoCode),
 ]);
 
 /**
@@ -1040,6 +1072,10 @@ export const bookmarksRelations = relations(bookmarks, ({
     fields: [bookmarks.mediaTypeId],
     references: [mediaTypes.id],
   }),
+  language: one(languages, {
+    fields: [bookmarks.languageId],
+    references: [languages.id],
+  }),
   youtubeChannel: one(youtubeChannels, {
     fields: [bookmarks.youtubeChannelId],
     references: [youtubeChannels.id],
@@ -1076,6 +1112,12 @@ export const mediaTypesRelations = relations(mediaTypes, ({
   children: many(mediaTypes, {
     relationName: "media_type_parent",
   }),
+}));
+
+export const languagesRelations = relations(languages, ({
+  many,
+}) => ({
+  bookmarks: many(bookmarks),
 }));
 
 export const youtubeChannelsRelations = relations(youtubeChannels, ({
@@ -2283,6 +2325,8 @@ export type WebsiteFaviconRow = typeof websiteFavicons.$inferSelect;
 export type NewWebsiteFaviconRow = typeof websiteFavicons.$inferInsert;
 export type MediaTypeRow = typeof mediaTypes.$inferSelect;
 export type NewMediaTypeRow = typeof mediaTypes.$inferInsert;
+export type LanguageRow = typeof languages.$inferSelect;
+export type NewLanguageRow = typeof languages.$inferInsert;
 export type PropertyGroupRow = typeof propertyGroups.$inferSelect;
 export type NewPropertyGroupRow = typeof propertyGroups.$inferInsert;
 export type MediaPropertyRow = typeof mediaProperties.$inferSelect;

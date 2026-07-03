@@ -9,6 +9,7 @@ import { CARD_DISPLAY_RULE_PALETTE } from "../entities/cardDisplayRule";
 import { CATEGORY_PALETTE } from "../entities/category";
 import { EPISODE_PALETTE } from "../entities/episode";
 import { IMPORT_RULE_PALETTE } from "../entities/importRule";
+import { LANGUAGE_PALETTE } from "../entities/language";
 import { LOCATION_PALETTE } from "../entities/location";
 import { MEDIA_PROPERTY_PALETTE } from "../entities/mediaProperty";
 import { MEDIA_TYPE_PALETTE } from "../entities/mediaType";
@@ -86,6 +87,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "tag": TAG_PALETTE,
   "website": WEBSITE_PALETTE,
   "media-type": MEDIA_TYPE_PALETTE,
+  "language": LANGUAGE_PALETTE,
   "location": LOCATION_PALETTE,
   "place-type": PLACE_TYPE_PALETTE,
   "youtube-channel": YOUTUBE_CHANNEL_PALETTE,

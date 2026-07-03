@@ -96,10 +96,12 @@ export function useBookmarkFormHandlers({
       createAuthor,
       updateAuthor,
       autoAuthorImage,
+      createLanguage,
     },
     customProperties,
     categories,
     mediaTypes,
+    languages,
     authors,
     redirectIgnoreList,
     autoFetchTitle,
@@ -180,6 +182,10 @@ export function useBookmarkFormHandlers({
     updateAuthor,
     autoAuthorImage,
     setSocialAccountOffer: ui.setSocialAccountOffer,
+    languages,
+    getLanguageId: () => form.getFieldValue("languageId") as string,
+    setLanguageId: (id: string) => form.setFieldValue("languageId", id),
+    createLanguage,
   });
 
   // Persist the form: build the property values + input, then create or update. On create, also
@@ -191,6 +197,7 @@ export function useBookmarkFormHandlers({
     romanizedTitle: string;
     categoryId: string;
     mediaTypeId: string;
+    languageId: string;
     description: string;
     tagIds: string[];
     locationIds: string[];
@@ -223,6 +230,7 @@ export function useBookmarkFormHandlers({
       romanizedTitle: value.romanizedTitle.trim() || null,
       categoryId: value.categoryId,
       mediaTypeId: value.mediaTypeId || null,
+      languageId: value.languageId || null,
       description: value.description || null,
       tagIds: value.tagIds,
       locationIds: value.locationIds,
