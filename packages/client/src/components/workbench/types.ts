@@ -1,3 +1,4 @@
+import type { LinkProps } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export type WorkbenchMode = "view" | "edit";
@@ -56,6 +57,12 @@ export interface EntityWorkbench<E extends { id: string }> {
   useDelete: () => WorkbenchDelete | null;
   notFound: string;
   navAriaLabel: string;
+  /**
+   * The entity's listing route. When set, the General **edit** tab shows a bottom "Danger zone" Delete
+   * (rendered by `WorkbenchRouteTab`) that navigates here on success. Omit for config entities that
+   * should not get the main-pane danger zone (autofill, card-display-rules, saved-filters, …).
+   */
+  listingPath?: LinkProps["to"];
   tabs: WorkbenchTab<E>[];
   /**
    * Returns the entity's URL identifier (slug or id) for its main-pane page.

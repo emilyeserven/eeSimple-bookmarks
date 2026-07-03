@@ -40,6 +40,7 @@ export const genreMoodWorkbench: EntityWorkbench<GenreMoodNode> = {
   },
   notFound: "Entry not found.",
   navAriaLabel: "Genres & Moods sections",
+  listingPath: "/taxonomies/genres-moods",
   getSlug: node => node.slug,
   tabs: [
     {

@@ -3,7 +3,7 @@ import type { ToolbarAction, ToolbarContext } from "./toolbarActionTypes";
 import { Link } from "@tanstack/react-router";
 import { Columns2, Info, Pencil } from "lucide-react";
 
-import { taxonomyViewLink } from "./toolbarActionTypes";
+import { taxonomyEditLink, taxonomyViewLink } from "./toolbarActionTypes";
 
 import { BookmarkDetailLayoutControls } from "@/components/BookmarkDetailLayoutControls";
 import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPopover";
@@ -64,6 +64,46 @@ export function viewDetailsAction(ctx: ToolbarContext): ToolbarAction | null {
               <>
                 <Info className="size-4" />
                 View details
+              </>
+            ),
+          )}
+        </DropdownMenuItem>
+      ),
+    },
+  };
+}
+
+export function editTaxonomyAction(ctx: ToolbarContext): ToolbarAction | null {
+  const editDesktopLink = taxonomyEditLink(
+    ctx.pathParts,
+    <Pencil
+      className="size-4"
+    />,
+  );
+  if (!editDesktopLink) return null;
+  return {
+    key: "edit-taxonomy",
+    desktop: (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label="Edit"
+        title="Edit"
+        asChild
+      >
+        {editDesktopLink}
+      </Button>
+    ),
+    mobile: {
+      kind: "menuItem",
+      node: (
+        <DropdownMenuItem asChild>
+          {taxonomyEditLink(
+            ctx.pathParts, (
+              <>
+                <Pencil className="size-4" />
+                Edit
               </>
             ),
           )}

@@ -115,6 +115,7 @@ export const podcastWorkbench: EntityWorkbench<Podcast> = {
   },
   notFound: "Podcast not found.",
   navAriaLabel: "Podcast sections",
+  listingPath: "/taxonomies/podcasts",
   getSlug: podcast => podcast.slug,
   tabs: [
     {

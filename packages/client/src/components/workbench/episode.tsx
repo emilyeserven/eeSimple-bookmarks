@@ -43,6 +43,7 @@ export const episodeWorkbench: EntityWorkbench<Episode> = {
   },
   notFound: "Episode not found.",
   navAriaLabel: "Episode sections",
+  listingPath: "/taxonomies/episodes",
   getSlug: episode => episode.slug,
   tabs: [
     {

@@ -44,6 +44,7 @@ export const personWorkbench: EntityWorkbench<Person> = {
   },
   notFound: "Person not found.",
   navAriaLabel: "Person sections",
+  listingPath: "/taxonomies/people",
   getSlug: person => person.slug,
   tabs: [
     {

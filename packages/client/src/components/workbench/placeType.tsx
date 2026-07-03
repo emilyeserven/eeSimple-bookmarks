@@ -99,6 +99,7 @@ export const placeTypeWorkbench: EntityWorkbench<PlaceType> = {
   },
   notFound: "Place type not found.",
   navAriaLabel: "Place type sections",
+  listingPath: "/taxonomies/place-types",
   getSlug: placeType => placeType.slug,
   tabs: [
     {

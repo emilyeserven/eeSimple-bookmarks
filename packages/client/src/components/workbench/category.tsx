@@ -66,6 +66,7 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
   },
   notFound: "Category not found.",
   navAriaLabel: "Category sections",
+  listingPath: "/categories",
   getSlug: category => category.slug,
   tabs: [
     {

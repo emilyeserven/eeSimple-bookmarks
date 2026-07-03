@@ -52,6 +52,7 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
   },
   notFound: "Website not found.",
   navAriaLabel: "Website sections",
+  listingPath: "/taxonomies/websites",
   getSlug: website => website.slug,
   tabs: [
     {

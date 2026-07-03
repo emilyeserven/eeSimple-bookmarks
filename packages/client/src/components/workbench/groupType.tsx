@@ -71,6 +71,7 @@ export const groupTypeWorkbench: EntityWorkbench<GroupType> = {
   },
   notFound: "Group type not found.",
   navAriaLabel: "Group type sections",
+  listingPath: "/taxonomies/group-types",
   getSlug: groupType => groupType.slug,
   tabs: [
     {

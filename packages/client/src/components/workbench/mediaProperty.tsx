@@ -71,6 +71,7 @@ export const mediaPropertyWorkbench: EntityWorkbench<MediaProperty> = {
   },
   notFound: "Media property not found.",
   navAriaLabel: "Media property sections",
+  listingPath: "/taxonomies/media-properties",
   getSlug: mediaProperty => mediaProperty.slug,
   tabs: [
     {

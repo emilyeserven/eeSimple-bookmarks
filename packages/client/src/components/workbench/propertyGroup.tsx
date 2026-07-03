@@ -70,6 +70,7 @@ export const propertyGroupWorkbench: EntityWorkbench<PropertyGroup> = {
   },
   notFound: "Property group not found.",
   navAriaLabel: "Property group sections",
+  listingPath: "/taxonomies/property-groups",
   getSlug: group => group.slug,
   tabs: [
     {
