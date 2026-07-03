@@ -1,7 +1,9 @@
+import type { LucideIcon } from "lucide-react";
+
 import { useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { BookOpen, ChevronDown, ChevronRight, Library } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronRight, Film, Library, Tv } from "lucide-react";
 
 import { useIsMobile } from "../hooks/use-mobile";
 
@@ -13,36 +15,81 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-/** The Books shortcut revealed by the Media Properties flyout — shared by desktop popover + mobile inline. */
-function BooksLink({
+/** A single taxonomy shortcut inside the Media Properties flyout — shared by desktop + mobile. */
+function FlyoutChildLink({
+  to,
+  icon: Icon,
+  label,
+  count,
   onNavigate,
-  booksCount,
 }: {
+  to: "/taxonomies/books" | "/taxonomies/movies" | "/taxonomies/tv-shows";
+  icon: LucideIcon;
+  label: string;
+  count?: number;
   onNavigate: () => void;
-  booksCount?: number;
 }) {
   return (
     <Link
-      to="/taxonomies/books"
+      to={to}
       onClick={onNavigate}
       className="
         flex items-center gap-2 rounded-md px-2 py-1.5 text-sm
         hover:bg-accent hover:text-accent-foreground
       "
     >
-      <BookOpen className="size-3.5 shrink-0 text-muted-foreground" />
-      <span className="flex-1 truncate">Books</span>
-      {booksCount != null && booksCount > 0
+      <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+      <span className="flex-1 truncate">{label}</span>
+      {count != null && count > 0
         ? (
           <Badge
             variant="secondary"
             className="shrink-0"
           >
-            {booksCount}
+            {count}
           </Badge>
         )
         : null}
     </Link>
+  );
+}
+
+/** The three Media Properties flyout children, rendered for both the desktop popover and mobile inline. */
+function FlyoutChildren({
+  booksCount,
+  moviesCount,
+  tvShowsCount,
+  onNavigate,
+}: {
+  booksCount?: number;
+  moviesCount?: number;
+  tvShowsCount?: number;
+  onNavigate: () => void;
+}) {
+  return (
+    <>
+      <FlyoutChildLink
+        to="/taxonomies/books"
+        icon={BookOpen}
+        label="Books"
+        count={booksCount}
+        onNavigate={onNavigate}
+      />
+      <FlyoutChildLink
+        to="/taxonomies/movies"
+        icon={Film}
+        label="Movies"
+        count={moviesCount}
+        onNavigate={onNavigate}
+      />
+      <FlyoutChildLink
+        to="/taxonomies/tv-shows"
+        icon={Tv}
+        label="TV Shows"
+        count={tvShowsCount}
+        onNavigate={onNavigate}
+      />
+    </>
   );
 }
 
@@ -57,11 +104,15 @@ export function MediaPropertiesSidebarItem({
   pathname,
   mediaPropertiesCount,
   booksCount,
+  moviesCount,
+  tvShowsCount,
   sidebarState,
 }: {
   pathname: string;
   mediaPropertiesCount?: number;
   booksCount?: number;
+  moviesCount?: number;
+  tvShowsCount?: number;
   sidebarState?: string;
 }) {
   const isMobile = useIsMobile();
@@ -127,7 +178,7 @@ export function MediaPropertiesSidebarItem({
         <SidebarMenuItem>
           {mediaPropertiesButton}
           <SidebarMenuAction
-            aria-label={expanded ? "Hide Books" : "Show Books"}
+            aria-label={expanded ? "Hide taxonomies" : "Show taxonomies"}
             onClick={() => setExpanded(value => !value)}
           >
             <ChevronDown
@@ -141,9 +192,11 @@ export function MediaPropertiesSidebarItem({
         {expanded
           ? (
             <SidebarMenuItem className="px-1 pb-1">
-              <BooksLink
-                onNavigate={() => setExpanded(false)}
+              <FlyoutChildren
                 booksCount={booksCount}
+                moviesCount={moviesCount}
+                tvShowsCount={tvShowsCount}
+                onNavigate={() => setExpanded(false)}
               />
             </SidebarMenuItem>
           )
@@ -177,9 +230,11 @@ export function MediaPropertiesSidebarItem({
           <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">
             Media Properties
           </p>
-          <BooksLink
-            onNavigate={() => setOpen(false)}
+          <FlyoutChildren
             booksCount={booksCount}
+            moviesCount={moviesCount}
+            tvShowsCount={tvShowsCount}
+            onNavigate={() => setOpen(false)}
           />
         </PopoverContent>
       </Popover>

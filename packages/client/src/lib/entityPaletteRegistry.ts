@@ -9,6 +9,7 @@ import { IMPORT_RULE_PALETTE } from "../entities/importRule";
 import { LOCATION_PALETTE } from "../entities/location";
 import { MEDIA_PROPERTY_PALETTE } from "../entities/mediaProperty";
 import { MEDIA_TYPE_PALETTE } from "../entities/mediaType";
+import { MOVIE_PALETTE } from "../entities/movie";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
 import { PLACE_TYPE_PALETTE } from "../entities/placeType";
 import { CUSTOM_PROPERTY_PALETTE } from "../entities/property";
@@ -17,6 +18,7 @@ import { PUBLISHER_PALETTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_PALETTE } from "../entities/relationshipType";
 import { SAVED_FILTER_PALETTE } from "../entities/savedFilter";
 import { TAG_PALETTE } from "../entities/tag";
+import { TV_SHOW_PALETTE } from "../entities/tvShow";
 import { WEBSITE_PALETTE } from "../entities/website";
 import { YOUTUBE_CHANNEL_PALETTE } from "../entities/youtubeChannel";
 
@@ -89,6 +91,8 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "property-group": PROPERTY_GROUP_PALETTE,
   "media-property": MEDIA_PROPERTY_PALETTE,
   "book": BOOK_PALETTE,
+  "movie": MOVIE_PALETTE,
+  "tv-show": TV_SHOW_PALETTE,
   "relationship-type": RELATIONSHIP_TYPE_PALETTE,
   "custom-property": CUSTOM_PROPERTY_PALETTE,
   "autofill": AUTOFILL_PALETTE,

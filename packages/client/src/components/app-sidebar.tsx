@@ -62,6 +62,8 @@ function ExpandableLinkSection({
   seeMoreTooltip,
   placeTypesCount,
   booksCount,
+  moviesCount,
+  tvShowsCount,
 }: {
   sectionKey: string;
   label: string;
@@ -74,6 +76,8 @@ function ExpandableLinkSection({
   seeMoreTooltip: string;
   placeTypesCount?: number;
   booksCount?: number;
+  moviesCount?: number;
+  tvShowsCount?: number;
 }) {
   const renderItem = (item: LinkSidebarItem) => {
     // Locations gets a hover flyout surfacing its Place Types taxonomy; every other item is a plain link.
@@ -88,7 +92,7 @@ function ExpandableLinkSection({
         />
       );
     }
-    // Media Properties gets a hover flyout surfacing its Books taxonomy.
+    // Media Properties gets a hover flyout surfacing its Books / Movies / TV Shows taxonomies.
     if (item.key === "media-properties") {
       return (
         <MediaPropertiesSidebarItem
@@ -96,6 +100,8 @@ function ExpandableLinkSection({
           pathname={pathname}
           mediaPropertiesCount={item.count}
           booksCount={booksCount}
+          moviesCount={moviesCount}
+          tvShowsCount={tvShowsCount}
           sidebarState={sidebarState}
         />
       );
@@ -193,6 +199,8 @@ export function AppSidebar({
     aiSummarizationCount,
     placeTypesCount,
     booksCount,
+    moviesCount,
+    tvShowsCount,
     modifier,
     viewClick,
     hiddenSidebarGroups,
@@ -286,6 +294,8 @@ export function AppSidebar({
               seeMoreTooltip="Show more taxonomy links"
               placeTypesCount={placeTypesCount}
               booksCount={booksCount}
+              moviesCount={moviesCount}
+              tvShowsCount={tvShowsCount}
             />
           )
           : null}

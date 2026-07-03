@@ -25,6 +25,8 @@ export type DrawerContentType
     | "place-type"
     | "media-property"
     | "book"
+    | "movie"
+    | "tv-show"
     | "youtube-channel"
     | "newsletter"
     | "author"
@@ -57,6 +59,8 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "place-type",
   "media-property",
   "book",
+  "movie",
+  "tv-show",
   "youtube-channel",
   "newsletter",
   "author",

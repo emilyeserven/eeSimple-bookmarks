@@ -18,6 +18,8 @@ export * from "./customProperties.js";
 export * from "./importBlacklist.js";
 export * from "./locations.js";
 export * from "./mediaProperties.js";
+export * from "./movies.js";
+export * from "./tvShows.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";
 export * from "./socialMedia.js";
@@ -1097,6 +1099,10 @@ export interface Bookmark {
   publisher: BookmarkPublisher | null;
   /** Id of the linked Book (Books taxonomy), or `null` when unset. */
   bookId: string | null;
+  /** Id of the linked Movie (Movies taxonomy), or `null` when unset. */
+  movieId: string | null;
+  /** Id of the linked TV Show (TV Shows taxonomy), or `null` when unset. */
+  tvShowId: string | null;
   /** Id of the linked series on the connected Kavita server, or `null` when not linked. */
   kavitaSeriesId: number | null;
   /** Id of the Kavita library containing the linked series (needed for the web UI deep link). */
@@ -1204,6 +1210,10 @@ export interface CreateBookmarkInput {
   publisherId?: string | null;
   /** Id of the Book (Books taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
   bookId?: string | null;
+  /** Id of the Movie (Movies taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
+  movieId?: string | null;
+  /** Id of the TV Show (TV Shows taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
+  tvShowId?: string | null;
   /** Id of the Kavita series to link, or `null` to unlink. Omit to leave unchanged. */
   kavitaSeriesId?: number | null;
   /** Id of the Kavita library containing the linked series, or `null` to clear. Omit to leave unchanged. */

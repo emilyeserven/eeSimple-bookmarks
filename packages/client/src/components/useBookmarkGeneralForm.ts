@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkUrlDuplicateResult, PlexItemResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
+import type { Bookmark, BookmarkUrlDuplicateResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
@@ -222,15 +222,17 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     );
   }
 
-  // The Plex link also lives outside the zod form state (immediate-save, like the Kavita link).
-  function savePlexItem(selection: PlexItemResult | null): void {
+  // The Plex link also lives outside the zod form state (immediate-save, like the Book link). Plex
+  // selection now flows through the Movies / TV Shows taxonomies (movieId/tvShowId) instead of a
+  // direct Plex item; poster/deep-link resolve the rating key from the linked title.
+  function savePlexTitle(link: { movieId: string | null;
+    tvShowId: string | null; }): void {
     updateBookmark.mutate(
       {
         id: bookmark.id,
         input: {
-          plexRatingKey: selection?.ratingKey ?? null,
-          plexItemType: selection?.type ?? null,
-          plexItemTitle: selection?.title ?? null,
+          movieId: link.movieId,
+          tvShowId: link.tvShowId,
         },
       },
       {
@@ -378,7 +380,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveBlacklistedLocationIds,
     saveAuthors,
     saveBook,
-    savePlexItem,
+    savePlexTitle,
     fetchTitle,
     fetchMetadata,
     websiteLookup,

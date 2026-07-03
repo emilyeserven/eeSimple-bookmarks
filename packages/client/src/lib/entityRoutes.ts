@@ -9,6 +9,7 @@ import { IMPORT_RULE_ROUTE } from "../entities/importRule";
 import { LOCATION_ROUTE } from "../entities/location";
 import { MEDIA_PROPERTY_ROUTE } from "../entities/mediaProperty";
 import { MEDIA_TYPE_ROUTE } from "../entities/mediaType";
+import { MOVIE_ROUTE } from "../entities/movie";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
 import { PLACE_TYPE_ROUTE } from "../entities/placeType";
 import { CUSTOM_PROPERTY_ROUTE } from "../entities/property";
@@ -17,6 +18,7 @@ import { PUBLISHER_ROUTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_ROUTE } from "../entities/relationshipType";
 import { SAVED_FILTER_ROUTE } from "../entities/savedFilter";
 import { TAG_ROUTE } from "../entities/tag";
+import { TV_SHOW_ROUTE } from "../entities/tvShow";
 import { WEBSITE_ROUTE } from "../entities/website";
 import { YOUTUBE_CHANNEL_ROUTE } from "../entities/youtubeChannel";
 
@@ -35,6 +37,8 @@ export type EntityRouteKind
     | "property-group"
     | "media-property"
     | "book"
+    | "movie"
+    | "tv-show"
     | "relationship-type"
     | "custom-property"
     | "autofill"
@@ -83,6 +87,8 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   PROPERTY_GROUP_ROUTE,
   MEDIA_PROPERTY_ROUTE,
   BOOK_ROUTE,
+  MOVIE_ROUTE,
+  TV_SHOW_ROUTE,
   RELATIONSHIP_TYPE_ROUTE,
   CUSTOM_PROPERTY_ROUTE,
   AUTOFILL_ROUTE,

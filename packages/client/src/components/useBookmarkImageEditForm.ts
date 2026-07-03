@@ -11,6 +11,7 @@ import { useScreenshotSettingsState } from "./useScreenshotSettingsState";
 import { useBookmarkKavitaSeriesId } from "../hooks/useBooks";
 import { useConnectors } from "../hooks/useConnectors";
 import { usePropertyBySlug } from "../hooks/useCustomProperties";
+import { useBookmarkPlexRatingKey } from "../hooks/useMovies";
 import { metadataApi } from "../lib/api/metadata";
 import { notifySuccess } from "../lib/notifications";
 
@@ -80,6 +81,7 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     data: connectors,
   } = useConnectors();
   const kavitaSeriesId = useBookmarkKavitaSeriesId(bookmark);
+  const plexRatingKey = useBookmarkPlexRatingKey(bookmark);
   const {
     property: isbnProperty,
   } = usePropertyBySlug(ISBN_SLUG);
@@ -139,7 +141,7 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     canUseKavitaCover: Boolean(connectors?.kavita.enabled) && kavitaSeriesId !== null,
     kavitaCoverPending: mutations.kavitaCover.isPending,
     onUseKavitaCover: () => mutations.kavitaCover.mutate(bookmark.id),
-    canUsePlexPoster: Boolean(connectors?.plex.enabled) && bookmark.plexRatingKey !== null,
+    canUsePlexPoster: Boolean(connectors?.plex.enabled) && plexRatingKey !== null,
     plexPosterPending: mutations.plexPoster.isPending,
     onUsePlexPoster: () => mutations.plexPoster.mutate(bookmark.id),
     canUseIsbnCover: Boolean(

@@ -12,6 +12,8 @@ import type {
   CreateCategoryInput,
   CreateCustomPropertyInput,
   CreateMediaPropertyInput,
+  CreateMovieInput,
+  CreateTvShowInput,
   CreateMediaTypeInput,
   CreatePlaceTypeInput,
   CreatePropertyGroupInput,
@@ -30,10 +32,14 @@ import type {
   MediaProperty,
   MediaType,
   MediaTypeNode,
+  Movie,
   PlaceType,
+  TvShow,
   UpdateBookInput,
   UpdateLocationInput,
   UpdateMediaPropertyInput,
+  UpdateMovieInput,
+  UpdateTvShowInput,
   UpdatePlaceTypeInput,
   PropertyGroup,
   Publisher,
@@ -205,6 +211,10 @@ export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGrou
 export const mediaPropertiesApi = createCrudApi<MediaProperty, CreateMediaPropertyInput, UpdateMediaPropertyInput>("media-properties");
 
 export const booksApi = createCrudApi<Book, CreateBookInput, UpdateBookInput>("books");
+
+export const moviesApi = createCrudApi<Movie, CreateMovieInput, UpdateMovieInput>("movies");
+
+export const tvShowsApi = createCrudApi<TvShow, CreateTvShowInput, UpdateTvShowInput>("tv-shows");
 
 export const relationshipTypesApi = createCrudApi<RelationshipType, CreateRelationshipTypeInput, UpdateRelationshipTypeInput>("relationship-types");
 

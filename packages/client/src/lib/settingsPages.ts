@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { BookOpen, MapPinned, Puzzle } from "lucide-react";
+import { BookOpen, Film, MapPinned, Puzzle, Tv } from "lucide-react";
 
 import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
@@ -47,6 +47,18 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
     path: "/taxonomies/books",
     label: "Books",
     icon: BookOpen,
+  },
+  {
+    // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
+    path: "/taxonomies/movies",
+    label: "Movies",
+    icon: Film,
+  },
+  {
+    // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
+    path: "/taxonomies/tv-shows",
+    label: "TV Shows",
+    icon: Tv,
   },
 ];
 

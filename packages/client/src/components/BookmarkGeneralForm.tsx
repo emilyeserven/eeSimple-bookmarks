@@ -9,7 +9,7 @@ import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
 import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSection";
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
 import { BookmarkNameField } from "./BookmarkNameField";
-import { BookmarkPlexField } from "./BookmarkPlexField";
+import { BookmarkPlexItemField } from "./BookmarkPlexItemField";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 
@@ -159,9 +159,9 @@ export function BookmarkGeneralForm({
         onSelect={ctrl.saveBook}
       />
 
-      <BookmarkPlexField
+      <BookmarkPlexItemField
         bookmark={bookmark}
-        onSelect={ctrl.savePlexItem}
+        onSelect={ctrl.savePlexTitle}
       />
 
       <form.AppForm>

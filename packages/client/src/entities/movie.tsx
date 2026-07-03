@@ -1,0 +1,68 @@
+import type { EntityDescriptor, EntityListingConfig } from "./types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { Movie, UpdateMovieInput } from "@eesimple/types";
+
+import { MovieListItem } from "../components/MovieListItem";
+import { MovieTable } from "../components/MovieTable";
+import { movieWorkbench } from "../components/workbench/movie";
+import { useBulkDeleteMovies, useMovies } from "../hooks/useMovies";
+import { moviesApi } from "../lib/api/taxonomies";
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const MOVIE_ROUTE: EntityRoute = {
+  kind: "movie",
+  prefix: "/taxonomies/movies",
+  slugIndex: 2,
+  listLabel: "Movies",
+  singular: "Movie",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const MOVIE_PALETTE: EntityPaletteConfig = {
+  queryKey: ["movies"],
+  listFn: () => moviesApi.list(),
+  updateFn: (id, patch) => moviesApi.update(id, patch as UpdateMovieInput),
+  extraInvalidateKeys: [["media-properties"], ["bookmarks"]],
+};
+
+export const movieListingConfig: EntityListingConfig<Movie> = {
+  pageKey: "movies-listing",
+  useItems: useMovies,
+  matches: (movie, query) =>
+    movie.name.toLowerCase().includes(query) || movie.slug.toLowerCase().includes(query),
+  useBulkDelete: useBulkDeleteMovies,
+  noun: ["movie", "movies"],
+  loadingLabel: "Loading movies…",
+  entityPlural: "movies",
+  emptyMessage: (
+    <p className="text-muted-foreground">
+      No movies yet.
+    </p>
+  ),
+  renderListItem: ({
+    entity, allItems, ...rest
+  }) => (
+    <MovieListItem
+      movie={entity}
+      {...rest}
+    />
+  ),
+  renderTable: ({
+    entities, selection,
+  }) => (
+    <MovieTable
+      data={entities}
+      selection={selection}
+    />
+  ),
+};
+
+export const movieDescriptor: EntityDescriptor<Movie> = {
+  kind: "movie",
+  route: MOVIE_ROUTE,
+  palette: MOVIE_PALETTE,
+  workbench: movieWorkbench,
+  listing: movieListingConfig,
+};

@@ -1,0 +1,68 @@
+import type { EntityDescriptor, EntityListingConfig } from "./types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { TvShow, UpdateTvShowInput } from "@eesimple/types";
+
+import { TvShowListItem } from "../components/TvShowListItem";
+import { TvShowTable } from "../components/TvShowTable";
+import { tvShowWorkbench } from "../components/workbench/tvShow";
+import { useBulkDeleteTvShows, useTvShows } from "../hooks/useTvShows";
+import { tvShowsApi } from "../lib/api/taxonomies";
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const TV_SHOW_ROUTE: EntityRoute = {
+  kind: "tv-show",
+  prefix: "/taxonomies/tv-shows",
+  slugIndex: 2,
+  listLabel: "TV Shows",
+  singular: "TV Show",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const TV_SHOW_PALETTE: EntityPaletteConfig = {
+  queryKey: ["tv-shows"],
+  listFn: () => tvShowsApi.list(),
+  updateFn: (id, patch) => tvShowsApi.update(id, patch as UpdateTvShowInput),
+  extraInvalidateKeys: [["media-properties"], ["bookmarks"]],
+};
+
+export const tvShowListingConfig: EntityListingConfig<TvShow> = {
+  pageKey: "tv-shows-listing",
+  useItems: useTvShows,
+  matches: (show, query) =>
+    show.name.toLowerCase().includes(query) || show.slug.toLowerCase().includes(query),
+  useBulkDelete: useBulkDeleteTvShows,
+  noun: ["TV show", "TV shows"],
+  loadingLabel: "Loading TV shows…",
+  entityPlural: "TV shows",
+  emptyMessage: (
+    <p className="text-muted-foreground">
+      No TV shows yet.
+    </p>
+  ),
+  renderListItem: ({
+    entity, allItems, ...rest
+  }) => (
+    <TvShowListItem
+      tvShow={entity}
+      {...rest}
+    />
+  ),
+  renderTable: ({
+    entities, selection,
+  }) => (
+    <TvShowTable
+      data={entities}
+      selection={selection}
+    />
+  ),
+};
+
+export const tvShowDescriptor: EntityDescriptor<TvShow> = {
+  kind: "tv-show",
+  route: TV_SHOW_ROUTE,
+  palette: TV_SHOW_PALETTE,
+  workbench: tvShowWorkbench,
+  listing: tvShowListingConfig,
+};

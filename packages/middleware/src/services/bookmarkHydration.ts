@@ -136,6 +136,8 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     newsletter: extras.newsletter,
     publisher: extras.publisher,
     bookId: row.bookId,
+    movieId: row.movieId,
+    tvShowId: row.tvShowId,
     kavitaSeriesId: row.kavitaSeriesId,
     kavitaLibraryId: row.kavitaLibraryId,
     kavitaSeriesName: row.kavitaSeriesName,

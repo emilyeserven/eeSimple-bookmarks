@@ -3,10 +3,12 @@ import { useBooks } from "../hooks/useBooks";
 import { useLocations } from "../hooks/useLocations";
 import { useMediaProperties } from "../hooks/useMediaProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
+import { useMovies } from "../hooks/useMovies";
 import { useNewsletters } from "../hooks/useNewsletters";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
 import { usePublishers } from "../hooks/usePublishers";
 import { useTags } from "../hooks/useTags";
+import { useTvShows } from "../hooks/useTvShows";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 
@@ -18,6 +20,8 @@ export function useSidebarTaxonomyData() {
     allMediaTypes: useMediaTypes().data,
     allMediaProperties: useMediaProperties().data,
     allBooks: useBooks().data,
+    allMovies: useMovies().data,
+    allTvShows: useTvShows().data,
     allLocations: useLocations().data,
     allPlaceTypes: usePlaceTypes().data,
     allChannels: useYouTubeChannels().data,

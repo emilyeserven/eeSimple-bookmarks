@@ -6,6 +6,8 @@ export { categoryContentType } from "./category";
 export { locationContentType } from "./location";
 export { mediaPropertyContentType } from "./mediaProperty";
 export { mediaTypeContentType } from "./mediaType";
+export { movieContentType } from "./movie";
+export { tvShowContentType } from "./tvShow";
 export { placeTypeContentType } from "./placeType";
 export { propertyContentType } from "./property";
 export { propertyGroupContentType } from "./propertyGroup";

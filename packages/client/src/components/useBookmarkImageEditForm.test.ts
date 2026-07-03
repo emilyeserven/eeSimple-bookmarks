@@ -84,6 +84,10 @@ vi.mock("../hooks/useBooks", () => ({
   useBookmarkKavitaSeriesId: (bookmark: { kavitaSeriesId: number | null }) => bookmark.kavitaSeriesId,
 }));
 
+vi.mock("../hooks/useMovies", () => ({
+  useBookmarkPlexRatingKey: (bookmark: { plexRatingKey: string | null }) => bookmark.plexRatingKey,
+}));
+
 let displayPreferencesData: DisplayPreferenceSettings | undefined;
 
 vi.mock("../hooks/useAppSettings", () => ({
