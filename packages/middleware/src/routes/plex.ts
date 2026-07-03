@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import type { PlexSearchKind } from "@/services/plex";
 import { plexEnabledAsync, searchPlexItems } from "@/services/plex";
 
 const searchQuery = {
@@ -9,6 +10,11 @@ const searchQuery = {
     q: {
       type: "string",
       minLength: 1,
+    },
+    // Optional: narrow the results to a single media family for the Movies / TV Shows lookups.
+    kind: {
+      type: "string",
+      enum: ["movie", "show"],
     },
   },
 } as const;
@@ -30,8 +36,9 @@ export async function plexRoutes(app: FastifyInstance): Promise<void> {
       });
     }
     const {
-      q,
-    } = req.query as { q: string };
-    return searchPlexItems(q);
+      q, kind,
+    } = req.query as { q: string;
+      kind?: PlexSearchKind; };
+    return searchPlexItems(q, kind);
   });
 }

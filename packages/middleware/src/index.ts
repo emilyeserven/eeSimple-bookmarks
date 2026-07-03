@@ -17,6 +17,8 @@ import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/medi
 import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
 import { backfillMediaPropertySlugs } from "@/services/mediaProperties";
 import { backfillBookSlugs } from "@/services/books";
+import { backfillMovieSlugs } from "@/services/movies";
+import { backfillTvShowSlugs } from "@/services/tvShows";
 import { backfillSavedFilterSlugs } from "@/services/savedFilters";
 import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
 import { backfillTagSlugs } from "@/services/tags";
@@ -74,6 +76,8 @@ try {
   await backfillPropertyGroupSlugs();
   await backfillMediaPropertySlugs();
   await backfillBookSlugs();
+  await backfillMovieSlugs();
+  await backfillTvShowSlugs();
   await backfillSavedFilterSlugs();
   await ensureBuiltInRelationshipTypes();
   await backfillYouTubeChannelSlugs();

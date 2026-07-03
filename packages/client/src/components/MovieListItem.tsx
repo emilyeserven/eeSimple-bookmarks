@@ -1,0 +1,88 @@
+import type { Movie } from "@eesimple/types";
+
+import { Link } from "@tanstack/react-router";
+import { Film, Info, Pencil } from "lucide-react";
+
+import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
+import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
+
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
+
+/**
+ * A single row in the movies listing. The card body links to the movie's detail page and the badge
+ * counts linked bookmarks. The standard hover Edit + Info buttons still apply.
+ */
+export function MovieListItem({
+  movie,
+  selectable,
+  selected,
+  onSelectToggle,
+  inSelectionMode,
+}: {
+  movie: Movie;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
+}) {
+  const editClick = useEditPanelClick();
+  const viewClick = useViewPanelClick();
+  const modifier = useSidebarOpenModifier();
+
+  return (
+    <StandardListingCard
+      selectable={selectable}
+      selected={selected}
+      onSelectToggle={onSelectToggle}
+      inSelectionMode={inSelectionMode}
+      icon={<Film className="size-5 shrink-0 text-muted-foreground" />}
+      title={movie.name}
+      subtitle={movie.year ? String(movie.year) : undefined}
+      count={movie.bookmarkCount}
+      renderPrimaryLink={(className, children) => (
+        <Link
+          to="/taxonomies/movies/$movieSlug/general"
+          params={{
+            movieSlug: movie.slug,
+          }}
+          title={entityLinkTitle(modifier)}
+          onClick={event => viewClick(event, "movie", movie.id, movie.slug)}
+          className={className}
+        >
+          {children}
+        </Link>
+      )}
+      renderEdit={() => (
+        <HoverIconButton>
+          <Link
+            to="/taxonomies/movies/$movieSlug/edit"
+            params={{
+              movieSlug: movie.slug,
+            }}
+            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => editClick(event, "movie", movie.id)}
+          >
+            <Pencil className="size-4" />
+            <span className="sr-only">Edit {movie.name}</span>
+          </Link>
+        </HoverIconButton>
+      )}
+      renderInfo={() => (
+        <HoverIconButton>
+          <Link
+            to="/taxonomies/movies/$movieSlug/general"
+            params={{
+              movieSlug: movie.slug,
+            }}
+            title={entityLinkTitle(modifier)}
+            onClick={event => viewClick(event, "movie", movie.id, movie.slug)}
+          >
+            <Info className="size-4" />
+            <span className="sr-only">View {movie.name}</span>
+          </Link>
+        </HoverIconButton>
+      )}
+    />
+  );
+}

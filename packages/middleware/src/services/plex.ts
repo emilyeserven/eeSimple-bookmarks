@@ -20,6 +20,7 @@ import { db } from "@/db";
 import { bookmarks } from "@/db/schema";
 import { getActivePlexEndpoint, getDecryptedPlexToken } from "@/services/appSettings";
 import { addBookmarkImage } from "@/services/bookmarkImages";
+import { resolveBookmarkPlexRatingKey } from "@/services/movies";
 
 const PLEX_TIMEOUT_MS = 10000;
 // /identity is polled indirectly by the frequently-called /api/connectors endpoint; keep it snappy
@@ -27,6 +28,13 @@ const PLEX_TIMEOUT_MS = 10000;
 const PLEX_IDENTITY_TIMEOUT_MS = 5000;
 // The Plex item types worth linking a bookmark to (search surfaces collections/clips/playlists too).
 const LINKABLE_TYPES = new Set(["movie", "show", "season", "episode", "artist", "album", "track"]);
+
+/** A `kind` filter narrows the search to a single family of Plex item types. */
+export type PlexSearchKind = "movie" | "show";
+const KIND_TYPES: Record<PlexSearchKind, ReadonlySet<string>> = {
+  movie: new Set(["movie"]),
+  show: new Set(["show"]),
+};
 
 let cachedMachineId: string | null = null;
 let cachedForConfig: string | null = null;
@@ -164,19 +172,25 @@ function collectMetadata(container: unknown): PlexMetadata[] {
 }
 
 /**
- * Search the Plex server for items matching `query` across all libraries. Returns `[]` when the
- * connector is unconfigured or any step fails. Never throws.
+ * Search the Plex server for items matching `query` across all libraries. An optional `kind` narrows
+ * the results to movies or TV shows (used by the Movies / TV Shows taxonomy lookups). Returns `[]`
+ * when the connector is unconfigured or any step fails. Never throws.
  */
-export async function searchPlexItems(query: string): Promise<PlexItemResult[]> {
+export async function searchPlexItems(
+  query: string,
+  kind?: PlexSearchKind,
+): Promise<PlexItemResult[]> {
   const trimmed = query.trim();
   if (!trimmed) return [];
   const res = await plexFetch(`/hubs/search?query=${encodeURIComponent(trimmed)}&limit=30`);
   if (!res?.ok) return [];
   try {
     const items = collectMetadata(await res.json());
+    const allowedTypes = kind ? KIND_TYPES[kind] : null;
     return items
       .map(toItemResult)
-      .filter((entry): entry is PlexItemResult => entry !== null);
+      .filter((entry): entry is PlexItemResult => entry !== null)
+      .filter(entry => allowedTypes === null || allowedTypes.has(entry.type));
   }
   catch {
     return [];
@@ -227,13 +241,17 @@ export type PlexPosterImportResult
 export async function importPlexPoster(bookmarkId: string): Promise<PlexPosterImportResult> {
   const [row] = await db
     .select({
+      movieId: bookmarks.movieId,
+      tvShowId: bookmarks.tvShowId,
       plexRatingKey: bookmarks.plexRatingKey,
     })
     .from(bookmarks)
     .where(eq(bookmarks.id, bookmarkId));
   if (!row) return "not_found";
-  if (row.plexRatingKey === null) return "not_linked";
-  const bytes = await fetchPlexPoster(row.plexRatingKey);
+  // Prefer the linked Movie/TV Show's Plex rating key, falling back to the bookmark's legacy key.
+  const ratingKey = await resolveBookmarkPlexRatingKey(row.movieId, row.tvShowId, row.plexRatingKey);
+  if (ratingKey === null) return "not_linked";
+  const bytes = await fetchPlexPoster(ratingKey);
   if (!bytes) return "poster_unavailable";
   return addBookmarkImage(bookmarkId, bytes, "og", {
     setMain: true,

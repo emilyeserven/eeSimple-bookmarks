@@ -1,0 +1,46 @@
+/**
+ * A TV Show in the "TV Shows" taxonomy. Bookmarks link to a TV Show (via `bookmark.tvShowId`) rather
+ * than a live Plex item; the TV Show carries the Plex linkage so poster/deep-link features resolve the
+ * Plex rating key from it. A TV Show may optionally belong to a Media Property (franchise/IP grouping).
+ */
+export interface TvShow {
+  id: string;
+  /** Display name. Unique. */
+  name: string;
+  /** URL-friendly identifier derived from the name. Unique. */
+  slug: string;
+  /** Display ordering weight; lower sorts first. */
+  sortOrder: number;
+  /** Optional franchise/IP grouping this show belongs to. */
+  mediaPropertyId: string | null;
+  /** Plex rating key (Settings → Connectors) this show maps to, or null if not linked. */
+  plexRatingKey: string | null;
+  /** Denormalized Plex item type (e.g. `show`) for the deep-link label. */
+  plexItemType: string | null;
+  /** Optional release year surfaced by the Plex search. */
+  year: number | null;
+  /** ISO-8601 timestamp of when the show was created. */
+  createdAt: string;
+  /** Number of bookmarks linked to this show (populated by list endpoints). */
+  bookmarkCount?: number;
+}
+
+/** Payload for creating a TV show. */
+export interface CreateTvShowInput {
+  name: string;
+  sortOrder?: number;
+  mediaPropertyId?: string | null;
+  plexRatingKey?: string | null;
+  plexItemType?: string | null;
+  year?: number | null;
+}
+
+/** Payload for updating a TV show (rename, reorder, re-link Plex/media property). */
+export interface UpdateTvShowInput {
+  name?: string;
+  sortOrder?: number;
+  mediaPropertyId?: string | null;
+  plexRatingKey?: string | null;
+  plexItemType?: string | null;
+  year?: number | null;
+}

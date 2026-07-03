@@ -7,12 +7,14 @@ import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
 import { useMediaPropertyBySlug } from "@/hooks/useMediaProperties";
+import { useMovieBySlug } from "@/hooks/useMovies";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePlaceTypeBySlug } from "@/hooks/usePlaceTypes";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { usePublisherBySlug } from "@/hooks/usePublishers";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useSavedFilterBySlug } from "@/hooks/useSavedFilters";
+import { useTvShowBySlug } from "@/hooks/useTvShows";
 
 /** The per-prefix slugs the named-entity hooks resolve. The caller computes these (it already owns
  * `slugFor`), so this module stays free of that dependency. An empty slug short-circuits its hook. */
@@ -24,6 +26,8 @@ export interface TaxonomyNameSlugs {
   propertyGroup: string;
   mediaProperty: string;
   book: string;
+  movie: string;
+  tvShow: string;
   relationshipType: string;
   property: string;
   autofill: string;
@@ -63,6 +67,12 @@ export function useTaxonomyNameMap(
   const {
     book,
   } = useBookBySlug(slugs.book);
+  const {
+    movie,
+  } = useMovieBySlug(slugs.movie);
+  const {
+    tvShow,
+  } = useTvShowBySlug(slugs.tvShow);
   const {
     relationshipType,
   } = useRelationshipTypeBySlug(slugs.relationshipType);
@@ -105,6 +115,12 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/books": {
       name: book?.name,
+    },
+    "/taxonomies/movies": {
+      name: movie?.name,
+    },
+    "/taxonomies/tv-shows": {
+      name: tvShow?.name,
     },
     "/taxonomies/relationship-types": {
       name: relationshipType?.name,

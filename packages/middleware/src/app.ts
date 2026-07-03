@@ -36,6 +36,8 @@ import { reelArchiveRoutes } from "@/routes/reelArchive";
 import { propertyGroupRoutes } from "@/routes/propertyGroups";
 import { mediaPropertyRoutes } from "@/routes/mediaProperties";
 import { bookRoutes } from "@/routes/books";
+import { movieRoutes } from "@/routes/movies";
+import { tvShowRoutes } from "@/routes/tvShows";
 import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
@@ -189,6 +191,14 @@ export async function buildApp(): Promise<FastifyInstance> {
             name: "books",
             description: "Books taxonomy: CRUD; bookmarks link to a Book instead of a live Kavita series",
           },
+          {
+            name: "movies",
+            description: "Movies taxonomy: CRUD; bookmarks link to a Movie instead of a live Plex item",
+          },
+          {
+            name: "tv-shows",
+            description: "TV Shows taxonomy: CRUD; bookmarks link to a TV Show instead of a live Plex item",
+          },
         ],
       },
     });
@@ -238,6 +248,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(propertyGroupRoutes);
   await app.register(mediaPropertyRoutes);
   await app.register(bookRoutes);
+  await app.register(movieRoutes);
+  await app.register(tvShowRoutes);
   await app.register(relationshipTypeRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);

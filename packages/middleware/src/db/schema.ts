@@ -63,10 +63,21 @@ export const bookmarks = pgTable("bookmarks", {
   kavitaSeriesId: integer("kavita_series_id"),
   kavitaLibraryId: integer("kavita_library_id"),
   kavitaSeriesName: text("kavita_series_name"),
-  // Link to an item on the connected Plex server (Settings → Connectors). All nullable = push-safe
-  // additive; the item type and title are denormalized at link time so the deep link and detail
-  // display need no Plex round-trip. The web-UI deep link also needs the server's machineIdentifier,
-  // which is resolved (and cached) server-side from Plex's /identity and returned via /api/connectors.
+  // The Movie / TV Show (taxonomy) this bookmark is linked to. At most one is set. Nullable = push-safe
+  // additive; set null when the linked row is deleted. Plex-item selection now flows through these FKs
+  // instead of the legacy Plex columns below; poster/deep-link resolve the Plex rating key from the
+  // linked Movie/TV Show, falling back to the legacy `plex_rating_key` when unset.
+  movieId: uuid("movie_id").references((): AnyPgColumn => movies.id, {
+    onDelete: "set null",
+  }),
+  tvShowId: uuid("tv_show_id").references((): AnyPgColumn => tvShows.id, {
+    onDelete: "set null",
+  }),
+  // Legacy: direct link to an item on the connected Plex server (Settings → Connectors). All nullable =
+  // push-safe additive; the item type and title are denormalized at link time so the deep link and
+  // detail display need no Plex round-trip. The web-UI deep link also needs the server's
+  // machineIdentifier, resolved (and cached) server-side from Plex's /identity and returned via
+  // /api/connectors. Retained for bookmarks linked before the Movies/TV Shows taxonomies existed.
   plexRatingKey: text("plex_rating_key"),
   plexItemType: text("plex_item_type"),
   plexItemTitle: text("plex_item_title"),
@@ -426,6 +437,61 @@ export const books = pgTable("books", {
 }, table => [
   unique("books_name_unique").on(table.name),
   unique("books_slug_unique").on(table.slug),
+]);
+
+/**
+ * `movies` table — a taxonomy of individual movies, optionally grouped under a media property. A movie
+ * carries the Plex linkage (rating key + item type) so bookmarks reference a Movie (via
+ * `bookmarks.movie_id`) rather than a live Plex item, and poster/deep-link features resolve the Plex
+ * rating key from the linked Movie. All Plex columns + `mediaPropertyId` are nullable → push-safe
+ * additive. Nullable slug for clean `push`; backfilled at boot.
+ */
+export const movies = pgTable("movies", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  // Optional franchise/IP grouping. set null when the media property is deleted.
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
+  // Plex linkage (mirrors what the bookmark used to store): rating key builds the web-UI deep link;
+  // the item type is denormalized for the deep-link label without a Plex round-trip.
+  plexRatingKey: text("plex_rating_key"),
+  plexItemType: text("plex_item_type"),
+  // Optional release year surfaced by the Plex search.
+  year: integer("year"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("movies_name_unique").on(table.name),
+  unique("movies_slug_unique").on(table.slug),
+]);
+
+/**
+ * `tv_shows` table — a taxonomy of TV shows, optionally grouped under a media property. Same shape as
+ * `movies`: Plex linkage (rating key + item type) so bookmarks reference a TV Show (via
+ * `bookmarks.tv_show_id`) rather than a live Plex item. All Plex columns + `mediaPropertyId` nullable →
+ * push-safe additive. Nullable slug for clean `push`; backfilled at boot.
+ */
+export const tvShows = pgTable("tv_shows", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
+  plexRatingKey: text("plex_rating_key"),
+  plexItemType: text("plex_item_type"),
+  year: integer("year"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("tv_shows_name_unique").on(table.name),
+  unique("tv_shows_slug_unique").on(table.slug),
 ]);
 
 /**
@@ -2093,6 +2159,8 @@ export type NewPropertyGroupRow = typeof propertyGroups.$inferInsert;
 export type MediaPropertyRow = typeof mediaProperties.$inferSelect;
 export type NewMediaPropertyRow = typeof mediaProperties.$inferInsert;
 export type BookRow = typeof books.$inferSelect;
+export type MovieRow = typeof movies.$inferSelect;
+export type TvShowRow = typeof tvShows.$inferSelect;
 export type NewBookRow = typeof books.$inferInsert;
 export type RelationshipTypeRow = typeof relationshipTypes.$inferSelect;
 export type NewRelationshipTypeRow = typeof relationshipTypes.$inferInsert;
