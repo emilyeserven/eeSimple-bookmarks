@@ -30,10 +30,10 @@ export class BuiltInLanguageUsageLevelError extends Error {
 }
 
 /** Thrown when a delete's `reassignTo` target is missing or is the level being deleted. */
-export class InvalidReassignTargetError extends Error {
+export class InvalidUsageLevelReassignError extends Error {
   constructor(message = "Invalid reassignment target") {
     super(message);
-    this.name = "InvalidReassignTargetError";
+    this.name = "InvalidUsageLevelReassignError";
   }
 }
 
@@ -157,12 +157,12 @@ export async function deleteLanguageUsageLevel(id: string, reassignToId?: string
   if (existing.builtIn) throw new BuiltInLanguageUsageLevelError();
 
   if (reassignToId !== undefined) {
-    if (reassignToId === id) throw new InvalidReassignTargetError();
+    if (reassignToId === id) throw new InvalidUsageLevelReassignError();
     const [target] = await db
       .select()
       .from(languageUsageLevels)
       .where(eq(languageUsageLevels.id, reassignToId));
-    if (!target) throw new InvalidReassignTargetError("Reassignment target not found");
+    if (!target) throw new InvalidUsageLevelReassignError("Reassignment target not found");
 
     // Drop rows that would collide with an existing target-level row for the same owner+language.
     await db.execute(sql`

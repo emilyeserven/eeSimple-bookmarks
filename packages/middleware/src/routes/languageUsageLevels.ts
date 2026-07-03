@@ -6,7 +6,7 @@ import {
   createLanguageUsageLevel,
   deleteLanguageUsageLevel,
   DuplicateLanguageUsageLevelError,
-  InvalidReassignTargetError,
+  InvalidUsageLevelReassignError,
   listLanguageUsageLevels,
   updateLanguageUsageLevel,
 } from "@/services/languageUsageLevels";
@@ -167,7 +167,7 @@ export async function languageUsageLevelRoutes(app: FastifyInstance): Promise<vo
       return reply.code(204).send();
     }
     catch (err) {
-      if (err instanceof InvalidReassignTargetError) {
+      if (err instanceof InvalidUsageLevelReassignError) {
         return reply.code(400).send({
           message: err.message,
         });
