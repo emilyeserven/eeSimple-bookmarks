@@ -240,7 +240,7 @@ that matches the surface — don't invent a new structure for a one-off page.
   `workbench/EntityWorkbenchView.tsx` — one source for both surfaces. Each tab body is itself a flat
   `LabeledSection` stack.
   - **Hierarchy tab rule:** every taxonomy whose schema row has a `parentId` tree — currently
-    **Tags**, **Media Types**, and **Locations** — gets a view-only **"Hierarchy"** tab (a "Parents"
+    **Tags**, **Media Types**, **Locations**, and **Genres & Moods** — gets a view-only **"Hierarchy"** tab (a "Parents"
     ancestor chain + a "Children" subtree), modeled on `routes/tags.$tagSlug._view.hierarchy.tsx`.
     It is added to
     `viewNav` only (omit it from `VIEW_TO_EDIT` so Edit falls back to General), resolves the node
@@ -255,7 +255,7 @@ that matches the surface — don't invent a new structure for a one-off page.
     Hierarchy tab when a real containment relation exists in the data. Genuinely flat taxonomies
     (Categories, YouTube Channels, Property Groups) do **not** get one.
 - **Entity-scoped bookmarks page** — the `$entitySlug/index` route for entities whose bookmarks can
-  be meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels) renders a full
+  be meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels, Genres & Moods) renders a full
   `BookmarkSearchView` scoped to that entity's bookmarks. **Do not redirect to `/bookmarks?<filter>=…`
   from these routes** — that loses the entity context in the URL and breaks deep-linking. The pattern:
   fetch data via `useCategoryPageData(search.tags)` (or the equivalent hooks), resolve the entity by
@@ -485,6 +485,39 @@ change recipes):
 Editing is uniform: each owner's edit surface has a **Languages tab** (auto-save on entities, the
 bookmark edit tab) built from the shared `LanguageUsagesEditor`/`View`; only the `kind` prop differs
 (`availability` for content, `proficiency` for People).
+
+## Genres & Moods & the polymorphic assignment layer
+
+**Genres & Moods** is a single slug-routed hierarchical taxonomy (`/taxonomies/genres-moods`,
+`genre_moods` table, `GenreMood` type) that unifies genre- and mood-style classification into one
+`parentId` tree — built like a tree taxonomy (Media-Types-shaped scaffold, Tags-style tree + a
+Hierarchy tab; no built-ins). Unlike every other taxonomy it can be attached to **both bookmarks
+and any other taxonomy entity** via **one polymorphic table** — the second `(ownerType, ownerId)`
+precedent after `taxonomy_images`:
+
+- **`genre_mood_assignments (genreMoodId → genre_moods CASCADE, ownerType, ownerId)`** — a real FK on
+  the value side, an unconstrained `ownerId` on the owner side. `ownerType` is one of
+  **`GENRE_MOOD_OWNER_TYPES`** (`@eesimple/types` `genreMoods.ts`) — the **single edit point** to add
+  or remove a target taxonomy (currently bookmark + category/tag/website/mediaType/youtubeChannel/
+  person/newsletter/location/language + itself; config entities like autofill/card-display-rules are
+  intentionally excluded).
+- Because `ownerId` has **no cascade FK**, every owner's `delete*` service must clean up its rows.
+  Bookmarks do this via `cleanupGenreMoodAssignments` across **all three** bookmark-delete paths
+  (`deleteBookmark`/`bulkDeleteBookmarks`/`deleteOrphanedBookmarks`); the assignment service exposes
+  `deleteGenreMoodAssignmentsForOwner` for taxonomy owners. Bookmark-owner writes call
+  `invalidateBookmarkCache()`.
+- **Bookmarks** carry `genreMoods: BookmarkGenreMood[]` (hydrated via a batched join on
+  `ownerType='bookmark'`, linked in the create/update tx like `bookmarkTags`, submitted as
+  `genreMoodIds`) and expose a placeable **`genreMoods`** card field (kept in sync in both
+  `STANDARD_CARD_FIELDS` and the middleware `STANDARD_CARD_FIELD_KEYS`).
+- **Cross-taxonomy UI is one reusable component** — `components/GenreMoodAssignmentSection.tsx`
+  (`ownerType`/`ownerId` props, auto-saving multi-select with inline create) — dropped into **every**
+  owner's edit General form. Adding a new owner = add it to `GENRE_MOOD_OWNER_TYPES` and drop the
+  section into that entity's edit form; don't hand-roll a per-owner junction table.
+
+Genres & Moods is **display/classification data, not a matchable condition leaf** today (no autofill/
+homepage/card-rule Genre condition yet) — a filter facet + condition leaf is the sanctioned follow-up
+(see `add-condition-type`/`filterable-facet`).
 
 ## Metadata fetching & connectors
 
