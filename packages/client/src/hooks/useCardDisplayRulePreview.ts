@@ -308,7 +308,6 @@ export function useCardDisplayRulePreview({
       tvShowId: null,
       episodeId: null,
       albumId: null,
-      artistId: null,
       trackId: null,
       kavitaSeriesId: null,
       kavitaLibraryId: null,
@@ -337,6 +336,7 @@ export function useCardDisplayRulePreview({
       blacklistedTagIds: [],
       ...samplePropertyValues(properties),
       people: [],
+      groups: [],
       relationships: [],
       locations: [
         {

@@ -1,5 +1,4 @@
 import { useAlbums } from "../hooks/useAlbums";
-import { useArtists } from "../hooks/useArtists";
 import { useBooks } from "../hooks/useBooks";
 import { useEpisodes } from "../hooks/useEpisodes";
 import { useGroups } from "../hooks/useGroups";
@@ -29,7 +28,6 @@ export function useSidebarTaxonomyData() {
     allTvShows: useTvShows().data,
     allEpisodes: useEpisodes().data,
     allAlbums: useAlbums().data,
-    allArtists: useArtists().data,
     allTracks: useTracks().data,
     allLocations: useLocations().data,
     allPlaceTypes: usePlaceTypes().data,

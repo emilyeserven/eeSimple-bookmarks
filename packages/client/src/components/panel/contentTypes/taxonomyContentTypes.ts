@@ -1,7 +1,6 @@
 // Sub-barrel: the core taxonomy / entity content types, grouped so the registry stays within the
 // dependency cap.
 export { albumContentType } from "./album";
-export { artistContentType } from "./artist";
 export { bookContentType } from "./book";
 export { bookmarkContentType } from "./bookmark";
 export { categoryContentType } from "./category";

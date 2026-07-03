@@ -19,7 +19,7 @@ function plexUrlFor(
 /**
  * The bookmark's linked Plex item as a detail-view value: the item title, deep-linked into Plex's
  * web UI when the connector is enabled and the server's machineIdentifier is known. Resolves through
- * whichever Plex-backed taxonomy FK is linked (Movie/TV Show/Episode/Album/Artist/Track), else the
+ * whichever Plex-backed taxonomy FK is linked (Movie/TV Show/Episode/Album/Track), else the
  * bookmark's legacy `plexRatingKey`/`plexItemTitle` columns — see `useBookmarkPlexLink`. Returns
  * `null` when the bookmark isn't linked either way. Owns its `useConnectors()` call so the pure
  * detail-section builders can render it directly.

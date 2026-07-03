@@ -23,7 +23,7 @@ interface PlexTaxonomyImageTabProps<E extends PlexTaxonomyEntity> {
 }
 
 /**
- * Image tab body shared by every Plex-backed media taxonomy (Movies, TV Shows, Episodes, Artists,
+ * Image tab body shared by every Plex-backed media taxonomy (Movies, TV Shows, Episodes,
  * Albums, Tracks): a multi-image gallery with a "Use Plex poster" auto-fetch action, gated on the
  * Plex connector being enabled and the entity itself being linked to a Plex item.
  */

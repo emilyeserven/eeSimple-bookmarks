@@ -1,4 +1,4 @@
-import { count, eq, isNull } from "drizzle-orm";
+import { count, eq, inArray, isNull } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   Group,
@@ -8,9 +8,15 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { bookmarks, groups, groupTypes, type GroupRow, websites } from "@/db/schema";
+import { albumGroups, bookmarks, groupImages, groups, groupTypes, type GroupRow, websites } from "@/db/schema";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { getGroupImageRow } from "@/services/groupImages";
+import { buildStringMap } from "@/utils/mapUtils";
+import { deleteObject } from "@/utils/objectStore";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Thrown when a create/rename collides with an existing group name. */
 export class DuplicateGroupError extends Error {
@@ -40,11 +46,62 @@ const websiteSelect = {
   siteName: websites.siteName,
 } as const;
 
+function imageUrlFrom(groupId: string, imageCreatedAt: Date | string | null): string | null {
+  if (!imageCreatedAt) return null;
+  const time = (imageCreatedAt instanceof Date ? imageCreatedAt : new Date(imageCreatedAt)).getTime();
+  return `/api/groups/${groupId}/image?v=${time}`;
+}
+
+/** The Plex/creator columns absorbed from the former Artists taxonomy (not the M2M/website sets). */
+type GroupDataColumns = Pick<
+  GroupRow,
+  "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year"
+>;
+
+/** Build the settable creator data columns from an update input; missing keys are left untouched. */
+function creatorDataFromInput(input: UpdateGroupInput): Partial<GroupDataColumns> {
+  const patch: Partial<GroupDataColumns> = {};
+  if (input.plexRatingKey !== undefined) patch.plexRatingKey = input.plexRatingKey ?? null;
+  if (input.plexItemType !== undefined) patch.plexItemType = input.plexItemType ?? null;
+  if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
+  if (input.year !== undefined) patch.year = input.year ?? null;
+  return patch;
+}
+
+/** Load album ids (credits) for a set of group ids as a map of groupId → albumId[]. */
+async function loadGroupAlbumMap(groupIds: string[]): Promise<Map<string, string[]>> {
+  if (groupIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      groupId: albumGroups.groupId,
+      albumId: albumGroups.albumId,
+    })
+    .from(albumGroups)
+    .where(inArray(albumGroups.groupId, groupIds));
+  return buildStringMap(rows, r => r.groupId, r => r.albumId);
+}
+
+/** Replace the full set of album credits for a group (delete-then-insert on the shared join). */
+async function setGroupAlbums(
+  txOrDb: Tx | typeof db,
+  groupId: string,
+  albumIds: string[],
+): Promise<void> {
+  await txOrDb.delete(albumGroups).where(eq(albumGroups.groupId, groupId));
+  if (albumIds.length > 0) {
+    await txOrDb.insert(albumGroups).values(albumIds.map(albumId => ({
+      albumId,
+      groupId,
+    })));
+  }
+}
+
 function toGroup(
-  row: GroupRow,
+  row: GroupRow & { imageCreatedAt?: Date | string | null },
   website: WebsiteJoin,
   groupType: GroupTypeJoin,
   bookmarkCount?: number,
+  albumIds: string[] = [],
 ): Group {
   return {
     id: row.id,
@@ -64,6 +121,13 @@ function toGroup(
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount,
     socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
+    sortOrder: row.sortOrder,
+    year: row.year ?? null,
+    plexRatingKey: row.plexRatingKey ?? null,
+    plexItemType: row.plexItemType ?? null,
+    plexItemTitle: row.plexItemTitle ?? null,
+    imageUrl: imageUrlFrom(row.id, row.imageCreatedAt ?? null),
+    albumIds,
   };
 }
 
@@ -73,11 +137,13 @@ export async function listGroups(): Promise<Group[]> {
       group: groups,
       website: websiteSelect,
       groupType: groupTypeSelect,
+      imageCreatedAt: groupImages.createdAt,
       bookmarkCount: count(bookmarks.id),
     })
     .from(groups)
     .leftJoin(websites, eq(groups.websiteId, websites.id))
     .leftJoin(groupTypes, eq(groups.groupTypeId, groupTypes.id))
+    .leftJoin(groupImages, eq(groupImages.groupId, groups.id))
     .leftJoin(bookmarks, eq(bookmarks.groupId, groups.id))
     .groupBy(
       groups.id,
@@ -87,15 +153,21 @@ export async function listGroups(): Promise<Group[]> {
       groupTypes.id,
       groupTypes.name,
       groupTypes.slug,
+      groupImages.createdAt,
     )
     .orderBy(groups.name);
 
+  const albumMap = await loadGroupAlbumMap(rows.map(r => r.group.id));
   return rows.map(r =>
     toGroup(
-      r.group,
+      {
+        ...r.group,
+        imageCreatedAt: r.imageCreatedAt ?? null,
+      },
       r.website ?? null,
       r.groupType ?? null,
       r.bookmarkCount,
+      albumMap.get(r.group.id) ?? [],
     ));
 }
 
@@ -105,15 +177,27 @@ export async function getGroupBySlug(slug: string): Promise<Group | null> {
       group: groups,
       website: websiteSelect,
       groupType: groupTypeSelect,
+      imageCreatedAt: groupImages.createdAt,
     })
     .from(groups)
     .leftJoin(websites, eq(groups.websiteId, websites.id))
     .leftJoin(groupTypes, eq(groups.groupTypeId, groupTypes.id))
+    .leftJoin(groupImages, eq(groupImages.groupId, groups.id))
     .where(eq(groups.slug, slug))
     .limit(1);
   if (rows.length === 0) return null;
   const r = rows[0];
-  return toGroup(r.group, r.website ?? null, r.groupType ?? null);
+  const albumMap = await loadGroupAlbumMap([r.group.id]);
+  return toGroup(
+    {
+      ...r.group,
+      imageCreatedAt: r.imageCreatedAt ?? null,
+    },
+    r.website ?? null,
+    r.groupType ?? null,
+    undefined,
+    albumMap.get(r.group.id) ?? [],
+  );
 }
 
 export async function getGroupById(id: string): Promise<Group | null> {
@@ -122,15 +206,27 @@ export async function getGroupById(id: string): Promise<Group | null> {
       group: groups,
       website: websiteSelect,
       groupType: groupTypeSelect,
+      imageCreatedAt: groupImages.createdAt,
     })
     .from(groups)
     .leftJoin(websites, eq(groups.websiteId, websites.id))
     .leftJoin(groupTypes, eq(groups.groupTypeId, groupTypes.id))
+    .leftJoin(groupImages, eq(groupImages.groupId, groups.id))
     .where(eq(groups.id, id))
     .limit(1);
   if (rows.length === 0) return null;
   const r = rows[0];
-  return toGroup(r.group, r.website ?? null, r.groupType ?? null);
+  const albumMap = await loadGroupAlbumMap([r.group.id]);
+  return toGroup(
+    {
+      ...r.group,
+      imageCreatedAt: r.imageCreatedAt ?? null,
+    },
+    r.website ?? null,
+    r.groupType ?? null,
+    undefined,
+    albumMap.get(r.group.id) ?? [],
+  );
 }
 
 export async function createGroup(input: CreateGroupInput): Promise<Group> {
@@ -181,7 +277,9 @@ export async function updateGroup(id: string, input: UpdateGroupInput): Promise<
     if (collision.length > 0) throw new DuplicateGroupError(input.name);
   }
 
-  const updates: Partial<typeof groups.$inferInsert> = {};
+  const updates: Partial<typeof groups.$inferInsert> = {
+    ...creatorDataFromInput(input),
+  };
   if ("romanizedName" in input) updates.romanizedName = input.romanizedName ?? null;
   if (input.name !== undefined) {
     updates.name = input.name;
@@ -197,16 +295,32 @@ export async function updateGroup(id: string, input: UpdateGroupInput): Promise<
   if ("socialLinks" in input) {
     updates.socialLinks = input.socialLinks ?? [];
   }
+  if (input.sortOrder !== undefined) {
+    updates.sortOrder = input.sortOrder;
+  }
 
-  await db.update(groups).set(updates).where(eq(groups.id, id));
+  if (Object.keys(updates).length > 0) {
+    await db.update(groups).set(updates).where(eq(groups.id, id));
+  }
+  if (input.albumIds !== undefined) {
+    await setGroupAlbums(db, id, input.albumIds);
+  }
   return getGroupById(id) as Promise<Group>;
 }
 
 export async function deleteGroup(id: string): Promise<boolean> {
+  // Look up the image's object key before the delete cascades the image row away.
+  const imageRow = await getGroupImageRow(id);
   const result = await db.delete(groups).where(eq(groups.id, id)).returning({
     id: groups.id,
   });
-  return result.length > 0;
+  const deleted = result.length > 0;
+  if (deleted) {
+    // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
+    await deleteGenreMoodAssignmentsForOwner("group", id);
+    if (imageRow) await deleteObject(imageRow.objectKey).catch(() => undefined);
+  }
+  return deleted;
 }
 
 export async function bulkDeleteGroups(ids: string[]): Promise<BulkDeleteResult[]> {

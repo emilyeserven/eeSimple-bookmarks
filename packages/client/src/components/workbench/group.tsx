@@ -2,9 +2,13 @@
 import type { EntityWorkbench } from "./types";
 import type { Group } from "@eesimple/types";
 
+import { Building2 } from "lucide-react";
+
+import { EntityImagePreview } from "../EntityImageField";
 import { GroupGeneralForm } from "../GroupGeneralForm";
 import { GroupPeopleForm, GroupPeopleView } from "../GroupPeopleForm";
 
+import { useAlbums } from "@/hooks/useAlbums";
 import { useDeleteGroup, useGroupBySlug, useGroups } from "@/hooks/useGroups";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
@@ -13,55 +17,90 @@ function GroupGeneralView({
 }: {
   entity: Group;
 }) {
+  const {
+    data: albums,
+  } = useAlbums();
+  const creditedAlbums = (albums ?? []).filter(album => group.albumIds.includes(album.id));
+
   return (
-    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-      <dt className="text-muted-foreground">Added</dt>
-      <dd>{new Date(group.createdAt).toLocaleDateString()}</dd>
-      <dt className="text-muted-foreground">Slug</dt>
-      <dd className="font-mono">{group.slug}</dd>
-      <dt className="text-muted-foreground">Group type</dt>
-      <dd>{group.groupType?.name ?? <span className="text-muted-foreground">None</span>}</dd>
-      {group.website != null
-        ? (
+    <div className="space-y-3">
+      <EntityImagePreview
+        imageUrl={group.imageUrl}
+        fallback={<Building2 className="size-6" />}
+      />
+      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+        <dt className="text-muted-foreground">Added</dt>
+        <dd>{new Date(group.createdAt).toLocaleDateString()}</dd>
+        <dt className="text-muted-foreground">Slug</dt>
+        <dd className="font-mono">{group.slug}</dd>
+        <dt className="text-muted-foreground">Group type</dt>
+        <dd>{group.groupType?.name ?? <span className="text-muted-foreground">None</span>}</dd>
+        {group.website != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">Website</dt>
+              <dd>
+                {group.website.siteName
+                  ? `${group.website.siteName} (${group.website.domain})`
+                  : group.website.domain}
+              </dd>
+            </>
+          )
+          : null}
+        {group.bookmarkCount != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">Bookmarks</dt>
+              <dd>{group.bookmarkCount}</dd>
+            </>
+          )
+          : null}
+        {group.year != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">Year</dt>
+              <dd>{group.year}</dd>
+            </>
+          )
+          : null}
+        {group.plexItemTitle != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">Plex</dt>
+              <dd>{group.plexItemTitle}</dd>
+            </>
+          )
+          : null}
+        {creditedAlbums.length > 0
+          ? (
+            <>
+              <dt className="text-muted-foreground">Albums</dt>
+              <dd>{creditedAlbums.map(album => album.name).join(", ")}</dd>
+            </>
+          )
+          : null}
+        {group.socialLinks.map(link => (
           <>
-            <dt className="text-muted-foreground">Website</dt>
-            <dd>
-              {group.website.siteName
-                ? `${group.website.siteName} (${group.website.domain})`
-                : group.website.domain}
+            <dt
+              key={`${link.platform}-label`}
+              className="text-muted-foreground"
+            >
+              {SOCIAL_MEDIA_PLATFORM_LABELS[link.platform]}
+            </dt>
+            <dd key={`${link.platform}-value`}>
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                {link.url}
+              </a>
             </dd>
           </>
-        )
-        : null}
-      {group.bookmarkCount != null
-        ? (
-          <>
-            <dt className="text-muted-foreground">Bookmarks</dt>
-            <dd>{group.bookmarkCount}</dd>
-          </>
-        )
-        : null}
-      {group.socialLinks.map(link => (
-        <>
-          <dt
-            key={`${link.platform}-label`}
-            className="text-muted-foreground"
-          >
-            {SOCIAL_MEDIA_PLATFORM_LABELS[link.platform]}
-          </dt>
-          <dd key={`${link.platform}-value`}>
-            <a
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              {link.url}
-            </a>
-          </dd>
-        </>
-      ))}
-    </dl>
+        ))}
+      </dl>
+    </div>
   );
 }
 
@@ -106,12 +145,12 @@ export const groupWorkbench: EntityWorkbench<Group> = {
       label: "General",
       view: {
         title: "General",
-        description: "Name and associated website.",
+        description: "Name, website, group type, image, Plex link, year, and album credits.",
         render: GroupGeneralView,
       },
       edit: {
         title: "General",
-        description: "Edit the group's name and website association.",
+        description: "Edit the group's name, website, group type, image, Plex link, year, and album credits.",
         render: ({
           entity,
         }) => <GroupGeneralForm group={entity} />,

@@ -31,7 +31,6 @@ export type DrawerContentType
     | "tv-show"
     | "episode"
     | "album"
-    | "artist"
     | "track"
     | "youtube-channel"
     | "newsletter"
@@ -72,7 +71,6 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "tv-show",
   "episode",
   "album",
-  "artist",
   "track",
   "youtube-channel",
   "newsletter",

@@ -36,7 +36,7 @@ interface TaxonomyImageGalleryProps {
 
 /**
  * Multi-image gallery for a Plex/Kavita-backed media taxonomy entity (Movies, TV Shows, Episodes,
- * Artists, Albums, Tracks, Books). Every action is immediate — no staged intent / Save button — to
+ * Albums, Tracks, Books). Every action is immediate — no staged intent / Save button — to
  * match this app's per-field auto-save convention for taxonomy edit tabs. Shared by every entity's
  * workbench Image tab; only the `autoFetchActions` list differs per entity (Plex poster vs. Kavita/
  * ISBN cover).

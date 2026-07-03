@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
+  albumPeople,
   personImages,
   personGroups,
   people,
@@ -74,6 +75,51 @@ async function loadPersonGroupMap(personIds: string[]): Promise<Map<string, stri
   return buildStringMap(rows, r => r.personId, r => r.groupId);
 }
 
+/** Load album IDs (credits) for a set of person IDs as a map of personId → albumId[]. */
+async function loadPersonAlbumMap(personIds: string[]): Promise<Map<string, string[]>> {
+  if (personIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      personId: albumPeople.personId,
+      albumId: albumPeople.albumId,
+    })
+    .from(albumPeople)
+    .where(inArray(albumPeople.personId, personIds));
+  return buildStringMap(rows, r => r.personId, r => r.albumId);
+}
+
+/** Replace the full set of album credits for a person (delete-then-insert on the shared join). */
+async function setPersonAlbums(
+  txOrDb: Tx | typeof db,
+  personId: string,
+  albumIds: string[],
+): Promise<void> {
+  await txOrDb.delete(albumPeople).where(eq(albumPeople.personId, personId));
+  if (albumIds.length > 0) {
+    await txOrDb.insert(albumPeople).values(albumIds.map(albumId => ({
+      albumId,
+      personId,
+    })));
+  }
+}
+
+/** The Plex/media-property columns absorbed from the former Artists taxonomy (not the M2M sets). */
+type PersonDataColumns = Pick<
+  PersonRow,
+  "mediaPropertyId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year"
+>;
+
+/** Build the settable creator data columns from an update input; missing keys are left untouched. */
+function creatorDataFromInput(input: UpdatePersonInput): Partial<PersonDataColumns> {
+  const patch: Partial<PersonDataColumns> = {};
+  if (input.mediaPropertyId !== undefined) patch.mediaPropertyId = input.mediaPropertyId ?? null;
+  if (input.plexRatingKey !== undefined) patch.plexRatingKey = input.plexRatingKey ?? null;
+  if (input.plexItemType !== undefined) patch.plexItemType = input.plexItemType ?? null;
+  if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
+  if (input.year !== undefined) patch.year = input.year ?? null;
+  return patch;
+}
+
 /** Replace the full set of YouTube channels for an person (delete-then-insert). */
 async function setPersonYoutubeChannels(
   txOrDb: Tx | typeof db,
@@ -126,6 +172,7 @@ function toPerson(
   youtubeChannelIds: string[] = [],
   websiteIds: string[] = [],
   groupIds: string[] = [],
+  albumIds: string[] = [],
 ): Person {
   return {
     id: row.id,
@@ -141,6 +188,13 @@ function toPerson(
     youtubeChannelIds,
     websiteIds,
     groupIds,
+    sortOrder: row.sortOrder,
+    mediaPropertyId: row.mediaPropertyId ?? null,
+    year: row.year ?? null,
+    plexRatingKey: row.plexRatingKey ?? null,
+    plexItemType: row.plexItemType ?? null,
+    plexItemTitle: row.plexItemTitle ?? null,
+    albumIds,
   };
 }
 
@@ -159,6 +213,12 @@ export async function listPeople(): Promise<Person[]> {
       personWebsiteUrl: people.personWebsiteUrl,
       biographyUrl: people.biographyUrl,
       socialLinks: people.socialLinks,
+      sortOrder: people.sortOrder,
+      mediaPropertyId: people.mediaPropertyId,
+      plexRatingKey: people.plexRatingKey,
+      plexItemType: people.plexItemType,
+      plexItemTitle: people.plexItemTitle,
+      year: people.year,
       createdAt: people.createdAt,
       avatarCreatedAt: personImages.createdAt,
     })
@@ -168,7 +228,7 @@ export async function listPeople(): Promise<Person[]> {
 
   const ids = rows.map(r => r.id);
 
-  const [counts, channelMap, websiteMap, groupMap] = await Promise.all([
+  const [counts, channelMap, websiteMap, groupMap, albumMap] = await Promise.all([
     db
       .select({
         personId: bookmarkPeople.personId,
@@ -179,6 +239,7 @@ export async function listPeople(): Promise<Person[]> {
     loadPersonYoutubeChannelMap(ids),
     loadPersonWebsiteMap(ids),
     loadPersonGroupMap(ids),
+    loadPersonAlbumMap(ids),
   ]);
 
   const countMap = new Map(counts.map(c => [c.personId, Number(c.count)]));
@@ -189,6 +250,7 @@ export async function listPeople(): Promise<Person[]> {
       channelMap.get(row.id) ?? [],
       websiteMap.get(row.id) ?? [],
       groupMap.get(row.id) ?? [],
+      albumMap.get(row.id) ?? [],
     ));
 }
 
@@ -227,7 +289,9 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
   const [existing] = await db.select().from(people).where(eq(people.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<PersonRow, "name" | "romanizedName" | "slug" | "personWebsiteUrl" | "biographyUrl" | "socialLinks">> = {};
+  const patch: Partial<Pick<PersonRow, "name" | "romanizedName" | "slug" | "personWebsiteUrl" | "biographyUrl" | "socialLinks" | "sortOrder">> & Partial<PersonDataColumns> = {
+    ...creatorDataFromInput(input),
+  };
   if ("romanizedName" in input) patch.romanizedName = input.romanizedName ?? null;
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
@@ -241,18 +305,21 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
   if ("personWebsiteUrl" in input) patch.personWebsiteUrl = input.personWebsiteUrl ?? null;
   if ("biographyUrl" in input) patch.biographyUrl = input.biographyUrl ?? null;
   if ("socialLinks" in input) patch.socialLinks = input.socialLinks ?? [];
+  if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
 
   const hasAssociationChanges
     = input.youtubeChannelIds !== undefined
       || input.websiteIds !== undefined
-      || input.groupIds !== undefined;
+      || input.groupIds !== undefined
+      || input.albumIds !== undefined;
 
   if (Object.keys(patch).length === 0 && !hasAssociationChanges) {
-    const [imageRow, channelMap, websiteMap, groupMap] = await Promise.all([
+    const [imageRow, channelMap, websiteMap, groupMap, albumMap] = await Promise.all([
       getPersonImageRow(id),
       loadPersonYoutubeChannelMap([id]),
       loadPersonWebsiteMap([id]),
       loadPersonGroupMap([id]),
+      loadPersonAlbumMap([id]),
     ]);
     return toPerson(
       {
@@ -263,6 +330,7 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
       channelMap.get(id) ?? [],
       websiteMap.get(id) ?? [],
       groupMap.get(id) ?? [],
+      albumMap.get(id) ?? [],
     );
   }
 
@@ -282,11 +350,15 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
     if (input.groupIds !== undefined) {
       await setPersonGroups(tx, id, input.groupIds);
     }
-    const [imageRow, channelMap, websiteMap, groupMap] = await Promise.all([
+    if (input.albumIds !== undefined) {
+      await setPersonAlbums(tx, id, input.albumIds);
+    }
+    const [imageRow, channelMap, websiteMap, groupMap, albumMap] = await Promise.all([
       getPersonImageRow(id),
       loadPersonYoutubeChannelMap([id]),
       loadPersonWebsiteMap([id]),
       loadPersonGroupMap([id]),
+      loadPersonAlbumMap([id]),
     ]);
     return toPerson(
       {
@@ -297,6 +369,7 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
       channelMap.get(id) ?? [],
       websiteMap.get(id) ?? [],
       groupMap.get(id) ?? [],
+      albumMap.get(id) ?? [],
     );
   });
 }

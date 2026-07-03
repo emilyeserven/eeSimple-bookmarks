@@ -101,9 +101,10 @@ given entity don't need their own inline-create — reuse the shared wrapper whe
 - **Bookmark Advanced section** — category, media type, group, person
   (`BookmarkAdvancedCategoryField`, `BookmarkAdvancedMediaTypeField`,
   `BookmarkAdvancedGroupField`, `BookmarkAdvancedSection` for person)
-- **Bookmark General (edit) form** — category (`BookmarkCategoryField`), media type + location
-  (`BookmarkGeneralRelationsSection`), group (`useBookmarkGeneralForm` +
-  `BookmarkAdvancedGroupField`); tag/person stay manual via `useBookmarkInlineCreateModals`
+- **Bookmark General (edit) form** — category (`BookmarkCategoryField`), media type + location +
+  **groups** (M:M creator credits, `groupIds`, `useEntityCreateOption("group")` in
+  `BookmarkGeneralRelationsSection`), single group / publishing house (`useBookmarkGeneralForm` +
+  `BookmarkAdvancedGroupField`, `groupId`); tag/person stay manual via `useBookmarkInlineCreateModals`
 - **Import item advanced edit** — category, media type, group, location
   (`useImportItemAdvancedEdit`, consumed by `ImportItemAdvancedEditFields`/`Modals`); tag/author
   stay manual
@@ -121,6 +122,10 @@ given entity don't need their own inline-create — reuse the shared wrapper whe
 - **Location pickers** — `LocationPickerWithCreate` (used by `BookmarkGeneralRelationsSection`,
   `AutofillRulePrefillPickers`, `LocationConditionEditor`, `ImportItemAdvancedEdit`)
 - **Group general form** — website + group type (`useGroupGeneralForm` + `GroupGeneralForm`)
+- **Album credits** — person, group (`AlbumCreditsSection`; the album's People/Group creator credits,
+  each an inline-creatable `MultiCombobox`)
+- **Creator media section** — album (`CreatorMediaSection`, the shared Plex-link + year + album-credit
+  block used by `PersonGeneralForm` and `GroupGeneralForm`)
 - **Property display section** — property group (`PropertyDisplaySection`)
 - **Autofill prefill pickers** — category, media type (`AutofillRulePrefillPickers`)
 - **Inbox pre-fill box** — category, media type, group (`InboxPreFillBox`); author stays manual

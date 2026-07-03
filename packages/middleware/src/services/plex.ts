@@ -17,7 +17,7 @@ import type { PlexItemResult, TaxonomyImageOwnerType } from "@eesimple/types";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { albums, artists, bookmarks, episodes, movies, tracks, tvShows } from "@/db/schema";
+import { albums, bookmarks, episodes, movies, tracks, tvShows } from "@/db/schema";
 import { getActivePlexEndpoint, getDecryptedPlexToken } from "@/services/appSettings";
 import { addBookmarkImage } from "@/services/bookmarkImages";
 import { resolveBookmarkPlexRatingKey } from "@/services/movies";
@@ -347,7 +347,6 @@ export async function importPlexPoster(bookmarkId: string): Promise<PlexPosterIm
       tvShowId: bookmarks.tvShowId,
       episodeId: bookmarks.episodeId,
       albumId: bookmarks.albumId,
-      artistId: bookmarks.artistId,
       trackId: bookmarks.trackId,
       plexRatingKey: bookmarks.plexRatingKey,
     })
@@ -369,7 +368,6 @@ const PLEX_TAXONOMY_TABLES = {
   movie: movies,
   tvShow: tvShows,
   episode: episodes,
-  artist: artists,
   album: albums,
   track: tracks,
 } as const;
@@ -409,7 +407,7 @@ export async function importPlexPosterForTaxonomy(
 /**
  * Map a taxonomy's Plex guids to the Wikidata external-ID properties worth matching on, most-precise
  * first. IMDb (`P345`) covers films/shows/episodes; TMDb splits by film (`P4947`) vs TV (`P4983`);
- * music maps to the MusicBrainz artist/release-group/recording IDs.
+ * music maps to the MusicBrainz release-group/recording IDs.
  */
 function buildExternalIds(ownerType: PlexTaxonomyOwnerType, guids: PlexGuids): WikidataExternalId[] {
   const ids: WikidataExternalId[] = [];
@@ -429,9 +427,6 @@ function buildExternalIds(ownerType: PlexTaxonomyOwnerType, guids: PlexGuids): W
       push("P345", guids.imdb);
       push("P4983", guids.tmdb);
       push("P4835", guids.tvdb);
-      break;
-    case "artist":
-      push("P434", guids.musicBrainz);
       break;
     case "album":
       push("P436", guids.musicBrainz);

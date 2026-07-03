@@ -7,7 +7,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { albumArtists, albums, bookmarks, type AlbumRow } from "@/db/schema";
+import { albumPeople, albumGroups, albums, bookmarks, type AlbumRow } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -25,7 +25,8 @@ export class DuplicateAlbumError extends Error {
 /** Map a DB row to the shared `Album` wire type. */
 function toAlbum(
   row: AlbumRow & { bookmarkCount?: number },
-  artistIds: string[] = [],
+  personIds: string[] = [],
+  groupIds: string[] = [],
 ): Album {
   return {
     id: row.id,
@@ -34,7 +35,8 @@ function toAlbum(
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
     mediaPropertyId: row.mediaPropertyId ?? null,
-    artistIds,
+    personIds,
+    groupIds,
     plexRatingKey: row.plexRatingKey ?? null,
     plexItemType: row.plexItemType ?? null,
     plexItemTitle: row.plexItemTitle ?? null,
@@ -74,35 +76,63 @@ function dataFromInput(input: CreateAlbumInput | UpdateAlbumInput): Partial<Albu
   return patch;
 }
 
-/** Load artist ids for a set of album ids as a map of albumId → artistId[]. */
-async function loadAlbumArtistMap(albumIds: string[]): Promise<Map<string, string[]>> {
+/** Load person ids (credits) for a set of album ids as a map of albumId → personId[]. */
+async function loadAlbumPersonMap(albumIds: string[]): Promise<Map<string, string[]>> {
   if (albumIds.length === 0) return new Map();
   const rows = await db
     .select({
-      albumId: albumArtists.albumId,
-      artistId: albumArtists.artistId,
+      albumId: albumPeople.albumId,
+      personId: albumPeople.personId,
     })
-    .from(albumArtists)
-    .where(inArray(albumArtists.albumId, albumIds));
-  return buildStringMap(rows, r => r.albumId, r => r.artistId);
+    .from(albumPeople)
+    .where(inArray(albumPeople.albumId, albumIds));
+  return buildStringMap(rows, r => r.albumId, r => r.personId);
 }
 
-/** Replace the full set of artists for an album (delete-then-insert). */
-export async function setAlbumArtists(
+/** Load group ids (credits) for a set of album ids as a map of albumId → groupId[]. */
+async function loadAlbumGroupMap(albumIds: string[]): Promise<Map<string, string[]>> {
+  if (albumIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      albumId: albumGroups.albumId,
+      groupId: albumGroups.groupId,
+    })
+    .from(albumGroups)
+    .where(inArray(albumGroups.albumId, albumIds));
+  return buildStringMap(rows, r => r.albumId, r => r.groupId);
+}
+
+/** Replace the full set of People credits for an album (delete-then-insert). */
+export async function setAlbumPeople(
   txOrDb: Tx | typeof db,
   albumId: string,
-  artistIds: string[],
+  personIds: string[],
 ): Promise<void> {
-  await txOrDb.delete(albumArtists).where(eq(albumArtists.albumId, albumId));
-  if (artistIds.length > 0) {
-    await txOrDb.insert(albumArtists).values(artistIds.map(artistId => ({
+  await txOrDb.delete(albumPeople).where(eq(albumPeople.albumId, albumId));
+  if (personIds.length > 0) {
+    await txOrDb.insert(albumPeople).values(personIds.map(personId => ({
       albumId,
-      artistId,
+      personId,
     })));
   }
 }
 
-/** List all albums, ordered by sort order then name, each with its bookmark count + artist ids. */
+/** Replace the full set of Group credits for an album (delete-then-insert). */
+export async function setAlbumGroups(
+  txOrDb: Tx | typeof db,
+  albumId: string,
+  groupIds: string[],
+): Promise<void> {
+  await txOrDb.delete(albumGroups).where(eq(albumGroups.albumId, albumId));
+  if (groupIds.length > 0) {
+    await txOrDb.insert(albumGroups).values(groupIds.map(groupId => ({
+      albumId,
+      groupId,
+    })));
+  }
+}
+
+/** List all albums, ordered by sort order then name, each with its bookmark count + credits. */
 export async function listAlbums(): Promise<Album[]> {
   const rows = await db
     .select({
@@ -124,8 +154,12 @@ export async function listAlbums(): Promise<Album[]> {
     })
     .from(albums)
     .orderBy(asc(albums.sortOrder), asc(albums.name));
-  const artistMap = await loadAlbumArtistMap(rows.map(r => r.id));
-  return rows.map(row => toAlbum(row, artistMap.get(row.id) ?? []));
+  const ids = rows.map(r => r.id);
+  const [personMap, groupMap] = await Promise.all([
+    loadAlbumPersonMap(ids),
+    loadAlbumGroupMap(ids),
+  ]);
+  return rows.map(row => toAlbum(row, personMap.get(row.id) ?? [], groupMap.get(row.id) ?? []));
 }
 
 /** Add an album. Throws `DuplicateAlbumError` on a name clash. */
@@ -146,12 +180,13 @@ export async function createAlbum(input: CreateAlbumInput): Promise<Album> {
       sortOrder: input.sortOrder ?? 0,
       ...dataFromInput(input),
     }).returning();
-    if (input.artistIds !== undefined) await setAlbumArtists(tx, row.id, input.artistIds);
-    return toAlbum(row, input.artistIds ?? []);
+    if (input.personIds !== undefined) await setAlbumPeople(tx, row.id, input.personIds);
+    if (input.groupIds !== undefined) await setAlbumGroups(tx, row.id, input.groupIds);
+    return toAlbum(row, input.personIds ?? [], input.groupIds ?? []);
   });
 }
 
-/** Update an album (rename, reorder, re-link Plex/media property, set artists). Throws on a clash. */
+/** Update an album (rename, reorder, re-link Plex/media property, set credits). Throws on a clash. */
 export async function updateAlbum(id: string, input: UpdateAlbumInput): Promise<Album | null> {
   const [existing] = await db.select().from(albums).where(eq(albums.id, id));
   if (!existing) return null;
@@ -174,9 +209,13 @@ export async function updateAlbum(id: string, input: UpdateAlbumInput): Promise<
     const row = Object.keys(patch).length > 0
       ? (await tx.update(albums).set(patch).where(eq(albums.id, id)).returning())[0]
       : existing;
-    if (input.artistIds !== undefined) await setAlbumArtists(tx, id, input.artistIds);
-    const artistMap = await loadAlbumArtistMap([id]);
-    return toAlbum(row, artistMap.get(id) ?? []);
+    if (input.personIds !== undefined) await setAlbumPeople(tx, id, input.personIds);
+    if (input.groupIds !== undefined) await setAlbumGroups(tx, id, input.groupIds);
+    const [personMap, groupMap] = await Promise.all([
+      loadAlbumPersonMap([id]),
+      loadAlbumGroupMap([id]),
+    ]);
+    return toAlbum(row, personMap.get(id) ?? [], groupMap.get(id) ?? []);
   });
 }
 

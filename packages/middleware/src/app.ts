@@ -46,7 +46,6 @@ import { movieRoutes } from "@/routes/movies";
 import { tvShowRoutes } from "@/routes/tvShows";
 import { episodeRoutes } from "@/routes/episodes";
 import { albumRoutes } from "@/routes/albums";
-import { artistRoutes } from "@/routes/artists";
 import { trackRoutes } from "@/routes/tracks";
 import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
 import { registerTaxonomyImageServingRoute } from "@/routes/taxonomyImageRoutes";
@@ -220,11 +219,7 @@ export async function buildApp(): Promise<FastifyInstance> {
           },
           {
             name: "albums",
-            description: "Albums taxonomy: CRUD; many-to-many with Artists, Plex-backed",
-          },
-          {
-            name: "artists",
-            description: "Artists taxonomy: CRUD; many-to-many with Albums, Plex-backed",
+            description: "Albums taxonomy: CRUD; credited to People/Publishers, Plex-backed",
           },
           {
             name: "tracks",
@@ -290,7 +285,6 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(tvShowRoutes);
   await app.register(episodeRoutes);
   await app.register(albumRoutes);
-  await app.register(artistRoutes);
   await app.register(trackRoutes);
   await app.register(relationshipTypeRoutes);
   await app.register(categoryRoutes);

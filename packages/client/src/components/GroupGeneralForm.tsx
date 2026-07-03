@@ -1,15 +1,27 @@
 import type { Group, SocialLink } from "@eesimple/types";
 
+import { Building2 } from "lucide-react";
+
+import { CreatorMediaSection } from "./CreatorMediaSection";
+import { EntityImageField } from "./EntityImageField";
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
+import { GroupImageActions } from "./GroupImageActions";
 import { SocialLinksField } from "./SocialLinksField";
 import { useGroupGeneralForm } from "./useGroupGeneralForm";
+import {
+  useDeleteGroupImage,
+  useUpdateGroup,
+  useUploadGroupImage,
+} from "../hooks/useGroups";
 
 import { Separator } from "@/components/ui/separator";
+import { notifyFieldSaved } from "@/lib/autoSave";
 
 interface Props {
   group: Group;
 }
 
-/** Edit a group's name and associated website. Fields auto-save individually (no Save button). */
+/** Edit a group's name, website, group type, image, and creator/media fields. Fields auto-save. */
 export function GroupGeneralForm({
   group,
 }: Props) {
@@ -22,6 +34,10 @@ export function GroupGeneralForm({
     groupTypeOptions,
     groupTypeCreate,
   } = useGroupGeneralForm(group);
+  const updateGroup = useUpdateGroup();
+  const uploadImage = useUploadGroupImage();
+  const deleteImage = useDeleteGroupImage();
+  const imageBusy = uploadImage.isPending || deleteImage.isPending;
 
   return (
     <div className="space-y-4">
@@ -74,11 +90,50 @@ export function GroupGeneralForm({
       </form.AppField>
       {groupTypeCreate.modal}
 
+      <EntityImageField
+        label="Image"
+        imageUrl={group.imageUrl}
+        fallback={<Building2 className="size-5" />}
+        busy={imageBusy}
+        onUpload={file => uploadImage.mutate({
+          id: group.id,
+          file,
+        })}
+        onRemove={() => deleteImage.mutate(group.id)}
+      />
+
+      <GroupImageActions group={group} />
+
       <Separator />
 
       <SocialLinksField
         socialLinks={group.socialLinks}
         onChange={(links: SocialLink[]) => saveField("socialLinks", links)}
+      />
+
+      <Separator />
+
+      <CreatorMediaSection
+        year={group.year}
+        plexRatingKey={group.plexRatingKey}
+        plexItemTitle={group.plexItemTitle}
+        albumIds={group.albumIds}
+        save={(input, label) => updateGroup.mutate(
+          {
+            id: group.id,
+            input,
+          },
+          {
+            onSuccess: () => notifyFieldSaved(label),
+          },
+        )}
+      />
+
+      <Separator />
+
+      <GenreMoodAssignmentSection
+        ownerType="group"
+        ownerId={group.id}
       />
     </div>
   );

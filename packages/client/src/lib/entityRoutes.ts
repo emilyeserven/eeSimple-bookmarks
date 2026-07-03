@@ -1,7 +1,6 @@
 import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { ALBUM_ROUTE } from "../entities/album";
-import { ARTIST_ROUTE } from "../entities/artist";
 import { AUTOFILL_ROUTE } from "../entities/autofillRule";
 import { BOOK_ROUTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
@@ -51,7 +50,6 @@ export type EntityRouteKind
     | "tv-show"
     | "episode"
     | "album"
-    | "artist"
     | "track"
     | "relationship-type"
     | "custom-property"
@@ -108,7 +106,6 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   TV_SHOW_ROUTE,
   EPISODE_ROUTE,
   ALBUM_ROUTE,
-  ARTIST_ROUTE,
   TRACK_ROUTE,
   RELATIONSHIP_TYPE_ROUTE,
   CUSTOM_PROPERTY_ROUTE,

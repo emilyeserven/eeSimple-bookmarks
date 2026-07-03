@@ -1,5 +1,4 @@
-import type { PlexKind } from "@/lib/plexParent";
-import type { Album, Artist, Episode, Movie, PlexItemResult, Track, TvShow } from "@eesimple/types";
+import type { Album, Episode, Movie, PlexItemResult, Track, TvShow } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useState } from "react";
@@ -9,12 +8,18 @@ import { Clapperboard, X } from "lucide-react";
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
 import { PlexItemLookup } from "./PlexItemLookup";
 import { useCreateAlbum } from "../hooks/useAlbums";
-import { useCreateArtist } from "../hooks/useArtists";
 import { useCreateEpisode } from "../hooks/useEpisodes";
 import { useMediaProperties } from "../hooks/useMediaProperties";
 import { useCreateMovie } from "../hooks/useMovies";
 import { useCreateTrack } from "../hooks/useTracks";
 import { useCreateTvShow } from "../hooks/useTvShows";
+
+/**
+ * The five Plex-backed taxonomies that can be *created* from this form (Artists were collapsed into
+ * People/Publishers, so they're no longer a createable media taxonomy — though `"artist"` remains a
+ * `PlexKind` for the People/Publisher Plex lookup).
+ */
+export type PlexCreateKind = "movie" | "show" | "episode" | "album" | "track";
 
 import { Combobox } from "@/components/Combobox";
 import { Button } from "@/components/ui/button";
@@ -36,21 +41,20 @@ const EMPTY_PLEX: PlexLink = {
   year: null,
 };
 
-/** Any of the six Plex-backed taxonomy rows a create returns. */
-type PlexCreatedTitle = Movie | TvShow | Episode | Album | Artist | Track;
+/** Any of the five Plex-backed taxonomy rows a create returns. */
+type PlexCreatedTitle = Movie | TvShow | Episode | Album | Track;
 
-const NOUNS: Record<PlexKind, string> = {
+const NOUNS: Record<PlexCreateKind, string> = {
   movie: "movie",
   show: "TV show",
   episode: "episode",
   album: "album",
-  artist: "artist",
   track: "track",
 };
 
 interface PlexTitleFormProps {
   /** Which taxonomy this form creates — narrows the Plex lookup and the create mutation. */
-  kind: PlexKind;
+  kind: PlexCreateKind;
   /** Called with the created row (to select it, or navigate to its edit page). */
   onCreated?: (item: PlexCreatedTitle) => void;
   /** Extra inputs rendered below the media-property picker (e.g. an Episode's parent TV Show). */
@@ -85,7 +89,6 @@ export function PlexTitleForm({
     show: useCreateTvShow(),
     episode: useCreateEpisode(),
     album: useCreateAlbum(),
-    artist: useCreateArtist(),
     track: useCreateTrack(),
   }[kind];
   const {

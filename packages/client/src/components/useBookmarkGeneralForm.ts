@@ -99,6 +99,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       blacklistedTagIds: bookmark.blacklistedTagIds as string[],
       blacklistedLocationIds: bookmark.blacklistedLocationIds as string[],
       personIds: (bookmark.people.map(a => a.id)) as string[],
+      groupIds: (bookmark.groups.map(g => g.id)) as string[],
       groupId: bookmark.group?.id ?? "",
     },
     validators: {
@@ -125,6 +126,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
           tagIds: value.tagIds,
           locationIds: value.locationIds,
           personIds: value.personIds,
+          groupIds: value.groupIds,
           groupId: value.groupId || null,
           ...(channelHintRef.current && {
             youtubeChannel: channelHintRef.current,
@@ -210,9 +212,24 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     );
   }
 
+  function saveGroups(groupIds: string[]): void {
+    updateBookmark.mutate(
+      {
+        id: bookmark.id,
+        input: {
+          groupIds,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Groups"),
+        onError: e => notifyFieldSaveError("Groups", describeError(e)),
+      },
+    );
+  }
+
   // The Media link lives outside the zod form state (immediate-save, like tags/people), so the
-  // tab's Save-changes submit never touches it. Selection flows through one of the seven Media
-  // Properties taxonomy FKs (Book/Movie/TV Show/Episode/Album/Artist/Track) rather than a raw
+  // tab's Save-changes submit never touches it. Selection flows through one of the six Media
+  // Properties taxonomy FKs (Book/Movie/TV Show/Episode/Album/Track) rather than a raw
   // Kavita/Plex item; exactly one is ever set — selecting one clears the rest (the selection carries
   // all-null baselines). Cover/ToC/deep-link features resolve through the linked taxonomy row.
   function saveMedia(selection: MediaSelection): void {
@@ -372,6 +389,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveBlacklistedTagIds,
     saveBlacklistedLocationIds,
     savePeople,
+    saveGroups,
     saveMedia,
     fetchTitle,
     fetchMetadata,

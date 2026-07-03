@@ -1,6 +1,6 @@
 /**
- * An Album in the "Albums" taxonomy. Plex-backed like a Movie. Associated with Artists many-to-many
- * (an album has many artists). Bookmarks link to an Album via `bookmark.albumId`.
+ * An Album in the "Albums" taxonomy. Plex-backed like a Movie. Credited to People (individual creators)
+ * and Groups (group creators) many-to-many. Bookmarks link to an Album via `bookmark.albumId`.
  */
 export interface Album {
   id: string;
@@ -14,8 +14,10 @@ export interface Album {
   sortOrder: number;
   /** Optional franchise/IP grouping this album belongs to. */
   mediaPropertyId: string | null;
-  /** Ids of the artists credited on this album (many-to-many). */
-  artistIds: string[];
+  /** Ids of the People (individual creators) credited on this album (many-to-many). */
+  personIds: string[];
+  /** Ids of the Groups (group creators) credited on this album (many-to-many). */
+  groupIds: string[];
   /** Plex rating key (Settings → Connectors) this album maps to, or null if not linked. */
   plexRatingKey: string | null;
   /** Denormalized Plex item type (e.g. `album`) for the deep-link label. */
@@ -42,7 +44,8 @@ export interface CreateAlbumInput {
   romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
-  artistIds?: string[];
+  personIds?: string[];
+  groupIds?: string[];
   plexRatingKey?: string | null;
   plexItemType?: string | null;
   plexItemTitle?: string | null;
@@ -52,13 +55,14 @@ export interface CreateAlbumInput {
   wikipediaLinkLocal?: string | null;
 }
 
-/** Payload for updating an album (rename, reorder, re-link Plex/media property, set artists). */
+/** Payload for updating an album (rename, reorder, re-link Plex/media property, set credits). */
 export interface UpdateAlbumInput {
   name?: string;
   romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
-  artistIds?: string[];
+  personIds?: string[];
+  groupIds?: string[];
   plexRatingKey?: string | null;
   plexItemType?: string | null;
   plexItemTitle?: string | null;

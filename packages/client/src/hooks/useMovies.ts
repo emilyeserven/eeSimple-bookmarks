@@ -3,7 +3,6 @@ import type { Bookmark, CreateMovieInput, UpdateMovieInput } from "@eesimple/typ
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAlbums } from "./useAlbums";
-import { useArtists } from "./useArtists";
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { useEpisodes } from "./useEpisodes";
 import { useTracks } from "./useTracks";
@@ -59,7 +58,7 @@ export interface BookmarkPlexLink {
 }
 
 /**
- * The effective Plex linkage for a bookmark: the linked Movie / TV Show / Episode / Album / Artist /
+ * The effective Plex linkage for a bookmark: the linked Movie / TV Show / Episode / Album /
  * Track's `plexRatingKey` + name when one is linked and carries it, else the bookmark's legacy
  * `plexRatingKey`/`plexItemTitle`. Powers the "View on Plex" link-outs now that Plex-item selection
  * flows through the Plex-backed taxonomies (mirrors the middleware's `resolveBookmarkPlexRatingKey`).
@@ -79,16 +78,12 @@ export function useBookmarkPlexLink(bookmark: Bookmark): BookmarkPlexLink | null
     data: albums,
   } = useAlbums();
   const {
-    data: artists,
-  } = useArtists();
-  const {
     data: tracks,
   } = useTracks();
   const linked = linkedRowFrom(bookmark.movieId, movies)
     ?? linkedRowFrom(bookmark.tvShowId, tvShows)
     ?? linkedRowFrom(bookmark.episodeId, episodes)
     ?? linkedRowFrom(bookmark.albumId, albums)
-    ?? linkedRowFrom(bookmark.artistId, artists)
     ?? linkedRowFrom(bookmark.trackId, tracks);
   if (linked?.plexRatingKey) {
     return {

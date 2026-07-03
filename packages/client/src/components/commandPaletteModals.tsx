@@ -4,6 +4,7 @@ import type { Bookmark } from "@eesimple/types";
 import { AddBookmarkModal } from "./AddBookmarkModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
+import { AddGroupModal } from "./AddGroupModal";
 import { AddLocationModal } from "./AddLocationModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
@@ -18,6 +19,7 @@ export type CreateKind
     | "tag"
     | "media-type"
     | "person"
+    | "group"
     | "website"
     | "property-group"
     | "youtube-channel"
@@ -103,6 +105,18 @@ export function CommandPaletteModals({
             id: bookmarkId,
             input: {
               personIds: [...bookmark.people.map(a => a.id), person.id],
+            },
+          })
+          : undefined}
+      />
+      <AddGroupModal
+        open={createKind === "group"}
+        onOpenChange={open => !open && closeCreate()}
+        onCreated={assignOnCreate && bookmarkId && bookmark
+          ? group => updateBookmark.mutate({
+            id: bookmarkId,
+            input: {
+              groupIds: [...bookmark.groups.map(g => g.id), group.id],
             },
           })
           : undefined}

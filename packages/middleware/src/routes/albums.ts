@@ -24,7 +24,7 @@ const albumParams = {
   },
 } as const;
 
-/** Plex/media-property + artists data fields shared by the create and update bodies. */
+/** Plex/media-property + People/Group credit fields shared by the create and update bodies. */
 const albumDataFields = {
   sortOrder: {
     type: "integer",
@@ -33,7 +33,14 @@ const albumDataFields = {
     type: ["string", "null"],
     format: "uuid",
   },
-  artistIds: {
+  personIds: {
+    type: "array",
+    items: {
+      type: "string",
+      format: "uuid",
+    },
+  },
+  groupIds: {
     type: "array",
     items: {
       type: "string",

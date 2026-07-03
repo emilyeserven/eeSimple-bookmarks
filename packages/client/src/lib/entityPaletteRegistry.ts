@@ -1,7 +1,6 @@
 import type { EntityRouteKind } from "./entityRoutes";
 
 import { ALBUM_PALETTE } from "../entities/album";
-import { ARTIST_PALETTE } from "../entities/artist";
 import { AUTOFILL_PALETTE } from "../entities/autofillRule";
 import { BOOK_PALETTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_PALETTE } from "../entities/cardDisplayRule";
@@ -105,7 +104,6 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "tv-show": TV_SHOW_PALETTE,
   "episode": EPISODE_PALETTE,
   "album": ALBUM_PALETTE,
-  "artist": ARTIST_PALETTE,
   "track": TRACK_PALETTE,
   "relationship-type": RELATIONSHIP_TYPE_PALETTE,
   "custom-property": CUSTOM_PROPERTY_PALETTE,

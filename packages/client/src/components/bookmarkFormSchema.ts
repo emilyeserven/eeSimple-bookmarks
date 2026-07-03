@@ -36,6 +36,7 @@ export const bookmarkSchema = z.object({
   blacklistedTagIds: z.array(z.string()),
   blacklistedLocationIds: z.array(z.string()),
   personIds: z.array(z.string()),
+  groupIds: z.array(z.string()),
   groupId: z.string(),
 });
 
@@ -142,6 +143,7 @@ const SAMPLE_DEFAULT_VALUES: {
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
   personIds: string[];
+  groupIds: string[];
   groupId: string;
 } = {
   url: "",
@@ -157,6 +159,7 @@ const SAMPLE_DEFAULT_VALUES: {
   blacklistedTagIds: [],
   blacklistedLocationIds: [],
   personIds: [],
+  groupIds: [],
   groupId: "",
 };
 
@@ -212,6 +215,7 @@ export function buildBookmarkDefaultValues(
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
   personIds: string[];
+  groupIds: string[];
   groupId: string;
 } {
   return {
@@ -228,6 +232,7 @@ export function buildBookmarkDefaultValues(
     blacklistedTagIds: (bookmark?.blacklistedTagIds ?? []) as string[],
     blacklistedLocationIds: (bookmark?.blacklistedLocationIds ?? []) as string[],
     personIds: (bookmark?.people.map(a => a.id) ?? []) as string[],
+    groupIds: (bookmark?.groups.map(g => g.id) ?? []) as string[],
     groupId: bookmark?.group?.id ?? "",
   };
 }

@@ -61,6 +61,7 @@ export const GENRE_MOOD_OWNER_TYPES = [
   "mediaType",
   "youtubeChannel",
   "person",
+  "group",
   "newsletter",
   "location",
   "language",

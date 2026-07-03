@@ -11,6 +11,7 @@ import type {
 import { db } from "@/db";
 import {
   bookmarkPeople,
+  bookmarkGroups,
   bookmarkBooleanValues,
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
@@ -94,6 +95,15 @@ export async function linkPeople(tx: Tx, bookmarkId: string, personIds: string[]
   await tx.insert(bookmarkPeople).values(personIds.map(personId => ({
     bookmarkId,
     personId,
+  })));
+}
+
+/** Insert join rows crediting a bookmark to the given group ids (no-op when empty). */
+export async function linkGroups(tx: Tx, bookmarkId: string, groupIds: string[] | undefined): Promise<void> {
+  if (!groupIds || groupIds.length === 0) return;
+  await tx.insert(bookmarkGroups).values(groupIds.map(groupId => ({
+    bookmarkId,
+    groupId,
   })));
 }
 

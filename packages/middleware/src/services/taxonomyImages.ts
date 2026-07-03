@@ -1,10 +1,10 @@
 /**
  * Image orchestration for the Plex/Kavita-backed media taxonomies (Movies, TV Shows, Episodes,
- * Artists, Albums, Tracks, Books): ties the image pipeline (`utils/image`) and object storage
+ * Albums, Tracks, Books): ties the image pipeline (`utils/image`) and object storage
  * (`utils/objectStore`) to the shared, polymorphic `taxonomy_images` table. Mirrors
  * `services/bookmarkImages.ts`'s multi-image gallery (up to {@link MAX_TAXONOMY_IMAGES} per owner,
  * one flagged `isMain`), but keyed by `(ownerType, ownerId)` instead of a single `bookmarkId` since
- * one physical table can't FK into seven different owner tables.
+ * one physical table can't FK into six different owner tables.
  */
 
 import type { TaxonomyImage, TaxonomyImageOwnerType } from "@eesimple/types";

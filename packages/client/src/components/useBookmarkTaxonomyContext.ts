@@ -1,5 +1,5 @@
 import type { FlatNode } from "@/lib/tagTree";
-import type { Person, Bookmark, Category, CustomProperty, LocationNode, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, Group, LocationNode, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
 
 import { useRouterState } from "@tanstack/react-router";
 
@@ -8,6 +8,7 @@ import { useBookmarkTaxonomyTrees } from "./useBookmarkTaxonomyTrees";
 import { useBookmark, useUpdateBookmark } from "@/hooks/useBookmarks";
 import { useCategories } from "@/hooks/useCategories";
 import { useCustomProperties } from "@/hooks/useCustomProperties";
+import { useGroups } from "@/hooks/useGroups";
 import { useNewsletters } from "@/hooks/useNewsletters";
 import { usePeople } from "@/hooks/usePeople";
 
@@ -27,6 +28,7 @@ export interface BookmarkTaxonomyContext {
   flatTags: FlatNode<TagNode>[];
   flatLocations: FlatNode<LocationNode>[];
   people: Person[];
+  groups: Group[];
   newsletters: Newsletter[];
   customProperties: CustomProperty[];
   updateBookmark: ReturnType<typeof useUpdateBookmark>;
@@ -64,6 +66,9 @@ export function useBookmarkTaxonomyContext(fallbackBookmarkId: string | null = n
     data: people = [],
   } = usePeople();
   const {
+    data: groups = [],
+  } = useGroups();
+  const {
     data: newsletters = [],
   } = useNewsletters();
   const {
@@ -85,6 +90,7 @@ export function useBookmarkTaxonomyContext(fallbackBookmarkId: string | null = n
     flatTags,
     flatLocations,
     people,
+    groups,
     newsletters,
     customProperties,
     updateBookmark,

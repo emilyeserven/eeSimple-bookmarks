@@ -6,7 +6,8 @@ import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { albumsApi } from "../lib/api/taxonomies";
 
 const ALBUMS_KEY = ["albums"] as const;
-const ARTISTS_KEY = ["artists"] as const;
+const PEOPLE_KEY = ["people"] as const;
+const PUBLISHERS_KEY = ["publishers"] as const;
 const MEDIA_PROPERTIES_KEY = ["media-properties"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -26,16 +27,19 @@ export function useAlbumBySlug(slug: string) {
   };
 }
 
-/** Invalidate every query whose rendering depends on album definitions (incl. the artist M2M side). */
+/** Invalidate every query whose rendering depends on album definitions (incl. the credit M2M sides). */
 function useInvalidateAlbumConsumers() {
   const queryClient = useQueryClient();
   return () => {
     void queryClient.invalidateQueries({
       queryKey: ALBUMS_KEY,
     });
-    // The album↔artist link is surfaced from the artist side too.
+    // The album↔People / album↔Publisher credit links are surfaced from those sides too.
     void queryClient.invalidateQueries({
-      queryKey: ARTISTS_KEY,
+      queryKey: PEOPLE_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: PUBLISHERS_KEY,
     });
     void queryClient.invalidateQueries({
       queryKey: MEDIA_PROPERTIES_KEY,

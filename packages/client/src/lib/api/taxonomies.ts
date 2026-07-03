@@ -16,7 +16,6 @@ import type {
   CreateTvShowInput,
   CreateEpisodeInput,
   CreateAlbumInput,
-  CreateArtistInput,
   CreateTrackInput,
   CreateMediaTypeInput,
   CreateLanguageInput,
@@ -56,7 +55,6 @@ import type {
   TvShow,
   Episode,
   Album,
-  Artist,
   Track,
   PlaceType,
   UpdateBookInput,
@@ -66,7 +64,6 @@ import type {
   UpdateTvShowInput,
   UpdateEpisodeInput,
   UpdateAlbumInput,
-  UpdateArtistInput,
   UpdateTrackInput,
   UpdatePlaceTypeInput,
   PropertyGroup,
@@ -313,11 +310,6 @@ export const albumsApi = {
   images: createTaxonomyImageApi("/albums"),
 };
 
-export const artistsApi = {
-  ...createCrudApi<Artist, CreateArtistInput, UpdateArtistInput>("artists"),
-  images: createTaxonomyImageApi("/artists"),
-};
-
 export const tracksApi = {
   ...createCrudApi<Track, CreateTrackInput, UpdateTrackInput>("tracks"),
   images: createTaxonomyImageApi("/tracks"),
@@ -367,7 +359,22 @@ export const youtubeChannelsApi = {
 
 export const customPropertiesApi = createCrudApi<CustomProperty, CreateCustomPropertyInput, UpdateCustomPropertyInput>("custom-properties");
 
-export const groupsApi = createCrudApi<Group, CreateGroupInput, UpdateGroupInput>("groups");
+export const groupsApi = {
+  ...createCrudApi<Group, CreateGroupInput, UpdateGroupInput>("groups"),
+  uploadImage: (id: string, file: File) =>
+    uploadImageFile<{ imageUrl: string }>(`/groups/${id}/image`, file),
+  autoImage: (id: string, source: "website" | "plex") =>
+    request<{ imageUrl: string }>(`/groups/${id}/image/auto`, {
+      method: "POST",
+      body: JSON.stringify({
+        source,
+      }),
+    }),
+  deleteImage: (id: string) =>
+    request<undefined>(`/groups/${id}/image`, {
+      method: "DELETE",
+    }),
+};
 
 export const groupTypesApi = createCrudApi<GroupType, CreateGroupTypeInput, UpdateGroupTypeInput>("group-types");
 

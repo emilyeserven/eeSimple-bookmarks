@@ -17,6 +17,7 @@ import { db } from "@/db";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import {
   bookmarkPeople,
+  bookmarkGroups,
   bookmarkBooleanValues,
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
@@ -54,6 +55,7 @@ import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
 import {
   linkGenreMoods,
   linkPeople,
+  linkGroups,
   linkLocations,
   linkTags,
   recomputeCalculatedValues,
@@ -570,7 +572,6 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         tvShowId: input.tvShowId ?? null,
         episodeId: input.episodeId ?? null,
         albumId: input.albumId ?? null,
-        artistId: input.artistId ?? null,
         trackId: input.trackId ?? null,
         kavitaSeriesId: input.kavitaSeriesId ?? null,
         kavitaLibraryId: input.kavitaLibraryId ?? null,
@@ -594,6 +595,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
       await setBookmarkLocationBlacklist(tx, row.id, input.blacklistedLocationIds);
     }
     await linkPeople(tx, row.id, input.personIds);
+    await linkGroups(tx, row.id, input.groupIds);
     await setNumberValues(tx, row.id, numberValues);
     await setBooleanValues(tx, row.id, input.booleanValues);
     await setDateTimeValues(tx, row.id, dateTimeValues);
@@ -627,7 +629,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "artistId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
+  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
 >;
 
 /**
@@ -654,7 +656,6 @@ export function scalarBookmarkPatch(
   if (input.tvShowId !== undefined) patch.tvShowId = input.tvShowId ?? null;
   if (input.episodeId !== undefined) patch.episodeId = input.episodeId ?? null;
   if (input.albumId !== undefined) patch.albumId = input.albumId ?? null;
-  if (input.artistId !== undefined) patch.artistId = input.artistId ?? null;
   if (input.trackId !== undefined) patch.trackId = input.trackId ?? null;
   if (input.kavitaSeriesId !== undefined) patch.kavitaSeriesId = input.kavitaSeriesId ?? null;
   if (input.kavitaLibraryId !== undefined) patch.kavitaLibraryId = input.kavitaLibraryId ?? null;
@@ -724,6 +725,10 @@ async function applyBookmarkValueUpdates(
   if (input.personIds !== undefined) {
     await tx.delete(bookmarkPeople).where(eq(bookmarkPeople.bookmarkId, id));
     await linkPeople(tx, id, input.personIds);
+  }
+  if (input.groupIds !== undefined) {
+    await tx.delete(bookmarkGroups).where(eq(bookmarkGroups.bookmarkId, id));
+    await linkGroups(tx, id, input.groupIds);
   }
   if (resolved.numberValues !== undefined) {
     await tx.delete(bookmarkNumberValues).where(eq(bookmarkNumberValues.bookmarkId, id));
@@ -815,7 +820,6 @@ export async function updateBookmark(
         | "tvShowId"
         | "episodeId"
         | "albumId"
-        | "artistId"
         | "trackId"
         | "kavitaSeriesId"
         | "kavitaLibraryId"

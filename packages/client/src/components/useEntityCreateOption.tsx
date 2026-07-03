@@ -1,5 +1,5 @@
 import type {
-  Album, Artist, Book, Category, CustomProperty, Episode, GenreMood, Group, GroupType, Language, Location,
+  Album, Book, Category, CustomProperty, Episode, GenreMood, Group, GroupType, Language, Location,
   MediaProperty, MediaType, Movie, Newsletter, Person, PlaceType, PropertyGroup, Tag, Track, TvShow,
   Website, YouTubeChannel,
 } from "@eesimple/types";
@@ -8,7 +8,6 @@ import type { ComponentType, ReactNode } from "react";
 import { useState } from "react";
 
 import { AddAlbumModal } from "./AddAlbumModal";
-import { AddArtistModal } from "./AddArtistModal";
 import { AddBookModal } from "./AddBookModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
@@ -54,7 +53,6 @@ interface CreatedByEntity {
   "tv-show": TvShow;
   "episode": Episode;
   "album": Album;
-  "artist": Artist;
   "track": Track;
 }
 
@@ -160,10 +158,6 @@ const CREATABLE_ENTITY_PICKERS: {
   "album": {
     createLabel: "Create album",
     Modal: AddAlbumModal,
-  },
-  "artist": {
-    createLabel: "Create artist",
-    Modal: AddArtistModal,
   },
   "track": {
     createLabel: "Create track",

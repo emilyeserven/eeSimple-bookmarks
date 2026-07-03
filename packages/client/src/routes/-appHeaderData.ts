@@ -70,7 +70,6 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
     tvShow: slugFor(pathname, pathParts, "/taxonomies/tv-shows", 2),
     episode: slugFor(pathname, pathParts, "/taxonomies/episodes", 2),
     album: slugFor(pathname, pathParts, "/taxonomies/albums", 2),
-    artist: slugFor(pathname, pathParts, "/taxonomies/artists", 2),
     track: slugFor(pathname, pathParts, "/taxonomies/tracks", 2),
     relationshipType: slugFor(pathname, pathParts, "/taxonomies/relationship-types", 2),
     property: slugFor(pathname, pathParts, "/custom-properties", 1),

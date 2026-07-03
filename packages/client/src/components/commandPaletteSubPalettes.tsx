@@ -1,6 +1,6 @@
 import type { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
 import type { FlatNode } from "@/lib/tagTree";
-import type { Person, Bookmark, CardDisplayRule, Category, CustomProperty, LocationNode, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
+import type { Person, Bookmark, CardDisplayRule, Category, CustomProperty, Group, LocationNode, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
 
 import { useMemo } from "react";
 
@@ -22,7 +22,7 @@ import {
 import { useCategoryRootTags } from "@/hooks/useCategories";
 import { subtreeIds } from "@/lib/tagTree";
 
-export type TaxonomyMode = "category" | "media-type" | "tags" | "locations" | "people" | "newsletter" | "choices-property" | "rating-property";
+export type TaxonomyMode = "category" | "media-type" | "tags" | "locations" | "people" | "groups" | "newsletter" | "choices-property" | "rating-property";
 
 function useTagsPalette(
   flatTags: FlatNode<TagNode>[],
@@ -451,6 +451,69 @@ export function PeopleSubPalette({
   );
 }
 
+export function GroupsSubPalette({
+  groups,
+  pendingGroupIds,
+  onToggleGroup,
+  onBack,
+  onDone,
+  onCreateNew,
+}: {
+  groups: Group[];
+  pendingGroupIds: string[];
+  onToggleGroup: (groupId: string) => void;
+  onBack: () => void;
+  onDone: (groupIds: string[]) => void;
+  onCreateNew: () => void;
+}) {
+  return (
+    <>
+      <CommandGroup heading="Groups">
+        <CommandItem
+          value="back"
+          onSelect={onBack}
+        >
+          <ArrowLeftIcon />
+          Back
+        </CommandItem>
+        <CommandItem
+          value="new group"
+          onSelect={onCreateNew}
+        >
+          <PlusIcon />
+          New group…
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup heading="Toggle groups">
+        {groups.map((group) => {
+          const selected = pendingGroupIds.includes(group.id);
+          return (
+            <CommandItem
+              key={group.id}
+              value={group.name}
+              onSelect={() => onToggleGroup(group.id)}
+            >
+              {selected && <CheckIcon className="text-primary" />}
+              {group.name}
+            </CommandItem>
+          );
+        })}
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup>
+        <CommandItem
+          value="done save groups"
+          onSelect={() => onDone(pendingGroupIds)}
+        >
+          <CheckIcon />
+          {`Done (${pendingGroupIds.length.toString()} selected)`}
+        </CommandItem>
+      </CommandGroup>
+    </>
+  );
+}
+
 export function ChoicesSubPalette({
   prop,
   pendingValues,
@@ -646,6 +709,7 @@ export function BookmarkTaxonomiesGroup({
   isBookmarkViewPage,
   currentCategoryName,
   people,
+  groups,
   booleanProperties,
   choicesProperties,
   ratingProperties,
@@ -662,6 +726,7 @@ export function BookmarkTaxonomiesGroup({
   isBookmarkViewPage: boolean;
   currentCategoryName: string | null;
   people: Person[];
+  groups: Group[];
   booleanProperties: CustomProperty[];
   choicesProperties: CustomProperty[];
   ratingProperties: CustomProperty[];
@@ -738,6 +803,20 @@ export function BookmarkTaxonomiesGroup({
               <span>Change People</span>
               <span className="text-xs text-muted-foreground">
                 {`${bookmark.people.length.toString()} selected`}
+              </span>
+            </span>
+          </CommandItem>
+        )}
+        {groups.length > 0 && (
+          <CommandItem
+            value="Change Groups"
+            onSelect={() => onEnterMode("groups")}
+          >
+            <TagIcon />
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span>Change Groups</span>
+              <span className="text-xs text-muted-foreground">
+                {`${bookmark.groups.length.toString()} selected`}
               </span>
             </span>
           </CommandItem>
