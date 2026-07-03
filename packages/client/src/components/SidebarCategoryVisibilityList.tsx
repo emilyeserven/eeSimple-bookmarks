@@ -1,9 +1,25 @@
 import { useCategories } from "../hooks/useCategories";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { SegmentedToggleRow } from "@/components/SegmentedToggleRow";
 import { CategoryIcon } from "@/lib/icons";
 
 type CategoryDisplayMode = "visible" | "see-more" | "hidden";
+
+const CATEGORY_MODE_OPTIONS: { value: CategoryDisplayMode;
+  label: string; }[] = [
+  {
+    value: "visible",
+    label: "Default",
+  },
+  {
+    value: "see-more",
+    label: "See More",
+  },
+  {
+    value: "hidden",
+    label: "Listing only",
+  },
+];
 
 interface SidebarCategoryVisibilityListProps {
   onSetMode: (id: string, mode: CategoryDisplayMode) => void;
@@ -36,53 +52,14 @@ export function SidebarCategoryVisibilityList({
             ? "see-more"
             : "visible";
         return (
-          <div
+          <SegmentedToggleRow
             key={category.id}
-            className="flex items-center justify-between gap-2"
-          >
-            <span
-              className="flex items-center gap-1.5 truncate text-sm"
-            >
-              <CategoryIcon name={category.icon} />
-              {category.name}
-            </span>
-            <ToggleGroup
-              type="single"
-              variant="outline"
-              size="sm"
-              className="gap-0"
-              value={mode}
-              onValueChange={value => value && onSetMode(category.id, value as CategoryDisplayMode)}
-            >
-              <ToggleGroupItem
-                value="visible"
-                className="
-                  -me-px rounded-e-none
-                  focus-visible:z-10
-                "
-              >
-                Default
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="see-more"
-                className="
-                  -me-px rounded-none
-                  focus-visible:z-10
-                "
-              >
-                See More
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="hidden"
-                className="
-                  rounded-s-none
-                  focus-visible:z-10
-                "
-              >
-                Listing only
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
+            label={category.name}
+            icon={<CategoryIcon name={category.icon} />}
+            options={CATEGORY_MODE_OPTIONS}
+            value={mode}
+            onChange={next => onSetMode(category.id, next)}
+          />
         );
       })}
     </div>

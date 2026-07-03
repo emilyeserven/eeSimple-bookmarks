@@ -17,6 +17,7 @@ describe("settingsPages registry", () => {
 
   it("resolves the tab pages nested inside the tabbed settings sections", () => {
     for (const path of [
+      "/settings/display/bookmark-add",
       "/settings/display/filters",
       "/settings/automations/global",
       "/settings/automations/backfill",

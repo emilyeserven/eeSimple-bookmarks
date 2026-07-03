@@ -16,6 +16,7 @@ import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 export * from "./autofillMerge.js";
 export * from "./albums.js";
 export * from "./artists.js";
+export * from "./bookmarkAddForm.js";
 export * from "./books.js";
 export * from "./episodes.js";
 export * from "./conditions.js";

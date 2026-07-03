@@ -1,7 +1,7 @@
 import type React from "react";
 
+import { SegmentedToggleRow } from "@/components/SegmentedToggleRow";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export interface SidebarToggleItem {
   key: string;
@@ -43,62 +43,50 @@ export function SidebarItemsMatrix({
     return "visible";
   }
 
+  const options: { value: SidebarItemMode;
+    label: string; }[] = hasThreeStates
+    ? [
+      {
+        value: "visible",
+        label: "Default",
+      },
+      {
+        value: "see-more",
+        label: "See More",
+      },
+      {
+        value: "hidden",
+        label: hiddenLabel,
+      },
+    ]
+    : [
+      {
+        value: "visible",
+        label: "Default",
+      },
+      {
+        value: "hidden",
+        label: hiddenLabel,
+      },
+    ];
+
   return (
     <div className="space-y-2">
       {items.map(item => (
-        <div
+        <SegmentedToggleRow
           key={item.key}
-          className="flex items-center justify-between gap-2"
-        >
-          <span className="flex min-w-0 items-center gap-1.5 truncate text-sm">
-            {item.icon
-              ? (
-                <item.icon
-                  className="size-3.5 shrink-0 text-muted-foreground"
-                />
-              )
-              : null}
-            {item.label}
-          </span>
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            size="sm"
-            className="gap-0"
-            value={modeFor(item.key)}
-            onValueChange={value => value && onSetMode(item.key, value as SidebarItemMode)}
-          >
-            <ToggleGroupItem
-              value="visible"
-              className="
-                -me-px rounded-e-none
-                focus-visible:z-10
-              "
-            >
-              Default
-            </ToggleGroupItem>
-            {hasThreeStates && (
-              <ToggleGroupItem
-                value="see-more"
-                className="
-                  -me-px rounded-none
-                  focus-visible:z-10
-                "
-              >
-                See More
-              </ToggleGroupItem>
-            )}
-            <ToggleGroupItem
-              value="hidden"
-              className="
-                rounded-s-none
-                focus-visible:z-10
-              "
-            >
-              {hiddenLabel}
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
+          label={item.label}
+          icon={item.icon
+            ? (
+              <item.icon
+                className="size-3.5 shrink-0 text-muted-foreground"
+              />
+            )
+            : undefined}
+          options={options}
+          value={modeFor(item.key)}
+          onChange={mode => onSetMode(item.key, mode)}
+        />
       ))}
     </div>
   );

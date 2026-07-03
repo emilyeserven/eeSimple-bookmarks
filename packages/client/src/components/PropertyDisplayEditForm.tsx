@@ -10,8 +10,6 @@ import { useAppForm } from "../lib/form";
 
 const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
   propertyGroupId: "Group",
-  hiddenFromForm: "Main bookmark form",
-  showInForm: "Show outside Advanced area",
   showInListings: "Bookmark listings",
   showInDetails: "Details page",
   editableOnCard: "Card editing",
@@ -22,7 +20,7 @@ const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
 /** The display form values that auto-save, mapped to their `UpdateCustomPropertyInput` payload key. */
 type DisplayWatched = Pick<
   ReturnType<typeof valuesFromProperty>,
-  "propertyGroupId" | "inForm" | "showOutsideAdvanced" | "showInListings" | "showInDetails" | "editableOnCard" | "editableViaCmdk" | "enabledInInbox"
+  "propertyGroupId" | "showInListings" | "showInDetails" | "editableOnCard" | "editableViaCmdk" | "enabledInInbox"
 >;
 
 /**
@@ -43,8 +41,6 @@ function DisplayAutoSaver({
       return;
     }
     save("propertyGroupId", values.propertyGroupId || null);
-    save("hiddenFromForm", !values.inForm);
-    save("showInForm", values.showOutsideAdvanced);
     save("showInListings", values.showInListings);
     save("showInDetails", values.showInDetails);
     save("editableOnCard", values.editableOnCard);
@@ -75,8 +71,6 @@ export function PropertyDisplayEditForm({
     labels: LABELS,
     initial: {
       propertyGroupId: property.propertyGroupId,
-      hiddenFromForm: property.hiddenFromForm,
-      showInForm: property.showInForm,
       showInListings: property.showInListings,
       showInDetails: property.showInDetails,
       editableOnCard: property.editableOnCard,
@@ -109,8 +103,6 @@ export function PropertyDisplayEditForm({
       <form.Subscribe
         selector={state => ({
           propertyGroupId: state.values.propertyGroupId,
-          inForm: state.values.inForm,
-          showOutsideAdvanced: state.values.showOutsideAdvanced,
           showInListings: state.values.showInListings,
           showInDetails: state.values.showInDetails,
           editableOnCard: state.values.editableOnCard,

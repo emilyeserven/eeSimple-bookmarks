@@ -154,6 +154,7 @@ import { Route as SettingsDisplayHomepageRouteImport } from './routes/settings.d
 import { Route as SettingsDisplayGeneralRouteImport } from './routes/settings.display.general'
 import { Route as SettingsDisplayFiltersRouteImport } from './routes/settings.display.filters'
 import { Route as SettingsDisplayDrawerRouteImport } from './routes/settings.display.drawer'
+import { Route as SettingsDisplayBookmarkAddRouteImport } from './routes/settings.display.bookmark-add'
 import { Route as SettingsAutomationsRedirectFailuresRouteImport } from './routes/settings.automations.redirect-failures'
 import { Route as SettingsAutomationsLinkParsingRouteImport } from './routes/settings.automations.link-parsing'
 import { Route as SettingsAutomationsImportsRouteImport } from './routes/settings.automations.imports'
@@ -1206,6 +1207,12 @@ const SettingsDisplayDrawerRoute = SettingsDisplayDrawerRouteImport.update({
   path: '/drawer',
   getParentRoute: () => SettingsDisplayRoute,
 } as any)
+const SettingsDisplayBookmarkAddRoute =
+  SettingsDisplayBookmarkAddRouteImport.update({
+    id: '/bookmark-add',
+    path: '/bookmark-add',
+    getParentRoute: () => SettingsDisplayRoute,
+  } as any)
 const SettingsAutomationsRedirectFailuresRoute =
   SettingsAutomationsRedirectFailuresRouteImport.update({
     id: '/redirect-failures',
@@ -2842,16 +2849,16 @@ export interface FileRoutesByFullPath {
   '/saved-filters': typeof SavedFiltersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
-  '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
+  '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
   '/autofill/backfill': typeof AutofillBackfillRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
-  '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugRouteWithChildren
-  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
-  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
+  '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugViewRouteWithChildren
+  '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
+  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
-  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugRouteWithChildren
+  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugViewRouteWithChildren
   '/inbox/new': typeof InboxNewRoute
-  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
+  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugViewRouteWithChildren
   '/settings/advanced': typeof SettingsAdvancedRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRouteWithChildren
@@ -2871,7 +2878,7 @@ export interface FileRoutesByFullPath {
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
+  '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
   '/taxonomies/albums': typeof TaxonomiesAlbumsRouteWithChildren
   '/taxonomies/artists': typeof TaxonomiesArtistsRouteWithChildren
   '/taxonomies/books': typeof TaxonomiesBooksRouteWithChildren
@@ -2922,6 +2929,7 @@ export interface FileRoutesByFullPath {
   '/settings/automations/imports': typeof SettingsAutomationsImportsRoute
   '/settings/automations/link-parsing': typeof SettingsAutomationsLinkParsingRoute
   '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
+  '/settings/display/bookmark-add': typeof SettingsDisplayBookmarkAddRoute
   '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
   '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
@@ -2935,28 +2943,28 @@ export interface FileRoutesByFullPath {
   '/settings/media/manage': typeof SettingsMediaManageRoute
   '/settings/media/screenshot-defaults': typeof SettingsMediaScreenshotDefaultsRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
-  '/taxonomies/albums/$albumSlug': typeof TaxonomiesAlbumsAlbumSlugRouteWithChildren
-  '/taxonomies/artists/$artistSlug': typeof TaxonomiesArtistsArtistSlugRouteWithChildren
-  '/taxonomies/books/$bookSlug': typeof TaxonomiesBooksBookSlugRouteWithChildren
-  '/taxonomies/episodes/$episodeSlug': typeof TaxonomiesEpisodesEpisodeSlugRouteWithChildren
-  '/taxonomies/genres-moods/$genreMoodSlug': typeof TaxonomiesGenresMoodsGenreMoodSlugRouteWithChildren
-  '/taxonomies/group-types/$groupTypeSlug': typeof TaxonomiesGroupTypesGroupTypeSlugRouteWithChildren
-  '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugRouteWithChildren
-  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugRouteWithChildren
-  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugRouteWithChildren
+  '/taxonomies/albums/$albumSlug': typeof TaxonomiesAlbumsAlbumSlugViewRouteWithChildren
+  '/taxonomies/artists/$artistSlug': typeof TaxonomiesArtistsArtistSlugViewRouteWithChildren
+  '/taxonomies/books/$bookSlug': typeof TaxonomiesBooksBookSlugViewRouteWithChildren
+  '/taxonomies/episodes/$episodeSlug': typeof TaxonomiesEpisodesEpisodeSlugViewRouteWithChildren
+  '/taxonomies/genres-moods/$genreMoodSlug': typeof TaxonomiesGenresMoodsGenreMoodSlugViewRouteWithChildren
+  '/taxonomies/group-types/$groupTypeSlug': typeof TaxonomiesGroupTypesGroupTypeSlugViewRouteWithChildren
+  '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugViewRouteWithChildren
+  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugViewRouteWithChildren
+  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugViewRouteWithChildren
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
-  '/taxonomies/media-properties/$mediaPropertySlug': typeof TaxonomiesMediaPropertiesMediaPropertySlugRouteWithChildren
-  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
-  '/taxonomies/movies/$movieSlug': typeof TaxonomiesMoviesMovieSlugRouteWithChildren
-  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugRouteWithChildren
-  '/taxonomies/people/$personSlug': typeof TaxonomiesPeoplePersonSlugRouteWithChildren
-  '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugRouteWithChildren
-  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
-  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugRouteWithChildren
-  '/taxonomies/tracks/$trackSlug': typeof TaxonomiesTracksTrackSlugRouteWithChildren
-  '/taxonomies/tv-shows/$tvShowSlug': typeof TaxonomiesTvShowsTvShowSlugRouteWithChildren
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
-  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
+  '/taxonomies/media-properties/$mediaPropertySlug': typeof TaxonomiesMediaPropertiesMediaPropertySlugViewRouteWithChildren
+  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
+  '/taxonomies/movies/$movieSlug': typeof TaxonomiesMoviesMovieSlugViewRouteWithChildren
+  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugViewRouteWithChildren
+  '/taxonomies/people/$personSlug': typeof TaxonomiesPeoplePersonSlugViewRouteWithChildren
+  '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugViewRouteWithChildren
+  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteWithChildren
+  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewRouteWithChildren
+  '/taxonomies/tracks/$trackSlug': typeof TaxonomiesTracksTrackSlugViewRouteWithChildren
+  '/taxonomies/tv-shows/$tvShowSlug': typeof TaxonomiesTvShowsTvShowSlugViewRouteWithChildren
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
+  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren
   '/autofill/$ruleSlug/': typeof AutofillRuleSlugIndexRoute
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/card-display-rules/$ruleSlug/': typeof CardDisplayRulesRuleSlugIndexRoute
@@ -3272,6 +3280,7 @@ export interface FileRoutesByTo {
   '/settings/automations/imports': typeof SettingsAutomationsImportsRoute
   '/settings/automations/link-parsing': typeof SettingsAutomationsLinkParsingRoute
   '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
+  '/settings/display/bookmark-add': typeof SettingsDisplayBookmarkAddRoute
   '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
   '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
@@ -3627,6 +3636,7 @@ export interface FileRoutesById {
   '/settings/automations/imports': typeof SettingsAutomationsImportsRoute
   '/settings/automations/link-parsing': typeof SettingsAutomationsLinkParsingRoute
   '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
+  '/settings/display/bookmark-add': typeof SettingsDisplayBookmarkAddRoute
   '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
   '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
@@ -4046,6 +4056,7 @@ export interface FileRouteTypes {
     | '/settings/automations/imports'
     | '/settings/automations/link-parsing'
     | '/settings/automations/redirect-failures'
+    | '/settings/display/bookmark-add'
     | '/settings/display/drawer'
     | '/settings/display/filters'
     | '/settings/display/general'
@@ -4396,6 +4407,7 @@ export interface FileRouteTypes {
     | '/settings/automations/imports'
     | '/settings/automations/link-parsing'
     | '/settings/automations/redirect-failures'
+    | '/settings/display/bookmark-add'
     | '/settings/display/drawer'
     | '/settings/display/filters'
     | '/settings/display/general'
@@ -4750,6 +4762,7 @@ export interface FileRouteTypes {
     | '/settings/automations/imports'
     | '/settings/automations/link-parsing'
     | '/settings/automations/redirect-failures'
+    | '/settings/display/bookmark-add'
     | '/settings/display/drawer'
     | '/settings/display/filters'
     | '/settings/display/general'
@@ -6127,6 +6140,13 @@ declare module '@tanstack/react-router' {
       path: '/drawer'
       fullPath: '/settings/display/drawer'
       preLoaderRoute: typeof SettingsDisplayDrawerRouteImport
+      parentRoute: typeof SettingsDisplayRoute
+    }
+    '/settings/display/bookmark-add': {
+      id: '/settings/display/bookmark-add'
+      path: '/bookmark-add'
+      fullPath: '/settings/display/bookmark-add'
+      preLoaderRoute: typeof SettingsDisplayBookmarkAddRouteImport
       parentRoute: typeof SettingsDisplayRoute
     }
     '/settings/automations/redirect-failures': {
@@ -8653,6 +8673,7 @@ const SettingsAutomationsRouteWithChildren =
   SettingsAutomationsRoute._addFileChildren(SettingsAutomationsRouteChildren)
 
 interface SettingsDisplayRouteChildren {
+  SettingsDisplayBookmarkAddRoute: typeof SettingsDisplayBookmarkAddRoute
   SettingsDisplayDrawerRoute: typeof SettingsDisplayDrawerRoute
   SettingsDisplayFiltersRoute: typeof SettingsDisplayFiltersRoute
   SettingsDisplayGeneralRoute: typeof SettingsDisplayGeneralRoute
@@ -8663,6 +8684,7 @@ interface SettingsDisplayRouteChildren {
 }
 
 const SettingsDisplayRouteChildren: SettingsDisplayRouteChildren = {
+  SettingsDisplayBookmarkAddRoute: SettingsDisplayBookmarkAddRoute,
   SettingsDisplayDrawerRoute: SettingsDisplayDrawerRoute,
   SettingsDisplayFiltersRoute: SettingsDisplayFiltersRoute,
   SettingsDisplayGeneralRoute: SettingsDisplayGeneralRoute,

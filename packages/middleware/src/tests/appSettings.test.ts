@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, RUNTIME_SLUG } from "@eesimple/types";
 import {
+  asBookmarkAddFormPlacements,
   asBreakpoints,
   asCropped,
   asMapPinScale,
@@ -11,6 +13,7 @@ import {
   normalizePlaceTypeDisplay,
   normalizePlaceTypeIcons,
   normalizePlaceTypeLevelGroups,
+  resolveBookmarkAddFormSettings,
 } from "@/services/appSettings";
 
 test("asCropped: rounds to a positive integer and falls back on junk", () => {
@@ -191,4 +194,108 @@ test("normalizePlaceTypeColors: keeps only valid hex colors", () => {
   assert.deepEqual(Object.keys(out).sort(), ["city", "town"]);
   assert.deepEqual(normalizePlaceTypeColors(null), {});
   assert.deepEqual(normalizePlaceTypeColors([]), {});
+});
+
+test("asBookmarkAddFormPlacements: keeps only string keys with a valid placement value", () => {
+  const out = asBookmarkAddFormPlacements({
+    [RUNTIME_SLUG]: "default",
+    "page-progress": "advanced",
+    "junk-placement": "bogus",
+    "junk-number": 42,
+    "": "hidden",
+  });
+  assert.deepEqual(out, {
+    [RUNTIME_SLUG]: "default",
+    "page-progress": "advanced",
+  });
+});
+
+test("asBookmarkAddFormPlacements: non-object / array / null input yields an empty map", () => {
+  assert.deepEqual(asBookmarkAddFormPlacements(null), {});
+  assert.deepEqual(asBookmarkAddFormPlacements(undefined), {});
+  assert.deepEqual(asBookmarkAddFormPlacements("junk"), {});
+  assert.deepEqual(asBookmarkAddFormPlacements(["default"]), {});
+});
+
+test("resolveBookmarkAddFormSettings: falls back to defaults when the row/columns are absent or null", () => {
+  assert.deepEqual(resolveBookmarkAddFormSettings(), DEFAULT_BOOKMARK_ADD_FORM_SETTINGS);
+  assert.deepEqual(resolveBookmarkAddFormSettings(null), DEFAULT_BOOKMARK_ADD_FORM_SETTINGS);
+  assert.deepEqual(
+    resolveBookmarkAddFormSettings({
+      bookmarkFormAdvancedFields: null,
+      bookmarkFormHiddenFields: null,
+      bookmarkFormBuiltInPlacements: null,
+    }),
+    DEFAULT_BOOKMARK_ADD_FORM_SETTINGS,
+  );
+});
+
+test("resolveBookmarkAddFormSettings: a stored empty array is a valid value, not a fallback trigger", () => {
+  const out = resolveBookmarkAddFormSettings({
+    bookmarkFormAdvancedFields: [],
+    bookmarkFormHiddenFields: [],
+    bookmarkFormBuiltInPlacements: null,
+  });
+  assert.deepEqual(out.advancedFields, []);
+  assert.deepEqual(out.hiddenFields, []);
+  // Confirm the default list is genuinely non-empty, so this is a real behavioral difference.
+  assert.ok(DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.advancedFields.length > 0);
+});
+
+test("resolveBookmarkAddFormSettings: builtInPropertyPlacements merges stored values over the defaults", () => {
+  const out = resolveBookmarkAddFormSettings({
+    bookmarkFormAdvancedFields: null,
+    bookmarkFormHiddenFields: null,
+    bookmarkFormBuiltInPlacements: {
+      [RUNTIME_SLUG]: "default",
+    },
+  });
+  // The overridden slug takes the stored value...
+  assert.equal(out.builtInPropertyPlacements[RUNTIME_SLUG], "default");
+  // ...while a slug missing from the stored map still resolves to its default ("hidden").
+  assert.equal(out.builtInPropertyPlacements["page-progress"], "hidden");
+});
+
+test("resolveBookmarkAddFormSettings: junk entries in the stored placements map are dropped before merging", () => {
+  const out = resolveBookmarkAddFormSettings({
+    bookmarkFormAdvancedFields: null,
+    bookmarkFormHiddenFields: null,
+    bookmarkFormBuiltInPlacements: {
+      [RUNTIME_SLUG]: "bogus-placement",
+    },
+  });
+  // The junk value is dropped, so the slug falls back to its default rather than the bogus string.
+  assert.equal(out.builtInPropertyPlacements[RUNTIME_SLUG], "hidden");
+});
+
+test("bookmark-add-form update round-trip: the stored shape built by the update path resolves back to the same settings", () => {
+  const input = {
+    advancedFields: ["categoryId"],
+    hiddenFields: ["mediaTypeId"],
+    builtInPropertyPlacements: {
+      [RUNTIME_SLUG]: "default" as const,
+      "not-a-real-slug": "bogus" as unknown as "hidden",
+    },
+  };
+  // Mirrors the storage shape built by updateBookmarkAddFormSettings without touching the DB.
+  const stored = {
+    bookmarkFormAdvancedFields: [...input.advancedFields],
+    bookmarkFormHiddenFields: [...input.hiddenFields],
+    bookmarkFormBuiltInPlacements: asBookmarkAddFormPlacements(input.builtInPropertyPlacements),
+  };
+  const resolved = resolveBookmarkAddFormSettings(stored);
+  assert.deepEqual(resolved.advancedFields, input.advancedFields);
+  assert.deepEqual(resolved.hiddenFields, input.hiddenFields);
+  // The valid override round-trips...
+  assert.equal(resolved.builtInPropertyPlacements[RUNTIME_SLUG], "default");
+  // ...the junk key never made it into storage...
+  assert.equal(Object.hasOwn(stored.bookmarkFormBuiltInPlacements, "not-a-real-slug"), false);
+  // ...and every other built-in slug still resolves to its default.
+  for (const slug of Object.keys(DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements)) {
+    if (slug === RUNTIME_SLUG) continue;
+    assert.equal(
+      resolved.builtInPropertyPlacements[slug],
+      DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements[slug],
+    );
+  }
 });

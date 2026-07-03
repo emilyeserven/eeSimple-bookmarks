@@ -22,6 +22,7 @@ const LABEL_OVERRIDES: Record<string, string> = {
   "import-rules": "Import Rules",
   "saved-filters": "Saved Filters",
   "ai-summarization": "AI Summarization",
+  "bookmark-add": "Bookmark Add Form",
 };
 
 /** Title-case a slug segment: `shortened-links` → `Shortened Links`. */

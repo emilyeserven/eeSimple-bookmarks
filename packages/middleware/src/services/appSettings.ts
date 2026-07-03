@@ -3,6 +3,8 @@ import type {
   AdvancedSettings,
   AiSummarizationSettings,
   AutomationSettings,
+  BookmarkAddFormPlacement,
+  BookmarkAddFormSettings,
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
@@ -22,12 +24,13 @@ import type {
   UpdateAdvancedSettingsInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
+  UpdateBookmarkAddFormInput,
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARKS_PER_PAGE, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, normalizeLevelMode, placeTypeKey } from "@eesimple/types";
+import { BOOKMARK_ADD_FORM_PLACEMENTS, CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, normalizeLevelMode, placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
@@ -1428,4 +1431,81 @@ export async function updateDisplayPreferenceSettings(
       set: next,
     });
   return next;
+}
+
+/**
+ * Sanitize a stored built-in-property-placement map: keep only string keys whose value is one of
+ * {@link BOOKMARK_ADD_FORM_PLACEMENTS}, dropping anything else. Tolerates arbitrary/malformed jsonb
+ * so a bad stored row never crashes the Add Bookmark form.
+ */
+export function asBookmarkAddFormPlacements(value: unknown): Record<string, BookmarkAddFormPlacement> {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return {};
+  const out: Record<string, BookmarkAddFormPlacement> = {};
+  for (const [key, rawValue] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof key !== "string" || key === "") continue;
+    const placement = BOOKMARK_ADD_FORM_PLACEMENTS.find(candidate => candidate === rawValue);
+    if (!placement) continue;
+    out[key] = placement;
+  }
+  return out;
+}
+
+/**
+ * Pure resolver behind {@link getBookmarkAddFormSettings}: applies defaults for null/undefined
+ * columns (a stored `[]` is a valid value and is intentionally NOT replaced by the default list),
+ * and merges the normalized stored `builtInPropertyPlacements` over the default map so a future
+ * built-in property that defaults to hidden stays hidden for a settings row that predates it.
+ * Exported (rather than only exercised through the DB-backed getter) so this merge logic is
+ * directly unit-testable.
+ */
+export function resolveBookmarkAddFormSettings(row?: {
+  bookmarkFormAdvancedFields?: string[] | null;
+  bookmarkFormHiddenFields?: string[] | null;
+  bookmarkFormBuiltInPlacements?: Record<string, unknown> | null;
+} | null): BookmarkAddFormSettings {
+  if (!row) return DEFAULT_BOOKMARK_ADD_FORM_SETTINGS;
+  return {
+    advancedFields: row.bookmarkFormAdvancedFields ?? DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.advancedFields,
+    hiddenFields: row.bookmarkFormHiddenFields ?? DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.hiddenFields,
+    builtInPropertyPlacements: {
+      ...DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements,
+      ...asBookmarkAddFormPlacements(row.bookmarkFormBuiltInPlacements ?? {}),
+    },
+  };
+}
+
+/** Read the Add Bookmark form field-placement settings (Settings → Display → Add Bookmark Form). */
+export async function getBookmarkAddFormSettings(): Promise<BookmarkAddFormSettings> {
+  const [row] = await db
+    .select({
+      bookmarkFormAdvancedFields: appSettings.bookmarkFormAdvancedFields,
+      bookmarkFormHiddenFields: appSettings.bookmarkFormHiddenFields,
+      bookmarkFormBuiltInPlacements: appSettings.bookmarkFormBuiltInPlacements,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  return resolveBookmarkAddFormSettings(row);
+}
+
+/** Replace the Add Bookmark form field-placement settings, upserting the singleton. Returns the stored values. */
+export async function updateBookmarkAddFormSettings(
+  input: UpdateBookmarkAddFormInput,
+): Promise<BookmarkAddFormSettings> {
+  const next = {
+    bookmarkFormAdvancedFields: [...input.advancedFields],
+    bookmarkFormHiddenFields: [...input.hiddenFields],
+    bookmarkFormBuiltInPlacements: asBookmarkAddFormPlacements(input.builtInPropertyPlacements),
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return resolveBookmarkAddFormSettings(next);
 }

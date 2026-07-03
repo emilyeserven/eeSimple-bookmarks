@@ -3,6 +3,7 @@ import type {
   AiSummarizationSettings,
   AiSummaryQueueItem,
   AutomationSettings,
+  BookmarkAddFormSettings,
   CardDisplayRule,
   CardFieldTemplate,
   ConnectorsAppSettings,
@@ -32,6 +33,7 @@ import type {
   UpdateAdvancedSettingsInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
+  UpdateBookmarkAddFormInput,
   UpdateCardDisplayRuleInput,
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
@@ -152,6 +154,13 @@ export const appSettingsApi = {
     request<ConnectorsAppSettings>("/app-settings/connectors"),
   updateConnectorsSettings: (input: UpdateConnectorsSettingsInput) =>
     request<ConnectorsAppSettings>("/app-settings/connectors", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getBookmarkAddForm: () =>
+    request<BookmarkAddFormSettings>("/app-settings/bookmark-add-form"),
+  updateBookmarkAddForm: (input: UpdateBookmarkAddFormInput) =>
+    request<BookmarkAddFormSettings>("/app-settings/bookmark-add-form", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

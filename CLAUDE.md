@@ -107,17 +107,38 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   (`BooleanOptionsFields`, `NumericOptionsFields`, …; `null` = no options section), so a new type
   missing a renderer **fails `tsc`** instead of silently rendering nothing (vs. the named-function
   routing above, used where per-branch props differ).
-- **Built-in custom properties and the Add Bookmark form:** when a new built-in property is seeded
-  via an `ensure*Property` boot step in the middleware, it should **not** appear in the Add Bookmark
-  form by default — the form is for quick creation and detail properties (progress, ranges, sections,
-  ratings) are better filled after creation. To hide a built-in slug:
-  1. Export a `*_SLUG` constant for it in `packages/client/src/components/bookmarkFormSchema.ts`
-     (alongside `RUNTIME_SLUG`, `DATE_POSTED_SLUG`, `CONTENT_STATUS_SLUG`, `PAGE_PROGRESS_SLUG`,
-     `PAGE_RANGE_SLUG`, `PAGE_SECTIONS_SLUG`, `CHAPTERS_SLUG`, `URL_SECTIONS_SLUG`).
-  2. Add it to the `hiddenSlugs` array in `RevealedCustomFields.tsx`.
-  The `BookmarkPropertiesForm` (edit-mode properties tab) does **not** use this list — hidden-from-create
-  properties remain editable after creation. Only omit a slug from `hiddenSlugs` when the property is
-  genuinely useful at bookmark creation time (e.g. a required classification field).
+- **Add Bookmark form field placement (`Settings → Display → Bookmark Add Form`).** Which fields the
+  **create** form shows — in the main area (**Default**), the collapsible **Advanced** section, or
+  **Hidden** — is configured **centrally** in one tab, not hardcoded per field. The page
+  (`/settings/display/bookmark-add`, `components/DisplayBookmarkAddSettings.tsx` +
+  `hooks/useBookmarkAddFormSettingsPage.ts`) governs three groups, each a three-state
+  `SegmentedToggleRow` (`components/SegmentedToggleRow.tsx`, the shared segmented control also used by
+  the sidebar show/hide settings). **See the `bookmark-add-form` skill for the change recipes.** In short:
+  - **Standard fields** (`title`, `categoryId`, `mediaTypeId`, `descriptionTags`, `image`, …) —
+    persisted in the server-side **`bookmark-add-form`** app-settings group (`BookmarkAddFormSettings`
+    in `packages/types/src/bookmarkAddForm.ts`: `advancedFields`/`hiddenFields` sidebar-style
+    membership, absence from both = Default).
+  - **Built-in detail properties** (Runtime, Date Posted, Page Progress, …) — the
+    `BOOKMARK_FORM_DETAIL_SLUGS` tuple, seeded **hidden** via
+    `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements` (resolved `{...defaults, ...stored}`
+    so a future hidden-by-default slug stays hidden even for existing saved rows). **To hide a new
+    built-in detail slug from the create form: add it to `BOOKMARK_FORM_DETAIL_SLUGS` in
+    `packages/types/src/bookmarkAddForm.ts` — that's the whole change** (seeds it hidden + adds a
+    configurable row). The old two-step `*_SLUG` + `hiddenSlugs`-array edit is gone; the 8 slug
+    constants now live in that types file (re-exported by `bookmarkFormSchema.ts`).
+  - **User custom properties** — write the property's existing `showInForm`/`hiddenFromForm` flags via
+    the normal `useUpdateCustomProperty` mutation. The old per-property "Main bookmark form" / "Show
+    outside Advanced area" checkboxes in `PropertyDisplaySection` were **removed** (that section now
+    just links here) — placement is centralized in this tab.
+
+  Enforcement is **create-mode only** (`!isEdit`): `resolveBookmarkAddForm` (`lib/bookmarkAddForm.ts`)
+  + `useBookmarkAddFormVisibility` feed `BookmarkRevealedFields`, which buckets standard fields via the
+  exhaustive registry in `bookmarkAddFormFields.tsx` (`BookmarkStandardFieldZone` — a new standard-field
+  key **fails `tsc`** until labeled in `BOOKMARK_ADD_FORM_STANDARD_LABELS` + given a render entry) and
+  threads `hiddenSlugs`/`placementOverrides` into `selectVisibleFormProperties`
+  (`bookmarkFormProperties.ts`). **Edit surfaces are unaffected** — the resolver returns today's
+  hardcoded split when `isEdit`, and `hiddenFromForm` still gates the edit Properties tab, so
+  hidden-from-create properties stay editable after creation.
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.

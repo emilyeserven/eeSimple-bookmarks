@@ -1,5 +1,7 @@
 import type { PropertyFormApi } from "./propertyFormSchema";
 
+import { Link } from "@tanstack/react-router";
+
 import { LabeledSection } from "./LabeledSection";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
@@ -51,42 +53,20 @@ export function PropertyDisplaySection({
         <div className="space-y-2 border-t pt-3">
           <span className="text-sm font-medium">Show in…</span>
           <div className="space-y-2">
-            <form.AppField name="inForm">
-              {field => (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id={`${idPrefix}-in-form`}
-                    checked={field.state.value}
-                    onCheckedChange={checked => field.handleChange(checked === true)}
-                  />
-                  <Label htmlFor={`${idPrefix}-in-form`}>Main bookmark form</Label>
-                </div>
-              )}
-            </form.AppField>
-            <form.Subscribe selector={state => state.values.inForm}>
-              {inForm =>
-                inForm
-                  ? (
-                    <form.AppField name="showOutsideAdvanced">
-                      {field => (
-                        <div className="ml-6 flex items-center gap-2">
-                          <Checkbox
-                            id={`${idPrefix}-show-outside-advanced`}
-                            checked={field.state.value}
-                            onCheckedChange={checked => field.handleChange(checked === true)}
-                          />
-                          <Label
-                            htmlFor={`${idPrefix}-show-outside-advanced`}
-                            className="text-xs text-muted-foreground"
-                          >
-                            Show outside Advanced area
-                          </Label>
-                        </div>
-                      )}
-                    </form.AppField>
-                  )
-                  : null}
-            </form.Subscribe>
+            <p className="text-xs text-muted-foreground">
+              Bookmark form placement is managed in
+              {" "}
+              <Link
+                to="/settings/display/bookmark-add"
+                className="
+                  text-primary
+                  hover:underline
+                "
+              >
+                Bookmark Add Form settings
+              </Link>
+              .
+            </p>
             <form.AppField name="showInListings">
               {field => (
                 <div className="flex items-center gap-2">

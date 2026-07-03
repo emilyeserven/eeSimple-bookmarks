@@ -5,6 +5,7 @@ import type {
   YouTubeChannel,
 } from "@eesimple/types";
 
+import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS } from "@eesimple/types";
 import { HttpResponse, http } from "msw";
 
 import {
@@ -221,6 +222,7 @@ export const apiHandlers = [
     exists: true,
     siteName: "GitHub",
   })),
+  http.get("/api/property-groups", () => HttpResponse.json([])),
   http.get("/api/media-types", () => HttpResponse.json(sampleMediaTypes)),
   http.get("/api/youtube-channels", () => HttpResponse.json(sampleChannels)),
   http.get("/api/app-settings/advanced", () => HttpResponse.json({
@@ -231,6 +233,17 @@ export const apiHandlers = [
     drizzleGatewayLinkEnabled: true,
     drizzleGatewayUrl: "http://localhost:4983",
   })),
+  http.get(
+    "/api/app-settings/bookmark-add-form",
+    () => HttpResponse.json(DEFAULT_BOOKMARK_ADD_FORM_SETTINGS),
+  ),
+  http.put(
+    "/api/app-settings/bookmark-add-form",
+    async ({
+      request,
+    }) => HttpResponse.json(await request.json()),
+  ),
+  http.put("/api/custom-properties/:id", () => HttpResponse.json(sampleProperties[0])),
   http.get("/api/bookmarks/homepage", () => HttpResponse.json([sampleBookmark])),
   http.post("/api/bookmarks", () => HttpResponse.json(sampleBookmark, {
     status: 201,

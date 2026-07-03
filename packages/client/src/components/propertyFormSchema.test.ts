@@ -171,18 +171,16 @@ describe("payloadFromValues", () => {
     expect(number.booleanLabelPreset).toBeNull();
   });
 
-  it("converts empty propertyGroupId to null and inverts the inForm flag", () => {
+  it("converts empty propertyGroupId to null", () => {
     expect(payloadFromValues({
       ...CREATE_DEFAULTS,
       propertyGroupId: "",
     }).propertyGroupId).toBeNull();
-    expect(payloadFromValues({
-      ...CREATE_DEFAULTS,
-      inForm: true,
-    }).hiddenFromForm).toBe(false);
-    expect(payloadFromValues({
-      ...CREATE_DEFAULTS,
-      inForm: false,
-    }).hiddenFromForm).toBe(true);
+  });
+
+  it("hardcodes the bookmark-form placement flags for a new property (managed centrally in Settings → Display → Bookmark Add Form)", () => {
+    const payload = payloadFromValues(CREATE_DEFAULTS);
+    expect(payload.hiddenFromForm).toBe(false);
+    expect(payload.showInForm).toBe(false);
   });
 });
