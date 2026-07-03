@@ -122,7 +122,7 @@ export function CommandPalette() {
     bookmarkFromHover,
     bookmark,
     categories,
-    authors,
+    people,
     customProperties,
     updateBookmark,
   } = taxonomyContext;
@@ -215,7 +215,7 @@ export function CommandPalette() {
       bookmarkId={bookmarkId}
       isBookmarkViewPage={isBookmarkViewPage}
       currentCategoryName={currentCategoryName}
-      authors={authors}
+      people={people}
       booleanProperties={booleanProperties}
       choicesProperties={choicesProperties}
       ratingProperties={ratingProperties}

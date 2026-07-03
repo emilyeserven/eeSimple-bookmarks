@@ -5,7 +5,7 @@
 import type { PanelContentTypeDef } from "./types";
 
 import {
-  authorContentType,
+  personContentType,
   autofillContentType,
   cardDisplayRuleContentType,
   importRuleContentType,
@@ -58,7 +58,7 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
   trackContentType,
   youtubeChannelContentType,
   newsletterContentType,
-  authorContentType,
+  personContentType,
   publisherContentType,
   relationshipTypeContentType,
   autofillContentType,

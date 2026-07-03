@@ -34,7 +34,7 @@ export const bookmarkSchema = z.object({
   locationIds: z.array(z.string()),
   blacklistedTagIds: z.array(z.string()),
   blacklistedLocationIds: z.array(z.string()),
-  authorIds: z.array(z.string()),
+  personIds: z.array(z.string()),
   publisherId: z.string(),
 });
 
@@ -140,7 +140,7 @@ const SAMPLE_DEFAULT_VALUES: {
   locationIds: string[];
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
-  authorIds: string[];
+  personIds: string[];
   publisherId: string;
 } = {
   url: "",
@@ -154,7 +154,7 @@ const SAMPLE_DEFAULT_VALUES: {
   locationIds: [],
   blacklistedTagIds: [],
   blacklistedLocationIds: [],
-  authorIds: [],
+  personIds: [],
   publisherId: "",
 };
 
@@ -208,7 +208,7 @@ export function buildBookmarkDefaultValues(
   locationIds: string[];
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
-  authorIds: string[];
+  personIds: string[];
   publisherId: string;
 } {
   return {
@@ -223,7 +223,7 @@ export function buildBookmarkDefaultValues(
     locationIds: (bookmark?.locations.map(location => location.id) ?? []) as string[],
     blacklistedTagIds: (bookmark?.blacklistedTagIds ?? []) as string[],
     blacklistedLocationIds: (bookmark?.blacklistedLocationIds ?? []) as string[],
-    authorIds: (bookmark?.authors.map(a => a.id) ?? []) as string[],
+    personIds: (bookmark?.people.map(a => a.id) ?? []) as string[],
     publisherId: bookmark?.publisher?.id ?? "",
   };
 }

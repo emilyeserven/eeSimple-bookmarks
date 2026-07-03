@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Author, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { BookmarkListPane } from "./BookmarkListPane";
@@ -26,8 +26,8 @@ interface BookmarkSearchViewProps {
   websites?: Website[];
   /** Relationship types offered as a multi-select filter in the rail. */
   relationshipTypes?: RelationshipType[];
-  /** Authors offered as a multi-select filter in the rail. */
-  authors?: Author[];
+  /** People offered as a multi-select filter in the rail. */
+  people?: Person[];
   /** Place types offered as a multi-select filter in the rail. */
   placeTypes?: PlaceType[];
   /** Bookmarks already narrowed by tag (and category, on category pages). */
@@ -65,7 +65,7 @@ export function BookmarkSearchView({
   youtubeChannels,
   websites,
   relationshipTypes,
-  authors,
+  people,
   placeTypes,
   bookmarks,
   search,
@@ -89,7 +89,7 @@ export function BookmarkSearchView({
     youtubeChannels,
     websites,
     relationshipTypes,
-    authors,
+    people,
     placeTypes,
     bookmarks,
     search,
@@ -119,7 +119,7 @@ export function BookmarkSearchView({
             youtubeChannels={youtubeChannels}
             websites={websites}
             relationshipTypes={relationshipTypes}
-            authors={authors}
+            people={people}
             placeTypes={placeTypes}
             bookmarks={bookmarks}
             search={search}

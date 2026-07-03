@@ -22,7 +22,7 @@ function BookmarksPage() {
     youtubeChannels,
     websites,
     relationshipTypes,
-    authors,
+    people,
     placeTypes,
   } = useBookmarksPageData(tagsForServerQuery(search));
 
@@ -38,7 +38,7 @@ function BookmarksPage() {
       youtubeChannels={youtubeChannels ?? []}
       websites={websites ?? []}
       relationshipTypes={relationshipTypes ?? []}
-      authors={authors ?? []}
+      people={people ?? []}
       placeTypes={placeTypes ?? []}
       bookmarks={bookmarks ?? []}
       search={search}

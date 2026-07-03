@@ -1,6 +1,5 @@
 import type { Bookmark } from "@eesimple/types";
 
-import { AuthorSocialAccountOffer } from "./AuthorSocialAccountOffer";
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
@@ -9,6 +8,7 @@ import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSecti
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
 import { BookmarkMediaField } from "./BookmarkMediaField";
 import { BookmarkNameField } from "./BookmarkNameField";
+import { PersonSocialAccountOffer } from "./PersonSocialAccountOffer";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 
@@ -44,7 +44,7 @@ export function BookmarkGeneralForm({
     setAutofillOfferDismissed,
     socialAccountOffer,
     setSocialAccountOffer,
-    createAuthorFromSocialAccount,
+    createPersonFromSocialAccount,
     runAutofill,
     runFetchTitle,
     runFetchDescription,
@@ -138,10 +138,10 @@ export function BookmarkGeneralForm({
         categories={categories ?? []}
       />
 
-      <AuthorSocialAccountOffer
+      <PersonSocialAccountOffer
         account={socialAccountOffer}
         onCreate={() => {
-          if (socialAccountOffer) return createAuthorFromSocialAccount(socialAccountOffer);
+          if (socialAccountOffer) return createPersonFromSocialAccount(socialAccountOffer);
         }}
         onDismiss={() => setSocialAccountOffer(null)}
       />

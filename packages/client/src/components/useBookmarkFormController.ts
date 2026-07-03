@@ -52,7 +52,7 @@ export function useBookmarkFormController({
       fetchTitle,
       fetchMetadata,
       websiteLookup,
-      createAuthor,
+      createPerson,
       createPublisher,
       createLanguage,
     },
@@ -66,7 +66,7 @@ export function useBookmarkFormController({
     languages,
     autofillRules,
     youtubeChannels,
-    authors,
+    people,
     publishers,
     autoFetchImage,
   } = data;
@@ -156,10 +156,10 @@ export function useBookmarkFormController({
     form,
     customProperties,
     mediaTypes,
-    authors,
+    people,
     publishers,
     languages,
-    createAuthor,
+    createPerson,
     createPublisher,
     createLanguage,
     handleTextChange: prefill.handleTextChange,
@@ -196,7 +196,7 @@ export function useBookmarkFormController({
     runYouTubeEnrichment,
     undoUrlCleanup,
     undoTitleFetch,
-    createAuthorFromSocialAccount,
+    createPersonFromSocialAccount,
     submitForm,
     performUrlScan,
     handleAddNow,
@@ -230,7 +230,7 @@ export function useBookmarkFormController({
     categories,
     mediaTypes,
     languages,
-    authors,
+    people,
     websiteLookup,
     autoFetchImage,
     // URL cleanup.
@@ -265,10 +265,10 @@ export function useBookmarkFormController({
     urlResolveError: ui.urlResolveError,
     autofillOfferDismissed: ui.autofillOfferDismissed,
     setAutofillOfferDismissed: ui.setAutofillOfferDismissed,
-    // Social-account → author offer.
+    // Social-account → person offer.
     socialAccountOffer: ui.socialAccountOffer,
     setSocialAccountOffer: ui.setSocialAccountOffer,
-    createAuthorFromSocialAccount,
+    createPersonFromSocialAccount,
     // "Set as default" context for the source-default checkboxes (rendered under their fields).
     sourceDefaults,
     // Prefill + scan handlers.

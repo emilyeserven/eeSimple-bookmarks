@@ -326,7 +326,7 @@ export function useCardDisplayRulePreview({
       ],
       blacklistedTagIds: [],
       ...samplePropertyValues(properties),
-      authors: [],
+      people: [],
       relationships: [],
       locations: [
         {

@@ -8,7 +8,7 @@ export function isPreFillEmpty(preFill: InboxPreFillDefaults): boolean {
     !preFill.categoryId
     && (!preFill.tagIds || preFill.tagIds.length === 0)
     && !preFill.mediaTypeId
-    && (!preFill.authorIds || preFill.authorIds.length === 0)
+    && (!preFill.personIds || preFill.personIds.length === 0)
     && !preFill.publisherId
     && (!preFill.numberValues || preFill.numberValues.length === 0)
     && (!preFill.booleanValues || preFill.booleanValues.length === 0)

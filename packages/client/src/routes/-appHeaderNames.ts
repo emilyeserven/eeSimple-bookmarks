@@ -2,7 +2,6 @@ import type { TaxonomyName } from "./-appHeaderData";
 
 import { useAlbumBySlug } from "@/hooks/useAlbums";
 import { useArtistBySlug } from "@/hooks/useArtists";
-import { useAuthorBySlug } from "@/hooks/useAuthors";
 import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
 import { useBookBySlug } from "@/hooks/useBooks";
 import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
@@ -12,6 +11,7 @@ import { useImportRuleBySlug } from "@/hooks/useImportRules";
 import { useMediaPropertyBySlug } from "@/hooks/useMediaProperties";
 import { useMovieBySlug } from "@/hooks/useMovies";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
+import { usePersonBySlug } from "@/hooks/usePeople";
 import { usePlaceTypeBySlug } from "@/hooks/usePlaceTypes";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { usePublisherBySlug } from "@/hooks/usePublishers";
@@ -24,7 +24,7 @@ import { useTvShowBySlug } from "@/hooks/useTvShows";
  * `slugFor`), so this module stays free of that dependency. An empty slug short-circuits its hook. */
 export interface TaxonomyNameSlugs {
   newsletter: string;
-  author: string;
+  person: string;
   publisher: string;
   placeType: string;
   propertyGroup: string;
@@ -58,8 +58,8 @@ export function useTaxonomyNameMap(
     newsletter,
   } = useNewsletterBySlug(slugs.newsletter);
   const {
-    author,
-  } = useAuthorBySlug(slugs.author);
+    person,
+  } = usePersonBySlug(slugs.person);
   const {
     publisher,
   } = usePublisherBySlug(slugs.publisher);
@@ -116,9 +116,9 @@ export function useTaxonomyNameMap(
     "/taxonomies/newsletters": {
       name: newsletter?.name,
     },
-    "/taxonomies/authors": {
-      name: author?.name,
-      romanized: author?.romanizedName,
+    "/taxonomies/people": {
+      name: person?.name,
+      romanized: person?.romanizedName,
     },
     "/taxonomies/publishers": {
       name: publisher?.name,

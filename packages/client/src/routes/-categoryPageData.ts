@@ -1,8 +1,8 @@
-import { useAuthors } from "../hooks/useAuthors";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
+import { usePeople } from "../hooks/usePeople";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useRelationshipTypes } from "../hooks/useRelationshipTypes";
@@ -43,8 +43,8 @@ export function useCategoryPageData(tags: string[] | undefined) {
     data: relationshipTypes,
   } = useRelationshipTypes();
   const {
-    data: authors,
-  } = useAuthors();
+    data: people,
+  } = usePeople();
   const {
     data: placeTypes,
   } = usePlaceTypes();
@@ -62,7 +62,7 @@ export function useCategoryPageData(tags: string[] | undefined) {
     youtubeChannels,
     websites,
     relationshipTypes,
-    authors,
+    people,
     placeTypes,
   };
 }

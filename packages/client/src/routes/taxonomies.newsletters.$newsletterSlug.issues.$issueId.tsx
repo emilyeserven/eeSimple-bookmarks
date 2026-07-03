@@ -38,7 +38,7 @@ function NewsletterIssueBookmarksPage() {
     mediaTypes,
     youtubeChannels,
     relationshipTypes,
-    authors,
+    people,
     placeTypes,
   } = useCategoryPageData(tagsForServerQuery(search));
 
@@ -104,7 +104,7 @@ function NewsletterIssueBookmarksPage() {
         mediaTypes={mediaTypes ?? []}
         youtubeChannels={youtubeChannels ?? []}
         relationshipTypes={relationshipTypes ?? []}
-        authors={authors ?? []}
+        people={people ?? []}
         placeTypes={placeTypes ?? []}
         bookmarks={issueBookmarks}
         search={search}

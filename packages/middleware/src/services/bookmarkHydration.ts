@@ -1,7 +1,7 @@
 import { asc, desc, eq, inArray, or } from "drizzle-orm";
 import type {
   Bookmark,
-  BookmarkAuthor,
+  BookmarkPerson,
   BookmarkBooleanValue,
   BookmarkChoicesValue,
   BookmarkDateTimeValue,
@@ -28,8 +28,8 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
-  authors,
-  bookmarkAuthors,
+  people,
+  bookmarkPeople,
   bookmarkBooleanValues,
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
@@ -80,7 +80,7 @@ interface BookmarkExtras {
   locations: BookmarkLocation[];
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
-  authors: BookmarkAuthor[];
+  people: BookmarkPerson[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
   dateTimeValues: BookmarkDateTimeValue[];
@@ -108,7 +108,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   locations: [],
   blacklistedTagIds: [],
   blacklistedLocationIds: [],
-  authors: [],
+  people: [],
   numberValues: [],
   booleanValues: [],
   dateTimeValues: [],
@@ -158,7 +158,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     locations: extras.locations,
     blacklistedTagIds: extras.blacklistedTagIds,
     blacklistedLocationIds: extras.blacklistedLocationIds,
-    authors: extras.authors,
+    people: extras.people,
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
     dateTimeValues: extras.dateTimeValues,
@@ -409,21 +409,21 @@ async function blacklistedLocationIdsByBookmarkId(bookmarkIds: string[]): Promis
   return grouped;
 }
 
-/** Load authors for a set of bookmark ids in a single query, grouped by bookmark id. */
-async function authorsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkAuthor[]>> {
-  const grouped = new Map<string, BookmarkAuthor[]>();
+/** Load people for a set of bookmark ids in a single query, grouped by bookmark id. */
+async function peopleByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkPerson[]>> {
+  const grouped = new Map<string, BookmarkPerson[]>();
   if (bookmarkIds.length === 0) return grouped;
 
   const rows = await db
     .select({
-      bookmarkId: bookmarkAuthors.bookmarkId,
-      id: authors.id,
-      name: authors.name,
-      slug: authors.slug,
+      bookmarkId: bookmarkPeople.bookmarkId,
+      id: people.id,
+      name: people.name,
+      slug: people.slug,
     })
-    .from(bookmarkAuthors)
-    .innerJoin(authors, eq(bookmarkAuthors.authorId, authors.id))
-    .where(inArray(bookmarkAuthors.bookmarkId, bookmarkIds));
+    .from(bookmarkPeople)
+    .innerJoin(people, eq(bookmarkPeople.personId, people.id))
+    .where(inArray(bookmarkPeople.bookmarkId, bookmarkIds));
 
   for (const row of rows) {
     const list = grouped.get(row.bookmarkId) ?? [];
@@ -867,12 +867,12 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, locationsMap, blacklistedMap, blacklistedLocationMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap] = await Promise.all([
+  const [tagsMap, locationsMap, blacklistedMap, blacklistedLocationMap, peopleMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     locationsByBookmarkId(bookmarkIds),
     blacklistedTagIdsByBookmarkId(bookmarkIds),
     blacklistedLocationIdsByBookmarkId(bookmarkIds),
-    authorsByBookmarkId(bookmarkIds),
+    peopleByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
     booleanValuesByBookmarkId(bookmarkIds),
     dateTimeValuesByBookmarkId(bookmarkIds),
@@ -900,7 +900,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       locations: locationsMap.get(id) ?? [],
       blacklistedTagIds: blacklistedMap.get(id) ?? [],
       blacklistedLocationIds: blacklistedLocationMap.get(id) ?? [],
-      authors: authorsMap.get(id) ?? [],
+      people: peopleMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],
       dateTimeValues: dateTimeMap.get(id) ?? [],

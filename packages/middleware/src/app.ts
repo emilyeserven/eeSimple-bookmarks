@@ -5,7 +5,7 @@ import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance } from "fastify";
 import { aiSummarizationRoutes } from "@/routes/aiSummarization";
 import { appSettingsRoutes } from "@/routes/appSettings";
-import { authorRoutes } from "@/routes/authors";
+import { personRoutes } from "@/routes/people";
 import { autofillRoutes } from "@/routes/autofill";
 import { bookmarkRoutes } from "@/routes/bookmarks";
 import { categoryRoutes } from "@/routes/categories";
@@ -134,8 +134,8 @@ export async function buildApp(): Promise<FastifyInstance> {
             description: "Category endpoints for grouping custom properties",
           },
           {
-            name: "authors",
-            description: "Authors taxonomy: people or entities credited as creators of bookmarked items",
+            name: "people",
+            description: "People taxonomy: people or entities credited as creators of bookmarked items",
           },
           {
             name: "autofill",
@@ -254,7 +254,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(connectorsRoutes);
   await app.register(kavitaRoutes);
   await app.register(plexRoutes);
-  await app.register(authorRoutes);
+  await app.register(personRoutes);
   await app.register(newsletterRoutes);
   await app.register(publisherRoutes);
   await app.register(importRoutes);

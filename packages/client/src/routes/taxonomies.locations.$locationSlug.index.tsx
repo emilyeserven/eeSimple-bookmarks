@@ -39,7 +39,7 @@ function LocationBookmarksPage() {
     tagTree,
     youtubeChannels,
     relationshipTypes,
-    authors,
+    people,
     placeTypes,
   } = useCategoryPageData(tagsForServerQuery(search));
 
@@ -168,7 +168,7 @@ function LocationBookmarksPage() {
       categories={categories ?? []}
       youtubeChannels={youtubeChannels ?? []}
       relationshipTypes={relationshipTypes ?? []}
-      authors={authors ?? []}
+      people={people ?? []}
       placeTypes={placeTypes ?? []}
       bookmarks={locationBookmarks}
       search={search}

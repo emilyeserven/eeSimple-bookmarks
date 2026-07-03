@@ -15,7 +15,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
-  bookmarkAuthors,
+  bookmarkPeople,
   bookmarkBooleanValues,
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
@@ -50,7 +50,7 @@ import {
 } from "@/services/bookmarkEnrichment";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
 import {
-  linkAuthors,
+  linkPeople,
   linkLocations,
   linkTags,
   recomputeCalculatedValues,
@@ -575,7 +575,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     if (input.blacklistedLocationIds?.length) {
       await setBookmarkLocationBlacklist(tx, row.id, input.blacklistedLocationIds);
     }
-    await linkAuthors(tx, row.id, input.authorIds);
+    await linkPeople(tx, row.id, input.personIds);
     await setNumberValues(tx, row.id, numberValues);
     await setBooleanValues(tx, row.id, input.booleanValues);
     await setDateTimeValues(tx, row.id, dateTimeValues);
@@ -695,9 +695,9 @@ async function applyBookmarkValueUpdates(
   if (input.blacklistedTagIds !== undefined) {
     await setBookmarkTagBlacklist(tx, id, input.blacklistedTagIds);
   }
-  if (input.authorIds !== undefined) {
-    await tx.delete(bookmarkAuthors).where(eq(bookmarkAuthors.bookmarkId, id));
-    await linkAuthors(tx, id, input.authorIds);
+  if (input.personIds !== undefined) {
+    await tx.delete(bookmarkPeople).where(eq(bookmarkPeople.bookmarkId, id));
+    await linkPeople(tx, id, input.personIds);
   }
   if (resolved.numberValues !== undefined) {
     await tx.delete(bookmarkNumberValues).where(eq(bookmarkNumberValues.bookmarkId, id));

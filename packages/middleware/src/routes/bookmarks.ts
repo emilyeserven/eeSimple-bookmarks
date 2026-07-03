@@ -153,7 +153,7 @@ const createBookmarkBody = {
         format: "uuid",
       },
     },
-    authorIds: {
+    personIds: {
       type: "array",
       items: {
         type: "string",

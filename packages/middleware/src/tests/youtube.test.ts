@@ -67,7 +67,7 @@ const VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 const OEMBED_OK = JSON.stringify({
   title: "Some Title",
   author_name: "Some Channel",
-  author_url: "https://www.youtube.com/@somechannel",
+  person_url: "https://www.youtube.com/@somechannel",
   thumbnail_url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
 });
 

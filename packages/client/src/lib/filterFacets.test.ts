@@ -31,8 +31,8 @@ describe("facetHasActiveSelection", () => {
     expect(facetHasActiveSelection("relationship-types", {
       relationshipTypes: ["r"],
     })).toBe(true);
-    expect(facetHasActiveSelection("authors", {
-      authors: ["au"],
+    expect(facetHasActiveSelection("people", {
+      people: ["au"],
     })).toBe(true);
     expect(facetHasActiveSelection("place-types", {
       placeTypes: ["city"],

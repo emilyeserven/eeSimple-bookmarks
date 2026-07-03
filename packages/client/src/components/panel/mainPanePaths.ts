@@ -33,8 +33,8 @@ export function buildMainPanePath(
       return `/taxonomies/youtube-channels/${slug}/${tab}`;
     case "newsletter":
       return `/taxonomies/newsletters/${slug}/${tab}`;
-    case "author":
-      return `/taxonomies/authors/${slug}/${tab}`;
+    case "person":
+      return `/taxonomies/people/${slug}/${tab}`;
     case "publisher":
       return `/taxonomies/publishers/${slug}/${tab}`;
     case "relationship-type":

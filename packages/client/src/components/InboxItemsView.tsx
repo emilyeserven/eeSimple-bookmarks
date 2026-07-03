@@ -42,7 +42,7 @@ function ReviewRowAdvancedEdit({
       mediaTypeId={itemPreFill.mediaTypeId ?? undefined}
       tagIds={itemPreFill.tagIds ?? []}
       locationIds={itemPreFill.locationIds ?? []}
-      authorIds={itemPreFill.authorIds ?? []}
+      personIds={itemPreFill.personIds ?? []}
       publisherId={itemPreFill.publisherId ?? undefined}
       onCategoryChange={id => patchItemPreFill({
         categoryId: id,
@@ -56,8 +56,8 @@ function ReviewRowAdvancedEdit({
       onLocationsChange={ids => patchItemPreFill({
         locationIds: ids,
       })}
-      onAuthorsChange={ids => patchItemPreFill({
-        authorIds: ids,
+      onPeopleChange={ids => patchItemPreFill({
+        personIds: ids,
       })}
       onPublisherChange={id => patchItemPreFill({
         publisherId: id,

@@ -1,4 +1,3 @@
-import { useAutoAuthorImage, useCreateAuthor, useUpdateAuthor } from "../hooks/useAuthors";
 import {
   useAddBookmarkImage,
   useAutoBookmarkImage,
@@ -14,6 +13,7 @@ import {
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
 import { useFetchTitle } from "../hooks/useFetchTitle";
 import { useCreateLanguage } from "../hooks/useLanguages";
+import { useAutoPersonImage, useCreatePerson, useUpdatePerson } from "../hooks/usePeople";
 import { useCreatePublisher } from "../hooks/usePublishers";
 import { useUpdateWebsite, useWebsiteLookup } from "../hooks/useWebsites";
 import { useUpdateYouTubeChannel } from "../hooks/useYouTubeChannels";
@@ -42,9 +42,9 @@ export function useBookmarkFormActions() {
     urlDuplicateCheck: useBookmarkUrlDuplicateCheck(),
     updateWebsite: useUpdateWebsite(),
     updateYouTubeChannel: useUpdateYouTubeChannel(),
-    createAuthor: useCreateAuthor(),
-    updateAuthor: useUpdateAuthor(),
-    autoAuthorImage: useAutoAuthorImage(),
+    createPerson: useCreatePerson(),
+    updatePerson: useUpdatePerson(),
+    autoPersonImage: useAutoPersonImage(),
     createPublisher: useCreatePublisher(),
     createLanguage: useCreateLanguage(),
   };

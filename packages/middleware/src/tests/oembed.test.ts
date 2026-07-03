@@ -37,7 +37,7 @@ test("normalizeOEmbed maps fields and normalizes the date", () => {
   const result = normalizeOEmbed({
     title: "  A Clip  ",
     author_name: "Creator",
-    author_url: "https://vimeo.com/creator",
+    person_url: "https://vimeo.com/creator",
     thumbnail_url: "https://i.vimeocdn.com/x.jpg",
     description: "A short clip",
     upload_date: "2024-03-02 12:00:00",
@@ -51,10 +51,10 @@ test("normalizeOEmbed maps fields and normalizes the date", () => {
   assert.equal(result.providerName, "Vimeo");
 });
 
-test("normalizeOEmbed drops private/loopback thumbnail and author URLs (SSRF guard)", () => {
+test("normalizeOEmbed drops private/loopback thumbnail and person URLs (SSRF guard)", () => {
   const result = normalizeOEmbed({
     title: "x",
-    author_url: "http://192.168.0.1/me",
+    person_url: "http://192.168.0.1/me",
     thumbnail_url: "http://localhost/secret.png",
   }, null);
   assert.equal(result.authorUrl, null);
@@ -124,7 +124,7 @@ test("fetchOEmbedForUrl returns null for a non-provider URL with no autodiscover
   assert.equal(meta, null);
 });
 
-test("fetchOEmbedForUrl drops Reddit's thumbnail but keeps its title/author (untrusted thumbnail)", async () => {
+test("fetchOEmbedForUrl drops Reddit's thumbnail but keeps its title/person (untrusted thumbnail)", async () => {
   const restore = stubFetch(JSON.stringify({
     title: "Cool Post",
     author_name: "u/someone",

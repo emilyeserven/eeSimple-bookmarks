@@ -1,6 +1,6 @@
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
 import type { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
-import type { Author, FetchMetadataResult, Language, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
+import type { FetchMetadataResult, Language, Person, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 
 import { sameSocialAccount, socialAccountFromLink } from "@eesimple/types";
@@ -41,19 +41,19 @@ interface UseBookmarkScanHandlersParams {
   cleanUrl: UrlProcessing["runUrlCleanup"];
   /** The URL-string cleanup undo from `useBookmarkUrlProcessing` (its `undoUrlCleanup`). */
   undoCleanup: UrlProcessing["undoUrlCleanup"];
-  /** Loaded author list — when provided, enables `runFetchAuthors`. */
-  authors?: Author[];
-  /** Read the current author IDs from the form — when provided, enables `runFetchAuthors`. */
-  getAuthorIds?: () => string[];
-  /** Write author IDs back to the form after detection — when provided, enables `runFetchAuthors`. */
-  setAuthorIds?: (ids: string[]) => void;
-  /** Create-author mutation — when provided, enables creating new authors discovered in metadata. */
-  createAuthor?: Actions["createAuthor"];
-  /** Update-author mutation — used to attach a social link when creating an author from a social account. */
-  updateAuthor?: Actions["updateAuthor"];
-  /** Auto-avatar mutation — used to pull the new author's avatar from the social account (best-effort). */
-  autoAuthorImage?: Actions["autoAuthorImage"];
-  /** Surface a "create author from this social account" offer — when provided, enables the social-match flow. */
+  /** Loaded person list — when provided, enables `runFetchPeople`. */
+  people?: Person[];
+  /** Read the current person IDs from the form — when provided, enables `runFetchPeople`. */
+  getPersonIds?: () => string[];
+  /** Write person IDs back to the form after detection — when provided, enables `runFetchPeople`. */
+  setPersonIds?: (ids: string[]) => void;
+  /** Create-person mutation — when provided, enables creating new people discovered in metadata. */
+  createPerson?: Actions["createPerson"];
+  /** Update-person mutation — used to attach a social link when creating an person from a social account. */
+  updatePerson?: Actions["updatePerson"];
+  /** Auto-avatar mutation — used to pull the new person's avatar from the social account (best-effort). */
+  autoPersonImage?: Actions["autoPersonImage"];
+  /** Surface a "create person from this social account" offer — when provided, enables the social-match flow. */
   setSocialAccountOffer?: Dispatch<SetStateAction<SocialAccountRef | null>>;
   /** Loaded language list — when provided (with the get/set/create below), enables language auto-detect. */
   languages?: Language[];
@@ -87,12 +87,12 @@ export function useBookmarkScanHandlers({
   classifyUrlShortener,
   cleanUrl,
   undoCleanup,
-  authors,
-  getAuthorIds,
-  setAuthorIds,
-  createAuthor,
-  updateAuthor,
-  autoAuthorImage,
+  people,
+  getPersonIds,
+  setPersonIds,
+  createPerson,
+  updatePerson,
+  autoPersonImage,
   setSocialAccountOffer,
   languages,
   getLanguageId,
@@ -262,35 +262,35 @@ export function useBookmarkScanHandlers({
     setTitleFetch(null);
   }
 
-  // Resolve detected author names to IDs and write them into the form: existing authors are matched
-  // case-insensitively; unknown names are created. Pure apply (other than the create-author network
-  // call), shared by `runFetchAuthors` and the consolidated scan. No-ops unless the author params are
-  // provided (create form only), no authors are selected yet, and the URL isn't a YouTube video.
-  async function applyAuthorsFromNames(url: string, names: string[] | null): Promise<void> {
-    if (!setAuthorIds || !getAuthorIds || looksLikeYouTube(url)) return;
+  // Resolve detected person names to IDs and write them into the form: existing people are matched
+  // case-insensitively; unknown names are created. Pure apply (other than the create-person network
+  // call), shared by `runFetchPeople` and the consolidated scan. No-ops unless the person params are
+  // provided (create form only), no people are selected yet, and the URL isn't a YouTube video.
+  async function applyPeopleFromNames(url: string, names: string[] | null): Promise<void> {
+    if (!setPersonIds || !getPersonIds || looksLikeYouTube(url)) return;
     if (!names || names.length === 0) return;
-    if ((getAuthorIds()).length > 0) return;
-    const existingAuthors = authors ?? [];
+    if ((getPersonIds()).length > 0) return;
+    const existingPeople = people ?? [];
     const ids: string[] = [];
     for (const name of names) {
       const normalName = name.toLowerCase();
-      const match = existingAuthors.find(a => a.name.toLowerCase() === normalName);
+      const match = existingPeople.find(a => a.name.toLowerCase() === normalName);
       if (match) {
         ids.push(match.id);
       }
-      else if (createAuthor) {
+      else if (createPerson) {
         try {
-          const created = await createAuthor.mutateAsync({
+          const created = await createPerson.mutateAsync({
             name,
           });
           ids.push(created.id);
         }
         catch {
-          // Skip authors that can't be created (e.g. duplicate race).
+          // Skip people that can't be created (e.g. duplicate race).
         }
       }
     }
-    if (ids.length > 0) setAuthorIds(ids);
+    if (ids.length > 0) setPersonIds(ids);
   }
 
   // Resolve a detected ISO language code to a Language id and write it into the form: an existing
@@ -319,24 +319,24 @@ export function useBookmarkScanHandlers({
     }
   }
 
-  /** Find an existing author whose social links already include `acct` (same platform + handle). */
-  function findAuthorBySocialAccount(acct: SocialAccountRef): Author | undefined {
-    return (authors ?? []).find(author =>
-      author.socialLinks.some((link) => {
+  /** Find an existing person whose social links already include `acct` (same platform + handle). */
+  function findPersonBySocialAccount(acct: SocialAccountRef): Person | undefined {
+    return (people ?? []).find(person =>
+      person.socialLinks.some((link) => {
         const ref = socialAccountFromLink(link);
         return ref !== null && sameSocialAccount(ref, acct);
       }));
   }
 
-  // When the scanned URL is a social account, either select the author who already lists it, or
-  // surface an offer to create a new author from it. Create-form only (gated on the author params);
-  // runs after name-based resolution and only fills authors when none are selected yet, so it never
-  // clobbers a name-detected author.
+  // When the scanned URL is a social account, either select the person who already lists it, or
+  // surface an offer to create a new person from it. Create-form only (gated on the person params);
+  // runs after name-based resolution and only fills people when none are selected yet, so it never
+  // clobbers a name-detected person.
   function applyScanSocialAccount(acct: SocialAccountRef | null): void {
-    if (!acct || !setAuthorIds || !getAuthorIds) return;
-    const match = findAuthorBySocialAccount(acct);
+    if (!acct || !setPersonIds || !getPersonIds) return;
+    const match = findPersonBySocialAccount(acct);
     if (match) {
-      if ((getAuthorIds()).length === 0) setAuthorIds([match.id]);
+      if ((getPersonIds()).length === 0) setPersonIds([match.id]);
       setSocialAccountOffer?.(null);
       return;
     }
@@ -344,37 +344,37 @@ export function useBookmarkScanHandlers({
   }
 
   // Edit-mode reconciliation for a scanned social account: unlike `applyScanSocialAccount` (which
-  // only fills authors when none are selected and otherwise offers to create one), an existing
-  // bookmark may already have an author assigned. If an author already lists this social account,
-  // attach them to the bookmark (without displacing any other already-assigned author); otherwise,
-  // if the bookmark already has an author, record the link on that author instead of reassigning.
+  // only fills people when none are selected and otherwise offers to create one), an existing
+  // bookmark may already have an person assigned. If an person already lists this social account,
+  // attach them to the bookmark (without displacing any other already-assigned person); otherwise,
+  // if the bookmark already has an person, record the link on that person instead of reassigning.
   // Falls back to the create-style offer only when neither case applies.
   async function reconcileSocialAccountOnEdit(
     acct: SocialAccountRef | null,
-    currentAuthorIds: string[],
+    currentPersonIds: string[],
   ): Promise<void> {
-    if (!acct || !setAuthorIds) return;
-    const match = findAuthorBySocialAccount(acct);
+    if (!acct || !setPersonIds) return;
+    const match = findPersonBySocialAccount(acct);
     if (match) {
-      if (!currentAuthorIds.includes(match.id)) {
-        setAuthorIds([...currentAuthorIds, match.id]);
+      if (!currentPersonIds.includes(match.id)) {
+        setPersonIds([...currentPersonIds, match.id]);
       }
       setSocialAccountOffer?.(null);
       return;
     }
-    if (currentAuthorIds.length > 0) {
-      const existingAuthor = (authors ?? []).find(a => a.id === currentAuthorIds[0]);
-      if (!existingAuthor) return;
-      const alreadyLinked = existingAuthor.socialLinks.some((link) => {
+    if (currentPersonIds.length > 0) {
+      const existingPerson = (people ?? []).find(a => a.id === currentPersonIds[0]);
+      if (!existingPerson) return;
+      const alreadyLinked = existingPerson.socialLinks.some((link) => {
         const ref = socialAccountFromLink(link);
         return ref !== null && sameSocialAccount(ref, acct);
       });
       if (alreadyLinked) return;
       try {
-        await updateAuthor?.mutateAsync({
-          id: existingAuthor.id,
+        await updatePerson?.mutateAsync({
+          id: existingPerson.id,
           input: {
-            socialLinks: [...existingAuthor.socialLinks, {
+            socialLinks: [...existingPerson.socialLinks, {
               platform: acct.platform,
               url: acct.profileUrl,
             }],
@@ -382,21 +382,21 @@ export function useBookmarkScanHandlers({
         });
       }
       catch {
-        // Non-fatal: the bookmark/author relationship is unaffected; the link can be added manually.
+        // Non-fatal: the bookmark/person relationship is unaffected; the link can be added manually.
       }
       return;
     }
     setSocialAccountOffer?.(acct);
   }
 
-  // Create a new author from a detected social account: name = handle, attach the social link, pull
-  // the avatar best-effort (non-blocking), then select the author and clear the offer. Invoked by the
-  // offer banner's "Create author" button.
-  async function createAuthorFromSocialAccount(acct: SocialAccountRef): Promise<void> {
-    if (!createAuthor || !setAuthorIds || !getAuthorIds) return;
+  // Create a new person from a detected social account: name = handle, attach the social link, pull
+  // the avatar best-effort (non-blocking), then select the person and clear the offer. Invoked by the
+  // offer banner's "Create person" button.
+  async function createPersonFromSocialAccount(acct: SocialAccountRef): Promise<void> {
+    if (!createPerson || !setPersonIds || !getPersonIds) return;
     let created;
     try {
-      created = await createAuthor.mutateAsync({
+      created = await createPerson.mutateAsync({
         name: acct.handle,
       });
     }
@@ -404,7 +404,7 @@ export function useBookmarkScanHandlers({
       return; // e.g. a name clash — leave the offer up so the user can resolve it.
     }
     try {
-      await updateAuthor?.mutateAsync({
+      await updatePerson?.mutateAsync({
         id: created.id,
         input: {
           socialLinks: [{
@@ -415,29 +415,29 @@ export function useBookmarkScanHandlers({
       });
     }
     catch {
-      // Non-fatal: the author exists; the link can be added manually.
+      // Non-fatal: the person exists; the link can be added manually.
     }
-    // Best-effort avatar pull — don't block selecting the author on the image fetch.
-    autoAuthorImage?.mutate({
+    // Best-effort avatar pull — don't block selecting the person on the image fetch.
+    autoPersonImage?.mutate({
       id: created.id,
       source: "social",
       platform: acct.platform,
       sourceUrl: acct.profileUrl,
     });
-    setAuthorIds([...getAuthorIds(), created.id]);
+    setPersonIds([...getPersonIds(), created.id]);
     setSocialAccountOffer?.(null);
   }
 
-  // For a non-YouTube URL, pull author names from page metadata and resolve them to author IDs.
-  // Only runs when no authors have been selected yet, and only when the author params are provided.
-  async function runFetchAuthors(url: string): Promise<void> {
-    if (!setAuthorIds || !getAuthorIds || !isUrlFetchable(url) || looksLikeYouTube(url)) return;
-    if ((getAuthorIds()).length > 0) return;
+  // For a non-YouTube URL, pull person names from page metadata and resolve them to person IDs.
+  // Only runs when no people have been selected yet, and only when the person params are provided.
+  async function runFetchPeople(url: string): Promise<void> {
+    if (!setPersonIds || !getPersonIds || !isUrlFetchable(url) || looksLikeYouTube(url)) return;
+    if ((getPersonIds()).length > 0) return;
     try {
       const meta = await fetchMetadata.mutateAsync({
         url,
       });
-      await applyAuthorsFromNames(url, meta.authorNames);
+      await applyPeopleFromNames(url, meta.authorNames);
     }
     catch {
       // Non-fatal: best-effort convenience layered on the metadata fetch.
@@ -445,9 +445,9 @@ export function useBookmarkScanHandlers({
   }
 
   // Apply a consolidated scan's metadata to the form without any further network round-trips: the
-  // same title/description/author/channel writes the granular handlers do, fed from one `/api/scan`
+  // same title/description/person/channel writes the granular handlers do, fed from one `/api/scan`
   // result. YouTube videos route through `applyYouTubeMeta`; everything else fills the strict title,
-  // description, and detected authors (and clears any stale channel hint from a prior YouTube URL).
+  // description, and detected people (and clears any stale channel hint from a prior YouTube URL).
   async function applyScanMetadata(url: string, meta: FetchMetadataResult & {
     socialAccount?: SocialAccountRef | null;
   }, {
@@ -476,7 +476,7 @@ export function useBookmarkScanHandlers({
     if (fillTitle && meta.description && form.getFieldValue("description").trim() === "") {
       form.setFieldValue("description", meta.description);
     }
-    await applyAuthorsFromNames(url, meta.authorNames);
+    await applyPeopleFromNames(url, meta.authorNames);
     await applyLanguageFromCode(meta.languageCode);
     // Social-account match/offer runs after name resolution; it only fills when still empty.
     applyScanSocialAccount(meta.socialAccount ?? null);
@@ -508,10 +508,10 @@ export function useBookmarkScanHandlers({
   return {
     runFetchTitle,
     runFetchDescription,
-    runFetchAuthors,
+    runFetchPeople,
     runYouTubeEnrichment,
     applyScanMetadata,
-    createAuthorFromSocialAccount,
+    createPersonFromSocialAccount,
     reconcileSocialAccountOnEdit,
     runUrlCleanup,
     undoUrlCleanup,

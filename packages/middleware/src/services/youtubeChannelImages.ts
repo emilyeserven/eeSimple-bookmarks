@@ -26,7 +26,7 @@ import { deleteObject, putObject } from "@/utils/objectStore";
 
 /**
  * A successful grab/store returns the serving URL; `"not_found"` when the channel is gone; a typed
- * download-failure string (shared with the website-favicon/author-avatar pipelines); or a
+ * download-failure string (shared with the website-favicon/person-avatar pipelines); or a
  * `{ code: "bad_image" }` result carrying the underlying sharp decode error's message, so the
  * client can surface (and console-log) the real reason instead of an opaque "bad_image".
  */

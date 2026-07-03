@@ -4,7 +4,7 @@ import type { CommandPaletteTaxonomyState } from "./useCommandPaletteState";
 import type { useEntityCommandContext } from "./useEntityCommandContext";
 
 import {
-  AuthorsSubPalette,
+  PeopleSubPalette,
   CategorySubPalette,
   ChoicesSubPalette,
   LocationsSubPalette,
@@ -29,7 +29,7 @@ interface CommandPaletteTaxonomyModesProps {
 
 /**
  * The active sub-palette when the palette has drilled into a taxonomy mode (category / media type /
- * tags / locations / authors / newsletter / choices / rating / entity-choice). Renders nothing in
+ * tags / locations / people / newsletter / choices / rating / entity-choice). Renders nothing in
  * the default view — the caller switches on `taxonomy.taxonomyMode === null` for that.
  */
 export function CommandPaletteTaxonomyModes({
@@ -47,7 +47,7 @@ export function CommandPaletteTaxonomyModes({
     flatMediaTypes,
     flatTags,
     flatLocations,
-    authors,
+    people,
     newsletters,
     customProperties,
     updateBookmark,
@@ -138,26 +138,26 @@ export function CommandPaletteTaxonomyModes({
         />
       )}
 
-      {taxonomy.taxonomyMode === "authors" && bookmarkId && (
-        <AuthorsSubPalette
-          authors={authors}
-          pendingAuthorIds={taxonomy.pendingAuthorIds}
-          onToggleAuthor={authorId =>
-            taxonomy.setPendingAuthorIds(prev =>
-              prev.includes(authorId)
-                ? prev.filter(id => id !== authorId)
-                : [...prev, authorId])}
+      {taxonomy.taxonomyMode === "people" && bookmarkId && (
+        <PeopleSubPalette
+          people={people}
+          pendingPersonIds={taxonomy.pendingPersonIds}
+          onTogglePerson={personId =>
+            taxonomy.setPendingPersonIds(prev =>
+              prev.includes(personId)
+                ? prev.filter(id => id !== personId)
+                : [...prev, personId])}
           onBack={onExitMode}
           onDone={() => {
             updateBookmark.mutate({
               id: bookmarkId,
               input: {
-                authorIds: taxonomy.pendingAuthorIds,
+                personIds: taxonomy.pendingPersonIds,
               },
             });
             onClose();
           }}
-          onCreateNew={() => onCreateAndAssign("author")}
+          onCreateNew={() => onCreateAndAssign("person")}
         />
       )}
 

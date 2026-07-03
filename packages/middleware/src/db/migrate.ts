@@ -931,6 +931,85 @@ const migrations: RuntimeMigration[] = [
       ALTER TABLE IF EXISTS "app_settings" DROP COLUMN IF EXISTS "bookmark_map_level_mode"
     `),
   },
+  {
+    // The "Authors" taxonomy was renamed to "People". Renaming a table is destructive to push
+    // (it would DROP the old + CREATE the new, losing rows), so rename the live tables here first —
+    // push's subsequent diff against the renamed schema is then empty. Postgres preserves rows,
+    // indexes, and FK targets across a table rename; push reconciles the auto-generated FK constraint
+    // names additively afterward. Idempotent via `to_regclass` guards (skips once already renamed).
+    name: "rename authors tables to people",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF to_regclass('public.authors') IS NOT NULL AND to_regclass('public.people') IS NULL THEN
+          ALTER TABLE "authors" RENAME TO "people";
+        END IF;
+        IF to_regclass('public.author_images') IS NOT NULL AND to_regclass('public.person_images') IS NULL THEN
+          ALTER TABLE "author_images" RENAME TO "person_images";
+        END IF;
+        IF to_regclass('public.bookmark_authors') IS NOT NULL AND to_regclass('public.bookmark_people') IS NULL THEN
+          ALTER TABLE "bookmark_authors" RENAME TO "bookmark_people";
+        END IF;
+        IF to_regclass('public.author_youtube_channels') IS NOT NULL AND to_regclass('public.person_youtube_channels') IS NULL THEN
+          ALTER TABLE "author_youtube_channels" RENAME TO "person_youtube_channels";
+        END IF;
+        IF to_regclass('public.author_websites') IS NOT NULL AND to_regclass('public.person_websites') IS NULL THEN
+          ALTER TABLE "author_websites" RENAME TO "person_websites";
+        END IF;
+        IF to_regclass('public.author_publishers') IS NOT NULL AND to_regclass('public.person_publishers') IS NULL THEN
+          ALTER TABLE "author_publishers" RENAME TO "person_publishers";
+        END IF;
+      END $$
+    `),
+  },
+  {
+    // Rename the author_id / author_website_url columns on the (now renamed) people tables to match
+    // the renamed schema. Runs after the table rename above; guards check the new table names.
+    name: "rename author_id columns to person_id",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'person_images' AND column_name = 'author_id')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'person_images' AND column_name = 'person_id') THEN
+          ALTER TABLE "person_images" RENAME COLUMN "author_id" TO "person_id";
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'bookmark_people' AND column_name = 'author_id')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'bookmark_people' AND column_name = 'person_id') THEN
+          ALTER TABLE "bookmark_people" RENAME COLUMN "author_id" TO "person_id";
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'person_youtube_channels' AND column_name = 'author_id')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'person_youtube_channels' AND column_name = 'person_id') THEN
+          ALTER TABLE "person_youtube_channels" RENAME COLUMN "author_id" TO "person_id";
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'person_websites' AND column_name = 'author_id')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'person_websites' AND column_name = 'person_id') THEN
+          ALTER TABLE "person_websites" RENAME COLUMN "author_id" TO "person_id";
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'person_publishers' AND column_name = 'author_id')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'person_publishers' AND column_name = 'person_id') THEN
+          ALTER TABLE "person_publishers" RENAME COLUMN "author_id" TO "person_id";
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'people' AND column_name = 'author_website_url')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'people' AND column_name = 'person_website_url') THEN
+          ALTER TABLE "people" RENAME COLUMN "author_website_url" TO "person_website_url";
+        END IF;
+      END $$
+    `),
+  },
+  {
+    // Rename the explicitly-named unique constraints on the people table (asserted by name in
+    // schema.ts). FK constraint names are auto-generated and reconciled by push, so only these
+    // two need a manual rename. Idempotent via a pg_constraint existence check.
+    name: "rename authors unique constraints to people",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'authors_name_unique') THEN
+          ALTER TABLE "people" RENAME CONSTRAINT "authors_name_unique" TO "people_name_unique";
+        END IF;
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'authors_slug_unique') THEN
+          ALTER TABLE "people" RENAME CONSTRAINT "authors_slug_unique" TO "people_slug_unique";
+        END IF;
+      END $$
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

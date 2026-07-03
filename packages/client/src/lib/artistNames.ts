@@ -15,7 +15,7 @@ export function splitArtistNames(value: string): string[] {
 
 /**
  * Resolve a list of artist names to ids: existing artists match case-insensitively; unknown names
- * are created. Mirrors `applyAuthorsFromNames` (a duplicate-race create just skips that name).
+ * are created. Mirrors `applyPeopleFromNames` (a duplicate-race create just skips that name).
  * Returns the resolved ids with duplicates removed.
  */
 export async function resolveArtistNames(

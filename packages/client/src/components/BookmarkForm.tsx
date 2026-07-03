@@ -150,7 +150,7 @@ export function BookmarkForm({
           tagTree={c.tagTree ?? []}
           customProperties={c.customProperties ?? []}
           mediaTypes={c.mediaTypes ?? []}
-          authors={c.authors ?? []}
+          people={c.people ?? []}
           onTagToggle={c.prefill.markTagsTouched}
           numberInputs={c.prefill.numberInputs}
           booleanInputs={c.prefill.booleanInputs}
@@ -183,8 +183,8 @@ export function BookmarkForm({
           autofillOfferDismissed={c.autofillOfferDismissed}
           onAutofillOfferDismiss={() => c.setAutofillOfferDismissed(true)}
           socialAccountOffer={c.socialAccountOffer}
-          onCreateAuthorFromSocialAccount={() => {
-            if (c.socialAccountOffer) return c.createAuthorFromSocialAccount(c.socialAccountOffer);
+          onCreatePersonFromSocialAccount={() => {
+            if (c.socialAccountOffer) return c.createPersonFromSocialAccount(c.socialAccountOffer);
           }}
           onSocialAccountOfferDismiss={() => c.setSocialAccountOffer(null)}
           onFetchDescription={url => void c.runFetchDescription(url, {

@@ -28,7 +28,7 @@ function MediaTypeBookmarksPage() {
     tagTree,
     youtubeChannels,
     relationshipTypes,
-    authors,
+    people,
     placeTypes,
   } = useCategoryPageData(tagsForServerQuery(search));
 
@@ -64,7 +64,7 @@ function MediaTypeBookmarksPage() {
       categories={categories ?? []}
       youtubeChannels={youtubeChannels ?? []}
       relationshipTypes={relationshipTypes ?? []}
-      authors={authors ?? []}
+      people={people ?? []}
       placeTypes={placeTypes ?? []}
       bookmarks={mediaTypeBookmarks}
       search={search}

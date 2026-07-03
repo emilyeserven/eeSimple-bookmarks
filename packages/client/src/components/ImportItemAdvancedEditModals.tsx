@@ -1,27 +1,27 @@
 import type { ImportItemAdvancedEditState } from "./useImportItemAdvancedEdit";
 
-import { AddAuthorModal } from "./AddAuthorModal";
+import { AddPersonModal } from "./AddPersonModal";
 import { AddTagModal } from "./AddTagModal";
 
 interface ImportItemAdvancedEditModalsProps {
   state: ImportItemAdvancedEditState;
   tagIds: string[];
-  authorIds: string[];
+  personIds: string[];
   onTagsChange: (ids: string[]) => void;
-  onAuthorsChange: (ids: string[]) => void;
+  onPeopleChange: (ids: string[]) => void;
 }
 
 /**
- * The still-manual "add new X" inline-create modals (Tag / Author) wired into
+ * The still-manual "add new X" inline-create modals (Tag / Person) wired into
  * {@link ImportItemAdvancedEdit}, plus the mounted Category/Media Type/Publisher/Location
  * inline-create modals owned by `state`'s `useEntityCreateOption` calls.
  */
 export function ImportItemAdvancedEditModals({
   state,
   tagIds,
-  authorIds,
+  personIds,
   onTagsChange,
-  onAuthorsChange,
+  onPeopleChange,
 }: ImportItemAdvancedEditModalsProps) {
   return (
     <>
@@ -30,10 +30,10 @@ export function ImportItemAdvancedEditModals({
         onOpenChange={state.addModalState.setAddTagOpen}
         onCreated={tag => onTagsChange([...tagIds, tag.id])}
       />
-      <AddAuthorModal
-        open={state.addModalState.addAuthorOpen}
-        onOpenChange={state.addModalState.setAddAuthorOpen}
-        onCreated={author => onAuthorsChange([...authorIds, author.id])}
+      <AddPersonModal
+        open={state.addModalState.addPersonOpen}
+        onOpenChange={state.addModalState.setAddPersonOpen}
+        onCreated={person => onPeopleChange([...personIds, person.id])}
       />
       {state.categoryCreate.modal}
       {state.mediaTypeCreate.modal}

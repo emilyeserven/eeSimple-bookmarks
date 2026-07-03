@@ -32,8 +32,8 @@ export const FILTER_FACETS = [
     label: "Relationship type",
   },
   {
-    key: "authors",
-    label: "Author",
+    key: "people",
+    label: "Person",
   },
   {
     key: "place-types",
@@ -68,8 +68,8 @@ export function facetHasActiveSelection(key: FilterFacetKey, search: BookmarkSea
       return has(search.websites) || search.websitePresence !== undefined;
     case "relationship-types":
       return has(search.relationshipTypes);
-    case "authors":
-      return has(search.authors);
+    case "people":
+      return has(search.people);
     case "place-types":
       return has(search.placeTypes) || search.placeTypePresence !== undefined;
     case "sections":

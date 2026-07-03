@@ -120,7 +120,7 @@ export const youtubeChannelListingConfig: EntityListingConfig<YouTubeChannel> = 
   ),
 };
 
-/** Eighth `EntityDescriptor` migration (after Publisher #868, Author #872, PropertyGroup #873, Newsletter #874, RelationshipType + SavedFilter #875, Website #880) — issue #860. */
+/** Eighth `EntityDescriptor` migration (after Publisher #868, Person #872, PropertyGroup #873, Newsletter #874, RelationshipType + SavedFilter #875, Website #880) — issue #860. */
 export const youtubeChannelDescriptor: EntityDescriptor<YouTubeChannel> = {
   kind: "youtube-channel",
   route: YOUTUBE_CHANNEL_ROUTE,

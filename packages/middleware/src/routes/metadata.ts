@@ -192,7 +192,7 @@ async function buildGenericMetadataResult(
   // Generalized oEmbed: clean, structured metadata for many media URLs (Vimeo, TikTok, Spotify, …)
   // with no API key — via a known-provider registry or `<link rel="oembed">` autodiscovery in the
   // head HTML we already fetched. oEmbed titles are already clean, so they win over the scraped
-  // (suffix-stripped) title; oEmbed only *fills* a description/author the scrape didn't find.
+  // (suffix-stripped) title; oEmbed only *fills* a description/person the scrape didn't find.
   const oembed = await fetchOEmbedForUrl(url, html);
   if (oembed) {
     if (oembed.title) title = oembed.title;
@@ -485,7 +485,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // Consolidated single-fetch scan: resolve redirects, then in parallel look up the website, check
-  // for a duplicate bookmark, and fetch the page metadata once (title/description/image/authors, plus
+  // for a duplicate bookmark, and fetch the page metadata once (title/description/image/people, plus
   // YouTube/oEmbed enrichment). Returns everything the Add Bookmark form needs in one round-trip,
   // replacing the separate resolve-url / websites-lookup / url-check / fetch-title / fetch-metadata
   // calls. Best-effort like /api/fetch-metadata — a partial result is still useful, never a 502.

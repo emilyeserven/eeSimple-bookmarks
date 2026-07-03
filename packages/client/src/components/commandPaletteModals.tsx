@@ -1,13 +1,13 @@
 import type { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
 import type { Bookmark } from "@eesimple/types";
 
-import { AddAuthorModal } from "./AddAuthorModal";
 import { AddBookmarkModal } from "./AddBookmarkModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { AddLocationModal } from "./AddLocationModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
+import { AddPersonModal } from "./AddPersonModal";
 import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { AddTagModal } from "./AddTagModal";
 import { AddWebsiteModal } from "./AddWebsiteModal";
@@ -17,7 +17,7 @@ export type CreateKind
   = | "category"
     | "tag"
     | "media-type"
-    | "author"
+    | "person"
     | "website"
     | "property-group"
     | "youtube-channel"
@@ -95,14 +95,14 @@ export function CommandPaletteModals({
           })
           : undefined}
       />
-      <AddAuthorModal
-        open={createKind === "author"}
+      <AddPersonModal
+        open={createKind === "person"}
         onOpenChange={open => !open && closeCreate()}
         onCreated={assignOnCreate && bookmarkId && bookmark
-          ? author => updateBookmark.mutate({
+          ? person => updateBookmark.mutate({
             id: bookmarkId,
             input: {
-              authorIds: [...bookmark.authors.map(a => a.id), author.id],
+              personIds: [...bookmark.people.map(a => a.id), person.id],
             },
           })
           : undefined}

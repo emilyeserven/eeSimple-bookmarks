@@ -59,7 +59,7 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
   // keep this module's dependency count low. We own `slugFor`, so we resolve their slugs here.
   const namedTaxonomies = useTaxonomyNameMap({
     newsletter: slugFor(pathname, pathParts, "/taxonomies/newsletters", 2),
-    author: slugFor(pathname, pathParts, "/taxonomies/authors", 2),
+    person: slugFor(pathname, pathParts, "/taxonomies/people", 2),
     publisher: slugFor(pathname, pathParts, "/taxonomies/publishers", 2),
     placeType: slugFor(pathname, pathParts, "/taxonomies/place-types", 2),
     propertyGroup: slugFor(pathname, pathParts, "/taxonomies/property-groups", 2),

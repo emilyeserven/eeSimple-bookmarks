@@ -22,7 +22,7 @@ const EDIT_PATHS: Partial<Record<DrawerContentType, (slug: string) => string>> =
   "youtube-channel": slug => `/taxonomies/youtube-channels/${slug}/edit/general`,
   "location": slug => `/taxonomies/locations/${slug}/edit/general`,
   "newsletter": slug => `/taxonomies/newsletters/${slug}/edit/general`,
-  "author": slug => `/taxonomies/authors/${slug}/edit/general`,
+  "person": slug => `/taxonomies/people/${slug}/edit/general`,
   "relationship-type": slug => `/taxonomies/relationship-types/${slug}/edit/general`,
   "saved-filter": slug => `/saved-filters/${slug}/edit/general`,
   "autofill": slug => `/autofill/${slug}/edit/general`,

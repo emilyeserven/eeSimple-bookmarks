@@ -239,17 +239,17 @@ vi.mock("../hooks/useAppSettings", () => ({
   useAutoFetchTitle: () => autoFetchTitle,
   useAutoFetchImage: () => true,
 }));
-vi.mock("../hooks/useAuthors", () => ({
-  useAuthors: () => ({
+vi.mock("../hooks/usePeople", () => ({
+  usePeople: () => ({
     data: [],
   }),
-  useCreateAuthor: () => ({
+  useCreatePerson: () => ({
     mutateAsync: vi.fn(),
   }),
-  useUpdateAuthor: () => ({
+  useUpdatePerson: () => ({
     mutateAsync: vi.fn(),
   }),
-  useAutoAuthorImage: () => ({
+  useAutoPersonImage: () => ({
     mutate: vi.fn(),
   }),
 }));

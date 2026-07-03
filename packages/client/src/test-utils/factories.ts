@@ -1,5 +1,5 @@
 import type {
-  Author,
+  Person,
   Bookmark,
   BookmarkImage,
   Category,
@@ -115,7 +115,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     sectionsValues: [],
     fileValues: [],
     textValues: [],
-    authors: [],
+    people: [],
     publisher: null,
     bookId: null,
     movieId: null,
@@ -307,16 +307,16 @@ export function makePublisher(overrides: Partial<Publisher> = {}): Publisher {
   };
 }
 
-/** A fully-populated `Author` with no links or associations by default. */
-export function makeAuthor(overrides: Partial<Author> = {}): Author {
+/** A fully-populated `Person` with no links or associations by default. */
+export function makePerson(overrides: Partial<Person> = {}): Person {
   return {
-    id: "author",
-    name: "Author",
+    id: "person",
+    name: "Person",
     romanizedName: null,
-    slug: "author",
+    slug: "person",
     createdAt: NOW,
     bookmarkCount: 0,
-    authorWebsiteUrl: null,
+    personWebsiteUrl: null,
     biographyUrl: null,
     imageUrl: null,
     socialLinks: [],

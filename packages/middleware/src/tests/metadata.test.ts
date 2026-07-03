@@ -88,7 +88,7 @@ test("extractSocialProfileLinks detects Instagram/X/LinkedIn alongside GitHub, o
     <a href="https://github.com/settings">GitHub settings (system path, skipped)</a>
     <a href="https://www.instagram.com/janedoe/">IG again (deduped)</a>
   `;
-  const links = extractSocialProfileLinks(html, "https://example.com/author");
+  const links = extractSocialProfileLinks(html, "https://example.com/person");
   assert.deepEqual(links, [
     {
       platform: "instagram",

@@ -2,10 +2,10 @@ import type { CustomProperty, InboxPreFillDefaults, TagNode } from "@eesimple/ty
 
 import { useState } from "react";
 
-import { useAuthors } from "../hooks/useAuthors";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
+import { usePeople } from "../hooks/usePeople";
 import { usePublishers } from "../hooks/usePublishers";
 import { useTagTree } from "../hooks/useTags";
 import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "../lib/comboboxOptions";
@@ -14,13 +14,13 @@ import { flattenTree } from "../lib/tagTree";
 
 /**
  * Loads the taxonomies the inbox pre-fill box offers as defaults, derives their combobox option
- * lists and the inbox-enabled custom properties, and owns the still-manual "Add author" modal
+ * lists and the inbox-enabled custom properties, and owns the still-manual "Add person" modal
  * open-state (Category/Media Type/Publisher own their inline-create via `useEntityCreateOption` in
  * `InboxPreFillBox` itself). Splitting the hook-dense data layer out of `InboxPreFillBox` keeps the
  * component thin.
  */
 export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
-  const [addAuthorOpen, setAddAuthorOpen] = useState(false);
+  const [addPersonOpen, setAddPersonOpen] = useState(false);
 
   const {
     data: categories = [],
@@ -32,8 +32,8 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     data: mediaTypeTree = [],
   } = useMediaTypeTree();
   const {
-    data: authors = [],
-  } = useAuthors();
+    data: people = [],
+  } = usePeople();
   const {
     data: publishers = [],
   } = usePublishers();
@@ -47,7 +47,7 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
 
   const categoryOptions = iconComboboxOptions(categories);
   const mediaTypeOptions = mediaTypeTreeComboboxOptions(mediaTypeTree);
-  const authorOptions = authors.map(a => ({
+  const personOptions = people.map(a => ({
     value: a.id,
     label: a.name,
     searchAlias: a.romanizedName ?? undefined,
@@ -67,16 +67,16 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     .filter(Boolean) as string[];
 
   return {
-    addAuthorOpen,
-    setAddAuthorOpen,
+    addPersonOpen,
+    setAddPersonOpen,
     tagTree: tagTree as TagNode[],
     mediaTypeTree,
-    authors,
+    people,
     publishers,
     inboxProperties,
     categoryOptions,
     mediaTypeOptions,
-    authorOptions,
+    personOptions,
     publisherOptions,
     selectedTagNames,
   };

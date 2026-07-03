@@ -199,7 +199,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     "locations": data.allLocations?.length,
     "youtube-channels": data.allChannels?.length,
     "newsletters": data.allNewsletters?.length,
-    "authors": data.allAuthors?.length,
+    "people": data.allPeople?.length,
   };
 
   const visibleTaxonomyItems = withVisibleCounts(

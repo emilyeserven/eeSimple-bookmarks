@@ -167,21 +167,21 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
                 : null}
             </DetailField>
 
-            {bookmark.authors.length > 0
+            {bookmark.people.length > 0
               ? (
-                <DetailField label="Author">
+                <DetailField label="Person">
                   <span className="flex flex-wrap gap-x-1">
-                    {bookmark.authors.map((author, i) => (
-                      <span key={author.id}>
+                    {bookmark.people.map((person, i) => (
+                      <span key={person.id}>
                         {i > 0 && <span className="mr-1">,</span>}
                         <Link
-                          to="/taxonomies/authors/$authorSlug"
+                          to="/taxonomies/people/$personSlug"
                           params={{
-                            authorSlug: author.slug,
+                            personSlug: person.slug,
                           }}
                           className="hover:underline"
                         >
-                          {author.name}
+                          {person.name}
                         </Link>
                       </span>
                     ))}

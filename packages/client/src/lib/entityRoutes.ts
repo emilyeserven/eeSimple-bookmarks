@@ -2,7 +2,6 @@ import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { ALBUM_ROUTE } from "../entities/album";
 import { ARTIST_ROUTE } from "../entities/artist";
-import { AUTHOR_ROUTE } from "../entities/author";
 import { AUTOFILL_ROUTE } from "../entities/autofillRule";
 import { BOOK_ROUTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
@@ -15,6 +14,7 @@ import { MEDIA_PROPERTY_ROUTE } from "../entities/mediaProperty";
 import { MEDIA_TYPE_ROUTE } from "../entities/mediaType";
 import { MOVIE_ROUTE } from "../entities/movie";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
+import { PERSON_ROUTE } from "../entities/person";
 import { PLACE_TYPE_ROUTE } from "../entities/placeType";
 import { CUSTOM_PROPERTY_ROUTE } from "../entities/property";
 import { PROPERTY_GROUP_ROUTE } from "../entities/propertyGroup";
@@ -38,7 +38,7 @@ export type EntityRouteKind
     | "place-type"
     | "youtube-channel"
     | "newsletter"
-    | "author"
+    | "person"
     | "publisher"
     | "property-group"
     | "media-property"
@@ -93,7 +93,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   PLACE_TYPE_ROUTE,
   YOUTUBE_CHANNEL_ROUTE,
   NEWSLETTER_ROUTE,
-  AUTHOR_ROUTE,
+  PERSON_ROUTE,
   PUBLISHER_ROUTE,
   PROPERTY_GROUP_ROUTE,
   MEDIA_PROPERTY_ROUTE,

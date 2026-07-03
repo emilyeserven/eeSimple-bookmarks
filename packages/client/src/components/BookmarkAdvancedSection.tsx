@@ -2,7 +2,7 @@ import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { ImageIntent } from "./bookmarkImageIntent";
 import type { CustomFieldControls } from "./customFieldControls";
 import type {
-  Author,
+  Person,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkImage,
@@ -82,7 +82,7 @@ interface BookmarkAdvancedSectionProps {
   onImageIntentChange: (intent: ImageIntent) => void;
   tagTree: TagNode[];
   onTagToggle: (id: string) => void;
-  authors?: Author[];
+  people?: Person[];
   /** Custom-property inputs + change handlers (grouped). */
   customFields: BookmarkCustomFieldControls;
   /** Called when the user clicks the description sparkle; receives the current URL. */
@@ -102,11 +102,11 @@ interface BookmarkAdvancedSectionProps {
  */
 export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
   const {
-    form, customProperties, customFields, authors, onIsbnFetch, isIsbnFetchPending,
+    form, customProperties, customFields, people, onIsbnFetch, isIsbnFetchPending,
   } = props;
-  const authorCreate = useEntityCreateOption("author", (author) => {
-    const current = form.getFieldValue("authorIds");
-    if (!current.includes(author.id)) form.setFieldValue("authorIds", [...current, author.id]);
+  const personCreate = useEntityCreateOption("person", (person) => {
+    const current = form.getFieldValue("personIds");
+    if (!current.includes(person.id)) form.setFieldValue("personIds", [...current, person.id]);
   });
   return (
     <Collapsible className="group/advanced space-y-3">
@@ -157,28 +157,28 @@ export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
           isFetchDescriptionPending={props.isFetchDescriptionPending}
         />
 
-        {(authors?.length ?? 0) > 0 && (
-          <form.Field name="authorIds">
+        {(people?.length ?? 0) > 0 && (
+          <form.Field name="personIds">
             {field => (
               <div className="space-y-1">
-                <Label>Authors</Label>
+                <Label>People</Label>
                 <MultiCombobox
-                  options={(authors ?? []).map(a => ({
+                  options={(people ?? []).map(a => ({
                     value: a.id,
                     label: a.name,
                   }))}
                   values={field.state.value}
                   onValuesChange={field.handleChange}
-                  placeholder="Select authors…"
-                  searchPlaceholder="Search authors…"
-                  emptyText="No authors found."
-                  createOption={authorCreate.createOption}
+                  placeholder="Select people…"
+                  searchPlaceholder="Search people…"
+                  emptyText="No people found."
+                  createOption={personCreate.createOption}
                 />
               </div>
             )}
           </form.Field>
         )}
-        {authorCreate.modal}
+        {personCreate.modal}
 
         <form.Subscribe selector={state => state.values.url}>
           {url => (

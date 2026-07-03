@@ -2,7 +2,7 @@
  * Shared oEmbed provider registry + normalized result shape.
  *
  * oEmbed (https://oembed.com) is a keyless protocol many media sites expose to return clean,
- * structured metadata (title / author / thumbnail) for a content URL. This registry maps known
+ * structured metadata (title / person / thumbnail) for a content URL. This registry maps known
  * provider URLs to their oEmbed JSON endpoints; the middleware additionally performs
  * `<link rel="alternate" type="application/json+oembed">` autodiscovery for sites not listed here.
  *
@@ -23,7 +23,7 @@ export interface OEmbedProvider {
    * Whether the provider's `thumbnail_url` is trustworthy as the bookmark's preview image. Defaults
    * to `true` when omitted. Set `false` for providers whose oEmbed thumbnail is a generic/placeholder
    * image unrelated to the specific content (e.g. Reddit returns a subreddit icon rather than a
-   * post's actual image) — the title/author/description still come from oEmbed, but the image
+   * post's actual image) — the title/person/description still come from oEmbed, but the image
    * pipeline falls through to the page's own scraped `og:image` instead.
    */
   trustThumbnail?: boolean;
@@ -88,7 +88,7 @@ export const OEMBED_PROVIDERS: readonly OEmbedProvider[] = [
     matches: url => hostMatches(url, ["reddit.com"]),
     endpoint: url => jsonEndpoint("https://www.reddit.com/oembed", url),
     // Reddit's oEmbed `thumbnail_url` is very often a generic subreddit/community icon rather than
-    // the post's actual submitted image — trust its title/author text but not its thumbnail.
+    // the post's actual submitted image — trust its title/person text but not its thumbnail.
     trustThumbnail: false,
   },
   {
@@ -110,9 +110,9 @@ export function findOEmbedProvider(url: string): OEmbedProvider | null {
 export interface NormalizedOEmbed {
   /** Clean content title (oEmbed titles carry no site-name suffix), or `null`. */
   title: string | null;
-  /** Author/creator display name, or `null`. */
+  /** Person/creator display name, or `null`. */
   authorName: string | null;
-  /** Author/creator profile URL (SSRF-guarded by the middleware), or `null`. */
+  /** Person/creator profile URL (SSRF-guarded by the middleware), or `null`. */
   authorUrl: string | null;
   /** Preview/thumbnail image URL (SSRF-guarded by the middleware), or `null`. */
   thumbnailUrl: string | null;

@@ -10,7 +10,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
-  bookmarkAuthors,
+  bookmarkPeople,
   bookmarkBooleanValues,
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
@@ -77,12 +77,12 @@ export async function linkLocations(tx: Tx, bookmarkId: string, locationIds: str
   })));
 }
 
-/** Insert join rows linking a bookmark to the given author ids (no-op when empty). */
-export async function linkAuthors(tx: Tx, bookmarkId: string, authorIds: string[] | undefined): Promise<void> {
-  if (!authorIds || authorIds.length === 0) return;
-  await tx.insert(bookmarkAuthors).values(authorIds.map(authorId => ({
+/** Insert join rows linking a bookmark to the given person ids (no-op when empty). */
+export async function linkPeople(tx: Tx, bookmarkId: string, personIds: string[] | undefined): Promise<void> {
+  if (!personIds || personIds.length === 0) return;
+  await tx.insert(bookmarkPeople).values(personIds.map(personId => ({
     bookmarkId,
-    authorId,
+    personId,
   })));
 }
 

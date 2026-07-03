@@ -451,7 +451,7 @@ describe("bookmarkMatchesSearch", () => {
     progressValues: [],
     choicesValues: [],
     sectionsValues: [],
-    authors: [],
+    people: [],
     relationships: [],
   };
 
@@ -759,7 +759,7 @@ describe("hasAnyActiveFilter", () => {
       youtubeChannels: [],
       websites: [],
       relationshipTypes: [],
-      authors: [],
+      people: [],
       num: {},
       bool: {},
       date: {},
@@ -796,8 +796,8 @@ describe("hasAnyActiveFilter", () => {
     ["relationshipTypes", {
       relationshipTypes: ["r1"],
     }],
-    ["authors", {
-      authors: ["a1"],
+    ["people", {
+      people: ["a1"],
     }],
     ["num", {
       num: {
@@ -909,7 +909,7 @@ describe("bookmarkMatchesSearch — exclude mode", () => {
       values: ["val-a", "val-b"],
     }],
     sectionsValues: [],
-    authors: [],
+    people: [],
     relationships: [],
   };
 
@@ -1078,13 +1078,13 @@ describe("summarizeBookmarkSearch", () => {
     })).toBe("2 media types");
   });
 
-  it("handles authors", () => {
+  it("handles people", () => {
     expect(summarizeBookmarkSearch({
-      authors: ["Author A"],
-    })).toBe("1 author");
+      people: ["Person A"],
+    })).toBe("1 person");
     expect(summarizeBookmarkSearch({
-      authors: ["A", "B"],
-    })).toBe("2 authors");
+      people: ["A", "B"],
+    })).toBe("2 people");
   });
 
   it("handles tags (default presence)", () => {
