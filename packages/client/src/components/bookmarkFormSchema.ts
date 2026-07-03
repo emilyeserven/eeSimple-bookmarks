@@ -39,24 +39,23 @@ export const bookmarkSchema = z.object({
   groupId: z.string(),
 });
 
-/** Slug of the built-in "Runtime" property, hidden from the form (filled server-side). */
-export const RUNTIME_SLUG = "runtime";
-
-/** Slug of the built-in "Date Posted" property, hidden from the form (filled server-side). */
-export const DATE_POSTED_SLUG = "date-posted";
-
-/** Slug of the built-in "Content Status" property, hidden from the Add Bookmark form. */
-export const CONTENT_STATUS_SLUG = "content-status";
-
 /**
- * Slugs for built-in page/section-tracking properties hidden from the Add Bookmark form.
- * These are better filled after creation in the edit/properties view.
+ * Slugs of built-in detail custom properties hidden from the Add Bookmark form (filled
+ * server-side or better filled after creation in the edit/properties view). Re-exported from
+ * `@eesimple/types` — the single source of truth shared with the Bookmark Add Form placement
+ * settings (Settings → Display → Add Bookmark Form) — so every existing importer keeps working
+ * unchanged.
  */
-export const PAGE_PROGRESS_SLUG = "page-progress";
-export const PAGE_RANGE_SLUG = "page-range";
-export const PAGE_SECTIONS_SLUG = "page-sections";
-export const CHAPTERS_SLUG = "chapters";
-export const URL_SECTIONS_SLUG = "url-sections";
+export {
+  CHAPTERS_SLUG,
+  CONTENT_STATUS_SLUG,
+  DATE_POSTED_SLUG,
+  PAGE_PROGRESS_SLUG,
+  PAGE_RANGE_SLUG,
+  PAGE_SECTIONS_SLUG,
+  RUNTIME_SLUG,
+  URL_SECTIONS_SLUG,
+} from "@eesimple/types";
 
 /** Slug of the built-in "ISBN / ASIN" property — shown in the Add Bookmark form. */
 export const ISBN_SLUG = "isbn";
