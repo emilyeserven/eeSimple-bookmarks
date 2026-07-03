@@ -630,7 +630,7 @@ export type EntityImageResult = { imageUrl: string } | "not_found" | EntityImage
  * Fetch a page's `<head>` HTML, returning the html string or an `OgImageResult` error.
  * Centralises the error-kind → result-string mapping shared by `fetchOgImage` and `fetchFaviconImage`.
  */
-async function fetchHeadOrImageError(pageUrl: string): Promise<string | Extract<OgImageResult, string>> {
+export async function fetchHeadOrImageError(pageUrl: string): Promise<string | Extract<OgImageResult, string>> {
   const result = await fetchHtml(pageUrl, /<\/head>/i);
   if (result.kind === "timeout" || result.kind === "network_error" || result.kind === "no_body") {
     return "fetch_error";

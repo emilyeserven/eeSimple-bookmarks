@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { PlexSearchKind } from "@/services/plex";
-import { plexEnabledAsync, searchPlexItems } from "@/services/plex";
+import { fetchPlexPoster, plexEnabledAsync, searchPlexItems } from "@/services/plex";
 
 const searchQuery = {
   type: "object",
@@ -15,6 +15,18 @@ const searchQuery = {
     kind: {
       type: "string",
       enum: ["movie", "show", "episode", "album", "artist", "track"],
+    },
+  },
+} as const;
+
+const ratingKeyQuery = {
+  type: "object",
+  required: ["ratingKey"],
+  additionalProperties: false,
+  properties: {
+    ratingKey: {
+      type: "string",
+      minLength: 1,
     },
   },
 } as const;
@@ -40,5 +52,32 @@ export async function plexRoutes(app: FastifyInstance): Promise<void> {
     } = req.query as { q: string;
       kind?: PlexSearchKind; };
     return searchPlexItems(q, kind);
+  });
+
+  // Proxy a linked Plex item's poster image bytes so the client can preview the NEW source image
+  // before applying it. Token-gated → the bytes are streamed through the middleware, never the URL.
+  app.get("/api/plex/poster", {
+    schema: {
+      tags: ["connectors"],
+      querystring: ratingKeyQuery,
+    },
+  }, async (req, reply) => {
+    if (!(await plexEnabledAsync())) {
+      return reply.code(503).send({
+        message: "Plex is not configured",
+      });
+    }
+    const {
+      ratingKey,
+    } = req.query as { ratingKey: string };
+    const bytes = await fetchPlexPoster(ratingKey);
+    if (!bytes) {
+      return reply.code(404).send({
+        message: "No poster",
+      });
+    }
+    reply.header("Content-Type", "image/jpeg");
+    reply.header("Cache-Control", "public, max-age=31536000, immutable");
+    return reply.send(bytes);
   });
 }

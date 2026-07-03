@@ -5,7 +5,7 @@ import type { SettingsPage } from "@/lib/settingsPages";
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { PlusIcon, StarIcon } from "lucide-react";
+import { PlusIcon, RefreshCw, StarIcon } from "lucide-react";
 
 import { AddChildModal } from "./AddChildModal";
 import { BookmarkViewPageCommandGroup } from "./BookmarkViewPageCommandGroup";
@@ -74,6 +74,37 @@ function SettingsFavoriteCommandItem({
   );
 }
 
+/**
+ * Palette mirror of the header "Sync from source" button (CLAUDE.md: the palette must mirror every
+ * header toolbar action). Opens the one store-driven Sync modal; gated at the call site on a
+ * registered `syncProvider`, so it only appears on an entity's edit surface.
+ */
+function SyncFromSourceCommandItem({
+  entityLabel,
+  onDone,
+}: {
+  entityLabel: string;
+  onDone: () => void;
+}) {
+  const setSyncModalOpen = useUiStore(state => state.setSyncModalOpen);
+  return (
+    <CommandItem
+      value="Sync from source"
+      onSelect={() => {
+        setSyncModalOpen(true);
+        onDone();
+      }}
+    >
+      <RefreshCw />
+      Sync
+      {" "}
+      {entityLabel}
+      {" "}
+      from source
+    </CommandItem>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function CommandPalette() {
@@ -92,6 +123,7 @@ export function CommandPalette() {
   // Snapshot the hovered card at open time: opening the dialog covers the page and can fire the
   // card's mouseleave, so reading the live value would null it out just as the palette appears.
   const hoveredBookmarkId = useUiStore(state => state.hoveredBookmarkId);
+  const syncProvider = useUiStore(state => state.syncProvider);
   const [targetBookmarkId, setTargetBookmarkId] = useState<string | null>(null);
   useEffect(() => {
     if (open) {
@@ -310,6 +342,18 @@ export function CommandPalette() {
                     listingCtx={listingCtx}
                     onClose={handleClose}
                   />
+
+                  {syncProvider && (
+                    <>
+                      <CommandGroup heading="Current Page">
+                        <SyncFromSourceCommandItem
+                          entityLabel={syncProvider.entityLabel}
+                          onDone={handleClose}
+                        />
+                      </CommandGroup>
+                      <CommandSeparator />
+                    </>
+                  )}
 
                   {isBookmarkViewPage && bookmarkId && bookmark && (
                     <BookmarkViewPageCommandGroup

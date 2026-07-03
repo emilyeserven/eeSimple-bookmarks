@@ -7,6 +7,7 @@ import {
   fetchAndStoreChannelImage,
   getYouTubeChannelImageRow,
   removeYouTubeChannelImage,
+  resolveChannelAvatarUrl,
   setYouTubeChannelImageFromBytes,
 } from "@/services/youtubeChannelImages";
 import {
@@ -15,6 +16,7 @@ import {
   deleteYouTubeChannel,
   DuplicateChannelKeyError,
   DuplicateYouTubeChannelError,
+  getYouTubeChannel,
   InvalidChannelUrlError,
   listYouTubeChannels,
   updateYouTubeChannel,
@@ -334,6 +336,28 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
       });
     }
     return reply.code(201).send(result);
+  });
+
+  // Preview the channel's source avatar URL WITHOUT storing it, so the client can show the NEW
+  // avatar before applying. Resolves the same candidate `POST /:id/image/auto` would grab.
+  app.get("/api/youtube-channels/:id/image/source-preview", {
+    schema: {
+      tags: ["youtube-channels"],
+      params: channelParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const channel = await getYouTubeChannel(id);
+    if (!channel) {
+      return reply.code(404).send({
+        message: "Channel not found",
+      });
+    }
+    return {
+      imageUrl: await resolveChannelAvatarUrl(id),
+    };
   });
 
   // Remove a channel's avatar.

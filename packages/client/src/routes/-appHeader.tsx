@@ -5,6 +5,7 @@ import { useHeaderBreadcrumbs } from "./-appHeaderCrumbs";
 import { useHeaderToolbarActions } from "./-appHeaderToolbar";
 
 import { AppAddBookmarkModal } from "@/components/AppAddBookmarkModal";
+import { AppSyncModal } from "@/components/AppSyncModal";
 import { HeaderBreadcrumbs } from "@/components/header/HeaderBreadcrumbs";
 import { HeaderProgressIndicators } from "@/components/header/HeaderProgressIndicators";
 import { HeaderToolbar } from "@/components/header/HeaderToolbar";
@@ -56,6 +57,7 @@ export function AppHeader() {
         <HeaderToolbar actions={toolbarActions} />
       </div>
       <AppAddBookmarkModal />
+      <AppSyncModal />
     </header>
   );
 }

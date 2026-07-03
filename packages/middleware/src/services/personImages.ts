@@ -13,7 +13,7 @@ import { eq } from "drizzle-orm";
 import { socialAccountFromLink } from "@eesimple/types";
 import { db } from "@/db";
 import { personImages, people, type PersonImageRow, websiteFavicons, youtubeChannelImages } from "@/db/schema";
-import { downloadImage, type EntityImageResult, fetchOgImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
+import { downloadImage, type EntityImageResult, extractImageUrl, fetchHeadOrImageError, fetchOgImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
 import { fetchSocialProfileImageUrl } from "@/services/socialImages";
 import { processImage } from "@/utils/image";
 import { deleteObject, getObjectBytes, putObject } from "@/utils/objectStore";
@@ -149,6 +149,54 @@ export async function fetchAndStorePersonImageFromSocial(
   if (!bytes) return "bad_image";
 
   return setPersonImage(personId, bytes, "social");
+}
+
+/**
+ * Resolve a person's source avatar URL WITHOUT downloading or storing it — the same candidate the
+ * auto-fetch (`fetchAndStorePersonImage` / `fetchAndStorePersonImageFromSocial`) would grab, so a
+ * client can preview the new avatar before applying. `"website"` / `"biography"` og:image-resolve the
+ * person's stored URL; `"social"` resolves the requested platform account's profile image. Returns a
+ * public http(s) URL, or `null` when the person is gone / no source URL is configured / none resolves.
+ * The URL comes from the person's own stored data — never a client value — so there is no SSRF amplifier.
+ */
+export async function resolvePersonImageUrl(
+  personId: string,
+  source: "website" | "biography" | "social",
+  platform?: SocialMediaPlatform,
+): Promise<string | null> {
+  if (source === "social") {
+    if (!platform) return null;
+    const [person] = await db
+      .select({
+        socialLinks: people.socialLinks,
+      })
+      .from(people)
+      .where(eq(people.id, personId));
+    if (!person) return null;
+    const link = (person.socialLinks as SocialLink[]).find(l => l.platform === platform);
+    if (!link) return null;
+    const ref = socialAccountFromLink(link);
+    if (!ref) return null;
+    const imageUrl = await fetchSocialProfileImageUrl(ref);
+    return imageUrl && isPublicHttpUrl(imageUrl) ? imageUrl : null;
+  }
+
+  const [person] = await db
+    .select({
+      personWebsiteUrl: people.personWebsiteUrl,
+      biographyUrl: people.biographyUrl,
+    })
+    .from(people)
+    .where(eq(people.id, personId));
+  if (!person) return null;
+
+  const url = source === "website" ? person.personWebsiteUrl : person.biographyUrl;
+  if (!url) return null;
+
+  const html = await fetchHeadOrImageError(url);
+  if (typeof html !== "string") return null;
+  const imageUrl = extractImageUrl(html, url);
+  return imageUrl && isPublicHttpUrl(imageUrl) ? imageUrl : null;
 }
 
 /**

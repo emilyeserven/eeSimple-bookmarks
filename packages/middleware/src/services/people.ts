@@ -191,6 +191,17 @@ export async function listPeople(): Promise<Person[]> {
     ));
 }
 
+/** Whether a person row exists — a cheap check used by the image-preview route to 404 correctly. */
+export async function personExists(id: string): Promise<boolean> {
+  const [row] = await db
+    .select({
+      id: people.id,
+    })
+    .from(people)
+    .where(eq(people.id, id));
+  return row !== undefined;
+}
+
 /** Add a new person. Throws `DuplicatePersonError` on a name clash. */
 export async function createPerson(input: CreatePersonInput): Promise<Person> {
   const name = input.name.trim();

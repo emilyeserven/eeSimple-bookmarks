@@ -9,6 +9,7 @@ import { EntityImageField } from "./EntityImageField";
 import { SelfIdsField } from "./SelfIdsField";
 import { SourceDefaultFields } from "./SourceDefaultFields";
 import { useYouTubeChannelGeneralForm } from "./useYouTubeChannelGeneralForm";
+import { useImageTaxonomySyncRegistration } from "../hooks/useImageTaxonomySyncRegistration";
 
 import { Separator } from "@/components/ui/separator";
 
@@ -25,6 +26,19 @@ export function YouTubeChannelGeneralForm({
     saveField, saveName, addSelfId, removeSelfId, toggleTag,
     uploadAvatar, autoAvatar, deleteAvatar, categoryOptions, mediaTypeOptions, tagTree, websites,
   } = useYouTubeChannelGeneralForm(channel);
+
+  // Register the header "Sync from source" button (preview + re-fetch the channel avatar).
+  useImageTaxonomySyncRegistration({
+    entityId: channel.id,
+    entityLabel: channel.name,
+    sourceLabel: "YouTube",
+    previewKind: "youtube",
+    currentImageUrl: channel.imageUrl ?? null,
+    applyImage: () => autoAvatar.mutate({
+      id: channel.id,
+      sourceUrl: channelUrlFromKey(channel.channelKey),
+    }),
+  });
 
   return (
     <div className="space-y-4">

@@ -56,6 +56,7 @@ export function useHeaderToolbarActions(
   const listingPage = useUiStore(state => state.listingPage);
   const bulkSelectPageKey = useUiStore(state => state.bulkSelectPageKey);
   const headerSearchActive = useUiStore(state => state.headerSearchActive);
+  const syncProvider = useUiStore(state => state.syncProvider);
 
   // Right-side toolbar controls in canonical left→right order. The builder owns ordering and
   // conditional presence; `HeaderToolbar` renders the inline row on wide screens and collapses
@@ -71,5 +72,6 @@ export function useHeaderToolbarActions(
     settingsPage,
     pinContext,
     openPanel: open,
+    syncProvider,
   });
 }
