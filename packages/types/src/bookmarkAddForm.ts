@@ -45,7 +45,7 @@ export const BOOKMARK_FORM_DETAIL_SLUGS = [
  * The standard (non-custom-property) fields on the Add Bookmark form that can be placed into the
  * main area, the Advanced section, or hidden.
  *
- * The first nine are the original always-available fields; the remaining six are taxonomy / media /
+ * The first eight are the original always-available fields; the remaining six are taxonomy / media /
  * location relations that used to be editable only on the post-create edit surfaces. They default to
  * `hidden` (see {@link DEFAULT_BOOKMARK_ADD_FORM_SETTINGS}) so the create form is unchanged until the
  * user opts each one in.
@@ -55,7 +55,6 @@ export const BOOKMARK_ADD_FORM_STANDARD_FIELDS = [
   "romanizedName",
   "categoryId",
   "mediaTypeId",
-  "languageId",
   "groupId",
   "descriptionTags",
   "personIds",
@@ -105,7 +104,7 @@ export type UpdateBookmarkAddFormInput = BookmarkAddFormSettings;
 
 /**
  * Default placement for every standard Add Bookmark form field: `title`/`romanizedName` show in
- * the main area, today's taxonomy fields (category/media type/language/group/description & tags/
+ * the main area, today's taxonomy fields (category/media type/group/description & tags/
  * people/image) sit in Advanced, and the newer taxonomy/media/location relations
  * (groups/genres & moods/locations/media link/blacklists) default to hidden so the create form is
  * unchanged until the user opts them in.
@@ -115,7 +114,6 @@ const DEFAULT_STANDARD_FIELD_PLACEMENTS: Record<BookmarkAddFormStandardField, Bo
   romanizedName: "default",
   categoryId: "advanced",
   mediaTypeId: "advanced",
-  languageId: "advanced",
   groupId: "advanced",
   descriptionTags: "advanced",
   personIds: "advanced",

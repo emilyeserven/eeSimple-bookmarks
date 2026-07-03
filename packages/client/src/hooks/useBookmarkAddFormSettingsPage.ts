@@ -22,7 +22,6 @@ export const BOOKMARK_ADD_FORM_STANDARD_LABELS: Record<BookmarkAddFormStandardFi
   romanizedName: "Romanized name",
   categoryId: "Category",
   mediaTypeId: "Media Type",
-  languageId: "Language",
   groupId: "Group",
   descriptionTags: "Description & Tags",
   personIds: "People",

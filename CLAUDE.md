@@ -543,18 +543,24 @@ Editing is uniform: each owner's edit surface has a **Languages tab** (auto-save
 bookmark edit tab) built from the shared `LanguageUsagesEditor`/`View`; only the `kind` prop differs
 (`availability` for content, `proficiency` for People).
 
-**Primary language vs. usages (bookmarks).** A bookmark's single-valued **primary** language
-(`bookmark.languageId`, the `Language` taxonomy) is distinct from the multi-valued `language_usages`.
-It is settable on **two** surfaces: the **General** edit tab (the `BookmarkAdvancedLanguageField`
-combobox, batched with the tab's "Save changes"; a muted note there points to the Languages tab) **and**
-the top of the **Languages** edit tab (`BookmarkPrimaryLanguageField`, auto-saving on change per the
-edit-tab standard, above the usages editor). Keep both in sync when changing the field.
-`/taxonomies/languages/$languageSlug` is now an **entity-scoped bookmarks page** (was a redirect to
-`/general`; the detail View/Edit tabs stay at `…/general`): it shows bookmarks involving that language
-(primary **or** any usage) and honours a friendly `?usageLevel=<slug>` search param — narrowing to
-bookmarks carrying that language at that level, shown as a clearable chip — kept **out** of the shared
-`BookmarkSearch` type so the URL stays canonical. Its breadcrumb name resolves via `useLanguageBySlug`
-wired into `-appHeaderNames.ts` (the `add-entity` breadcrumb sync point).
+**No separate primary-language field on bookmarks.** Bookmarks used to carry a single-valued
+`bookmark.languageId` primary field alongside `language_usages`, editable via a dedicated General-tab
+combobox and a Languages-tab field. That field/column and both components were removed — a bookmark's
+main content language is now expressed the same way as Dub/Subtitles/Explanations: an ordinary
+availability-kind `language_usages` row. There is no built-in level seeded for this — an operator names
+one (e.g. "Primary Language") via the Edit Levels page, the same as any other usage level. Scan/ISBN
+auto-detect (`useBookmarkPrimaryLanguage.ts`) looks up an existing availability-kind level named
+`"primary language"` (case-insensitive, `PRIMARY_LANGUAGE_LEVEL_NAME` in `bookmarkFormSchema.ts`) and
+attaches the detected language to it — silently no-opping until that level exists — instead of writing
+a dedicated field; on create it stages the entry into `CreateBookmarkInput.languageUsages` (inserted in
+the same create transaction, mirroring `genreMoodIds`), and on edit it merges into the bookmark's
+existing usages via `setLanguageUsages`. `Language.bookmarkCount` and
+`/taxonomies/languages/$languageSlug` (an entity-scoped bookmarks page) now derive purely from
+`language_usages` — there is no more "primary" carve-out to merge in. The page honours a friendly
+`?usageLevel=<slug>` search param — narrowing to bookmarks carrying that language at that level, shown
+as a clearable chip — kept **out** of the shared `BookmarkSearch` type so the URL stays canonical. Its
+breadcrumb name resolves via `useLanguageBySlug` wired into `-appHeaderNames.ts` (the `add-entity`
+breadcrumb sync point).
 
 ## Genres & Moods & the polymorphic assignment layer
 

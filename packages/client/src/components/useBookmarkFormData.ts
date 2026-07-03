@@ -4,6 +4,7 @@ import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useLanguages } from "../hooks/useLanguages";
+import { useLanguageUsageLevels } from "../hooks/useLanguageUsageLevels";
 import { useLocationTree } from "../hooks/useLocations";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
@@ -41,6 +42,9 @@ export function useBookmarkFormData() {
     data: languages,
   } = useLanguages();
   const {
+    data: availabilityLanguageLevels,
+  } = useLanguageUsageLevels("availability");
+  const {
     data: autofillRules,
   } = useAutofillRules();
   const {
@@ -68,6 +72,7 @@ export function useBookmarkFormData() {
     categories,
     mediaTypes,
     languages,
+    availabilityLanguageLevels,
     autofillRules,
     youtubeChannels,
     people,

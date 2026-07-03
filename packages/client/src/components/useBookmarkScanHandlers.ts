@@ -55,12 +55,18 @@ interface UseBookmarkScanHandlersParams {
   autoPersonImage?: Actions["autoPersonImage"];
   /** Surface a "create person from this social account" offer — when provided, enables the social-match flow. */
   setSocialAccountOffer?: Dispatch<SetStateAction<SocialAccountRef | null>>;
-  /** Loaded language list — when provided (with the get/set/create below), enables language auto-detect. */
+  /** Loaded language list — when provided (with the fields below), enables language auto-detect. */
   languages?: Language[];
-  /** Read the current language id from the form — when provided, enables language auto-detect. */
-  getLanguageId?: () => string;
-  /** Write the language id back to the form after detection — when provided, enables language auto-detect. */
-  setLanguageId?: (id: string) => void;
+  /**
+   * Id of the availability-kind usage level named "Primary Language" — when provided (with the
+   * fields below), enables language auto-detect. Undefined when no such level exists yet (the user
+   * hasn't created one), in which case auto-detect no-ops.
+   */
+  primaryLanguageLevelId?: string;
+  /** Whether the owner already carries a usage row at `primaryLanguageLevelId` — guards against clobbering a manual pick. */
+  hasPrimaryLanguageUsage?: () => boolean;
+  /** Attach the detected language at `primaryLanguageLevelId`. */
+  attachPrimaryLanguageUsage?: (languageId: string) => void;
   /** Create-language mutation — when provided, enables creating a new language for an unmatched code. */
   createLanguage?: Actions["createLanguage"];
 }
@@ -95,8 +101,9 @@ export function useBookmarkScanHandlers({
   autoPersonImage,
   setSocialAccountOffer,
   languages,
-  getLanguageId,
-  setLanguageId,
+  primaryLanguageLevelId,
+  hasPrimaryLanguageUsage,
+  attachPrimaryLanguageUsage,
   createLanguage,
 }: UseBookmarkScanHandlersParams) {
   // Fetch the page title for the current URL and write it into the Title field.
@@ -293,17 +300,18 @@ export function useBookmarkScanHandlers({
     if (ids.length > 0) setPersonIds(ids);
   }
 
-  // Resolve a detected ISO language code to a Language id and write it into the form: an existing
-  // language is matched by its `isoCode`; an unmatched code creates a new (non-built-in) language
-  // named via `languageDisplayName`. Pure apply (other than the create-language network call), shared
-  // by `runYouTubeEnrichment` and the consolidated scan. No-ops unless the language params are
-  // provided and no language is selected yet (never clobbers a user pick).
+  // Resolve a detected ISO language code to a Language id and attach it as a "Primary Language"
+  // availability usage row: an existing language is matched by its `isoCode`; an unmatched code
+  // creates a new (non-built-in) language named via `languageDisplayName`. Pure apply (other than the
+  // create-language network call), shared by `runYouTubeEnrichment` and the consolidated scan. No-ops
+  // unless the language params are provided, the "Primary Language" level exists, and the owner has no
+  // primary-language usage yet (never clobbers a user pick).
   async function applyLanguageFromCode(code: string | null): Promise<void> {
-    if (!setLanguageId || !getLanguageId || !code) return;
-    if (getLanguageId()) return;
+    if (!attachPrimaryLanguageUsage || !primaryLanguageLevelId || !code) return;
+    if (hasPrimaryLanguageUsage?.()) return;
     const match = (languages ?? []).find(l => l.isoCode === code);
     if (match) {
-      setLanguageId(match.id);
+      attachPrimaryLanguageUsage(match.id);
       return;
     }
     if (!createLanguage) return;
@@ -312,7 +320,7 @@ export function useBookmarkScanHandlers({
         name: languageDisplayName(code),
         isoCode: code,
       });
-      setLanguageId(created.id);
+      attachPrimaryLanguageUsage(created.id);
     }
     catch {
       // Skip a language that can't be created (e.g. duplicate race).

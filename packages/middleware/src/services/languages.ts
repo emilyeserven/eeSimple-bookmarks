@@ -1,4 +1,4 @@
-import { asc, eq, isNotNull } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateLanguageInput,
@@ -8,7 +8,7 @@ import type {
 import { db } from "@/db";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { bookmarks, languages, type LanguageRow } from "@/db/schema";
+import { languages, languageUsages, type LanguageRow } from "@/db/schema";
 import { LANGUAGE_CODES } from "@/utils/languageCodes";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -48,19 +48,22 @@ function toLanguage(row: LanguageRow & { bookmarkCount?: number }): Language {
   };
 }
 
-/** Tally bookmarks per language: a language is single-valued on a bookmark, so a direct count. */
+/**
+ * Tally bookmarks per language via `language_usages` (a bookmark's language is now expressed as an
+ * ordinary usage association, not a dedicated field). Counts distinct bookmarks so one bookmark
+ * carrying two usage levels for the same language (e.g. "Primary Language" + "Dub") isn't double-counted.
+ */
 async function bookmarkCountsByLanguage(): Promise<Map<string, number>> {
-  const links = await db
+  const rows = await db
     .select({
-      languageId: bookmarks.languageId,
+      languageId: languageUsages.languageId,
+      count: sql<number>`count(distinct ${languageUsages.ownerId})::int`,
     })
-    .from(bookmarks)
-    .where(isNotNull(bookmarks.languageId));
+    .from(languageUsages)
+    .where(eq(languageUsages.ownerType, "bookmark"))
+    .groupBy(languageUsages.languageId);
   const counts = new Map<string, number>();
-  for (const link of links) {
-    if (!link.languageId) continue;
-    counts.set(link.languageId, (counts.get(link.languageId) ?? 0) + 1);
-  }
+  for (const row of rows) counts.set(row.languageId, row.count);
   return counts;
 }
 
@@ -148,7 +151,7 @@ export async function updateLanguage(
   return row ? toLanguage(row) : null;
 }
 
-/** Delete a language. Built-ins cannot be deleted. Bookmarks pointing at it are set to NULL. */
+/** Delete a language. Built-ins cannot be deleted. Its `language_usages` rows cascade-delete. */
 export async function deleteLanguage(id: string): Promise<boolean> {
   const [existing] = await db.select({
     builtIn: languages.builtIn,
@@ -158,7 +161,7 @@ export async function deleteLanguage(id: string): Promise<boolean> {
   const rows = await db.delete(languages).where(eq(languages.id, id)).returning({
     id: languages.id,
   });
-  // The FK sets bookmarks.languageId to NULL — matchable data.
+  // The cascaded language_usages rows are matchable data.
   if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
 }

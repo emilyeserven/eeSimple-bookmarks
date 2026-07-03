@@ -9,7 +9,7 @@ import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from 
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { BookmarkGenreMood } from "./genreMoods.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
-import type { LanguageUsage } from "./languageUsages.js";
+import type { LanguageUsage, UpdateLanguageUsageEntry } from "./languageUsages.js";
 import type { BookmarkLocation } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
@@ -630,9 +630,6 @@ export interface Language {
   bookmarkCount?: number;
 }
 
-/** Lightweight language shape carried on a bookmark. */
-export type BookmarkLanguage = Pick<Language, "id" | "name" | "slug" | "isoCode">;
-
 /** Payload for creating a language. `isoCode` lets autofetch match-or-create by detected code. */
 export interface CreateLanguageInput {
   name: string;
@@ -1220,8 +1217,6 @@ export interface Bookmark {
   website: BookmarkWebsite | null;
   /** The media type of this bookmark (Video, Article, …), or `null` when unset. */
   mediaType: BookmarkMediaType | null;
-  /** The language of this bookmark's content, or `null` when unset. */
-  language: BookmarkLanguage | null;
   /** Languages associated with this bookmark, each qualified by a usage level (dub/subtitles/…). */
   languageUsages: LanguageUsage[];
   /** The YouTube channel this bookmark belongs to (auto-linked for YouTube videos), or `null`. */
@@ -1316,6 +1311,11 @@ export interface CreateBookmarkInput {
   tagIds?: string[];
   /** Ids of Genres & Moods entries to assign, drawn from the taxonomy. */
   genreMoodIds?: string[];
+  /**
+   * Availability-kind language usages to attach at create time (e.g. an auto-detected "Primary
+   * Language" association) — inserted in the same create transaction, mirroring `genreMoodIds`.
+   */
+  languageUsages?: UpdateLanguageUsageEntry[];
   /** Ids of locations to assign, drawn from the Locations taxonomy. */
   locationIds?: string[];
   /** Tag IDs to exclude from autofill auto-apply on this bookmark. */
@@ -1346,8 +1346,6 @@ export interface CreateBookmarkInput {
   websiteSiteName?: string;
   /** Id of the media type to assign, or `null` to clear it. Omit to leave unchanged. */
   mediaTypeId?: string | null;
-  /** Id of the language to assign, or `null` to clear it. Omit to leave unchanged. */
-  languageId?: string | null;
   /**
    * Channel hint for a YouTube video, used to auto-create/link its channel. When omitted for a
    * recognized YouTube URL, the server resolves it from the video's metadata.

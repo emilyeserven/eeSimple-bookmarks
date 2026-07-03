@@ -7,7 +7,6 @@ import type {
   Category,
   Group,
   ImageCandidate,
-  Language,
   MediaTypeNode,
   Person,
   TagNode,
@@ -19,7 +18,6 @@ import { Fragment } from "react";
 import { BookmarkAdvancedCategoryField } from "./BookmarkAdvancedCategoryField";
 import { BookmarkAdvancedDescriptionTagsField } from "./BookmarkAdvancedDescriptionTagsField";
 import { BookmarkAdvancedGroupField } from "./BookmarkAdvancedGroupField";
-import { BookmarkAdvancedLanguageField } from "./BookmarkAdvancedLanguageField";
 import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
 import { BookmarkExcludedLocationsField } from "./BookmarkExcludedLocationsField";
 import { BookmarkExcludedTagsField } from "./BookmarkExcludedTagsField";
@@ -43,7 +41,6 @@ export interface StandardFieldRenderProps extends Omit<BookmarkTitleFieldProps, 
   lockedCategoryId?: string;
   categories: Category[];
   mediaTypes: MediaTypeNode[];
-  languages?: Language[];
   groups?: Group[];
   sourceDefaults: SourceDefaults;
   tagTree: TagNode[];
@@ -83,12 +80,6 @@ const FIELD_RENDERERS: Record<
       form={props.form}
       mediaTypes={props.mediaTypes}
       sourceDefaults={props.sourceDefaults}
-    />
-  ),
-  languageId: props => (
-    <BookmarkAdvancedLanguageField
-      form={props.form}
-      languages={props.languages ?? []}
     />
   ),
   groupId: props => (

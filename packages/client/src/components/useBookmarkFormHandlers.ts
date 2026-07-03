@@ -3,6 +3,7 @@ import type { useBookmarkFormChannel } from "./useBookmarkFormChannel";
 import type { useBookmarkFormData } from "./useBookmarkFormData";
 import type { useBookmarkFormImageState } from "./useBookmarkFormImageState";
 import type { useBookmarkFormUiState, useSourceDefaultFlags } from "./useBookmarkFormState";
+import type { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import type { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
 import type { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import type { Bookmark, CreateBookmarkInput, ScanResult } from "@eesimple/types";
@@ -54,6 +55,7 @@ interface UseBookmarkFormHandlersParams {
   urlProcessing: UrlProcessing;
   imageState: ImageState;
   prefill: Prefill;
+  primaryLanguage: ReturnType<typeof useBookmarkPrimaryLanguage>;
 }
 
 /**
@@ -76,6 +78,7 @@ export function useBookmarkFormHandlers({
   urlProcessing,
   imageState,
   prefill,
+  primaryLanguage,
 }: UseBookmarkFormHandlersParams) {
   const navigate = useNavigate();
 
@@ -151,6 +154,10 @@ export function useBookmarkFormHandlers({
   const isOfflineMode = inputType === "text";
 
   const {
+    primaryLanguageLevelId, hasPrimaryLanguageUsage, attachPrimaryLanguageUsage, pendingLanguageUsagesRef,
+  } = primaryLanguage;
+
+  const {
     runFetchTitle,
     runFetchDescription,
     runYouTubeEnrichment,
@@ -183,8 +190,9 @@ export function useBookmarkFormHandlers({
     autoPersonImage,
     setSocialAccountOffer: ui.setSocialAccountOffer,
     languages,
-    getLanguageId: () => form.getFieldValue("languageId") as string,
-    setLanguageId: (id: string) => form.setFieldValue("languageId", id),
+    primaryLanguageLevelId,
+    hasPrimaryLanguageUsage,
+    attachPrimaryLanguageUsage,
     createLanguage,
   });
 
@@ -197,7 +205,6 @@ export function useBookmarkFormHandlers({
     romanizedName: string;
     categoryId: string;
     mediaTypeId: string;
-    languageId: string;
     description: string;
     tagIds: string[];
     genreMoodIds: string[];
@@ -231,7 +238,6 @@ export function useBookmarkFormHandlers({
       romanizedName: value.romanizedName.trim() || null,
       categoryId: value.categoryId,
       mediaTypeId: value.mediaTypeId || null,
-      languageId: value.languageId || null,
       description: value.description || null,
       tagIds: value.tagIds,
       genreMoodIds: value.genreMoodIds,
@@ -281,6 +287,9 @@ export function useBookmarkFormHandlers({
       ...input,
       ...(trimmedSiteName && {
         websiteSiteName: trimmedSiteName,
+      }),
+      ...(pendingLanguageUsagesRef.current.length > 0 && {
+        languageUsages: pendingLanguageUsagesRef.current,
       }),
     });
     await applyImageIntent(created.id, finalUrl ?? "", imageIntentRef.current, {

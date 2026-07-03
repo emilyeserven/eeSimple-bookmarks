@@ -12,7 +12,6 @@ export const STANDARD_CARD_FIELD_KEYS = [
   "category",
   "website",
   "mediaType",
-  "language",
   "youtubeChannel",
   "tags",
   "genreMoods",
