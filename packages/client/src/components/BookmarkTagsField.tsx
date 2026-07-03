@@ -2,7 +2,7 @@ import type { TagNode } from "@eesimple/types";
 import type { ComponentProps, ReactNode } from "react";
 
 import { TagPicker } from "./TagPicker";
-import { useCategoryRootTags } from "../hooks/useCategories";
+import { useCategoryAvailableTags } from "../hooks/useCategories";
 
 import { Label } from "@/components/ui/label";
 
@@ -23,22 +23,23 @@ interface GatedTagPickerProps {
 }
 
 /**
- * Tags section limited to the selected category's enabled root tags. Hidden entirely when the
- * category has no root tags configured (empty allowlist). Shows all tags while the allowlist is
- * still loading (undefined).
+ * Tags section limited to the selected category's available root tags: tags explicitly assigned
+ * to the category, plus tags with no category assignment at all. Hidden entirely when the
+ * category has no available root tags. Shows all tags while the available set is still loading
+ * (undefined).
  */
 export function GatedTagPicker({
   categoryId, tree, selectedIds, onToggle, createOption, label = "Tags", description, below,
 }: GatedTagPickerProps) {
   const {
-    data: allowedRootIds,
-  } = useCategoryRootTags(categoryId);
+    data: availableRootIds,
+  } = useCategoryAvailableTags(categoryId);
 
-  // Hide the tags section when the category has no root tags enabled.
-  if (allowedRootIds !== undefined && allowedRootIds.length === 0) return null;
+  // Hide the tags section when the category has no available root tags.
+  if (availableRootIds !== undefined && availableRootIds.length === 0) return null;
 
-  const gated = allowedRootIds && allowedRootIds.length > 0
-    ? tree.filter(root => allowedRootIds.includes(root.id))
+  const gated = availableRootIds
+    ? tree.filter(root => availableRootIds.includes(root.id))
     : tree;
 
   return (

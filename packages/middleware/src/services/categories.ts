@@ -255,6 +255,34 @@ export async function getCategoryRootTags(categoryId: string): Promise<string[]>
   return rows.map(row => row.tagId);
 }
 
+/**
+ * A category's available root tags for tagging bookmarks: root tags explicitly assigned to this
+ * category, plus root tags with no category assignment at all (absent from every category's
+ * allowlist). Distinct from `getCategoryRootTags`, which returns only the explicit assignment
+ * (used to drive the admin allowlist editor's checkbox state).
+ */
+export async function getAvailableRootTagsForCategory(categoryId: string): Promise<string[]> {
+  const explicitRows = await db
+    .select({
+      tagId: categoryRootTags.tagId,
+    })
+    .from(categoryRootTags)
+    .where(eq(categoryRootTags.categoryId, categoryId));
+
+  const unassignedRows = await db
+    .select({
+      id: tags.id,
+    })
+    .from(tags)
+    .leftJoin(categoryRootTags, eq(categoryRootTags.tagId, tags.id))
+    .where(and(isNull(tags.parentId), isNull(categoryRootTags.tagId)));
+
+  const ids = new Set<string>();
+  for (const row of explicitRows) ids.add(row.tagId);
+  for (const row of unassignedRows) ids.add(row.id);
+  return [...ids];
+}
+
 /** Validate that every id refers to an existing root tag (`parentId === null`). */
 async function assertRootTags(tagIds: string[]): Promise<void> {
   if (tagIds.length === 0) return;
