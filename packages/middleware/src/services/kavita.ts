@@ -17,11 +17,12 @@ import type { KavitaSeriesDetail, KavitaSeriesResult, KavitaTocEntry, KavitaTocR
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { bookmarks } from "@/db/schema";
+import { books, bookmarks } from "@/db/schema";
 import { resolveBookmarkKavitaSeriesId } from "@/services/books";
 import { getActiveKavitaEndpoint, getDecryptedKavitaApiKey } from "@/services/appSettings";
 import { addBookmarkImage } from "@/services/bookmarkImages";
 import { extractPdfToc } from "@/services/pdfToc";
+import { addTaxonomyImage, type AddTaxonomyImageResult } from "@/services/taxonomyImages";
 
 const KAVITA_TIMEOUT_MS = 10000;
 // A PDF download is the one slow, large Kavita call: give it a longer timeout and cap its size.
@@ -546,6 +547,31 @@ export async function importKavitaSeriesCover(bookmarkId: string): Promise<Kavit
   const bytes = await fetchKavitaSeriesCover(seriesId);
   if (!bytes) return "cover_unavailable";
   return addBookmarkImage(bookmarkId, bytes, "og", {
+    setMain: true,
+  });
+}
+
+/** Why a Book's Kavita-cover import failed, beyond `addTaxonomyImage`'s own outcomes. */
+export type BookKavitaCoverImportResult
+  = | AddTaxonomyImageResult
+    | "not_found"
+    | "not_linked"
+    | "cover_unavailable";
+
+/**
+ * Import a Book's own linked Kavita series cover into its image gallery, keeping its other images.
+ * Reads the book's own `kavitaSeriesId` column directly (the Book is the source of truth for its own
+ * link, unlike a bookmark which may fall back to a legacy series id).
+ */
+export async function importKavitaCoverForBook(bookId: string): Promise<BookKavitaCoverImportResult> {
+  const [row] = await db.select({
+    kavitaSeriesId: books.kavitaSeriesId,
+  }).from(books).where(eq(books.id, bookId));
+  if (!row) return "not_found";
+  if (row.kavitaSeriesId == null) return "not_linked";
+  const bytes = await fetchKavitaSeriesCover(row.kavitaSeriesId);
+  if (!bytes) return "cover_unavailable";
+  return addTaxonomyImage("book", bookId, bytes, "kavita", {
     setMain: true,
   });
 }

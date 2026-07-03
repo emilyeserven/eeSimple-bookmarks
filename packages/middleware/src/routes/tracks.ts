@@ -8,7 +8,9 @@ import {
   listTracks,
   updateTrack,
 } from "@/services/tracks";
+import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const trackParams = {
   type: "object",
@@ -40,8 +42,14 @@ const trackDataFields = {
   plexItemType: {
     type: ["string", "null"],
   },
+  plexItemTitle: {
+    type: ["string", "null"],
+  },
   year: {
     type: ["integer", "null"],
+  },
+  romanizedName: {
+    type: ["string", "null"],
   },
 } as const;
 
@@ -142,4 +150,15 @@ export async function trackRoutes(app: FastifyInstance): Promise<void> {
     });
     return reply.code(204).send();
   });
+
+  registerTaxonomyImageRoutes(app, "/api/tracks", "track", "tracks", [
+    {
+      path: "plex-poster",
+      run: id => importPlexPosterForTaxonomy("track", id),
+      errorMessages: {
+        not_linked: "Track is not linked to a Plex item",
+        poster_unavailable: "Could not fetch the poster from Plex",
+      },
+    },
+  ]);
 }

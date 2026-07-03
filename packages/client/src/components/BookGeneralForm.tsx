@@ -17,19 +17,23 @@ import { useAppForm } from "@/lib/form";
 
 const bookGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  romanizedName: z.string(),
   sortOrder: z.number().int(),
   releaseYear: z.number().int(),
   mediaPropertyId: z.string(),
+  isbn: z.string(),
 });
 
 const LABELS: Record<keyof UpdateBookInput, string> = {
   name: "Name",
+  romanizedName: "Romanized name",
   sortOrder: "Sort order",
   mediaPropertyId: "Media property",
   releaseYear: "Release year",
   kavitaSeriesId: "Kavita series",
   kavitaLibraryId: "Kavita series",
   kavitaSeriesName: "Kavita series",
+  isbn: "ISBN",
 };
 
 interface Props {
@@ -51,8 +55,10 @@ export function BookGeneralForm({
     labels: LABELS,
     initial: {
       name: book.name,
+      romanizedName: book.romanizedName ?? "",
       sortOrder: book.sortOrder,
       releaseYear: book.releaseYear,
+      isbn: book.isbn ?? "",
     },
   });
 
@@ -81,9 +87,11 @@ export function BookGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: book.name,
+      romanizedName: book.romanizedName ?? "",
       sortOrder: book.sortOrder,
       releaseYear: book.releaseYear ?? 0,
       mediaPropertyId: book.mediaPropertyId ?? "",
+      isbn: book.isbn ?? "",
     },
     validators: {
       onChange: bookGeneralSchema,
@@ -183,6 +191,16 @@ export function BookGeneralForm({
         </form.AppField>
       </div>
 
+      <form.AppField name="romanizedName">
+        {field => (
+          <field.TextField
+            label="Romanized name"
+            placeholder="Optional romanized form"
+            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
+          />
+        )}
+      </form.AppField>
+
       <form.AppField name="mediaPropertyId">
         {field => (
           <field.ComboboxField
@@ -219,6 +237,15 @@ export function BookGeneralForm({
                 valid: field.state.meta.errors.length === 0,
               },
             )}
+          />
+        )}
+      </form.AppField>
+
+      <form.AppField name="isbn">
+        {field => (
+          <field.TextField
+            label="ISBN"
+            onBlur={() => autoSave.saveField("isbn", field.state.value.trim() || null)}
           />
         )}
       </form.AppField>

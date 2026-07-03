@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteTrack, useTrackBySlug } from "../hooks/useTracks";
 
@@ -13,6 +14,10 @@ const viewNav = [
   {
     to: "/taxonomies/tracks/$trackSlug/general",
     label: "General",
+  },
+  {
+    to: "/taxonomies/tracks/$trackSlug/image",
+    label: "Image",
   },
 ] as const;
 
@@ -45,7 +50,16 @@ function TrackViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Track" : (track?.name ?? "Track not found")}
+              {isLoading
+                ? "Track"
+                : track
+                  ? (
+                    <RomanizedLabel
+                      name={track.name}
+                      romanized={track.romanizedName}
+                    />
+                  )
+                  : "Track not found"}
             </h1>
             {track
               ? (

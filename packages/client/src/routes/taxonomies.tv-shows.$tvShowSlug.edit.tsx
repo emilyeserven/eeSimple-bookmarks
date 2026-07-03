@@ -12,6 +12,10 @@ const editNav = [
     to: "/taxonomies/tv-shows/$tvShowSlug/edit/general",
     label: "General",
   },
+  {
+    to: "/taxonomies/tv-shows/$tvShowSlug/edit/image",
+    label: "Image",
+  },
 ] as const;
 
 function TvShowEditLayout() {

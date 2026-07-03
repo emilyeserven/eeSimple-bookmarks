@@ -12,6 +12,10 @@ const editNav = [
     to: "/taxonomies/artists/$artistSlug/edit/general",
     label: "General",
   },
+  {
+    to: "/taxonomies/artists/$artistSlug/edit/image",
+    label: "Image",
+  },
 ] as const;
 
 function ArtistEditLayout() {

@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useBookBySlug, useDeleteBook } from "../hooks/useBooks";
 
@@ -13,6 +14,10 @@ const viewNav = [
   {
     to: "/taxonomies/books/$bookSlug/general",
     label: "General",
+  },
+  {
+    to: "/taxonomies/books/$bookSlug/image",
+    label: "Image",
   },
 ] as const;
 
@@ -45,7 +50,16 @@ function BookViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Book" : (book?.name ?? "Book not found")}
+              {isLoading
+                ? "Book"
+                : book
+                  ? (
+                    <RomanizedLabel
+                      name={book.name}
+                      romanized={book.romanizedName}
+                    />
+                  )
+                  : "Book not found"}
             </h1>
             {book
               ? (

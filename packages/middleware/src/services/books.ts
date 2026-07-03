@@ -24,12 +24,14 @@ function toBook(row: BookRow & { bookmarkCount?: number }): Book {
   return {
     id: row.id,
     name: row.name,
+    romanizedName: row.romanizedName ?? null,
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
     mediaPropertyId: row.mediaPropertyId ?? null,
     kavitaSeriesId: row.kavitaSeriesId ?? null,
     kavitaLibraryId: row.kavitaLibraryId ?? null,
     kavitaSeriesName: row.kavitaSeriesName ?? null,
+    isbn: row.isbn ?? null,
     releaseYear: row.releaseYear ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -44,7 +46,7 @@ const takenSlugs = (excludeId?: string) =>
 /** The Kavita/media-property columns settable on create and patchable on update. */
 type BookDataColumns = Pick<
   BookRow,
-  "mediaPropertyId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "releaseYear"
+  "mediaPropertyId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "isbn" | "releaseYear" | "romanizedName"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -54,7 +56,9 @@ function dataFromInput(input: CreateBookInput | UpdateBookInput): Partial<BookDa
   if (input.kavitaSeriesId !== undefined) patch.kavitaSeriesId = input.kavitaSeriesId ?? null;
   if (input.kavitaLibraryId !== undefined) patch.kavitaLibraryId = input.kavitaLibraryId ?? null;
   if (input.kavitaSeriesName !== undefined) patch.kavitaSeriesName = input.kavitaSeriesName ?? null;
+  if (input.isbn !== undefined) patch.isbn = input.isbn ?? null;
   if (input.releaseYear !== undefined) patch.releaseYear = input.releaseYear ?? null;
+  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   return patch;
 }
 
@@ -64,12 +68,14 @@ export async function listBooks(): Promise<Book[]> {
     .select({
       id: books.id,
       name: books.name,
+      romanizedName: books.romanizedName,
       slug: books.slug,
       sortOrder: books.sortOrder,
       mediaPropertyId: books.mediaPropertyId,
       kavitaSeriesId: books.kavitaSeriesId,
       kavitaLibraryId: books.kavitaLibraryId,
       kavitaSeriesName: books.kavitaSeriesName,
+      isbn: books.isbn,
       releaseYear: books.releaseYear,
       createdAt: books.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.bookId, books.id)),

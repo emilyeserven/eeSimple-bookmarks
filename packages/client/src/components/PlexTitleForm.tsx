@@ -25,12 +25,14 @@ import { Label } from "@/components/ui/label";
 interface PlexLink {
   plexRatingKey: string | null;
   plexItemType: string | null;
+  plexItemTitle: string | null;
   year: number | null;
 }
 
 const EMPTY_PLEX: PlexLink = {
   plexRatingKey: null,
   plexItemType: null,
+  plexItemTitle: null,
   year: null,
 };
 
@@ -91,6 +93,7 @@ export function PlexTitleForm({
   } = useMediaProperties();
 
   const [name, setName] = useState("");
+  const [romanizedName, setRomanizedName] = useState("");
   const [mediaPropertyId, setMediaPropertyId] = useState<string>("");
   const [plex, setPlex] = useState<PlexLink>(EMPTY_PLEX);
   const [addMediaPropertyOpen, setAddMediaPropertyOpen] = useState(false);
@@ -101,6 +104,7 @@ export function PlexTitleForm({
     setPlex({
       plexRatingKey: item.ratingKey,
       plexItemType: item.type,
+      plexItemTitle: item.title,
       year: item.year,
     });
     onCandidateSelected?.(item);
@@ -113,6 +117,7 @@ export function PlexTitleForm({
     create.mutate(
       {
         name: trimmed,
+        romanizedName: romanizedName.trim() || null,
         mediaPropertyId: mediaPropertyId || null,
         ...plex,
         ...buildExtraInput?.(),
@@ -144,6 +149,16 @@ export function PlexTitleForm({
         />
       </div>
 
+      <div className="space-y-1.5">
+        <Label htmlFor="plex-title-romanized-name">Romanized name</Label>
+        <Input
+          id="plex-title-romanized-name"
+          placeholder="Optional romanized form"
+          value={romanizedName}
+          onChange={event => setRomanizedName(event.target.value)}
+        />
+      </div>
+
       {plex.plexRatingKey !== null
         ? (
           <div
@@ -153,7 +168,7 @@ export function PlexTitleForm({
           >
             <Clapperboard className="size-4 shrink-0 text-muted-foreground" />
             <span className="min-w-0 flex-1 truncate">
-              Linked to Plex{plex.year ? ` (${plex.year})` : ""}
+              Linked to Plex: {plex.plexItemTitle ?? "Untitled"}{plex.year ? ` (${plex.year})` : ""}
             </span>
             <Button
               type="button"

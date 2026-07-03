@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteTvShow, useTvShowBySlug } from "../hooks/useTvShows";
 
@@ -13,6 +14,10 @@ const viewNav = [
   {
     to: "/taxonomies/tv-shows/$tvShowSlug/general",
     label: "General",
+  },
+  {
+    to: "/taxonomies/tv-shows/$tvShowSlug/image",
+    label: "Image",
   },
 ] as const;
 
@@ -45,7 +50,16 @@ function TvShowViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "TV show" : (tvShow?.name ?? "TV show not found")}
+              {isLoading
+                ? "TV Show"
+                : tvShow
+                  ? (
+                    <RomanizedLabel
+                      name={tvShow.name}
+                      romanized={tvShow.romanizedName}
+                    />
+                  )
+                  : "TV show not found"}
             </h1>
             {tvShow
               ? (

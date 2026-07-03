@@ -12,6 +12,10 @@ const editNav = [
     to: "/taxonomies/movies/$movieSlug/edit/general",
     label: "General",
   },
+  {
+    to: "/taxonomies/movies/$movieSlug/edit/image",
+    label: "Image",
+  },
 ] as const;
 
 function MovieEditLayout() {

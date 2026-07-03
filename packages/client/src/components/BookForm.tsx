@@ -2,17 +2,22 @@ import type { Book, KavitaSeriesResult } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useMutation } from "@tanstack/react-query";
 import { BookOpen, X } from "lucide-react";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
 import { KavitaSeriesLookup } from "./KavitaSeriesLookup";
 import { useCreateBook } from "../hooks/useBooks";
+import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
 import { useMediaProperties } from "../hooks/useMediaProperties";
+import { describeError } from "../lib/apiError";
+import { notifyError } from "../lib/notifications";
 
 import { Combobox } from "@/components/Combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { booksApi } from "@/lib/api/taxonomies";
 
 /** The Kavita linkage a lookup fills in; held together so the "linked" chip and payload stay in sync. */
 interface KavitaLink {
@@ -52,11 +57,20 @@ export function BookForm({
   const {
     data: mediaProperties,
   } = useMediaProperties();
+  const isbnFetch = useFetchIsbnMetadata();
+  const importIsbnCover = useMutation({
+    mutationFn: (bookId: string) => booksApi.images.autoFetch(bookId, "isbn-cover"),
+  });
 
   const [name, setName] = useState("");
+  const [romanizedName, setRomanizedName] = useState("");
   const [mediaPropertyId, setMediaPropertyId] = useState<string>("");
   const [kavita, setKavita] = useState<KavitaLink>(EMPTY_KAVITA);
   const [addMediaPropertyOpen, setAddMediaPropertyOpen] = useState(false);
+  const [isbnInput, setIsbnInput] = useState("");
+  const [isbn, setIsbn] = useState("");
+  const [isbnReleaseYear, setIsbnReleaseYear] = useState<number | null>(null);
+  const [isbnCoverAvailable, setIsbnCoverAvailable] = useState(false);
 
   function applyCandidate(series: KavitaSeriesResult) {
     // Fill the name only when empty, so a deliberate title isn't overwritten by a search pick.
@@ -69,6 +83,30 @@ export function BookForm({
     });
   }
 
+  async function handleIsbnLookup(): Promise<void> {
+    const trimmed = isbnInput.trim();
+    if (!trimmed) return;
+    let result;
+    try {
+      result = await isbnFetch.mutateAsync({
+        isbn: trimmed,
+      });
+    }
+    catch (err) {
+      notifyError(describeError(err, "Could not fetch book metadata"));
+      return;
+    }
+    // Fill the name only when empty, so a deliberate title isn't overwritten by the lookup.
+    const title = result.title;
+    if (title) setName(current => current.trim() || title);
+    if (result.year) {
+      const parsedYear = parseInt(result.year, 10);
+      if (!Number.isNaN(parsedYear)) setIsbnReleaseYear(parsedYear);
+    }
+    setIsbn(trimmed);
+    setIsbnCoverAvailable(Boolean(result.coverUrl));
+  }
+
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const trimmed = name.trim();
@@ -76,11 +114,17 @@ export function BookForm({
     createBook.mutate(
       {
         name: trimmed,
+        romanizedName: romanizedName.trim() || null,
         mediaPropertyId: mediaPropertyId || null,
+        isbn: isbn.trim() || null,
         ...kavita,
+        releaseYear: kavita.releaseYear ?? isbnReleaseYear,
       },
       {
-        onSuccess: onCreated,
+        onSuccess: (book) => {
+          if (isbnCoverAvailable) importIsbnCover.mutate(book.id);
+          onCreated?.(book);
+        },
       },
     );
   }
@@ -101,6 +145,43 @@ export function BookForm({
           onChange={event => setName(event.target.value)}
           autoFocus
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="book-romanized-name">Romanized name</Label>
+        <Input
+          id="book-romanized-name"
+          placeholder="Optional romanized form"
+          value={romanizedName}
+          onChange={event => setRomanizedName(event.target.value)}
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="book-isbn">ISBN</Label>
+        <div className="flex gap-2">
+          <Input
+            id="book-isbn"
+            placeholder="e.g. 9780618640157"
+            value={isbnInput}
+            onChange={event => setIsbnInput(event.target.value)}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isbnFetch.isPending || isbnInput.trim().length === 0}
+            onClick={() => void handleIsbnLookup()}
+          >
+            {isbnFetch.isPending ? "Looking up…" : "Look up"}
+          </Button>
+        </div>
+        {isbn
+          ? (
+            <p className="text-xs text-muted-foreground">
+              ISBN {isbn} will be saved with this book.
+            </p>
+          )
+          : null}
       </div>
 
       {kavita.kavitaSeriesId !== null

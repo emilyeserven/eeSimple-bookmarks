@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteMovie, useMovieBySlug } from "../hooks/useMovies";
 
@@ -13,6 +14,10 @@ const viewNav = [
   {
     to: "/taxonomies/movies/$movieSlug/general",
     label: "General",
+  },
+  {
+    to: "/taxonomies/movies/$movieSlug/image",
+    label: "Image",
   },
 ] as const;
 
@@ -45,7 +50,16 @@ function MovieViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Movie" : (movie?.name ?? "Movie not found")}
+              {isLoading
+                ? "Movie"
+                : movie
+                  ? (
+                    <RomanizedLabel
+                      name={movie.name}
+                      romanized={movie.romanizedName}
+                    />
+                  )
+                  : "Movie not found"}
             </h1>
             {movie
               ? (

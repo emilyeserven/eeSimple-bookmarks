@@ -81,6 +81,7 @@ import type {
 } from "@eesimple/types";
 
 import { createCrudApi, request, uploadImageFile } from "./client";
+import { createTaxonomyImageApi } from "./taxonomyImages";
 
 export const authorsApi = {
   ...createCrudApi<Author, CreateAuthorInput, UpdateAuthorInput>("authors"),
@@ -227,19 +228,40 @@ export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGrou
 
 export const mediaPropertiesApi = createCrudApi<MediaProperty, CreateMediaPropertyInput, UpdateMediaPropertyInput>("media-properties");
 
-export const booksApi = createCrudApi<Book, CreateBookInput, UpdateBookInput>("books");
+export const booksApi = {
+  ...createCrudApi<Book, CreateBookInput, UpdateBookInput>("books"),
+  images: createTaxonomyImageApi("/books"),
+};
 
-export const moviesApi = createCrudApi<Movie, CreateMovieInput, UpdateMovieInput>("movies");
+export const moviesApi = {
+  ...createCrudApi<Movie, CreateMovieInput, UpdateMovieInput>("movies"),
+  images: createTaxonomyImageApi("/movies"),
+};
 
-export const tvShowsApi = createCrudApi<TvShow, CreateTvShowInput, UpdateTvShowInput>("tv-shows");
+export const tvShowsApi = {
+  ...createCrudApi<TvShow, CreateTvShowInput, UpdateTvShowInput>("tv-shows"),
+  images: createTaxonomyImageApi("/tv-shows"),
+};
 
-export const episodesApi = createCrudApi<Episode, CreateEpisodeInput, UpdateEpisodeInput>("episodes");
+export const episodesApi = {
+  ...createCrudApi<Episode, CreateEpisodeInput, UpdateEpisodeInput>("episodes"),
+  images: createTaxonomyImageApi("/episodes"),
+};
 
-export const albumsApi = createCrudApi<Album, CreateAlbumInput, UpdateAlbumInput>("albums");
+export const albumsApi = {
+  ...createCrudApi<Album, CreateAlbumInput, UpdateAlbumInput>("albums"),
+  images: createTaxonomyImageApi("/albums"),
+};
 
-export const artistsApi = createCrudApi<Artist, CreateArtistInput, UpdateArtistInput>("artists");
+export const artistsApi = {
+  ...createCrudApi<Artist, CreateArtistInput, UpdateArtistInput>("artists"),
+  images: createTaxonomyImageApi("/artists"),
+};
 
-export const tracksApi = createCrudApi<Track, CreateTrackInput, UpdateTrackInput>("tracks");
+export const tracksApi = {
+  ...createCrudApi<Track, CreateTrackInput, UpdateTrackInput>("tracks"),
+  images: createTaxonomyImageApi("/tracks"),
+};
 
 export const relationshipTypesApi = createCrudApi<RelationshipType, CreateRelationshipTypeInput, UpdateRelationshipTypeInput>("relationship-types");
 

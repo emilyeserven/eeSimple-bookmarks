@@ -12,6 +12,10 @@ const editNav = [
     to: "/taxonomies/albums/$albumSlug/edit/general",
     label: "General",
   },
+  {
+    to: "/taxonomies/albums/$albumSlug/edit/image",
+    label: "Image",
+  },
 ] as const;
 
 function AlbumEditLayout() {

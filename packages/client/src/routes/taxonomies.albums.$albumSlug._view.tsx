@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteAlbum, useAlbumBySlug } from "../hooks/useAlbums";
 
@@ -13,6 +14,10 @@ const viewNav = [
   {
     to: "/taxonomies/albums/$albumSlug/general",
     label: "General",
+  },
+  {
+    to: "/taxonomies/albums/$albumSlug/image",
+    label: "Image",
   },
 ] as const;
 
@@ -45,7 +50,16 @@ function AlbumViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Album" : (album?.name ?? "Album not found")}
+              {isLoading
+                ? "Album"
+                : album
+                  ? (
+                    <RomanizedLabel
+                      name={album.name}
+                      romanized={album.romanizedName}
+                    />
+                  )
+                  : "Album not found"}
             </h1>
             {album
               ? (

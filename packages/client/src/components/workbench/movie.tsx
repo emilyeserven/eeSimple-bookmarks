@@ -2,9 +2,11 @@ import type { EntityWorkbench } from "./types";
 import type { Movie } from "@eesimple/types";
 
 import { MovieGeneralForm } from "../MovieGeneralForm";
+import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
 
 import { useDeleteMovie, useMovieBySlug, useMovies } from "@/hooks/useMovies";
+import { moviesApi } from "@/lib/api/taxonomies";
 
 /** Single source of truth for a movie's view/edit UI (main pane routes + right panel). */
 export const movieWorkbench: EntityWorkbench<Movie> = {
@@ -64,6 +66,37 @@ export const movieWorkbench: EntityWorkbench<Movie> = {
         render: ({
           entity,
         }) => <MovieGeneralForm movie={entity} />,
+      },
+    },
+    {
+      key: "image",
+      label: "Image",
+      view: {
+        title: "Image",
+        description: "The movie's poster image.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={moviesApi.images}
+            queryKeyPrefix="movie-images"
+            readOnly
+          />
+        ),
+      },
+      edit: {
+        title: "Image",
+        description: "Upload a poster, or pull it from the linked Plex item.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={moviesApi.images}
+            queryKeyPrefix="movie-images"
+          />
+        ),
       },
     },
   ],

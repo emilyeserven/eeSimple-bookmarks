@@ -1,10 +1,12 @@
 import type { EntityWorkbench } from "./types";
 import type { TvShow } from "@eesimple/types";
 
+import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
 import { TvShowGeneralForm } from "../TvShowGeneralForm";
 
 import { useDeleteTvShow, useTvShowBySlug, useTvShows } from "@/hooks/useTvShows";
+import { tvShowsApi } from "@/lib/api/taxonomies";
 
 /** Single source of truth for a TV show's view/edit UI (main pane routes + right panel). */
 export const tvShowWorkbench: EntityWorkbench<TvShow> = {
@@ -64,6 +66,37 @@ export const tvShowWorkbench: EntityWorkbench<TvShow> = {
         render: ({
           entity,
         }) => <TvShowGeneralForm tvShow={entity} />,
+      },
+    },
+    {
+      key: "image",
+      label: "Image",
+      view: {
+        title: "Image",
+        description: "The TV show's poster image.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={tvShowsApi.images}
+            queryKeyPrefix="tvShow-images"
+            readOnly
+          />
+        ),
+      },
+      edit: {
+        title: "Image",
+        description: "Upload a poster, or pull it from the linked Plex item.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={tvShowsApi.images}
+            queryKeyPrefix="tvShow-images"
+          />
+        ),
       },
     },
   ],

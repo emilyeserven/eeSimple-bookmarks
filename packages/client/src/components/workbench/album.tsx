@@ -3,9 +3,11 @@ import type { Album } from "@eesimple/types";
 
 import { AlbumArtistsValue } from "../AlbumArtistsSection";
 import { AlbumGeneralForm } from "../AlbumGeneralForm";
+import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
 
 import { useAlbumBySlug, useAlbums, useDeleteAlbum } from "@/hooks/useAlbums";
+import { albumsApi } from "@/lib/api/taxonomies";
 
 /** Single source of truth for an album's view/edit UI (main pane routes + right panel). */
 export const albumWorkbench: EntityWorkbench<Album> = {
@@ -66,6 +68,37 @@ export const albumWorkbench: EntityWorkbench<Album> = {
         render: ({
           entity,
         }) => <AlbumGeneralForm album={entity} />,
+      },
+    },
+    {
+      key: "image",
+      label: "Image",
+      view: {
+        title: "Image",
+        description: "The album's cover image.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={albumsApi.images}
+            queryKeyPrefix="album-images"
+            readOnly
+          />
+        ),
+      },
+      edit: {
+        title: "Image",
+        description: "Upload a cover image, or pull it from the linked Plex item.",
+        render: ({
+          entity,
+        }) => (
+          <PlexTaxonomyImageTab
+            entity={entity}
+            imagesApi={albumsApi.images}
+            queryKeyPrefix="album-images"
+          />
+        ),
       },
     },
   ],

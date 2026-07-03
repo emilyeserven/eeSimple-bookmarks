@@ -4,7 +4,7 @@ import { useConnectors } from "@/hooks/useConnectors";
 import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { plexItemUrl } from "@/lib/plex";
 
-/** The linked Plex item, deep-linked into Plex's web UI when the connector is enabled. */
+/** The linked Plex item's name + id, deep-linked into Plex's web UI when the connector is enabled. */
 function PlexItemValue({
   title,
 }: {
@@ -19,9 +19,10 @@ function PlexItemValue({
     >Not linked
     </span>
   );
+  const label = `${title.plexItemTitle ?? "Untitled"} (#${title.plexRatingKey})`;
   const plex = connectors?.plex;
   if (!plex?.enabled || !plex.baseUrl || !plex.machineIdentifier) {
-    return <span>Linked</span>;
+    return <span>{label}</span>;
   }
   return (
     <a
@@ -30,7 +31,7 @@ function PlexItemValue({
       rel="noreferrer"
       className="hover:underline"
     >
-      View on Plex
+      {label}
     </a>
   );
 }
