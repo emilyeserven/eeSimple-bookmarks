@@ -203,61 +203,101 @@ describe("computeVisibleLevelGroupIds", () => {
     expect([...ids].sort()).toEqual(["city", "country", "region"]);
   });
 
-  describe("visible: false", () => {
-    const withHiddenCountry = groups.map(g => (g.id === "country"
-      ? {
-        ...g,
-        visible: false,
-      }
-      : g));
-
-    it("excludes a hidden group from the main map default", () => {
-      const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
-        kind: "main",
-      });
-      expect([...ids].sort()).toEqual(["city"]);
-    });
-
-    it("excludes a hidden group from an 'above' expansion that would otherwise include it", () => {
-      const ids = computeVisibleLevelGroupIds(withHiddenCountry.map(g => (g.id === "city"
+  describe("defaultHiddenGroupIds (per-anchor checklist)", () => {
+    /** `groups` with one group patched — the anchor whose checklist / levelMode a test exercises. */
+    function withGroup(id: string, patch: Partial<PlaceTypeLevelGroup>): PlaceTypeLevelGroup[] {
+      return groups.map(g => (g.id === id
         ? {
           ...g,
-          levelMode: "above" as const,
+          ...patch,
         }
-        : g)), {
-        kind: "location",
-        currentPlaceType: "city",
-      });
+        : g));
+    }
+
+    it("subtracts a hidden broader level from an 'above' expansion", () => {
+      const ids = computeVisibleLevelGroupIds(
+        withGroup("city", {
+          levelMode: "above",
+          defaultHiddenGroupIds: ["country"],
+        }),
+        {
+          kind: "location",
+          currentPlaceType: "city",
+        },
+      );
       expect([...ids].sort()).toEqual(["city", "region"]);
     });
 
-    it("excludes a hidden group from a bookmark 'above' expansion", () => {
-      const ids = computeVisibleLevelGroupIds(withHiddenCountry.map(g => (g.id === "city"
-        ? {
-          ...g,
-          levelMode: "above" as const,
-        }
-        : g)), {
-        kind: "bookmark",
-        placeTypes: ["city"],
-      });
-      expect([...ids].sort()).toEqual(["city", "region"]);
+    it("subtracts a hidden narrower level from a 'below' expansion", () => {
+      const ids = computeVisibleLevelGroupIds(
+        withGroup("country", {
+          levelMode: "below",
+          defaultHiddenGroupIds: ["city"],
+        }),
+        {
+          kind: "location",
+          currentPlaceType: "country",
+        },
+      );
+      expect([...ids].sort()).toEqual(["country", "region"]);
     });
 
-    it("excludes a hidden group even as the anchor/current level itself", () => {
-      const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
-        kind: "location",
-        currentPlaceType: "country",
-      });
+    it("hides the anchor's own current level when it lists itself", () => {
+      const ids = computeVisibleLevelGroupIds(
+        withGroup("city", {
+          defaultHiddenGroupIds: ["city"],
+        }),
+        {
+          kind: "location",
+          currentPlaceType: "city",
+        },
+      );
       expect([...ids]).toEqual([]);
     });
 
-    it("excludes a hidden group from the no-anchor fall-back-to-all case", () => {
-      const ids = computeVisibleLevelGroupIds(withHiddenCountry, {
-        kind: "location",
-        currentPlaceType: "continent",
+    it("absent defaultHiddenGroupIds hides nothing", () => {
+      const ids = computeVisibleLevelGroupIds(
+        withLevelMode("city", "above"),
+        {
+          kind: "location",
+          currentPlaceType: "city",
+        },
+      );
+      expect([...ids].sort()).toEqual(["city", "country", "region"]);
+    });
+
+    it("unions across bookmark anchors, so a level one anchor hides still shows via another", () => {
+      // city anchor (above) hides region; country anchor (below) still pulls region in → union keeps it.
+      const patched = groups.map(g =>
+        g.id === "city"
+          ? {
+            ...g,
+            levelMode: "above" as const,
+            defaultHiddenGroupIds: ["region"],
+          }
+          : g.id === "country"
+            ? {
+              ...g,
+              levelMode: "below" as const,
+            }
+            : g);
+      const ids = computeVisibleLevelGroupIds(patched, {
+        kind: "bookmark",
+        placeTypes: ["city", "country"],
       });
-      expect([...ids].sort()).toEqual(["city", "region"]);
+      expect([...ids].sort()).toEqual(["city", "country", "region"]);
+    });
+
+    it("does not apply a checklist to the main scope (only showOnMainMap governs it)", () => {
+      const ids = computeVisibleLevelGroupIds(
+        withGroup("country", {
+          defaultHiddenGroupIds: ["country", "city"],
+        }),
+        {
+          kind: "main",
+        },
+      );
+      expect([...ids].sort()).toEqual(["city", "country"]);
     });
   });
 });

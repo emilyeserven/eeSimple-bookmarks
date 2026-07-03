@@ -2,6 +2,7 @@ import type { GroupRowProps, SortableHandle } from "./levelGroupRowTypes";
 
 import { DEFAULT_LOCATION_MAP_COLOR } from "@eesimple/types";
 import { ArrowDown, ArrowUp, EyeOff, Map as MapIcon, MapPin, Shapes, TriangleAlert } from "lucide-react";
+// EyeOff now flags a group that hides some levels by default (per-anchor checklist).
 
 import { LevelGroupDragHandle } from "./LevelGroupDragHandle";
 
@@ -71,17 +72,19 @@ export function LevelGroupSummaryRow({
           {group.displayMode === "area" ? "Area" : "Pin"}
         </span>
 
-        {group.visible === false
+        {group.defaultHiddenGroupIds && group.defaultHiddenGroupIds.length > 0
           ? (
             <span
               className="
                 flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs
                 text-muted-foreground
               "
-              title="Excluded from every map's default shown levels"
+              title="Hides some levels by default on maps anchored at this level"
             >
               <EyeOff className="size-3" />
-              Hidden by default
+              Hides
+              {" "}
+              {group.defaultHiddenGroupIds.length}
             </span>
           )
           : null}

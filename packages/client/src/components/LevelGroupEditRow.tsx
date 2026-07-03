@@ -23,13 +23,14 @@ type LevelGroupEditRowProps = GroupRowProps & SortableHandle & {
 /** The expanded (editing) view of a level-group row: name, color, mode, main-map toggle, place types. */
 export function LevelGroupEditRow({
   group,
+  allGroups,
   options,
   takenPlaceTypes,
   renameGroup,
-  setGroupVisible,
   setGroupShowOnMainMap,
   setGroupDisplayMode,
   setGroupLevelMode,
+  setGroupDefaultHidden,
   setGroupPlaceTypes,
   setGroupColor,
   removeGroup,
@@ -44,6 +45,15 @@ export function LevelGroupEditRow({
   }, [group.name]);
 
   const duplicatePlaceTypes = new Set(group.placeTypes.filter(pt => takenPlaceTypes.has(pt)));
+
+  const hiddenByDefault = new Set(group.defaultHiddenGroupIds ?? []);
+  function toggleDefaultVisible(targetId: string, visible: boolean): void {
+    const next = new Set(hiddenByDefault);
+    // Checked = visible by default → the target is NOT in the hidden set.
+    if (visible) next.delete(targetId);
+    else next.add(targetId);
+    setGroupDefaultHidden(group.id, [...next]);
+  }
 
   return (
     <div className="space-y-2">
@@ -151,29 +161,6 @@ export function LevelGroupEditRow({
         </Label>
       </div>
 
-      {/* Row 3b: granular default visibility, independent of the Show buttons below */}
-      <div className="space-y-1 pl-6">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={`level-visible-${group.id}`}
-            checked={group.visible !== false}
-            onCheckedChange={checked => setGroupVisible(group.id, checked === true)}
-          />
-          <Label
-            htmlFor={`level-visible-${group.id}`}
-            className="cursor-pointer text-xs font-normal"
-          >
-            Visible by default
-          </Label>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Unchecking excludes this level from every default — the main map, and an
-          &ldquo;above&rdquo;/&ldquo;below&rdquo; expansion below — even when those would otherwise
-          include it (e.g. show everything above, but never Country). A map&rsquo;s Levels overlay
-          can still turn it back on for that map.
-        </p>
-      </div>
-
       {/* Row 4: default "Show" mode for maps anchored at this level */}
       <div className="space-y-1 pl-6">
         <LocationLevelModeToggle
@@ -185,6 +172,39 @@ export function LevelGroupEditRow({
           locations is this level) shows by default when this is its own level — broader levels too,
           only this level, or narrower levels. The map&rsquo;s Levels overlay edits the same default.
         </p>
+      </div>
+
+      {/* Row 4b: per-anchor default-visibility checklist for maps anchored at this level */}
+      <div className="space-y-1.5 pl-6">
+        <Label className="text-xs text-muted-foreground">Levels visible by default</Label>
+        <p className="text-xs text-muted-foreground">
+          When this is a map&rsquo;s current level, only the checked levels show by default. The
+          &ldquo;Show&rdquo; buttons above still bound the range — unchecking a level removes it from
+          the default — and a map&rsquo;s Levels overlay can still turn any level back on for that map.
+        </p>
+        <div className="space-y-1 pt-0.5">
+          {allGroups.map(other => (
+            <div
+              key={other.id}
+              className="flex items-center gap-2"
+            >
+              <Checkbox
+                id={`level-default-${group.id}-${other.id}`}
+                checked={!hiddenByDefault.has(other.id)}
+                onCheckedChange={checked => toggleDefaultVisible(other.id, checked === true)}
+              />
+              <Label
+                htmlFor={`level-default-${group.id}-${other.id}`}
+                className="cursor-pointer text-xs font-normal"
+              >
+                {other.name || <span className="italic">Unnamed level</span>}
+                {other.id === group.id
+                  ? <span className="text-muted-foreground"> (this level)</span>
+                  : null}
+              </Label>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Row 5: place type assignment */}

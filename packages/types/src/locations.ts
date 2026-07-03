@@ -503,13 +503,13 @@ export interface PlaceTypeLevelGroup {
   /** How locations in this group render: `area` (boundary when present, else pin) or `pin`. */
   displayMode: LocationDisplayMode;
   /**
-   * Whether this level is included in any map's **default** shown levels — the main map's
-   * `showOnMainMap` list, a place/bookmark map's anchor, and its `levelMode` "above"/"below"
-   * expansion all drop this group when `false`, regardless of what those settings would otherwise
-   * include. This is a granular, per-level override layered on top of those "Show" settings (e.g.
-   * "show everything above, but don't show countries") — it only affects defaults; a map's Levels
-   * overlay checkbox can still turn the level back on for that one map. Edited via the "Visible by
-   * default" checkbox on Settings → Locations → Level Groups.
+   * **Retained for the display-config contract, always `true`; superseded by the per-anchor
+   * {@link PlaceTypeLevelGroup.defaultHiddenGroupIds} checklist.** Formerly the global "Visible by
+   * default" checkbox that dropped this level from every map's default shown levels; that coarse
+   * global override was replaced by per-anchor default visibility. No UI sets it false anymore and
+   * {@link computeVisibleLevelGroupIds} no longer reads it — the map render path overrides it with the
+   * resolved per-map visible set, and {@link expandLevelGroupsToDisplayConfig} still consumes it (now
+   * uniformly `true`, so a level's place types stay renderable unless a per-map overlay hides them).
    */
   visible: boolean;
   /**
@@ -528,6 +528,15 @@ export interface PlaceTypeLevelGroup {
    * by the map "Levels" overlay's "Show" button group.
    */
   levelMode?: LocationMapLevelMode;
+  /**
+   * Ids of level groups HIDDEN by default on maps anchored at **this** group's level (its own id is
+   * allowed, hiding the current level itself). Absent/empty = nothing hidden, so a newly-added level
+   * shows by default from every anchor. Subtracted from this anchor's `levelMode` expansion in
+   * {@link computeVisibleLevelGroupIds} — the "Show" mode bounds the candidate range and this checklist
+   * only removes levels from it; a map's per-map Levels overlay can still turn any level back on for
+   * that one map. Edited via the per-group checklist on Settings → Locations → Level Groups.
+   */
+  defaultHiddenGroupIds?: string[];
   /** Ordering weight among groups (lower sorts first). */
   sortOrder: number;
   /**

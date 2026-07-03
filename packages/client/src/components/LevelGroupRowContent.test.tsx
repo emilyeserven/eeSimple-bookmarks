@@ -45,13 +45,14 @@ describe("LevelGroupRowContent", () => {
     render(
       <LevelGroupRowContent
         group={group}
+        allGroups={[group]}
         options={options}
         takenPlaceTypes={new Set(["region"])}
         renameGroup={vi.fn()}
-        setGroupVisible={vi.fn()}
         setGroupShowOnMainMap={vi.fn()}
         setGroupDisplayMode={vi.fn()}
         setGroupLevelMode={vi.fn()}
+        setGroupDefaultHidden={vi.fn()}
         setGroupPlaceTypes={setGroupPlaceTypes}
         setGroupColor={vi.fn()}
         removeGroup={vi.fn()}
@@ -76,13 +77,14 @@ describe("LevelGroupRowContent", () => {
     render(
       <LevelGroupRowContent
         group={group}
+        allGroups={[group]}
         options={options}
         takenPlaceTypes={new Set(["region"])}
         renameGroup={vi.fn()}
-        setGroupVisible={vi.fn()}
         setGroupShowOnMainMap={vi.fn()}
         setGroupDisplayMode={vi.fn()}
         setGroupLevelMode={vi.fn()}
+        setGroupDefaultHidden={vi.fn()}
         setGroupPlaceTypes={vi.fn()}
         setGroupColor={vi.fn()}
         removeGroup={vi.fn()}
@@ -100,5 +102,49 @@ describe("LevelGroupRowContent", () => {
     expect(screen.getByRole("option", {
       name: /Region/,
     })).toHaveAttribute("aria-disabled", "false");
+  });
+
+  it("unchecking a level in the default-visibility checklist adds it to this anchor's hidden set", () => {
+    const setGroupDefaultHidden = vi.fn();
+    const country = makeGroup({
+      id: "g1",
+      name: "Country",
+      placeTypes: ["country"],
+    });
+    const region = makeGroup({
+      id: "g2",
+      name: "Region",
+      placeTypes: ["region"],
+    });
+
+    render(
+      <LevelGroupRowContent
+        group={country}
+        allGroups={[country, region]}
+        options={options}
+        takenPlaceTypes={new Set()}
+        renameGroup={vi.fn()}
+        setGroupShowOnMainMap={vi.fn()}
+        setGroupDisplayMode={vi.fn()}
+        setGroupLevelMode={vi.fn()}
+        setGroupDefaultHidden={setGroupDefaultHidden}
+        setGroupPlaceTypes={vi.fn()}
+        setGroupColor={vi.fn()}
+        removeGroup={vi.fn()}
+        attributes={attributes}
+        listeners={{}}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Edit",
+    }));
+    // Both levels start checked (nothing hidden); unchecking "Region" hides it by default here.
+    const regionCheckbox = screen.getByRole("checkbox", {
+      name: "Region",
+    });
+    expect(regionCheckbox).toBeChecked();
+    fireEvent.click(regionCheckbox);
+    expect(setGroupDefaultHidden).toHaveBeenCalledWith("g1", ["g2"]);
   });
 });

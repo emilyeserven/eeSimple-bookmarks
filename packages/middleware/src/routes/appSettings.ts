@@ -444,6 +444,12 @@ const placeTypeLevelGroupsBody = {
         type: "string",
         enum: [...LOCATION_MAP_LEVEL_MODES],
       },
+      defaultHiddenGroupIds: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+      },
       sortOrder: {
         type: "number",
       },

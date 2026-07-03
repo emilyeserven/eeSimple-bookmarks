@@ -76,10 +76,10 @@ export function LocationLevelGroupsSettings() {
     unassignedPlaceTypes,
     addGroupOfMode,
     renameGroup,
-    setGroupVisible,
     setGroupShowOnMainMap,
     setGroupDisplayMode,
     setGroupLevelMode,
+    setGroupDefaultHidden,
     setGroupPlaceTypes,
     setGroupColor,
     removeGroup,
@@ -306,13 +306,14 @@ export function LocationLevelGroupsSettings() {
                     <div key={group.id}>
                       <SortableGroupRow
                         group={group}
+                        allGroups={orderedGroups}
                         options={placeTypeOptions}
                         takenPlaceTypes={takenPlaceTypesByGroup.get(group.id) ?? new Set()}
                         renameGroup={renameGroup}
-                        setGroupVisible={setGroupVisible}
                         setGroupShowOnMainMap={setGroupShowOnMainMap}
                         setGroupDisplayMode={setGroupDisplayMode}
                         setGroupLevelMode={setGroupLevelMode}
+                        setGroupDefaultHidden={setGroupDefaultHidden}
                         setGroupPlaceTypes={setGroupPlaceTypes}
                         setGroupColor={setGroupColor}
                         removeGroup={removeGroup}

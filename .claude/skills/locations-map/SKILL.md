@@ -39,22 +39,27 @@ The subsystem is cleanly layered:
 Four concepts; the doc block in `locationLevels.ts` is the authority.
 
 - **Level group** (`PlaceTypeLevelGroup`, `@eesimple/types`): a named, ordered (`sortOrder`, **lower =
-  broader**) bucket of normalized `placeType` keys, with `displayMode` (pin/area), `color`, `visible`
-  ("visible by default"), `showOnMainMap`, `levelMode` (above/current/below). The array is persisted on
-  the `app_settings` singleton and is the single source of truth. **Never hand-list place types or
-  invent a parallel level ordering** — groups + `sortOrder` are it.
+  broader**) bucket of normalized `placeType` keys, with `displayMode` (pin/area), `color`,
+  `showOnMainMap`, `levelMode` (above/current/below), and `defaultHiddenGroupIds` (the per-anchor
+  "hidden by default" checklist — ids of levels dropped from *this* group's default set when it is a
+  map's current level; its own id may be listed). The array is persisted on the `app_settings`
+  singleton and is the single source of truth. **Never hand-list place types or invent a parallel level
+  ordering** — groups + `sortOrder` are it. (The legacy global `visible` "visible by default" boolean is
+  **retired** — always `true`, kept only for the display-config contract; per-anchor default visibility
+  replaced it.)
 - **Scope** (`LevelScope`): `main` | `location{currentPlaceType}` | `bookmark{placeTypes}`. A non-`main`
   scope resolves **anchor** groups (`resolveAnchorGroups` / `findAnchorGroup`) — the group(s) owning the
   viewed/tagged place type(s) — and expands each up/down per **its own** `levelMode`
   (`expandAnchorsByOwnMode`). No anchor ⇒ show all groups. This is `computeVisibleLevelGroupIds`.
 - **Visibility layering** — `visibleIds = (overrideIds ?? defaultVisibleIds) ∩ populatedIds`, composed by
-  the pure `resolveVisibleLevelGroupIds`. `defaultVisibleIds` = `computeVisibleLevelGroupIds` minus
-  `visible:false` groups; `overrideIds` = temporary per-map checkbox tweaks; `populatedIds` =
+  the pure `resolveVisibleLevelGroupIds`. `defaultVisibleIds` = `computeVisibleLevelGroupIds` (each
+  anchor's `levelMode` expansion minus that anchor's `defaultHiddenGroupIds`, unioned across anchors);
+  `overrideIds` = temporary per-map checkbox tweaks; `populatedIds` =
   `computePopulatedLevelGroupIds` (a group with a plotted node of its type **plus its broader
   ancestors**). A group not in `populatedIds` is disabled and can never show — this is the rule
   #811/#814 kept re-touching; change it only in `computePopulatedLevelGroupIds` and extend its tests.
 - **Three persistence tiers** (the subtle part): **server/global** = the group config itself (pin/area,
-  color, `levelMode`, `visible`, `showOnMainMap`), written through `useLocationLevels` with a toast, on
+  color, `levelMode`, `defaultHiddenGroupIds`, `showOnMainMap`), written through `useLocationLevels` with a toast, on
   *every* map; **uiStore/per-device** = map collapse + `hideLocationMapAdminBorders`; **session/local** =
   `overrideIds` + the anchor-less `fallbackMode`. **On one overlay row the visibility checkbox is a
   throwaway per-map override while the pin/area toggle beside it is a global server write — do not unify
@@ -88,7 +93,7 @@ A **place type** is a raw Nominatim/Wikidata string on `Location.placeType`, nor
 `PlaceTypeDisplayConfig` (lowest-`sortOrder` group wins on overlap). Icons/colors are stored **per place
 type** (`PlaceTypeIconConfig`/`PlaceTypeColorConfig`), not per group, so members of one group can still
 render distinctly. Settings surfaces: `settings.locations.level-groups.tsx` → `LocationLevelGroupsSettings`
-(rows via `LevelGroupEditRow`, the "Visible by default" + "Show" mode controls), `settings.locations.place-types.tsx`,
+(rows via `LevelGroupEditRow`, the "Show" mode + per-anchor "Levels visible by default" checklist controls), `settings.locations.place-types.tsx`,
 `settings.locations.pin-style.tsx`. All group edits go through `useLocationLevels` — never PUT the
 `app_settings` group array directly.
 
@@ -122,8 +127,8 @@ Then `pnpm dev` and exercise all three scopes:
   the checkboxes; empty groups stay disabled; "Only direct ancestors/children" works.
 - **`bookmark`** — a bookmark tagging locations of different levels: each anchor expands per its own mode;
   changing the mode writes to every anchor.
-- **`main`** — the Place Types listing map: only `showOnMainMap` groups show; a `visible:false` group is
-  hidden by default but re-enableable per-map.
+- **`main`** — the Place Types listing map: only `showOnMainMap` groups show (the per-anchor
+  `defaultHiddenGroupIds` checklist does not apply to the anchor-less main map).
 - The desktop floating panel and the mobile popover render the same list + footer (both consume
   `locationLevelsShared.tsx`).
 
@@ -135,7 +140,7 @@ Then `pnpm dev` and exercise all three scopes:
 - **"Wrong levels show" / "checkbox disabled wrongly"** is always in the pure helpers, never the
   components: `computeVisibleLevelGroupIds` (defaults), `computePopulatedLevelGroupIds` (enable/disable),
   or `resolveVisibleLevelGroupIds` (composition). Add the failing case to `locationLevels.test.ts` before
-  fixing — those tests encode #811/#813/#814/the `visible:false` rules.
+  fixing — those tests encode #811/#813/#814/the per-anchor `defaultHiddenGroupIds` rules.
 - **"A per-map toggle persisted globally" (or vice-versa)** is a persistence-tier mix-up — re-read tier
   list in §A and the `locationLevels.ts` doc block. Visibility checkbox = local override; pin/area,
   color, "Show" mode = global server write.

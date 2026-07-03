@@ -10,14 +10,16 @@ export type SortableHandle = Pick<ReturnType<typeof useSortable>, "attributes" |
 /** Props shared by the level-group row wrapper and its content. */
 export interface GroupRowProps {
   group: PlaceTypeLevelGroup;
+  /** Every level group (ordered) — the per-anchor default-visibility checklist iterates this. */
+  allGroups: PlaceTypeLevelGroup[];
   options: Levels["placeTypeOptions"];
   /** Place types already assigned to other groups — shown disabled in the combobox. */
   takenPlaceTypes: Set<string>;
   renameGroup: Levels["renameGroup"];
-  setGroupVisible: Levels["setGroupVisible"];
   setGroupShowOnMainMap: Levels["setGroupShowOnMainMap"];
   setGroupDisplayMode: Levels["setGroupDisplayMode"];
   setGroupLevelMode: Levels["setGroupLevelMode"];
+  setGroupDefaultHidden: Levels["setGroupDefaultHidden"];
   setGroupPlaceTypes: Levels["setGroupPlaceTypes"];
   setGroupColor: Levels["setGroupColor"];
   removeGroup: Levels["removeGroup"];

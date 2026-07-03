@@ -704,17 +704,26 @@ export function normalizePlaceTypeLevelGroups(input: unknown): PlaceTypeLevelGro
           .filter(pt => pt !== ""),
       )]
       : [];
-    const visible = value.visible !== false;
+    // `visible` is retired as a user setting (superseded by the per-anchor `defaultHiddenGroupIds`
+    // checklist) — it is always stored `true`. The legacy value survives only to seed the
+    // `showOnMainMap` back-compat default for pre-`showOnMainMap` configs.
+    const legacyVisible = value.visible !== false;
+    const defaultHiddenGroupIds = Array.isArray(value.defaultHiddenGroupIds)
+      ? [...new Set(
+        value.defaultHiddenGroupIds.filter((gid): gid is string => typeof gid === "string" && gid.trim() !== ""),
+      )]
+      : [];
     const group: PlaceTypeLevelGroup = {
       id,
       name,
       placeTypes,
       displayMode,
-      visible,
-      // Absent → fall back to `visible` so existing configs keep the current main-map appearance
-      // (today every visible group shows on the main map).
-      showOnMainMap: typeof value.showOnMainMap === "boolean" ? value.showOnMainMap : visible,
+      visible: true,
+      // Absent → fall back to the legacy `visible` so existing configs keep the current main-map
+      // appearance (before `showOnMainMap` existed, every visible group showed on the main map).
+      showOnMainMap: typeof value.showOnMainMap === "boolean" ? value.showOnMainMap : legacyVisible,
       levelMode: normalizeLevelMode(value.levelMode),
+      defaultHiddenGroupIds,
       sortOrder: typeof value.sortOrder === "number" && Number.isFinite(value.sortOrder)
         ? value.sortOrder
         : index,
