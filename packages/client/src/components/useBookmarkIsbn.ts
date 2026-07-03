@@ -1,6 +1,6 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
-import type { CustomProperty, ImageCandidate, Language, MediaType, Person, Publisher } from "@eesimple/types";
+import type { CustomProperty, ImageCandidate, Language, MediaType, Person, Group } from "@eesimple/types";
 
 import { ISBN_SLUG, normalizeIsbn } from "./bookmarkFormSchema";
 import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
@@ -16,10 +16,10 @@ interface UseBookmarkIsbnParams {
   customProperties: CustomProperty[] | undefined;
   mediaTypes: MediaType[] | undefined;
   people: Person[] | undefined;
-  publishers: Publisher[] | undefined;
+  groups: Group[] | undefined;
   languages: Language[] | undefined;
   createPerson: Actions["createPerson"];
-  createPublisher: Actions["createPublisher"];
+  createGroup: Actions["createGroup"];
   createLanguage: Actions["createLanguage"];
   handleTextChange: (id: string, value: string) => void;
   setHideNameField: (value: boolean) => void;
@@ -38,10 +38,10 @@ export function useBookmarkIsbn({
   customProperties,
   mediaTypes,
   people,
-  publishers,
+  groups,
   languages,
   createPerson,
-  createPublisher,
+  createGroup,
   createLanguage,
   handleTextChange,
   setHideNameField,
@@ -79,12 +79,12 @@ export function useBookmarkIsbn({
         ids => form.setFieldValue("personIds", ids),
       );
     }
-    if (result.publisher && !form.getFieldValue("publisherId")) {
-      await resolvePublisher(
-        result.publisher,
-        publishers ?? [],
-        createPublisher,
-        id => form.setFieldValue("publisherId", id),
+    if (result.group && !form.getFieldValue("groupId")) {
+      await resolveGroup(
+        result.group,
+        groups ?? [],
+        createGroup,
+        id => form.setFieldValue("groupId", id),
       );
     }
     if (result.language && !form.getFieldValue("languageId")) {
@@ -166,27 +166,27 @@ async function resolvePeople(
   if (ids.length > 0) setIds(ids);
 }
 
-/** Match-or-create a publisher by name and call setId with the resolved id. */
-async function resolvePublisher(
-  publisherName: string,
-  existingPublishers: Publisher[],
-  createPublisher: Actions["createPublisher"],
+/** Match-or-create a group by name and call setId with the resolved id. */
+async function resolveGroup(
+  groupName: string,
+  existingGroups: Group[],
+  createGroup: Actions["createGroup"],
   setId: (id: string) => void,
 ): Promise<void> {
-  const lower = publisherName.toLowerCase();
-  const match = existingPublishers.find(p => p.name.toLowerCase() === lower);
+  const lower = groupName.toLowerCase();
+  const match = existingGroups.find(p => p.name.toLowerCase() === lower);
   if (match) {
     setId(match.id);
     return;
   }
   try {
-    const created = await createPublisher.mutateAsync({
-      name: publisherName,
+    const created = await createGroup.mutateAsync({
+      name: groupName,
     });
     setId(created.id);
   }
   catch {
-    // Skip publisher that can't be created (e.g. duplicate race).
+    // Skip group that can't be created (e.g. duplicate race).
   }
 }
 

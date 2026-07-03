@@ -7,6 +7,8 @@ import { useBookBySlug } from "@/hooks/useBooks";
 import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useEpisodeBySlug } from "@/hooks/useEpisodes";
+import { useGroupBySlug } from "@/hooks/useGroups";
+import { useGroupTypeBySlug } from "@/hooks/useGroupTypes";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
 import { useMediaPropertyBySlug } from "@/hooks/useMediaProperties";
 import { useMovieBySlug } from "@/hooks/useMovies";
@@ -14,7 +16,6 @@ import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePersonBySlug } from "@/hooks/usePeople";
 import { usePlaceTypeBySlug } from "@/hooks/usePlaceTypes";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
-import { usePublisherBySlug } from "@/hooks/usePublishers";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useSavedFilterBySlug } from "@/hooks/useSavedFilters";
 import { useTrackBySlug } from "@/hooks/useTracks";
@@ -25,7 +26,8 @@ import { useTvShowBySlug } from "@/hooks/useTvShows";
 export interface TaxonomyNameSlugs {
   newsletter: string;
   person: string;
-  publisher: string;
+  group: string;
+  groupType: string;
   placeType: string;
   propertyGroup: string;
   mediaProperty: string;
@@ -61,8 +63,11 @@ export function useTaxonomyNameMap(
     person,
   } = usePersonBySlug(slugs.person);
   const {
-    publisher,
-  } = usePublisherBySlug(slugs.publisher);
+    group,
+  } = useGroupBySlug(slugs.group);
+  const {
+    groupType,
+  } = useGroupTypeBySlug(slugs.groupType);
   const {
     placeType,
   } = usePlaceTypeBySlug(slugs.placeType);
@@ -120,9 +125,12 @@ export function useTaxonomyNameMap(
       name: person?.name,
       romanized: person?.romanizedName,
     },
-    "/taxonomies/publishers": {
-      name: publisher?.name,
-      romanized: publisher?.romanizedName,
+    "/taxonomies/groups": {
+      name: group?.name,
+      romanized: group?.romanizedName,
+    },
+    "/taxonomies/group-types": {
+      name: groupType?.name,
     },
     "/taxonomies/place-types": {
       name: placeType?.name,

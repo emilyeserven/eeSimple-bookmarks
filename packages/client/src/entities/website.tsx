@@ -88,7 +88,7 @@ export const websiteListingConfig: EntityListingConfig<Website> = {
   ),
 };
 
-/** Seventh `EntityDescriptor` migration (after Publisher #868, Person #872, PropertyGroup #873, Newsletter #874, RelationshipType + SavedFilter #875) — issue #860. */
+/** Seventh `EntityDescriptor` migration (after Group #868, Person #872, PropertyGroup #873, Newsletter #874, RelationshipType + SavedFilter #875) — issue #860. */
 export const websiteDescriptor: EntityDescriptor<Website> = {
   kind: "website",
   route: WEBSITE_ROUTE,

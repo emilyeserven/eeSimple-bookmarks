@@ -146,7 +146,7 @@ useful. See the **`cmd-k-entity-context`** skill.
 ## Bookmark-linked entity (optional)
 
 Skip this section unless bookmarks reference the entity **directly** via a top-level FK column
-(like `mediaTypeId`, `publisherId`, and `languageId` — as opposed to a many-to-many join table like
+(like `mediaTypeId`, `groupId`, and `languageId` — as opposed to a many-to-many join table like
 tags or authors). This wiring is separate from the checklist above and easy to under-scope: it
 touches the bookmark's own record, not just the entity's pages. Worked examples: media type
 (existing) and language (`services/languages.ts` + `bookmarkHydration.ts`, added for issue-free
@@ -174,7 +174,7 @@ autofetch support).
 6. **Add Bookmark form**, only if the field should be user-pickable at creation (skip if it's
    purely autofetched/edited later, like media type today): add `bookmarkSchema`,
    `SAMPLE_DEFAULT_VALUES`, and `buildBookmarkDefaultValues` entries in `bookmarkFormSchema.ts`; a
-   `BookmarkAdvanced<X>Field.tsx` (mirror `BookmarkAdvancedPublisherField.tsx`) wired into
+   `BookmarkAdvanced<X>Field.tsx` (mirror `BookmarkAdvancedGroupField.tsx`) wired into
    `BookmarkAdvancedSection.tsx` → `BookmarkRevealedFields.tsx` → `BookmarkForm.tsx`; thread the
    entity's list through `useBookmarkFormData.ts` → `useBookmarkFormController.ts`, and the
    `<x>Id` value through `useBookmarkFormHandlers.ts`'s `submitForm` and

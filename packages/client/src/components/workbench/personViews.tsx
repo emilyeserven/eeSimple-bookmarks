@@ -4,7 +4,7 @@ import { UserCircle } from "lucide-react";
 
 import { EntityImagePreview } from "../EntityImageField";
 
-import { usePublishers } from "@/hooks/usePublishers";
+import { useGroups } from "@/hooks/useGroups";
 import { useWebsites } from "@/hooks/useWebsites";
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
@@ -21,12 +21,12 @@ export function PersonGeneralView({
     data: websites,
   } = useWebsites();
   const {
-    data: publishers,
-  } = usePublishers();
+    data: groups,
+  } = useGroups();
 
   const connectedChannels = (channels ?? []).filter(ch => person.youtubeChannelIds.includes(ch.id));
   const connectedWebsites = (websites ?? []).filter(site => person.websiteIds.includes(site.id));
-  const connectedPublishers = (publishers ?? []).filter(pub => person.publisherIds.includes(pub.id));
+  const connectedGroups = (groups ?? []).filter(pub => person.groupIds.includes(pub.id));
 
   return (
     <div className="space-y-3">
@@ -102,12 +102,12 @@ export function PersonGeneralView({
             <dd key={`site-value-${site.id}`}>{site.siteName}</dd>
           </>
         ))}
-        {connectedPublishers.map(pub => (
+        {connectedGroups.map(pub => (
           <>
             <dt
               key={`pub-label-${pub.id}`}
               className="text-muted-foreground"
-            >Publisher
+            >Group
             </dt>
             <dd key={`pub-value-${pub.id}`}>{pub.name}</dd>
           </>

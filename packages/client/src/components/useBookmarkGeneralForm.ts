@@ -49,7 +49,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     autofillRules,
     autoFetchTitle,
     people,
-    publishers,
+    groups,
   } = useBookmarkFormData();
 
   const {
@@ -98,7 +98,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       blacklistedTagIds: bookmark.blacklistedTagIds as string[],
       blacklistedLocationIds: bookmark.blacklistedLocationIds as string[],
       personIds: (bookmark.people.map(a => a.id)) as string[],
-      publisherId: bookmark.publisher?.id ?? "",
+      groupId: bookmark.group?.id ?? "",
     },
     validators: {
       onChange: bookmarkSchema,
@@ -124,7 +124,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
           tagIds: value.tagIds,
           locationIds: value.locationIds,
           personIds: value.personIds,
-          publisherId: value.publisherId || null,
+          groupId: value.groupId || null,
           ...(channelHintRef.current && {
             youtubeChannel: channelHintRef.current,
           }),
@@ -363,7 +363,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     mediaTypes,
     languages,
     people,
-    publishers,
+    groups,
     updateBookmark,
     ...modals,
     saveTags,

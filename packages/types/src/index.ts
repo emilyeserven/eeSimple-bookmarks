@@ -18,6 +18,7 @@ export * from "./books.js";
 export * from "./episodes.js";
 export * from "./conditions.js";
 export * from "./customProperties.js";
+export * from "./groupTypes.js";
 export * from "./importBlacklist.js";
 export * from "./locations.js";
 export * from "./mediaProperties.js";
@@ -631,11 +632,11 @@ export interface UpdateLanguageInput {
 }
 
 /**
- * A publisher in the "Publishers" taxonomy. Links a publishing house or individual
- * to their optional website, so bookmarks (especially offline/book items) can carry
- * publisher info.
+ * A group in the "Groups" taxonomy (a publisher, studio, label, or similar). Links the
+ * group or individual to their optional website, so bookmarks (especially offline/book items)
+ * can carry group info.
  */
-export interface Publisher {
+export interface Group {
   id: string;
   /** Display name, e.g. "O'Reilly Media". Unique. */
   name: string;
@@ -643,44 +644,48 @@ export interface Publisher {
   romanizedName?: string | null;
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
-  /** Id of the website this publisher is associated with, or null when unset. */
+  /** Id of the website this group is associated with, or null when unset. */
   websiteId: string | null;
   /** The associated website, populated by list/get endpoints. */
   website?: { id: string;
     domain: string;
     siteName: string; } | null;
-  /** Id of the media property (franchise/IP grouping) this publisher belongs to, or null. */
-  mediaPropertyId: string | null;
-  /** ISO-8601 timestamp of when the publisher was created. */
+  /** Id of the group type classifying this group, or null when unset. */
+  groupTypeId: string | null;
+  /** The classifying group type, populated by list/get endpoints. */
+  groupType?: { id: string;
+    name: string;
+    slug: string; } | null;
+  /** ISO-8601 timestamp of when the group was created. */
   createdAt: string;
-  /** Distinct bookmarks with this publisher (populated by list endpoints). */
+  /** Distinct bookmarks with this group (populated by list endpoints). */
   bookmarkCount?: number;
-  /** Social media links for this publisher. */
+  /** Social media links for this group. */
   socialLinks: SocialLink[];
 }
 
-/** Lightweight publisher shape carried on a bookmark. */
-export type BookmarkPublisher = Pick<Publisher, "id" | "name" | "slug">;
+/** Lightweight group shape carried on a bookmark. */
+export type BookmarkGroup = Pick<Group, "id" | "name" | "slug">;
 
-/** Payload for creating a publisher. */
-export interface CreatePublisherInput {
+/** Payload for creating a group. */
+export interface CreateGroupInput {
   name: string;
   romanizedName?: string | null;
-  /** Id of the website to associate with this publisher; null to leave unset. */
+  /** Id of the website to associate with this group; null to leave unset. */
   websiteId?: string | null;
-  /** Id of the media property to group this publisher under; null to leave unset. */
-  mediaPropertyId?: string | null;
+  /** Id of the group type to classify this group under; null to leave unset. */
+  groupTypeId?: string | null;
 }
 
-/** Payload for updating a publisher. */
-export interface UpdatePublisherInput {
+/** Payload for updating a group. */
+export interface UpdateGroupInput {
   name?: string;
   romanizedName?: string | null;
-  /** Id of the website to associate with this publisher; null to clear it. */
+  /** Id of the website to associate with this group; null to clear it. */
   websiteId?: string | null;
-  /** Id of the media property to group this publisher under; null to clear it. */
-  mediaPropertyId?: string | null;
-  /** Social media links for this publisher. Replaces the full list; omit to leave unchanged. */
+  /** Id of the group type to classify this group under; null to clear it. */
+  groupTypeId?: string | null;
+  /** Social media links for this group. Replaces the full list; omit to leave unchanged. */
   socialLinks?: SocialLink[];
 }
 
@@ -880,8 +885,8 @@ export interface Person {
   youtubeChannelIds: string[];
   /** IDs of websites associated with this person. */
   websiteIds: string[];
-  /** IDs of publishers associated with this person. */
-  publisherIds: string[];
+  /** IDs of groups associated with this person. */
+  groupIds: string[];
 }
 
 /** Lightweight person shape carried on a bookmark. */
@@ -905,8 +910,8 @@ export interface UpdatePersonInput {
   youtubeChannelIds?: string[];
   /** IDs of websites to associate; replaces the full set. Omit to leave unchanged. */
   websiteIds?: string[];
-  /** IDs of publishers to associate; replaces the full set. Omit to leave unchanged. */
-  publisherIds?: string[];
+  /** IDs of groups to associate; replaces the full set. Omit to leave unchanged. */
+  groupIds?: string[];
 }
 
 /** Lightweight import shape carried on a bookmark (the import event it was created from). */
@@ -1148,8 +1153,8 @@ export interface Bookmark {
   youtubeChannel: BookmarkYouTubeChannel | null;
   /** The newsletter this bookmark was imported from, or `null`. */
   newsletter: BookmarkNewsletter | null;
-  /** The publisher of this bookmarked item, or null when unset. */
-  publisher: BookmarkPublisher | null;
+  /** The group (e.g. publisher) of this bookmarked item, or null when unset. */
+  group: BookmarkGroup | null;
   /** Id of the linked Book (Books taxonomy), or `null` when unset. */
   bookId: string | null;
   /** Id of the linked Movie (Movies taxonomy), or `null` when unset. */
@@ -1269,8 +1274,8 @@ export interface CreateBookmarkInput {
   newsletterId?: string | null;
   /** Id of the import event this bookmark was created from, or `null`. */
   importId?: string | null;
-  /** Id of the publisher to assign; null to clear. Omit to leave unchanged. */
-  publisherId?: string | null;
+  /** Id of the group to assign; null to clear. Omit to leave unchanged. */
+  groupId?: string | null;
   /** Id of the Book (Books taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
   bookId?: string | null;
   /** Id of the Movie (Movies taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
@@ -1640,7 +1645,7 @@ export interface InboxPreFillDefaults {
   locationIds?: string[];
   mediaTypeId?: string | null;
   personIds?: string[];
-  publisherId?: string | null;
+  groupId?: string | null;
   numberValues?: { propertyId: string;
     value: number; }[];
   booleanValues?: { propertyId: string;
@@ -2971,8 +2976,8 @@ export interface FetchIsbnMetadataResult {
   coverUrl: string | null;
   /** Author names for the book. */
   authors: string[];
-  /** First publisher name, or `null` when unavailable. */
-  publisher: string | null;
+  /** First group (publisher) name, or `null` when unavailable. */
+  group: string | null;
   /** Publication year string (e.g. `"1979"`), or `null` when unavailable. */
   year: string | null;
   /** Canonical Open Library URL for this book, or `null` when unavailable. */

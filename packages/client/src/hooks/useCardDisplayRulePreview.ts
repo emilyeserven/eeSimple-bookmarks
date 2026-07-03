@@ -338,7 +338,7 @@ export function useCardDisplayRulePreview({
         },
       ],
       blacklistedLocationIds: [],
-      publisher: null,
+      group: null,
       priority: 0,
       createdAt: SAMPLE_NOW,
       updatedAt: null,

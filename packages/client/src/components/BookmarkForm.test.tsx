@@ -253,11 +253,11 @@ vi.mock("../hooks/usePeople", () => ({
     mutate: vi.fn(),
   }),
 }));
-vi.mock("../hooks/usePublishers", () => ({
-  usePublishers: () => ({
+vi.mock("../hooks/useGroups", () => ({
+  useGroups: () => ({
     data: [],
   }),
-  useCreatePublisher: () => ({
+  useCreateGroup: () => ({
     mutateAsync: vi.fn(),
   }),
 }));

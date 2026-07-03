@@ -32,14 +32,6 @@ function MediaPropertyGeneralView({
             </>
           )
           : null}
-        {mediaProperty.publisherCount != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">Publishers</dt>
-              <dd>{mediaProperty.publisherCount}</dd>
-            </>
-          )
-          : null}
       </dl>
     </div>
   );

@@ -1,0 +1,68 @@
+import type { EntityDescriptor, EntityListingConfig } from "./types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { GroupType, UpdateGroupTypeInput } from "@eesimple/types";
+
+import { GroupTypeListItem } from "../components/GroupTypeListItem";
+import { GroupTypeTable } from "../components/GroupTypeTable";
+import { groupTypeWorkbench } from "../components/workbench/groupType";
+import { useBulkDeleteGroupTypes, useGroupTypes } from "../hooks/useGroupTypes";
+import { groupTypesApi } from "../lib/api/taxonomies";
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const GROUP_TYPE_ROUTE: EntityRoute = {
+  kind: "group-type",
+  prefix: "/taxonomies/group-types",
+  slugIndex: 2,
+  listLabel: "Group Types",
+  singular: "Group Type",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const GROUP_TYPE_PALETTE: EntityPaletteConfig = {
+  queryKey: ["group-types"],
+  listFn: () => groupTypesApi.list(),
+  updateFn: (id, patch) => groupTypesApi.update(id, patch as UpdateGroupTypeInput),
+  extraInvalidateKeys: [["groups"]],
+};
+
+export const groupTypeListingConfig: EntityListingConfig<GroupType> = {
+  pageKey: "group-types-listing",
+  useItems: useGroupTypes,
+  matches: (prop, query) =>
+    prop.name.toLowerCase().includes(query) || prop.slug.toLowerCase().includes(query),
+  useBulkDelete: useBulkDeleteGroupTypes,
+  noun: ["group type", "group types"],
+  loadingLabel: "Loading group types…",
+  entityPlural: "group types",
+  emptyMessage: (
+    <p className="text-muted-foreground">
+      No group types yet. Add one above, then assign them to groups.
+    </p>
+  ),
+  renderListItem: ({
+    entity, allItems, ...rest
+  }) => (
+    <GroupTypeListItem
+      groupType={entity}
+      {...rest}
+    />
+  ),
+  renderTable: ({
+    entities, selection,
+  }) => (
+    <GroupTypeTable
+      data={entities}
+      selection={selection}
+    />
+  ),
+};
+
+export const groupTypeDescriptor: EntityDescriptor<GroupType> = {
+  kind: "group-type",
+  route: GROUP_TYPE_ROUTE,
+  palette: GROUP_TYPE_PALETTE,
+  workbench: groupTypeWorkbench,
+  listing: groupTypeListingConfig,
+};

@@ -92,7 +92,7 @@ export async function fetchOpenLibrary(isbn: string): Promise<IsbnLookupOutcome>
       description,
       coverUrl: coversRaw?.large ?? coversRaw?.medium ?? null,
       authors: authorsRaw?.map(a => a.name ?? "").filter(Boolean) ?? [],
-      publisher: publishersRaw?.[0]?.name ?? null,
+      group: publishersRaw?.[0]?.name ?? null,
       year: typeof data.publish_date === "string" ? data.publish_date : null,
       openLibraryUrl: typeof data.url === "string" ? data.url : null,
       language: normalizeLanguageCode(rawLanguageCode),
@@ -156,7 +156,7 @@ export async function fetchGoogleBooks(isbn: string): Promise<IsbnLookupOutcome>
       description: typeof info.description === "string" ? info.description : null,
       coverUrl: toHttps(thumb),
       authors,
-      publisher: typeof info.publisher === "string" ? info.publisher : null,
+      group: typeof info.publisher === "string" ? info.publisher : null,
       year: typeof info.publishedDate === "string" ? info.publishedDate : null,
       // Google Books results have no Open Library page.
       openLibraryUrl: null,
@@ -195,7 +195,7 @@ async function fetchKavita(isbn: string): Promise<IsbnLookupOutcome> {
       description: null,
       coverUrl: kavitaSeriesCoverUrl(match.seriesId),
       authors: [],
-      publisher: match.libraryName,
+      group: match.libraryName,
       year: match.releaseYear ? String(match.releaseYear) : null,
       openLibraryUrl: null,
       // Kavita's series-search match carries no language metadata.

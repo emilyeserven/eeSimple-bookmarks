@@ -60,7 +60,7 @@ export const personListingConfig: EntityListingConfig<Person> = {
   ),
 };
 
-/** Second `EntityDescriptor` migration (after Publisher, PR #868) — issue #860. */
+/** Second `EntityDescriptor` migration (after Group, PR #868) — issue #860. */
 export const personDescriptor: EntityDescriptor<Person> = {
   kind: "person",
   route: PERSON_ROUTE,

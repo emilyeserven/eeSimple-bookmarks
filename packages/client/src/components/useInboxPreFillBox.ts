@@ -4,9 +4,9 @@ import { useState } from "react";
 
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useGroups } from "../hooks/useGroups";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { usePeople } from "../hooks/usePeople";
-import { usePublishers } from "../hooks/usePublishers";
 import { useTagTree } from "../hooks/useTags";
 import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "../lib/comboboxOptions";
 import { INBOX_PREFILLABLE_TYPES } from "../lib/inboxPreFill";
@@ -15,7 +15,7 @@ import { flattenTree } from "../lib/tagTree";
 /**
  * Loads the taxonomies the inbox pre-fill box offers as defaults, derives their combobox option
  * lists and the inbox-enabled custom properties, and owns the still-manual "Add person" modal
- * open-state (Category/Media Type/Publisher own their inline-create via `useEntityCreateOption` in
+ * open-state (Category/Media Type/Group own their inline-create via `useEntityCreateOption` in
  * `InboxPreFillBox` itself). Splitting the hook-dense data layer out of `InboxPreFillBox` keeps the
  * component thin.
  */
@@ -35,8 +35,8 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     data: people = [],
   } = usePeople();
   const {
-    data: publishers = [],
-  } = usePublishers();
+    data: groups = [],
+  } = useGroups();
   const {
     data: allProperties = [],
   } = useCustomProperties();
@@ -52,7 +52,7 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     label: a.name,
     searchAlias: a.romanizedName ?? undefined,
   }));
-  const publisherOptions = publishers.map(p => ({
+  const groupOptions = groups.map(p => ({
     value: p.id,
     label: p.name,
     searchAlias: p.romanizedName ?? undefined,
@@ -72,12 +72,12 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     tagTree: tagTree as TagNode[],
     mediaTypeTree,
     people,
-    publishers,
+    groups,
     inboxProperties,
     categoryOptions,
     mediaTypeOptions,
     personOptions,
-    publisherOptions,
+    groupOptions,
     selectedTagNames,
   };
 }

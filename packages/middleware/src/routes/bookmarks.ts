@@ -351,7 +351,7 @@ const createBookmarkBody = {
     originalUrl: {
       type: ["string", "null"],
     },
-    publisherId: {
+    groupId: {
       type: ["string", "null"],
       format: "uuid",
     },

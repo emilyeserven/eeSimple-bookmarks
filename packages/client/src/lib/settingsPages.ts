@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { BookOpen, Building2, Disc3, Film, MapPinned, Mic2, Music, Puzzle, Tv, Tv2 } from "lucide-react";
+import { BookOpen, Disc3, Film, MapPinned, Mic2, Music, Puzzle, Shapes, Tv, Tv2 } from "lucide-react";
 
 import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
@@ -85,10 +85,10 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
     icon: Music,
   },
   {
-    // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
-    path: "/taxonomies/publishers",
-    label: "Publishers",
-    icon: Building2,
+    // Listing page reachable from the Groups flyout, not directly from the sidebar.
+    path: "/taxonomies/group-types",
+    label: "Group Types",
+    icon: Shapes,
   },
 ];
 

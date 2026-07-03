@@ -96,10 +96,10 @@ export const TAXONOMY_LISTING_PINS: TaxonomyListingPin[] = [
     path: "/taxonomies/people",
   },
   {
-    key: "publishers",
-    label: "Publishers",
+    key: "groups",
+    label: "Groups",
     Icon: Building2,
-    path: "/taxonomies/publishers",
+    path: "/taxonomies/groups",
   },
   {
     key: "newsletters",

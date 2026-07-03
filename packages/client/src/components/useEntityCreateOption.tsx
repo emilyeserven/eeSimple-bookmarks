@@ -1,6 +1,6 @@
 import type {
-  Album, Artist, Book, Category, CustomProperty, Episode, Language, Location, MediaProperty,
-  MediaType, Movie, Newsletter, Person, PlaceType, Publisher, PropertyGroup, Tag, Track, TvShow,
+  Album, Artist, Book, Category, CustomProperty, Episode, Group, GroupType, Language, Location,
+  MediaProperty, MediaType, Movie, Newsletter, Person, PlaceType, PropertyGroup, Tag, Track, TvShow,
   Website, YouTubeChannel,
 } from "@eesimple/types";
 import type { ComponentType, ReactNode } from "react";
@@ -13,6 +13,8 @@ import { AddBookModal } from "./AddBookModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { AddEpisodeModal } from "./AddEpisodeModal";
+import { AddGroupModal } from "./AddGroupModal";
+import { AddGroupTypeModal } from "./AddGroupTypeModal";
 import { AddLanguageModal } from "./AddLanguageModal";
 import { AddLocationModal } from "./AddLocationModal";
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
@@ -22,7 +24,6 @@ import { AddNewsletterModal } from "./AddNewsletterModal";
 import { AddPersonModal } from "./AddPersonModal";
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
-import { AddPublisherModal } from "./AddPublisherModal";
 import { AddTagModal } from "./AddTagModal";
 import { AddTrackModal } from "./AddTrackModal";
 import { AddTvShowModal } from "./AddTvShowModal";
@@ -39,7 +40,8 @@ interface CreatedByEntity {
   "language": Language;
   "website": Website;
   "youtube-channel": YouTubeChannel;
-  "publisher": Publisher;
+  "group": Group;
+  "group-type": GroupType;
   "newsletter": Newsletter;
   "property-group": PropertyGroup;
   "location": Location;
@@ -105,9 +107,13 @@ const CREATABLE_ENTITY_PICKERS: {
     createLabel: "Add channel",
     Modal: AddYouTubeChannelModal,
   },
-  "publisher": {
-    createLabel: "Create publisher",
-    Modal: AddPublisherModal,
+  "group": {
+    createLabel: "Create group",
+    Modal: AddGroupModal,
+  },
+  "group-type": {
+    createLabel: "Create group type",
+    Modal: AddGroupTypeModal,
   },
   "newsletter": {
     createLabel: "Create import group",

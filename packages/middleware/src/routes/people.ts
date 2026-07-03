@@ -109,7 +109,7 @@ const updatePersonBody = {
         format: "uuid",
       },
     },
-    publisherIds: {
+    groupIds: {
       type: "array",
       items: {
         type: "string",

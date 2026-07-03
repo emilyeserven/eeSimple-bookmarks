@@ -75,7 +75,7 @@ export const relationshipTypeListingConfig: EntityListingConfig<RelationshipType
   ),
 };
 
-/** Fifth `EntityDescriptor` migration (after Publisher #868, Person #872, PropertyGroup #873, Newsletter #874) — issue #860. */
+/** Fifth `EntityDescriptor` migration (after Group #868, Person #872, PropertyGroup #873, Newsletter #874) — issue #860. */
 export const relationshipTypeDescriptor: EntityDescriptor<RelationshipType> = {
   kind: "relationship-type",
   route: RELATIONSHIP_TYPE_ROUTE,

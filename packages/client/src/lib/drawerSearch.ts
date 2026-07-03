@@ -35,7 +35,8 @@ export type DrawerContentType
     | "youtube-channel"
     | "newsletter"
     | "person"
-    | "publisher"
+    | "group"
+    | "group-type"
     | "relationship-type"
     | "autofill"
     | "card-display-rule"
@@ -74,7 +75,8 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "youtube-channel",
   "newsletter",
   "person",
-  "publisher",
+  "group",
+  "group-type",
   "relationship-type",
   "autofill",
   "card-display-rule",

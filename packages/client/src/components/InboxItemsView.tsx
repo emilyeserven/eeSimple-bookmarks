@@ -43,7 +43,7 @@ function ReviewRowAdvancedEdit({
       tagIds={itemPreFill.tagIds ?? []}
       locationIds={itemPreFill.locationIds ?? []}
       personIds={itemPreFill.personIds ?? []}
-      publisherId={itemPreFill.publisherId ?? undefined}
+      groupId={itemPreFill.groupId ?? undefined}
       onCategoryChange={id => patchItemPreFill({
         categoryId: id,
       })}
@@ -59,8 +59,8 @@ function ReviewRowAdvancedEdit({
       onPeopleChange={ids => patchItemPreFill({
         personIds: ids,
       })}
-      onPublisherChange={id => patchItemPreFill({
-        publisherId: id,
+      onGroupChange={id => patchItemPreFill({
+        groupId: id,
       })}
     />
   );

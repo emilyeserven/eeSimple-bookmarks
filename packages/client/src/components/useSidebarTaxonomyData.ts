@@ -2,6 +2,8 @@ import { useAlbums } from "../hooks/useAlbums";
 import { useArtists } from "../hooks/useArtists";
 import { useBooks } from "../hooks/useBooks";
 import { useEpisodes } from "../hooks/useEpisodes";
+import { useGroups } from "../hooks/useGroups";
+import { useGroupTypes } from "../hooks/useGroupTypes";
 import { useLocations } from "../hooks/useLocations";
 import { useMediaProperties } from "../hooks/useMediaProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
@@ -9,7 +11,6 @@ import { useMovies } from "../hooks/useMovies";
 import { useNewsletters } from "../hooks/useNewsletters";
 import { usePeople } from "../hooks/usePeople";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
-import { usePublishers } from "../hooks/usePublishers";
 import { useTags } from "../hooks/useTags";
 import { useTracks } from "../hooks/useTracks";
 import { useTvShows } from "../hooks/useTvShows";
@@ -35,6 +36,7 @@ export function useSidebarTaxonomyData() {
     allChannels: useYouTubeChannels().data,
     allNewsletters: useNewsletters().data,
     allPeople: usePeople().data,
-    allPublishers: usePublishers().data,
+    allGroups: useGroups().data,
+    allGroupTypes: useGroupTypes().data,
   };
 }

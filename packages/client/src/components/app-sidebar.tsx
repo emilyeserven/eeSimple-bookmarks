@@ -9,6 +9,7 @@ import {
   SidebarConnectorsSection,
   SidebarResizeHandle,
 } from "./app-sidebar-sections";
+import { GroupsSidebarItem } from "./GroupsSidebarItem";
 import { LocationsSidebarItem } from "./LocationsSidebarItem";
 import { MediaPropertiesSidebarItem } from "./MediaPropertiesSidebarItem";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
@@ -68,7 +69,7 @@ function ExpandableLinkSection({
   albumsCount,
   artistsCount,
   tracksCount,
-  publishersCount,
+  groupTypesCount,
 }: {
   sectionKey: string;
   label: string;
@@ -87,7 +88,7 @@ function ExpandableLinkSection({
   albumsCount?: number;
   artistsCount?: number;
   tracksCount?: number;
-  publishersCount?: number;
+  groupTypesCount?: number;
 }) {
   const renderItem = (item: LinkSidebarItem) => {
     // Locations gets a hover flyout surfacing its Place Types taxonomy; every other item is a plain link.
@@ -116,7 +117,18 @@ function ExpandableLinkSection({
           albumsCount={albumsCount}
           artistsCount={artistsCount}
           tracksCount={tracksCount}
-          publishersCount={publishersCount}
+          sidebarState={sidebarState}
+        />
+      );
+    }
+    // Groups gets a hover flyout surfacing its Group Types taxonomy.
+    if (item.key === "groups") {
+      return (
+        <GroupsSidebarItem
+          key={item.key}
+          pathname={pathname}
+          groupsCount={item.count}
+          groupTypesCount={groupTypesCount}
           sidebarState={sidebarState}
         />
       );
@@ -220,7 +232,7 @@ export function AppSidebar({
     albumsCount,
     artistsCount,
     tracksCount,
-    publishersCount,
+    groupTypesCount,
     modifier,
     viewClick,
     hiddenSidebarGroups,
@@ -320,7 +332,7 @@ export function AppSidebar({
               albumsCount={albumsCount}
               artistsCount={artistsCount}
               tracksCount={tracksCount}
-              publishersCount={publishersCount}
+              groupTypesCount={groupTypesCount}
             />
           )
           : null}

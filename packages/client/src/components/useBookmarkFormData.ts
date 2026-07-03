@@ -51,7 +51,7 @@ export function useBookmarkFormData() {
     customStripParams,
     redirectIgnoreList,
     people,
-    publishers,
+    groups,
     autoFetchTitle,
     autoFetchImage,
   } = useBookmarkFormSettings();
@@ -71,7 +71,7 @@ export function useBookmarkFormData() {
     autofillRules,
     youtubeChannels,
     people,
-    publishers,
+    groups,
     autoFetchTitle,
     autoFetchImage,
   };

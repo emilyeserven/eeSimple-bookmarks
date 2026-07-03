@@ -7,6 +7,8 @@ import { BOOK_PALETTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_PALETTE } from "../entities/cardDisplayRule";
 import { CATEGORY_PALETTE } from "../entities/category";
 import { EPISODE_PALETTE } from "../entities/episode";
+import { GROUP_PALETTE } from "../entities/group";
+import { GROUP_TYPE_PALETTE } from "../entities/groupType";
 import { IMPORT_RULE_PALETTE } from "../entities/importRule";
 import { LANGUAGE_PALETTE } from "../entities/language";
 import { LOCATION_PALETTE } from "../entities/location";
@@ -18,7 +20,6 @@ import { PERSON_PALETTE } from "../entities/person";
 import { PLACE_TYPE_PALETTE } from "../entities/placeType";
 import { CUSTOM_PROPERTY_PALETTE } from "../entities/property";
 import { PROPERTY_GROUP_PALETTE } from "../entities/propertyGroup";
-import { PUBLISHER_PALETTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_PALETTE } from "../entities/relationshipType";
 import { SAVED_FILTER_PALETTE } from "../entities/savedFilter";
 import { TAG_PALETTE } from "../entities/tag";
@@ -93,7 +94,8 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "youtube-channel": YOUTUBE_CHANNEL_PALETTE,
   "newsletter": NEWSLETTER_PALETTE,
   "person": PERSON_PALETTE,
-  "publisher": PUBLISHER_PALETTE,
+  "group": GROUP_PALETTE,
+  "group-type": GROUP_TYPE_PALETTE,
   "property-group": PROPERTY_GROUP_PALETTE,
   "media-property": MEDIA_PROPERTY_PALETTE,
   "book": BOOK_PALETTE,

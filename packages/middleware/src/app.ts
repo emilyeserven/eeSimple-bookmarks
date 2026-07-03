@@ -32,7 +32,8 @@ import { kavitaRoutes } from "@/routes/kavita";
 import { plexRoutes } from "@/routes/plex";
 import { metadataRoutes } from "@/routes/metadata";
 import { newsletterRoutes } from "@/routes/newsletters";
-import { publisherRoutes } from "@/routes/publishers";
+import { groupRoutes } from "@/routes/groups";
+import { groupTypeRoutes } from "@/routes/groupTypes";
 import { reelArchiveRoutes } from "@/routes/reelArchive";
 import { propertyGroupRoutes } from "@/routes/propertyGroups";
 import { mediaPropertyRoutes } from "@/routes/mediaProperties";
@@ -190,6 +191,10 @@ export async function buildApp(): Promise<FastifyInstance> {
             description: "User-managed place type vocabulary for classifying locations",
           },
           {
+            name: "group-types",
+            description: "User-managed group type vocabulary for classifying groups",
+          },
+          {
             name: "media-properties",
             description: "Media Properties taxonomy (franchise/IP groupings): CRUD",
           },
@@ -256,7 +261,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(plexRoutes);
   await app.register(personRoutes);
   await app.register(newsletterRoutes);
-  await app.register(publisherRoutes);
+  await app.register(groupRoutes);
+  await app.register(groupTypeRoutes);
   await app.register(importRoutes);
   await app.register(reelArchiveRoutes);
   await app.register(bookmarkRoutes);

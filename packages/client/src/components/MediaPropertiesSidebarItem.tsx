@@ -5,7 +5,6 @@ import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   BookOpen,
-  Building2,
   ChevronDown,
   ChevronRight,
   Disc3,
@@ -42,8 +41,7 @@ function FlyoutChildLink({
     | "/taxonomies/episodes"
     | "/taxonomies/albums"
     | "/taxonomies/artists"
-    | "/taxonomies/tracks"
-    | "/taxonomies/publishers";
+    | "/taxonomies/tracks";
   icon: LucideIcon;
   label: string;
   count?: number;
@@ -83,7 +81,6 @@ function FlyoutChildren({
   albumsCount,
   artistsCount,
   tracksCount,
-  publishersCount,
   onNavigate,
 }: {
   booksCount?: number;
@@ -93,7 +90,6 @@ function FlyoutChildren({
   albumsCount?: number;
   artistsCount?: number;
   tracksCount?: number;
-  publishersCount?: number;
   onNavigate: () => void;
 }) {
   return (
@@ -147,13 +143,6 @@ function FlyoutChildren({
         count={tracksCount}
         onNavigate={onNavigate}
       />
-      <FlyoutChildLink
-        to="/taxonomies/publishers"
-        icon={Building2}
-        label="Publishers"
-        count={publishersCount}
-        onNavigate={onNavigate}
-      />
     </>
   );
 }
@@ -175,7 +164,6 @@ export function MediaPropertiesSidebarItem({
   albumsCount,
   artistsCount,
   tracksCount,
-  publishersCount,
   sidebarState,
 }: {
   pathname: string;
@@ -187,7 +175,6 @@ export function MediaPropertiesSidebarItem({
   albumsCount?: number;
   artistsCount?: number;
   tracksCount?: number;
-  publishersCount?: number;
   sidebarState?: string;
 }) {
   const isMobile = useIsMobile();
@@ -275,7 +262,6 @@ export function MediaPropertiesSidebarItem({
                 albumsCount={albumsCount}
                 artistsCount={artistsCount}
                 tracksCount={tracksCount}
-                publishersCount={publishersCount}
                 onNavigate={() => setExpanded(false)}
               />
             </SidebarMenuItem>
@@ -318,7 +304,6 @@ export function MediaPropertiesSidebarItem({
             albumsCount={albumsCount}
             artistsCount={artistsCount}
             tracksCount={tracksCount}
-            publishersCount={publishersCount}
             onNavigate={() => setOpen(false)}
           />
         </PopoverContent>
