@@ -133,6 +133,27 @@ describe("buildToolbarActions", () => {
     }))).toContain("view-details");
   });
 
+  it("adds the edit link on a taxonomy view/detail tab", () => {
+    expect(keys(ctx({
+      pathParts: ["categories", "reading", "general"],
+    }))).toContain("edit-taxonomy");
+    expect(keys(ctx({
+      pathParts: ["taxonomies", "podcasts", "syntax", "general"],
+    }))).toContain("edit-taxonomy");
+  });
+
+  it("omits the edit link on the bare entity-scoped bookmarks index", () => {
+    expect(keys(ctx({
+      pathParts: ["categories", "reading"],
+    }))).not.toContain("edit-taxonomy");
+  });
+
+  it("omits the edit link on an edit tab", () => {
+    expect(keys(ctx({
+      pathParts: ["categories", "reading", "edit", "general"],
+    }))).not.toContain("edit-taxonomy");
+  });
+
   it("preserves a stable left-to-right order across all present actions", () => {
     const all = ctx({
       headerSearchActive: true,

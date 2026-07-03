@@ -43,6 +43,7 @@ export const tvShowWorkbench: EntityWorkbench<TvShow> = {
   },
   notFound: "TV show not found.",
   navAriaLabel: "TV show sections",
+  listingPath: "/taxonomies/tv-shows",
   getSlug: tvShow => tvShow.slug,
   tabs: [
     {

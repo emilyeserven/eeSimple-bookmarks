@@ -1,12 +1,10 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { PlexTaxonomyViewHeader } from "../components/PlexTaxonomyViewHeader";
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
-import { useDeletePodcast, usePodcastBySlug } from "../hooks/usePodcasts";
+import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
+import { usePodcastBySlug } from "../hooks/usePodcasts";
 import { podcastsApi } from "../lib/api/taxonomies";
-
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/taxonomies/podcasts/$podcastSlug/_view")({
   component: PodcastViewLayout,
@@ -27,30 +25,20 @@ function PodcastViewLayout() {
   const {
     podcastSlug,
   } = Route.useParams();
-  const navigate = Route.useNavigate();
   const {
     podcast, isLoading,
   } = usePodcastBySlug(podcastSlug);
-  const deletePodcast = useDeletePodcast();
 
   return (
     <TabbedEntityLayout
       header={(
-        <PlexTaxonomyViewHeader
-          ownerId={podcast?.id}
-          imagesApi={podcastsApi.images}
-          queryKeyPrefix="podcast-images"
-          backLink={(
-            <Link
-              to="/taxonomies/podcasts"
-              className="
-                inline-block text-sm text-muted-foreground
-                hover:text-foreground
-              "
-            >
-              ← Back to podcasts
-            </Link>
-          )}
+        <TaxonomyViewHeader
+          image={{
+            kind: "taxonomyImages",
+            ownerId: podcast?.id,
+            imagesApi: podcastsApi.images,
+            queryKeyPrefix: "podcast-images",
+          }}
           title={isLoading
             ? "Podcast"
             : podcast
@@ -61,43 +49,6 @@ function PodcastViewLayout() {
                 />
               )
               : "Podcast not found"}
-          actions={podcast
-            ? (
-              <>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                >
-                  <Link
-                    to="/taxonomies/podcasts/$podcastSlug/edit/general"
-                    params={{
-                      podcastSlug,
-                    }}
-                  >
-                    Edit
-                  </Link>
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="
-                    text-destructive
-                    hover:text-destructive
-                  "
-                  disabled={deletePodcast.isPending}
-                  onClick={() => deletePodcast.mutate(podcast.id, {
-                    onSuccess: () => navigate({
-                      to: "/taxonomies/podcasts",
-                    }),
-                  })}
-                >
-                  {deletePodcast.isPending ? "Deleting…" : "Delete"}
-                </Button>
-              </>
-            )
-            : undefined}
         />
       )}
       nav={viewNav}

@@ -3,6 +3,7 @@ import type { ToolbarAction, ToolbarContext } from "./toolbarActionTypes";
 import {
   bookmarkLayoutAction,
   editBookmarkAction,
+  editTaxonomyAction,
   viewDetailsAction,
 } from "./toolbarBookmarkActions";
 import {
@@ -38,6 +39,7 @@ export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
     bulkSelectAction(ctx),
     bookmarkLayoutAction(ctx),
     viewDetailsAction(ctx),
+    editTaxonomyAction(ctx),
     editBookmarkAction(ctx),
     syncFromSourceAction(ctx),
     addChildAction(ctx),

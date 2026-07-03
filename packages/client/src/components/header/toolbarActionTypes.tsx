@@ -136,3 +136,260 @@ export function taxonomyViewLink(pathParts: string[], children: React.ReactNode)
   }
   return null;
 }
+
+/**
+ * A typed `<Link>` to a taxonomy entity's General **edit** tab, but only when the current path is one
+ * of that entity's read-only view/detail tabs (`…/<slug>/<tab>`) — never on the bare entity-scoped
+ * bookmarks index (`/categories/<slug>`) nor on any `…/edit/…` page. Returns `null` elsewhere.
+ * `children` backs both the desktop icon button and the mobile menu row. Mirrors {@link taxonomyViewLink}.
+ */
+export function taxonomyEditLink(pathParts: string[], children: React.ReactNode): React.ReactNode {
+  // Show only on a view/detail tab — never while already editing.
+  if (pathParts.includes("edit")) return null;
+
+  // Top-level taxonomies. `length >= 3` excludes the bare bookmarks index at `/<entity>/<slug>`.
+  if (pathParts[0] === "categories" && pathParts.length >= 3) {
+    return (
+      <Link
+        to="/categories/$categorySlug/edit/general"
+        params={{
+          categorySlug: pathParts[1],
+        }}
+      >
+        {children}
+      </Link>
+    );
+  }
+  if (pathParts[0] === "tags" && pathParts.length >= 3) {
+    return (
+      <Link
+        to="/tags/$tagSlug/edit/general"
+        params={{
+          tagSlug: pathParts[1],
+        }}
+      >
+        {children}
+      </Link>
+    );
+  }
+
+  // `/taxonomies/<entity>/<slug>/<tab>`. `length >= 4` excludes the bare `/taxonomies/<entity>/<slug>`.
+  if (pathParts[0] === "taxonomies" && pathParts.length >= 4) {
+    const slug = pathParts[2];
+    switch (pathParts[1]) {
+      case "websites":
+        return (
+          <Link
+            to="/taxonomies/websites/$websiteSlug/edit/general"
+            params={{
+              websiteSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "media-types":
+        return (
+          <Link
+            to="/taxonomies/media-types/$mediaTypeSlug/edit/general"
+            params={{
+              mediaTypeSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "youtube-channels":
+        return (
+          <Link
+            to="/taxonomies/youtube-channels/$channelSlug/edit/general"
+            params={{
+              channelSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "people":
+        return (
+          <Link
+            to="/taxonomies/people/$personSlug/edit/general"
+            params={{
+              personSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "groups":
+        return (
+          <Link
+            to="/taxonomies/groups/$groupSlug/edit/general"
+            params={{
+              groupSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "group-types":
+        return (
+          <Link
+            to="/taxonomies/group-types/$groupTypeSlug/edit/general"
+            params={{
+              groupTypeSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "newsletters":
+        return (
+          <Link
+            to="/taxonomies/newsletters/$newsletterSlug/edit/general"
+            params={{
+              newsletterSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "property-groups":
+        return (
+          <Link
+            to="/taxonomies/property-groups/$propertyGroupSlug/edit/general"
+            params={{
+              propertyGroupSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "relationship-types":
+        return (
+          <Link
+            to="/taxonomies/relationship-types/$relationshipTypeSlug/edit/general"
+            params={{
+              relationshipTypeSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "place-types":
+        return (
+          <Link
+            to="/taxonomies/place-types/$placeTypeSlug/edit/general"
+            params={{
+              placeTypeSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "media-properties":
+        return (
+          <Link
+            to="/taxonomies/media-properties/$mediaPropertySlug/edit/general"
+            params={{
+              mediaPropertySlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "books":
+        return (
+          <Link
+            to="/taxonomies/books/$bookSlug/edit/general"
+            params={{
+              bookSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "genres-moods":
+        return (
+          <Link
+            to="/taxonomies/genres-moods/$genreMoodSlug/edit/general"
+            params={{
+              genreMoodSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "languages":
+        return (
+          <Link
+            to="/taxonomies/languages/$languageSlug/edit/general"
+            params={{
+              languageSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "locations":
+        return (
+          <Link
+            to="/taxonomies/locations/$locationSlug/edit/general"
+            params={{
+              locationSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "movies":
+        return (
+          <Link
+            to="/taxonomies/movies/$movieSlug/edit/general"
+            params={{
+              movieSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "tv-shows":
+        return (
+          <Link
+            to="/taxonomies/tv-shows/$tvShowSlug/edit/general"
+            params={{
+              tvShowSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "episodes":
+        return (
+          <Link
+            to="/taxonomies/episodes/$episodeSlug/edit/general"
+            params={{
+              episodeSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "albums":
+        return (
+          <Link
+            to="/taxonomies/albums/$albumSlug/edit/general"
+            params={{
+              albumSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "tracks":
+        return (
+          <Link
+            to="/taxonomies/tracks/$trackSlug/edit/general"
+            params={{
+              trackSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      case "podcasts":
+        return (
+          <Link
+            to="/taxonomies/podcasts/$podcastSlug/edit/general"
+            params={{
+              podcastSlug: slug,
+            }}
+          >{children}
+          </Link>
+        );
+      default:
+        return null;
+    }
+  }
+  return null;
+}

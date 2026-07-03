@@ -43,6 +43,7 @@ export const albumWorkbench: EntityWorkbench<Album> = {
   },
   notFound: "Album not found.",
   navAriaLabel: "Album sections",
+  listingPath: "/taxonomies/albums",
   getSlug: album => album.slug,
   tabs: [
     {

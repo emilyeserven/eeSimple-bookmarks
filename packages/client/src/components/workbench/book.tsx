@@ -122,6 +122,7 @@ export const bookWorkbench: EntityWorkbench<Book> = {
   },
   notFound: "Book not found.",
   navAriaLabel: "Book sections",
+  listingPath: "/taxonomies/books",
   getSlug: book => book.slug,
   tabs: [
     {

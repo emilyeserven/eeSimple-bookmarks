@@ -44,6 +44,7 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
   },
   notFound: "Location not found.",
   navAriaLabel: "Location sections",
+  listingPath: "/taxonomies/locations",
   getSlug: location => location.slug,
   tabs: [
     {

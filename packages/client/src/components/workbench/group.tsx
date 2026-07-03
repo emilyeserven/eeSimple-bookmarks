@@ -140,6 +140,7 @@ export const groupWorkbench: EntityWorkbench<Group> = {
   },
   notFound: "Group not found.",
   navAriaLabel: "Group sections",
+  listingPath: "/taxonomies/groups",
   getSlug: group => group.slug,
   tabs: [
     {

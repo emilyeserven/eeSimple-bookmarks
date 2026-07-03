@@ -43,6 +43,7 @@ export const movieWorkbench: EntityWorkbench<Movie> = {
   },
   notFound: "Movie not found.",
   navAriaLabel: "Movie sections",
+  listingPath: "/taxonomies/movies",
   getSlug: movie => movie.slug,
   tabs: [
     {

@@ -43,6 +43,7 @@ export const trackWorkbench: EntityWorkbench<Track> = {
   },
   notFound: "Track not found.",
   navAriaLabel: "Track sections",
+  listingPath: "/taxonomies/tracks",
   getSlug: track => track.slug,
   tabs: [
     {

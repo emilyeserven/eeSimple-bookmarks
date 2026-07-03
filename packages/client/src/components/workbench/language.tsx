@@ -42,6 +42,7 @@ export const languageWorkbench: EntityWorkbench<Language> = {
   },
   notFound: "Language not found.",
   navAriaLabel: "Language sections",
+  listingPath: "/taxonomies/languages",
   getSlug: language => language.slug,
   tabs: [
     {
