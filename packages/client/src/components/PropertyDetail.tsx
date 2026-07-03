@@ -12,7 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
 import { BOOLEAN_LABEL_PRESET_OPTIONS } from "@/lib/propertyForm";
 
-/** Where the property's field appears in the bookmark form. */
+/**
+ * Where the property's field appears in the bookmark form. Read-only here — placement is edited
+ * centrally in Settings → Display → Bookmark Add Form, not from this page.
+ */
 function formPlacement(property: CustomProperty): string {
   if (property.hiddenFromForm) return "Hidden from the bookmark form";
   if (property.showInForm) return "Shown in the main bookmark form";
@@ -310,7 +313,25 @@ export function PropertyDisplayFields({
           )
           : <span className="text-muted-foreground">Ungrouped</span>}
       </DetailField>
-      <DetailField label="Bookmark form">{formPlacement(property)}</DetailField>
+      <DetailField label="Bookmark form">
+        <div className="space-y-1">
+          <p>{formPlacement(property)}</p>
+          <p className="text-xs text-muted-foreground">
+            Managed in
+            {" "}
+            <Link
+              to="/settings/display/bookmark-add"
+              className="
+                text-primary
+                hover:underline
+              "
+            >
+              Bookmark Add Form settings
+            </Link>
+            .
+          </p>
+        </div>
+      </DetailField>
       <DetailField label="Listings">
         {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}
       </DetailField>
