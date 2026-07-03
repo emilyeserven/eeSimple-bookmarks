@@ -7,19 +7,21 @@ import { useBooks } from "../hooks/useBooks";
 import { useEpisodes } from "../hooks/useEpisodes";
 import { useExpandedSet } from "../hooks/useExpandedSet";
 import { useMovies } from "../hooks/useMovies";
+import { usePodcasts } from "../hooks/usePodcasts";
 import { useTracks } from "../hooks/useTracks";
 import { useTvShows } from "../hooks/useTvShows";
 
 /**
- * The six Media Properties taxonomies a bookmark can link to via a single FK. Deliberately NOT
- * `PlexKind | "book"` — `PlexKind` still includes `"artist"` (People/Publishers Plex-link against the
- * Plex `artist` item type), but a bookmark no longer links to an Artist taxonomy row.
+ * The seven Media Properties taxonomies a bookmark can link to via a single FK. Deliberately NOT
+ * `PlexKind | "book" | "podcast"` — `PlexKind` still includes `"artist"` (People/Groups Plex-link
+ * against the Plex `artist` item type), but a bookmark no longer links to an Artist taxonomy row.
  */
-type MediaKind = "book" | "movie" | "show" | "episode" | "album" | "track";
+type MediaKind = "book" | "movie" | "show" | "episode" | "album" | "track" | "podcast";
 
 /** The bookmark FK column each media taxonomy fills in (exactly one is ever set). */
 export type MediaTaxoKey
   = | "bookId"
+    | "podcastId"
     | "movieId"
     | "tvShowId"
     | "episodeId"
@@ -29,6 +31,7 @@ export type MediaTaxoKey
 /** A media-item link selection: exactly one taxonomy FK is set, or all null to unlink. */
 export interface MediaSelection {
   bookId: string | null;
+  podcastId: string | null;
   movieId: string | null;
   tvShowId: string | null;
   episodeId: string | null;
@@ -38,6 +41,7 @@ export interface MediaSelection {
 
 export const EMPTY_MEDIA_SELECTION: MediaSelection = {
   bookId: null,
+  podcastId: null,
   movieId: null,
   tvShowId: null,
   episodeId: null,
@@ -69,6 +73,11 @@ const MEDIA_KIND_META: MediaKindMeta[] = [
     kind: "book",
     fkKey: "bookId",
     heading: "Books",
+  },
+  {
+    kind: "podcast",
+    fkKey: "podcastId",
+    heading: "Podcasts",
   },
   {
     kind: "movie",
@@ -103,6 +112,9 @@ function useMediaTaxonomyLists(): Record<MediaKind, TaxoRow[]> {
     data: books,
   } = useBooks();
   const {
+    data: podcasts,
+  } = usePodcasts();
+  const {
     data: movies,
   } = useMovies();
   const {
@@ -119,6 +131,7 @@ function useMediaTaxonomyLists(): Record<MediaKind, TaxoRow[]> {
   } = useTracks();
   return {
     book: books ?? [],
+    podcast: podcasts ?? [],
     movie: movies ?? [],
     show: tvShows ?? [],
     episode: episodes ?? [],

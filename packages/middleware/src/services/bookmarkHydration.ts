@@ -159,6 +159,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     episodeId: row.episodeId,
     albumId: row.albumId,
     trackId: row.trackId,
+    podcastId: row.podcastId,
     tvShowId: row.tvShowId,
     kavitaSeriesId: row.kavitaSeriesId,
     kavitaLibraryId: row.kavitaLibraryId,

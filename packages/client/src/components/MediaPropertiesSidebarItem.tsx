@@ -11,6 +11,7 @@ import {
   Film,
   Library,
   Music,
+  Podcast,
   Tv,
   Tv2,
 } from "lucide-react";
@@ -35,6 +36,7 @@ function FlyoutChildLink({
 }: {
   to:
     | "/taxonomies/books"
+    | "/taxonomies/podcasts"
     | "/taxonomies/movies"
     | "/taxonomies/tv-shows"
     | "/taxonomies/episodes"
@@ -70,9 +72,10 @@ function FlyoutChildLink({
   );
 }
 
-/** The seven Media Properties flyout children, rendered for both the desktop popover and mobile inline. */
+/** The eight Media Properties flyout children, rendered for both the desktop popover and mobile inline. */
 function FlyoutChildren({
   booksCount,
+  podcastsCount,
   moviesCount,
   tvShowsCount,
   episodesCount,
@@ -81,6 +84,7 @@ function FlyoutChildren({
   onNavigate,
 }: {
   booksCount?: number;
+  podcastsCount?: number;
   moviesCount?: number;
   tvShowsCount?: number;
   episodesCount?: number;
@@ -95,6 +99,13 @@ function FlyoutChildren({
         icon={BookOpen}
         label="Books"
         count={booksCount}
+        onNavigate={onNavigate}
+      />
+      <FlyoutChildLink
+        to="/taxonomies/podcasts"
+        icon={Podcast}
+        label="Podcasts"
+        count={podcastsCount}
         onNavigate={onNavigate}
       />
       <FlyoutChildLink
@@ -147,6 +158,7 @@ export function MediaPropertiesSidebarItem({
   pathname,
   mediaPropertiesCount,
   booksCount,
+  podcastsCount,
   moviesCount,
   tvShowsCount,
   episodesCount,
@@ -157,6 +169,7 @@ export function MediaPropertiesSidebarItem({
   pathname: string;
   mediaPropertiesCount?: number;
   booksCount?: number;
+  podcastsCount?: number;
   moviesCount?: number;
   tvShowsCount?: number;
   episodesCount?: number;
@@ -243,6 +256,7 @@ export function MediaPropertiesSidebarItem({
             <SidebarMenuItem className="px-1 pb-1">
               <FlyoutChildren
                 booksCount={booksCount}
+                podcastsCount={podcastsCount}
                 moviesCount={moviesCount}
                 tvShowsCount={tvShowsCount}
                 episodesCount={episodesCount}
@@ -284,6 +298,7 @@ export function MediaPropertiesSidebarItem({
           </p>
           <FlyoutChildren
             booksCount={booksCount}
+            podcastsCount={podcastsCount}
             moviesCount={moviesCount}
             tvShowsCount={tvShowsCount}
             episodesCount={episodesCount}

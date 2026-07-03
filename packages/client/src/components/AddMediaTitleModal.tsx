@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { BookForm } from "./BookForm";
 import { PlexTitleForm } from "./PlexTitleForm";
+import { PodcastForm } from "./PodcastForm";
 
 import {
   Dialog,
@@ -14,8 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-/** Which taxonomy a create-modal kind toggle targets (the six bookmark-linkable media taxonomies). */
-type CreateKind = "book" | "movie" | "show" | "episode" | "album" | "track";
+/** Which taxonomy a create-modal kind toggle targets (the seven bookmark-linkable media taxonomies). */
+type CreateKind = "book" | "movie" | "show" | "episode" | "album" | "track" | "podcast";
 
 /** Each create kind, its toggle label, and the bookmark FK a created row of that kind fills in. */
 const KIND_OPTIONS: { kind: CreateKind;
@@ -25,6 +26,11 @@ const KIND_OPTIONS: { kind: CreateKind;
     kind: "book",
     label: "Book",
     key: "bookId",
+  },
+  {
+    kind: "podcast",
+    label: "Podcast",
+    key: "podcastId",
   },
   {
     kind: "movie",
@@ -116,18 +122,30 @@ export function AddMediaTitleModal({
               }}
             />
           )
-          : (
-            <PlexTitleForm
-              kind={kind}
-              onCreated={(item) => {
-                onCreated?.({
-                  key: active.key,
-                  id: item.id,
-                });
-                onOpenChange(false);
-              }}
-            />
-          )}
+          : kind === "podcast"
+            ? (
+              <PodcastForm
+                onCreated={(podcast) => {
+                  onCreated?.({
+                    key: "podcastId",
+                    id: podcast.id,
+                  });
+                  onOpenChange(false);
+                }}
+              />
+            )
+            : (
+              <PlexTitleForm
+                kind={kind}
+                onCreated={(item) => {
+                  onCreated?.({
+                    key: active.key,
+                    id: item.id,
+                  });
+                  onOpenChange(false);
+                }}
+              />
+            )}
       </DialogContent>
     </Dialog>
   );

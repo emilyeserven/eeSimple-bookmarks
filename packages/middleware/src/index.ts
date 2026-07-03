@@ -25,6 +25,7 @@ import { backfillTvShowSlugs } from "@/services/tvShows";
 import { backfillEpisodeSlugs } from "@/services/episodes";
 import { backfillAlbumSlugs } from "@/services/albums";
 import { backfillTrackSlugs } from "@/services/tracks";
+import { backfillPodcastSlugs } from "@/services/podcasts";
 import { backfillSavedFilterSlugs } from "@/services/savedFilters";
 import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
 import { backfillTagSlugs } from "@/services/tags";
@@ -93,6 +94,7 @@ try {
   await backfillEpisodeSlugs();
   await backfillAlbumSlugs();
   await backfillTrackSlugs();
+  await backfillPodcastSlugs();
   await backfillSavedFilterSlugs();
   await ensureBuiltInRelationshipTypes();
   await backfillYouTubeChannelSlugs();

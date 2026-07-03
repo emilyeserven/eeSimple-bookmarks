@@ -309,6 +309,7 @@ export function useCardDisplayRulePreview({
       episodeId: null,
       albumId: null,
       trackId: null,
+      podcastId: null,
       kavitaSeriesId: null,
       kavitaLibraryId: null,
       kavitaSeriesName: null,

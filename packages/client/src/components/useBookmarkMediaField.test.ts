@@ -47,6 +47,11 @@ vi.mock("../hooks/useTracks", () => ({
     data: [],
   }),
 }));
+vi.mock("../hooks/usePodcasts", () => ({
+  usePodcasts: () => ({
+    data: [],
+  }),
+}));
 
 describe("useBookmarkMediaField", () => {
   it("starts with every section expanded and unlinked when the bookmark has no media", () => {
@@ -58,7 +63,7 @@ describe("useBookmarkMediaField", () => {
 
     expect(result.current.isLinked).toBe(false);
     expect(result.current.selectedLabel).toBeNull();
-    expect(result.current.sections).toHaveLength(6);
+    expect(result.current.sections).toHaveLength(7);
     for (const section of result.current.sections) {
       expect(section.collapsed).toBe(false);
     }

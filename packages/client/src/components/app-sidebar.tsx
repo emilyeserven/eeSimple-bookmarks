@@ -63,6 +63,7 @@ function ExpandableLinkSection({
   seeMoreTooltip,
   placeTypesCount,
   booksCount,
+  podcastsCount,
   moviesCount,
   tvShowsCount,
   episodesCount,
@@ -81,6 +82,7 @@ function ExpandableLinkSection({
   seeMoreTooltip: string;
   placeTypesCount?: number;
   booksCount?: number;
+  podcastsCount?: number;
   moviesCount?: number;
   tvShowsCount?: number;
   episodesCount?: number;
@@ -109,6 +111,7 @@ function ExpandableLinkSection({
           pathname={pathname}
           mediaPropertiesCount={item.count}
           booksCount={booksCount}
+          podcastsCount={podcastsCount}
           moviesCount={moviesCount}
           tvShowsCount={tvShowsCount}
           episodesCount={episodesCount}
@@ -223,6 +226,7 @@ export function AppSidebar({
     aiSummarizationCount,
     placeTypesCount,
     booksCount,
+    podcastsCount,
     moviesCount,
     tvShowsCount,
     episodesCount,
@@ -322,6 +326,7 @@ export function AppSidebar({
               seeMoreTooltip="Show more taxonomy links"
               placeTypesCount={placeTypesCount}
               booksCount={booksCount}
+              podcastsCount={podcastsCount}
               moviesCount={moviesCount}
               tvShowsCount={tvShowsCount}
               episodesCount={episodesCount}

@@ -12,6 +12,7 @@ export { locationContentType } from "./location";
 export { mediaPropertyContentType } from "./mediaProperty";
 export { mediaTypeContentType } from "./mediaType";
 export { movieContentType } from "./movie";
+export { podcastContentType } from "./podcast";
 export { trackContentType } from "./track";
 export { tvShowContentType } from "./tvShow";
 export { placeTypeContentType } from "./placeType";
