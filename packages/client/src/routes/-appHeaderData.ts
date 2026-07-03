@@ -66,6 +66,7 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
     propertyGroup: slugFor(pathname, pathParts, "/taxonomies/property-groups", 2),
     mediaProperty: slugFor(pathname, pathParts, "/taxonomies/media-properties", 2),
     book: slugFor(pathname, pathParts, "/taxonomies/books", 2),
+    podcast: slugFor(pathname, pathParts, "/taxonomies/podcasts", 2),
     movie: slugFor(pathname, pathParts, "/taxonomies/movies", 2),
     tvShow: slugFor(pathname, pathParts, "/taxonomies/tv-shows", 2),
     episode: slugFor(pathname, pathParts, "/taxonomies/episodes", 2),

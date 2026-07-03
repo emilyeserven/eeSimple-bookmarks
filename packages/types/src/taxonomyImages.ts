@@ -6,7 +6,7 @@
  */
 
 /** Which taxonomy a `taxonomy_images` row belongs to. Add a new entity here in exactly one place. */
-export const TAXONOMY_IMAGE_OWNER_TYPES = ["movie", "tvShow", "episode", "artist", "album", "track", "book"] as const;
+export const TAXONOMY_IMAGE_OWNER_TYPES = ["movie", "tvShow", "episode", "artist", "album", "track", "book", "podcast"] as const;
 
 export type TaxonomyImageOwnerType = typeof TAXONOMY_IMAGE_OWNER_TYPES[number];
 
@@ -18,7 +18,7 @@ export interface TaxonomyImage {
   url: string;
   width: number | null;
   height: number | null;
-  source: "upload" | "plex" | "kavita" | "isbn";
+  source: "upload" | "plex" | "kavita" | "isbn" | "podcast";
   isMain: boolean;
   sortOrder: number;
 }

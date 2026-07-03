@@ -10,6 +10,7 @@ import { useMovies } from "../hooks/useMovies";
 import { useNewsletters } from "../hooks/useNewsletters";
 import { usePeople } from "../hooks/usePeople";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
+import { usePodcasts } from "../hooks/usePodcasts";
 import { useTags } from "../hooks/useTags";
 import { useTracks } from "../hooks/useTracks";
 import { useTvShows } from "../hooks/useTvShows";
@@ -24,6 +25,7 @@ export function useSidebarTaxonomyData() {
     allMediaTypes: useMediaTypes().data,
     allMediaProperties: useMediaProperties().data,
     allBooks: useBooks().data,
+    allPodcasts: usePodcasts().data,
     allMovies: useMovies().data,
     allTvShows: useTvShows().data,
     allEpisodes: useEpisodes().data,

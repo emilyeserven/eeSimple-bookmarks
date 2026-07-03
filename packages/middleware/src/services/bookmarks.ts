@@ -573,6 +573,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         episodeId: input.episodeId ?? null,
         albumId: input.albumId ?? null,
         trackId: input.trackId ?? null,
+        podcastId: input.podcastId ?? null,
         kavitaSeriesId: input.kavitaSeriesId ?? null,
         kavitaLibraryId: input.kavitaLibraryId ?? null,
         kavitaSeriesName: input.kavitaSeriesName ?? null,
@@ -629,7 +630,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedName" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
+  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedName" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "podcastId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
 >;
 
 /**
@@ -657,6 +658,7 @@ export function scalarBookmarkPatch(
   if (input.episodeId !== undefined) patch.episodeId = input.episodeId ?? null;
   if (input.albumId !== undefined) patch.albumId = input.albumId ?? null;
   if (input.trackId !== undefined) patch.trackId = input.trackId ?? null;
+  if (input.podcastId !== undefined) patch.podcastId = input.podcastId ?? null;
   if (input.kavitaSeriesId !== undefined) patch.kavitaSeriesId = input.kavitaSeriesId ?? null;
   if (input.kavitaLibraryId !== undefined) patch.kavitaLibraryId = input.kavitaLibraryId ?? null;
   if (input.kavitaSeriesName !== undefined) patch.kavitaSeriesName = input.kavitaSeriesName ?? null;
@@ -821,6 +823,7 @@ export async function updateBookmark(
         | "episodeId"
         | "albumId"
         | "trackId"
+        | "podcastId"
         | "kavitaSeriesId"
         | "kavitaLibraryId"
         | "kavitaSeriesName"

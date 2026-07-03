@@ -14,6 +14,7 @@ import { useMovieBySlug } from "@/hooks/useMovies";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePersonBySlug } from "@/hooks/usePeople";
 import { usePlaceTypeBySlug } from "@/hooks/usePlaceTypes";
+import { usePodcastBySlug } from "@/hooks/usePodcasts";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useSavedFilterBySlug } from "@/hooks/useSavedFilters";
@@ -31,6 +32,7 @@ export interface TaxonomyNameSlugs {
   propertyGroup: string;
   mediaProperty: string;
   book: string;
+  podcast: string;
   movie: string;
   tvShow: string;
   episode: string;
@@ -78,6 +80,9 @@ export function useTaxonomyNameMap(
   const {
     book,
   } = useBookBySlug(slugs.book);
+  const {
+    podcast,
+  } = usePodcastBySlug(slugs.podcast);
   const {
     movie,
   } = useMovieBySlug(slugs.movie);
@@ -138,6 +143,9 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/books": {
       name: book?.name,
+    },
+    "/taxonomies/podcasts": {
+      name: podcast?.name,
     },
     "/taxonomies/movies": {
       name: movie?.name,

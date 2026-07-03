@@ -197,6 +197,29 @@ export function ConnectorsSettings() {
       ),
     },
     {
+      id: "podcasts",
+      status: "always-on",
+      node: (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>Podcasts (Apple Podcasts + RSS)</CardTitle>
+              <AlwaysOnBadge />
+            </div>
+            <CardDescription>
+              Keyless podcast metadata: search Apple Podcasts (the iTunes Search API) or paste an RSS/XML
+              feed URL to autofill a podcast&apos;s title, author, artwork, and description — and re-pull
+              them any time with &quot;Sync from source&quot;. No API key, nothing leaves the box beyond the
+              feed/iTunes lookup itself.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Provides items={["Title", "Author", "Artwork image", "Description"]} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
       id: "duckduckgo-icons",
       status: "always-on",
       node: (

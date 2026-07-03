@@ -27,6 +27,7 @@ export * from "./languageUsages.js";
 export * from "./locations.js";
 export * from "./mediaProperties.js";
 export * from "./movies.js";
+export * from "./podcasts.js";
 export * from "./tracks.js";
 export * from "./tvShows.js";
 export * from "./oembed.js";
@@ -1233,6 +1234,8 @@ export interface Bookmark {
   albumId: string | null;
   /** Id of the linked Track (Tracks taxonomy), or `null` when unset. */
   trackId: string | null;
+  /** Id of the linked Podcast (Podcasts taxonomy), or `null` when unset. */
+  podcastId: string | null;
   /** Id of the linked series on the connected Kavita server, or `null` when not linked. */
   kavitaSeriesId: number | null;
   /** Id of the Kavita library containing the linked series (needed for the web UI deep link). */
@@ -1360,6 +1363,8 @@ export interface CreateBookmarkInput {
   albumId?: string | null;
   /** Id of the Track (Tracks taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
   trackId?: string | null;
+  /** Id of the Podcast (Podcasts taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
+  podcastId?: string | null;
   /** Id of the Kavita series to link, or `null` to unlink. Omit to leave unchanged. */
   kavitaSeriesId?: number | null;
   /** Id of the Kavita library containing the linked series, or `null` to clear. Omit to leave unchanged. */

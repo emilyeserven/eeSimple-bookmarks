@@ -9,7 +9,7 @@ tooling and architecture of [course-tracker](https://github.com/emilyeserven/cou
 
 - **Runtime & build:** Node 22, pnpm 10, TypeScript 5.9 (strict, ES2022, `moduleResolution: bundler`)
 - **Frontend:** React 19, Vite, TanStack Router/Query/Form, Tailwind CSS 4
-- **Backend:** Fastify 5, Drizzle ORM, PostgreSQL, Swagger UI
+- **Backend:** Fastify 5, Drizzle ORM, PostgreSQL, Swagger UI, `fast-xml-parser` (podcast RSS/XML feeds)
 - **Testing:** Vitest + Testing Library (client), Node test runner (middleware). Pure client
   `.test.ts` files opt into the faster `node` environment with a first-line
   `// @vitest-environment node` pragma — see the **`vitest-node-environment`** skill for the
@@ -589,6 +589,19 @@ configuration are explicitly opt-in (Tier 2, below).
   **"Sync from source"** review modal (the `plex-title` kind — poster + names + links reviewed
   current-vs-source, picked rows persisted by the edit form's per-field auto-save). Display metadata
   only → never `invalidateBookmarkCache()`. See the **`sync-from-source`** skill.
+- **Podcasts are the keyless odd one out of the media taxonomies.** The **Podcasts** taxonomy
+  (`podcasts` table, `bookmarks.podcastId`; the 8th "Media Property" alongside Books/Movies/…) is
+  sourced not from Plex/Kavita but keylessly from **Apple Podcasts (iTunes Search & Lookup API)** and a
+  pasted **RSS/XML feed URL** — `services/podcastFeed.ts` (`searchPodcasts`/`lookupPodcastByItunesId`
+  via iTunes JSON, `resolvePodcastFeed`/`parsePodcastFeed` via `fast-xml-parser`, `importPodcastArtwork`
+  storing the feed/iTunes artwork through the taxonomy-image gallery). A create/edit **search picker**
+  (`PodcastSearchPicker`, keyless — always shown) fills name/author/feed/iTunes + artwork on select;
+  the edit form registers a **`podcast-feed`** sync kind so **"Sync from source"** re-pulls
+  name/author/description (staged) + artwork (immediate) from `GET …/:id/feed-preview`
+  (`resolvePodcastFeedPreview`, resolve-only). No env var, no `ConnectorsStatus` gating (an always-on
+  card on Settings → Connectors); SSRF-guard every feed/artwork URL with `isPublicHttpUrl`; display
+  metadata only → never `invalidateBookmarkCache()`. See the **`add-connector`** + **`sync-from-source`**
+  skills.
 - **Tier 2 providers are gated (DB value or env var) and default off.** `services/hostedMetadata.ts`
   (`HOSTED_METADATA_ENDPOINT`/`_API_KEY`/`_PROVIDER`, Microlink-compatible) and the YouTube Data API
   path in `services/youtube.ts` (`youtubeApiEnabledAsync`, key from Settings → Connectors or

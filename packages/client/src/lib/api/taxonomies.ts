@@ -57,6 +57,11 @@ import type {
   Album,
   Track,
   PlaceType,
+  Podcast,
+  CreatePodcastInput,
+  UpdatePodcastInput,
+  PodcastSearchResult,
+  PodcastFeedResult,
   UpdateBookInput,
   UpdateLocationInput,
   UpdateMediaPropertyInput,
@@ -288,6 +293,15 @@ export const mediaPropertiesApi = createCrudApi<MediaProperty, CreateMediaProper
 export const booksApi = {
   ...createCrudApi<Book, CreateBookInput, UpdateBookInput>("books"),
   images: createTaxonomyImageApi("/books"),
+};
+
+export const podcastsApi = {
+  ...createCrudApi<Podcast, CreatePodcastInput, UpdatePodcastInput>("podcasts"),
+  images: createTaxonomyImageApi("/podcasts"),
+  search: (q: string) =>
+    request<PodcastSearchResult[]>(`/podcasts/search?q=${encodeURIComponent(q)}`),
+  feedPreview: (id: string) =>
+    request<PodcastFeedResult>(`/podcasts/${id}/feed-preview`),
 };
 
 export const moviesApi = {
