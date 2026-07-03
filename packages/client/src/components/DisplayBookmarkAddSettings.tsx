@@ -1,11 +1,14 @@
 import type { BookmarkAddFormStandardField } from "@eesimple/types";
 import type { LucideIcon } from "lucide-react";
 
+import { useState } from "react";
+
 import { BOOKMARK_ADD_FORM_PLACEMENTS, BOOKMARK_ADD_FORM_STANDARD_FIELDS } from "@eesimple/types";
 import {
   Building2,
   CaseSensitive,
   Clapperboard,
+  Eye,
   FolderOpen,
   Image,
   Languages,
@@ -14,6 +17,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { BookmarkAddFormPreviewDialog } from "./BookmarkAddFormPreviewDialog";
 import { SegmentedToggleRow } from "./SegmentedToggleRow";
 import {
   BOOKMARK_ADD_FORM_STANDARD_LABELS,
@@ -21,6 +25,7 @@ import {
   useBookmarkAddFormSettingsPage,
 } from "../hooks/useBookmarkAddFormSettingsPage";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -76,9 +81,27 @@ export function DisplayBookmarkAddSettings() {
     detailProperties,
     customProperties,
   } = useBookmarkAddFormSettingsPage();
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   return (
     <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold">Bookmark Add Form</h2>
+          <p className="text-sm text-muted-foreground">
+            Choose which fields the quick Add Bookmark form shows, and where.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setPreviewOpen(true)}
+        >
+          <Eye className="size-4" />
+          Preview
+        </Button>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Standard fields</CardTitle>
@@ -148,6 +171,11 @@ export function DisplayBookmarkAddSettings() {
           )}
         </CardContent>
       </Card>
+
+      <BookmarkAddFormPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+      />
     </div>
   );
 }
