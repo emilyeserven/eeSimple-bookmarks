@@ -30,6 +30,8 @@ export interface Podcast {
   createdAt: string;
   /** Number of bookmarks linked to this podcast (populated by list endpoints). */
   bookmarkCount?: number;
+  /** Main artwork image URL (from the taxonomy-image gallery), or null when none is set. */
+  imageUrl: string | null;
 }
 
 /** Payload for creating a podcast. */
