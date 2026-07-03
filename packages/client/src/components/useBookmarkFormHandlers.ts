@@ -93,16 +93,16 @@ export function useBookmarkFormHandlers({
       websiteLookup,
       updateWebsite,
       updateYouTubeChannel,
-      createAuthor,
-      updateAuthor,
-      autoAuthorImage,
+      createPerson,
+      updatePerson,
+      autoPersonImage,
       createLanguage,
     },
     customProperties,
     categories,
     mediaTypes,
     languages,
-    authors,
+    people,
     redirectIgnoreList,
     autoFetchTitle,
   } = data;
@@ -155,7 +155,7 @@ export function useBookmarkFormHandlers({
     runFetchDescription,
     runYouTubeEnrichment,
     applyScanMetadata,
-    createAuthorFromSocialAccount,
+    createPersonFromSocialAccount,
     runUrlCleanup,
     undoUrlCleanup,
     undoTitleFetch,
@@ -175,12 +175,12 @@ export function useBookmarkFormHandlers({
     classifyUrlShortener,
     cleanUrl,
     undoCleanup,
-    authors,
-    getAuthorIds: () => form.getFieldValue("authorIds") as string[],
-    setAuthorIds: (ids: string[]) => form.setFieldValue("authorIds", ids),
-    createAuthor,
-    updateAuthor,
-    autoAuthorImage,
+    people,
+    getPersonIds: () => form.getFieldValue("personIds") as string[],
+    setPersonIds: (ids: string[]) => form.setFieldValue("personIds", ids),
+    createPerson,
+    updatePerson,
+    autoPersonImage,
     setSocialAccountOffer: ui.setSocialAccountOffer,
     languages,
     getLanguageId: () => form.getFieldValue("languageId") as string,
@@ -201,7 +201,7 @@ export function useBookmarkFormHandlers({
     description: string;
     tagIds: string[];
     locationIds: string[];
-    authorIds: string[];
+    personIds: string[];
     publisherId: string;
   }): Promise<void> {
     const {
@@ -234,7 +234,7 @@ export function useBookmarkFormHandlers({
       description: value.description || null,
       tagIds: value.tagIds,
       locationIds: value.locationIds,
-      authorIds: value.authorIds,
+      personIds: value.personIds,
       publisherId: form.getFieldValue("publisherId") || null,
       numberValues,
       booleanValues,
@@ -327,7 +327,7 @@ export function useBookmarkFormHandlers({
   }
 
   // The full URL scan: clean the URL, then make a single consolidated `/api/scan` round-trip that
-  // resolves redirects and fetches the page metadata once (title/description/authors, plus
+  // resolves redirects and fetches the page metadata once (title/description/people, plus
   // YouTube/oEmbed enrichment). Autofill, the website lookup, and the duplicate check run alongside.
   // `revealing` is the explicit "Check URL" action — it always fills the title and reveals the rest
   // of the form; on later blurs the title fill honours the autoFetchTitle setting.
@@ -480,7 +480,7 @@ export function useBookmarkFormHandlers({
     runYouTubeEnrichment,
     undoUrlCleanup,
     undoTitleFetch,
-    createAuthorFromSocialAccount,
+    createPersonFromSocialAccount,
     // Action handlers.
     submitForm,
     performUrlScan,

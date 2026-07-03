@@ -1,7 +1,7 @@
 import type {
-  Album, Artist, Author, Book, Category, CustomProperty, Episode, Language, Location, MediaProperty,
-  MediaType, Movie, Newsletter, PlaceType, Publisher, PropertyGroup, Tag, Track, TvShow, Website,
-  YouTubeChannel,
+  Album, Artist, Book, Category, CustomProperty, Episode, Language, Location, MediaProperty,
+  MediaType, Movie, Newsletter, Person, PlaceType, Publisher, PropertyGroup, Tag, Track, TvShow,
+  Website, YouTubeChannel,
 } from "@eesimple/types";
 import type { ComponentType, ReactNode } from "react";
 
@@ -9,7 +9,6 @@ import { useState } from "react";
 
 import { AddAlbumModal } from "./AddAlbumModal";
 import { AddArtistModal } from "./AddArtistModal";
-import { AddAuthorModal } from "./AddAuthorModal";
 import { AddBookModal } from "./AddBookModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
@@ -20,6 +19,7 @@ import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddMovieModal } from "./AddMovieModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
+import { AddPersonModal } from "./AddPersonModal";
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { AddPublisherModal } from "./AddPublisherModal";
@@ -32,7 +32,7 @@ import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
 /** What each creatable entity's Add-modal hands back to the opener. */
 interface CreatedByEntity {
   "tag": Tag;
-  "author": Author;
+  "person": Person;
   "place-type": PlaceType;
   "category": Category;
   "media-type": MediaType;
@@ -77,9 +77,9 @@ const CREATABLE_ENTITY_PICKERS: {
     createLabel: "Create tag",
     Modal: AddTagModal,
   },
-  "author": {
-    createLabel: "Create author",
-    Modal: AddAuthorModal,
+  "person": {
+    createLabel: "Create person",
+    Modal: AddPersonModal,
   },
   "place-type": {
     createLabel: "Create place type",

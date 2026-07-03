@@ -43,20 +43,20 @@ describe("mergeInboxPreFill", () => {
     expect(merged.tagIds).toEqual(["a", "b", "c"]);
   });
 
-  it("uses the item's authors when non-empty, else the batch's", () => {
+  it("uses the item's people when non-empty, else the batch's", () => {
     expect(mergeInboxPreFill({
-      authorIds: ["x"],
+      personIds: ["x"],
     }, {
-      authorIds: ["y"],
-    }).authorIds).toEqual(["x"]);
+      personIds: ["y"],
+    }).personIds).toEqual(["x"]);
     expect(mergeInboxPreFill({
-      authorIds: [],
+      personIds: [],
     }, {
-      authorIds: ["y"],
-    }).authorIds).toEqual(["y"]);
+      personIds: ["y"],
+    }).personIds).toEqual(["y"]);
     expect(mergeInboxPreFill({}, {
-      authorIds: ["y"],
-    }).authorIds).toEqual(["y"]);
+      personIds: ["y"],
+    }).personIds).toEqual(["y"]);
   });
 
   it("sources the custom-property value arrays only from the batch prefill", () => {

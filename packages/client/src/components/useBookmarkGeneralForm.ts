@@ -33,9 +33,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       fetchMetadata,
       websiteLookup,
       urlDuplicateCheck,
-      createAuthor,
-      updateAuthor,
-      autoAuthorImage,
+      createPerson,
+      updatePerson,
+      autoPersonImage,
       createLanguage,
     },
     websites,
@@ -48,7 +48,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     languages,
     autofillRules,
     autoFetchTitle,
-    authors,
+    people,
     publishers,
   } = useBookmarkFormData();
 
@@ -97,7 +97,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       locationIds: (bookmark.locations.map(location => location.id)) as string[],
       blacklistedTagIds: bookmark.blacklistedTagIds as string[],
       blacklistedLocationIds: bookmark.blacklistedLocationIds as string[],
-      authorIds: (bookmark.authors.map(a => a.id)) as string[],
+      personIds: (bookmark.people.map(a => a.id)) as string[],
       publisherId: bookmark.publisher?.id ?? "",
     },
     validators: {
@@ -123,7 +123,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
           description: value.description || null,
           tagIds: value.tagIds,
           locationIds: value.locationIds,
-          authorIds: value.authorIds,
+          personIds: value.personIds,
           publisherId: value.publisherId || null,
           ...(channelHintRef.current && {
             youtubeChannel: channelHintRef.current,
@@ -194,22 +194,22 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     );
   }
 
-  function saveAuthors(authorIds: string[]): void {
+  function savePeople(personIds: string[]): void {
     updateBookmark.mutate(
       {
         id: bookmark.id,
         input: {
-          authorIds,
+          personIds,
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Authors"),
-        onError: e => notifyFieldSaveError("Authors", describeError(e)),
+        onSuccess: () => notifyFieldSaved("People"),
+        onError: e => notifyFieldSaveError("People", describeError(e)),
       },
     );
   }
 
-  // The Media link lives outside the zod form state (immediate-save, like tags/authors), so the
+  // The Media link lives outside the zod form state (immediate-save, like tags/people), so the
   // tab's Save-changes submit never touches it. Selection flows through one of the seven Media
   // Properties taxonomy FKs (Book/Movie/TV Show/Episode/Album/Artist/Track) rather than a raw
   // Kavita/Plex item; exactly one is ever set — selecting one clears the rest (the selection carries
@@ -261,7 +261,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     runFetchDescription,
     runYouTubeEnrichment,
     applyScanMetadata,
-    createAuthorFromSocialAccount,
+    createPersonFromSocialAccount,
     reconcileSocialAccountOnEdit,
     runUrlCleanup,
     undoUrlCleanup,
@@ -282,12 +282,12 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     classifyUrlShortener,
     cleanUrl,
     undoCleanup,
-    authors,
-    getAuthorIds: () => form.getFieldValue("authorIds") as string[],
-    setAuthorIds: (ids: string[]) => form.setFieldValue("authorIds", ids),
-    createAuthor,
-    updateAuthor,
-    autoAuthorImage,
+    people,
+    getPersonIds: () => form.getFieldValue("personIds") as string[],
+    setPersonIds: (ids: string[]) => form.setFieldValue("personIds", ids),
+    createPerson,
+    updatePerson,
+    autoPersonImage,
     setSocialAccountOffer,
     languages,
     getLanguageId: () => form.getFieldValue("languageId") as string,
@@ -316,7 +316,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
   }
 
   // Manual "Rescan" action: re-runs the consolidated `/api/scan` pipeline against the bookmark's
-  // current URL to backfill missing data (title/description fill only when blank; authors are
+  // current URL to backfill missing data (title/description fill only when blank; people are
   // matched/linked by name and by detected social-media profile, never displacing what's already
   // set). Unlike `performUrlScan` (which runs automatically on URL blur for lightweight enrichment),
   // this is explicit and reports its outcome via toast since it's outside the per-field auto-save flow.
@@ -336,14 +336,14 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
         notifyFieldSaveError("Rescan", describeError(error));
         return;
       }
-      const authorIdsBefore = form.getFieldValue("authorIds") as string[];
+      const personIdsBefore = form.getFieldValue("personIds") as string[];
       await applyScanMetadata(url, scan, {
         fillTitle: true,
         force: false,
       });
-      await reconcileSocialAccountOnEdit(scan.socialAccount, form.getFieldValue("authorIds") as string[]);
-      const authorsChanged = (form.getFieldValue("authorIds") as string[]).length !== authorIdsBefore.length;
-      notifySuccess(authorsChanged ? "Rescanned — author linked" : "Rescanned");
+      await reconcileSocialAccountOnEdit(scan.socialAccount, form.getFieldValue("personIds") as string[]);
+      const peopleChanged = (form.getFieldValue("personIds") as string[]).length !== personIdsBefore.length;
+      notifySuccess(peopleChanged ? "Rescanned — person linked" : "Rescanned");
     }
     finally {
       setIsRescanning(false);
@@ -362,7 +362,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     categories,
     mediaTypes,
     languages,
-    authors,
+    people,
     publishers,
     updateBookmark,
     ...modals,
@@ -370,7 +370,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveLocations,
     saveBlacklistedTagIds,
     saveBlacklistedLocationIds,
-    saveAuthors,
+    savePeople,
     saveMedia,
     fetchTitle,
     fetchMetadata,
@@ -413,6 +413,6 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     undoTitleFetch,
     runRescan,
     isRescanning,
-    createAuthorFromSocialAccount,
+    createPersonFromSocialAccount,
   };
 }

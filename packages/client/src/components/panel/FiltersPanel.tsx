@@ -29,7 +29,7 @@ export function FiltersPanel() {
     youtubeChannels,
     websites,
     relationshipTypes,
-    authors,
+    people,
     placeTypes,
     bookmarks,
     search,
@@ -42,7 +42,7 @@ export function FiltersPanel() {
   const hasChannelFilter = (youtubeChannels?.length ?? 0) > 0;
   const hasWebsiteFilter = (websites?.length ?? 0) > 0;
   const hasRelationshipTypeFilter = (relationshipTypes?.length ?? 0) > 0;
-  const hasAuthorFilter = (authors?.length ?? 0) > 0;
+  const hasPersonFilter = (people?.length ?? 0) > 0;
   const hasPlaceTypeFilter = (placeTypes?.length ?? 0) > 0;
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
@@ -55,7 +55,7 @@ export function FiltersPanel() {
         onSearchChange={onSearchChange}
       />
 
-      {(hasTags || hasProperties || hasSectionsFilter || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasAuthorFilter || hasPlaceTypeFilter)
+      {(hasTags || hasProperties || hasSectionsFilter || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasPersonFilter || hasPlaceTypeFilter)
         ? <Separator />
         : null}
 
@@ -68,7 +68,7 @@ export function FiltersPanel() {
         youtubeChannels={youtubeChannels}
         websites={websites}
         relationshipTypes={relationshipTypes}
-        authors={authors}
+        people={people}
         placeTypes={placeTypes}
         bookmarks={bookmarks}
         search={search}
@@ -80,7 +80,7 @@ export function FiltersPanel() {
         hasChannelFilter={hasChannelFilter}
         hasWebsiteFilter={hasWebsiteFilter}
         hasRelationshipTypeFilter={hasRelationshipTypeFilter}
-        hasAuthorFilter={hasAuthorFilter}
+        hasPersonFilter={hasPersonFilter}
         hasPlaceTypeFilter={hasPlaceTypeFilter}
         hasSectionsFilter={hasSectionsFilter}
       />

@@ -14,7 +14,13 @@ export function PublisherGeneralForm({
   publisher,
 }: Props) {
   const {
-    form, saveField, saveName, websiteOptions, websiteCreate,
+    form,
+    saveField,
+    saveName,
+    websiteOptions,
+    websiteCreate,
+    mediaPropertyOptions,
+    mediaPropertyCreate,
   } = usePublisherGeneralForm(publisher);
 
   return (
@@ -52,6 +58,21 @@ export function PublisherGeneralForm({
         )}
       </form.AppField>
       {websiteCreate.modal}
+
+      <form.AppField name="mediaPropertyId">
+        {field => (
+          <field.ComboboxField
+            label="Media property"
+            placeholder="No media property"
+            searchPlaceholder="Search media properties…"
+            emptyText="No media properties found."
+            options={mediaPropertyOptions}
+            createOption={mediaPropertyCreate.createOption}
+            onValueChange={value => saveField("mediaPropertyId", value || null)}
+          />
+        )}
+      </form.AppField>
+      {mediaPropertyCreate.modal}
 
       <Separator />
 

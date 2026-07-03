@@ -649,6 +649,8 @@ export interface Publisher {
   website?: { id: string;
     domain: string;
     siteName: string; } | null;
+  /** Id of the media property (franchise/IP grouping) this publisher belongs to, or null. */
+  mediaPropertyId: string | null;
   /** ISO-8601 timestamp of when the publisher was created. */
   createdAt: string;
   /** Distinct bookmarks with this publisher (populated by list endpoints). */
@@ -666,6 +668,8 @@ export interface CreatePublisherInput {
   romanizedName?: string | null;
   /** Id of the website to associate with this publisher; null to leave unset. */
   websiteId?: string | null;
+  /** Id of the media property to group this publisher under; null to leave unset. */
+  mediaPropertyId?: string | null;
 }
 
 /** Payload for updating a publisher. */
@@ -674,6 +678,8 @@ export interface UpdatePublisherInput {
   romanizedName?: string | null;
   /** Id of the website to associate with this publisher; null to clear it. */
   websiteId?: string | null;
+  /** Id of the media property to group this publisher under; null to clear it. */
+  mediaPropertyId?: string | null;
   /** Social media links for this publisher. Replaces the full list; omit to leave unchanged. */
   socialLinks?: SocialLink[];
 }
@@ -857,7 +863,7 @@ export type NewsletterCategory = Pick<Category, "id" | "name" | "slug" | "icon">
 export type BookmarkNewsletter = Pick<Newsletter, "id" | "name" | "slug">;
 
 /** A person or entity credited as the creator of a bookmarked item. */
-export interface Author {
+export interface Person {
   id: string;
   name: string;
   /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
@@ -865,35 +871,35 @@ export interface Author {
   slug: string;
   createdAt: string;
   bookmarkCount?: number;
-  authorWebsiteUrl: string | null;
+  personWebsiteUrl: string | null;
   biographyUrl: string | null;
   imageUrl: string | null;
-  /** Social media links for this author. */
+  /** Social media links for this person. */
   socialLinks: SocialLink[];
-  /** IDs of YouTube channels associated with this author. */
+  /** IDs of YouTube channels associated with this person. */
   youtubeChannelIds: string[];
-  /** IDs of websites associated with this author. */
+  /** IDs of websites associated with this person. */
   websiteIds: string[];
-  /** IDs of publishers associated with this author. */
+  /** IDs of publishers associated with this person. */
   publisherIds: string[];
 }
 
-/** Lightweight author shape carried on a bookmark. */
-export type BookmarkAuthor = Pick<Author, "id" | "name" | "slug">;
+/** Lightweight person shape carried on a bookmark. */
+export type BookmarkPerson = Pick<Person, "id" | "name" | "slug">;
 
-/** Payload for creating a new author. */
-export interface CreateAuthorInput {
+/** Payload for creating a new person. */
+export interface CreatePersonInput {
   name: string;
   romanizedName?: string | null;
 }
 
-/** Payload for partially updating an author. */
-export interface UpdateAuthorInput {
+/** Payload for partially updating an person. */
+export interface UpdatePersonInput {
   name?: string;
   romanizedName?: string | null;
-  authorWebsiteUrl?: string | null;
+  personWebsiteUrl?: string | null;
   biographyUrl?: string | null;
-  /** Social media links for this author. Replaces the full list; omit to leave unchanged. */
+  /** Social media links for this person. Replaces the full list; omit to leave unchanged. */
   socialLinks?: SocialLink[];
   /** IDs of YouTube channels to associate; replaces the full set. Omit to leave unchanged. */
   youtubeChannelIds?: string[];
@@ -1180,8 +1186,8 @@ export interface Bookmark {
   blacklistedTagIds: string[];
   /** Location IDs that should never be auto-applied to this bookmark by autofill rules. */
   blacklistedLocationIds: string[];
-  /** Authors credited for this bookmarked item. */
-  authors: BookmarkAuthor[];
+  /** People credited for this bookmarked item. */
+  people: BookmarkPerson[];
   /** Number-typed custom property values (includes computed `calculate` results) assigned to this bookmark. */
   numberValues: BookmarkNumberValue[];
   /** Boolean custom property values assigned to this bookmark. */
@@ -1230,8 +1236,8 @@ export interface CreateBookmarkInput {
   blacklistedTagIds?: string[];
   /** Location IDs to exclude from autofill auto-apply on this bookmark. */
   blacklistedLocationIds?: string[];
-  /** Ids of authors to credit for this item. */
-  authorIds?: string[];
+  /** Ids of people to credit for this item. */
+  personIds?: string[];
   /** Number custom property values to assign (calculate results are computed server-side). */
   numberValues?: BookmarkNumberValue[];
   /** Boolean custom property values to assign. */
@@ -1322,7 +1328,7 @@ export interface BookmarkRelationship {
   directional: boolean;
   /** Role of `bookmark` relative to the carrying bookmark. */
   role: RelationshipRole;
-  /** Optional, more specific free-text label for this edge (e.g. "sequel", "same author"). */
+  /** Optional, more specific free-text label for this edge (e.g. "sequel", "same person"). */
   label: string | null;
 }
 
@@ -1633,7 +1639,7 @@ export interface InboxPreFillDefaults {
   tagIds?: string[];
   locationIds?: string[];
   mediaTypeId?: string | null;
-  authorIds?: string[];
+  personIds?: string[];
   publisherId?: string | null;
   numberValues?: { propertyId: string;
     value: number; }[];
@@ -2649,7 +2655,7 @@ export interface FetchMetadataResult {
   thumbnailUrl: string | null;
   /** All candidate images discovered on the page (carousel/article images), public + non-blacklisted. May be empty. */
   imageCandidates: ImageCandidate[];
-  /** Author name(s) parsed from page metadata (non-YouTube only), or `null` when none were found. */
+  /** Person name(s) parsed from page metadata (non-YouTube only), or `null` when none were found. */
   authorNames: string[] | null;
   /**
    * Detected content language, normalized to an ISO 639-1 code where known, or `null`. Read from
@@ -2699,7 +2705,7 @@ export interface ScanResult {
   thumbnailUrl: string | null;
   /** All candidate images discovered on the page (carousel/article images), public + non-blacklisted. May be empty. */
   imageCandidates: ImageCandidate[];
-  /** Author name(s) parsed from page metadata / oEmbed (non-YouTube), or `null`. */
+  /** Person name(s) parsed from page metadata / oEmbed (non-YouTube), or `null`. */
   authorNames: string[] | null;
   /**
    * Detected content language, normalized to an ISO 639-1 code where known (e.g. `"en"`), or `null`
@@ -2734,7 +2740,7 @@ export interface ConnectorsStatus {
   /** YouTube Data API v3 — active only when `YOUTUBE_API_KEY` is set (else the watch-page scrape runs). */
   youtubeDataApi: { enabled: boolean };
   /**
-   * Instagram — post/carousel images and author avatars always come from the keyless public embed.
+   * Instagram — post/carousel images and person avatars always come from the keyless public embed.
    * `apiKey` reports whether `INSTAGRAM_API_KEY` is set (the API path is preferred when configured,
    * with the keyless scrape as fallback).
    */

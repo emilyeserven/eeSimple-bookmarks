@@ -14,15 +14,15 @@ interface ImportItemAdvancedEditFieldsProps {
   mediaTypeId: string | undefined;
   tagIds: string[];
   locationIds: string[];
-  authorIds: string[];
+  personIds: string[];
   publisherId: string | undefined;
   onCategoryChange: (id: string | undefined) => void;
   onMediaTypeChange: (id: string | undefined) => void;
-  onAuthorsChange: (ids: string[]) => void;
+  onPeopleChange: (ids: string[]) => void;
   onPublisherChange: (id: string | undefined) => void;
 }
 
-/** The taxonomy field rows (category, media type, tags, locations, authors, publisher) + the
+/** The taxonomy field rows (category, media type, tags, locations, people, publisher) + the
  * matched-website / YouTube info line shown inside {@link ImportItemAdvancedEdit}'s collapsible. */
 export function ImportItemAdvancedEditFields({
   state,
@@ -30,11 +30,11 @@ export function ImportItemAdvancedEditFields({
   mediaTypeId,
   tagIds,
   locationIds,
-  authorIds,
+  personIds,
   publisherId,
   onCategoryChange,
   onMediaTypeChange,
-  onAuthorsChange,
+  onPeopleChange,
   onPublisherChange,
 }: ImportItemAdvancedEditFieldsProps) {
   const {
@@ -42,7 +42,7 @@ export function ImportItemAdvancedEditFields({
     mediaTypeTree,
     tagTree,
     locationTree,
-    authors,
+    people,
     publishers,
     matchedWebsite,
     isYouTube,
@@ -107,21 +107,21 @@ export function ImportItemAdvancedEditFields({
       </div>
 
       <div className="space-y-1">
-        <Label className="text-xs">Authors</Label>
+        <Label className="text-xs">People</Label>
         <MultiCombobox
-          options={authors.map(a => ({
+          options={people.map(a => ({
             value: a.id,
             label: a.name,
             searchAlias: a.romanizedName ?? undefined,
           }))}
-          values={authorIds}
-          onValuesChange={onAuthorsChange}
-          placeholder="Select authors…"
-          searchPlaceholder="Search authors…"
-          emptyText="No authors found."
+          values={personIds}
+          onValuesChange={onPeopleChange}
+          placeholder="Select people…"
+          searchPlaceholder="Search people…"
+          emptyText="No people found."
           createOption={{
-            label: "Create author",
-            onSelect: () => addModalState.setAddAuthorOpen(true),
+            label: "Create person",
+            onSelect: () => addModalState.setAddPersonOpen(true),
           }}
         />
       </div>

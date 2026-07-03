@@ -354,14 +354,14 @@ export function extractDescription(html: string): string | null {
 }
 
 /**
- * Pull author name(s) from an HTML document's `<head>`. Reads the Open Graph article author
- * (`og:article:author`) and the standard `<meta name="author">`. Returns a deduplicated list of
+ * Pull person name(s) from an HTML document's `<head>`. Reads the Open Graph article person
+ * (`og:article:person`) and the standard `<meta name="person">`. Returns a deduplicated list of
  * non-empty names, or an empty array when none are found. Pure — unit-testable like `extractTitle`.
  */
 export function extractAuthorNames(html: string): string[] {
   const candidates = [
-    metaContent(html, /(?:property|name)=["']og:article:author["']/i),
-    metaContent(html, /name=["']author["']/i),
+    metaContent(html, /(?:property|name)=["']og:article:person["']/i),
+    metaContent(html, /name=["']person["']/i),
   ];
   const seen = new Set<string>();
   const result: string[] = [];
@@ -378,7 +378,7 @@ export function extractAuthorNames(html: string): string[] {
 
 /**
  * Pull the site/publisher name from an HTML document's `<head>` via `og:site_name`. Useful as a
- * proxy for publisher attribution when a dedicated `og:article:author` is absent. Pure —
+ * proxy for publisher attribution when a dedicated `og:article:person` is absent. Pure —
  * unit-testable like `extractTitle`.
  */
 export function extractPublisher(html: string): string | null {

@@ -76,7 +76,7 @@ export function buildPlaceTypeListingConfig(opts: {
   };
 }
 
-/** Eleventh `EntityDescriptor` migration (after Publisher #868, Author #872, PropertyGroup #873, Newsletter #874, RelationshipType + SavedFilter #875, Website #880, Category #881, YouTubeChannel #882, CustomProperty) — issue #860. */
+/** Eleventh `EntityDescriptor` migration (after Publisher #868, Person #872, PropertyGroup #873, Newsletter #874, RelationshipType + SavedFilter #875, Website #880, Category #881, YouTubeChannel #882, CustomProperty) — issue #860. */
 export const placeTypeDescriptor: EntityDescriptor<PlaceType> = {
   kind: "place-type",
   route: PLACE_TYPE_ROUTE,

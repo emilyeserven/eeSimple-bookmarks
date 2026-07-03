@@ -1,6 +1,6 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
 import type { FilterFacetKey } from "./filterFacets";
-import type { Author, Category, CustomProperty, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Category, CustomProperty, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { FILTER_FACETS, facetHasActiveSelection, propertyHasActiveSelection } from "./filterFacets";
 
@@ -13,7 +13,7 @@ export interface FilterFacetInputs {
   youtubeChannels?: YouTubeChannel[];
   websites?: Website[];
   relationshipTypes?: RelationshipType[];
-  authors?: Author[];
+  people?: Person[];
   placeTypes?: PlaceType[];
 }
 
@@ -42,7 +42,7 @@ export function computeFacetData(inputs: FilterFacetInputs): Record<FilterFacetK
     "channels": has(inputs.youtubeChannels),
     "websites": has(inputs.websites),
     "relationship-types": has(inputs.relationshipTypes),
-    "authors": has(inputs.authors),
+    "people": has(inputs.people),
     "place-types": has(inputs.placeTypes),
     "sections": enabledProperties.some(p => p.type === "sections"),
   };

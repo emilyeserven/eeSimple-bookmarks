@@ -55,8 +55,8 @@ const CREATE_ITEMS: { kind: CreateKind;
     label: "New Media Type",
   },
   {
-    kind: "author",
-    label: "New Author",
+    kind: "person",
+    label: "New Person",
   },
   {
     kind: "website",

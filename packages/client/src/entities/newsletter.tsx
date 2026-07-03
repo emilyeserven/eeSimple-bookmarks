@@ -60,7 +60,7 @@ export const newsletterListingConfig: EntityListingConfig<Newsletter> = {
   ),
 };
 
-/** Fourth `EntityDescriptor` migration (after Publisher #868, Author #872, PropertyGroup #873) — issue #860. */
+/** Fourth `EntityDescriptor` migration (after Publisher #868, Person #872, PropertyGroup #873) — issue #860. */
 export const newsletterDescriptor: EntityDescriptor<Newsletter> = {
   kind: "newsletter",
   route: NEWSLETTER_ROUTE,

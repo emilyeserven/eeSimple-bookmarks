@@ -21,13 +21,13 @@ interface ImportItemAdvancedEditProps {
   mediaTypeId: string | undefined;
   tagIds: string[];
   locationIds: string[];
-  authorIds: string[];
+  personIds: string[];
   publisherId: string | undefined;
   onCategoryChange: (id: string | undefined) => void;
   onMediaTypeChange: (id: string | undefined) => void;
   onTagsChange: (ids: string[]) => void;
   onLocationsChange: (ids: string[]) => void;
-  onAuthorsChange: (ids: string[]) => void;
+  onPeopleChange: (ids: string[]) => void;
   onPublisherChange: (id: string | undefined) => void;
 }
 
@@ -47,13 +47,13 @@ export function ImportItemAdvancedEdit({
   mediaTypeId,
   tagIds,
   locationIds,
-  authorIds,
+  personIds,
   publisherId,
   onCategoryChange,
   onMediaTypeChange,
   onTagsChange,
   onLocationsChange,
-  onAuthorsChange,
+  onPeopleChange,
   onPublisherChange,
 }: ImportItemAdvancedEditProps) {
   const state = useImportItemAdvancedEdit({
@@ -94,11 +94,11 @@ export function ImportItemAdvancedEdit({
           mediaTypeId={mediaTypeId}
           tagIds={tagIds}
           locationIds={locationIds}
-          authorIds={authorIds}
+          personIds={personIds}
           publisherId={publisherId}
           onCategoryChange={onCategoryChange}
           onMediaTypeChange={onMediaTypeChange}
-          onAuthorsChange={onAuthorsChange}
+          onPeopleChange={onPeopleChange}
           onPublisherChange={onPublisherChange}
         />
       </CollapsibleContent>
@@ -106,9 +106,9 @@ export function ImportItemAdvancedEdit({
       <ImportItemAdvancedEditModals
         state={state}
         tagIds={tagIds}
-        authorIds={authorIds}
+        personIds={personIds}
         onTagsChange={onTagsChange}
-        onAuthorsChange={onAuthorsChange}
+        onPeopleChange={onPeopleChange}
       />
     </Collapsible>
   );

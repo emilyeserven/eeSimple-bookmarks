@@ -57,7 +57,7 @@ export const savedFilterListingConfig: EntityListingConfig<SavedFilter> = {
   ),
 };
 
-/** Sixth `EntityDescriptor` migration (after Publisher #868, Author #872, PropertyGroup #873, Newsletter #874, RelationshipType) — issue #860. */
+/** Sixth `EntityDescriptor` migration (after Publisher #868, Person #872, PropertyGroup #873, Newsletter #874, RelationshipType) — issue #860. */
 export const savedFilterDescriptor: EntityDescriptor<SavedFilter> = {
   kind: "saved-filter",
   route: SAVED_FILTER_ROUTE,

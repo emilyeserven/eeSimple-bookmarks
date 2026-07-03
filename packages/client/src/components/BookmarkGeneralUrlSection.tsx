@@ -51,7 +51,7 @@ export function BookmarkGeneralUrlSection({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      title="Rescan URL — backfill missing title, description, and authors"
+                      title="Rescan URL — backfill missing title, description, and people"
                       aria-label="Rescan URL"
                       disabled={!isFetchableUrl(url) || isRescanning}
                       onClick={() => void runRescan()}

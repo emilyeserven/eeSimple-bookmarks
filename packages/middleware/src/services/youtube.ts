@@ -72,7 +72,7 @@ interface OEmbedResponse {
   title?: unknown;
   thumbnail_url?: unknown;
   author_name?: unknown;
-  author_url?: unknown;
+  person_url?: unknown;
 }
 
 const asString = (value: unknown): string | null =>
@@ -330,7 +330,7 @@ export async function fetchYouTubeMetadata(url: string): Promise<YouTubeMetadata
   for (const warning of warnings) ytmLog(`${url} — ${warning}`);
 
   const thumbnailUrl = asString(oembed?.thumbnail_url);
-  const channelUrl = asString(oembed?.author_url);
+  const channelUrl = asString(oembed?.person_url);
   return {
     title: asString(oembed?.title),
     description: watchPage.description,

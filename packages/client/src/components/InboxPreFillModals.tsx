@@ -1,31 +1,31 @@
 import type { InboxPreFillDefaults } from "@eesimple/types";
 
-import { AddAuthorModal } from "./AddAuthorModal";
+import { AddPersonModal } from "./AddPersonModal";
 
 /**
- * The still-manual "Add author" creation modal rendered as a sibling of the pre-fill box (Category /
+ * The still-manual "Add person" creation modal rendered as a sibling of the pre-fill box (Category /
  * Media Type / Publisher own their inline-create via `useEntityCreateOption` in `InboxPreFillBox`
- * itself). Writes the created author straight into the pre-fill defaults so it's selected
+ * itself). Writes the created person straight into the pre-fill defaults so it's selected
  * immediately.
  */
 export function InboxPreFillModals({
   preFill,
   setPreFill,
-  addAuthorOpen,
-  setAddAuthorOpen,
+  addPersonOpen,
+  setAddPersonOpen,
 }: {
   preFill: InboxPreFillDefaults;
   setPreFill: (preFill: InboxPreFillDefaults) => void;
-  addAuthorOpen: boolean;
-  setAddAuthorOpen: (open: boolean) => void;
+  addPersonOpen: boolean;
+  setAddPersonOpen: (open: boolean) => void;
 }) {
   return (
-    <AddAuthorModal
-      open={addAuthorOpen}
-      onOpenChange={setAddAuthorOpen}
+    <AddPersonModal
+      open={addPersonOpen}
+      onOpenChange={setAddPersonOpen}
       onCreated={a => setPreFill({
         ...preFill,
-        authorIds: [...(preFill.authorIds ?? []), a.id],
+        personIds: [...(preFill.personIds ?? []), a.id],
       })}
     />
   );

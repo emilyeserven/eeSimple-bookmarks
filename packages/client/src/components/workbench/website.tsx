@@ -5,9 +5,9 @@ import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { ParamRulesList } from "../ParamRulesList";
 import { ShortenedLinksList } from "../ShortenedLinksList";
-import { WebsiteAuthorsForm, WebsiteAuthorsView } from "../WebsiteAuthorsForm";
 import { WebsiteGeneralForm } from "../WebsiteGeneralForm";
 import { WebsiteParamRulesForm } from "../WebsiteParamRulesForm";
+import { WebsitePeopleForm, WebsitePeopleView } from "../WebsitePeopleForm";
 import { WebsiteShortenedLinksForm } from "../WebsiteShortenedLinksForm";
 import { WebsiteGeneralView, WebsiteHierarchyView } from "./websiteViews";
 
@@ -70,21 +70,21 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
       },
     },
     {
-      key: "authors",
-      label: "Authors",
+      key: "people",
+      label: "People",
       view: {
-        title: "Authors",
-        description: "Authors associated with this website.",
+        title: "People",
+        description: "People associated with this website.",
         render: ({
           entity,
-        }) => <WebsiteAuthorsView website={entity} />,
+        }) => <WebsitePeopleView website={entity} />,
       },
       edit: {
-        title: "Authors",
-        description: "Connect authors to this website.",
+        title: "People",
+        description: "Connect people to this website.",
         render: ({
           entity,
-        }) => <WebsiteAuthorsForm website={entity} />,
+        }) => <WebsitePeopleForm website={entity} />,
       },
     },
     {

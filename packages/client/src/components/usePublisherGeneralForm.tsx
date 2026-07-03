@@ -1,11 +1,12 @@
 import type { Publisher, UpdatePublisherInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
-import { Globe } from "lucide-react";
+import { Globe, Library } from "lucide-react";
 import { z } from "zod";
 
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import { useMediaProperties } from "../hooks/useMediaProperties";
 import { useUpdatePublisher } from "../hooks/usePublishers";
 import { useWebsites } from "../hooks/useWebsites";
 import { useAppForm } from "../lib/form";
@@ -15,6 +16,7 @@ const publisherGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   romanizedName: z.string(),
   websiteId: z.string().nullable(),
+  mediaPropertyId: z.string().nullable(),
   socialLinks: z.array(socialLinkSchema),
 });
 
@@ -22,6 +24,7 @@ const LABELS: Partial<Record<keyof UpdatePublisherInput, string>> = {
   name: "Name",
   romanizedName: "Romanized name",
   websiteId: "Website",
+  mediaPropertyId: "Media property",
   socialLinks: "Social media links",
 };
 
@@ -36,6 +39,9 @@ export function usePublisherGeneralForm(publisher: Publisher) {
   const {
     data: websites,
   } = useWebsites();
+  const {
+    data: mediaProperties,
+  } = useMediaProperties();
 
   const autoSave = useFieldAutoSave<UpdatePublisherInput, Publisher>({
     id: publisher.id,
@@ -45,6 +51,7 @@ export function usePublisherGeneralForm(publisher: Publisher) {
       name: publisher.name,
       romanizedName: publisher.romanizedName ?? "",
       websiteId: publisher.websiteId ?? null,
+      mediaPropertyId: publisher.mediaPropertyId ?? null,
       socialLinks: publisher.socialLinks,
     },
   });
@@ -57,11 +64,20 @@ export function usePublisherGeneralForm(publisher: Publisher) {
     ),
   }));
 
+  const mediaPropertyOptions = (mediaProperties ?? []).map(prop => ({
+    value: prop.id,
+    label: prop.name,
+    icon: (
+      <Library className="size-4 shrink-0 text-muted-foreground" />
+    ),
+  }));
+
   const form = useAppForm({
     defaultValues: {
       name: publisher.name,
       romanizedName: publisher.romanizedName ?? "",
       websiteId: publisher.websiteId ?? null,
+      mediaPropertyId: publisher.mediaPropertyId ?? null,
     },
     validators: {
       onChange: publisherGeneralSchema,
@@ -69,6 +85,10 @@ export function usePublisherGeneralForm(publisher: Publisher) {
   });
 
   const websiteCreate = useEntityCreateOption("website", website => form.setFieldValue("websiteId", website.id));
+  const mediaPropertyCreate = useEntityCreateOption(
+    "media-property",
+    mediaProperty => form.setFieldValue("mediaPropertyId", mediaProperty.id),
+  );
 
   function saveName(value: string, valid: boolean): void {
     autoSave.saveField("name", value.trim(), {
@@ -93,5 +113,7 @@ export function usePublisherGeneralForm(publisher: Publisher) {
     saveName,
     websiteOptions,
     websiteCreate,
+    mediaPropertyOptions,
+    mediaPropertyCreate,
   };
 }

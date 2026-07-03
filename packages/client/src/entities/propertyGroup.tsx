@@ -60,7 +60,7 @@ export const propertyGroupListingConfig: EntityListingConfig<PropertyGroup> = {
   ),
 };
 
-/** Third `EntityDescriptor` migration (after Publisher #868, Author #872) — issue #860. */
+/** Third `EntityDescriptor` migration (after Publisher #868, Person #872) — issue #860. */
 export const propertyGroupDescriptor: EntityDescriptor<PropertyGroup> = {
   kind: "property-group",
   route: PROPERTY_GROUP_ROUTE,

@@ -70,7 +70,7 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
 - **Shared test factories** (`packages/client/src/test-utils/factories.ts`): construct full shared
   entity objects in tests, stories, and MSW mocks with `makeCustomProperty` / `makeBookmark` /
   `makeCategory` / `makeTag` / `makeWebsite` / `makeMediaType` / `makeYouTubeChannel` /
-  `makePublisher` / `makeAuthor` / `makeNewsletter` / `makeLocation` / `makeBookmarkImage`
+  `makePublisher` / `makePerson` / `makeNewsletter` / `makeLocation` / `makeBookmarkImage`
   (override only the fields a test cares about) — **never** re-list every field in an
   inline object literal. Inline literals of these types silently drift when a field is added/removed
   from the shared type and only surface as a CI typecheck failure (one such stray literal is what
@@ -455,7 +455,7 @@ configuration are explicitly opt-in (Tier 2, below).
   + duplicate check + an instant favicon URL (`ScanResult` in `@eesimple/types`). The client's
   `performUrlScan` (`useBookmarkFormController.ts`) calls it once and applies the result via the pure
   helpers in `useBookmarkScanHandlers.ts` (`applyScanMetadata` / `applyYouTubeMeta` /
-  `applyAuthorsFromNames`). **The granular endpoints stay** (`/api/fetch-title`, `/api/fetch-metadata`,
+  `applyPeopleFromNames`). **The granular endpoints stay** (`/api/fetch-title`, `/api/fetch-metadata`,
   `/api/resolve-url`, `/api/websites/lookup`, `/api/bookmarks/url-check`) for the per-field manual
   buttons — don't delete them. Scan results are cached in `services/scanCache.ts` (short TTL,
   size-capped). **That cache is display/metadata-only — never wire it into `invalidateBookmarkCache()`**
@@ -479,7 +479,7 @@ configuration are explicitly opt-in (Tier 2, below).
   `defaultAudioLanguage`/`defaultLanguage`, and Open Library/Google Books' language fields all land as
   a raw normalized code (`utils/languageCodes.ts`) on `ScanResult`/`FetchIsbnMetadataResult`; the
   client resolves it to a `Language` row via match-or-create in `useBookmarkScanHandlers.ts`/
-  `useBookmarkIsbn.ts`, mirroring the pre-existing author/publisher name-resolution flow. See the
+  `useBookmarkIsbn.ts`, mirroring the pre-existing person (author-name)/publisher name-resolution flow. See the
   **`add-connector`** skill's Case D.
 - **Tier 2 providers are gated (DB value or env var) and default off.** `services/hostedMetadata.ts`
   (`HOSTED_METADATA_ENDPOINT`/`_API_KEY`/`_PROVIDER`, Microlink-compatible) and the YouTube Data API
@@ -600,7 +600,7 @@ readiness uses `DB_WAIT_TIMEOUT_MS`).
 | `HOSTED_METADATA_API_KEY` | middleware / gateway | Optional API key for the hosted metadata provider, sent as the `x-api-key` header. |
 | `HOSTED_METADATA_PROVIDER` | middleware / gateway | Optional provider label (e.g. `microlink`) shown on the Connectors settings page; does not affect behavior. |
 | `YOUTUBE_API_KEY` | middleware / gateway | **Optional, default off.** Tier 2 — when a key resolves, a YouTube video's duration/publish-date/description come from the YouTube Data API v3 (`videos.list`) instead of the brittle `ytInitialPlayerResponse` watch-page scrape, and a YouTube channel's avatar comes from `channels.list`'s thumbnail instead of scraping the channel page's `og:image` (`fetchChannelAvatarUrlViaApi` in `services/youtube.ts`, used by `services/youtubeChannelImages.ts`) — YouTube increasingly 403s non-browser requests to channel pages, so the scrape alone is unreliable; unset falls back to the scrape. Video title/thumbnail/channel-name stay on keyless oEmbed either way. Surfaced on Settings → Connectors with a link to the Google Cloud Console to create a key. Secret — set via env var, or via Settings → Connectors where it's stored encrypted at rest when `APP_SECRET` is set (the `hostedMetadataApiKey`/Kavita pattern; DB value wins over the env var). |
-| `INSTAGRAM_API_KEY` | middleware / gateway | **Optional, default off.** Tier 2 — when set (with `INSTAGRAM_API_ENDPOINT`), an Instagram account's avatar/profile data come from a third-party profile API instead of the keyless public-embed scrape; unset (or on failure) falls back to the keyless scrape, so behavior is identical out of the box. Powers pulling an author's image from a connected Instagram account. Surfaced on Settings → Connectors. Keys are secrets → env vars only. |
+| `INSTAGRAM_API_KEY` | middleware / gateway | **Optional, default off.** Tier 2 — when set (with `INSTAGRAM_API_ENDPOINT`), an Instagram account's avatar/profile data come from a third-party profile API instead of the keyless public-embed scrape; unset (or on failure) falls back to the keyless scrape, so behavior is identical out of the box. Powers pulling a person's image from a connected Instagram account. Surfaced on Settings → Connectors. Keys are secrets → env vars only. |
 | `INSTAGRAM_API_ENDPOINT` | middleware / gateway | Optional URL template for the Instagram profile API, with a `{handle}` placeholder (e.g. `https://provider.example/ig/{handle}`); the endpoint must return JSON carrying `profile_pic_url_hd` / `profile_pic_url`. `INSTAGRAM_API_KEY` is sent as a `Bearer` token. Only used when both vars are set. |
 | `ARCHIVEBOX_ENDPOINT` | middleware / gateway | **Optional, default off.** Base URL of a self-hosted [ArchiveBox](https://archivebox.io/) instance. **Link-out only** — when set, bookmarks gain UI (detail header, the placeable `archiveLink` card field, an "Archive now" action) that opens the archived snapshot (`<base>/?q=<url>`) or the add view (`<base>/add?url=<url>`) in a new tab. **No token is sent and the middleware makes no calls to ArchiveBox** — the user's browser opens the links against their own instance. The base URL is non-secret and returned on `GET /api/connectors` so the client can build the links. A DB value (Settings → Connectors) overrides this env var. |
 | `KAVITA_ENDPOINT` | middleware / gateway | **Optional, default off.** Base URL of a self-hosted [Kavita](https://www.kavitareader.com/) ebook/manga server (e.g. `http://localhost:5000`). With `KAVITA_API_KEY` set, bookmarks can be **linked to a Kavita series** (searchable picker on the bookmark edit General tab, stored as `kavitaSeriesId`/`kavitaLibraryId`/`kavitaSeriesName`), gain a "View on Kavita" link-out (detail header + the placeable `kavitaLink` card field, opening `<base>/library/<lib>/series/<id>`), can **import the series cover** as the bookmark image, and can **import the book's table of contents** into the built-in Page Sections property ("Import from Kavita" on the edit Properties tab; `GET /api/kavita/toc?seriesId=` — EPUB via Kavita's book-chapters API, PDF by downloading the file and parsing its embedded outline server-side with `pdfjs-dist`; replace-review-save, persisted by the tab's Save). Series searches, cover fetches, and ToC reads are proxied by the middleware (`services/kavita.ts`, `services/pdfToc.ts`, `GET /api/kavita/series`) so the key never reaches the browser. The base URL is non-secret and returned on `GET /api/connectors`. A DB value (Settings → Connectors) overrides this env var. |
@@ -632,7 +632,7 @@ from the two nav data modules, so favoritability comes for free:
   the section's nav array in `lib/settingsNav.ts` with a `lucide-react` `icon` distinct from its
   siblings — the label derives as `"Section: Tab"`. Section index/parent paths are intentionally
   never registered (they redirect to their first tab and can't be the live pathname).
-- A **management/customization listing page** (Categories, Tags, Websites, Authors, Saved Filters, …):
+- A **management/customization listing page** (Categories, Tags, Websites, People, Saved Filters, …):
   its sidebar entry in `lib/sidebarNavItems.ts` *is* the registration (`SIDEBAR_LABEL_OVERRIDES` in
   `settingsPages.ts` covers a label that must differ from the sidebar title, e.g. newsletters).
 - Only a page on **neither surface** (e.g. `/settings/extension`, `/taxonomies/place-types`) goes in
@@ -660,7 +660,7 @@ categories and their palette hooks:
   `useListingPageContext.setFilterLocation`; gate on `listingCtx.listingPage?.hasFilters`.
 - **Bulk select** — reads/writes `uiStore` via `useListingPageContext`; gate on
   `listingCtx.bulkSelectPageKey !== null`.
-- **Bookmark entity fields** (category, tags, media type, authors, boolean properties, choices
+- **Bookmark entity fields** (category, tags, media type, people, boolean properties, choices
   properties) — uses `useBookmarkTaxonomyContext`; gate on `bookmarkId !== null`. Boolean properties
   toggle directly; choices properties enter a sub-palette (`"choices-property"` mode). For a new
   field type, add an item here or navigate to the edit tab.

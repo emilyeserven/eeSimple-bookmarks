@@ -5,10 +5,10 @@ import { useMemo, useState } from "react";
 import { normalizeDomain } from "@eesimple/types";
 
 import { useEntityCreateOption } from "./useEntityCreateOption";
-import { useAuthors } from "../hooks/useAuthors";
 import { useCategories } from "../hooks/useCategories";
 import { useLocationTree } from "../hooks/useLocations";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
+import { usePeople } from "../hooks/usePeople";
 import { usePublishers } from "../hooks/usePublishers";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
@@ -26,7 +26,7 @@ interface UseImportItemAdvancedEditParams {
 
 /**
  * State + data orchestration for {@link ImportItemAdvancedEdit}: the still-manual "add new X" modal
- * flags (Tag / Author), the Category/Media Type/Publisher/Location inline-create (via
+ * flags (Tag / Person), the Category/Media Type/Publisher/Location inline-create (via
  * `useEntityCreateOption`), the taxonomy queries, the URL → website/YouTube derivation, and the
  * tag/location toggle handlers. Extracted to keep the component's import surface and hook density low.
  */
@@ -40,7 +40,7 @@ export function useImportItemAdvancedEdit({
   onMediaTypeChange,
   onPublisherChange,
 }: UseImportItemAdvancedEditParams) {
-  const [addAuthorOpen, setAddAuthorOpen] = useState(false);
+  const [addPersonOpen, setAddPersonOpen] = useState(false);
   const [addTagOpen, setAddTagOpen] = useState(false);
   const categoryCreate = useEntityCreateOption("category", category => onCategoryChange(category.id));
   const mediaTypeCreate = useEntityCreateOption("media-type", mediaType => onMediaTypeChange(mediaType.id));
@@ -60,8 +60,8 @@ export function useImportItemAdvancedEdit({
     data: locationTree = [],
   } = useLocationTree();
   const {
-    data: authors = [],
-  } = useAuthors();
+    data: people = [],
+  } = usePeople();
   const {
     data: publishers = [],
   } = usePublishers();
@@ -100,7 +100,7 @@ export function useImportItemAdvancedEdit({
     mediaTypeTree,
     tagTree,
     locationTree,
-    authors,
+    people,
     publishers,
     matchedWebsite,
     isYouTube,
@@ -111,8 +111,8 @@ export function useImportItemAdvancedEdit({
     publisherCreate,
     locationCreate,
     addModalState: {
-      addAuthorOpen,
-      setAddAuthorOpen,
+      addPersonOpen,
+      setAddPersonOpen,
       addTagOpen,
       setAddTagOpen,
     },

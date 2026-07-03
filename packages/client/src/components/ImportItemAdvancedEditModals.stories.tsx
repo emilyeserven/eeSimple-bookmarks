@@ -30,15 +30,15 @@ const item: InboxItem = {
   sourceLabel: "Morning Brew #482",
 };
 
-/** Builds the real hook state so the still-manual Tag/Author modals render controllably. */
+/** Builds the real hook state so the still-manual Tag/Person modals render controllably. */
 function Host({
-  authorOpen = false,
+  personOpen = false,
 }: {
-  authorOpen?: boolean;
+  personOpen?: boolean;
 }) {
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [locationIds, setLocationIds] = useState<string[]>([]);
-  const [authorIds, setAuthorIds] = useState<string[]>([]);
+  const [personIds, setPersonIds] = useState<string[]>([]);
 
   const state = useImportItemAdvancedEdit({
     item,
@@ -52,19 +52,19 @@ function Host({
   });
 
   const {
-    setAddAuthorOpen,
+    setAddPersonOpen,
   } = state.addModalState;
   useEffect(() => {
-    if (authorOpen) setAddAuthorOpen(true);
-  }, [authorOpen, setAddAuthorOpen]);
+    if (personOpen) setAddPersonOpen(true);
+  }, [personOpen, setAddPersonOpen]);
 
   return (
     <ImportItemAdvancedEditModals
       state={state}
       tagIds={tagIds}
-      authorIds={authorIds}
+      personIds={personIds}
       onTagsChange={setTagIds}
-      onAuthorsChange={setAuthorIds}
+      onPeopleChange={setPersonIds}
     />
   );
 }
@@ -88,7 +88,7 @@ export const AllClosed: Story = {
   render: () => <Host />,
 };
 
-/** The still-manual "Create author" modal opened. */
-export const AddAuthorOpen: Story = {
-  render: () => <Host authorOpen />,
+/** The still-manual "Create person" modal opened. */
+export const AddPersonOpen: Story = {
+  render: () => <Host personOpen />,
 };

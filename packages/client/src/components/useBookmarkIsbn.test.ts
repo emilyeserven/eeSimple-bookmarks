@@ -23,7 +23,7 @@ function makeForm(): BookmarkFormApi {
   const values: Record<string, unknown> = {
     title: "",
     description: "",
-    authorIds: [],
+    personIds: [],
     publisherId: "",
     languageId: "",
   };
@@ -63,10 +63,10 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       form: makeForm(),
       customProperties: [],
       mediaTypes: [],
-      authors: [],
+      people: [],
       publishers: [],
       languages: [],
-      createAuthor: {
+      createPerson: {
         mutateAsync: vi.fn(),
       } as never,
       createPublisher: {
@@ -106,10 +106,10 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       form: makeForm(),
       customProperties: [],
       mediaTypes: [],
-      authors: [],
+      people: [],
       publishers: [],
       languages: [],
-      createAuthor: {
+      createPerson: {
         mutateAsync: vi.fn(),
       } as never,
       createPublisher: {
@@ -138,10 +138,10 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       form: makeForm(),
       customProperties: [],
       mediaTypes: [],
-      authors: [],
+      people: [],
       publishers: [],
       languages: [],
-      createAuthor: {
+      createPerson: {
         mutateAsync: vi.fn(),
       } as never,
       createPublisher: {

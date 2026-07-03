@@ -7,6 +7,20 @@ import { publishersApi } from "../lib/api/taxonomies";
 
 const PUBLISHERS_KEY = ["publishers"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
+const MEDIA_PROPERTIES_KEY = ["media-properties"] as const;
+
+/** A publisher's media-property membership surfaces as a count on that media property. */
+function invalidatePublisherConsumers(queryClient: ReturnType<typeof useQueryClient>): void {
+  void queryClient.invalidateQueries({
+    queryKey: PUBLISHERS_KEY,
+  });
+  void queryClient.invalidateQueries({
+    queryKey: BOOKMARKS_KEY,
+  });
+  void queryClient.invalidateQueries({
+    queryKey: MEDIA_PROPERTIES_KEY,
+  });
+}
 
 export function usePublishers() {
   return useQuery({
@@ -28,11 +42,7 @@ export function useCreatePublisher() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreatePublisherInput) => publishersApi.create(input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: PUBLISHERS_KEY,
-      });
-    },
+    onSuccess: () => invalidatePublisherConsumers(queryClient),
   });
 }
 
@@ -43,15 +53,8 @@ export function useUpdatePublisher() {
       id, input,
     }: { id: string;
       input: UpdatePublisherInput; }) => publishersApi.update(id, input),
-    onSuccess: () => {
-      // A rename ripples into bookmark reads (each carries its publisher).
-      void queryClient.invalidateQueries({
-        queryKey: PUBLISHERS_KEY,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: BOOKMARKS_KEY,
-      });
-    },
+    // A rename ripples into bookmark reads (each carries its publisher).
+    onSuccess: () => invalidatePublisherConsumers(queryClient),
   });
 }
 
@@ -59,25 +62,14 @@ export function useDeletePublisher() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => publishersApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: PUBLISHERS_KEY,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: BOOKMARKS_KEY,
-      });
-    },
+    onSuccess: () => invalidatePublisherConsumers(queryClient),
   });
 }
 
 export function useBulkDeletePublishers() {
   const queryClient = useQueryClient();
-  return useBulkDeleteEntity(publishersApi.bulkDelete, () => {
-    void queryClient.invalidateQueries({
-      queryKey: PUBLISHERS_KEY,
-    });
-    void queryClient.invalidateQueries({
-      queryKey: BOOKMARKS_KEY,
-    });
-  });
+  return useBulkDeleteEntity(
+    publishersApi.bulkDelete,
+    () => invalidatePublisherConsumers(queryClient),
+  );
 }

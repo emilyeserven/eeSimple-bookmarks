@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Author, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -41,8 +41,8 @@ interface FilterSidebarProps {
   websites?: Website[];
   /** Relationship types offered as a multi-select filter; rendered only when non-empty. */
   relationshipTypes?: RelationshipType[];
-  /** Authors offered as a multi-select filter; rendered only when non-empty. */
-  authors?: Author[];
+  /** People offered as a multi-select filter; rendered only when non-empty. */
+  people?: Person[];
   /** Place types offered as a multi-select filter; rendered only when non-empty. */
   placeTypes?: PlaceType[];
   /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
@@ -53,7 +53,7 @@ interface FilterSidebarProps {
 
 /** Left filter rail for the search pages: tiered tags plus custom-property filters. */
 export function FilterSidebar({
-  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, placeTypes, bookmarks, search, onSearchChange,
+  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
   const [sectionFilter, setSectionFilter] = useState("");
   // Filters configured as "on demand" (Settings → Display → Filters) are hidden until the user adds
@@ -72,7 +72,7 @@ export function FilterSidebar({
     youtubeChannels,
     websites,
     relationshipTypes,
-    authors,
+    people,
     placeTypes,
   }, search, onDemand, added);
   const hasProperties = visibleProperties.length > 0;
@@ -187,7 +187,7 @@ export function FilterSidebar({
                     youtubeChannels={youtubeChannels}
                     websites={websites}
                     relationshipTypes={relationshipTypes}
-                    authors={authors}
+                    people={people}
                     placeTypes={placeTypes}
                     bookmarks={bookmarks}
                     search={search}
@@ -199,7 +199,7 @@ export function FilterSidebar({
                     hasChannelFilter={facetVisible.channels}
                     hasWebsiteFilter={facetVisible.websites}
                     hasRelationshipTypeFilter={facetVisible["relationship-types"]}
-                    hasAuthorFilter={facetVisible.authors}
+                    hasPersonFilter={facetVisible.people}
                     hasPlaceTypeFilter={facetVisible["place-types"]}
                     hasSectionsFilter={facetVisible.sections}
                     sectionFilter={sectionFilter}

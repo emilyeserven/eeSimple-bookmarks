@@ -60,8 +60,8 @@ export function useBookmarkFormUiState({
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
-  // The social account a scanned social-network URL points at, with no existing author — drives the
-  // "Create author from this account" offer banner. Null when matched or not a social URL.
+  // The social account a scanned social-network URL points at, with no existing person — drives the
+  // "Create person from this account" offer banner. Null when matched or not a social URL.
   const [socialAccountOffer, setSocialAccountOffer] = useState<SocialAccountRef | null>(null);
   // When the fetch-title button overwrites a non-empty title, record the previous value so the
   // banner can offer an undo. Cleared when the user manually edits the title field.

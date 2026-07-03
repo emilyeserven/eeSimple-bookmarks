@@ -28,7 +28,7 @@ function YouTubeChannelBookmarksPage() {
     tagTree,
     mediaTypes,
     relationshipTypes,
-    authors,
+    people,
     placeTypes,
   } = useCategoryPageData(tagsForServerQuery(search));
 
@@ -66,7 +66,7 @@ function YouTubeChannelBookmarksPage() {
       categories={categories ?? []}
       mediaTypes={mediaTypes ?? []}
       relationshipTypes={relationshipTypes ?? []}
-      authors={authors ?? []}
+      people={people ?? []}
       placeTypes={placeTypes ?? []}
       bookmarks={channelBookmarks}
       search={search}

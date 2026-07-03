@@ -27,16 +27,16 @@ export function InboxPreFillBox({
   onReset: () => void;
 }) {
   const {
-    addAuthorOpen,
-    setAddAuthorOpen,
+    addPersonOpen,
+    setAddPersonOpen,
     tagTree,
     mediaTypeTree,
-    authors,
+    people,
     publishers,
     inboxProperties,
     categoryOptions,
     mediaTypeOptions,
-    authorOptions,
+    personOptions,
     publisherOptions,
     selectedTagNames,
   } = useInboxPreFillBox(preFill);
@@ -54,7 +54,7 @@ export function InboxPreFillBox({
     publisherId: p.id,
   }));
 
-  const selectedAuthorIds = preFill.authorIds ?? [];
+  const selectedPersonIds = preFill.personIds ?? [];
   const isEmpty = isPreFillEmpty(preFill);
 
   return (
@@ -139,24 +139,24 @@ export function InboxPreFillBox({
               </div>
             )}
 
-            {/* Authors */}
-            {authors.length > 0 && (
+            {/* People */}
+            {people.length > 0 && (
               <div className="space-y-1">
-                <Label className="text-sm">Authors</Label>
+                <Label className="text-sm">People</Label>
                 <MultiCombobox
-                  options={authorOptions}
-                  values={selectedAuthorIds}
+                  options={personOptions}
+                  values={selectedPersonIds}
                   onValuesChange={vals => setPreFill({
                     ...preFill,
-                    authorIds: vals,
+                    personIds: vals,
                   })}
-                  placeholder="Any authors"
-                  searchPlaceholder="Search authors…"
-                  emptyText="No authors."
-                  aria-label="Default authors"
+                  placeholder="Any people"
+                  searchPlaceholder="Search people…"
+                  emptyText="No people."
+                  aria-label="Default people"
                   createOption={{
-                    label: "Create author",
-                    onSelect: () => setAddAuthorOpen(true),
+                    label: "Create person",
+                    onSelect: () => setAddPersonOpen(true),
                   }}
                 />
               </div>
@@ -188,8 +188,8 @@ export function InboxPreFillBox({
       <InboxPreFillModals
         preFill={preFill}
         setPreFill={setPreFill}
-        addAuthorOpen={addAuthorOpen}
-        setAddAuthorOpen={setAddAuthorOpen}
+        addPersonOpen={addPersonOpen}
+        setAddPersonOpen={setAddPersonOpen}
       />
     </>
   );

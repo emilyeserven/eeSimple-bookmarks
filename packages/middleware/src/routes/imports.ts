@@ -336,7 +336,7 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
               mediaTypeId: {
                 type: ["string", "null"],
               },
-              authorIds: {
+              personIds: {
                 type: "array",
                 items: {
                   type: "string",

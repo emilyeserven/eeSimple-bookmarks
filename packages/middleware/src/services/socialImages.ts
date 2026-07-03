@@ -1,6 +1,6 @@
 /**
  * Generic resolver for a social account's avatar URL. Keeps per-platform logic in one place so the
- * author-image service and routes stay platform-agnostic. Instagram is the only platform wired for
+ * person-image service and routes stay platform-agnostic. Instagram is the only platform wired for
  * now; others return `null` (a clear extension point).
  *
  * Two tiers, mirroring the YouTube connector: an optional env-gated API path (Tier 2, used only when

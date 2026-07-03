@@ -1,8 +1,8 @@
-import type { Author, CardDisplayRule } from "@eesimple/types";
+import type { Person, CardDisplayRule } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import {
-  AuthorsSubPalette,
+  PeopleSubPalette,
   CardDisplayRulesGroup,
   CategorySubPalette,
 } from "./commandPaletteSubPalettes";
@@ -21,7 +21,7 @@ const categories = [
   }),
 ];
 
-const authors = [
+const people = [
   {
     id: "a1",
     name: "Ada Lovelace",
@@ -30,7 +30,7 @@ const authors = [
     id: "a2",
     name: "Alan Turing",
   },
-] as unknown as Author[];
+] as unknown as Person[];
 
 const rules = [
   {
@@ -82,14 +82,14 @@ export const Category: StoryObj = {
   ),
 };
 
-/** The multi-select authors sub-palette with one author already toggled on. */
-export const Authors: StoryObj = {
+/** The multi-select people sub-palette with one person already toggled on. */
+export const People: StoryObj = {
   render: () => (
     <CommandHost>
-      <AuthorsSubPalette
-        authors={authors}
-        pendingAuthorIds={["a1"]}
-        onToggleAuthor={() => {}}
+      <PeopleSubPalette
+        people={people}
+        pendingPersonIds={["a1"]}
+        onTogglePerson={() => {}}
         onBack={() => {}}
         onDone={() => {}}
         onCreateNew={() => {}}

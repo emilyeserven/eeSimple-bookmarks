@@ -2,7 +2,7 @@ import "dotenv/config";
 import { buildApp, docsEnabled } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAppSettings, ensureDefaultPlaceTypeLevelGroups } from "@/services/appSettings";
-import { backfillAuthorSlugs } from "@/services/authors";
+import { backfillPersonSlugs } from "@/services/people";
 import { backfillPublisherSlugs } from "@/services/publishers";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
 import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleLocationsField, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
@@ -97,7 +97,7 @@ try {
   await seedPlaceTypesFromLocations();
   await backfillPlaceTypeSlugs();
   await ensureDefaultPlaceTypeLevelGroups();
-  await backfillAuthorSlugs();
+  await backfillPersonSlugs();
   await maybeSeed();
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
   // previous is-homepage / homepage-tags mechanism on first boot.

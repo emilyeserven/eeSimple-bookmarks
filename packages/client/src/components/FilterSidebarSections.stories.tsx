@@ -36,7 +36,7 @@ const meta = {
     hasChannelFilter: true,
     hasWebsiteFilter: false,
     hasRelationshipTypeFilter: false,
-    hasAuthorFilter: false,
+    hasPersonFilter: false,
     hasPlaceTypeFilter: false,
   },
 } satisfies Meta<typeof FilterSections>;

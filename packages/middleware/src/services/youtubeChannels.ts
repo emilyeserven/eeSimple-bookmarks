@@ -47,7 +47,7 @@ export class DuplicateChannelKeyError extends Error {
 }
 
 /**
- * Derive a stable, normalized channel key from a channel URL (oEmbed's `author_url`). Prefers a
+ * Derive a stable, normalized channel key from a channel URL (oEmbed's `person_url`). Prefers a
  * `@handle`, then a `/channel/<id>`, `/c/<name>`, or `/user/<name>` segment, falling back to the
  * last path segment. Pure — returns `null` when the URL has no usable path.
  */

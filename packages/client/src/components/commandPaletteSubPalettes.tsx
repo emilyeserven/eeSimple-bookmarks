@@ -1,6 +1,6 @@
 import type { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
 import type { FlatNode } from "@/lib/tagTree";
-import type { Author, Bookmark, CardDisplayRule, Category, CustomProperty, LocationNode, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
+import type { Person, Bookmark, CardDisplayRule, Category, CustomProperty, LocationNode, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
 
 import { useMemo } from "react";
 
@@ -22,7 +22,7 @@ import {
 import { useCategoryRootTags } from "@/hooks/useCategories";
 import { subtreeIds } from "@/lib/tagTree";
 
-export type TaxonomyMode = "category" | "media-type" | "tags" | "locations" | "authors" | "newsletter" | "choices-property" | "rating-property";
+export type TaxonomyMode = "category" | "media-type" | "tags" | "locations" | "people" | "newsletter" | "choices-property" | "rating-property";
 
 function useTagsPalette(
   flatTags: FlatNode<TagNode>[],
@@ -388,24 +388,24 @@ export function LocationsSubPalette({
   );
 }
 
-export function AuthorsSubPalette({
-  authors,
-  pendingAuthorIds,
-  onToggleAuthor,
+export function PeopleSubPalette({
+  people,
+  pendingPersonIds,
+  onTogglePerson,
   onBack,
   onDone,
   onCreateNew,
 }: {
-  authors: Author[];
-  pendingAuthorIds: string[];
-  onToggleAuthor: (authorId: string) => void;
+  people: Person[];
+  pendingPersonIds: string[];
+  onTogglePerson: (personId: string) => void;
   onBack: () => void;
-  onDone: (authorIds: string[]) => void;
+  onDone: (personIds: string[]) => void;
   onCreateNew: () => void;
 }) {
   return (
     <>
-      <CommandGroup heading="Authors">
+      <CommandGroup heading="People">
         <CommandItem
           value="back"
           onSelect={onBack}
@@ -414,25 +414,25 @@ export function AuthorsSubPalette({
           Back
         </CommandItem>
         <CommandItem
-          value="new author"
+          value="new person"
           onSelect={onCreateNew}
         >
           <PlusIcon />
-          New author…
+          New person…
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
-      <CommandGroup heading="Toggle authors">
-        {authors.map((author) => {
-          const selected = pendingAuthorIds.includes(author.id);
+      <CommandGroup heading="Toggle people">
+        {people.map((person) => {
+          const selected = pendingPersonIds.includes(person.id);
           return (
             <CommandItem
-              key={author.id}
-              value={author.name}
-              onSelect={() => onToggleAuthor(author.id)}
+              key={person.id}
+              value={person.name}
+              onSelect={() => onTogglePerson(person.id)}
             >
               {selected && <CheckIcon className="text-primary" />}
-              {author.name}
+              {person.name}
             </CommandItem>
           );
         })}
@@ -440,11 +440,11 @@ export function AuthorsSubPalette({
       <CommandSeparator />
       <CommandGroup>
         <CommandItem
-          value="done save authors"
-          onSelect={() => onDone(pendingAuthorIds)}
+          value="done save people"
+          onSelect={() => onDone(pendingPersonIds)}
         >
           <CheckIcon />
-          {`Done (${pendingAuthorIds.length.toString()} selected)`}
+          {`Done (${pendingPersonIds.length.toString()} selected)`}
         </CommandItem>
       </CommandGroup>
     </>
@@ -636,7 +636,7 @@ export function NewsletterSubPalette({
 }
 
 /**
- * The bookmark quick-edit commands (category / tags / media type / authors / newsletter / boolean /
+ * The bookmark quick-edit commands (category / tags / media type / people / newsletter / boolean /
  * choices / rating / other properties). Rendered either at the top of the palette when a card is
  * hovered, or in its in-page position on a bookmark detail page.
  */
@@ -645,7 +645,7 @@ export function BookmarkTaxonomiesGroup({
   bookmarkId,
   isBookmarkViewPage,
   currentCategoryName,
-  authors,
+  people,
   booleanProperties,
   choicesProperties,
   ratingProperties,
@@ -661,7 +661,7 @@ export function BookmarkTaxonomiesGroup({
   bookmarkId: string;
   isBookmarkViewPage: boolean;
   currentCategoryName: string | null;
-  authors: Author[];
+  people: Person[];
   booleanProperties: CustomProperty[];
   choicesProperties: CustomProperty[];
   ratingProperties: CustomProperty[];
@@ -728,16 +728,16 @@ export function BookmarkTaxonomiesGroup({
             </span>
           </span>
         </CommandItem>
-        {authors.length > 0 && (
+        {people.length > 0 && (
           <CommandItem
-            value="Change Authors"
-            onSelect={() => onEnterMode("authors")}
+            value="Change People"
+            onSelect={() => onEnterMode("people")}
           >
             <TagIcon />
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span>Change Authors</span>
+              <span>Change People</span>
               <span className="text-xs text-muted-foreground">
-                {`${bookmark.authors.length.toString()} selected`}
+                {`${bookmark.people.length.toString()} selected`}
               </span>
             </span>
           </CommandItem>

@@ -124,7 +124,7 @@ export function buildApprovalBookmarkInput(args: {
     tagIds: mergeApprovalTagIds(defaults.tagIds, preFill?.tagIds, autofillTagIds),
     locationIds: mergeApprovalLocationIds(preFill?.locationIds, autofillLocationIds),
     mediaTypeId: preFill?.mediaTypeId ?? defaults.mediaTypeId ?? autofillMediaTypeId,
-    authorIds: preFill?.authorIds,
+    personIds: preFill?.personIds,
     publisherId: preFill?.publisherId ?? undefined,
     numberValues: mergedNumberValues.length > 0 ? mergedNumberValues : undefined,
     booleanValues: mergedBooleanValues.length > 0 ? mergedBooleanValues : undefined,

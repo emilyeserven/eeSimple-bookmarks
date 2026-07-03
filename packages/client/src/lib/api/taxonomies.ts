@@ -1,12 +1,12 @@
 import type {
-  Author,
+  Person,
   AutoFetchJobStatus,
   Book,
   BulkBookmarkResult,
   BulkDeleteResult,
   Category,
   CategoryPropertyDefaults,
-  CreateAuthorInput,
+  CreatePersonInput,
   SocialLink,
   CreateBookInput,
   CreateCategoryInput,
@@ -62,7 +62,7 @@ import type {
   SocialMediaPlatform,
   Tag,
   TagNode,
-  UpdateAuthorInput,
+  UpdatePersonInput,
   UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
@@ -83,12 +83,12 @@ import type {
 import { createCrudApi, request, uploadImageFile } from "./client";
 import { createTaxonomyImageApi } from "./taxonomyImages";
 
-export const authorsApi = {
-  ...createCrudApi<Author, CreateAuthorInput, UpdateAuthorInput>("authors"),
+export const peopleApi = {
+  ...createCrudApi<Person, CreatePersonInput, UpdatePersonInput>("people"),
   uploadImage: (id: string, file: File) =>
-    uploadImageFile<{ imageUrl: string }>(`/authors/${id}/image`, file),
+    uploadImageFile<{ imageUrl: string }>(`/people/${id}/image`, file),
   autoImage: (id: string, source: "website" | "biography" | "social", platform?: SocialMediaPlatform) =>
-    request<{ imageUrl: string }>(`/authors/${id}/image/auto`, {
+    request<{ imageUrl: string }>(`/people/${id}/image/auto`, {
       method: "POST",
       body: JSON.stringify({
         source,
@@ -100,25 +100,25 @@ export const authorsApi = {
       }),
     }),
   deleteImage: (id: string) =>
-    request<undefined>(`/authors/${id}/image`, {
+    request<undefined>(`/people/${id}/image`, {
       method: "DELETE",
     }),
   adoptChannelImage: (id: string, channelId: string) =>
-    request<{ imageUrl: string }>(`/authors/${id}/image/from-channel`, {
+    request<{ imageUrl: string }>(`/people/${id}/image/from-channel`, {
       method: "POST",
       body: JSON.stringify({
         channelId,
       }),
     }),
   adoptWebsiteFavicon: (id: string, websiteId: string) =>
-    request<{ imageUrl: string }>(`/authors/${id}/image/from-website`, {
+    request<{ imageUrl: string }>(`/people/${id}/image/from-website`, {
       method: "POST",
       body: JSON.stringify({
         websiteId,
       }),
     }),
   detectSocialLinks: (id: string) =>
-    request<{ detected: SocialLink[] }>(`/authors/${id}/social-links/detect`, {
+    request<{ detected: SocialLink[] }>(`/people/${id}/social-links/detect`, {
       method: "POST",
     }),
 };

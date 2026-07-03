@@ -4,7 +4,7 @@ import type { ImageIntent } from "./bookmarkImageIntent";
 import type { useWebsiteLookup } from "../hooks/useWebsites";
 import type { UrlCleanupMode } from "../lib/urlCleanup";
 import type {
-  Author,
+  Person,
   BookmarkImage,
   BookmarkUrlDuplicateResult,
   Category,
@@ -19,10 +19,10 @@ import type {
   YouTubeChannelHint,
 } from "@eesimple/types";
 
-import { AuthorSocialAccountOffer } from "./AuthorSocialAccountOffer";
 import { BookmarkAdvancedSection } from "./BookmarkAdvancedSection";
 import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
 import { BookmarkUrlDuplicateWarnings } from "./BookmarkUrlDuplicateWarnings";
+import { PersonSocialAccountOffer } from "./PersonSocialAccountOffer";
 import { RevealedAutofillOffer } from "./RevealedAutofillOffer";
 import { RevealedCustomFields } from "./RevealedCustomFields";
 import { RevealedNameField } from "./RevealedNameField";
@@ -87,7 +87,7 @@ interface BookmarkRevealedFieldsProps extends BookmarkCustomFieldControls {
   tagTree: TagNode[];
   customProperties: CustomProperty[];
   mediaTypes: MediaTypeNode[];
-  authors?: Author[];
+  people?: Person[];
   onTagToggle: (id: string) => void;
 
   // Advanced section.
@@ -108,9 +108,9 @@ interface BookmarkRevealedFieldsProps extends BookmarkCustomFieldControls {
   autofillOfferDismissed: boolean;
   onAutofillOfferDismiss: () => void;
 
-  // Social-account → author offer (create form only).
+  // Social-account → person offer (create form only).
   socialAccountOffer?: SocialAccountRef | null;
-  onCreateAuthorFromSocialAccount?: () => Promise<void> | void;
+  onCreatePersonFromSocialAccount?: () => Promise<void> | void;
   onSocialAccountOfferDismiss?: () => void;
 
   // Description fetch sparkle.
@@ -163,10 +163,10 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
       {/* Autofill rule offer for new sites with a non-default category. */}
       <RevealedAutofillOffer {...props} />
 
-      {/* Offer to create an author when the URL is a social profile with no matching author. */}
-      <AuthorSocialAccountOffer
+      {/* Offer to create an person when the URL is a social profile with no matching person. */}
+      <PersonSocialAccountOffer
         account={props.socialAccountOffer ?? null}
-        onCreate={() => props.onCreateAuthorFromSocialAccount?.()}
+        onCreate={() => props.onCreatePersonFromSocialAccount?.()}
         onDismiss={() => props.onSocialAccountOfferDismiss?.()}
       />
 

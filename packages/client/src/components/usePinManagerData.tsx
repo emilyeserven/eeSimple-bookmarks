@@ -90,10 +90,10 @@ export const TAXONOMY_LISTING_PINS: TaxonomyListingPin[] = [
     path: "/taxonomies/youtube-channels",
   },
   {
-    key: "authors",
-    label: "Authors",
+    key: "people",
+    label: "People",
     Icon: UserRound,
-    path: "/taxonomies/authors",
+    path: "/taxonomies/people",
   },
   {
     key: "publishers",

@@ -2,7 +2,6 @@ import type { EntityRouteKind } from "./entityRoutes";
 
 import { ALBUM_PALETTE } from "../entities/album";
 import { ARTIST_PALETTE } from "../entities/artist";
-import { AUTHOR_PALETTE } from "../entities/author";
 import { AUTOFILL_PALETTE } from "../entities/autofillRule";
 import { BOOK_PALETTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_PALETTE } from "../entities/cardDisplayRule";
@@ -15,6 +14,7 @@ import { MEDIA_PROPERTY_PALETTE } from "../entities/mediaProperty";
 import { MEDIA_TYPE_PALETTE } from "../entities/mediaType";
 import { MOVIE_PALETTE } from "../entities/movie";
 import { NEWSLETTER_PALETTE } from "../entities/newsletter";
+import { PERSON_PALETTE } from "../entities/person";
 import { PLACE_TYPE_PALETTE } from "../entities/placeType";
 import { CUSTOM_PROPERTY_PALETTE } from "../entities/property";
 import { PROPERTY_GROUP_PALETTE } from "../entities/propertyGroup";
@@ -92,7 +92,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "place-type": PLACE_TYPE_PALETTE,
   "youtube-channel": YOUTUBE_CHANNEL_PALETTE,
   "newsletter": NEWSLETTER_PALETTE,
-  "author": AUTHOR_PALETTE,
+  "person": PERSON_PALETTE,
   "publisher": PUBLISHER_PALETTE,
   "property-group": PROPERTY_GROUP_PALETTE,
   "media-property": MEDIA_PROPERTY_PALETTE,

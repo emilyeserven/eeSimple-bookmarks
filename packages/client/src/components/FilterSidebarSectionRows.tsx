@@ -1,6 +1,6 @@
 import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Author, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, SectionEntryType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, SectionEntryType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { SECTION_ENTRY_TYPE_LABELS, SECTION_ENTRY_TYPES } from "@eesimple/types";
 import { ChevronDown, Globe, MapPin, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
@@ -13,7 +13,7 @@ import { tagNodesToOptions } from "../lib/tagTree";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Separator } from "./ui/separator";
 import {
-  withAuthors,
+  withPeople,
   withBooleanFilter,
   withCategories,
   withChoicesFilter,
@@ -591,24 +591,24 @@ export function RelationshipTypeFilterSection({
   );
 }
 
-/** Multi-select author filter; rendered wherever authors exist. */
-export function AuthorFilterSection({
-  authors, search, onSearchChange,
+/** Multi-select person filter; rendered wherever people exist. */
+export function PersonFilterSection({
+  people, search, onSearchChange,
 }: {
-  authors?: Author[];
+  people?: Person[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
-  const options = (authors ?? []).map(author => ({
-    value: author.id,
-    label: author.name,
+  const options = (people ?? []).map(person => ({
+    value: person.id,
+    label: person.name,
   }));
-  const selected = search.authors ?? [];
+  const selected = search.people ?? [];
 
   return (
     <Collapsible
       defaultOpen
-      className="group/author space-y-3"
+      className="group/person space-y-3"
     >
       <CollapsibleTrigger
         className="
@@ -619,20 +619,20 @@ export function AuthorFilterSection({
         <ChevronDown
           className="
             size-3.5 shrink-0 transition-transform
-            group-data-[state=open]/author:rotate-180
+            group-data-[state=open]/person:rotate-180
           "
         />
-        Author
+        Person
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3">
         <MultiCombobox
           options={options}
           values={selected}
-          onValuesChange={ids => onSearchChange(withAuthors(search, ids))}
-          placeholder="All authors"
-          searchPlaceholder="Search authors…"
-          emptyText="No authors found."
-          aria-label="Filter by author"
+          onValuesChange={ids => onSearchChange(withPeople(search, ids))}
+          placeholder="All people"
+          searchPlaceholder="Search people…"
+          emptyText="No people found."
+          aria-label="Filter by person"
         />
         {selected.length > 0
           ? (
@@ -642,7 +642,7 @@ export function AuthorFilterSection({
                 text-xs text-primary
                 hover:underline
               "
-              onClick={() => onSearchChange(withAuthors(search, []))}
+              onClick={() => onSearchChange(withPeople(search, []))}
             >
               Reset
             </button>

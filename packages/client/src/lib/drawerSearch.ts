@@ -34,7 +34,7 @@ export type DrawerContentType
     | "track"
     | "youtube-channel"
     | "newsletter"
-    | "author"
+    | "person"
     | "publisher"
     | "relationship-type"
     | "autofill"
@@ -73,7 +73,7 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "track",
   "youtube-channel",
   "newsletter",
-  "author",
+  "person",
   "publisher",
   "relationship-type",
   "autofill",

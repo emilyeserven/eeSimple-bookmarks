@@ -399,6 +399,10 @@ export const publishers = pgTable("publishers", {
   websiteId: uuid("website_id").references((): AnyPgColumn => websites.id, {
     onDelete: "set null",
   }),
+  // Optional franchise/IP grouping. set null when the media property is deleted. Nullable → push-safe.
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
   // Social media profile links. NOT NULL; pre-applied in migrate.ts.
   socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at", {
@@ -1111,7 +1115,7 @@ export const bookmarkRelationships = pgTable("bookmark_relationships", {
   relationshipTypeId: uuid("relationship_type_id").notNull().references(() => relationshipTypes.id, {
     onDelete: "cascade",
   }),
-  // Optional, more specific free-text label for this edge (e.g. "sequel", "same author").
+  // Optional, more specific free-text label for this edge (e.g. "sequel", "same person").
   label: text("label"),
 }, table => [
   unique("bookmark_relationships_pair_type_unique").on(
@@ -1154,7 +1158,7 @@ export const bookmarksRelations = relations(bookmarks, ({
   }),
   bookmarkTags: many(bookmarkTags),
   bookmarkLocations: many(bookmarkLocations),
-  bookmarkAuthors: many(bookmarkAuthors),
+  bookmarkPeople: many(bookmarkPeople),
   images: many(bookmarkImages),
   relationsA: many(bookmarkRelationships, {
     relationName: "bookmark_relation_a",
@@ -2504,15 +2508,15 @@ export const favoriteSettingsPages = pgTable("favorite_settings_pages", {
 
 export type FavoriteSettingsPageRow = typeof favoriteSettingsPages.$inferSelect;
 
-/** `authors` table — people or entities credited as creators of bookmarked items. */
-export const authors = pgTable("authors", {
+/** `people` table — people or entities credited as creators of bookmarked items. */
+export const people = pgTable("people", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   // Optional romanized form of the name, matched by search and shown de-emphasized. Nullable → push-safe.
   romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
-  authorWebsiteUrl: text("author_website_url"),
+  personWebsiteUrl: text("person_website_url"),
   biographyUrl: text("biography_url"),
   // Social media profile links. NOT NULL; pre-applied in migrate.ts.
   socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
@@ -2520,15 +2524,15 @@ export const authors = pgTable("authors", {
     withTimezone: true,
   }).notNull().defaultNow(),
 }, table => [
-  unique("authors_name_unique").on(table.name),
-  unique("authors_slug_unique").on(table.slug),
+  unique("people_name_unique").on(table.name),
+  unique("people_slug_unique").on(table.slug),
 ]);
 
-export type AuthorRow = typeof authors.$inferSelect;
+export type PersonRow = typeof people.$inferSelect;
 
-/** `author_images` — avatar stored in object storage; one row per author (1:1). */
-export const authorImages = pgTable("author_images", {
-  authorId: uuid("author_id").primaryKey().references(() => authors.id, {
+/** `person_images` — avatar stored in object storage; one row per person (1:1). */
+export const personImages = pgTable("person_images", {
+  personId: uuid("person_id").primaryKey().references(() => people.id, {
     onDelete: "cascade",
   }),
   objectKey: text("object_key").notNull(),
@@ -2542,25 +2546,25 @@ export const authorImages = pgTable("author_images", {
   }).notNull().defaultNow(),
 });
 
-export type AuthorImageRow = typeof authorImages.$inferSelect;
+export type PersonImageRow = typeof personImages.$inferSelect;
 
-/** `bookmark_authors` join — many-to-many between bookmarks and authors. */
-export const bookmarkAuthors = pgTable("bookmark_authors", {
+/** `bookmark_people` join — many-to-many between bookmarks and people. */
+export const bookmarkPeople = pgTable("bookmark_people", {
   bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
     onDelete: "cascade",
   }),
-  authorId: uuid("author_id").notNull().references((): AnyPgColumn => authors.id, {
+  personId: uuid("person_id").notNull().references((): AnyPgColumn => people.id, {
     onDelete: "cascade",
   }),
 }, table => [
   primaryKey({
-    columns: [table.bookmarkId, table.authorId],
+    columns: [table.bookmarkId, table.personId],
   }),
 ]);
 
-/** `author_youtube_channels` join — M:M between authors and YouTube channels. */
-export const authorYoutubeChannels = pgTable("author_youtube_channels", {
-  authorId: uuid("author_id").notNull().references(() => authors.id, {
+/** `person_youtube_channels` join — M:M between people and YouTube channels. */
+export const personYoutubeChannels = pgTable("person_youtube_channels", {
+  personId: uuid("person_id").notNull().references(() => people.id, {
     onDelete: "cascade",
   }),
   channelId: uuid("channel_id").notNull().references(() => youtubeChannels.id, {
@@ -2568,15 +2572,15 @@ export const authorYoutubeChannels = pgTable("author_youtube_channels", {
   }),
 }, table => [
   primaryKey({
-    columns: [table.authorId, table.channelId],
+    columns: [table.personId, table.channelId],
   }),
 ]);
 
-export type AuthorYoutubeChannelRow = typeof authorYoutubeChannels.$inferSelect;
+export type PersonYoutubeChannelRow = typeof personYoutubeChannels.$inferSelect;
 
-/** `author_websites` join — M:M between authors and websites. */
-export const authorWebsites = pgTable("author_websites", {
-  authorId: uuid("author_id").notNull().references(() => authors.id, {
+/** `person_websites` join — M:M between people and websites. */
+export const personWebsites = pgTable("person_websites", {
+  personId: uuid("person_id").notNull().references(() => people.id, {
     onDelete: "cascade",
   }),
   websiteId: uuid("website_id").notNull().references(() => websites.id, {
@@ -2584,15 +2588,15 @@ export const authorWebsites = pgTable("author_websites", {
   }),
 }, table => [
   primaryKey({
-    columns: [table.authorId, table.websiteId],
+    columns: [table.personId, table.websiteId],
   }),
 ]);
 
-export type AuthorWebsiteRow = typeof authorWebsites.$inferSelect;
+export type PersonWebsiteRow = typeof personWebsites.$inferSelect;
 
-/** `author_publishers` join — M:M between authors and publishers. */
-export const authorPublishers = pgTable("author_publishers", {
-  authorId: uuid("author_id").notNull().references(() => authors.id, {
+/** `person_publishers` join — M:M between people and publishers. */
+export const personPublishers = pgTable("person_publishers", {
+  personId: uuid("person_id").notNull().references(() => people.id, {
     onDelete: "cascade",
   }),
   publisherId: uuid("publisher_id").notNull().references(() => publishers.id, {
@@ -2600,11 +2604,11 @@ export const authorPublishers = pgTable("author_publishers", {
   }),
 }, table => [
   primaryKey({
-    columns: [table.authorId, table.publisherId],
+    columns: [table.personId, table.publisherId],
   }),
 ]);
 
-export type AuthorPublisherRow = typeof authorPublishers.$inferSelect;
+export type PersonPublisherRow = typeof personPublishers.$inferSelect;
 
 /**
  * `card_field_templates` — user-saved named configurations of card field zone placements.
@@ -2623,63 +2627,63 @@ export const cardFieldTemplates = pgTable("card_field_templates", {
 
 export type CardFieldTemplateRow = typeof cardFieldTemplates.$inferSelect;
 
-export const authorsRelations = relations(authors, ({
+export const peopleRelations = relations(people, ({
   many,
 }) => ({
-  bookmarkAuthors: many(bookmarkAuthors),
-  authorYoutubeChannels: many(authorYoutubeChannels),
-  authorWebsites: many(authorWebsites),
-  authorPublishers: many(authorPublishers),
+  bookmarkPeople: many(bookmarkPeople),
+  personYoutubeChannels: many(personYoutubeChannels),
+  personWebsites: many(personWebsites),
+  personPublishers: many(personPublishers),
 }));
 
-export const bookmarkAuthorsRelations = relations(bookmarkAuthors, ({
+export const bookmarkPeopleRelations = relations(bookmarkPeople, ({
   one,
 }) => ({
   bookmark: one(bookmarks, {
-    fields: [bookmarkAuthors.bookmarkId],
+    fields: [bookmarkPeople.bookmarkId],
     references: [bookmarks.id],
   }),
-  author: one(authors, {
-    fields: [bookmarkAuthors.authorId],
-    references: [authors.id],
+  person: one(people, {
+    fields: [bookmarkPeople.personId],
+    references: [people.id],
   }),
 }));
 
-export const authorYoutubeChannelsRelations = relations(authorYoutubeChannels, ({
+export const personYoutubeChannelsRelations = relations(personYoutubeChannels, ({
   one,
 }) => ({
-  author: one(authors, {
-    fields: [authorYoutubeChannels.authorId],
-    references: [authors.id],
+  person: one(people, {
+    fields: [personYoutubeChannels.personId],
+    references: [people.id],
   }),
   channel: one(youtubeChannels, {
-    fields: [authorYoutubeChannels.channelId],
+    fields: [personYoutubeChannels.channelId],
     references: [youtubeChannels.id],
   }),
 }));
 
-export const authorWebsitesRelations = relations(authorWebsites, ({
+export const personWebsitesRelations = relations(personWebsites, ({
   one,
 }) => ({
-  author: one(authors, {
-    fields: [authorWebsites.authorId],
-    references: [authors.id],
+  person: one(people, {
+    fields: [personWebsites.personId],
+    references: [people.id],
   }),
   website: one(websites, {
-    fields: [authorWebsites.websiteId],
+    fields: [personWebsites.websiteId],
     references: [websites.id],
   }),
 }));
 
-export const authorPublishersRelations = relations(authorPublishers, ({
+export const personPublishersRelations = relations(personPublishers, ({
   one,
 }) => ({
-  author: one(authors, {
-    fields: [authorPublishers.authorId],
-    references: [authors.id],
+  person: one(people, {
+    fields: [personPublishers.personId],
+    references: [people.id],
   }),
   publisher: one(publishers, {
-    fields: [authorPublishers.publisherId],
+    fields: [personPublishers.publisherId],
     references: [publishers.id],
   }),
 }));

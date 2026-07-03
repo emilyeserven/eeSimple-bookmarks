@@ -9,7 +9,7 @@ description: >-
   standard hover Edit/Info buttons to a listing", "make a listing card link to the term's own page",
   "add a count badge / de-emphasize empty items on a listing", or when adding a new listing page that
   should adopt the standard. Mirrors Categories, Websites, YouTube Channels, Media Types, Tags,
-  Property Groups, Relationship Types, Publishers, Authors, Autofill, and Saved Filters.
+  Property Groups, Relationship Types, Publishers, People, Autofill, and Saved Filters.
 ---
 
 # Standard listing card
@@ -29,7 +29,7 @@ model. New listing pages adopt it from the start; existing ones must not drift b
      to their **own `$slug` index route** — `/categories/$slug`, `/tags/$slug`,
      `/taxonomies/websites/$slug`, etc. — which renders that term's bookmarks under a term-specific
      header. A **plain `<Link>`** (no `viewClick`): there's no panel content type for a bookmark list.
-   - **Non-listable entities** (Property Groups, Relationship Types, Publishers, Authors, Autofill,
+   - **Non-listable entities** (Property Groups, Relationship Types, Publishers, People, Autofill,
      Custom Properties) have no per-term bookmarks page, so the body links to the entity's **General
      detail tab** (`<Link to="/<entity>/$slug/general">`) and **is** panel-aware (`viewClick`).
    Don't reintroduce a `<Link to="/bookmarks" search={withX(...)}>` body link — `withX` now backs only
@@ -40,7 +40,7 @@ model. New listing pages adopt it from the start; existing ones must not drift b
    bare index `…/$slug`** — for Tags, Websites, YouTube Channels, and Media Types the bare index route
    renders a *bookmarks* `BookmarkSearchView` (the listable body destination), not the detail page; and
    even where the index `redirect`s to `/general` (Property Groups, Relationship Types, Publishers,
-   Authors) you should link directly to `/general`.
+   People) you should link directly to `/general`.
 5. **Always-visible count badge** = bookmarks where the item is applied.
 6. **Zero-count items are de-emphasized** (`opacity-60`) but stay clickable.
 
@@ -129,7 +129,7 @@ card.
 | Property Groups *(detail)* | `PropertyGroupListItem.tsx` | `Layers` | detail `…/$slug/general` (`viewClick`) | `propertyCount` |
 | Relationship Types *(detail)* | `RelationshipTypeManager.tsx` | `Link2` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
 | Publishers *(detail)* | `PublisherManager.tsx` | `BookOpen` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
-| Authors *(detail)* | `AuthorManager.tsx` | `UserRound` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
+| People *(detail)* | `PersonManager.tsx` | `UserRound` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
 | Autofill *(detail, no Info)* | `AutofillRuleListItem.tsx` | `Wand2` | info `/autofill/$slug` (`viewClick`), no Info button | `matchCount` |
 | Saved Filters *(detail, no count)* | `SavedFilterCard.tsx` | `ListFilter` | detail `…/$slug/general` (`viewClick`) | — (footer keeps the viewable-online checkbox) |
 
@@ -148,7 +148,7 @@ Types thread `node.icon`; flat Tags get the Tag-glyph fallback).
 
 ## Non-listable entities + other notes
 
-- **Property Groups / Publishers / Authors** — no per-term bookmarks page exists, so the body links
+- **Property Groups / Publishers / People** — no per-term bookmarks page exists, so the body links
   to the entity's **General detail tab** (`…/$slug/general`, panel-aware `viewClick`). Property
   Groups' badge counts member **properties** (`propertyCount`); the others use `bookmarkCount`. Edit +
   Info are still shown (Info also → `…/general`).
@@ -213,7 +213,7 @@ pnpm dev                                   # then check each listing page
 
 Per page: body click → **the term's own page** — its own bookmarks page for listable entities
 (Categories, Tags, Websites, YouTube Channels, Media Types), or its General detail tab for
-non-listable ones (Property Groups, Relationship Types, Publishers, Authors, Autofill) — and **never**
+non-listable ones (Property Groups, Relationship Types, Publishers, People, Autofill) — and **never**
 the global `/bookmarks?…=id` list; icon far-left; a tall/wrapping card centers the icon + buttons;
 hover shows Edit (+ Info except Autofill); the **Info icon lands on the entity's General detail tab
 (`…/$slug/general`), not a bookmarks list**; modifier-click on Edit/Info opens the right panel; for a

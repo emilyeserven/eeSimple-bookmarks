@@ -1,6 +1,6 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
-import type { Author, CustomProperty, ImageCandidate, Language, MediaType, Publisher } from "@eesimple/types";
+import type { CustomProperty, ImageCandidate, Language, MediaType, Person, Publisher } from "@eesimple/types";
 
 import { ISBN_SLUG, normalizeIsbn } from "./bookmarkFormSchema";
 import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
@@ -15,10 +15,10 @@ interface UseBookmarkIsbnParams {
   form: BookmarkFormApi;
   customProperties: CustomProperty[] | undefined;
   mediaTypes: MediaType[] | undefined;
-  authors: Author[] | undefined;
+  people: Person[] | undefined;
   publishers: Publisher[] | undefined;
   languages: Language[] | undefined;
-  createAuthor: Actions["createAuthor"];
+  createPerson: Actions["createPerson"];
   createPublisher: Actions["createPublisher"];
   createLanguage: Actions["createLanguage"];
   handleTextChange: (id: string, value: string) => void;
@@ -37,10 +37,10 @@ export function useBookmarkIsbn({
   form,
   customProperties,
   mediaTypes,
-  authors,
+  people,
   publishers,
   languages,
-  createAuthor,
+  createPerson,
   createPublisher,
   createLanguage,
   handleTextChange,
@@ -71,12 +71,12 @@ export function useBookmarkIsbn({
     if (result.description && !form.getFieldValue("description").trim()) {
       form.setFieldValue("description", result.description);
     }
-    if (result.authors.length > 0 && (form.getFieldValue("authorIds") as string[]).length === 0) {
-      await resolveAuthors(
+    if (result.authors.length > 0 && (form.getFieldValue("personIds") as string[]).length === 0) {
+      await resolvePeople(
         result.authors,
-        authors ?? [],
-        createAuthor,
-        ids => form.setFieldValue("authorIds", ids),
+        people ?? [],
+        createPerson,
+        ids => form.setFieldValue("personIds", ids),
       );
     }
     if (result.publisher && !form.getFieldValue("publisherId")) {
@@ -137,29 +137,29 @@ export function useBookmarkIsbn({
 // the hook above — keeping the hook's own cognitive budget low).
 // ---------------------------------------------------------------------------
 
-/** Match-or-create authors by name and call setIds with the resolved ids. */
-async function resolveAuthors(
+/** Match-or-create people by name and call setIds with the resolved ids. */
+async function resolvePeople(
   names: string[],
-  existingAuthors: Author[],
-  createAuthor: Actions["createAuthor"],
+  existingPeople: Person[],
+  createPerson: Actions["createPerson"],
   setIds: (ids: string[]) => void,
 ): Promise<void> {
   const ids: string[] = [];
   for (const name of names) {
     const lower = name.toLowerCase();
-    const match = existingAuthors.find(a => a.name.toLowerCase() === lower);
+    const match = existingPeople.find(a => a.name.toLowerCase() === lower);
     if (match) {
       ids.push(match.id);
     }
     else {
       try {
-        const created = await createAuthor.mutateAsync({
+        const created = await createPerson.mutateAsync({
           name,
         });
         ids.push(created.id);
       }
       catch {
-        // Skip authors that can't be created (e.g. duplicate race).
+        // Skip people that can't be created (e.g. duplicate race).
       }
     }
   }

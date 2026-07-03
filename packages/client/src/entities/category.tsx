@@ -93,7 +93,7 @@ export const categoryListingConfig: EntityListingConfig<Category> = {
   },
 };
 
-/** Eighth `EntityDescriptor` migration (after Publisher #868, Author #872, PropertyGroup #873,
+/** Eighth `EntityDescriptor` migration (after Publisher #868, Person #872, PropertyGroup #873,
  * Newsletter #874, RelationshipType + SavedFilter #875, Website #880) — issue #860. */
 export const categoryDescriptor: EntityDescriptor<Category> = {
   kind: "category",

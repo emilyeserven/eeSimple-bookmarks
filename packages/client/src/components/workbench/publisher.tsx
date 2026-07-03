@@ -2,9 +2,10 @@
 import type { EntityWorkbench } from "./types";
 import type { Publisher } from "@eesimple/types";
 
-import { PublisherAuthorsForm, PublisherAuthorsView } from "../PublisherAuthorsForm";
 import { PublisherGeneralForm } from "../PublisherGeneralForm";
+import { PublisherPeopleForm, PublisherPeopleView } from "../PublisherPeopleForm";
 
+import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { useDeletePublisher, usePublisherBySlug, usePublishers } from "@/hooks/usePublishers";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
@@ -13,12 +14,21 @@ function PublisherGeneralView({
 }: {
   entity: Publisher;
 }) {
+  const {
+    data: mediaProperties,
+  } = useMediaProperties();
+  const mediaProperty = publisher.mediaPropertyId
+    ? (mediaProperties ?? []).find(prop => prop.id === publisher.mediaPropertyId)
+    : undefined;
+
   return (
     <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
       <dt className="text-muted-foreground">Added</dt>
       <dd>{new Date(publisher.createdAt).toLocaleDateString()}</dd>
       <dt className="text-muted-foreground">Slug</dt>
       <dd className="font-mono">{publisher.slug}</dd>
+      <dt className="text-muted-foreground">Media property</dt>
+      <dd>{mediaProperty?.name ?? <span className="text-muted-foreground">None</span>}</dd>
       {publisher.website != null
         ? (
           <>
@@ -116,21 +126,21 @@ export const publisherWorkbench: EntityWorkbench<Publisher> = {
       },
     },
     {
-      key: "authors",
-      label: "Authors",
+      key: "people",
+      label: "People",
       view: {
-        title: "Authors",
-        description: "Authors associated with this publisher.",
+        title: "People",
+        description: "People associated with this publisher.",
         render: ({
           entity,
-        }) => <PublisherAuthorsView publisher={entity} />,
+        }) => <PublisherPeopleView publisher={entity} />,
       },
       edit: {
-        title: "Authors",
-        description: "Connect authors to this publisher.",
+        title: "People",
+        description: "Connect people to this publisher.",
         render: ({
           entity,
-        }) => <PublisherAuthorsForm publisher={entity} />,
+        }) => <PublisherPeopleForm publisher={entity} />,
       },
     },
   ],

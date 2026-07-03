@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Author, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useEffect } from "react";
 
@@ -21,7 +21,7 @@ export interface BookmarkSearchViewData {
   youtubeChannels?: YouTubeChannel[];
   websites?: Website[];
   relationshipTypes?: RelationshipType[];
-  authors?: Author[];
+  people?: Person[];
   placeTypes?: PlaceType[];
   bookmarks: Bookmark[];
   search: BookmarkSearch;
@@ -49,7 +49,7 @@ export interface BookmarkSearchViewState {
 export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSearchViewState {
   const {
     pageKey, tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels,
-    websites, relationshipTypes, authors, placeTypes, bookmarks, search, onSearchChange,
+    websites, relationshipTypes, people, placeTypes, bookmarks, search, onSearchChange,
     addFormCategoryId,
   } = data;
 
@@ -84,7 +84,7 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
       youtubeChannels,
       websites,
       relationshipTypes,
-      authors,
+      people,
       placeTypes,
       bookmarks,
       search,
@@ -92,7 +92,7 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     });
     return () => setFilterContext(null);
     // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
-  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, placeTypes, bookmarks, search, onSearchChange, setFilterContext]);
+  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, bookmarks, search, onSearchChange, setFilterContext]);
 
   // Only on mount — intentionally omit filtersInDrawer/isOpen/openType to avoid re-running.
   useEffect(() => {

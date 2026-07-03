@@ -30,7 +30,7 @@ function CategoryBookmarksPage() {
     youtubeChannels,
     websites,
     relationshipTypes,
-    authors,
+    people,
     placeTypes,
   } = useCategoryPageData(tagsForServerQuery(search));
 
@@ -65,7 +65,7 @@ function CategoryBookmarksPage() {
       youtubeChannels={youtubeChannels ?? []}
       websites={websites ?? []}
       relationshipTypes={relationshipTypes ?? []}
-      authors={authors ?? []}
+      people={people ?? []}
       placeTypes={placeTypes ?? []}
       bookmarks={categoryBookmarks}
       search={search}

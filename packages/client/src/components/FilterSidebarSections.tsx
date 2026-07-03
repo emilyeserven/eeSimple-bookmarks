@@ -1,11 +1,11 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Author, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { Fragment } from "react";
 
 import {
-  AuthorFilterSection,
+  PersonFilterSection,
   CategoryFilterSection,
   MediaTypeFilterSection,
   PlaceTypeFilterSection,
@@ -21,8 +21,8 @@ import { Separator } from "./ui/separator";
 
 /** The filter sections themselves, with separators between adjacent groups. */
 export function FilterSections({
-  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, placeTypes, bookmarks, search, onSearchChange,
-  hasTags, hasProperties, hasSectionsFilter, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasAuthorFilter, hasPlaceTypeFilter,
+  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, bookmarks, search, onSearchChange,
+  hasTags, hasProperties, hasSectionsFilter, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasPersonFilter, hasPlaceTypeFilter,
   sectionFilter,
 }: {
   tree: TagNode[];
@@ -33,7 +33,7 @@ export function FilterSections({
   youtubeChannels?: YouTubeChannel[];
   websites?: Website[];
   relationshipTypes?: RelationshipType[];
-  authors?: Author[];
+  people?: Person[];
   placeTypes?: PlaceType[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
@@ -46,7 +46,7 @@ export function FilterSections({
   hasChannelFilter: boolean;
   hasWebsiteFilter: boolean;
   hasRelationshipTypeFilter: boolean;
-  hasAuthorFilter: boolean;
+  hasPersonFilter: boolean;
   hasPlaceTypeFilter: boolean;
   sectionFilter?: string;
 }) {
@@ -133,11 +133,11 @@ export function FilterSections({
           ),
         },
         {
-          key: "authors",
-          show: sectionShown(hasAuthorFilter, "Author"),
+          key: "people",
+          show: sectionShown(hasPersonFilter, "Person"),
           node: (
-            <AuthorFilterSection
-              authors={authors}
+            <PersonFilterSection
+              people={people}
               search={search}
               onSearchChange={onSearchChange}
             />

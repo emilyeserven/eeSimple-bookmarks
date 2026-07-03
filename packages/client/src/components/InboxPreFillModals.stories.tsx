@@ -9,8 +9,8 @@ const meta = {
   args: {
     preFill: {},
     setPreFill: () => {},
-    addAuthorOpen: false,
-    setAddAuthorOpen: () => {},
+    addPersonOpen: false,
+    setAddPersonOpen: () => {},
   },
   parameters: {
     msw: {
@@ -26,9 +26,9 @@ type Story = StoryObj<typeof meta>;
 /** The modal closed — nothing is rendered. */
 export const Default: Story = {};
 
-/** The "Add author" modal opened from the pre-fill box. */
-export const AuthorOpen: Story = {
+/** The "Add person" modal opened from the pre-fill box. */
+export const PersonOpen: Story = {
   args: {
-    addAuthorOpen: true,
+    addPersonOpen: true,
   },
 };

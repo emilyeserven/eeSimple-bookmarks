@@ -1,6 +1,5 @@
 import {
   Bookmark,
-  Building2,
   Clapperboard,
   FileInput,
   FolderOpen,
@@ -105,16 +104,10 @@ export const taxonomyItems = [
     icon: Mail,
   },
   {
-    key: "authors",
-    title: "Authors",
-    to: "/taxonomies/authors",
+    key: "people",
+    title: "People",
+    to: "/taxonomies/people",
     icon: UserRound,
-  },
-  {
-    key: "publishers",
-    title: "Publishers",
-    to: "/taxonomies/publishers",
-    icon: Building2,
   },
 ] as const;
 

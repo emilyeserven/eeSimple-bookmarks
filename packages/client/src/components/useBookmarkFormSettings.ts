@@ -5,12 +5,12 @@ import {
   useRedirectIgnoreList,
   useShortenerIgnoreList,
 } from "../hooks/useAppSettings";
-import { useAuthors } from "../hooks/useAuthors";
+import { usePeople } from "../hooks/usePeople";
 import { usePublishers } from "../hooks/usePublishers";
 
 /**
  * The bookmark form's app-settings flags (shortener / strip-param / redirect ignore lists and the
- * auto-fetch toggles) plus the authors/publishers lists. Grouped into one hook so `useBookmarkFormData`
+ * auto-fetch toggles) plus the people/publishers lists. Grouped into one hook so `useBookmarkFormData`
  * stays under the per-file import cap; these are all read-only, side-effect-free queries/flags.
  */
 export function useBookmarkFormSettings() {
@@ -24,8 +24,8 @@ export function useBookmarkFormSettings() {
     data: redirectIgnoreList,
   } = useRedirectIgnoreList();
   const {
-    data: authors,
-  } = useAuthors();
+    data: people,
+  } = usePeople();
   const {
     data: publishers,
   } = usePublishers();
@@ -36,7 +36,7 @@ export function useBookmarkFormSettings() {
     shortenerIgnoreList,
     customStripParams,
     redirectIgnoreList,
-    authors,
+    people,
     publishers,
     autoFetchTitle,
     autoFetchImage,

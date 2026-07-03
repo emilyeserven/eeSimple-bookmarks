@@ -92,8 +92,8 @@ const TAXONOMY_ITEMS = [
     icon: Mail,
   },
   {
-    key: "authors",
-    label: "Authors",
+    key: "people",
+    label: "People",
     icon: UserRound,
   },
   {

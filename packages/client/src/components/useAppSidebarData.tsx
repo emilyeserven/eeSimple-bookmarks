@@ -130,6 +130,7 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   albumsCount: number | undefined;
   artistsCount: number | undefined;
   tracksCount: number | undefined;
+  publishersCount: number | undefined;
   currentBookmarkCategories: string[];
   modifier: ReturnType<typeof useSidebarOpenModifier>;
   viewClick: ReturnType<typeof useViewPanelClick>;
@@ -198,8 +199,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     "locations": data.allLocations?.length,
     "youtube-channels": data.allChannels?.length,
     "newsletters": data.allNewsletters?.length,
-    "authors": data.allAuthors?.length,
-    "publishers": data.allPublishers?.length,
+    "people": data.allPeople?.length,
   };
 
   const visibleTaxonomyItems = withVisibleCounts(
@@ -271,6 +271,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     albumsCount: data.allAlbums?.length,
     artistsCount: data.allArtists?.length,
     tracksCount: data.allTracks?.length,
+    publishersCount: data.allPublishers?.length,
     currentBookmarkCategories,
     modifier,
     viewClick,

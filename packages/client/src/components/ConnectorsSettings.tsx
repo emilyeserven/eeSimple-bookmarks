@@ -170,7 +170,7 @@ export function ConnectorsSettings() {
                 </Badge>
               ))}
             </div>
-            <Provides items={["Title", "Author", "Thumbnail image", "Publish date"]} />
+            <Provides items={["Title", "Person", "Thumbnail image", "Publish date"]} />
           </CardContent>
         </Card>
       ),
@@ -191,7 +191,7 @@ export function ConnectorsSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Title", "Authors", "Publisher", "Publication year", "Cover image"]} />
+            <Provides items={["Title", "People", "Publisher", "Publication year", "Cover image"]} />
           </CardContent>
         </Card>
       ),
@@ -320,7 +320,7 @@ export function ConnectorsSettings() {
               <AlwaysOnBadge />
             </div>
             <CardDescription>
-              Post and carousel images, and an author&apos;s avatar from a connected Instagram account,
+              Post and carousel images, and an person&apos;s avatar from a connected Instagram account,
               come from Instagram&apos;s keyless public embed. When an
               {" "}
               <code>INSTAGRAM_API_KEY</code>
@@ -336,7 +336,7 @@ export function ConnectorsSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Post images", "Author avatar"]} />
+            <Provides items={["Post images", "Person avatar"]} />
           </CardContent>
         </Card>
       ),
@@ -387,7 +387,7 @@ export function ConnectorsSettings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <HostedMetadataForm />
-            <Provides items={["Title", "Description", "Image", "Author", "Publisher", "Publish date"]} />
+            <Provides items={["Title", "Description", "Image", "Person", "Publisher", "Publish date"]} />
           </CardContent>
         </Card>
       ),

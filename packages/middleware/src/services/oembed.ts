@@ -18,7 +18,7 @@ const OEMBED_TIMEOUT_MS = 5000;
 interface RawOEmbed {
   title?: unknown;
   author_name?: unknown;
-  author_url?: unknown;
+  person_url?: unknown;
   thumbnail_url?: unknown;
   description?: unknown;
   upload_date?: unknown;
@@ -61,12 +61,12 @@ async function fetchOEmbedJson(endpoint: string): Promise<RawOEmbed | null> {
 }
 
 /**
- * Map a provider's raw oEmbed JSON to a `NormalizedOEmbed`. SSRF-guards the thumbnail and author
+ * Map a provider's raw oEmbed JSON to a `NormalizedOEmbed`. SSRF-guards the thumbnail and person
  * URLs (they come from a third party). Pure — unit-testable.
  */
 export function normalizeOEmbed(raw: RawOEmbed, providerName: string | null): NormalizedOEmbed {
   const thumbnailUrl = asString(raw.thumbnail_url);
-  const authorUrl = asString(raw.author_url);
+  const authorUrl = asString(raw.person_url);
   return {
     title: asString(raw.title),
     authorName: asString(raw.author_name),
@@ -125,7 +125,7 @@ export async function fetchOEmbedForUrl(
   // Some providers' thumbnails are generic/placeholder images unrelated to the specific content
   // (e.g. Reddit) — drop it so callers fall through to the page's own scraped og:image instead.
   if (provider?.trustThumbnail === false) normalized.thumbnailUrl = null;
-  // A result with no usable text, author, or thumbnail isn't worth returning.
+  // A result with no usable text, person, or thumbnail isn't worth returning.
   if (
     normalized.title === null
     && normalized.description === null

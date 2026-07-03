@@ -1,5 +1,5 @@
 import type { BookmarkSort, BookmarkSortDimension, BuiltinSortField, SortDirection } from "./bookmarkSort";
-import type { Bookmark, BookmarkAuthor, BookmarkLocation, BookmarkTag, SectionEntryType } from "@eesimple/types";
+import type { Bookmark, BookmarkPerson, BookmarkLocation, BookmarkTag, SectionEntryType } from "@eesimple/types";
 
 import { placeTypeKey } from "@eesimple/types";
 
@@ -43,8 +43,8 @@ export interface BookmarkSearch {
   placeTypes?: string[];
   /** Filter bookmarks by place type: "has" = has any location with a place type, "missing" = none, "exclude" = does not have the selected place types. */
   placeTypePresence?: "has" | "missing" | "exclude";
-  /** Restrict to bookmarks whose author list overlaps with these ids (empty/absent = all). */
-  authors?: string[];
+  /** Restrict to bookmarks whose person list overlaps with these ids (empty/absent = all). */
+  people?: string[];
   num?: Record<string, [number, number]>;
   bool?: Record<string, boolean>;
   /** `[from, to]` date/time range bounds (canonical strings, either `null`) keyed by property id. */
@@ -200,7 +200,7 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     websites: validStringList(search.websites),
     websitePresence: validPresence(search.websitePresence),
     relationshipTypes: validStringList(search.relationshipTypes),
-    authors: validStringList(search.authors),
+    people: validStringList(search.people),
     placeTypes: validStringList(search.placeTypes),
     placeTypePresence: validPresence(search.placeTypePresence),
     num: nonEmptyRecord(parseNumRecord(search.num)),
@@ -229,7 +229,7 @@ type SearchableBookmark = Pick<
   | "website"
   | "tags"
   | "locations"
-  | "authors"
+  | "people"
   | "numberValues"
   | "booleanValues"
   | "dateTimeValues"
@@ -249,10 +249,10 @@ function passesRelationshipTypeFilter(
   return bookmark.relationships.some(rel => selected.includes(rel.relationshipTypeId));
 }
 
-/** A multi-select author filter passes when empty or the bookmark has at least one matching author. */
-function passesAuthorsFilter(selected: string[] | undefined, authors: BookmarkAuthor[]): boolean {
+/** A multi-select person filter passes when empty or the bookmark has at least one matching person. */
+function passesPeopleFilter(selected: string[] | undefined, people: BookmarkPerson[]): boolean {
   if (!selected || selected.length === 0) return true;
-  return authors.some(a => selected.includes(a.id));
+  return people.some(a => selected.includes(a.id));
 }
 
 /** A multi-select id filter passes when it is empty or contains the bookmark's value. */
@@ -385,7 +385,7 @@ export function bookmarkMatchesSearch(
         : passesIdFilter(search.websites, bookmark.website?.id)
           && passesPresence(search.websitePresence, Boolean(bookmark.website)))
         && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
-        && passesAuthorsFilter(search.authors, bookmark.authors)
+        && passesPeopleFilter(search.people, bookmark.people)
     // Place types: multi-valued (a bookmark can carry several locations), so "any match" like tags.
         && (search.placeTypePresence === "exclude"
           ? passesPlaceTypesExclusion(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
@@ -425,7 +425,7 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     || hasItems(search.websites)
     || search.websitePresence !== undefined
     || hasItems(search.relationshipTypes)
-    || hasItems(search.authors)
+    || hasItems(search.people)
     || hasItems(search.placeTypes)
     || search.placeTypePresence !== undefined
     || hasEntries(search.num)
@@ -577,13 +577,13 @@ export function withWebsites(search: BookmarkSearch, ids: string[]): BookmarkSea
   return next;
 }
 
-/** Return a copy of `search` with the author filter set, or cleared when `ids` is empty. */
-export function withAuthors(search: BookmarkSearch, ids: string[]): BookmarkSearch {
+/** Return a copy of `search` with the person filter set, or cleared when `ids` is empty. */
+export function withPeople(search: BookmarkSearch, ids: string[]): BookmarkSearch {
   const next = {
     ...search,
   };
-  if (ids.length === 0) delete next.authors;
-  else next.authors = ids;
+  if (ids.length === 0) delete next.people;
+  else next.people = ids;
   return next;
 }
 
@@ -806,7 +806,7 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     ...entityPresenceParts(search.youtubeChannels, search.youtubeChannelPresence, "channel", "channels", "channel"),
     ...entityPresenceParts(search.websites, search.websitePresence, "website", "websites", "website"),
     countPart(search.relationshipTypes?.length ?? 0, "relationship type", "relationship types"),
-    countPart(search.authors?.length ?? 0, "author", "authors"),
+    countPart(search.people?.length ?? 0, "person", "people"),
     ...entityPresenceParts(search.placeTypes, search.placeTypePresence, "place type", "place types", "place type"),
     ...entityPresenceParts(search.tags, search.tagPresence, "tag", "tags", "tags"),
     countPart(propCount, "property", "properties"),
