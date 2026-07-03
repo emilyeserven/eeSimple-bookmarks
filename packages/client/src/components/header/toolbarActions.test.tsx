@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { ToolbarContext } from "./toolbarActions";
 
 import { describe, expect, it, vi } from "vitest";
