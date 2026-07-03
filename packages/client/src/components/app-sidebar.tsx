@@ -10,6 +10,7 @@ import {
   SidebarResizeHandle,
 } from "./app-sidebar-sections";
 import { GroupsSidebarItem } from "./GroupsSidebarItem";
+import { LanguagesSidebarItem } from "./LanguagesSidebarItem";
 import { LocationsSidebarItem } from "./LocationsSidebarItem";
 import { MediaPropertiesSidebarItem } from "./MediaPropertiesSidebarItem";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
@@ -129,6 +130,17 @@ function ExpandableLinkSection({
           pathname={pathname}
           groupsCount={item.count}
           groupTypesCount={groupTypesCount}
+          sidebarState={sidebarState}
+        />
+      );
+    }
+    // Languages gets a hover flyout surfacing its Usage Levels taxonomy.
+    if (item.key === "languages") {
+      return (
+        <LanguagesSidebarItem
+          key={item.key}
+          pathname={pathname}
+          languagesCount={item.count}
           sidebarState={sidebarState}
         />
       );
