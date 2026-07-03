@@ -1,7 +1,6 @@
+import type { TreeComboboxOption } from "@/components/TreeMultiCombobox";
 import type { MediaTypeNode } from "@eesimple/types";
 import type { ReactNode } from "react";
-
-import { flattenTree } from "./tagTree";
 
 import { CategoryIcon } from "@/lib/icons";
 
@@ -39,17 +38,16 @@ export function iconComboboxOptions(
 }
 
 /**
- * Build depth-aware combobox options from a media type tree. Roots appear first; their children are
- * indented one level. Mirrors how the filter sidebar uses `TreeMultiCombobox` for media types, but
- * for single-select `Combobox` / `ComboboxField` pickers (which use `depth` for indentation).
+ * Convert a `MediaTypeNode` tree into `TreeComboboxOption[]` for the tree comboboxes
+ * (`TreeCombobox` / `TreeMultiCombobox`), preserving nested `children` so the picker renders real
+ * collapsible hierarchy. Mirrors `tagNodesToOptions`/`locationNodesToOptions` but carries the
+ * media-type icon (which is why it lives here, in a `.tsx`, rather than in `tagTree.ts`). A
+ * romanized name (when present) is carried as `searchAlias` so the picker search matches it too.
  */
-export function mediaTypeTreeComboboxOptions(tree: MediaTypeNode[]): IconComboboxOption[] {
-  return flattenTree(tree).map(({
-    node, depth,
-  }) => ({
+export function mediaTypeNodesToOptions(nodes: MediaTypeNode[]): TreeComboboxOption[] {
+  return nodes.map(node => ({
     value: node.id,
     label: node.name,
-    depth,
     searchAlias: node.romanizedName ?? undefined,
     icon: (
       <CategoryIcon
@@ -57,5 +55,6 @@ export function mediaTypeTreeComboboxOptions(tree: MediaTypeNode[]): IconCombobo
         className="size-4 shrink-0"
       />
     ),
+    children: mediaTypeNodesToOptions(node.children),
   }));
 }

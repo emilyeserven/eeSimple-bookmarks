@@ -5,6 +5,7 @@ import { InboxPreFillModals } from "./InboxPreFillModals";
 import { InboxPreFillTags } from "./InboxPreFillTags";
 import { InboxPropertyField } from "./InboxPropertyField";
 import { MultiCombobox } from "./MultiCombobox";
+import { TreeCombobox } from "./TreeCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useInboxPreFillBox } from "./useInboxPreFillBox";
 
@@ -103,7 +104,7 @@ export function InboxPreFillBox({
             {mediaTypeTree.length > 0 && (
               <div className="space-y-1">
                 <Label className="text-sm">Media Type</Label>
-                <Combobox
+                <TreeCombobox
                   options={mediaTypeOptions}
                   value={preFill.mediaTypeId ?? undefined}
                   onValueChange={val => setPreFill({

@@ -1,10 +1,10 @@
 import type { MediaTypeCondition } from "@eesimple/types";
 
-import { MultiCombobox } from "../MultiCombobox";
+import { TreeMultiCombobox } from "../TreeMultiCombobox";
 import { useEntityCreateOption } from "../useEntityCreateOption";
 
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
-import { mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
+import { mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 interface MediaTypeConditionEditorProps {
   value: MediaTypeCondition;
@@ -26,12 +26,12 @@ export function MediaTypeConditionEditor({
 
   return (
     <>
-      <MultiCombobox
+      <TreeMultiCombobox
         aria-label="Media Types"
         placeholder={isLoading ? "Loading…" : "Any media type"}
         searchPlaceholder="Search media types…"
         emptyText="No media types found."
-        options={mediaTypeTreeComboboxOptions(mediaTypeTree)}
+        options={mediaTypeNodesToOptions(mediaTypeTree)}
         values={value.mediaTypeIds}
         onValuesChange={mediaTypeIds =>
           onChange({

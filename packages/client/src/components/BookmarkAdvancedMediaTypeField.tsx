@@ -5,7 +5,7 @@ import type { MediaTypeNode } from "@eesimple/types";
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
-import { mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
+import { mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 interface BookmarkAdvancedMediaTypeFieldProps {
   form: BookmarkFormApi;
@@ -26,13 +26,13 @@ export function BookmarkAdvancedMediaTypeField({
     <>
       <form.AppField name="mediaTypeId">
         {field => (
-          <field.ComboboxField
+          <field.TreeComboboxField
             label="Media type"
             placeholder="No media type"
             searchPlaceholder="Search media types…"
             emptyText="No media types found."
             createOption={mediaTypeCreate.createOption}
-            options={mediaTypeTreeComboboxOptions(mediaTypes)}
+            options={mediaTypeNodesToOptions(mediaTypes)}
           />
         )}
       </form.AppField>

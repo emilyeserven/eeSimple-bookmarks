@@ -8,7 +8,7 @@ import { MultiCombobox } from "./MultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { Label } from "@/components/ui/label";
-import { mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
+import { mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 type Ctrl = ReturnType<typeof useBookmarkGeneralForm>;
 
@@ -47,13 +47,13 @@ export function BookmarkGeneralRelationsSection({
     <>
       <form.AppField name="mediaTypeId">
         {field => (
-          <field.ComboboxField
+          <field.TreeComboboxField
             label="Media type"
             placeholder="No media type"
             searchPlaceholder="Search media types…"
             emptyText="No media types found."
             createOption={mediaTypeCreate.createOption}
-            options={mediaTypeTreeComboboxOptions(mediaTypes ?? [])}
+            options={mediaTypeNodesToOptions(mediaTypes ?? [])}
           />
         )}
       </form.AppField>

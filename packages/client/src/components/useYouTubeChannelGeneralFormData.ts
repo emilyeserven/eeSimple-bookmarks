@@ -2,7 +2,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import { useWebsites } from "@/hooks/useWebsites";
-import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
+import { iconComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 /**
  * The taxonomy queries the YouTube-channel General form needs, returned with defaults applied and
@@ -25,7 +25,7 @@ export function useYouTubeChannelGeneralFormData() {
 
   return {
     categoryOptions: iconComboboxOptions(categories ?? []),
-    mediaTypeOptions: mediaTypeTreeComboboxOptions(mediaTypeTree ?? []),
+    mediaTypeOptions: mediaTypeNodesToOptions(mediaTypeTree ?? []),
     tagTree: tagTree ?? [],
     websites: websites ?? [],
   };
