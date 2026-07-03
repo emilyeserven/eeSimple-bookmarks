@@ -1,7 +1,7 @@
 import type { ConnectorsStatus } from "@eesimple/types";
 import type React from "react";
 
-import { Archive, BookMarked, MonitorPlay } from "lucide-react";
+import { Archive, BookMarked, MonitorPlay, Tv } from "lucide-react";
 
 /**
  * A single external link-out to a configured connector, shown in the sidebar's Connectors section and
@@ -47,6 +47,15 @@ export const CONNECTOR_LINKS: readonly ConnectorLink[] = [
     isConfigured: c => Boolean(c.archiveBox.baseUrl),
     href: c => c.archiveBox.baseUrl,
     label: () => "ArchiveBox",
+  },
+  {
+    key: "plex",
+    icon: Tv,
+    // The web app opens without the token, so gate on the base URL alone (not `plex.enabled`).
+    isConfigured: c => Boolean(c.plex.baseUrl),
+    // Land on the Plex web UI (the raw base URL serves the XML API root, not the app).
+    href: c => (c.plex.baseUrl ? `${c.plex.baseUrl.replace(/\/$/, "")}/web` : null),
+    label: () => "Plex",
   },
   {
     key: "hosted-metadata",

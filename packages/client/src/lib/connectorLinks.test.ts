@@ -101,6 +101,19 @@ describe("CONNECTOR_LINKS", () => {
     expect(link("archivebox").href(status)).toBe("http://localhost:8000");
   });
 
+  it("gates plex on the base URL and lands on the web UI", () => {
+    const status = makeStatus({
+      plex: {
+        enabled: false,
+        baseUrl: "http://plex.local:32400/",
+        machineIdentifier: null,
+      },
+    });
+    expect(link("plex").isConfigured(status)).toBe(true);
+    expect(link("plex").label(status)).toBe("Plex");
+    expect(link("plex").href(status)).toBe("http://plex.local:32400/web");
+  });
+
   it("labels the hosted-metadata link by provider name", () => {
     const status = makeStatus({
       hostedMetadata: {
