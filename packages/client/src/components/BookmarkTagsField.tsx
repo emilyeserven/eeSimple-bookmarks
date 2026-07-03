@@ -2,7 +2,7 @@ import type { TagNode } from "@eesimple/types";
 import type { ComponentProps, ReactNode } from "react";
 
 import { TagPicker } from "./TagPicker";
-import { useCategoryAvailableTags } from "../hooks/useCategories";
+import { useGatedTagTree } from "../hooks/useGatedTagTree";
 
 import { Label } from "@/components/ui/label";
 
@@ -32,15 +32,11 @@ export function GatedTagPicker({
   categoryId, tree, selectedIds, onToggle, createOption, label = "Tags", description, below,
 }: GatedTagPickerProps) {
   const {
-    data: availableRootIds,
-  } = useCategoryAvailableTags(categoryId);
+    availableRootIds, tree: gated,
+  } = useGatedTagTree(categoryId, tree);
 
   // Hide the tags section when the category has no available root tags.
   if (availableRootIds !== undefined && availableRootIds.length === 0) return null;
-
-  const gated = availableRootIds
-    ? tree.filter(root => availableRootIds.includes(root.id))
-    : tree;
 
   return (
     <div className="space-y-1">

@@ -19,7 +19,7 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useCategoryRootTags } from "@/hooks/useCategories";
+import { useCategoryAvailableTags } from "@/hooks/useCategories";
 import { subtreeIds } from "@/lib/tagTree";
 
 export type TaxonomyMode = "category" | "media-type" | "tags" | "locations" | "people" | "groups" | "newsletter" | "choices-property" | "rating-property";
@@ -29,9 +29,11 @@ function useTagsPalette(
   pendingTagIds: string[],
   categoryId: string | undefined,
 ) {
+  // "Available" = explicitly assigned to the category, plus tags with no category assignment at
+  // all — matches the gating already applied by `GatedTagPicker` on the bookmark form.
   const {
     data: allowedRootIds,
-  } = useCategoryRootTags(categoryId ?? "");
+  } = useCategoryAvailableTags(categoryId ?? "");
 
   const allTagsById = useMemo(
     () => new Map(flatTags.map(({

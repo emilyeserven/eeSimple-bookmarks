@@ -1,12 +1,12 @@
 import type { ComboboxOption } from "../Combobox";
-import type { CustomProperty, UpdateBookmarkInput } from "@eesimple/types";
+import type { Bookmark, CustomProperty, UpdateBookmarkInput } from "@eesimple/types";
 
 import {
   useBulkBookmarkTags,
   useBulkDeleteBookmarks,
   useBulkUpdateBookmarks,
 } from "../../hooks/useBookmarks";
-import { useCategories } from "../../hooks/useCategories";
+import { useCategories, useCategoryAvailableTags } from "../../hooks/useCategories";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
 import { CONTENT_STATUS_SLUG } from "../bookmarkFormSchema";
 import {
@@ -57,6 +57,8 @@ function SetComboboxDialog({
 
 interface BookmarkBulkActionsProps {
   selectedIds: string[];
+  /** The full selected bookmarks — used to gate the tags dialog to a shared category, if any. */
+  selectedBookmarks: Bookmark[];
   properties: CustomProperty[];
   onDone: () => void;
 }
@@ -64,6 +66,7 @@ interface BookmarkBulkActionsProps {
 /** The bulk-action controls for the Bookmarks page, rendered inside the {@link BulkActionBar}. */
 export function BookmarkBulkActions({
   selectedIds,
+  selectedBookmarks,
   properties,
   onDone,
 }: BookmarkBulkActionsProps) {
@@ -76,6 +79,14 @@ export function BookmarkBulkActions({
   const bulkTags = useBulkBookmarkTags();
   const bulkDelete = useBulkDeleteBookmarks();
   const contentStatusProperty = properties.find(p => p.slug === CONTENT_STATUS_SLUG);
+
+  // Only gate the bulk tags picker when every selected bookmark shares one category — a mixed
+  // selection falls back to showing every tag.
+  const selectedCategoryIds = new Set(selectedBookmarks.map(b => b.categoryId));
+  const sharedCategoryId = selectedCategoryIds.size === 1 ? [...selectedCategoryIds][0] : undefined;
+  const {
+    data: sharedCategoryAvailableTags,
+  } = useCategoryAvailableTags(sharedCategoryId ?? "");
 
   return (
     <>
@@ -143,6 +154,7 @@ export function BookmarkBulkActions({
           tagIds,
           op,
         }, cb)}
+        availableRootTagIds={sharedCategoryId ? sharedCategoryAvailableTags : undefined}
       />
       <BulkSetPropertyButton
         ids={selectedIds}

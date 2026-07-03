@@ -3,6 +3,7 @@ import type { InboxPreFillDefaults, TagNode } from "@eesimple/types";
 import { X } from "lucide-react";
 
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
+import { useGatedTagTree } from "../hooks/useGatedTagTree";
 
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label";
 /**
  * The full-width Tags pre-fill field: removable badges for the selected tags above a
  * `TagPickerWithCreate`. Full-width because the tree picker is wider than the other defaults.
+ * Gated to the prefill's own category, if any.
  */
 export function InboxPreFillTags({
   tree,
@@ -23,6 +25,9 @@ export function InboxPreFillTags({
   selectedTagNames: string[];
 }) {
   const selectedTagIds = preFill.tagIds ?? [];
+  const {
+    tree: gated,
+  } = useGatedTagTree(preFill.categoryId, tree);
 
   return (
     <div className="space-y-1">
@@ -56,7 +61,7 @@ export function InboxPreFillTags({
         </div>
       )}
       <TagPickerWithCreate
-        tree={tree}
+        tree={gated}
         selectedIds={selectedTagIds}
         onToggle={(id) => {
           const next = selectedTagIds.includes(id)
