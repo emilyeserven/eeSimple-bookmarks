@@ -48,13 +48,39 @@ export function SidebarCategoryVisibilityList({
             </span>
             <ToggleGroup
               type="single"
+              variant="outline"
               size="sm"
+              className="gap-0"
               value={mode}
               onValueChange={value => value && onSetMode(category.id, value as CategoryDisplayMode)}
             >
-              <ToggleGroupItem value="visible">Default</ToggleGroupItem>
-              <ToggleGroupItem value="see-more">See More</ToggleGroupItem>
-              <ToggleGroupItem value="hidden">Listing only</ToggleGroupItem>
+              <ToggleGroupItem
+                value="visible"
+                className="
+                  -me-px rounded-e-none
+                  focus-visible:z-10
+                "
+              >
+                Default
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="see-more"
+                className="
+                  -me-px rounded-none
+                  focus-visible:z-10
+                "
+              >
+                See More
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="hidden"
+                className="
+                  rounded-s-none
+                  focus-visible:z-10
+                "
+              >
+                Listing only
+              </ToggleGroupItem>
             </ToggleGroup>
           </div>
         );
