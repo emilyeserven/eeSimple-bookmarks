@@ -64,6 +64,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Plex Link",
   },
   {
+    key: "podcastLink",
+    label: "Podcast Link",
+  },
+  {
     key: "more",
     label: "More menu",
   },

@@ -1,8 +1,35 @@
 /**
+ * The directories a podcast can carry a "website link" to. `feed` is the raw RSS/XML feed; the other
+ * three are the show's page on a listening service. One is chosen as the podcast's `defaultLinkProvider`
+ * — the service its detail page and the `podcastLink` bookmark-card field link out to. Add a provider
+ * in exactly one place: this tuple + its label below.
+ */
+export const PODCAST_LINK_PROVIDERS = ["feed", "itunes", "spotify", "pocketCasts"] as const;
+export type PodcastLinkProvider = typeof PODCAST_LINK_PROVIDERS[number];
+
+/** Human labels for each link provider (exhaustive over {@link PODCAST_LINK_PROVIDERS}). */
+export const PODCAST_LINK_PROVIDER_LABELS: Record<PodcastLinkProvider, string> = {
+  feed: "RSS Feed",
+  itunes: "Apple Podcasts",
+  spotify: "Spotify",
+  pocketCasts: "Pocket Casts",
+};
+
+/**
+ * The subset of providers that can be *searched* keylessly (the search-picker's provider selector).
+ * Spotify is intentionally excluded — its Web API needs OAuth, so a Spotify link is manual-paste only.
+ */
+export const PODCAST_SEARCH_PROVIDERS = ["itunes", "pocketCasts"] as const;
+export type PodcastSearchProvider = typeof PODCAST_SEARCH_PROVIDERS[number];
+
+/**
  * A Podcast in the "Podcasts" taxonomy — the eighth Media Property a bookmark can link to (via
  * `bookmark.podcastId`). Unlike the Plex-backed siblings, a Podcast is sourced keylessly from its
  * public RSS/XML feed and/or Apple Podcasts (iTunes) so its title/author/artwork/description can be
- * autofilled and re-synced. A Podcast may optionally belong to a Media Property (franchise/IP grouping).
+ * autofilled and re-synced. It also stores its page URL on other listening services (Spotify,
+ * Pocket Casts) — cross-resolved from the feed where possible, pasted for Spotify — and a
+ * `defaultLinkProvider` picking which one it links out to. A Podcast may optionally belong to a Media
+ * Property (franchise/IP grouping).
  */
 export interface Podcast {
   id: string;
@@ -22,6 +49,14 @@ export interface Podcast {
   itunesId: number | null;
   /** Apple Podcasts page URL (for a "View on Apple Podcasts" link-out), or null. */
   itunesUrl: string | null;
+  /** Spotify show page URL (manual paste — Spotify has no keyless search), or null. */
+  spotifyUrl: string | null;
+  /** Pocket Casts podcast uuid (from the Pocket Casts search/cross-resolve), or null. */
+  pocketCastsUuid: string | null;
+  /** Pocket Casts share page URL (`https://pca.st/podcast/<uuid>`), or null. */
+  pocketCastsUrl: string | null;
+  /** Which service this podcast links out to by default, or null to fall back to the first available. */
+  defaultLinkProvider: PodcastLinkProvider | null;
   /** Denormalized podcast author/host string, or null. */
   author: string | null;
   /** Podcast description scraped from the feed, or null. */
@@ -41,6 +76,10 @@ export interface CreatePodcastInput {
   feedUrl?: string | null;
   itunesId?: number | null;
   itunesUrl?: string | null;
+  spotifyUrl?: string | null;
+  pocketCastsUuid?: string | null;
+  pocketCastsUrl?: string | null;
+  defaultLinkProvider?: PodcastLinkProvider | null;
   author?: string | null;
   description?: string | null;
 }
@@ -54,27 +93,55 @@ export interface UpdatePodcastInput {
   feedUrl?: string | null;
   itunesId?: number | null;
   itunesUrl?: string | null;
+  spotifyUrl?: string | null;
+  pocketCastsUuid?: string | null;
+  pocketCastsUrl?: string | null;
+  defaultLinkProvider?: PodcastLinkProvider | null;
   author?: string | null;
   description?: string | null;
 }
 
 /**
- * A single podcast returned by the keyless Apple Podcasts (iTunes) search — the shape the create/edit
- * search picker binds to. Selecting one fills the podcast's name/author/feed and links the iTunes id.
+ * A single podcast returned by a keyless search provider (Apple Podcasts / Pocket Casts) — the shape
+ * the create/edit search picker binds to. Selecting one fills the podcast's name/author/feed and links
+ * the searched provider's id/url; the other services are backfilled by the cross-resolver.
  */
 export interface PodcastSearchResult {
-  /** Apple Podcasts collection id. */
-  itunesId: number;
+  /** Which directory this hit came from. */
+  provider: PodcastSearchProvider;
+  /** Apple Podcasts collection id, or null for a non-iTunes hit. */
+  itunesId: number | null;
+  /** Pocket Casts podcast uuid, or null for a non-Pocket-Casts hit. */
+  pocketCastsUuid: string | null;
   /** Show title. */
   name: string;
   /** Author/host name, or null. */
   author: string | null;
-  /** Canonical RSS/XML feed URL, or null when Apple has none on file. */
+  /** Canonical RSS/XML feed URL, or null when the provider has none on file. */
   feedUrl: string | null;
-  /** Apple Podcasts page URL. */
+  /** Apple Podcasts page URL, or null. */
   itunesUrl: string | null;
-  /** Highest-resolution artwork URL Apple returned, or null. */
+  /** Pocket Casts share page URL, or null. */
+  pocketCastsUrl: string | null;
+  /** Highest-resolution artwork URL the provider returned, or null. */
   artworkUrl: string | null;
+}
+
+/**
+ * The per-service page links cross-resolved for a podcast by matching its RSS feed URL across the
+ * keyless directories (Apple + Pocket Casts). Spotify is never here — it has no keyless lookup. Every
+ * field is best-effort/nullable. Returned by `GET /api/podcasts/:id/resolve-links` and carried on
+ * `PodcastFeedResult` for the "Sync from source" modal.
+ */
+export interface PodcastProviderLinks {
+  /** Apple Podcasts collection id, when matched. */
+  itunesId: number | null;
+  /** Apple Podcasts page URL, when matched. */
+  itunesUrl: string | null;
+  /** Pocket Casts podcast uuid, when matched. */
+  pocketCastsUuid: string | null;
+  /** Pocket Casts share page URL, when matched. */
+  pocketCastsUrl: string | null;
 }
 
 /**
@@ -99,4 +166,6 @@ export interface PodcastFeedResult {
   itunesUrl: string | null;
   /** Detected content language, normalized to an ISO 639-1 code where known, or null. */
   languageCode: string | null;
+  /** Cross-resolved per-service page links (Apple/Pocket Casts) matched from the feed, or null. */
+  providerLinks?: PodcastProviderLinks | null;
 }

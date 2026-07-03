@@ -1,14 +1,22 @@
 import type { FastifyInstance } from "fastify";
 import type { CreatePodcastInput, UpdatePodcastInput } from "@eesimple/types";
+import { PODCAST_LINK_PROVIDERS, PODCAST_SEARCH_PROVIDERS } from "@eesimple/types";
 import {
   bulkDeletePodcasts,
   createPodcast,
   deletePodcast,
   DuplicatePodcastError,
+  getPodcast,
   listPodcasts,
   updatePodcast,
 } from "@/services/podcasts";
-import { importPodcastArtwork, resolvePodcastFeedPreview, searchPodcasts } from "@/services/podcastFeed";
+import {
+  importPodcastArtwork,
+  resolvePodcastFeedPreview,
+  resolvePodcastProviderLinks,
+  searchPodcasts,
+  searchPodcastsPocketCasts,
+} from "@/services/podcastFeed";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
@@ -40,6 +48,19 @@ const podcastDataFields = {
   },
   itunesUrl: {
     type: ["string", "null"],
+  },
+  spotifyUrl: {
+    type: ["string", "null"],
+  },
+  pocketCastsUuid: {
+    type: ["string", "null"],
+  },
+  pocketCastsUrl: {
+    type: ["string", "null"],
+  },
+  defaultLinkProvider: {
+    type: ["string", "null"],
+    enum: [...PODCAST_LINK_PROVIDERS, null],
   },
   author: {
     type: ["string", "null"],
@@ -87,7 +108,7 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async () => listPodcasts());
 
-  // Keyless Apple Podcasts (iTunes) search for the create/edit picker.
+  // Keyless podcast search for the create/edit picker; `provider` selects the directory (default iTunes).
   app.get("/api/podcasts/search", {
     schema: {
       tags: ["podcasts"],
@@ -98,14 +119,19 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
           q: {
             type: "string",
           },
+          provider: {
+            type: "string",
+            enum: [...PODCAST_SEARCH_PROVIDERS],
+          },
         },
       },
     },
   }, async (req) => {
     const {
-      q,
-    } = req.query as { q: string };
-    return searchPodcasts(q);
+      q, provider,
+    } = req.query as { q: string;
+      provider?: (typeof PODCAST_SEARCH_PROVIDERS)[number]; };
+    return provider === "pocketCasts" ? searchPodcastsPocketCasts(q) : searchPodcasts(q);
   });
 
   app.post("/api/podcasts", {
@@ -187,6 +213,27 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
       message: "No podcast source could be resolved",
     });
     return result;
+  });
+
+  // Resolve-only: cross-resolve the podcast's page URL on each keyless directory from its feed URL.
+  // Powers the "Find on all services" action + the search-picker select prefill. Never writes.
+  app.get("/api/podcasts/:id/resolve-links", {
+    schema: {
+      tags: ["podcasts"],
+      params: podcastParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const podcast = await getPodcast(id);
+    if (!podcast) return reply.code(404).send({
+      message: "Podcast not found",
+    });
+    if (!podcast.feedUrl) return reply.code(404).send({
+      message: "Podcast has no feed URL to match against",
+    });
+    return resolvePodcastProviderLinks(podcast.name, podcast.feedUrl);
   });
 
   registerTaxonomyImageRoutes(app, "/api/podcasts", "podcast", "podcasts", [

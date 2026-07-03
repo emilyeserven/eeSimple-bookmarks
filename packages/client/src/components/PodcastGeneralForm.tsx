@@ -1,5 +1,5 @@
-import type { PodcastSyncField } from "../lib/syncSources/podcastDiff";
-import type { Podcast, PodcastSearchResult, UpdatePodcastInput } from "@eesimple/types";
+import type { PodcastLinkSyncField, PodcastSyncField } from "../lib/syncSources/podcastDiff";
+import type { Podcast, PodcastProviderLinks, PodcastSearchResult, UpdatePodcastInput } from "@eesimple/types";
 
 import { useCallback } from "react";
 
@@ -11,6 +11,7 @@ import { PodcastSearchPicker } from "./PodcastSearchPicker";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { usePodcastSyncRegistration } from "../hooks/usePodcastSyncRegistration";
+import { podcastLinkOptions } from "../lib/podcastLinks";
 
 import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { useUpdatePodcast } from "@/hooks/usePodcasts";
@@ -24,6 +25,8 @@ const podcastGeneralSchema = z.object({
   sortOrder: z.number().int(),
   mediaPropertyId: z.string(),
   feedUrl: z.string(),
+  spotifyUrl: z.string(),
+  defaultLinkProvider: z.string(),
   author: z.string(),
   description: z.string(),
 });
@@ -36,6 +39,10 @@ const LABELS: Record<keyof UpdatePodcastInput, string> = {
   feedUrl: "Feed URL",
   itunesId: "Apple Podcasts",
   itunesUrl: "Apple Podcasts",
+  spotifyUrl: "Spotify link",
+  pocketCastsUuid: "Pocket Casts",
+  pocketCastsUrl: "Pocket Casts",
+  defaultLinkProvider: "Default link",
   author: "Author",
   description: "Description",
 };
@@ -62,6 +69,8 @@ export function PodcastGeneralForm({
       romanizedName: podcast.romanizedName ?? "",
       sortOrder: podcast.sortOrder,
       feedUrl: podcast.feedUrl ?? "",
+      spotifyUrl: podcast.spotifyUrl ?? "",
+      defaultLinkProvider: podcast.defaultLinkProvider ?? null,
       author: podcast.author ?? "",
       description: podcast.description ?? "",
     },
@@ -92,6 +101,8 @@ export function PodcastGeneralForm({
       sortOrder: podcast.sortOrder,
       mediaPropertyId: podcast.mediaPropertyId ?? "",
       feedUrl: podcast.feedUrl ?? "",
+      spotifyUrl: podcast.spotifyUrl ?? "",
+      defaultLinkProvider: podcast.defaultLinkProvider ?? "",
       author: podcast.author ?? "",
       description: podcast.description ?? "",
     },
@@ -124,13 +135,53 @@ export function PodcastGeneralForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- form/autoSave are stable; navigate/slug read via closure
   }, []);
 
+  /** Persist a cross-resolved service-link URL directly (itunesUrl/pocketCastsUrl aren't form fields). */
+  const applyLink = useCallback((field: PodcastLinkSyncField, value: string) => {
+    autoSave.saveField(field, value, {
+      valid: true,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- autoSave is stable
+  }, []);
+
   usePodcastSyncRegistration({
     podcast,
     imagesApi: podcastsApi.images,
     applyText,
+    applyLink,
   });
 
-  /** Fill fields + link iTunes from a search pick: persist name/author/feed/iTunes in one save + toast. */
+  /**
+   * Backfill the service links the search hit didn't provide by cross-resolving the podcast's feed, then
+   * persist any newly found ones. Best-effort: silently no-ops when nothing new resolves.
+   */
+  function backfillProviderLinks(result: PodcastSearchResult): void {
+    void podcastsApi
+      .resolveLinks(podcast.id)
+      .then((links: PodcastProviderLinks) => {
+        const input: UpdatePodcastInput = {};
+        if (result.itunesUrl == null && links.itunesUrl != null) {
+          input.itunesId = links.itunesId;
+          input.itunesUrl = links.itunesUrl;
+        }
+        if (result.pocketCastsUrl == null && links.pocketCastsUrl != null) {
+          input.pocketCastsUuid = links.pocketCastsUuid;
+          input.pocketCastsUrl = links.pocketCastsUrl;
+        }
+        if (Object.keys(input).length === 0) return;
+        updatePodcast.mutate(
+          {
+            id: podcast.id,
+            input,
+          },
+          {
+            onSuccess: () => notifyFieldSaved("Service links"),
+          },
+        );
+      })
+      .catch(() => undefined);
+  }
+
+  /** Fill fields + link the searched service from a pick, then cross-resolve the other services' links. */
   function applyPickedPodcast(result: PodcastSearchResult): void {
     form.setFieldValue("name", result.name);
     form.setFieldValue("author", result.author ?? "");
@@ -144,6 +195,8 @@ export function PodcastGeneralForm({
           feedUrl: result.feedUrl,
           itunesId: result.itunesId,
           itunesUrl: result.itunesUrl,
+          pocketCastsUuid: result.pocketCastsUuid,
+          pocketCastsUrl: result.pocketCastsUrl,
         },
       },
       {
@@ -156,6 +209,7 @@ export function PodcastGeneralForm({
               queryKey: ["podcast-images", podcast.id],
             }))
             .catch(() => undefined);
+          if (result.feedUrl != null) backfillProviderLinks(result);
         },
         onError: error => notifyFieldSaveError(
           "Podcast",
@@ -256,6 +310,45 @@ export function PodcastGeneralForm({
             placeholder="https://example.com/feed.xml"
             onBlur={() => autoSave.saveField("feedUrl", field.state.value.trim() || null)}
           />
+        )}
+      </form.AppField>
+
+      <form.AppField name="spotifyUrl">
+        {field => (
+          <div className="space-y-1">
+            <field.TextField
+              label="Spotify link"
+              placeholder="https://open.spotify.com/show/…"
+              onBlur={() => autoSave.saveField("spotifyUrl", field.state.value.trim() || null)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Paste the show&apos;s Spotify URL — Spotify can&apos;t be searched automatically.
+            </p>
+          </div>
+        )}
+      </form.AppField>
+
+      <form.AppField name="defaultLinkProvider">
+        {field => (
+          <div className="space-y-1">
+            <field.ComboboxField
+              label="Default link"
+              placeholder="First available service"
+              searchPlaceholder="Search services…"
+              emptyText="No service links yet."
+              options={podcastLinkOptions(podcast)}
+              onValueChange={value => autoSave.saveField(
+                "defaultLinkProvider",
+                (value || null) as UpdatePodcastInput["defaultLinkProvider"],
+                {
+                  valid: true,
+                },
+              )}
+            />
+            <p className="text-xs text-muted-foreground">
+              Which service this podcast links out to (detail page + bookmark cards).
+            </p>
+          </div>
         )}
       </form.AppField>
 

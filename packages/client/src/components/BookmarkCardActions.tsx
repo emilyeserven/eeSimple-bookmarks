@@ -1,6 +1,6 @@
 import type { Bookmark, BookmarkTag, ChoicesDisplayType, CustomProperty } from "@eesimple/types";
 
-import { Archive, ArchiveRestore, BookOpen, ExternalLink, MoreVertical, Tv } from "lucide-react";
+import { Archive, ArchiveRestore, BookOpen, ExternalLink, MoreVertical, Podcast, Tv } from "lucide-react";
 
 import { BookmarkCardMenu } from "./BookmarkCardMenu";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
@@ -150,6 +150,35 @@ export function BookmarkPlexLinkButton({
         title="View item on Plex"
       >
         <Tv className="size-4" />
+      </a>
+    </Button>
+  );
+}
+
+/**
+ * "View on {podcast service}" action — opens the linked podcast's default listening service (Apple
+ * Podcasts / Spotify / Pocket Casts / RSS feed) in a new tab. Public URLs, so no connector gating;
+ * caller renders it only when the bookmark's linked podcast resolves to a service URL.
+ */
+export function BookmarkPodcastLinkButton({
+  url, label,
+}: { url: string;
+  label: string; }) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      asChild
+    >
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={`View on ${label}`}
+        title={`View on ${label}`}
+      >
+        <Podcast className="size-4" />
       </a>
     </Button>
   );

@@ -9,23 +9,36 @@ export interface PodcastDiffCurrent {
   description: string | null;
   /** The podcast's current main image URL, for the artwork row's "current" preview. */
   imageUrl: string | null;
+  /** Current service-link URLs, for the cross-resolved link rows. */
+  itunesUrl: string | null;
+  pocketCastsUrl: string | null;
 }
 
-/** The freshly-resolved source values from the RSS feed / iTunes lookup. */
+/** The freshly-resolved source values from the RSS feed / iTunes lookup + cross-resolved links. */
 export interface PodcastDiffSource {
   title: string | null;
   author: string | null;
   description: string | null;
   imageUrl: string | null;
+  itunesUrl: string | null;
+  pocketCastsUrl: string | null;
 }
 
-/** Which editable text field a diff row stages (the artwork row is handled separately, by key). */
+/** Which editable text field a diff row stages into the form (artwork/link rows are keyed separately). */
 export type PodcastSyncField = "name" | "author" | "description";
+
+/** A service-link field that persists directly (not a form field) when its row is applied. */
+export type PodcastLinkSyncField = "itunesUrl" | "pocketCastsUrl";
 
 const FIELD_LABELS: Record<PodcastSyncField, string> = {
   name: "Name",
   author: "Author",
   description: "Description",
+};
+
+const LINK_LABELS: Record<PodcastLinkSyncField, string> = {
+  itunesUrl: "Apple Podcasts link",
+  pocketCastsUrl: "Pocket Casts link",
 };
 
 /**
@@ -58,9 +71,29 @@ export function buildPodcastDiff(
     });
   };
 
+  const pushLink = (field: PodcastLinkSyncField, currentValue: string | null, nextValue: string | null) => {
+    if (nextValue === null || nextValue === "") return;
+    if (!rowDiffers(currentValue, nextValue)) return;
+    rows.push({
+      key: field,
+      label: LINK_LABELS[field],
+      current: currentValue,
+      next: nextValue,
+      kind: "text",
+      defaultChecked: fillEmptyDefault(currentValue, nextValue),
+      payload: {
+        field,
+        value: nextValue,
+        isLink: true,
+      },
+    });
+  };
+
   pushText("name", current.name, source.title);
   pushText("author", current.author, source.author);
   pushText("description", current.description, source.description);
+  pushLink("itunesUrl", current.itunesUrl, source.itunesUrl);
+  pushLink("pocketCastsUrl", current.pocketCastsUrl, source.pocketCastsUrl);
 
   if (source.imageUrl) {
     rows.push({

@@ -1,14 +1,18 @@
 /**
  * Keyless podcast metadata connector. A Podcast's fields (title/author/artwork/description/language)
- * are resolved from either the **Apple Podcasts (iTunes) Search & Lookup API** (JSON, no key) or a
- * pasted **RSS/XML feed URL** (parsed with `fast-xml-parser`). Powers the create/edit search picker,
- * the resolve-only `GET /api/podcasts/:id/feed-preview` behind the "Sync from source" modal, and the
- * artwork import. Every off-box image/URL passes `isPublicHttpUrl` before fetch. Display/metadata only
- * — never touches `invalidateBookmarkCache()`.
+ * are resolved from either the **Apple Podcasts (iTunes) Search & Lookup API** (JSON, no key), the
+ * **Pocket Casts** public search API (JSON, no key — the same endpoint its web player uses; unofficial,
+ * so all calls fail soft to `[]`/`null` if it changes), or a pasted **RSS/XML feed URL** (parsed with
+ * `fast-xml-parser`). A podcast's page URL on each service is cross-resolved by matching its RSS feed
+ * across the directories (`resolvePodcastProviderLinks`); Spotify has no keyless search, so its link is
+ * manual-paste only and never cross-resolved. Powers the create/edit search picker, the resolve-only
+ * `GET /api/podcasts/:id/{feed-preview,resolve-links}` behind the "Sync from source" modal + "Find on
+ * all services", and the artwork import. Every off-box image/URL passes `isPublicHttpUrl` before fetch.
+ * Display/metadata only — never touches `invalidateBookmarkCache()`.
  */
 
 import { XMLParser } from "fast-xml-parser";
-import type { PodcastFeedResult, PodcastSearchResult } from "@eesimple/types";
+import type { PodcastFeedResult, PodcastProviderLinks, PodcastSearchResult } from "@eesimple/types";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { podcasts } from "@/db/schema";
@@ -18,6 +22,8 @@ import { normalizeLanguageCode } from "@/utils/languageCodes";
 
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const ITUNES_LOOKUP = "https://itunes.apple.com/lookup";
+/** The public Pocket Casts search endpoint (unofficial — same one the web player uses). */
+const POCKET_CASTS_SEARCH = "https://podcast-api.pocketcasts.com/search";
 const FETCH_TIMEOUT_MS = 8000;
 /** Cap the feed body we read so a huge response can't exhaust memory. */
 const MAX_FEED_BYTES = 4 * 1024 * 1024;
@@ -33,6 +39,32 @@ async function fetchJson(url: string): Promise<unknown> {
         "User-Agent": USER_AGENT,
         "Accept": "application/json",
       },
+      signal: controller.signal,
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as unknown;
+  }
+  catch {
+    return null;
+  }
+  finally {
+    clearTimeout(timer);
+  }
+}
+
+/** POST a JSON body and parse the JSON response with a timeout + descriptive UA; `null` on any failure. */
+async function fetchJsonPost(url: string, body: unknown): Promise<unknown> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "User-Agent": USER_AGENT,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
       signal: controller.signal,
     });
     if (!response.ok) return null;
@@ -168,11 +200,14 @@ function toSearchResult(r: ItunesResult): PodcastSearchResult | null {
   const name = str(r.collectionName) ?? str(r.trackName);
   if (itunesId == null || !name) return null;
   return {
+    provider: "itunes",
     itunesId,
+    pocketCastsUuid: null,
     name,
     author: str(r.artistName),
     feedUrl: str(r.feedUrl),
     itunesUrl: str(r.collectionViewUrl) ?? str(r.trackViewUrl),
+    pocketCastsUrl: null,
     artworkUrl: str(r.artworkUrl600) ?? str(r.artworkUrl100),
   };
 }
@@ -188,6 +223,86 @@ export async function searchPodcasts(term: string): Promise<PodcastSearchResult[
   return results
     .map(r => toSearchResult(r as ItunesResult))
     .filter((r): r is PodcastSearchResult => r !== null);
+}
+
+interface PocketCastsResult {
+  uuid?: unknown;
+  title?: unknown;
+  author?: unknown;
+  url?: unknown;
+}
+
+/** Build the public Pocket Casts share page URL for a podcast uuid. */
+function pocketCastsUrl(uuid: string): string {
+  return `https://pca.st/podcast/${uuid}`;
+}
+
+function toPocketCastsResult(r: PocketCastsResult): PodcastSearchResult | null {
+  const uuid = str(r.uuid);
+  const name = str(r.title);
+  if (!uuid || !name) return null;
+  return {
+    provider: "pocketCasts",
+    itunesId: null,
+    pocketCastsUuid: uuid,
+    name,
+    author: str(r.author),
+    feedUrl: str(r.url),
+    itunesUrl: null,
+    pocketCastsUrl: pocketCastsUrl(uuid),
+    artworkUrl: null,
+  };
+}
+
+/** Search Pocket Casts by term (keyless, unofficial). Returns [] on any failure. */
+export async function searchPodcastsPocketCasts(term: string): Promise<PodcastSearchResult[]> {
+  const q = term.trim();
+  if (q.length === 0) return [];
+  const json = await fetchJsonPost(POCKET_CASTS_SEARCH, {
+    q,
+  });
+  const podcastsList = json && typeof json === "object" ? (json as { podcasts?: unknown }).podcasts : null;
+  if (!Array.isArray(podcastsList)) return [];
+  return podcastsList
+    .map(r => toPocketCastsResult(r as PocketCastsResult))
+    .filter((r): r is PodcastSearchResult => r !== null);
+}
+
+/** Normalize a feed URL for equality matching (lowercase host/scheme, drop a trailing slash). */
+function normalizeFeedUrl(url: string): string {
+  return url.trim().toLowerCase().replace(/\/+$/, "");
+}
+
+/**
+ * Cross-resolve a podcast's page URL on each keyless directory by matching its RSS feed URL. Searches
+ * Apple + Pocket Casts by name and keeps the hit whose feed URL matches. Best-effort — every field is
+ * nullable; Spotify is never resolved (no keyless lookup).
+ */
+export async function resolvePodcastProviderLinks(
+  name: string,
+  feedUrl: string,
+): Promise<PodcastProviderLinks> {
+  const target = normalizeFeedUrl(feedUrl);
+  const empty: PodcastProviderLinks = {
+    itunesId: null,
+    itunesUrl: null,
+    pocketCastsUuid: null,
+    pocketCastsUrl: null,
+  };
+  if (!name.trim() || !target) return empty;
+
+  const [itunesHits, pocketCastsHits] = await Promise.all([
+    searchPodcasts(name),
+    searchPodcastsPocketCasts(name),
+  ]);
+  const itunesMatch = itunesHits.find(r => r.feedUrl != null && normalizeFeedUrl(r.feedUrl) === target);
+  const pocketMatch = pocketCastsHits.find(r => r.feedUrl != null && normalizeFeedUrl(r.feedUrl) === target);
+  return {
+    itunesId: itunesMatch?.itunesId ?? null,
+    itunesUrl: itunesMatch?.itunesUrl ?? null,
+    pocketCastsUuid: pocketMatch?.pocketCastsUuid ?? null,
+    pocketCastsUrl: pocketMatch?.pocketCastsUrl ?? null,
+  };
 }
 
 /** Resolve a single Apple Podcasts entry by collection id. Keyless; `null` on any failure. */
@@ -237,10 +352,12 @@ export async function resolvePodcastFeedPreview(podcastId: string): Promise<Podc
 
   const resolved = await resolvePodcastFeed(feedUrl);
   if (!resolved) return null;
+  const providerLinks = await resolvePodcastProviderLinks(resolved.title ?? "", feedUrl);
   return {
     ...resolved,
-    itunesId,
-    itunesUrl,
+    itunesId: itunesId ?? providerLinks.itunesId,
+    itunesUrl: itunesUrl ?? providerLinks.itunesUrl,
+    providerLinks,
   };
 }
 

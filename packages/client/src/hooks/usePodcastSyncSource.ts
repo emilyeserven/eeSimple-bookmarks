@@ -30,6 +30,8 @@ export function usePodcastSyncSource(provider: SyncProvider, enabled: boolean): 
     author: strRef(provider.refs, "currentAuthor"),
     description: strRef(provider.refs, "currentDescription"),
     imageUrl: strRef(provider.refs, "currentImageUrl"),
+    itunesUrl: strRef(provider.refs, "currentItunesUrl"),
+    pocketCastsUrl: strRef(provider.refs, "currentPocketCastsUrl"),
   };
 
   if (query.isPending && enabled) {
@@ -54,6 +56,8 @@ export function usePodcastSyncSource(provider: SyncProvider, enabled: boolean): 
       author: preview?.author ?? null,
       description: preview?.description ?? null,
       imageUrl: preview?.imageUrl ?? null,
+      itunesUrl: preview?.providerLinks?.itunesUrl ?? preview?.itunesUrl ?? null,
+      pocketCastsUrl: preview?.providerLinks?.pocketCastsUrl ?? null,
     }, "Podcast feed"),
     isLoading: false,
     error: null,
