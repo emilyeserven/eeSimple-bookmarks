@@ -166,6 +166,7 @@ export async function applyImportRules(
     youtubeChannelId: null,
     mediaTypeId: null,
     relationshipTypeIds: new Set<string>(),
+    languageUsages: [],
     numberValues: new Map<string, number>(),
     booleanValues: new Map<string, boolean>(),
     dateTimeValues: new Map<string, string>(),

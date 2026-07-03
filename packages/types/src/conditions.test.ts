@@ -19,6 +19,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     youtubeChannelId: null,
     mediaTypeId: null,
     relationshipTypeIds: new Set(),
+    languageUsages: [],
     numberValues: new Map(),
     booleanValues: new Map(),
     dateTimeValues: new Map(),
@@ -304,6 +305,51 @@ test("relationship-type matches on presence of any listed type", () => {
   assert.equal(evaluateConditions({
     type: "relationship-type",
     relationshipTypeIds: ["rel-z"],
+  }, input), false);
+});
+
+test("language-usage matches both constraints on a single association row", () => {
+  const input = makeInput({
+    languageUsages: [
+      {
+        languageId: "en",
+        usageLevelId: "dub",
+      },
+      {
+        languageId: "es",
+        usageLevelId: "subs",
+      },
+    ],
+  });
+  // language-only.
+  assert.equal(evaluateConditions({
+    type: "language-usage",
+    languageIds: ["en"],
+    usageLevelIds: [],
+  }, input), true);
+  // level-only.
+  assert.equal(evaluateConditions({
+    type: "language-usage",
+    languageIds: [],
+    usageLevelIds: ["subs"],
+  }, input), true);
+  // both on the same row.
+  assert.equal(evaluateConditions({
+    type: "language-usage",
+    languageIds: ["en"],
+    usageLevelIds: ["dub"],
+  }, input), true);
+  // cross-product must NOT match (English is dubbed, Spanish is subbed — no English subs).
+  assert.equal(evaluateConditions({
+    type: "language-usage",
+    languageIds: ["en"],
+    usageLevelIds: ["subs"],
+  }, input), false);
+  // both empty never matches.
+  assert.equal(evaluateConditions({
+    type: "language-usage",
+    languageIds: [],
+    usageLevelIds: [],
   }, input), false);
 });
 

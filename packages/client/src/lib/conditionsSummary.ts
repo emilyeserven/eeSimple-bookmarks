@@ -40,6 +40,8 @@ function summarizeNode(node: ConditionNode): string {
       return node.relationshipTypeIds.length === 1
         ? "has a relationship of type (1)"
         : `has a relationship of one of (${node.relationshipTypeIds.length})`;
+    case "language-usage":
+      return `has a language usage (${node.languageIds.length} lang / ${node.usageLevelIds.length} level)`;
     case "property":
       return `${node.predicate.valueKind} property condition`;
     default: {

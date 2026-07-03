@@ -141,6 +141,19 @@ export interface RelationshipTypeCondition {
 }
 
 /**
+ * Leaf: the bookmark carries a language usage matching both constraints on a *single* association
+ * row — its language is one of `languageIds` (or `languageIds` is empty = any) AND its usage level is
+ * one of `usageLevelIds` (or `usageLevelIds` is empty = any). Matching per-row (not cross-product)
+ * means a bookmark with English/Dub + Spanish/Subtitles does NOT match {English, Subtitles}. Both
+ * lists empty never matches.
+ */
+export interface LanguageUsageCondition {
+  type: "language-usage";
+  languageIds: string[];
+  usageLevelIds: string[];
+}
+
+/**
  * The filterable value kinds a {@link PropertyCondition} predicate can discriminate on. A subset of
  * the custom-property types — `calculate`/`ratingScale` filter as `number`, and `image` is unfiltered.
  * Source of truth for the matching JSON-Schema `oneOf` branches in the middleware.
@@ -214,6 +227,7 @@ export type ConditionNode
     | YouTubeChannelCondition
     | MediaTypeCondition
     | RelationshipTypeCondition
+    | LanguageUsageCondition
     | PropertyCondition;
 
 /** The persisted root is always a group, so the AND/OR combinator always has a home. */
@@ -246,6 +260,9 @@ export interface ConditionInput {
   mediaTypeId: string | null;
   /** Type ids of every relationship the bookmark participates in (presence matching). */
   relationshipTypeIds: Set<string>;
+  /** The bookmark's (language, usage level) association pairs, for language-usage matching. */
+  languageUsages: { languageId: string;
+    usageLevelId: string; }[];
   /** Number/calculate custom-property values, keyed by property id. */
   numberValues: Map<string, number>;
   /** Boolean custom-property values, keyed by property id. */
@@ -458,6 +475,16 @@ function evaluateRelationshipType(
   return condition.relationshipTypeIds.some(id => input.relationshipTypeIds.has(id));
 }
 
+function evaluateLanguageUsage(condition: LanguageUsageCondition, input: ConditionInput): boolean {
+  const {
+    languageIds, usageLevelIds,
+  } = condition;
+  if (languageIds.length === 0 && usageLevelIds.length === 0) return false;
+  return input.languageUsages.some(usage =>
+    (languageIds.length === 0 || languageIds.includes(usage.languageId))
+    && (usageLevelIds.length === 0 || usageLevelIds.includes(usage.usageLevelId)));
+}
+
 function evaluateChoicesPredicate(
   predicate: ChoicesPredicate,
   values: string[],
@@ -563,6 +590,8 @@ export function evaluateConditions(
       return evaluateMediaType(node, input);
     case "relationship-type":
       return evaluateRelationshipType(node, input);
+    case "language-usage":
+      return evaluateLanguageUsage(node, input);
     case "property":
       return evaluateProperty(node, input);
     default: {

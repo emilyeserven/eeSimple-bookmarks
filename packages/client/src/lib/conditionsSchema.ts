@@ -22,6 +22,7 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
   let emptyMediaType = false;
   let emptyRelationshipType = false;
   let emptyLocation = false;
+  let emptyLanguageUsage = false;
   const walk = (node: ConditionNode) => {
     if (node.type === "group") {
       node.children.forEach(walk);
@@ -42,6 +43,7 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
     if (node.type === "media-type" && node.mediaTypeIds.length === 0) emptyMediaType = true;
     if (node.type === "relationship-type" && node.relationshipTypeIds.length === 0) emptyRelationshipType = true;
     if (node.type === "location" && node.locationIds.length === 0) emptyLocation = true;
+    if (node.type === "language-usage" && node.languageIds.length === 0 && node.usageLevelIds.length === 0) emptyLanguageUsage = true;
   };
   walk(tree);
 
@@ -79,6 +81,12 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
     ctx.addIssue({
       code: "custom",
       message: "Pick at least one location.",
+    });
+  }
+  if (emptyLanguageUsage) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Pick at least one language or usage level.",
     });
   }
 });

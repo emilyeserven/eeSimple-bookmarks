@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import {
   CategoryConditionEditor,
+  LanguageUsageConditionEditor,
   LocationConditionEditor,
   MatchConditionEditor,
   MediaTypeConditionEditor,
@@ -96,7 +97,7 @@ export function ConditionsField({
   const leaves = splitRootConditions(value);
   const {
     matches, categoryLeaf, websiteLeaf, tagLeaf, locationLeaf, youtubeChannelLeaf, mediaTypeLeaf,
-    relationshipTypeLeaf, propertyLeaves, counts,
+    relationshipTypeLeaf, languageUsageLeaf, propertyLeaves, counts,
   } = leaves;
 
   const commit = (next: Parameters<typeof buildRootChildren>[1]) =>
@@ -244,6 +245,23 @@ export function ConditionsField({
           onChange={next =>
             commit({
               relationshipType: next.relationshipTypeIds.length > 0 ? next : null,
+            })}
+        />
+      </CountSection>
+
+      <CountSection
+        title="Language Usage"
+        count={counts.languageUsage}
+      >
+        <LanguageUsageConditionEditor
+          value={languageUsageLeaf ?? {
+            type: "language-usage",
+            languageIds: [],
+            usageLevelIds: [],
+          }}
+          onChange={next =>
+            commit({
+              languageUsage: next.languageIds.length > 0 || next.usageLevelIds.length > 0 ? next : null,
             })}
         />
       </CountSection>

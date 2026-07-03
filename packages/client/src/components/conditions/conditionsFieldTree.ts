@@ -2,6 +2,7 @@ import type {
   CategoryCondition,
   ConditionNode,
   ConditionTree,
+  LanguageUsageCondition,
   LocationCondition,
   MatchCondition,
   MediaTypeCondition,
@@ -22,6 +23,7 @@ export interface RootConditionLeaves {
   youtubeChannelLeaf: YouTubeChannelCondition | undefined;
   mediaTypeLeaf: MediaTypeCondition | undefined;
   relationshipTypeLeaf: RelationshipTypeCondition | undefined;
+  languageUsageLeaf: LanguageUsageCondition | undefined;
   propertyLeaves: PropertyCondition[];
   /** Nested groups (not editable in this v1 UI), preserved so the tree round-trips. */
   nestedGroups: ConditionNode[];
@@ -34,6 +36,7 @@ export interface RootConditionLeaves {
     youtubeChannel: number;
     mediaType: number;
     relationshipType: number;
+    languageUsage: number;
   };
 }
 
@@ -47,6 +50,7 @@ export interface RootConditionPatch {
   youtubeChannel?: YouTubeChannelCondition | null;
   mediaType?: MediaTypeCondition | null;
   relationshipType?: RelationshipTypeCondition | null;
+  languageUsage?: LanguageUsageCondition | null;
   properties?: PropertyCondition[];
 }
 
@@ -59,6 +63,7 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
   const youtubeChannelLeaf = value.children.find((child): child is YouTubeChannelCondition => child.type === "youtube-channel");
   const mediaTypeLeaf = value.children.find((child): child is MediaTypeCondition => child.type === "media-type");
   const relationshipTypeLeaf = value.children.find((child): child is RelationshipTypeCondition => child.type === "relationship-type");
+  const languageUsageLeaf = value.children.find((child): child is LanguageUsageCondition => child.type === "language-usage");
   return {
     matches: value.children.filter((child): child is MatchCondition => child.type === "match"),
     categoryLeaf,
@@ -68,6 +73,7 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
     youtubeChannelLeaf,
     mediaTypeLeaf,
     relationshipTypeLeaf,
+    languageUsageLeaf,
     propertyLeaves: value.children.filter((child): child is PropertyCondition => child.type === "property"),
     nestedGroups: value.children.filter(child => child.type === "group"),
     counts: {
@@ -78,6 +84,7 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
       youtubeChannel: youtubeChannelLeaf?.channelIds.length ?? 0,
       mediaType: mediaTypeLeaf?.mediaTypeIds.length ?? 0,
       relationshipType: relationshipTypeLeaf?.relationshipTypeIds.length ?? 0,
+      languageUsage: (languageUsageLeaf?.languageIds.length ?? 0) + (languageUsageLeaf?.usageLevelIds.length ?? 0),
     },
   };
 }
@@ -98,6 +105,7 @@ export function buildRootChildren(
   const nextYoutubeChannel = next.youtubeChannel === undefined ? current.youtubeChannelLeaf : next.youtubeChannel;
   const nextMediaType = next.mediaType === undefined ? current.mediaTypeLeaf : next.mediaType;
   const nextRelationshipType = next.relationshipType === undefined ? current.relationshipTypeLeaf : next.relationshipType;
+  const nextLanguageUsage = next.languageUsage === undefined ? current.languageUsageLeaf : next.languageUsage;
   const nextProperties = next.properties ?? current.propertyLeaves;
   return [
     ...nextMatches,
@@ -108,6 +116,7 @@ export function buildRootChildren(
     ...(nextYoutubeChannel && nextYoutubeChannel.channelIds.length > 0 ? [nextYoutubeChannel] : []),
     ...(nextMediaType && nextMediaType.mediaTypeIds.length > 0 ? [nextMediaType] : []),
     ...(nextRelationshipType && nextRelationshipType.relationshipTypeIds.length > 0 ? [nextRelationshipType] : []),
+    ...(nextLanguageUsage && (nextLanguageUsage.languageIds.length > 0 || nextLanguageUsage.usageLevelIds.length > 0) ? [nextLanguageUsage] : []),
     ...nextProperties,
     ...current.nestedGroups,
   ];

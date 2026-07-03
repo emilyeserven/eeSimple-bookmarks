@@ -70,6 +70,8 @@ function describeConditionNode(
       return node.relationshipTypeIds.length === 1
         ? "has a relationship of type (1)"
         : `has a relationship of one of (${node.relationshipTypeIds.length})`;
+    case "language-usage":
+      return `has a language usage (${node.languageIds.length} language / ${node.usageLevelIds.length} level)`;
     case "property": {
       const property = properties.find(p => p.id === node.propertyId);
       const name = property?.name ?? "Unknown property";
