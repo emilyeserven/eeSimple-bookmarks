@@ -1,9 +1,11 @@
-import type { CreatePodcastInput, UpdatePodcastInput } from "@eesimple/types";
+import type { PodcastResolvedLink } from "../lib/podcastLinks";
+import type { Bookmark, CreatePodcastInput, PodcastSearchProvider, UpdatePodcastInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { podcastsApi } from "../lib/api/taxonomies";
+import { resolvePodcastDefaultLink } from "../lib/podcastLinks";
 
 const PODCASTS_KEY = ["podcasts"] as const;
 const MEDIA_PROPERTIES_KEY = ["media-properties"] as const;
@@ -26,13 +28,27 @@ export function usePodcastBySlug(slug: string) {
 }
 
 /**
- * Keyless Apple Podcasts (iTunes) search for the create/edit picker. Gated on a non-empty term so an
- * empty search box makes no request.
+ * The external link a bookmark's linked podcast points at — its `defaultLinkProvider`'s URL, else the
+ * first available service. Resolved client-side from the cached podcasts list (podcast links are public
+ * URLs, no connector gating). `null` when the bookmark isn't linked to a podcast or none has a URL.
  */
-export function usePodcastSearch(term: string) {
+export function useBookmarkPodcastLink(bookmark: Bookmark): PodcastResolvedLink | null {
+  const {
+    data: podcasts,
+  } = usePodcasts();
+  if (bookmark.podcastId == null) return null;
+  const podcast = (podcasts ?? []).find(item => item.id === bookmark.podcastId);
+  return podcast ? resolvePodcastDefaultLink(podcast) : null;
+}
+
+/**
+ * Keyless podcast search for the create/edit picker; `provider` selects the directory (Apple Podcasts
+ * or Pocket Casts). Gated on a non-empty term so an empty search box makes no request.
+ */
+export function usePodcastSearch(term: string, provider: PodcastSearchProvider = "itunes") {
   return useQuery({
-    queryKey: ["podcasts", "search", term],
-    queryFn: () => podcastsApi.search(term),
+    queryKey: ["podcasts", "search", provider, term],
+    queryFn: () => podcastsApi.search(term, provider),
     enabled: term.trim().length > 0,
   });
 }

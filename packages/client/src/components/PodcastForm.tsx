@@ -1,6 +1,8 @@
-import type { Podcast, PodcastSearchResult } from "@eesimple/types";
+import type { Podcast, PodcastSearchResult, UpdatePodcastInput } from "@eesimple/types";
 
 import { useState } from "react";
+
+import { useQueryClient } from "@tanstack/react-query";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
 import { PodcastSearchPicker } from "./PodcastSearchPicker";
@@ -12,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { podcastsApi } from "@/lib/api/taxonomies";
 
 interface PodcastFormProps {
   /** Called with the created podcast (e.g. to select it in the opener, or navigate to its edit page). */
@@ -30,6 +33,7 @@ export function PodcastForm({
   onCreated,
 }: PodcastFormProps) {
   const createPodcast = useCreatePodcast();
+  const queryClient = useQueryClient();
   const {
     data: mediaProperties,
   } = useMediaProperties();
@@ -37,21 +41,50 @@ export function PodcastForm({
   const [name, setName] = useState("");
   const [romanizedName, setRomanizedName] = useState("");
   const [feedUrl, setFeedUrl] = useState("");
+  const [spotifyUrl, setSpotifyUrl] = useState("");
   const [author, setAuthor] = useState("");
   const [description, setDescription] = useState("");
   const [mediaPropertyId, setMediaPropertyId] = useState<string>("");
   const [addMediaPropertyOpen, setAddMediaPropertyOpen] = useState(false);
-  // Apple Podcasts linkage captured from the search picker, persisted on create.
+  // Service linkage captured from the search picker, persisted on create.
   const [itunesId, setItunesId] = useState<number | null>(null);
   const [itunesUrl, setItunesUrl] = useState<string | null>(null);
+  const [pocketCastsUuid, setPocketCastsUuid] = useState<string | null>(null);
+  const [pocketCastsUrl, setPocketCastsUrl] = useState<string | null>(null);
 
-  /** Prefill the form from a chosen Apple Podcasts result (feed/iTunes linkage held for the create call). */
+  /** Prefill the form from a chosen result (feed + searched-service linkage held for the create call). */
   function applyPickedPodcast(result: PodcastSearchResult): void {
     setName(result.name);
     setAuthor(result.author ?? "");
     setFeedUrl(result.feedUrl ?? "");
     setItunesId(result.itunesId);
     setItunesUrl(result.itunesUrl);
+    setPocketCastsUuid(result.pocketCastsUuid);
+    setPocketCastsUrl(result.pocketCastsUrl);
+  }
+
+  /** After create, cross-resolve the service links the pick didn't provide and persist any found. */
+  function backfillProviderLinks(podcast: Podcast): void {
+    if (!podcast.feedUrl) return;
+    void podcastsApi
+      .resolveLinks(podcast.id)
+      .then((links) => {
+        const input: UpdatePodcastInput = {};
+        if (podcast.itunesUrl == null && links.itunesUrl != null) {
+          input.itunesId = links.itunesId;
+          input.itunesUrl = links.itunesUrl;
+        }
+        if (podcast.pocketCastsUrl == null && links.pocketCastsUrl != null) {
+          input.pocketCastsUuid = links.pocketCastsUuid;
+          input.pocketCastsUrl = links.pocketCastsUrl;
+        }
+        if (Object.keys(input).length === 0) return;
+        return podcastsApi.update(podcast.id, input).then(() =>
+          queryClient.invalidateQueries({
+            queryKey: ["podcasts"],
+          }));
+      })
+      .catch(() => undefined);
   }
 
   function handleSubmit(event: React.FormEvent) {
@@ -64,13 +97,17 @@ export function PodcastForm({
         romanizedName: romanizedName.trim() || null,
         mediaPropertyId: mediaPropertyId || null,
         feedUrl: feedUrl.trim() || null,
+        spotifyUrl: spotifyUrl.trim() || null,
         author: author.trim() || null,
         description: description.trim() || null,
         itunesId,
         itunesUrl,
+        pocketCastsUuid,
+        pocketCastsUrl,
       },
       {
         onSuccess: (podcast) => {
+          backfillProviderLinks(podcast);
           onCreated?.(podcast);
         },
       },
@@ -111,6 +148,16 @@ export function PodcastForm({
           placeholder="https://example.com/feed.xml"
           value={feedUrl}
           onChange={event => setFeedUrl(event.target.value)}
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="podcast-spotify-url">Spotify link</Label>
+        <Input
+          id="podcast-spotify-url"
+          placeholder="https://open.spotify.com/show/…"
+          value={spotifyUrl}
+          onChange={event => setSpotifyUrl(event.target.value)}
         />
       </div>
 

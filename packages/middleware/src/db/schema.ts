@@ -821,6 +821,12 @@ export const podcasts = pgTable("podcasts", {
   feedUrl: text("feed_url"),
   itunesId: integer("itunes_id"),
   itunesUrl: text("itunes_url"),
+  // Other listening-service page links: Spotify is manual-paste (no keyless search); Pocket Casts is
+  // cross-resolved from the feed. `defaultLinkProvider` picks which one the podcast links out to.
+  spotifyUrl: text("spotify_url"),
+  pocketCastsUuid: text("pocket_casts_uuid"),
+  pocketCastsUrl: text("pocket_casts_url"),
+  defaultLinkProvider: text("default_link_provider"),
   // Denormalized from the feed so display needs no round-trip.
   author: text("author"),
   description: text("description"),

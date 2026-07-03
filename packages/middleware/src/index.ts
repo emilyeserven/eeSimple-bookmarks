@@ -6,7 +6,7 @@ import { backfillPersonSlugs } from "@/services/people";
 import { backfillGroupSlugs } from "@/services/groups";
 import { backfillGroupTypeSlugs, ensureDefaultGroupTypes } from "@/services/groupTypes";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
-import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleLocationsField, backfillCardDisplayRuleRomanizedNameField, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
+import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleLocationsField, backfillCardDisplayRulePodcastLinkField, backfillCardDisplayRuleRomanizedNameField, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillContentStatusOptions, backfillCustomPropertySlugs, ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
@@ -122,6 +122,7 @@ try {
   await backfillCardDisplayRuleHeaderFields();
   await backfillCardDisplayRuleLocationsField();
   await backfillCardDisplayRuleRomanizedNameField();
+  await backfillCardDisplayRulePodcastLinkField();
   await backfillCardDisplayRuleZoneLayouts();
   await backfillCardDisplayRuleSlugs();
   // A restart abandons any in-process import worker, so fail anything left queued/processing.

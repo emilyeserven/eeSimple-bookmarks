@@ -408,6 +408,41 @@ export async function backfillCardDisplayRuleLocationsField(): Promise<void> {
 }
 
 /**
+ * One-time boot backfill: place the `podcastLink` field into rules whose stored `field_zones` predate
+ * it. Appended to its default body zone ({@link defaultBodyZone} → `card-labels`, the pill form),
+ * reproducing the seed placement. Idempotent — a rule already carrying `podcastLink` in any zone is
+ * skipped, and inheriting rules (`field_zones IS NULL`) are left untouched. Must run after
+ * `ensureDefaultCardDisplayRule`/`backfillCardDisplayRuleFieldZones`.
+ */
+export async function backfillCardDisplayRulePodcastLinkField(): Promise<void> {
+  const rows = await db.select().from(cardDisplayRules);
+  for (const row of rows) {
+    const stored = row.fieldZones as Record<string, CardFieldPlacement[]> | null;
+    if (!stored) continue;
+
+    const placed = new Set(
+      CARD_FIELD_ZONES.flatMap(zone => (stored[zone] ?? []).map(p => p.key)),
+    );
+    if (placed.has("podcastLink")) continue;
+
+    const next = emptyCardFieldZones();
+    for (const zone of CARD_FIELD_ZONES) {
+      if (Array.isArray(stored[zone])) next[zone] = [...stored[zone]];
+    }
+    next[defaultBodyZone("podcastLink")].push({
+      key: "podcastLink",
+    });
+
+    await db
+      .update(cardDisplayRules)
+      .set({
+        fieldZones: next,
+      })
+      .where(eq(cardDisplayRules.id, row.id));
+  }
+}
+
+/**
  * One-time boot backfill: place the `romanizedName` field into rules whose stored `field_zones`
  * predate it (it used to render baked into the `title` field). It's appended to its default body
  * zone ({@link defaultBodyZone} → `card-single-top`), so it keeps showing below the title header row.

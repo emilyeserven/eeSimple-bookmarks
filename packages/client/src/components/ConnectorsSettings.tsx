@@ -203,18 +203,19 @@ export function ConnectorsSettings() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
-              <CardTitle>Podcasts (Apple Podcasts + RSS)</CardTitle>
+              <CardTitle>Podcasts (Apple Podcasts, Pocket Casts + RSS)</CardTitle>
               <AlwaysOnBadge />
             </div>
             <CardDescription>
-              Keyless podcast metadata: search Apple Podcasts (the iTunes Search API) or paste an RSS/XML
-              feed URL to autofill a podcast&apos;s title, author, artwork, and description — and re-pull
-              them any time with &quot;Sync from source&quot;. No API key, nothing leaves the box beyond the
-              feed/iTunes lookup itself.
+              Keyless podcast metadata: search Apple Podcasts (the iTunes Search API) or Pocket Casts, or
+              paste an RSS/XML feed URL, to autofill a podcast&apos;s title, author, artwork, and
+              description — and re-pull them any time with &quot;Sync from source&quot;. Its page link on
+              each service is found by matching the feed across directories; Spotify has no keyless search,
+              so paste its link. No API key, nothing leaves the box beyond the feed/directory lookups.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Title", "Author", "Artwork image", "Description"]} />
+            <Provides items={["Title", "Author", "Artwork image", "Description", "Service links"]} />
           </CardContent>
         </Card>
       ),

@@ -6,13 +6,14 @@ import type { ReactNode } from "react";
 
 import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
 
-import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkKavitaLinkButton, BookmarkMoreMenu, BookmarkPlexLinkButton } from "./BookmarkCardActions";
+import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkKavitaLinkButton, BookmarkMoreMenu, BookmarkPlexLinkButton, BookmarkPodcastLinkButton } from "./BookmarkCardActions";
 import { badgeNode, ratingStars } from "./bookmarkCardFieldRenders";
 import { describeTaxonomyField } from "./bookmarkCardTaxonomyFields";
 import { BookmarkRomanizedField, BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
 import { useBookmarkKavitaLink } from "../hooks/useBooks";
 import { useConnectors } from "../hooks/useConnectors";
 import { useBookmarkPlexLink } from "../hooks/useMovies";
+import { useBookmarkPodcastLink } from "../hooks/usePodcasts";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
@@ -176,6 +177,17 @@ export function BookmarkCardDetails({
       />
     )
     : null;
+  // Podcast deep link; renders nothing when the bookmark isn't linked to a podcast or none of its
+  // services has a URL. Public URLs, so no connector gating.
+  const podcastLink = useBookmarkPodcastLink(bookmark);
+  const podcastLinkNode = podcastLink !== null
+    ? (
+      <BookmarkPodcastLinkButton
+        url={podcastLink.url}
+        label={podcastLink.label}
+      />
+    )
+    : null;
   const moreNode = (
     <BookmarkMoreMenu
       bookmark={bookmark}
@@ -249,6 +261,16 @@ export function BookmarkCardDetails({
           block: plexLinkNode,
           tableName: "Plex",
           tableValue: plexLinkNode,
+        };
+      }
+      case "podcastLink": {
+        // Hidden when the bookmark isn't linked to a podcast with a service URL.
+        if (podcastLinkNode === null) return null;
+        return {
+          inline: podcastLinkNode,
+          block: podcastLinkNode,
+          tableName: "Podcast",
+          tableValue: podcastLinkNode,
         };
       }
       case "more": {

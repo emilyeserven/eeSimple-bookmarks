@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { lookupPodcastByItunesId, parsePodcastFeed, resolvePodcastFeed, searchPodcasts } from "@/services/podcastFeed";
+import {
+  lookupPodcastByItunesId,
+  parsePodcastFeed,
+  resolvePodcastFeed,
+  resolvePodcastProviderLinks,
+  searchPodcasts,
+  searchPodcastsPocketCasts,
+} from "@/services/podcastFeed";
 
 const SAMPLE_FEED = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
@@ -67,13 +74,28 @@ const ITUNES_SEARCH_HIT = JSON.stringify({
   }],
 });
 
+const POCKET_CASTS_HIT = JSON.stringify({
+  podcasts: [{
+    uuid: "abc-123",
+    title: "Reply All",
+    author: "Gimlet",
+    url: "https://feeds.megaphone.fm/replyall",
+  }],
+});
+
 function stubByHost(handlers: { itunes?: () => Response;
+  pocketCasts?: () => Response;
   feed?: () => Response; }): () => void {
   const original = global.fetch;
   global.fetch = (async (input: string | URL | Request) => {
     const url = typeof input === "string" ? input : input.toString();
     if (url.includes("itunes.apple.com")) {
       return handlers.itunes?.() ?? new Response("{}", {
+        status: 200,
+      });
+    }
+    if (url.includes("pocketcasts.com")) {
+      return handlers.pocketCasts?.() ?? new Response("{}", {
         status: 200,
       });
     }
@@ -100,12 +122,87 @@ test("searchPodcasts maps iTunes results to PodcastSearchResult", async () => {
     const results = await searchPodcasts("reply all");
     assert.equal(results.length, 1);
     assert.deepEqual(results[0], {
+      provider: "itunes",
       itunesId: 941907967,
+      pocketCastsUuid: null,
       name: "Reply All",
       author: "Gimlet",
       feedUrl: "https://feeds.megaphone.fm/replyall",
       itunesUrl: "https://podcasts.apple.com/us/podcast/id941907967",
+      pocketCastsUrl: null,
       artworkUrl: "https://cdn.example.com/replyall600.jpg",
+    });
+  }
+  finally {
+    restore();
+  }
+});
+
+test("searchPodcastsPocketCasts maps hits + builds a pca.st link", async () => {
+  const restore = stubByHost({
+    pocketCasts: () => new Response(POCKET_CASTS_HIT, {
+      status: 200,
+    }),
+  });
+  try {
+    const results = await searchPodcastsPocketCasts("reply all");
+    assert.equal(results.length, 1);
+    assert.deepEqual(results[0], {
+      provider: "pocketCasts",
+      itunesId: null,
+      pocketCastsUuid: "abc-123",
+      name: "Reply All",
+      author: "Gimlet",
+      feedUrl: "https://feeds.megaphone.fm/replyall",
+      itunesUrl: null,
+      pocketCastsUrl: "https://pca.st/podcast/abc-123",
+      artworkUrl: null,
+    });
+  }
+  finally {
+    restore();
+  }
+});
+
+test("resolvePodcastProviderLinks matches the feed across Apple + Pocket Casts", async () => {
+  const restore = stubByHost({
+    itunes: () => new Response(ITUNES_SEARCH_HIT, {
+      status: 200,
+    }),
+    pocketCasts: () => new Response(POCKET_CASTS_HIT, {
+      status: 200,
+    }),
+  });
+  try {
+    const links = await resolvePodcastProviderLinks("Reply All", "https://feeds.megaphone.fm/replyall/");
+    assert.deepEqual(links, {
+      itunesId: 941907967,
+      itunesUrl: "https://podcasts.apple.com/us/podcast/id941907967",
+      pocketCastsUuid: "abc-123",
+      pocketCastsUrl: "https://pca.st/podcast/abc-123",
+    });
+  }
+  finally {
+    restore();
+  }
+});
+
+test("resolvePodcastProviderLinks returns nulls when no feed matches", async () => {
+  const restore = stubByHost({
+    itunes: () => new Response(ITUNES_SEARCH_HIT, {
+      status: 200,
+    }),
+    pocketCasts: () => new Response(POCKET_CASTS_HIT, {
+      status: 200,
+    }),
+  });
+  try {
+    const links = await resolvePodcastProviderLinks("Reply All", "https://different.example/feed");
+    assert.deepEqual(links, {
+      itunesId: null,
+      itunesUrl: null,
+      pocketCastsUuid: null,
+      pocketCastsUrl: null,
     });
   }
   finally {

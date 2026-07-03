@@ -3,6 +3,7 @@ import type {
   BulkDeleteResult,
   CreatePodcastInput,
   Podcast,
+  PodcastLinkProvider,
   UpdatePodcastInput,
 } from "@eesimple/types";
 import { db } from "@/db";
@@ -31,6 +32,10 @@ function toPodcast(row: PodcastRow & { bookmarkCount?: number }): Podcast {
     feedUrl: row.feedUrl ?? null,
     itunesId: row.itunesId ?? null,
     itunesUrl: row.itunesUrl ?? null,
+    spotifyUrl: row.spotifyUrl ?? null,
+    pocketCastsUuid: row.pocketCastsUuid ?? null,
+    pocketCastsUrl: row.pocketCastsUrl ?? null,
+    defaultLinkProvider: (row.defaultLinkProvider as PodcastLinkProvider | null) ?? null,
     author: row.author ?? null,
     description: row.description ?? null,
     createdAt:
@@ -46,7 +51,8 @@ const takenSlugs = (excludeId?: string) =>
 /** The source/media-property columns settable on create and patchable on update. */
 type PodcastDataColumns = Pick<
   PodcastRow,
-  "mediaPropertyId" | "feedUrl" | "itunesId" | "itunesUrl" | "author" | "description" | "romanizedName"
+  | "mediaPropertyId" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid"
+  | "pocketCastsUrl" | "defaultLinkProvider" | "author" | "description" | "romanizedName"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -56,6 +62,10 @@ function dataFromInput(input: CreatePodcastInput | UpdatePodcastInput): Partial<
   if (input.feedUrl !== undefined) patch.feedUrl = input.feedUrl ?? null;
   if (input.itunesId !== undefined) patch.itunesId = input.itunesId ?? null;
   if (input.itunesUrl !== undefined) patch.itunesUrl = input.itunesUrl ?? null;
+  if (input.spotifyUrl !== undefined) patch.spotifyUrl = input.spotifyUrl ?? null;
+  if (input.pocketCastsUuid !== undefined) patch.pocketCastsUuid = input.pocketCastsUuid ?? null;
+  if (input.pocketCastsUrl !== undefined) patch.pocketCastsUrl = input.pocketCastsUrl ?? null;
+  if (input.defaultLinkProvider !== undefined) patch.defaultLinkProvider = input.defaultLinkProvider ?? null;
   if (input.author !== undefined) patch.author = input.author ?? null;
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
@@ -75,6 +85,10 @@ export async function listPodcasts(): Promise<Podcast[]> {
       feedUrl: podcasts.feedUrl,
       itunesId: podcasts.itunesId,
       itunesUrl: podcasts.itunesUrl,
+      spotifyUrl: podcasts.spotifyUrl,
+      pocketCastsUuid: podcasts.pocketCastsUuid,
+      pocketCastsUrl: podcasts.pocketCastsUrl,
+      defaultLinkProvider: podcasts.defaultLinkProvider,
       author: podcasts.author,
       description: podcasts.description,
       createdAt: podcasts.createdAt,
@@ -83,6 +97,12 @@ export async function listPodcasts(): Promise<Podcast[]> {
     .from(podcasts)
     .orderBy(asc(podcasts.sortOrder), asc(podcasts.name));
   return rows.map(toPodcast);
+}
+
+/** Fetch a single podcast by id, or `null` when it doesn't exist. */
+export async function getPodcast(id: string): Promise<Podcast | null> {
+  const [row] = await db.select().from(podcasts).where(eq(podcasts.id, id));
+  return row ? toPodcast(row) : null;
 }
 
 /** Add a podcast. Throws `DuplicatePodcastError` on a name clash. */

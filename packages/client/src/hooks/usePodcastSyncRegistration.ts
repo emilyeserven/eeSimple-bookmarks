@@ -1,5 +1,5 @@
 import type { createTaxonomyImageApi } from "../lib/api/taxonomyImages";
-import type { PodcastSyncField } from "../lib/syncSources/podcastDiff";
+import type { PodcastLinkSyncField, PodcastSyncField } from "../lib/syncSources/podcastDiff";
 import type { SyncFieldDiff, SyncProvider } from "../lib/syncSources/syncSourceTypes";
 import type { Podcast } from "@eesimple/types";
 
@@ -8,10 +8,11 @@ import { useCallback, useMemo, useRef } from "react";
 import { useRegisterSyncProvider } from "./useRegisterSyncProvider";
 import { useTaxonomyImages } from "./useTaxonomyImages";
 
-/** The `{ field, value }` a podcast text diff row carries in its `payload`. */
+/** The `{ field, value }` a podcast diff row carries in its `payload`; `isLink` marks a service-link row. */
 interface PodcastPayload {
-  field: PodcastSyncField;
+  field: PodcastSyncField | PodcastLinkSyncField;
   value: string;
+  isLink?: boolean;
 }
 
 interface PodcastSyncRegistrationParams {
@@ -19,6 +20,8 @@ interface PodcastSyncRegistrationParams {
   imagesApi: ReturnType<typeof createTaxonomyImageApi>;
   /** Stage a text field into the edit form + persist it via the form's per-field auto-save. */
   applyText: (field: PodcastSyncField, value: string) => void;
+  /** Persist a cross-resolved service-link URL directly (not a form field). */
+  applyLink: (field: PodcastLinkSyncField, value: string) => void;
 }
 
 /**
@@ -30,7 +33,7 @@ interface PodcastSyncRegistrationParams {
  * `PodcastGeneralForm` so that component's hook-density stays under the fallow cap.
  */
 export function usePodcastSyncRegistration({
-  podcast, imagesApi, applyText,
+  podcast, imagesApi, applyText, applyLink,
 }: PodcastSyncRegistrationParams) {
   const gallery = useTaxonomyImages(imagesApi, podcast.id, ["podcast-images", podcast.id]);
   const currentImageUrl = (gallery.images.find(image => image.isMain) ?? gallery.images[0])?.url ?? null;
@@ -40,10 +43,12 @@ export function usePodcastSyncRegistration({
   // otherwise the register-on-mount effect would thrash the store every render.
   const ctxRef = useRef({
     applyText,
+    applyLink,
     autoFetch: gallery.autoFetch,
   });
   ctxRef.current = {
     applyText,
+    applyLink,
     autoFetch: gallery.autoFetch,
   };
 
@@ -54,7 +59,9 @@ export function usePodcastSyncRegistration({
         continue;
       }
       const payload = row.payload as PodcastPayload | undefined;
-      if (payload) ctxRef.current.applyText(payload.field, payload.value);
+      if (!payload) continue;
+      if (payload.isLink) ctxRef.current.applyLink(payload.field as PodcastLinkSyncField, payload.value);
+      else ctxRef.current.applyText(payload.field as PodcastSyncField, payload.value);
     }
   }, []);
 
@@ -69,11 +76,14 @@ export function usePodcastSyncRegistration({
         currentName: podcast.name,
         currentAuthor: podcast.author ?? null,
         currentDescription: podcast.description ?? null,
+        currentItunesUrl: podcast.itunesUrl ?? null,
+        currentPocketCastsUrl: podcast.pocketCastsUrl ?? null,
       },
       applyStaged,
     };
   }, [
     podcast.id, podcast.name, podcast.author, podcast.description,
+    podcast.itunesUrl, podcast.pocketCastsUrl,
     currentImageUrl, enabled, applyStaged,
   ]);
 

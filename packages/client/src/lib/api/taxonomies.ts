@@ -63,6 +63,8 @@ import type {
   UpdatePodcastInput,
   PodcastSearchResult,
   PodcastFeedResult,
+  PodcastProviderLinks,
+  PodcastSearchProvider,
   UpdateBookInput,
   UpdateLocationInput,
   UpdateMediaPropertyInput,
@@ -302,10 +304,14 @@ export const booksApi = {
 export const podcastsApi = {
   ...createCrudApi<Podcast, CreatePodcastInput, UpdatePodcastInput>("podcasts"),
   images: createTaxonomyImageApi("/podcasts"),
-  search: (q: string) =>
-    request<PodcastSearchResult[]>(`/podcasts/search?q=${encodeURIComponent(q)}`),
+  search: (q: string, provider?: PodcastSearchProvider) =>
+    request<PodcastSearchResult[]>(
+      `/podcasts/search?q=${encodeURIComponent(q)}${provider ? `&provider=${provider}` : ""}`,
+    ),
   feedPreview: (id: string) =>
     request<PodcastFeedResult>(`/podcasts/${id}/feed-preview`),
+  resolveLinks: (id: string) =>
+    request<PodcastProviderLinks>(`/podcasts/${id}/resolve-links`),
 };
 
 export const moviesApi = {

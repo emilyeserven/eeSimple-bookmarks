@@ -2,6 +2,15 @@
 import type { EntityWorkbench } from "./types";
 import type { Podcast } from "@eesimple/types";
 
+import { Fragment } from "react";
+
+import { PODCAST_LINK_PROVIDER_LABELS } from "@eesimple/types";
+
+import {
+  availablePodcastLinkProviders,
+  podcastLinkUrl,
+  resolvePodcastDefaultLink,
+} from "../../lib/podcastLinks";
 import { PodcastGeneralForm } from "../PodcastGeneralForm";
 import { PodcastImageTab } from "../PodcastImageTab";
 
@@ -20,6 +29,9 @@ function PodcastGeneralView({
     ? (mediaProperties ?? []).find(prop => prop.id === podcast.mediaPropertyId)
     : undefined;
 
+  const defaultLink = resolvePodcastDefaultLink(podcast);
+  const linkProviders = availablePodcastLinkProviders(podcast);
+
   return (
     <div className="space-y-4">
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
@@ -31,41 +43,48 @@ function PodcastGeneralView({
         <dd>{mediaProperty?.name ?? <span className="text-muted-foreground">None</span>}</dd>
         <dt className="text-muted-foreground">Author</dt>
         <dd>{podcast.author ?? <span className="text-muted-foreground">Unknown</span>}</dd>
-        <dt className="text-muted-foreground">Feed URL</dt>
+        <dt className="text-muted-foreground">Links to</dt>
         <dd>
-          {podcast.feedUrl
+          {defaultLink
             ? (
               <a
-                href={podcast.feedUrl}
+                href={defaultLink.url}
                 target="_blank"
                 rel="noreferrer"
                 className="
-                  break-all
+                  font-medium
                   hover:underline
                 "
               >
-                {podcast.feedUrl}
+                View on
+                {" "}
+                {defaultLink.label}
               </a>
             )
-            : <span className="text-muted-foreground">None</span>}
+            : <span className="text-muted-foreground">No service link</span>}
         </dd>
-        {podcast.itunesUrl
-          ? (
-            <>
-              <dt className="text-muted-foreground">Apple Podcasts</dt>
+        {linkProviders.map((provider) => {
+          const url = podcastLinkUrl(podcast, provider);
+          if (url == null) return null;
+          return (
+            <Fragment key={provider}>
+              <dt className="text-muted-foreground">{PODCAST_LINK_PROVIDER_LABELS[provider]}</dt>
               <dd>
                 <a
-                  href={podcast.itunesUrl}
+                  href={url}
                   target="_blank"
                   rel="noreferrer"
-                  className="hover:underline"
+                  className="
+                    break-all
+                    hover:underline
+                  "
                 >
-                  View on Apple Podcasts
+                  {url}
                 </a>
               </dd>
-            </>
-          )
-          : null}
+            </Fragment>
+          );
+        })}
         <dt className="text-muted-foreground">Sort order</dt>
         <dd>{podcast.sortOrder}</dd>
         {podcast.bookmarkCount != null
