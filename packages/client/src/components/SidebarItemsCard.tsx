@@ -62,15 +62,41 @@ export function SidebarItemsMatrix({
           </span>
           <ToggleGroup
             type="single"
+            variant="outline"
             size="sm"
+            className="gap-0"
             value={modeFor(item.key)}
             onValueChange={value => value && onSetMode(item.key, value as SidebarItemMode)}
           >
-            <ToggleGroupItem value="visible">Default</ToggleGroupItem>
+            <ToggleGroupItem
+              value="visible"
+              className="
+                -me-px rounded-e-none
+                focus-visible:z-10
+              "
+            >
+              Default
+            </ToggleGroupItem>
             {hasThreeStates && (
-              <ToggleGroupItem value="see-more">See More</ToggleGroupItem>
+              <ToggleGroupItem
+                value="see-more"
+                className="
+                  -me-px rounded-none
+                  focus-visible:z-10
+                "
+              >
+                See More
+              </ToggleGroupItem>
             )}
-            <ToggleGroupItem value="hidden">{hiddenLabel}</ToggleGroupItem>
+            <ToggleGroupItem
+              value="hidden"
+              className="
+                rounded-s-none
+                focus-visible:z-10
+              "
+            >
+              {hiddenLabel}
+            </ToggleGroupItem>
           </ToggleGroup>
         </div>
       ))}
