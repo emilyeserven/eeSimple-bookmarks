@@ -30,6 +30,11 @@ export interface BookmarkFormProps {
   initialTitle?: string;
   /** Called with the freshly created bookmark after a successful create (e.g. to close the popup). */
   onCreated?: (bookmark: Bookmark) => void;
+  /**
+   * When true, the form renders normally but its submit path is a no-op — no bookmark is ever
+   * created or updated. Used by the Add Bookmark form field-placement settings preview.
+   */
+  previewMode?: boolean;
 }
 
 /**
@@ -41,7 +46,7 @@ export interface BookmarkFormProps {
  * complexity cap.
  */
 export function useBookmarkFormController({
-  bookmark, onDone, lockedCategoryId, initialUrl, initialTitle, onCreated,
+  bookmark, onDone, lockedCategoryId, initialUrl, initialTitle, onCreated, previewMode,
 }: BookmarkFormProps = {}) {
   const isEdit = Boolean(bookmark);
   const data = useBookmarkFormData();
@@ -134,7 +139,12 @@ export function useBookmarkFormController({
     },
     onSubmit: ({
       value,
-    }) => void handlers.submitForm(value),
+    }) => {
+      // Preview mode (the Add Bookmark form field-placement settings preview): never actually
+      // create/update a bookmark, no matter which action path reached this submit.
+      if (previewMode) return;
+      void handlers.submitForm(value);
+    },
   });
 
   // Persist the form: build the property values + input, then create or update. On create, also
@@ -213,6 +223,7 @@ export function useBookmarkFormController({
   return {
     form,
     isEdit,
+    previewMode,
     isOfflineMode,
     inputType,
     hideNameField,

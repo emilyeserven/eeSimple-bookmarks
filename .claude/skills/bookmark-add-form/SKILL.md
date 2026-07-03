@@ -57,9 +57,18 @@ This is **create-mode only** (`!isEdit`) — edit surfaces render as before and 
   key fails `tsc`), then custom fields via `RevealedCustomFields` / `BookmarkAdvancedSection`, threading
   `hiddenSlugs` + `placementOverrides` into `selectVisibleFormProperties` (`bookmarkFormProperties.ts`).
 - **Settings page** — `components/DisplayBookmarkAddSettings.tsx` (3 shadcn `<Card>`s of
-  `SegmentedToggleRow`s) + `hooks/useBookmarkAddFormSettingsPage.ts` (state + per-row save handlers +
+  `SegmentedToggleRow`s, plus a **Preview** button opening `components/BookmarkAddFormPreviewDialog.tsx`
+  — a `<BookmarkForm previewMode />` in a `Dialog`, so field placement can be checked without leaving
+  the settings page) + `hooks/useBookmarkAddFormSettingsPage.ts` (state + per-row save handlers +
   field-named toasts; `BOOKMARK_ADD_FORM_STANDARD_LABELS`; `standardFieldPlacement`). Route
   `routes/settings.display.bookmark-add.tsx` + `displayNav` entry in `lib/settingsNav.ts`.
+- **Preview mode** — `BookmarkFormProps.previewMode` (`components/useBookmarkFormController.ts`) is a
+  render-only flag threaded into the `useAppForm({ onSubmit })` config: when set, submit is a no-op no
+  matter which action path reaches it (the footer's primary submit button **and** the "Add Now" quick
+  path both funnel through the same `onSubmit`, so one guard covers both). `BookmarkFormFooter` also
+  relabels the submit button "Preview only" and force-disables it so the no-op is visibly intentional.
+  `previewMode` is otherwise inert — field reveal/visibility, URL scan, and ISBN lookup all still work,
+  so the preview looks and behaves like the real form.
 
 ## Change recipes
 
@@ -96,3 +105,7 @@ JSON-schema body, and the client hooks.
   swap) — a separate consumer, unrelated to this tab.
 - **The old per-property "Main bookmark form" / "Show outside Advanced area" checkboxes are gone.**
   `PropertyDisplaySection` now only links to this tab; placement is centralized. Don't reintroduce them.
+- **The Preview dialog never needs a settings-override prop.** This tab auto-saves every toggle
+  immediately (no local/unsaved draft state), so `useBookmarkAddFormConfig()`'s query cache is always
+  the latest saved value — the same cache `BookmarkRevealedFields` reads. "Preview with current
+  settings" is simply "render the real form," nothing more.

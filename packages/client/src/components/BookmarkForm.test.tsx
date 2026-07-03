@@ -709,3 +709,59 @@ describe("BookmarkForm property prefill", () => {
     await waitFor(() => expect(screen.getByLabelText("Rating")).toHaveValue(99));
   });
 });
+
+describe("BookmarkForm preview mode", () => {
+  beforeEach(() => {
+    mutateAsync.mockReset();
+    scanMock.mockReset();
+    scanMock.mockImplementation(({
+      url,
+    }) => Promise.resolve(emptyScan(url)));
+    createMutateAsync.mockReset();
+    createMutateAsync.mockResolvedValue({
+      id: "new-id",
+    });
+    updateMutateAsync.mockReset();
+    autoFetchTitle = true;
+    websiteLookupData = undefined;
+    websitesData = [];
+    categoriesData = [{
+      id: "cat-1",
+      name: "Default",
+      builtIn: true,
+    }];
+  });
+
+  it("disables the submit button and never creates a bookmark", async () => {
+    scanMock.mockResolvedValue({
+      ...emptyScan("https://example.com"),
+      title: "Example Domain",
+    });
+    render(<BookmarkForm previewMode />);
+
+    await revealForm("https://example.com");
+
+    const submit = screen.getByRole("button", {
+      name: "Preview only",
+    });
+    expect(submit).toBeDisabled();
+
+    fireEvent.click(submit);
+    expect(createMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("does not create a bookmark via the Add Now quick path", () => {
+    render(<BookmarkForm previewMode />);
+
+    fireEvent.change(screen.getByLabelText("URL, ISBN, or text"), {
+      target: {
+        value: "https://example.com",
+      },
+    });
+    fireEvent.click(screen.getByRole("button", {
+      name: "Add Now",
+    }));
+
+    expect(createMutateAsync).not.toHaveBeenCalled();
+  });
+});
