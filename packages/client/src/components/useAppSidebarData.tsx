@@ -123,6 +123,7 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   inboxCount: number | undefined;
   aiSummarizationCount: number | undefined;
   placeTypesCount: number | undefined;
+  booksCount: number | undefined;
   currentBookmarkCategories: string[];
   modifier: ReturnType<typeof useSidebarOpenModifier>;
   viewClick: ReturnType<typeof useViewPanelClick>;
@@ -187,6 +188,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     "tags": data.allTags?.length,
     "websites": data.allWebsites?.length,
     "media-types": data.allMediaTypes?.length,
+    "media-properties": data.allMediaProperties?.length,
     "locations": data.allLocations?.length,
     "youtube-channels": data.allChannels?.length,
     "newsletters": data.allNewsletters?.length,
@@ -256,6 +258,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     inboxCount: data.inboxItems?.filter(item => item.status === "pending").length,
     aiSummarizationCount: data.aiSummaryQueue?.length,
     placeTypesCount: data.allPlaceTypes?.length,
+    booksCount: data.allBooks?.length,
     currentBookmarkCategories,
     modifier,
     viewClick,

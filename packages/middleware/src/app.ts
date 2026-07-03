@@ -34,6 +34,8 @@ import { newsletterRoutes } from "@/routes/newsletters";
 import { publisherRoutes } from "@/routes/publishers";
 import { reelArchiveRoutes } from "@/routes/reelArchive";
 import { propertyGroupRoutes } from "@/routes/propertyGroups";
+import { mediaPropertyRoutes } from "@/routes/mediaProperties";
+import { bookRoutes } from "@/routes/books";
 import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
@@ -179,6 +181,14 @@ export async function buildApp(): Promise<FastifyInstance> {
             name: "place-types",
             description: "User-managed place type vocabulary for classifying locations",
           },
+          {
+            name: "media-properties",
+            description: "Media Properties taxonomy (franchise/IP groupings): CRUD",
+          },
+          {
+            name: "books",
+            description: "Books taxonomy: CRUD; bookmarks link to a Book instead of a live Kavita series",
+          },
         ],
       },
     });
@@ -226,6 +236,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(youtubeChannelRoutes);
   await app.register(customPropertyRoutes);
   await app.register(propertyGroupRoutes);
+  await app.register(mediaPropertyRoutes);
+  await app.register(bookRoutes);
   await app.register(relationshipTypeRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);

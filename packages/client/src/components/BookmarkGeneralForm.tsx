@@ -3,11 +3,11 @@ import type { Bookmark } from "@eesimple/types";
 import { AuthorSocialAccountOffer } from "./AuthorSocialAccountOffer";
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
+import { BookmarkBookField } from "./BookmarkBookField";
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
 import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
 import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSection";
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
-import { BookmarkKavitaField } from "./BookmarkKavitaField";
 import { BookmarkNameField } from "./BookmarkNameField";
 import { BookmarkPlexField } from "./BookmarkPlexField";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
@@ -154,9 +154,9 @@ export function BookmarkGeneralForm({
         publishers={publishers ?? []}
       />
 
-      <BookmarkKavitaField
+      <BookmarkBookField
         bookmark={bookmark}
-        onSelect={ctrl.saveKavitaSeries}
+        onSelect={ctrl.saveBook}
       />
 
       <BookmarkPlexField

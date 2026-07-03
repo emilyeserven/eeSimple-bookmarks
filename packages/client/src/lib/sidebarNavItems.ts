@@ -9,6 +9,7 @@ import {
   Inbox,
   Layers,
   LayoutGrid,
+  Library,
   ListFilter,
   Mail,
   MapPin,
@@ -71,6 +72,12 @@ export const taxonomyItems = [
     title: "Media Types",
     to: "/taxonomies/media-types",
     icon: Clapperboard,
+  },
+  {
+    key: "media-properties",
+    title: "Media Properties",
+    to: "/taxonomies/media-properties",
+    icon: Library,
   },
   {
     key: "locations",

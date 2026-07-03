@@ -18,6 +18,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { bookmarks } from "@/db/schema";
+import { resolveBookmarkKavitaSeriesId } from "@/services/books";
 import { getActiveKavitaEndpoint, getDecryptedKavitaApiKey } from "@/services/appSettings";
 import { addBookmarkImage } from "@/services/bookmarkImages";
 import { extractPdfToc } from "@/services/pdfToc";
@@ -470,13 +471,16 @@ export type KavitaCoverImportResult
 export async function importKavitaSeriesCover(bookmarkId: string): Promise<KavitaCoverImportResult> {
   const [row] = await db
     .select({
+      bookId: bookmarks.bookId,
       kavitaSeriesId: bookmarks.kavitaSeriesId,
     })
     .from(bookmarks)
     .where(eq(bookmarks.id, bookmarkId));
   if (!row) return "not_found";
-  if (row.kavitaSeriesId === null) return "not_linked";
-  const bytes = await fetchKavitaSeriesCover(row.kavitaSeriesId);
+  // Prefer the linked Book's Kavita series id, falling back to the bookmark's legacy series id.
+  const seriesId = await resolveBookmarkKavitaSeriesId(row.bookId, row.kavitaSeriesId);
+  if (seriesId === null) return "not_linked";
+  const bytes = await fetchKavitaSeriesCover(seriesId);
   if (!bytes) return "cover_unavailable";
   return addBookmarkImage(bookmarkId, bytes, "og", {
     setMain: true,

@@ -1,0 +1,68 @@
+import type { EntityDescriptor, EntityListingConfig } from "./types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { MediaProperty, UpdateMediaPropertyInput } from "@eesimple/types";
+
+import { MediaPropertyListItem } from "../components/MediaPropertyListItem";
+import { MediaPropertyTable } from "../components/MediaPropertyTable";
+import { mediaPropertyWorkbench } from "../components/workbench/mediaProperty";
+import { useBulkDeleteMediaProperties, useMediaProperties } from "../hooks/useMediaProperties";
+import { mediaPropertiesApi } from "../lib/api/taxonomies";
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const MEDIA_PROPERTY_ROUTE: EntityRoute = {
+  kind: "media-property",
+  prefix: "/taxonomies/media-properties",
+  slugIndex: 2,
+  listLabel: "Media Properties",
+  singular: "Media Property",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const MEDIA_PROPERTY_PALETTE: EntityPaletteConfig = {
+  queryKey: ["media-properties"],
+  listFn: () => mediaPropertiesApi.list(),
+  updateFn: (id, patch) => mediaPropertiesApi.update(id, patch as UpdateMediaPropertyInput),
+  extraInvalidateKeys: [["books"]],
+};
+
+export const mediaPropertyListingConfig: EntityListingConfig<MediaProperty> = {
+  pageKey: "media-properties-listing",
+  useItems: useMediaProperties,
+  matches: (prop, query) =>
+    prop.name.toLowerCase().includes(query) || prop.slug.toLowerCase().includes(query),
+  useBulkDelete: useBulkDeleteMediaProperties,
+  noun: ["media property", "media properties"],
+  loadingLabel: "Loading media properties…",
+  entityPlural: "media properties",
+  emptyMessage: (
+    <p className="text-muted-foreground">
+      No media properties yet.
+    </p>
+  ),
+  renderListItem: ({
+    entity, allItems, ...rest
+  }) => (
+    <MediaPropertyListItem
+      mediaProperty={entity}
+      {...rest}
+    />
+  ),
+  renderTable: ({
+    entities, selection,
+  }) => (
+    <MediaPropertyTable
+      data={entities}
+      selection={selection}
+    />
+  ),
+};
+
+export const mediaPropertyDescriptor: EntityDescriptor<MediaProperty> = {
+  kind: "media-property",
+  route: MEDIA_PROPERTY_ROUTE,
+  palette: MEDIA_PROPERTY_PALETTE,
+  workbench: mediaPropertyWorkbench,
+  listing: mediaPropertyListingConfig,
+};

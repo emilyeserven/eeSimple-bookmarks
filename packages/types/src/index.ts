@@ -12,10 +12,12 @@ import type { BookmarkLocation } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
 export * from "./autofillMerge.js";
+export * from "./books.js";
 export * from "./conditions.js";
 export * from "./customProperties.js";
 export * from "./importBlacklist.js";
 export * from "./locations.js";
+export * from "./mediaProperties.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";
 export * from "./socialMedia.js";
@@ -1093,6 +1095,8 @@ export interface Bookmark {
   newsletter: BookmarkNewsletter | null;
   /** The publisher of this bookmarked item, or null when unset. */
   publisher: BookmarkPublisher | null;
+  /** Id of the linked Book (Books taxonomy), or `null` when unset. */
+  bookId: string | null;
   /** Id of the linked series on the connected Kavita server, or `null` when not linked. */
   kavitaSeriesId: number | null;
   /** Id of the Kavita library containing the linked series (needed for the web UI deep link). */
@@ -1198,6 +1202,8 @@ export interface CreateBookmarkInput {
   importId?: string | null;
   /** Id of the publisher to assign; null to clear. Omit to leave unchanged. */
   publisherId?: string | null;
+  /** Id of the Book (Books taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
+  bookId?: string | null;
   /** Id of the Kavita series to link, or `null` to unlink. Omit to leave unchanged. */
   kavitaSeriesId?: number | null;
   /** Id of the Kavita library containing the linked series, or `null` to clear. Omit to leave unchanged. */

@@ -8,6 +8,7 @@ import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { applyImageIntent } from "./bookmarkSubmit";
 import { useBookmarkImageMutations } from "./useBookmarkImageMutations";
 import { useScreenshotSettingsState } from "./useScreenshotSettingsState";
+import { useBookmarkKavitaSeriesId } from "../hooks/useBooks";
 import { useConnectors } from "../hooks/useConnectors";
 import { usePropertyBySlug } from "../hooks/useCustomProperties";
 import { metadataApi } from "../lib/api/metadata";
@@ -78,6 +79,7 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
   const {
     data: connectors,
   } = useConnectors();
+  const kavitaSeriesId = useBookmarkKavitaSeriesId(bookmark);
   const {
     property: isbnProperty,
   } = usePropertyBySlug(ISBN_SLUG);
@@ -134,7 +136,7 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
       id: bookmark.id,
       sourceUrl: bookmark.url ?? "",
     }),
-    canUseKavitaCover: Boolean(connectors?.kavita.enabled) && bookmark.kavitaSeriesId !== null,
+    canUseKavitaCover: Boolean(connectors?.kavita.enabled) && kavitaSeriesId !== null,
     kavitaCoverPending: mutations.kavitaCover.isPending,
     onUseKavitaCover: () => mutations.kavitaCover.mutate(bookmark.id),
     canUsePlexPoster: Boolean(connectors?.plex.enabled) && bookmark.plexRatingKey !== null,

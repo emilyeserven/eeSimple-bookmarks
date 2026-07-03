@@ -15,9 +15,11 @@ import {
   savedFilterContentType,
 } from "./peopleAndRuleContentTypes";
 import {
+  bookContentType,
   bookmarkContentType,
   categoryContentType,
   locationContentType,
+  mediaPropertyContentType,
   mediaTypeContentType,
   placeTypeContentType,
   propertyContentType,
@@ -38,6 +40,8 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
   mediaTypeContentType,
   locationContentType,
   placeTypeContentType,
+  mediaPropertyContentType,
+  bookContentType,
   youtubeChannelContentType,
   newsletterContentType,
   authorContentType,

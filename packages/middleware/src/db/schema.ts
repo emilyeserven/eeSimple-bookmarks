@@ -49,9 +49,17 @@ export const bookmarks = pgTable("bookmarks", {
   publisherId: uuid("publisher_id").references((): AnyPgColumn => publishers.id, {
     onDelete: "set null",
   }),
-  // Link to a series on the connected Kavita server (Settings → Connectors). All nullable =
-  // push-safe additive; the library id is kept alongside the series id to build the web UI deep
-  // link, and the series name is denormalized at link time for display without a Kavita round-trip.
+  // The Book (Books taxonomy) this bookmark is linked to. Nullable = push-safe additive; set null
+  // when the book is deleted. Book selection now flows through this FK instead of the legacy Kavita
+  // columns below (which are retained for pre-existing links). Cover/ToC/deep-link resolve the Kavita
+  // series id from the linked Book, falling back to the legacy `kavita_series_id` when unset.
+  bookId: uuid("book_id").references((): AnyPgColumn => books.id, {
+    onDelete: "set null",
+  }),
+  // Legacy: direct link to a series on the connected Kavita server (Settings → Connectors). All
+  // nullable = push-safe additive; the library id is kept alongside the series id to build the web UI
+  // deep link, and the series name is denormalized at link time for display without a Kavita
+  // round-trip. Retained for bookmarks linked before the Books taxonomy existed.
   kavitaSeriesId: integer("kavita_series_id"),
   kavitaLibraryId: integer("kavita_library_id"),
   kavitaSeriesName: text("kavita_series_name"),
@@ -367,6 +375,57 @@ export const propertyGroups = pgTable("property_groups", {
 }, table => [
   unique("property_groups_name_unique").on(table.name),
   unique("property_groups_slug_unique").on(table.slug),
+]);
+
+/**
+ * `media_properties` table — a taxonomy of franchises / IP groupings (e.g. "The Lord of the Rings").
+ * A Book (below) may belong to one media property. Flat, user-managed vocabulary. Nullable slug for
+ * push-safe addition; backfilled at boot.
+ */
+export const mediaProperties = pgTable("media_properties", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
+  slug: text("slug"),
+  // Display ordering; lower sorts first.
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("media_properties_name_unique").on(table.name),
+  unique("media_properties_slug_unique").on(table.slug),
+]);
+
+/**
+ * `books` table — a taxonomy of individual books, optionally grouped under a media property. A book
+ * carries the Kavita linkage (series/library ids + denormalized series name) so bookmarks reference a
+ * Book (via `bookmarks.book_id`) rather than a live Kavita series, and cover/ToC/deep-link features
+ * resolve the series id from the linked Book. All Kavita columns + `mediaPropertyId` are nullable →
+ * push-safe additive. Nullable slug for clean `push`; backfilled at boot.
+ */
+export const books = pgTable("books", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  // Optional franchise/IP grouping. set null when the media property is deleted.
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
+  // Kavita series linkage (mirrors what the bookmark used to store): series id + library id build the
+  // web-UI deep link; the series name is denormalized for display without a Kavita round-trip.
+  kavitaSeriesId: integer("kavita_series_id"),
+  kavitaLibraryId: integer("kavita_library_id"),
+  kavitaSeriesName: text("kavita_series_name"),
+  // Optional release year surfaced by the Kavita search.
+  releaseYear: integer("release_year"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("books_name_unique").on(table.name),
+  unique("books_slug_unique").on(table.slug),
 ]);
 
 /**
@@ -2031,6 +2090,10 @@ export type MediaTypeRow = typeof mediaTypes.$inferSelect;
 export type NewMediaTypeRow = typeof mediaTypes.$inferInsert;
 export type PropertyGroupRow = typeof propertyGroups.$inferSelect;
 export type NewPropertyGroupRow = typeof propertyGroups.$inferInsert;
+export type MediaPropertyRow = typeof mediaProperties.$inferSelect;
+export type NewMediaPropertyRow = typeof mediaProperties.$inferInsert;
+export type BookRow = typeof books.$inferSelect;
+export type NewBookRow = typeof books.$inferInsert;
 export type RelationshipTypeRow = typeof relationshipTypes.$inferSelect;
 export type NewRelationshipTypeRow = typeof relationshipTypes.$inferInsert;
 export type YouTubeChannelRow = typeof youtubeChannels.$inferSelect;

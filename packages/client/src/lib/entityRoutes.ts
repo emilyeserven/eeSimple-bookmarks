@@ -2,10 +2,12 @@ import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
 import { AUTHOR_ROUTE } from "../entities/author";
 import { AUTOFILL_ROUTE } from "../entities/autofillRule";
+import { BOOK_ROUTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
 import { CATEGORY_ROUTE } from "../entities/category";
 import { IMPORT_RULE_ROUTE } from "../entities/importRule";
 import { LOCATION_ROUTE } from "../entities/location";
+import { MEDIA_PROPERTY_ROUTE } from "../entities/mediaProperty";
 import { MEDIA_TYPE_ROUTE } from "../entities/mediaType";
 import { NEWSLETTER_ROUTE } from "../entities/newsletter";
 import { PLACE_TYPE_ROUTE } from "../entities/placeType";
@@ -31,6 +33,8 @@ export type EntityRouteKind
     | "author"
     | "publisher"
     | "property-group"
+    | "media-property"
+    | "book"
     | "relationship-type"
     | "custom-property"
     | "autofill"
@@ -77,6 +81,8 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   AUTHOR_ROUTE,
   PUBLISHER_ROUTE,
   PROPERTY_GROUP_ROUTE,
+  MEDIA_PROPERTY_ROUTE,
+  BOOK_ROUTE,
   RELATIONSHIP_TYPE_ROUTE,
   CUSTOM_PROPERTY_ROUTE,
   AUTOFILL_ROUTE,
