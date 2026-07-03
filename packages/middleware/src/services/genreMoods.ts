@@ -87,9 +87,10 @@ export function buildGenreMoodTree(all: GenreMood[]): GenreMoodNode[] {
 
 /**
  * Whether reparenting `id` under `newParentId` would create a cycle (the new parent is the entry
- * itself or one of its descendants). Pure helper.
+ * itself or one of its descendants). Pure helper (module-private — mirrors tags' `wouldCreateCycle`
+ * but unexported to avoid a duplicate-export collision with it).
  */
-export function wouldCreateCycle(all: GenreMood[], id: string, newParentId: string): boolean {
+function wouldCreateCycle(all: GenreMood[], id: string, newParentId: string): boolean {
   return collectSubtreeIds(all, id).has(newParentId);
 }
 
