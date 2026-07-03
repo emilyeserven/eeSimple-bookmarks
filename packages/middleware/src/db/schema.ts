@@ -11,7 +11,7 @@ export const bookmarks = pgTable("bookmarks", {
   originalUrl: text("original_url"),
   title: text("title").notNull(),
   // Optional romanized form of the title. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedTitle: text("romanized_title"),
+  romanizedName: text("romanized_name"),
   description: text("description"),
   // Owning category. Nullable at the DB level so `drizzle-kit push` applies cleanly to
   // existing rows; the service layer resolves NULL to the built-in "Default" category.

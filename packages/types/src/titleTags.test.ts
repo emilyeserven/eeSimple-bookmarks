@@ -65,7 +65,7 @@ test("matchTagIdsByTitle matches a romanized name against a Latin title", () => 
   );
 });
 
-test("matchTagIdsByTitle matches against the romanizedTitle haystack", () => {
+test("matchTagIdsByTitle matches against the romanizedName haystack", () => {
   // Title in one script, the bookmark's romanized title carries the other form.
   assert.deepEqual(
     matchTagIdsByTitle("旅行記", "Kyushu travel notes", [busan, kyushu, react]),

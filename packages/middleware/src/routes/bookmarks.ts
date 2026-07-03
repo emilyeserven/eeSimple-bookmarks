@@ -115,7 +115,7 @@ const createBookmarkBody = {
       type: "string",
       minLength: 1,
     },
-    romanizedTitle: {
+    romanizedName: {
       type: ["string", "null"],
     },
     description: {

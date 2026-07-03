@@ -1,5 +1,6 @@
 import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteGenreMood, useGenreMoodBySlug } from "../hooks/useGenreMoods";
 
@@ -58,7 +59,14 @@ function GenreMoodViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Entry" : (genreMood?.name ?? "Entry not found")}
+              {genreMood
+                ? (
+                  <RomanizedLabel
+                    name={genreMood.name}
+                    romanized={genreMood.romanizedName}
+                  />
+                )
+                : (isLoading ? "Entry" : "Entry not found")}
             </h1>
             {genreMood
               ? (

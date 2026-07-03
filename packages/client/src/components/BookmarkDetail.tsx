@@ -79,7 +79,7 @@ export function BookmarkDetail({
               >
                 <RomanizedLabel
                   name={bookmark.title}
-                  romanized={bookmark.romanizedTitle}
+                  romanized={bookmark.romanizedName}
                   stacked
                 />
               </a>

@@ -310,7 +310,7 @@ function locationCrumbs(
 interface BookmarkCrumbData {
   id: string;
   title: string;
-  romanizedTitle?: string | null;
+  romanizedName?: string | null;
   categoryId?: string;
   categoryName?: string;
   categoryRomanized?: string | null;
@@ -343,7 +343,7 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
     };
   const titleCrumb: BreadcrumbSegment = {
     label: data?.title ?? "Bookmark",
-    romanizedLabel: data?.title ? data?.romanizedTitle : undefined,
+    romanizedLabel: data?.title ? data?.romanizedName : undefined,
   };
 
   const isEdit = pathname.includes("/edit");
@@ -497,7 +497,7 @@ export function useHeaderBreadcrumbs(pathname: string, pathParts: string[]): Hea
     ? {
       id: bookmarkForCrumb.id,
       title: bookmarkForCrumb.title,
-      romanizedTitle: bookmarkForCrumb.romanizedTitle,
+      romanizedName: bookmarkForCrumb.romanizedName,
       categoryId: bookmarkForCrumb.categoryId,
       categoryName: bookmarkCategory?.name,
       categoryRomanized: bookmarkCategory?.romanizedName,

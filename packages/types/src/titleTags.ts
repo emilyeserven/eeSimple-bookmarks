@@ -5,7 +5,7 @@
  * the Inbox prefill preview) — one implementation, no parallel re-translation.
  *
  * A tag matches when any of its name forms (`name`, `romanizedName`) is found in any of the
- * bookmark's title forms (`title`, `romanizedTitle`). Latin terms match on whole-word boundaries
+ * bookmark's title forms (`title`, `romanizedName`). Latin terms match on whole-word boundaries
  * (so a tag named "art" does not match "Martin"); terms in scripts that aren't space-delimited
  * (Han / Hiragana / Katakana / Hangul) match as substrings (so "부산" matches "부산광역시", which
  * has no word boundary). Matching is case-insensitive throughout.
@@ -50,15 +50,15 @@ export function titleMatchesTerm(haystack: string, term: string): boolean {
 
 /**
  * The ids of tags implied by a bookmark's title. Each tag's `name` and `romanizedName` are tested
- * against both the bookmark's `title` and its `romanizedTitle` (when present) via
+ * against both the bookmark's `title` and its `romanizedName` (when present) via
  * {@link titleMatchesTerm}. Empty/whitespace haystacks and terms are ignored. Pure helper.
  */
 export function matchTagIdsByTitle(
   title: string,
-  romanizedTitle: string | null | undefined,
+  romanizedName: string | null | undefined,
   tags: TitleTagCandidate[],
 ): string[] {
-  const haystacks = [title, romanizedTitle ?? ""].filter(text => text.trim() !== "");
+  const haystacks = [title, romanizedName ?? ""].filter(text => text.trim() !== "");
   if (haystacks.length === 0) return [];
   return tags
     .filter((tag) => {

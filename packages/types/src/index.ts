@@ -31,6 +31,7 @@ export * from "./tracks.js";
 export * from "./tvShows.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";
+export * from "./romanized.js";
 export * from "./socialMedia.js";
 export * from "./taxonomyImages.js";
 export * from "./titleTags.js";
@@ -1182,7 +1183,7 @@ export interface Bookmark {
   /** Human-friendly title, e.g. "GitHub". */
   title: string;
   /** Optional romanized form of the title, shown de-emphasized after the title when present. */
-  romanizedTitle: string | null;
+  romanizedName: string | null;
   /** Optional free-form description. */
   description: string | null;
   /** The main image attached to this bookmark, or `null` when none has been set. Mirrors the `isMain` entry of `images`. */
@@ -1296,7 +1297,7 @@ export interface CreateBookmarkInput {
   /** Original URL before cleanup; omit when no cleanup was applied. */
   originalUrl?: string | null;
   title: string;
-  romanizedTitle?: string | null;
+  romanizedName?: string | null;
   description?: string | null;
   /** Id of the category to assign; omit to fall back to the built-in "Default" category. */
   categoryId?: string;

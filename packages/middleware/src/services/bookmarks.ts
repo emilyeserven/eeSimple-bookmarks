@@ -339,14 +339,14 @@ export async function backfillTitleTags(): Promise<TitleTagBackfillResult> {
     .select({
       id: bookmarks.id,
       title: bookmarks.title,
-      romanizedTitle: bookmarks.romanizedTitle,
+      romanizedName: bookmarks.romanizedName,
     })
     .from(bookmarks);
 
   const links: { bookmarkId: string;
     tagId: string; }[] = [];
   for (const row of rows) {
-    for (const tagId of matchTagIdsByTitle(row.title, row.romanizedTitle, allTags)) {
+    for (const tagId of matchTagIdsByTitle(row.title, row.romanizedName, allTags)) {
       links.push({
         bookmarkId: row.id,
         tagId,
@@ -388,14 +388,14 @@ export async function backfillTitleLocations(): Promise<TitleTagBackfillResult> 
     .select({
       id: bookmarks.id,
       title: bookmarks.title,
-      romanizedTitle: bookmarks.romanizedTitle,
+      romanizedName: bookmarks.romanizedName,
     })
     .from(bookmarks);
 
   const links: { bookmarkId: string;
     locationId: string; }[] = [];
   for (const row of rows) {
-    for (const locationId of matchLocationIdsByTitle(row.title, row.romanizedTitle, allLocations)) {
+    for (const locationId of matchLocationIdsByTitle(row.title, row.romanizedName, allLocations)) {
       links.push({
         bookmarkId: row.id,
         locationId,
@@ -449,14 +449,14 @@ async function resolveCreateCategoryId(
 }
 
 /** Tag ids matched from the bookmark title, when the "auto-tag from title" automation is enabled. */
-async function titleMatchTagIds(title: string, romanizedTitle: string | null): Promise<string[]> {
-  if (!title.trim() && !(romanizedTitle ?? "").trim()) return [];
+async function titleMatchTagIds(title: string, romanizedName: string | null): Promise<string[]> {
+  if (!title.trim() && !(romanizedName ?? "").trim()) return [];
   const {
     autoApplyTitleTags,
   } = await getAutomationSettings();
   if (!autoApplyTitleTags) return [];
   const allTags = await listTagNames();
-  return matchTagIdsByTitle(title, romanizedTitle, allTags);
+  return matchTagIdsByTitle(title, romanizedName, allTags);
 }
 
 /** Tags: union of user-provided + website defaults + channel defaults + title matches (deduped). */
@@ -470,24 +470,24 @@ async function mergeCreateTagIds(
     const channelTagIds = await getChannelTagIds(channelHint.key);
     defaultTagIds.push(...channelTagIds);
   }
-  const titleTagIds = await titleMatchTagIds(input.title, input.romanizedTitle ?? null);
+  const titleTagIds = await titleMatchTagIds(input.title, input.romanizedName ?? null);
   return [...new Set([...(input.tagIds ?? []), ...defaultTagIds, ...titleTagIds])];
 }
 
 /** Location ids matched from the bookmark title, when the "auto-tag from title" automation is on. */
-async function titleMatchLocationIds(title: string, romanizedTitle: string | null): Promise<string[]> {
-  if (!title.trim() && !(romanizedTitle ?? "").trim()) return [];
+async function titleMatchLocationIds(title: string, romanizedName: string | null): Promise<string[]> {
+  if (!title.trim() && !(romanizedName ?? "").trim()) return [];
   const {
     autoApplyTitleLocations,
   } = await getAutomationSettings();
   if (!autoApplyTitleLocations) return [];
   const allLocations = await listLocationNames();
-  return matchLocationIdsByTitle(title, romanizedTitle, allLocations);
+  return matchLocationIdsByTitle(title, romanizedName, allLocations);
 }
 
 /** Locations: union of user-provided + title matches (deduped). */
 async function mergeCreateLocationIds(input: CreateBookmarkInput): Promise<string[]> {
-  const titleLocationIds = await titleMatchLocationIds(input.title, input.romanizedTitle ?? null);
+  const titleLocationIds = await titleMatchLocationIds(input.title, input.romanizedName ?? null);
   return [...new Set([...(input.locationIds ?? []), ...titleLocationIds])];
 }
 
@@ -557,7 +557,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         url: input.url ?? null,
         originalUrl: input.originalUrl ?? null,
         title: input.title,
-        romanizedTitle: input.romanizedTitle ?? null,
+        romanizedName: input.romanizedName ?? null,
         description: input.description ?? null,
         categoryId,
         websiteId,
@@ -629,7 +629,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
+  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedName" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
 >;
 
 /**
@@ -644,7 +644,7 @@ export function scalarBookmarkPatch(
   const patch: ScalarBookmarkPatch = {};
   if (input.originalUrl !== undefined) patch.originalUrl = input.originalUrl ?? null;
   if (input.title !== undefined) patch.title = input.title;
-  if (input.romanizedTitle !== undefined) patch.romanizedTitle = input.romanizedTitle ?? null;
+  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
   if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;

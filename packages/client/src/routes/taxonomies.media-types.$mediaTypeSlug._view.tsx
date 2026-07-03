@@ -1,5 +1,6 @@
 import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteMediaType, useMediaTypeBySlug } from "../hooks/useMediaTypes";
 
@@ -75,7 +76,14 @@ function MediaTypeViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Media type" : (mediaType?.name ?? "Media type not found")}
+              {mediaType
+                ? (
+                  <RomanizedLabel
+                    name={mediaType.name}
+                    romanized={mediaType.romanizedName}
+                  />
+                )
+                : (isLoading ? "Media type" : "Media type not found")}
               {mediaType?.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
             </h1>
             {mediaType

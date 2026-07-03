@@ -16,7 +16,7 @@ describe("resolveBookmarkAddForm", () => {
     it("always returns today's hardcoded split, ignoring the passed-in settings", () => {
       const settings: BookmarkAddFormSettings = {
         advancedFields: ["title"],
-        hiddenFields: ["romanizedTitle", "categoryId", "mediaTypeId", "languageId", "groupId", "descriptionTags", "personIds", "image"],
+        hiddenFields: ["romanizedName", "categoryId", "mediaTypeId", "languageId", "groupId", "descriptionTags", "personIds", "image"],
         builtInPropertyPlacements: {
           [RUNTIME_SLUG]: "default",
         },
@@ -24,7 +24,7 @@ describe("resolveBookmarkAddForm", () => {
 
       const resolved = resolveBookmarkAddForm(settings, true);
 
-      expect(resolved.mainStandardFields).toEqual(["title", "romanizedTitle"]);
+      expect(resolved.mainStandardFields).toEqual(["title", "romanizedName"]);
       expect(resolved.advancedStandardFields).toEqual([
         "categoryId",
         "mediaTypeId",
@@ -42,7 +42,7 @@ describe("resolveBookmarkAddForm", () => {
     it("ignores default settings too — same literals regardless of input", () => {
       const resolved = resolveBookmarkAddForm(DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, true);
 
-      expect(resolved.mainStandardFields).toEqual(["title", "romanizedTitle"]);
+      expect(resolved.mainStandardFields).toEqual(["title", "romanizedName"]);
       expect(resolved.advancedStandardFields).toEqual([
         "categoryId",
         "mediaTypeId",
@@ -65,11 +65,11 @@ describe("resolveBookmarkAddForm", () => {
 
       const resolved = resolveBookmarkAddForm(settings, false);
 
-      // Tuple order: title, romanizedTitle, categoryId, mediaTypeId, languageId, groupId,
+      // Tuple order: title, romanizedName, categoryId, mediaTypeId, languageId, groupId,
       // descriptionTags, personIds, image
       expect(resolved.mainStandardFields).toEqual([
         "title",
-        "romanizedTitle",
+        "romanizedName",
         "mediaTypeId",
         "languageId",
         "groupId",

@@ -87,7 +87,7 @@ export function BookmarkGeneralForm({
         onNameBlur={runAutofill}
       />
 
-      <form.AppField name="romanizedTitle">
+      <form.AppField name="romanizedName">
         {field => (
           <field.TextField
             label="Romanized name"
