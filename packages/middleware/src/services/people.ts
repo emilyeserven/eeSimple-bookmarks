@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
   personImages,
-  personPublishers,
+  personGroups,
   people,
   personWebsites,
   personYoutubeChannels,
@@ -60,17 +60,17 @@ async function loadPersonWebsiteMap(personIds: string[]): Promise<Map<string, st
   return buildStringMap(rows, r => r.personId, r => r.websiteId);
 }
 
-/** Load publisher IDs for a set of person IDs as a map of personId → publisherId[]. */
-async function loadPersonPublisherMap(personIds: string[]): Promise<Map<string, string[]>> {
+/** Load group IDs for a set of person IDs as a map of personId → groupId[]. */
+async function loadPersonGroupMap(personIds: string[]): Promise<Map<string, string[]>> {
   if (personIds.length === 0) return new Map();
   const rows = await db
     .select({
-      personId: personPublishers.personId,
-      publisherId: personPublishers.publisherId,
+      personId: personGroups.personId,
+      groupId: personGroups.groupId,
     })
-    .from(personPublishers)
-    .where(inArray(personPublishers.personId, personIds));
-  return buildStringMap(rows, r => r.personId, r => r.publisherId);
+    .from(personGroups)
+    .where(inArray(personGroups.personId, personIds));
+  return buildStringMap(rows, r => r.personId, r => r.groupId);
 }
 
 /** Replace the full set of YouTube channels for an person (delete-then-insert). */
@@ -103,17 +103,17 @@ async function setPersonWebsites(
   }
 }
 
-/** Replace the full set of publishers for an person (delete-then-insert). */
-async function setPersonPublishers(
+/** Replace the full set of groups for an person (delete-then-insert). */
+async function setPersonGroups(
   txOrDb: Tx | typeof db,
   personId: string,
-  publisherIds: string[],
+  groupIds: string[],
 ): Promise<void> {
-  await txOrDb.delete(personPublishers).where(eq(personPublishers.personId, personId));
-  if (publisherIds.length > 0) {
-    await txOrDb.insert(personPublishers).values(publisherIds.map(publisherId => ({
+  await txOrDb.delete(personGroups).where(eq(personGroups.personId, personId));
+  if (groupIds.length > 0) {
+    await txOrDb.insert(personGroups).values(groupIds.map(groupId => ({
       personId,
-      publisherId,
+      groupId,
     })));
   }
 }
@@ -124,7 +124,7 @@ function toPerson(
   bookmarkCount?: number,
   youtubeChannelIds: string[] = [],
   websiteIds: string[] = [],
-  publisherIds: string[] = [],
+  groupIds: string[] = [],
 ): Person {
   return {
     id: row.id,
@@ -139,7 +139,7 @@ function toPerson(
     socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
     youtubeChannelIds,
     websiteIds,
-    publisherIds,
+    groupIds,
   };
 }
 
@@ -167,7 +167,7 @@ export async function listPeople(): Promise<Person[]> {
 
   const ids = rows.map(r => r.id);
 
-  const [counts, channelMap, websiteMap, publisherMap] = await Promise.all([
+  const [counts, channelMap, websiteMap, groupMap] = await Promise.all([
     db
       .select({
         personId: bookmarkPeople.personId,
@@ -177,7 +177,7 @@ export async function listPeople(): Promise<Person[]> {
       .groupBy(bookmarkPeople.personId),
     loadPersonYoutubeChannelMap(ids),
     loadPersonWebsiteMap(ids),
-    loadPersonPublisherMap(ids),
+    loadPersonGroupMap(ids),
   ]);
 
   const countMap = new Map(counts.map(c => [c.personId, Number(c.count)]));
@@ -187,7 +187,7 @@ export async function listPeople(): Promise<Person[]> {
       countMap.get(row.id) ?? 0,
       channelMap.get(row.id) ?? [],
       websiteMap.get(row.id) ?? [],
-      publisherMap.get(row.id) ?? [],
+      groupMap.get(row.id) ?? [],
     ));
 }
 
@@ -244,14 +244,14 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
   const hasAssociationChanges
     = input.youtubeChannelIds !== undefined
       || input.websiteIds !== undefined
-      || input.publisherIds !== undefined;
+      || input.groupIds !== undefined;
 
   if (Object.keys(patch).length === 0 && !hasAssociationChanges) {
-    const [imageRow, channelMap, websiteMap, publisherMap] = await Promise.all([
+    const [imageRow, channelMap, websiteMap, groupMap] = await Promise.all([
       getPersonImageRow(id),
       loadPersonYoutubeChannelMap([id]),
       loadPersonWebsiteMap([id]),
-      loadPersonPublisherMap([id]),
+      loadPersonGroupMap([id]),
     ]);
     return toPerson(
       {
@@ -261,7 +261,7 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
       undefined,
       channelMap.get(id) ?? [],
       websiteMap.get(id) ?? [],
-      publisherMap.get(id) ?? [],
+      groupMap.get(id) ?? [],
     );
   }
 
@@ -278,14 +278,14 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
     if (input.websiteIds !== undefined) {
       await setPersonWebsites(tx, id, input.websiteIds);
     }
-    if (input.publisherIds !== undefined) {
-      await setPersonPublishers(tx, id, input.publisherIds);
+    if (input.groupIds !== undefined) {
+      await setPersonGroups(tx, id, input.groupIds);
     }
-    const [imageRow, channelMap, websiteMap, publisherMap] = await Promise.all([
+    const [imageRow, channelMap, websiteMap, groupMap] = await Promise.all([
       getPersonImageRow(id),
       loadPersonYoutubeChannelMap([id]),
       loadPersonWebsiteMap([id]),
-      loadPersonPublisherMap([id]),
+      loadPersonGroupMap([id]),
     ]);
     return toPerson(
       {
@@ -295,7 +295,7 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
       undefined,
       channelMap.get(id) ?? [],
       websiteMap.get(id) ?? [],
-      publisherMap.get(id) ?? [],
+      groupMap.get(id) ?? [],
     );
   });
 }

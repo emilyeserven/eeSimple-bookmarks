@@ -26,7 +26,7 @@ export interface EntityListingConfig<E extends { id: string }> {
   /** Required unless `renderBulkActions` is provided (which owns its own delete UI). */
   useBulkDelete?: () => UseMutationResult<BulkDeleteResult[], Error, string[]>;
   /**
-   * Singular/plural noun for the bulk-delete confirm copy, e.g. `["publisher", "publishers"]`.
+   * Singular/plural noun for the bulk-delete confirm copy, e.g. `["group", "groups"]`.
    * Required unless `renderBulkActions` is provided.
    */
   noun?: [string, string];
@@ -140,7 +140,7 @@ export interface EntityTreeListingConfig<N extends { id: string;
  * `EntityWorkbench`, and — for scaffold-eligible entities — a listing config) into one module.
  * Each field *references* the entity's existing registry object rather than redefining its shape, so
  * none of `entityRoutes.ts`, `entityPaletteRegistry.ts`, or `components/workbench/*`'s consumers need
- * to change. `entities/publisher.ts` is the pilot migration (issue #860); a registry aggregating all
+ * to change. `entities/group.ts` is the pilot migration (issue #860); a registry aggregating all
  * migrated entities lands in a later PR once there's an actual consumer (`matchEntityRoute`, the
  * CMD+K lookup, or the workbench route/panel components).
  *

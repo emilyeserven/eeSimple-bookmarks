@@ -32,12 +32,12 @@ export function InboxPreFillBox({
     tagTree,
     mediaTypeTree,
     people,
-    publishers,
+    groups,
     inboxProperties,
     categoryOptions,
     mediaTypeOptions,
     personOptions,
-    publisherOptions,
+    groupOptions,
     selectedTagNames,
   } = useInboxPreFillBox(preFill);
 
@@ -49,9 +49,9 @@ export function InboxPreFillBox({
     ...preFill,
     mediaTypeId: m.id,
   }));
-  const publisherCreate = useEntityCreateOption("publisher", p => setPreFill({
+  const groupCreate = useEntityCreateOption("group", p => setPreFill({
     ...preFill,
-    publisherId: p.id,
+    groupId: p.id,
   }));
 
   const selectedPersonIds = preFill.personIds ?? [];
@@ -119,22 +119,22 @@ export function InboxPreFillBox({
               </div>
             )}
 
-            {/* Publisher */}
-            {publishers.length > 0 && (
+            {/* Group */}
+            {groups.length > 0 && (
               <div className="space-y-1">
-                <Label className="text-sm">Publisher</Label>
+                <Label className="text-sm">Group</Label>
                 <Combobox
-                  options={publisherOptions}
-                  value={preFill.publisherId ?? undefined}
+                  options={groupOptions}
+                  value={preFill.groupId ?? undefined}
                   onValueChange={val => setPreFill({
                     ...preFill,
-                    publisherId: val ?? null,
+                    groupId: val ?? null,
                   })}
-                  placeholder="Any publisher"
-                  searchPlaceholder="Search publishers…"
-                  emptyText="No publishers."
-                  aria-label="Default publisher"
-                  createOption={publisherCreate.createOption}
+                  placeholder="Any group"
+                  searchPlaceholder="Search groups…"
+                  emptyText="No groups."
+                  aria-label="Default group"
+                  createOption={groupCreate.createOption}
                 />
               </div>
             )}
@@ -184,7 +184,7 @@ export function InboxPreFillBox({
       </RowCard>
       {categoryCreate.modal}
       {mediaTypeCreate.modal}
-      {publisherCreate.modal}
+      {groupCreate.modal}
       <InboxPreFillModals
         preFill={preFill}
         setPreFill={setPreFill}

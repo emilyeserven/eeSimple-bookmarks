@@ -15,14 +15,14 @@ interface ImportItemAdvancedEditFieldsProps {
   tagIds: string[];
   locationIds: string[];
   personIds: string[];
-  publisherId: string | undefined;
+  groupId: string | undefined;
   onCategoryChange: (id: string | undefined) => void;
   onMediaTypeChange: (id: string | undefined) => void;
   onPeopleChange: (ids: string[]) => void;
-  onPublisherChange: (id: string | undefined) => void;
+  onGroupChange: (id: string | undefined) => void;
 }
 
-/** The taxonomy field rows (category, media type, tags, locations, people, publisher) + the
+/** The taxonomy field rows (category, media type, tags, locations, people, group) + the
  * matched-website / YouTube info line shown inside {@link ImportItemAdvancedEdit}'s collapsible. */
 export function ImportItemAdvancedEditFields({
   state,
@@ -31,11 +31,11 @@ export function ImportItemAdvancedEditFields({
   tagIds,
   locationIds,
   personIds,
-  publisherId,
+  groupId,
   onCategoryChange,
   onMediaTypeChange,
   onPeopleChange,
-  onPublisherChange,
+  onGroupChange,
 }: ImportItemAdvancedEditFieldsProps) {
   const {
     categories,
@@ -43,7 +43,7 @@ export function ImportItemAdvancedEditFields({
     tagTree,
     locationTree,
     people,
-    publishers,
+    groups,
     matchedWebsite,
     isYouTube,
     handleTagToggle,
@@ -51,7 +51,7 @@ export function ImportItemAdvancedEditFields({
     addModalState,
     categoryCreate,
     mediaTypeCreate,
-    publisherCreate,
+    groupCreate,
     locationCreate,
   } = state;
 
@@ -127,19 +127,19 @@ export function ImportItemAdvancedEditFields({
       </div>
 
       <div className="space-y-1">
-        <Label className="text-xs">Publisher</Label>
+        <Label className="text-xs">Group</Label>
         <Combobox
-          options={publishers.map(p => ({
+          options={groups.map(p => ({
             value: p.id,
             label: p.name,
             searchAlias: p.romanizedName ?? undefined,
           }))}
-          value={publisherId}
-          onValueChange={onPublisherChange}
-          placeholder="No publisher"
-          searchPlaceholder="Search publishers…"
-          emptyText="No publishers found."
-          createOption={publisherCreate.createOption}
+          value={groupId}
+          onValueChange={onGroupChange}
+          placeholder="No group"
+          searchPlaceholder="Search groups…"
+          emptyText="No groups found."
+          createOption={groupCreate.createOption}
         />
       </div>
 

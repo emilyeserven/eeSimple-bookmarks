@@ -2,7 +2,7 @@ import type { EntityWorkbench } from "./types";
 import type { Person } from "@eesimple/types";
 
 import { PersonGeneralForm } from "../PersonGeneralForm";
-import { PersonPublishersForm, PersonPublishersView } from "../PersonPublishersForm";
+import { PersonGroupsForm, PersonGroupsView } from "../PersonGroupsForm";
 import { PersonWebsitesForm, PersonWebsitesView } from "../PersonWebsitesForm";
 import { PersonYouTubeChannelsForm, PersonYouTubeChannelsView } from "../PersonYouTubeChannelsForm";
 import { PersonGeneralView } from "./personViews";
@@ -98,21 +98,21 @@ export const personWorkbench: EntityWorkbench<Person> = {
       },
     },
     {
-      key: "publishers",
-      label: "Publishers",
+      key: "groups",
+      label: "Groups",
       view: {
-        title: "Publishers",
-        description: "Publishers associated with this person.",
+        title: "Groups",
+        description: "Groups associated with this person.",
         render: ({
           entity,
-        }) => <PersonPublishersView person={entity} />,
+        }) => <PersonGroupsView person={entity} />,
       },
       edit: {
-        title: "Publishers",
-        description: "Connect publishers to this person.",
+        title: "Groups",
+        description: "Connect groups to this person.",
         render: ({
           entity,
-        }) => <PersonPublishersForm person={entity} />,
+        }) => <PersonGroupsForm person={entity} />,
       },
     },
   ],

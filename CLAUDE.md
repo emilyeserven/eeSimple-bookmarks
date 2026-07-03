@@ -70,7 +70,7 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
 - **Shared test factories** (`packages/client/src/test-utils/factories.ts`): construct full shared
   entity objects in tests, stories, and MSW mocks with `makeCustomProperty` / `makeBookmark` /
   `makeCategory` / `makeTag` / `makeWebsite` / `makeMediaType` / `makeYouTubeChannel` /
-  `makePublisher` / `makePerson` / `makeNewsletter` / `makeLocation` / `makeBookmarkImage`
+  `makeGroup` / `makeGroupType` / `makePerson` / `makeNewsletter` / `makeLocation` / `makeBookmarkImage`
   (override only the fields a test cares about) — **never** re-list every field in an
   inline object literal. Inline literals of these types silently drift when a field is added/removed
   from the shared type and only surface as a CI typecheck failure (one such stray literal is what
@@ -479,7 +479,7 @@ configuration are explicitly opt-in (Tier 2, below).
   `defaultAudioLanguage`/`defaultLanguage`, and Open Library/Google Books' language fields all land as
   a raw normalized code (`utils/languageCodes.ts`) on `ScanResult`/`FetchIsbnMetadataResult`; the
   client resolves it to a `Language` row via match-or-create in `useBookmarkScanHandlers.ts`/
-  `useBookmarkIsbn.ts`, mirroring the pre-existing person (author-name)/publisher name-resolution flow. See the
+  `useBookmarkIsbn.ts`, mirroring the pre-existing person (author-name)/group (ISBN publisher-name) name-resolution flow. See the
   **`add-connector`** skill's Case D.
 - **Tier 2 providers are gated (DB value or env var) and default off.** `services/hostedMetadata.ts`
   (`HOSTED_METADATA_ENDPOINT`/`_API_KEY`/`_PROVIDER`, Microlink-compatible) and the YouTube Data API

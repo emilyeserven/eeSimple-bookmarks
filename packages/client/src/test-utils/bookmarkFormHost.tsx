@@ -17,7 +17,7 @@ interface BookmarkFormHostValues {
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
   personIds: string[];
-  publisherId: string;
+  groupId: string;
 }
 
 interface BookmarkFormHostProps {
@@ -51,7 +51,7 @@ export function BookmarkFormHost({
       blacklistedTagIds: [],
       blacklistedLocationIds: [],
       personIds: [],
-      publisherId: "",
+      groupId: "",
       ...initialValues,
     },
     validators: {

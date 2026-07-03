@@ -125,7 +125,7 @@ describe("bookmarkGeneralForm", () => {
     expect(resolveSubmitUrl).toHaveBeenCalledWith("https://github.com", false);
   });
 
-  it("includes people and publisher in the update payload (editable post-create)", async () => {
+  it("includes people and group in the update payload (editable post-create)", async () => {
     updateMutateAsync.mockResolvedValue(undefined);
     await renderWithRouter(<BookmarkGeneralForm bookmark={sampleBookmark} />);
 
@@ -138,6 +138,6 @@ describe("bookmarkGeneralForm", () => {
       input,
     } = updateMutateAsync.mock.calls[0][0] as { input: Record<string, unknown> };
     expect(input).toHaveProperty("personIds");
-    expect(input).toHaveProperty("publisherId");
+    expect(input).toHaveProperty("groupId");
   });
 });

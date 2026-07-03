@@ -35,8 +35,10 @@ export function buildMainPanePath(
       return `/taxonomies/newsletters/${slug}/${tab}`;
     case "person":
       return `/taxonomies/people/${slug}/${tab}`;
-    case "publisher":
-      return `/taxonomies/publishers/${slug}/${tab}`;
+    case "group":
+      return `/taxonomies/groups/${slug}/${tab}`;
+    case "group-type":
+      return `/taxonomies/group-types/${slug}/${tab}`;
     case "relationship-type":
       return `/taxonomies/relationship-types/${slug}/${tab}`;
     case "autofill":

@@ -5,10 +5,11 @@ import type {
   Category,
   CustomProperty,
   Language,
+  Group,
+  GroupType,
   Location,
   MediaType,
   Newsletter,
-  Publisher,
   Tag,
   Website,
   YouTubeChannel,
@@ -116,7 +117,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     fileValues: [],
     textValues: [],
     people: [],
-    publisher: null,
+    group: null,
     bookId: null,
     movieId: null,
     tvShowId: null,
@@ -290,19 +291,33 @@ export function makeYouTubeChannel(overrides: Partial<YouTubeChannel> = {}): You
   };
 }
 
-/** A fully-populated `Publisher` with no website association by default. */
-export function makePublisher(overrides: Partial<Publisher> = {}): Publisher {
+/** A fully-populated `Group` with no website or group-type association by default. */
+export function makeGroup(overrides: Partial<Group> = {}): Group {
   return {
     id: "pub",
-    name: "Publisher",
+    name: "Group",
     romanizedName: null,
-    slug: "publisher",
+    slug: "group",
     websiteId: null,
     website: null,
-    mediaPropertyId: null,
+    groupTypeId: null,
+    groupType: null,
     createdAt: NOW,
     bookmarkCount: 0,
     socialLinks: [],
+    ...overrides,
+  };
+}
+
+/** A fully-populated `GroupType`. */
+export function makeGroupType(overrides: Partial<GroupType> = {}): GroupType {
+  return {
+    id: "gt",
+    name: "Company",
+    slug: "company",
+    sortOrder: 0,
+    createdAt: NOW,
+    groupCount: 0,
     ...overrides,
   };
 }
@@ -322,7 +337,7 @@ export function makePerson(overrides: Partial<Person> = {}): Person {
     socialLinks: [],
     youtubeChannelIds: [],
     websiteIds: [],
-    publisherIds: [],
+    groupIds: [],
     ...overrides,
   };
 }

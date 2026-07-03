@@ -79,7 +79,7 @@ For a value that's *detected* (page metadata, YouTube API, ISBN provider) but re
 in a taxonomy entity** rather than a plain string — e.g. a detected language code selecting a
 `Language` row. This composes with the `add-entity` skill (build the entity first) rather than
 replacing Cases A–C. Worked example: language autodetection, mirroring the pre-existing
-author/publisher name-resolution flow.
+author-name (→ Person) and ISBN publisher-name (→ Group) resolution flows.
 
 1. Add the **raw, unresolved** value to the relevant result types in `@eesimple/types` —
    `ScanResult`/`FetchMetadataResult` for the URL-scan path, `FetchIsbnMetadataResult` for the ISBN
@@ -101,7 +101,7 @@ author/publisher name-resolution flow.
    entity's `useCreate<X>` mutation) and call it from `useBookmarkScanHandlers.ts`'s
    `applyScanMetadata`/`runYouTubeEnrichment` (URL path) and/or `useBookmarkIsbn.ts`'s
    `handleIsbnFetch` (ISBN path), gated on the target form field still being empty so it never
-   clobbers a user's pick — mirror `resolvePublisher`/`resolvePeople` in `useBookmarkIsbn.ts` and
+   clobbers a user's pick — mirror `resolveGroup`/`resolvePeople` in `useBookmarkIsbn.ts` and
    `applyLanguageFromCode` in `useBookmarkScanHandlers.ts`.
 5. If the display name has to be derived from the raw code rather than being present in the source
    data (e.g. `"en"` → `"English"`), use a platform API rather than hand-authoring a name table —
@@ -117,7 +117,7 @@ author/publisher name-resolution flow.
   bookmark's own stored URL (SSRF-safe).
 - Don't resolve a detected value to an entity id (or create the entity row) inside `/api/scan` or
   the ISBN endpoint (Case D) — they're read-only GETs; do the match-or-create client-side, the same
-  place author/publisher name resolution already happens.
+  place author-name (Person) / publisher-name (Group) resolution already happens.
 
 ## Maintaining an existing connector
 

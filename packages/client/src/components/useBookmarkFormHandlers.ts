@@ -202,7 +202,7 @@ export function useBookmarkFormHandlers({
     tagIds: string[];
     locationIds: string[];
     personIds: string[];
-    publisherId: string;
+    groupId: string;
   }): Promise<void> {
     const {
       numberValues, booleanValues, dateTimeValues, progressValues,
@@ -235,7 +235,7 @@ export function useBookmarkFormHandlers({
       tagIds: value.tagIds,
       locationIds: value.locationIds,
       personIds: value.personIds,
-      publisherId: form.getFieldValue("publisherId") || null,
+      groupId: form.getFieldValue("groupId") || null,
       numberValues,
       booleanValues,
       dateTimeValues,

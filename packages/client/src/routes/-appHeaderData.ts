@@ -60,7 +60,8 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
   const namedTaxonomies = useTaxonomyNameMap({
     newsletter: slugFor(pathname, pathParts, "/taxonomies/newsletters", 2),
     person: slugFor(pathname, pathParts, "/taxonomies/people", 2),
-    publisher: slugFor(pathname, pathParts, "/taxonomies/publishers", 2),
+    group: slugFor(pathname, pathParts, "/taxonomies/groups", 2),
+    groupType: slugFor(pathname, pathParts, "/taxonomies/group-types", 2),
     placeType: slugFor(pathname, pathParts, "/taxonomies/place-types", 2),
     propertyGroup: slugFor(pathname, pathParts, "/taxonomies/property-groups", 2),
     mediaProperty: slugFor(pathname, pathParts, "/taxonomies/media-properties", 2),

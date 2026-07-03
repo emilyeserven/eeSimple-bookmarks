@@ -1010,6 +1010,57 @@ const migrations: RuntimeMigration[] = [
       END $$
     `),
   },
+  {
+    // Publishers → Groups rename. The taxonomy was pulled out of the Media Properties grouping and
+    // renamed to Groups (a broader concept). Rename the tables first; the column/constraint renames
+    // below guard on the new table names. Guarded + idempotent so already-migrated DBs are no-ops.
+    name: "rename publishers tables to groups",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF to_regclass('public.publishers') IS NOT NULL AND to_regclass('public.groups') IS NULL THEN
+          ALTER TABLE "publishers" RENAME TO "groups";
+        END IF;
+        IF to_regclass('public.person_publishers') IS NOT NULL AND to_regclass('public.person_groups') IS NULL THEN
+          ALTER TABLE "person_publishers" RENAME TO "person_groups";
+        END IF;
+      END $$
+    `),
+  },
+  {
+    // Rename the publisher_id columns on the renamed tables to group_id, and drop the now-removed
+    // media_property_id link (Groups no longer belongs to the Media Properties taxonomy).
+    name: "rename publisher_id columns to group_id",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'bookmarks' AND column_name = 'publisher_id')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'bookmarks' AND column_name = 'group_id') THEN
+          ALTER TABLE "bookmarks" RENAME COLUMN "publisher_id" TO "group_id";
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'person_groups' AND column_name = 'publisher_id')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'person_groups' AND column_name = 'group_id') THEN
+          ALTER TABLE "person_groups" RENAME COLUMN "publisher_id" TO "group_id";
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'groups' AND column_name = 'media_property_id') THEN
+          ALTER TABLE "groups" DROP COLUMN "media_property_id";
+        END IF;
+      END $$
+    `),
+  },
+  {
+    // Rename the explicitly-named unique constraints on the groups table (asserted by name in
+    // schema.ts). FK constraint names are auto-generated and reconciled by push. Idempotent.
+    name: "rename publishers unique constraints to groups",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'publishers_name_unique') THEN
+          ALTER TABLE "groups" RENAME CONSTRAINT "publishers_name_unique" TO "groups_name_unique";
+        END IF;
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'publishers_slug_unique') THEN
+          ALTER TABLE "groups" RENAME CONSTRAINT "publishers_slug_unique" TO "groups_slug_unique";
+        END IF;
+      END $$
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

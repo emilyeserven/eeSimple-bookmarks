@@ -12,9 +12,9 @@ import {
 } from "../hooks/useBookmarks";
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
 import { useFetchTitle } from "../hooks/useFetchTitle";
+import { useCreateGroup } from "../hooks/useGroups";
 import { useCreateLanguage } from "../hooks/useLanguages";
 import { useAutoPersonImage, useCreatePerson, useUpdatePerson } from "../hooks/usePeople";
-import { useCreatePublisher } from "../hooks/usePublishers";
 import { useUpdateWebsite, useWebsiteLookup } from "../hooks/useWebsites";
 import { useUpdateYouTubeChannel } from "../hooks/useYouTubeChannels";
 
@@ -45,7 +45,7 @@ export function useBookmarkFormActions() {
     createPerson: useCreatePerson(),
     updatePerson: useUpdatePerson(),
     autoPersonImage: useAutoPersonImage(),
-    createPublisher: useCreatePublisher(),
+    createGroup: useCreateGroup(),
     createLanguage: useCreateLanguage(),
   };
 }

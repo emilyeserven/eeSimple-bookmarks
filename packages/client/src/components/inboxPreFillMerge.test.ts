@@ -10,28 +10,28 @@ describe("mergeInboxPreFill", () => {
     const item: InboxPreFillDefaults = {
       categoryId: "item-cat",
       mediaTypeId: "item-mt",
-      publisherId: "item-pub",
+      groupId: "item-pub",
     };
     const batch: InboxPreFillDefaults = {
       categoryId: "batch-cat",
       mediaTypeId: "batch-mt",
-      publisherId: "batch-pub",
+      groupId: "batch-pub",
     };
     const merged = mergeInboxPreFill(item, batch);
     expect(merged.categoryId).toBe("item-cat");
     expect(merged.mediaTypeId).toBe("item-mt");
-    expect(merged.publisherId).toBe("item-pub");
+    expect(merged.groupId).toBe("item-pub");
   });
 
   it("falls back to the batch scalar values when the item leaves them unset", () => {
     const merged = mergeInboxPreFill({}, {
       categoryId: "batch-cat",
       mediaTypeId: "batch-mt",
-      publisherId: "batch-pub",
+      groupId: "batch-pub",
     });
     expect(merged.categoryId).toBe("batch-cat");
     expect(merged.mediaTypeId).toBe("batch-mt");
-    expect(merged.publisherId).toBe("batch-pub");
+    expect(merged.groupId).toBe("batch-pub");
   });
 
   it("unions tag ids, item first", () => {

@@ -77,7 +77,7 @@ describe("settingsPages registry", () => {
   it("resolves the pages that were once missing from the hand-maintained list", () => {
     for (const path of [
       "/taxonomies/people",
-      "/taxonomies/publishers",
+      "/taxonomies/groups",
       "/taxonomies/locations",
       "/taxonomies/newsletters",
       "/import-rules",

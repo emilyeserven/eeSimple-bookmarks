@@ -24,7 +24,7 @@ function makeForm(): BookmarkFormApi {
     title: "",
     description: "",
     personIds: [],
-    publisherId: "",
+    groupId: "",
     languageId: "",
   };
   return {
@@ -40,7 +40,7 @@ const BASE_RESULT: FetchIsbnMetadataResult = {
   description: null,
   coverUrl: null,
   authors: [],
-  publisher: null,
+  group: null,
   year: null,
   openLibraryUrl: null,
   language: null,
@@ -64,12 +64,12 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       customProperties: [],
       mediaTypes: [],
       people: [],
-      publishers: [],
+      groups: [],
       languages: [],
       createPerson: {
         mutateAsync: vi.fn(),
       } as never,
-      createPublisher: {
+      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {
@@ -107,12 +107,12 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       customProperties: [],
       mediaTypes: [],
       people: [],
-      publishers: [],
+      groups: [],
       languages: [],
       createPerson: {
         mutateAsync: vi.fn(),
       } as never,
-      createPublisher: {
+      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {
@@ -139,12 +139,12 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       customProperties: [],
       mediaTypes: [],
       people: [],
-      publishers: [],
+      groups: [],
       languages: [],
       createPerson: {
         mutateAsync: vi.fn(),
       } as never,
-      createPublisher: {
+      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {

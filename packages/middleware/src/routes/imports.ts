@@ -342,7 +342,7 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
                   type: "string",
                 },
               },
-              publisherId: {
+              groupId: {
                 type: ["string", "null"],
               },
               numberValues: {

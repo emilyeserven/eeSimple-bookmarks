@@ -7,6 +7,8 @@ import { BOOK_ROUTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
 import { CATEGORY_ROUTE } from "../entities/category";
 import { EPISODE_ROUTE } from "../entities/episode";
+import { GROUP_ROUTE } from "../entities/group";
+import { GROUP_TYPE_ROUTE } from "../entities/groupType";
 import { IMPORT_RULE_ROUTE } from "../entities/importRule";
 import { LANGUAGE_ROUTE } from "../entities/language";
 import { LOCATION_ROUTE } from "../entities/location";
@@ -18,7 +20,6 @@ import { PERSON_ROUTE } from "../entities/person";
 import { PLACE_TYPE_ROUTE } from "../entities/placeType";
 import { CUSTOM_PROPERTY_ROUTE } from "../entities/property";
 import { PROPERTY_GROUP_ROUTE } from "../entities/propertyGroup";
-import { PUBLISHER_ROUTE } from "../entities/publisher";
 import { RELATIONSHIP_TYPE_ROUTE } from "../entities/relationshipType";
 import { SAVED_FILTER_ROUTE } from "../entities/savedFilter";
 import { TAG_ROUTE } from "../entities/tag";
@@ -39,7 +40,8 @@ export type EntityRouteKind
     | "youtube-channel"
     | "newsletter"
     | "person"
-    | "publisher"
+    | "group"
+    | "group-type"
     | "property-group"
     | "media-property"
     | "book"
@@ -94,7 +96,8 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   YOUTUBE_CHANNEL_ROUTE,
   NEWSLETTER_ROUTE,
   PERSON_ROUTE,
-  PUBLISHER_ROUTE,
+  GROUP_ROUTE,
+  GROUP_TYPE_ROUTE,
   PROPERTY_GROUP_ROUTE,
   MEDIA_PROPERTY_ROUTE,
   BOOK_ROUTE,

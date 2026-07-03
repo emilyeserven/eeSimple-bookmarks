@@ -13,7 +13,7 @@ interface ImportItemAdvancedEditModalsProps {
 
 /**
  * The still-manual "add new X" inline-create modals (Tag / Person) wired into
- * {@link ImportItemAdvancedEdit}, plus the mounted Category/Media Type/Publisher/Location
+ * {@link ImportItemAdvancedEdit}, plus the mounted Category/Media Type/Group/Location
  * inline-create modals owned by `state`'s `useEntityCreateOption` calls.
  */
 export function ImportItemAdvancedEditModals({
@@ -37,7 +37,7 @@ export function ImportItemAdvancedEditModals({
       />
       {state.categoryCreate.modal}
       {state.mediaTypeCreate.modal}
-      {state.publisherCreate.modal}
+      {state.groupCreate.modal}
       {state.locationCreate.modal}
     </>
   );

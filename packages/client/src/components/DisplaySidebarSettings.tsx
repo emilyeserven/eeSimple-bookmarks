@@ -97,8 +97,8 @@ const TAXONOMY_ITEMS = [
     icon: UserRound,
   },
   {
-    key: "publishers",
-    label: "Publishers",
+    key: "groups",
+    label: "Groups",
     icon: Building2,
   },
 ] as const;

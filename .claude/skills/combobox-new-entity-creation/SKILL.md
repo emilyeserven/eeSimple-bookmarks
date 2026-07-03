@@ -14,7 +14,7 @@ description: >-
 
 **Every combobox that picks a user-creatable taxonomy/entity value MUST allow creation.** Every
 `<Combobox>`, `<MultiCombobox>`, or `<TreeMultiCombobox>` that lets the user pick one of Category,
-Media Type, Website, YouTube Channel, Tag, Author, Publisher, Newsletter, Property Group, Location,
+Media Type, Website, YouTube Channel, Tag, Person, Group, Group Type, Newsletter, Property Group, Location,
 Custom Property, or Place Type MUST pass a `createOption` prop wired through
 `useEntityCreateOption` (below). There is no exception for "simple" or "small" forms, and no
 picker is exempt except the closed list under **Explicit exemptions** — anything not on that list
@@ -43,8 +43,9 @@ const categoryCreate = useEntityCreateOption("category", category => setValue(ca
 | Media Type | `AddMediaTypeModal` | Uses `InlineCreateModal`; name only; optional `defaultParentId` |
 | Tag | `AddTagModal` / `TagPickerWithCreate` | Full `TagForm` (supports parent); use `TagPickerWithCreate` wrapper in most contexts |
 | Location | `AddLocationModal` / `LocationPickerWithCreate` | Full `LocationForm` (supports ancestor chain); use `LocationPickerWithCreate` wrapper in most contexts |
-| Author | `AddAuthorModal` | Uses `InlineCreateModal`; name only |
-| Publisher | `AddPublisherModal` | Uses `InlineCreateModal`; name only |
+| Person | `AddPersonModal` | Uses `InlineCreateModal`; name only |
+| Group | `AddGroupModal` | Uses `InlineCreateModal`; name only |
+| Group Type | `AddGroupTypeModal` | Uses `InlineCreateModal`; name only |
 | Property Group | `AddPropertyGroupModal` | Uses `InlineCreateModal`; name only |
 | Place Type | `AddPlaceTypeModal` | Uses `InlineCreateModal`; name only |
 | Website | `AddWebsiteModal` | Custom dialog — takes domain + optional name (NOT `InlineCreateModal`) |
@@ -71,13 +72,13 @@ const tagCreate = useEntityCreateOption("tag", tag => onToggle(tag.id));
 {tagCreate.modal}
 ```
 
-`CREATABLE_ENTITY_PICKERS` registers all twelve user-creatable entity kinds (`tag`, `author`,
-`place-type`, `category`, `media-type`, `website`, `youtube-channel`, `publisher`, `newsletter`,
-`property-group`, `location`, `custom-property`) — growing it further is one entry (all Add-modals
+`CREATABLE_ENTITY_PICKERS` registers the user-creatable entity kinds (`tag`, `person`,
+`place-type`, `category`, `media-type`, `website`, `youtube-channel`, `group`, `group-type`, `newsletter`,
+`property-group`, `location`, `custom-property`, …) — growing it further is one entry (all Add-modals
 share the `open`/`onOpenChange`/`onCreated` contract). Call `useEntityCreateOption` **in the
 component that owns the combobox and its `onCreated` selection logic**, not lifted into a parent
 just to centralize modal state — see `BookmarkAdvancedCategoryField.tsx` /
-`BookmarkAdvancedMediaTypeField.tsx` / `BookmarkAdvancedPublisherField.tsx` for the pattern (each
+`BookmarkAdvancedMediaTypeField.tsx` / `BookmarkAdvancedGroupField.tsx` for the pattern (each
 calls the hook itself using the `form` prop it already has, no state threaded from the parent).
 
 **Never hand-roll `useState(false)` + `<Add*Modal>` JSX for an entity already in the registry** —
@@ -97,13 +98,13 @@ All of the following go through `useEntityCreateOption`; components/hooks not na
 given entity don't need their own inline-create — reuse the shared wrapper where one exists
 (`TagPickerWithCreate`, `LocationPickerWithCreate`).
 
-- **Bookmark Advanced section** — category, media type, publisher, author
+- **Bookmark Advanced section** — category, media type, group, person
   (`BookmarkAdvancedCategoryField`, `BookmarkAdvancedMediaTypeField`,
-  `BookmarkAdvancedPublisherField`, `BookmarkAdvancedSection` for author)
+  `BookmarkAdvancedGroupField`, `BookmarkAdvancedSection` for person)
 - **Bookmark General (edit) form** — category (`BookmarkCategoryField`), media type + location
-  (`BookmarkGeneralRelationsSection`), publisher (`useBookmarkGeneralForm` +
-  `BookmarkAdvancedPublisherField`); tag/author stay manual via `useBookmarkInlineCreateModals`
-- **Import item advanced edit** — category, media type, publisher, location
+  (`BookmarkGeneralRelationsSection`), group (`useBookmarkGeneralForm` +
+  `BookmarkAdvancedGroupField`); tag/person stay manual via `useBookmarkInlineCreateModals`
+- **Import item advanced edit** — category, media type, group, location
   (`useImportItemAdvancedEdit`, consumed by `ImportItemAdvancedEditFields`/`Modals`); tag/author
   stay manual
 - **Import form** — category, newsletter (`ImportForm`, inline `createOption` on the comboboxes)
@@ -119,10 +120,10 @@ given entity don't need their own inline-create — reuse the shared wrapper whe
 - **Tag pickers** — `TagPickerWithCreate`, `DefaultTagsField`, `RuleTagsField`
 - **Location pickers** — `LocationPickerWithCreate` (used by `BookmarkGeneralRelationsSection`,
   `AutofillRulePrefillPickers`, `LocationConditionEditor`, `ImportItemAdvancedEdit`)
-- **Publisher general form** — website (`usePublisherGeneralForm` + `PublisherGeneralForm`)
+- **Group general form** — website + group type (`useGroupGeneralForm` + `GroupGeneralForm`)
 - **Property display section** — property group (`PropertyDisplaySection`)
 - **Autofill prefill pickers** — category, media type (`AutofillRulePrefillPickers`)
-- **Inbox pre-fill box** — category, media type, publisher (`InboxPreFillBox`); author stays manual
+- **Inbox pre-fill box** — category, media type, group (`InboxPreFillBox`); author stays manual
   via the remaining `AddAuthorModal` in `InboxPreFillModals`
 - **Channel websites field** — website (`ChannelWebsitesField`)
 - **Website channels field** — YouTube channel (`WebsiteYouTubeChannelsField`)

@@ -22,7 +22,8 @@ import type {
   CreateLanguageInput,
   CreatePlaceTypeInput,
   CreatePropertyGroupInput,
-  CreatePublisherInput,
+  CreateGroupInput,
+  CreateGroupTypeInput,
   CreateRelationshipTypeInput,
   CreateTagInput,
   CreateWebsiteInput,
@@ -56,7 +57,8 @@ import type {
   UpdateTrackInput,
   UpdatePlaceTypeInput,
   PropertyGroup,
-  Publisher,
+  Group,
+  GroupType,
   RedirectFailureWebsite,
   RelationshipType,
   SocialMediaPlatform,
@@ -69,7 +71,8 @@ import type {
   UpdateMediaTypeInput,
   UpdateLanguageInput,
   UpdatePropertyGroupInput,
-  UpdatePublisherInput,
+  UpdateGroupInput,
+  UpdateGroupTypeInput,
   UpdateRelationshipTypeInput,
   UpdateTagInput,
   UpdateWebsiteInput,
@@ -307,7 +310,9 @@ export const youtubeChannelsApi = {
 
 export const customPropertiesApi = createCrudApi<CustomProperty, CreateCustomPropertyInput, UpdateCustomPropertyInput>("custom-properties");
 
-export const publishersApi = createCrudApi<Publisher, CreatePublisherInput, UpdatePublisherInput>("publishers");
+export const groupsApi = createCrudApi<Group, CreateGroupInput, UpdateGroupInput>("groups");
+
+export const groupTypesApi = createCrudApi<GroupType, CreateGroupTypeInput, UpdateGroupTypeInput>("group-types");
 
 export const categoriesApi = {
   ...createCrudApi<Category, CreateCategoryInput, UpdateCategoryInput>("categories"),

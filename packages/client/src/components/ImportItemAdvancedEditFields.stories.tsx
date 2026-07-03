@@ -37,7 +37,7 @@ function Host() {
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [locationIds, setLocationIds] = useState<string[]>([]);
   const [personIds, setPersonIds] = useState<string[]>([]);
-  const [publisherId, setPublisherId] = useState<string | undefined>(undefined);
+  const [groupId, setGroupId] = useState<string | undefined>(undefined);
 
   const state = useImportItemAdvancedEdit({
     item,
@@ -47,7 +47,7 @@ function Host() {
     onLocationsChange: setLocationIds,
     onCategoryChange: setCategoryId,
     onMediaTypeChange: setMediaTypeId,
-    onPublisherChange: setPublisherId,
+    onGroupChange: setGroupId,
   });
 
   return (
@@ -59,11 +59,11 @@ function Host() {
         tagIds={tagIds}
         locationIds={locationIds}
         personIds={personIds}
-        publisherId={publisherId}
+        groupId={groupId}
         onCategoryChange={setCategoryId}
         onMediaTypeChange={setMediaTypeId}
         onPeopleChange={setPersonIds}
-        onPublisherChange={setPublisherId}
+        onGroupChange={setGroupId}
       />
     </div>
   );
@@ -81,7 +81,7 @@ const meta = {
 
 export default meta;
 
-/** The taxonomy field rows: category, media type, tags, locations, people, publisher. */
+/** The taxonomy field rows: category, media type, tags, locations, people, group. */
 export const Default: StoryObj = {
   render: () => <Host />,
 };

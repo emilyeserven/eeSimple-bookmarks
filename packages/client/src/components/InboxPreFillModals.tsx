@@ -4,7 +4,7 @@ import { AddPersonModal } from "./AddPersonModal";
 
 /**
  * The still-manual "Add person" creation modal rendered as a sibling of the pre-fill box (Category /
- * Media Type / Publisher own their inline-create via `useEntityCreateOption` in `InboxPreFillBox`
+ * Media Type / Group own their inline-create via `useEntityCreateOption` in `InboxPreFillBox`
  * itself). Writes the created person straight into the pre-fill defaults so it's selected
  * immediately.
  */

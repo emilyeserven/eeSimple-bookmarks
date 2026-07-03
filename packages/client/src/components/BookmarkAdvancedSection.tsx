@@ -12,7 +12,7 @@ import type {
   ImageCandidate,
   Language,
   MediaTypeNode,
-  Publisher,
+  Group,
   TagNode,
 } from "@eesimple/types";
 
@@ -20,9 +20,9 @@ import { ChevronDown } from "lucide-react";
 
 import { BookmarkAdvancedCategoryField } from "./BookmarkAdvancedCategoryField";
 import { BookmarkAdvancedDescriptionTagsField } from "./BookmarkAdvancedDescriptionTagsField";
+import { BookmarkAdvancedGroupField } from "./BookmarkAdvancedGroupField";
 import { BookmarkAdvancedLanguageField } from "./BookmarkAdvancedLanguageField";
 import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
-import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
 import { BookmarkImagePicker } from "./BookmarkImagePicker";
 import { MultiCombobox } from "./MultiCombobox";
@@ -72,7 +72,7 @@ interface BookmarkAdvancedSectionProps {
   mediaTypes: MediaTypeNode[];
   languages?: Language[];
   sourceDefaults: SourceDefaults;
-  publishers?: Publisher[];
+  groups?: Group[];
   /** Remount key for the image field so a form reset clears it. */
   imageFieldKey: number;
   existingImages: BookmarkImage[];
@@ -143,9 +143,9 @@ export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
           languages={props.languages ?? []}
         />
 
-        <BookmarkAdvancedPublisherField
+        <BookmarkAdvancedGroupField
           form={form}
-          publishers={props.publishers ?? []}
+          groups={props.groups ?? []}
         />
 
         <BookmarkAdvancedDescriptionTagsField

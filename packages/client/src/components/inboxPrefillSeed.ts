@@ -29,7 +29,7 @@ function hostOf(url: string): string | null {
  *  - **Locations** (multi-valued): the union of every matching autofill rule's locations and the
  *    locations implied by the item's title (the same title matcher, mirroring tags).
  *
- * People / publisher have no rule/website source, so they stay empty. Pure — unit-tested directly.
+ * People / group have no rule/website source, so they stay empty. Pure — unit-tested directly.
  * (YouTube-channel defaults need an oEmbed scan and are merged in lazily by the row controller.)
  */
 export function computeInboxPrefillSeed(
@@ -72,6 +72,6 @@ export function computeInboxPrefillSeed(
     tagIds,
     locationIds,
     personIds: [],
-    publisherId: undefined,
+    groupId: undefined,
   };
 }

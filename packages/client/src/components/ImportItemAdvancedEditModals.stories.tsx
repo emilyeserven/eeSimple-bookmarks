@@ -48,7 +48,7 @@ function Host({
     onLocationsChange: setLocationIds,
     onCategoryChange: () => {},
     onMediaTypeChange: () => {},
-    onPublisherChange: () => {},
+    onGroupChange: () => {},
   });
 
   const {

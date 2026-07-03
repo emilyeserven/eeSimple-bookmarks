@@ -548,7 +548,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         youtubeChannelId,
         newsletterId: input.newsletterId ?? null,
         importId: input.importId ?? null,
-        publisherId: input.publisherId ?? null,
+        groupId: input.groupId ?? null,
         bookId: input.bookId ?? null,
         movieId: input.movieId ?? null,
         tvShowId: input.tvShowId ?? null,
@@ -609,7 +609,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "publisherId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "artistId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority">
+  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "artistId" | "trackId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority">
 >;
 
 /**
@@ -630,7 +630,7 @@ export function scalarBookmarkPatch(
   if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;
   else if (mediaTypeDefault !== undefined) patch.mediaTypeId = mediaTypeDefault;
   if (input.languageId !== undefined) patch.languageId = input.languageId ?? null;
-  if (input.publisherId !== undefined) patch.publisherId = input.publisherId ?? null;
+  if (input.groupId !== undefined) patch.groupId = input.groupId ?? null;
   if (input.bookId !== undefined) patch.bookId = input.bookId ?? null;
   if (input.movieId !== undefined) patch.movieId = input.movieId ?? null;
   if (input.tvShowId !== undefined) patch.tvShowId = input.tvShowId ?? null;
@@ -783,7 +783,7 @@ export async function updateBookmark(
         | "mediaTypeId"
         | "languageId"
         | "youtubeChannelId"
-        | "publisherId"
+        | "groupId"
         | "bookId"
         | "movieId"
         | "tvShowId"

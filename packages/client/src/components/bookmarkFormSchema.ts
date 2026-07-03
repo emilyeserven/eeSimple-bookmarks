@@ -35,7 +35,7 @@ export const bookmarkSchema = z.object({
   blacklistedTagIds: z.array(z.string()),
   blacklistedLocationIds: z.array(z.string()),
   personIds: z.array(z.string()),
-  publisherId: z.string(),
+  groupId: z.string(),
 });
 
 /** Slug of the built-in "Runtime" property, hidden from the form (filled server-side). */
@@ -141,7 +141,7 @@ const SAMPLE_DEFAULT_VALUES: {
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
   personIds: string[];
-  publisherId: string;
+  groupId: string;
 } = {
   url: "",
   title: "",
@@ -155,7 +155,7 @@ const SAMPLE_DEFAULT_VALUES: {
   blacklistedTagIds: [],
   blacklistedLocationIds: [],
   personIds: [],
-  publisherId: "",
+  groupId: "",
 };
 
 /**
@@ -209,7 +209,7 @@ export function buildBookmarkDefaultValues(
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
   personIds: string[];
-  publisherId: string;
+  groupId: string;
 } {
   return {
     url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
@@ -224,7 +224,7 @@ export function buildBookmarkDefaultValues(
     blacklistedTagIds: (bookmark?.blacklistedTagIds ?? []) as string[],
     blacklistedLocationIds: (bookmark?.blacklistedLocationIds ?? []) as string[],
     personIds: (bookmark?.people.map(a => a.id) ?? []) as string[],
-    publisherId: bookmark?.publisher?.id ?? "",
+    groupId: bookmark?.group?.id ?? "",
   };
 }
 

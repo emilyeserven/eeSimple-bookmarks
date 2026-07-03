@@ -51,8 +51,9 @@ export const bookmarks = pgTable("bookmarks", {
   importId: uuid("import_id").references((): AnyPgColumn => imports.id, {
     onDelete: "set null",
   }),
-  // The publisher (taxonomy) this bookmark is attributed to. Nullable; set null when publisher is deleted.
-  publisherId: uuid("publisher_id").references((): AnyPgColumn => publishers.id, {
+  // The group (taxonomy) this bookmark is attributed to (e.g. a publisher, studio, or label).
+  // Nullable; set null when the group is deleted.
+  groupId: uuid("group_id").references((): AnyPgColumn => groups.id, {
     onDelete: "set null",
   }),
   // The Book (Books taxonomy) this bookmark is linked to. Nullable = push-safe additive; set null
@@ -384,11 +385,31 @@ export const languages = pgTable("languages", {
 ]);
 
 /**
- * `publishers` table — taxonomy of publishing houses and individuals. Bookmarks
- * (especially books / offline items) may be attributed to a publisher. Optionally
- * linked to a website in the Websites taxonomy.
+ * `group_types` table — a flat taxonomy classifying groups (e.g. Company, Creator Collaborative,
+ * Podcast Multi-Host, Doujin Circle). Referenced by `groups.group_type_id`. Seeded on boot.
  */
-export const publishers = pgTable("publishers", {
+export const groupTypes = pgTable("group_types", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // Nullable so drizzle-kit push applies cleanly to any future rows; backfilled at boot.
+  slug: text("slug"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("group_types_name_unique").on(table.name),
+  unique("group_types_slug_unique").on(table.slug),
+]);
+
+export type GroupTypeRow = typeof groupTypes.$inferSelect;
+
+/**
+ * `groups` table — taxonomy of groups and individuals (publishers, studios, labels, …).
+ * Bookmarks (especially books / offline items) may be attributed to a group. Optionally
+ * linked to a website in the Websites taxonomy, and optionally classified by a group type.
+ */
+export const groups = pgTable("groups", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   // Optional romanized form of the name, matched by search and shown de-emphasized. Nullable → push-safe.
@@ -399,8 +420,8 @@ export const publishers = pgTable("publishers", {
   websiteId: uuid("website_id").references((): AnyPgColumn => websites.id, {
     onDelete: "set null",
   }),
-  // Optional franchise/IP grouping. set null when the media property is deleted. Nullable → push-safe.
-  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+  // Optional classifying group type. set null when the group type is deleted. Nullable → push-safe.
+  groupTypeId: uuid("group_type_id").references((): AnyPgColumn => groupTypes.id, {
     onDelete: "set null",
   }),
   // Social media profile links. NOT NULL; pre-applied in migrate.ts.
@@ -409,11 +430,11 @@ export const publishers = pgTable("publishers", {
     withTimezone: true,
   }).notNull().defaultNow(),
 }, table => [
-  unique("publishers_name_unique").on(table.name),
-  unique("publishers_slug_unique").on(table.slug),
+  unique("groups_name_unique").on(table.name),
+  unique("groups_slug_unique").on(table.slug),
 ]);
 
-export type PublisherRow = typeof publishers.$inferSelect;
+export type GroupRow = typeof groups.$inferSelect;
 
 /**
  * `property_groups` table — optional groupings for custom properties. A property may belong to one
@@ -2594,21 +2615,21 @@ export const personWebsites = pgTable("person_websites", {
 
 export type PersonWebsiteRow = typeof personWebsites.$inferSelect;
 
-/** `person_publishers` join — M:M between people and publishers. */
-export const personPublishers = pgTable("person_publishers", {
+/** `person_groups` join — M:M between people and groups. */
+export const personGroups = pgTable("person_groups", {
   personId: uuid("person_id").notNull().references(() => people.id, {
     onDelete: "cascade",
   }),
-  publisherId: uuid("publisher_id").notNull().references(() => publishers.id, {
+  groupId: uuid("group_id").notNull().references(() => groups.id, {
     onDelete: "cascade",
   }),
 }, table => [
   primaryKey({
-    columns: [table.personId, table.publisherId],
+    columns: [table.personId, table.groupId],
   }),
 ]);
 
-export type PersonPublisherRow = typeof personPublishers.$inferSelect;
+export type PersonGroupRow = typeof personGroups.$inferSelect;
 
 /**
  * `card_field_templates` — user-saved named configurations of card field zone placements.
@@ -2633,7 +2654,7 @@ export const peopleRelations = relations(people, ({
   bookmarkPeople: many(bookmarkPeople),
   personYoutubeChannels: many(personYoutubeChannels),
   personWebsites: many(personWebsites),
-  personPublishers: many(personPublishers),
+  personGroups: many(personGroups),
 }));
 
 export const bookmarkPeopleRelations = relations(bookmarkPeople, ({
@@ -2675,15 +2696,15 @@ export const personWebsitesRelations = relations(personWebsites, ({
   }),
 }));
 
-export const personPublishersRelations = relations(personPublishers, ({
+export const personGroupsRelations = relations(personGroups, ({
   one,
 }) => ({
   person: one(people, {
-    fields: [personPublishers.personId],
+    fields: [personGroups.personId],
     references: [people.id],
   }),
-  publisher: one(publishers, {
-    fields: [personPublishers.publisherId],
-    references: [publishers.id],
+  group: one(groups, {
+    fields: [personGroups.groupId],
+    references: [groups.id],
   }),
 }));

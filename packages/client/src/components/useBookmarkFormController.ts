@@ -53,7 +53,7 @@ export function useBookmarkFormController({
       fetchMetadata,
       websiteLookup,
       createPerson,
-      createPublisher,
+      createGroup,
       createLanguage,
     },
     websites,
@@ -67,7 +67,7 @@ export function useBookmarkFormController({
     autofillRules,
     youtubeChannels,
     people,
-    publishers,
+    groups,
     autoFetchImage,
   } = data;
   const saveBookmark = isEdit ? updateBookmark : createBookmark;
@@ -157,10 +157,10 @@ export function useBookmarkFormController({
     customProperties,
     mediaTypes,
     people,
-    publishers,
+    groups,
     languages,
     createPerson,
-    createPublisher,
+    createGroup,
     createLanguage,
     handleTextChange: prefill.handleTextChange,
     setHideNameField,
@@ -254,8 +254,8 @@ export function useBookmarkFormController({
     setIsReportingTitle: ui.setIsReportingTitle,
     expectedTitle: ui.expectedTitle,
     setExpectedTitle: ui.setExpectedTitle,
-    // Publisher.
-    publishers,
+    // Group.
+    groups,
     // Image.
     imageFieldKey,
     imageIntentRef,
