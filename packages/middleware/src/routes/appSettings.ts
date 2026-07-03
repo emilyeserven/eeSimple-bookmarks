@@ -7,18 +7,20 @@ import type {
   UpdateAdvancedSettingsInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
+  UpdateBookmarkAddFormInput,
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { IMPORT_BLACKLIST_KINDS, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
+import { BOOKMARK_ADD_FORM_PLACEMENTS, IMPORT_BLACKLIST_KINDS, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import { getDatabaseTableDetail, getDatabaseUsageReport } from "@/services/databaseUsage";
 import {
   getAdvancedSettings,
   getAiSummarizationSettings,
   getAutomationSettings,
+  getBookmarkAddFormSettings,
   getConnectorsSettings,
   getCustomStripParams,
   getDisplayPreferenceSettings,
@@ -34,6 +36,7 @@ import {
   updateAdvancedSettings,
   updateAiSummarizationSettings,
   updateAutomationSettings,
+  updateBookmarkAddFormSettings,
   updateConnectorsSettings,
   updateCustomStripParams,
   updateDisplayPreferenceSettings,
@@ -197,6 +200,25 @@ const sidebarCustomizationBody = {
     hiddenSidebarGroups: stringArray,
     hiddenConnectorLinks: stringArray,
     seeMoreConnectorLinks: stringArray,
+  },
+} as const;
+
+// Add Bookmark form field placement (Settings → Display → Add Bookmark Form). The placement enum
+// derives from the shared BOOKMARK_ADD_FORM_PLACEMENTS tuple (don't hand-mirror it).
+const bookmarkAddFormBody = {
+  type: "object",
+  required: ["advancedFields", "hiddenFields", "builtInPropertyPlacements"],
+  additionalProperties: false,
+  properties: {
+    advancedFields: stringArray,
+    hiddenFields: stringArray,
+    builtInPropertyPlacements: {
+      type: "object",
+      additionalProperties: {
+        type: "string",
+        enum: [...BOOKMARK_ADD_FORM_PLACEMENTS],
+      },
+    },
   },
 } as const;
 
@@ -613,6 +635,19 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       body: sidebarCustomizationBody,
     },
   }, async req => updateSidebarCustomizationSettings(req.body as UpdateSidebarCustomizationInput));
+
+  app.get("/api/app-settings/bookmark-add-form", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getBookmarkAddFormSettings());
+
+  app.put("/api/app-settings/bookmark-add-form", {
+    schema: {
+      tags: ["app-settings"],
+      body: bookmarkAddFormBody,
+    },
+  }, async req => updateBookmarkAddFormSettings(req.body as UpdateBookmarkAddFormInput));
 
   app.get("/api/app-settings/automation", {
     schema: {

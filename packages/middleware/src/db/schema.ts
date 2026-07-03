@@ -1967,6 +1967,19 @@ export const appSettings = pgTable("app_settings", {
   screenshotDefaultWidth: integer("screenshot_default_width"),
   screenshotDefaultHeight: integer("screenshot_default_height"),
   screenshotDefaultScrollDistance: integer("screenshot_default_scroll_distance"),
+  // --- Add Bookmark form field placement (Settings → Display → Add Bookmark Form). ---
+  // Standard field keys placed in the collapsible Advanced section. Nullable = push-safe additive;
+  // the service reads `?? DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.advancedFields` (a stored `[]` is a
+  // valid value and is NOT treated as unset).
+  bookmarkFormAdvancedFields: jsonb("bookmark_form_advanced_fields").$type<string[]>(),
+  // Standard field keys hidden from the Add Bookmark form entirely. Nullable = push-safe additive;
+  // same `?? default` / stored-`[]`-is-valid rule as above.
+  bookmarkFormHiddenFields: jsonb("bookmark_form_hidden_fields").$type<string[]>(),
+  // Placement ("default" | "advanced" | "hidden") per built-in detail custom-property slug, keyed by
+  // slug. Nullable = push-safe additive; the service merges this over
+  // `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements` so a future built-in that defaults
+  // to hidden stays hidden for users with a saved settings row that predates it.
+  bookmarkFormBuiltInPlacements: jsonb("bookmark_form_built_in_placements").$type<Record<string, string>>(),
 });
 
 /**
