@@ -276,7 +276,8 @@ that matches the surface — don't invent a new structure for a one-off page.
     Hierarchy tab when a real containment relation exists in the data. Genuinely flat taxonomies
     (Categories, YouTube Channels, Property Groups) do **not** get one.
 - **Entity-scoped bookmarks page** — the `$entitySlug/index` route for entities whose bookmarks can
-  be meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels, Genres & Moods) renders a full
+  be meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels, Genres & Moods,
+  Languages) renders a full
   `BookmarkSearchView` scoped to that entity's bookmarks. **Do not redirect to `/bookmarks?<filter>=…`
   from these routes** — that loses the entity context in the URL and breaks deep-linking. The pattern:
   fetch data via `useCategoryPageData(search.tags)` (or the equivalent hooks), resolve the entity by
@@ -475,17 +476,32 @@ change recipes):
 - **`language_usage_levels`** — a user-definable taxonomy (mirrors `place_types`) **grouped by
   `kind`**: `availability` (Dub, Subtitles, Explanations…) qualifies content, `proficiency` (Native,
   Fluent, Learning…) qualifies People. `kind` is free text (add a kind without a migration); built-ins
-  are seeded (`ensureBuiltInLanguageUsageLevels`) and non-deletable. **To add a level: use the
-  Settings-style manager at `/taxonomies/language-usage-levels`** (`LanguageUsageLevelsManager`), not a
-  code change. `deleteLanguageUsageLevel(id, reassignToId?)` reassigns or drops referencing rows (no
+  are seeded (`ensureBuiltInLanguageUsageLevels`) and non-deletable. Its `(kind, name)` uniqueness is a
+  **`uniqueIndex`, not a `unique()` constraint** — see the composite-unique rule under **Database
+  schema changes** (a composite `unique()` there crashed prod `drizzle-kit push`). `deleteLanguageUsageLevel(id, reassignToId?)` reassigns or drops referencing rows (no
   cascade FK), like `deletePlaceType`.
+  - **`/taxonomies/language-usage-levels` is a two-screen surface, reached via a flyout on the
+    Languages sidebar item** (`LanguagesSidebarItem`, mirroring `GroupsSidebarItem` → Group Types; it
+    is **not** its own `taxonomyItems` row — it's in `settingsPages.ts`'s `STANDALONE_PAGES` like
+    `group-types`). The **index** is a grouped **Overview** (`LanguageUsageOverview`): sectioned by
+    `kind`, with a group-by toggle (Usage level ⇄ Language) and expandable rows; clicking a leaf opens
+    that language's scoped bookmarks page filtered to the level. **To add/rename/delete a level, use
+    the Edit page** `/taxonomies/language-usage-levels/edit` (the `LanguageUsageLevelsManager`
+    grouped-card CRUD), reached from the Overview's "Edit levels" button — not a code change. The
+    Overview is fed by `GET /api/language-usage-levels/associations` (`listLanguageUsageAssociations`
+    in `services/languageUsages.ts` → `useLanguageUsageAssociations`): the distinct (language, level)
+    pairs with counts across **all** owners, since languages↔levels only relate *through* owner
+    associations. That endpoint is the **only** derived read — it is display-only, never touches
+    `invalidateBookmarkCache()`.
 - **`language_usages`** — the codebase's **first value-carrying polymorphic association**. Keyed by
   `(ownerType, ownerId)` with **no FK on `ownerId`** (mirrors `taxonomy_images`), plus a surrogate `id`
-  and a unique `(ownerType, ownerId, languageId, usageLevelId)` index (mirrors `bookmark_relationships`).
-  Owners are `LANGUAGE_USAGE_OWNER_TYPES` = bookmark / movie / tvShow / website / youtubeChannel /
+  and a **`uniqueIndex`** on `(ownerType, ownerId, languageId, usageLevelId)` (a unique *index*, not a
+  table `unique()` — the composite-unique rule again). Owners are `LANGUAGE_USAGE_OWNER_TYPES` = bookmark
+  / movie / tvShow / website / youtubeChannel /
   person. One shared service (`services/languageUsages.ts`) does it all: `loadLanguageUsages(ownerType,
   ownerIds[])` (the batched, denormalized read loader reused by every owner), `setLanguageUsages`
-  (replace-all), and `deleteLanguageUsagesForOwner`.
+  (replace-all), `deleteLanguageUsagesForOwner`, and `listLanguageUsageAssociations` (the overview
+  matrix above).
 
 **Sync points a new owner type (or a schema change) must hit** — none of these are compiler-enforced:
 - Because `ownerId` has no FK, **every owner's delete service must call
@@ -506,6 +522,19 @@ change recipes):
 Editing is uniform: each owner's edit surface has a **Languages tab** (auto-save on entities, the
 bookmark edit tab) built from the shared `LanguageUsagesEditor`/`View`; only the `kind` prop differs
 (`availability` for content, `proficiency` for People).
+
+**Primary language vs. usages (bookmarks).** A bookmark's single-valued **primary** language
+(`bookmark.languageId`, the `Language` taxonomy) is distinct from the multi-valued `language_usages`.
+It is settable on **two** surfaces: the **General** edit tab (the `BookmarkAdvancedLanguageField`
+combobox, batched with the tab's "Save changes"; a muted note there points to the Languages tab) **and**
+the top of the **Languages** edit tab (`BookmarkPrimaryLanguageField`, auto-saving on change per the
+edit-tab standard, above the usages editor). Keep both in sync when changing the field.
+`/taxonomies/languages/$languageSlug` is now an **entity-scoped bookmarks page** (was a redirect to
+`/general`; the detail View/Edit tabs stay at `…/general`): it shows bookmarks involving that language
+(primary **or** any usage) and honours a friendly `?usageLevel=<slug>` search param — narrowing to
+bookmarks carrying that language at that level, shown as a clearable chip — kept **out** of the shared
+`BookmarkSearch` type so the URL stays canonical. Its breadcrumb name resolves via `useLanguageBySlug`
+wired into `-appHeaderNames.ts` (the `add-entity` breadcrumb sync point).
 
 ## Genres & Moods & the polymorphic assignment layer
 
@@ -722,16 +751,41 @@ push runs **without `--force`** on purpose: `--force` does not suppress drizzle-
 genuinely destructive diffs silently. The deploy stays safe by keeping push's diff **additive-only**
 — the runtime-migrations hook pre-applies everything that would otherwise make push prompt.
 
-- **Truly push-safe additive changes** (new tables; nullable columns on existing tables; new
-  indexes): just edit `src/db/schema.ts`. `push` applies them without prompting on `pnpm dev` and
-  on every deploy. No migration file, no `drizzle-kit generate`.
+- **Truly push-safe additive changes** (a **lone** nullable column on an existing table, or a new
+  index, with **no new table in the same release**): just edit `src/db/schema.ts`. `push` applies
+  them without prompting. No migration file, no `drizzle-kit generate`.
 - **Additive changes that trigger a push prompt** — `drizzle-kit push` runs non-interactively in
   production (non-TTY, stdin = `/dev/null`). Certain additive changes still cause an interactive
   confirmation that crashes the deploy (and `--force` does **not** bypass it):
+  - **A NEW TABLE** — against a *populated* database push treats a brand-new table as a
+    `pgSuggestions` "truncate?" change, **bails at the prompt while exiting 0**, and **silently
+    skips the table *and every additive statement it hadn't applied yet in the same run* — including
+    plain nullable `ADD COLUMN`s**. The deploy "succeeds" but the table/column never exists and
+    queries 500 with `relation … does not exist` / `column … does not exist`. This is the primary
+    "missing column/table" 500 cause (bit `genre_moods` #929, `bookmarks.image_display_preference`
+    #930, the `podcasts` #927 and `languages`/`language_usage_levels`/`language_usages` tables).
+    **Pre-create every new table and pre-add its companion columns** (e.g. a taxonomy's
+    `bookmarks.<x>_id` FK) in `migrate.ts` with idempotent `IF NOT EXISTS` DDL mirroring `schema.ts`.
+    Keep it **self-contained — declare FK columns as a plain `uuid`, no `REFERENCES` to a
+    push-created base table** (migrate runs *before* push); push adds the FK constraint afterward
+    (additive, never prompts). See the `genre_moods` / `podcasts` / language pre-create steps.
   - **Unique constraints added to an existing table with data** — push warns the constraint may
     fail and asks to truncate (the `pgSuggestions` prompt). With no TTY it crashes the push run.
   - **`NOT NULL` columns added to an existing table** (even with a column-level `DEFAULT`) — push
     prompts before applying.
+  - **A COMPOSITE `unique()` constraint** (multi-column, e.g. `unique("x").on(t.a, t.b)`) can make
+    push **re-propose it on every deploy even when it already exists and matches** — the same
+    truncate prompt → non-TTY crash, after which push exits 0 and **silently skips the rest of its
+    additive diff** (the classic "missing column/table" 500s, since a later new column never gets
+    added). **Declare composite uniques as `uniqueIndex()`, never a table `unique()` constraint** —
+    a unique index converges cleanly and applies via `CREATE UNIQUE INDEX IF NOT EXISTS` with no
+    prompt. Single-column `unique()` (slugs, names, etc.) is fine and stays a `unique()`. This bit
+    `tags_parent_name_unique` and then the `language_usage_levels` / `language_usages` composite
+    uniques (#914 repeated the mistake). For an existing table, also add a `migrate.ts` step that
+    `DROP CONSTRAINT IF EXISTS` the old constraint and `CREATE UNIQUE INDEX IF NOT EXISTS` (see the
+    "migrate … composite uniques from constraints to unique indexes" steps). Note it is *not* every
+    composite `unique()` that reproduces this (some converge), but `uniqueIndex()` always does —
+    prefer it for any composite unique so the trap can't recur.
 
   For these cases, add an idempotent step to `src/db/migrate.ts` — the same place as destructive
   changes. Use `ADD COLUMN IF NOT EXISTS` for columns; check `pg_constraint` by name before adding

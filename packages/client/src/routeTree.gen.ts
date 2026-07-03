@@ -99,6 +99,7 @@ import { Route as TaxonomiesMediaTypesIndexRouteImport } from './routes/taxonomi
 import { Route as TaxonomiesMediaPropertiesIndexRouteImport } from './routes/taxonomies.media-properties.index'
 import { Route as TaxonomiesLocationsIndexRouteImport } from './routes/taxonomies.locations.index'
 import { Route as TaxonomiesLanguagesIndexRouteImport } from './routes/taxonomies.languages.index'
+import { Route as TaxonomiesLanguageUsageLevelsIndexRouteImport } from './routes/taxonomies.language-usage-levels.index'
 import { Route as TaxonomiesGroupsIndexRouteImport } from './routes/taxonomies.groups.index'
 import { Route as TaxonomiesGroupTypesIndexRouteImport } from './routes/taxonomies.group-types.index'
 import { Route as TaxonomiesGenresMoodsIndexRouteImport } from './routes/taxonomies.genres-moods.index'
@@ -134,6 +135,7 @@ import { Route as TaxonomiesMediaPropertiesMediaPropertySlugRouteImport } from '
 import { Route as TaxonomiesLocationsNewRouteImport } from './routes/taxonomies.locations.new'
 import { Route as TaxonomiesLocationsLocationSlugRouteImport } from './routes/taxonomies.locations.$locationSlug'
 import { Route as TaxonomiesLanguagesLanguageSlugRouteImport } from './routes/taxonomies.languages.$languageSlug'
+import { Route as TaxonomiesLanguageUsageLevelsEditRouteImport } from './routes/taxonomies.language-usage-levels.edit'
 import { Route as TaxonomiesGroupsGroupSlugRouteImport } from './routes/taxonomies.groups.$groupSlug'
 import { Route as TaxonomiesGroupTypesGroupTypeSlugRouteImport } from './routes/taxonomies.group-types.$groupTypeSlug'
 import { Route as TaxonomiesGenresMoodsGenreMoodSlugRouteImport } from './routes/taxonomies.genres-moods.$genreMoodSlug'
@@ -900,6 +902,12 @@ const TaxonomiesLanguagesIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesLanguagesRoute,
   } as any)
+const TaxonomiesLanguageUsageLevelsIndexRoute =
+  TaxonomiesLanguageUsageLevelsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesLanguageUsageLevelsRoute,
+  } as any)
 const TaxonomiesGroupsIndexRoute = TaxonomiesGroupsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -1098,6 +1106,12 @@ const TaxonomiesLanguagesLanguageSlugRoute =
     id: '/$languageSlug',
     path: '/$languageSlug',
     getParentRoute: () => TaxonomiesLanguagesRoute,
+  } as any)
+const TaxonomiesLanguageUsageLevelsEditRoute =
+  TaxonomiesLanguageUsageLevelsEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => TaxonomiesLanguageUsageLevelsRoute,
   } as any)
 const TaxonomiesGroupsGroupSlugRoute =
   TaxonomiesGroupsGroupSlugRouteImport.update({
@@ -2849,16 +2863,16 @@ export interface FileRoutesByFullPath {
   '/saved-filters': typeof SavedFiltersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
-  '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
+  '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
   '/autofill/backfill': typeof AutofillBackfillRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
-  '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugViewRouteWithChildren
-  '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
-  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
+  '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugRouteWithChildren
+  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
+  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
-  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugViewRouteWithChildren
+  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugRouteWithChildren
   '/inbox/new': typeof InboxNewRoute
-  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugViewRouteWithChildren
+  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
   '/settings/advanced': typeof SettingsAdvancedRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRouteWithChildren
@@ -2878,14 +2892,14 @@ export interface FileRoutesByFullPath {
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
+  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
   '/taxonomies/albums': typeof TaxonomiesAlbumsRouteWithChildren
   '/taxonomies/books': typeof TaxonomiesBooksRouteWithChildren
   '/taxonomies/episodes': typeof TaxonomiesEpisodesRouteWithChildren
   '/taxonomies/genres-moods': typeof TaxonomiesGenresMoodsRouteWithChildren
   '/taxonomies/group-types': typeof TaxonomiesGroupTypesRouteWithChildren
   '/taxonomies/groups': typeof TaxonomiesGroupsRouteWithChildren
-  '/taxonomies/language-usage-levels': typeof TaxonomiesLanguageUsageLevelsRoute
+  '/taxonomies/language-usage-levels': typeof TaxonomiesLanguageUsageLevelsRouteWithChildren
   '/taxonomies/languages': typeof TaxonomiesLanguagesRouteWithChildren
   '/taxonomies/locations': typeof TaxonomiesLocationsRouteWithChildren
   '/taxonomies/media-properties': typeof TaxonomiesMediaPropertiesRouteWithChildren
@@ -2943,28 +2957,29 @@ export interface FileRoutesByFullPath {
   '/settings/media/manage': typeof SettingsMediaManageRoute
   '/settings/media/screenshot-defaults': typeof SettingsMediaScreenshotDefaultsRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
-  '/taxonomies/albums/$albumSlug': typeof TaxonomiesAlbumsAlbumSlugViewRouteWithChildren
-  '/taxonomies/books/$bookSlug': typeof TaxonomiesBooksBookSlugViewRouteWithChildren
-  '/taxonomies/episodes/$episodeSlug': typeof TaxonomiesEpisodesEpisodeSlugViewRouteWithChildren
-  '/taxonomies/genres-moods/$genreMoodSlug': typeof TaxonomiesGenresMoodsGenreMoodSlugViewRouteWithChildren
-  '/taxonomies/group-types/$groupTypeSlug': typeof TaxonomiesGroupTypesGroupTypeSlugViewRouteWithChildren
-  '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugViewRouteWithChildren
-  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugViewRouteWithChildren
-  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugViewRouteWithChildren
+  '/taxonomies/albums/$albumSlug': typeof TaxonomiesAlbumsAlbumSlugRouteWithChildren
+  '/taxonomies/books/$bookSlug': typeof TaxonomiesBooksBookSlugRouteWithChildren
+  '/taxonomies/episodes/$episodeSlug': typeof TaxonomiesEpisodesEpisodeSlugRouteWithChildren
+  '/taxonomies/genres-moods/$genreMoodSlug': typeof TaxonomiesGenresMoodsGenreMoodSlugRouteWithChildren
+  '/taxonomies/group-types/$groupTypeSlug': typeof TaxonomiesGroupTypesGroupTypeSlugRouteWithChildren
+  '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugRouteWithChildren
+  '/taxonomies/language-usage-levels/edit': typeof TaxonomiesLanguageUsageLevelsEditRoute
+  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugRouteWithChildren
+  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugRouteWithChildren
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
-  '/taxonomies/media-properties/$mediaPropertySlug': typeof TaxonomiesMediaPropertiesMediaPropertySlugViewRouteWithChildren
-  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
-  '/taxonomies/movies/$movieSlug': typeof TaxonomiesMoviesMovieSlugViewRouteWithChildren
-  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugViewRouteWithChildren
-  '/taxonomies/people/$personSlug': typeof TaxonomiesPeoplePersonSlugViewRouteWithChildren
-  '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugViewRouteWithChildren
-  '/taxonomies/podcasts/$podcastSlug': typeof TaxonomiesPodcastsPodcastSlugViewRouteWithChildren
-  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteWithChildren
-  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewRouteWithChildren
-  '/taxonomies/tracks/$trackSlug': typeof TaxonomiesTracksTrackSlugViewRouteWithChildren
-  '/taxonomies/tv-shows/$tvShowSlug': typeof TaxonomiesTvShowsTvShowSlugViewRouteWithChildren
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
-  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren
+  '/taxonomies/media-properties/$mediaPropertySlug': typeof TaxonomiesMediaPropertiesMediaPropertySlugRouteWithChildren
+  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
+  '/taxonomies/movies/$movieSlug': typeof TaxonomiesMoviesMovieSlugRouteWithChildren
+  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugRouteWithChildren
+  '/taxonomies/people/$personSlug': typeof TaxonomiesPeoplePersonSlugRouteWithChildren
+  '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugRouteWithChildren
+  '/taxonomies/podcasts/$podcastSlug': typeof TaxonomiesPodcastsPodcastSlugRouteWithChildren
+  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
+  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugRouteWithChildren
+  '/taxonomies/tracks/$trackSlug': typeof TaxonomiesTracksTrackSlugRouteWithChildren
+  '/taxonomies/tv-shows/$tvShowSlug': typeof TaxonomiesTvShowsTvShowSlugRouteWithChildren
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
+  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
   '/autofill/$ruleSlug/': typeof AutofillRuleSlugIndexRoute
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/card-display-rules/$ruleSlug/': typeof CardDisplayRulesRuleSlugIndexRoute
@@ -2984,6 +2999,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/genres-moods/': typeof TaxonomiesGenresMoodsIndexRoute
   '/taxonomies/group-types/': typeof TaxonomiesGroupTypesIndexRoute
   '/taxonomies/groups/': typeof TaxonomiesGroupsIndexRoute
+  '/taxonomies/language-usage-levels/': typeof TaxonomiesLanguageUsageLevelsIndexRoute
   '/taxonomies/languages/': typeof TaxonomiesLanguagesIndexRoute
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-properties/': typeof TaxonomiesMediaPropertiesIndexRoute
@@ -3252,7 +3268,6 @@ export interface FileRoutesByTo {
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/taxonomies/language-usage-levels': typeof TaxonomiesLanguageUsageLevelsRoute
   '/autofill': typeof AutofillIndexRoute
   '/bookmarks': typeof BookmarksIndexRoute
   '/card-display-rules': typeof CardDisplayRulesIndexRoute
@@ -3294,6 +3309,7 @@ export interface FileRoutesByTo {
   '/settings/media/manage': typeof SettingsMediaManageRoute
   '/settings/media/screenshot-defaults': typeof SettingsMediaScreenshotDefaultsRoute
   '/tags/$tagSlug': typeof TagsTagSlugIndexRoute
+  '/taxonomies/language-usage-levels/edit': typeof TaxonomiesLanguageUsageLevelsEditRoute
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdIndexRoute
   '/settings/advanced': typeof SettingsAdvancedIndexRoute
@@ -3307,6 +3323,7 @@ export interface FileRoutesByTo {
   '/taxonomies/genres-moods': typeof TaxonomiesGenresMoodsIndexRoute
   '/taxonomies/group-types': typeof TaxonomiesGroupTypesIndexRoute
   '/taxonomies/groups': typeof TaxonomiesGroupsIndexRoute
+  '/taxonomies/language-usage-levels': typeof TaxonomiesLanguageUsageLevelsIndexRoute
   '/taxonomies/languages': typeof TaxonomiesLanguagesIndexRoute
   '/taxonomies/locations': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-properties': typeof TaxonomiesMediaPropertiesIndexRoute
@@ -3586,7 +3603,7 @@ export interface FileRoutesById {
   '/taxonomies/genres-moods': typeof TaxonomiesGenresMoodsRouteWithChildren
   '/taxonomies/group-types': typeof TaxonomiesGroupTypesRouteWithChildren
   '/taxonomies/groups': typeof TaxonomiesGroupsRouteWithChildren
-  '/taxonomies/language-usage-levels': typeof TaxonomiesLanguageUsageLevelsRoute
+  '/taxonomies/language-usage-levels': typeof TaxonomiesLanguageUsageLevelsRouteWithChildren
   '/taxonomies/languages': typeof TaxonomiesLanguagesRouteWithChildren
   '/taxonomies/locations': typeof TaxonomiesLocationsRouteWithChildren
   '/taxonomies/media-properties': typeof TaxonomiesMediaPropertiesRouteWithChildren
@@ -3657,6 +3674,7 @@ export interface FileRoutesById {
   '/taxonomies/genres-moods/$genreMoodSlug': typeof TaxonomiesGenresMoodsGenreMoodSlugRouteWithChildren
   '/taxonomies/group-types/$groupTypeSlug': typeof TaxonomiesGroupTypesGroupTypeSlugRouteWithChildren
   '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugRouteWithChildren
+  '/taxonomies/language-usage-levels/edit': typeof TaxonomiesLanguageUsageLevelsEditRoute
   '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugRouteWithChildren
   '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugRouteWithChildren
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
@@ -3692,6 +3710,7 @@ export interface FileRoutesById {
   '/taxonomies/genres-moods/': typeof TaxonomiesGenresMoodsIndexRoute
   '/taxonomies/group-types/': typeof TaxonomiesGroupTypesIndexRoute
   '/taxonomies/groups/': typeof TaxonomiesGroupsIndexRoute
+  '/taxonomies/language-usage-levels/': typeof TaxonomiesLanguageUsageLevelsIndexRoute
   '/taxonomies/languages/': typeof TaxonomiesLanguagesIndexRoute
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-properties/': typeof TaxonomiesMediaPropertiesIndexRoute
@@ -4076,6 +4095,7 @@ export interface FileRouteTypes {
     | '/taxonomies/genres-moods/$genreMoodSlug'
     | '/taxonomies/group-types/$groupTypeSlug'
     | '/taxonomies/groups/$groupSlug'
+    | '/taxonomies/language-usage-levels/edit'
     | '/taxonomies/languages/$languageSlug'
     | '/taxonomies/locations/$locationSlug'
     | '/taxonomies/locations/new'
@@ -4111,6 +4131,7 @@ export interface FileRouteTypes {
     | '/taxonomies/genres-moods/'
     | '/taxonomies/group-types/'
     | '/taxonomies/groups/'
+    | '/taxonomies/language-usage-levels/'
     | '/taxonomies/languages/'
     | '/taxonomies/locations/'
     | '/taxonomies/media-properties/'
@@ -4379,7 +4400,6 @@ export interface FileRouteTypes {
     | '/settings/saved-filters'
     | '/settings/websites'
     | '/settings/youtube-channels'
-    | '/taxonomies/language-usage-levels'
     | '/autofill'
     | '/bookmarks'
     | '/card-display-rules'
@@ -4421,6 +4441,7 @@ export interface FileRouteTypes {
     | '/settings/media/manage'
     | '/settings/media/screenshot-defaults'
     | '/tags/$tagSlug'
+    | '/taxonomies/language-usage-levels/edit'
     | '/taxonomies/locations/new'
     | '/bookmarks/$bookmarkId'
     | '/settings/advanced'
@@ -4434,6 +4455,7 @@ export interface FileRouteTypes {
     | '/taxonomies/genres-moods'
     | '/taxonomies/group-types'
     | '/taxonomies/groups'
+    | '/taxonomies/language-usage-levels'
     | '/taxonomies/languages'
     | '/taxonomies/locations'
     | '/taxonomies/media-properties'
@@ -4783,6 +4805,7 @@ export interface FileRouteTypes {
     | '/taxonomies/genres-moods/$genreMoodSlug'
     | '/taxonomies/group-types/$groupTypeSlug'
     | '/taxonomies/groups/$groupSlug'
+    | '/taxonomies/language-usage-levels/edit'
     | '/taxonomies/languages/$languageSlug'
     | '/taxonomies/locations/$locationSlug'
     | '/taxonomies/locations/new'
@@ -4818,6 +4841,7 @@ export interface FileRouteTypes {
     | '/taxonomies/genres-moods/'
     | '/taxonomies/group-types/'
     | '/taxonomies/groups/'
+    | '/taxonomies/language-usage-levels/'
     | '/taxonomies/languages/'
     | '/taxonomies/locations/'
     | '/taxonomies/media-properties/'
@@ -5107,7 +5131,7 @@ export interface RootRouteChildren {
   TaxonomiesGenresMoodsRoute: typeof TaxonomiesGenresMoodsRouteWithChildren
   TaxonomiesGroupTypesRoute: typeof TaxonomiesGroupTypesRouteWithChildren
   TaxonomiesGroupsRoute: typeof TaxonomiesGroupsRouteWithChildren
-  TaxonomiesLanguageUsageLevelsRoute: typeof TaxonomiesLanguageUsageLevelsRoute
+  TaxonomiesLanguageUsageLevelsRoute: typeof TaxonomiesLanguageUsageLevelsRouteWithChildren
   TaxonomiesLanguagesRoute: typeof TaxonomiesLanguagesRouteWithChildren
   TaxonomiesLocationsRoute: typeof TaxonomiesLocationsRouteWithChildren
   TaxonomiesMediaPropertiesRoute: typeof TaxonomiesMediaPropertiesRouteWithChildren
@@ -5757,6 +5781,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLanguagesIndexRouteImport
       parentRoute: typeof TaxonomiesLanguagesRoute
     }
+    '/taxonomies/language-usage-levels/': {
+      id: '/taxonomies/language-usage-levels/'
+      path: '/'
+      fullPath: '/taxonomies/language-usage-levels/'
+      preLoaderRoute: typeof TaxonomiesLanguageUsageLevelsIndexRouteImport
+      parentRoute: typeof TaxonomiesLanguageUsageLevelsRoute
+    }
     '/taxonomies/groups/': {
       id: '/taxonomies/groups/'
       path: '/'
@@ -6001,6 +6032,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/languages/$languageSlug'
       preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugRouteImport
       parentRoute: typeof TaxonomiesLanguagesRoute
+    }
+    '/taxonomies/language-usage-levels/edit': {
+      id: '/taxonomies/language-usage-levels/edit'
+      path: '/edit'
+      fullPath: '/taxonomies/language-usage-levels/edit'
+      preLoaderRoute: typeof TaxonomiesLanguageUsageLevelsEditRouteImport
+      parentRoute: typeof TaxonomiesLanguageUsageLevelsRoute
     }
     '/taxonomies/groups/$groupSlug': {
       id: '/taxonomies/groups/$groupSlug'
@@ -9280,6 +9318,24 @@ const TaxonomiesGroupsRouteChildren: TaxonomiesGroupsRouteChildren = {
 const TaxonomiesGroupsRouteWithChildren =
   TaxonomiesGroupsRoute._addFileChildren(TaxonomiesGroupsRouteChildren)
 
+interface TaxonomiesLanguageUsageLevelsRouteChildren {
+  TaxonomiesLanguageUsageLevelsEditRoute: typeof TaxonomiesLanguageUsageLevelsEditRoute
+  TaxonomiesLanguageUsageLevelsIndexRoute: typeof TaxonomiesLanguageUsageLevelsIndexRoute
+}
+
+const TaxonomiesLanguageUsageLevelsRouteChildren: TaxonomiesLanguageUsageLevelsRouteChildren =
+  {
+    TaxonomiesLanguageUsageLevelsEditRoute:
+      TaxonomiesLanguageUsageLevelsEditRoute,
+    TaxonomiesLanguageUsageLevelsIndexRoute:
+      TaxonomiesLanguageUsageLevelsIndexRoute,
+  }
+
+const TaxonomiesLanguageUsageLevelsRouteWithChildren =
+  TaxonomiesLanguageUsageLevelsRoute._addFileChildren(
+    TaxonomiesLanguageUsageLevelsRouteChildren,
+  )
+
 interface TaxonomiesLanguagesLanguageSlugViewRouteChildren {
   TaxonomiesLanguagesLanguageSlugViewGeneralRoute: typeof TaxonomiesLanguagesLanguageSlugViewGeneralRoute
 }
@@ -10481,7 +10537,8 @@ const rootRouteChildren: RootRouteChildren = {
   TaxonomiesGenresMoodsRoute: TaxonomiesGenresMoodsRouteWithChildren,
   TaxonomiesGroupTypesRoute: TaxonomiesGroupTypesRouteWithChildren,
   TaxonomiesGroupsRoute: TaxonomiesGroupsRouteWithChildren,
-  TaxonomiesLanguageUsageLevelsRoute: TaxonomiesLanguageUsageLevelsRoute,
+  TaxonomiesLanguageUsageLevelsRoute:
+    TaxonomiesLanguageUsageLevelsRouteWithChildren,
   TaxonomiesLanguagesRoute: TaxonomiesLanguagesRouteWithChildren,
   TaxonomiesLocationsRoute: TaxonomiesLocationsRouteWithChildren,
   TaxonomiesMediaPropertiesRoute: TaxonomiesMediaPropertiesRouteWithChildren,

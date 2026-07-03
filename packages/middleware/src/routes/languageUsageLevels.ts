@@ -10,6 +10,7 @@ import {
   listLanguageUsageLevels,
   updateLanguageUsageLevel,
 } from "@/services/languageUsageLevels";
+import { listLanguageUsageAssociations } from "@/services/languageUsages";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const levelParams = {
@@ -81,6 +82,12 @@ const updateBody = {
 /** Routes for the Language Usage Levels vocabulary, mounted under `/api/language-usage-levels`. */
 export async function languageUsageLevelRoutes(app: FastifyInstance): Promise<void> {
   registerBulkDelete(app, "/api/language-usage-levels", "language-usage-levels", bulkDeleteLanguageUsageLevels);
+
+  app.get("/api/language-usage-levels/associations", {
+    schema: {
+      tags: ["language-usage-levels"],
+    },
+  }, async () => listLanguageUsageAssociations());
 
   app.get("/api/language-usage-levels", {
     schema: {

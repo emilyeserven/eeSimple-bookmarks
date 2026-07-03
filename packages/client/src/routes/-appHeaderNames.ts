@@ -9,6 +9,7 @@ import { useEpisodeBySlug } from "@/hooks/useEpisodes";
 import { useGroupBySlug } from "@/hooks/useGroups";
 import { useGroupTypeBySlug } from "@/hooks/useGroupTypes";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
+import { useLanguageBySlug } from "@/hooks/useLanguages";
 import { useMediaPropertyBySlug } from "@/hooks/useMediaProperties";
 import { useMovieBySlug } from "@/hooks/useMovies";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
@@ -28,6 +29,7 @@ export interface TaxonomyNameSlugs {
   person: string;
   group: string;
   groupType: string;
+  language: string;
   placeType: string;
   propertyGroup: string;
   mediaProperty: string;
@@ -68,6 +70,9 @@ export function useTaxonomyNameMap(
   const {
     groupType,
   } = useGroupTypeBySlug(slugs.groupType);
+  const {
+    language,
+  } = useLanguageBySlug(slugs.language);
   const {
     placeType,
   } = usePlaceTypeBySlug(slugs.placeType);
@@ -131,6 +136,9 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/group-types": {
       name: groupType?.name,
+    },
+    "/taxonomies/languages": {
+      name: language?.name,
     },
     "/taxonomies/place-types": {
       name: placeType?.name,

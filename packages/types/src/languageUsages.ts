@@ -76,3 +76,24 @@ export interface UpdateLanguageUsageEntry {
   usageLevelId: string;
   note?: string | null;
 }
+
+/**
+ * A distinct (language, usage-level) pairing derived from all `language_usages` rows across every
+ * owner type, with how many associations use it. Powers the Language Usage Levels overview, which
+ * groups these pairs by either the level or the language.
+ */
+export interface LanguageUsageAssociation {
+  language: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  level: {
+    id: string;
+    name: string;
+    slug: string;
+    kind: LanguageUsageKind;
+  };
+  /** How many association rows carry this exact language + level pairing. */
+  count: number;
+}

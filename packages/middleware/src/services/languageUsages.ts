@@ -1,5 +1,11 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
-import type { LanguageUsage, LanguageUsageKind, LanguageUsageOwnerType, UpdateLanguageUsageEntry } from "@eesimple/types";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import type {
+  LanguageUsage,
+  LanguageUsageAssociation,
+  LanguageUsageKind,
+  LanguageUsageOwnerType,
+  UpdateLanguageUsageEntry,
+} from "@eesimple/types";
 import { db } from "@/db";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { languages, languageUsageLevels, languageUsages } from "@/db/schema";
@@ -58,6 +64,58 @@ export async function loadLanguageUsages(
     else out.set(row.ownerId, [usage]);
   }
   return out;
+}
+
+/**
+ * List every distinct (language, usage-level) pairing across all owners, with an association count.
+ * Powers the Language Usage Levels overview (grouped by level or by language). Ordered by kind, then
+ * level sort order, then language name for a stable display.
+ */
+export async function listLanguageUsageAssociations(): Promise<LanguageUsageAssociation[]> {
+  const rows = await db
+    .select({
+      languageId: languages.id,
+      languageName: languages.name,
+      languageSlug: languages.slug,
+      levelId: languageUsageLevels.id,
+      levelName: languageUsageLevels.name,
+      levelSlug: languageUsageLevels.slug,
+      levelKind: languageUsageLevels.kind,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(languageUsages)
+    .innerJoin(languages, eq(languageUsages.languageId, languages.id))
+    .innerJoin(languageUsageLevels, eq(languageUsages.usageLevelId, languageUsageLevels.id))
+    .groupBy(
+      languages.id,
+      languages.name,
+      languages.slug,
+      languageUsageLevels.id,
+      languageUsageLevels.name,
+      languageUsageLevels.slug,
+      languageUsageLevels.kind,
+      languageUsageLevels.sortOrder,
+    )
+    .orderBy(
+      asc(languageUsageLevels.kind),
+      asc(languageUsageLevels.sortOrder),
+      asc(languages.name),
+    );
+
+  return rows.map(row => ({
+    language: {
+      id: row.languageId,
+      name: row.languageName,
+      slug: row.languageSlug ?? "",
+    },
+    level: {
+      id: row.levelId,
+      name: row.levelName,
+      slug: row.levelSlug ?? "",
+      kind: row.levelKind as LanguageUsageKind,
+    },
+    count: row.count,
+  }));
 }
 
 /** Load a single owner's language usages. */

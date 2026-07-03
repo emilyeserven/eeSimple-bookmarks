@@ -411,7 +411,10 @@ export const languageUsageLevels = pgTable("language_usage_levels", {
 }, table => [
   // Names are unique per kind (a "Native" availability level and a "Native" proficiency level could
   // coexist, though the seeds don't overlap); slugs are globally unique for routing.
-  unique("language_usage_levels_kind_name_unique").on(table.kind, table.name),
+  // A composite `uniqueIndex`, NOT a table `unique()` constraint, on purpose — drizzle-kit 0.31.10
+  // re-proposes composite unique CONSTRAINTs on every push, prompting to truncate the populated
+  // table and crashing the non-TTY deploy (see the `tags_parent_name_unique` note in migrate.ts).
+  uniqueIndex("language_usage_levels_kind_name_unique").on(table.kind, table.name),
   unique("language_usage_levels_slug_unique").on(table.slug),
 ]);
 
@@ -448,7 +451,9 @@ export const languageUsages = pgTable("language_usages", {
   }).notNull().defaultNow(),
 }, table => [
   index("language_usages_owner_idx").on(table.ownerType, table.ownerId),
-  unique("language_usages_owner_lang_level_unique").on(
+  // A composite `uniqueIndex`, NOT a table `unique()` constraint — same drizzle-kit push
+  // non-convergence as the kind/name index above (and `tags_parent_name_unique`); see migrate.ts.
+  uniqueIndex("language_usages_owner_lang_level_unique").on(
     table.ownerType,
     table.ownerId,
     table.languageId,
