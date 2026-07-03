@@ -22,7 +22,8 @@ prompt-free.** Route every change through this decision table:
 |---|---|
 | **New table**, or a **nullable** column shipped in the same release as one | `schema.ts` **plus** an idempotent `migrate.ts` **pre-create** (`CREATE TABLE` / `ADD COLUMN IF NOT EXISTS`). See the silent-skip caveat below — "push applies new tables silently" is **not** reliable in the non-TTY deploy. |
 | A lone **nullable** column or **new index** with no new table in the same release | `schema.ts` only — genuinely push-safe. |
-| **Unique constraint** on a table with data; **NOT NULL** column (even with a DEFAULT) | `schema.ts` **plus** a pre-step in `migrate.ts` — push alone hits the interactive `pgSuggestions` prompt and **crashes the non-TTY deploy** (`--force` does not bypass it). |
+| **Single-column unique constraint** on a table with data; **NOT NULL** column (even with a DEFAULT) | `schema.ts` **plus** a pre-step in `migrate.ts` — push alone hits the interactive `pgSuggestions` prompt and **crashes the non-TTY deploy** (`--force` does not bypass it). |
+| **COMPOSITE (multi-column) unique** | Declare it as **`uniqueIndex()`**, **never** a table `unique()` constraint. A composite `unique()` can make push **re-propose it every deploy even when it already exists and matches** → truncate prompt → same non-TTY silent-skip as new tables (below). For an existing table also add a `migrate.ts` step: `DROP CONSTRAINT IF EXISTS` then `CREATE UNIQUE INDEX IF NOT EXISTS`. Bit `tags_parent_name_unique`, then `language_usage_levels`/`language_usages` (#914). Single-column `unique()` (slugs, names) is fine and stays a `unique()`. |
 | Drop / rename a column or table; `ALTER TYPE … ADD VALUE`; data-preserving transform | `migrate.ts` pre-step (guarded), then update `schema.ts` to match — push never destroys data itself. |
 | Seed rows / backfill values for existing rows | **Not** a migration — an `ensure*` / `backfill*` boot step in the middleware (below). |
 

@@ -24,6 +24,7 @@ import type {
   LanguageUsageLevel,
   LanguageUsageKind,
   LanguageUsage,
+  LanguageUsageAssociation,
   LanguageUsageOwnerType,
   UpdateLanguageUsageEntry,
   CreatePlaceTypeInput,
@@ -264,6 +265,9 @@ export const languageUsageLevelsApi = {
   // Optionally filter to a single kind (availability vs. proficiency) for the pickers.
   list: (kind?: LanguageUsageKind) =>
     request<LanguageUsageLevel[]>(`/language-usage-levels${kind ? `?kind=${kind}` : ""}`),
+  // Distinct (language, level) pairings across all owners, with counts, for the overview page.
+  associations: () =>
+    request<LanguageUsageAssociation[]>("/language-usage-levels/associations"),
   // Deleting a level can reassign its associations to another level instead of dropping them.
   remove: (id: string, reassignTo?: string) =>
     request<undefined>(
