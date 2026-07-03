@@ -5,7 +5,6 @@ import { fillEmptyDefault, rowDiffers } from "./syncSourceTypes";
 /** A podcast's current values, for building the current-vs-source diff. */
 export interface PodcastDiffCurrent {
   name: string | null;
-  author: string | null;
   description: string | null;
   /** The podcast's current main image URL, for the artwork row's "current" preview. */
   imageUrl: string | null;
@@ -17,7 +16,6 @@ export interface PodcastDiffCurrent {
 /** The freshly-resolved source values from the RSS feed / iTunes lookup + cross-resolved links. */
 export interface PodcastDiffSource {
   title: string | null;
-  author: string | null;
   description: string | null;
   imageUrl: string | null;
   itunesUrl: string | null;
@@ -25,14 +23,13 @@ export interface PodcastDiffSource {
 }
 
 /** Which editable text field a diff row stages into the form (artwork/link rows are keyed separately). */
-export type PodcastSyncField = "name" | "author" | "description";
+export type PodcastSyncField = "name" | "description";
 
 /** A service-link field that persists directly (not a form field) when its row is applied. */
 export type PodcastLinkSyncField = "itunesUrl" | "pocketCastsUrl";
 
 const FIELD_LABELS: Record<PodcastSyncField, string> = {
   name: "Name",
-  author: "Author",
   description: "Description",
 };
 
@@ -42,11 +39,12 @@ const LINK_LABELS: Record<PodcastLinkSyncField, string> = {
 };
 
 /**
- * Builds the "Podcast feed" diff group from the resolved `source` (RSS/iTunes title/author/description +
+ * Builds the "Podcast feed" diff group from the resolved `source` (RSS/iTunes title/description +
  * artwork) and the podcast's `current` values. Only fields the source returned that differ become rows;
  * each text row's checkbox defaults to checked only when it fills an empty field (fill-empty). Text rows
  * carry a `{ field, value }` payload the registration hook stages into the edit form; the artwork row
- * applies immediately (image sources store on apply). Pure + unit-tested.
+ * applies immediately (image sources store on apply). The author is no longer synced as text — it is
+ * modeled as People/Group credits, resolved from the feed at pick time. Pure + unit-tested.
  */
 export function buildPodcastDiff(
   current: PodcastDiffCurrent,
@@ -90,7 +88,6 @@ export function buildPodcastDiff(
   };
 
   pushText("name", current.name, source.title);
-  pushText("author", current.author, source.author);
   pushText("description", current.description, source.description);
   pushLink("itunesUrl", current.itunesUrl, source.itunesUrl);
   pushLink("pocketCastsUrl", current.pocketCastsUrl, source.pocketCastsUrl);

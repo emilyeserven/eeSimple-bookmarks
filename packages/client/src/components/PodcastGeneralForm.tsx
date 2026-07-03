@@ -7,12 +7,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { PodcastAuthorsFields } from "./PodcastAuthorsFields";
 import { PodcastSearchPicker } from "./PodcastSearchPicker";
 import { useEntityCreateOption } from "./useEntityCreateOption";
+import { usePodcastAuthors } from "./usePodcastAuthors";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { usePodcastSyncRegistration } from "../hooks/usePodcastSyncRegistration";
 import { podcastLinkOptions } from "../lib/podcastLinks";
 
+import { Label } from "@/components/ui/label";
 import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { useUpdatePodcast } from "@/hooks/usePodcasts";
 import { podcastsApi } from "@/lib/api/taxonomies";
@@ -27,7 +30,6 @@ const podcastGeneralSchema = z.object({
   feedUrl: z.string(),
   spotifyUrl: z.string(),
   defaultLinkProvider: z.string(),
-  author: z.string(),
   description: z.string(),
 });
 
@@ -43,7 +45,8 @@ const LABELS: Record<keyof UpdatePodcastInput, string> = {
   pocketCastsUuid: "Pocket Casts",
   pocketCastsUrl: "Pocket Casts",
   defaultLinkProvider: "Default link",
-  author: "Author",
+  personIds: "People",
+  groupIds: "Groups",
   description: "Description",
 };
 
@@ -51,7 +54,7 @@ interface Props {
   podcast: Podcast;
 }
 
-/** Edit a podcast's name, sort order, media property, feed URL, author, and description. Auto-saves. */
+/** Edit a podcast's name, sort order, media property, feed URL, authors, and description. Auto-saves. */
 export function PodcastGeneralForm({
   podcast,
 }: Props) {
@@ -71,9 +74,47 @@ export function PodcastGeneralForm({
       feedUrl: podcast.feedUrl ?? "",
       spotifyUrl: podcast.spotifyUrl ?? "",
       defaultLinkProvider: podcast.defaultLinkProvider ?? null,
-      author: podcast.author ?? "",
       description: podcast.description ?? "",
     },
+  });
+
+  /** Auto-save the People credits on change, with a field-named toast (edit-tab standard). */
+  function savePeople(personIds: string[]): void {
+    updatePodcast.mutate(
+      {
+        id: podcast.id,
+        input: {
+          personIds,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("People"),
+        onError: error => notifyFieldSaveError("People", error instanceof Error ? error.message : undefined),
+      },
+    );
+  }
+
+  /** Auto-save the Group credits on change, with a field-named toast. */
+  function saveGroups(groupIds: string[]): void {
+    updatePodcast.mutate(
+      {
+        id: podcast.id,
+        input: {
+          groupIds,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Groups"),
+        onError: error => notifyFieldSaveError("Groups", error instanceof Error ? error.message : undefined),
+      },
+    );
+  }
+
+  const authors = usePodcastAuthors({
+    personIds: podcast.personIds,
+    groupIds: podcast.groupIds,
+    onPersonIdsChange: savePeople,
+    onGroupIdsChange: saveGroups,
   });
 
   const mediaPropertyCreate = useEntityCreateOption("media-property", (mediaProperty) => {
@@ -103,7 +144,6 @@ export function PodcastGeneralForm({
       feedUrl: podcast.feedUrl ?? "",
       spotifyUrl: podcast.spotifyUrl ?? "",
       defaultLinkProvider: podcast.defaultLinkProvider ?? "",
-      author: podcast.author ?? "",
       description: podcast.description ?? "",
     },
     validators: {
@@ -181,17 +221,19 @@ export function PodcastGeneralForm({
       .catch(() => undefined);
   }
 
-  /** Fill fields + link the searched service from a pick, then cross-resolve the other services' links. */
+  /**
+   * Fill fields + link the searched service from a pick, cross-resolve the other services' links, and
+   * resolve the author name to People.
+   */
   function applyPickedPodcast(result: PodcastSearchResult): void {
     form.setFieldValue("name", result.name);
-    form.setFieldValue("author", result.author ?? "");
     form.setFieldValue("feedUrl", result.feedUrl ?? "");
+    void authors.applyAuthorName(result.author);
     updatePodcast.mutate(
       {
         id: podcast.id,
         input: {
           name: result.name,
-          author: result.author,
           feedUrl: result.feedUrl,
           itunesId: result.itunesId,
           itunesUrl: result.itunesUrl,
@@ -352,14 +394,18 @@ export function PodcastGeneralForm({
         )}
       </form.AppField>
 
-      <form.AppField name="author">
-        {field => (
-          <field.TextField
-            label="Author"
-            onBlur={() => autoSave.saveField("author", field.state.value.trim() || null)}
-          />
-        )}
-      </form.AppField>
+      <div className="space-y-1.5">
+        <Label>Authors</Label>
+        <PodcastAuthorsFields
+          personIds={podcast.personIds}
+          groupIds={podcast.groupIds}
+          onPersonIdsChange={savePeople}
+          onGroupIdsChange={saveGroups}
+          personCreateOption={authors.personCreateOption}
+          groupCreateOption={authors.groupCreateOption}
+        />
+      </div>
+      {authors.modals}
 
       <form.AppField name="description">
         {field => (

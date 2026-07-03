@@ -21,16 +21,19 @@ export function usePodcastColumns(): ColumnDef<Podcast>[] {
         }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
-        accessorKey: "author",
-        header: "Author",
+        id: "authors",
+        header: "Authors",
         enableSorting: false,
         cell: ({
           row,
-        }) => (
-          <span className="text-muted-foreground">
-            {row.original.author ?? "—"}
-          </span>
-        ),
+        }) => {
+          const count = row.original.personIds.length + row.original.groupIds.length;
+          return (
+            <span className="text-muted-foreground">
+              {count > 0 ? `${count} author${count === 1 ? "" : "s"}` : "—"}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "feedUrl",

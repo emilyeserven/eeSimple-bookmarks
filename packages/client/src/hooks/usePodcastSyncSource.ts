@@ -27,7 +27,6 @@ export function usePodcastSyncSource(provider: SyncProvider, enabled: boolean): 
 
   const current: PodcastDiffCurrent = {
     name: strRef(provider.refs, "currentName"),
-    author: strRef(provider.refs, "currentAuthor"),
     description: strRef(provider.refs, "currentDescription"),
     imageUrl: strRef(provider.refs, "currentImageUrl"),
     itunesUrl: strRef(provider.refs, "currentItunesUrl"),
@@ -53,7 +52,6 @@ export function usePodcastSyncSource(provider: SyncProvider, enabled: boolean): 
   return {
     diff: buildPodcastDiff(current, {
       title: preview?.title ?? null,
-      author: preview?.author ?? null,
       description: preview?.description ?? null,
       imageUrl: preview?.imageUrl ?? null,
       itunesUrl: preview?.providerLinks?.itunesUrl ?? preview?.itunesUrl ?? null,

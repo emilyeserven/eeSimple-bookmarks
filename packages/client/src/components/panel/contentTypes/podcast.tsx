@@ -17,7 +17,6 @@ function usePodcastList() {
     () => (data ?? []).map(podcast => ({
       id: podcast.id,
       label: podcast.name,
-      sublabel: podcast.author ?? undefined,
     })),
     [data],
   );

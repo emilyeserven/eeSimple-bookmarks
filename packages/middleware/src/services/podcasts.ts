@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreatePodcastInput,
@@ -8,9 +8,12 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { bookmarks, podcasts, taxonomyImages, type PodcastRow } from "@/db/schema";
+import { bookmarks, podcastGroups, podcastPeople, podcasts, taxonomyImages, type PodcastRow } from "@/db/schema";
+import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Thrown when a create/rename collides with an existing podcast name. */
 export class DuplicatePodcastError extends Error {
@@ -35,6 +38,8 @@ function toPodcast(
     mainImage?: { id: string;
       createdAt: Date | string; } | null;
   },
+  personIds: string[] = [],
+  groupIds: string[] = [],
 ): Podcast {
   return {
     id: row.id,
@@ -50,7 +55,8 @@ function toPodcast(
     pocketCastsUuid: row.pocketCastsUuid ?? null,
     pocketCastsUrl: row.pocketCastsUrl ?? null,
     defaultLinkProvider: (row.defaultLinkProvider as PodcastLinkProvider | null) ?? null,
-    author: row.author ?? null,
+    personIds,
+    groupIds,
     description: row.description ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -63,11 +69,11 @@ function toPodcast(
 const takenSlugs = (excludeId?: string) =>
   takenSlugsOf(podcasts, podcasts.slug, podcasts.id, excludeId);
 
-/** The source/media-property columns settable on create and patchable on update. */
+/** The source/media-property columns settable on create and patchable on update (not the M2M). */
 type PodcastDataColumns = Pick<
   PodcastRow,
   | "mediaPropertyId" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid"
-  | "pocketCastsUrl" | "defaultLinkProvider" | "author" | "description" | "romanizedName"
+  | "pocketCastsUrl" | "defaultLinkProvider" | "description" | "romanizedName"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -81,13 +87,74 @@ function dataFromInput(input: CreatePodcastInput | UpdatePodcastInput): Partial<
   if (input.pocketCastsUuid !== undefined) patch.pocketCastsUuid = input.pocketCastsUuid ?? null;
   if (input.pocketCastsUrl !== undefined) patch.pocketCastsUrl = input.pocketCastsUrl ?? null;
   if (input.defaultLinkProvider !== undefined) patch.defaultLinkProvider = input.defaultLinkProvider ?? null;
-  if (input.author !== undefined) patch.author = input.author ?? null;
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   return patch;
 }
 
-/** List all podcasts, ordered by sort order then name, each with its bookmark count. */
+/** Load person ids (author credits) for a set of podcast ids as a map of podcastId → personId[]. */
+async function loadPodcastPersonMap(
+  podcastIds: string[],
+  txOrDb: Tx | typeof db = db,
+): Promise<Map<string, string[]>> {
+  if (podcastIds.length === 0) return new Map();
+  const rows = await txOrDb
+    .select({
+      podcastId: podcastPeople.podcastId,
+      personId: podcastPeople.personId,
+    })
+    .from(podcastPeople)
+    .where(inArray(podcastPeople.podcastId, podcastIds));
+  return buildStringMap(rows, r => r.podcastId, r => r.personId);
+}
+
+/** Load group ids (author credits) for a set of podcast ids as a map of podcastId → groupId[]. */
+async function loadPodcastGroupMap(
+  podcastIds: string[],
+  txOrDb: Tx | typeof db = db,
+): Promise<Map<string, string[]>> {
+  if (podcastIds.length === 0) return new Map();
+  const rows = await txOrDb
+    .select({
+      podcastId: podcastGroups.podcastId,
+      groupId: podcastGroups.groupId,
+    })
+    .from(podcastGroups)
+    .where(inArray(podcastGroups.podcastId, podcastIds));
+  return buildStringMap(rows, r => r.podcastId, r => r.groupId);
+}
+
+/** Replace the full set of People author credits for a podcast (delete-then-insert). */
+export async function setPodcastPeople(
+  txOrDb: Tx | typeof db,
+  podcastId: string,
+  personIds: string[],
+): Promise<void> {
+  await txOrDb.delete(podcastPeople).where(eq(podcastPeople.podcastId, podcastId));
+  if (personIds.length > 0) {
+    await txOrDb.insert(podcastPeople).values(personIds.map(personId => ({
+      podcastId,
+      personId,
+    })));
+  }
+}
+
+/** Replace the full set of Group author credits for a podcast (delete-then-insert). */
+export async function setPodcastGroups(
+  txOrDb: Tx | typeof db,
+  podcastId: string,
+  groupIds: string[],
+): Promise<void> {
+  await txOrDb.delete(podcastGroups).where(eq(podcastGroups.podcastId, podcastId));
+  if (groupIds.length > 0) {
+    await txOrDb.insert(podcastGroups).values(groupIds.map(groupId => ({
+      podcastId,
+      groupId,
+    })));
+  }
+}
+
+/** List all podcasts, ordered by sort order then name, each with its bookmark count + author credits. */
 export async function listPodcasts(): Promise<Podcast[]> {
   const rows = await db
     .select({
@@ -104,7 +171,6 @@ export async function listPodcasts(): Promise<Podcast[]> {
       pocketCastsUuid: podcasts.pocketCastsUuid,
       pocketCastsUrl: podcasts.pocketCastsUrl,
       defaultLinkProvider: podcasts.defaultLinkProvider,
-      author: podcasts.author,
       description: podcasts.description,
       createdAt: podcasts.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.podcastId, podcasts.id)),
@@ -123,10 +189,19 @@ export async function listPodcasts(): Promise<Podcast[]> {
       ),
     )
     .orderBy(asc(podcasts.sortOrder), asc(podcasts.name));
-  return rows.map(row => toPodcast({
-    ...row,
-    mainImage: row.mainImage?.id ? row.mainImage : null,
-  }));
+  const ids = rows.map(r => r.id);
+  const [personMap, groupMap] = await Promise.all([
+    loadPodcastPersonMap(ids),
+    loadPodcastGroupMap(ids),
+  ]);
+  return rows.map(row => toPodcast(
+    {
+      ...row,
+      mainImage: row.mainImage?.id ? row.mainImage : null,
+    },
+    personMap.get(row.id) ?? [],
+    groupMap.get(row.id) ?? [],
+  ));
 }
 
 /** Fetch a single podcast by id, or `null` when it doesn't exist. */
@@ -146,16 +221,20 @@ export async function createPodcast(input: CreatePodcastInput): Promise<Podcast>
   if (clash) throw new DuplicatePodcastError(name);
 
   const slug = uniqueSlug(name, await takenSlugs());
-  const [row] = await db.insert(podcasts).values({
-    name,
-    slug,
-    sortOrder: input.sortOrder ?? 0,
-    ...dataFromInput(input),
-  }).returning();
-  return toPodcast(row);
+  return db.transaction(async (tx) => {
+    const [row] = await tx.insert(podcasts).values({
+      name,
+      slug,
+      sortOrder: input.sortOrder ?? 0,
+      ...dataFromInput(input),
+    }).returning();
+    if (input.personIds !== undefined) await setPodcastPeople(tx, row.id, input.personIds);
+    if (input.groupIds !== undefined) await setPodcastGroups(tx, row.id, input.groupIds);
+    return toPodcast(row, input.personIds ?? [], input.groupIds ?? []);
+  });
 }
 
-/** Update a podcast (rename, reorder, re-link feed/iTunes/media property). Throws on a name clash. */
+/** Update a podcast (rename, reorder, re-link feed/iTunes/media property, set credits). Throws on a clash. */
 export async function updatePodcast(id: string, input: UpdatePodcastInput): Promise<Podcast | null> {
   const [existing] = await db.select().from(podcasts).where(eq(podcasts.id, id));
   if (!existing) return null;
@@ -173,10 +252,19 @@ export async function updatePodcast(id: string, input: UpdatePodcastInput): Prom
     patch.slug = uniqueSlug(name, await takenSlugs(id));
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
-  if (Object.keys(patch).length === 0) return toPodcast(existing);
 
-  const [row] = await db.update(podcasts).set(patch).where(eq(podcasts.id, id)).returning();
-  return row ? toPodcast(row) : null;
+  return db.transaction(async (tx) => {
+    const row = Object.keys(patch).length > 0
+      ? (await tx.update(podcasts).set(patch).where(eq(podcasts.id, id)).returning())[0]
+      : existing;
+    if (input.personIds !== undefined) await setPodcastPeople(tx, id, input.personIds);
+    if (input.groupIds !== undefined) await setPodcastGroups(tx, id, input.groupIds);
+    const [personMap, groupMap] = await Promise.all([
+      loadPodcastPersonMap([id], tx),
+      loadPodcastGroupMap([id], tx),
+    ]);
+    return toPodcast(row, personMap.get(id) ?? [], groupMap.get(id) ?? []);
+  });
 }
 
 /** Delete a podcast. The `set null` FK unlinks any bookmarks pointing at it. */
