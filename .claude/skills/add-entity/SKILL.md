@@ -143,6 +143,55 @@ it — and add its exhaustive-record entry to `ENTITY_PALETTE_CONFIGS` in
 palette's "Current \<Entity\>" View/Edit quick-actions; add boolean/choice `fields` only where
 useful. See the **`cmd-k-entity-context`** skill.
 
+## Bookmark-linked entity (optional)
+
+Skip this section unless bookmarks reference the entity **directly** via a top-level FK column
+(like `mediaTypeId`, `publisherId`, and `languageId` — as opposed to a many-to-many join table like
+tags or authors). This wiring is separate from the checklist above and easy to under-scope: it
+touches the bookmark's own record, not just the entity's pages. Worked examples: media type
+(existing) and language (`services/languages.ts` + `bookmarkHydration.ts`, added for issue-free
+autofetch support).
+
+1. **Schema** (`packages/middleware/src/db/schema.ts`): add `bookmarks.<x>Id`, nullable,
+   `onDelete: "set null"` — mirror `mediaTypeId`.
+2. **Hydration** (`packages/middleware/src/services/bookmarkHydration.ts`): add the field to the
+   `BookmarkExtras` interface, `EMPTY_EXTRAS`, and `toBookmark()`; add a `<x>ById()` batch loader
+   (mirror `mediaTypesById`/`languagesById`); wire it into `extrasByBookmarkId`'s per-row default
+   *and* `hydrateBookmarkRows`'s id-collection → `Promise.all` → per-row map. Four separate spots —
+   missing one either breaks the build (TS) or silently hydrates `null` forever.
+3. **Shared types** (`packages/types/src/index.ts`): a lightweight `Bookmark<X> = Pick<X, …>` wire
+   shape, `Bookmark.<x>: Bookmark<X> | null`, and `CreateBookmarkInput.<x>Id?: string | null` (covers
+   `UpdateBookmarkInput` too — it's `Partial<CreateBookmarkInput>`).
+4. **Bookmarks service** (`packages/middleware/src/services/bookmarks.ts`): thread `<x>Id` through
+   `createBookmark`'s insert values *and* both `Pick<BookmarkRow, …>` patch types used by the update
+   path (`scalarBookmarkPatch`'s `ScalarBookmarkPatch` type, and the inline `Pick<>` in the
+   transaction body) — two separate lists, easy to update only one.
+5. **Bookmarks route schema** (`packages/middleware/src/routes/bookmarks.ts`): add the property to
+   `createBookmarkBody.properties` (JSON Schema, `type: ["string", "null"], format: "uuid"`) —
+   `updateBookmarkBody` reuses `createBookmarkBody.properties` by reference, so this one edit covers
+   both create and update; skipping it makes Fastify's `additionalProperties: false` schema silently
+   drop the field from incoming requests.
+6. **Add Bookmark form**, only if the field should be user-pickable at creation (skip if it's
+   purely autofetched/edited later, like media type today): add `bookmarkSchema`,
+   `SAMPLE_DEFAULT_VALUES`, and `buildBookmarkDefaultValues` entries in `bookmarkFormSchema.ts`; a
+   `BookmarkAdvanced<X>Field.tsx` (mirror `BookmarkAdvancedPublisherField.tsx`) wired into
+   `BookmarkAdvancedSection.tsx` → `BookmarkRevealedFields.tsx` → `BookmarkForm.tsx`; thread the
+   entity's list through `useBookmarkFormData.ts` → `useBookmarkFormController.ts`, and the
+   `<x>Id` value through `useBookmarkFormHandlers.ts`'s `submitForm` and
+   `useBookmarkGeneralForm.ts`'s `onSubmit` payloads.
+7. **Test factory**: add the field's default to `makeBookmark` in
+   `packages/client/src/test-utils/factories.ts` (see CLAUDE.md → "Shared test factories") and add a
+   `make<X>` factory for the entity itself if tests/stories will construct one.
+8. **Gotcha — `BookmarkForm.test.tsx`**: it `vi.mock()`s every hook module the form touches. A new
+   `use<Entity>` hook needs its own `vi.mock("../hooks/use<Entity>s", () => ({ use<Entities>: () =>
+   ({ data: [] }), useCreate<Entity>: () => ({ mutateAsync: vi.fn() }) }))` entry or every test in
+   that file fails at render with `Error: No QueryClient set, use QueryClientProvider to set one`
+   (the real hook runs instead of the mock and hits `useQueryClient()` with no provider mounted).
+
+If the entity is *also* something users detect from a scanned page/ISBN/YouTube video (not just
+manually picked), see the **`add-connector`** skill's "detected field → taxonomy match-or-create"
+case.
+
 ## Verify
 
 ```

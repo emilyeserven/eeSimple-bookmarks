@@ -16,6 +16,7 @@ import { isYouTubeVideoUrl, parseYouTubeVideo } from "@eesimple/types";
 
 import { getDecryptedYoutubeApiKey } from "@/services/appSettings";
 import { downloadImage, fetchBodyHtmlResult, isPublicHttpUrl, metaContent } from "@/services/metadata";
+import { normalizeLanguageCode } from "@/utils/languageCodes";
 
 // Re-exported so existing intra-package importers (and tests) keep their `@/services/youtube` path;
 // the pure parsers now live in `@eesimple/types` so the client can share them.
@@ -33,6 +34,12 @@ export interface YouTubeMetadata {
   durationSeconds: number | null;
   /** ISO-8601 publish date ("YYYY-MM-DD") scraped from the watch page, or `null`. */
   datePosted: string | null;
+  /**
+   * The video's spoken/content language, normalized to ISO 639-1 where known, or `null`. Only
+   * available via the YouTube Data API (`defaultAudioLanguage`/`defaultLanguage`) — the watch-page
+   * scrape has no equivalent source.
+   */
+  languageCode: string | null;
   /**
    * Human-readable reasons a field could not be resolved (watch-page fetch failed, value absent or
    * unparseable). Empty when everything resolved. Surfaced so a partial result explains itself
@@ -108,6 +115,8 @@ interface WatchPageMeta {
   durationSeconds: number | null;
   description: string | null;
   datePosted: string | null;
+  /** Only ever set by the Data API path — the watch-page scrape has no language source. */
+  languageCode: string | null;
   warnings: string[];
 }
 
@@ -136,6 +145,7 @@ async function fetchWatchPageMeta(videoId: string): Promise<WatchPageMeta> {
       durationSeconds: null,
       description: null,
       datePosted: null,
+      languageCode: null,
       warnings,
     };
   }
@@ -181,6 +191,8 @@ async function fetchWatchPageMeta(videoId: string): Promise<WatchPageMeta> {
     durationSeconds,
     description: rawDescription ? decodeEntities(rawDescription).trim() || null : null,
     datePosted,
+    // The watch-page scrape has no language source; only the Data API path sets this.
+    languageCode: null,
     warnings,
   };
 }
@@ -215,7 +227,9 @@ async function fetchVideoViaApi(videoId: string): Promise<WatchPageMeta | null> 
     if (!res.ok) return null;
     const json = (await res.json()) as {
       items?: { snippet?: { publishedAt?: unknown;
-        description?: unknown; };
+        description?: unknown;
+        defaultAudioLanguage?: unknown;
+        defaultLanguage?: unknown; };
       contentDetails?: { duration?: unknown }; }[];
     };
     const item = json.items?.[0];
@@ -223,10 +237,14 @@ async function fetchVideoViaApi(videoId: string): Promise<WatchPageMeta | null> 
     const durationRaw = item.contentDetails?.duration;
     const dateRaw = item.snippet?.publishedAt;
     const descRaw = item.snippet?.description;
+    // `defaultAudioLanguage` describes what's spoken in the video and is the better signal;
+    // `defaultLanguage` (metadata language) is a fallback when it's absent.
+    const languageRaw = item.snippet?.defaultAudioLanguage ?? item.snippet?.defaultLanguage;
     return {
       durationSeconds: typeof durationRaw === "string" ? parseIsoDuration(durationRaw) : null,
       datePosted: typeof dateRaw === "string" ? normalizeDate(dateRaw) : null,
       description: typeof descRaw === "string" ? descRaw.trim() || null : null,
+      languageCode: typeof languageRaw === "string" ? normalizeLanguageCode(languageRaw) : null,
       warnings: [],
     };
   }
@@ -322,6 +340,7 @@ export async function fetchYouTubeMetadata(url: string): Promise<YouTubeMetadata
     channelUrl: channelUrl && isPublicHttpUrl(channelUrl) ? channelUrl : null,
     durationSeconds: watchPage.durationSeconds,
     datePosted: watchPage.datePosted,
+    languageCode: watchPage.languageCode,
     warnings,
   };
 }

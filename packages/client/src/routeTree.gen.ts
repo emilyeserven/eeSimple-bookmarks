@@ -45,6 +45,7 @@ import { Route as TaxonomiesMoviesRouteImport } from './routes/taxonomies.movies
 import { Route as TaxonomiesMediaTypesRouteImport } from './routes/taxonomies.media-types'
 import { Route as TaxonomiesMediaPropertiesRouteImport } from './routes/taxonomies.media-properties'
 import { Route as TaxonomiesLocationsRouteImport } from './routes/taxonomies.locations'
+import { Route as TaxonomiesLanguagesRouteImport } from './routes/taxonomies.languages'
 import { Route as TaxonomiesEpisodesRouteImport } from './routes/taxonomies.episodes'
 import { Route as TaxonomiesBooksRouteImport } from './routes/taxonomies.books'
 import { Route as TaxonomiesAuthorsRouteImport } from './routes/taxonomies.authors'
@@ -93,6 +94,7 @@ import { Route as TaxonomiesMoviesIndexRouteImport } from './routes/taxonomies.m
 import { Route as TaxonomiesMediaTypesIndexRouteImport } from './routes/taxonomies.media-types.index'
 import { Route as TaxonomiesMediaPropertiesIndexRouteImport } from './routes/taxonomies.media-properties.index'
 import { Route as TaxonomiesLocationsIndexRouteImport } from './routes/taxonomies.locations.index'
+import { Route as TaxonomiesLanguagesIndexRouteImport } from './routes/taxonomies.languages.index'
 import { Route as TaxonomiesEpisodesIndexRouteImport } from './routes/taxonomies.episodes.index'
 import { Route as TaxonomiesBooksIndexRouteImport } from './routes/taxonomies.books.index'
 import { Route as TaxonomiesAuthorsIndexRouteImport } from './routes/taxonomies.authors.index'
@@ -125,6 +127,7 @@ import { Route as TaxonomiesMediaTypesMediaTypeSlugRouteImport } from './routes/
 import { Route as TaxonomiesMediaPropertiesMediaPropertySlugRouteImport } from './routes/taxonomies.media-properties.$mediaPropertySlug'
 import { Route as TaxonomiesLocationsNewRouteImport } from './routes/taxonomies.locations.new'
 import { Route as TaxonomiesLocationsLocationSlugRouteImport } from './routes/taxonomies.locations.$locationSlug'
+import { Route as TaxonomiesLanguagesLanguageSlugRouteImport } from './routes/taxonomies.languages.$languageSlug'
 import { Route as TaxonomiesEpisodesEpisodeSlugRouteImport } from './routes/taxonomies.episodes.$episodeSlug'
 import { Route as TaxonomiesBooksBookSlugRouteImport } from './routes/taxonomies.books.$bookSlug'
 import { Route as TaxonomiesAuthorsAuthorSlugRouteImport } from './routes/taxonomies.authors.$authorSlug'
@@ -181,6 +184,7 @@ import { Route as TaxonomiesMoviesMovieSlugIndexRouteImport } from './routes/tax
 import { Route as TaxonomiesMediaTypesMediaTypeSlugIndexRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.index'
 import { Route as TaxonomiesMediaPropertiesMediaPropertySlugIndexRouteImport } from './routes/taxonomies.media-properties.$mediaPropertySlug.index'
 import { Route as TaxonomiesLocationsLocationSlugIndexRouteImport } from './routes/taxonomies.locations.$locationSlug.index'
+import { Route as TaxonomiesLanguagesLanguageSlugIndexRouteImport } from './routes/taxonomies.languages.$languageSlug.index'
 import { Route as TaxonomiesEpisodesEpisodeSlugIndexRouteImport } from './routes/taxonomies.episodes.$episodeSlug.index'
 import { Route as TaxonomiesBooksBookSlugIndexRouteImport } from './routes/taxonomies.books.$bookSlug.index'
 import { Route as TaxonomiesAuthorsAuthorSlugIndexRouteImport } from './routes/taxonomies.authors.$authorSlug.index'
@@ -220,6 +224,8 @@ import { Route as TaxonomiesMediaPropertiesMediaPropertySlugEditRouteImport } fr
 import { Route as TaxonomiesMediaPropertiesMediaPropertySlugViewRouteImport } from './routes/taxonomies.media-properties.$mediaPropertySlug._view'
 import { Route as TaxonomiesLocationsLocationSlugEditRouteImport } from './routes/taxonomies.locations.$locationSlug.edit'
 import { Route as TaxonomiesLocationsLocationSlugViewRouteImport } from './routes/taxonomies.locations.$locationSlug._view'
+import { Route as TaxonomiesLanguagesLanguageSlugEditRouteImport } from './routes/taxonomies.languages.$languageSlug.edit'
+import { Route as TaxonomiesLanguagesLanguageSlugViewRouteImport } from './routes/taxonomies.languages.$languageSlug._view'
 import { Route as TaxonomiesEpisodesEpisodeSlugEditRouteImport } from './routes/taxonomies.episodes.$episodeSlug.edit'
 import { Route as TaxonomiesEpisodesEpisodeSlugViewRouteImport } from './routes/taxonomies.episodes.$episodeSlug._view'
 import { Route as TaxonomiesBooksBookSlugEditRouteImport } from './routes/taxonomies.books.$bookSlug.edit'
@@ -301,6 +307,7 @@ import { Route as TaxonomiesMoviesMovieSlugEditIndexRouteImport } from './routes
 import { Route as TaxonomiesMediaTypesMediaTypeSlugEditIndexRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit.index'
 import { Route as TaxonomiesMediaPropertiesMediaPropertySlugEditIndexRouteImport } from './routes/taxonomies.media-properties.$mediaPropertySlug.edit.index'
 import { Route as TaxonomiesLocationsLocationSlugEditIndexRouteImport } from './routes/taxonomies.locations.$locationSlug.edit.index'
+import { Route as TaxonomiesLanguagesLanguageSlugEditIndexRouteImport } from './routes/taxonomies.languages.$languageSlug.edit.index'
 import { Route as TaxonomiesEpisodesEpisodeSlugEditIndexRouteImport } from './routes/taxonomies.episodes.$episodeSlug.edit.index'
 import { Route as TaxonomiesBooksBookSlugEditIndexRouteImport } from './routes/taxonomies.books.$bookSlug.edit.index'
 import { Route as TaxonomiesArtistsArtistSlugEditIndexRouteImport } from './routes/taxonomies.artists.$artistSlug.edit.index'
@@ -360,6 +367,8 @@ import { Route as TaxonomiesLocationsLocationSlugViewGeneralRouteImport } from '
 import { Route as TaxonomiesLocationsLocationSlugViewGalleryRouteImport } from './routes/taxonomies.locations.$locationSlug._view.gallery'
 import { Route as TaxonomiesLocationsLocationSlugViewDisplayRulesRouteImport } from './routes/taxonomies.locations.$locationSlug._view.display-rules'
 import { Route as TaxonomiesLocationsLocationSlugViewAutofillRouteImport } from './routes/taxonomies.locations.$locationSlug._view.autofill'
+import { Route as TaxonomiesLanguagesLanguageSlugEditGeneralRouteImport } from './routes/taxonomies.languages.$languageSlug.edit.general'
+import { Route as TaxonomiesLanguagesLanguageSlugViewGeneralRouteImport } from './routes/taxonomies.languages.$languageSlug._view.general'
 import { Route as TaxonomiesEpisodesEpisodeSlugEditGeneralRouteImport } from './routes/taxonomies.episodes.$episodeSlug.edit.general'
 import { Route as TaxonomiesEpisodesEpisodeSlugViewGeneralRouteImport } from './routes/taxonomies.episodes.$episodeSlug._view.general'
 import { Route as TaxonomiesBooksBookSlugEditGeneralRouteImport } from './routes/taxonomies.books.$bookSlug.edit.general'
@@ -559,6 +568,11 @@ const TaxonomiesMediaPropertiesRoute =
 const TaxonomiesLocationsRoute = TaxonomiesLocationsRouteImport.update({
   id: '/taxonomies/locations',
   path: '/taxonomies/locations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaxonomiesLanguagesRoute = TaxonomiesLanguagesRouteImport.update({
+  id: '/taxonomies/languages',
+  path: '/taxonomies/languages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TaxonomiesEpisodesRoute = TaxonomiesEpisodesRouteImport.update({
@@ -814,6 +828,12 @@ const TaxonomiesLocationsIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesLocationsRoute,
   } as any)
+const TaxonomiesLanguagesIndexRoute =
+  TaxonomiesLanguagesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesLanguagesRoute,
+  } as any)
 const TaxonomiesEpisodesIndexRoute = TaxonomiesEpisodesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -993,6 +1013,12 @@ const TaxonomiesLocationsLocationSlugRoute =
     id: '/$locationSlug',
     path: '/$locationSlug',
     getParentRoute: () => TaxonomiesLocationsRoute,
+  } as any)
+const TaxonomiesLanguagesLanguageSlugRoute =
+  TaxonomiesLanguagesLanguageSlugRouteImport.update({
+    id: '/$languageSlug',
+    path: '/$languageSlug',
+    getParentRoute: () => TaxonomiesLanguagesRoute,
   } as any)
 const TaxonomiesEpisodesEpisodeSlugRoute =
   TaxonomiesEpisodesEpisodeSlugRouteImport.update({
@@ -1306,6 +1332,12 @@ const TaxonomiesLocationsLocationSlugIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesLocationsLocationSlugRoute,
   } as any)
+const TaxonomiesLanguagesLanguageSlugIndexRoute =
+  TaxonomiesLanguagesLanguageSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesLanguagesLanguageSlugRoute,
+  } as any)
 const TaxonomiesEpisodesEpisodeSlugIndexRoute =
   TaxonomiesEpisodesEpisodeSlugIndexRouteImport.update({
     id: '/',
@@ -1525,6 +1557,17 @@ const TaxonomiesLocationsLocationSlugViewRoute =
   TaxonomiesLocationsLocationSlugViewRouteImport.update({
     id: '/_view',
     getParentRoute: () => TaxonomiesLocationsLocationSlugRoute,
+  } as any)
+const TaxonomiesLanguagesLanguageSlugEditRoute =
+  TaxonomiesLanguagesLanguageSlugEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => TaxonomiesLanguagesLanguageSlugRoute,
+  } as any)
+const TaxonomiesLanguagesLanguageSlugViewRoute =
+  TaxonomiesLanguagesLanguageSlugViewRouteImport.update({
+    id: '/_view',
+    getParentRoute: () => TaxonomiesLanguagesLanguageSlugRoute,
   } as any)
 const TaxonomiesEpisodesEpisodeSlugEditRoute =
   TaxonomiesEpisodesEpisodeSlugEditRouteImport.update({
@@ -2004,6 +2047,12 @@ const TaxonomiesLocationsLocationSlugEditIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesLocationsLocationSlugEditRoute,
   } as any)
+const TaxonomiesLanguagesLanguageSlugEditIndexRoute =
+  TaxonomiesLanguagesLanguageSlugEditIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesLanguagesLanguageSlugEditRoute,
+  } as any)
 const TaxonomiesEpisodesEpisodeSlugEditIndexRoute =
   TaxonomiesEpisodesEpisodeSlugEditIndexRouteImport.update({
     id: '/',
@@ -2360,6 +2409,18 @@ const TaxonomiesLocationsLocationSlugViewAutofillRoute =
     path: '/autofill',
     getParentRoute: () => TaxonomiesLocationsLocationSlugViewRoute,
   } as any)
+const TaxonomiesLanguagesLanguageSlugEditGeneralRoute =
+  TaxonomiesLanguagesLanguageSlugEditGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () => TaxonomiesLanguagesLanguageSlugEditRoute,
+  } as any)
+const TaxonomiesLanguagesLanguageSlugViewGeneralRoute =
+  TaxonomiesLanguagesLanguageSlugViewGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () => TaxonomiesLanguagesLanguageSlugViewRoute,
+  } as any)
 const TaxonomiesEpisodesEpisodeSlugEditGeneralRoute =
   TaxonomiesEpisodesEpisodeSlugEditGeneralRouteImport.update({
     id: '/general',
@@ -2506,6 +2567,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/authors': typeof TaxonomiesAuthorsRouteWithChildren
   '/taxonomies/books': typeof TaxonomiesBooksRouteWithChildren
   '/taxonomies/episodes': typeof TaxonomiesEpisodesRouteWithChildren
+  '/taxonomies/languages': typeof TaxonomiesLanguagesRouteWithChildren
   '/taxonomies/locations': typeof TaxonomiesLocationsRouteWithChildren
   '/taxonomies/media-properties': typeof TaxonomiesMediaPropertiesRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
@@ -2565,6 +2627,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugViewRouteWithChildren
   '/taxonomies/books/$bookSlug': typeof TaxonomiesBooksBookSlugViewRouteWithChildren
   '/taxonomies/episodes/$episodeSlug': typeof TaxonomiesEpisodesEpisodeSlugViewRouteWithChildren
+  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugViewRouteWithChildren
   '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugViewRouteWithChildren
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/taxonomies/media-properties/$mediaPropertySlug': typeof TaxonomiesMediaPropertiesMediaPropertySlugViewRouteWithChildren
@@ -2597,6 +2660,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/books/': typeof TaxonomiesBooksIndexRoute
   '/taxonomies/episodes/': typeof TaxonomiesEpisodesIndexRoute
+  '/taxonomies/languages/': typeof TaxonomiesLanguagesIndexRoute
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-properties/': typeof TaxonomiesMediaPropertiesIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
@@ -2674,6 +2738,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/authors/$authorSlug/edit': typeof TaxonomiesAuthorsAuthorSlugEditRouteWithChildren
   '/taxonomies/books/$bookSlug/edit': typeof TaxonomiesBooksBookSlugEditRouteWithChildren
   '/taxonomies/episodes/$episodeSlug/edit': typeof TaxonomiesEpisodesEpisodeSlugEditRouteWithChildren
+  '/taxonomies/languages/$languageSlug/edit': typeof TaxonomiesLanguagesLanguageSlugEditRouteWithChildren
   '/taxonomies/locations/$locationSlug/edit': typeof TaxonomiesLocationsLocationSlugEditRouteWithChildren
   '/taxonomies/media-properties/$mediaPropertySlug/edit': typeof TaxonomiesMediaPropertiesMediaPropertySlugEditRouteWithChildren
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditRouteWithChildren
@@ -2700,6 +2765,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/authors/$authorSlug/': typeof TaxonomiesAuthorsAuthorSlugIndexRoute
   '/taxonomies/books/$bookSlug/': typeof TaxonomiesBooksBookSlugIndexRoute
   '/taxonomies/episodes/$episodeSlug/': typeof TaxonomiesEpisodesEpisodeSlugIndexRoute
+  '/taxonomies/languages/$languageSlug/': typeof TaxonomiesLanguagesLanguageSlugIndexRoute
   '/taxonomies/locations/$locationSlug/': typeof TaxonomiesLocationsLocationSlugIndexRoute
   '/taxonomies/media-properties/$mediaPropertySlug/': typeof TaxonomiesMediaPropertiesMediaPropertySlugIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
@@ -2729,6 +2795,8 @@ export interface FileRoutesByFullPath {
   '/taxonomies/books/$bookSlug/edit/general': typeof TaxonomiesBooksBookSlugEditGeneralRoute
   '/taxonomies/episodes/$episodeSlug/general': typeof TaxonomiesEpisodesEpisodeSlugViewGeneralRoute
   '/taxonomies/episodes/$episodeSlug/edit/general': typeof TaxonomiesEpisodesEpisodeSlugEditGeneralRoute
+  '/taxonomies/languages/$languageSlug/general': typeof TaxonomiesLanguagesLanguageSlugViewGeneralRoute
+  '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/autofill': typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
   '/taxonomies/locations/$locationSlug/display-rules': typeof TaxonomiesLocationsLocationSlugViewDisplayRulesRoute
   '/taxonomies/locations/$locationSlug/gallery': typeof TaxonomiesLocationsLocationSlugViewGalleryRoute
@@ -2788,6 +2856,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/artists/$artistSlug/edit/': typeof TaxonomiesArtistsArtistSlugEditIndexRoute
   '/taxonomies/books/$bookSlug/edit/': typeof TaxonomiesBooksBookSlugEditIndexRoute
   '/taxonomies/episodes/$episodeSlug/edit/': typeof TaxonomiesEpisodesEpisodeSlugEditIndexRoute
+  '/taxonomies/languages/$languageSlug/edit/': typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
   '/taxonomies/locations/$locationSlug/edit/': typeof TaxonomiesLocationsLocationSlugEditIndexRoute
   '/taxonomies/media-properties/$mediaPropertySlug/edit/': typeof TaxonomiesMediaPropertiesMediaPropertySlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
@@ -2874,6 +2943,7 @@ export interface FileRoutesByTo {
   '/taxonomies/authors': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/books': typeof TaxonomiesBooksIndexRoute
   '/taxonomies/episodes': typeof TaxonomiesEpisodesIndexRoute
+  '/taxonomies/languages': typeof TaxonomiesLanguagesIndexRoute
   '/taxonomies/locations': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-properties': typeof TaxonomiesMediaPropertiesIndexRoute
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesIndexRoute
@@ -2952,6 +3022,7 @@ export interface FileRoutesByTo {
   '/taxonomies/authors/$authorSlug/edit': typeof TaxonomiesAuthorsAuthorSlugEditRouteWithChildren
   '/taxonomies/books/$bookSlug': typeof TaxonomiesBooksBookSlugIndexRoute
   '/taxonomies/episodes/$episodeSlug': typeof TaxonomiesEpisodesEpisodeSlugIndexRoute
+  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugIndexRoute
   '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugIndexRoute
   '/taxonomies/media-properties/$mediaPropertySlug': typeof TaxonomiesMediaPropertiesMediaPropertySlugIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
@@ -2990,6 +3061,8 @@ export interface FileRoutesByTo {
   '/taxonomies/books/$bookSlug/edit/general': typeof TaxonomiesBooksBookSlugEditGeneralRoute
   '/taxonomies/episodes/$episodeSlug/general': typeof TaxonomiesEpisodesEpisodeSlugViewGeneralRoute
   '/taxonomies/episodes/$episodeSlug/edit/general': typeof TaxonomiesEpisodesEpisodeSlugEditGeneralRoute
+  '/taxonomies/languages/$languageSlug/general': typeof TaxonomiesLanguagesLanguageSlugViewGeneralRoute
+  '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/autofill': typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
   '/taxonomies/locations/$locationSlug/display-rules': typeof TaxonomiesLocationsLocationSlugViewDisplayRulesRoute
   '/taxonomies/locations/$locationSlug/gallery': typeof TaxonomiesLocationsLocationSlugViewGalleryRoute
@@ -3049,6 +3122,7 @@ export interface FileRoutesByTo {
   '/taxonomies/artists/$artistSlug/edit': typeof TaxonomiesArtistsArtistSlugEditIndexRoute
   '/taxonomies/books/$bookSlug/edit': typeof TaxonomiesBooksBookSlugEditIndexRoute
   '/taxonomies/episodes/$episodeSlug/edit': typeof TaxonomiesEpisodesEpisodeSlugEditIndexRoute
+  '/taxonomies/languages/$languageSlug/edit': typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
   '/taxonomies/locations/$locationSlug/edit': typeof TaxonomiesLocationsLocationSlugEditIndexRoute
   '/taxonomies/media-properties/$mediaPropertySlug/edit': typeof TaxonomiesMediaPropertiesMediaPropertySlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
@@ -3112,6 +3186,7 @@ export interface FileRoutesById {
   '/taxonomies/authors': typeof TaxonomiesAuthorsRouteWithChildren
   '/taxonomies/books': typeof TaxonomiesBooksRouteWithChildren
   '/taxonomies/episodes': typeof TaxonomiesEpisodesRouteWithChildren
+  '/taxonomies/languages': typeof TaxonomiesLanguagesRouteWithChildren
   '/taxonomies/locations': typeof TaxonomiesLocationsRouteWithChildren
   '/taxonomies/media-properties': typeof TaxonomiesMediaPropertiesRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
@@ -3178,6 +3253,7 @@ export interface FileRoutesById {
   '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugRouteWithChildren
   '/taxonomies/books/$bookSlug': typeof TaxonomiesBooksBookSlugRouteWithChildren
   '/taxonomies/episodes/$episodeSlug': typeof TaxonomiesEpisodesEpisodeSlugRouteWithChildren
+  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugRouteWithChildren
   '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugRouteWithChildren
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/taxonomies/media-properties/$mediaPropertySlug': typeof TaxonomiesMediaPropertiesMediaPropertySlugRouteWithChildren
@@ -3210,6 +3286,7 @@ export interface FileRoutesById {
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/books/': typeof TaxonomiesBooksIndexRoute
   '/taxonomies/episodes/': typeof TaxonomiesEpisodesIndexRoute
+  '/taxonomies/languages/': typeof TaxonomiesLanguagesIndexRoute
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-properties/': typeof TaxonomiesMediaPropertiesIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
@@ -3292,6 +3369,8 @@ export interface FileRoutesById {
   '/taxonomies/books/$bookSlug/edit': typeof TaxonomiesBooksBookSlugEditRouteWithChildren
   '/taxonomies/episodes/$episodeSlug/_view': typeof TaxonomiesEpisodesEpisodeSlugViewRouteWithChildren
   '/taxonomies/episodes/$episodeSlug/edit': typeof TaxonomiesEpisodesEpisodeSlugEditRouteWithChildren
+  '/taxonomies/languages/$languageSlug/_view': typeof TaxonomiesLanguagesLanguageSlugViewRouteWithChildren
+  '/taxonomies/languages/$languageSlug/edit': typeof TaxonomiesLanguagesLanguageSlugEditRouteWithChildren
   '/taxonomies/locations/$locationSlug/_view': typeof TaxonomiesLocationsLocationSlugViewRouteWithChildren
   '/taxonomies/locations/$locationSlug/edit': typeof TaxonomiesLocationsLocationSlugEditRouteWithChildren
   '/taxonomies/media-properties/$mediaPropertySlug/_view': typeof TaxonomiesMediaPropertiesMediaPropertySlugViewRouteWithChildren
@@ -3331,6 +3410,7 @@ export interface FileRoutesById {
   '/taxonomies/authors/$authorSlug/': typeof TaxonomiesAuthorsAuthorSlugIndexRoute
   '/taxonomies/books/$bookSlug/': typeof TaxonomiesBooksBookSlugIndexRoute
   '/taxonomies/episodes/$episodeSlug/': typeof TaxonomiesEpisodesEpisodeSlugIndexRoute
+  '/taxonomies/languages/$languageSlug/': typeof TaxonomiesLanguagesLanguageSlugIndexRoute
   '/taxonomies/locations/$locationSlug/': typeof TaxonomiesLocationsLocationSlugIndexRoute
   '/taxonomies/media-properties/$mediaPropertySlug/': typeof TaxonomiesMediaPropertiesMediaPropertySlugIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
@@ -3360,6 +3440,8 @@ export interface FileRoutesById {
   '/taxonomies/books/$bookSlug/edit/general': typeof TaxonomiesBooksBookSlugEditGeneralRoute
   '/taxonomies/episodes/$episodeSlug/_view/general': typeof TaxonomiesEpisodesEpisodeSlugViewGeneralRoute
   '/taxonomies/episodes/$episodeSlug/edit/general': typeof TaxonomiesEpisodesEpisodeSlugEditGeneralRoute
+  '/taxonomies/languages/$languageSlug/_view/general': typeof TaxonomiesLanguagesLanguageSlugViewGeneralRoute
+  '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/_view/autofill': typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
   '/taxonomies/locations/$locationSlug/_view/display-rules': typeof TaxonomiesLocationsLocationSlugViewDisplayRulesRoute
   '/taxonomies/locations/$locationSlug/_view/gallery': typeof TaxonomiesLocationsLocationSlugViewGalleryRoute
@@ -3419,6 +3501,7 @@ export interface FileRoutesById {
   '/taxonomies/artists/$artistSlug/edit/': typeof TaxonomiesArtistsArtistSlugEditIndexRoute
   '/taxonomies/books/$bookSlug/edit/': typeof TaxonomiesBooksBookSlugEditIndexRoute
   '/taxonomies/episodes/$episodeSlug/edit/': typeof TaxonomiesEpisodesEpisodeSlugEditIndexRoute
+  '/taxonomies/languages/$languageSlug/edit/': typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
   '/taxonomies/locations/$locationSlug/edit/': typeof TaxonomiesLocationsLocationSlugEditIndexRoute
   '/taxonomies/media-properties/$mediaPropertySlug/edit/': typeof TaxonomiesMediaPropertiesMediaPropertySlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
@@ -3483,6 +3566,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors'
     | '/taxonomies/books'
     | '/taxonomies/episodes'
+    | '/taxonomies/languages'
     | '/taxonomies/locations'
     | '/taxonomies/media-properties'
     | '/taxonomies/media-types'
@@ -3542,6 +3626,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/$authorSlug'
     | '/taxonomies/books/$bookSlug'
     | '/taxonomies/episodes/$episodeSlug'
+    | '/taxonomies/languages/$languageSlug'
     | '/taxonomies/locations/$locationSlug'
     | '/taxonomies/locations/new'
     | '/taxonomies/media-properties/$mediaPropertySlug'
@@ -3574,6 +3659,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/'
     | '/taxonomies/books/'
     | '/taxonomies/episodes/'
+    | '/taxonomies/languages/'
     | '/taxonomies/locations/'
     | '/taxonomies/media-properties/'
     | '/taxonomies/media-types/'
@@ -3651,6 +3737,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/$authorSlug/edit'
     | '/taxonomies/books/$bookSlug/edit'
     | '/taxonomies/episodes/$episodeSlug/edit'
+    | '/taxonomies/languages/$languageSlug/edit'
     | '/taxonomies/locations/$locationSlug/edit'
     | '/taxonomies/media-properties/$mediaPropertySlug/edit'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
@@ -3677,6 +3764,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/$authorSlug/'
     | '/taxonomies/books/$bookSlug/'
     | '/taxonomies/episodes/$episodeSlug/'
+    | '/taxonomies/languages/$languageSlug/'
     | '/taxonomies/locations/$locationSlug/'
     | '/taxonomies/media-properties/$mediaPropertySlug/'
     | '/taxonomies/media-types/$mediaTypeSlug/'
@@ -3706,6 +3794,8 @@ export interface FileRouteTypes {
     | '/taxonomies/books/$bookSlug/edit/general'
     | '/taxonomies/episodes/$episodeSlug/general'
     | '/taxonomies/episodes/$episodeSlug/edit/general'
+    | '/taxonomies/languages/$languageSlug/general'
+    | '/taxonomies/languages/$languageSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/autofill'
     | '/taxonomies/locations/$locationSlug/display-rules'
     | '/taxonomies/locations/$locationSlug/gallery'
@@ -3765,6 +3855,7 @@ export interface FileRouteTypes {
     | '/taxonomies/artists/$artistSlug/edit/'
     | '/taxonomies/books/$bookSlug/edit/'
     | '/taxonomies/episodes/$episodeSlug/edit/'
+    | '/taxonomies/languages/$languageSlug/edit/'
     | '/taxonomies/locations/$locationSlug/edit/'
     | '/taxonomies/media-properties/$mediaPropertySlug/edit/'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/'
@@ -3851,6 +3942,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors'
     | '/taxonomies/books'
     | '/taxonomies/episodes'
+    | '/taxonomies/languages'
     | '/taxonomies/locations'
     | '/taxonomies/media-properties'
     | '/taxonomies/media-types'
@@ -3929,6 +4021,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/$authorSlug/edit'
     | '/taxonomies/books/$bookSlug'
     | '/taxonomies/episodes/$episodeSlug'
+    | '/taxonomies/languages/$languageSlug'
     | '/taxonomies/locations/$locationSlug'
     | '/taxonomies/media-properties/$mediaPropertySlug'
     | '/taxonomies/media-types/$mediaTypeSlug'
@@ -3967,6 +4060,8 @@ export interface FileRouteTypes {
     | '/taxonomies/books/$bookSlug/edit/general'
     | '/taxonomies/episodes/$episodeSlug/general'
     | '/taxonomies/episodes/$episodeSlug/edit/general'
+    | '/taxonomies/languages/$languageSlug/general'
+    | '/taxonomies/languages/$languageSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/autofill'
     | '/taxonomies/locations/$locationSlug/display-rules'
     | '/taxonomies/locations/$locationSlug/gallery'
@@ -4026,6 +4121,7 @@ export interface FileRouteTypes {
     | '/taxonomies/artists/$artistSlug/edit'
     | '/taxonomies/books/$bookSlug/edit'
     | '/taxonomies/episodes/$episodeSlug/edit'
+    | '/taxonomies/languages/$languageSlug/edit'
     | '/taxonomies/locations/$locationSlug/edit'
     | '/taxonomies/media-properties/$mediaPropertySlug/edit'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
@@ -4088,6 +4184,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors'
     | '/taxonomies/books'
     | '/taxonomies/episodes'
+    | '/taxonomies/languages'
     | '/taxonomies/locations'
     | '/taxonomies/media-properties'
     | '/taxonomies/media-types'
@@ -4154,6 +4251,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/$authorSlug'
     | '/taxonomies/books/$bookSlug'
     | '/taxonomies/episodes/$episodeSlug'
+    | '/taxonomies/languages/$languageSlug'
     | '/taxonomies/locations/$locationSlug'
     | '/taxonomies/locations/new'
     | '/taxonomies/media-properties/$mediaPropertySlug'
@@ -4186,6 +4284,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/'
     | '/taxonomies/books/'
     | '/taxonomies/episodes/'
+    | '/taxonomies/languages/'
     | '/taxonomies/locations/'
     | '/taxonomies/media-properties/'
     | '/taxonomies/media-types/'
@@ -4268,6 +4367,8 @@ export interface FileRouteTypes {
     | '/taxonomies/books/$bookSlug/edit'
     | '/taxonomies/episodes/$episodeSlug/_view'
     | '/taxonomies/episodes/$episodeSlug/edit'
+    | '/taxonomies/languages/$languageSlug/_view'
+    | '/taxonomies/languages/$languageSlug/edit'
     | '/taxonomies/locations/$locationSlug/_view'
     | '/taxonomies/locations/$locationSlug/edit'
     | '/taxonomies/media-properties/$mediaPropertySlug/_view'
@@ -4307,6 +4408,7 @@ export interface FileRouteTypes {
     | '/taxonomies/authors/$authorSlug/'
     | '/taxonomies/books/$bookSlug/'
     | '/taxonomies/episodes/$episodeSlug/'
+    | '/taxonomies/languages/$languageSlug/'
     | '/taxonomies/locations/$locationSlug/'
     | '/taxonomies/media-properties/$mediaPropertySlug/'
     | '/taxonomies/media-types/$mediaTypeSlug/'
@@ -4336,6 +4438,8 @@ export interface FileRouteTypes {
     | '/taxonomies/books/$bookSlug/edit/general'
     | '/taxonomies/episodes/$episodeSlug/_view/general'
     | '/taxonomies/episodes/$episodeSlug/edit/general'
+    | '/taxonomies/languages/$languageSlug/_view/general'
+    | '/taxonomies/languages/$languageSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/_view/autofill'
     | '/taxonomies/locations/$locationSlug/_view/display-rules'
     | '/taxonomies/locations/$locationSlug/_view/gallery'
@@ -4395,6 +4499,7 @@ export interface FileRouteTypes {
     | '/taxonomies/artists/$artistSlug/edit/'
     | '/taxonomies/books/$bookSlug/edit/'
     | '/taxonomies/episodes/$episodeSlug/edit/'
+    | '/taxonomies/languages/$languageSlug/edit/'
     | '/taxonomies/locations/$locationSlug/edit/'
     | '/taxonomies/media-properties/$mediaPropertySlug/edit/'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/'
@@ -4428,6 +4533,7 @@ export interface RootRouteChildren {
   TaxonomiesAuthorsRoute: typeof TaxonomiesAuthorsRouteWithChildren
   TaxonomiesBooksRoute: typeof TaxonomiesBooksRouteWithChildren
   TaxonomiesEpisodesRoute: typeof TaxonomiesEpisodesRouteWithChildren
+  TaxonomiesLanguagesRoute: typeof TaxonomiesLanguagesRouteWithChildren
   TaxonomiesLocationsRoute: typeof TaxonomiesLocationsRouteWithChildren
   TaxonomiesMediaPropertiesRoute: typeof TaxonomiesMediaPropertiesRouteWithChildren
   TaxonomiesMediaTypesRoute: typeof TaxonomiesMediaTypesRouteWithChildren
@@ -4695,6 +4801,13 @@ declare module '@tanstack/react-router' {
       path: '/taxonomies/locations'
       fullPath: '/taxonomies/locations'
       preLoaderRoute: typeof TaxonomiesLocationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxonomies/languages': {
+      id: '/taxonomies/languages'
+      path: '/taxonomies/languages'
+      fullPath: '/taxonomies/languages'
+      preLoaderRoute: typeof TaxonomiesLanguagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/taxonomies/episodes': {
@@ -5033,6 +5146,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLocationsIndexRouteImport
       parentRoute: typeof TaxonomiesLocationsRoute
     }
+    '/taxonomies/languages/': {
+      id: '/taxonomies/languages/'
+      path: '/'
+      fullPath: '/taxonomies/languages/'
+      preLoaderRoute: typeof TaxonomiesLanguagesIndexRouteImport
+      parentRoute: typeof TaxonomiesLanguagesRoute
+    }
     '/taxonomies/episodes/': {
       id: '/taxonomies/episodes/'
       path: '/'
@@ -5256,6 +5376,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/locations/$locationSlug'
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugRouteImport
       parentRoute: typeof TaxonomiesLocationsRoute
+    }
+    '/taxonomies/languages/$languageSlug': {
+      id: '/taxonomies/languages/$languageSlug'
+      path: '/$languageSlug'
+      fullPath: '/taxonomies/languages/$languageSlug'
+      preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugRouteImport
+      parentRoute: typeof TaxonomiesLanguagesRoute
     }
     '/taxonomies/episodes/$episodeSlug': {
       id: '/taxonomies/episodes/$episodeSlug'
@@ -5649,6 +5776,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugIndexRouteImport
       parentRoute: typeof TaxonomiesLocationsLocationSlugRoute
     }
+    '/taxonomies/languages/$languageSlug/': {
+      id: '/taxonomies/languages/$languageSlug/'
+      path: '/'
+      fullPath: '/taxonomies/languages/$languageSlug/'
+      preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugIndexRouteImport
+      parentRoute: typeof TaxonomiesLanguagesLanguageSlugRoute
+    }
     '/taxonomies/episodes/$episodeSlug/': {
       id: '/taxonomies/episodes/$episodeSlug/'
       path: '/'
@@ -5921,6 +6055,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/locations/$locationSlug'
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugViewRouteImport
       parentRoute: typeof TaxonomiesLocationsLocationSlugRoute
+    }
+    '/taxonomies/languages/$languageSlug/edit': {
+      id: '/taxonomies/languages/$languageSlug/edit'
+      path: '/edit'
+      fullPath: '/taxonomies/languages/$languageSlug/edit'
+      preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugEditRouteImport
+      parentRoute: typeof TaxonomiesLanguagesLanguageSlugRoute
+    }
+    '/taxonomies/languages/$languageSlug/_view': {
+      id: '/taxonomies/languages/$languageSlug/_view'
+      path: ''
+      fullPath: '/taxonomies/languages/$languageSlug'
+      preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugViewRouteImport
+      parentRoute: typeof TaxonomiesLanguagesLanguageSlugRoute
     }
     '/taxonomies/episodes/$episodeSlug/edit': {
       id: '/taxonomies/episodes/$episodeSlug/edit'
@@ -6489,6 +6637,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugEditIndexRouteImport
       parentRoute: typeof TaxonomiesLocationsLocationSlugEditRoute
     }
+    '/taxonomies/languages/$languageSlug/edit/': {
+      id: '/taxonomies/languages/$languageSlug/edit/'
+      path: '/'
+      fullPath: '/taxonomies/languages/$languageSlug/edit/'
+      preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugEditIndexRouteImport
+      parentRoute: typeof TaxonomiesLanguagesLanguageSlugEditRoute
+    }
     '/taxonomies/episodes/$episodeSlug/edit/': {
       id: '/taxonomies/episodes/$episodeSlug/edit/'
       path: '/'
@@ -6901,6 +7056,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/locations/$locationSlug/autofill'
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugViewAutofillRouteImport
       parentRoute: typeof TaxonomiesLocationsLocationSlugViewRoute
+    }
+    '/taxonomies/languages/$languageSlug/edit/general': {
+      id: '/taxonomies/languages/$languageSlug/edit/general'
+      path: '/general'
+      fullPath: '/taxonomies/languages/$languageSlug/edit/general'
+      preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugEditGeneralRouteImport
+      parentRoute: typeof TaxonomiesLanguagesLanguageSlugEditRoute
+    }
+    '/taxonomies/languages/$languageSlug/_view/general': {
+      id: '/taxonomies/languages/$languageSlug/_view/general'
+      path: '/general'
+      fullPath: '/taxonomies/languages/$languageSlug/general'
+      preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugViewGeneralRouteImport
+      parentRoute: typeof TaxonomiesLanguagesLanguageSlugViewRoute
     }
     '/taxonomies/episodes/$episodeSlug/edit/general': {
       id: '/taxonomies/episodes/$episodeSlug/edit/general'
@@ -8131,6 +8300,74 @@ const TaxonomiesEpisodesRouteChildren: TaxonomiesEpisodesRouteChildren = {
 const TaxonomiesEpisodesRouteWithChildren =
   TaxonomiesEpisodesRoute._addFileChildren(TaxonomiesEpisodesRouteChildren)
 
+interface TaxonomiesLanguagesLanguageSlugViewRouteChildren {
+  TaxonomiesLanguagesLanguageSlugViewGeneralRoute: typeof TaxonomiesLanguagesLanguageSlugViewGeneralRoute
+}
+
+const TaxonomiesLanguagesLanguageSlugViewRouteChildren: TaxonomiesLanguagesLanguageSlugViewRouteChildren =
+  {
+    TaxonomiesLanguagesLanguageSlugViewGeneralRoute:
+      TaxonomiesLanguagesLanguageSlugViewGeneralRoute,
+  }
+
+const TaxonomiesLanguagesLanguageSlugViewRouteWithChildren =
+  TaxonomiesLanguagesLanguageSlugViewRoute._addFileChildren(
+    TaxonomiesLanguagesLanguageSlugViewRouteChildren,
+  )
+
+interface TaxonomiesLanguagesLanguageSlugEditRouteChildren {
+  TaxonomiesLanguagesLanguageSlugEditGeneralRoute: typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
+  TaxonomiesLanguagesLanguageSlugEditIndexRoute: typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
+}
+
+const TaxonomiesLanguagesLanguageSlugEditRouteChildren: TaxonomiesLanguagesLanguageSlugEditRouteChildren =
+  {
+    TaxonomiesLanguagesLanguageSlugEditGeneralRoute:
+      TaxonomiesLanguagesLanguageSlugEditGeneralRoute,
+    TaxonomiesLanguagesLanguageSlugEditIndexRoute:
+      TaxonomiesLanguagesLanguageSlugEditIndexRoute,
+  }
+
+const TaxonomiesLanguagesLanguageSlugEditRouteWithChildren =
+  TaxonomiesLanguagesLanguageSlugEditRoute._addFileChildren(
+    TaxonomiesLanguagesLanguageSlugEditRouteChildren,
+  )
+
+interface TaxonomiesLanguagesLanguageSlugRouteChildren {
+  TaxonomiesLanguagesLanguageSlugViewRoute: typeof TaxonomiesLanguagesLanguageSlugViewRouteWithChildren
+  TaxonomiesLanguagesLanguageSlugEditRoute: typeof TaxonomiesLanguagesLanguageSlugEditRouteWithChildren
+  TaxonomiesLanguagesLanguageSlugIndexRoute: typeof TaxonomiesLanguagesLanguageSlugIndexRoute
+}
+
+const TaxonomiesLanguagesLanguageSlugRouteChildren: TaxonomiesLanguagesLanguageSlugRouteChildren =
+  {
+    TaxonomiesLanguagesLanguageSlugViewRoute:
+      TaxonomiesLanguagesLanguageSlugViewRouteWithChildren,
+    TaxonomiesLanguagesLanguageSlugEditRoute:
+      TaxonomiesLanguagesLanguageSlugEditRouteWithChildren,
+    TaxonomiesLanguagesLanguageSlugIndexRoute:
+      TaxonomiesLanguagesLanguageSlugIndexRoute,
+  }
+
+const TaxonomiesLanguagesLanguageSlugRouteWithChildren =
+  TaxonomiesLanguagesLanguageSlugRoute._addFileChildren(
+    TaxonomiesLanguagesLanguageSlugRouteChildren,
+  )
+
+interface TaxonomiesLanguagesRouteChildren {
+  TaxonomiesLanguagesLanguageSlugRoute: typeof TaxonomiesLanguagesLanguageSlugRouteWithChildren
+  TaxonomiesLanguagesIndexRoute: typeof TaxonomiesLanguagesIndexRoute
+}
+
+const TaxonomiesLanguagesRouteChildren: TaxonomiesLanguagesRouteChildren = {
+  TaxonomiesLanguagesLanguageSlugRoute:
+    TaxonomiesLanguagesLanguageSlugRouteWithChildren,
+  TaxonomiesLanguagesIndexRoute: TaxonomiesLanguagesIndexRoute,
+}
+
+const TaxonomiesLanguagesRouteWithChildren =
+  TaxonomiesLanguagesRoute._addFileChildren(TaxonomiesLanguagesRouteChildren)
+
 interface TaxonomiesLocationsLocationSlugViewRouteChildren {
   TaxonomiesLocationsLocationSlugViewAutofillRoute: typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
   TaxonomiesLocationsLocationSlugViewDisplayRulesRoute: typeof TaxonomiesLocationsLocationSlugViewDisplayRulesRoute
@@ -9131,6 +9368,7 @@ const rootRouteChildren: RootRouteChildren = {
   TaxonomiesAuthorsRoute: TaxonomiesAuthorsRouteWithChildren,
   TaxonomiesBooksRoute: TaxonomiesBooksRouteWithChildren,
   TaxonomiesEpisodesRoute: TaxonomiesEpisodesRouteWithChildren,
+  TaxonomiesLanguagesRoute: TaxonomiesLanguagesRouteWithChildren,
   TaxonomiesLocationsRoute: TaxonomiesLocationsRouteWithChildren,
   TaxonomiesMediaPropertiesRoute: TaxonomiesMediaPropertiesRouteWithChildren,
   TaxonomiesMediaTypesRoute: TaxonomiesMediaTypesRouteWithChildren,

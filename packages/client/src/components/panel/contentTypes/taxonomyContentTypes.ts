@@ -6,6 +6,7 @@ export { bookContentType } from "./book";
 export { bookmarkContentType } from "./bookmark";
 export { categoryContentType } from "./category";
 export { episodeContentType } from "./episode";
+export { languageContentType } from "./language";
 export { locationContentType } from "./location";
 export { mediaPropertyContentType } from "./mediaProperty";
 export { mediaTypeContentType } from "./mediaType";

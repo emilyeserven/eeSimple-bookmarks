@@ -3,6 +3,7 @@ import { useBookmarkFormSettings } from "./useBookmarkFormSettings";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useLanguages } from "../hooks/useLanguages";
 import { useLocationTree } from "../hooks/useLocations";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
@@ -37,6 +38,9 @@ export function useBookmarkFormData() {
     data: mediaTypes,
   } = useMediaTypeTree();
   const {
+    data: languages,
+  } = useLanguages();
+  const {
     data: autofillRules,
   } = useAutofillRules();
   const {
@@ -63,6 +67,7 @@ export function useBookmarkFormData() {
     customProperties,
     categories,
     mediaTypes,
+    languages,
     autofillRules,
     youtubeChannels,
     authors,

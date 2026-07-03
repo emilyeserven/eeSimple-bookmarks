@@ -1,10 +1,11 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
-import type { Author, CustomProperty, ImageCandidate, MediaType, Publisher } from "@eesimple/types";
+import type { Author, CustomProperty, ImageCandidate, Language, MediaType, Publisher } from "@eesimple/types";
 
 import { ISBN_SLUG, normalizeIsbn } from "./bookmarkFormSchema";
 import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
 import { ApiError, describeError } from "../lib/apiError";
+import { languageDisplayName } from "../lib/languageDisplay";
 import { notifyError } from "../lib/notifications";
 import { isFetchableUrl } from "../lib/url";
 
@@ -16,8 +17,10 @@ interface UseBookmarkIsbnParams {
   mediaTypes: MediaType[] | undefined;
   authors: Author[] | undefined;
   publishers: Publisher[] | undefined;
+  languages: Language[] | undefined;
   createAuthor: Actions["createAuthor"];
   createPublisher: Actions["createPublisher"];
+  createLanguage: Actions["createLanguage"];
   handleTextChange: (id: string, value: string) => void;
   setHideNameField: (value: boolean) => void;
   setScanned: (value: boolean) => void;
@@ -36,8 +39,10 @@ export function useBookmarkIsbn({
   mediaTypes,
   authors,
   publishers,
+  languages,
   createAuthor,
   createPublisher,
+  createLanguage,
   handleTextChange,
   setHideNameField,
   setScanned,
@@ -80,6 +85,14 @@ export function useBookmarkIsbn({
         publishers ?? [],
         createPublisher,
         id => form.setFieldValue("publisherId", id),
+      );
+    }
+    if (result.language && !form.getFieldValue("languageId")) {
+      await resolveLanguage(
+        result.language,
+        languages ?? [],
+        createLanguage,
+        id => form.setFieldValue("languageId", id),
       );
     }
     // Feed the cover into the same image-candidate picker the URL scan uses, so the existing
@@ -174,5 +187,29 @@ async function resolvePublisher(
   }
   catch {
     // Skip publisher that can't be created (e.g. duplicate race).
+  }
+}
+
+/** Match-or-create a language by its detected ISO code and call setId with the resolved id. */
+async function resolveLanguage(
+  isoCode: string,
+  existingLanguages: Language[],
+  createLanguage: Actions["createLanguage"],
+  setId: (id: string) => void,
+): Promise<void> {
+  const match = existingLanguages.find(l => l.isoCode === isoCode);
+  if (match) {
+    setId(match.id);
+    return;
+  }
+  try {
+    const created = await createLanguage.mutateAsync({
+      name: languageDisplayName(isoCode),
+      isoCode,
+    });
+    setId(created.id);
+  }
+  catch {
+    // Skip a language that can't be created (e.g. duplicate race).
   }
 }

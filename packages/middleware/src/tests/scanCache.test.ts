@@ -28,6 +28,7 @@ function scan(url: string): ScanResult {
     thumbnailUrl: null,
     imageCandidates: [],
     authorNames: null,
+    languageCode: null,
     socialAccount: null,
     faviconUrl: null,
   };

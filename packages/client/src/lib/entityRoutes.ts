@@ -9,6 +9,7 @@ import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
 import { CATEGORY_ROUTE } from "../entities/category";
 import { EPISODE_ROUTE } from "../entities/episode";
 import { IMPORT_RULE_ROUTE } from "../entities/importRule";
+import { LANGUAGE_ROUTE } from "../entities/language";
 import { LOCATION_ROUTE } from "../entities/location";
 import { MEDIA_PROPERTY_ROUTE } from "../entities/mediaProperty";
 import { MEDIA_TYPE_ROUTE } from "../entities/mediaType";
@@ -32,6 +33,7 @@ export type EntityRouteKind
     | "tag"
     | "website"
     | "media-type"
+    | "language"
     | "location"
     | "place-type"
     | "youtube-channel"
@@ -86,6 +88,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   TAG_ROUTE,
   WEBSITE_ROUTE,
   MEDIA_TYPE_ROUTE,
+  LANGUAGE_ROUTE,
   LOCATION_ROUTE,
   PLACE_TYPE_ROUTE,
   YOUTUBE_CHANNEL_ROUTE,

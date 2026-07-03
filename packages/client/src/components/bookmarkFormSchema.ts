@@ -28,6 +28,7 @@ export const bookmarkSchema = z.object({
   romanizedTitle: z.string(),
   categoryId: z.string().min(1, "Category is required"),
   mediaTypeId: z.string(),
+  languageId: z.string(),
   description: z.string(),
   tagIds: z.array(z.string()),
   locationIds: z.array(z.string()),
@@ -133,6 +134,7 @@ const SAMPLE_DEFAULT_VALUES: {
   romanizedTitle: string;
   categoryId: string;
   mediaTypeId: string;
+  languageId: string;
   description: string;
   tagIds: string[];
   locationIds: string[];
@@ -146,6 +148,7 @@ const SAMPLE_DEFAULT_VALUES: {
   romanizedTitle: "",
   categoryId: "",
   mediaTypeId: "",
+  languageId: "",
   description: "",
   tagIds: [],
   locationIds: [],
@@ -199,6 +202,7 @@ export function buildBookmarkDefaultValues(
   romanizedTitle: string;
   categoryId: string;
   mediaTypeId: string;
+  languageId: string;
   description: string;
   tagIds: string[];
   locationIds: string[];
@@ -213,6 +217,7 @@ export function buildBookmarkDefaultValues(
     romanizedTitle: bookmark?.romanizedTitle ?? initial.romanizedTitle ?? "",
     categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
     mediaTypeId: bookmark?.mediaType?.id ?? "",
+    languageId: bookmark?.language?.id ?? "",
     description: bookmark?.description ?? "",
     tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
     locationIds: (bookmark?.locations.map(location => location.id) ?? []) as string[],

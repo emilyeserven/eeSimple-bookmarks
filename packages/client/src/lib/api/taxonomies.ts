@@ -19,6 +19,7 @@ import type {
   CreateArtistInput,
   CreateTrackInput,
   CreateMediaTypeInput,
+  CreateLanguageInput,
   CreatePlaceTypeInput,
   CreatePropertyGroupInput,
   CreatePublisherInput,
@@ -33,6 +34,7 @@ import type {
   Location,
   LocationLookupResult,
   LocationNode,
+  Language,
   MediaProperty,
   MediaType,
   MediaTypeNode,
@@ -65,6 +67,7 @@ import type {
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
   UpdateMediaTypeInput,
+  UpdateLanguageInput,
   UpdatePropertyGroupInput,
   UpdatePublisherInput,
   UpdateRelationshipTypeInput,
@@ -173,6 +176,8 @@ export const mediaTypesApi = {
   ...createCrudApi<MediaType, CreateMediaTypeInput, UpdateMediaTypeInput>("media-types"),
   tree: () => request<MediaTypeNode[]>("/media-types/tree"),
 };
+
+export const languagesApi = createCrudApi<Language, CreateLanguageInput, UpdateLanguageInput>("languages");
 
 export const locationsApi = {
   ...createCrudApi<Location, CreateLocationInput, UpdateLocationInput>("locations"),

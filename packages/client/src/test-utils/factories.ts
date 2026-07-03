@@ -4,6 +4,7 @@ import type {
   BookmarkImage,
   Category,
   CustomProperty,
+  Language,
   Location,
   MediaType,
   Newsletter,
@@ -100,6 +101,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     categoryId: "cat",
     website: null,
     mediaType: null,
+    language: null,
     youtubeChannel: null,
     newsletter: null,
     import: null,
@@ -250,6 +252,21 @@ export function makeMediaType(overrides: Partial<MediaType> = {}): MediaType {
     createdAt: NOW,
     bookmarkCount: 0,
     ownBookmarkCount: 0,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `Language`, built-in by default. */
+export function makeLanguage(overrides: Partial<Language> = {}): Language {
+  return {
+    id: "lang",
+    name: "English",
+    isoCode: "en",
+    slug: "english",
+    builtIn: true,
+    sortOrder: 0,
+    createdAt: NOW,
+    bookmarkCount: 0,
     ...overrides,
   };
 }

@@ -1,11 +1,12 @@
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
 import type { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
-import type { Author, FetchMetadataResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
+import type { Author, FetchMetadataResult, Language, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 
 import { sameSocialAccount, socialAccountFromLink } from "@eesimple/types";
 
 import { looksLikeYouTube, stripSelfId } from "./bookmarkFormSchema";
+import { languageDisplayName } from "../lib/languageDisplay";
 
 type Actions = ReturnType<typeof useBookmarkFormActions>;
 type UrlProcessing = ReturnType<typeof useBookmarkUrlProcessing>;
@@ -54,6 +55,14 @@ interface UseBookmarkScanHandlersParams {
   autoAuthorImage?: Actions["autoAuthorImage"];
   /** Surface a "create author from this social account" offer — when provided, enables the social-match flow. */
   setSocialAccountOffer?: Dispatch<SetStateAction<SocialAccountRef | null>>;
+  /** Loaded language list — when provided (with the get/set/create below), enables language auto-detect. */
+  languages?: Language[];
+  /** Read the current language id from the form — when provided, enables language auto-detect. */
+  getLanguageId?: () => string;
+  /** Write the language id back to the form after detection — when provided, enables language auto-detect. */
+  setLanguageId?: (id: string) => void;
+  /** Create-language mutation — when provided, enables creating a new language for an unmatched code. */
+  createLanguage?: Actions["createLanguage"];
 }
 
 /**
@@ -85,6 +94,10 @@ export function useBookmarkScanHandlers({
   updateAuthor,
   autoAuthorImage,
   setSocialAccountOffer,
+  languages,
+  getLanguageId,
+  setLanguageId,
+  createLanguage,
 }: UseBookmarkScanHandlersParams) {
   // Fetch the page title for the current URL and write it into the Title field.
   // `force` (manual button) always overwrites; the on-blur path only fills a blank title.
@@ -199,6 +212,7 @@ export function useBookmarkScanHandlers({
         fillTitle,
         force,
       });
+      await applyLanguageFromCode(meta.languageCode);
     }
     catch {
       // Non-fatal: enrichment is a best-effort convenience layered on the title fetch.
@@ -277,6 +291,32 @@ export function useBookmarkScanHandlers({
       }
     }
     if (ids.length > 0) setAuthorIds(ids);
+  }
+
+  // Resolve a detected ISO language code to a Language id and write it into the form: an existing
+  // language is matched by its `isoCode`; an unmatched code creates a new (non-built-in) language
+  // named via `languageDisplayName`. Pure apply (other than the create-language network call), shared
+  // by `runYouTubeEnrichment` and the consolidated scan. No-ops unless the language params are
+  // provided and no language is selected yet (never clobbers a user pick).
+  async function applyLanguageFromCode(code: string | null): Promise<void> {
+    if (!setLanguageId || !getLanguageId || !code) return;
+    if (getLanguageId()) return;
+    const match = (languages ?? []).find(l => l.isoCode === code);
+    if (match) {
+      setLanguageId(match.id);
+      return;
+    }
+    if (!createLanguage) return;
+    try {
+      const created = await createLanguage.mutateAsync({
+        name: languageDisplayName(code),
+        isoCode: code,
+      });
+      setLanguageId(created.id);
+    }
+    catch {
+      // Skip a language that can't be created (e.g. duplicate race).
+    }
   }
 
   /** Find an existing author whose social links already include `acct` (same platform + handle). */
@@ -419,6 +459,7 @@ export function useBookmarkScanHandlers({
         fillTitle,
         force,
       });
+      await applyLanguageFromCode(meta.languageCode);
       return;
     }
     // Non-YouTube: drop any channel hint left over from a previously-entered YouTube link.
@@ -436,6 +477,7 @@ export function useBookmarkScanHandlers({
       form.setFieldValue("description", meta.description);
     }
     await applyAuthorsFromNames(url, meta.authorNames);
+    await applyLanguageFromCode(meta.languageCode);
     // Social-account match/offer runs after name resolution; it only fills when still empty.
     applyScanSocialAccount(meta.socialAccount ?? null);
   }

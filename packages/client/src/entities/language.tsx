@@ -1,0 +1,77 @@
+import type { EntityDescriptor, EntityListingConfig } from "./types";
+import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
+import type { EntityRoute } from "../lib/entityRoutes";
+import type { Language, UpdateLanguageInput } from "@eesimple/types";
+
+import { LanguageCard } from "../components/LanguageCard";
+import { LanguageTable } from "../components/LanguageTable";
+import { languageWorkbench } from "../components/workbench/language";
+import {
+  useBulkDeleteLanguages,
+  useLanguages,
+} from "../hooks/useLanguages";
+import { languagesApi } from "../lib/api/taxonomies";
+
+const BOOKMARKS_KEY = ["bookmarks"] as const;
+
+/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
+export const LANGUAGE_ROUTE: EntityRoute = {
+  kind: "language",
+  prefix: "/taxonomies/languages",
+  slugIndex: 2,
+  listLabel: "Languages",
+  singular: "Language",
+  flatCrumbs: true,
+};
+
+/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
+export const LANGUAGE_PALETTE: EntityPaletteConfig = {
+  queryKey: ["languages"],
+  listFn: () => languagesApi.list(),
+  updateFn: (id, patch) => languagesApi.update(id, patch as UpdateLanguageInput),
+  extraInvalidateKeys: [BOOKMARKS_KEY],
+};
+
+export const languageListingConfig: EntityListingConfig<Language> = {
+  pageKey: "languages-listing",
+  layout: "list",
+  useItems: useLanguages,
+  matches: (language, query) =>
+    language.name.toLowerCase().includes(query)
+    || (language.isoCode ?? "").toLowerCase().includes(query),
+  deletableIds: items => items.filter(l => !l.builtIn).map(l => l.id),
+  isSelectable: l => !l.builtIn,
+  useBulkDelete: useBulkDeleteLanguages,
+  noun: ["language", "languages"],
+  loadingLabel: "Loading languages…",
+  entityPlural: "languages",
+  emptyMessage: (
+    <p className="text-muted-foreground">
+      No languages yet.
+    </p>
+  ),
+  renderListItem: ({
+    entity, allItems, ...rest
+  }) => (
+    <LanguageCard
+      language={entity}
+      {...rest}
+    />
+  ),
+  renderTable: ({
+    entities, selection,
+  }) => (
+    <LanguageTable
+      data={entities}
+      selection={selection}
+    />
+  ),
+};
+
+export const languageDescriptor: EntityDescriptor<Language> = {
+  kind: "language",
+  route: LANGUAGE_ROUTE,
+  palette: LANGUAGE_PALETTE,
+  workbench: languageWorkbench,
+  listing: languageListingConfig,
+};

@@ -590,6 +590,46 @@ export interface UpdateMediaTypeInput {
 }
 
 /**
+ * A language in the built-in "Languages" taxonomy — flat, no nesting. Classifies what language a
+ * bookmark's content is in; chosen in the form or auto-detected from the scanned page, ISBN
+ * provider, or YouTube metadata (see `ScanResult.languageCode` / `FetchIsbnMetadataResult.language`).
+ */
+export interface Language {
+  id: string;
+  /** Display name, e.g. `"English"`. Unique. */
+  name: string;
+  /** ISO 639-1 code (e.g. `"en"`), when known. `null` for a fully custom language. Unique. */
+  isoCode: string | null;
+  /** URL-friendly identifier derived from the name (e.g. `"english"`). Unique. */
+  slug: string;
+  /** Whether this is a seeded built-in (protected from rename/delete). */
+  builtIn: boolean;
+  /** Display ordering weight; lower sorts first. */
+  sortOrder: number;
+  /** ISO-8601 timestamp of when the language was created. */
+  createdAt: string;
+  /** Distinct bookmarks with this language (populated by list endpoints). */
+  bookmarkCount?: number;
+}
+
+/** Lightweight language shape carried on a bookmark. */
+export type BookmarkLanguage = Pick<Language, "id" | "name" | "slug" | "isoCode">;
+
+/** Payload for creating a language. `isoCode` lets autofetch match-or-create by detected code. */
+export interface CreateLanguageInput {
+  name: string;
+  isoCode?: string | null;
+  sortOrder?: number;
+}
+
+/** Payload for updating a language (rename and/or reorder). */
+export interface UpdateLanguageInput {
+  name?: string;
+  isoCode?: string | null;
+  sortOrder?: number;
+}
+
+/**
  * A publisher in the "Publishers" taxonomy. Links a publishing house or individual
  * to their optional website, so bookmarks (especially offline/book items) can carry
  * publisher info.
@@ -1095,6 +1135,8 @@ export interface Bookmark {
   website: BookmarkWebsite | null;
   /** The media type of this bookmark (Video, Article, …), or `null` when unset. */
   mediaType: BookmarkMediaType | null;
+  /** The language of this bookmark's content, or `null` when unset. */
+  language: BookmarkLanguage | null;
   /** The YouTube channel this bookmark belongs to (auto-linked for YouTube videos), or `null`. */
   youtubeChannel: BookmarkYouTubeChannel | null;
   /** The newsletter this bookmark was imported from, or `null`. */
@@ -1209,6 +1251,8 @@ export interface CreateBookmarkInput {
   websiteSiteName?: string;
   /** Id of the media type to assign, or `null` to clear it. Omit to leave unchanged. */
   mediaTypeId?: string | null;
+  /** Id of the language to assign, or `null` to clear it. Omit to leave unchanged. */
+  languageId?: string | null;
   /**
    * Channel hint for a YouTube video, used to auto-create/link its channel. When omitted for a
    * recognized YouTube URL, the server resolves it from the video's metadata.
@@ -2607,6 +2651,12 @@ export interface FetchMetadataResult {
   /** Author name(s) parsed from page metadata (non-YouTube only), or `null` when none were found. */
   authorNames: string[] | null;
   /**
+   * Detected content language, normalized to an ISO 639-1 code where known, or `null`. Read from
+   * `og:locale`/`<html lang>` (generic pages) or the YouTube Data API's
+   * `defaultAudioLanguage`/`defaultLanguage` (YouTube).
+   */
+  languageCode: string | null;
+  /**
    * Human-readable reasons a YouTube field could not be resolved (e.g. the watch-page fetch failed
    * or a value was absent/unparseable). Present and non-empty only when something went wrong;
    * surfaced so a partial result still explains itself instead of returning a silent `null`.
@@ -2650,6 +2700,13 @@ export interface ScanResult {
   imageCandidates: ImageCandidate[];
   /** Author name(s) parsed from page metadata / oEmbed (non-YouTube), or `null`. */
   authorNames: string[] | null;
+  /**
+   * Detected content language, normalized to an ISO 639-1 code where known (e.g. `"en"`), or `null`
+   * when undetectable. Read from `og:locale`/`<html lang>` (generic pages) or the YouTube Data API's
+   * `defaultAudioLanguage`/`defaultLanguage` (YouTube). A raw code, not yet matched to a `Language`
+   * row — the client resolves it via match-or-create, mirroring `authorNames`.
+   */
+  languageCode: string | null;
   /** The social-media account `finalUrl` points at (Instagram/X/…), or `null`. Pure of `finalUrl`. */
   socialAccount: SocialAccountRef | null;
   /** An instant favicon URL for display (scraped icon or a CDN fallback), or `null`. */
@@ -2903,6 +2960,12 @@ export interface FetchIsbnMetadataResult {
   year: string | null;
   /** Canonical Open Library URL for this book, or `null` when unavailable. */
   openLibraryUrl: string | null;
+  /**
+   * Detected book language, normalized to an ISO 639-1 code where known (e.g. `"en"`), or `null`
+   * when unavailable. From Open Library's `languages` (MARC codes) or Google Books' `language`
+   * (already ISO 639-1). A raw code, not yet matched to a `Language` row.
+   */
+  language: string | null;
   /**
    * Set only when this result came from the operator's Kavita library fallback: the matched
    * series' id, needed to fetch the cover through the authenticated Kavita API (`coverUrl` is a

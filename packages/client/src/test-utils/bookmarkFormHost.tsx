@@ -10,6 +10,7 @@ interface BookmarkFormHostValues {
   romanizedTitle: string;
   categoryId: string;
   mediaTypeId: string;
+  languageId: string;
   description: string;
   tagIds: string[];
   locationIds: string[];
@@ -43,6 +44,7 @@ export function BookmarkFormHost({
       romanizedTitle: "",
       categoryId: "",
       mediaTypeId: "",
+      languageId: "",
       description: "",
       tagIds: [],
       locationIds: [],

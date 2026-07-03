@@ -473,6 +473,14 @@ configuration are explicitly opt-in (Tier 2, below).
   image/icon URL passes `isPublicHttpUrl` before fetch.
 - **ISBN has a keyless fallback chain.** `services/isbn.ts` tries Open Library, then Google Books;
   the route maps the discriminated outcome to 200 / 404 (not found) / 502 (providers unreachable).
+- **A detected value that resolves to a taxonomy entity (not just a display string) is matched or
+  created client-side, never inside the scan/ISBN endpoints.** E.g. bookmark language: `services/
+  metadata.ts`'s `extractLanguage` (og:locale/`<html lang>`), the YouTube Data API's
+  `defaultAudioLanguage`/`defaultLanguage`, and Open Library/Google Books' language fields all land as
+  a raw normalized code (`utils/languageCodes.ts`) on `ScanResult`/`FetchIsbnMetadataResult`; the
+  client resolves it to a `Language` row via match-or-create in `useBookmarkScanHandlers.ts`/
+  `useBookmarkIsbn.ts`, mirroring the pre-existing author/publisher name-resolution flow. See the
+  **`add-connector`** skill's Case D.
 - **Tier 2 providers are gated (DB value or env var) and default off.** `services/hostedMetadata.ts`
   (`HOSTED_METADATA_ENDPOINT`/`_API_KEY`/`_PROVIDER`, Microlink-compatible) and the YouTube Data API
   path in `services/youtube.ts` (`youtubeApiEnabledAsync`, key from Settings → Connectors or

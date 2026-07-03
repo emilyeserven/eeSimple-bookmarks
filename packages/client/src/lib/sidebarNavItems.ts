@@ -7,6 +7,7 @@ import {
   Globe,
   Home,
   Inbox,
+  Languages,
   Layers,
   LayoutGrid,
   Library,
@@ -72,6 +73,12 @@ export const taxonomyItems = [
     title: "Media Types",
     to: "/taxonomies/media-types",
     icon: Clapperboard,
+  },
+  {
+    key: "languages",
+    title: "Languages",
+    to: "/taxonomies/languages",
+    icon: Languages,
   },
   {
     key: "media-properties",

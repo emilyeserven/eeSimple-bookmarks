@@ -10,6 +10,7 @@ import type {
   Category,
   CustomProperty,
   ImageCandidate,
+  Language,
   MediaTypeNode,
   Publisher,
   TagNode,
@@ -19,6 +20,7 @@ import { ChevronDown } from "lucide-react";
 
 import { BookmarkAdvancedCategoryField } from "./BookmarkAdvancedCategoryField";
 import { BookmarkAdvancedDescriptionTagsField } from "./BookmarkAdvancedDescriptionTagsField";
+import { BookmarkAdvancedLanguageField } from "./BookmarkAdvancedLanguageField";
 import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
@@ -68,6 +70,7 @@ interface BookmarkAdvancedSectionProps {
   categories: Category[];
   customProperties: CustomProperty[];
   mediaTypes: MediaTypeNode[];
+  languages?: Language[];
   sourceDefaults: SourceDefaults;
   publishers?: Publisher[];
   /** Remount key for the image field so a form reset clears it. */
@@ -133,6 +136,11 @@ export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
           form={form}
           mediaTypes={props.mediaTypes}
           sourceDefaults={props.sourceDefaults}
+        />
+
+        <BookmarkAdvancedLanguageField
+          form={form}
+          languages={props.languages ?? []}
         />
 
         <BookmarkAdvancedPublisherField

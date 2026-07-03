@@ -14,6 +14,7 @@ import { resetStalledReelArchiveJobs } from "@/services/reelArchive";
 import { ensureImportRuleSlugs } from "@/services/importRules";
 import { backfillImageCropModes, ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
+import { ensureBuiltInLanguages } from "@/services/languages";
 import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
 import { backfillMediaPropertySlugs } from "@/services/mediaProperties";
 import { backfillBookSlugs } from "@/services/books";
@@ -69,6 +70,7 @@ try {
   await backfillContentStatusOptions();
   await ensureBuiltInMediaTypes();
   await backfillMediaTypeSlugs();
+  await ensureBuiltInLanguages();
   await backfillPublisherSlugs();
   await ensureRuntimeProperty();
   await ensurePageProgressProperty();
