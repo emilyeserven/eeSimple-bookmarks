@@ -139,6 +139,27 @@ const createBookmarkBody = {
         format: "uuid",
       },
     },
+    languageUsages: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["languageId", "usageLevelId"],
+        additionalProperties: false,
+        properties: {
+          languageId: {
+            type: "string",
+            format: "uuid",
+          },
+          usageLevelId: {
+            type: "string",
+            format: "uuid",
+          },
+          note: {
+            type: ["string", "null"],
+          },
+        },
+      },
+    },
     locationIds: {
       type: "array",
       items: {
@@ -333,10 +354,6 @@ const createBookmarkBody = {
       minLength: 1,
     },
     mediaTypeId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
-    languageId: {
       type: ["string", "null"],
       format: "uuid",
     },

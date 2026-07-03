@@ -28,12 +28,6 @@ export const bookmarks = pgTable("bookmarks", {
   mediaTypeId: uuid("media_type_id").references((): AnyPgColumn => mediaTypes.id, {
     onDelete: "set null",
   }),
-  // The language (built-in taxonomy) this bookmark's content is in. Nullable; user-chosen or
-  // auto-detected from the scanned page (`<html lang>`/`og:locale`), the ISBN provider, or YouTube's
-  // video metadata. `set null` so deleting a language is non-destructive.
-  languageId: uuid("language_id").references((): AnyPgColumn => languages.id, {
-    onDelete: "set null",
-  }),
   // The YouTube channel (built-in taxonomy) this bookmark belongs to, auto-linked from a video's
   // fetched metadata. Nullable; only set for recognized YouTube videos.
   youtubeChannelId: uuid("youtube_channel_id").references((): AnyPgColumn => youtubeChannels.id, {
@@ -1403,10 +1397,6 @@ export const bookmarksRelations = relations(bookmarks, ({
   mediaType: one(mediaTypes, {
     fields: [bookmarks.mediaTypeId],
     references: [mediaTypes.id],
-  }),
-  language: one(languages, {
-    fields: [bookmarks.languageId],
-    references: [languages.id],
   }),
   youtubeChannel: one(youtubeChannels, {
     fields: [bookmarks.youtubeChannelId],

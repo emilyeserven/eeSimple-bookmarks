@@ -1,5 +1,6 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
+import type { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import type { CustomProperty, ImageCandidate, Language, MediaType, Person, Group } from "@eesimple/types";
 
 import { ISBN_SLUG, normalizeIsbn } from "./bookmarkFormSchema";
@@ -25,6 +26,8 @@ interface UseBookmarkIsbnParams {
   setHideNameField: (value: boolean) => void;
   setScanned: (value: boolean) => void;
   setImageCandidates: (candidates: ImageCandidate[]) => void;
+  /** Attach a detected primary language as a "Primary Language" usage row (see the hook's docs). */
+  primaryLanguage: ReturnType<typeof useBookmarkPrimaryLanguage>;
 }
 
 /**
@@ -47,6 +50,7 @@ export function useBookmarkIsbn({
   setHideNameField,
   setScanned,
   setImageCandidates,
+  primaryLanguage,
 }: UseBookmarkIsbnParams) {
   const isbnFetch = useFetchIsbnMetadata();
 
@@ -87,12 +91,12 @@ export function useBookmarkIsbn({
         id => form.setFieldValue("groupId", id),
       );
     }
-    if (result.language && !form.getFieldValue("languageId")) {
+    if (result.language && !primaryLanguage.hasPrimaryLanguageUsage()) {
       await resolveLanguage(
         result.language,
         languages ?? [],
         createLanguage,
-        id => form.setFieldValue("languageId", id),
+        id => primaryLanguage.attachPrimaryLanguageUsage(id),
       );
     }
     // Feed the cover into the same image-candidate picker the URL scan uses, so the existing

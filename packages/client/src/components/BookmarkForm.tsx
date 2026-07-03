@@ -169,7 +169,6 @@ export function BookmarkForm({
           onTextChange={c.prefill.handleTextChange}
           categories={c.categories ?? []}
           groups={c.groups ?? []}
-          languages={c.languages ?? []}
           sourceDefaults={c.sourceDefaults}
           imageFieldKey={c.imageFieldKey}
           existingImages={c.bookmark?.images ?? []}

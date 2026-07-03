@@ -10,6 +10,7 @@ import {
 } from "./bookmarkFormSchema";
 import { useBookmarkFormData } from "./useBookmarkFormData";
 import { useBookmarkInlineCreateModals } from "./useBookmarkInlineCreateModals";
+import { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { metadataApi } from "../lib/api/metadata";
@@ -46,6 +47,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     categories,
     mediaTypes,
     languages,
+    availabilityLanguageLevels,
     autofillRules,
     autoFetchTitle,
     people,
@@ -71,6 +73,10 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     customStripParams: customStripParams ?? [],
   });
 
+  const {
+    primaryLanguageLevelId, hasPrimaryLanguageUsage, attachPrimaryLanguageUsage,
+  } = useBookmarkPrimaryLanguage(bookmark, availabilityLanguageLevels);
+
   const modals = useBookmarkInlineCreateModals();
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
@@ -91,7 +97,6 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       romanizedName: bookmark.romanizedName ?? "",
       categoryId: bookmark.categoryId ?? "",
       mediaTypeId: bookmark.mediaType?.id ?? "",
-      languageId: bookmark.language?.id ?? "",
       description: bookmark.description ?? "",
       tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
       genreMoodIds: (bookmark.genreMoods.map(entry => entry.id)) as string[],
@@ -128,7 +133,6 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
           romanizedName: value.romanizedName.trim() || null,
           categoryId: value.categoryId,
           mediaTypeId: value.mediaTypeId || null,
-          languageId: value.languageId || null,
           description: value.description || null,
           tagIds: value.tagIds,
           locationIds: value.locationIds,
@@ -315,8 +319,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     autoPersonImage,
     setSocialAccountOffer,
     languages,
-    getLanguageId: () => form.getFieldValue("languageId") as string,
-    setLanguageId: (id: string) => form.setFieldValue("languageId", id),
+    primaryLanguageLevelId,
+    hasPrimaryLanguageUsage,
+    attachPrimaryLanguageUsage,
     createLanguage,
   });
 

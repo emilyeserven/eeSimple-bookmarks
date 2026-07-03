@@ -14,7 +14,7 @@ import type {
   UpdateBookmarkRelationshipsInput,
 } from "@eesimple/types";
 import { db } from "@/db";
-import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
+import { deleteLanguageUsagesForOwner, setLanguageUsages } from "@/services/languageUsages";
 import {
   bookmarkPeople,
   bookmarkGroups,
@@ -562,7 +562,6 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         categoryId,
         websiteId,
         mediaTypeId,
-        languageId: input.languageId ?? null,
         youtubeChannelId,
         newsletterId: input.newsletterId ?? null,
         importId: input.importId ?? null,
@@ -620,6 +619,8 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   // helper is self-guarded (skips when one already exists) and swallows its own errors.
   void captureWebsiteFavicon(websiteId, "create");
   void captureChannelAvatar(youtubeChannelId, "create");
+  // Auto-detected language (scan/ISBN), attached as ordinary language_usages rows.
+  if (input.languageUsages?.length) await setLanguageUsages("bookmark", id, input.languageUsages);
 
   // A new bookmark changes what homepage sections / autofill previews match.
   invalidateBookmarkCache();
@@ -630,7 +631,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedName" | "description" | "categoryId" | "mediaTypeId" | "languageId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "podcastId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
+  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedName" | "description" | "categoryId" | "mediaTypeId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "podcastId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
 >;
 
 /**
@@ -650,7 +651,6 @@ export function scalarBookmarkPatch(
   if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
   if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;
   else if (mediaTypeDefault !== undefined) patch.mediaTypeId = mediaTypeDefault;
-  if (input.languageId !== undefined) patch.languageId = input.languageId ?? null;
   if (input.groupId !== undefined) patch.groupId = input.groupId ?? null;
   if (input.bookId !== undefined) patch.bookId = input.bookId ?? null;
   if (input.movieId !== undefined) patch.movieId = input.movieId ?? null;
@@ -814,7 +814,6 @@ export async function updateBookmark(
         | "categoryId"
         | "websiteId"
         | "mediaTypeId"
-        | "languageId"
         | "youtubeChannelId"
         | "groupId"
         | "bookId"

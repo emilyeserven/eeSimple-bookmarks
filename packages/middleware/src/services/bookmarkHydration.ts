@@ -8,7 +8,6 @@ import type {
   BookmarkFileValue,
   BookmarkImage,
   BookmarkImport,
-  BookmarkLanguage,
   BookmarkLanguageUsage,
   BookmarkLocation,
   BookmarkMediaType,
@@ -55,7 +54,6 @@ import {
   genreMoodAssignments,
   genreMoods,
   imports,
-  languages,
   mediaTypes,
   newsletters,
   groups,
@@ -78,7 +76,6 @@ import { slugify } from "@/utils/slug";
 interface BookmarkExtras {
   website: BookmarkWebsite | null;
   mediaType: BookmarkMediaType | null;
-  language: BookmarkLanguage | null;
   languageUsages: BookmarkLanguageUsage[];
   youtubeChannel: BookmarkYouTubeChannel | null;
   newsletter: BookmarkNewsletter | null;
@@ -109,7 +106,6 @@ interface BookmarkExtras {
 const EMPTY_EXTRAS: BookmarkExtras = {
   website: null,
   mediaType: null,
-  language: null,
   languageUsages: [],
   youtubeChannel: null,
   newsletter: null,
@@ -149,7 +145,6 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     categoryId: row.categoryId ?? defaultCategoryId,
     website: extras.website,
     mediaType: extras.mediaType,
-    language: extras.language,
     languageUsages: extras.languageUsages,
     youtubeChannel: extras.youtubeChannel,
     newsletter: extras.newsletter,
@@ -252,32 +247,6 @@ async function mediaTypesById(mediaTypeIds: string[]): Promise<Map<string, Bookm
       slug: row.slug ?? row.id,
       icon: row.icon ?? null,
       parentId: row.parentId,
-    });
-  }
-  return byId;
-}
-
-/** Load languages for a set of language ids in a single query, keyed by language id. */
-async function languagesById(languageIds: string[]): Promise<Map<string, BookmarkLanguage>> {
-  const byId = new Map<string, BookmarkLanguage>();
-  if (languageIds.length === 0) return byId;
-
-  const rows = await db
-    .select({
-      id: languages.id,
-      name: languages.name,
-      slug: languages.slug,
-      isoCode: languages.isoCode,
-    })
-    .from(languages)
-    .where(inArray(languages.id, languageIds));
-
-  for (const row of rows) {
-    byId.set(row.id, {
-      id: row.id,
-      name: row.name,
-      slug: row.slug ?? row.id,
-      isoCode: row.isoCode,
     });
   }
   return byId;
@@ -972,7 +941,6 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
     grouped.set(id, {
       website: null,
       mediaType: null,
-      language: null,
       languageUsages: languageUsagesMap.get(id) ?? [],
       youtubeChannel: null,
       newsletter: null,
@@ -1009,16 +977,14 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
   const defaultCategoryId = await ensureDefaultCategory();
   const websiteIds = [...new Set(rows.map(row => row.websiteId).filter((id): id is string => id !== null))];
   const mediaTypeIds = [...new Set(rows.map(row => row.mediaTypeId).filter((id): id is string => id !== null))];
-  const languageIds = [...new Set(rows.map(row => row.languageId).filter((id): id is string => id !== null))];
   const channelIds = [...new Set(rows.map(row => row.youtubeChannelId).filter((id): id is string => id !== null))];
   const newsletterIds = [...new Set(rows.map(row => row.newsletterId).filter((id): id is string => id !== null))];
   const groupIds = [...new Set(rows.map(row => row.groupId).filter((id): id is string => id !== null))];
   const issueIds = [...new Set(rows.map(row => row.importId).filter((id): id is string => id !== null))];
-  const [grouped, websiteMap, mediaTypeMap, languageMap, channelMap, newsletterMap, groupMap, importMap] = await Promise.all([
+  const [grouped, websiteMap, mediaTypeMap, channelMap, newsletterMap, groupMap, importMap] = await Promise.all([
     extrasByBookmarkId(rows.map(row => row.id)),
     websitesById(websiteIds),
     mediaTypesById(mediaTypeIds),
-    languagesById(languageIds),
     channelsById(channelIds),
     newslettersById(newsletterIds),
     groupsById(groupIds),
@@ -1030,7 +996,6 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
       ...extras,
       website: row.websiteId ? websiteMap.get(row.websiteId) ?? null : null,
       mediaType: row.mediaTypeId ? mediaTypeMap.get(row.mediaTypeId) ?? null : null,
-      language: row.languageId ? languageMap.get(row.languageId) ?? null : null,
       youtubeChannel: row.youtubeChannelId ? channelMap.get(row.youtubeChannelId) ?? null : null,
       newsletter: row.newsletterId ? newsletterMap.get(row.newsletterId) ?? null : null,
       group: row.groupId ? groupMap.get(row.groupId) ?? null : null,

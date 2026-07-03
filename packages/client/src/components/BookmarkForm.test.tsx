@@ -271,6 +271,20 @@ vi.mock("../hooks/useLanguages", () => ({
     mutateAsync: vi.fn(),
   }),
 }));
+vi.mock("../hooks/useLanguageUsageLevels", () => ({
+  useLanguageUsageLevels: () => ({
+    data: [],
+  }),
+}));
+vi.mock("../hooks/useLanguageUsages", () => ({
+  useLanguageUsages: () => ({
+    data: [],
+  }),
+  useSetLanguageUsages: () => ({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+  }),
+}));
 vi.mock("../hooks/useFetchIsbnMetadata", () => ({
   useFetchIsbnMetadata: () => ({
     mutate: vi.fn(),

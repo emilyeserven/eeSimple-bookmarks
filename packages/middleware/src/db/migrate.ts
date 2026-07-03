@@ -1461,6 +1461,13 @@ const migrations: RuntimeMigration[] = [
       )
     `),
   },
+  {
+    // Bookmarks no longer have a separate primary-language field — a bookmark's language is now
+    // expressed the same way as any other content property, via an availability-kind `language_usages`
+    // row (e.g. a user-created "Primary Language" level). This drops the now-unused column.
+    name: "drop bookmarks.language_id column",
+    run: db => db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "language_id"`),
+  },
 ];
 
 async function main(): Promise<void> {

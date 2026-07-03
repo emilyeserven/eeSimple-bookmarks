@@ -10,6 +10,7 @@ import { useBookmarkFormHandlers } from "./useBookmarkFormHandlers";
 import { useBookmarkFormImageState } from "./useBookmarkFormImageState";
 import { useBookmarkFormUiState, useSourceDefaultFlags } from "./useBookmarkFormState";
 import { useBookmarkIsbn } from "./useBookmarkIsbn";
+import { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { useAppForm } from "../lib/form";
@@ -69,6 +70,7 @@ export function useBookmarkFormController({
     categories,
     mediaTypes,
     languages,
+    availabilityLanguageLevels,
     autofillRules,
     youtubeChannels,
     people,
@@ -76,6 +78,9 @@ export function useBookmarkFormController({
     autoFetchImage,
   } = data;
   const saveBookmark = isEdit ? updateBookmark : createBookmark;
+
+  // Auto-detected primary language (scan/ISBN), shared between the ISBN lookup and scan handlers.
+  const primaryLanguage = useBookmarkPrimaryLanguage(bookmark, availabilityLanguageLevels);
 
   const flags = useSourceDefaultFlags();
   const ui = useBookmarkFormUiState({
@@ -176,6 +181,7 @@ export function useBookmarkFormController({
     setHideNameField,
     setScanned,
     setImageCandidates,
+    primaryLanguage,
   });
   const {
     isbnFetch, handleIsbnFetch, handleLookupIsbn,
@@ -197,6 +203,7 @@ export function useBookmarkFormController({
     urlProcessing,
     imageState,
     prefill,
+    primaryLanguage,
   });
   const {
     isOfflineMode,
