@@ -34,6 +34,10 @@ export interface BookmarkSearch {
   websitePresence?: "has" | "missing" | "exclude";
   /** Restrict to bookmarks that have a relationship of one of these type ids (empty/absent = all). */
   relationshipTypes?: string[];
+  /** Restrict to bookmarks with a language usage whose language is one of these ids (empty/absent = all). */
+  languageUsageLanguages?: string[];
+  /** Restrict to bookmarks with a language usage whose usage level is one of these ids (empty/absent = all). */
+  languageUsageLevels?: string[];
   /**
    * Restrict to bookmarks with at least one location whose place type is one of these normalized
    * slugs (empty/absent = all place types). Matched against `location.placeType` via
@@ -200,6 +204,8 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     websites: validStringList(search.websites),
     websitePresence: validPresence(search.websitePresence),
     relationshipTypes: validStringList(search.relationshipTypes),
+    languageUsageLanguages: validStringList(search.languageUsageLanguages),
+    languageUsageLevels: validStringList(search.languageUsageLevels),
     people: validStringList(search.people),
     placeTypes: validStringList(search.placeTypes),
     placeTypePresence: validPresence(search.placeTypePresence),
@@ -238,6 +244,7 @@ type SearchableBookmark = Pick<
   | "choicesValues"
   | "sectionsValues"
   | "relationships"
+  | "languageUsages"
 >;
 
 /** A multi-select relationship-type filter passes when empty or the bookmark has a matching edge. */
@@ -247,6 +254,23 @@ function passesRelationshipTypeFilter(
 ): boolean {
   if (!selected || selected.length === 0) return true;
   return bookmark.relationships.some(rel => selected.includes(rel.relationshipTypeId));
+}
+
+/**
+ * The language-usage facets pass when both are empty, or when a *single* association row satisfies
+ * both non-empty constraints (a language-only or level-only filter matches on that one axis).
+ */
+function passesLanguageUsagesFilter(
+  languages: string[] | undefined,
+  levels: string[] | undefined,
+  bookmark: SearchableBookmark,
+): boolean {
+  const hasLang = languages !== undefined && languages.length > 0;
+  const hasLevel = levels !== undefined && levels.length > 0;
+  if (!hasLang && !hasLevel) return true;
+  return bookmark.languageUsages.some(usage =>
+    (!hasLang || languages.includes(usage.language.id))
+    && (!hasLevel || levels.includes(usage.level.id)));
 }
 
 /** A multi-select person filter passes when empty or the bookmark has at least one matching person. */
@@ -385,6 +409,7 @@ export function bookmarkMatchesSearch(
         : passesIdFilter(search.websites, bookmark.website?.id)
           && passesPresence(search.websitePresence, Boolean(bookmark.website)))
         && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
+        && passesLanguageUsagesFilter(search.languageUsageLanguages, search.languageUsageLevels, bookmark)
         && passesPeopleFilter(search.people, bookmark.people)
     // Place types: multi-valued (a bookmark can carry several locations), so "any match" like tags.
         && (search.placeTypePresence === "exclude"
@@ -425,6 +450,8 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     || hasItems(search.websites)
     || search.websitePresence !== undefined
     || hasItems(search.relationshipTypes)
+    || hasItems(search.languageUsageLanguages)
+    || hasItems(search.languageUsageLevels)
     || hasItems(search.people)
     || hasItems(search.placeTypes)
     || search.placeTypePresence !== undefined
@@ -594,6 +621,26 @@ export function withRelationshipTypes(search: BookmarkSearch, ids: string[]): Bo
   };
   if (ids.length === 0) delete next.relationshipTypes;
   else next.relationshipTypes = ids;
+  return next;
+}
+
+/** Return a copy of `search` with the language-usage language filter set, or cleared when empty. */
+export function withLanguageUsageLanguages(search: BookmarkSearch, ids: string[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (ids.length === 0) delete next.languageUsageLanguages;
+  else next.languageUsageLanguages = ids;
+  return next;
+}
+
+/** Return a copy of `search` with the language-usage level filter set, or cleared when empty. */
+export function withLanguageUsageLevels(search: BookmarkSearch, ids: string[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (ids.length === 0) delete next.languageUsageLevels;
+  else next.languageUsageLevels = ids;
   return next;
 }
 
@@ -806,6 +853,8 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     ...entityPresenceParts(search.youtubeChannels, search.youtubeChannelPresence, "channel", "channels", "channel"),
     ...entityPresenceParts(search.websites, search.websitePresence, "website", "websites", "website"),
     countPart(search.relationshipTypes?.length ?? 0, "relationship type", "relationship types"),
+    countPart(search.languageUsageLanguages?.length ?? 0, "usage language", "usage languages"),
+    countPart(search.languageUsageLevels?.length ?? 0, "usage level", "usage levels"),
     countPart(search.people?.length ?? 0, "person", "people"),
     ...entityPresenceParts(search.placeTypes, search.placeTypePresence, "place type", "place types", "place type"),
     ...entityPresenceParts(search.tags, search.tagPresence, "tag", "tags", "tags"),

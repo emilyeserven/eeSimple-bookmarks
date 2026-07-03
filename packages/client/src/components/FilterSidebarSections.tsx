@@ -7,6 +7,7 @@ import { Fragment } from "react";
 import {
   PersonFilterSection,
   CategoryFilterSection,
+  LanguageUsageFilterSection,
   MediaTypeFilterSection,
   PlaceTypeFilterSection,
   PropertiesFilterSection,
@@ -127,6 +128,16 @@ export function FilterSections({
           node: (
             <RelationshipTypeFilterSection
               relationshipTypes={relationshipTypes}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "language-usages",
+          show: sectionShown(true, "Language usage"),
+          node: (
+            <LanguageUsageFilterSection
               search={search}
               onSearchChange={onSearchChange}
             />
