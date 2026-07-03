@@ -114,10 +114,23 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   `hooks/useBookmarkAddFormSettingsPage.ts`) governs three groups, each a three-state
   `SegmentedToggleRow` (`components/SegmentedToggleRow.tsx`, the shared segmented control also used by
   the sidebar show/hide settings). **See the `bookmark-add-form` skill for the change recipes.** In short:
-  - **Standard fields** (`title`, `categoryId`, `mediaTypeId`, `descriptionTags`, `image`, …) —
-    persisted in the server-side **`bookmark-add-form`** app-settings group (`BookmarkAddFormSettings`
-    in `packages/types/src/bookmarkAddForm.ts`: `advancedFields`/`hiddenFields` sidebar-style
-    membership, absence from both = Default).
+  - **Standard fields** — the `BOOKMARK_ADD_FORM_STANDARD_FIELDS` tuple in
+    `packages/types/src/bookmarkAddForm.ts`: `title`/`romanizedTitle` (Default), the taxonomy fields
+    `categoryId`/`mediaTypeId`/`languageId`/`groupId`/`descriptionTags`/`personIds`/`image` (Advanced),
+    and the taxonomy/media/location relations `groupIds` (creators, plural), `genreMoodIds`,
+    `locationIds`, `mediaLink` (the six book/movie/tvShow/episode/album/track FKs, via the
+    selection-driven `BookmarkMediaField`), `blacklistedTagIds`, `blacklistedLocationIds` — all six of
+    these **default to Hidden** so the create form is unchanged until opted in. Persisted in the
+    server-side **`bookmark-add-form`** app-settings group as a **placement map**
+    (`BookmarkAddFormSettings.standardFieldPlacements: Record<field, placement>`, resolved
+    `{...DEFAULT.standardFieldPlacements, ...stored}` — the same merge as the built-in slugs). This
+    **replaced** the old `advancedFields`/`hiddenFields` membership arrays (which couldn't express a
+    per-field default, so a newly-added field showed in Default for existing saved rows); the middleware
+    derives the map from the legacy array columns once for pre-existing rows
+    (`resolveBookmarkAddFormSettings` in `services/appSettings.ts`). The `mediaLink` field additionally
+    required the six FK fields on `bookmarkSchema`/`buildBookmarkDefaultValues` and forwarding them in
+    the create payload (`useBookmarkFormHandlers`); the other five relations were already accepted by the
+    create endpoint.
   - **Built-in detail properties** (Runtime, Date Posted, Page Progress, …) — the
     `BOOKMARK_FORM_DETAIL_SLUGS` tuple, seeded **hidden** via
     `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements` (resolved `{...defaults, ...stored}`
@@ -127,17 +140,24 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     configurable row). The old two-step `*_SLUG` + `hiddenSlugs`-array edit is gone; the 8 slug
     constants now live in that types file (re-exported by `bookmarkFormSchema.ts`).
   - **User custom properties** — write the property's existing `showInForm`/`hiddenFromForm` flags via
-    the normal `useUpdateCustomProperty` mutation. The old per-property "Main bookmark form" / "Show
-    outside Advanced area" checkboxes in `PropertyDisplaySection` were **removed** (that section now
-    just links here) — placement is centralized in this tab.
+    the normal `useUpdateCustomProperty` mutation. Card 3 lists **every** enabled custom property
+    regardless of category/media-type lock, but the **category-lock stays the ultimate runtime gate**:
+    a locked property still only renders on the create form when a matching category/media type is
+    selected — the scope short-circuit in `selectVisibleFormProperties` (`bookmarkFormProperties.ts`)
+    runs before placement and is intentionally **not** bypassed (a scope hint on the row surfaces this).
+    The old per-property "Main bookmark form" / "Show outside Advanced area" checkboxes in
+    `PropertyDisplaySection` were **removed** (that section now just links here) — placement is
+    centralized in this tab.
 
   Enforcement is **create-mode only** (`!isEdit`): `resolveBookmarkAddForm` (`lib/bookmarkAddForm.ts`)
   + `useBookmarkAddFormVisibility` feed `BookmarkRevealedFields`, which buckets standard fields via the
   exhaustive registry in `bookmarkAddFormFields.tsx` (`BookmarkStandardFieldZone` — a new standard-field
-  key **fails `tsc`** until labeled in `BOOKMARK_ADD_FORM_STANDARD_LABELS` + given a render entry) and
-  threads `hiddenSlugs`/`placementOverrides` into `selectVisibleFormProperties`
-  (`bookmarkFormProperties.ts`). **Edit surfaces are unaffected** — the resolver returns today's
-  hardcoded split when `isEdit`, and `hiddenFromForm` still gates the edit Properties tab, so
+  key **fails `tsc`** until it has a `FIELD_RENDERERS` entry, a `BOOKMARK_ADD_FORM_STANDARD_LABELS` label,
+  and a `STANDARD_FIELD_ICONS` icon) and threads `hiddenSlugs`/`placementOverrides` into
+  `selectVisibleFormProperties` (`bookmarkFormProperties.ts`). **Edit surfaces are unaffected** — the
+  resolver's edit branch derives its split from `DEFAULT.standardFieldPlacements`, **excluding**
+  hidden-by-default fields (so the newer taxonomy/media/location relations never render on edit; they are
+  edited on their own edit-form sections), and `hiddenFromForm` still gates the edit Properties tab, so
   hidden-from-create properties stay editable after creation.
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,

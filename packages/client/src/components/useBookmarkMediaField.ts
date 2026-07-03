@@ -45,6 +45,18 @@ export const EMPTY_MEDIA_SELECTION: MediaSelection = {
   trackId: null,
 };
 
+/** Build a {@link MediaSelection} from a persisted bookmark's six media-link FKs (edit surface). */
+export function mediaSelectionFromBookmark(bookmark: Bookmark): MediaSelection {
+  return {
+    bookId: bookmark.bookId,
+    movieId: bookmark.movieId,
+    tvShowId: bookmark.tvShowId,
+    episodeId: bookmark.episodeId,
+    albumId: bookmark.albumId,
+    trackId: bookmark.trackId,
+  };
+}
+
 /** What `AddMediaTitleModal` hands back: which bookmark FK the created title fills in, plus its id. */
 export interface CreatedMediaTitle {
   key: MediaTaxoKey;
@@ -139,9 +151,9 @@ export interface MediaSection {
   onToggleCollapsed: () => void;
 }
 
-/** The linked FK's meta entry, or `undefined` when the bookmark isn't linked to any media item. */
-function linkedMeta(bookmark: Bookmark): MediaKindMeta | undefined {
-  return MEDIA_KIND_META.find(meta => bookmark[meta.fkKey] !== null);
+/** The linked FK's meta entry, or `undefined` when the selection isn't linked to any media item. */
+function linkedMeta(selection: MediaSelection): MediaKindMeta | undefined {
+  return MEDIA_KIND_META.find(meta => selection[meta.fkKey] !== null);
 }
 
 /**
@@ -150,8 +162,18 @@ function linkedMeta(bookmark: Bookmark): MediaKindMeta | undefined {
  * resolve a click or a create-modal result into a `MediaSelection`. Kept separate from the component
  * so the JSX stays a thin shell (the `useBookmarkFormController` pattern — see the
  * `decompose-over-cap` skill).
+ *
+ * Driven off a `value: MediaSelection` (not a persisted bookmark) so it works on the create form too,
+ * where no bookmark exists yet — the edit surface derives the value via
+ * {@link mediaSelectionFromBookmark} and persists each `onSelect` immediately, while the create form
+ * threads the six FK form fields through. `bookmark` is passed only to surface the legacy Kavita/Plex
+ * read-only links (edit surface); it is `null`/absent on create.
  */
-export function useBookmarkMediaField(bookmark: Bookmark, onSelect: (selection: MediaSelection) => void) {
+export function useBookmarkMediaField(
+  value: MediaSelection,
+  onSelect: (selection: MediaSelection) => void,
+  bookmark?: Bookmark | null,
+) {
   const lists = useMediaTaxonomyLists();
   const expanded = useExpandedSet(MEDIA_KIND_META.map(meta => meta.kind));
 
@@ -181,8 +203,8 @@ export function useBookmarkMediaField(bookmark: Bookmark, onSelect: (selection: 
     };
   });
 
-  const linked = linkedMeta(bookmark);
-  const linkedRow = linked ? lists[linked.kind].find(row => row.id === bookmark[linked.fkKey]) : undefined;
+  const linked = linkedMeta(value);
+  const linkedRow = linked ? lists[linked.kind].find(row => row.id === value[linked.fkKey]) : undefined;
   const selectedLabel = linkedRow?.name ?? null;
 
   function closeAndReset(): void {
@@ -194,7 +216,7 @@ export function useBookmarkMediaField(bookmark: Bookmark, onSelect: (selection: 
   function selectItem(kind: MediaKind, id: string): void {
     const meta = MEDIA_KIND_META.find(candidate => candidate.kind === kind);
     if (!meta) return;
-    onSelect(bookmark[meta.fkKey] === id
+    onSelect(value[meta.fkKey] === id
       ? EMPTY_MEDIA_SELECTION
       : {
         ...EMPTY_MEDIA_SELECTION,
@@ -223,7 +245,7 @@ export function useBookmarkMediaField(bookmark: Bookmark, onSelect: (selection: 
     isLinked: selectedLabel !== null,
     selectItem,
     handleCreated,
-    showLegacyKavita: bookmark.bookId === null && bookmark.kavitaSeriesId !== null,
-    showLegacyPlex: !linked && bookmark.plexRatingKey !== null,
+    showLegacyKavita: (bookmark?.bookId ?? null) === null && (bookmark?.kavitaSeriesId ?? null) !== null,
+    showLegacyPlex: !linked && (bookmark?.plexRatingKey ?? null) !== null,
   };
 }

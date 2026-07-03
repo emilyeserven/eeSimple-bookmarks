@@ -16,9 +16,12 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 interface BookmarkMediaFieldProps {
-  bookmark: Bookmark;
-  /** Persists the selection (or the empty selection to unlink) — the controller's immediate-save handler. */
+  /** The current media selection (the six FK values). Derived from the bookmark on edit, or from form state on create. */
+  value: MediaSelection;
+  /** Persists the selection (or the empty selection to unlink) — an immediate-save handler on edit, a form write on create. */
   onSelect: (selection: MediaSelection) => void;
+  /** The persisted bookmark, when editing — enables the legacy Kavita/Plex read-only links. Absent on create. */
+  bookmark?: Bookmark | null;
 }
 
 /**
@@ -30,12 +33,17 @@ interface BookmarkMediaFieldProps {
  * create dialog for any kind, with its own Kavita/Plex lookup. A bookmark still carrying a legacy
  * direct Kavita/Plex link (no matching taxonomy row) shows that link read-only below, so old links
  * stay reachable.
+ *
+ * Selection-driven (a `value` + `onSelect`), so it serves both the edit surface (auto-save each
+ * change) and the create form (write the six FK form fields); the legacy links only render when the
+ * optional persisted `bookmark` is supplied.
  */
 export function BookmarkMediaField({
-  bookmark,
+  value,
   onSelect,
+  bookmark,
 }: BookmarkMediaFieldProps) {
-  const ctrl = useBookmarkMediaField(bookmark, onSelect);
+  const ctrl = useBookmarkMediaField(value, onSelect, bookmark);
   const noMatches = ctrl.query.trim().length > 0 && ctrl.sections.every(section => section.items.length === 0);
 
   return (
@@ -155,7 +163,7 @@ export function BookmarkMediaField({
         onOpenChange={ctrl.setAddOpen}
         onCreated={ctrl.handleCreated}
       />
-      {ctrl.showLegacyKavita
+      {ctrl.showLegacyKavita && bookmark
         ? (
           <p className="text-xs text-muted-foreground">
             Legacy Kavita link:
@@ -164,7 +172,7 @@ export function BookmarkMediaField({
           </p>
         )
         : null}
-      {ctrl.showLegacyPlex
+      {ctrl.showLegacyPlex && bookmark
         ? (
           <p className="text-xs text-muted-foreground">
             Legacy Plex link:

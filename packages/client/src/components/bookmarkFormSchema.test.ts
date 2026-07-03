@@ -38,6 +38,25 @@ describe("buildBookmarkDefaultValues", () => {
     expect(values.url).toBe("https://saved.example.com");
     expect(values.title).toBe("Saved title");
   });
+
+  it("defaults the media-link FK fields to empty strings when unset", () => {
+    const values = buildBookmarkDefaultValues(undefined, undefined);
+    expect(values.bookId).toBe("");
+    expect(values.movieId).toBe("");
+    expect(values.tvShowId).toBe("");
+    expect(values.episodeId).toBe("");
+    expect(values.albumId).toBe("");
+    expect(values.trackId).toBe("");
+  });
+
+  it("seeds the media-link FK from a persisted bookmark (edit mode)", () => {
+    const bookmark = makeBookmark({
+      movieId: "movie-1",
+    });
+    const values = buildBookmarkDefaultValues(bookmark, undefined);
+    expect(values.movieId).toBe("movie-1");
+    expect(values.bookId).toBe("");
+  });
 });
 
 describe("normalizeIsbn", () => {

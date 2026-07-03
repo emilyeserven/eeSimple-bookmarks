@@ -1451,26 +1451,76 @@ export function asBookmarkAddFormPlacements(value: unknown): Record<string, Book
 }
 
 /**
- * Pure resolver behind {@link getBookmarkAddFormSettings}: applies defaults for null/undefined
- * columns (a stored `[]` is a valid value and is intentionally NOT replaced by the default list),
- * and merges the normalized stored `builtInPropertyPlacements` over the default map so a future
- * built-in property that defaults to hidden stays hidden for a settings row that predates it.
- * Exported (rather than only exercised through the DB-backed getter) so this merge logic is
- * directly unit-testable.
+ * The nine standard fields that existed under the legacy `advancedFields`/`hiddenFields` array
+ * model. A one-time back-compat read (below) derives an explicit placement for each of these from a
+ * pre-existing saved row: absence from both legacy arrays meant "main area" (`default`) for these
+ * fields, so we record that explicitly rather than letting the merge re-inherit their newer default.
+ * Newer standard fields are intentionally absent here — they take their {@link
+ * DEFAULT_BOOKMARK_ADD_FORM_SETTINGS} default (e.g. hidden) via the merge.
+ */
+const LEGACY_STANDARD_FIELDS = [
+  "title",
+  "romanizedTitle",
+  "categoryId",
+  "mediaTypeId",
+  "languageId",
+  "groupId",
+  "descriptionTags",
+  "personIds",
+  "image",
+] as const;
+
+/**
+ * Derive an explicit standard-field placement map from the legacy `advancedFields`/`hiddenFields`
+ * arrays, reproducing the old membership semantics (`hidden` > `advanced` > `default`/main) for the
+ * nine fields that model knew. Only the legacy fields are emitted; the merge over the defaults fills
+ * in any newer field with its own default.
+ */
+function deriveStandardPlacementsFromLegacyArrays(
+  advanced: string[] | null | undefined,
+  hidden: string[] | null | undefined,
+): Record<string, BookmarkAddFormPlacement> {
+  const advancedSet = new Set(advanced ?? []);
+  const hiddenSet = new Set(hidden ?? []);
+  const derived: Record<string, BookmarkAddFormPlacement> = {};
+  for (const field of LEGACY_STANDARD_FIELDS) {
+    derived[field] = hiddenSet.has(field) ? "hidden" : advancedSet.has(field) ? "advanced" : "default";
+  }
+  return derived;
+}
+
+/**
+ * Pure resolver behind {@link getBookmarkAddFormSettings}. Both placement maps are resolved as
+ * `{ ...DEFAULT, ...stored }` so a key the user never touched inherits its default (a newly-added
+ * standard field that defaults to hidden stays hidden for a row that predates it). Back-compat: when
+ * the new `bookmarkFormStandardPlacements` column is absent but the legacy
+ * `advancedFields`/`hiddenFields` arrays are present, the legacy arrays are derived into the map
+ * once so an existing customized row keeps its choices for the original nine fields. Exported (rather
+ * than only exercised through the DB-backed getter) so this merge logic is directly unit-testable.
  */
 export function resolveBookmarkAddFormSettings(row?: {
   bookmarkFormAdvancedFields?: string[] | null;
   bookmarkFormHiddenFields?: string[] | null;
   bookmarkFormBuiltInPlacements?: Record<string, unknown> | null;
+  bookmarkFormStandardPlacements?: Record<string, unknown> | null;
 } | null): BookmarkAddFormSettings {
   if (!row) return DEFAULT_BOOKMARK_ADD_FORM_SETTINGS;
+  const builtInPropertyPlacements = {
+    ...DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements,
+    ...asBookmarkAddFormPlacements(row.bookmarkFormBuiltInPlacements ?? {}),
+  };
+  // Prefer the new map column; fall back to deriving from the legacy arrays for pre-existing rows.
+  const storedStandard = row.bookmarkFormStandardPlacements != null
+    ? asBookmarkAddFormPlacements(row.bookmarkFormStandardPlacements)
+    : (row.bookmarkFormAdvancedFields != null || row.bookmarkFormHiddenFields != null)
+      ? deriveStandardPlacementsFromLegacyArrays(row.bookmarkFormAdvancedFields, row.bookmarkFormHiddenFields)
+      : {};
   return {
-    advancedFields: row.bookmarkFormAdvancedFields ?? DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.advancedFields,
-    hiddenFields: row.bookmarkFormHiddenFields ?? DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.hiddenFields,
-    builtInPropertyPlacements: {
-      ...DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements,
-      ...asBookmarkAddFormPlacements(row.bookmarkFormBuiltInPlacements ?? {}),
+    standardFieldPlacements: {
+      ...DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.standardFieldPlacements,
+      ...storedStandard,
     },
+    builtInPropertyPlacements,
   };
 }
 
@@ -1481,6 +1531,7 @@ export async function getBookmarkAddFormSettings(): Promise<BookmarkAddFormSetti
       bookmarkFormAdvancedFields: appSettings.bookmarkFormAdvancedFields,
       bookmarkFormHiddenFields: appSettings.bookmarkFormHiddenFields,
       bookmarkFormBuiltInPlacements: appSettings.bookmarkFormBuiltInPlacements,
+      bookmarkFormStandardPlacements: appSettings.bookmarkFormStandardPlacements,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -1492,8 +1543,7 @@ export async function updateBookmarkAddFormSettings(
   input: UpdateBookmarkAddFormInput,
 ): Promise<BookmarkAddFormSettings> {
   const next = {
-    bookmarkFormAdvancedFields: [...input.advancedFields],
-    bookmarkFormHiddenFields: [...input.hiddenFields],
+    bookmarkFormStandardPlacements: asBookmarkAddFormPlacements(input.standardFieldPlacements),
     bookmarkFormBuiltInPlacements: asBookmarkAddFormPlacements(input.builtInPropertyPlacements),
   };
   await db

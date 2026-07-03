@@ -38,6 +38,13 @@ export const bookmarkSchema = z.object({
   personIds: z.array(z.string()),
   groupIds: z.array(z.string()),
   groupId: z.string(),
+  // Media-link FKs — at most one is set (empty string = unset); the media picker enforces exclusivity.
+  bookId: z.string(),
+  movieId: z.string(),
+  tvShowId: z.string(),
+  episodeId: z.string(),
+  albumId: z.string(),
+  trackId: z.string(),
 });
 
 /**
@@ -145,6 +152,12 @@ const SAMPLE_DEFAULT_VALUES: {
   personIds: string[];
   groupIds: string[];
   groupId: string;
+  bookId: string;
+  movieId: string;
+  tvShowId: string;
+  episodeId: string;
+  albumId: string;
+  trackId: string;
 } = {
   url: "",
   title: "",
@@ -161,6 +174,12 @@ const SAMPLE_DEFAULT_VALUES: {
   personIds: [],
   groupIds: [],
   groupId: "",
+  bookId: "",
+  movieId: "",
+  tvShowId: "",
+  episodeId: "",
+  albumId: "",
+  trackId: "",
 };
 
 /**
@@ -217,6 +236,12 @@ export function buildBookmarkDefaultValues(
   personIds: string[];
   groupIds: string[];
   groupId: string;
+  bookId: string;
+  movieId: string;
+  tvShowId: string;
+  episodeId: string;
+  albumId: string;
+  trackId: string;
 } {
   return {
     url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
@@ -234,6 +259,12 @@ export function buildBookmarkDefaultValues(
     personIds: (bookmark?.people.map(a => a.id) ?? []) as string[],
     groupIds: (bookmark?.groups.map(g => g.id) ?? []) as string[],
     groupId: bookmark?.group?.id ?? "",
+    bookId: bookmark?.bookId ?? "",
+    movieId: bookmark?.movieId ?? "",
+    tvShowId: bookmark?.tvShowId ?? "",
+    episodeId: bookmark?.episodeId ?? "",
+    albumId: bookmark?.albumId ?? "",
+    trackId: bookmark?.trackId ?? "",
   };
 }
 

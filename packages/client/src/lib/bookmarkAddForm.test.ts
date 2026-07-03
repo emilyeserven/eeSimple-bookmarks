@@ -1,5 +1,5 @@
 // @vitest-environment node
-import type { BookmarkAddFormSettings } from "@eesimple/types";
+import type { BookmarkAddFormPlacement, BookmarkAddFormSettings } from "@eesimple/types";
 
 import {
   BOOKMARK_FORM_DETAIL_SLUGS,
@@ -11,16 +11,34 @@ import { describe, expect, it } from "vitest";
 
 import { resolveBookmarkAddForm } from "./bookmarkAddForm";
 
+/** Build a settings object from a partial standard-placement map (merged over the defaults). */
+function settingsWith(
+  standardFieldPlacements: Record<string, BookmarkAddFormPlacement>,
+  builtInPropertyPlacements: Record<string, BookmarkAddFormPlacement> = {},
+): BookmarkAddFormSettings {
+  return {
+    standardFieldPlacements: {
+      ...DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.standardFieldPlacements,
+      ...standardFieldPlacements,
+    },
+    builtInPropertyPlacements,
+  };
+}
+
 describe("resolveBookmarkAddForm", () => {
   describe("edit mode", () => {
     it("always returns today's hardcoded split, ignoring the passed-in settings", () => {
-      const settings: BookmarkAddFormSettings = {
-        advancedFields: ["title"],
-        hiddenFields: ["romanizedTitle", "categoryId", "mediaTypeId", "languageId", "groupId", "descriptionTags", "personIds", "image"],
-        builtInPropertyPlacements: {
+      const settings = settingsWith(
+        // Deliberately scramble the placements — edit mode must ignore them.
+        {
+          title: "advanced",
+          romanizedTitle: "hidden",
+          categoryId: "hidden",
+        },
+        {
           [RUNTIME_SLUG]: "default",
         },
-      };
+      );
 
       const resolved = resolveBookmarkAddForm(settings, true);
 
@@ -39,34 +57,30 @@ describe("resolveBookmarkAddForm", () => {
       expect(resolved.placementOverrides).toBeUndefined();
     });
 
-    it("ignores default settings too — same literals regardless of input", () => {
+    it("excludes the newer hidden-by-default fields (edit surfaces are unchanged)", () => {
       const resolved = resolveBookmarkAddForm(DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, true);
 
-      expect(resolved.mainStandardFields).toEqual(["title", "romanizedTitle"]);
-      expect(resolved.advancedStandardFields).toEqual([
-        "categoryId",
-        "mediaTypeId",
-        "languageId",
-        "groupId",
-        "descriptionTags",
-        "personIds",
-        "image",
-      ]);
+      const all = [...resolved.mainStandardFields, ...resolved.advancedStandardFields];
+      for (const field of ["groupIds", "genreMoodIds", "locationIds", "mediaLink", "blacklistedTagIds", "blacklistedLocationIds"]) {
+        expect(all).not.toContain(field);
+      }
     });
   });
 
   describe("create mode", () => {
-    it("buckets standard fields by settings membership, preserving tuple order", () => {
-      const settings: BookmarkAddFormSettings = {
-        advancedFields: ["image", "categoryId"],
-        hiddenFields: ["personIds"],
-        builtInPropertyPlacements: {},
-      };
+    it("buckets standard fields by resolved placement, preserving tuple order", () => {
+      const settings = settingsWith({
+        categoryId: "advanced",
+        mediaTypeId: "default",
+        languageId: "default",
+        groupId: "default",
+        descriptionTags: "default",
+        personIds: "hidden",
+        image: "advanced",
+      });
 
       const resolved = resolveBookmarkAddForm(settings, false);
 
-      // Tuple order: title, romanizedTitle, categoryId, mediaTypeId, languageId, groupId,
-      // descriptionTags, personIds, image
       expect(resolved.mainStandardFields).toEqual([
         "title",
         "romanizedTitle",
@@ -80,12 +94,30 @@ describe("resolveBookmarkAddForm", () => {
       expect(resolved.advancedHiddenSlugs).toEqual([]);
     });
 
+    it("defaults the newer taxonomy/media/location fields to hidden", () => {
+      const resolved = resolveBookmarkAddForm(DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, false);
+
+      const all = [...resolved.mainStandardFields, ...resolved.advancedStandardFields];
+      for (const field of ["groupIds", "genreMoodIds", "locationIds", "mediaLink", "blacklistedTagIds", "blacklistedLocationIds"]) {
+        expect(all).not.toContain(field);
+      }
+    });
+
+    it("shows a newer field once it is explicitly placed", () => {
+      const resolved = resolveBookmarkAddForm(settingsWith({
+        locationIds: "advanced",
+        groupIds: "default",
+      }), false);
+
+      expect(resolved.mainStandardFields).toContain("groupIds");
+      expect(resolved.advancedStandardFields).toContain("locationIds");
+    });
+
     it("omits hidden fields entirely from both buckets", () => {
-      const settings: BookmarkAddFormSettings = {
-        advancedFields: [],
-        hiddenFields: ["title", "image"],
-        builtInPropertyPlacements: {},
-      };
+      const settings = settingsWith({
+        title: "hidden",
+        image: "hidden",
+      });
 
       const resolved = resolveBookmarkAddForm(settings, false);
 
@@ -95,48 +127,21 @@ describe("resolveBookmarkAddForm", () => {
       expect(resolved.advancedStandardFields).not.toContain("image");
     });
 
-    it("ignores unknown field keys without crashing", () => {
-      const settings: BookmarkAddFormSettings = {
-        advancedFields: ["notARealField"],
-        hiddenFields: ["alsoNotReal"],
-        builtInPropertyPlacements: {},
-      };
-
-      expect(() => resolveBookmarkAddForm(settings, false)).not.toThrow();
-      const resolved = resolveBookmarkAddForm(settings, false);
-      // Every standard field still appears exactly once across the two buckets.
-      const all = [...resolved.mainStandardFields, ...resolved.advancedStandardFields];
-      expect(all).toHaveLength(9);
-    });
-
     it("merges builtInPropertyPlacements over the defaults", () => {
-      const settings: BookmarkAddFormSettings = {
-        advancedFields: [],
-        hiddenFields: [],
-        builtInPropertyPlacements: {
-          [RUNTIME_SLUG]: "default",
-          "some-future-slug": "advanced",
-        },
-      };
+      const settings = settingsWith({}, {
+        [RUNTIME_SLUG]: "default",
+        "some-future-slug": "advanced",
+      });
 
       const resolved = resolveBookmarkAddForm(settings, false);
 
-      // Overridden slug takes the settings value.
       expect(resolved.placementOverrides?.[RUNTIME_SLUG]).toBe("default");
-      // A slug not touched by settings keeps the shipped default (hidden).
       expect(resolved.placementOverrides?.[DATE_POSTED_SLUG]).toBe("hidden");
-      // A slug only present in settings still appears.
       expect(resolved.placementOverrides?.["some-future-slug"]).toBe("advanced");
     });
 
     it("defaults to the shipped built-in placements when settings has none set", () => {
-      const settings: BookmarkAddFormSettings = {
-        advancedFields: [],
-        hiddenFields: [],
-        builtInPropertyPlacements: {},
-      };
-
-      const resolved = resolveBookmarkAddForm(settings, false);
+      const resolved = resolveBookmarkAddForm(settingsWith({}), false);
 
       for (const slug of BOOKMARK_FORM_DETAIL_SLUGS) {
         expect(resolved.placementOverrides?.[slug]).toBe("hidden");

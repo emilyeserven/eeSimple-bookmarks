@@ -21,7 +21,13 @@ import { BookmarkAdvancedDescriptionTagsField } from "./BookmarkAdvancedDescript
 import { BookmarkAdvancedGroupField } from "./BookmarkAdvancedGroupField";
 import { BookmarkAdvancedLanguageField } from "./BookmarkAdvancedLanguageField";
 import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
+import { BookmarkExcludedLocationsField } from "./BookmarkExcludedLocationsField";
+import { BookmarkExcludedTagsField } from "./BookmarkExcludedTagsField";
+import { BookmarkGenreMoodsField } from "./BookmarkGenreMoodsField";
+import { BookmarkGroupsField } from "./BookmarkGroupsField";
 import { BookmarkImageField } from "./BookmarkImageField";
+import { BookmarkLocationsField } from "./BookmarkLocationsField";
+import { BookmarkMediaLinkField } from "./BookmarkMediaLinkField";
 import { BookmarkPeopleField } from "./BookmarkPeopleField";
 import { BookmarkRomanizedNameField } from "./BookmarkRomanizedNameField";
 import { BookmarkTitleField } from "./BookmarkTitleField";
@@ -120,6 +126,22 @@ const FIELD_RENDERERS: Record<
       onImageIntentChange={props.onImageIntentChange}
     />
   ),
+  groupIds: props => (
+    <BookmarkGroupsField
+      form={props.form}
+      groups={props.groups ?? []}
+    />
+  ),
+  genreMoodIds: props => <BookmarkGenreMoodsField form={props.form} />,
+  locationIds: props => <BookmarkLocationsField form={props.form} />,
+  mediaLink: props => <BookmarkMediaLinkField form={props.form} />,
+  blacklistedTagIds: props => (
+    <BookmarkExcludedTagsField
+      form={props.form}
+      tagTree={props.tagTree}
+    />
+  ),
+  blacklistedLocationIds: props => <BookmarkExcludedLocationsField form={props.form} />,
 };
 
 interface BookmarkStandardFieldZoneProps extends StandardFieldRenderProps {

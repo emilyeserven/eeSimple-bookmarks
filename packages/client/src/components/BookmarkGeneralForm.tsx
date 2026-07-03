@@ -12,6 +12,7 @@ import { BookmarkNameField } from "./BookmarkNameField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { PersonSocialAccountOffer } from "./PersonSocialAccountOffer";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
+import { mediaSelectionFromBookmark } from "./useBookmarkMediaField";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 import { useBookmarkSyncRegistration } from "../hooks/useBookmarkSyncRegistration";
 
@@ -169,6 +170,7 @@ export function BookmarkGeneralForm({
       />
 
       <BookmarkMediaField
+        value={mediaSelectionFromBookmark(bookmark)}
         bookmark={bookmark}
         onSelect={ctrl.saveMedia}
       />

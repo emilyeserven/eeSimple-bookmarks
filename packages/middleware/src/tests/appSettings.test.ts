@@ -225,30 +225,60 @@ test("resolveBookmarkAddFormSettings: falls back to defaults when the row/column
       bookmarkFormAdvancedFields: null,
       bookmarkFormHiddenFields: null,
       bookmarkFormBuiltInPlacements: null,
+      bookmarkFormStandardPlacements: null,
     }),
     DEFAULT_BOOKMARK_ADD_FORM_SETTINGS,
   );
 });
 
-test("resolveBookmarkAddFormSettings: a stored empty array is a valid value, not a fallback trigger", () => {
+test("resolveBookmarkAddFormSettings: standardFieldPlacements merges stored values over the defaults", () => {
   const out = resolveBookmarkAddFormSettings({
-    bookmarkFormAdvancedFields: [],
-    bookmarkFormHiddenFields: [],
+    bookmarkFormStandardPlacements: {
+      // An explicit "default" (main area) is a real value, not an absence.
+      categoryId: "default",
+      title: "hidden",
+    },
     bookmarkFormBuiltInPlacements: null,
   });
-  assert.deepEqual(out.advancedFields, []);
-  assert.deepEqual(out.hiddenFields, []);
-  // Confirm the default list is genuinely non-empty, so this is a real behavioral difference.
-  assert.ok(DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.advancedFields.length > 0);
+  // Explicit stored placements win...
+  assert.equal(out.standardFieldPlacements.categoryId, "default");
+  assert.equal(out.standardFieldPlacements.title, "hidden");
+  // ...while an untouched field keeps its default (a newly-added field stays hidden).
+  assert.equal(out.standardFieldPlacements.mediaTypeId, "advanced");
+  assert.equal(out.standardFieldPlacements.locationIds, "hidden");
+});
+
+test("resolveBookmarkAddFormSettings: an empty stored standard map resolves to the defaults", () => {
+  const out = resolveBookmarkAddFormSettings({
+    bookmarkFormStandardPlacements: {},
+    bookmarkFormBuiltInPlacements: null,
+  });
+  assert.deepEqual(out.standardFieldPlacements, DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.standardFieldPlacements);
+});
+
+test("resolveBookmarkAddFormSettings: derives the standard map from legacy arrays for a pre-existing row", () => {
+  // A row saved under the old model (no new column) keeps its choices for the original nine fields,
+  // while a newer field (absent from both legacy arrays) takes its default (hidden).
+  const out = resolveBookmarkAddFormSettings({
+    bookmarkFormAdvancedFields: ["categoryId"],
+    bookmarkFormHiddenFields: ["mediaTypeId"],
+    bookmarkFormBuiltInPlacements: null,
+    bookmarkFormStandardPlacements: null,
+  });
+  assert.equal(out.standardFieldPlacements.categoryId, "advanced");
+  assert.equal(out.standardFieldPlacements.mediaTypeId, "hidden");
+  // A legacy field absent from both arrays meant the main area.
+  assert.equal(out.standardFieldPlacements.languageId, "default");
+  // A newer field never existed in the legacy model → its default (hidden).
+  assert.equal(out.standardFieldPlacements.locationIds, "hidden");
 });
 
 test("resolveBookmarkAddFormSettings: builtInPropertyPlacements merges stored values over the defaults", () => {
   const out = resolveBookmarkAddFormSettings({
-    bookmarkFormAdvancedFields: null,
-    bookmarkFormHiddenFields: null,
     bookmarkFormBuiltInPlacements: {
       [RUNTIME_SLUG]: "default",
     },
+    bookmarkFormStandardPlacements: null,
   });
   // The overridden slug takes the stored value...
   assert.equal(out.builtInPropertyPlacements[RUNTIME_SLUG], "default");
@@ -258,11 +288,10 @@ test("resolveBookmarkAddFormSettings: builtInPropertyPlacements merges stored va
 
 test("resolveBookmarkAddFormSettings: junk entries in the stored placements map are dropped before merging", () => {
   const out = resolveBookmarkAddFormSettings({
-    bookmarkFormAdvancedFields: null,
-    bookmarkFormHiddenFields: null,
     bookmarkFormBuiltInPlacements: {
       [RUNTIME_SLUG]: "bogus-placement",
     },
+    bookmarkFormStandardPlacements: null,
   });
   // The junk value is dropped, so the slug falls back to its default rather than the bogus string.
   assert.equal(out.builtInPropertyPlacements[RUNTIME_SLUG], "hidden");
@@ -270,8 +299,11 @@ test("resolveBookmarkAddFormSettings: junk entries in the stored placements map 
 
 test("bookmark-add-form update round-trip: the stored shape built by the update path resolves back to the same settings", () => {
   const input = {
-    advancedFields: ["categoryId"],
-    hiddenFields: ["mediaTypeId"],
+    standardFieldPlacements: {
+      "categoryId": "default" as const,
+      "mediaTypeId": "hidden" as const,
+      "not-a-real-field": "bogus" as unknown as "hidden",
+    },
     builtInPropertyPlacements: {
       [RUNTIME_SLUG]: "default" as const,
       "not-a-real-slug": "bogus" as unknown as "hidden",
@@ -279,16 +311,20 @@ test("bookmark-add-form update round-trip: the stored shape built by the update 
   };
   // Mirrors the storage shape built by updateBookmarkAddFormSettings without touching the DB.
   const stored = {
-    bookmarkFormAdvancedFields: [...input.advancedFields],
-    bookmarkFormHiddenFields: [...input.hiddenFields],
+    bookmarkFormStandardPlacements: asBookmarkAddFormPlacements(input.standardFieldPlacements),
     bookmarkFormBuiltInPlacements: asBookmarkAddFormPlacements(input.builtInPropertyPlacements),
   };
   const resolved = resolveBookmarkAddFormSettings(stored);
-  assert.deepEqual(resolved.advancedFields, input.advancedFields);
-  assert.deepEqual(resolved.hiddenFields, input.hiddenFields);
-  // The valid override round-trips...
+  // The valid standard-field overrides round-trip...
+  assert.equal(resolved.standardFieldPlacements.categoryId, "default");
+  assert.equal(resolved.standardFieldPlacements.mediaTypeId, "hidden");
+  // ...the junk field key never made it into storage...
+  assert.equal(Object.hasOwn(stored.bookmarkFormStandardPlacements, "not-a-real-field"), false);
+  // ...an untouched field keeps its default...
+  assert.equal(resolved.standardFieldPlacements.languageId, DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.standardFieldPlacements.languageId);
+  // ...the valid built-in override round-trips...
   assert.equal(resolved.builtInPropertyPlacements[RUNTIME_SLUG], "default");
-  // ...the junk key never made it into storage...
+  // ...the junk slug never made it into storage...
   assert.equal(Object.hasOwn(stored.bookmarkFormBuiltInPlacements, "not-a-real-slug"), false);
   // ...and every other built-in slug still resolves to its default.
   for (const slug of Object.keys(DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements)) {

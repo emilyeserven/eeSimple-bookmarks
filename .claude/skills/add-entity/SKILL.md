@@ -177,10 +177,12 @@ autofetch support).
    `buildBookmarkDefaultValues` entries in `bookmarkFormSchema.ts`, and a `BookmarkAdvanced<X>Field.tsx`
    (mirror `BookmarkAdvancedGroupField.tsx`). Then make it a **placeable standard field** (the form no
    longer hardcodes fields into `BookmarkAdvancedSection.tsx`): add its key to
-   `BOOKMARK_ADD_FORM_STANDARD_FIELDS` in `packages/types/src/bookmarkAddForm.ts` (+ its default bucket
-   in `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS`), a `BOOKMARK_ADD_FORM_STANDARD_LABELS` entry in
-   `useBookmarkAddFormSettingsPage.ts`, and a render entry in the exhaustive dispatch in
-   `bookmarkAddFormFields.tsx` (`BookmarkStandardFieldZone` — a missing entry **fails `tsc`**); the zone
+   `BOOKMARK_ADD_FORM_STANDARD_FIELDS` in `packages/types/src/bookmarkAddForm.ts` (+ its placement in
+   `DEFAULT_STANDARD_FIELD_PLACEMENTS` → `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.standardFieldPlacements`;
+   default a brand-new relation to `"hidden"`), a `BOOKMARK_ADD_FORM_STANDARD_LABELS` entry in
+   `useBookmarkAddFormSettingsPage.ts`, a distinct `STANDARD_FIELD_ICONS` entry in
+   `DisplayBookmarkAddSettings.tsx`, and a render entry in the exhaustive `FIELD_RENDERERS` dispatch in
+   `bookmarkAddFormFields.tsx` (all three `Record<…>` maps **fail `tsc`** on a missing entry); the zone
    is rendered by `BookmarkRevealedFields.tsx`. Thread the entity's list through `useBookmarkFormData.ts`
    → `useBookmarkFormController.ts`, and the `<x>Id` value through `useBookmarkFormHandlers.ts`'s
    `submitForm` and `useBookmarkGeneralForm.ts`'s `onSubmit` payloads. (See the `bookmark-add-form` skill.)
