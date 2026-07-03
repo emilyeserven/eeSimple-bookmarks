@@ -134,6 +134,9 @@ export function FilterSections({
           ),
         },
         {
+          // A self-managed facet (not in the FILTER_FACETS on-demand registry): its two vocabularies
+          // are always-seeded built-ins and the section self-fetches them, so it is shown whenever it
+          // has options and returns null otherwise.
           key: "language-usages",
           show: sectionShown(true, "Language usage"),
           node: (

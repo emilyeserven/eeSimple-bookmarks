@@ -444,6 +444,48 @@ bookmark row, its tags, or its custom-property values) — or the tag tree — m
 `services/customProperties.ts`). This keeps one source of truth for the predicate while moving the
 work off the client. SQL-level filtering is the last resort, reserved for genuinely large datasets.
 
+## Language usage levels & associations
+
+A **language** can be tagged with a **usage level** on many owner entities — e.g. "English dub",
+"Japanese subtitles only", "sparse English explanations", or a person's "native / conversational"
+proficiency. Two pieces back this (see the **`add-entity`** / **`add-condition-type`** skills for the
+change recipes):
+
+- **`language_usage_levels`** — a user-definable taxonomy (mirrors `place_types`) **grouped by
+  `kind`**: `availability` (Dub, Subtitles, Explanations…) qualifies content, `proficiency` (Native,
+  Fluent, Learning…) qualifies People. `kind` is free text (add a kind without a migration); built-ins
+  are seeded (`ensureBuiltInLanguageUsageLevels`) and non-deletable. **To add a level: use the
+  Settings-style manager at `/taxonomies/language-usage-levels`** (`LanguageUsageLevelsManager`), not a
+  code change. `deleteLanguageUsageLevel(id, reassignToId?)` reassigns or drops referencing rows (no
+  cascade FK), like `deletePlaceType`.
+- **`language_usages`** — the codebase's **first value-carrying polymorphic association**. Keyed by
+  `(ownerType, ownerId)` with **no FK on `ownerId`** (mirrors `taxonomy_images`), plus a surrogate `id`
+  and a unique `(ownerType, ownerId, languageId, usageLevelId)` index (mirrors `bookmark_relationships`).
+  Owners are `LANGUAGE_USAGE_OWNER_TYPES` = bookmark / movie / tvShow / website / youtubeChannel /
+  person. One shared service (`services/languageUsages.ts`) does it all: `loadLanguageUsages(ownerType,
+  ownerIds[])` (the batched, denormalized read loader reused by every owner), `setLanguageUsages`
+  (replace-all), and `deleteLanguageUsagesForOwner`.
+
+**Sync points a new owner type (or a schema change) must hit** — none of these are compiler-enforced:
+- Because `ownerId` has no FK, **every owner's delete service must call
+  `deleteLanguageUsagesForOwner(<ownerType>, id)`** or it orphans rows (see the calls in
+  `services/{bookmarks,people,movies,tvShows,websites,youtubeChannels}.ts`).
+- **Bookmarks are the matchable/filterable owner.** `setLanguageUsages`/`deleteLanguageUsagesForOwner`
+  call `invalidateBookmarkCache()` **only** for `ownerType === "bookmark"`; the bookmark's usages ride
+  on the hydrated `Bookmark` (`bookmarkHydration.ts`) and populate `ConditionInput.languageUsages` in
+  `bookmarkCache.ts`. Filtering is a **`language-usage` condition leaf** (autofill + homepage) that
+  matches **per association row** — `(languageIds ∅ ∨ row.language ∈ languageIds) ∧ (usageLevelIds ∅ ∨
+  row.level ∈ usageLevelIds)` — so English-dub + Spanish-subs does **not** match {English, Subs}.
+- The bookmark **search-sidebar** exposes the same per-row predicate as **two multi-selects**
+  (`LanguageUsageFilterSection`). It is a **deliberate exception to the `FILTER_FACETS` on-demand
+  registry** (`filterable-facet` skill): a dual-vocabulary, self-fetching section that is always shown
+  when it has options (both vocabularies are always-seeded built-ins), rather than a single-entity
+  facet threaded through the `BookmarkSearchView` routes.
+
+Editing is uniform: each owner's edit surface has a **Languages tab** (auto-save on entities, the
+bookmark edit tab) built from the shared `LanguageUsagesEditor`/`View`; only the `kind` prop differs
+(`availability` for content, `proficiency` for People).
+
 ## Metadata fetching & connectors
 
 The Add Bookmark form auto-fills metadata by scanning a URL/ISBN through a small set of external

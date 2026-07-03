@@ -17,6 +17,15 @@ bookmarks by a taxonomy entity. **Media Types** and **YouTube Channels** are the
 multi-select facets; copy one of them. **Tags** is a different shape (hierarchical tree +
 presence toggle, single-select) — don't mirror it for a flat entity.
 
+**Language usage** is a sanctioned **exception** to the `FILTER_FACETS` on-demand registry below:
+`LanguageUsageFilterSection` is a *dual-vocabulary* facet (two multi-selects — languages + usage
+levels — matched with per-row AND semantics) whose vocabularies are always-seeded built-ins, so it
+**self-fetches** both lists and is shown via `sectionShown(true, …)` (returning `null` only when both
+are empty) instead of being registered in `FILTER_FACETS` / `computeFacetData`. Don't force a new
+single-entity facet into that shape; and don't "fix" language-usage into the registry — registering it
+would require modeling its data-presence (always true → breaks the `hasFilters` empty-state) or
+threading both vocabularies through every `BookmarkSearchView` route.
+
 This skill has two halves:
 
 - **A. Filter-facet plumbing** — make the entity narrow the bookmark list (client-only).
