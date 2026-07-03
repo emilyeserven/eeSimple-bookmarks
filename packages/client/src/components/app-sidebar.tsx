@@ -67,7 +67,6 @@ function ExpandableLinkSection({
   tvShowsCount,
   episodesCount,
   albumsCount,
-  artistsCount,
   tracksCount,
   groupTypesCount,
 }: {
@@ -86,7 +85,6 @@ function ExpandableLinkSection({
   tvShowsCount?: number;
   episodesCount?: number;
   albumsCount?: number;
-  artistsCount?: number;
   tracksCount?: number;
   groupTypesCount?: number;
 }) {
@@ -115,7 +113,6 @@ function ExpandableLinkSection({
           tvShowsCount={tvShowsCount}
           episodesCount={episodesCount}
           albumsCount={albumsCount}
-          artistsCount={artistsCount}
           tracksCount={tracksCount}
           sidebarState={sidebarState}
         />
@@ -230,7 +227,6 @@ export function AppSidebar({
     tvShowsCount,
     episodesCount,
     albumsCount,
-    artistsCount,
     tracksCount,
     groupTypesCount,
     modifier,
@@ -330,7 +326,6 @@ export function AppSidebar({
               tvShowsCount={tvShowsCount}
               episodesCount={episodesCount}
               albumsCount={albumsCount}
-              artistsCount={artistsCount}
               tracksCount={tracksCount}
               groupTypesCount={groupTypesCount}
             />

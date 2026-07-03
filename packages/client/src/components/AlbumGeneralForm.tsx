@@ -2,19 +2,20 @@ import type { Album, PlexItemResult } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
 
-import { AlbumArtistsSection } from "./AlbumArtistsSection";
+import { AlbumCreditsSection } from "./AlbumCreditsSection";
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
 import { useUpdateAlbum } from "../hooks/useAlbums";
-import { useArtists, useCreateArtist } from "../hooks/useArtists";
+import { usePeople, useCreatePerson } from "../hooks/usePeople";
 import { albumsApi } from "../lib/api/taxonomies";
-import { resolveArtistNames, splitArtistNames } from "../lib/artistNames";
+import { resolvePersonNames, splitCreditNames } from "../lib/creditNames";
 
 import { notifyFieldSaved } from "@/lib/autoSave";
 
 /**
- * Edit an album's core fields (auto-saves) plus its many-to-many artists. Picking a Plex item
- * prefills the artists from the album's Plex artist (`parentTitle`, split on `;`) when no artists
- * are set yet — find-or-creating each through the shared `resolveArtistNames`.
+ * Edit an album's core fields (auto-saves) plus its People/Publisher credits. Picking a Plex item
+ * prefills the People credits from the album's Plex artist (`parentTitle`, split on `;`) when no
+ * credits are set yet — find-or-creating each Person through the shared `resolvePersonNames`. Group
+ * artists can be re-credited to Publishers by hand afterward.
  */
 export function AlbumGeneralForm({
   album,
@@ -24,27 +25,27 @@ export function AlbumGeneralForm({
   const navigate = useNavigate();
   const update = useUpdateAlbum();
   const {
-    data: artists,
-  } = useArtists();
-  const createArtist = useCreateArtist();
+    data: people,
+  } = usePeople();
+  const createPerson = useCreatePerson();
 
   async function handlePlexSelected(item: PlexItemResult) {
-    if (album.artistIds.length > 0 || !item.parentTitle) return;
-    const ids = await resolveArtistNames(
-      splitArtistNames(item.parentTitle),
-      artists ?? [],
-      createArtist,
+    if (album.personIds.length > 0 || album.groupIds.length > 0 || !item.parentTitle) return;
+    const ids = await resolvePersonNames(
+      splitCreditNames(item.parentTitle),
+      people ?? [],
+      createPerson,
     );
     if (ids.length === 0) return;
     update.mutate(
       {
         id: album.id,
         input: {
-          artistIds: ids,
+          personIds: ids,
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Artists"),
+        onSuccess: () => notifyFieldSaved("People"),
       },
     );
   }
@@ -60,7 +61,7 @@ export function AlbumGeneralForm({
           albumSlug: slug,
         },
       })}
-      renderExtra={<AlbumArtistsSection album={album} />}
+      renderExtra={<AlbumCreditsSection album={album} />}
       onPlexSelected={item => void handlePlexSelected(item)}
       base="albums"
       imagesApi={albumsApi.images}

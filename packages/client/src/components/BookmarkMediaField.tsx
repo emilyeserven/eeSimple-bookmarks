@@ -22,8 +22,8 @@ interface BookmarkMediaFieldProps {
 }
 
 /**
- * Link a bookmark to an item from any of the seven Media Properties taxonomies (Books / Movies /
- * TV Shows / Episodes / Albums / Artists / Tracks) — replaces the old separate Book and Plex item
+ * Link a bookmark to an item from any of the six Media Properties taxonomies (Books / Movies /
+ * TV Shows / Episodes / Albums / Tracks) — replaces the old separate Book and Plex item
  * pickers; bookmarks associate with a taxonomy row rather than a raw Kavita/Plex item. Each taxonomy
  * is an independently collapsible section (a chevron toggle per heading); typing filters every
  * section locally and always surfaces matches even in a collapsed section. "Create title…" opens the
@@ -73,7 +73,7 @@ export function BookmarkMediaField({
           align="start"
         >
           <Input
-            placeholder="Search books, movies, shows, episodes, albums, artists, tracks…"
+            placeholder="Search books, movies, shows, episodes, albums, tracks…"
             value={ctrl.query}
             onChange={event => ctrl.setQuery(event.target.value)}
           />

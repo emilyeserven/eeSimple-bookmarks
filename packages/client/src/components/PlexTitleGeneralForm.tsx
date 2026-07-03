@@ -84,9 +84,9 @@ interface PlexTitleGeneralFormProps<E extends PlexTitle> {
     input: PlexTitleUpdateInput; }>;
   /** Navigate to the new edit-tab slug after a rename (route-typed by the wrapper). */
   onRenamed: (slug: string) => void;
-  /** Extra auto-saving sections rendered after the fields (parent picker / artists M2M). */
+  /** Extra auto-saving sections rendered after the fields (parent picker / credit M2M). */
   renderExtra?: ReactNode;
-  /** Invoked when a Plex search result is picked, for parent/artist autofill in the wrapper. */
+  /** Invoked when a Plex search result is picked, for parent/credit autofill in the wrapper. */
   onPlexSelected?: (item: PlexItemResult) => void;
   /** REST base path segment for this taxonomy (e.g. `"movies"` / `"tv-shows"`) — the sync preview endpoint. */
   base: string;
@@ -98,8 +98,8 @@ interface PlexTitleGeneralFormProps<E extends PlexTitle> {
 /**
  * Shared auto-save edit form for any Plex-backed taxonomy row. All entities have the same core field
  * shape, so the wrappers just supply their entity, `kind`, update mutation, and slug-follow navigation.
- * Entities with a parent (Episode → TV Show, Track → Album) or an M2M (Album ↔ Artist) pass an extra
- * auto-saving section via `renderExtra` and hook the Plex lookup via `onPlexSelected` for autofill.
+ * Entities with a parent (Episode → TV Show, Track → Album) or a credit M2M (Album ↔ People/Publishers)
+ * pass an extra auto-saving section via `renderExtra` and hook the Plex lookup via `onPlexSelected`.
  * Each field auto-saves; the Plex lookup persists rating key + type + year in one save + one toast.
  */
 export function PlexTitleGeneralForm<E extends PlexTitle>({

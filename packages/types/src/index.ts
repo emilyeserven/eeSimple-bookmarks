@@ -15,7 +15,6 @@ import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
 export * from "./autofillMerge.js";
 export * from "./albums.js";
-export * from "./artists.js";
 export * from "./bookmarkAddForm.js";
 export * from "./books.js";
 export * from "./episodes.js";
@@ -677,6 +676,20 @@ export interface Group {
   bookmarkCount?: number;
   /** Social media links for this group. */
   socialLinks: SocialLink[];
+  /** Display ordering weight; lower sorts first (absorbed from the former Artists taxonomy). */
+  sortOrder: number;
+  /** Optional release year surfaced by the Plex search, or null. */
+  year: number | null;
+  /** Plex rating key (Settings → Connectors) this publisher maps to, or null if not linked. */
+  plexRatingKey: string | null;
+  /** Denormalized Plex item type (e.g. `artist`) for the deep-link label. */
+  plexItemType: string | null;
+  /** Display title of the linked Plex item, denormalized at link time. */
+  plexItemTitle: string | null;
+  /** Poster/avatar image URL, or null when none is set. */
+  imageUrl: string | null;
+  /** Ids of the albums this publisher is credited on (many-to-many). */
+  albumIds: string[];
 }
 
 /** Lightweight group shape carried on a bookmark. */
@@ -702,6 +715,13 @@ export interface UpdateGroupInput {
   groupTypeId?: string | null;
   /** Social media links for this group. Replaces the full list; omit to leave unchanged. */
   socialLinks?: SocialLink[];
+  sortOrder?: number;
+  year?: number | null;
+  plexRatingKey?: string | null;
+  plexItemType?: string | null;
+  plexItemTitle?: string | null;
+  /** Ids of the albums to credit this publisher on; replaces the full set. Omit to leave unchanged. */
+  albumIds?: string[];
 }
 
 /**
@@ -906,6 +926,20 @@ export interface Person {
   groupIds: string[];
   /** Languages this person uses, each qualified by a proficiency level. Populated by get endpoints. */
   languageUsages?: LanguageUsage[];
+  /** Display ordering weight; lower sorts first (absorbed from the former Artists taxonomy). */
+  sortOrder: number;
+  /** Optional franchise/IP grouping this person belongs to, or null. */
+  mediaPropertyId: string | null;
+  /** Optional release year surfaced by the Plex search, or null. */
+  year: number | null;
+  /** Plex rating key (Settings → Connectors) this person maps to, or null if not linked. */
+  plexRatingKey: string | null;
+  /** Denormalized Plex item type (e.g. `artist`) for the deep-link label. */
+  plexItemType: string | null;
+  /** Display title of the linked Plex item, denormalized at link time. */
+  plexItemTitle: string | null;
+  /** Ids of the albums this person is credited on (many-to-many). */
+  albumIds: string[];
 }
 
 /** Lightweight person shape carried on a bookmark. */
@@ -931,6 +965,14 @@ export interface UpdatePersonInput {
   websiteIds?: string[];
   /** IDs of groups to associate; replaces the full set. Omit to leave unchanged. */
   groupIds?: string[];
+  sortOrder?: number;
+  mediaPropertyId?: string | null;
+  year?: number | null;
+  plexRatingKey?: string | null;
+  plexItemType?: string | null;
+  plexItemTitle?: string | null;
+  /** Ids of the albums to credit this person on; replaces the full set. Omit to leave unchanged. */
+  albumIds?: string[];
 }
 
 /** Lightweight import shape carried on a bookmark (the import event it was created from). */
@@ -1188,8 +1230,6 @@ export interface Bookmark {
   episodeId: string | null;
   /** Id of the linked Album (Albums taxonomy), or `null` when unset. */
   albumId: string | null;
-  /** Id of the linked Artist (Artists taxonomy), or `null` when unset. */
-  artistId: string | null;
   /** Id of the linked Track (Tracks taxonomy), or `null` when unset. */
   trackId: string | null;
   /** Id of the linked series on the connected Kavita server, or `null` when not linked. */
@@ -1216,8 +1256,10 @@ export interface Bookmark {
   blacklistedTagIds: string[];
   /** Location IDs that should never be auto-applied to this bookmark by autofill rules. */
   blacklistedLocationIds: string[];
-  /** People credited for this bookmarked item. */
+  /** People (individual creators) credited for this bookmarked item. */
   people: BookmarkPerson[];
+  /** Groups (group creators, e.g. bands/companies) credited for this bookmarked item. */
+  groups: BookmarkGroup[];
   /** Number-typed custom property values (includes computed `calculate` results) assigned to this bookmark. */
   numberValues: BookmarkNumberValue[];
   /** Boolean custom property values assigned to this bookmark. */
@@ -1268,8 +1310,10 @@ export interface CreateBookmarkInput {
   blacklistedTagIds?: string[];
   /** Location IDs to exclude from autofill auto-apply on this bookmark. */
   blacklistedLocationIds?: string[];
-  /** Ids of people to credit for this item. */
+  /** Ids of people (individual creators) to credit for this item. */
   personIds?: string[];
+  /** Ids of groups (group creators) to credit for this item. Replaces the full set. */
+  groupIds?: string[];
   /** Number custom property values to assign (calculate results are computed server-side). */
   numberValues?: BookmarkNumberValue[];
   /** Boolean custom property values to assign. */
@@ -1313,8 +1357,6 @@ export interface CreateBookmarkInput {
   episodeId?: string | null;
   /** Id of the Album (Albums taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
   albumId?: string | null;
-  /** Id of the Artist (Artists taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
-  artistId?: string | null;
   /** Id of the Track (Tracks taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
   trackId?: string | null;
   /** Id of the Kavita series to link, or `null` to unlink. Omit to leave unchanged. */
@@ -1674,6 +1716,7 @@ export interface InboxPreFillDefaults {
   locationIds?: string[];
   mediaTypeId?: string | null;
   personIds?: string[];
+  groupIds?: string[];
   groupId?: string | null;
   numberValues?: { propertyId: string;
     value: number; }[];

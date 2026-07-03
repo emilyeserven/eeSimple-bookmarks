@@ -4,6 +4,7 @@ import { UserCircle } from "lucide-react";
 
 import { EntityImagePreview } from "../EntityImageField";
 
+import { useAlbums } from "@/hooks/useAlbums";
 import { useGroups } from "@/hooks/useGroups";
 import { useWebsites } from "@/hooks/useWebsites";
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
@@ -23,10 +24,14 @@ export function PersonGeneralView({
   const {
     data: groups,
   } = useGroups();
+  const {
+    data: albums,
+  } = useAlbums();
 
   const connectedChannels = (channels ?? []).filter(ch => person.youtubeChannelIds.includes(ch.id));
   const connectedWebsites = (websites ?? []).filter(site => person.websiteIds.includes(site.id));
   const connectedGroups = (groups ?? []).filter(pub => person.groupIds.includes(pub.id));
+  const creditedAlbums = (albums ?? []).filter(album => person.albumIds.includes(album.id));
 
   return (
     <div className="space-y-3">
@@ -79,6 +84,30 @@ export function PersonGeneralView({
                   {person.biographyUrl}
                 </a>
               </dd>
+            </>
+          )
+          : null}
+        {person.year != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">Year</dt>
+              <dd>{person.year}</dd>
+            </>
+          )
+          : null}
+        {person.plexItemTitle != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">Plex</dt>
+              <dd>{person.plexItemTitle}</dd>
+            </>
+          )
+          : null}
+        {creditedAlbums.length > 0
+          ? (
+            <>
+              <dt className="text-muted-foreground">Albums</dt>
+              <dd>{creditedAlbums.map(album => album.name).join(", ")}</dd>
             </>
           )
           : null}

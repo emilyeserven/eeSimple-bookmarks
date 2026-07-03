@@ -51,7 +51,7 @@ export const bookmarks = pgTable("bookmarks", {
   importId: uuid("import_id").references((): AnyPgColumn => imports.id, {
     onDelete: "set null",
   }),
-  // The group (taxonomy) this bookmark is attributed to (e.g. a publisher, studio, or label).
+  // The group (taxonomy) this bookmark is attributed to (e.g. a group, studio, or label).
   // Nullable; set null when the group is deleted.
   groupId: uuid("group_id").references((): AnyPgColumn => groups.id, {
     onDelete: "set null",
@@ -70,11 +70,12 @@ export const bookmarks = pgTable("bookmarks", {
   kavitaSeriesId: integer("kavita_series_id"),
   kavitaLibraryId: integer("kavita_library_id"),
   kavitaSeriesName: text("kavita_series_name"),
-  // The Plex-backed taxonomy (Movie / TV Show / Episode / Album / Artist / Track) this bookmark is
+  // The Plex-backed taxonomy (Movie / TV Show / Episode / Album / Track) this bookmark is
   // linked to. At most one is set. Nullable = push-safe additive; set null when the linked row is
   // deleted. Plex-item selection flows through these FKs instead of the legacy Plex columns below;
   // poster/deep-link resolve the Plex rating key from whichever is linked, falling back to the legacy
-  // `plex_rating_key` when none is set.
+  // `plex_rating_key` when none is set. (The former `artist_id` was folded into the People/Groups
+  // creator credits — see `bookmark_people` / `bookmark_groups` — and dropped in migrate.ts.)
   movieId: uuid("movie_id").references((): AnyPgColumn => movies.id, {
     onDelete: "set null",
   }),
@@ -85,9 +86,6 @@ export const bookmarks = pgTable("bookmarks", {
     onDelete: "set null",
   }),
   albumId: uuid("album_id").references((): AnyPgColumn => albums.id, {
-    onDelete: "set null",
-  }),
-  artistId: uuid("artist_id").references((): AnyPgColumn => artists.id, {
     onDelete: "set null",
   }),
   trackId: uuid("track_id").references((): AnyPgColumn => tracks.id, {
@@ -478,7 +476,7 @@ export const groupTypes = pgTable("group_types", {
 export type GroupTypeRow = typeof groupTypes.$inferSelect;
 
 /**
- * `groups` table — taxonomy of groups and individuals (publishers, studios, labels, …).
+ * `groups` table — taxonomy of groups and individuals (groups, studios, labels, …).
  * Bookmarks (especially books / offline items) may be attributed to a group. Optionally
  * linked to a website in the Websites taxonomy, and optionally classified by a group type.
  */
@@ -499,6 +497,13 @@ export const groups = pgTable("groups", {
   }),
   // Social media profile links. NOT NULL; pre-applied in migrate.ts.
   socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
+  // Fields absorbed from the former Artists taxonomy (a group/band is a Group). `sort_order` is
+  // NOT NULL default 0 → pre-applied in migrate.ts (push would prompt); the rest are nullable → push-safe.
+  sortOrder: integer("sort_order").notNull().default(0),
+  plexRatingKey: text("plex_rating_key"),
+  plexItemType: text("plex_item_type"),
+  plexItemTitle: text("plex_item_title"),
+  year: integer("year"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -508,6 +513,29 @@ export const groups = pgTable("groups", {
 ]);
 
 export type GroupRow = typeof groups.$inferSelect;
+
+/**
+ * `group_images` — a single avatar/poster image per group, mirroring `person_images`. The bytes
+ * live in object storage; this table holds only metadata. Absorbed alongside the Artists → People/Groups
+ * merge so a group creator gets a poster like a solo artist did.
+ */
+export const groupImages = pgTable("group_images", {
+  groupId: uuid("group_id").primaryKey().references(() => groups.id, {
+    onDelete: "cascade",
+  }),
+  objectKey: text("object_key").notNull(),
+  contentType: text("content_type").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  byteSize: integer("byte_size").notNull(),
+  // "upload" | "website" | "plex"
+  source: text("source").notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+export type GroupImageRow = typeof groupImages.$inferSelect;
 
 /**
  * `property_groups` table — optional groupings for custom properties. A property may belong to one
@@ -697,39 +725,8 @@ export const episodes = pgTable("episodes", {
 ]);
 
 /**
- * `artists` table — a taxonomy of music artists. Plex-backed like `movies`. Associated with albums
- * many-to-many via `album_artists`.
- */
-export const artists = pgTable("artists", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug"),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
-    onDelete: "set null",
-  }),
-  plexRatingKey: text("plex_rating_key"),
-  plexItemType: text("plex_item_type"),
-  // Denormalized at link time from the Plex search result, so the "Linked to Plex" display can show
-  // the actual item name without a Plex round-trip.
-  plexItemTitle: text("plex_item_title"),
-  year: integer("year"),
-  wikidataId: text("wikidata_id"),
-  wikipediaLinkEn: text("wikipedia_link_en"),
-  wikipediaLinkLocal: text("wikipedia_link_local"),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  unique("artists_name_unique").on(table.name),
-  unique("artists_slug_unique").on(table.slug),
-]);
-
-/**
- * `albums` table — a taxonomy of music albums. Plex-backed like `movies`. Associated with artists
- * many-to-many via `album_artists`.
+ * `albums` table — a taxonomy of music albums. Plex-backed like `movies`. Credited to People
+ * (individuals) and Groups (groups) many-to-many via `album_people` / `album_groups`.
  */
 export const albums = pgTable("albums", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -796,12 +793,12 @@ export const tracks = pgTable("tracks", {
 
 /**
  * `taxonomy_images` — a shared, polymorphic multi-image gallery for the Plex/Kavita-backed media
- * taxonomies (Movies, TV Shows, Episodes, Artists, Albums, Tracks, Books). Mirrors `bookmark_images`
+ * taxonomies (Movies, TV Shows, Episodes, Albums, Tracks, Books). Mirrors `bookmark_images`
  * (up to {@link MAX_TAXONOMY_IMAGES} per owner, one flagged `isMain`) but keyed by
  * `(ownerType, ownerId)` instead of a single `bookmarkId` FK, since one physical table can't carry a
- * foreign key into seven different owner tables. `ownerType` is one of `TAXONOMY_IMAGE_OWNER_TYPES`.
+ * foreign key into six different owner tables. `ownerType` is one of `TAXONOMY_IMAGE_OWNER_TYPES`.
  */
-export const TAXONOMY_IMAGE_OWNER_TYPES = ["movie", "tvShow", "episode", "artist", "album", "track", "book"] as const;
+export const TAXONOMY_IMAGE_OWNER_TYPES = ["movie", "tvShow", "episode", "album", "track", "book"] as const;
 
 export const taxonomyImages = pgTable("taxonomy_images", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -823,17 +820,31 @@ export const taxonomyImages = pgTable("taxonomy_images", {
   index("taxonomy_images_owner_idx").on(table.ownerType, table.ownerId),
 ]);
 
-/** `album_artists` join — M:M between albums and artists (an album has many artists and vice versa). */
-export const albumArtists = pgTable("album_artists", {
+/** `album_people` join — M:M crediting an album to People (individual creators). */
+export const albumPeople = pgTable("album_people", {
   albumId: uuid("album_id").notNull().references(() => albums.id, {
     onDelete: "cascade",
   }),
-  artistId: uuid("artist_id").notNull().references(() => artists.id, {
+  personId: uuid("person_id").notNull().references((): AnyPgColumn => people.id, {
     onDelete: "cascade",
   }),
 }, table => [
   primaryKey({
-    columns: [table.albumId, table.artistId],
+    columns: [table.albumId, table.personId],
+  }),
+]);
+
+/** `album_groups` join — M:M crediting an album to Groups (group creators). */
+export const albumGroups = pgTable("album_groups", {
+  albumId: uuid("album_id").notNull().references(() => albums.id, {
+    onDelete: "cascade",
+  }),
+  groupId: uuid("group_id").notNull().references((): AnyPgColumn => groups.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.albumId, table.groupId],
   }),
 ]);
 
@@ -1339,6 +1350,7 @@ export const bookmarksRelations = relations(bookmarks, ({
   bookmarkTags: many(bookmarkTags),
   bookmarkLocations: many(bookmarkLocations),
   bookmarkPeople: many(bookmarkPeople),
+  bookmarkGroups: many(bookmarkGroups),
   images: many(bookmarkImages),
   relationsA: many(bookmarkRelationships, {
     relationName: "bookmark_relation_a",
@@ -2597,9 +2609,9 @@ export type MovieRow = typeof movies.$inferSelect;
 export type TvShowRow = typeof tvShows.$inferSelect;
 export type EpisodeRow = typeof episodes.$inferSelect;
 export type AlbumRow = typeof albums.$inferSelect;
-export type ArtistRow = typeof artists.$inferSelect;
 export type TrackRow = typeof tracks.$inferSelect;
-export type AlbumArtistRow = typeof albumArtists.$inferSelect;
+export type AlbumPersonRow = typeof albumPeople.$inferSelect;
+export type AlbumGroupRow = typeof albumGroups.$inferSelect;
 export type NewBookRow = typeof books.$inferInsert;
 export type TaxonomyImageRow = typeof taxonomyImages.$inferSelect;
 export type NewTaxonomyImageRow = typeof taxonomyImages.$inferInsert;
@@ -2717,6 +2729,16 @@ export const people = pgTable("people", {
   biographyUrl: text("biography_url"),
   // Social media profile links. NOT NULL; pre-applied in migrate.ts.
   socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
+  // Fields absorbed from the former Artists taxonomy (a solo artist is a Person). `sort_order` is
+  // NOT NULL default 0 → pre-applied in migrate.ts (push would prompt); the rest are nullable → push-safe.
+  sortOrder: integer("sort_order").notNull().default(0),
+  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
+    onDelete: "set null",
+  }),
+  plexRatingKey: text("plex_rating_key"),
+  plexItemType: text("plex_item_type"),
+  plexItemTitle: text("plex_item_title"),
+  year: integer("year"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -2745,7 +2767,7 @@ export const personImages = pgTable("person_images", {
 
 export type PersonImageRow = typeof personImages.$inferSelect;
 
-/** `bookmark_people` join — many-to-many between bookmarks and people. */
+/** `bookmark_people` join — many-to-many between bookmarks and people (individual creator credits). */
 export const bookmarkPeople = pgTable("bookmark_people", {
   bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
     onDelete: "cascade",
@@ -2758,6 +2780,26 @@ export const bookmarkPeople = pgTable("bookmark_people", {
     columns: [table.bookmarkId, table.personId],
   }),
 ]);
+
+/**
+ * `bookmark_groups` join — many-to-many between bookmarks and groups (group creator credits,
+ * e.g. bands/companies). Distinct from the single `bookmarks.group_id` FK, which is the item's
+ * publishing house.
+ */
+export const bookmarkGroups = pgTable("bookmark_groups", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  groupId: uuid("group_id").notNull().references((): AnyPgColumn => groups.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.groupId],
+  }),
+]);
+
+export type BookmarkGroupRow = typeof bookmarkGroups.$inferSelect;
 
 /** `person_youtube_channels` join — M:M between people and YouTube channels. */
 export const personYoutubeChannels = pgTable("person_youtube_channels", {
@@ -2831,6 +2873,7 @@ export const peopleRelations = relations(people, ({
   personYoutubeChannels: many(personYoutubeChannels),
   personWebsites: many(personWebsites),
   personGroups: many(personGroups),
+  albumPeople: many(albumPeople),
 }));
 
 export const bookmarkPeopleRelations = relations(bookmarkPeople, ({
@@ -2843,6 +2886,45 @@ export const bookmarkPeopleRelations = relations(bookmarkPeople, ({
   person: one(people, {
     fields: [bookmarkPeople.personId],
     references: [people.id],
+  }),
+}));
+
+export const bookmarkGroupsRelations = relations(bookmarkGroups, ({
+  one,
+}) => ({
+  bookmark: one(bookmarks, {
+    fields: [bookmarkGroups.bookmarkId],
+    references: [bookmarks.id],
+  }),
+  group: one(groups, {
+    fields: [bookmarkGroups.groupId],
+    references: [groups.id],
+  }),
+}));
+
+export const albumPeopleRelations = relations(albumPeople, ({
+  one,
+}) => ({
+  album: one(albums, {
+    fields: [albumPeople.albumId],
+    references: [albums.id],
+  }),
+  person: one(people, {
+    fields: [albumPeople.personId],
+    references: [people.id],
+  }),
+}));
+
+export const albumGroupsRelations = relations(albumGroups, ({
+  one,
+}) => ({
+  album: one(albums, {
+    fields: [albumGroups.albumId],
+    references: [albums.id],
+  }),
+  group: one(groups, {
+    fields: [albumGroups.groupId],
+    references: [groups.id],
   }),
 }));
 

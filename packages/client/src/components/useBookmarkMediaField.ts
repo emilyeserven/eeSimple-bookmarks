@@ -1,10 +1,8 @@
-import type { PlexKind } from "@/lib/plexParent";
 import type { Bookmark } from "@eesimple/types";
 
 import { useState } from "react";
 
 import { useAlbums } from "../hooks/useAlbums";
-import { useArtists } from "../hooks/useArtists";
 import { useBooks } from "../hooks/useBooks";
 import { useEpisodes } from "../hooks/useEpisodes";
 import { useExpandedSet } from "../hooks/useExpandedSet";
@@ -12,8 +10,12 @@ import { useMovies } from "../hooks/useMovies";
 import { useTracks } from "../hooks/useTracks";
 import { useTvShows } from "../hooks/useTvShows";
 
-/** Any of the seven Media Properties taxonomies a bookmark can link to. */
-type MediaKind = PlexKind | "book";
+/**
+ * The six Media Properties taxonomies a bookmark can link to via a single FK. Deliberately NOT
+ * `PlexKind | "book"` — `PlexKind` still includes `"artist"` (People/Publishers Plex-link against the
+ * Plex `artist` item type), but a bookmark no longer links to an Artist taxonomy row.
+ */
+type MediaKind = "book" | "movie" | "show" | "episode" | "album" | "track";
 
 /** The bookmark FK column each media taxonomy fills in (exactly one is ever set). */
 export type MediaTaxoKey
@@ -22,7 +24,6 @@ export type MediaTaxoKey
     | "tvShowId"
     | "episodeId"
     | "albumId"
-    | "artistId"
     | "trackId";
 
 /** A media-item link selection: exactly one taxonomy FK is set, or all null to unlink. */
@@ -32,7 +33,6 @@ export interface MediaSelection {
   tvShowId: string | null;
   episodeId: string | null;
   albumId: string | null;
-  artistId: string | null;
   trackId: string | null;
 }
 
@@ -42,7 +42,6 @@ export const EMPTY_MEDIA_SELECTION: MediaSelection = {
   tvShowId: null,
   episodeId: null,
   albumId: null,
-  artistId: null,
   trackId: null,
 };
 
@@ -92,11 +91,6 @@ const MEDIA_KIND_META: MediaKindMeta[] = [
     heading: "Albums",
   },
   {
-    kind: "artist",
-    fkKey: "artistId",
-    heading: "Artists",
-  },
-  {
     kind: "track",
     fkKey: "trackId",
     heading: "Tracks",
@@ -121,9 +115,6 @@ function useMediaTaxonomyLists(): Record<MediaKind, TaxoRow[]> {
     data: albums,
   } = useAlbums();
   const {
-    data: artists,
-  } = useArtists();
-  const {
     data: tracks,
   } = useTracks();
   return {
@@ -132,7 +123,6 @@ function useMediaTaxonomyLists(): Record<MediaKind, TaxoRow[]> {
     show: tvShows ?? [],
     episode: episodes ?? [],
     album: albums ?? [],
-    artist: artists ?? [],
     track: tracks ?? [],
   };
 }

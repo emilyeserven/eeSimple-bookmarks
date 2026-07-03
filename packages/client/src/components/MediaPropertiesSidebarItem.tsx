@@ -10,7 +10,6 @@ import {
   Disc3,
   Film,
   Library,
-  Mic2,
   Music,
   Tv,
   Tv2,
@@ -40,7 +39,6 @@ function FlyoutChildLink({
     | "/taxonomies/tv-shows"
     | "/taxonomies/episodes"
     | "/taxonomies/albums"
-    | "/taxonomies/artists"
     | "/taxonomies/tracks";
   icon: LucideIcon;
   label: string;
@@ -79,7 +77,6 @@ function FlyoutChildren({
   tvShowsCount,
   episodesCount,
   albumsCount,
-  artistsCount,
   tracksCount,
   onNavigate,
 }: {
@@ -88,7 +85,6 @@ function FlyoutChildren({
   tvShowsCount?: number;
   episodesCount?: number;
   albumsCount?: number;
-  artistsCount?: number;
   tracksCount?: number;
   onNavigate: () => void;
 }) {
@@ -130,13 +126,6 @@ function FlyoutChildren({
         onNavigate={onNavigate}
       />
       <FlyoutChildLink
-        to="/taxonomies/artists"
-        icon={Mic2}
-        label="Artists"
-        count={artistsCount}
-        onNavigate={onNavigate}
-      />
-      <FlyoutChildLink
         to="/taxonomies/tracks"
         icon={Music}
         label="Tracks"
@@ -162,7 +151,6 @@ export function MediaPropertiesSidebarItem({
   tvShowsCount,
   episodesCount,
   albumsCount,
-  artistsCount,
   tracksCount,
   sidebarState,
 }: {
@@ -173,7 +161,6 @@ export function MediaPropertiesSidebarItem({
   tvShowsCount?: number;
   episodesCount?: number;
   albumsCount?: number;
-  artistsCount?: number;
   tracksCount?: number;
   sidebarState?: string;
 }) {
@@ -260,7 +247,6 @@ export function MediaPropertiesSidebarItem({
                 tvShowsCount={tvShowsCount}
                 episodesCount={episodesCount}
                 albumsCount={albumsCount}
-                artistsCount={artistsCount}
                 tracksCount={tracksCount}
                 onNavigate={() => setExpanded(false)}
               />
@@ -302,7 +288,6 @@ export function MediaPropertiesSidebarItem({
             tvShowsCount={tvShowsCount}
             episodesCount={episodesCount}
             albumsCount={albumsCount}
-            artistsCount={artistsCount}
             tracksCount={tracksCount}
             onNavigate={() => setOpen(false)}
           />

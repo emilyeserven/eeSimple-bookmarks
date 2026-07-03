@@ -1,5 +1,4 @@
 import type { CreatedMediaTitle, MediaTaxoKey } from "./useBookmarkMediaField";
-import type { PlexKind } from "@/lib/plexParent";
 
 import { useState } from "react";
 
@@ -15,8 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-/** Which taxonomy a create-modal kind toggle targets. */
-type CreateKind = PlexKind | "book";
+/** Which taxonomy a create-modal kind toggle targets (the six bookmark-linkable media taxonomies). */
+type CreateKind = "book" | "movie" | "show" | "episode" | "album" | "track";
 
 /** Each create kind, its toggle label, and the bookmark FK a created row of that kind fills in. */
 const KIND_OPTIONS: { kind: CreateKind;
@@ -48,11 +47,6 @@ const KIND_OPTIONS: { kind: CreateKind;
     key: "albumId",
   },
   {
-    kind: "artist",
-    label: "Artist",
-    key: "artistId",
-  },
-  {
     kind: "track",
     label: "Track",
     key: "trackId",
@@ -67,10 +61,10 @@ interface AddMediaTitleModalProps {
 }
 
 /**
- * Create any of the seven Media Properties taxonomy rows from one dialog — a kind toggle over
- * `BookForm` (Book, with its own Kavita lookup) and the shared `PlexTitleForm` (the other six kinds).
- * Used by the bookmark's unified Media picker so inline-create works for every kind from one
- * combobox.
+ * Create any of the six bookmark-linkable Media Properties taxonomy rows from one dialog — a kind
+ * toggle over `BookForm` (Book, with its own Kavita lookup) and the shared `PlexTitleForm` (the other
+ * five kinds). Used by the bookmark's unified Media picker so inline-create works for every kind from
+ * one combobox.
  */
 export function AddMediaTitleModal({
   open, onOpenChange, onCreated,
@@ -87,7 +81,7 @@ export function AddMediaTitleModal({
         <DialogHeader>
           <DialogTitle>New media title</DialogTitle>
           <DialogDescription>
-            Create a book, movie, TV show, episode, album, artist, or track — or look it up on
+            Create a book, movie, TV show, episode, album, or track — or look it up on
             Kavita or Plex to fill in its details automatically.
           </DialogDescription>
         </DialogHeader>

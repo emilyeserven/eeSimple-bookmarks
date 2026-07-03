@@ -26,6 +26,8 @@ type BookmarkArrayField
     | "blacklistedTagIds"
     | "blacklistedLocationIds"
     | "people"
+    | "groups"
+    | "genreMoods"
     | "numberValues"
     | "booleanValues"
     | "dateTimeValues"
@@ -54,6 +56,8 @@ export function normalizeBookmark(raw: RawBookmark): Bookmark {
     blacklistedTagIds: raw.blacklistedTagIds ?? [],
     blacklistedLocationIds: raw.blacklistedLocationIds ?? [],
     people: raw.people ?? [],
+    groups: raw.groups ?? [],
+    genreMoods: raw.genreMoods ?? [],
     numberValues: raw.numberValues ?? [],
     booleanValues: raw.booleanValues ?? [],
     dateTimeValues: raw.dateTimeValues ?? [],

@@ -16,7 +16,6 @@ import {
 } from "./peopleAndRuleContentTypes";
 import {
   albumContentType,
-  artistContentType,
   bookContentType,
   bookmarkContentType,
   categoryContentType,
@@ -57,7 +56,6 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
   tvShowContentType,
   episodeContentType,
   albumContentType,
-  artistContentType,
   trackContentType,
   youtubeChannelContentType,
   newsletterContentType,

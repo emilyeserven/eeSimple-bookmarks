@@ -13,6 +13,7 @@ export function useCommandPaletteTaxonomyState() {
   const [pendingTagIds, setPendingTagIds] = useState<string[]>([]);
   const [pendingLocationIds, setPendingLocationIds] = useState<string[]>([]);
   const [pendingPersonIds, setPendingPersonIds] = useState<string[]>([]);
+  const [pendingGroupIds, setPendingGroupIds] = useState<string[]>([]);
   const [choicesPropertyId, setChoicesPropertyId] = useState<string | null>(null);
   const [pendingChoiceValues, setPendingChoiceValues] = useState<string[]>([]);
   const [ratingPropertyId, setRatingPropertyId] = useState<string | null>(null);
@@ -22,12 +23,14 @@ export function useCommandPaletteTaxonomyState() {
     mode: TaxonomyMode,
     bookmark?: { tags: { id: string }[];
       locations: { id: string }[];
-      people: { id: string }[]; } | null,
+      people: { id: string }[];
+      groups: { id: string }[]; } | null,
   ) {
     setTaxonomyMode(mode);
     if (mode === "tags" && bookmark) setPendingTagIds(bookmark.tags.map(t => t.id));
     if (mode === "locations" && bookmark) setPendingLocationIds(bookmark.locations.map(l => l.id));
     if (mode === "people" && bookmark) setPendingPersonIds(bookmark.people.map(a => a.id));
+    if (mode === "groups" && bookmark) setPendingGroupIds(bookmark.groups.map(g => g.id));
   }
 
   function enterChoicesMode(propId: string, current: string[]) {
@@ -69,6 +72,8 @@ export function useCommandPaletteTaxonomyState() {
     setPendingLocationIds,
     pendingPersonIds,
     setPendingPersonIds,
+    pendingGroupIds,
+    setPendingGroupIds,
     choicesPropertyId,
     pendingChoiceValues,
     setPendingChoiceValues,

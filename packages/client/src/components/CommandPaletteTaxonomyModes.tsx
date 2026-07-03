@@ -7,6 +7,7 @@ import {
   PeopleSubPalette,
   CategorySubPalette,
   ChoicesSubPalette,
+  GroupsSubPalette,
   LocationsSubPalette,
   MediaTypeSubPalette,
   NewsletterSubPalette,
@@ -48,6 +49,7 @@ export function CommandPaletteTaxonomyModes({
     flatTags,
     flatLocations,
     people,
+    groups,
     newsletters,
     customProperties,
     updateBookmark,
@@ -158,6 +160,29 @@ export function CommandPaletteTaxonomyModes({
             onClose();
           }}
           onCreateNew={() => onCreateAndAssign("person")}
+        />
+      )}
+
+      {taxonomy.taxonomyMode === "groups" && bookmarkId && (
+        <GroupsSubPalette
+          groups={groups}
+          pendingGroupIds={taxonomy.pendingGroupIds}
+          onToggleGroup={groupId =>
+            taxonomy.setPendingGroupIds(prev =>
+              prev.includes(groupId)
+                ? prev.filter(id => id !== groupId)
+                : [...prev, groupId])}
+          onBack={onExitMode}
+          onDone={() => {
+            updateBookmark.mutate({
+              id: bookmarkId,
+              input: {
+                groupIds: taxonomy.pendingGroupIds,
+              },
+            });
+            onClose();
+          }}
+          onCreateNew={() => onCreateAndAssign("group")}
         />
       )}
 

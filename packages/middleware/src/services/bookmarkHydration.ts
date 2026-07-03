@@ -33,6 +33,7 @@ import { db } from "@/db";
 import {
   people,
   bookmarkPeople,
+  bookmarkGroups,
   bookmarkBooleanValues,
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
@@ -89,6 +90,7 @@ interface BookmarkExtras {
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
   people: BookmarkPerson[];
+  groups: BookmarkGroup[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
   dateTimeValues: BookmarkDateTimeValue[];
@@ -119,6 +121,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   blacklistedTagIds: [],
   blacklistedLocationIds: [],
   people: [],
+  groups: [],
   numberValues: [],
   booleanValues: [],
   dateTimeValues: [],
@@ -155,7 +158,6 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     movieId: row.movieId,
     episodeId: row.episodeId,
     albumId: row.albumId,
-    artistId: row.artistId,
     trackId: row.trackId,
     tvShowId: row.tvShowId,
     kavitaSeriesId: row.kavitaSeriesId,
@@ -171,6 +173,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     blacklistedTagIds: extras.blacklistedTagIds,
     blacklistedLocationIds: extras.blacklistedLocationIds,
     people: extras.people,
+    groups: extras.groups,
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
     dateTimeValues: extras.dateTimeValues,
@@ -437,6 +440,34 @@ async function peopleByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
     .from(bookmarkPeople)
     .innerJoin(people, eq(bookmarkPeople.personId, people.id))
     .where(inArray(bookmarkPeople.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.bookmarkId) ?? [];
+    list.push({
+      id: row.id,
+      name: row.name,
+      slug: row.slug ?? slugify(row.name),
+    });
+    grouped.set(row.bookmarkId, list);
+  }
+  return grouped;
+}
+
+/** Load group (creator) credits for a set of bookmark ids in one query, grouped by bookmark id. */
+async function groupsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkGroup[]>> {
+  const grouped = new Map<string, BookmarkGroup[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      bookmarkId: bookmarkGroups.bookmarkId,
+      id: groups.id,
+      name: groups.name,
+      slug: groups.slug,
+    })
+    .from(bookmarkGroups)
+    .innerJoin(groups, eq(bookmarkGroups.groupId, groups.id))
+    .where(inArray(bookmarkGroups.bookmarkId, bookmarkIds));
 
   for (const row of rows) {
     const list = grouped.get(row.bookmarkId) ?? [];
@@ -913,13 +944,14 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, genreMoodsMap, locationsMap, blacklistedMap, blacklistedLocationMap, peopleMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap, languageUsagesMap] = await Promise.all([
+  const [tagsMap, genreMoodsMap, locationsMap, blacklistedMap, blacklistedLocationMap, peopleMap, bmGroupsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap, languageUsagesMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     genreMoodsByBookmarkId(bookmarkIds),
     locationsByBookmarkId(bookmarkIds),
     blacklistedTagIdsByBookmarkId(bookmarkIds),
     blacklistedLocationIdsByBookmarkId(bookmarkIds),
     peopleByBookmarkId(bookmarkIds),
+    groupsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
     booleanValuesByBookmarkId(bookmarkIds),
     dateTimeValuesByBookmarkId(bookmarkIds),
@@ -951,6 +983,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       blacklistedTagIds: blacklistedMap.get(id) ?? [],
       blacklistedLocationIds: blacklistedLocationMap.get(id) ?? [],
       people: peopleMap.get(id) ?? [],
+      groups: bmGroupsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],
       dateTimeValues: dateTimeMap.get(id) ?? [],

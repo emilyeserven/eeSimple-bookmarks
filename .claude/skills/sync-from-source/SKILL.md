@@ -52,8 +52,8 @@ stays in the modal (gated on open) and applying has the form state.
 | `image-taxonomy` | `useImageOnlyTaxonomySyncSource` (`…/image/source-preview` or the Plex poster proxy) | `lib/syncSources/imageTaxonomyDiff.ts` | `useImageTaxonomySyncRegistration` (in each general form + `PlexTaxonomyImageTab`) | the row → the caller's existing auto-fetch/import mutation (immediate) |
 | `plex-title` | `usePlexTitleSyncSource` (`…/:id/plex-metadata-preview` for the resolved Wikidata names/links + the Plex poster proxy) | `lib/syncSources/plexTitleDiff.ts` | `usePlexTitleSyncRegistration` (in `PlexTitleGeneralForm`) | text rows (native/romanized names + Wikipedia links) → `form.setFieldValue`+`saveField` (name follows the slug); poster row → the image gallery's `plex-poster` auto-fetch (immediate) |
 
-**Why Plex titles aren't `image-taxonomy`:** the six Plex media taxonomies (Movies/TV Shows/Episodes/
-Artists/Albums/Tracks) sync **text *and* image** — native/romanized names + Wikipedia links resolved
+**Why Plex titles aren't `image-taxonomy`:** the five Plex media taxonomies (Movies/TV Shows/Episodes/
+Albums/Tracks) sync **text *and* image** — native/romanized names + Wikipedia links resolved
 from Wikidata (via the Plex item's external IDs, title-search fallback; the middleware's
 `resolvePlexTaxonomyMetadata` reuses the shared `services/wikidata.ts` Action-API client) **plus** the
 poster. So they carry their own `plex-title` kind, registered from `PlexTitleGeneralForm` (the poster

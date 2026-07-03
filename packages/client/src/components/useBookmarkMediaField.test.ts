@@ -42,11 +42,6 @@ vi.mock("../hooks/useAlbums", () => ({
     data: [],
   }),
 }));
-vi.mock("../hooks/useArtists", () => ({
-  useArtists: () => ({
-    data: [],
-  }),
-}));
 vi.mock("../hooks/useTracks", () => ({
   useTracks: () => ({
     data: [],
@@ -63,7 +58,7 @@ describe("useBookmarkMediaField", () => {
 
     expect(result.current.isLinked).toBe(false);
     expect(result.current.selectedLabel).toBeNull();
-    expect(result.current.sections).toHaveLength(7);
+    expect(result.current.sections).toHaveLength(6);
     for (const section of result.current.sections) {
       expect(section.collapsed).toBe(false);
     }

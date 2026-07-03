@@ -4,6 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { groupsApi } from "../lib/api/taxonomies";
+import { describeError } from "../lib/apiError";
+import { notifyImageFetchError } from "../lib/bugReport";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const GROUPS_KEY = ["groups"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -72,4 +75,55 @@ export function useBulkDeleteGroups() {
     groupsApi.bulkDelete,
     () => invalidateGroupConsumers(queryClient),
   );
+}
+
+export function useUploadGroupImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, file,
+    }: { id: string;
+      file: File; }) => groupsApi.uploadImage(id, file),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: GROUPS_KEY,
+      });
+      notifySuccess("Image updated");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not upload the image")),
+  });
+}
+
+export function useAutoGroupImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, source,
+    }: { id: string;
+      source: "website" | "plex";
+      sourceUrl?: string; }) => groupsApi.autoImage(id, source),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: GROUPS_KEY,
+      });
+      notifySuccess("Image fetched");
+    },
+    onError: (err: Error, {
+      sourceUrl,
+    }) => notifyImageFetchError(err, "group image", "Could not fetch an image", sourceUrl),
+  });
+}
+
+export function useDeleteGroupImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => groupsApi.deleteImage(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: GROUPS_KEY,
+      });
+      notifySuccess("Image removed");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not remove the image")),
+  });
 }

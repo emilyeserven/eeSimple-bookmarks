@@ -22,6 +22,7 @@ export function BookmarkGeneralRelationsSection({
     locationTree,
     mediaTypes,
     people,
+    groups,
     addTagOpen,
     setAddTagOpen,
     addPersonOpen,
@@ -31,9 +32,18 @@ export function BookmarkGeneralRelationsSection({
     saveBlacklistedTagIds,
     saveBlacklistedLocationIds,
     savePeople,
+    saveGroups,
     touchedRef,
   } = ctrl;
   const mediaTypeCreate = useEntityCreateOption("media-type", mediaType => form.setFieldValue("mediaTypeId", mediaType.id));
+  const groupCreate = useEntityCreateOption("group", (group) => {
+    const current = form.getFieldValue("groupIds");
+    if (!current.includes(group.id)) {
+      const newGroupIds = [...current, group.id];
+      form.setFieldValue("groupIds", newGroupIds);
+      saveGroups(newGroupIds);
+    }
+  });
   const locationCreate = useEntityCreateOption("location", (location) => {
     touchedRef.current.add("locations");
     const current = form.getFieldValue("locationIds");
@@ -200,6 +210,27 @@ export function BookmarkGeneralRelationsSection({
           }
         }}
       />
+
+      <form.Field name="groupIds">
+        {field => (
+          <div className="space-y-1">
+            <Label>Groups</Label>
+            <MultiCombobox
+              options={(groups ?? []).map(g => ({
+                value: g.id,
+                label: g.name,
+              }))}
+              values={field.state.value}
+              onValuesChange={field.handleChange}
+              placeholder="Select groups…"
+              searchPlaceholder="Search groups…"
+              emptyText="No groups found."
+              createOption={groupCreate.createOption}
+            />
+          </div>
+        )}
+      </form.Field>
+      {groupCreate.modal}
     </>
   );
 }

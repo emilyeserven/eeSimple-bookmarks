@@ -46,7 +46,7 @@ export function PlexTitleGeneralView({
   entity: PlexTitle;
   createdAt: string;
   bookmarkCount?: number;
-  /** Extra read-only rows (parent link / artists) appended below the standard fields. */
+  /** Extra read-only rows (parent link / credits) appended below the standard fields. */
   renderExtra?: import("react").ReactNode;
 }) {
   const {

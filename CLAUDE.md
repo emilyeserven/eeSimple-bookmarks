@@ -520,8 +520,8 @@ precedent after `taxonomy_images`:
   the value side, an unconstrained `ownerId` on the owner side. `ownerType` is one of
   **`GENRE_MOOD_OWNER_TYPES`** (`@eesimple/types` `genreMoods.ts`) — the **single edit point** to add
   or remove a target taxonomy (currently bookmark + category/tag/website/mediaType/youtubeChannel/
-  person/newsletter/location/language + itself; config entities like autofill/card-display-rules are
-  intentionally excluded).
+  person/group/newsletter/location/language + itself; config entities like autofill/card-display-rules
+  are intentionally excluded).
 - Because `ownerId` has **no cascade FK**, every owner's `delete*` service must clean up its rows.
   Bookmarks do this via `cleanupGenreMoodAssignments` across **all three** bookmark-delete paths
   (`deleteBookmark`/`bulkDeleteBookmarks`/`deleteOrphanedBookmarks`); the assignment service exposes
@@ -577,8 +577,8 @@ configuration are explicitly opt-in (Tier 2, below).
   client resolves it to a `Language` row via match-or-create in `useBookmarkScanHandlers.ts`/
   `useBookmarkIsbn.ts`, mirroring the pre-existing person (author-name)/group (ISBN publisher-name) name-resolution flow. See the
   **`add-connector`** skill's Case D.
-- **Plex-backed media taxonomies pull names + Wikipedia links from Wikidata.** For the six Plex
-  taxonomies (Movies/TV Shows/Episodes/Artists/Albums/Tracks), `services/wikidataTitle.ts`'s
+- **Plex-backed media taxonomies pull names + Wikipedia links from Wikidata.** For the five Plex
+  taxonomies (Movies/TV Shows/Episodes/Albums/Tracks), `services/wikidataTitle.ts`'s
   `resolveTitleWikidata` resolves the native-script name (→ `name`), the English/romanized name (→
   `romanizedName`), and English + local Wikipedia links — pinned by the Plex item's external IDs
   (IMDb/TMDb/TVDB/MusicBrainz via `haswbstatement`, title-search fallback). It shares the keyless
@@ -653,6 +653,35 @@ at once); "wrong levels/checkbox" bugs live in the pure helpers (`computeVisible
 `computePopulatedLevelGroupIds` / `resolveVisibleLevelGroupIds`, tested in `locationLevels.test.ts`),
 never the components; and a per-map visibility checkbox is a throwaway local override while the pin/area
 toggle beside it is a global server write via `useLocationLevels` — don't conflate the tiers.
+
+## Creators: People & Groups
+
+There is **no "Artists" taxonomy** — it was collapsed into the two creator taxonomies. **Individuals are
+People; bands/companies/collectives are Groups** (the taxonomy renamed **Publishers → Groups** on `main`;
+use the `Group`/`groups`/`groupId`/`services/groups.ts`/`useGroups`/`groupsApi`/`GroupGeneralForm`
+identifiers). Both absorbed the former Artist's Plex-backed creator fields, so **People and Groups each
+carry** `sortOrder`, `year`, the Plex link (`plexRatingKey`/`plexItemType`/`plexItemTitle`), and **album
+credits** (People additionally keep `mediaPropertyId`; Groups use `groupTypeId` instead — they do **not**
+have `mediaPropertyId`). The Plex-link + year + album-credit UI is the shared
+`components/CreatorMediaSection.tsx`, wired into both `PersonGeneralForm` and `GroupGeneralForm` (a
+person/band Plex-links against the Plex **`artist`** item type — `PlexKind` keeps `"artist"` for this,
+even though a bookmark can no longer link an Artist row). Groups has its **own avatar/poster system**
+(`group_images` + `services/groupImages.ts` + `/api/groups/:id/image*`), mirroring `person_images`.
+
+- **Albums credit both**: the `album_artists` join was replaced by **`album_people` + `album_groups`**
+  (`Album.personIds` / `Album.groupIds`); the album-credit UI is `AlbumCreditsSection.tsx`.
+- **Bookmarks credit both**: `bookmark_people` (individual creators, `personIds`, hydrated as
+  `Bookmark.people`) **and the new** `bookmark_groups` M:M (group creators, `groupIds`, hydrated as
+  `Bookmark.groups`). These are **distinct from** the single `bookmarks.groupId` FK (hydrated as
+  `Bookmark.group`), which remains the item's **publishing house** (e.g. an ISBN's publisher). Both
+  multi-selects live on the bookmark edit **General** tab (`BookmarkGeneralRelationsSection` — People +
+  Groups, each with `useEntityCreateOption` inline-create) and both have a CMD+K quick-edit sub-palette
+  (`PeopleSubPalette` / `GroupsSubPalette`, gated in `BookmarkTaxonomiesGroup`). A bookmark no longer has
+  an `artistId`, and `"artist"` is **not** one of the six bookmark media-link FKs (`useBookmarkMediaField`
+  — book/movie/tvShow/episode/album/track) nor a `TAXONOMY_IMAGE_OWNER_TYPES` value.
+- **Migration**: existing `artists` rows were folded into `people` by name (idempotent `migrate.ts`
+  steps copy the rows + bookmark/album links, then drop the artists table). Group bands can't be
+  auto-classified, so they land in People — re-credit them to Groups by hand.
 
 ## Generated files (do not edit)
 
@@ -805,10 +834,11 @@ action categories and their palette hooks:
   `useListingPageContext.setFilterLocation`; gate on `listingCtx.listingPage?.hasFilters`.
 - **Bulk select** — reads/writes `uiStore` via `useListingPageContext`; gate on
   `listingCtx.bulkSelectPageKey !== null`.
-- **Bookmark entity fields** (category, tags, media type, people, boolean properties, choices
+- **Bookmark entity fields** (category, tags, media type, people, groups, boolean properties, choices
   properties) — uses `useBookmarkTaxonomyContext`; gate on `bookmarkId !== null`. Boolean properties
-  toggle directly; choices properties enter a sub-palette (`"choices-property"` mode). For a new
-  field type, add an item here or navigate to the edit tab.
+  toggle directly; the multi-select creator fields (people, groups) enter a sub-palette
+  (`PeopleSubPalette` / `GroupsSubPalette`); choices properties enter a sub-palette
+  (`"choices-property"` mode). For a new field type, add an item here or navigate to the edit tab.
 - **Slug-routed entity quick-actions** ("Current \<Entity\>" group: boolean toggles, choice
   sub-palettes, View/Edit navigation, Pin/Unpin, New sub-tag/sub-type) — **registry-driven**, one
   generic gated hook for every entity (`useEntityCommandContext` + `EntityCommandGroup`), never a

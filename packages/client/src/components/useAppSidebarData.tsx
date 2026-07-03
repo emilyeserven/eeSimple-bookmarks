@@ -128,7 +128,6 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   tvShowsCount: number | undefined;
   episodesCount: number | undefined;
   albumsCount: number | undefined;
-  artistsCount: number | undefined;
   tracksCount: number | undefined;
   groupsCount: number | undefined;
   groupTypesCount: number | undefined;
@@ -271,7 +270,6 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     tvShowsCount: data.allTvShows?.length,
     episodesCount: data.allEpisodes?.length,
     albumsCount: data.allAlbums?.length,
-    artistsCount: data.allArtists?.length,
     tracksCount: data.allTracks?.length,
     groupsCount: data.allGroups?.length,
     groupTypesCount: data.allGroupTypes?.length,

@@ -2,21 +2,24 @@ import type { Person, SocialLink } from "@eesimple/types";
 
 import { Sparkles, UserCircle } from "lucide-react";
 
+import { CreatorMediaSection } from "./CreatorMediaSection";
 import { EntityImageField } from "./EntityImageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { PersonAvatarActions } from "./PersonAvatarActions";
 import { SocialLinksField } from "./SocialLinksField";
 import { usePersonGeneralForm } from "./usePersonGeneralForm";
 import { useImageTaxonomySyncRegistration } from "../hooks/useImageTaxonomySyncRegistration";
+import { useUpdatePerson } from "../hooks/usePeople";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { notifyFieldSaved } from "@/lib/autoSave";
 
 interface Props {
   person: Person;
 }
 
-/** Edit an person's name, URLs, and avatar. Fields auto-save on blur (no Save button). */
+/** Edit an person's name, URLs, avatar, and creator/media fields. Fields auto-save (no Save button). */
 export function PersonGeneralForm({
   person,
 }: Props) {
@@ -25,6 +28,7 @@ export function PersonGeneralForm({
     detectLinks, connectedChannelsWithImage, connectedWebsitesWithImage,
     saveField, saveName, detectSocialLinks, saveSocialLinks,
   } = usePersonGeneralForm(person);
+  const updatePerson = useUpdatePerson();
 
   // Register the header "Sync from source" button (preview + re-fetch the avatar from the person's
   // website / biography og:image). Only offered when there's a source URL to resolve from.
@@ -134,6 +138,24 @@ export function PersonGeneralForm({
       <SocialLinksField
         socialLinks={person.socialLinks}
         onChange={(links: SocialLink[]) => saveSocialLinks(links)}
+      />
+
+      <Separator />
+
+      <CreatorMediaSection
+        year={person.year}
+        plexRatingKey={person.plexRatingKey}
+        plexItemTitle={person.plexItemTitle}
+        albumIds={person.albumIds}
+        save={(input, label) => updatePerson.mutate(
+          {
+            id: person.id,
+            input,
+          },
+          {
+            onSuccess: () => notifyFieldSaved(label),
+          },
+        )}
       />
 
       <Separator />

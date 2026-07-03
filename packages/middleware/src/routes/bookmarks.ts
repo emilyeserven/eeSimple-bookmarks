@@ -167,6 +167,13 @@ const createBookmarkBody = {
         format: "uuid",
       },
     },
+    groupIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
     numberValues: {
       type: "array",
       items: {
@@ -379,10 +386,6 @@ const createBookmarkBody = {
       format: "uuid",
     },
     albumId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
-    artistId: {
       type: ["string", "null"],
       format: "uuid",
     },

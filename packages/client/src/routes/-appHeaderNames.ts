@@ -1,7 +1,6 @@
 import type { TaxonomyName } from "./-appHeaderData";
 
 import { useAlbumBySlug } from "@/hooks/useAlbums";
-import { useArtistBySlug } from "@/hooks/useArtists";
 import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
 import { useBookBySlug } from "@/hooks/useBooks";
 import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
@@ -36,7 +35,6 @@ export interface TaxonomyNameSlugs {
   tvShow: string;
   episode: string;
   album: string;
-  artist: string;
   track: string;
   relationshipType: string;
   property: string;
@@ -92,9 +90,6 @@ export function useTaxonomyNameMap(
   const {
     album,
   } = useAlbumBySlug(slugs.album);
-  const {
-    artist,
-  } = useArtistBySlug(slugs.artist);
   const {
     track,
   } = useTrackBySlug(slugs.track);
@@ -155,9 +150,6 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/albums": {
       name: album?.name,
-    },
-    "/taxonomies/artists": {
-      name: artist?.name,
     },
     "/taxonomies/tracks": {
       name: track?.name,

@@ -1,7 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Album } from "@eesimple/types";
 
-import { AlbumArtistsValue } from "../AlbumArtistsSection";
+import { AlbumCreditsValue } from "../AlbumCreditsSection";
 import { AlbumGeneralForm } from "../AlbumGeneralForm";
 import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
@@ -50,7 +50,7 @@ export const albumWorkbench: EntityWorkbench<Album> = {
       label: "General",
       view: {
         title: "General",
-        description: "Media property, artists, Plex link, year, and metadata.",
+        description: "Media property, credits, Plex link, year, and metadata.",
         render: ({
           entity,
         }) => (
@@ -58,13 +58,13 @@ export const albumWorkbench: EntityWorkbench<Album> = {
             entity={entity}
             createdAt={entity.createdAt}
             bookmarkCount={entity.bookmarkCount}
-            renderExtra={<AlbumArtistsValue album={entity} />}
+            renderExtra={<AlbumCreditsValue album={entity} />}
           />
         ),
       },
       edit: {
         title: "General",
-        description: "Name, media property, artists, Plex link, and year.",
+        description: "Name, media property, credits, Plex link, and year.",
         render: ({
           entity,
         }) => <AlbumGeneralForm album={entity} />,

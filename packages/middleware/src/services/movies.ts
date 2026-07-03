@@ -8,7 +8,7 @@ import type {
 import { db } from "@/db";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { albums, artists, bookmarks, episodes, movies, tracks, tvShows, type MovieRow } from "@/db/schema";
+import { albums, bookmarks, episodes, movies, tracks, tvShows, type MovieRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -172,21 +172,20 @@ export async function backfillMovieSlugs(): Promise<void> {
   }
 }
 
-/** The bookmark's six Plex-taxonomy FK links (at most one set). */
+/** The bookmark's five Plex-taxonomy FK links (at most one set). */
 export interface BookmarkPlexLinks {
   movieId: string | null;
   tvShowId: string | null;
   episodeId: string | null;
   albumId: string | null;
-  artistId: string | null;
   trackId: string | null;
 }
 
 /**
  * Resolve the effective Plex rating key for a bookmark: the linked Movie / TV Show / Episode / Album /
- * Artist / Track's `plexRatingKey` when one is linked and carries it, else the bookmark's legacy
+ * Track's `plexRatingKey` when one is linked and carries it, else the bookmark's legacy
  * `plexRatingKey`. Returns null when none is available. (Lives here alongside the Movies service; all
- * six taxonomy tables are queried so every bookmark Plex FK resolves through one helper.)
+ * five taxonomy tables are queried so every bookmark Plex FK resolves through one helper.)
  */
 export async function resolveBookmarkPlexRatingKey(
   links: BookmarkPlexLinks,
@@ -208,10 +207,6 @@ export async function resolveBookmarkPlexRatingKey(
     {
       id: links.albumId,
       table: albums,
-    },
-    {
-      id: links.artistId,
-      table: artists,
     },
     {
       id: links.trackId,

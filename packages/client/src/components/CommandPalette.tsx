@@ -155,6 +155,7 @@ export function CommandPalette() {
     bookmark,
     categories,
     people,
+    groups,
     customProperties,
     updateBookmark,
   } = taxonomyContext;
@@ -248,6 +249,7 @@ export function CommandPalette() {
       isBookmarkViewPage={isBookmarkViewPage}
       currentCategoryName={currentCategoryName}
       people={people}
+      groups={groups}
       booleanProperties={booleanProperties}
       choicesProperties={choicesProperties}
       ratingProperties={ratingProperties}

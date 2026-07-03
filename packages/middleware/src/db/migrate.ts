@@ -1011,8 +1011,8 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
-    // Publishers → Groups rename. The taxonomy was pulled out of the Media Properties grouping and
-    // renamed to Groups (a broader concept). Rename the tables first; the column/constraint renames
+    // Publishers → Groups rename (#912). The taxonomy was pulled out of the Media Properties grouping
+    // and renamed to Groups (a broader concept). Rename the tables first; the column/constraint renames
     // below guard on the new table names. Guarded + idempotent so already-migrated DBs are no-ops.
     name: "rename publishers tables to groups",
     run: db => db.execute(sql`
@@ -1125,6 +1125,154 @@ const migrations: RuntimeMigration[] = [
     run: db => db.execute(sql`
       ALTER TABLE IF EXISTS "bookmarks" ADD COLUMN IF NOT EXISTS "image_display_preference" text
     `),
+  },
+  // ── Artists taxonomy collapse → People (individuals) + Groups (group/band creators) ─────────────
+  // The former Plex-backed "Artists" taxonomy is removed; its role splits into People (solo creators)
+  // and Groups (band/company creators), which each absorb the Artist fields. The steps below add the
+  // absorbed columns + new join tables, copy existing artist data across, then drop the old artists
+  // table / album_artists join / bookmarks.artist_id column. These run AFTER the Publishers→Groups
+  // rename above (so `groups`/`group_id` exist). Copies MUST run before the drops (array order
+  // guarantees this); every step is idempotent and re-runs as a no-op once artists is gone.
+  {
+    // `sort_order` is NOT NULL DEFAULT 0 (push would prompt); the rest are nullable → push-safe. People
+    // keep media_property_id (a person absorbs the artist's media-property grouping).
+    name: "add people creator columns (from artists)",
+    run: db => db.execute(sql`
+      ALTER TABLE "people"
+        ADD COLUMN IF NOT EXISTS "sort_order" integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS "media_property_id" uuid,
+        ADD COLUMN IF NOT EXISTS "plex_rating_key" text,
+        ADD COLUMN IF NOT EXISTS "plex_item_type" text,
+        ADD COLUMN IF NOT EXISTS "plex_item_title" text,
+        ADD COLUMN IF NOT EXISTS "year" integer
+    `),
+  },
+  {
+    // Groups have no media_property_id (it was dropped in the rename above; they use group_type_id).
+    name: "add groups creator columns (from artists)",
+    run: db => db.execute(sql`
+      ALTER TABLE "groups"
+        ADD COLUMN IF NOT EXISTS "sort_order" integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS "plex_rating_key" text,
+        ADD COLUMN IF NOT EXISTS "plex_item_type" text,
+        ADD COLUMN IF NOT EXISTS "plex_item_title" text,
+        ADD COLUMN IF NOT EXISTS "year" integer
+    `),
+  },
+  {
+    // Create the new join/image tables before the data copy below (which runs before push). Composite
+    // PK names match drizzle-kit's convention so push's diff stays empty; FK constraints are added
+    // additively by push. group_images uses an inline single-column PK (Postgres names it
+    // `group_images_pkey`, matching push).
+    name: "create album_people join",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "album_people" (
+        "album_id" uuid NOT NULL,
+        "person_id" uuid NOT NULL,
+        CONSTRAINT "album_people_album_id_person_id_pk" PRIMARY KEY("album_id","person_id")
+      )
+    `),
+  },
+  {
+    name: "create album_groups join",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "album_groups" (
+        "album_id" uuid NOT NULL,
+        "group_id" uuid NOT NULL,
+        CONSTRAINT "album_groups_album_id_group_id_pk" PRIMARY KEY("album_id","group_id")
+      )
+    `),
+  },
+  {
+    name: "create bookmark_groups join",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "bookmark_groups" (
+        "bookmark_id" uuid NOT NULL,
+        "group_id" uuid NOT NULL,
+        CONSTRAINT "bookmark_groups_bookmark_id_group_id_pk" PRIMARY KEY("bookmark_id","group_id")
+      )
+    `),
+  },
+  {
+    name: "create group_images table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "group_images" (
+        "group_id" uuid PRIMARY KEY NOT NULL,
+        "object_key" text NOT NULL,
+        "content_type" text NOT NULL,
+        "width" integer,
+        "height" integer,
+        "byte_size" integer NOT NULL,
+        "source" text NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    // Copy every artist row into people (find-or-create by name — individuals vs groups can't be
+    // auto-classified, so all land in People; the user re-credits group artists to Groups later).
+    name: "copy artists into people",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF to_regclass('public.artists') IS NOT NULL THEN
+          INSERT INTO "people" ("name", "romanized_name", "sort_order", "media_property_id", "plex_rating_key", "plex_item_type", "plex_item_title", "year")
+          SELECT "name", "romanized_name", "sort_order", "media_property_id", "plex_rating_key", "plex_item_type", "plex_item_title", "year"
+          FROM "artists"
+          ON CONFLICT ("name") DO NOTHING;
+        END IF;
+      END $$
+    `),
+  },
+  {
+    // Fold each bookmark→artist link into the bookmark_people M:M (matched to the copied person by name).
+    name: "copy bookmark artist links into bookmark_people",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF to_regclass('public.artists') IS NOT NULL
+           AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'bookmarks' AND column_name = 'artist_id') THEN
+          INSERT INTO "bookmark_people" ("bookmark_id", "person_id")
+          SELECT b."id", p."id"
+          FROM "bookmarks" b
+          JOIN "artists" a ON b."artist_id" = a."id"
+          JOIN "people" p ON lower(p."name") = lower(a."name")
+          ON CONFLICT DO NOTHING;
+        END IF;
+      END $$
+    `),
+  },
+  {
+    // Fold each album→artist credit into album_people (matched to the copied person by name).
+    name: "copy album_artists into album_people",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF to_regclass('public.album_artists') IS NOT NULL AND to_regclass('public.artists') IS NOT NULL THEN
+          INSERT INTO "album_people" ("album_id", "person_id")
+          SELECT aa."album_id", p."id"
+          FROM "album_artists" aa
+          JOIN "artists" a ON aa."artist_id" = a."id"
+          JOIN "people" p ON lower(p."name") = lower(a."name")
+          ON CONFLICT DO NOTHING;
+        END IF;
+      END $$
+    `),
+  },
+  {
+    // Artist Plex posters lived in the polymorphic taxonomy_images gallery; "artist" is no longer an
+    // owner type. Drop those rows (People re-imports a Plex poster into its own avatar if wanted).
+    name: "delete artist taxonomy images",
+    run: db => db.execute(sql`DELETE FROM "taxonomy_images" WHERE "owner_type" = 'artist'`),
+  },
+  {
+    name: "drop bookmarks.artist_id column",
+    run: db => db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "artist_id"`),
+  },
+  {
+    name: "drop album_artists join",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "album_artists"`),
+  },
+  {
+    name: "drop artists table",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "artists"`),
   },
 ];
 
