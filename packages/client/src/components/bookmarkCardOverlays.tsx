@@ -207,19 +207,21 @@ function overlayAction(node: ReactNode): ReactNode {
   );
 }
 
-/** The interactive header action nodes a caller can place in image corners. */
+/** The interactive action nodes a caller can place in image corners. */
 export interface OverlayActionNodes {
   externalLink?: ReactNode;
   more?: ReactNode;
+  kavitaLink?: ReactNode;
+  plexLink?: ReactNode;
 }
 
 /**
  * Assemble the image-corner overlay items for a card: the custom-property values placed in a corner
  * (rendered via {@link valueItemOverlayNode}), the standard fields placed in a corner (icon + label per
- * the rule's `hideIcon`/`hideLabel`), and the interactive header actions (Open Link / More) when their
- * nodes are supplied and they're placed in a corner. Items that resolve to nothing visible are skipped.
- * Caller renders these only when the card has an image; without an image the same fields fall back to
- * the card body via `BookmarkCardDetails`.
+ * the rule's `hideIcon`/`hideLabel`), and the interactive action fields (Open Link / More / Kavita Link
+ * / Plex Link) when their nodes are supplied and they're placed in a corner. Items that resolve to
+ * nothing visible are skipped. Caller renders these only when the card has an image; without an image
+ * the same fields fall back to the card body via `BookmarkCardDetails`.
  */
 export function buildCardOverlayItems(
   bookmark: Bookmark,
@@ -247,6 +249,8 @@ export function buildCardOverlayItems(
   const actionByKey: Record<string, ReactNode> = {
     externalLink: actionNodes.externalLink,
     more: actionNodes.more,
+    kavitaLink: actionNodes.kavitaLink,
+    plexLink: actionNodes.plexLink,
   };
   for (const field of STANDARD_CARD_FIELDS) {
     const placement = placements.get(field.key);

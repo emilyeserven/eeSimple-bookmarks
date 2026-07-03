@@ -11,7 +11,7 @@ import { BookmarkCardDetails } from "./BookmarkCardDetails";
 import { BookmarkCardImage } from "./BookmarkCardImage";
 import { BookmarkCardImageOnlyLink } from "./BookmarkCardImageOnlyLink";
 import { BookmarkCardIsbnLinks } from "./BookmarkCardIsbnLinks";
-import { buildBookmarkCardOverlayItems } from "./bookmarkCardOverlayItems";
+import { useBookmarkCardOverlayItems } from "./bookmarkCardOverlayItems";
 import { useBookmarkCardSaves } from "./useBookmarkCardSaves";
 import { useCategories } from "../hooks/useCategories";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
@@ -108,10 +108,10 @@ export function BookmarkCard({
   // they fall back to the card body (BookmarkCardDetails reads the same `placements`).
   const valueItems = buildBookmarkValueItems(bookmark, properties, placements);
   const bookmarkCategory = allCategories.find(c => c.id === bookmark.categoryId && !c.builtIn);
-  // Compute overlays whenever the image area is enabled so they appear on placeholders too.
-  const overlayItems = imageEnabled
-    ? buildBookmarkCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, menu, effectiveHideWebsiteForYouTube)
-    : [];
+  // Compute overlays whenever the image area is enabled so they appear on placeholders too. Called
+  // unconditionally (it calls hooks internally) — the imageEnabled gate is applied to its result.
+  const allOverlayItems = useBookmarkCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, menu, effectiveHideWebsiteForYouTube);
+  const overlayItems = imageEnabled ? allOverlayItems : [];
 
   // Show a placeholder in "shown" mode when there is no actual image — always, so the absence of
   // an image is visually clear rather than just leaving the card with no image area.

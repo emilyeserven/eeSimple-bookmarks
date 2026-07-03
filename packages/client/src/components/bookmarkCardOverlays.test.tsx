@@ -164,6 +164,31 @@ describe("buildCardOverlayItems", () => {
     expect(buildCardOverlayItems(bookmark, [], placements, undefined)).toHaveLength(0);
   });
 
+  it("overlays the supplied Kavita Link / Plex Link action nodes when they're placed in a corner", () => {
+    const bookmark = makeBookmark();
+    const placements = new Map([
+      ["kavitaLink", cornerPlacement("top-left")],
+      ["plexLink", cornerPlacement("bottom-right")],
+    ]);
+
+    const overlays = buildCardOverlayItems(bookmark, [], placements, undefined, false, {
+      kavitaLink: <button type="button">kavita</button>,
+      plexLink: <button type="button">plex</button>,
+    });
+
+    expect(overlays.map(o => o.key).sort()).toEqual(["kavitaLink", "plexLink"]);
+  });
+
+  it("omits Kavita Link / Plex Link when no action node is supplied (unconfigured or unlinked)", () => {
+    const bookmark = makeBookmark();
+    const placements = new Map([
+      ["kavitaLink", cornerPlacement("top-left")],
+      ["plexLink", cornerPlacement("bottom-right")],
+    ]);
+
+    expect(buildCardOverlayItems(bookmark, [], placements, undefined)).toHaveLength(0);
+  });
+
   it("hides the website overlay on a YouTube bookmark when hideWebsiteForYouTube is set", () => {
     const bookmark = makeBookmark({
       website: {
