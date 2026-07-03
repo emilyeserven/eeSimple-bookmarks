@@ -32,6 +32,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Media Type",
   },
   {
+    key: "language",
+    label: "Language",
+  },
+  {
     key: "youtubeChannel",
     label: "YouTube Channel",
   },
@@ -46,6 +50,14 @@ export const STANDARD_CARD_FIELDS = [
   {
     key: "locations",
     label: "Locations",
+  },
+  {
+    key: "people",
+    label: "People",
+  },
+  {
+    key: "groups",
+    label: "Groups",
   },
   {
     key: "externalLink",

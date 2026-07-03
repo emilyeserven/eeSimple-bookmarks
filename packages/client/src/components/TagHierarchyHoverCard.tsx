@@ -5,10 +5,9 @@ import { useMemo } from "react";
 
 import { Link } from "@tanstack/react-router";
 
+import { EntityHierarchyHoverCard } from "./EntityHierarchyHoverCard";
 import { useTagTree } from "../hooks/useTags";
 import { findAncestorPath } from "../lib/tagTree";
-
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 interface TagHierarchyHoverCardProps {
   tag: BookmarkTag;
@@ -28,37 +27,21 @@ export function TagHierarchyHoverCard({
   } = useTagTree();
   const path = useMemo(() => (tree ? findAncestorPath(tree, tag.slug) : null), [tree, tag.slug]);
 
-  if (!path || path.length <= 1) return children;
-
   return (
-    <HoverCard>
-      <HoverCardTrigger asChild>{children}</HoverCardTrigger>
-      <HoverCardContent className="w-auto max-w-xs p-2 text-sm">
-        <ol className="flex flex-wrap items-center gap-1 text-muted-foreground">
-          {path.map((node, index) => (
-            <li
-              key={node.id}
-              className="flex items-center gap-1"
-            >
-              {index > 0
-                ? <span aria-hidden="true">→</span>
-                : null}
-              {index === path.length - 1
-                ? <span className="font-medium text-foreground">{node.name}</span>
-                : (
-                  <Link
-                    to="/tags/$tagSlug/general"
-                    params={{
-                      tagSlug: node.slug,
-                    }}
-                  >
-                    {node.name}
-                  </Link>
-                )}
-            </li>
-          ))}
-        </ol>
-      </HoverCardContent>
-    </HoverCard>
+    <EntityHierarchyHoverCard
+      path={path}
+      renderLink={node => (
+        <Link
+          to="/tags/$tagSlug/general"
+          params={{
+            tagSlug: node.slug,
+          }}
+        >
+          {node.name}
+        </Link>
+      )}
+    >
+      {children}
+    </EntityHierarchyHoverCard>
   );
 }
