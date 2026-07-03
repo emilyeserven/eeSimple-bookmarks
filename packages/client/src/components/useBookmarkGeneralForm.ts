@@ -1,3 +1,4 @@
+import type { PlexItemSelection } from "./useBookmarkPlexItemField";
 import type { Bookmark, BookmarkUrlDuplicateResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 
 import { useRef, useState } from "react";
@@ -222,17 +223,21 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     );
   }
 
-  // The Plex link also lives outside the zod form state (immediate-save, like the Book link). Plex
-  // selection now flows through the Movies / TV Shows taxonomies (movieId/tvShowId) instead of a
-  // direct Plex item; poster/deep-link resolve the rating key from the linked title.
-  function savePlexTitle(link: { movieId: string | null;
-    tvShowId: string | null; }): void {
+  // The Plex link also lives outside the zod form state (immediate-save, like the Book link). A
+  // selection is either a Movies/TV Shows taxonomy title (movieId/tvShowId; poster/deep-link resolve
+  // the rating key from the linked title) or a direct Plex item (the legacy plexRatingKey/plexItemType/
+  // plexItemTitle columns — the only way to link an Episode/Track/Album/Artist/Season, since those
+  // don't have a taxonomy). Exactly one of the two pairs is ever set; selecting one clears the other.
+  function savePlexItem(selection: PlexItemSelection): void {
     updateBookmark.mutate(
       {
         id: bookmark.id,
         input: {
-          movieId: link.movieId,
-          tvShowId: link.tvShowId,
+          movieId: selection.movieId,
+          tvShowId: selection.tvShowId,
+          plexRatingKey: selection.plexRatingKey,
+          plexItemType: selection.plexItemType,
+          plexItemTitle: selection.plexItemTitle,
         },
       },
       {
@@ -380,7 +385,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveBlacklistedLocationIds,
     saveAuthors,
     saveBook,
-    savePlexTitle,
+    savePlexItem,
     fetchTitle,
     fetchMetadata,
     websiteLookup,

@@ -161,7 +161,7 @@ export function BookmarkGeneralForm({
 
       <BookmarkPlexItemField
         bookmark={bookmark}
-        onSelect={ctrl.savePlexTitle}
+        onSelect={ctrl.savePlexItem}
       />
 
       <form.AppForm>
