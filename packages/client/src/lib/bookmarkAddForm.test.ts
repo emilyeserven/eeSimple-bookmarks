@@ -46,7 +46,6 @@ describe("resolveBookmarkAddForm", () => {
       expect(resolved.advancedStandardFields).toEqual([
         "categoryId",
         "mediaTypeId",
-        "languageId",
         "groupId",
         "descriptionTags",
         "personIds",
@@ -72,7 +71,6 @@ describe("resolveBookmarkAddForm", () => {
       const settings = settingsWith({
         categoryId: "advanced",
         mediaTypeId: "default",
-        languageId: "default",
         groupId: "default",
         descriptionTags: "default",
         personIds: "hidden",
@@ -81,11 +79,12 @@ describe("resolveBookmarkAddForm", () => {
 
       const resolved = resolveBookmarkAddForm(settings, false);
 
+      // Tuple order: title, romanizedName, categoryId, mediaTypeId, groupId,
+      // descriptionTags, personIds, image
       expect(resolved.mainStandardFields).toEqual([
         "title",
         "romanizedName",
         "mediaTypeId",
-        "languageId",
         "groupId",
         "descriptionTags",
       ]);

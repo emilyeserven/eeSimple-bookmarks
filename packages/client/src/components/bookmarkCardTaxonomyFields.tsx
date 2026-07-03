@@ -8,7 +8,6 @@ import { BookmarkPeopleBadges, BookmarkPeopleLinks } from "./BookmarkPeopleBox";
 import { BookmarkTagLinks, BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { GenreMoodHierarchyHoverCard } from "./GenreMoodHierarchyHoverCard";
-import { LanguagePill } from "./LanguagePill";
 import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
 
@@ -34,8 +33,8 @@ interface TaxonomyFieldArgs {
 }
 
 /**
- * The render forms for a taxonomy/relation field key (category, website, media type, language,
- * YouTube channel, tags, genres & moods, locations, people, groups), or `null` when the field has
+ * The render forms for a taxonomy/relation field key (category, website, media type, YouTube
+ * channel, tags, genres & moods, locations, people, groups), or `null` when the field has
  * nothing to show or `key` isn't a taxonomy field.
  */
 export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): FieldRender | null {
@@ -43,7 +42,7 @@ export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): Fie
     bookmark, bookmarkCategory, effectiveHideWebsiteForYouTube, placements,
   } = args;
   const {
-    website, mediaType, language, youtubeChannel,
+    website, mediaType, youtubeChannel,
   } = bookmark;
   switch (key) {
     case "category": {
@@ -85,16 +84,6 @@ export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): Fie
         block: pill,
         tableName: "Media Type",
         tableValue: <span className="text-sm">{mediaType.name}</span>,
-      };
-    }
-    case "language": {
-      if (!language) return null;
-      const pill = <LanguagePill language={language} />;
-      return {
-        inline: pill,
-        block: pill,
-        tableName: "Language",
-        tableValue: <span className="text-sm">{language.name}</span>,
       };
     }
     case "youtubeChannel": {

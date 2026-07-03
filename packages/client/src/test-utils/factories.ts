@@ -104,7 +104,6 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     categoryId: "cat",
     website: null,
     mediaType: null,
-    language: null,
     languageUsages: [],
     youtubeChannel: null,
     newsletter: null,

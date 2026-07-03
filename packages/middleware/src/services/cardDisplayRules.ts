@@ -486,11 +486,6 @@ export async function backfillCardDisplayRuleGroupsField(): Promise<void> {
   await backfillCardDisplayRuleField("groups");
 }
 
-/** One-time boot backfill: place the `language` field into rules whose stored `field_zones` predate it. */
-export async function backfillCardDisplayRuleLanguageField(): Promise<void> {
-  await backfillCardDisplayRuleField("language");
-}
-
 /**
  * One-time boot backfill: place the `romanizedName` field into rules whose stored `field_zones`
  * predate it (it used to render baked into the `title` field). It's appended to its default body

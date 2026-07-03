@@ -28,7 +28,6 @@ export const bookmarkSchema = z.object({
   romanizedName: z.string(),
   categoryId: z.string().min(1, "Category is required"),
   mediaTypeId: z.string(),
-  languageId: z.string(),
   description: z.string(),
   tagIds: z.array(z.string()),
   genreMoodIds: z.array(z.string()),
@@ -68,6 +67,14 @@ export {
 
 /** Slug of the built-in "ISBN / ASIN" property — shown in the Add Bookmark form. */
 export const ISBN_SLUG = "isbn";
+
+/**
+ * Case-insensitive name a user gives an availability-kind usage level to mean "this is the
+ * bookmark's main content language" — there is no dedicated primary-language field anymore; scan/ISBN
+ * auto-detect looks for an existing level with this name and attaches to it, no-opping (leaving the
+ * language unassigned for manual entry) when no such level has been created yet.
+ */
+export const PRIMARY_LANGUAGE_LEVEL_NAME = "primary language";
 
 /** Cheap client-side check so we only hit the richer metadata endpoint for YouTube URLs. */
 export function looksLikeYouTube(url: string): boolean {
@@ -143,7 +150,6 @@ const SAMPLE_DEFAULT_VALUES: {
   romanizedName: string;
   categoryId: string;
   mediaTypeId: string;
-  languageId: string;
   description: string;
   tagIds: string[];
   genreMoodIds: string[];
@@ -166,7 +172,6 @@ const SAMPLE_DEFAULT_VALUES: {
   romanizedName: "",
   categoryId: "",
   mediaTypeId: "",
-  languageId: "",
   description: "",
   tagIds: [],
   genreMoodIds: [],
@@ -229,7 +234,6 @@ export function buildBookmarkDefaultValues(
   romanizedName: string;
   categoryId: string;
   mediaTypeId: string;
-  languageId: string;
   description: string;
   tagIds: string[];
   genreMoodIds: string[];
@@ -253,7 +257,6 @@ export function buildBookmarkDefaultValues(
     romanizedName: bookmark?.romanizedName ?? initial.romanizedName ?? "",
     categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
     mediaTypeId: bookmark?.mediaType?.id ?? "",
-    languageId: bookmark?.language?.id ?? "",
     description: bookmark?.description ?? "",
     tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
     genreMoodIds: (bookmark?.genreMoods.map(entry => entry.id) ?? []) as string[],

@@ -294,7 +294,6 @@ export function BookmarkCardDetails({
       case "category":
       case "website":
       case "mediaType":
-      case "language":
       case "youtubeChannel":
       case "tags":
       case "genreMoods":

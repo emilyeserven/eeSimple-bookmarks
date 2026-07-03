@@ -69,10 +69,9 @@ function LanguageBookmarksPage() {
     return <p className="text-destructive">Language not found.</p>;
   }
 
-  // Bookmarks that involve this language — as the primary language or via any usage association.
+  // Bookmarks that involve this language via any usage association.
   const languageBookmarks = (bookmarks ?? []).filter(
-    b => b.language?.id === language.id
-      || b.languageUsages.some(u => u.language.id === language.id),
+    b => b.languageUsages.some(u => u.language.id === language.id),
   );
 
   // The usage-level facet is a friendly slug in the URL; narrow to bookmarks carrying this

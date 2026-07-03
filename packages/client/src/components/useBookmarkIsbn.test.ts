@@ -25,7 +25,6 @@ function makeForm(): BookmarkFormApi {
     description: "",
     personIds: [],
     groupId: "",
-    languageId: "",
   };
   return {
     getFieldValue: (name: string) => values[name],
@@ -33,6 +32,18 @@ function makeForm(): BookmarkFormApi {
       values[name] = value;
     },
   } as unknown as BookmarkFormApi;
+}
+
+/** A no-op `primaryLanguage` stub — these tests don't exercise language auto-detect. */
+function makePrimaryLanguage() {
+  return {
+    primaryLanguageLevelId: undefined,
+    hasPrimaryLanguageUsage: () => true,
+    attachPrimaryLanguageUsage: vi.fn(),
+    pendingLanguageUsagesRef: {
+      current: [],
+    },
+  };
 }
 
 const BASE_RESULT: FetchIsbnMetadataResult = {
@@ -79,6 +90,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       setHideNameField: vi.fn(),
       setScanned: vi.fn(),
       setImageCandidates,
+      primaryLanguage: makePrimaryLanguage(),
     }));
 
     await result.current.handleIsbnFetch("9780345391803");
@@ -122,6 +134,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       setHideNameField: vi.fn(),
       setScanned: vi.fn(),
       setImageCandidates,
+      primaryLanguage: makePrimaryLanguage(),
     }));
 
     await result.current.handleIsbnFetch("9780345391803");
@@ -154,6 +167,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       setHideNameField: vi.fn(),
       setScanned: vi.fn(),
       setImageCandidates,
+      primaryLanguage: makePrimaryLanguage(),
     }));
 
     await result.current.handleIsbnFetch("9780345391803");
