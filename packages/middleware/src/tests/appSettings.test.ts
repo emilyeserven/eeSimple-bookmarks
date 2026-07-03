@@ -131,8 +131,9 @@ test("normalizePlaceTypeLevelGroups: sanitizes groups and fills defaults", () =>
   assert.equal(out[0].id, "g1");
   assert.equal(out[0].name, "Cities");
   assert.deepEqual(out[0].placeTypes, ["city", "town"]);
-  assert.equal(out[0].visible, false);
-  // showOnMainMap absent → follows visible.
+  // `visible` is retired → always stored true, regardless of the input value.
+  assert.equal(out[0].visible, true);
+  // showOnMainMap absent → follows the legacy `visible` (false here) for pre-showOnMainMap back-compat.
   assert.equal(out[0].showOnMainMap, false);
   assert.equal(out[0].sortOrder, 7);
   assert.equal(out[1].id, "group-1");
@@ -140,6 +141,26 @@ test("normalizePlaceTypeLevelGroups: sanitizes groups and fills defaults", () =>
   assert.equal(out[1].visible, true);
   assert.equal(out[1].showOnMainMap, true);
   assert.equal(out[1].sortOrder, 1);
+});
+
+test("normalizePlaceTypeLevelGroups: sanitizes defaultHiddenGroupIds to a deduped string array", () => {
+  const out = normalizePlaceTypeLevelGroups([
+    {
+      id: "g1",
+      name: "Cities",
+      displayMode: "area",
+      placeTypes: ["city"],
+      defaultHiddenGroupIds: ["country", "country", "", 42, "region"],
+    },
+    {
+      // Absent → empty array.
+      id: "g2",
+      name: "Regions",
+      displayMode: "area",
+    },
+  ]);
+  assert.deepEqual(out[0].defaultHiddenGroupIds, ["country", "region"]);
+  assert.deepEqual(out[1].defaultHiddenGroupIds, []);
 });
 
 test("normalizePlaceTypeLevelGroups: non-array input yields an empty config", () => {

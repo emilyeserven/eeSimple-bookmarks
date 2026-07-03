@@ -31,8 +31,9 @@
  *
  *     visibleIds = (overrideIds ?? defaultVisibleIds) ∩ populatedIds
  *
- * - `defaultVisibleIds` = {@link computeVisibleLevelGroupIds} for the scope, minus any `visible:false`
- *   group (the per-group "visible by default" override).
+ * - `defaultVisibleIds` = {@link computeVisibleLevelGroupIds} for the scope. For an anchored scope this
+ *   is each anchor's `levelMode` expansion minus that anchor's `defaultHiddenGroupIds` — the per-anchor
+ *   "which levels show by default when this is the current level" checklist (Settings → Level Groups).
  * - `overrideIds` = the user's temporary per-map checkbox tweaks (null until they touch a checkbox).
  * - `populatedIds` = {@link computePopulatedLevelGroupIds}: groups with a plotted node of their own type
  *   **plus** their broader ancestors; everything else is disabled so it can never show.
@@ -270,9 +271,12 @@ export function findAnchorGroup(
 
 /**
  * Each anchor plus, per **that anchor's own** persisted `levelMode` (default `"current"`), every
- * group broader (`above`) or narrower (`below`) than it. Anchors expand independently — two anchors
- * with different `levelMode`s each contribute their own broader/narrower set — so a bookmark tagging
- * locations of different levels can show a different scope around each one.
+ * group broader (`above`) or narrower (`below`) than it, **minus** that anchor's own
+ * `defaultHiddenGroupIds` (the per-anchor "hidden by default" checklist — the anchor's own id may be
+ * listed, hiding the current level itself). Anchors expand independently — two anchors with different
+ * `levelMode`s each contribute their own broader/narrower set — so a bookmark tagging locations of
+ * different levels can show a different scope around each one. The per-anchor sets are then **unioned**,
+ * so with several anchors a level A hides can still show if another anchor B's expansion includes it.
  */
 function expandAnchorsByOwnMode(
   groups: PlaceTypeLevelGroup[],
@@ -280,13 +284,17 @@ function expandAnchorsByOwnMode(
 ): Set<string> {
   const ids = new Set<string>();
   for (const anchor of anchors) {
-    ids.add(anchor.id);
+    const hidden = new Set(anchor.defaultHiddenGroupIds ?? []);
+    const add = (id: string): void => {
+      if (!hidden.has(id)) ids.add(id);
+    };
+    add(anchor.id);
     const mode = anchor.levelMode ?? DEFAULT_LOCATION_MAP_LEVEL_MODE;
     if (mode === "above") {
-      for (const group of groups) if (group.sortOrder < anchor.sortOrder) ids.add(group.id);
+      for (const group of groups) if (group.sortOrder < anchor.sortOrder) add(group.id);
     }
     else if (mode === "below") {
-      for (const group of groups) if (group.sortOrder > anchor.sortOrder) ids.add(group.id);
+      for (const group of groups) if (group.sortOrder > anchor.sortOrder) add(group.id);
     }
   }
   return ids;
@@ -306,30 +314,25 @@ function expandAnchorsByOwnMode(
  * (see {@link expandAnchorsByOwnMode}). No anchors (no tagged location's type belongs to any group)
  * falls back to every group, same as `location`.
  *
- * A group with `visible: false` is dropped from the result **in addition to** the scope computation
- * above — it stays excluded from a main-map default, from an "above"/"below" expansion that would
- * otherwise have pulled it in, and even as an anchor/current level itself. This is the per-group
- * "visible by default" override (`LevelGroupEditRow`'s "Visible by default" checkbox): it lets a
- * level (e.g. "Country") be excluded from every default computation — "show everything above, but
- * don't show countries" — without touching the `levelMode`/`showOnMainMap` "Show" settings. It only
- * affects **defaults**; a map's per-map Levels overlay checkbox can still turn the level back on for
+ * Each anchor's expansion is then filtered by **its own** `defaultHiddenGroupIds` (the per-anchor
+ * checklist edited on Settings → Locations → Level Groups): a level listed there is dropped from that
+ * anchor's default set — "show everything above, but not the top 3 levels" — without touching the
+ * `levelMode`/`showOnMainMap` "Show" settings, and the anchor may even hide its own current level. The
+ * `main` scope has no anchor, so no checklist applies to it (only `showOnMainMap` governs it). This
+ * only affects **defaults**; a map's per-map Levels overlay checkbox can still turn a level back on for
  * that one map. Pure — unit-tested.
  */
 export function computeVisibleLevelGroupIds(
   groups: PlaceTypeLevelGroup[],
   scope: LevelScope,
 ): Set<string> {
-  const dropHidden = (ids: Set<string>): Set<string> => {
-    const hiddenIds = new Set(groups.filter(group => group.visible === false).map(group => group.id));
-    return new Set([...ids].filter(id => !hiddenIds.has(id)));
-  };
   if (scope.kind === "main") {
-    return dropHidden(new Set(groups.filter(group => group.showOnMainMap !== false).map(group => group.id)));
+    return new Set(groups.filter(group => group.showOnMainMap !== false).map(group => group.id));
   }
   const anchors = resolveAnchorGroups(groups, scope);
-  // No anchor (viewed type belongs to no group / no tagged locations) → show every visible group.
-  if (anchors.length === 0) return dropHidden(new Set(groups.map(group => group.id)));
-  return dropHidden(expandAnchorsByOwnMode(groups, anchors));
+  // No anchor (viewed type belongs to no group / no tagged locations) → show every group.
+  if (anchors.length === 0) return new Set(groups.map(group => group.id));
+  return expandAnchorsByOwnMode(groups, anchors);
 }
 
 /**

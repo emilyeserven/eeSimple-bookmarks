@@ -26,6 +26,21 @@ const noop = (): void => undefined;
 
 /** The full set of `GroupRowProps` handlers, all no-ops, for the LevelGroup* stories. */
 export const storyGroupRowProps: Omit<GroupRowProps, "group"> = {
+  allGroups: [
+    makeStoryGroup(),
+    makeStoryGroup({
+      id: "g0",
+      name: "Country",
+      placeTypes: ["country"],
+      sortOrder: -1,
+    }),
+    makeStoryGroup({
+      id: "g2",
+      name: "City",
+      placeTypes: ["city"],
+      sortOrder: 1,
+    }),
+  ],
   options: [
     {
       key: "country",
@@ -46,10 +61,10 @@ export const storyGroupRowProps: Omit<GroupRowProps, "group"> = {
   ],
   takenPlaceTypes: new Set(["country"]),
   renameGroup: noop,
-  setGroupVisible: noop,
   setGroupShowOnMainMap: noop,
   setGroupDisplayMode: noop,
   setGroupLevelMode: noop,
+  setGroupDefaultHidden: noop,
   setGroupPlaceTypes: noop,
   setGroupColor: noop,
   removeGroup: noop,

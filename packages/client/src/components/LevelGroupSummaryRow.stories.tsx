@@ -42,12 +42,12 @@ export const WithDuplicatePlaceType: Story = {
   },
 };
 
-/** A level excluded from every map's default shown levels — "above"/"below" and the main map. */
-export const HiddenByDefault: Story = {
+/** A level that hides some other levels by default on maps anchored at it (per-anchor checklist). */
+export const HidesLevelsByDefault: Story = {
   args: {
     group: makeStoryGroup({
       name: "Country",
-      visible: false,
+      defaultHiddenGroupIds: ["g2", "g3"],
     }),
   },
 };

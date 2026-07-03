@@ -36,7 +36,6 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
   /** Add a new group with the given display mode, optionally inserted after the group with `afterId`. */
   addGroupOfMode: (displayMode: LocationDisplayMode, afterId?: string) => void;
   renameGroup: (id: string, name: string) => void;
-  setGroupVisible: (id: string, visible: boolean) => void;
   /** Set whether this level shows by default on the main all-locations map (`/taxonomies/locations`). */
   setGroupShowOnMainMap: (id: string, showOnMainMap: boolean) => void;
   setGroupDisplayMode: (id: string, displayMode: LocationDisplayMode) => void;
@@ -45,6 +44,11 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
    * levels a place's pages show alongside it when the viewed place's type belongs to this group.
    */
   setGroupLevelMode: (id: string, levelMode: LocationMapLevelMode) => void;
+  /**
+   * Set which level groups are hidden **by default** on maps anchored at this level (the per-anchor
+   * checklist). `hiddenIds` may include this group's own id to hide the current level itself.
+   */
+  setGroupDefaultHidden: (id: string, hiddenIds: string[]) => void;
   setGroupPlaceTypes: (id: string, placeTypes: string[]) => void;
   /** Set (or clear, with `null`) the map color a level's pins/areas render in. */
   setGroupColor: (id: string, color: string | null) => void;
@@ -162,12 +166,6 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     }, `${name || "Level"} name`);
   }
 
-  function setGroupVisible(id: string, visible: boolean): void {
-    patchGroup(id, {
-      visible,
-    }, `${groupLabel(id)} visibility`);
-  }
-
   function setGroupShowOnMainMap(id: string, showOnMainMap: boolean): void {
     patchGroup(id, {
       showOnMainMap,
@@ -184,6 +182,12 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     patchGroup(id, {
       levelMode,
     }, `${groupLabel(id)} levels shown`);
+  }
+
+  function setGroupDefaultHidden(id: string, hiddenIds: string[]): void {
+    patchGroup(id, {
+      defaultHiddenGroupIds: hiddenIds,
+    }, `${groupLabel(id)} default levels`);
   }
 
   function setGroupPlaceTypes(id: string, placeTypes: string[]): void {
@@ -216,7 +220,17 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
 
   function removeGroup(id: string): void {
     const label = groupLabel(id);
-    save(groups.filter(group => group.id !== id), `${label} removed`);
+    // Also drop the removed id from every other group's per-anchor "hidden by default" checklist so
+    // no stale reference lingers.
+    const next = groups
+      .filter(group => group.id !== id)
+      .map(group => (group.defaultHiddenGroupIds?.includes(id)
+        ? {
+          ...group,
+          defaultHiddenGroupIds: group.defaultHiddenGroupIds.filter(gid => gid !== id),
+        }
+        : group));
+    save(next, `${label} removed`);
   }
 
   function reorderGroups(orderedIds: string[]): void {
@@ -293,10 +307,10 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     unassignedPlaceTypes,
     addGroupOfMode,
     renameGroup,
-    setGroupVisible,
     setGroupShowOnMainMap,
     setGroupDisplayMode,
     setGroupLevelMode,
+    setGroupDefaultHidden,
     setGroupPlaceTypes,
     setGroupColor,
     removeGroup,
