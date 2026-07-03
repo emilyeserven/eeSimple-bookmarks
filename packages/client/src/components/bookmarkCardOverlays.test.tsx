@@ -26,6 +26,7 @@ function cornerPlacement(
     showLabelColon: true,
     showValueBeforeLabel: false,
     clickableTags: false,
+    showTagHierarchyOnHover: false,
     ...overrides,
   };
 }

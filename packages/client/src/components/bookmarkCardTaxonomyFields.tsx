@@ -93,16 +93,28 @@ export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): Fie
     }
     case "tags": {
       if (bookmark.tags.length === 0) return null;
-      const box = <BookmarkTagsBox tags={bookmark.tags} />;
+      const tagsPlacement = placements.get("tags");
       // The tags box is block-level — full-width in the Labels zone too. In the Table zone the names
       // render as plain text, or as clickable links when the placement opts in via `clickableTags`.
-      const clickableTags = placements.get("tags")?.clickableTags ?? false;
+      const clickableTags = tagsPlacement?.clickableTags ?? false;
+      const showHierarchyOnHover = tagsPlacement?.showTagHierarchyOnHover ?? false;
+      const box = (
+        <BookmarkTagsBox
+          tags={bookmark.tags}
+          showHierarchyOnHover={showHierarchyOnHover}
+        />
+      );
       return {
         inline: null,
         block: box,
         tableName: "Tags",
         tableValue: clickableTags
-          ? <BookmarkTagLinks tags={bookmark.tags} />
+          ? (
+            <BookmarkTagLinks
+              tags={bookmark.tags}
+              showHierarchyOnHover={showHierarchyOnHover}
+            />
+          )
           : <span className="text-sm">{bookmark.tags.map(tag => tag.name).join(", ")}</span>,
       };
     }

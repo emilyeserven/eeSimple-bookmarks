@@ -1959,6 +1959,13 @@ export interface CardFieldPlacement {
    * plain text. Defaults to false.
    */
   clickableTags?: boolean;
+  /**
+   * Tags field, any zone. When true, hovering a tag pill/link shows a popover with that tag's
+   * ancestor chain (e.g. "Root → Parent → TagName"). Has no effect on a top-level tag (no ancestors)
+   * or on the `card-table` zone's non-clickable plain-text fallback (no per-tag element to hover).
+   * Defaults to false.
+   */
+  showTagHierarchyOnHover?: boolean;
 }
 
 /**
