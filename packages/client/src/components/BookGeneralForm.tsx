@@ -4,11 +4,13 @@ import { useNavigate } from "@tanstack/react-router";
 import { BookOpen, X } from "lucide-react";
 import { z } from "zod";
 
+import { renderKavitaFieldSyncHint } from "./KavitaFieldSyncHint";
 import { KavitaSeriesLookup } from "./KavitaSeriesLookup";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
 import { useUpdateBook } from "@/hooks/useBooks";
+import { useKavitaSeriesDetail } from "@/hooks/useKavitaSeriesDetail";
 import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { notifyFieldSaved, notifyFieldSaveError } from "@/lib/autoSave";
 import { useAppForm } from "@/lib/form";
@@ -53,6 +55,10 @@ export function BookGeneralForm({
       releaseYear: book.releaseYear,
     },
   });
+
+  const {
+    data: kavitaDetail,
+  } = useKavitaSeriesDetail(book.kavitaSeriesId);
 
   const mediaPropertyCreate = useEntityCreateOption("media-property", (mediaProperty) => {
     void updateBook.mutate(
@@ -139,6 +145,7 @@ export function BookGeneralForm({
           {field => (
             <field.TextField
               label="Name"
+              action={renderKavitaFieldSyncHint("name", book.name, kavitaDetail?.name)}
               onBlur={() => autoSave.saveField(
                 "name",
                 field.state.value.trim(),
@@ -204,6 +211,7 @@ export function BookGeneralForm({
         {field => (
           <field.NumberField
             label="Release year"
+            action={renderKavitaFieldSyncHint("release year", book.releaseYear, kavitaDetail?.releaseYear)}
             onBlur={() => autoSave.saveField(
               "releaseYear",
               field.state.value || null,

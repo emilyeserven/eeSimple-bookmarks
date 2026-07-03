@@ -1,5 +1,11 @@
 import type { FastifyInstance } from "fastify";
-import { fetchKavitaSeriesCover, fetchKavitaToc, kavitaEnabledAsync, searchKavitaSeries } from "@/services/kavita";
+import {
+  fetchKavitaSeriesCover,
+  fetchKavitaSeriesDetail,
+  fetchKavitaToc,
+  kavitaEnabledAsync,
+  searchKavitaSeries,
+} from "@/services/kavita";
 import { processImage } from "@/utils/image";
 
 const seriesQuery = {
@@ -57,6 +63,36 @@ export async function kavitaRoutes(app: FastifyInstance): Promise<void> {
       q,
     } = req.query as { q: string };
     return searchKavitaSeries(q);
+  });
+
+  // Current live name/release year for a linked series — used to flag drift between Kavita and the
+  // local Book's own fields. Read-only, like every other route here.
+  app.get("/api/kavita/series/:seriesId", {
+    schema: {
+      tags: ["connectors"],
+      params: seriesCoverParams,
+    },
+  }, async (req, reply) => {
+    if (!(await kavitaEnabledAsync())) {
+      return reply.code(503).send({
+        message: "Kavita is not configured",
+      });
+    }
+    const {
+      seriesId,
+    } = req.params as { seriesId: number };
+    const outcome = await fetchKavitaSeriesDetail(seriesId);
+    if (outcome.status === "not_found") {
+      return reply.code(404).send({
+        message: "Series not found on Kavita",
+      });
+    }
+    if (outcome.status === "unavailable") {
+      return reply.code(502).send({
+        message: "Could not read series details from Kavita",
+      });
+    }
+    return outcome.result;
   });
 
   // Proxy a series' cover image bytes so the client never needs the Kavita API key. Used for the
