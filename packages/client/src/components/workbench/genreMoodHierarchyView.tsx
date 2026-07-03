@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 
 import { GenreMoodTreeList } from "../GenreMoodTreeList";
 import { HierarchyView } from "../HierarchyView";
+import { RomanizedLabel } from "../RomanizedLabel";
 
 import { useExpandedSet } from "@/hooks/useExpandedSet";
 import { useGenreMoodTree } from "@/hooks/useGenreMoods";
@@ -40,7 +41,10 @@ export function GenreMoodHierarchyView({
           }}
           className="hover:underline"
         >
-          {ancestor.name}
+          <RomanizedLabel
+            name={ancestor.name}
+            romanized={ancestor.romanizedName}
+          />
         </Link>
       )}
       hasChildren={node.children.length > 0}

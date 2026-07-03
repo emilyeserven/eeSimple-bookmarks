@@ -17,6 +17,7 @@ function useGenreMoodList() {
     () => (data ?? []).map(genreMood => ({
       id: genreMood.id,
       label: genreMood.name,
+      romanized: genreMood.romanizedName,
     })),
     [data],
   );
