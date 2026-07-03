@@ -5,6 +5,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { TagHierarchyHoverCard } from "./TagHierarchyHoverCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
@@ -12,11 +13,13 @@ import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface TagsBoxProps {
   tags: BookmarkTag[];
+  /** Show the tag's ancestor chain in a hover popover (the `showTagHierarchyOnHover` placement knob). */
+  showHierarchyOnHover?: boolean;
 }
 
 /** Scrollable, fading box of a bookmark's tag badges. */
 export function BookmarkTagsBox({
-  tags,
+  tags, showHierarchyOnHover = false,
 }: TagsBoxProps) {
   const ref = useRef<HTMLUListElement>(null);
   const [showTop, setShowTop] = useState(false);
@@ -44,8 +47,8 @@ export function BookmarkTagsBox({
           flex max-h-20 flex-wrap gap-1 overflow-y-auto rounded-md border p-1
         "
       >
-        {tags.map(tag => (
-          <li key={tag.id}>
+        {tags.map((tag) => {
+          const link = (
             <Link
               to="/tags/$tagSlug/general"
               params={{
@@ -56,8 +59,19 @@ export function BookmarkTagsBox({
             >
               <Badge variant="secondary">{tag.name}</Badge>
             </Link>
-          </li>
-        ))}
+          );
+          return (
+            <li key={tag.id}>
+              {showHierarchyOnHover
+                ? (
+                  <TagHierarchyHoverCard tag={tag}>
+                    {link}
+                  </TagHierarchyHoverCard>
+                )
+                : link}
+            </li>
+          );
+        })}
       </ul>
       {showTop
         ? (
@@ -89,15 +103,14 @@ export function BookmarkTagsBox({
  * {@link BookmarkTagsBox} badges, but laid out as plain inline text to fit the table value column.
  */
 export function BookmarkTagLinks({
-  tags,
+  tags, showHierarchyOnHover = false,
 }: TagsBoxProps) {
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
   return (
     <span className="text-sm">
-      {tags.map((tag, index) => (
-        <Fragment key={tag.id}>
-          {index > 0 ? ", " : null}
+      {tags.map((tag, index) => {
+        const link = (
           <Link
             to="/tags/$tagSlug/general"
             params={{
@@ -112,8 +125,20 @@ export function BookmarkTagLinks({
           >
             {tag.name}
           </Link>
-        </Fragment>
-      ))}
+        );
+        return (
+          <Fragment key={tag.id}>
+            {index > 0 ? ", " : null}
+            {showHierarchyOnHover
+              ? (
+                <TagHierarchyHoverCard tag={tag}>
+                  {link}
+                </TagHierarchyHoverCard>
+              )
+              : link}
+          </Fragment>
+        );
+      })}
     </span>
   );
 }
