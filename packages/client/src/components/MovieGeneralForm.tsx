@@ -3,6 +3,7 @@ import type { Movie } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
+import { moviesApi } from "../lib/api/taxonomies";
 
 import { useUpdateMovie } from "@/hooks/useMovies";
 
@@ -25,6 +26,9 @@ export function MovieGeneralForm({
           movieSlug: slug,
         },
       })}
+      base="movies"
+      imagesApi={moviesApi.images}
+      queryKeyPrefix="movie-images"
     />
   );
 }

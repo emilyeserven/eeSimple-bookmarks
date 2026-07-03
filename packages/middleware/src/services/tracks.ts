@@ -33,6 +33,9 @@ function toTrack(row: TrackRow & { bookmarkCount?: number }): Track {
     plexItemType: row.plexItemType ?? null,
     plexItemTitle: row.plexItemTitle ?? null,
     year: row.year ?? null,
+    wikidataId: row.wikidataId ?? null,
+    wikipediaLinkEn: row.wikipediaLinkEn ?? null,
+    wikipediaLinkLocal: row.wikipediaLinkLocal ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
@@ -47,6 +50,7 @@ const takenSlugs = (excludeId?: string) =>
 type TrackDataColumns = Pick<
   TrackRow,
   "mediaPropertyId" | "albumId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year" | "romanizedName"
+  | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -59,6 +63,9 @@ function dataFromInput(input: CreateTrackInput | UpdateTrackInput): Partial<Trac
   if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
   if (input.year !== undefined) patch.year = input.year ?? null;
   if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
+  if (input.wikidataId !== undefined) patch.wikidataId = input.wikidataId ?? null;
+  if (input.wikipediaLinkEn !== undefined) patch.wikipediaLinkEn = input.wikipediaLinkEn ?? null;
+  if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal ?? null;
   return patch;
 }
 
@@ -77,6 +84,9 @@ export async function listTracks(): Promise<Track[]> {
       plexItemType: tracks.plexItemType,
       plexItemTitle: tracks.plexItemTitle,
       year: tracks.year,
+      wikidataId: tracks.wikidataId,
+      wikipediaLinkEn: tracks.wikipediaLinkEn,
+      wikipediaLinkLocal: tracks.wikipediaLinkLocal,
       createdAt: tracks.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.trackId, tracks.id)),
     })

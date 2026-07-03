@@ -6,6 +6,7 @@ import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
 import { TrackAlbumField } from "./TrackAlbumField";
 import { useAlbums } from "../hooks/useAlbums";
 import { useUpdateTrack } from "../hooks/useTracks";
+import { tracksApi } from "../lib/api/taxonomies";
 import { matchPlexParentId } from "../lib/plexParent";
 
 import { notifyFieldSaved } from "@/lib/autoSave";
@@ -58,6 +59,9 @@ export function TrackGeneralForm({
       })}
       renderExtra={<TrackAlbumField track={track} />}
       onPlexSelected={handlePlexSelected}
+      base="tracks"
+      imagesApi={tracksApi.images}
+      queryKeyPrefix="track-images"
     />
   );
 }

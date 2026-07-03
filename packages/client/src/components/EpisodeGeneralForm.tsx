@@ -6,6 +6,7 @@ import { EpisodeTvShowField } from "./EpisodeTvShowField";
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
 import { useUpdateEpisode } from "../hooks/useEpisodes";
 import { useTvShows } from "../hooks/useTvShows";
+import { episodesApi } from "../lib/api/taxonomies";
 import { matchPlexParentId } from "../lib/plexParent";
 
 import { notifyFieldSaved } from "@/lib/autoSave";
@@ -58,6 +59,9 @@ export function EpisodeGeneralForm({
       })}
       renderExtra={<EpisodeTvShowField episode={episode} />}
       onPlexSelected={handlePlexSelected}
+      base="episodes"
+      imagesApi={episodesApi.images}
+      queryKeyPrefix="episode-images"
     />
   );
 }

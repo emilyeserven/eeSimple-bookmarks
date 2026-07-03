@@ -1,3 +1,5 @@
+import type { createTaxonomyImageApi } from "../lib/api/taxonomyImages";
+import type { PlexTitleSyncField } from "../lib/syncSources/plexTitleDiff";
 import type { PlexKind } from "@/lib/plexParent";
 import type { PlexItemResult } from "@eesimple/types";
 import type { UseMutationResult } from "@tanstack/react-query";
@@ -9,6 +11,7 @@ import { z } from "zod";
 import { PlexItemLookup } from "./PlexItemLookup";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import { usePlexTitleSyncRegistration } from "../hooks/usePlexTitleSyncRegistration";
 
 import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { notifyFieldSaved, notifyFieldSaveError } from "@/lib/autoSave";
@@ -28,6 +31,9 @@ export interface PlexTitle {
   /** Display title of the linked Plex item, denormalized at link time. */
   plexItemTitle?: string | null;
   year: number | null;
+  wikidataId?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
 }
 
 /** The partial-update payload the shared edit form writes (Movie / TV Show update inputs match this). */
@@ -40,6 +46,9 @@ export interface PlexTitleUpdateInput {
   plexItemType?: string | null;
   plexItemTitle?: string | null;
   year?: number | null;
+  wikidataId?: string | null;
+  wikipediaLinkEn?: string | null;
+  wikipediaLinkLocal?: string | null;
 }
 
 const plexTitleSchema = z.object({
@@ -48,6 +57,8 @@ const plexTitleSchema = z.object({
   sortOrder: z.number().int(),
   year: z.number().int(),
   mediaPropertyId: z.string(),
+  wikipediaLinkEn: z.string(),
+  wikipediaLinkLocal: z.string(),
 });
 
 const LABELS: Record<keyof PlexTitleUpdateInput, string> = {
@@ -59,6 +70,9 @@ const LABELS: Record<keyof PlexTitleUpdateInput, string> = {
   plexRatingKey: "Plex item",
   plexItemType: "Plex item",
   plexItemTitle: "Plex item",
+  wikidataId: "Wikidata",
+  wikipediaLinkEn: "Wikipedia (English)",
+  wikipediaLinkLocal: "Wikipedia (local)",
 };
 
 interface PlexTitleGeneralFormProps<E extends PlexTitle> {
@@ -74,6 +88,11 @@ interface PlexTitleGeneralFormProps<E extends PlexTitle> {
   renderExtra?: ReactNode;
   /** Invoked when a Plex search result is picked, for parent/artist autofill in the wrapper. */
   onPlexSelected?: (item: PlexItemResult) => void;
+  /** REST base path segment for this taxonomy (e.g. `"movies"` / `"tv-shows"`) — the sync preview endpoint. */
+  base: string;
+  /** This taxonomy's image gallery api + cache-key prefix, for the sync flow's poster row. */
+  imagesApi: ReturnType<typeof createTaxonomyImageApi>;
+  queryKeyPrefix: string;
 }
 
 /**
@@ -90,6 +109,9 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
   onRenamed,
   renderExtra,
   onPlexSelected,
+  base,
+  imagesApi,
+  queryKeyPrefix,
 }: PlexTitleGeneralFormProps<E>) {
   const {
     data: mediaProperties,
@@ -103,6 +125,8 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       romanizedName: entity.romanizedName ?? "",
       sortOrder: entity.sortOrder,
       year: entity.year,
+      wikipediaLinkEn: entity.wikipediaLinkEn ?? "",
+      wikipediaLinkLocal: entity.wikipediaLinkLocal ?? "",
     },
   });
 
@@ -131,6 +155,8 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       sortOrder: entity.sortOrder,
       year: entity.year ?? 0,
       mediaPropertyId: entity.mediaPropertyId ?? "",
+      wikipediaLinkEn: entity.wikipediaLinkEn ?? "",
+      wikipediaLinkLocal: entity.wikipediaLinkLocal ?? "",
     },
     validators: {
       onChange: plexTitleSchema,
@@ -180,6 +206,32 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       },
     );
   }
+
+  /** Stage a synced text field into the form + persist it (per-field auto-save); a name change follows the slug. */
+  function applyText(field: PlexTitleSyncField, value: string): void {
+    form.setFieldValue(field, value);
+    if (field === "name") {
+      autoSave.saveField("name", value.trim(), {
+        valid: value.trim() !== "",
+        onSuccess: (updated) => {
+          if (updated.slug !== entity.slug) onRenamed(updated.slug);
+        },
+      });
+    }
+    else {
+      autoSave.saveField(field, value.trim());
+    }
+  }
+
+  // Publish the Plex "Sync from source" provider (header button + review modal) while this edit form
+  // is mounted — reviews native/romanized names + Wikipedia links (staged) and the poster (immediate).
+  usePlexTitleSyncRegistration({
+    entity,
+    base,
+    imagesApi,
+    queryKeyPrefix,
+    applyText,
+  });
 
   return (
     <div className="space-y-4">
@@ -268,6 +320,26 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
                 valid: field.state.meta.errors.length === 0,
               },
             )}
+          />
+        )}
+      </form.AppField>
+
+      <form.AppField name="wikipediaLinkEn">
+        {field => (
+          <field.TextField
+            label="Wikipedia (English)"
+            placeholder="https://en.wikipedia.org/wiki/…"
+            onBlur={() => autoSave.saveField("wikipediaLinkEn", field.state.value.trim())}
+          />
+        )}
+      </form.AppField>
+
+      <form.AppField name="wikipediaLinkLocal">
+        {field => (
+          <field.TextField
+            label="Wikipedia (local)"
+            placeholder="https://<lang>.wikipedia.org/wiki/…"
+            onBlur={() => autoSave.saveField("wikipediaLinkLocal", field.state.value.trim())}
           />
         )}
       </form.AppField>

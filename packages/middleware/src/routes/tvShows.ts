@@ -10,6 +10,7 @@ import {
 } from "@/services/tvShows";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const tvShowParams = {
@@ -45,6 +46,15 @@ const tvShowDataFields = {
     type: ["integer", "null"],
   },
   romanizedName: {
+    type: ["string", "null"],
+  },
+  wikidataId: {
+    type: ["string", "null"],
+  },
+  wikipediaLinkEn: {
+    type: ["string", "null"],
+  },
+  wikipediaLinkLocal: {
     type: ["string", "null"],
   },
 } as const;
@@ -157,4 +167,6 @@ export async function tvShowRoutes(app: FastifyInstance): Promise<void> {
       },
     },
   ]);
+
+  registerPlexMetadataPreviewRoute(app, "/api/tv-shows", "tvShow", "tv-shows");
 }

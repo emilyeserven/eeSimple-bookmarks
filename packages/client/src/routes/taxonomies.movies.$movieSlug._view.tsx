@@ -1,8 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { PlexTaxonomyViewHeader } from "../components/PlexTaxonomyViewHeader";
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteMovie, useMovieBySlug } from "../hooks/useMovies";
+import { moviesApi } from "../lib/api/taxonomies";
 
 import { Button } from "@/components/ui/button";
 
@@ -34,72 +36,69 @@ function MovieViewLayout() {
   return (
     <TabbedEntityLayout
       header={(
-        <div className="space-y-1">
-          <Link
-            to="/taxonomies/movies"
-            className="
-              inline-block text-sm text-muted-foreground
-              hover:text-foreground
-            "
-          >
-            ← Back to movies
-          </Link>
-          <div className="flex items-start justify-between gap-4">
-            <h1
+        <PlexTaxonomyViewHeader
+          ownerId={movie?.id}
+          imagesApi={moviesApi.images}
+          queryKeyPrefix="movie-images"
+          backLink={(
+            <Link
+              to="/taxonomies/movies"
               className="
-                flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
+                inline-block text-sm text-muted-foreground
+                hover:text-foreground
               "
             >
-              {isLoading
-                ? "Movie"
-                : movie
-                  ? (
-                    <RomanizedLabel
-                      name={movie.name}
-                      romanized={movie.romanizedName}
-                    />
-                  )
-                  : "Movie not found"}
-            </h1>
-            {movie
+              ← Back to movies
+            </Link>
+          )}
+          title={isLoading
+            ? "Movie"
+            : movie
               ? (
-                <div className="flex shrink-0 items-center gap-1">
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Link
-                      to="/taxonomies/movies/$movieSlug/edit/general"
-                      params={{
-                        movieSlug,
-                      }}
-                    >
-                      Edit
-                    </Link>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="
-                      text-destructive
-                      hover:text-destructive
-                    "
-                    disabled={deleteMovie.isPending}
-                    onClick={() => deleteMovie.mutate(movie.id, {
-                      onSuccess: () => navigate({
-                        to: "/taxonomies/movies",
-                      }),
-                    })}
-                  >
-                    {deleteMovie.isPending ? "Deleting…" : "Delete"}
-                  </Button>
-                </div>
+                <RomanizedLabel
+                  name={movie.name}
+                  romanized={movie.romanizedName}
+                />
               )
-              : null}
-          </div>
-        </div>
+              : "Movie not found"}
+          actions={movie
+            ? (
+              <>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                >
+                  <Link
+                    to="/taxonomies/movies/$movieSlug/edit/general"
+                    params={{
+                      movieSlug,
+                    }}
+                  >
+                    Edit
+                  </Link>
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="
+                    text-destructive
+                    hover:text-destructive
+                  "
+                  disabled={deleteMovie.isPending}
+                  onClick={() => deleteMovie.mutate(movie.id, {
+                    onSuccess: () => navigate({
+                      to: "/taxonomies/movies",
+                    }),
+                  })}
+                >
+                  {deleteMovie.isPending ? "Deleting…" : "Delete"}
+                </Button>
+              </>
+            )
+            : undefined}
+        />
       )}
       nav={viewNav}
       params={{

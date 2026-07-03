@@ -481,6 +481,18 @@ configuration are explicitly opt-in (Tier 2, below).
   client resolves it to a `Language` row via match-or-create in `useBookmarkScanHandlers.ts`/
   `useBookmarkIsbn.ts`, mirroring the pre-existing person (author-name)/group (ISBN publisher-name) name-resolution flow. See the
   **`add-connector`** skill's Case D.
+- **Plex-backed media taxonomies pull names + Wikipedia links from Wikidata.** For the six Plex
+  taxonomies (Movies/TV Shows/Episodes/Artists/Albums/Tracks), `services/wikidataTitle.ts`'s
+  `resolveTitleWikidata` resolves the native-script name (→ `name`), the English/romanized name (→
+  `romanizedName`), and English + local Wikipedia links — pinned by the Plex item's external IDs
+  (IMDb/TMDb/TVDB/MusicBrainz via `haswbstatement`, title-search fallback). It shares the keyless
+  Wikidata Action-API client **`services/wikidata.ts`** with the Locations geocoder
+  (`wikidataGeocoding.ts`) — the low-level `fetchJson`/`searchEntities`/`getEntities`/`fetchSitelinks`
+  plumbing lives there, not in either caller. This is **resolve-only** (`GET
+  …/:id/plex-metadata-preview` → `resolvePlexTaxonomyMetadata`; never writes) and surfaced through the
+  **"Sync from source"** review modal (the `plex-title` kind — poster + names + links reviewed
+  current-vs-source, picked rows persisted by the edit form's per-field auto-save). Display metadata
+  only → never `invalidateBookmarkCache()`. See the **`sync-from-source`** skill.
 - **Tier 2 providers are gated (DB value or env var) and default off.** `services/hostedMetadata.ts`
   (`HOSTED_METADATA_ENDPOINT`/`_API_KEY`/`_PROVIDER`, Microlink-compatible) and the YouTube Data API
   path in `services/youtube.ts` (`youtubeApiEnabledAsync`, key from Settings → Connectors or

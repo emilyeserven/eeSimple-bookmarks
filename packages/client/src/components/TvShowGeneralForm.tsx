@@ -3,6 +3,7 @@ import type { TvShow } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
+import { tvShowsApi } from "../lib/api/taxonomies";
 
 import { useUpdateTvShow } from "@/hooks/useTvShows";
 
@@ -25,6 +26,9 @@ export function TvShowGeneralForm({
           tvShowSlug: slug,
         },
       })}
+      base="tv-shows"
+      imagesApi={tvShowsApi.images}
+      queryKeyPrefix="tvShow-images"
     />
   );
 }

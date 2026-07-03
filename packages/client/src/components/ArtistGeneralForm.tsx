@@ -5,6 +5,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArtistAlbumsSection } from "./ArtistAlbumsSection";
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
 import { useUpdateArtist } from "../hooks/useArtists";
+import { artistsApi } from "../lib/api/taxonomies";
 
 /** Edit an artist's core fields (auto-saves) plus its many-to-many albums. */
 export function ArtistGeneralForm({
@@ -26,6 +27,9 @@ export function ArtistGeneralForm({
         },
       })}
       renderExtra={<ArtistAlbumsSection artist={artist} />}
+      base="artists"
+      imagesApi={artistsApi.images}
+      queryKeyPrefix="artist-images"
     />
   );
 }

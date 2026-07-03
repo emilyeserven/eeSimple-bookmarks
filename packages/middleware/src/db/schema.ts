@@ -541,6 +541,11 @@ export const movies = pgTable("movies", {
   plexItemTitle: text("plex_item_title"),
   // Optional release year surfaced by the Plex search.
   year: integer("year"),
+  // Wikidata QID + Wikipedia article links resolved by "Autofetch from Plex" (mirrors `locations`).
+  // All nullable → push-safe additive.
+  wikidataId: text("wikidata_id"),
+  wikipediaLinkEn: text("wikipedia_link_en"),
+  wikipediaLinkLocal: text("wikipedia_link_local"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -571,6 +576,9 @@ export const tvShows = pgTable("tv_shows", {
   // the actual item name without a Plex round-trip.
   plexItemTitle: text("plex_item_title"),
   year: integer("year"),
+  wikidataId: text("wikidata_id"),
+  wikipediaLinkEn: text("wikipedia_link_en"),
+  wikipediaLinkLocal: text("wikipedia_link_local"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -604,6 +612,9 @@ export const episodes = pgTable("episodes", {
   // the actual item name without a Plex round-trip.
   plexItemTitle: text("plex_item_title"),
   year: integer("year"),
+  wikidataId: text("wikidata_id"),
+  wikipediaLinkEn: text("wikipedia_link_en"),
+  wikipediaLinkLocal: text("wikipedia_link_local"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -632,6 +643,9 @@ export const artists = pgTable("artists", {
   // the actual item name without a Plex round-trip.
   plexItemTitle: text("plex_item_title"),
   year: integer("year"),
+  wikidataId: text("wikidata_id"),
+  wikipediaLinkEn: text("wikipedia_link_en"),
+  wikipediaLinkLocal: text("wikipedia_link_local"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -660,6 +674,9 @@ export const albums = pgTable("albums", {
   // the actual item name without a Plex round-trip.
   plexItemTitle: text("plex_item_title"),
   year: integer("year"),
+  wikidataId: text("wikidata_id"),
+  wikipediaLinkEn: text("wikipedia_link_en"),
+  wikipediaLinkLocal: text("wikipedia_link_local"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -693,6 +710,9 @@ export const tracks = pgTable("tracks", {
   // the actual item name without a Plex round-trip.
   plexItemTitle: text("plex_item_title"),
   year: integer("year"),
+  wikidataId: text("wikidata_id"),
+  wikipediaLinkEn: text("wikipedia_link_en"),
+  wikipediaLinkLocal: text("wikipedia_link_local"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

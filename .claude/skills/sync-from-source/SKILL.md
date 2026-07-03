@@ -41,15 +41,25 @@ so it shows on edit surfaces and nowhere else. There is no per-entity-type logic
 
 ## A provider has two halves
 
-`descriptorKind` (`"bookmark" | "location" | "image-taxonomy"`) selects the **fetch hook**; the
-**registration hook** builds `applyStaged` closing over the live form. Split so fetching stays in the
-modal (gated on open) and applying has the form state.
+`descriptorKind` (`"bookmark" | "location" | "image-taxonomy" | "plex-title"`) selects the **fetch
+hook**; the **registration hook** builds `applyStaged` closing over the live form. Split so fetching
+stays in the modal (gated on open) and applying has the form state.
 
 | Kind | Fetch hook | Diff builder (pure, tested) | Registration hook | applyStaged |
 |---|---|---|---|---|
 | `bookmark` | `useBookmarkSyncSource` (`/api/scan`) | `lib/syncSources/bookmarkDiff.ts` | `useBookmarkSyncRegistration` (in `BookmarkGeneralForm`) | title/description → `form.setFieldValue` (Save persists); image → `useAutoBookmarkImage` (immediate) |
 | `location` | `useLocationSyncSource` (`/api/locations/lookup`) | `lib/syncSources/locationDiff.ts` | `useLocationSyncRegistration` (in `LocationGeneralForm`) | per-field `setFieldValue`+`saveField`; re-geocode on → force `repullCoordinates` for coord/boundary rows |
 | `image-taxonomy` | `useImageOnlyTaxonomySyncSource` (`…/image/source-preview` or the Plex poster proxy) | `lib/syncSources/imageTaxonomyDiff.ts` | `useImageTaxonomySyncRegistration` (in each general form + `PlexTaxonomyImageTab`) | the row → the caller's existing auto-fetch/import mutation (immediate) |
+| `plex-title` | `usePlexTitleSyncSource` (`…/:id/plex-metadata-preview` for the resolved Wikidata names/links + the Plex poster proxy) | `lib/syncSources/plexTitleDiff.ts` | `usePlexTitleSyncRegistration` (in `PlexTitleGeneralForm`) | text rows (native/romanized names + Wikipedia links) → `form.setFieldValue`+`saveField` (name follows the slug); poster row → the image gallery's `plex-poster` auto-fetch (immediate) |
+
+**Why Plex titles aren't `image-taxonomy`:** the six Plex media taxonomies (Movies/TV Shows/Episodes/
+Artists/Albums/Tracks) sync **text *and* image** — native/romanized names + Wikipedia links resolved
+from Wikidata (via the Plex item's external IDs, title-search fallback; the middleware's
+`resolvePlexTaxonomyMetadata` reuses the shared `services/wikidata.ts` Action-API client) **plus** the
+poster. So they carry their own `plex-title` kind, registered from `PlexTitleGeneralForm` (the poster
+half also stays syncable image-only from `PlexTaxonomyImageTab`). The `…/plex-metadata-preview` route is
+a **resolve-only** GET (never writes) — the picked text rows persist through the form's per-field
+auto-save.
 
 **Stage vs immediate:** text/data rows **stage** into the form (persisted by the form's own save — the
 bookmark form's explicit Save, or per-field auto-save for locations/taxonomies). **Image rows apply

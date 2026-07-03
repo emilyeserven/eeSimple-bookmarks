@@ -10,6 +10,7 @@ import {
 } from "@/services/episodes";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
 const episodeParams = {
@@ -49,6 +50,15 @@ const episodeDataFields = {
     type: ["integer", "null"],
   },
   romanizedName: {
+    type: ["string", "null"],
+  },
+  wikidataId: {
+    type: ["string", "null"],
+  },
+  wikipediaLinkEn: {
+    type: ["string", "null"],
+  },
+  wikipediaLinkLocal: {
     type: ["string", "null"],
   },
 } as const;
@@ -161,4 +171,6 @@ export async function episodeRoutes(app: FastifyInstance): Promise<void> {
       },
     },
   ]);
+
+  registerPlexMetadataPreviewRoute(app, "/api/episodes", "episode", "episodes");
 }

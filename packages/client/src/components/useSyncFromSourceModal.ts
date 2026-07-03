@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useBookmarkSyncSource } from "@/hooks/useBookmarkSyncSource";
 import { useImageOnlyTaxonomySyncSource } from "@/hooks/useImageOnlyTaxonomySyncSource";
 import { useLocationSyncSource } from "@/hooks/useLocationSyncSource";
+import { usePlexTitleSyncSource } from "@/hooks/usePlexTitleSyncSource";
 
 /**
  * State + orchestration for {@link SyncFromSourceModal}. Dispatches to the per-kind fetch hook
@@ -18,8 +19,15 @@ export function useSyncFromSourceModal(provider: SyncProvider, open: boolean, on
   const bookmark = useBookmarkSyncSource(provider, open && kind === "bookmark");
   const location = useLocationSyncSource(provider, open && kind === "location");
   const image = useImageOnlyTaxonomySyncSource(provider, open && kind === "image-taxonomy");
+  const plexTitle = usePlexTitleSyncSource(provider, open && kind === "plex-title");
 
-  const active = kind === "bookmark" ? bookmark : kind === "location" ? location : image;
+  const active = kind === "bookmark"
+    ? bookmark
+    : kind === "location"
+      ? location
+      : kind === "plex-title"
+        ? plexTitle
+        : image;
   const diff = active.diff;
 
   const allRows = useMemo<SyncFieldDiff[]>(

@@ -6,6 +6,7 @@ import { AlbumArtistsSection } from "./AlbumArtistsSection";
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
 import { useUpdateAlbum } from "../hooks/useAlbums";
 import { useArtists, useCreateArtist } from "../hooks/useArtists";
+import { albumsApi } from "../lib/api/taxonomies";
 import { resolveArtistNames, splitArtistNames } from "../lib/artistNames";
 
 import { notifyFieldSaved } from "@/lib/autoSave";
@@ -61,6 +62,9 @@ export function AlbumGeneralForm({
       })}
       renderExtra={<AlbumArtistsSection album={album} />}
       onPlexSelected={item => void handlePlexSelected(item)}
+      base="albums"
+      imagesApi={albumsApi.images}
+      queryKeyPrefix="album-images"
     />
   );
 }
