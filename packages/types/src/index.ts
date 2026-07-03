@@ -2809,6 +2809,12 @@ export interface PlexItemResult {
   librarySectionTitle: string | null;
   /** A one-line context subtitle (show/artist, year, library), or `null`. */
   subtitle: string | null;
+  /**
+   * Grouping label for the item picker's collapse hierarchy: the containing show/artist name
+   * (`grandparentTitle`) when the item has one, otherwise its library section title. `null` when
+   * neither is reported.
+   */
+  groupTitle: string | null;
 }
 
 /** One flattened table-of-contents entry from a linked Kavita book (`GET /api/kavita/toc`). */

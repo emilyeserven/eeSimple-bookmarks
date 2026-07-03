@@ -99,6 +99,7 @@ test("searchPlexItems flattens hubs, maps items, and drops unlinkable/invalid en
         year: 2021,
         librarySectionTitle: "Movies",
         subtitle: "2021 · Movies",
+        groupTitle: "Movies",
       },
       {
         ratingKey: "202",
@@ -107,6 +108,7 @@ test("searchPlexItems flattens hubs, maps items, and drops unlinkable/invalid en
         year: null,
         librarySectionTitle: "Music",
         subtitle: "Pink Floyd · Music",
+        groupTitle: "Pink Floyd",
       },
     ]);
     assert.equal(requests.length, 1);
