@@ -2863,16 +2863,16 @@ export interface FileRoutesByFullPath {
   '/saved-filters': typeof SavedFiltersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
-  '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
+  '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
   '/autofill/backfill': typeof AutofillBackfillRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
-  '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugViewRouteWithChildren
-  '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
-  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
+  '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugRouteWithChildren
+  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
+  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
-  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugViewRouteWithChildren
+  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugRouteWithChildren
   '/inbox/new': typeof InboxNewRoute
-  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugViewRouteWithChildren
+  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
   '/settings/advanced': typeof SettingsAdvancedRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRouteWithChildren
@@ -2892,7 +2892,7 @@ export interface FileRoutesByFullPath {
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
+  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
   '/taxonomies/albums': typeof TaxonomiesAlbumsRouteWithChildren
   '/taxonomies/books': typeof TaxonomiesBooksRouteWithChildren
   '/taxonomies/episodes': typeof TaxonomiesEpisodesRouteWithChildren
@@ -2957,29 +2957,29 @@ export interface FileRoutesByFullPath {
   '/settings/media/manage': typeof SettingsMediaManageRoute
   '/settings/media/screenshot-defaults': typeof SettingsMediaScreenshotDefaultsRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
-  '/taxonomies/albums/$albumSlug': typeof TaxonomiesAlbumsAlbumSlugViewRouteWithChildren
-  '/taxonomies/books/$bookSlug': typeof TaxonomiesBooksBookSlugViewRouteWithChildren
-  '/taxonomies/episodes/$episodeSlug': typeof TaxonomiesEpisodesEpisodeSlugViewRouteWithChildren
-  '/taxonomies/genres-moods/$genreMoodSlug': typeof TaxonomiesGenresMoodsGenreMoodSlugViewRouteWithChildren
-  '/taxonomies/group-types/$groupTypeSlug': typeof TaxonomiesGroupTypesGroupTypeSlugViewRouteWithChildren
-  '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugViewRouteWithChildren
+  '/taxonomies/albums/$albumSlug': typeof TaxonomiesAlbumsAlbumSlugRouteWithChildren
+  '/taxonomies/books/$bookSlug': typeof TaxonomiesBooksBookSlugRouteWithChildren
+  '/taxonomies/episodes/$episodeSlug': typeof TaxonomiesEpisodesEpisodeSlugRouteWithChildren
+  '/taxonomies/genres-moods/$genreMoodSlug': typeof TaxonomiesGenresMoodsGenreMoodSlugRouteWithChildren
+  '/taxonomies/group-types/$groupTypeSlug': typeof TaxonomiesGroupTypesGroupTypeSlugRouteWithChildren
+  '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugRouteWithChildren
   '/taxonomies/language-usage-levels/edit': typeof TaxonomiesLanguageUsageLevelsEditRoute
-  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugViewRouteWithChildren
-  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugViewRouteWithChildren
+  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugRouteWithChildren
+  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugRouteWithChildren
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
-  '/taxonomies/media-properties/$mediaPropertySlug': typeof TaxonomiesMediaPropertiesMediaPropertySlugViewRouteWithChildren
-  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
-  '/taxonomies/movies/$movieSlug': typeof TaxonomiesMoviesMovieSlugViewRouteWithChildren
-  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugViewRouteWithChildren
-  '/taxonomies/people/$personSlug': typeof TaxonomiesPeoplePersonSlugViewRouteWithChildren
-  '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugViewRouteWithChildren
-  '/taxonomies/podcasts/$podcastSlug': typeof TaxonomiesPodcastsPodcastSlugViewRouteWithChildren
-  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteWithChildren
-  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewRouteWithChildren
-  '/taxonomies/tracks/$trackSlug': typeof TaxonomiesTracksTrackSlugViewRouteWithChildren
-  '/taxonomies/tv-shows/$tvShowSlug': typeof TaxonomiesTvShowsTvShowSlugViewRouteWithChildren
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
-  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren
+  '/taxonomies/media-properties/$mediaPropertySlug': typeof TaxonomiesMediaPropertiesMediaPropertySlugRouteWithChildren
+  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
+  '/taxonomies/movies/$movieSlug': typeof TaxonomiesMoviesMovieSlugRouteWithChildren
+  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugRouteWithChildren
+  '/taxonomies/people/$personSlug': typeof TaxonomiesPeoplePersonSlugRouteWithChildren
+  '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugRouteWithChildren
+  '/taxonomies/podcasts/$podcastSlug': typeof TaxonomiesPodcastsPodcastSlugRouteWithChildren
+  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
+  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugRouteWithChildren
+  '/taxonomies/tracks/$trackSlug': typeof TaxonomiesTracksTrackSlugRouteWithChildren
+  '/taxonomies/tv-shows/$tvShowSlug': typeof TaxonomiesTvShowsTvShowSlugRouteWithChildren
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
+  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
   '/autofill/$ruleSlug/': typeof AutofillRuleSlugIndexRoute
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/card-display-rules/$ruleSlug/': typeof CardDisplayRulesRuleSlugIndexRoute
