@@ -87,9 +87,11 @@ trimming real coverage.
   **`packages/client/src/components/LocationPinStyleSettings.test.tsx`** (~460 ms, 1 test) — the
   worst time-per-test in the suite, but they assert real behavior in the **churn-heavy locations
   subsystem** (see the `locations-map` skill). Keep.
-- **`packages/client/src/components/ConnectorsSettings.test.tsx`** — weak (mostly label spot-checks)
-  but deliberately kept for its **Active/Inactive badge** assertion, which is real behavior. Don't
-  delete it; if you touch it, tighten toward behavior rather than removing it.
+- **`packages/client/src/components/ConnectorsSettings.test.tsx`** — kept for its **Active/Inactive
+  badge** assertion (real behavior derived from connector state) and its editable key-field checks.
+  Its brittle static-provider-label spot-checks (`Vimeo`/`TikTok`/`YouTube`/… from the
+  `OEMBED_PROVIDERS` registry) were **removed 2026-07** per the static-registry-string rule above —
+  don't reintroduce them. If you touch it, tighten toward behavior, never toward static copy.
 
 ## Guardrails
 
@@ -104,3 +106,23 @@ When you're about to add a test, run this filter first: is the module a re-expor
 function owned by another package? Is this a type-level assertion? A factory self-test? A static
 registry string? Third-party behavior? If yes to any — **don't write it**, and if a sweep already
 did, it's a removal candidate, recorded here.
+
+## Audit outcome — the jsdom→node speed lever is exhausted (2026-07)
+
+A full pass over every jsdom client test file was already done. **Do not re-run it as a build-time
+play** — the conclusion is recorded here so the analysis isn't repeated:
+
+- **No more clean node-env migrations exist.** Of the client jsdom files, all but a handful call
+  `render`/`renderHook`/`renderWithRouter` (they legitimately need a DOM); the rest need a DOM global
+  (`localStorage` in `stores/uiStore.viewMode.test.ts` / `lib/shareNotifications.test.ts`, `window`
+  in `lib/bugReport.test.ts`, leaflet-at-import in `components/bookmarkDetailSections.test.tsx`). The
+  pure files that *could* move already carry the `// @vitest-environment node` pragma.
+- **The remaining "pure logic behind a render" candidates are deferred, not ignored.** A couple of
+  files assert pure derivations through a rendered component — `bookmarkDetailSections` (section
+  id/order) and `PlaceTypesCard` (which place types belong to no level group). Converting them to
+  node unit tests requires **extracting the predicate out of the component source**, a product
+  refactor whose regression risk outweighs the ~1 s/file saved (that saving is far under the
+  container's ~10 s run-to-run timing noise). **Fold these in opportunistically the next time that
+  source is touched** — don't do a source refactor purely for test speed.
+- **Bottom line:** test-suite speed now comes from *not writing* the categories above and from the
+  node pragma on genuinely-pure new files — not from churning the existing rendering tests.
