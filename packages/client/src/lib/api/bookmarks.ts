@@ -17,6 +17,55 @@ import type {
 
 import { request, uploadImageFile } from "./client";
 
+/** The bookmark array fields the server always hydrates to `[]` (see `bookmarkHydration.ts`). */
+type BookmarkArrayField
+  = | "images"
+    | "languageUsages"
+    | "tags"
+    | "locations"
+    | "blacklistedTagIds"
+    | "blacklistedLocationIds"
+    | "people"
+    | "numberValues"
+    | "booleanValues"
+    | "dateTimeValues"
+    | "choicesValues"
+    | "progressValues"
+    | "sectionsValues"
+    | "textValues"
+    | "fileValues"
+    | "relationships";
+
+/** A wire payload that may predate one of the array fields (e.g. a stale/version-skewed API). */
+type RawBookmark = Omit<Bookmark, BookmarkArrayField> & Partial<Pick<Bookmark, BookmarkArrayField>>;
+
+/**
+ * Coerce every array field to `[]` when a payload omits it, so a stale or version-skewed API (or a
+ * future added array field) degrades gracefully instead of crashing an unguarded `.length`/`.map`
+ * read downstream. Mirrors the server's `?? []` hydration contract.
+ */
+export function normalizeBookmark(raw: RawBookmark): Bookmark {
+  return {
+    ...raw,
+    images: raw.images ?? [],
+    languageUsages: raw.languageUsages ?? [],
+    tags: raw.tags ?? [],
+    locations: raw.locations ?? [],
+    blacklistedTagIds: raw.blacklistedTagIds ?? [],
+    blacklistedLocationIds: raw.blacklistedLocationIds ?? [],
+    people: raw.people ?? [],
+    numberValues: raw.numberValues ?? [],
+    booleanValues: raw.booleanValues ?? [],
+    dateTimeValues: raw.dateTimeValues ?? [],
+    choicesValues: raw.choicesValues ?? [],
+    progressValues: raw.progressValues ?? [],
+    sectionsValues: raw.sectionsValues ?? [],
+    textValues: raw.textValues ?? [],
+    fileValues: raw.fileValues ?? [],
+    relationships: raw.relationships ?? [],
+  };
+}
+
 export const bookmarksApi = {
   queueToInbox: (url: string, title: string) =>
     request<{ id: string }>("/bookmarks/inbox", {
@@ -30,9 +79,9 @@ export const bookmarksApi = {
     const params = new URLSearchParams();
     for (const id of tagIds ?? []) params.append("tags", id);
     const qs = params.toString();
-    return request<Bookmark[]>(`/bookmarks${qs ? `?${qs}` : ""}`);
+    return request<Bookmark[]>(`/bookmarks${qs ? `?${qs}` : ""}`).then(rows => rows.map(normalizeBookmark));
   },
-  get: (id: string) => request<Bookmark>(`/bookmarks/${id}`),
+  get: (id: string) => request<Bookmark>(`/bookmarks/${id}`).then(normalizeBookmark),
   create: (input: CreateBookmarkInput) =>
     request<Bookmark>("/bookmarks", {
       method: "POST",
