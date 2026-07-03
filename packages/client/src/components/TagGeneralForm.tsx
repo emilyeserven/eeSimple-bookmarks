@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddTagModal } from "./AddTagModal";
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { tagSchema } from "./tagFormSchema";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
@@ -156,6 +157,11 @@ export function TagGeneralForm({
         />
         <Label htmlFor="tag-exclude-from-backfill">Exclude from autofill backfilling</Label>
       </div>
+
+      <GenreMoodAssignmentSection
+        ownerType="tag"
+        ownerId={node.id}
+      />
 
       <AddTagModal
         open={addTagOpen}

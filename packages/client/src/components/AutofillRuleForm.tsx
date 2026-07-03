@@ -44,6 +44,8 @@ interface AutofillRuleFormProps {
   defaultLocationIds?: string[];
   /** Preselected YouTube channel ids for a new rule's "when" (e.g. when creating from a channel's page). */
   defaultChannelIds?: string[];
+  /** Preselected Genres & Moods ids for a new rule's "when" (e.g. when creating from a Genres & Moods page). */
+  defaultGenreMoodIds?: string[];
   /** When true, the Custom properties section in Activation Conditions starts expanded (e.g. when creating from a property's page). */
   defaultOpenCustomProperties?: boolean;
   submitLabel: string;
@@ -55,7 +57,7 @@ interface AutofillRuleFormProps {
 
 /** Shared create/edit form for an autofill rule: a "when" condition tree plus "then" actions. */
 export function AutofillRuleForm({
-  rule, categories, mediaTypes, properties, tagTree, defaultCategoryId, defaultMediaTypeId, defaultWebsiteDomain, defaultTagIds, defaultLocationIds, defaultChannelIds, defaultOpenCustomProperties, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
+  rule, categories, mediaTypes, properties, tagTree, defaultCategoryId, defaultMediaTypeId, defaultWebsiteDomain, defaultTagIds, defaultLocationIds, defaultChannelIds, defaultGenreMoodIds, defaultOpenCustomProperties, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
 }: AutofillRuleFormProps) {
   const {
     form,
@@ -79,6 +81,7 @@ export function AutofillRuleForm({
     defaultLocationIds,
     defaultWebsiteDomain,
     defaultChannelIds,
+    defaultGenreMoodIds,
     resetOnSubmit,
     onSubmit,
   });

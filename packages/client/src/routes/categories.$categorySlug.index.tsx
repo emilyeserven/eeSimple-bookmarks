@@ -32,6 +32,7 @@ function CategoryBookmarksPage() {
     relationshipTypes,
     people,
     placeTypes,
+    genreMoods,
   } = useCategoryPageData(tagsForServerQuery(search));
 
   const category = (categories ?? []).find(c => c.slug === categorySlug);
@@ -67,6 +68,7 @@ function CategoryBookmarksPage() {
       relationshipTypes={relationshipTypes ?? []}
       people={people ?? []}
       placeTypes={placeTypes ?? []}
+      genreMoods={genreMoods ?? []}
       bookmarks={categoryBookmarks}
       search={search}
       onSearchChange={next =>

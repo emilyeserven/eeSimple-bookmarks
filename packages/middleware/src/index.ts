@@ -29,6 +29,7 @@ import { backfillTrackSlugs } from "@/services/tracks";
 import { backfillSavedFilterSlugs } from "@/services/savedFilters";
 import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
 import { backfillTagSlugs } from "@/services/tags";
+import { backfillGenreMoodSlugs } from "@/services/genreMoods";
 import { backfillLocationRomanizedSlugs, backfillLocationSlugs } from "@/services/locations";
 import { backfillPlaceTypeSlugs, seedPlaceTypesFromLocations } from "@/services/placeTypes";
 import { backfillWebsiteSlugs, ensureBuiltInWebsites } from "@/services/websites";
@@ -98,6 +99,7 @@ try {
   await ensureBuiltInRelationshipTypes();
   await backfillYouTubeChannelSlugs();
   await backfillTagSlugs();
+  await backfillGenreMoodSlugs();
   await backfillLocationSlugs();
   await backfillLocationRomanizedSlugs();
   await seedPlaceTypesFromLocations();

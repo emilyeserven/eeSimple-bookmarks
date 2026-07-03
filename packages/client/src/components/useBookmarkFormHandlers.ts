@@ -200,6 +200,7 @@ export function useBookmarkFormHandlers({
     languageId: string;
     description: string;
     tagIds: string[];
+    genreMoodIds: string[];
     locationIds: string[];
     personIds: string[];
     groupId: string;
@@ -233,6 +234,7 @@ export function useBookmarkFormHandlers({
       languageId: value.languageId || null,
       description: value.description || null,
       tagIds: value.tagIds,
+      genreMoodIds: value.genreMoodIds,
       locationIds: value.locationIds,
       personIds: value.personIds,
       groupId: form.getFieldValue("groupId") || null,

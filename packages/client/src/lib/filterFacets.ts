@@ -40,6 +40,10 @@ export const FILTER_FACETS = [
     label: "Place type",
   },
   {
+    key: "genre-moods",
+    label: "Genres & Moods",
+  },
+  {
     key: "sections",
     label: "Sections",
   },
@@ -72,6 +76,8 @@ export function facetHasActiveSelection(key: FilterFacetKey, search: BookmarkSea
       return has(search.people);
     case "place-types":
       return has(search.placeTypes) || search.placeTypePresence !== undefined;
+    case "genre-moods":
+      return has(search.genreMoods) || search.genreMoodPresence !== undefined;
     case "sections":
       return search.sectionsPresence !== undefined || has(search.sectionTypes);
   }

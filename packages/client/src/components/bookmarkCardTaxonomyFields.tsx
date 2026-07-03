@@ -8,6 +8,8 @@ import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
 
+import { Badge } from "@/components/ui/badge";
+
 /**
  * How one field can render in the card body. `inline` is its compact pill/badge form (the `label`
  * zone); `block` is its full-width form (the `single` zones); `tableName`/`tableValue` are the two
@@ -102,6 +104,27 @@ export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): Fie
         tableValue: clickableTags
           ? <BookmarkTagLinks tags={bookmark.tags} />
           : <span className="text-sm">{bookmark.tags.map(tag => tag.name).join(", ")}</span>,
+      };
+    }
+    case "genreMoods": {
+      if (bookmark.genreMoods.length === 0) return null;
+      const badges = (
+        <div className="flex flex-wrap gap-1">
+          {bookmark.genreMoods.map(entry => (
+            <Badge
+              key={entry.id}
+              variant="secondary"
+            >
+              {entry.name}
+            </Badge>
+          ))}
+        </div>
+      );
+      return {
+        inline: badges,
+        block: badges,
+        tableName: "Genres & Moods",
+        tableValue: <span className="text-sm">{bookmark.genreMoods.map(entry => entry.name).join(", ")}</span>,
       };
     }
     case "locations": {

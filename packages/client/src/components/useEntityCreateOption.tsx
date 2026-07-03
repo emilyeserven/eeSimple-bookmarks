@@ -1,5 +1,5 @@
 import type {
-  Album, Artist, Book, Category, CustomProperty, Episode, Group, GroupType, Language, Location,
+  Album, Artist, Book, Category, CustomProperty, Episode, GenreMood, Group, GroupType, Language, Location,
   MediaProperty, MediaType, Movie, Newsletter, Person, PlaceType, PropertyGroup, Tag, Track, TvShow,
   Website, YouTubeChannel,
 } from "@eesimple/types";
@@ -13,6 +13,7 @@ import { AddBookModal } from "./AddBookModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { AddEpisodeModal } from "./AddEpisodeModal";
+import { AddGenreMoodModal } from "./AddGenreMoodModal";
 import { AddGroupModal } from "./AddGroupModal";
 import { AddGroupTypeModal } from "./AddGroupTypeModal";
 import { AddLanguageModal } from "./AddLanguageModal";
@@ -37,6 +38,7 @@ interface CreatedByEntity {
   "place-type": PlaceType;
   "category": Category;
   "media-type": MediaType;
+  "genre-mood": GenreMood;
   "language": Language;
   "website": Website;
   "youtube-channel": YouTubeChannel;
@@ -94,6 +96,10 @@ const CREATABLE_ENTITY_PICKERS: {
   "media-type": {
     createLabel: "Create media type",
     Modal: AddMediaTypeModal,
+  },
+  "genre-mood": {
+    createLabel: "Create entry",
+    Modal: AddGenreMoodModal,
   },
   "language": {
     createLabel: "Create language",

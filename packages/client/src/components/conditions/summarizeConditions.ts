@@ -17,6 +17,8 @@ export interface ConditionSummary {
   channels: number;
   /** Number of selected media type ids (a single media-type leaf can hold several). */
   mediaTypes: number;
+  /** Number of selected Genres & Moods ids (a single genre-mood leaf can hold several). */
+  genreMoods: number;
   /** Number of selected relationship type ids (a single relationship-type leaf can hold several). */
   relationshipTypes: number;
   /** Number of language-usage leaves in the tree. */
@@ -34,6 +36,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   let locations = 0;
   let channels = 0;
   let mediaTypes = 0;
+  let genreMoods = 0;
   let relationshipTypes = 0;
   let languageUsages = 0;
   let properties = 0;
@@ -45,6 +48,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     else if (child.type === "location") locations += child.locationIds.length;
     else if (child.type === "youtube-channel") channels += child.channelIds.length;
     else if (child.type === "media-type") mediaTypes += child.mediaTypeIds.length;
+    else if (child.type === "genre-mood") genreMoods += child.genreMoodIds.length;
     else if (child.type === "relationship-type") relationshipTypes += child.relationshipTypeIds.length;
     else if (child.type === "language-usage") languageUsages += 1;
     else if (child.type === "property") properties += 1;
@@ -58,6 +62,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     locations,
     channels,
     mediaTypes,
+    genreMoods,
     relationshipTypes,
     languageUsages,
     properties,
@@ -122,6 +127,11 @@ const BREAKDOWN_LABELS: {
     key: "mediaTypes",
     singular: "media type",
     plural: "media types",
+  },
+  {
+    key: "genreMoods",
+    singular: "Genres & Moods entry",
+    plural: "Genres & Moods entries",
   },
   {
     key: "relationshipTypes",

@@ -3,6 +3,7 @@ import type { Category, UpdateCategoryInput } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { useUpdateCategory } from "../hooks/useCategories";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useAppForm } from "../lib/form";
@@ -131,6 +132,10 @@ export function CategoryGeneralForm({
           )}
         </form.AppField>
       </div>
+      <GenreMoodAssignmentSection
+        ownerType="category"
+        ownerId={category.id}
+      />
     </div>
   );
 }

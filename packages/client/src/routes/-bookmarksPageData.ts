@@ -1,6 +1,7 @@
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useGenreMoods } from "../hooks/useGenreMoods";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { usePeople } from "../hooks/usePeople";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
@@ -48,6 +49,9 @@ export function useBookmarksPageData(tags: string[] | undefined) {
   const {
     data: placeTypes,
   } = usePlaceTypes();
+  const {
+    data: genreMoods,
+  } = useGenreMoods();
 
   return {
     bookmarks,
@@ -63,5 +67,6 @@ export function useBookmarksPageData(tags: string[] | undefined) {
     relationshipTypes,
     people,
     placeTypes,
+    genreMoods,
   };
 }

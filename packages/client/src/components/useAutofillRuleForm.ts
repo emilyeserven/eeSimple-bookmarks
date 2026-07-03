@@ -37,6 +37,7 @@ interface UseAutofillRuleFormArgs {
   defaultLocationIds?: string[];
   defaultWebsiteDomain?: string;
   defaultChannelIds?: string[];
+  defaultGenreMoodIds?: string[];
   resetOnSubmit?: boolean;
   onSubmit: (input: CreateAutofillRuleInput) => void;
 }
@@ -48,7 +49,7 @@ interface UseAutofillRuleFormArgs {
  * `AutofillRuleForm` stays a presentational shell.
  */
 export function useAutofillRuleForm({
-  rule, properties, defaultCategoryId, defaultMediaTypeId, defaultTagIds, defaultLocationIds, defaultWebsiteDomain, defaultChannelIds, resetOnSubmit, onSubmit,
+  rule, properties, defaultCategoryId, defaultMediaTypeId, defaultTagIds, defaultLocationIds, defaultWebsiteDomain, defaultChannelIds, defaultGenreMoodIds, resetOnSubmit, onSubmit,
 }: UseAutofillRuleFormArgs) {
   const {
     data: locationTree = [],
@@ -60,6 +61,7 @@ export function useAutofillRuleForm({
     rule?.conditions ?? seedConditions({
       websiteDomain: defaultWebsiteDomain,
       channelIds: defaultChannelIds,
+      genreMoodIds: defaultGenreMoodIds,
       categoryId: defaultCategoryId,
       mediaTypeId: defaultMediaTypeId,
     }),

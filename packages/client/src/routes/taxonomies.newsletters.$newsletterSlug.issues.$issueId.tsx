@@ -40,6 +40,7 @@ function NewsletterIssueBookmarksPage() {
     relationshipTypes,
     people,
     placeTypes,
+    genreMoods,
   } = useCategoryPageData(tagsForServerQuery(search));
 
   const {
@@ -106,6 +107,7 @@ function NewsletterIssueBookmarksPage() {
         relationshipTypes={relationshipTypes ?? []}
         people={people ?? []}
         placeTypes={placeTypes ?? []}
+        genreMoods={genreMoods ?? []}
         bookmarks={issueBookmarks}
         search={search}
         onSearchChange={next => navigate({

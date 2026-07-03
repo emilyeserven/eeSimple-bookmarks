@@ -132,6 +132,15 @@ export interface MediaTypeCondition {
 }
 
 /**
+ * Leaf: the bookmark carries one of `genreMoodIds` (any-of; a bookmark can have several Genres &
+ * Moods). Flat match — no parent→child cascade. An empty list never matches.
+ */
+export interface GenreMoodCondition {
+  type: "genre-mood";
+  genreMoodIds: string[];
+}
+
+/**
  * Leaf: the bookmark participates in a relationship whose type is one of `relationshipTypeIds`
  * (regardless of direction or the other bookmark). An empty list never matches.
  */
@@ -226,6 +235,7 @@ export type ConditionNode
     | LocationCondition
     | YouTubeChannelCondition
     | MediaTypeCondition
+    | GenreMoodCondition
     | RelationshipTypeCondition
     | LanguageUsageCondition
     | PropertyCondition;
@@ -258,6 +268,8 @@ export interface ConditionInput {
   youtubeChannelId: string | null;
   /** The bookmark's media type id, or `null` when not set. */
   mediaTypeId: string | null;
+  /** The bookmark's own Genres & Moods entry ids (NOT expanded for cascade). */
+  genreMoodIds: Set<string>;
   /** Type ids of every relationship the bookmark participates in (presence matching). */
   relationshipTypeIds: Set<string>;
   /** The bookmark's (language, usage level) association pairs, for language-usage matching. */
@@ -485,6 +497,11 @@ function evaluateLanguageUsage(condition: LanguageUsageCondition, input: Conditi
     && (usageLevelIds.length === 0 || usageLevelIds.includes(usage.usageLevelId)));
 }
 
+function evaluateGenreMood(condition: GenreMoodCondition, input: ConditionInput): boolean {
+  if (condition.genreMoodIds.length === 0) return false;
+  return condition.genreMoodIds.some(id => input.genreMoodIds.has(id));
+}
+
 function evaluateChoicesPredicate(
   predicate: ChoicesPredicate,
   values: string[],
@@ -588,6 +605,8 @@ export function evaluateConditions(
       return evaluateYoutubeChannel(node, input);
     case "media-type":
       return evaluateMediaType(node, input);
+    case "genre-mood":
+      return evaluateGenreMood(node, input);
     case "relationship-type":
       return evaluateRelationshipType(node, input);
     case "language-usage":

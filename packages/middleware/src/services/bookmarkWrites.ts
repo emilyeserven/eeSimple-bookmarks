@@ -24,6 +24,7 @@ import {
   bookmarkTags,
   calculatePropertyOperands,
   customProperties,
+  genreMoodAssignments,
 } from "@/db/schema";
 
 /** A Drizzle transaction handle, as passed to the `db.transaction` callback. */
@@ -65,6 +66,16 @@ export async function linkTags(tx: Tx, bookmarkId: string, tagIds: string[] | un
   await tx.insert(bookmarkTags).values(tagIds.map(tagId => ({
     bookmarkId,
     tagId,
+  })));
+}
+
+/** Insert assignment rows linking a bookmark to the given Genres & Moods ids (no-op when empty). */
+export async function linkGenreMoods(tx: Tx, bookmarkId: string, genreMoodIds: string[] | undefined): Promise<void> {
+  if (!genreMoodIds || genreMoodIds.length === 0) return;
+  await tx.insert(genreMoodAssignments).values([...new Set(genreMoodIds)].map(genreMoodId => ({
+    genreMoodId,
+    ownerType: "bookmark" as const,
+    ownerId: bookmarkId,
   })));
 }
 

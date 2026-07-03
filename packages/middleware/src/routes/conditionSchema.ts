@@ -118,6 +118,18 @@ const mediaTypeNode = {
   },
 } as const;
 
+const genreMoodNode = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "genreMoodIds"],
+  properties: {
+    type: {
+      const: "genre-mood",
+    },
+    genreMoodIds: uuidArray,
+  },
+} as const;
+
 const relationshipTypeNode = {
   type: "object",
   additionalProperties: false,
@@ -442,7 +454,7 @@ const groupNode = {
 /** Any node in the tree (group or one of the leaf kinds). Self-references for nesting. */
 export const conditionNodeSchema = {
   $id: "conditionNode",
-  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, locationNode, youtubeChannelNode, mediaTypeNode, relationshipTypeNode, languageUsageNode, propertyNode],
+  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, locationNode, youtubeChannelNode, mediaTypeNode, genreMoodNode, relationshipTypeNode, languageUsageNode, propertyNode],
 } as const;
 
 /** The persisted root: always a group. Referenced by request bodies as `conditionTree#`. */

@@ -40,6 +40,7 @@ export function CreateAutofillRule() {
     tagIds: defaultTagIds,
     mediaTypeId: defaultMediaTypeId,
     channelIds: defaultChannelIds,
+    genreMoodIds: defaultGenreMoodIds,
   } = useAutofillScopeDefaults();
 
   async function handleCreate(input: CreateAutofillRuleInput) {
@@ -65,6 +66,7 @@ export function CreateAutofillRule() {
         defaultWebsiteDomain={defaultWebsiteDomain}
         defaultTagIds={defaultTagIds}
         defaultChannelIds={defaultChannelIds}
+        defaultGenreMoodIds={defaultGenreMoodIds}
         defaultOpenCustomProperties={!!defaultPropertyId}
         submitLabel="Add rule"
         isError={createRule.isError}

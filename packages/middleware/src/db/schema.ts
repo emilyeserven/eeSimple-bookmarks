@@ -1083,6 +1083,72 @@ export const tagsRelations = relations(tags, ({
 }));
 
 /**
+ * `genre_moods` table — the "Genres & Moods" taxonomy, a self-referencing tree. `parentId` NULL
+ * means a root entry. Many-to-many with bookmarks (and any other owner) via
+ * `genre_mood_assignments`. New table + nullable `slug` → push-safe additive.
+ */
+export const genreMoods = pgTable("genre_moods", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
+  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
+  slug: text("slug"),
+  parentId: uuid("parent_id").references((): AnyPgColumn => genreMoods.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  // Sibling names unique within a parent (a unique INDEX, not a constraint — see the `tags` note).
+  uniqueIndex("genre_moods_parent_name_unique").on(table.parentId, table.name),
+  unique("genre_moods_slug_unique").on(table.slug),
+]);
+
+/**
+ * `genre_mood_assignments` — polymorphic M:M linking a Genres & Moods entry to any owner. `ownerType`
+ * is one of `GENRE_MOOD_OWNER_TYPES` (a bookmark or a taxonomy entity). A real FK on the value side
+ * (cascade), but `ownerId` carries no FK since one table can't reference a dozen owner tables — so
+ * owner deletes must clean up their rows in the service layer (mirrors `taxonomy_images`).
+ */
+export const genreMoodAssignments = pgTable("genre_mood_assignments", {
+  genreMoodId: uuid("genre_mood_id").notNull().references(() => genreMoods.id, {
+    onDelete: "cascade",
+  }),
+  ownerType: text("owner_type").notNull(),
+  ownerId: uuid("owner_id").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.genreMoodId, table.ownerType, table.ownerId],
+  }),
+  index("genre_mood_assignments_owner_idx").on(table.ownerType, table.ownerId),
+]);
+
+export const genreMoodsRelations = relations(genreMoods, ({
+  one, many,
+}) => ({
+  parent: one(genreMoods, {
+    fields: [genreMoods.parentId],
+    references: [genreMoods.id],
+    relationName: "genre_mood_parent",
+  }),
+  children: many(genreMoods, {
+    relationName: "genre_mood_parent",
+  }),
+  assignments: many(genreMoodAssignments),
+}));
+
+export const genreMoodAssignmentsRelations = relations(genreMoodAssignments, ({
+  one,
+}) => ({
+  genreMood: one(genreMoods, {
+    fields: [genreMoodAssignments.genreMoodId],
+    references: [genreMoods.id],
+  }),
+}));
+
+/**
  * `locations` table — a self-referencing tree of places (city → region → country). `parentId` NULL
  * means a root location. Carries a romanized title + free-form alternate names, an optional
  * coordinate, a map link, and a Google Plus Code. All new columns are additive / push-safe.
@@ -2533,6 +2599,10 @@ export type NewNewsletterRow = typeof newsletters.$inferInsert;
 export type TagRow = typeof tags.$inferSelect;
 export type NewTagRow = typeof tags.$inferInsert;
 export type BookmarkTagRow = typeof bookmarkTags.$inferSelect;
+export type GenreMoodRow = typeof genreMoods.$inferSelect;
+export type NewGenreMoodRow = typeof genreMoods.$inferInsert;
+export type GenreMoodAssignmentRow = typeof genreMoodAssignments.$inferSelect;
+export type NewGenreMoodAssignmentRow = typeof genreMoodAssignments.$inferInsert;
 export type BookmarkRelationshipRow = typeof bookmarkRelationships.$inferSelect;
 export type CustomPropertyRow = typeof customProperties.$inferSelect;
 export type NewCustomPropertyRow = typeof customProperties.$inferInsert;

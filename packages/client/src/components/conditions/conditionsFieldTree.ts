@@ -2,6 +2,7 @@ import type {
   CategoryCondition,
   ConditionNode,
   ConditionTree,
+  GenreMoodCondition,
   LanguageUsageCondition,
   LocationCondition,
   MatchCondition,
@@ -22,6 +23,7 @@ export interface RootConditionLeaves {
   locationLeaf: LocationCondition | undefined;
   youtubeChannelLeaf: YouTubeChannelCondition | undefined;
   mediaTypeLeaf: MediaTypeCondition | undefined;
+  genreMoodLeaf: GenreMoodCondition | undefined;
   relationshipTypeLeaf: RelationshipTypeCondition | undefined;
   languageUsageLeaf: LanguageUsageCondition | undefined;
   propertyLeaves: PropertyCondition[];
@@ -35,6 +37,7 @@ export interface RootConditionLeaves {
     location: number;
     youtubeChannel: number;
     mediaType: number;
+    genreMood: number;
     relationshipType: number;
     languageUsage: number;
   };
@@ -49,6 +52,7 @@ export interface RootConditionPatch {
   location?: LocationCondition | null;
   youtubeChannel?: YouTubeChannelCondition | null;
   mediaType?: MediaTypeCondition | null;
+  genreMood?: GenreMoodCondition | null;
   relationshipType?: RelationshipTypeCondition | null;
   languageUsage?: LanguageUsageCondition | null;
   properties?: PropertyCondition[];
@@ -62,6 +66,7 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
   const locationLeaf = value.children.find((child): child is LocationCondition => child.type === "location");
   const youtubeChannelLeaf = value.children.find((child): child is YouTubeChannelCondition => child.type === "youtube-channel");
   const mediaTypeLeaf = value.children.find((child): child is MediaTypeCondition => child.type === "media-type");
+  const genreMoodLeaf = value.children.find((child): child is GenreMoodCondition => child.type === "genre-mood");
   const relationshipTypeLeaf = value.children.find((child): child is RelationshipTypeCondition => child.type === "relationship-type");
   const languageUsageLeaf = value.children.find((child): child is LanguageUsageCondition => child.type === "language-usage");
   return {
@@ -72,6 +77,7 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
     locationLeaf,
     youtubeChannelLeaf,
     mediaTypeLeaf,
+    genreMoodLeaf,
     relationshipTypeLeaf,
     languageUsageLeaf,
     propertyLeaves: value.children.filter((child): child is PropertyCondition => child.type === "property"),
@@ -83,6 +89,7 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
       location: locationLeaf?.locationIds.length ?? 0,
       youtubeChannel: youtubeChannelLeaf?.channelIds.length ?? 0,
       mediaType: mediaTypeLeaf?.mediaTypeIds.length ?? 0,
+      genreMood: genreMoodLeaf?.genreMoodIds.length ?? 0,
       relationshipType: relationshipTypeLeaf?.relationshipTypeIds.length ?? 0,
       languageUsage: (languageUsageLeaf?.languageIds.length ?? 0) + (languageUsageLeaf?.usageLevelIds.length ?? 0),
     },
@@ -104,6 +111,7 @@ export function buildRootChildren(
   const nextLocation = next.location === undefined ? current.locationLeaf : next.location;
   const nextYoutubeChannel = next.youtubeChannel === undefined ? current.youtubeChannelLeaf : next.youtubeChannel;
   const nextMediaType = next.mediaType === undefined ? current.mediaTypeLeaf : next.mediaType;
+  const nextGenreMood = next.genreMood === undefined ? current.genreMoodLeaf : next.genreMood;
   const nextRelationshipType = next.relationshipType === undefined ? current.relationshipTypeLeaf : next.relationshipType;
   const nextLanguageUsage = next.languageUsage === undefined ? current.languageUsageLeaf : next.languageUsage;
   const nextProperties = next.properties ?? current.propertyLeaves;
@@ -115,6 +123,7 @@ export function buildRootChildren(
     ...(nextLocation && nextLocation.locationIds.length > 0 ? [nextLocation] : []),
     ...(nextYoutubeChannel && nextYoutubeChannel.channelIds.length > 0 ? [nextYoutubeChannel] : []),
     ...(nextMediaType && nextMediaType.mediaTypeIds.length > 0 ? [nextMediaType] : []),
+    ...(nextGenreMood && nextGenreMood.genreMoodIds.length > 0 ? [nextGenreMood] : []),
     ...(nextRelationshipType && nextRelationshipType.relationshipTypeIds.length > 0 ? [nextRelationshipType] : []),
     ...(nextLanguageUsage && (nextLanguageUsage.languageIds.length > 0 || nextLanguageUsage.usageLevelIds.length > 0) ? [nextLanguageUsage] : []),
     ...nextProperties,

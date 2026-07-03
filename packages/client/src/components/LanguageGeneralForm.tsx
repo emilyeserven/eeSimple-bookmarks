@@ -3,6 +3,7 @@ import type { Language, UpdateLanguageInput } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateLanguage } from "../hooks/useLanguages";
 import { useAppForm } from "../lib/form";
@@ -94,6 +95,11 @@ export function LanguageGeneralForm({
       <p className="text-xs text-muted-foreground">
         ISO 639-1 code, used to match autofetched languages from scans and ISBN lookups.
       </p>
+
+      <GenreMoodAssignmentSection
+        ownerType="language"
+        ownerId={language.id}
+      />
     </div>
   );
 }

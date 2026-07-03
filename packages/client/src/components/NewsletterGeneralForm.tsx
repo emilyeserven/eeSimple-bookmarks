@@ -1,6 +1,7 @@
 import type { Newsletter } from "@eesimple/types";
 
 import { DefaultTagsField } from "./DefaultTagsField";
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { SourceDefaultFields } from "./SourceDefaultFields";
 import { useNewsletterGeneralForm } from "./useNewsletterGeneralForm";
 
@@ -49,6 +50,13 @@ export function NewsletterGeneralForm({
         selectedIds={tagIds}
         onToggle={toggleTag}
         description="Tags applied automatically to bookmarks imported from this newsletter."
+      />
+
+      <Separator />
+
+      <GenreMoodAssignmentSection
+        ownerType="newsletter"
+        ownerId={newsletter.id}
       />
     </div>
   );

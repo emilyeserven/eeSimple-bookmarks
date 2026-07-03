@@ -6,8 +6,8 @@ description: >-
   types, the client route quartet, a manager component, and right-panel registration. Use when
   asked to "add a new entity/table/taxonomy/content type", "give X detail and edit pages",
   "make X slug-routed", or "register a panel content type". Mirrors how categories, websites,
-  custom-properties, autofill, media-types, youtube-channels, tags, and property-groups were each
-  built.
+  custom-properties, autofill, media-types, youtube-channels, tags, property-groups, and genres-moods
+  (the cross-taxonomy polymorphic-assignment case) were each built.
   Also the map for maintaining an entity — renaming it, adding fields, or removing it (each step below is a sync point; see the sibling skills it links for field-level changes).
 ---
 
@@ -191,6 +191,32 @@ autofetch support).
 If the entity is *also* something users detect from a scanned page/ISBN/YouTube video (not just
 manually picked), see the **`add-connector`** skill's "detected field → taxonomy match-or-create"
 case.
+
+## Cross-taxonomy "applies to bookmarks AND other taxonomies" entity (optional)
+
+Reach for this **instead** of the bookmark-linked wiring above when a new taxonomy must attach to
+**both** bookmarks and **other taxonomy entities** (not a single-FK on the bookmark row, and not a
+per-owner junction table). The worked example is **Genres & Moods** (`genre_moods` +
+`genre_mood_assignments`). Use **one polymorphic assignment table**, mirroring `taxonomy_images`:
+
+1. **Schema**: the value table (tree taxonomy), plus `<x>_assignments (<x>Id → <x> CASCADE,
+   ownerType text, ownerId uuid)` with a composite PK + `(ownerType, ownerId)` index. `ownerId` has
+   **no FK** — deletes are cleaned up in the service layer, not by cascade.
+2. **Shared types**: an `<X>_OWNER_TYPES` `as const` tuple (`"bookmark" | <taxonomies> | itself`) —
+   the **single edit point** for the target set — and `Bookmark.<x>s: Bookmark<X>[]`.
+3. **Service**: CRUD/tree service (counts come from the assignment table where `ownerType='bookmark'`,
+   not a bookmark column) + an assignment service (`getOwner<X>s` / `setOwner<X>s` replace-in-place /
+   `delete<X>AssignmentsForOwner`). `invalidateBookmarkCache()` on bookmark-owner writes.
+4. **Bookmark side**: hydrate via a batched join on `ownerType='bookmark'` (a `<x>sByBookmarkId`
+   loader in `bookmarkHydration.ts`, added to `BookmarkExtras`/`EMPTY_EXTRAS`/`toBookmark`/the
+   `Promise.all`), a `link<X>s` in `bookmarkWrites.ts` wired into create + delete-then-reinsert on
+   update, a `<x>Ids` field on `CreateBookmarkInput` + the bookmarks route schema + the form, and a
+   `cleanup<X>Assignments` call in **every** bookmark-delete path (single/bulk/orphan).
+5. **Owner cleanup**: call `delete<X>AssignmentsForOwner` from each owner taxonomy's `delete*` service.
+6. **Cross-taxonomy UI**: one reusable `<X>AssignmentSection` (`ownerType`/`ownerId` props,
+   auto-saving multi-select with inline create) dropped into **every** owner's edit General form.
+
+See CLAUDE.md → "Genres & Moods & the polymorphic assignment layer" for the full map.
 
 ## Outside-source sync (optional)
 

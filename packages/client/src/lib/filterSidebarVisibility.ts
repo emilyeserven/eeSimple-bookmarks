@@ -1,6 +1,6 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
 import type { FilterFacetKey } from "./filterFacets";
-import type { Person, Category, CustomProperty, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { FILTER_FACETS, facetHasActiveSelection, propertyHasActiveSelection } from "./filterFacets";
 
@@ -15,6 +15,7 @@ export interface FilterFacetInputs {
   relationshipTypes?: RelationshipType[];
   people?: Person[];
   placeTypes?: PlaceType[];
+  genreMoods?: GenreMood[];
 }
 
 /** The derived visibility state the filter rail renders from. */
@@ -44,6 +45,7 @@ export function computeFacetData(inputs: FilterFacetInputs): Record<FilterFacetK
     "relationship-types": has(inputs.relationshipTypes),
     "people": has(inputs.people),
     "place-types": has(inputs.placeTypes),
+    "genre-moods": has(inputs.genreMoods),
     "sections": enabledProperties.some(p => p.type === "sections"),
   };
 }

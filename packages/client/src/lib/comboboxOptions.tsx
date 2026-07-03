@@ -1,6 +1,9 @@
+import type { ComboboxOption } from "@/components/Combobox";
 import type { TreeComboboxOption } from "@/components/TreeMultiCombobox";
-import type { MediaTypeNode } from "@eesimple/types";
+import type { GenreMoodNode, MediaTypeNode } from "@eesimple/types";
 import type { ReactNode } from "react";
+
+import { flattenTree } from "./tagTree";
 
 import { CategoryIcon } from "@/lib/icons";
 
@@ -44,6 +47,29 @@ export function iconComboboxOptions(
  * media-type icon (which is why it lives here, in a `.tsx`, rather than in `tagTree.ts`). A
  * romanized name (when present) is carried as `searchAlias` so the picker search matches it too.
  */
+/**
+ * Build depth-aware (icon-less) combobox options from a Genres & Moods tree for a multi-select
+ * picker. Roots first; children indented one level. Optionally exclude a subtree of ids (e.g. the
+ * entry being edited, so it can't be attached to itself).
+ */
+export function genreMoodTreeComboboxOptions(
+  tree: GenreMoodNode[],
+  excludeIds?: Set<string>,
+): ComboboxOption[] {
+  return flattenTree(tree)
+    .filter(({
+      node,
+    }) => !excludeIds?.has(node.id))
+    .map(({
+      node, depth,
+    }) => ({
+      value: node.id,
+      label: node.name,
+      depth,
+      romanized: node.romanizedName,
+    }));
+}
+
 export function mediaTypeNodesToOptions(nodes: MediaTypeNode[]): TreeComboboxOption[] {
   return nodes.map(node => ({
     value: node.id,

@@ -325,6 +325,14 @@ export function useCardDisplayRulePreview({
           editableOnCard: false,
         },
       ],
+      genreMoods: [
+        {
+          id: "__sample-genre-mood__",
+          name: "Sample genre",
+          slug: "sample-genre",
+          parentId: null,
+        },
+      ],
       blacklistedTagIds: [],
       ...samplePropertyValues(properties),
       people: [],

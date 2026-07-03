@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import {
   CategoryConditionEditor,
+  GenreMoodConditionEditor,
   LanguageUsageConditionEditor,
   LocationConditionEditor,
   MatchConditionEditor,
@@ -97,7 +98,7 @@ export function ConditionsField({
   const leaves = splitRootConditions(value);
   const {
     matches, categoryLeaf, websiteLeaf, tagLeaf, locationLeaf, youtubeChannelLeaf, mediaTypeLeaf,
-    relationshipTypeLeaf, languageUsageLeaf, propertyLeaves, counts,
+    genreMoodLeaf, relationshipTypeLeaf, languageUsageLeaf, propertyLeaves, counts,
   } = leaves;
 
   const commit = (next: Parameters<typeof buildRootChildren>[1]) =>
@@ -229,6 +230,22 @@ export function ConditionsField({
           onChange={next =>
             commit({
               mediaType: next.mediaTypeIds.length > 0 ? next : null,
+            })}
+        />
+      </CountSection>
+
+      <CountSection
+        title="Genres & Moods"
+        count={counts.genreMood}
+      >
+        <GenreMoodConditionEditor
+          value={genreMoodLeaf ?? {
+            type: "genre-mood",
+            genreMoodIds: [],
+          }}
+          onChange={next =>
+            commit({
+              genreMood: next.genreMoodIds.length > 0 ? next : null,
             })}
         />
       </CountSection>

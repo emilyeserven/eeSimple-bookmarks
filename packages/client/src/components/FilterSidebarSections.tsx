@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Person, Bookmark, Category, CustomProperty, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { Fragment } from "react";
@@ -8,6 +8,7 @@ import {
   PersonFilterSection,
   CategoryFilterSection,
   LanguageUsageFilterSection,
+  GenreMoodFilterSection,
   MediaTypeFilterSection,
   PlaceTypeFilterSection,
   PropertiesFilterSection,
@@ -22,8 +23,8 @@ import { Separator } from "./ui/separator";
 
 /** The filter sections themselves, with separators between adjacent groups. */
 export function FilterSections({
-  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, bookmarks, search, onSearchChange,
-  hasTags, hasProperties, hasSectionsFilter, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasPersonFilter, hasPlaceTypeFilter,
+  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange,
+  hasTags, hasProperties, hasSectionsFilter, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasPersonFilter, hasPlaceTypeFilter, hasGenreMoodFilter,
   sectionFilter,
 }: {
   tree: TagNode[];
@@ -36,6 +37,7 @@ export function FilterSections({
   relationshipTypes?: RelationshipType[];
   people?: Person[];
   placeTypes?: PlaceType[];
+  genreMoods?: GenreMood[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
@@ -49,6 +51,7 @@ export function FilterSections({
   hasRelationshipTypeFilter: boolean;
   hasPersonFilter: boolean;
   hasPlaceTypeFilter: boolean;
+  hasGenreMoodFilter: boolean;
   sectionFilter?: string;
 }) {
   const filter = (sectionFilter ?? "").toLowerCase().trim();
@@ -163,6 +166,17 @@ export function FilterSections({
           node: (
             <PlaceTypeFilterSection
               placeTypes={placeTypes}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "genre-moods",
+          show: sectionShown(hasGenreMoodFilter, "Genres & Moods"),
+          node: (
+            <GenreMoodFilterSection
+              genreMoods={genreMoods}
               search={search}
               onSearchChange={onSearchChange}
             />

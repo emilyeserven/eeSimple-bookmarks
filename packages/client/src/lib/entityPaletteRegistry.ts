@@ -7,6 +7,7 @@ import { BOOK_PALETTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_PALETTE } from "../entities/cardDisplayRule";
 import { CATEGORY_PALETTE } from "../entities/category";
 import { EPISODE_PALETTE } from "../entities/episode";
+import { GENRE_MOOD_PALETTE } from "../entities/genreMood";
 import { GROUP_PALETTE } from "../entities/group";
 import { GROUP_TYPE_PALETTE } from "../entities/groupType";
 import { IMPORT_RULE_PALETTE } from "../entities/importRule";
@@ -88,6 +89,7 @@ export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig
   "tag": TAG_PALETTE,
   "website": WEBSITE_PALETTE,
   "media-type": MEDIA_TYPE_PALETTE,
+  "genre-mood": GENRE_MOOD_PALETTE,
   "language": LANGUAGE_PALETTE,
   "location": LOCATION_PALETTE,
   "place-type": PLACE_TYPE_PALETTE,

@@ -32,6 +32,7 @@ function TagBookmarksPage() {
     relationshipTypes,
     people,
     placeTypes,
+    genreMoods,
   } = useCategoryPageData(tagsForServerQuery(search));
 
   const path = tagTree ? findAncestorPath(tagTree, tagSlug) : null;
@@ -100,6 +101,7 @@ function TagBookmarksPage() {
       relationshipTypes={relationshipTypes ?? []}
       people={people ?? []}
       placeTypes={placeTypes ?? []}
+      genreMoods={genreMoods ?? []}
       bookmarks={tagBookmarks}
       search={search}
       onSearchChange={next => navigate({

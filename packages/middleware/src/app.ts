@@ -27,6 +27,8 @@ import { languageRoutes } from "@/routes/languages";
 import { languageUsageLevelRoutes } from "@/routes/languageUsageLevels";
 import { languageUsageRoutes } from "@/routes/languageUsages";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
+import { genreMoodRoutes } from "@/routes/genreMoods";
+import { genreMoodAssignmentRoutes } from "@/routes/genreMoodAssignments";
 import { locationRoutes } from "@/routes/locations";
 import { placeTypeRoutes } from "@/routes/placeTypes";
 import { connectorsRoutes } from "@/routes/connectors";
@@ -271,6 +273,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(tagRoutes);
   await app.register(websiteRoutes);
   await app.register(mediaTypeRoutes);
+  await app.register(genreMoodRoutes);
+  await app.register(genreMoodAssignmentRoutes);
   await app.register(languageRoutes);
   await app.register(languageUsageLevelRoutes);
   await app.register(languageUsageRoutes);

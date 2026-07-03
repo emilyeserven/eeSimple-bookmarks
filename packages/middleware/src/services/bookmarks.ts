@@ -29,6 +29,7 @@ import {
   bookmarks,
   type BookmarkRow,
   bookmarkTags,
+  genreMoodAssignments,
   relationshipTypes,
 } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
@@ -51,6 +52,7 @@ import {
 } from "@/services/bookmarkEnrichment";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
 import {
+  linkGenreMoods,
   linkPeople,
   linkLocations,
   linkTags,
@@ -195,6 +197,18 @@ export async function bulkUpdateBookmarkUrls(items: BulkUrlUpdate[]): Promise<Bu
  * Delete many bookmarks in one statement, reporting per-item outcomes. Ids that didn't exist are
  * marked `not-found`; everything that was removed is `deleted`. The cache is invalidated once.
  */
+/**
+ * Remove the polymorphic Genres & Moods assignment rows for deleted bookmark ids. `ownerId` carries
+ * no cascade FK, so every bookmark-delete path must call this to keep counts accurate.
+ */
+async function cleanupGenreMoodAssignments(bookmarkIds: string[]): Promise<void> {
+  if (bookmarkIds.length === 0) return;
+  await db.delete(genreMoodAssignments).where(and(
+    eq(genreMoodAssignments.ownerType, "bookmark"),
+    inArray(genreMoodAssignments.ownerId, bookmarkIds),
+  ));
+}
+
 export async function bulkDeleteBookmarks(ids: string[]): Promise<BulkBookmarkResult[]> {
   if (ids.length === 0) return [];
   const rows = await db
@@ -204,6 +218,7 @@ export async function bulkDeleteBookmarks(ids: string[]): Promise<BulkBookmarkRe
       id: bookmarks.id,
     });
   const deleted = new Set(rows.map(row => row.id));
+  await cleanupGenreMoodAssignments([...deleted]);
   if (deleted.size > 0) invalidateBookmarkCache();
   return ids.map(id => ({
     id,
@@ -569,6 +584,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         id: bookmarks.id,
       });
     await linkTags(tx, row.id, mergedTagIds);
+    await linkGenreMoods(tx, row.id, input.genreMoodIds);
     await linkLocations(tx, row.id, mergedLocationIds);
     if (input.blacklistedTagIds?.length) {
       await setBookmarkTagBlacklist(tx, row.id, input.blacklistedTagIds);
@@ -688,6 +704,13 @@ async function applyBookmarkValueUpdates(
   if (input.tagIds !== undefined) {
     await tx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, id));
     await linkTags(tx, id, input.tagIds);
+  }
+  if (input.genreMoodIds !== undefined) {
+    await tx.delete(genreMoodAssignments).where(and(
+      eq(genreMoodAssignments.ownerType, "bookmark"),
+      eq(genreMoodAssignments.ownerId, id),
+    ));
+    await linkGenreMoods(tx, id, input.genreMoodIds);
   }
   if (input.locationIds !== undefined) {
     await tx.delete(bookmarkLocations).where(eq(bookmarkLocations.bookmarkId, id));
@@ -871,6 +894,7 @@ export async function deleteBookmark(id: string): Promise<boolean> {
   if (rows.length > 0) {
     // Polymorphic language-usage rows have no FK on ownerId — clean them up explicitly.
     await deleteLanguageUsagesForOwner("bookmark", id);
+    await cleanupGenreMoodAssignments([id]);
     invalidateBookmarkCache();
   }
   return rows.length > 0;
@@ -895,7 +919,10 @@ export async function deleteOrphanedBookmarks(): Promise<OrphanDeleteResult> {
     .returning({
       id: bookmarks.id,
     });
-  if (rows.length > 0) invalidateBookmarkCache();
+  if (rows.length > 0) {
+    await cleanupGenreMoodAssignments(rows.map(row => row.id));
+    invalidateBookmarkCache();
+  }
   return {
     deleted: rows.length,
   };

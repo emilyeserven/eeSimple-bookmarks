@@ -20,6 +20,7 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
   let invalidRegex = false;
   let emptyWebsite = false;
   let emptyMediaType = false;
+  let emptyGenreMood = false;
   let emptyRelationshipType = false;
   let emptyLocation = false;
   let emptyLanguageUsage = false;
@@ -41,6 +42,7 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
     }
     if (node.type === "website" && node.domains.length === 0) emptyWebsite = true;
     if (node.type === "media-type" && node.mediaTypeIds.length === 0) emptyMediaType = true;
+    if (node.type === "genre-mood" && node.genreMoodIds.length === 0) emptyGenreMood = true;
     if (node.type === "relationship-type" && node.relationshipTypeIds.length === 0) emptyRelationshipType = true;
     if (node.type === "location" && node.locationIds.length === 0) emptyLocation = true;
     if (node.type === "language-usage" && node.languageIds.length === 0 && node.usageLevelIds.length === 0) emptyLanguageUsage = true;
@@ -69,6 +71,12 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
     ctx.addIssue({
       code: "custom",
       message: "Pick at least one media type.",
+    });
+  }
+  if (emptyGenreMood) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Pick at least one Genres & Moods entry.",
     });
   }
   if (emptyRelationshipType) {

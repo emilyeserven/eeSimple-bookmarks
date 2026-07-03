@@ -17,6 +17,8 @@ export interface AutofillScopeDefaults {
   tagIds?: string[];
   /** Preselected YouTube channel ids (become a "when" condition). */
   channelIds?: string[];
+  /** Preselected Genres & Moods ids (become a "when" condition). */
+  genreMoodIds?: string[];
   /** Preselected custom property — only opens the property section; no concrete value to prefill. */
   propertyId?: string;
 }
@@ -29,6 +31,7 @@ export interface AutofillScopeSlugs {
   tag?: string;
   mediaType?: string;
   channel?: string;
+  genreMood?: string;
 }
 
 /** The cached entity lists (+ already-resolved tag/channel ids) the slugs are looked up against. */
@@ -45,6 +48,8 @@ export interface AutofillScopeLookups {
   tagId?: string;
   /** Resolved channel id when the channel slug matched a channel, else undefined. */
   channelId?: string;
+  /** Resolved Genres & Moods id when the genre-mood slug matched an entry, else undefined. */
+  genreMoodId?: string;
 }
 
 /**
@@ -71,6 +76,7 @@ export function resolveAutofillScopeDefaults(
       ? lookups.mediaTypes.find(mediaType => mediaType.slug === slugs.mediaType)?.id
       : undefined,
     channelIds: slugs.channel && lookups.channelId ? [lookups.channelId] : undefined,
+    genreMoodIds: slugs.genreMood && lookups.genreMoodId ? [lookups.genreMoodId] : undefined,
   };
 }
 
@@ -100,6 +106,12 @@ export function seedConditions(defaults: AutofillScopeDefaults): ConditionTree {
     leaves.push({
       type: "media-type",
       mediaTypeIds: [defaults.mediaTypeId],
+    });
+  }
+  if (defaults.genreMoodIds && defaults.genreMoodIds.length > 0) {
+    leaves.push({
+      type: "genre-mood",
+      genreMoodIds: defaults.genreMoodIds,
     });
   }
   if (leaves.length === 0) return tree;

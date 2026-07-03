@@ -7,6 +7,7 @@ import { BOOK_ROUTE } from "../entities/book";
 import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
 import { CATEGORY_ROUTE } from "../entities/category";
 import { EPISODE_ROUTE } from "../entities/episode";
+import { GENRE_MOOD_ROUTE } from "../entities/genreMood";
 import { GROUP_ROUTE } from "../entities/group";
 import { GROUP_TYPE_ROUTE } from "../entities/groupType";
 import { IMPORT_RULE_ROUTE } from "../entities/importRule";
@@ -34,6 +35,7 @@ export type EntityRouteKind
     | "tag"
     | "website"
     | "media-type"
+    | "genre-mood"
     | "language"
     | "location"
     | "place-type"
@@ -90,6 +92,7 @@ export const ENTITY_ROUTES: readonly EntityRoute[] = [
   TAG_ROUTE,
   WEBSITE_ROUTE,
   MEDIA_TYPE_ROUTE,
+  GENRE_MOOD_ROUTE,
   LANGUAGE_ROUTE,
   LOCATION_ROUTE,
   PLACE_TYPE_ROUTE,

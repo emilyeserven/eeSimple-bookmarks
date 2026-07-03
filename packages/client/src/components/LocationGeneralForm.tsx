@@ -4,6 +4,7 @@ import { RefreshCw } from "lucide-react";
 
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { LocationAncestorsSection } from "./LocationAncestorsSection";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
@@ -311,6 +312,11 @@ export function LocationGeneralForm({
         </p>
       </div>
       {tagCreate.modal}
+
+      <GenreMoodAssignmentSection
+        ownerType="location"
+        ownerId={node.id}
+      />
     </div>
   );
 }

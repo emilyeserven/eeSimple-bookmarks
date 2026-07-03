@@ -1,5 +1,5 @@
 import type { BookmarkSort, BookmarkSortDimension, BuiltinSortField, SortDirection } from "./bookmarkSort";
-import type { Bookmark, BookmarkPerson, BookmarkLocation, BookmarkTag, SectionEntryType } from "@eesimple/types";
+import type { Bookmark, BookmarkGenreMood, BookmarkPerson, BookmarkLocation, BookmarkTag, SectionEntryType } from "@eesimple/types";
 
 import { placeTypeKey } from "@eesimple/types";
 
@@ -49,6 +49,14 @@ export interface BookmarkSearch {
   placeTypePresence?: "has" | "missing" | "exclude";
   /** Restrict to bookmarks whose person list overlaps with these ids (empty/absent = all). */
   people?: string[];
+  /**
+   * Restrict to bookmarks carrying at least one of these Genres & Moods ids (empty/absent = all).
+   * A bookmark can carry several, so this is an "any match" filter like place types, not a 1:1 id
+   * comparison.
+   */
+  genreMoods?: string[];
+  /** Filter bookmarks by Genres & Moods: "has" = has any, "missing" = none, "exclude" = does not have the selected entries. */
+  genreMoodPresence?: "has" | "missing" | "exclude";
   num?: Record<string, [number, number]>;
   bool?: Record<string, boolean>;
   /** `[from, to]` date/time range bounds (canonical strings, either `null`) keyed by property id. */
@@ -209,6 +217,8 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     people: validStringList(search.people),
     placeTypes: validStringList(search.placeTypes),
     placeTypePresence: validPresence(search.placeTypePresence),
+    genreMoods: validStringList(search.genreMoods),
+    genreMoodPresence: validPresence(search.genreMoodPresence),
     num: nonEmptyRecord(parseNumRecord(search.num)),
     bool: nonEmptyRecord(parseBoolRecord(search.bool)),
     date: nonEmptyRecord(parseDateRecord(search.date)),
@@ -234,6 +244,7 @@ type SearchableBookmark = Pick<
   | "youtubeChannel"
   | "website"
   | "tags"
+  | "genreMoods"
   | "locations"
   | "people"
   | "numberValues"
@@ -308,6 +319,23 @@ function bookmarkPlaceTypeKeys(bookmarkLocations: BookmarkLocation[]): string[] 
 function passesPlaceTypesFilter(selected: string[] | undefined, keys: string[]): boolean {
   if (!selected || selected.length === 0) return true;
   return keys.some(key => selected.includes(key));
+}
+
+/** The Genres & Moods ids carried by a bookmark. */
+function bookmarkGenreMoodIds(genreMoods: BookmarkGenreMood[]): string[] {
+  return genreMoods.map(entry => entry.id);
+}
+
+/** A multi-select Genres & Moods filter passes when empty or the bookmark carries a matching entry. */
+function passesGenreMoodsFilter(selected: string[] | undefined, ids: string[]): boolean {
+  if (!selected || selected.length === 0) return true;
+  return ids.some(id => selected.includes(id));
+}
+
+/** An exclusion Genres & Moods filter passes when empty or the bookmark carries none of the excluded entries. */
+function passesGenreMoodsExclusion(selected: string[] | undefined, ids: string[]): boolean {
+  if (!selected || selected.length === 0) return true;
+  return !ids.some(id => selected.includes(id));
 }
 
 /** An exclusion place-type filter passes when empty (no filter) or none of the bookmark's location place types are in the excluded list. */
@@ -416,15 +444,20 @@ export function bookmarkMatchesSearch(
           ? passesPlaceTypesExclusion(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
           : passesPlaceTypesFilter(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
             && passesPresence(search.placeTypePresence, bookmarkPlaceTypeKeys(bookmark.locations).length > 0))
+    // Genres & Moods: multi-valued (a bookmark can carry several), so "any match" like place types.
+          && (search.genreMoodPresence === "exclude"
+            ? passesGenreMoodsExclusion(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
+            : passesGenreMoodsFilter(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
+              && passesPresence(search.genreMoodPresence, bookmark.genreMoods.length > 0))
     // Tags: server handles inclusion (tagsForServerQuery gates the query); client handles presence and exclude.
-          && (search.tagPresence === "exclude"
-            ? passesTagsExclusion(search.tags, bookmark.tags)
-            : passesPresence(search.tagPresence, bookmark.tags.length > 0))
-          && passesPropertyPresence(bookmark, search)
-          && passesValueFilters(bookmark, search)
-          && passesChoicesFilters(bookmark, search)
-          && passesSectionsPresence(bookmark, search.sectionsPresence)
-          && passesSectionTypes(bookmark, search.sectionTypes, search.sectionsPresence)
+            && (search.tagPresence === "exclude"
+              ? passesTagsExclusion(search.tags, bookmark.tags)
+              : passesPresence(search.tagPresence, bookmark.tags.length > 0))
+            && passesPropertyPresence(bookmark, search)
+            && passesValueFilters(bookmark, search)
+            && passesChoicesFilters(bookmark, search)
+            && passesSectionsPresence(bookmark, search.sectionsPresence)
+            && passesSectionTypes(bookmark, search.sectionTypes, search.sectionsPresence)
   );
 }
 
@@ -455,6 +488,8 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     || hasItems(search.people)
     || hasItems(search.placeTypes)
     || search.placeTypePresence !== undefined
+    || hasItems(search.genreMoods)
+    || search.genreMoodPresence !== undefined
     || hasEntries(search.num)
     || hasEntries(search.bool)
     || hasEntries(search.date)
@@ -641,6 +676,38 @@ export function withLanguageUsageLevels(search: BookmarkSearch, ids: string[]): 
   };
   if (ids.length === 0) delete next.languageUsageLevels;
   else next.languageUsageLevels = ids;
+  return next;
+}
+
+/** Return a copy of `search` with the Genres & Moods filter set, or cleared when `ids` is empty. */
+export function withGenreMoods(search: BookmarkSearch, ids: string[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (ids.length === 0) delete next.genreMoods;
+  else next.genreMoods = ids;
+  return next;
+}
+
+/**
+ * Return a copy of `search` with the Genres & Moods presence filter set or cleared.
+ * Setting `"missing"` also clears any specific selection (selecting one contradicts "none").
+ * Setting `"exclude"` keeps the existing selection — those ids become the exclusion list.
+ */
+export function withGenreMoodPresence(
+  search: BookmarkSearch,
+  mode: "has" | "missing" | "exclude" | undefined,
+): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (mode === undefined) {
+    delete next.genreMoodPresence;
+  }
+  else {
+    next.genreMoodPresence = mode;
+    if (mode === "missing") delete next.genreMoods;
+  }
   return next;
 }
 

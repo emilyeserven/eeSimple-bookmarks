@@ -31,6 +31,7 @@ function WebsiteBookmarksPage() {
     relationshipTypes,
     people,
     placeTypes,
+    genreMoods,
   } = useCategoryPageData(tagsForServerQuery(search));
 
   const {
@@ -68,6 +69,7 @@ function WebsiteBookmarksPage() {
       relationshipTypes={relationshipTypes ?? []}
       people={people ?? []}
       placeTypes={placeTypes ?? []}
+      genreMoods={genreMoods ?? []}
       bookmarks={websiteBookmarks}
       search={search}
       onSearchChange={next => navigate({

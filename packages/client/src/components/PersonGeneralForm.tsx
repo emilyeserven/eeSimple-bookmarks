@@ -3,6 +3,7 @@ import type { Person, SocialLink } from "@eesimple/types";
 import { Sparkles, UserCircle } from "lucide-react";
 
 import { EntityImageField } from "./EntityImageField";
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { PersonAvatarActions } from "./PersonAvatarActions";
 import { SocialLinksField } from "./SocialLinksField";
 import { usePersonGeneralForm } from "./usePersonGeneralForm";
@@ -133,6 +134,13 @@ export function PersonGeneralForm({
       <SocialLinksField
         socialLinks={person.socialLinks}
         onChange={(links: SocialLink[]) => saveSocialLinks(links)}
+      />
+
+      <Separator />
+
+      <GenreMoodAssignmentSection
+        ownerType="person"
+        ownerId={person.id}
       />
     </div>
   );

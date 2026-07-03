@@ -261,6 +261,7 @@ export function BookmarkCardDetails({
       case "mediaType":
       case "youtubeChannel":
       case "tags":
+      case "genreMoods":
       case "locations": {
         return describeTaxonomyField(key, {
           bookmark,

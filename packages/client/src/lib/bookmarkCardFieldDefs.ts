@@ -36,6 +36,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Tags",
   },
   {
+    key: "genreMoods",
+    label: "Genres & Moods",
+  },
+  {
     key: "locations",
     label: "Locations",
   },

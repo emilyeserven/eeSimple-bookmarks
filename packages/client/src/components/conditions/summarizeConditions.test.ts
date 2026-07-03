@@ -26,6 +26,7 @@ describe("summarizeConditions", () => {
       locations: 0,
       channels: 0,
       mediaTypes: 0,
+      genreMoods: 0,
       relationshipTypes: 0,
       languageUsages: 0,
       properties: 0,
