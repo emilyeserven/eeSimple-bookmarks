@@ -77,15 +77,9 @@ vi.mock("../hooks/useAppSettings", () => ({
 }));
 
 describe("ConnectorsSettings", () => {
-  it("renders a card per connector with the oEmbed provider list and live status", () => {
+  it("reflects connector on/off state in Active/Inactive badges and renders editable key fields", () => {
     render(<ConnectorsSettings />);
 
-    expect(screen.getByText("oEmbed providers")).toBeInTheDocument();
-    // The provider chips come from the shared OEMBED_PROVIDERS registry.
-    expect(screen.getByText("Vimeo")).toBeInTheDocument();
-    expect(screen.getByText("TikTok")).toBeInTheDocument();
-    expect(screen.getByText("DuckDuckGo Icons")).toBeInTheDocument();
-    expect(screen.getByText("YouTube")).toBeInTheDocument();
     // "ArchiveBox" appears as the card title and in its description link.
     expect(screen.getAllByText("ArchiveBox").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Base URL").length).toBeGreaterThan(0);
@@ -95,8 +89,12 @@ describe("ConnectorsSettings", () => {
     // The YouTube card renders with its editable form (API key field).
     expect(screen.getByLabelText("YouTube API key")).toBeInTheDocument();
 
-    // YouTube Data API is enabled → an Active badge; the hosted provider is disabled → Inactive.
-    expect(screen.getAllByText("Active").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Inactive").length).toBeGreaterThan(0);
+    // Only youtubeDataApi is enabled among the env-gated connectors → one Active status badge
+    // (plus the filter bar's "Active" toggle label). The rest (hostedMetadata,
+    // instagramReelArchive, archiveBox, kavita, plex) are disabled → five Inactive status badges
+    // (plus the filter bar's "Inactive" toggle label). Confirms the badges are derived from live
+    // connector state, not hardcoded.
+    expect(screen.getAllByText("Active")).toHaveLength(2);
+    expect(screen.getAllByText("Inactive")).toHaveLength(6);
   });
 });

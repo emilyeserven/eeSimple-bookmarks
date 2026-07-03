@@ -13,7 +13,7 @@ tooling and architecture of [course-tracker](https://github.com/emilyeserven/cou
 - **Testing:** Vitest + Testing Library (client), Node test runner (middleware). Pure client
   `.test.ts` files opt into the faster `node` environment with a first-line
   `// @vitest-environment node` pragma — see the **`vitest-node-environment`** skill for the
-  decision rule.
+  decision rule, and the **`what-not-to-test`** skill for what deliberately has no test at all.
 
 ## Monorepo layout
 

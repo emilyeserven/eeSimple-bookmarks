@@ -179,8 +179,12 @@ so any non-zero count means dead code (or a duplicate export) remains; fix befor
 Dead code is gone; now add tests to the riskiest **under-tested** code *before* the refactoring
 phases, so Duplicates / Complexity / Large-files land on a regression net. Adding coverage is also a
 standing goal in its own right. Don't chase a coverage percentage — target the code most likely to
-break silently. This phase has a **second, behavior-preserving goal**: make the tests that already
-exist faster and less flaky (2.7) — without ever weakening the safety net they provide.
+break silently. **Before adding any test, check the `what-not-to-test` skill** — it records the
+categories this repo deliberately omits (re-export barrels, functions owned by another package,
+type-level assertions, factory self-tests, static registry strings, third-party behavior) plus the
+removed-tests ledger, so this sweep doesn't rebuild a test that was intentionally never written or
+was deliberately deleted. This phase has a **second, behavior-preserving goal**: make the tests that
+already exist faster and less flaky (2.7) — without ever weakening the safety net they provide.
 
 ### 2.1 Map source files to their tests
 

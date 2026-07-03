@@ -29,22 +29,30 @@ intentionally **no** config-level glob mapping (Vitest 4 removed `environmentMat
 
 Needs **jsdom** (do NOT add the pragma) when the test — or anything it imports — uses:
 
-- `render` / `renderHook` / anything from `@testing-library/react` (all `.test.tsx` files are
-  automatically in this bucket — never tag a `.tsx` test)
+- `render` / `renderHook` / anything from `@testing-library/react` (most `.test.tsx` files are in
+  this bucket, since they typically render — but a `.test.tsx` file that only exercises pure
+  helpers/data/dispatch tables co-located with a component, with no `render`/`renderHook` call, can
+  still qualify for `node`; verify per the rule below rather than assuming from the extension)
 - `localStorage` / `sessionStorage` (including zustand `persist` stores)
 - `navigator` (e.g. `userAgent` in `lib/bugReport`)
 - `window` / `document` / DOM events / timers that dispatch DOM events
 - toast libraries (`sonner`), routers mounted into the DOM, MSW in browser mode
+- a transitive import that itself touches `window`/`document` (e.g. `leaflet` reads `window` at
+  module load — see `components/bookmarkDetailSections` below)
 
 Safe for **node** (add the pragma): pure functions over data — parsers, formatters, predicates,
 tree builders, zod schemas, reducers. Nearly everything in `packages/client/src/lib/*.test.ts`
-qualifies; these plus the pure store/component-logic tests are already tagged.
+qualifies; these plus the pure store/component-logic tests are already tagged. This includes some
+pure `.test.tsx` files with no rendering: `components/bookmarkCardOverlays`,
+`components/header/toolbarActions`, `components/useSidebarPins`.
 
-Known jsdom-only `.test.ts` files (precedent — they look pure but aren't):
+Known jsdom-only `.test.ts`/`.test.tsx` files (precedent — they look pure but aren't):
 `lib/bugReport` (navigator), `lib/shareNotifications` (localStorage), `lib/useListSelection` +
 `lib/useListingPagination` + `hooks/useExpandedSet` + `hooks/useFieldAutoSave` +
 `hooks/useOfflineToast` + `hooks/useServerUnreachableToast` + `components/useBookmarkImageEditForm`
-+ `components/useBookmarkIsbn` (renderHook), `stores/uiStore.viewMode` (persisted store).
++ `components/useBookmarkIsbn` (renderHook), `stores/uiStore.viewMode` (persisted store),
+`components/bookmarkDetailSections` (transitively imports `leaflet`, which reads `window` at
+module load).
 
 ## The shared setup stays guarded
 

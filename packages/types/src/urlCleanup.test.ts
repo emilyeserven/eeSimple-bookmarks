@@ -126,3 +126,57 @@ test("a generic shortener in the ignore list nudges without expanding", () => {
   assert.equal(result.nudge, true);
   assert.equal(result.matchedWebsite, null);
 });
+
+test("selects the matching paramRule by path suffix among several rules", () => {
+  const site = website({
+    domain: "youtube.com",
+    paramRules: [
+      {
+        pathSuffix: "/watch",
+        params: ["v"],
+      },
+      {
+        pathSuffix: "/playlist",
+        params: ["list"],
+      },
+    ],
+  });
+  const watch = canonicalize(
+    "https://youtube.com/watch?v=abc&list=RD",
+    data({
+      websites: [site],
+    }),
+  );
+  assert.equal(watch.url, "https://youtube.com/watch?v=abc");
+
+  const playlist = canonicalize(
+    "https://youtube.com/playlist?list=PL123&v=xyz",
+    data({
+      websites: [site],
+    }),
+  );
+  assert.equal(playlist.url, "https://youtube.com/playlist?list=PL123");
+});
+
+test("strips all params when the site has paramRules but none match the path", () => {
+  const site = website({
+    domain: "youtube.com",
+    paramRules: [
+      {
+        pathSuffix: "/watch",
+        params: ["v"],
+      },
+      {
+        pathSuffix: "/playlist",
+        params: ["list"],
+      },
+    ],
+  });
+  const result = canonicalize(
+    "https://youtube.com/feed/subscriptions?ab=1",
+    data({
+      websites: [site],
+    }),
+  );
+  assert.equal(result.url, "https://youtube.com/feed/subscriptions");
+});
