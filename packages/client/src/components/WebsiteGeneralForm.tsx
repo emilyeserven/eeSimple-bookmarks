@@ -4,6 +4,7 @@ import { Globe } from "lucide-react";
 
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { SelfIdsField } from "./SelfIdsField";
 import { SocialLinksField } from "./SocialLinksField";
 import { SourceDefaultFields } from "./SourceDefaultFields";
@@ -147,6 +148,13 @@ export function WebsiteGeneralForm({
       <WebsiteRedirectFailureField
         checked={website.redirectResolutionFailure ?? false}
         onCheckedChange={checked => saveField("redirectResolutionFailure", checked)}
+      />
+
+      <Separator />
+
+      <GenreMoodAssignmentSection
+        ownerType="website"
+        ownerId={website.id}
       />
     </div>
   );

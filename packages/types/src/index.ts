@@ -7,6 +7,7 @@
 
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
+import type { BookmarkGenreMood } from "./genreMoods.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
 import type { LanguageUsage } from "./languageUsages.js";
 import type { BookmarkLocation } from "./locations.js";
@@ -18,6 +19,7 @@ export * from "./artists.js";
 export * from "./books.js";
 export * from "./episodes.js";
 export * from "./conditions.js";
+export * from "./genreMoods.js";
 export * from "./customProperties.js";
 export * from "./groupTypes.js";
 export * from "./importBlacklist.js";
@@ -1195,6 +1197,8 @@ export interface Bookmark {
   import: BookmarkImport | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
   tags: BookmarkTag[];
+  /** Genres & Moods entries assigned to this bookmark, drawn from the taxonomy. */
+  genreMoods: BookmarkGenreMood[];
   /** Locations assigned to this bookmark, drawn from the Locations taxonomy. */
   locations: BookmarkLocation[];
   /** Tag IDs that should never be auto-applied to this bookmark by autofill rules. */
@@ -1245,6 +1249,8 @@ export interface CreateBookmarkInput {
   categoryId?: string;
   /** Ids of tags to assign, drawn from the taxonomy. */
   tagIds?: string[];
+  /** Ids of Genres & Moods entries to assign, drawn from the taxonomy. */
+  genreMoodIds?: string[];
   /** Ids of locations to assign, drawn from the Locations taxonomy. */
   locationIds?: string[];
   /** Tag IDs to exclude from autofill auto-apply on this bookmark. */

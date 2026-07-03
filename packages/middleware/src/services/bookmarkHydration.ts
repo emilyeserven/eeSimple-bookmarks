@@ -1,4 +1,4 @@
-import { asc, desc, eq, inArray, or } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkPerson,
@@ -19,6 +19,7 @@ import type {
   BookmarkRelationship,
   BookmarkScreenshotSettings,
   BookmarkSectionsValue,
+  BookmarkGenreMood,
   BookmarkTag,
   BookmarkTextValue,
   BookmarkWebsite,
@@ -49,6 +50,8 @@ import {
   type BookmarkRow,
   bookmarkTagBlacklist,
   bookmarkTags,
+  genreMoodAssignments,
+  genreMoods,
   imports,
   languages,
   mediaTypes,
@@ -80,6 +83,7 @@ interface BookmarkExtras {
   group: BookmarkGroup | null;
   import: BookmarkImport | null;
   tags: BookmarkTag[];
+  genreMoods: BookmarkGenreMood[];
   locations: BookmarkLocation[];
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
@@ -109,6 +113,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   group: null,
   import: null,
   tags: [],
+  genreMoods: [],
   locations: [],
   blacklistedTagIds: [],
   blacklistedLocationIds: [],
@@ -160,6 +165,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     plexItemTitle: row.plexItemTitle,
     import: extras.import,
     tags: extras.tags,
+    genreMoods: extras.genreMoods,
     locations: extras.locations,
     blacklistedTagIds: extras.blacklistedTagIds,
     blacklistedLocationIds: extras.blacklistedLocationIds,
@@ -468,6 +474,39 @@ async function tagsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Book
       slug: row.slug ?? slugify(row.name),
       parentId: row.parentId,
       editableOnCard: row.editableOnCard,
+    });
+    grouped.set(row.bookmarkId, list);
+  }
+  return grouped;
+}
+
+/** Load Genres & Moods entries for a set of bookmark ids in a single query, grouped by bookmark id. */
+async function genreMoodsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkGenreMood[]>> {
+  const grouped = new Map<string, BookmarkGenreMood[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      bookmarkId: genreMoodAssignments.ownerId,
+      id: genreMoods.id,
+      name: genreMoods.name,
+      slug: genreMoods.slug,
+      parentId: genreMoods.parentId,
+    })
+    .from(genreMoodAssignments)
+    .innerJoin(genreMoods, eq(genreMoodAssignments.genreMoodId, genreMoods.id))
+    .where(and(
+      eq(genreMoodAssignments.ownerType, "bookmark"),
+      inArray(genreMoodAssignments.ownerId, bookmarkIds),
+    ));
+
+  for (const row of rows) {
+    const list = grouped.get(row.bookmarkId) ?? [];
+    list.push({
+      id: row.id,
+      name: row.name,
+      slug: row.slug ?? slugify(row.name),
+      parentId: row.parentId,
     });
     grouped.set(row.bookmarkId, list);
   }
@@ -872,8 +911,9 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, locationsMap, blacklistedMap, blacklistedLocationMap, peopleMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap, languageUsagesMap] = await Promise.all([
+  const [tagsMap, genreMoodsMap, locationsMap, blacklistedMap, blacklistedLocationMap, peopleMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap, languageUsagesMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
+    genreMoodsByBookmarkId(bookmarkIds),
     locationsByBookmarkId(bookmarkIds),
     blacklistedTagIdsByBookmarkId(bookmarkIds),
     blacklistedLocationIdsByBookmarkId(bookmarkIds),
@@ -904,6 +944,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       group: null,
       import: null,
       tags: tagsMap.get(id) ?? [],
+      genreMoods: genreMoodsMap.get(id) ?? [],
       locations: locationsMap.get(id) ?? [],
       blacklistedTagIds: blacklistedMap.get(id) ?? [],
       blacklistedLocationIds: blacklistedLocationMap.get(id) ?? [],

@@ -4,6 +4,7 @@ import type {
   BookmarkImage,
   Category,
   CustomProperty,
+  GenreMood,
   Language,
   Group,
   GroupType,
@@ -108,6 +109,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     newsletter: null,
     import: null,
     tags: [],
+    genreMoods: [],
     blacklistedTagIds: [],
     numberValues: [],
     booleanValues: [],
@@ -250,6 +252,21 @@ export function makeMediaType(overrides: Partial<MediaType> = {}): MediaType {
     icon: null,
     builtIn: false,
     sortOrder: 0,
+    parentId: null,
+    createdAt: NOW,
+    bookmarkCount: 0,
+    ownBookmarkCount: 0,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `GenreMood` tree node (flat by default). */
+export function makeGenreMood(overrides: Partial<GenreMood> = {}): GenreMood {
+  return {
+    id: "gm",
+    name: "Genre",
+    romanizedName: null,
+    slug: "genre",
     parentId: null,
     createdAt: NOW,
     bookmarkCount: 0,

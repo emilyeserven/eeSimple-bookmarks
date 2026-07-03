@@ -94,6 +94,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       languageId: bookmark.language?.id ?? "",
       description: bookmark.description ?? "",
       tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
+      genreMoodIds: (bookmark.genreMoods.map(entry => entry.id)) as string[],
       locationIds: (bookmark.locations.map(location => location.id)) as string[],
       blacklistedTagIds: bookmark.blacklistedTagIds as string[],
       blacklistedLocationIds: bookmark.blacklistedLocationIds as string[],

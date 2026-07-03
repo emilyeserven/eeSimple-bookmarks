@@ -6,6 +6,7 @@ import { MonitorPlay } from "lucide-react";
 import { ChannelWebsitesField } from "./ChannelWebsitesField";
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { SelfIdsField } from "./SelfIdsField";
 import { SourceDefaultFields } from "./SourceDefaultFields";
 import { useYouTubeChannelGeneralForm } from "./useYouTubeChannelGeneralForm";
@@ -105,6 +106,13 @@ export function YouTubeChannelGeneralForm({
         websites={websites}
         selectedIds={channel.websiteIds ?? []}
         onChange={ids => saveField("websiteIds", ids)}
+      />
+
+      <Separator />
+
+      <GenreMoodAssignmentSection
+        ownerType="youtubeChannel"
+        ownerId={channel.id}
       />
     </div>
   );

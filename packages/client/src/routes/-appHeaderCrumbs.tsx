@@ -17,6 +17,7 @@ import { findAncestorPath } from "@/lib/tagTree";
 /** Labels for path segments whose human form differs from a plain title-cased slug. */
 const LABEL_OVERRIDES: Record<string, string> = {
   "youtube-channels": "YouTube Channels",
+  "genres-moods": "Genres & Moods",
   "autofill": "Autofill Rules",
   "import-rules": "Import Rules",
   "saved-filters": "Saved Filters",

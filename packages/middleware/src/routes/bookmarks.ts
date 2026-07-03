@@ -132,6 +132,13 @@ const createBookmarkBody = {
         format: "uuid",
       },
     },
+    genreMoodIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
     locationIds: {
       type: "array",
       items: {

@@ -39,6 +39,12 @@ import type {
   CreateLocationInput,
   SetLocationAncestorsInput,
   CustomProperty,
+  CreateGenreMoodInput,
+  UpdateGenreMoodInput,
+  GenreMood,
+  GenreMoodNode,
+  GenreMoodOwnerType,
+  BookmarkGenreMood,
   Location,
   LocationLookupResult,
   LocationNode,
@@ -186,6 +192,23 @@ export const websitesApi = {
 export const mediaTypesApi = {
   ...createCrudApi<MediaType, CreateMediaTypeInput, UpdateMediaTypeInput>("media-types"),
   tree: () => request<MediaTypeNode[]>("/media-types/tree"),
+};
+
+export const genreMoodsApi = {
+  ...createCrudApi<GenreMood, CreateGenreMoodInput, UpdateGenreMoodInput>("genre-moods"),
+  tree: () => request<GenreMoodNode[]>("/genre-moods/tree"),
+};
+
+export const genreMoodAssignmentsApi = {
+  list: (ownerType: GenreMoodOwnerType, ownerId: string) =>
+    request<BookmarkGenreMood[]>(`/genre-mood-assignments/${ownerType}/${ownerId}`),
+  set: (ownerType: GenreMoodOwnerType, ownerId: string, genreMoodIds: string[]) =>
+    request<BookmarkGenreMood[]>(`/genre-mood-assignments/${ownerType}/${ownerId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        genreMoodIds,
+      }),
+    }),
 };
 
 export const languagesApi = createCrudApi<Language, CreateLanguageInput, UpdateLanguageInput>("languages");

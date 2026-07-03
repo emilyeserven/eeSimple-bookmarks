@@ -3,6 +3,7 @@ import type { MediaType, UpdateMediaTypeInput } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
 import { IconPicker } from "@/components/ui/icon-picker";
@@ -196,6 +197,10 @@ export function MediaTypeGeneralForm({
           </div>
         )}
       </form.AppField>
+      <GenreMoodAssignmentSection
+        ownerType="mediaType"
+        ownerId={mediaType.id}
+      />
     </div>
   );
 }

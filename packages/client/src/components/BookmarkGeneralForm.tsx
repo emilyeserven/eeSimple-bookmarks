@@ -9,6 +9,7 @@ import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSecti
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
 import { BookmarkMediaField } from "./BookmarkMediaField";
 import { BookmarkNameField } from "./BookmarkNameField";
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { PersonSocialAccountOffer } from "./PersonSocialAccountOffer";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
@@ -170,6 +171,11 @@ export function BookmarkGeneralForm({
       <BookmarkMediaField
         bookmark={bookmark}
         onSelect={ctrl.saveMedia}
+      />
+
+      <GenreMoodAssignmentSection
+        ownerType="bookmark"
+        ownerId={bookmark.id}
       />
 
       <form.AppForm>

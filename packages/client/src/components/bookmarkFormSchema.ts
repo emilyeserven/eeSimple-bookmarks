@@ -31,6 +31,7 @@ export const bookmarkSchema = z.object({
   languageId: z.string(),
   description: z.string(),
   tagIds: z.array(z.string()),
+  genreMoodIds: z.array(z.string()),
   locationIds: z.array(z.string()),
   blacklistedTagIds: z.array(z.string()),
   blacklistedLocationIds: z.array(z.string()),
@@ -137,6 +138,7 @@ const SAMPLE_DEFAULT_VALUES: {
   languageId: string;
   description: string;
   tagIds: string[];
+  genreMoodIds: string[];
   locationIds: string[];
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
@@ -151,6 +153,7 @@ const SAMPLE_DEFAULT_VALUES: {
   languageId: "",
   description: "",
   tagIds: [],
+  genreMoodIds: [],
   locationIds: [],
   blacklistedTagIds: [],
   blacklistedLocationIds: [],
@@ -205,6 +208,7 @@ export function buildBookmarkDefaultValues(
   languageId: string;
   description: string;
   tagIds: string[];
+  genreMoodIds: string[];
   locationIds: string[];
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
@@ -220,6 +224,7 @@ export function buildBookmarkDefaultValues(
     languageId: bookmark?.language?.id ?? "",
     description: bookmark?.description ?? "",
     tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
+    genreMoodIds: (bookmark?.genreMoods.map(entry => entry.id) ?? []) as string[],
     locationIds: (bookmark?.locations.map(location => location.id) ?? []) as string[],
     blacklistedTagIds: (bookmark?.blacklistedTagIds ?? []) as string[],
     blacklistedLocationIds: (bookmark?.blacklistedLocationIds ?? []) as string[],

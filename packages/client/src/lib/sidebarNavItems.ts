@@ -3,6 +3,7 @@ import {
   Building2,
   Captions,
   Clapperboard,
+  Drama,
   FileInput,
   FolderOpen,
   Globe,
@@ -74,6 +75,12 @@ export const taxonomyItems = [
     title: "Media Types",
     to: "/taxonomies/media-types",
     icon: Clapperboard,
+  },
+  {
+    key: "genres-moods",
+    title: "Genres & Moods",
+    to: "/taxonomies/genres-moods",
+    icon: Drama,
   },
   {
     key: "languages",
