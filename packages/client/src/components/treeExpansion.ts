@@ -25,3 +25,37 @@ export function ancestorIdsForSelected(
   for (const node of nodes) visit(node);
   return result;
 }
+
+/**
+ * Prune a tree down to the nodes that match `term` (by label or `searchAlias`) plus their
+ * ancestors, kept purely for hierarchical context — an ancestor that doesn't itself match is
+ * still returned (with only its matching descendants) so the tree's shape/indentation survives
+ * search filtering instead of collapsing into a flat list. Pure — unit-tested directly.
+ */
+export function filterTreeByTerm(
+  nodes: TreeComboboxOption[],
+  term: string,
+): TreeComboboxOption[] {
+  const needle = term.trim().toLowerCase();
+  if (needle.length === 0) return nodes;
+
+  function nodeMatches(node: TreeComboboxOption): boolean {
+    return node.label.toLowerCase().includes(needle)
+      || (node.searchAlias?.toLowerCase().includes(needle) ?? false);
+  }
+
+  function visit(node: TreeComboboxOption): TreeComboboxOption | null {
+    const filteredChildren = (node.children ?? [])
+      .map(visit)
+      .filter((child): child is TreeComboboxOption => child !== null);
+
+    if (!nodeMatches(node) && filteredChildren.length === 0) return null;
+
+    return {
+      ...node,
+      children: filteredChildren.length > 0 ? filteredChildren : undefined,
+    };
+  }
+
+  return nodes.map(visit).filter((node): node is TreeComboboxOption => node !== null);
+}

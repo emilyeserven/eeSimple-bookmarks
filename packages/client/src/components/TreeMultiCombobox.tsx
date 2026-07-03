@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { Check, ChevronRight, ChevronsUpDown, Plus } from "lucide-react";
 
-import { ancestorIdsForSelected } from "./treeExpansion";
+import { ancestorIdsForSelected, filterTreeByTerm } from "./treeExpansion";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -53,8 +53,10 @@ function flattenOptions(nodes: TreeComboboxOption[]): TreeComboboxOption[] {
 
 /**
  * Searchable multi-select built from shadcn `Popover` + `Command`, with collapsible parent groups.
- * In tree mode (no search term) parent nodes show a chevron to expand/collapse their children.
- * In search mode all nodes matching the term are shown as a flat list.
+ * In tree mode (no search term) parent nodes show a chevron to expand/collapse their children. In
+ * search mode the tree is pruned to matching nodes plus their ancestors (kept for context) and
+ * rendered fully expanded, so indentation and parent/child relationships stay visible instead of
+ * collapsing into a flat list.
  */
 export function TreeMultiCombobox({
   options,
@@ -111,11 +113,15 @@ export function TreeMultiCombobox({
   }
 
   const isSearching = searchTerm.trim().length > 0;
+  // While searching, the tree is already pruned to matches + their ancestors, so every remaining
+  // branch renders expanded — the hierarchy (indentation, ancestor labels) stays visible instead
+  // of collapsing into a flat list, and there's nothing left to manually expand/collapse.
+  const visibleNodes = isSearching ? filterTreeByTerm(options, searchTerm) : options;
 
   function renderTreeItems(nodes: TreeComboboxOption[], depth = 0): React.ReactNode {
     return nodes.map((node) => {
       const hasChildren = (node.children?.length ?? 0) > 0;
-      const isExpanded = expandedIds.has(node.value);
+      const isExpanded = isSearching || expandedIds.has(node.value);
       const isSelected = selectedSet.has(node.value);
 
       return (
@@ -130,24 +136,30 @@ export function TreeMultiCombobox({
           >
             {hasChildren
               ? (
-                <button
-                  type="button"
-                  className="
-                    shrink-0 rounded-sm p-0.5
-                    hover:bg-accent
-                  "
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleExpand(node.value);
-                  }}
-                >
-                  <ChevronRight
-                    className={cn(
-                      "size-3 transition-transform",
-                      isExpanded && "rotate-90",
-                    )}
-                  />
-                </button>
+                isSearching
+                  ? (
+                    <ChevronRight className="size-3 shrink-0 rotate-90" />
+                  )
+                  : (
+                    <button
+                      type="button"
+                      className="
+                        shrink-0 rounded-sm p-0.5
+                        hover:bg-accent
+                      "
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleExpand(node.value);
+                      }}
+                    >
+                      <ChevronRight
+                        className={cn(
+                          "size-3 transition-transform",
+                          isExpanded && "rotate-90",
+                        )}
+                      />
+                    </button>
+                  )
               )
               : <span className="size-4 shrink-0" />}
             {node.icon != null && <span className="shrink-0">{node.icon}</span>}
@@ -170,50 +182,7 @@ export function TreeMultiCombobox({
     });
   }
 
-  function renderFlatItems(nodes: TreeComboboxOption[]): React.ReactNode[] {
-    const term = searchTerm.toLowerCase();
-    return nodes.flatMap((node): React.ReactNode[] => {
-      const isSelected = selectedSet.has(node.value);
-      const matches = node.label.toLowerCase().includes(term)
-        || (node.searchAlias?.toLowerCase().includes(term) ?? false);
-      const childItems = renderFlatItems(node.children ?? []);
-
-      if (!matches) return childItems;
-
-      return [
-        <CommandItem
-          key={node.value}
-          value={node.value}
-          onSelect={() => toggle(node.value)}
-          className="flex items-center gap-1.5 pr-2"
-        >
-          {node.icon != null && <span className="shrink-0">{node.icon}</span>}
-          <span className="flex-1 truncate">
-            {node.label}
-            {node.searchAlias
-              ? <span className="ml-1.5 text-muted-foreground">{node.searchAlias}</span>
-              : null}
-          </span>
-          <Check
-            className={cn(
-              "ml-auto size-4 shrink-0",
-              isSelected ? "opacity-100" : "opacity-0",
-            )}
-          />
-        </CommandItem>,
-        ...childItems,
-      ];
-    });
-  }
-
-  const flatFiltered = isSearching
-    ? allNodes.filter((n) => {
-      const term = searchTerm.toLowerCase();
-      return n.label.toLowerCase().includes(term)
-        || (n.searchAlias?.toLowerCase().includes(term) ?? false);
-    })
-    : null;
-  const isEmpty = isSearching && (flatFiltered?.length ?? 0) === 0;
+  const isEmpty = isSearching && visibleNodes.length === 0;
 
   return (
     <Popover
@@ -257,7 +226,7 @@ export function TreeMultiCombobox({
               ? <p className="py-6 text-center text-sm">{emptyText}</p>
               : (
                 <CommandGroup>
-                  {isSearching ? renderFlatItems(options) : renderTreeItems(options)}
+                  {renderTreeItems(visibleNodes)}
                 </CommandGroup>
               )}
           </CommandList>
