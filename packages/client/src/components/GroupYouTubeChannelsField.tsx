@@ -9,14 +9,14 @@ interface Props {
 }
 
 /**
- * Multi-select field for associating YouTube channels with a website.
+ * Multi-select field for associating YouTube channels with a group.
  * Saving happens immediately on each selection change.
  */
-export function WebsiteYouTubeChannelsField(props: Props) {
+export function GroupYouTubeChannelsField(props: Props) {
   return (
     <EntityYouTubeChannelsField
       {...props}
-      description="YouTube channels associated with this website."
+      description="YouTube channels associated with this group."
     />
   );
 }

@@ -33,7 +33,6 @@ const NO_FLAGS: PromoteParams[4] = {
   setWebsiteMediaType: false,
   setChannelCategory: false,
   setChannelTags: false,
-  setChannelMediaType: false,
 };
 
 function sourceMutations() {
@@ -180,7 +179,6 @@ describe("promoteSourceDefaults", () => {
         ...NO_FLAGS,
         setChannelCategory: true,
         setChannelTags: true,
-        setChannelMediaType: true,
       },
       m.deps,
     );
@@ -189,7 +187,6 @@ describe("promoteSourceDefaults", () => {
       id: "c1",
       input: {
         categoryId: "cat",
-        mediaTypeId: "mt",
         tagIds: ["t1"],
       },
     });

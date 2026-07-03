@@ -70,11 +70,14 @@ const updateChannelBody = {
         format: "uuid",
       },
     },
-    mediaTypeId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
     websiteIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+    groupIds: {
       type: "array",
       items: {
         type: "string",

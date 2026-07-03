@@ -35,7 +35,7 @@ export function useYouTubeChannelGeneralForm(channel: YouTubeChannel) {
   const [newSelfId, setNewSelfId] = useState("");
   const [tagIds, setTagIds] = useState<string[]>(channel.tagIds ?? []);
   const {
-    categoryOptions, mediaTypeOptions, tagTree, websites,
+    categoryOptions, tagTree, websites, groups,
   } = useYouTubeChannelGeneralFormData();
 
   const autoSave = useFieldAutoSave<UpdateYouTubeChannelInput, YouTubeChannel>({
@@ -115,8 +115,8 @@ export function useYouTubeChannelGeneralForm(channel: YouTubeChannel) {
     autoAvatar,
     deleteAvatar,
     categoryOptions,
-    mediaTypeOptions,
     tagTree,
     websites,
+    groups,
   };
 }

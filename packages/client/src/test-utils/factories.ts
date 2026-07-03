@@ -304,8 +304,8 @@ export function makeYouTubeChannel(overrides: Partial<YouTubeChannel> = {}): You
     imageUrl: null,
     category: null,
     tagIds: [],
-    mediaTypeId: null,
     websiteIds: [],
+    groupIds: [],
     ...overrides,
   };
 }

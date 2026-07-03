@@ -36,18 +36,14 @@ export function useBookmarkFormChannel({
 
   const lookupData = websiteLookup.data;
   const isYouTube = lookupData?.domain === "youtube.com";
-  const existingChannel = youtubeChannel
-    ? youtubeChannels?.find(ch => ch.channelKey === youtubeChannel.key)
-    : undefined;
 
   // The bookmark's "source" whose defaults the form can promote. The "set as default category/tags"
-  // checkboxes show for a *new* source; the "set as default media type" one shows whenever the
-  // source has *no* default media type yet.
+  // checkboxes show for a *new* source; the "set as default media type" one (website only — YouTube
+  // channels have no default-media-type concept) shows whenever the source has *no* default yet.
   const sourceDefaults = buildSourceDefaults({
     isYouTube,
     youtubeChannel,
     isNewChannel,
-    existingChannel,
     lookupData,
     flags,
   });
@@ -89,7 +85,6 @@ interface BuildSourceDefaultsParams {
   isYouTube: boolean;
   youtubeChannel: YouTubeChannelHint | null;
   isNewChannel: boolean;
-  existingChannel: YouTubeChannel | undefined;
   lookupData: WebsiteLookup | undefined;
   flags: Flags;
 }
@@ -99,7 +94,6 @@ function buildSourceDefaults({
   isYouTube,
   youtubeChannel,
   isNewChannel,
-  existingChannel,
   lookupData,
   flags,
 }: BuildSourceDefaultsParams) {
@@ -107,13 +101,11 @@ function buildSourceDefaults({
     return {
       label: youtubeChannel?.name ?? null,
       showSourceDefault: isNewChannel,
-      showMediaTypeDefault: youtubeChannel !== null && !existingChannel?.mediaTypeId,
+      showMediaTypeDefault: false,
       setCategory: flags.setChannelCategory,
       setTags: flags.setChannelTags,
-      setMediaType: flags.setChannelMediaType,
       onSetCategory: flags.setSetChannelCategory,
       onSetTags: flags.setSetChannelTags,
-      onSetMediaType: flags.setSetChannelMediaType,
     };
   }
   return {

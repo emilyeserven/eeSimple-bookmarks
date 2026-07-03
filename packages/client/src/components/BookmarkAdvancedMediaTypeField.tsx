@@ -45,8 +45,8 @@ export function BookmarkAdvancedMediaTypeField({
           {mediaTypeId => (mediaTypeId
             ? (
               <SourceDefaultCheckbox
-                checked={sourceDefaults.setMediaType}
-                onCheckedChange={sourceDefaults.onSetMediaType}
+                checked={sourceDefaults.setMediaType ?? false}
+                onCheckedChange={sourceDefaults.onSetMediaType ?? (() => undefined)}
               >
                 Set as default media type for
                 {" "}

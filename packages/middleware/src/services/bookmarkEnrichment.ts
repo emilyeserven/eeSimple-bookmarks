@@ -219,14 +219,6 @@ export async function getChannelCategoryId(channelKey: string): Promise<string |
   return row?.categoryId ?? null;
 }
 
-/** Fetch the default mediaTypeId of a YouTube channel by channelKey, or null when absent/unset. */
-export async function getChannelMediaTypeId(channelKey: string): Promise<string | null> {
-  const [row] = await db.select({
-    mediaTypeId: youtubeChannels.mediaTypeId,
-  }).from(youtubeChannels).where(eq(youtubeChannels.channelKey, channelKey));
-  return row?.mediaTypeId ?? null;
-}
-
 /** Fetch the default tag ids for a YouTube channel by channelKey. */
 export async function getChannelTagIds(channelKey: string): Promise<string[]> {
   const [channel] = await db.select({

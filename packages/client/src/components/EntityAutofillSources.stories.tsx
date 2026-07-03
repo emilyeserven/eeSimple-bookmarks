@@ -32,7 +32,6 @@ const channel = makeYouTubeChannel({
     slug: "workflow",
     icon: null,
   },
-  mediaTypeId: "media-article",
   tagIds: ["tag-dev"],
 });
 

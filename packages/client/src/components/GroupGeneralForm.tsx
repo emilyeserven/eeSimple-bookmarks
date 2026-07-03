@@ -6,6 +6,7 @@ import { CreatorMediaSection } from "./CreatorMediaSection";
 import { EntityImageField } from "./EntityImageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { GroupImageActions } from "./GroupImageActions";
+import { GroupYouTubeChannelsField } from "./GroupYouTubeChannelsField";
 import { SocialLinksField } from "./SocialLinksField";
 import { useGroupGeneralForm } from "./useGroupGeneralForm";
 import {
@@ -33,6 +34,7 @@ export function GroupGeneralForm({
     websiteCreate,
     groupTypeOptions,
     groupTypeCreate,
+    youtubeChannels,
   } = useGroupGeneralForm(group);
   const updateGroup = useUpdateGroup();
   const uploadImage = useUploadGroupImage();
@@ -89,6 +91,12 @@ export function GroupGeneralForm({
         )}
       </form.AppField>
       {groupTypeCreate.modal}
+
+      <GroupYouTubeChannelsField
+        channels={youtubeChannels}
+        selectedIds={group.youtubeChannelIds}
+        onChange={ids => saveField("youtubeChannelIds", ids)}
+      />
 
       <EntityImageField
         label="Image"

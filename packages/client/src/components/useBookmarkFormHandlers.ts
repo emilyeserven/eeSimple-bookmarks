@@ -306,7 +306,6 @@ export function useBookmarkFormHandlers({
       setWebsiteMediaType: flags.setWebsiteMediaType,
       setChannelCategory: flags.setChannelCategory,
       setChannelTags: flags.setChannelTags,
-      setChannelMediaType: flags.setChannelMediaType,
     }, {
       updateWebsite,
       updateYouTubeChannel,

@@ -85,7 +85,6 @@ export interface SourceDefaultFlags {
   setWebsiteMediaType: boolean;
   setChannelCategory: boolean;
   setChannelTags: boolean;
-  setChannelMediaType: boolean;
 }
 
 /** The website / YouTube-channel default-update mutations `promoteSourceDefaults` drives. */
@@ -129,7 +128,7 @@ export function promoteSourceDefaults(
     });
   }
   if (
-    (flags.setChannelCategory || flags.setChannelTags || flags.setChannelMediaType)
+    (flags.setChannelCategory || flags.setChannelTags)
     && created.youtubeChannel?.id
   ) {
     updateYouTubeChannel.mutate({
@@ -137,9 +136,6 @@ export function promoteSourceDefaults(
       input: {
         ...(flags.setChannelCategory && {
           categoryId: categoryId || null,
-        }),
-        ...(flags.setChannelMediaType && {
-          mediaTypeId: mediaTypeId || null,
         }),
         ...(flags.setChannelTags && {
           tagIds,

@@ -12,6 +12,7 @@ import { GroupYouTubeChannelsForm, GroupYouTubeChannelsView } from "../GroupYouT
 
 import { useAlbums } from "@/hooks/useAlbums";
 import { useDeleteGroup, useGroupBySlug, useGroups } from "@/hooks/useGroups";
+import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
 function GroupGeneralView({
@@ -23,6 +24,10 @@ function GroupGeneralView({
     data: albums,
   } = useAlbums();
   const creditedAlbums = (albums ?? []).filter(album => group.albumIds.includes(album.id));
+  const {
+    data: youtubeChannels,
+  } = useYouTubeChannels();
+  const connectedChannels = (youtubeChannels ?? []).filter(ch => group.youtubeChannelIds.includes(ch.id));
 
   return (
     <div className="space-y-3">
@@ -78,6 +83,14 @@ function GroupGeneralView({
             <>
               <dt className="text-muted-foreground">Albums</dt>
               <dd>{creditedAlbums.map(album => album.name).join(", ")}</dd>
+            </>
+          )
+          : null}
+        {connectedChannels.length > 0
+          ? (
+            <>
+              <dt className="text-muted-foreground">YouTube channels</dt>
+              <dd>{connectedChannels.map(ch => ch.name).join(", ")}</dd>
             </>
           )
           : null}

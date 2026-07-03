@@ -1500,6 +1500,15 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // The YouTube Channels taxonomy's "default media type" feature was removed. Dropping a column
+    // is destructive/push-incompatible (push would prompt on a populated table), so it's dropped here
+    // idempotently instead of via schema.ts + push.
+    name: "drop youtube_channels.media_type_id column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "youtube_channels" DROP COLUMN IF EXISTS "media_type_id"
+    `),
+  },
+  {
     // Bookmarks no longer have a separate primary-language field — a bookmark's language is now
     // expressed the same way as any other content property, via an availability-kind `language_usages`
     // row (e.g. a user-created "Primary Language" level). This drops the now-unused column.

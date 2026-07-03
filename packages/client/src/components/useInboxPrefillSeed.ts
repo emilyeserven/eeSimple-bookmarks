@@ -23,7 +23,7 @@ function isYouTubeUrl(url: string): boolean {
   }
 }
 
-/** Fill a prefill's still-empty category/media-type slots and union the tags from a channel's defaults. */
+/** Fill a prefill's still-empty category slot and union the tags from a channel's defaults. */
 function mergeChannelDefaults(
   prev: InboxPreFillDefaults,
   channel: YouTubeChannel,
@@ -31,7 +31,6 @@ function mergeChannelDefaults(
   return {
     ...prev,
     categoryId: prev.categoryId ?? channel.category?.id ?? undefined,
-    mediaTypeId: prev.mediaTypeId ?? channel.mediaTypeId ?? undefined,
     tagIds: [...new Set([...(prev.tagIds ?? []), ...(channel.tagIds ?? [])])],
   };
 }
