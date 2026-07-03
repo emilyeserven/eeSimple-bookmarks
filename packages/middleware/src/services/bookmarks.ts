@@ -14,6 +14,7 @@ import type {
   UpdateBookmarkRelationshipsInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import {
   bookmarkPeople,
   bookmarkBooleanValues,
@@ -867,7 +868,11 @@ export async function deleteBookmark(id: string): Promise<boolean> {
   const rows = await db.delete(bookmarks).where(eq(bookmarks.id, id)).returning({
     id: bookmarks.id,
   });
-  if (rows.length > 0) invalidateBookmarkCache();
+  if (rows.length > 0) {
+    // Polymorphic language-usage rows have no FK on ownerId — clean them up explicitly.
+    await deleteLanguageUsagesForOwner("bookmark", id);
+    invalidateBookmarkCache();
+  }
   return rows.length > 0;
 }
 

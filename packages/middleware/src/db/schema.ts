@@ -385,6 +385,75 @@ export const languages = pgTable("languages", {
 ]);
 
 /**
+ * `language_usage_levels` table — a user-managed vocabulary describing *how* a language is used on an
+ * item (see `language_usages`). Grouped by `kind`: `availability` levels (Dub, Subtitles,
+ * Explanations…) qualify content entities, `proficiency` levels (Native, Fluent, Learning…) qualify
+ * People. Mirrors `place_types` (nullable slug for push-safe addition, backfilled at boot) plus a
+ * seeded `builtIn` flag like `languages`. `kind` is free text (not an enum) so a new kind can be
+ * added without a migration.
+ */
+export const languageUsageLevels = pgTable("language_usage_levels", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  // "availability" | "proficiency"
+  kind: text("kind").notNull(),
+  builtIn: boolean("built_in").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  // Names are unique per kind (a "Native" availability level and a "Native" proficiency level could
+  // coexist, though the seeds don't overlap); slugs are globally unique for routing.
+  unique("language_usage_levels_kind_name_unique").on(table.kind, table.name),
+  unique("language_usage_levels_slug_unique").on(table.slug),
+]);
+
+export type LanguageUsageLevelRow = typeof languageUsageLevels.$inferSelect;
+
+/**
+ * The owner entities a `language_usages` row can attach to. Polymorphic (`ownerId` carries no FK)
+ * because one physical table can't carry a foreign key into six different owner tables — the same
+ * trade `taxonomy_images` makes.
+ */
+export const LANGUAGE_USAGE_OWNER_TYPES = ["bookmark", "movie", "tvShow", "website", "youtubeChannel", "person"] as const;
+
+/**
+ * `language_usages` table — associates a language + a usage level with an owner entity (a bookmark,
+ * movie, TV show, website, YouTube channel, or person), optionally annotated with a free-text `note`
+ * (e.g. "sparse"). Polymorphic on `(ownerType, ownerId)` like `taxonomy_images`; a surrogate `id` PK
+ * plus a unique index on the full tuple like `bookmark_relationships`. `languageId`/`usageLevelId`
+ * are real FKs; `ownerId` is not, so each owner's delete service must call
+ * `deleteLanguageUsagesForOwner` to avoid orphans.
+ */
+export const languageUsages = pgTable("language_usages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerType: text("owner_type").notNull(),
+  ownerId: uuid("owner_id").notNull(),
+  languageId: uuid("language_id").notNull().references(() => languages.id, {
+    onDelete: "cascade",
+  }),
+  // No cascade: a usage level's delete is handled by the reassign-or-clear flow in its service.
+  usageLevelId: uuid("usage_level_id").notNull().references(() => languageUsageLevels.id),
+  note: text("note"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  index("language_usages_owner_idx").on(table.ownerType, table.ownerId),
+  unique("language_usages_owner_lang_level_unique").on(
+    table.ownerType,
+    table.ownerId,
+    table.languageId,
+    table.usageLevelId,
+  ),
+]);
+
+export type LanguageUsageRow = typeof languageUsages.$inferSelect;
+
+/**
  * `group_types` table — a flat taxonomy classifying groups (e.g. Company, Creator Collaborative,
  * Podcast Multi-Host, Doujin Circle). Referenced by `groups.group_type_id`. Seeded on boot.
  */

@@ -1,6 +1,7 @@
 import { asc, count, eq, inArray, isNull } from "drizzle-orm";
 import type { Person, BulkDeleteResult, CreatePersonInput, SocialLink, UpdatePersonInput } from "@eesimple/types";
 import { db } from "@/db";
+import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
   personImages,
@@ -328,6 +329,7 @@ export async function deletePerson(id: string): Promise<boolean> {
   const rows = await db.delete(people).where(eq(people.id, id)).returning({
     id: people.id,
   });
+  if (rows.length > 0) await deleteLanguageUsagesForOwner("person", id);
   return rows.length > 0;
 }
 

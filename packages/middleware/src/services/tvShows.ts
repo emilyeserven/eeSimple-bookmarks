@@ -6,6 +6,7 @@ import type {
   UpdateTvShowInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { bookmarks, tvShows, type TvShowRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -141,6 +142,7 @@ export async function deleteTvShow(id: string): Promise<boolean> {
   const rows = await db.delete(tvShows).where(eq(tvShows.id, id)).returning({
     id: tvShows.id,
   });
+  if (rows.length > 0) await deleteLanguageUsagesForOwner("tvShow", id);
   return rows.length > 0;
 }
 
