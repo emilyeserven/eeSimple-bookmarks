@@ -1061,6 +1061,55 @@ const migrations: RuntimeMigration[] = [
       END $$
     `),
   },
+  {
+    // `genre_moods` + `genre_mood_assignments` (the Genres & Moods taxonomy) were added as brand-new
+    // tables, but `genre_mood_assignments` is a new table with NOT NULL columns (`owner_type`,
+    // `owner_id`, `genre_mood_id`) plus an FK — the same shape as `bookmark_choices_values` above.
+    // Against a populated database `drizzle-kit push` treats that as a "do you want to truncate?"
+    // (pgSuggestions) change and, in this non-TTY deploy, SILENTLY SKIPS it while still exiting 0 — so
+    // the deploy succeeds but the tables never get created and every Genres & Moods query 500s with
+    // `relation "genre_moods" does not exist`. Pre-create both tables here so push's diff for them is
+    // always empty. Idempotent (`IF NOT EXISTS`); the DDL mirrors schema.ts exactly. Boot-time
+    // `backfillGenreMoodSlugs()` fills the NULL slugs.
+    name: "create genre_moods table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "genre_moods" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "romanized_name" text,
+        "slug" text,
+        "parent_id" uuid REFERENCES "genre_moods"("id") ON DELETE CASCADE,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+        CONSTRAINT "genre_moods_slug_unique" UNIQUE("slug")
+      )
+    `),
+  },
+  {
+    // Sibling names unique within a parent — a unique INDEX (mirrors schema.ts / the `tags` note).
+    name: "create genre_moods parent+name unique index",
+    run: db => db.execute(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS "genre_moods_parent_name_unique" ON "genre_moods" ("parent_id", "name")`,
+    ),
+  },
+  {
+    // The polymorphic assignment table (see the note on the genre_moods step above). Composite PK +
+    // NOT NULL columns + FK to genre_moods — pre-create so push's diff for it is empty.
+    name: "create genre_mood_assignments table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "genre_mood_assignments" (
+        "genre_mood_id" uuid NOT NULL REFERENCES "genre_moods"("id") ON DELETE CASCADE,
+        "owner_type" text NOT NULL,
+        "owner_id" uuid NOT NULL,
+        PRIMARY KEY ("genre_mood_id", "owner_type", "owner_id")
+      )
+    `),
+  },
+  {
+    name: "create genre_mood_assignments owner index",
+    run: db => db.execute(
+      sql`CREATE INDEX IF NOT EXISTS "genre_mood_assignments_owner_idx" ON "genre_mood_assignments" ("owner_type", "owner_id")`,
+    ),
+  },
 ];
 
 async function main(): Promise<void> {
