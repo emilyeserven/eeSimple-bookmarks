@@ -1,12 +1,67 @@
+import type { BookmarkDiffCurrent } from "../lib/syncSources/bookmarkDiff";
 import type { SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourceTypes";
 
+import { useQuery } from "@tanstack/react-query";
+
+import { metadataApi } from "../lib/api/metadata";
+import { buildBookmarkDiff } from "../lib/syncSources/bookmarkDiff";
+
+/** Reads a string ref, treating missing/blank/non-string as null. */
+function strRef(refs: SyncProvider["refs"], key: string): string | null {
+  const value = refs?.[key];
+  return typeof value === "string" && value !== "" ? value : null;
+}
+
 /**
- * Fetches fresh values for a bookmark from its outside sources (URL metadata scan + linked Kavita /
- * Plex) and builds the sync diff. Implemented in the bookmark-sync-provider phase.
+ * Re-scans a bookmark's URL via the consolidated `GET /api/scan` and diffs the result (title,
+ * description, page image) against the bookmark's current values (passed through `provider.refs`).
+ * Only runs while the sync modal is open. The scan is idempotent + server-cached, so re-opening the
+ * modal is cheap.
  */
-export function useBookmarkSyncSource(_provider: SyncProvider, _enabled: boolean): SyncSourceFetch {
+export function useBookmarkSyncSource(provider: SyncProvider, enabled: boolean): SyncSourceFetch {
+  const url = strRef(provider.refs, "url");
+
+  const query = useQuery({
+    queryKey: ["bookmark-sync-scan", provider.entityId, url],
+    queryFn: () => metadataApi.scan({
+      url: url ?? "",
+    }),
+    enabled: enabled && url !== null,
+    staleTime: 60_000,
+  });
+
+  if (query.isPending && enabled && url !== null) {
+    return {
+      diff: null,
+      isLoading: true,
+      error: null,
+    };
+  }
+  if (query.isError) {
+    return {
+      diff: null,
+      isLoading: false,
+      error: "Couldn't scan the URL. Check the link and try again.",
+    };
+  }
+  if (!query.data) {
+    return {
+      diff: {
+        groups: [],
+      },
+      isLoading: false,
+      error: null,
+    };
+  }
+
+  const current: BookmarkDiffCurrent = {
+    title: strRef(provider.refs, "currentTitle"),
+    description: strRef(provider.refs, "currentDescription"),
+    imageUrl: strRef(provider.refs, "currentImageUrl"),
+  };
+
   return {
-    diff: null,
+    diff: buildBookmarkDiff(query.data, current),
     isLoading: false,
     error: null,
   };

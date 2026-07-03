@@ -11,6 +11,7 @@ import { BookmarkNameField } from "./BookmarkNameField";
 import { PersonSocialAccountOffer } from "./PersonSocialAccountOffer";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
+import { useBookmarkSyncRegistration } from "../hooks/useBookmarkSyncRegistration";
 
 interface BookmarkGeneralFormProps {
   bookmark: Bookmark;
@@ -51,6 +52,12 @@ export function BookmarkGeneralForm({
     runYouTubeEnrichment,
     undoTitleFetch,
   } = ctrl;
+
+  // Register the header "Sync from source" button for this bookmark (re-scan its URL).
+  useBookmarkSyncRegistration({
+    bookmark,
+    form,
+  });
 
   return (
     <form
