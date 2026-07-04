@@ -133,6 +133,102 @@ export function taxonomyViewLink(pathParts: string[], children: React.ReactNode)
         </Link>
       );
     }
+    if (pathParts[1] === "media-properties") {
+      return (
+        <Link
+          to="/taxonomies/media-properties/$mediaPropertySlug/general"
+          params={{
+            mediaPropertySlug: slug,
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
+    if (pathParts[1] === "movies") {
+      return (
+        <Link
+          to="/taxonomies/movies/$movieSlug/general"
+          params={{
+            movieSlug: slug,
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
+    if (pathParts[1] === "tv-shows") {
+      return (
+        <Link
+          to="/taxonomies/tv-shows/$tvShowSlug/general"
+          params={{
+            tvShowSlug: slug,
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
+    if (pathParts[1] === "episodes") {
+      return (
+        <Link
+          to="/taxonomies/episodes/$episodeSlug/general"
+          params={{
+            episodeSlug: slug,
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
+    if (pathParts[1] === "albums") {
+      return (
+        <Link
+          to="/taxonomies/albums/$albumSlug/general"
+          params={{
+            albumSlug: slug,
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
+    if (pathParts[1] === "tracks") {
+      return (
+        <Link
+          to="/taxonomies/tracks/$trackSlug/general"
+          params={{
+            trackSlug: slug,
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
+    if (pathParts[1] === "books") {
+      return (
+        <Link
+          to="/taxonomies/books/$bookSlug/general"
+          params={{
+            bookSlug: slug,
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
+    if (pathParts[1] === "podcasts") {
+      return (
+        <Link
+          to="/taxonomies/podcasts/$podcastSlug/general"
+          params={{
+            podcastSlug: slug,
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
   }
   return null;
 }

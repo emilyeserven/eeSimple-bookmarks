@@ -42,12 +42,11 @@ export function MediaPropertyListItem({
       count={mediaProperty.bookCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/media-properties/$mediaPropertySlug/general"
+          to="/taxonomies/media-properties/$mediaPropertySlug"
           params={{
             mediaPropertySlug: mediaProperty.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "media-property", mediaProperty.id, mediaProperty.slug)}
+          title={`Show bookmarks for ${mediaProperty.name}`}
           className={className}
         >
           {children}

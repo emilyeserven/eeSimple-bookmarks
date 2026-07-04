@@ -42,12 +42,11 @@ export function MovieListItem({
       count={movie.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/movies/$movieSlug/general"
+          to="/taxonomies/movies/$movieSlug"
           params={{
             movieSlug: movie.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "movie", movie.id, movie.slug)}
+          title={`Show bookmarks for ${movie.name}`}
           className={className}
         >
           {children}

@@ -64,12 +64,11 @@ export function PodcastListItem({
       count={podcast.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/podcasts/$podcastSlug/general"
+          to="/taxonomies/podcasts/$podcastSlug"
           params={{
             podcastSlug: podcast.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "podcast", podcast.id, podcast.slug)}
+          title={`Show bookmarks for ${podcast.name}`}
           className={className}
         >
           {children}

@@ -42,12 +42,11 @@ export function TrackListItem({
       count={track.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/tracks/$trackSlug/general"
+          to="/taxonomies/tracks/$trackSlug"
           params={{
             trackSlug: track.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "track", track.id, track.slug)}
+          title={`Show bookmarks for ${track.name}`}
           className={className}
         >
           {children}

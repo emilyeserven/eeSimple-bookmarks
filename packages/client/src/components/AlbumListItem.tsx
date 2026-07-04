@@ -42,12 +42,11 @@ export function AlbumListItem({
       count={album.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/albums/$albumSlug/general"
+          to="/taxonomies/albums/$albumSlug"
           params={{
             albumSlug: album.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "album", album.id, album.slug)}
+          title={`Show bookmarks for ${album.name}`}
           className={className}
         >
           {children}
