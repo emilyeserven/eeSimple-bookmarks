@@ -1,10 +1,11 @@
 import type { BookmarkTag } from "@eesimple/types";
 
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment } from "react";
 
 import { Link } from "@tanstack/react-router";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { ScrollFadeBox } from "./ScrollFadeBox";
 import { TagHierarchyHoverCard } from "./TagHierarchyHoverCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
@@ -21,79 +22,37 @@ interface TagsBoxProps {
 export function BookmarkTagsBox({
   tags, showHierarchyOnHover = false,
 }: TagsBoxProps) {
-  const ref = useRef<HTMLUListElement>(null);
-  const [showTop, setShowTop] = useState(false);
-  const [showBottom, setShowBottom] = useState(false);
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
 
-  const sync = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-    setShowTop(el.scrollTop > 0);
-    setShowBottom(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
-  }, []);
-
-  useEffect(() => {
-    sync();
-  }, [tags.length, sync]);
-
   return (
-    <div className="relative mt-2">
-      <ul
-        ref={ref}
-        onScroll={sync}
-        className="
-          flex max-h-20 flex-wrap gap-1 overflow-y-auto rounded-md border p-1
-        "
-      >
-        {tags.map((tag) => {
-          const link = (
-            <Link
-              to="/tags/$tagSlug/general"
-              params={{
-                tagSlug: tag.slug,
-              }}
-              title={entityLinkTitle(modifier)}
-              onClick={event => viewClick(event, "tag", tag.id, tag.slug)}
-            >
-              <Badge variant="secondary">{tag.name}</Badge>
-            </Link>
-          );
-          return (
-            <li key={tag.id}>
-              {showHierarchyOnHover
-                ? (
-                  <TagHierarchyHoverCard tag={tag}>
-                    {link}
-                  </TagHierarchyHoverCard>
-                )
-                : link}
-            </li>
-          );
-        })}
-      </ul>
-      {showTop
-        ? (
-          <div
-            className="
-              pointer-events-none absolute inset-x-0 top-0 h-5 rounded-t-md
-              bg-linear-to-b from-card to-transparent
-            "
-          />
-        )
-        : null}
-      {showBottom
-        ? (
-          <div
-            className="
-              pointer-events-none absolute inset-x-0 bottom-0 h-5 rounded-b-md
-              bg-linear-to-t from-card to-transparent
-            "
-          />
-        )
-        : null}
-    </div>
+    <ScrollFadeBox itemCount={tags.length}>
+      {tags.map((tag) => {
+        const link = (
+          <Link
+            to="/tags/$tagSlug/general"
+            params={{
+              tagSlug: tag.slug,
+            }}
+            title={entityLinkTitle(modifier)}
+            onClick={event => viewClick(event, "tag", tag.id, tag.slug)}
+          >
+            <Badge variant="secondary">{tag.name}</Badge>
+          </Link>
+        );
+        return (
+          <li key={tag.id}>
+            {showHierarchyOnHover
+              ? (
+                <TagHierarchyHoverCard tag={tag}>
+                  {link}
+                </TagHierarchyHoverCard>
+              )
+              : link}
+          </li>
+        );
+      })}
+    </ScrollFadeBox>
   );
 }
 
