@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
 import { ListingScaffold } from "./ListingScaffold";
@@ -11,11 +12,14 @@ import { useListingScaffold } from "@/hooks/useListingScaffold";
 
 /** Browsable, searchable channel listing with add modal. Shared by the YouTube Channels taxonomy page and the Settings page. */
 export function YouTubeChannelsListing() {
+  const {
+    t,
+  } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   useSetListingPage("youtube-channels-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New channel",
+    createLabel: t("New channel"),
   });
   const navigate = useNavigate();
   const state = useListingScaffold(youtubeChannelListingConfig);

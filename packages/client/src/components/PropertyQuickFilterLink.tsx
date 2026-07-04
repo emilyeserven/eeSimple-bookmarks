@@ -2,6 +2,7 @@ import type { BookmarkSearch } from "@/lib/bookmarkSearch";
 
 import { Link } from "@tanstack/react-router";
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +21,9 @@ interface PropertyQuickFilterLinkProps {
 export function PropertyQuickFilterLink({
   search, name,
 }: PropertyQuickFilterLinkProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Button
       asChild
@@ -34,8 +38,12 @@ export function PropertyQuickFilterLink({
       <Link
         to="/bookmarks"
         search={search}
-        aria-label={`Filter bookmarks by ${name}`}
-        title={`Filter bookmarks by ${name}`}
+        aria-label={t("Filter bookmarks by {{name}}", {
+          name,
+        })}
+        title={t("Filter bookmarks by {{name}}", {
+          name,
+        })}
       >
         <Search className="size-4" />
       </Link>

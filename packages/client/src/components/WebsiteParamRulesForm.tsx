@@ -6,10 +6,11 @@ import { useState } from "react";
 import { ParamRulesEditor } from "./WebsiteEditors";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateWebsite } from "../hooks/useWebsites";
+import i18n from "../i18n";
 import { normalizeRules } from "../lib/websiteForm";
 
 const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
-  paramRules: "Param Rules",
+  paramRules: i18n.t("Param Rules"),
 };
 
 interface Props {

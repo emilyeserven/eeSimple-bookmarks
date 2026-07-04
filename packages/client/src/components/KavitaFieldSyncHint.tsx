@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { TriangleAlert } from "lucide-react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import i18n from "@/i18n";
 
 /**
  * Small inline warning icon for a form field whose value has drifted from what's currently on the
@@ -27,7 +28,9 @@ export function renderKavitaFieldSyncHint(
       <TooltipTrigger asChild>
         <button
           type="button"
-          aria-label={`Out of sync with Kavita ${label}`}
+          aria-label={i18n.t("Out of sync with Kavita {{label}}", {
+            label,
+          })}
           className="
             shrink-0 text-amber-600
             dark:text-amber-500
@@ -37,8 +40,13 @@ export function renderKavitaFieldSyncHint(
         </button>
       </TooltipTrigger>
       <TooltipContent>
-        Kavita has {label}: {kavitaValue}. eeSimple Bookmarks can&apos;t write to Kavita — update it
-        there manually if this should change.
+        {i18n.t(
+          "Kavita has {{label}}: {{value}}. eeSimple Bookmarks can't write to Kavita — update it there manually if this should change.",
+          {
+            label,
+            value: kavitaValue,
+          },
+        )}
       </TooltipContent>
     </Tooltip>
   );

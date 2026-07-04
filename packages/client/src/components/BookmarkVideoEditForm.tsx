@@ -1,6 +1,7 @@
 import type { Bookmark } from "@eesimple/types";
 
 import { isInstagramReelUrl } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkArchiveReelButton, BookmarkReelArchivePlayer } from "./BookmarkReelArchive";
 import { useConnectors } from "../hooks/useConnectors";
@@ -19,14 +20,16 @@ export function BookmarkVideoEditForm({
   const {
     data: connectors,
   } = useConnectors();
+  const {
+    t,
+  } = useTranslation();
   const reelArchiveEnabled = connectors?.instagramReelArchive.enabled ?? false;
   const isReel = bookmark.url !== null && isInstagramReelUrl(bookmark.url);
 
   if (!reelArchiveEnabled) {
     return (
       <p className="text-sm text-muted-foreground">
-        Instagram reel archiving isn&apos;t configured. Set up object storage (and, optionally, a
-        Browserless endpoint) to enable it — see Settings → Connectors.
+        {t("Instagram reel archiving isn't configured. Set up object storage (and, optionally, a Browserless endpoint) to enable it — see Settings → Connectors.")}
       </p>
     );
   }
@@ -34,7 +37,7 @@ export function BookmarkVideoEditForm({
   if (!isReel && bookmark.reelArchive === null) {
     return (
       <p className="text-sm text-muted-foreground">
-        This bookmark isn&apos;t an Instagram reel, so there&apos;s no video to archive.
+        {t("This bookmark isn't an Instagram reel, so there's no video to archive.")}
       </p>
     );
   }

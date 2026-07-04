@@ -14,6 +14,7 @@ import {
   DEFAULT_BOOKMARK_ADD_FORM_SETTINGS,
 } from "@eesimple/types";
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkStandardFieldZone } from "./bookmarkAddFormFields";
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
@@ -95,6 +96,9 @@ export function BookmarkAdvancedSection({
   const {
     form,
   } = renderProps;
+  const {
+    t,
+  } = useTranslation();
   return (
     <Collapsible className="group/advanced space-y-3">
       <CollapsibleTrigger
@@ -109,7 +113,7 @@ export function BookmarkAdvancedSection({
             group-data-[state=open]/advanced:rotate-180
           "
         />
-        Advanced
+        {t("Advanced")}
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-4">
         <BookmarkStandardFieldZone

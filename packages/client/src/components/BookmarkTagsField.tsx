@@ -1,6 +1,8 @@
 import type { TagNode } from "@eesimple/types";
 import type { ComponentProps, ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { TagPicker } from "./TagPicker";
 import { useGatedTagTree } from "../hooks/useGatedTagTree";
 
@@ -29,8 +31,11 @@ interface GatedTagPickerProps {
  * (undefined).
  */
 export function GatedTagPicker({
-  categoryId, tree, selectedIds, onToggle, createOption, label = "Tags", description, below,
+  categoryId, tree, selectedIds, onToggle, createOption, label, description, below,
 }: GatedTagPickerProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     availableRootIds, tree: gated,
   } = useGatedTagTree(categoryId, tree);
@@ -40,7 +45,7 @@ export function GatedTagPicker({
 
   return (
     <div className="space-y-1">
-      <Label>{label}</Label>
+      <Label>{label ?? t("Tags")}</Label>
       {description && <p className="text-xs text-muted-foreground">{description}</p>}
       <TagPicker
         tree={gated}

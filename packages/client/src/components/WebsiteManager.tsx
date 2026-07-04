@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { ListingScaffold } from "./ListingScaffold";
@@ -11,11 +12,14 @@ import { useListingScaffold } from "@/hooks/useListingScaffold";
 
 /** Browsable, searchable website listing with add modal. Shared by the Websites taxonomy page and the Settings Websites page. */
 export function WebsitesListing() {
+  const {
+    t,
+  } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   useSetListingPage("websites-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New website",
+    createLabel: t("New website"),
   });
   const navigate = useNavigate();
   const state = useListingScaffold(websiteListingConfig);

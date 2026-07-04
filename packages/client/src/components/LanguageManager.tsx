@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { AddLanguageModal } from "./AddLanguageModal";
 import { ListingScaffold } from "./ListingScaffold";
 
@@ -9,11 +11,14 @@ import { useListingScaffold } from "@/hooks/useListingScaffold";
 
 /** Browsable language listing. Each card opens its detail page; hover to Edit / view Info. */
 export function LanguagesListing() {
+  const {
+    t,
+  } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   useSetListingPage("languages-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New language",
+    createLabel: t("New language"),
   });
   const state = useListingScaffold(languageListingConfig);
 

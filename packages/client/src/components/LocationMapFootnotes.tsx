@@ -1,4 +1,5 @@
 import { NO_LEVEL_MAP_COLOR, NO_PLACE_TYPE_MAP_COLOR } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 /** A muted one-line note under the map, optionally led by a color-legend dot. */
 function CountNote({
@@ -46,29 +47,32 @@ export function LocationMapFootnotes({
   noPlaceTypeCount: number;
   noLevelCount: number;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
       <CountNote
         count={omitted}
-        singular=" location has no coordinates and isn’t shown."
-        plural=" locations have no coordinates and aren’t shown."
+        singular={t(" location has no coordinates and isn’t shown.")}
+        plural={t(" locations have no coordinates and aren’t shown.")}
       />
       <CountNote
         count={hiddenByLevel}
-        singular=" location is hidden by the current level filter."
-        plural=" locations are hidden by the current level filter."
+        singular={t(" location is hidden by the current level filter.")}
+        plural={t(" locations are hidden by the current level filter.")}
       />
       <CountNote
         count={noPlaceTypeCount}
         dotColor={NO_PLACE_TYPE_MAP_COLOR}
-        singular=" location has no place type."
-        plural=" locations have no place type."
+        singular={t(" location has no place type.")}
+        plural={t(" locations have no place type.")}
       />
       <CountNote
         count={noLevelCount}
         dotColor={NO_LEVEL_MAP_COLOR}
-        singular=" location has a place type with no level."
-        plural=" locations have a place type with no level."
+        singular={t(" location has a place type with no level.")}
+        plural={t(" locations have a place type with no level.")}
       />
     </>
   );
