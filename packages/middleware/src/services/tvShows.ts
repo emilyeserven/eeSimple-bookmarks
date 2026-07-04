@@ -19,7 +19,8 @@ export class DuplicateTvShowError extends Error {
 /** Map a DB row to the shared `TvShow` wire type. */
 function toTvShow(row: TvShowRow & {
   bookmarkCount?: number;
-  mainImage?: { id: string; createdAt: Date | string } | null;
+  mainImage?: { id: string;
+    createdAt: Date | string; } | null;
 }): TvShow {
   return {
     id: row.id,

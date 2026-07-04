@@ -31,7 +31,8 @@ function imageVersion(row: { createdAt: Date | string }): number {
 }
 
 /** Build the same versioned URL `taxonomyImageFromRow` produces, from just a main-image row's id/createdAt. */
-export function mainTaxonomyImageUrl(image: { id: string; createdAt: Date | string } | null): string | null {
+export function mainTaxonomyImageUrl(image: { id: string;
+  createdAt: Date | string; } | null): string | null {
   if (!image) return null;
   return `/api/taxonomy-images/${image.id}?v=${imageVersion(image)}`;
 }

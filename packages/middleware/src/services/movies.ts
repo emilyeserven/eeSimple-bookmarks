@@ -21,7 +21,8 @@ export class DuplicateMovieError extends Error {
 /** Map a DB row to the shared `Movie` wire type. */
 function toMovie(row: MovieRow & {
   bookmarkCount?: number;
-  mainImage?: { id: string; createdAt: Date | string } | null;
+  mainImage?: { id: string;
+    createdAt: Date | string; } | null;
 }): Movie {
   return {
     id: row.id,

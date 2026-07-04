@@ -19,7 +19,8 @@ export class DuplicateEpisodeError extends Error {
 /** Map a DB row to the shared `Episode` wire type. */
 function toEpisode(row: EpisodeRow & {
   bookmarkCount?: number;
-  mainImage?: { id: string; createdAt: Date | string } | null;
+  mainImage?: { id: string;
+    createdAt: Date | string; } | null;
 }): Episode {
   return {
     id: row.id,

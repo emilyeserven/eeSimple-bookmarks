@@ -19,7 +19,8 @@ export class DuplicateTrackError extends Error {
 /** Map a DB row to the shared `Track` wire type. */
 function toTrack(row: TrackRow & {
   bookmarkCount?: number;
-  mainImage?: { id: string; createdAt: Date | string } | null;
+  mainImage?: { id: string;
+    createdAt: Date | string; } | null;
 }): Track {
   return {
     id: row.id,
