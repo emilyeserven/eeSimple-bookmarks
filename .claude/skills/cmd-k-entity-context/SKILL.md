@@ -14,16 +14,22 @@ per entity would fetch every list on every page).
 
 ## Architecture — three layers, one entry each
 
-1. **Route matching** — `lib/entityRoutes.ts` (`ENTITY_ROUTES` + `matchEntityRoute`). One entry per
-   slug-routed entity: `{ kind, prefix, slugIndex, listLabel, singular, switcher?, flatCrumbs }`.
-   This is the same data the breadcrumb `TAXONOMY_DESCRIPTORS` derive from
-   (`routes/-appHeaderCrumbs.tsx`), so an entity added here gets breadcrumbs *and* palette matching.
-   View/edit paths derive as `<prefix>/<slug>/general` / `<prefix>/<slug>/edit/general` — every
-   entity's route quartet follows that shape.
-2. **Data layer** — `lib/entityPaletteRegistry.ts` (`ENTITY_PALETTE_CONFIGS`). One entry per kind,
-   and the record is `Record<EntityRouteKind, EntityPaletteConfig>` — **exhaustive**, so adding a
-   kind to `ENTITY_ROUTES` without a config fails `tsc`. Each config supplies only what can't be
-   derived:
+   Both layers below now **derive** from `ENTITY_DESCRIPTORS` (`entities/registry.ts`) — the aggregate
+   registry over every entity's `EntityDescriptor`. You add the entity's `route` + `palette` to its
+   `entities/<name>.tsx` descriptor and register the descriptor with **one line** in
+   `entities/registry.ts`; you don't edit `ENTITY_ROUTES`/`ENTITY_PALETTE_CONFIGS` directly.
+
+1. **Route matching** — `ENTITY_ROUTES` + `matchEntityRoute` in `lib/entityRoutes.ts`, `ENTITY_ROUTES`
+   derived as `Object.values(ENTITY_DESCRIPTORS).map(d => d.route)`. Each `route` is
+   `{ kind, prefix, slugIndex, listLabel, singular, switcher?, flatCrumbs }`. This is the same data
+   the breadcrumb `TAXONOMY_DESCRIPTORS` derive from (`routes/-appHeaderCrumbs.tsx`), so an entity
+   registered here gets breadcrumbs *and* palette matching. View/edit paths derive as
+   `<prefix>/<slug>/general` / `<prefix>/<slug>/edit/general` — every entity's route quartet follows
+   that shape.
+2. **Data layer** — `ENTITY_PALETTE_CONFIGS` in `lib/entityPaletteRegistry.ts`, derived from each
+   descriptor's `palette`. The `satisfies Record<EntityRouteKind, …>` on `ENTITY_DESCRIPTORS` is
+   **exhaustive**, so registering a new kind without its `palette` fails `tsc`. Each `palette` supplies
+   only what can't be derived:
    - `queryKey` + `listFn` — **reuse the entity's existing list query key** (e.g. `["categories"]`
      + `categoriesApi.list`) so the palette shares the app cache instead of adding a fetch.
    - `updateFn` — the entity's `*Api.update`, wrapped to cast the patch to its `Update*Input`.
@@ -54,9 +60,11 @@ per entity would fetch every list on every page).
 
 ## Adding CMD+K support for a new entity
 
-1. Add its `ENTITY_ROUTES` entry (you're already doing this for breadcrumbs — see `add-entity`).
-2. Add its `ENTITY_PALETTE_CONFIGS` entry (tsc forces this). Start nav-only (no `fields`); add
-   toggles/choices only where genuinely useful from anywhere.
+1. Add the entity's `route` to its `EntityDescriptor` (you're already doing this for breadcrumbs —
+   see `add-entity`).
+2. Add its `palette` to the same descriptor and register the descriptor with one line in
+   `entities/registry.ts` (tsc forces this via the `satisfies Record<EntityRouteKind, …>`). Start
+   nav-only (no `fields`); add toggles/choices only where genuinely useful from anywhere.
 3. Nothing else — the palette picks it up. Pin/Unpin appears automatically iff the kind is in
    `PINNABLE_KINDS` (`EntityCommandGroup.tsx`), which must mirror `PinnedSidebarEntityType`;
    New sub-tag/sub-type appears for the tag/media-type kinds.

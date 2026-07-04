@@ -11,8 +11,8 @@ import { groupsApi } from "../lib/api/taxonomies";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const GROUP_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const GROUP_ROUTE: EntityRoute = {
   kind: "group",
   prefix: "/taxonomies/groups",
   slugIndex: 2,
@@ -21,8 +21,8 @@ export const GROUP_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const GROUP_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const GROUP_PALETTE: EntityPaletteConfig = {
   queryKey: ["groups"],
   listFn: () => groupsApi.list(),
   updateFn: (id, patch) => groupsApi.update(id, patch as UpdateGroupInput),
@@ -60,7 +60,7 @@ export const groupListingConfig: EntityListingConfig<Group> = {
   ),
 };
 
-/** Proof-of-concept `EntityDescriptor` — the pilot migration for issue #860. */
+/** `EntityDescriptor` aggregated into `ENTITY_DESCRIPTORS` (`entities/registry.ts`) — issue #860. */
 export const groupDescriptor: EntityDescriptor<Group> = {
   kind: "group",
   route: GROUP_ROUTE,

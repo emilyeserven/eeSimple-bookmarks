@@ -140,9 +140,8 @@ export interface EntityTreeListingConfig<N extends { id: string;
  * `EntityWorkbench`, and — for scaffold-eligible entities — a listing config) into one module.
  * Each field *references* the entity's existing registry object rather than redefining its shape, so
  * none of `entityRoutes.ts`, `entityPaletteRegistry.ts`, or `components/workbench/*`'s consumers need
- * to change. `entities/group.ts` is the pilot migration (issue #860); a registry aggregating all
- * migrated entities lands in a later PR once there's an actual consumer (`matchEntityRoute`, the
- * CMD+K lookup, or the workbench route/panel components).
+ * to change. The aggregate registry that consumes all 28 descriptors is `entities/registry.ts`
+ * (`ENTITY_DESCRIPTORS`), from which `ENTITY_ROUTES` and `ENTITY_PALETTE_CONFIGS` now derive (#860).
  *
  * The second generic is the tree-node type for tree taxonomies (`EntityDescriptor<MediaType,
  * MediaTypeNode>`) — the workbench operates on the flat entity while the listing renders nodes.
@@ -160,4 +159,11 @@ export interface EntityDescriptor<
   listing?: EntityListingConfig<E>;
   /** Tree listing — mutually exclusive with `listing`. */
   treeListing?: EntityTreeListingConfig<N>;
+}
+
+/** Non-generic projection of EntityDescriptor — the exhaustiveness constraint for ENTITY_DESCRIPTORS. */
+export interface AnyEntityDescriptor {
+  kind: EntityRouteKind;
+  route: EntityRoute;
+  palette: EntityPaletteConfig;
 }

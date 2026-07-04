@@ -12,8 +12,8 @@ import { summarizeConditions } from "../lib/conditionsSummary";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const AUTOFILL_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const AUTOFILL_ROUTE: EntityRoute = {
   kind: "autofill",
   prefix: "/autofill",
   slugIndex: 1,
@@ -23,8 +23,8 @@ export const AUTOFILL_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const AUTOFILL_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const AUTOFILL_PALETTE: EntityPaletteConfig = {
   queryKey: ["autofill-rules"],
   listFn: () => autofillApi.list(),
   updateFn: (id, patch) => autofillApi.update(id, patch as UpdateAutofillRuleInput),

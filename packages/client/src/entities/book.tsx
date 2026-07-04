@@ -9,8 +9,8 @@ import { bookWorkbench } from "../components/workbench/book";
 import { useBooks, useBulkDeleteBooks } from "../hooks/useBooks";
 import { booksApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const BOOK_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const BOOK_ROUTE: EntityRoute = {
   kind: "book",
   prefix: "/taxonomies/books",
   slugIndex: 2,
@@ -19,8 +19,8 @@ export const BOOK_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const BOOK_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const BOOK_PALETTE: EntityPaletteConfig = {
   queryKey: ["books"],
   listFn: () => booksApi.list(),
   updateFn: (id, patch) => booksApi.update(id, patch as UpdateBookInput),

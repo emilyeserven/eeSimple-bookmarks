@@ -9,8 +9,8 @@ import { groupTypeWorkbench } from "../components/workbench/groupType";
 import { useBulkDeleteGroupTypes, useGroupTypes } from "../hooks/useGroupTypes";
 import { groupTypesApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const GROUP_TYPE_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const GROUP_TYPE_ROUTE: EntityRoute = {
   kind: "group-type",
   prefix: "/taxonomies/group-types",
   slugIndex: 2,
@@ -19,8 +19,8 @@ export const GROUP_TYPE_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const GROUP_TYPE_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const GROUP_TYPE_PALETTE: EntityPaletteConfig = {
   queryKey: ["group-types"],
   listFn: () => groupTypesApi.list(),
   updateFn: (id, patch) => groupTypesApi.update(id, patch as UpdateGroupTypeInput),

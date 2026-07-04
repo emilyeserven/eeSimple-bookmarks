@@ -142,12 +142,14 @@ Adding the listing page to the sidebar (`lib/sidebarNavItems.ts` — `taxonomyIt
 
 ### 11. Route data + CMD+K quick-actions
 
-Add the entity to `ENTITY_ROUTES` in `lib/entityRoutes.ts` (`kind`, `prefix`, `slugIndex`, labels,
-optional breadcrumb `switcher`, `flatCrumbs`) — the breadcrumb `TAXONOMY_DESCRIPTORS` derive from
-it — and add its exhaustive-record entry to `ENTITY_PALETTE_CONFIGS` in
-`lib/entityPaletteRegistry.ts` (tsc fails until you do). That gives the entity breadcrumbs and the
-palette's "Current \<Entity\>" View/Edit quick-actions; add boolean/choice `fields` only where
-useful. See the **`cmd-k-entity-context`** skill.
+Build the entity's `EntityDescriptor` (`entities/<name>.tsx`) — its `route` (`kind`, `prefix`,
+`slugIndex`, labels, optional breadcrumb `switcher`, `flatCrumbs`) and its `palette`
+(`EntityPaletteConfig`) — then add **one line** to `ENTITY_DESCRIPTORS` in `entities/registry.ts`.
+Both `ENTITY_ROUTES` (`lib/entityRoutes.ts`, which the breadcrumb `TAXONOMY_DESCRIPTORS` derive from)
+and `ENTITY_PALETTE_CONFIGS` (`lib/entityPaletteRegistry.ts`) now **derive** from that registry — the
+`satisfies Record<EntityRouteKind, …>` on `ENTITY_DESCRIPTORS` fails `tsc` until you add the line.
+That gives the entity breadcrumbs and the palette's "Current \<Entity\>" View/Edit quick-actions; add
+boolean/choice `fields` only where useful. See the **`cmd-k-entity-context`** skill.
 
 ## Bookmark-linked entity (optional)
 

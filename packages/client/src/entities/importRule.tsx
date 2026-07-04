@@ -10,8 +10,8 @@ import { useBulkDeleteImportRules, useImportRules } from "../hooks/useImportRule
 import { importRulesApi } from "../lib/api/importRules";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const IMPORT_RULE_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const IMPORT_RULE_ROUTE: EntityRoute = {
   kind: "import-rule",
   prefix: "/import-rules",
   slugIndex: 1,
@@ -21,8 +21,8 @@ export const IMPORT_RULE_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const IMPORT_RULE_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const IMPORT_RULE_PALETTE: EntityPaletteConfig = {
   queryKey: ["import-rules"],
   listFn: () => importRulesApi.list(),
   updateFn: (id, patch) => importRulesApi.update(id, patch as UpdateImportRuleInput),

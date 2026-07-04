@@ -12,8 +12,8 @@ import { websitesApi } from "../lib/api/taxonomies";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const WEBSITE_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const WEBSITE_ROUTE: EntityRoute = {
   kind: "website",
   prefix: "/taxonomies/websites",
   slugIndex: 2,
@@ -23,8 +23,8 @@ export const WEBSITE_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const WEBSITE_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const WEBSITE_PALETTE: EntityPaletteConfig = {
   queryKey: ["websites"],
   listFn: () => websitesApi.list(),
   updateFn: (id, patch) => websitesApi.update(id, patch as UpdateWebsiteInput),
