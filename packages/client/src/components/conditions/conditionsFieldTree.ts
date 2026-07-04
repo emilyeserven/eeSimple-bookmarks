@@ -97,6 +97,20 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
 }
 
 /**
+ * Resolve one single-leaf section for the rebuilt tree: `undefined` in the patch keeps the current
+ * leaf, `null` clears it, and a leaf with an empty selection (per `isNonEmpty`) is dropped entirely.
+ * Returns a 0-or-1-element array so callers can spread it into the children list.
+ */
+function resolveLeaf<T>(
+  patchValue: T | null | undefined,
+  currentLeaf: T | undefined,
+  isNonEmpty: (leaf: T) => boolean,
+): T[] {
+  const nextLeaf = patchValue === undefined ? currentLeaf : patchValue;
+  return nextLeaf && isNonEmpty(nextLeaf) ? [nextLeaf] : [];
+}
+
+/**
  * Rebuild the root group's children from the current leaves and a patch. Empty selections drop
  * their leaf from the tree entirely; nested groups always round-trip untouched.
  */
@@ -104,29 +118,22 @@ export function buildRootChildren(
   current: RootConditionLeaves,
   next: RootConditionPatch,
 ): ConditionNode[] {
-  const nextMatches = next.matches ?? current.matches;
-  const nextCategory = next.category === undefined ? current.categoryLeaf : next.category;
-  const nextWebsite = next.website === undefined ? current.websiteLeaf : next.website;
-  const nextTag = next.tag === undefined ? current.tagLeaf : next.tag;
-  const nextLocation = next.location === undefined ? current.locationLeaf : next.location;
-  const nextYoutubeChannel = next.youtubeChannel === undefined ? current.youtubeChannelLeaf : next.youtubeChannel;
-  const nextMediaType = next.mediaType === undefined ? current.mediaTypeLeaf : next.mediaType;
-  const nextGenreMood = next.genreMood === undefined ? current.genreMoodLeaf : next.genreMood;
-  const nextRelationshipType = next.relationshipType === undefined ? current.relationshipTypeLeaf : next.relationshipType;
-  const nextLanguageUsage = next.languageUsage === undefined ? current.languageUsageLeaf : next.languageUsage;
-  const nextProperties = next.properties ?? current.propertyLeaves;
   return [
-    ...nextMatches,
-    ...(nextCategory && nextCategory.categoryIds.length > 0 ? [nextCategory] : []),
-    ...(nextWebsite && nextWebsite.domains.length > 0 ? [nextWebsite] : []),
-    ...(nextTag && nextTag.tagIds.length > 0 ? [nextTag] : []),
-    ...(nextLocation && nextLocation.locationIds.length > 0 ? [nextLocation] : []),
-    ...(nextYoutubeChannel && nextYoutubeChannel.channelIds.length > 0 ? [nextYoutubeChannel] : []),
-    ...(nextMediaType && nextMediaType.mediaTypeIds.length > 0 ? [nextMediaType] : []),
-    ...(nextGenreMood && nextGenreMood.genreMoodIds.length > 0 ? [nextGenreMood] : []),
-    ...(nextRelationshipType && nextRelationshipType.relationshipTypeIds.length > 0 ? [nextRelationshipType] : []),
-    ...(nextLanguageUsage && (nextLanguageUsage.languageIds.length > 0 || nextLanguageUsage.usageLevelIds.length > 0) ? [nextLanguageUsage] : []),
-    ...nextProperties,
+    ...(next.matches ?? current.matches),
+    ...resolveLeaf(next.category, current.categoryLeaf, leaf => leaf.categoryIds.length > 0),
+    ...resolveLeaf(next.website, current.websiteLeaf, leaf => leaf.domains.length > 0),
+    ...resolveLeaf(next.tag, current.tagLeaf, leaf => leaf.tagIds.length > 0),
+    ...resolveLeaf(next.location, current.locationLeaf, leaf => leaf.locationIds.length > 0),
+    ...resolveLeaf(next.youtubeChannel, current.youtubeChannelLeaf, leaf => leaf.channelIds.length > 0),
+    ...resolveLeaf(next.mediaType, current.mediaTypeLeaf, leaf => leaf.mediaTypeIds.length > 0),
+    ...resolveLeaf(next.genreMood, current.genreMoodLeaf, leaf => leaf.genreMoodIds.length > 0),
+    ...resolveLeaf(next.relationshipType, current.relationshipTypeLeaf, leaf => leaf.relationshipTypeIds.length > 0),
+    ...resolveLeaf(
+      next.languageUsage,
+      current.languageUsageLeaf,
+      leaf => leaf.languageIds.length > 0 || leaf.usageLevelIds.length > 0,
+    ),
+    ...(next.properties ?? current.propertyLeaves),
     ...current.nestedGroups,
   ];
 }

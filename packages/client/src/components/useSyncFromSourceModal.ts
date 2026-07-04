@@ -23,15 +23,15 @@ export function useSyncFromSourceModal(provider: SyncProvider, open: boolean, on
   const plexTitle = usePlexTitleSyncSource(provider, open && kind === "plex-title");
   const podcast = usePodcastSyncSource(provider, open && kind === "podcast-feed");
 
-  const active = kind === "bookmark"
-    ? bookmark
-    : kind === "location"
-      ? location
-      : kind === "plex-title"
-        ? plexTitle
-        : kind === "podcast-feed"
-          ? podcast
-          : image;
+  // Exhaustive over SyncDescriptorKind — only the gated hook for `kind` actually fetched; the rest
+  // are idle. A keyed lookup keeps this a single expression (no nested-ternary cognitive load).
+  const active = {
+    "bookmark": bookmark,
+    "location": location,
+    "image-taxonomy": image,
+    "plex-title": plexTitle,
+    "podcast-feed": podcast,
+  }[kind];
   const diff = active.diff;
 
   const allRows = useMemo<SyncFieldDiff[]>(

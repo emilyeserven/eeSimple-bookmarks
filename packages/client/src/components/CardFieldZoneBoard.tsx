@@ -18,6 +18,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } from "@eesimple/types";
 import { ChevronDown, ChevronRight, GripVertical, Move, SlidersHorizontal } from "lucide-react";
 
+import { carryOverPlacement } from "./cardFieldPlacementMove";
 import { eligibleCustomCardFields, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -209,29 +210,7 @@ export function CardFieldZoneBoard({
       });
     }
     if (targetZone) {
-      const isImage = zoneToCorner(targetZone) !== null;
-      const placement: CardFieldPlacement = {
-        key,
-      };
-      if (isImage) {
-        placement.scale = existing?.scale;
-        placement.mobileScale = existing?.mobileScale;
-      }
-      if (existing?.hideLabel) placement.hideLabel = true;
-      // hideIcon applies to image overlays and to boolean body fields (icon/stars presets), so it is
-      // preserved across any move; fields that don't read it simply ignore it.
-      if (existing?.hideIcon) placement.hideIcon = true;
-      // Preserve the boolean per-field knobs across a move (they apply in every body zone).
-      if (existing?.showIfFalse) placement.showIfFalse = true;
-      if (existing?.clickableInView) placement.clickableInView = true;
-      if (existing?.clickableInOverlay) placement.clickableInOverlay = true;
-      if (existing?.showLabelColon === false) placement.showLabelColon = false;
-      if (existing?.showValueBeforeLabel) placement.showValueBeforeLabel = true;
-      if (existing?.clickableTags) placement.clickableTags = true;
-      if (existing?.showTagHierarchyOnHover) placement.showTagHierarchyOnHover = true;
-      if (existing?.showMediaTypeHierarchyOnHover) placement.showMediaTypeHierarchyOnHover = true;
-      if (existing?.showLocationHierarchyOnHover) placement.showLocationHierarchyOnHover = true;
-      if (existing?.showGenreMoodHierarchyOnHover) placement.showGenreMoodHierarchyOnHover = true;
+      const placement = carryOverPlacement(key, existing, zoneToCorner(targetZone) !== null);
       const list = next[targetZone];
       const at = targetIndex === undefined ? list.length : Math.min(Math.max(targetIndex, 0), list.length);
       list.splice(at, 0, placement);

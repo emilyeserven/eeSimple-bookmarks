@@ -62,6 +62,36 @@ const scanQuery = {
   },
 } as const;
 
+/**
+ * Strip a channel self-identifier suffix from a title (e.g. " - SNL" from an SNL video), trying each
+ * `selfId` and returning the first that changes the title. Pure, so it is unit-testable.
+ */
+export function stripChannelSelfIdSuffix(title: string, selfIds: string[]): string {
+  for (const selfId of selfIds) {
+    const stripped = stripSiteNameSuffix(title, {
+      siteName: selfId,
+    });
+    if (stripped !== title) return stripped;
+  }
+  return title;
+}
+
+/** oEmbed titles are already clean; fall back to a page-title fetch when oEmbed had none. */
+async function resolveYouTubeTitle(url: string, oembedTitle: string | null): Promise<string | null> {
+  if (oembedTitle !== null) return oembedTitle;
+  const fallback = await fetchPageTitle(url);
+  return fallback.kind === "ok" ? fallback.title : null;
+}
+
+/** A YouTube video is a single thumbnail, not a gallery — its candidate list is just that image. */
+async function buildYouTubeImageCandidates(thumbnailUrl: string | null) {
+  if (!thumbnailUrl) return [];
+  return filterCandidates([{
+    url: thumbnailUrl,
+    source: "og",
+  }], await getImageUrlBlacklist());
+}
+
 /** Build the `/api/fetch-metadata` response for a YouTube video URL (oEmbed + channel enrichment). */
 async function buildYouTubeMetadataResult(
   url: string,
@@ -76,38 +106,16 @@ async function buildYouTubeMetadataResult(
       warnings,
     }, "[youtube-metadata] scrape incomplete");
   }
-  // oEmbed titles are already clean; fall back to a page-title fetch if it was unavailable.
-  let title = meta?.title ?? null;
-  if (title === null) {
-    const fallback = await fetchPageTitle(url);
-    if (fallback.kind === "ok") title = fallback.title;
-  }
+
+  let title = await resolveYouTubeTitle(url, meta?.title ?? null);
 
   const channelKey = meta?.channelUrl ? channelKeyFromUrl(meta.channelUrl) : null;
   const existingChannel = channelKey ? await getYouTubeChannelByKey(channelKey) : null;
   const selfIds = existingChannel?.selfIds ?? [];
-
-  // Strip channel self-identifier suffix from the title (e.g. " - SNL" from an SNL video).
-  if (title && selfIds.length > 0) {
-    for (const selfId of selfIds) {
-      const stripped = stripSiteNameSuffix(title, {
-        siteName: selfId,
-      });
-      if (stripped !== title) {
-        title = stripped;
-        break;
-      }
-    }
-  }
+  if (title && selfIds.length > 0) title = stripChannelSelfIdSuffix(title, selfIds);
 
   const thumbnailUrl = meta?.thumbnailUrl ?? null;
-  // A YouTube video is a single thumbnail, not a gallery — its candidate list is just that image.
-  const imageCandidates = thumbnailUrl
-    ? filterCandidates([{
-      url: thumbnailUrl,
-      source: "og",
-    }], await getImageUrlBlacklist())
-    : [];
+  const imageCandidates = await buildYouTubeImageCandidates(thumbnailUrl);
   return {
     title,
     description: meta?.description ?? null,

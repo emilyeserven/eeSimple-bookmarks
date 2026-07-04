@@ -54,6 +54,125 @@ export interface ToolbarContext {
 }
 
 /**
+ * Per-entity renderers for a `/taxonomies/<entity>/<slug>` read-only view `<Link>`. Each entry is its
+ * own closure so TanStack Router keeps type-checking the literal `to`/`params` per route. Adding a
+ * taxonomy = one entry here.
+ */
+const TAXONOMY_VIEW_LINK_RENDERERS: Record<
+  string,
+  (slug: string, children: React.ReactNode) => React.ReactNode
+> = {
+  "websites": (slug, children) => (
+    <Link
+      to="/taxonomies/websites/$websiteSlug/general"
+      params={{
+        websiteSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "media-types": (slug, children) => (
+    <Link
+      to="/taxonomies/media-types/$mediaTypeSlug/general"
+      params={{
+        mediaTypeSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "youtube-channels": (slug, children) => (
+    <Link
+      to="/taxonomies/youtube-channels/$channelSlug/general"
+      params={{
+        channelSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "locations": (slug, children) => (
+    <Link
+      to="/taxonomies/locations/$locationSlug/general"
+      params={{
+        locationSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "media-properties": (slug, children) => (
+    <Link
+      to="/taxonomies/media-properties/$mediaPropertySlug/general"
+      params={{
+        mediaPropertySlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "movies": (slug, children) => (
+    <Link
+      to="/taxonomies/movies/$movieSlug/general"
+      params={{
+        movieSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "tv-shows": (slug, children) => (
+    <Link
+      to="/taxonomies/tv-shows/$tvShowSlug/general"
+      params={{
+        tvShowSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "episodes": (slug, children) => (
+    <Link
+      to="/taxonomies/episodes/$episodeSlug/general"
+      params={{
+        episodeSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "albums": (slug, children) => (
+    <Link
+      to="/taxonomies/albums/$albumSlug/general"
+      params={{
+        albumSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "tracks": (slug, children) => (
+    <Link
+      to="/taxonomies/tracks/$trackSlug/general"
+      params={{
+        trackSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "books": (slug, children) => (
+    <Link
+      to="/taxonomies/books/$bookSlug/general"
+      params={{
+        bookSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "podcasts": (slug, children) => (
+    <Link
+      to="/taxonomies/podcasts/$podcastSlug/general"
+      params={{
+        podcastSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+};
+
+/**
  * A typed `<Link>` to a taxonomy item's read-only view page on its listing index page
  * (`/<entity>/<slug>`, not a `_view`/`edit` tab), or `null` elsewhere. `children` lets the same target
  * back both the desktop Info icon and the mobile menu row.
@@ -66,8 +185,7 @@ export function taxonomyViewLink(pathParts: string[], children: React.ReactNode)
         params={{
           categorySlug: pathParts[1],
         }}
-      >
-        {children}
+      >{children}
       </Link>
     );
   }
@@ -78,157 +196,12 @@ export function taxonomyViewLink(pathParts: string[], children: React.ReactNode)
         params={{
           tagSlug: pathParts[1],
         }}
-      >
-        {children}
+      >{children}
       </Link>
     );
   }
   if (pathParts[0] === "taxonomies" && pathParts.length === 3) {
-    const slug = pathParts[2];
-    if (pathParts[1] === "websites") {
-      return (
-        <Link
-          to="/taxonomies/websites/$websiteSlug/general"
-          params={{
-            websiteSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "media-types") {
-      return (
-        <Link
-          to="/taxonomies/media-types/$mediaTypeSlug/general"
-          params={{
-            mediaTypeSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "youtube-channels") {
-      return (
-        <Link
-          to="/taxonomies/youtube-channels/$channelSlug/general"
-          params={{
-            channelSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "locations") {
-      return (
-        <Link
-          to="/taxonomies/locations/$locationSlug/general"
-          params={{
-            locationSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "media-properties") {
-      return (
-        <Link
-          to="/taxonomies/media-properties/$mediaPropertySlug/general"
-          params={{
-            mediaPropertySlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "movies") {
-      return (
-        <Link
-          to="/taxonomies/movies/$movieSlug/general"
-          params={{
-            movieSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "tv-shows") {
-      return (
-        <Link
-          to="/taxonomies/tv-shows/$tvShowSlug/general"
-          params={{
-            tvShowSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "episodes") {
-      return (
-        <Link
-          to="/taxonomies/episodes/$episodeSlug/general"
-          params={{
-            episodeSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "albums") {
-      return (
-        <Link
-          to="/taxonomies/albums/$albumSlug/general"
-          params={{
-            albumSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "tracks") {
-      return (
-        <Link
-          to="/taxonomies/tracks/$trackSlug/general"
-          params={{
-            trackSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "books") {
-      return (
-        <Link
-          to="/taxonomies/books/$bookSlug/general"
-          params={{
-            bookSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
-    if (pathParts[1] === "podcasts") {
-      return (
-        <Link
-          to="/taxonomies/podcasts/$podcastSlug/general"
-          params={{
-            podcastSlug: slug,
-          }}
-        >
-          {children}
-        </Link>
-      );
-    }
+    return TAXONOMY_VIEW_LINK_RENDERERS[pathParts[1]]?.(pathParts[2], children) ?? null;
   }
   return null;
 }

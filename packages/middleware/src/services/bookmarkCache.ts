@@ -137,6 +137,55 @@ function groupToMaps<T, V>(
   return out;
 }
 
+/** The per-bookmark grouped value maps that back {@link assembleConditionInput}. */
+export interface ConditionInputGroups {
+  tagsByBid: Map<string, Set<string>>;
+  genreMoodsByBid: Map<string, Set<string>>;
+  locationsByBid: Map<string, Set<string>>;
+  numsByBid: Map<string, Map<string, number>>;
+  boolsByBid: Map<string, Map<string, boolean>>;
+  datesByBid: Map<string, Map<string, string>>;
+  choicesByBid: Map<string, Map<string, string[]>>;
+  sectionsByBid: Map<string, Map<string, BookmarkSectionsValue>>;
+  filesByBid: Map<string, Set<string>>;
+  textsByBid: Map<string, Map<string, string>>;
+  relTypesByBid: Map<string, Set<string>>;
+  languageUsagesByBid: Map<string, { languageId: string;
+    usageLevelId: string; }[]>;
+}
+
+/**
+ * Assemble one bookmark's {@link ConditionInput} from its base row and the grouped value maps,
+ * substituting an empty collection (or the default category) wherever the bookmark has no entry.
+ * Pure, so it is unit-testable independently of the DB batch load.
+ */
+export function assembleConditionInput(
+  row: BookmarkRow,
+  groups: ConditionInputGroups,
+  defaultCategoryId: string,
+): ConditionInput {
+  return {
+    url: row.url ?? "",
+    title: row.title,
+    romanizedName: row.romanizedName ?? null,
+    categoryId: row.categoryId ?? defaultCategoryId,
+    tagIds: groups.tagsByBid.get(row.id) ?? new Set(),
+    genreMoodIds: groups.genreMoodsByBid.get(row.id) ?? new Set(),
+    locationIds: groups.locationsByBid.get(row.id) ?? new Set(),
+    youtubeChannelId: row.youtubeChannelId ?? null,
+    mediaTypeId: row.mediaTypeId ?? null,
+    numberValues: groups.numsByBid.get(row.id) ?? new Map(),
+    booleanValues: groups.boolsByBid.get(row.id) ?? new Map(),
+    dateTimeValues: groups.datesByBid.get(row.id) ?? new Map(),
+    choicesValues: groups.choicesByBid.get(row.id) ?? new Map(),
+    sectionsValues: groups.sectionsByBid.get(row.id) ?? new Map(),
+    fileValues: groups.filesByBid.get(row.id) ?? new Set(),
+    textValues: groups.textsByBid.get(row.id) ?? new Map(),
+    relationshipTypeIds: groups.relTypesByBid.get(row.id) ?? new Set(),
+    languageUsages: groups.languageUsagesByBid.get(row.id) ?? [],
+  };
+}
+
 async function buildConditionInputs(
   baseRows: BookmarkRow[],
   defaultCategoryId: string,
@@ -309,28 +358,23 @@ async function buildConditionInputs(
     languageUsagesByBid.set(r.bookmarkId, list);
   }
 
+  const groups: ConditionInputGroups = {
+    tagsByBid,
+    genreMoodsByBid,
+    locationsByBid,
+    numsByBid,
+    boolsByBid,
+    datesByBid,
+    choicesByBid,
+    sectionsByBid,
+    filesByBid,
+    textsByBid,
+    relTypesByBid,
+    languageUsagesByBid,
+  };
   const result = new Map<string, ConditionInput>();
   for (const row of baseRows) {
-    result.set(row.id, {
-      url: row.url ?? "",
-      title: row.title,
-      romanizedName: row.romanizedName ?? null,
-      categoryId: row.categoryId ?? defaultCategoryId,
-      tagIds: tagsByBid.get(row.id) ?? new Set(),
-      genreMoodIds: genreMoodsByBid.get(row.id) ?? new Set(),
-      locationIds: locationsByBid.get(row.id) ?? new Set(),
-      youtubeChannelId: row.youtubeChannelId ?? null,
-      mediaTypeId: row.mediaTypeId ?? null,
-      numberValues: numsByBid.get(row.id) ?? new Map(),
-      booleanValues: boolsByBid.get(row.id) ?? new Map(),
-      dateTimeValues: datesByBid.get(row.id) ?? new Map(),
-      choicesValues: choicesByBid.get(row.id) ?? new Map(),
-      sectionsValues: sectionsByBid.get(row.id) ?? new Map(),
-      fileValues: filesByBid.get(row.id) ?? new Set(),
-      textValues: textsByBid.get(row.id) ?? new Map(),
-      relationshipTypeIds: relTypesByBid.get(row.id) ?? new Set(),
-      languageUsages: languageUsagesByBid.get(row.id) ?? [],
-    });
+    result.set(row.id, assembleConditionInput(row, groups, defaultCategoryId));
   }
   return result;
 }

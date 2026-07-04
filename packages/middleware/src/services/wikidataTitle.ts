@@ -79,6 +79,31 @@ async function resolveNative(entity: WikidataEntity): Promise<{ text: string | n
 }
 
 /**
+ * Resolve the Wikidata QID for a title: a stored `wikidataId` wins, else the first external ID that
+ * pins an item via `haswbstatement`, else a title search. Returns `null` when nothing matches.
+ */
+async function resolveWikidataQid(input: {
+  name: string;
+  wikidataId?: string | null;
+  externalIds?: WikidataExternalId[];
+}): Promise<string | null> {
+  const stored = asString(input.wikidataId);
+  if (stored !== null) return stored;
+
+  for (const {
+    property, value,
+  } of input.externalIds ?? []) {
+    if (!value) continue;
+    const hit = await findEntityByStatement(property, value);
+    if (hit !== null) return hit;
+  }
+
+  const trimmed = input.name.trim();
+  if (trimmed !== "") return (await searchEntities(trimmed, 1))[0] ?? null;
+  return null;
+}
+
+/**
  * Resolve a title to its Wikidata metadata. Tries a stored `wikidataId`, then each external ID via
  * `haswbstatement`, then a title search. Returns `null` when no item can be found.
  */
@@ -87,26 +112,7 @@ export async function resolveTitleWikidata(input: {
   wikidataId?: string | null;
   externalIds?: WikidataExternalId[];
 }): Promise<TitleWikidataResolution | null> {
-  let qid = asString(input.wikidataId);
-
-  if (qid === null) {
-    for (const {
-      property, value,
-    } of input.externalIds ?? []) {
-      if (!value) continue;
-      const hit = await findEntityByStatement(property, value);
-      if (hit !== null) {
-        qid = hit;
-        break;
-      }
-    }
-  }
-
-  if (qid === null) {
-    const trimmed = input.name.trim();
-    if (trimmed !== "") qid = (await searchEntities(trimmed, 1))[0] ?? null;
-  }
-
+  const qid = await resolveWikidataQid(input);
   if (qid === null) return null;
 
   const entity = (await getEntities([qid], {
