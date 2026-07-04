@@ -134,3 +134,21 @@ export function buildAutofillRulePrefill(defaults: AutofillScopeDefaults): Omit<
     tagIds: defaults.tagIds ?? [],
   };
 }
+
+/**
+ * Merges autofill-detected ids into a multi-select field's current value ("union, skip if the field
+ * has already been touched by the user"), shared by the bookmark form's tag/location autofill prefill
+ * (`useBookmarkGeneralForm` / `useBookmarkPropertyPrefill` both call this for `tagIds` and
+ * `locationIds`). Returns `null` when the caller should leave the field alone — either nothing was
+ * detected or the user already edited it — so the caller only writes back a non-null result. Keeping
+ * the "touched" check as a plain boolean parameter (rather than reading a ref inside this helper) lets
+ * each caller's own touched-tracking stay exactly as-is; only the identical merge math moves here.
+ */
+export function mergeAutofillIds(
+  detectedIds: string[],
+  currentIds: string[],
+  touched: boolean,
+): string[] | null {
+  if (detectedIds.length === 0 || touched) return null;
+  return [...new Set([...currentIds, ...detectedIds])];
+}

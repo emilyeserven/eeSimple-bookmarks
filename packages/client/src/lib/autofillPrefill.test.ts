@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { resolveAutofillScopeDefaults } from "./autofillPrefill";
+import { mergeAutofillIds, resolveAutofillScopeDefaults } from "./autofillPrefill";
 
 const lookups = {
   categories: [{
@@ -78,5 +78,31 @@ describe("resolveAutofillScopeDefaults", () => {
     );
     expect(result.tagIds).toBeUndefined();
     expect(result.channelIds).toBeUndefined();
+  });
+});
+
+describe("mergeAutofillIds", () => {
+  it("unions detected ids into the current ids", () => {
+    expect(mergeAutofillIds(["a", "b"], ["c"], false)).toEqual(["c", "a", "b"]);
+  });
+
+  it("dedupes ids already present in the current value", () => {
+    expect(mergeAutofillIds(["a", "b"], ["a"], false)).toEqual(["a", "b"]);
+  });
+
+  it("returns null when nothing was detected", () => {
+    expect(mergeAutofillIds([], ["a"], false)).toBeNull();
+  });
+
+  it("returns null when the field has been touched, even with detected ids", () => {
+    expect(mergeAutofillIds(["a"], [], true)).toBeNull();
+  });
+
+  it("returns null when both detected is empty and the field is touched", () => {
+    expect(mergeAutofillIds([], [], true)).toBeNull();
+  });
+
+  it("merges into an empty current value", () => {
+    expect(mergeAutofillIds(["a", "b"], [], false)).toEqual(["a", "b"]);
   });
 });

@@ -15,6 +15,7 @@ import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { metadataApi } from "../lib/api/metadata";
 import { describeError } from "../lib/apiError";
+import { mergeAutofillIds } from "../lib/autofillPrefill";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { useAppForm } from "../lib/form";
 import { notifySuccess } from "../lib/notifications";
@@ -274,15 +275,19 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       }
     }
 
-    if (result.tagIds.length > 0 && !touchedRef.current.has("tags")) {
-      const current = form.getFieldValue("tagIds");
-      form.setFieldValue("tagIds", [...new Set([...current, ...result.tagIds])]);
-    }
+    const mergedTagIds = mergeAutofillIds(
+      result.tagIds,
+      form.getFieldValue("tagIds"),
+      touchedRef.current.has("tags"),
+    );
+    if (mergedTagIds) form.setFieldValue("tagIds", mergedTagIds);
 
-    if (result.locationIds.length > 0 && !touchedRef.current.has("locations")) {
-      const current = form.getFieldValue("locationIds");
-      form.setFieldValue("locationIds", [...new Set([...current, ...result.locationIds])]);
-    }
+    const mergedLocationIds = mergeAutofillIds(
+      result.locationIds,
+      form.getFieldValue("locationIds"),
+      touchedRef.current.has("locations"),
+    );
+    if (mergedLocationIds) form.setFieldValue("locationIds", mergedLocationIds);
   }
 
   const {
