@@ -1,5 +1,7 @@
 import type { CustomProperty, InboxPreFillDefaults } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { Combobox } from "./Combobox";
 import { MultiCombobox } from "./MultiCombobox";
 
@@ -17,6 +19,9 @@ export function InboxPropertyField({
   preFill: InboxPreFillDefaults;
   setPreFill: (update: InboxPreFillDefaults) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   if (property.type === "boolean") {
     const current = preFill.booleanValues?.find(v => v.propertyId === property.id);
     return (
@@ -142,7 +147,7 @@ export function InboxPropertyField({
                   : next,
               });
             }}
-            placeholder="Select…"
+            placeholder={t("Select…")}
             aria-label={property.name}
           />
         </div>

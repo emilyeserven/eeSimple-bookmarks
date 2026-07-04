@@ -2,6 +2,8 @@ import type { ShortenedLink, UpdateWebsiteInput, Website } from "@eesimple/types
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { BulkExpandSection } from "./BulkExpandSection";
 import { LabeledSection } from "./LabeledSection";
 import { LinkPreview } from "./LinkPreview";
@@ -24,6 +26,9 @@ interface Props {
 export function WebsiteShortenedLinksForm({
   website,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const updateWebsite = useUpdateWebsite();
   const [shortLinks, setShortLinks] = useState<ShortenedLink[]>(website.shortenedLinks);
 
@@ -59,14 +64,14 @@ export function WebsiteShortenedLinksForm({
       <Separator />
 
       <LabeledSection
-        title="Preview"
-        description="Uses the edits above."
+        title={t("Preview")}
+        description={t("Uses the edits above.")}
       >
         <LinkPreview
           websites={[editedWebsite]}
           ignoreList={[]}
           label=""
-          placeholder="Paste a link on this site…"
+          placeholder={t("Paste a link on this site…")}
         />
       </LabeledSection>
 

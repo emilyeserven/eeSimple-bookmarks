@@ -5,6 +5,8 @@ import type {
 
 import { useEffect, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useAutofillPreview } from "../hooks/useAutofill";
 
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +21,9 @@ interface PreviewBookmarksSectionProps {
 export function PreviewBookmarksSection({
   conditions,
 }: PreviewBookmarksSectionProps) {
+  const {
+    t,
+  } = useTranslation();
   const [searched, setSearched] = useState(false);
   const [searchResults, setSearchResults] = useState<AutofillPreviewEntry[]>([]);
   const [checkQuery, setCheckQuery] = useState("");
@@ -70,12 +75,12 @@ export function PreviewBookmarksSection({
         onClick={handleSearch}
         disabled={searchPending}
       >
-        Search
+        {t("Search")}
       </Button>
       {searched && (
         <div className="space-y-1">
           {searchResults.length === 0
-            ? <p className="text-sm text-muted-foreground">No bookmarks matched.</p>
+            ? <p className="text-sm text-muted-foreground">{t("No bookmarks matched.")}</p>
             : searchResults.map(entry => (
               <BookmarkPreviewRow
                 key={entry.bookmark.id}
@@ -89,14 +94,14 @@ export function PreviewBookmarksSection({
       <div className="space-y-2">
         <Input
           type="text"
-          placeholder="Search bookmarks or category to check…"
+          placeholder={t("Search bookmarks or category to check…")}
           value={checkQuery}
           onChange={e => setCheckQuery(e.target.value)}
         />
         {checkQuery.trim() && (
           <div className="space-y-1">
             {checkResults.length === 0
-              ? <p className="text-sm text-muted-foreground">No bookmarks found.</p>
+              ? <p className="text-sm text-muted-foreground">{t("No bookmarks found.")}</p>
               : checkResults.map(entry => (
                 <BookmarkPreviewRow
                   key={entry.bookmark.id}
@@ -121,6 +126,9 @@ interface BookmarkPreviewRowProps {
 function BookmarkPreviewRow({
   title, url, matches,
 }: BookmarkPreviewRowProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div
       className="
@@ -140,7 +148,7 @@ function BookmarkPreviewRow({
           `
           : "shrink-0 text-destructive"}
       >
-        {matches ? "Matches" : "No match"}
+        {matches ? t("Matches") : t("No match")}
       </Badge>
     </div>
   );

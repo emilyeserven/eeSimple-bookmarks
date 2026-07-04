@@ -1,6 +1,7 @@
 import type { ImportRule } from "@eesimple/types";
 
 import { emptyConditionTree } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateImportRule } from "../hooks/useImportRules";
@@ -16,15 +17,18 @@ export function AddImportRuleModal({
   open, onOpenChange, onCreated,
 }: AddImportRuleModalProps) {
   const createRule = useCreateImportRule();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title="New import rule"
-      description="Give the rule a name — you can set the conditions and action on its edit page."
-      placeholder="e.g. Block social media"
-      submitLabel="Add rule"
+      title={t("New import rule")}
+      description={t("Give the rule a name — you can set the conditions and action on its edit page.")}
+      placeholder={t("e.g. Block social media")}
+      submitLabel={t("Add rule")}
       isError={createRule.isError}
       errorMessage={createRule.error?.message}
       onSubmit={(name, done) => {

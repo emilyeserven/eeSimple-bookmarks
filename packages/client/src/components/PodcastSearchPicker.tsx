@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { PODCAST_LINK_PROVIDER_LABELS, PODCAST_SEARCH_PROVIDERS } from "@eesimple/types";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { usePodcastSearch, usePodcastUrlResolve } from "../hooks/usePodcasts";
 
@@ -52,6 +53,9 @@ interface PodcastSearchPickerProps {
 export function PodcastSearchPicker({
   onSelect,
 }: PodcastSearchPickerProps) {
+  const {
+    t,
+  } = useTranslation();
   const [provider, setProvider] = useState<PodcastSearchProvider>("itunes");
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -81,7 +85,7 @@ export function PodcastSearchPicker({
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor="podcast-search-lookup">Search a podcast directory</Label>
+      <Label htmlFor="podcast-search-lookup">{t("Search a podcast directory")}</Label>
       <ToggleGroup
         type="single"
         size="sm"
@@ -95,16 +99,16 @@ export function PodcastSearchPicker({
           <ToggleGroupItem
             key={p}
             value={p}
-            aria-label={PODCAST_LINK_PROVIDER_LABELS[p]}
+            aria-label={t(PODCAST_LINK_PROVIDER_LABELS[p])}
           >
-            {PODCAST_LINK_PROVIDER_LABELS[p]}
+            {t(PODCAST_LINK_PROVIDER_LABELS[p])}
           </ToggleGroupItem>
         ))}
       </ToggleGroup>
       <div className="relative">
         <Input
           id="podcast-search-lookup"
-          placeholder="Search podcasts or paste a URL…"
+          placeholder={t("Search podcasts or paste a URL…")}
           value={query}
           onChange={event => setQuery(event.target.value)}
         />
@@ -123,7 +127,7 @@ export function PodcastSearchPicker({
         ? <p className="text-xs text-destructive">{errorMessage}</p>
         : null}
       {showEmptyMessage
-        ? <p className="text-xs text-muted-foreground">No matching podcasts found.</p>
+        ? <p className="text-xs text-muted-foreground">{t("No matching podcasts found.")}</p>
         : null}
       {results.length > 0
         ? (
@@ -149,8 +153,7 @@ export function PodcastSearchPicker({
         )
         : null}
       <p className="text-xs text-muted-foreground">
-        Search Apple Podcasts or Pocket Casts, or paste its Apple Podcasts / RSS feed URL directly, to
-        fill in the podcast details automatically; links on the other services are found from its feed.
+        {t("Search Apple Podcasts or Pocket Casts, or paste its Apple Podcasts / RSS feed URL directly, to fill in the podcast details automatically; links on the other services are found from its feed.")}
       </p>
     </div>
   );

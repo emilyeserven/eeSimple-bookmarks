@@ -1,5 +1,6 @@
 import type { YouTubeChannel } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useCreateYouTubeChannel } from "../hooks/useYouTubeChannels";
@@ -30,6 +31,9 @@ export function AddYouTubeChannelModal({
   onOpenChange,
   onCreated,
 }: AddYouTubeChannelModalProps) {
+  const {
+    t,
+  } = useTranslation();
   const createChannel = useCreateYouTubeChannel();
   const form = useAppForm({
     defaultValues: {
@@ -65,10 +69,9 @@ export function AddYouTubeChannelModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New YouTube channel</DialogTitle>
+          <DialogTitle>{t("New YouTube channel")}</DialogTitle>
           <DialogDescription>
-            Channels are normally created automatically when you add YouTube bookmarks — use this
-            to add one by hand.
+            {t("Channels are normally created automatically when you add YouTube bookmarks — use this to add one by hand.")}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -82,7 +85,7 @@ export function AddYouTubeChannelModal({
           <form.AppField name="channelUrl">
             {field => (
               <field.TextField
-                label="Channel URL"
+                label={t("Channel URL")}
                 placeholder="https://www.youtube.com/@channelname"
               />
             )}
@@ -90,7 +93,7 @@ export function AddYouTubeChannelModal({
           <form.AppField name="name">
             {field => (
               <field.TextField
-                label="Name"
+                label={t("Name")}
                 placeholder="e.g. MKBHD"
               />
             )}
@@ -101,8 +104,8 @@ export function AddYouTubeChannelModal({
           <DialogFooter>
             <form.AppForm>
               <form.SubmitButton
-                label="Add channel"
-                pendingLabel="Adding…"
+                label={t("Add channel")}
+                pendingLabel={t("Adding…")}
               />
             </form.AppForm>
           </DialogFooter>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { DEFAULT_LOCATION_MAP_COLOR } from "@eesimple/types";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 
@@ -18,6 +19,9 @@ export function LevelColorControl({
   onChange: (color: string | null) => void;
 }) {
   const [local, setLocal] = useState(color ?? DEFAULT_LOCATION_MAP_COLOR);
+  const {
+    t,
+  } = useTranslation();
   useEffect(() => {
     setLocal(color ?? DEFAULT_LOCATION_MAP_COLOR);
   }, [color]);
@@ -29,7 +33,7 @@ export function LevelColorControl({
           relative inline-flex size-9 cursor-pointer items-center justify-center
           rounded-md border bg-background
         "
-        title="Map color"
+        title={t("Map color")}
       >
         <span
           className="size-5 rounded-sm border"
@@ -45,7 +49,9 @@ export function LevelColorControl({
             if ((color ?? DEFAULT_LOCATION_MAP_COLOR) !== local) onChange(local);
           }}
           className="absolute inset-0 cursor-pointer opacity-0"
-          aria-label={`${label || "Level"} map color`}
+          aria-label={t("{{label}} map color", {
+            label: label || t("Level"),
+          })}
         />
       </label>
       {color
@@ -55,7 +61,9 @@ export function LevelColorControl({
             variant="ghost"
             size="icon"
             className="size-7"
-            aria-label={`Reset ${label || "level"} color`}
+            aria-label={t("Reset {{label}} color", {
+              label: label || t("level"),
+            })}
             onClick={() => onChange(null)}
           >
             <X className="size-3.5" />

@@ -2,6 +2,7 @@ import type { TaxonomyTreeNode } from "./TaxonomyTreeRow";
 import type { ReactNode } from "react";
 
 import { ChevronDown, ChevronRight, ChevronsUpDown, MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,9 @@ export function TaxonomyTreeRowInner({
   node, hasChildren, isOpen, onToggle, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
   onExpandSubtree, onToggleFilter, filtered,
 }: TaxonomyTreeRowInnerProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
       {renderIcon
@@ -64,7 +68,13 @@ export function TaxonomyTreeRowInner({
         ? (
           <button
             type="button"
-            aria-label={isOpen ? `Collapse ${node.name}` : `Expand ${node.name}`}
+            aria-label={isOpen
+              ? t("Collapse {{name}}", {
+                name: node.name,
+              })
+              : t("Expand {{name}}", {
+                name: node.name,
+              })}
             aria-expanded={isOpen}
             onClick={() => onToggle(node.id)}
             className="
@@ -86,7 +96,7 @@ export function TaxonomyTreeRowInner({
 
       {renderNameLink(node)}
 
-      {node.builtIn ? <Badge variant="outline">Built-in</Badge> : null}
+      {node.builtIn ? <Badge variant="outline">{t("Built-in")}</Badge> : null}
 
       <HoverGhostButton>{renderEditLink(node)}</HoverGhostButton>
       <HoverGhostButton>{renderInfoLink(node)}</HoverGhostButton>
@@ -97,8 +107,10 @@ export function TaxonomyTreeRowInner({
             type="button"
             variant="ghost"
             size="sm"
-            aria-label={`Expand all under ${node.name}`}
-            title="Expand all"
+            aria-label={t("Expand all under {{name}}", {
+              name: node.name,
+            })}
+            title={t("Expand all")}
             onClick={() => onExpandSubtree(node)}
             className="
               opacity-0 transition-opacity
@@ -117,9 +129,15 @@ export function TaxonomyTreeRowInner({
             type="button"
             variant="ghost"
             size="sm"
-            aria-label={filtered ? `Remove ${node.name} from map filter` : `Filter map to ${node.name}`}
+            aria-label={filtered
+              ? t("Remove {{name}} from map filter", {
+                name: node.name,
+              })
+              : t("Filter map to {{name}}", {
+                name: node.name,
+              })}
             aria-pressed={filtered}
-            title={filtered ? "Filtering map (click to clear)" : "Filter on map"}
+            title={filtered ? t("Filtering map (click to clear)") : t("Filter on map")}
             onClick={() => onToggleFilter(node)}
             className={cn(
               "transition-opacity",

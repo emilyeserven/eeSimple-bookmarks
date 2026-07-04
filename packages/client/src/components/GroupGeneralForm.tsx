@@ -1,6 +1,7 @@
 import type { Group, SocialLink } from "@eesimple/types";
 
 import { Building2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CreatorMediaSection } from "./CreatorMediaSection";
 import { EntityImageField } from "./EntityImageField";
@@ -29,6 +30,9 @@ export function GroupGeneralForm({
   group,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     form,
     saveField,
     saveName,
@@ -48,14 +52,14 @@ export function GroupGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
+            label={t("Name")}
             onBlur={() => saveName(field.state.value, field.state.meta.errors.length === 0)}
           />
         )}
       </form.AppField>
 
       <div className="space-y-1">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesTabEditor
           ownerType="group"
           ownerId={group.id}
@@ -65,10 +69,10 @@ export function GroupGeneralForm({
       <form.AppField name="websiteId">
         {field => (
           <field.ComboboxField
-            label="Website"
-            placeholder="No website"
-            searchPlaceholder="Search websites…"
-            emptyText="No websites found."
+            label={t("Website")}
+            placeholder={t("No website")}
+            searchPlaceholder={t("Search websites…")}
+            emptyText={t("No websites found.")}
             options={websiteOptions}
             createOption={websiteCreate.createOption}
             onValueChange={value => saveField("websiteId", value || null)}
@@ -80,10 +84,10 @@ export function GroupGeneralForm({
       <form.AppField name="groupTypeId">
         {field => (
           <field.ComboboxField
-            label="Group type"
-            placeholder="No group type"
-            searchPlaceholder="Search group types…"
-            emptyText="No group types found."
+            label={t("Group type")}
+            placeholder={t("No group type")}
+            searchPlaceholder={t("Search group types…")}
+            emptyText={t("No group types found.")}
             options={groupTypeOptions}
             createOption={groupTypeCreate.createOption}
             onValueChange={value => saveField("groupTypeId", value || null)}
@@ -99,7 +103,7 @@ export function GroupGeneralForm({
       />
 
       <EntityImageField
-        label="Image"
+        label={t("Image")}
         imageUrl={group.imageUrl}
         fallback={<Building2 className="size-5" />}
         busy={imageBusy}

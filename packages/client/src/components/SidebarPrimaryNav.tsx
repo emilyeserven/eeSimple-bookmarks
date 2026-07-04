@@ -2,6 +2,7 @@ import type { useAppSidebarData } from "./useAppSidebarData";
 
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { SidebarCountBadge } from "./SidebarCountBadge";
 
@@ -108,6 +109,9 @@ export function SidebarPrimaryNav({
   setPinnedShowAll: (v: boolean) => void;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     visiblePins, hasShowMore, hasSeeAll, hasShowLess,
   } = pagination;
   const notCollapsed = sidebarState !== "collapsed";
@@ -163,22 +167,22 @@ export function SidebarPrimaryNav({
                 ))}
                 <PinPaginationItem
                   show={hasShowMore && notCollapsed}
-                  tooltip="Show more pinned items"
-                  label="Show More"
+                  tooltip={t("Show more pinned items")}
+                  label={t("Show More")}
                   direction="down"
                   onClick={() => setPinnedExpanded(true)}
                 />
                 <PinPaginationItem
                   show={hasSeeAll && notCollapsed}
-                  tooltip="Show all pinned items"
-                  label="See All"
+                  tooltip={t("Show all pinned items")}
+                  label={t("See All")}
                   direction="down"
                   onClick={() => setPinnedShowAll(true)}
                 />
                 <PinPaginationItem
                   show={hasShowLess && notCollapsed}
-                  tooltip="Show fewer pinned items"
-                  label="Show Less"
+                  tooltip={t("Show fewer pinned items")}
+                  label={t("Show Less")}
                   direction="up"
                   onClick={() => {
                     setPinnedExpanded(false);

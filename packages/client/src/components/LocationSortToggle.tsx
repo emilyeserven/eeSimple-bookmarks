@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -8,12 +10,15 @@ import { useUiStore } from "@/stores/uiStore";
  * ExpandAllToggle.
  */
 export function LocationSortToggle() {
+  const {
+    t,
+  } = useTranslation();
   const sortMode = useUiStore(state => state.locationSortMode);
   const setSortMode = useUiStore(state => state.setLocationSortMode);
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">Sort</span>
+      <span className="text-sm text-muted-foreground">{t("Sort")}</span>
       <ToggleGroup
         type="single"
         size="sm"
@@ -22,10 +27,10 @@ export function LocationSortToggle() {
         onValueChange={(value) => {
           if (value === "default" || value === "place-type") setSortMode(value);
         }}
-        aria-label="Sort locations"
+        aria-label={t("Sort locations")}
       >
-        <ToggleGroupItem value="default">Default</ToggleGroupItem>
-        <ToggleGroupItem value="place-type">Place type</ToggleGroupItem>
+        <ToggleGroupItem value="default">{t("Default")}</ToggleGroupItem>
+        <ToggleGroupItem value="place-type">{t("Place type")}</ToggleGroupItem>
       </ToggleGroup>
     </div>
   );

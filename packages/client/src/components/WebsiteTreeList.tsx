@@ -2,6 +2,7 @@ import type { WebsiteNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
@@ -38,6 +39,9 @@ function toTaxonomyNode(node: WebsiteNode): {
 export function WebsiteTreeList({
   tree, expanded, onToggle, columns,
 }: WebsiteTreeListProps) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -54,7 +58,9 @@ export function WebsiteTreeList({
           params={{
             websiteSlug: node.slug,
           }}
-          title={`Browse bookmarks from ${node.name}`}
+          title={t("Browse bookmarks from {{name}}", {
+            name: node.name,
+          })}
           className="
             flex-1 truncate
             hover:underline
@@ -69,8 +75,12 @@ export function WebsiteTreeList({
           params={{
             websiteSlug: node.slug,
           }}
-          aria-label={`Edit ${node.name}`}
-          title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          aria-label={t("Edit {{name}}", {
+            name: node.name,
+          })}
+          title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+            modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+          })}
           onClick={event => editClick(event, "website", node.id)}
         >
           <Pencil className="size-4" />
@@ -82,7 +92,9 @@ export function WebsiteTreeList({
           params={{
             websiteSlug: node.slug,
           }}
-          aria-label={`View ${node.name}`}
+          aria-label={t("View {{name}}", {
+            name: node.name,
+          })}
           title={entityLinkTitle(modifier)}
           onClick={event => viewClick(event, "website", node.id, node.slug)}
         >

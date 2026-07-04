@@ -2,6 +2,7 @@ import type { Category } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -26,6 +27,9 @@ interface CategoryPreviewRowProps {
 export function CategoryPreviewRow({
   category, selectable, selected, onSelectToggle, inSelectionMode,
 }: CategoryPreviewRowProps) {
+  const {
+    t,
+  } = useTranslation();
   const viewClick = useViewPanelClick();
   const editClick = useEditPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -43,7 +47,7 @@ export function CategoryPreviewRow({
       )}
       title={category.name}
       titleAdornment={category.builtIn
-        ? <Badge variant="secondary">Built-in</Badge>
+        ? <Badge variant="secondary">{t("Built-in")}</Badge>
         : undefined}
       subtitle={category.description ?? undefined}
       count={category.bookmarkCount ?? 0}
@@ -53,7 +57,9 @@ export function CategoryPreviewRow({
           params={{
             categorySlug: category.slug,
           }}
-          title={`View ${category.name}`}
+          title={t("View {{name}}", {
+            name: category.name,
+          })}
           className={className}
         >
           {children}
@@ -66,11 +72,16 @@ export function CategoryPreviewRow({
             params={{
               categorySlug: category.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "category", category.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {category.name}</span>
+            <span className="sr-only">{t("Edit {{name}}", {
+              name: category.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -85,7 +96,10 @@ export function CategoryPreviewRow({
             onClick={event => viewClick(event, "category", category.id, category.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {category.name}</span>
+            <span className="sr-only">{t("View {{name}}", {
+              name: category.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

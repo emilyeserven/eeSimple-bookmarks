@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useConnectors } from "../hooks/useConnectors";
 import { plexApi } from "../lib/api/plex";
@@ -38,6 +39,9 @@ export function PlexItemLookup({
   onSelect,
 }: PlexItemLookupProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: connectors,
   } = useConnectors();
 
@@ -60,11 +64,11 @@ export function PlexItemLookup({
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor="plex-item-lookup">Look up on Plex</Label>
+      <Label htmlFor="plex-item-lookup">{t("Look up on Plex")}</Label>
       <div className="relative">
         <Input
           id="plex-item-lookup"
-          placeholder="Search your Plex library…"
+          placeholder={t("Search your Plex library…")}
           value={query}
           onChange={event => setQuery(event.target.value)}
         />
@@ -83,7 +87,7 @@ export function PlexItemLookup({
         ? <p className="text-xs text-destructive">{search.error.message}</p>
         : null}
       {search.isSuccess && search.data.length === 0
-        ? <p className="text-xs text-muted-foreground">No matching items found.</p>
+        ? <p className="text-xs text-muted-foreground">{t("No matching items found.")}</p>
         : null}
       {search.isSuccess && search.data.length > 0
         ? (
@@ -109,7 +113,7 @@ export function PlexItemLookup({
         )
         : null}
       <p className="text-xs text-muted-foreground">
-        Search your Plex server to fill in the details automatically.
+        {t("Search your Plex server to fill in the details automatically.")}
       </p>
     </div>
   );

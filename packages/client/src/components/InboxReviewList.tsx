@@ -2,6 +2,8 @@ import type { useInboxReviewController } from "./useInboxReviewController";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { InboxItemsView } from "./InboxItemsView";
 import { InboxPreFillBox } from "./InboxPreFillBox";
 import { navLinkClass, navStripClass } from "./TabbedShell";
@@ -34,6 +36,9 @@ export function InboxReviewList({
     resetPreFill,
   } = controller;
 
+  const {
+    t,
+  } = useTranslation();
   const [activeTab, setActiveTab] = useState<"pending" | "processed">("pending");
 
   return (
@@ -45,7 +50,7 @@ export function InboxReviewList({
       />
       <nav
         className={navStripClass}
-        aria-label="Inbox items"
+        aria-label={t("Inbox items")}
       >
         <button
           type="button"
@@ -54,7 +59,9 @@ export function InboxReviewList({
             bg-accent text-accent-foreground
           `)}
         >
-          Pending ({pendingItems.length})
+          {t("Pending ({{count}})", {
+            count: pendingItems.length,
+          })}
         </button>
         <button
           type="button"
@@ -63,7 +70,9 @@ export function InboxReviewList({
             bg-accent text-accent-foreground
           `)}
         >
-          Processed ({processedItems.length})
+          {t("Processed ({{count}})", {
+            count: processedItems.length,
+          })}
         </button>
       </nav>
 
@@ -73,7 +82,7 @@ export function InboxReviewList({
             items={pendingItems}
             viewMode={viewMode}
             columns={columns}
-            emptyMessage="No pending items."
+            emptyMessage={t("No pending items.")}
             onDismiss={dismissItem}
             preFill={preFill}
           />
@@ -83,7 +92,7 @@ export function InboxReviewList({
             items={processedItems}
             viewMode={viewMode}
             columns={columns}
-            emptyMessage="No processed items."
+            emptyMessage={t("No processed items.")}
           />
         )}
     </div>

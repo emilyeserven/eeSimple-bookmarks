@@ -3,6 +3,7 @@ import type { TaxonomyImage } from "@eesimple/types";
 import { useRef } from "react";
 
 import { ImagePlus, Star, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -55,10 +56,13 @@ export function TaxonomyImageGallery({
   onRemove,
   removePending,
 }: TaxonomyImageGalleryProps) {
+  const {
+    t,
+  } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading images…</p>;
+    return <p className="text-sm text-muted-foreground">{t("Loading images…")}</p>;
   }
 
   return (
@@ -88,7 +92,7 @@ export function TaxonomyImageGallery({
                         absolute top-1 left-1 rounded-full bg-background/80 p-1
                         text-primary
                       "
-                      title="Main image"
+                      title={t("Main image")}
                     >
                       <Star className="size-3.5 fill-current" />
                     </span>
@@ -114,7 +118,7 @@ export function TaxonomyImageGallery({
                             disabled={setMainPending}
                             onClick={() => onSetMain?.(image.id)}
                           >
-                            Set main
+                            {t("Set main")}
                           </Button>
                         )
                         : <span />}
@@ -123,7 +127,7 @@ export function TaxonomyImageGallery({
                         variant="ghost"
                         size="icon"
                         className="size-6"
-                        aria-label="Remove image"
+                        aria-label={t("Remove image")}
                         disabled={removePending}
                         onClick={() => onRemove?.(image.id)}
                       >
@@ -136,7 +140,7 @@ export function TaxonomyImageGallery({
             ))}
           </div>
         )
-        : <p className="text-sm text-muted-foreground">No images yet.</p>}
+        : <p className="text-sm text-muted-foreground">{t("No images yet.")}</p>}
 
       {!readOnly
         ? (
@@ -160,7 +164,7 @@ export function TaxonomyImageGallery({
               onClick={() => inputRef.current?.click()}
             >
               <ImagePlus className="size-4" />
-              {uploadPending ? "Uploading…" : "Choose image"}
+              {uploadPending ? t("Uploading…") : t("Choose image")}
             </Button>
             {autoFetchActions.filter(action => action.enabled).map((action) => {
               const Icon = action.icon;
@@ -175,7 +179,7 @@ export function TaxonomyImageGallery({
                   onClick={() => onAutoFetch?.(action.source)}
                 >
                   <Icon className={cn("size-4")} />
-                  {pending ? "Importing…" : action.label}
+                  {pending ? t("Importing…") : action.label}
                 </Button>
               );
             })}

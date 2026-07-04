@@ -4,6 +4,8 @@ import type {
   DisplayPreferenceSettings,
 } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { ImageAspectRatiosCard } from "./ImageAspectRatiosCard";
 import {
   useDisplayPreferenceSettings,
@@ -50,6 +52,9 @@ const MEDIA_DEFAULTS: Pick<
 /** Media display preferences — bookmark-detail image/video sizing and image aspect ratios. */
 export function DisplayMediaSettings() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: displayData,
   } = useDisplayPreferenceSettings();
   const updateDisplay = useUpdateDisplayPreferenceSettings();
@@ -73,19 +78,19 @@ export function DisplayMediaSettings() {
   const setBookmarkDetailImageSize = (size: BookmarkDetailImageSize) =>
     saveDisplay({
       bookmarkDetailImageSize: size,
-    }, "Detail image size updated");
+    }, t("Detail image size updated"));
   const setBookmarkDetailVideoSize = (size: BookmarkDetailVideoSize) =>
     saveDisplay({
       bookmarkDetailVideoSize: size,
-    }, "Detail video size updated");
+    }, t("Detail video size updated"));
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Bookmark media</CardTitle>
+          <CardTitle>{t("Bookmark media")}</CardTitle>
           <CardDescription>
-            Control the size of images and video embeds on the bookmark detail page.
+            {t("Control the size of images and video embeds on the bookmark detail page.")}
           </CardDescription>
         </CardHeader>
         <CardContent
@@ -95,7 +100,7 @@ export function DisplayMediaSettings() {
           "
         >
           <div className="space-y-1">
-            <Label htmlFor="bookmark-image-size">Image size</Label>
+            <Label htmlFor="bookmark-image-size">{t("Image size")}</Label>
             <Select
               value={display.bookmarkDetailImageSize}
               onValueChange={value => setBookmarkDetailImageSize(value as BookmarkDetailImageSize)}
@@ -112,7 +117,7 @@ export function DisplayMediaSettings() {
                     key={value}
                     value={value}
                   >
-                    {IMAGE_SIZE_LABELS[value]}
+                    {t(IMAGE_SIZE_LABELS[value])}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -120,7 +125,7 @@ export function DisplayMediaSettings() {
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="bookmark-video-size">Video size</Label>
+            <Label htmlFor="bookmark-video-size">{t("Video size")}</Label>
             <Select
               value={display.bookmarkDetailVideoSize}
               onValueChange={value => setBookmarkDetailVideoSize(value as BookmarkDetailVideoSize)}
@@ -137,7 +142,7 @@ export function DisplayMediaSettings() {
                     key={value}
                     value={value}
                   >
-                    {VIDEO_SIZE_LABELS[value]}
+                    {t(VIDEO_SIZE_LABELS[value])}
                   </SelectItem>
                 ))}
               </SelectContent>

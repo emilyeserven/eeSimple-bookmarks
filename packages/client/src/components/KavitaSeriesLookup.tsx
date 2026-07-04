@@ -1,6 +1,7 @@
 import type { KavitaSeriesResult } from "@eesimple/types";
 
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useKavitaSeriesSearch } from "../hooks/useKavitaSeriesSearch";
 
@@ -30,6 +31,9 @@ export function KavitaSeriesLookup({
   onSelect,
 }: KavitaSeriesLookupProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     query, setQuery, enabled, search,
   } = useKavitaSeriesSearch();
 
@@ -37,11 +41,11 @@ export function KavitaSeriesLookup({
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor="kavita-series-lookup">Look up on Kavita</Label>
+      <Label htmlFor="kavita-series-lookup">{t("Look up on Kavita")}</Label>
       <div className="relative">
         <Input
           id="kavita-series-lookup"
-          placeholder="Search your Kavita library…"
+          placeholder={t("Search your Kavita library…")}
           value={query}
           onChange={event => setQuery(event.target.value)}
         />
@@ -60,7 +64,7 @@ export function KavitaSeriesLookup({
         ? <p className="text-xs text-destructive">{search.error.message}</p>
         : null}
       {search.isSuccess && search.data.length === 0
-        ? <p className="text-xs text-muted-foreground">No matching series found.</p>
+        ? <p className="text-xs text-muted-foreground">{t("No matching series found.")}</p>
         : null}
       {search.isSuccess && search.data.length > 0
         ? (
@@ -86,7 +90,7 @@ export function KavitaSeriesLookup({
         )
         : null}
       <p className="text-xs text-muted-foreground">
-        Search your Kavita server to fill in the book details automatically.
+        {t("Search your Kavita server to fill in the book details automatically.")}
       </p>
     </div>
   );

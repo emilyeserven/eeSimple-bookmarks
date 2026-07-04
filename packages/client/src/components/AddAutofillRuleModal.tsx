@@ -1,6 +1,7 @@
 import type { AutofillRule, CreateAutofillRuleInput } from "@eesimple/types";
 
 import { emptyConditionTree } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateAutofillRule } from "../hooks/useAutofill";
@@ -22,15 +23,18 @@ export function AddAutofillRuleModal({
   open, onOpenChange, onCreated, prefill,
 }: AddAutofillRuleModalProps) {
   const createRule = useCreateAutofillRule();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title="New autofill rule"
-      description="Give the rule a name — you can fill in the conditions and prefill fields on its edit page."
-      placeholder="e.g. YouTube videos"
-      submitLabel="Add rule"
+      title={t("New autofill rule")}
+      description={t("Give the rule a name — you can fill in the conditions and prefill fields on its edit page.")}
+      placeholder={t("e.g. YouTube videos")}
+      submitLabel={t("Add rule")}
       isError={createRule.isError}
       errorMessage={createRule.error?.message}
       onSubmit={(name, done) => {

@@ -1,6 +1,7 @@
 import type { Category, UpdateCategoryInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
@@ -33,6 +34,9 @@ interface CategoryGeneralFormProps {
 export function CategoryGeneralForm({
   category,
 }: CategoryGeneralFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateCategory = useUpdateCategory();
   const autoSave = useFieldAutoSave<UpdateCategoryInput, Category>({
@@ -69,7 +73,7 @@ export function CategoryGeneralForm({
         <form.AppField name="name">
           {field => (
             <field.TextField
-              label="Name"
+              label={t("Name")}
               disabled={category.builtIn}
               onBlur={() => autoSave.saveField(
                 "name",
@@ -95,9 +99,11 @@ export function CategoryGeneralForm({
         <form.AppField name="icon">
           {field => (
             <div className="space-y-1">
-              <Label htmlFor={`category-icon-${category.id}`}>Icon</Label>
+              <Label htmlFor={`category-icon-${category.id}`}>{t("Icon")}</Label>
               <IconPicker
-                aria-label={`Icon for ${category.name}`}
+                aria-label={t("Icon for {{name}}", {
+                  name: category.name,
+                })}
                 value={field.state.value}
                 onChange={(value) => {
                   field.handleChange(value);
@@ -110,7 +116,7 @@ export function CategoryGeneralForm({
         <form.AppField name="description">
           {field => (
             <field.TextareaField
-              label="Description"
+              label={t("Description")}
               onBlur={() => autoSave.saveField(
                 "description",
                 field.state.value.trim() || null,
@@ -123,7 +129,7 @@ export function CategoryGeneralForm({
         </form.AppField>
       </div>
       <div className="space-y-1">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesTabEditor
           ownerType="category"
           ownerId={category.id}

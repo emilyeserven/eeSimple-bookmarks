@@ -5,6 +5,8 @@ import type {
   TagNode,
 } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { ConditionsField } from "./conditions/ConditionsField";
 import { conditionsDetailedLabel } from "./conditions/summarizeConditions";
@@ -28,11 +30,14 @@ interface AutofillRuleActivationSectionProps {
 export function AutofillRuleActivationSection({
   defaultOpen, conditions, conditionsError, onChange, categories, properties, tagTree, openCustomProperties,
 }: AutofillRuleActivationSectionProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
       <CollapsibleFormSection
-        title="Activation Conditions"
-        description="Conditions that decide whether this rule applies."
+        title={t("Activation Conditions")}
+        description={t("Conditions that decide whether this rule applies.")}
         defaultOpen={defaultOpen}
         preview={conditionsDetailedLabel(conditions)}
       >
@@ -52,8 +57,8 @@ export function AutofillRuleActivationSection({
       <Separator />
 
       <LabeledSection
-        title="Preview Bookmarks"
-        description="Test which existing bookmarks match the activation conditions above."
+        title={t("Preview Bookmarks")}
+        description={t("Test which existing bookmarks match the activation conditions above.")}
       >
         <PreviewBookmarksSection
           conditions={conditions}

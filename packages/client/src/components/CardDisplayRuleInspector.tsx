@@ -3,6 +3,8 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { CardRuleInspectorMatches } from "./CardRuleInspectorMatches";
 import { Combobox } from "./Combobox";
 import { useCardRuleInspectorData } from "../hooks/useCardRuleInspectorData";
@@ -26,6 +28,9 @@ export function CardDisplayRuleInspector() {
   } = useCardRuleInspectorData();
 
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const {
+    t,
+  } = useTranslation();
 
   const selectedBookmark: Bookmark | undefined = selectedId
     ? bookmarks.find(bookmark => bookmark.id === selectedId)
@@ -44,19 +49,18 @@ export function CardDisplayRuleInspector() {
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <Label htmlFor="card-rule-inspector">Inspect a bookmark</Label>
+        <Label htmlFor="card-rule-inspector">{t("Inspect a bookmark")}</Label>
         <p className="text-sm text-muted-foreground">
-          Pick a bookmark to see which rules apply to it — and what each rule sets versus what a
-          higher-priority rule overrode.
+          {t("Pick a bookmark to see which rules apply to it — and what each rule sets versus what a higher-priority rule overrode.")}
         </p>
         <Combobox
           id="card-rule-inspector"
           options={options}
           value={selectedId}
           onValueChange={setSelectedId}
-          placeholder="Search for a bookmark…"
-          searchPlaceholder="Search bookmarks…"
-          emptyText="No bookmarks found."
+          placeholder={t("Search for a bookmark…")}
+          searchPlaceholder={t("Search bookmarks…")}
+          emptyText={t("No bookmarks found.")}
         />
       </div>
 
@@ -70,7 +74,7 @@ export function CardDisplayRuleInspector() {
           />
         )
         : selectedId
-          ? <p className="text-sm text-muted-foreground">Bookmark not found.</p>
+          ? <p className="text-sm text-muted-foreground">{t("Bookmark not found.")}</p>
           : null}
     </div>
   );

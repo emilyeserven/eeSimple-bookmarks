@@ -3,6 +3,7 @@ import type { YouTubeChannel } from "@eesimple/types";
 import { channelUrlFromKey } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { Info, MonitorPlay, Pencil, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
@@ -29,6 +30,9 @@ export function YouTubeChannelListItem({
   onSelectToggle,
   inSelectionMode,
 }: YouTubeChannelListItemProps) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -72,7 +76,9 @@ export function YouTubeChannelListItem({
           params={{
             channelSlug: channel.slug,
           }}
-          title={`Show bookmarks from ${channel.name}`}
+          title={t("Show bookmarks from {{name}}", {
+            name: channel.name,
+          })}
           className={className}
         >
           {children}
@@ -82,7 +88,7 @@ export function YouTubeChannelListItem({
         <HoverIconButton>
           <button
             type="button"
-            title="Fetch avatar"
+            title={t("Fetch avatar")}
             disabled={autoAvatar.isPending || autoAvatar.cooldown.isOnCooldown}
             onClick={() => autoAvatar.mutate({
               id: channel.id,
@@ -91,9 +97,9 @@ export function YouTubeChannelListItem({
           >
             <Sparkles className="size-4" />
             <span className="sr-only">
-              Fetch avatar for
-              {" "}
-              {channel.name}
+              {t("Fetch avatar for {{name}}", {
+                name: channel.name,
+              })}
             </span>
           </button>
         </HoverIconButton>
@@ -105,11 +111,17 @@ export function YouTubeChannelListItem({
             params={{
               channelSlug: channel.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "youtube-channel", channel.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {channel.name}</span>
+            <span className="sr-only">
+              {t("Edit {{name}}", {
+                name: channel.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -124,7 +136,11 @@ export function YouTubeChannelListItem({
             onClick={event => viewClick(event, "youtube-channel", channel.id, channel.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {channel.name}</span>
+            <span className="sr-only">
+              {t("View {{name}}", {
+                name: channel.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

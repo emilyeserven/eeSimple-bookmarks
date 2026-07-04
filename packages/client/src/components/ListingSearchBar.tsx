@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Search, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,9 @@ export function ListingSearchBar() {
   const setHeaderSearchQuery = useUiStore(state => state.setHeaderSearchQuery);
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const {
+    t,
+  } = useTranslation();
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -36,7 +40,7 @@ export function ListingSearchBar() {
         type="button"
         variant="ghost"
         size="icon"
-        aria-label="Search"
+        aria-label={t("Search")}
         onClick={() => setOpen(true)}
       >
         <Search className="size-4" />
@@ -49,7 +53,7 @@ export function ListingSearchBar() {
       <Input
         ref={inputRef}
         type="text"
-        placeholder="Search…"
+        placeholder={t("Search…")}
         value={headerSearchQuery}
         onChange={e => setHeaderSearchQuery(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Escape") clearAndClose(); }}
@@ -59,7 +63,7 @@ export function ListingSearchBar() {
         type="button"
         variant="ghost"
         size="icon"
-        aria-label="Clear search"
+        aria-label={t("Clear search")}
         onClick={clearAndClose}
       >
         <X className="size-4" />

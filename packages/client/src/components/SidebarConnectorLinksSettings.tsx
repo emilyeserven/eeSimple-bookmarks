@@ -1,5 +1,7 @@
 import type { SidebarToggleItem } from "./SidebarItemsCard";
 
+import { useTranslation } from "react-i18next";
+
 import { SidebarItemsCard } from "./SidebarItemsCard";
 import { useConnectors } from "../hooks/useConnectors";
 import { useSidebarSettings } from "../hooks/useSidebarSettings";
@@ -20,6 +22,9 @@ export function SidebarConnectorLinksSettings() {
     sidebar,
     setConnectorLinkMode,
   } = useSidebarSettings();
+  const {
+    t,
+  } = useTranslation();
 
   const items: SidebarToggleItem[] = connectors
     ? CONNECTOR_LINKS.filter(link => link.isConfigured(connectors)).map(link => ({
@@ -33,14 +38,14 @@ export function SidebarConnectorLinksSettings() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Connector Links</CardTitle>
+          <CardTitle>{t("Connector Links")}</CardTitle>
           <CardDescription>
-            Link out to your connected services from the sidebar.
+            {t("Link out to your connected services from the sidebar.")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            No connectors are configured yet. Add an endpoint on Settings → Connectors to show it here.
+            {t("No connectors are configured yet. Add an endpoint on Settings → Connectors to show it here.")}
           </p>
         </CardContent>
       </Card>
@@ -49,13 +54,13 @@ export function SidebarConnectorLinksSettings() {
 
   return (
     <SidebarItemsCard
-      title="Connector Links"
-      description="Choose how each connector link appears in the left sidebar's Connectors section."
+      title={t("Connector Links")}
+      description={t("Choose how each connector link appears in the left sidebar's Connectors section.")}
       items={items}
       hiddenItems={sidebar.hiddenConnectorLinks}
       seeMoreItems={sidebar.seeMoreConnectorLinks}
       onSetMode={setConnectorLinkMode}
-      hiddenLabel="Hide"
+      hiddenLabel={t("Hide")}
     />
   );
 }
