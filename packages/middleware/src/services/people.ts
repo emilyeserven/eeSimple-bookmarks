@@ -1,6 +1,7 @@
 import { asc, count, eq, inArray, isNull } from "drizzle-orm";
 import type { Person, BulkDeleteResult, CreatePersonInput, SocialLink, UpdatePersonInput } from "@eesimple/types";
 import { db } from "@/db";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
@@ -402,7 +403,11 @@ export async function deletePerson(id: string): Promise<boolean> {
   const rows = await db.delete(people).where(eq(people.id, id)).returning({
     id: people.id,
   });
-  if (rows.length > 0) await deleteLanguageUsagesForOwner("person", id);
+  if (rows.length > 0) {
+    await deleteLanguageUsagesForOwner("person", id);
+    // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
+    await deleteGenreMoodAssignmentsForOwner("person", id);
+  }
   return rows.length > 0;
 }
 

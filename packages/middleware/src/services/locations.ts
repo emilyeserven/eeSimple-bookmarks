@@ -15,6 +15,7 @@ import { bookmarkLocations, locations, locationTags, type LocationRow } from "@/
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { geocodeLocation, refreshLocationBoundary } from "@/services/geocoding";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { resolveWikipediaLinks } from "@/services/wikidataGeocoding";
 import {
   collectSubtreeIds as collectParentTreeSubtreeIds,
@@ -598,7 +599,11 @@ export async function deleteLocation(id: string): Promise<boolean> {
   const rows = await db.delete(locations).where(eq(locations.id, id)).returning({
     id: locations.id,
   });
-  if (rows.length > 0) invalidateBookmarkCache();
+  if (rows.length > 0) {
+    // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
+    await deleteGenreMoodAssignmentsForOwner("location", id);
+    invalidateBookmarkCache();
+  }
   return rows.length > 0;
 }
 

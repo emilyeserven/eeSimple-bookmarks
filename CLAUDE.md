@@ -581,7 +581,11 @@ precedent after `taxonomy_images`:
   Bookmarks do this via `cleanupGenreMoodAssignments` across **all three** bookmark-delete paths
   (`deleteBookmark`/`bulkDeleteBookmarks`/`deleteOrphanedBookmarks`); the assignment service exposes
   `deleteGenreMoodAssignmentsForOwner` for taxonomy owners. Bookmark-owner writes call
-  `invalidateBookmarkCache()`.
+  `invalidateBookmarkCache()`. The same no-FK cleanup rule covers **`taxonomy_images`**: every
+  media-taxonomy delete (Movies / TV Shows / Episodes / Albums / Tracks / Books / Podcasts) calls
+  `deleteTaxonomyImagesForOwner` (`services/taxonomyImages.ts`), which removes the stored objects
+  and then the rows — a new `TAXONOMY_IMAGE_OWNER_TYPES` owner must wire this into its delete
+  service too.
 - **Bookmarks** carry `genreMoods: BookmarkGenreMood[]` (hydrated via a batched join on
   `ownerType='bookmark'`, linked in the create/update tx like `bookmarkTags`, submitted as
   `genreMoodIds`) and expose a placeable **`genreMoods`** card field (kept in sync in both

@@ -8,6 +8,7 @@ import type {
 import { db } from "@/db";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
 import { bookmarks, tvShows, type TvShowRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -142,7 +143,10 @@ export async function deleteTvShow(id: string): Promise<boolean> {
   const rows = await db.delete(tvShows).where(eq(tvShows.id, id)).returning({
     id: tvShows.id,
   });
-  if (rows.length > 0) await deleteLanguageUsagesForOwner("tvShow", id);
+  if (rows.length > 0) {
+    await deleteLanguageUsagesForOwner("tvShow", id);
+    await deleteTaxonomyImagesForOwner("tvShow", id);
+  }
   return rows.length > 0;
 }
 

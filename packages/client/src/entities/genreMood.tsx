@@ -19,8 +19,9 @@ export const GENRE_MOOD_ROUTE: EntityRoute = {
   slugIndex: 2,
   listLabel: "Genres & Moods",
   singular: "Genres & Moods entry",
-  // Tree taxonomy — detail crumbs are bespoke like Tags/Locations, so excluded from flat crumbs.
-  flatCrumbs: false,
+  // Unlike Tags/Media Types/Locations, the tree is surfaced via a view-only Hierarchy tab rather
+  // than an ancestor-chain breadcrumb, so the detail/edit crumbs are the shared flat `List → Name`.
+  flatCrumbs: true,
 };
 
 /** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */

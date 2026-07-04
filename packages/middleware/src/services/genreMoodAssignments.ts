@@ -2,7 +2,7 @@ import { and, asc, eq } from "drizzle-orm";
 import type { BookmarkGenreMood, GenreMoodOwnerType } from "@eesimple/types";
 import { db } from "@/db";
 import { genreMoodAssignments, genreMoods } from "@/db/schema";
-import { invalidateBookmarkCache } from "@/services/bookmarkCache";
+import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { slugify } from "@/utils/slug";
 
 /** The Genres & Moods entries attached to a single owner (bookmark or taxonomy entity). */

@@ -10,6 +10,7 @@ import { db } from "@/db";
 import { genreMoodAssignments, genreMoods, type GenreMoodRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import {
   collectSubtreeIds,
   computeSubtreeBookmarkCounts,
@@ -162,13 +163,18 @@ export async function updateGenreMood(
   return row ? toGenreMood(row) : null;
 }
 
-/** Delete an entry. FK cascade removes descendants and any assignment rows. */
+/** Delete an entry. FK cascade removes descendants and any assignment rows on the value side. */
 export async function deleteGenreMood(id: string): Promise<boolean> {
   const rows = await db.delete(genreMoods).where(eq(genreMoods.id, id)).returning({
     id: genreMoods.id,
   });
-  // Cascade removes descendants + assignment rows (incl. bookmark owners) — refresh the cache.
-  if (rows.length > 0) invalidateBookmarkCache();
+  if (rows.length > 0) {
+    // A genre/mood can itself be an assignment owner (attached to another genre/mood); ownerId
+    // carries no cascade FK, so clean up those rows here.
+    await deleteGenreMoodAssignmentsForOwner("genreMood", id);
+    // Cascade removes descendants + value-side assignment rows (incl. bookmark owners) — refresh the cache.
+    invalidateBookmarkCache();
+  }
   return rows.length > 0;
 }
 

@@ -7,6 +7,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
 import { bookmarks, episodes, type EpisodeRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -144,6 +145,7 @@ export async function deleteEpisode(id: string): Promise<boolean> {
   const rows = await db.delete(episodes).where(eq(episodes.id, id)).returning({
     id: episodes.id,
   });
+  if (rows.length > 0) await deleteTaxonomyImagesForOwner("episode", id);
   return rows.length > 0;
 }
 

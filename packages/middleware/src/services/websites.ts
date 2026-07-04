@@ -3,6 +3,7 @@ import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, Redirect
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { db } from "@/db";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bookmarkImages, bookmarks, categories, websiteFavicons, websiteTags, websites, websiteYoutubeChannels, type WebsiteRow } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
@@ -584,7 +585,11 @@ export async function deleteWebsite(id: string): Promise<boolean> {
   const rows = await db.delete(websites).where(eq(websites.id, id)).returning({
     id: websites.id,
   });
-  if (rows.length > 0) await deleteLanguageUsagesForOwner("website", id);
+  if (rows.length > 0) {
+    await deleteLanguageUsagesForOwner("website", id);
+    // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
+    await deleteGenreMoodAssignmentsForOwner("website", id);
+  }
   return rows.length > 0;
 }
 

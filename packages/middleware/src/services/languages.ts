@@ -8,6 +8,7 @@ import type {
 import { db } from "@/db";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { languages, languageUsages, type LanguageRow } from "@/db/schema";
 import { LANGUAGE_CODES } from "@/utils/languageCodes";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -162,7 +163,11 @@ export async function deleteLanguage(id: string): Promise<boolean> {
     id: languages.id,
   });
   // The cascaded language_usages rows are matchable data.
-  if (rows.length > 0) invalidateBookmarkCache();
+  if (rows.length > 0) {
+    // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
+    await deleteGenreMoodAssignmentsForOwner("language", id);
+    invalidateBookmarkCache();
+  }
   return rows.length > 0;
 }
 
