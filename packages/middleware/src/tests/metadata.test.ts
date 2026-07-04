@@ -1,10 +1,24 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildApp } from "@/app";
+import { stripChannelSelfIdSuffix } from "@/routes/metadata";
 import { checkUrl, decodeEntities, duckDuckGoIconUrl, extractSocialProfileLinks, extractTitle, fetchPageTitle } from "@/services/metadata";
 
 // These tests cover schema validation and the pure title-parsing helpers, so
 // they run without a live network or database.
+
+test("stripChannelSelfIdSuffix removes the first matching self-id suffix", () => {
+  assert.equal(stripChannelSelfIdSuffix("Cold Open - SNL", ["SNL"]), "Cold Open");
+});
+
+test("stripChannelSelfIdSuffix tries each self-id and returns the first that changes the title", () => {
+  assert.equal(stripChannelSelfIdSuffix("Sketch | Saturday Night Live", ["SNL", "Saturday Night Live"]), "Sketch");
+});
+
+test("stripChannelSelfIdSuffix returns the title unchanged when no self-id matches", () => {
+  assert.equal(stripChannelSelfIdSuffix("A plain title", ["SNL"]), "A plain title");
+  assert.equal(stripChannelSelfIdSuffix("A plain title", []), "A plain title");
+});
 
 test("GET /api/fetch-title rejects a request with no url", async () => {
   const app = await buildApp();

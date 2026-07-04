@@ -37,17 +37,26 @@ export interface HomepageSectionFormValues {
  * Default card display rule's zones, then the standard defaults. Extracted as a pure builder so the
  * `??`/`?.` chain stays out of the component (keeping it under the complexity cap) and is testable.
  */
-export function buildHomepageSectionInitialValues(
-  section: HomepageSection | undefined,
-  defaultZones: CardFieldZones | undefined,
-  properties: CustomProperty[] | undefined,
-): HomepageSectionFormValues {
+/** Content/behaviour fields: title, description, conditions, and the list-shaping knobs. */
+function homepageSectionCoreDefaults(section: HomepageSection | undefined) {
   return {
     title: section?.title ?? "",
     description: section?.description ?? "",
     conditions: section?.conditions ?? emptyConditionTree(),
     hideIfEmpty: section?.hideIfEmpty ?? false,
     columns: section?.columns ?? 2,
+    sort: section?.sort ?? null,
+    bookmarkLimit: section?.bookmarkLimit ?? null,
+  };
+}
+
+/** Card presentation fields: image mode/layout/visibility, view mode, and the field-zone board. */
+function homepageSectionDisplayDefaults(
+  section: HomepageSection | undefined,
+  defaultZones: CardFieldZones | undefined,
+  properties: CustomProperty[] | undefined,
+) {
+  return {
     imageMode: section?.imageMode ?? "natural",
     imageLayout: section?.imageLayout ?? "above",
     imageVisibility: section?.imageVisibility ?? "shown",
@@ -55,7 +64,16 @@ export function buildHomepageSectionInitialValues(
     fieldZones: section?.fieldZones ?? defaultZones ?? defaultCardFieldZones(properties ?? []),
     cardZoneLayouts: section?.cardZoneLayouts ?? defaultCardZoneLayouts(),
     hideWebsiteForYouTube: section?.hideWebsiteForYouTube ?? false,
-    sort: section?.sort ?? null,
-    bookmarkLimit: section?.bookmarkLimit ?? null,
+  };
+}
+
+export function buildHomepageSectionInitialValues(
+  section: HomepageSection | undefined,
+  defaultZones: CardFieldZones | undefined,
+  properties: CustomProperty[] | undefined,
+): HomepageSectionFormValues {
+  return {
+    ...homepageSectionCoreDefaults(section),
+    ...homepageSectionDisplayDefaults(section, defaultZones, properties),
   };
 }
