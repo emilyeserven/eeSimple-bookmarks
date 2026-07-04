@@ -2,13 +2,15 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { BookmarkCardGrid } from "./BookmarkCardGrid";
+import { BookmarkImageGallery } from "./BookmarkImageGallery";
 import { BookmarkPagination } from "./BookmarkPagination";
 import { BookmarkTableView } from "./BookmarkTableView";
 import { BookmarkBulkActions } from "./bulk/BookmarkBulkActions";
 import { BulkActionBar } from "./bulk/BulkActionBar";
+import { navLinkClass, navStripClass } from "./TabbedShell";
 import { useBookmarksPerPage } from "../hooks/useAppSettings";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useViewMode } from "../lib/bookmarkColumns";
@@ -16,6 +18,7 @@ import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch
 import { sortBookmarks } from "../lib/bookmarkSort";
 import { useListingPagination } from "../lib/useListingPagination";
 import { useListSelection } from "../lib/useListSelection";
+import { cn } from "../lib/utils";
 import { useUiStore } from "../stores/uiStore";
 
 interface BookmarkListContentProps {
@@ -109,39 +112,51 @@ interface BookmarkListPaneProps {
   addFormCategoryId?: string;
   /** Optional content rendered at the top of the list pane (e.g. a location map). */
   afterAddForm?: ReactNode;
+  /** When true (default), offer a Bookmarks | Gallery tab strip above the list. */
+  showGallery?: boolean;
 }
 
-/** Right column of the search view: the matching bookmarks, as a grid or table. */
-export function BookmarkListPane({
+interface BookmarkListBodyProps {
+  pageKey: string;
+  columns: number;
+  visibleBookmarks: Bookmark[];
+  properties: CustomProperty[];
+  search: BookmarkSearch;
+  hasActiveFilters: boolean;
+  isLoading: boolean;
+  error: Error | null;
+  emptyMessage: string;
+  noMatchMessage: string;
+  addFormCategoryId?: string;
+}
+
+/**
+ * The bookmarks-tab body: loading/error/empty states, the card-or-table list, and pagination. Split
+ * out of {@link BookmarkListPane} so the gallery-tab switch doesn't push the pane over the complexity
+ * cap.
+ */
+function BookmarkListBody({
   pageKey,
   columns,
-  bookmarks,
+  visibleBookmarks,
   properties,
   search,
-  textSearchActive = false,
+  hasActiveFilters,
   isLoading,
   error,
   emptyMessage,
   noMatchMessage,
   addFormCategoryId,
-  afterAddForm,
-}: BookmarkListPaneProps) {
-  useRegisterBulkSelect(pageKey);
+}: BookmarkListBodyProps) {
   const headerSearchQuery = useUiStore(s => s.headerSearchQuery);
   const perPage = useBookmarksPerPage();
-  const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
-  const visibleBookmarks = sortBookmarks(filtered, search.sort, properties);
-  const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
-
   const resetKey = `${pageKey}|${headerSearchQuery}|${JSON.stringify(search)}`;
   const {
     page, totalPages, pageItems, total, rangeStart, rangeEnd, setPage,
   } = useListingPagination(visibleBookmarks, perPage, resetKey);
 
   return (
-    <div className="min-w-0 space-y-6">
-      {afterAddForm}
-
+    <>
       {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && visibleBookmarks.length === 0
@@ -173,6 +188,79 @@ export function BookmarkListPane({
           </>
         )
         : null}
+    </>
+  );
+}
+
+/** Right column of the search view: the matching bookmarks, as a grid, table, or image gallery. */
+export function BookmarkListPane({
+  pageKey,
+  columns,
+  bookmarks,
+  properties,
+  search,
+  textSearchActive = false,
+  isLoading,
+  error,
+  emptyMessage,
+  noMatchMessage,
+  addFormCategoryId,
+  afterAddForm,
+  showGallery = true,
+}: BookmarkListPaneProps) {
+  useRegisterBulkSelect(pageKey);
+  const [tab, setTab] = useState<"bookmarks" | "gallery">("bookmarks");
+  const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
+  const visibleBookmarks = sortBookmarks(filtered, search.sort, properties);
+  const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
+
+  return (
+    <div className="min-w-0 space-y-6">
+      {afterAddForm}
+
+      {showGallery && (
+        <nav
+          className={navStripClass}
+          aria-label="Bookmarks view"
+        >
+          <button
+            type="button"
+            onClick={() => setTab("bookmarks")}
+            className={cn(navLinkClass, tab === "bookmarks" && `
+              bg-accent text-accent-foreground
+            `)}
+          >
+            Bookmarks
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("gallery")}
+            className={cn(navLinkClass, tab === "gallery" && `
+              bg-accent text-accent-foreground
+            `)}
+          >
+            Gallery
+          </button>
+        </nav>
+      )}
+
+      {showGallery && tab === "gallery"
+        ? <BookmarkImageGallery bookmarks={visibleBookmarks} />
+        : (
+          <BookmarkListBody
+            pageKey={pageKey}
+            columns={columns}
+            visibleBookmarks={visibleBookmarks}
+            properties={properties}
+            search={search}
+            hasActiveFilters={hasActiveFilters}
+            isLoading={isLoading}
+            error={error}
+            emptyMessage={emptyMessage}
+            noMatchMessage={noMatchMessage}
+            addFormCategoryId={addFormCategoryId}
+          />
+        )}
     </div>
   );
 }

@@ -9,7 +9,6 @@ import { RomanizedLabel } from "../RomanizedLabel";
 import { useLocationTree } from "@/hooks/useLocations";
 import { findAncestorPath, flattenTree } from "@/lib/tagTree";
 
-export { LocationGalleryView } from "./locationGalleryView";
 export { LocationHierarchyView } from "./locationHierarchyView";
 
 export function LocationGeneralView({

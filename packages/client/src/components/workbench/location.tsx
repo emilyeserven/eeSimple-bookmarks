@@ -4,7 +4,7 @@ import type { LocationNode } from "@eesimple/types";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { LocationGeneralForm } from "../LocationGeneralForm";
-import { LocationGalleryView, LocationGeneralView, LocationHierarchyView } from "./locationViews";
+import { LocationGeneralView, LocationHierarchyView } from "./locationViews";
 
 import { useDeleteLocation, useLocationById, useLocationBySlug } from "@/hooks/useLocations";
 
@@ -70,15 +70,6 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
         title: "Hierarchy",
         description: "Parent and child locations.",
         render: LocationHierarchyView,
-      },
-    },
-    {
-      key: "gallery",
-      label: "Gallery",
-      view: {
-        title: "Gallery",
-        description: "Images from bookmarks attached to this location.",
-        render: LocationGalleryView,
       },
     },
     {
