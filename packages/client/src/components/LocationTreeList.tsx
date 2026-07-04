@@ -2,6 +2,7 @@ import type { LocationNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { RomanizedLabel } from "./RomanizedLabel";
@@ -35,6 +36,9 @@ interface LocationTreeListProps {
 export function LocationTreeList({
   tree, expanded, onToggle, columns, onExpandMany, filterIds = [], onToggleFilter,
 }: LocationTreeListProps) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -58,7 +62,9 @@ export function LocationTreeList({
           params={{
             locationSlug: node.slug,
           }}
-          title={`Show ${node.name} bookmarks`}
+          title={t("Show {{name}} bookmarks", {
+            name: node.name,
+          })}
           className="
             min-w-0 flex-1
             hover:underline
@@ -77,8 +83,12 @@ export function LocationTreeList({
           params={{
             locationSlug: node.slug,
           }}
-          aria-label={`Edit ${node.name}`}
-          title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          aria-label={t("Edit {{name}}", {
+            name: node.name,
+          })}
+          title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+            modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+          })}
           onClick={event => editClick(event, "location", node.id)}
         >
           <Pencil className="size-4" />
@@ -90,7 +100,9 @@ export function LocationTreeList({
           params={{
             locationSlug: node.slug,
           }}
-          aria-label={`View ${node.name}`}
+          aria-label={t("View {{name}}", {
+            name: node.name,
+          })}
           title={entityLinkTitle(modifier)}
           onClick={event => viewClick(event, "location", node.id, node.slug)}
         >

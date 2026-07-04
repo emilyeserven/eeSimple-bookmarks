@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { ListingScaffold } from "./ListingScaffold";
@@ -11,11 +12,14 @@ import { useListingScaffold } from "@/hooks/useListingScaffold";
 
 /** Searchable listing of custom properties, with previews that link out to the view/create pages. */
 export function CustomPropertyManager() {
+  const {
+    t,
+  } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   useSetListingPage("custom-properties-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New property",
+    createLabel: t("New property"),
   });
   const navigate = useNavigate();
   const state = useListingScaffold(customPropertyListingConfig);

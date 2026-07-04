@@ -1,6 +1,7 @@
 import type { Podcast } from "@eesimple/types";
 
 import { Rss } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TaxonomyImageGallery } from "./TaxonomyImageGallery";
 import { useTaxonomyImages } from "../hooks/useTaxonomyImages";
@@ -18,6 +19,9 @@ export function PodcastImageTab({
   podcast: Podcast;
   readOnly?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const gallery = useTaxonomyImages(podcastsApi.images, podcast.id, ["podcast-images", podcast.id]);
 
   return (
@@ -28,7 +32,7 @@ export function PodcastImageTab({
       autoFetchActions={[
         {
           source: "artwork",
-          label: "Import artwork",
+          label: t("Import artwork"),
           icon: Rss,
           enabled: Boolean(podcast.feedUrl?.trim()),
         },

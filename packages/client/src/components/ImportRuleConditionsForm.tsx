@@ -1,15 +1,12 @@
 import type { ImportRule, UpdateImportRuleInput } from "@eesimple/types";
 
 import { emptyConditionTree } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { ImportConditionsField } from "./conditions/ImportConditionsField";
 import { useAutoSavedConditions } from "../hooks/useAutoSavedConditions";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateImportRule } from "../hooks/useImportRules";
-
-const LABELS: Partial<Record<keyof UpdateImportRuleInput, string>> = {
-  conditions: "Conditions",
-};
 
 interface Props {
   rule: ImportRule;
@@ -23,11 +20,17 @@ interface Props {
 export function ImportRuleConditionsForm({
   rule,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const updateRule = useUpdateImportRule();
+  const labels: Partial<Record<keyof UpdateImportRuleInput, string>> = {
+    conditions: t("Conditions"),
+  };
   const autoSave = useFieldAutoSave<UpdateImportRuleInput>({
     id: rule.id,
     update: updateRule,
-    labels: LABELS,
+    labels,
     initial: {
       conditions: rule.conditions ?? emptyConditionTree(),
     },

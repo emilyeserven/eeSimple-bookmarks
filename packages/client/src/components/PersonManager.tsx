@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddPersonModal } from "./AddPersonModal";
 import { ListingScaffold } from "./ListingScaffold";
@@ -11,11 +12,14 @@ import { useListingScaffold } from "@/hooks/useListingScaffold";
 
 /** Browsable, searchable person listing with an inline add modal. */
 export function PeopleListing() {
+  const {
+    t,
+  } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   useSetListingPage("people-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New person",
+    createLabel: t("New person"),
   });
   const navigate = useNavigate();
   const state = useListingScaffold(personListingConfig);

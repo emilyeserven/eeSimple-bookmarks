@@ -2,6 +2,8 @@ import type { TagNode } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { AddTagModal } from "./AddTagModal";
 import { TagPicker } from "./TagPicker";
 
@@ -16,6 +18,9 @@ export function TagPickerWithCreate({
   tree, selectedIds, onToggle,
 }: TagPickerWithCreateProps) {
   const [addTagOpen, setAddTagOpen] = useState(false);
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <>
@@ -24,7 +29,7 @@ export function TagPickerWithCreate({
         selectedIds={selectedIds}
         onToggle={onToggle}
         createOption={{
-          label: "Create tag",
+          label: t("Create tag"),
           onSelect: () => setAddTagOpen(true),
         }}
       />
