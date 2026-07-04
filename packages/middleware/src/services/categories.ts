@@ -4,6 +4,7 @@ import type {
   Category,
   CategoryPropertyDefaults,
   CreateCategoryInput,
+  EntityName,
   UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
 } from "@eesimple/types";
@@ -13,7 +14,7 @@ import { db } from "@/db";
 import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import {
   bookmarks,
   categories,
@@ -46,11 +47,12 @@ export class InvalidRootTagError extends Error {
 export const DEFAULT_CATEGORY_NAME = "Default";
 
 /** Map a DB row to the shared `Category` wire type. */
-function toCategory(row: CategoryRow & { bookmarkCount?: number }): Category {
+function toCategory(row: CategoryRow & { bookmarkCount?: number }, names?: EntityName[]): Category {
   return {
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName,
+    names: names ?? [],
     // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
     slug: row.slug ?? slugify(row.name),
     description: row.description,
@@ -105,7 +107,8 @@ export async function listCategories(): Promise<Category[]> {
     })
     .from(categories)
     .orderBy(asc(categories.name));
-  return rows.map(toCategory);
+  const namesMap = await loadEntityNames("category", rows.map(row => row.id));
+  return rows.map(row => toCategory(row, namesMap.get(row.id)));
 }
 
 export async function createCategory(input: CreateCategoryInput): Promise<Category> {

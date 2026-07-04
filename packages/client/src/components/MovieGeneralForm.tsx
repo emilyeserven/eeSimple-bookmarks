@@ -19,6 +19,7 @@ export function MovieGeneralForm({
     <PlexTitleGeneralForm
       entity={movie}
       kind="movie"
+      ownerType="movie"
       update={update}
       onRenamed={slug => void navigate({
         to: "/taxonomies/movies/$movieSlug/edit/general",

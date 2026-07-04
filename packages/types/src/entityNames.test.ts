@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import type { EntityName } from "./entityNames.js";
-import { nameSortKey, resolveDisplayNames, slugSourceFromNames } from "./entityNames.js";
+import { nameSortKey, namesWithLegacyFallback, resolveDisplayNames, slugSourceFromNames } from "./entityNames.js";
 
 function makeName(overrides: Partial<EntityName> & { value: string;
   isoCode: string | null;
@@ -44,8 +44,46 @@ test("resolveDisplayNames falls back to base with no names", () => {
   });
 });
 
-test("resolveDisplayNames uses the primary row and no secondary when no preference is given", () => {
+test("resolveDisplayNames falls back to the most useful other name when no preference is given", () => {
   assert.deepEqual(resolveDisplayNames([japanese, english], null, "進撃の巨人"), {
+    primary: "進撃の巨人",
+    secondary: "Attack on Titan",
+  });
+});
+
+test("resolveDisplayNames prefers an English other name over a non-English one in the fallback", () => {
+  const french = makeName({
+    value: "L'Attaque des Titans",
+    isoCode: "fr",
+    languageId: "lang-fr",
+    sortOrder: 2,
+  });
+  assert.deepEqual(resolveDisplayNames([japanese, french, english], null, "進撃の巨人"), {
+    primary: "進撃の巨人",
+    secondary: "Attack on Titan",
+  });
+});
+
+test("resolveDisplayNames falls back to the first other name when none is English", () => {
+  const french = makeName({
+    value: "L'Attaque des Titans",
+    isoCode: "fr",
+    languageId: "lang-fr",
+  });
+  assert.deepEqual(resolveDisplayNames([japanese, french], null, "進撃の巨人"), {
+    primary: "進撃の巨人",
+    secondary: "L'Attaque des Titans",
+  });
+});
+
+test("resolveDisplayNames has no secondary when there is only one name", () => {
+  const onlyJa = makeName({
+    value: "進撃の巨人",
+    isoCode: "ja",
+    languageId: "lang-ja",
+    isPrimary: true,
+  });
+  assert.deepEqual(resolveDisplayNames([onlyJa], null, "進撃の巨人"), {
     primary: "進撃の巨人",
     secondary: null,
   });
@@ -84,12 +122,12 @@ test("resolveDisplayNames yields no secondary when the preferred name equals the
   });
 });
 
-test("resolveDisplayNames ignores a preferred language with no matching name", () => {
+test("resolveDisplayNames falls back to the most useful other name when the preferred language has no match", () => {
   assert.deepEqual(resolveDisplayNames([japanese, english], {
     isoCode: "fr",
   }, "進撃の巨人"), {
     primary: "進撃の巨人",
-    secondary: null,
+    secondary: "Attack on Titan",
   });
 });
 
@@ -128,4 +166,23 @@ test("slugSourceFromNames ignores an empty English value", () => {
     languageId: "lang-en",
   });
   assert.equal(slugSourceFromNames([japanese, blankEn], "進撃の巨人"), "進撃の巨人");
+});
+
+// --- namesWithLegacyFallback ---
+
+test("namesWithLegacyFallback returns real names unchanged when present", () => {
+  assert.deepEqual(namesWithLegacyFallback([japanese, english], "ignored"), [japanese, english]);
+});
+
+test("namesWithLegacyFallback synthesizes a row from the legacy romanized value when names is empty", () => {
+  const result = namesWithLegacyFallback([], "Attack on Titan");
+  assert.equal(result.length, 1);
+  assert.equal(result[0].value, "Attack on Titan");
+  assert.equal(result[0].isPrimary, false);
+});
+
+test("namesWithLegacyFallback returns an empty array with no names and no legacy value", () => {
+  assert.deepEqual(namesWithLegacyFallback([], null), []);
+  assert.deepEqual(namesWithLegacyFallback(null, undefined), []);
+  assert.deepEqual(namesWithLegacyFallback(undefined, "   "), []);
 });

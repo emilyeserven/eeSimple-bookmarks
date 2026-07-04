@@ -4,6 +4,8 @@
  * — the service its detail page and the `podcastLink` bookmark-card field link out to. Add a provider
  * in exactly one place: this tuple + its label below.
  */
+import type { EntityName } from "./entityNames.js";
+
 export const PODCAST_LINK_PROVIDERS = ["feed", "itunes", "spotify", "pocketCasts"] as const;
 export type PodcastLinkProvider = typeof PODCAST_LINK_PROVIDERS[number];
 
@@ -37,6 +39,8 @@ export interface Podcast {
   name: string;
   /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this podcast, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
   /** Display ordering weight; lower sorts first. */

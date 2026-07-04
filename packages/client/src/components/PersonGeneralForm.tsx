@@ -4,6 +4,7 @@ import { Sparkles, UserCircle } from "lucide-react";
 
 import { CreatorMediaSection } from "./CreatorMediaSection";
 import { EntityImageField } from "./EntityImageField";
+import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { PersonAvatarActions } from "./PersonAvatarActions";
 import { SocialLinksField } from "./SocialLinksField";
@@ -12,6 +13,7 @@ import { useImageTaxonomySyncRegistration } from "../hooks/useImageTaxonomySyncR
 import { useUpdatePerson } from "../hooks/usePeople";
 
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { notifyFieldSaved } from "@/lib/autoSave";
 
@@ -59,15 +61,13 @@ export function PersonGeneralForm({
         )}
       </form.AppField>
 
-      <form.AppField name="romanizedName">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-            onBlur={() => saveField("romanizedName", field.state.value.trim())}
-          />
-        )}
-      </form.AppField>
+      <div className="space-y-1">
+        <Label>Names</Label>
+        <EntityNamesTabEditor
+          ownerType="person"
+          ownerId={person.id}
+        />
+      </div>
 
       <form.AppField name="personWebsiteUrl">
         {field => (

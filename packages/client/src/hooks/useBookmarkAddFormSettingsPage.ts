@@ -20,7 +20,7 @@ import { notifyError, notifySuccess } from "../lib/notifications";
 /** Human labels for each standard Add Bookmark form field (used for both rows and toast wording). */
 export const BOOKMARK_ADD_FORM_STANDARD_LABELS: Record<BookmarkAddFormStandardField, string> = {
   title: "Name",
-  romanizedName: "Romanized name",
+  romanizedName: "Other titles",
   categoryId: "Category",
   mediaTypeId: "Media Type",
   groupId: "Group",

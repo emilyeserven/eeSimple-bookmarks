@@ -1,7 +1,7 @@
 import type { createTaxonomyImageApi } from "../lib/api/taxonomyImages";
 import type { PlexTitleSyncField } from "../lib/syncSources/plexTitleDiff";
 import type { PlexKind } from "@/lib/plexParent";
-import type { PlexItemResult } from "@eesimple/types";
+import type { EntityNameOwnerType, PlexItemResult } from "@eesimple/types";
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -78,6 +78,8 @@ interface PlexTitleGeneralFormProps<E extends PlexTitle> {
   entity: E;
   /** Which taxonomy — narrows the Plex lookup. */
   kind: PlexKind;
+  /** Which `entity_names` owner type this entity is (distinct from `kind`, which is the Plex item type — e.g. TV Shows pass `kind="show"` but `ownerType="tvShow"`). */
+  ownerType: EntityNameOwnerType;
   /** The entity's update mutation (`useUpdateMovie` / `useUpdateEpisode` / …). */
   update: UseMutationResult<E, Error, { id: string;
     input: PlexTitleUpdateInput; }>;
@@ -104,6 +106,7 @@ interface PlexTitleGeneralFormProps<E extends PlexTitle> {
 export function PlexTitleGeneralForm<E extends PlexTitle>({
   entity,
   kind,
+  ownerType,
   update,
   onRenamed,
   renderExtra,
@@ -224,6 +227,8 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
         saveField={autoSave.saveField}
         currentSlug={entity.slug}
         onRenamed={onRenamed}
+        ownerType={ownerType}
+        ownerId={entity.id}
       />
 
       <form.AppField name="year">

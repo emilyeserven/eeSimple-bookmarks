@@ -2,7 +2,7 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useEffect, useRef, useState } from "react";
 
-import { orderRomanized } from "@eesimple/types";
+import { namesWithLegacyFallback, resolveDisplayNames } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
@@ -13,9 +13,10 @@ import { entityLinkTitle } from "@/lib/sidebarModifier";
 /**
  * The bookmark title rendered as a navigation link. Encapsulates `useViewPanelClick`,
  * `useSidebarOpenModifier`, and `useShowRomanizedByDefault` so those hooks are counted outside
- * `BookmarkCardDetails`. Renders the **primary** of the title / romanized pair per the global "Show
- * Romanized by default" toggle; the de-emphasized secondary is the separately placeable
- * `romanizedName` card field (see {@link BookmarkRomanizedField}).
+ * `BookmarkCardDetails`. Renders the resolved **primary** name via `resolveDisplayNames` (against
+ * `bookmark.names`, falling back to the legacy `romanizedName` scalar until it's backfilled); the
+ * de-emphasized secondary is the separately placeable `romanizedName` card field (see
+ * {@link BookmarkRomanizedField}).
  */
 export function BookmarkTitleLink({
   bookmark,
@@ -25,7 +26,15 @@ export function BookmarkTitleLink({
   const showRomanizedFirst = useShowRomanizedByDefault();
   const {
     primary,
-  } = orderRomanized(bookmark.title, bookmark.romanizedName, showRomanizedFirst);
+  } = resolveDisplayNames(
+    namesWithLegacyFallback(bookmark.names, bookmark.romanizedName),
+    showRomanizedFirst
+      ? {
+        id: "legacy-romanized",
+      }
+      : null,
+    bookmark.title,
+  );
   return (
     <h3 className="font-semibold">
       <Link
@@ -47,12 +56,11 @@ export function BookmarkTitleLink({
 }
 
 /**
- * The placeable `romanizedName` card field: the **secondary** of the title / romanized pair per the
- * global "Show Romanized by default" toggle (romanized when the toggle is off, the native title when
- * it's on), de-emphasized. Renders nothing when there is no romanized value. Owns its own
- * `useShowRomanizedByDefault` hook so it stays out of `BookmarkCardDetails`'s hook count. Wraps onto
- * multiple lines (`wrap-break-word`, matching the title link) rather than truncating, so a long
- * romanized title stays fully readable on a card instead of being clipped to a single line.
+ * The placeable `romanizedName` card field ("Secondary title"): the resolved **secondary** name via
+ * `resolveDisplayNames`, de-emphasized. Renders nothing when there is no secondary name. Owns its
+ * own `useShowRomanizedByDefault` hook so it stays out of `BookmarkCardDetails`'s hook count. Wraps
+ * onto multiple lines (`wrap-break-word`, matching the title link) rather than truncating, so a long
+ * secondary title stays fully readable on a card instead of being clipped to a single line.
  */
 export function BookmarkRomanizedField({
   bookmark,
@@ -60,7 +68,15 @@ export function BookmarkRomanizedField({
   const showRomanizedFirst = useShowRomanizedByDefault();
   const {
     secondary,
-  } = orderRomanized(bookmark.title, bookmark.romanizedName, showRomanizedFirst);
+  } = resolveDisplayNames(
+    namesWithLegacyFallback(bookmark.names, bookmark.romanizedName),
+    showRomanizedFirst
+      ? {
+        id: "legacy-romanized",
+      }
+      : null,
+    bookmark.title,
+  );
   if (!secondary) return null;
   return <span className="text-sm wrap-break-word text-muted-foreground">{secondary}</span>;
 }

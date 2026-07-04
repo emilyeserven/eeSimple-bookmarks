@@ -1,3 +1,4 @@
+import type { DraftEntityName } from "./entityNames/draftEntityName";
 import type { MediaSelection } from "./useBookmarkMediaField";
 import type { Bookmark, BookmarkUrlDuplicateResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 
@@ -97,6 +98,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       url: bookmark.originalUrl ?? bookmark.url ?? "",
       title: bookmark.title,
       romanizedName: bookmark.romanizedName ?? "",
+      names: [] as DraftEntityName[],
       categoryId: bookmark.categoryId ?? "",
       mediaTypeId: bookmark.mediaType?.id ?? "",
       description: bookmark.description ?? "",

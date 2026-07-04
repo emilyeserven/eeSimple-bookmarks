@@ -258,6 +258,8 @@ export function PodcastGeneralForm({
             podcastSlug: slug,
           },
         })}
+        ownerType="podcast"
+        ownerId={podcast.id}
       />
 
       <form.AppField name="feedUrl">

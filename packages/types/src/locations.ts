@@ -8,6 +8,8 @@
  * API and the browser, mirroring `./titleTags.ts`.
  */
 
+import type { EntityName } from "./entityNames.js";
+
 import { titleMatchesTerm } from "./titleTags.js";
 
 /**
@@ -36,6 +38,8 @@ export interface Location {
   name: string;
   /** Optional romanized form of the title, shown de-emphasized after the name when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this location, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   /** URL-friendly identifier derived from the name; unique across all locations. */
   slug: string;
   /** Extra names for different romanization styles; matched alongside `name`/`romanizedName`. */

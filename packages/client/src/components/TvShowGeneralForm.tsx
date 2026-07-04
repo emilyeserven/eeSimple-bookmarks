@@ -19,6 +19,7 @@ export function TvShowGeneralForm({
     <PlexTitleGeneralForm
       entity={tvShow}
       kind="show"
+      ownerType="tvShow"
       update={update}
       onRenamed={slug => void navigate({
         to: "/taxonomies/tv-shows/$tvShowSlug/edit/general",

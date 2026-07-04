@@ -4,6 +4,7 @@ import { RefreshCw } from "lucide-react";
 
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
+import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { LocationAncestorsSection } from "./LocationAncestorsSection";
 import { LocationLookupBox } from "./LocationLookupBox";
@@ -70,22 +71,13 @@ export function LocationGeneralForm({
         )}
       </form.AppField>
 
-      <form.AppField name="romanizedName">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-            // The slug derives from the romanized name, so a change here can move the slug too.
-            onBlur={() => saveField(
-              "romanizedName",
-              field.state.value.trim(),
-              {
-                onSuccess: followSlug,
-              },
-            )}
-          />
-        )}
-      </form.AppField>
+      <div className="space-y-1">
+        <Label>Names</Label>
+        <EntityNamesTabEditor
+          ownerType="location"
+          ownerId={node.id}
+        />
+      </div>
 
       <div className="space-y-2">
         <div

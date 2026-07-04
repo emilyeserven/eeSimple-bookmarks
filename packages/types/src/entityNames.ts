@@ -85,8 +85,12 @@ function matchesLanguage(name: EntityName, preferred: PreferredLanguage): boolea
 /**
  * Decide which of an entity's names to show. The primary is the name in `preferredLanguage` when one
  * is present, else the `isPrimary` name, else `base`. The secondary is the "other" canonical name —
- * the primary/base name — rendered de-emphasized after the primary, or `null` when it doesn't differ
- * from the chosen primary. Generalizes `orderRomanized` (romanized.ts) for the multi-language model.
+ * the primary/base name — rendered de-emphasized after the primary when it differs from the chosen
+ * primary. When no `preferredLanguage` match is found (there is no interface-language setting yet, so
+ * this is the common case today), the secondary falls back to "the most useful other name": an
+ * English-tagged name if one exists, else the first other name, so a romanized/alternate name still
+ * shows even with no explicit preference — generalizing `orderRomanized` (romanized.ts) for the
+ * multi-language model while keeping today's always-show-a-secondary behavior stable.
  */
 export function resolveDisplayNames(
   names: EntityName[],
@@ -99,10 +103,18 @@ export function resolveDisplayNames(
   const primaryRow = names.find(name => name.isPrimary);
   const canonical = primaryRow?.value ?? base;
   const primary = preferred?.value ?? canonical;
-  const secondary = canonical && canonical !== primary ? canonical : null;
+  if (canonical && canonical !== primary) {
+    return {
+      primary,
+      secondary: canonical,
+    };
+  }
+  const others = names.filter(name => name.value !== primary);
+  const englishOther = others.find(name => name.language.isoCode?.toLowerCase() === "en");
+  const fallback = englishOther ?? others[0];
   return {
     primary,
-    secondary,
+    secondary: fallback ? fallback.value : null,
   };
 }
 
@@ -134,4 +146,32 @@ export function slugSourceFromNames(names: EntityName[], baseName: string): stri
     name => name.language.isoCode?.toLowerCase() === "en" && name.value.trim().length > 0,
   );
   return english ? english.value : baseName;
+}
+
+/**
+ * Bridges the gap between the legacy `name`/`romanizedName` scalar pair and the new `entity_names`
+ * model while a row's `entity_names` haven't been backfilled yet (the migration is a separate,
+ * independently-timed issue). Returns `names` unchanged when it already carries rows; otherwise
+ * synthesizes a single non-primary row from `legacyRomanized` (or an empty array when there's no
+ * legacy value either), so display resolution degrades to exactly today's romanized-pair behavior
+ * until the real rows exist, and automatically prefers the real rows the moment they do.
+ */
+export function namesWithLegacyFallback(
+  names: EntityName[] | null | undefined,
+  legacyRomanized: string | null | undefined,
+): EntityName[] {
+  if (names && names.length > 0) return names;
+  if (!legacyRomanized || legacyRomanized.trim().length === 0) return [];
+  return [{
+    id: "legacy-romanized",
+    language: {
+      id: "legacy-romanized",
+      name: "Romanized",
+      slug: "romanized",
+      isoCode: null,
+    },
+    value: legacyRomanized,
+    isPrimary: false,
+    sortOrder: 0,
+  }];
 }

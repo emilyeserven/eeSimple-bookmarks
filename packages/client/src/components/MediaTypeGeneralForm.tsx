@@ -3,6 +3,7 @@ import type { MediaType, UpdateMediaTypeInput } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
@@ -16,7 +17,6 @@ const ROOT = "__root__";
 
 const mediaTypeGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
-  romanizedName: z.string(),
   sortOrder: z.number().int(),
   icon: z.string().nullable(),
   parent: z.string(),
@@ -81,7 +81,6 @@ export function MediaTypeGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: mediaType.name,
-      romanizedName: mediaType.romanizedName ?? "",
       sortOrder: mediaType.sortOrder,
       icon: mediaType.icon,
       parent: mediaType.parentId ?? ROOT,
@@ -150,15 +149,13 @@ export function MediaTypeGeneralForm({
         </form.AppField>
       </div>
 
-      <form.AppField name="romanizedName">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
-          />
-        )}
-      </form.AppField>
+      <div className="space-y-1">
+        <Label>Names</Label>
+        <EntityNamesTabEditor
+          ownerType="mediaType"
+          ownerId={mediaType.id}
+        />
+      </div>
 
       <form.AppField name="parent">
         {field => (

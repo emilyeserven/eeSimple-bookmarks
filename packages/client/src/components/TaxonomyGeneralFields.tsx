@@ -1,5 +1,8 @@
+import type { EntityNameOwnerType } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
+import { Label } from "./ui/label";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { useMediaProperties } from "@/hooks/useMediaProperties";
@@ -59,12 +62,18 @@ export const TaxonomyGeneralFields = withFieldGroup({
     saveField: (() => undefined) as SaveTaxonomyGeneralField,
     currentSlug: "",
     onRenamed: (() => undefined) as (slug: string) => void,
+    ownerType: "book" as EntityNameOwnerType,
+    ownerId: "",
   } as {
     saveField: SaveTaxonomyGeneralField;
     currentSlug: string;
     onRenamed: (slug: string) => void;
     /** Optional control rendered at the inline-end of the Name input (e.g. a source-sync hint). */
     nameAction?: ReactNode;
+    /** Which `entity_names` owner type this entity is, for the multilingual names editor. */
+    ownerType: EntityNameOwnerType;
+    /** The entity's id, for the multilingual names editor. */
+    ownerId: string;
   },
   render: function TaxonomyGeneralFieldsRender({
     group,
@@ -72,6 +81,8 @@ export const TaxonomyGeneralFields = withFieldGroup({
     currentSlug,
     onRenamed,
     nameAction,
+    ownerType,
+    ownerId,
   }) {
     const {
       data: mediaProperties,
@@ -126,15 +137,13 @@ export const TaxonomyGeneralFields = withFieldGroup({
           </group.AppField>
         </div>
 
-        <group.AppField name="romanizedName">
-          {field => (
-            <field.TextField
-              label="Romanized name"
-              placeholder="Optional romanized form"
-              onBlur={() => saveField("romanizedName", field.state.value.trim())}
-            />
-          )}
-        </group.AppField>
+        <div className="space-y-1">
+          <Label>Names</Label>
+          <EntityNamesTabEditor
+            ownerType={ownerType}
+            ownerId={ownerId}
+          />
+        </div>
 
         <group.AppField name="mediaPropertyId">
           {field => (

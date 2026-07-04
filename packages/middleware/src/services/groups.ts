@@ -3,6 +3,7 @@ import type {
   BulkDeleteResult,
   Group,
   CreateGroupInput,
+  EntityName,
   SocialLink,
   UpdateGroupInput,
 } from "@eesimple/types";
@@ -20,7 +21,7 @@ import {
   websites,
 } from "@/db/schema";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { getGroupImageRow } from "@/services/groupImages";
 import { buildStringMap } from "@/utils/mapUtils";
 import { deleteObject } from "@/utils/objectStore";
@@ -171,11 +172,13 @@ function toGroup(
   albumIds: string[] = [],
   youtubeChannelIds: string[] = [],
   websiteIds: string[] = [],
+  names?: EntityName[],
 ): Group {
   return {
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName,
+    names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     websiteId: row.websiteId,
     website: website ?? null,
@@ -229,10 +232,11 @@ export async function listGroups(): Promise<Group[]> {
     .orderBy(groups.name);
 
   const ids = rows.map(r => r.group.id);
-  const [albumMap, channelMap, websiteMap] = await Promise.all([
+  const [albumMap, channelMap, websiteMap, namesMap] = await Promise.all([
     loadGroupAlbumMap(ids),
     loadGroupYoutubeChannelMap(ids),
     loadGroupWebsiteMap(ids),
+    loadEntityNames("group", ids),
   ]);
   return rows.map(r =>
     toGroup(
@@ -246,6 +250,7 @@ export async function listGroups(): Promise<Group[]> {
       albumMap.get(r.group.id) ?? [],
       channelMap.get(r.group.id) ?? [],
       websiteMap.get(r.group.id) ?? [],
+      namesMap.get(r.group.id),
     ));
 }
 
@@ -265,10 +270,11 @@ export async function getGroupBySlug(slug: string): Promise<Group | null> {
     .limit(1);
   if (rows.length === 0) return null;
   const r = rows[0];
-  const [albumMap, channelMap, websiteMap] = await Promise.all([
+  const [albumMap, channelMap, websiteMap, namesMap] = await Promise.all([
     loadGroupAlbumMap([r.group.id]),
     loadGroupYoutubeChannelMap([r.group.id]),
     loadGroupWebsiteMap([r.group.id]),
+    loadEntityNames("group", [r.group.id]),
   ]);
   return toGroup(
     {
@@ -281,6 +287,7 @@ export async function getGroupBySlug(slug: string): Promise<Group | null> {
     albumMap.get(r.group.id) ?? [],
     channelMap.get(r.group.id) ?? [],
     websiteMap.get(r.group.id) ?? [],
+    namesMap.get(r.group.id),
   );
 }
 
@@ -300,10 +307,11 @@ export async function getGroupById(id: string): Promise<Group | null> {
     .limit(1);
   if (rows.length === 0) return null;
   const r = rows[0];
-  const [albumMap, channelMap, websiteMap] = await Promise.all([
+  const [albumMap, channelMap, websiteMap, namesMap] = await Promise.all([
     loadGroupAlbumMap([r.group.id]),
     loadGroupYoutubeChannelMap([r.group.id]),
     loadGroupWebsiteMap([r.group.id]),
+    loadEntityNames("group", [r.group.id]),
   ]);
   return toGroup(
     {
@@ -316,6 +324,7 @@ export async function getGroupById(id: string): Promise<Group | null> {
     albumMap.get(r.group.id) ?? [],
     channelMap.get(r.group.id) ?? [],
     websiteMap.get(r.group.id) ?? [],
+    namesMap.get(r.group.id),
   );
 }
 

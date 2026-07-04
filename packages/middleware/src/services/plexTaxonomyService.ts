@@ -2,12 +2,13 @@ import { and, asc, eq, getTableColumns, isNull } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import type {
   BulkDeleteResult,
+  EntityName,
   EntityNameOwnerType,
   LanguageUsageOwnerType,
   TaxonomyImageOwnerType,
 } from "@eesimple/types";
 import { db } from "@/db";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
@@ -171,10 +172,21 @@ export function createPlexTaxonomyService<
         ),
       )
       .orderBy(asc(table.sortOrder), asc(table.name));
-    return rows.map(row => toWire({
-      ...row,
-      mainImage: row.mainImage?.id ? row.mainImage : null,
-    }));
+    const namesMap = entityNameOwnerType
+      ? await loadEntityNames(entityNameOwnerType, rows.map(row => row.id))
+      : null;
+    return rows.map((row) => {
+      const wire = toWire({
+        ...row,
+        mainImage: row.mainImage?.id ? row.mainImage : null,
+      });
+      if (!namesMap) return wire;
+      const withNames: T & { names: EntityName[] } = {
+        ...wire,
+        names: namesMap.get(row.id) ?? [],
+      };
+      return withNames;
+    });
   }
 
   async function create(input: C): Promise<T> {

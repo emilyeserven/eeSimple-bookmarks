@@ -160,6 +160,26 @@ const createBookmarkBody = {
         },
       },
     },
+    names: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["languageId", "value"],
+        additionalProperties: false,
+        properties: {
+          languageId: {
+            type: "string",
+            format: "uuid",
+          },
+          value: {
+            type: "string",
+          },
+          isPrimary: {
+            type: "boolean",
+          },
+        },
+      },
+    },
     locationIds: {
       type: "array",
       items: {

@@ -3,6 +3,7 @@ import type {
   BulkDeleteResult,
   CreateLocationChainInput,
   CreateLocationInput,
+  EntityName,
   Location,
   LocationNode,
   LocationTitleCandidate,
@@ -16,7 +17,7 @@ import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { geocodeLocation, refreshLocationBoundary } from "@/services/geocoding";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { resolveWikipediaLinks } from "@/services/wikidataGeocoding";
 import {
   collectSubtreeIds as collectParentTreeSubtreeIds,
@@ -41,11 +42,17 @@ export interface LocationBookmarkCounts {
 }
 
 /** Map a DB row (plus optional precomputed counts + associated tag ids) to the shared wire type. */
-function toLocation(row: LocationRow, counts?: LocationBookmarkCounts, tagIds?: string[]): Location {
+function toLocation(
+  row: LocationRow,
+  counts?: LocationBookmarkCounts,
+  tagIds?: string[],
+  names?: EntityName[],
+): Location {
   return {
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName,
+    names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     alternateNames: row.alternateNames ?? [],
     latitude: row.latitude,
@@ -193,7 +200,8 @@ export async function listLocations(): Promise<Location[]> {
     .from(bookmarkLocations);
   const counts = computeLocationBookmarkCounts(rows, links);
   const tagMap = await tagIdsByLocation(rows.map(row => row.id));
-  return rows.map(row => toLocation(row, counts.get(row.id), tagMap.get(row.id) ?? []));
+  const namesMap = await loadEntityNames("location", rows.map(row => row.id));
+  return rows.map(row => toLocation(row, counts.get(row.id), tagMap.get(row.id) ?? [], namesMap.get(row.id)));
 }
 
 export async function getLocationTree(): Promise<LocationNode[]> {

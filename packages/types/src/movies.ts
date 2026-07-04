@@ -1,3 +1,4 @@
+import type { EntityName } from "./entityNames.js";
 import type { LanguageUsage } from "./languageUsages.js";
 
 /**
@@ -11,6 +12,8 @@ export interface Movie {
   name: string;
   /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this movie, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
   /** Display ordering weight; lower sorts first. */

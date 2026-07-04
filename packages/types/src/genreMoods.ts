@@ -5,6 +5,8 @@
  * polymorphic assignment layer (see {@link GenreMoodAssignment}).
  */
 
+import type { EntityName } from "./entityNames.js";
+
 /** A node in the Genres & Moods taxonomy tree. `parentId === null` marks a root entry. */
 export interface GenreMood {
   id: string;
@@ -12,6 +14,8 @@ export interface GenreMood {
   name: string;
   /** Optional romanized form of the name, shown de-emphasized after the name when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this entry, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   /** URL-friendly identifier derived from the name; unique across all entries. */
   slug: string;
   /** Parent entry id, or `null` for a root-level entry. */

@@ -7,7 +7,7 @@
 
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
-import type { EntityName } from "./entityNames.js";
+import type { EntityName, UpdateEntityNameEntry } from "./entityNames.js";
 import type { BookmarkGenreMood } from "./genreMoods.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
 import type { LanguageUsage, UpdateLanguageUsageEntry } from "./languageUsages.js";
@@ -48,6 +48,8 @@ export interface Tag {
   name: string;
   /** Optional romanized form of the name, shown de-emphasized after the name when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this tag, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   /** URL-friendly identifier derived from the name; unique across all tags. */
   slug: string;
   /** Parent tag id, or `null` for a root-level tag. */
@@ -569,6 +571,8 @@ export interface MediaType {
   name: string;
   /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this media type, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   /** URL-friendly identifier derived from the name (e.g. `"video"`). Unique. */
   slug: string;
   /** Optional Lucide icon name shown in the MediaTypePill on bookmark cards. */
@@ -663,6 +667,8 @@ export interface Group {
   name: string;
   /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this group, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
   /** Id of the website this group is associated with, or null when unset. */
@@ -925,6 +931,8 @@ export interface Person {
   name: string;
   /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this person, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   slug: string;
   createdAt: string;
   bookmarkCount?: number;
@@ -1326,6 +1334,8 @@ export interface CreateBookmarkInput {
    * Language" association) — inserted in the same create transaction, mirroring `genreMoodIds`.
    */
   languageUsages?: UpdateLanguageUsageEntry[];
+  /** Multilingual names to attach at create time — set right after the create transaction, mirroring `languageUsages`. */
+  names?: UpdateEntityNameEntry[];
   /** Ids of locations to assign, drawn from the Locations taxonomy. */
   locationIds?: string[];
   /** Tag IDs to exclude from autofill auto-apply on this bookmark. */
@@ -2305,6 +2315,8 @@ export interface Category {
   name: string;
   /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this category, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   /** URL-friendly identifier derived from the name (e.g. `"recipes"`); unique across categories. */
   slug: string;
   /** Optional free-form description. */

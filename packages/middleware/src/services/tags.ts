@@ -1,5 +1,5 @@
 import { asc, eq, isNull, ne, sql } from "drizzle-orm";
-import type { BulkDeleteResult, CreateTagInput, Tag, TagNode, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
+import type { BulkDeleteResult, CreateTagInput, EntityName, Tag, TagNode, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
 import { matchTagIdsByTitle, titleMatchesTerm } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarkTags, categoryRootTags, tags, type TagRow } from "@/db/schema";
@@ -7,7 +7,7 @@ import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { InvalidRootTagError } from "@/services/categories";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import {
   collectSubtreeIds as collectParentTreeSubtreeIds,
   computeSubtreeBookmarkCounts,
@@ -31,11 +31,12 @@ export interface TagBookmarkCounts {
 }
 
 /** Map a DB row (plus optional precomputed counts) to the shared `Tag` wire type. */
-function toTag(row: TagRow, counts?: TagBookmarkCounts): Tag {
+function toTag(row: TagRow, counts?: TagBookmarkCounts, names?: EntityName[]): Tag {
   return {
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName,
+    names: names ?? [],
     // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
     slug: row.slug ?? slugify(row.name),
     parentId: row.parentId,
@@ -139,7 +140,8 @@ export async function listTags(): Promise<Tag[]> {
     })
     .from(bookmarkTags);
   const counts = computeTagBookmarkCounts(rows, links);
-  return rows.map(row => toTag(row, counts.get(row.id)));
+  const namesMap = await loadEntityNames("tag", rows.map(row => row.id));
+  return rows.map(row => toTag(row, counts.get(row.id), namesMap.get(row.id)));
 }
 
 export async function getTagTree(): Promise<TagNode[]> {

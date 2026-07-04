@@ -1,3 +1,4 @@
+import type { DraftEntityName } from "./entityNames/draftEntityName";
 import type { Book, KavitaSeriesResult } from "@eesimple/types";
 
 import { useState } from "react";
@@ -6,8 +7,11 @@ import { useMutation } from "@tanstack/react-query";
 import { BookOpen, X } from "lucide-react";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
+import { entriesFromDrafts } from "./entityNames/draftEntityName";
+import { EntityNamesEditor } from "./entityNames/EntityNamesEditor";
 import { KavitaSeriesLookup } from "./KavitaSeriesLookup";
 import { useCreateBook } from "../hooks/useBooks";
+import { useCreateEntityNames } from "../hooks/useEntityNames";
 import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
 import { useMediaProperties } from "../hooks/useMediaProperties";
 import { describeError } from "../lib/apiError";
@@ -54,6 +58,7 @@ export function BookForm({
   onCreated,
 }: BookFormProps) {
   const createBook = useCreateBook();
+  const createNames = useCreateEntityNames();
   const {
     data: mediaProperties,
   } = useMediaProperties();
@@ -63,7 +68,7 @@ export function BookForm({
   });
 
   const [name, setName] = useState("");
-  const [romanizedName, setRomanizedName] = useState("");
+  const [nameDrafts, setNameDrafts] = useState<DraftEntityName[]>([]);
   const [mediaPropertyId, setMediaPropertyId] = useState<string>("");
   const [kavita, setKavita] = useState<KavitaLink>(EMPTY_KAVITA);
   const [addMediaPropertyOpen, setAddMediaPropertyOpen] = useState(false);
@@ -114,7 +119,6 @@ export function BookForm({
     createBook.mutate(
       {
         name: trimmed,
-        romanizedName: romanizedName.trim() || null,
         mediaPropertyId: mediaPropertyId || null,
         isbn: isbn.trim() || null,
         ...kavita,
@@ -123,6 +127,14 @@ export function BookForm({
       {
         onSuccess: (book) => {
           if (isbnCoverAvailable) importIsbnCover.mutate(book.id);
+          const entries = entriesFromDrafts(nameDrafts);
+          if (entries.length > 0) {
+            createNames.mutate({
+              ownerType: "book",
+              ownerId: book.id,
+              entries,
+            });
+          }
           onCreated?.(book);
         },
       },
@@ -148,12 +160,10 @@ export function BookForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="book-romanized-name">Romanized name</Label>
-        <Input
-          id="book-romanized-name"
-          placeholder="Optional romanized form"
-          value={romanizedName}
-          onChange={event => setRomanizedName(event.target.value)}
+        <Label>Names</Label>
+        <EntityNamesEditor
+          value={nameDrafts}
+          onChange={setNameDrafts}
         />
       </div>
 

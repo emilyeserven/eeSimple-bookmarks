@@ -1,3 +1,4 @@
+import type { DraftEntityName } from "./entityNames/draftEntityName";
 import type { Podcast, PodcastSearchResult, UpdatePodcastInput } from "@eesimple/types";
 
 import { useState } from "react";
@@ -5,9 +6,12 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
+import { entriesFromDrafts } from "./entityNames/draftEntityName";
+import { EntityNamesEditor } from "./entityNames/EntityNamesEditor";
 import { PodcastAuthorsFields } from "./PodcastAuthorsFields";
 import { PodcastSearchPicker } from "./PodcastSearchPicker";
 import { usePodcastAuthors } from "./usePodcastAuthors";
+import { useCreateEntityNames } from "../hooks/useEntityNames";
 import { useMediaProperties } from "../hooks/useMediaProperties";
 import { useCreatePodcast } from "../hooks/usePodcasts";
 
@@ -35,13 +39,14 @@ export function PodcastForm({
   onCreated,
 }: PodcastFormProps) {
   const createPodcast = useCreatePodcast();
+  const createNames = useCreateEntityNames();
   const queryClient = useQueryClient();
   const {
     data: mediaProperties,
   } = useMediaProperties();
 
   const [name, setName] = useState("");
-  const [romanizedName, setRomanizedName] = useState("");
+  const [nameDrafts, setNameDrafts] = useState<DraftEntityName[]>([]);
   const [feedUrl, setFeedUrl] = useState("");
   const [spotifyUrl, setSpotifyUrl] = useState("");
   const [description, setDescription] = useState("");
@@ -104,7 +109,6 @@ export function PodcastForm({
     createPodcast.mutate(
       {
         name: trimmed,
-        romanizedName: romanizedName.trim() || null,
         mediaPropertyId: mediaPropertyId || null,
         feedUrl: feedUrl.trim() || null,
         spotifyUrl: spotifyUrl.trim() || null,
@@ -119,6 +123,14 @@ export function PodcastForm({
       {
         onSuccess: (podcast) => {
           backfillProviderLinks(podcast);
+          const entries = entriesFromDrafts(nameDrafts);
+          if (entries.length > 0) {
+            createNames.mutate({
+              ownerType: "podcast",
+              ownerId: podcast.id,
+              entries,
+            });
+          }
           onCreated?.(podcast);
         },
       },
@@ -143,12 +155,10 @@ export function PodcastForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="podcast-romanized-name">Romanized name</Label>
-        <Input
-          id="podcast-romanized-name"
-          placeholder="Optional romanized form"
-          value={romanizedName}
-          onChange={event => setRomanizedName(event.target.value)}
+        <Label>Names</Label>
+        <EntityNamesEditor
+          value={nameDrafts}
+          onChange={setNameDrafts}
         />
       </div>
 

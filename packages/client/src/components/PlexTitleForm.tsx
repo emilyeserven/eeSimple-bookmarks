@@ -1,4 +1,5 @@
-import type { Album, Episode, Movie, PlexItemResult, Track, TvShow } from "@eesimple/types";
+import type { DraftEntityName } from "./entityNames/draftEntityName";
+import type { Album, EntityNameOwnerType, Episode, Movie, PlexItemResult, Track, TvShow } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useState } from "react";
@@ -6,8 +7,11 @@ import { useState } from "react";
 import { Clapperboard, X } from "lucide-react";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
+import { entriesFromDrafts } from "./entityNames/draftEntityName";
+import { EntityNamesEditor } from "./entityNames/EntityNamesEditor";
 import { PlexItemLookup } from "./PlexItemLookup";
 import { useCreateAlbum } from "../hooks/useAlbums";
+import { useCreateEntityNames } from "../hooks/useEntityNames";
 import { useCreateEpisode } from "../hooks/useEpisodes";
 import { useMediaProperties } from "../hooks/useMediaProperties";
 import { useCreateMovie } from "../hooks/useMovies";
@@ -52,6 +56,15 @@ const NOUNS: Record<PlexCreateKind, string> = {
   track: "track",
 };
 
+/** The `entity_names` owner type for each createable Plex kind (distinct from `kind` itself — `"show"` maps to `"tvShow"`). */
+const OWNER_TYPES: Record<PlexCreateKind, EntityNameOwnerType> = {
+  movie: "movie",
+  show: "tvShow",
+  episode: "episode",
+  album: "album",
+  track: "track",
+};
+
 interface PlexTitleFormProps {
   /** Which taxonomy this form creates — narrows the Plex lookup and the create mutation. */
   kind: PlexCreateKind;
@@ -91,12 +104,13 @@ export function PlexTitleForm({
     album: useCreateAlbum(),
     track: useCreateTrack(),
   }[kind];
+  const createNames = useCreateEntityNames();
   const {
     data: mediaProperties,
   } = useMediaProperties();
 
   const [name, setName] = useState("");
-  const [romanizedName, setRomanizedName] = useState("");
+  const [nameDrafts, setNameDrafts] = useState<DraftEntityName[]>([]);
   const [mediaPropertyId, setMediaPropertyId] = useState<string>("");
   const [plex, setPlex] = useState<PlexLink>(EMPTY_PLEX);
   const [addMediaPropertyOpen, setAddMediaPropertyOpen] = useState(false);
@@ -120,13 +134,22 @@ export function PlexTitleForm({
     create.mutate(
       {
         name: trimmed,
-        romanizedName: romanizedName.trim() || null,
         mediaPropertyId: mediaPropertyId || null,
         ...plex,
         ...buildExtraInput?.(),
       },
       {
-        onSuccess: onCreated,
+        onSuccess: (item) => {
+          const entries = entriesFromDrafts(nameDrafts);
+          if (entries.length > 0) {
+            createNames.mutate({
+              ownerType: OWNER_TYPES[kind],
+              ownerId: item.id,
+              entries,
+            });
+          }
+          onCreated?.(item);
+        },
       },
     );
   }
@@ -153,12 +176,10 @@ export function PlexTitleForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="plex-title-romanized-name">Romanized name</Label>
-        <Input
-          id="plex-title-romanized-name"
-          placeholder="Optional romanized form"
-          value={romanizedName}
-          onChange={event => setRomanizedName(event.target.value)}
+        <Label>Names</Label>
+        <EntityNamesEditor
+          value={nameDrafts}
+          onChange={setNameDrafts}
         />
       </div>
 

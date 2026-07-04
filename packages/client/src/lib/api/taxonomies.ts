@@ -27,6 +27,9 @@ import type {
   LanguageUsageAssociation,
   LanguageUsageOwnerType,
   UpdateLanguageUsageEntry,
+  EntityName,
+  EntityNameOwnerType,
+  UpdateEntityNameEntry,
   CreatePlaceTypeInput,
   CreatePropertyGroupInput,
   CreateGroupInput,
@@ -285,6 +288,18 @@ export const languageUsagesApi = {
     request<LanguageUsage[]>(`/language-usages/${ownerType}/${ownerId}`),
   put: (ownerType: LanguageUsageOwnerType, ownerId: string, entries: UpdateLanguageUsageEntry[]) =>
     request<LanguageUsage[]>(`/language-usages/${ownerType}/${ownerId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        entries,
+      }),
+    }),
+};
+
+export const entityNamesApi = {
+  get: (ownerType: EntityNameOwnerType, ownerId: string) =>
+    request<EntityName[]>(`/entity-names/${ownerType}/${ownerId}`),
+  put: (ownerType: EntityNameOwnerType, ownerId: string, entries: UpdateEntityNameEntry[]) =>
+    request<EntityName[]>(`/entity-names/${ownerType}/${ownerId}`, {
       method: "PUT",
       body: JSON.stringify({
         entries,

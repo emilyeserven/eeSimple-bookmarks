@@ -49,7 +49,7 @@ describe("RevealedNameField", () => {
 
   it("shows the undo line only when a title fetch has happened", async () => {
     const {
-      rerender,
+      unmount,
     } = await renderWithRouter(
       <BookmarkFormHost
         initialValues={{
@@ -70,8 +70,13 @@ describe("RevealedNameField", () => {
     expect(screen.queryByRole("button", {
       name: /^undo$/i,
     })).not.toBeInTheDocument();
+    unmount();
 
-    rerender(
+    // `rerender` would drop this test's `QueryClientProvider`/`RouterProvider` (it only replaces the
+    // inner UI passed to the first `render`, not the wrapper `renderWithRouter` builds around it), so
+    // a fresh `renderWithRouter` call is used here instead now that `RevealedNameField` renders a
+    // query-hook-using names editor.
+    await renderWithRouter(
       <BookmarkFormHost
         initialValues={{
           url: "https://example.com",

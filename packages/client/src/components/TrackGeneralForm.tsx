@@ -50,6 +50,7 @@ export function TrackGeneralForm({
     <PlexTitleGeneralForm
       entity={track}
       kind="track"
+      ownerType="track"
       update={update}
       onRenamed={slug => void navigate({
         to: "/taxonomies/tracks/$trackSlug/edit/general",

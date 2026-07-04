@@ -2,6 +2,7 @@ import { asc, eq, isNotNull, isNull } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateMediaTypeInput,
+  EntityName,
   MediaType,
   MediaTypeNode,
   UpdateMediaTypeInput,
@@ -10,7 +11,7 @@ import { db } from "@/db";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { bookmarks, mediaTypes, type MediaTypeRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -122,11 +123,13 @@ const BUILT_IN_MEDIA_TYPES: BuiltInMediaType[] = [
 function toMediaType(
   row: MediaTypeRow,
   counts?: MediaTypeBookmarkCounts,
+  names?: EntityName[],
 ): MediaType {
   return {
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName,
+    names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     icon: row.icon ?? null,
     builtIn: row.builtIn,
@@ -256,7 +259,8 @@ export async function listMediaTypes(): Promise<MediaType[]> {
     rows,
     links.map(l => l.mediaTypeId),
   );
-  return rows.map(row => toMediaType(row, counts.get(row.id)));
+  const namesMap = await loadEntityNames("mediaType", rows.map(row => row.id));
+  return rows.map(row => toMediaType(row, counts.get(row.id), namesMap.get(row.id)));
 }
 
 /** The full media-type taxonomy as a nested tree (roots first). */

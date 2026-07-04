@@ -2,12 +2,17 @@
  * An Album in the "Albums" taxonomy. Plex-backed like a Movie. Credited to People (individual creators)
  * and Groups (group creators) many-to-many. Bookmarks link to an Album via `bookmark.albumId`.
  */
+
+import type { EntityName } from "./entityNames.js";
+
 export interface Album {
   id: string;
   /** Display name. Unique. */
   name: string;
   /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this album, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
   /** Display ordering weight; lower sorts first. */

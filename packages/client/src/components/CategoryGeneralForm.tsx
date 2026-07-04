@@ -3,6 +3,7 @@ import type { Category, UpdateCategoryInput } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { useUpdateCategory } from "../hooks/useCategories";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -13,7 +14,6 @@ import { Label } from "@/components/ui/label";
 
 const categorySchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
-  romanizedName: z.string(),
   description: z.string(),
   icon: z.string().nullable(),
 });
@@ -50,7 +50,6 @@ export function CategoryGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: category.name,
-      romanizedName: category.romanizedName ?? "",
       description: category.description ?? "",
       icon: category.icon,
     },
@@ -93,15 +92,6 @@ export function CategoryGeneralForm({
             />
           )}
         </form.AppField>
-        <form.AppField name="romanizedName">
-          {field => (
-            <field.TextField
-              label="Romanized name"
-              placeholder="Optional romanized form"
-              onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
-            />
-          )}
-        </form.AppField>
         <form.AppField name="icon">
           {field => (
             <div className="space-y-1">
@@ -131,6 +121,13 @@ export function CategoryGeneralForm({
             />
           )}
         </form.AppField>
+      </div>
+      <div className="space-y-1">
+        <Label>Names</Label>
+        <EntityNamesTabEditor
+          ownerType="category"
+          ownerId={category.id}
+        />
       </div>
       <GenreMoodAssignmentSection
         ownerType="category"

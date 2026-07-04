@@ -138,6 +138,8 @@ export function BookGeneralForm({
           },
         })}
         nameAction={renderKavitaFieldSyncHint("name", book.name, kavitaDetail?.name)}
+        ownerType="book"
+        ownerId={book.id}
       />
 
       <form.AppField name="releaseYear">

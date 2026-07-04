@@ -1,4 +1,5 @@
 import type { ImageIntent } from "./bookmarkImageIntent";
+import type { DraftEntityName } from "./entityNames/draftEntityName";
 import type { AutofillInput, AutofillResult } from "../lib/autofill";
 import type {
   AutofillRule,
@@ -26,6 +27,12 @@ export const bookmarkSchema = z.object({
   url: z.string(),
   title: z.string().min(1, "Title is required"),
   romanizedName: z.string(),
+  // Staged multilingual names for the create form (create-only — edit uses its own EntityNamesTabEditor).
+  names: z.array(z.object({
+    languageId: z.string(),
+    value: z.string(),
+    isPrimary: z.boolean(),
+  })),
   categoryId: z.string().min(1, "Category is required"),
   mediaTypeId: z.string(),
   description: z.string(),
@@ -148,6 +155,7 @@ const SAMPLE_DEFAULT_VALUES: {
   url: string;
   title: string;
   romanizedName: string;
+  names: DraftEntityName[];
   categoryId: string;
   mediaTypeId: string;
   description: string;
@@ -170,6 +178,7 @@ const SAMPLE_DEFAULT_VALUES: {
   url: "",
   title: "",
   romanizedName: "",
+  names: [],
   categoryId: "",
   mediaTypeId: "",
   description: "",
@@ -234,6 +243,8 @@ function scalarBookmarkDefaults(
     url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
     title: bookmark?.title ?? initial.title ?? "",
     romanizedName: bookmark?.romanizedName ?? initial.romanizedName ?? "",
+    // Create-only staged names; edit mode manages names via its own EntityNamesTabEditor.
+    names: [] as DraftEntityName[],
     categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
     mediaTypeId: bookmark?.mediaType?.id ?? "",
     description: bookmark?.description ?? "",
