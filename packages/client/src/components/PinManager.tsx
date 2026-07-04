@@ -3,6 +3,7 @@ import type { PinnedSidebarEntityType, PinnedSidebarItem } from "@eesimple/types
 import { useState } from "react";
 
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Combobox } from "./Combobox";
 import { usePinManagerData } from "./usePinManagerData";
@@ -17,6 +18,9 @@ import { cn } from "@/lib/utils";
  * popover.
  */
 export function PinManager() {
+  const {
+    t,
+  } = useTranslation();
   const {
     pins, addPin, removePin, groups, resolvePinLabel,
   } = usePinManagerData();
@@ -40,9 +44,9 @@ export function PinManager() {
         groups={groups}
         value={comboValue}
         onValueChange={handleSelect}
-        placeholder="Pin a category, location, tag…"
-        searchPlaceholder="Search…"
-        emptyText="Nothing left to pin."
+        placeholder={t("Pin a category, location, tag…")}
+        searchPlaceholder={t("Search…")}
+        emptyText={t("Nothing left to pin.")}
       />
       {pins.length > 0
         ? (
@@ -60,7 +64,7 @@ export function PinManager() {
                       !label && "text-muted-foreground italic",
                     )}
                   >
-                    {label ?? "(deleted)"}
+                    {label ?? t("(deleted)")}
                   </span>
                   <Button
                     type="button"
@@ -70,14 +74,17 @@ export function PinManager() {
                     onClick={() => removePin.mutate(pin.id)}
                   >
                     <X className="size-3.5" />
-                    <span className="sr-only">Unpin {label ?? "item"}</span>
+                    <span className="sr-only">{t("Unpin {{label}}", {
+                      label: label ?? t("item"),
+                    })}
+                    </span>
                   </Button>
                 </div>
               );
             })}
           </div>
         )
-        : <p className="text-sm text-muted-foreground">No pinned items yet.</p>}
+        : <p className="text-sm text-muted-foreground">{t("No pinned items yet.")}</p>}
     </div>
   );
 }

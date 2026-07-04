@@ -3,6 +3,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 interface Props<T> {
   entity: T | undefined;
   isLoading: boolean;
@@ -21,7 +23,10 @@ export function TabWrapper<T>({
   description,
   children,
 }: Props<T>) {
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
+  const {
+    t,
+  } = useTranslation();
+  if (isLoading) return <p className="text-muted-foreground">{t("Loading…")}</p>;
   if (!entity) return <p className="text-destructive">{notFoundMessage}</p>;
   return (
     <section className="space-y-4">

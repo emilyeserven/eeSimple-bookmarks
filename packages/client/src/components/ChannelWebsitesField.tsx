@@ -1,5 +1,7 @@
 import type { Website } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { MultiCombobox } from "./MultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
@@ -20,6 +22,9 @@ export function ChannelWebsitesField({
   selectedIds,
   onChange,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const websiteCreate = useEntityCreateOption("website", website => onChange([...selectedIds, website.id]));
 
   const options = websites.map(website => ({
@@ -30,17 +35,17 @@ export function ChannelWebsitesField({
   return (
     <>
       <div className="space-y-2">
-        <Label className="block">Websites</Label>
+        <Label className="block">{t("Websites")}</Label>
         <p className="text-sm text-muted-foreground">
-          Websites associated with this channel.
+          {t("Websites associated with this channel.")}
         </p>
         <MultiCombobox
           options={options}
           values={selectedIds}
           onValuesChange={onChange}
-          placeholder="No websites selected"
-          searchPlaceholder="Search websites…"
-          emptyText="No websites found."
+          placeholder={t("No websites selected")}
+          searchPlaceholder={t("Search websites…")}
+          emptyText={t("No websites found.")}
           createOption={websiteCreate.createOption}
         />
       </div>

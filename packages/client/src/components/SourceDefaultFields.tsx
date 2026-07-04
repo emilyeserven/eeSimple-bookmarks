@@ -3,6 +3,8 @@ import type { TreeComboboxOption } from "./TreeMultiCombobox";
 
 import { useId, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { Combobox } from "./Combobox";
 import { TreeCombobox } from "./TreeCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
@@ -39,32 +41,37 @@ export function SourceDefaultFields({
   categoryOptions,
   onCategoryChange,
   note,
-  categoryLabel = "Category",
+  categoryLabel,
   showMediaType = true,
   initialMediaTypeId = null,
   mediaTypeOptions = [],
   onMediaTypeChange,
-  mediaTypeLabel = "Media type",
+  mediaTypeLabel,
 }: SourceDefaultFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
   const categoryFieldId = useId();
   const mediaTypeFieldId = useId();
   const [categoryId, setCategoryId] = useState(initialCategoryId);
   const [mediaTypeId, setMediaTypeId] = useState(initialMediaTypeId);
   const categoryCreate = useEntityCreateOption("category", category => setCategoryId(category.id));
   const mediaTypeCreate = useEntityCreateOption("media-type", mediaType => setMediaTypeId(mediaType.id));
+  const resolvedCategoryLabel = categoryLabel ?? t("Category");
+  const resolvedMediaTypeLabel = mediaTypeLabel ?? t("Media type");
 
   return (
     <>
       <div className="space-y-1">
-        <Label htmlFor={categoryFieldId}>{categoryLabel}</Label>
+        <Label htmlFor={categoryFieldId}>{resolvedCategoryLabel}</Label>
         <Combobox
           id={categoryFieldId}
-          aria-label={categoryLabel}
+          aria-label={resolvedCategoryLabel}
           options={categoryOptions}
           value={categoryId || undefined}
-          placeholder="No category"
-          searchPlaceholder="Search categories…"
-          emptyText="No categories found."
+          placeholder={t("No category")}
+          searchPlaceholder={t("Search categories…")}
+          emptyText={t("No categories found.")}
           createOption={categoryCreate.createOption}
           onValueChange={(value) => {
             const id = value || null;
@@ -79,15 +86,15 @@ export function SourceDefaultFields({
         ? (
           <>
             <div className="space-y-1">
-              <Label htmlFor={mediaTypeFieldId}>{mediaTypeLabel}</Label>
+              <Label htmlFor={mediaTypeFieldId}>{resolvedMediaTypeLabel}</Label>
               <TreeCombobox
                 id={mediaTypeFieldId}
-                aria-label={mediaTypeLabel}
+                aria-label={resolvedMediaTypeLabel}
                 options={mediaTypeOptions}
                 value={mediaTypeId || undefined}
-                placeholder="No media type"
-                searchPlaceholder="Search media types…"
-                emptyText="No media types found."
+                placeholder={t("No media type")}
+                searchPlaceholder={t("Search media types…")}
+                emptyText={t("No media types found.")}
                 createOption={mediaTypeCreate.createOption}
                 onValueChange={(value) => {
                   const id = value || null;

@@ -1,6 +1,7 @@
 import type { AncestorChildrenScopeControls, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 
 import { Layers, MapPin, Shapes } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { LevelGroupGlyph, LevelsFooter } from "./locationLevelsShared";
 import { useLocationLevels } from "../hooks/useLocationLevels";
@@ -27,6 +28,9 @@ export function LocationLevelsOverlay({
   ancestorChildrenScope?: AncestorChildrenScopeControls;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     groups, setGroupDisplayMode,
   } = useLocationLevels({
     notify: false,
@@ -34,8 +38,8 @@ export function LocationLevelsOverlay({
 
   return (
     <ResponsivePopover
-      title="Levels"
-      description="Choose which level groups appear on the map and how each renders."
+      title={t("Levels")}
+      description={t("Choose which level groups appear on the map and how each renders.")}
       align="end"
       trigger={(
         <Button
@@ -44,14 +48,14 @@ export function LocationLevelsOverlay({
           size="sm"
         >
           <Layers className="mr-2 size-4" />
-          Levels
+          {t("Levels")}
         </Button>
       )}
     >
       {groups.length === 0
         ? (
           <p className="text-sm text-muted-foreground">
-            No level groups yet. Define them in Settings → Locations.
+            {t("No level groups yet. Define them in Settings → Locations.")}
           </p>
         )
         : (
@@ -73,7 +77,7 @@ export function LocationLevelsOverlay({
                     htmlFor={`level-${group.id}`}
                     className="cursor-pointer"
                   >
-                    {group.name || "Level"}
+                    {group.name || t("Level")}
                   </Label>
                 </div>
                 <ToggleGroup
@@ -86,17 +90,19 @@ export function LocationLevelsOverlay({
                       setGroupDisplayMode(group.id, value);
                     }
                   }}
-                  aria-label={`${group.name || "Level"} display mode`}
+                  aria-label={t("{{name}} display mode", {
+                    name: group.name || t("Level"),
+                  })}
                 >
                   <ToggleGroupItem
                     value="pin"
-                    aria-label="Pin"
+                    aria-label={t("Pin")}
                   >
                     <MapPin className="size-4" />
                   </ToggleGroupItem>
                   <ToggleGroupItem
                     value="area"
-                    aria-label="Area"
+                    aria-label={t("Area")}
                   >
                     <Shapes className="size-4" />
                   </ToggleGroupItem>

@@ -1,25 +1,10 @@
 import type { CreateImportRuleInput, ImportRuleAction } from "@eesimple/types";
 
 import { emptyConditionTree } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
-
-const ACTION_OPTIONS: { value: string;
-  label: string; }[] = [
-  {
-    value: "reject",
-    label: "Reject — skip manual review",
-  },
-  {
-    value: "approve",
-    label: "Approve — create the bookmark automatically",
-  },
-  {
-    value: "block",
-    label: "Block — add domain to blacklist",
-  },
-];
 
 const schema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -35,11 +20,29 @@ interface ImportRuleFormProps {
 
 /** Create-only submit form for a new import rule (name + action). */
 export function ImportRuleForm({
-  submitLabel = "Add rule",
+  submitLabel,
   isError,
   errorMessage,
   onSubmit,
 }: ImportRuleFormProps) {
+  const {
+    t,
+  } = useTranslation();
+  const ACTION_OPTIONS: { value: string;
+    label: string; }[] = [
+    {
+      value: "reject",
+      label: t("Reject — skip manual review"),
+    },
+    {
+      value: "approve",
+      label: t("Approve — create the bookmark automatically"),
+    },
+    {
+      value: "block",
+      label: t("Block — add domain to blacklist"),
+    },
+  ];
   const form = useAppForm({
     defaultValues: {
       name: "",
@@ -71,8 +74,8 @@ export function ImportRuleForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
-            placeholder="e.g. Block social media"
+            label={t("Name")}
+            placeholder={t("e.g. Block social media")}
           />
         )}
       </form.AppField>
@@ -80,7 +83,7 @@ export function ImportRuleForm({
       <form.AppField name="action">
         {field => (
           <field.SelectField
-            label="Action"
+            label={t("Action")}
             options={ACTION_OPTIONS}
           />
         )}
@@ -90,8 +93,8 @@ export function ImportRuleForm({
 
       <form.AppForm>
         <form.SubmitButton
-          label={submitLabel}
-          pendingLabel="Adding…"
+          label={submitLabel ?? t("Add rule")}
+          pendingLabel={t("Adding…")}
         />
       </form.AppForm>
     </form>

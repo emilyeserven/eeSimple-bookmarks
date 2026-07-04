@@ -1,6 +1,7 @@
 import type { AutofillRule, UpdateAutofillRuleInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useUpdateAutofillRule } from "../hooks/useAutofill";
@@ -30,6 +31,9 @@ interface Props {
 export function AutofillRuleGeneralForm({
   rule,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateRule = useUpdateAutofillRule();
   const autoSave = useFieldAutoSave<UpdateAutofillRuleInput, AutofillRule>({
@@ -59,8 +63,8 @@ export function AutofillRuleGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
-            placeholder="e.g. Recipes from 101 Cookbooks"
+            label={t("Name")}
+            placeholder={t("e.g. Recipes from 101 Cookbooks")}
             onBlur={() => autoSave.saveField(
               "name",
               field.state.value.trim(),
@@ -86,7 +90,7 @@ export function AutofillRuleGeneralForm({
       <form.AppField name="description">
         {field => (
           <field.TextareaField
-            label="Description"
+            label={t("Description")}
             onBlur={() => autoSave.saveField(
               "description",
               field.state.value.trim() || null,
@@ -101,9 +105,9 @@ export function AutofillRuleGeneralForm({
       <form.AppField name="sortOrder">
         {field => (
           <field.NumberField
-            label="Priority"
+            label={t("Priority")}
             className="max-w-32"
-            hint="Higher numbers win when rules conflict on the category."
+            hint={t("Higher numbers win when rules conflict on the category.")}
             onBlur={() => autoSave.saveField(
               "sortOrder",
               field.state.value,

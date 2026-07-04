@@ -3,6 +3,7 @@ import type { SidebarOpenModifier } from "@eesimple/types";
 import type { MouseEvent } from "react";
 
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CollapsibleSection } from "./app-sidebar-sections";
 import { SidebarCategoryMenuItem } from "./SidebarCategoryMenuItem";
@@ -35,10 +36,13 @@ export function SidebarCategoriesSection({
   sidebarState: string;
   onViewClick: (event: MouseEvent, id: string) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <CollapsibleSection
       sectionKey="categories"
-      label="Categories"
+      label={t("Categories")}
     >
       <SidebarMenu>
         {visibleCategories.map(category => (
@@ -55,12 +59,12 @@ export function SidebarCategoriesSection({
           ? (
             <SidebarMenuItem>
               <SidebarMenuButton
-                tooltip="Show more categories"
+                tooltip={t("Show more categories")}
                 onClick={() => setExpanded(true)}
                 className="text-xs text-muted-foreground"
               >
                 <ChevronDown className="size-4" />
-                <span>See More</span>
+                <span>{t("See More")}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )
@@ -81,12 +85,12 @@ export function SidebarCategoriesSection({
           ? (
             <SidebarMenuItem>
               <SidebarMenuButton
-                tooltip="Show fewer categories"
+                tooltip={t("Show fewer categories")}
                 onClick={() => setExpanded(false)}
                 className="text-xs text-muted-foreground"
               >
                 <ChevronUp className="size-4" />
-                <span>See Less</span>
+                <span>{t("See Less")}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )

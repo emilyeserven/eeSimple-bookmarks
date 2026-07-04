@@ -1,6 +1,7 @@
 import type { AutofillListSearch } from "../lib/autofillScope";
 
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { FacetSelect } from "./AutofillRulesFilterBar";
 import { useAutofillFilterData } from "../hooks/useAutofillScope";
@@ -19,6 +20,9 @@ export function AutofillFilterSidebar({
   search, onChange,
 }: AutofillFilterSidebarProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     categories, properties, websites, mediaTypes, tags, channels,
   } = useAutofillFilterData();
 
@@ -35,7 +39,7 @@ export function AutofillFilterSidebar({
           category: value,
         })}
       >
-        <SelectItem value={NO_CATEGORY}>No category</SelectItem>
+        <SelectItem value={NO_CATEGORY}>{t("No category")}</SelectItem>
       </FacetSelect>
 
       <FacetSelect
@@ -105,7 +109,7 @@ export function AutofillFilterSidebar({
             })}
           >
             <X className="size-4" />
-            Clear filters
+            {t("Clear filters")}
           </Button>
         )
         : null}

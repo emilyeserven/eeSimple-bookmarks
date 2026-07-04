@@ -1,5 +1,7 @@
 import type { AutofillRule } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { AutofillRuleListItem } from "./AutofillRuleListItem";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { listingSelectionColumn } from "./tables/selectionColumn";
@@ -32,19 +34,22 @@ interface AutofillRulesListProps {
 /** Read-only, filterable list of autofill rules; selecting one opens it in the panel. */
 export function AutofillRulesList(props: AutofillRulesListProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     isLoading, error, columns, viewMode, ruleColumns, categories,
     visibleRules, hasRules, deletableIds, selection, bulkDelete, openRule,
   } = useAutofillRulesList(props);
 
   return (
     <section className="space-y-6">
-      {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
+      {isLoading ? <p className="text-muted-foreground">{t("Loading rules…")}</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && !hasRules
-        ? <p className="text-muted-foreground">No autofill rules yet. Create one to get started.</p>
+        ? <p className="text-muted-foreground">{t("No autofill rules yet. Create one to get started.")}</p>
         : null}
       {!isLoading && hasRules && visibleRules.length === 0
-        ? <p className="text-muted-foreground">No rules match these filters.</p>
+        ? <p className="text-muted-foreground">{t("No rules match these filters.")}</p>
         : null}
 
       <TaxonomyBulkBar

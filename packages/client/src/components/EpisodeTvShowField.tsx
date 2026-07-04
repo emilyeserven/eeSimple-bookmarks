@@ -1,5 +1,7 @@
 import type { Episode } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { Combobox } from "./Combobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useUpdateEpisode } from "../hooks/useEpisodes";
@@ -19,6 +21,9 @@ export function EpisodeTvShowField({
   episode: Episode;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tvShows,
   } = useTvShows();
   const update = useUpdateEpisode();
@@ -32,8 +37,8 @@ export function EpisodeTvShowField({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("TV show"),
-        onError: error => notifyFieldSaveError("TV show", describeError(error)),
+        onSuccess: () => notifyFieldSaved(t("TV show")),
+        onError: error => notifyFieldSaveError(t("TV show"), describeError(error)),
       },
     );
   }
@@ -42,18 +47,18 @@ export function EpisodeTvShowField({
 
   return (
     <div className="space-y-1.5">
-      <Label>TV show</Label>
+      <Label>{t("TV show")}</Label>
       <Combobox
-        aria-label="TV show"
+        aria-label={t("TV show")}
         options={(tvShows ?? []).map(show => ({
           value: show.id,
           label: show.name,
         }))}
         value={episode.tvShowId ?? undefined}
         onValueChange={value => save(value ?? null)}
-        placeholder="No TV show"
-        searchPlaceholder="Search TV shows…"
-        emptyText="No TV shows found."
+        placeholder={t("No TV show")}
+        searchPlaceholder={t("Search TV shows…")}
+        emptyText={t("No TV shows found.")}
         createOption={create.createOption}
       />
       {create.modal}
@@ -68,6 +73,9 @@ export function EpisodeTvShowValue({
   episode: Episode;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tvShows,
   } = useTvShows();
   const show = episode.tvShowId
@@ -75,8 +83,8 @@ export function EpisodeTvShowValue({
     : undefined;
   return (
     <>
-      <dt className="text-muted-foreground">TV show</dt>
-      <dd>{show?.name ?? <span className="text-muted-foreground">None</span>}</dd>
+      <dt className="text-muted-foreground">{t("TV show")}</dt>
+      <dd>{show?.name ?? <span className="text-muted-foreground">{t("None")}</span>}</dd>
     </>
   );
 }

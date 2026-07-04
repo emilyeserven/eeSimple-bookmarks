@@ -1,6 +1,8 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { Category } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { CategoryIcon } from "@/lib/icons";
@@ -21,6 +23,9 @@ export function BookmarkCategoryField({
   categories,
   onValueChange,
 }: BookmarkCategoryFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   const categoryCreate = useEntityCreateOption("category", (category) => {
     form.setFieldValue("categoryId", category.id);
     onValueChange?.(category.id);
@@ -31,10 +36,10 @@ export function BookmarkCategoryField({
       <form.AppField name="categoryId">
         {field => (
           <field.ComboboxField
-            label="Category"
-            placeholder="Select a category"
-            searchPlaceholder="Search categories…"
-            emptyText="No categories found."
+            label={t("Category")}
+            placeholder={t("Select a category")}
+            searchPlaceholder={t("Search categories…")}
+            emptyText={t("No categories found.")}
             onValueChange={onValueChange}
             createOption={categoryCreate.createOption}
             options={categories.map(category => ({

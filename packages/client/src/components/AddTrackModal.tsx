@@ -2,6 +2,8 @@ import type { PlexItemResult, Track } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { AddAlbumModal } from "./AddAlbumModal";
 import { Combobox } from "./Combobox";
 import { PlexTitleForm } from "./PlexTitleForm";
@@ -33,6 +35,9 @@ export function AddTrackModal({
   open, onOpenChange, onCreated,
 }: AddTrackModalProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: albums,
   } = useAlbums();
   const [albumId, setAlbumId] = useState("");
@@ -54,9 +59,9 @@ export function AddTrackModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New track</DialogTitle>
+          <DialogTitle>{t("New track")}</DialogTitle>
           <DialogDescription>
-            Give the track a name, or look it up on Plex to fill in its details automatically.
+            {t("Give the track a name, or look it up on Plex to fill in its details automatically.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -68,20 +73,20 @@ export function AddTrackModal({
           }}
           extraFields={(
             <div className="space-y-1.5">
-              <Label>Album</Label>
+              <Label>{t("Album")}</Label>
               <Combobox
-                aria-label="Album"
+                aria-label={t("Album")}
                 options={(albums ?? []).map(album => ({
                   value: album.id,
                   label: album.name,
                 }))}
                 value={albumId || undefined}
                 onValueChange={value => setAlbumId(value ?? "")}
-                placeholder="No album"
-                searchPlaceholder="Search albums…"
-                emptyText="No albums found."
+                placeholder={t("No album")}
+                searchPlaceholder={t("Search albums…")}
+                emptyText={t("No albums found.")}
                 createOption={{
-                  label: "Create album",
+                  label: t("Create album"),
                   onSelect: () => setAddAlbumOpen(true),
                 }}
               />

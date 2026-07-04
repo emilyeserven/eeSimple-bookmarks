@@ -2,6 +2,7 @@ import type { Language } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Languages, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -24,6 +25,9 @@ export function LanguageCard({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -37,7 +41,7 @@ export function LanguageCard({
       icon={<Languages className="size-5 shrink-0 text-muted-foreground" />}
       title={language.name}
       titleAdornment={language.builtIn
-        ? <Badge variant="secondary">Built-in</Badge>
+        ? <Badge variant="secondary">{t("Built-in")}</Badge>
         : undefined}
       subtitle={language.isoCode ?? undefined}
       count={language.bookmarkCount}
@@ -61,11 +65,16 @@ export function LanguageCard({
             params={{
               languageSlug: language.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "language", language.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {language.name}</span>
+            <span className="sr-only">{t("Edit {{name}}", {
+              name: language.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -80,7 +89,10 @@ export function LanguageCard({
             onClick={event => viewClick(event, "language", language.id, language.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {language.name}</span>
+            <span className="sr-only">{t("View {{name}}", {
+              name: language.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

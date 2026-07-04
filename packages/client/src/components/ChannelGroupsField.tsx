@@ -1,5 +1,7 @@
 import type { Group } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { MultiCombobox } from "./MultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
@@ -21,6 +23,9 @@ export function ChannelGroupsField({
   onChange,
 }: Props) {
   const groupCreate = useEntityCreateOption("group", group => onChange([...selectedIds, group.id]));
+  const {
+    t,
+  } = useTranslation();
 
   const options = groups.map(group => ({
     value: group.id,
@@ -30,17 +35,17 @@ export function ChannelGroupsField({
   return (
     <>
       <div className="space-y-2">
-        <Label className="block">Groups</Label>
+        <Label className="block">{t("Groups")}</Label>
         <p className="text-sm text-muted-foreground">
-          Groups associated with this channel.
+          {t("Groups associated with this channel.")}
         </p>
         <MultiCombobox
           options={options}
           values={selectedIds}
           onValuesChange={onChange}
-          placeholder="No groups selected"
-          searchPlaceholder="Search groups…"
-          emptyText="No groups found."
+          placeholder={t("No groups selected")}
+          searchPlaceholder={t("Search groups…")}
+          emptyText={t("No groups found.")}
           createOption={groupCreate.createOption}
         />
       </div>

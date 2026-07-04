@@ -1,5 +1,7 @@
 import type { AutomationSettings } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { useAutomationSettings, useUpdateAutomationSettings } from "../hooks/useAppSettings";
 
 import {
@@ -27,6 +29,9 @@ const DEFAULTS: AutomationSettings = {
  */
 export function AutomationsSettings() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data,
   } = useAutomationSettings();
   const update = useUpdateAutomationSettings();
@@ -47,10 +52,9 @@ export function AutomationsSettings() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Auto-fetch title</CardTitle>
+          <CardTitle>{t("Auto-fetch title")}</CardTitle>
           <CardDescription>
-            When enabled, leaving the URL field while adding a bookmark fetches the page’s title
-            automatically. You can always fetch it manually with the button next to the Name field.
+            {t("When enabled, leaving the URL field while adding a bookmark fetches the page’s title automatically. You can always fetch it manually with the button next to the Name field.")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -64,22 +68,20 @@ export function AutomationsSettings() {
                   {
                     autoFetchTitle: enabled,
                   },
-                  enabled ? "Auto-fetch title on" : "Auto-fetch title off",
+                  enabled ? t("Auto-fetch title on") : t("Auto-fetch title off"),
                 );
               }}
             />
-            <Label htmlFor="auto-fetch-title">Fetch the title when the URL field loses focus</Label>
+            <Label htmlFor="auto-fetch-title">{t("Fetch the title when the URL field loses focus")}</Label>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Fetch images by default</CardTitle>
+          <CardTitle>{t("Fetch images by default")}</CardTitle>
           <CardDescription>
-            When enabled, the Images section of the Add Bookmark form is collapsed by default — the
-            page’s preview image will be fetched automatically when you save. Disable to always show
-            the Images section expanded.
+            {t("When enabled, the Images section of the Add Bookmark form is collapsed by default — the page’s preview image will be fetched automatically when you save. Disable to always show the Images section expanded.")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -93,11 +95,11 @@ export function AutomationsSettings() {
                   {
                     autoFetchImage: enabled,
                   },
-                  enabled ? "Auto-fetch image on" : "Auto-fetch image off",
+                  enabled ? t("Auto-fetch image on") : t("Auto-fetch image off"),
                 );
               }}
             />
-            <Label htmlFor="auto-fetch-image">Fetch the image when a bookmark is saved</Label>
+            <Label htmlFor="auto-fetch-image">{t("Fetch the image when a bookmark is saved")}</Label>
           </div>
         </CardContent>
       </Card>

@@ -1,6 +1,7 @@
 import type { PropertyGroup, UpdatePropertyGroupInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -28,6 +29,9 @@ interface Props {
 export function PropertyGroupGeneralForm({
   group,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateGroup = useUpdatePropertyGroup();
   const autoSave = useFieldAutoSave<UpdatePropertyGroupInput, PropertyGroup>({
@@ -63,7 +67,7 @@ export function PropertyGroupGeneralForm({
         <form.AppField name="name">
           {field => (
             <field.TextField
-              label="Name"
+              label={t("Name")}
               onBlur={() => autoSave.saveField(
                 "name",
                 field.state.value.trim(),
@@ -88,8 +92,8 @@ export function PropertyGroupGeneralForm({
         <form.AppField name="priority">
           {field => (
             <field.NumberField
-              label="Priority"
-              hint="Lower sorts first."
+              label={t("Priority")}
+              hint={t("Lower sorts first.")}
               onBlur={() => autoSave.saveField(
                 "priority",
                 field.state.value,
@@ -105,8 +109,8 @@ export function PropertyGroupGeneralForm({
       <form.AppField name="description">
         {field => (
           <field.TextareaField
-            label="Description"
-            placeholder="Optional — what this group is for."
+            label={t("Description")}
+            placeholder={t("Optional — what this group is for.")}
             onBlur={() => autoSave.saveField(
               "description",
               field.state.value.trim() || null,

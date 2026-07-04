@@ -1,5 +1,7 @@
 import type { YouTubeChannel } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { MultiCombobox } from "./MultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
@@ -24,6 +26,9 @@ export function EntityYouTubeChannelsField({
   onChange,
   description,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const channelCreate = useEntityCreateOption("youtube-channel", channel => onChange([...selectedIds, channel.id]));
 
   const options = channels.map(channel => ({
@@ -34,15 +39,15 @@ export function EntityYouTubeChannelsField({
   return (
     <>
       <div className="space-y-2">
-        <Label className="block">YouTube channels</Label>
+        <Label className="block">{t("YouTube channels")}</Label>
         <p className="text-sm text-muted-foreground">{description}</p>
         <MultiCombobox
           options={options}
           values={selectedIds}
           onValuesChange={onChange}
-          placeholder="No channels selected"
-          searchPlaceholder="Search channels…"
-          emptyText="No channels found."
+          placeholder={t("No channels selected")}
+          searchPlaceholder={t("Search channels…")}
+          emptyText={t("No channels found.")}
           createOption={channelCreate.createOption}
         />
       </div>

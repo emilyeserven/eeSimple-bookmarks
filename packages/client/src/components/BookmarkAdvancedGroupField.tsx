@@ -1,6 +1,8 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { Group } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
 interface BookmarkAdvancedGroupFieldProps {
@@ -21,16 +23,19 @@ export function BookmarkAdvancedGroupField({
     form.setFieldValue("groupId", group.id);
     onValueChange?.(group.id);
   });
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <>
       <form.AppField name="groupId">
         {field => (
           <field.ComboboxField
-            label="Group"
-            placeholder="No group"
-            searchPlaceholder="Search groups…"
-            emptyText="No groups found."
+            label={t("Group")}
+            placeholder={t("No group")}
+            searchPlaceholder={t("Search groups…")}
+            emptyText={t("No groups found.")}
             onValueChange={onValueChange}
             createOption={groupCreate.createOption}
             options={groups.map(p => ({

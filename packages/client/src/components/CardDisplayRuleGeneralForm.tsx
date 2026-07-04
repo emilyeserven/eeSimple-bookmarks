@@ -1,6 +1,7 @@
 import type { CardDisplayRule, UpdateCardDisplayRuleInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useUpdateCardDisplayRule } from "../hooks/useCardDisplayRules";
@@ -29,6 +30,9 @@ interface Props {
 export function CardDisplayRuleGeneralForm({
   entity: rule,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const update = useUpdateCardDisplayRule();
   const autoSave = useFieldAutoSave<UpdateCardDisplayRuleInput, CardDisplayRule>({
@@ -56,11 +60,11 @@ export function CardDisplayRuleGeneralForm({
       {rule.isDefault
         ? (
           <div className="space-y-1">
-            <p className="text-sm font-medium">Name</p>
+            <p className="text-sm font-medium">{t("Name")}</p>
             <p className="text-sm text-muted-foreground">
               {rule.name}
               {" "}
-              — the baseline rule&rsquo;s name can&rsquo;t be changed.
+              {t("— the baseline rule’s name can’t be changed.")}
             </p>
           </div>
         )
@@ -68,8 +72,8 @@ export function CardDisplayRuleGeneralForm({
           <form.AppField name="name">
             {field => (
               <field.TextField
-                label="Name"
-                placeholder="Rule name"
+                label={t("Name")}
+                placeholder={t("Rule name")}
                 onBlur={() => autoSave.saveField(
                   "name",
                   field.state.value.trim(),
@@ -96,7 +100,7 @@ export function CardDisplayRuleGeneralForm({
       <form.AppField name="description">
         {field => (
           <field.TextareaField
-            label="Description"
+            label={t("Description")}
             onBlur={() => autoSave.saveField(
               "description",
               field.state.value.trim() || null,

@@ -1,5 +1,7 @@
 import type { Track } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { Combobox } from "./Combobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useAlbums } from "../hooks/useAlbums";
@@ -19,6 +21,9 @@ export function TrackAlbumField({
   track: Track;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: albums,
   } = useAlbums();
   const update = useUpdateTrack();
@@ -32,8 +37,8 @@ export function TrackAlbumField({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Album"),
-        onError: error => notifyFieldSaveError("Album", describeError(error)),
+        onSuccess: () => notifyFieldSaved(t("Album")),
+        onError: error => notifyFieldSaveError(t("Album"), describeError(error)),
       },
     );
   }
@@ -42,18 +47,18 @@ export function TrackAlbumField({
 
   return (
     <div className="space-y-1.5">
-      <Label>Album</Label>
+      <Label>{t("Album")}</Label>
       <Combobox
-        aria-label="Album"
+        aria-label={t("Album")}
         options={(albums ?? []).map(album => ({
           value: album.id,
           label: album.name,
         }))}
         value={track.albumId ?? undefined}
         onValueChange={value => save(value ?? null)}
-        placeholder="No album"
-        searchPlaceholder="Search albums…"
-        emptyText="No albums found."
+        placeholder={t("No album")}
+        searchPlaceholder={t("Search albums…")}
+        emptyText={t("No albums found.")}
         createOption={create.createOption}
       />
       {create.modal}
@@ -68,6 +73,9 @@ export function TrackAlbumValue({
   track: Track;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: albums,
   } = useAlbums();
   const album = track.albumId
@@ -75,8 +83,8 @@ export function TrackAlbumValue({
     : undefined;
   return (
     <>
-      <dt className="text-muted-foreground">Album</dt>
-      <dd>{album?.name ?? <span className="text-muted-foreground">None</span>}</dd>
+      <dt className="text-muted-foreground">{t("Album")}</dt>
+      <dd>{album?.name ?? <span className="text-muted-foreground">{t("None")}</span>}</dd>
     </>
   );
 }

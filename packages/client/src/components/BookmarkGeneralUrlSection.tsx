@@ -2,6 +2,7 @@ import type { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import type { Bookmark } from "@eesimple/types";
 
 import { Brush, Loader2, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
 import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
@@ -17,6 +18,9 @@ export function BookmarkGeneralUrlSection({
   ctrl, bookmark,
 }: { ctrl: Ctrl;
   bookmark: Bookmark; }) {
+  const {
+    t,
+  } = useTranslation();
   const {
     form,
     websites,
@@ -40,7 +44,7 @@ export function BookmarkGeneralUrlSection({
       <form.AppField name="url">
         {field => (
           <field.TextField
-            label="URL"
+            label={t("URL")}
             type="url"
             onBlur={() => void performUrlScan()}
             action={(
@@ -51,8 +55,8 @@ export function BookmarkGeneralUrlSection({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      title="Rescan URL — backfill missing title, description, and people"
-                      aria-label="Rescan URL"
+                      title={t("Rescan URL — backfill missing title, description, and people")}
+                      aria-label={t("Rescan URL")}
                       disabled={!isFetchableUrl(url) || isRescanning}
                       onClick={() => void runRescan()}
                     >
@@ -66,8 +70,8 @@ export function BookmarkGeneralUrlSection({
                   type="button"
                   variant={showUrlCleanup ? "secondary" : "ghost"}
                   size="icon"
-                  title="URL cleanup"
-                  aria-label="Toggle URL cleanup"
+                  title={t("URL cleanup")}
+                  aria-label={t("Toggle URL cleanup")}
                   aria-expanded={showUrlCleanup}
                   onClick={() => setShowUrlCleanup(prev => !prev)}
                 >

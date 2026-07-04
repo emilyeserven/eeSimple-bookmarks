@@ -3,6 +3,7 @@ import type { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import type { useFetchMetadata } from "../hooks/useFetchMetadata";
 
 import { Loader2, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { isFetchableUrl } from "../lib/url";
 
@@ -28,21 +29,24 @@ export function BookmarkDescriptionField({
   runFetchDescription,
   onBlur,
 }: BookmarkDescriptionFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <form.Subscribe selector={state => state.values.url}>
       {url => (
         <form.AppField name="description">
           {field => (
             <field.TextareaField
-              label="Description"
+              label={t("Description")}
               onBlur={onBlur}
               action={(
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  title="Fetch description from URL"
-                  aria-label="Fetch description from URL"
+                  title={t("Fetch description from URL")}
+                  aria-label={t("Fetch description from URL")}
                   disabled={!isFetchableUrl(url) || fetchMetadata.isPending}
                   onClick={() => void runFetchDescription(url, {
                     force: true,

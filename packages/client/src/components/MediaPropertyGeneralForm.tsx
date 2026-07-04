@@ -1,6 +1,7 @@
 import type { MediaProperty, UpdateMediaPropertyInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -13,11 +14,6 @@ const mediaPropertyGeneralSchema = z.object({
   sortOrder: z.number().int(),
 });
 
-const LABELS: Record<keyof UpdateMediaPropertyInput, string> = {
-  name: "Name",
-  sortOrder: "Sort order",
-};
-
 interface Props {
   mediaProperty: MediaProperty;
 }
@@ -26,6 +22,13 @@ interface Props {
 export function MediaPropertyGeneralForm({
   mediaProperty,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
+  const LABELS: Record<keyof UpdateMediaPropertyInput, string> = {
+    name: t("Name"),
+    sortOrder: t("Sort order"),
+  };
   const navigate = useNavigate();
   const updateMediaProperty = useUpdateMediaProperty();
   const autoSave = useFieldAutoSave<UpdateMediaPropertyInput, MediaProperty>({
@@ -59,7 +62,7 @@ export function MediaPropertyGeneralForm({
         <form.AppField name="name">
           {field => (
             <field.TextField
-              label="Name"
+              label={t("Name")}
               onBlur={() => autoSave.saveField(
                 "name",
                 field.state.value.trim(),
@@ -84,8 +87,8 @@ export function MediaPropertyGeneralForm({
         <form.AppField name="sortOrder">
           {field => (
             <field.NumberField
-              label="Sort order"
-              hint="Lower sorts first."
+              label={t("Sort order")}
+              hint={t("Lower sorts first.")}
               onBlur={() => autoSave.saveField(
                 "sortOrder",
                 field.state.value,
