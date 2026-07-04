@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, type PgColumnBuilderBase, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { TAXONOMY_IMAGE_OWNER_TYPES } from "@eesimple/types";
 import type { BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
@@ -619,13 +619,17 @@ export const books = pgTable("books", {
 ]);
 
 /**
- * `movies` table — a taxonomy of individual movies, optionally grouped under a media property. A movie
- * carries the Plex linkage (rating key + item type) so bookmarks reference a Movie (via
- * `bookmarks.movie_id`) rather than a live Plex item, and poster/deep-link features resolve the Plex
- * rating key from the linked Movie. All Plex columns + `mediaPropertyId` are nullable → push-safe
- * additive. Nullable slug for clean `push`; backfilled at boot.
+ * Shared column block for the five Plex-backed media taxonomies (`movies` / `tv_shows` / `episodes` /
+ * `albums` / `tracks`), which otherwise repeat an identical set of columns. It is a **factory** — not
+ * a shared object literal — so every `pgTable` receives fresh column-builder instances; Drizzle column
+ * builders are stateful configs and must not be shared across tables. The optional `parentFk` argument
+ * is spread in immediately after `mediaPropertyId` so `episodes` (`tv_show_id`) and `tracks`
+ * (`album_id`) keep their historical column ordering, which the generated DDL depends on.
+ *
+ * All Plex columns + `mediaPropertyId` are nullable → push-safe additive. Nullable slug for clean
+ * `push`; backfilled at boot.
  */
-export const movies = pgTable("movies", {
+const plexTaxonomyColumns = <T extends Record<string, PgColumnBuilderBase> = Record<never, never>>(parentFk?: T) => ({
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
@@ -636,6 +640,8 @@ export const movies = pgTable("movies", {
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
     onDelete: "set null",
   }),
+  // A parent FK (episodes → tv_show_id, tracks → album_id) is spread here to preserve column order.
+  ...((parentFk ?? {}) as T),
   // Plex linkage (mirrors what the bookmark used to store): rating key builds the web-UI deep link;
   // the item type is denormalized for the deep-link label without a Plex round-trip. The title is
   // also denormalized at link time (from the Plex search result) so the "Linked to Plex" display can
@@ -653,10 +659,28 @@ export const movies = pgTable("movies", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-}, table => [
-  unique("movies_name_unique").on(table.name),
-  unique("movies_slug_unique").on(table.slug),
-]);
+});
+
+/**
+ * The `name` + `slug` unique constraints shared by every Plex taxonomy table. Parameterized by the
+ * table's constraint-name prefix so the generated constraint names stay byte-identical to the
+ * hand-written ones (`<prefix>_name_unique` / `<prefix>_slug_unique`).
+ */
+const plexTaxonomyUniques = (table: { name: AnyPgColumn;
+  slug: AnyPgColumn; }, prefix: string) => [
+  unique(`${prefix}_name_unique`).on(table.name),
+  unique(`${prefix}_slug_unique`).on(table.slug),
+];
+
+/**
+ * `movies` table — a taxonomy of individual movies, optionally grouped under a media property. A movie
+ * carries the Plex linkage (rating key + item type) so bookmarks reference a Movie (via
+ * `bookmarks.movie_id`) rather than a live Plex item, and poster/deep-link features resolve the Plex
+ * rating key from the linked Movie.
+ */
+export const movies = pgTable("movies", {
+  ...plexTaxonomyColumns(),
+}, table => plexTaxonomyUniques(table, "movies"));
 
 /**
  * `tv_shows` table — a taxonomy of TV shows, optionally grouped under a media property. Same shape as
@@ -665,31 +689,8 @@ export const movies = pgTable("movies", {
  * push-safe additive. Nullable slug for clean `push`; backfilled at boot.
  */
 export const tvShows = pgTable("tv_shows", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug"),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
-    onDelete: "set null",
-  }),
-  plexRatingKey: text("plex_rating_key"),
-  plexItemType: text("plex_item_type"),
-  // Denormalized at link time from the Plex search result, so the "Linked to Plex" display can show
-  // the actual item name without a Plex round-trip.
-  plexItemTitle: text("plex_item_title"),
-  year: integer("year"),
-  wikidataId: text("wikidata_id"),
-  wikipediaLinkEn: text("wikipedia_link_en"),
-  wikipediaLinkLocal: text("wikipedia_link_local"),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  unique("tv_shows_name_unique").on(table.name),
-  unique("tv_shows_slug_unique").on(table.slug),
-]);
+  ...plexTaxonomyColumns(),
+}, table => plexTaxonomyUniques(table, "tv_shows"));
 
 /**
  * `episodes` table — a taxonomy of TV episodes. Same Plex-backed shape as `movies`, plus a nullable
@@ -697,66 +698,21 @@ export const tvShows = pgTable("tv_shows", {
  * parent is auto-linked from Plex's grandparent metadata when it already exists.
  */
 export const episodes = pgTable("episodes", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug"),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
-    onDelete: "set null",
+  ...plexTaxonomyColumns({
+    // Parent TV Show. set null when the show is deleted.
+    tvShowId: uuid("tv_show_id").references((): AnyPgColumn => tvShows.id, {
+      onDelete: "set null",
+    }),
   }),
-  // Parent TV Show. set null when the show is deleted.
-  tvShowId: uuid("tv_show_id").references((): AnyPgColumn => tvShows.id, {
-    onDelete: "set null",
-  }),
-  plexRatingKey: text("plex_rating_key"),
-  plexItemType: text("plex_item_type"),
-  // Denormalized at link time from the Plex search result, so the "Linked to Plex" display can show
-  // the actual item name without a Plex round-trip.
-  plexItemTitle: text("plex_item_title"),
-  year: integer("year"),
-  wikidataId: text("wikidata_id"),
-  wikipediaLinkEn: text("wikipedia_link_en"),
-  wikipediaLinkLocal: text("wikipedia_link_local"),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  unique("episodes_name_unique").on(table.name),
-  unique("episodes_slug_unique").on(table.slug),
-]);
+}, table => plexTaxonomyUniques(table, "episodes"));
 
 /**
  * `albums` table — a taxonomy of music albums. Plex-backed like `movies`. Credited to People
  * (individuals) and Groups (groups) many-to-many via `album_people` / `album_groups`.
  */
 export const albums = pgTable("albums", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug"),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
-    onDelete: "set null",
-  }),
-  plexRatingKey: text("plex_rating_key"),
-  plexItemType: text("plex_item_type"),
-  // Denormalized at link time from the Plex search result, so the "Linked to Plex" display can show
-  // the actual item name without a Plex round-trip.
-  plexItemTitle: text("plex_item_title"),
-  year: integer("year"),
-  wikidataId: text("wikidata_id"),
-  wikipediaLinkEn: text("wikipedia_link_en"),
-  wikipediaLinkLocal: text("wikipedia_link_local"),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  unique("albums_name_unique").on(table.name),
-  unique("albums_slug_unique").on(table.slug),
-]);
+  ...plexTaxonomyColumns(),
+}, table => plexTaxonomyUniques(table, "albums"));
 
 /**
  * `tracks` table — a taxonomy of music tracks. Same Plex-backed shape as `movies`, plus a nullable
@@ -764,35 +720,13 @@ export const albums = pgTable("albums", {
  * parent is auto-linked from Plex's parent metadata when it already exists.
  */
 export const tracks = pgTable("tracks", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug"),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
-    onDelete: "set null",
+  ...plexTaxonomyColumns({
+    // Parent Album. set null when the album is deleted.
+    albumId: uuid("album_id").references((): AnyPgColumn => albums.id, {
+      onDelete: "set null",
+    }),
   }),
-  // Parent Album. set null when the album is deleted.
-  albumId: uuid("album_id").references((): AnyPgColumn => albums.id, {
-    onDelete: "set null",
-  }),
-  plexRatingKey: text("plex_rating_key"),
-  plexItemType: text("plex_item_type"),
-  // Denormalized at link time from the Plex search result, so the "Linked to Plex" display can show
-  // the actual item name without a Plex round-trip.
-  plexItemTitle: text("plex_item_title"),
-  year: integer("year"),
-  wikidataId: text("wikidata_id"),
-  wikipediaLinkEn: text("wikipedia_link_en"),
-  wikipediaLinkLocal: text("wikipedia_link_local"),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  unique("tracks_name_unique").on(table.name),
-  unique("tracks_slug_unique").on(table.slug),
-]);
+}, table => plexTaxonomyUniques(table, "tracks"));
 
 /**
  * `podcasts` table — a taxonomy of podcasts, optionally grouped under a media property. Unlike the
