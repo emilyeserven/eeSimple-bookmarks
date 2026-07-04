@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { VerticalTabbedLayout } from "../components/VerticalTabbedLayout";
 
@@ -9,6 +10,9 @@ export const Route = createFileRoute("/settings/locations")({
 });
 
 function LocationsLayout() {
+  const {
+    t,
+  } = useTranslation();
   return (
     <VerticalTabbedLayout
       header={(
@@ -23,7 +27,7 @@ function LocationsLayout() {
         </div>
       )}
       nav={locationsNav}
-      navAriaLabel="Locations settings sections"
+      navAriaLabel={t("Locations settings sections")}
     />
   );
 }

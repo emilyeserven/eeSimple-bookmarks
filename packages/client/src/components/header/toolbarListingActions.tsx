@@ -11,6 +11,7 @@ import { SearchControls } from "@/components/header/headerMenuItems";
 import { ListingDisplayControls } from "@/components/ListingDisplayControls";
 import { ListingSearchBar } from "@/components/ListingSearchBar";
 import { ResponsivePopover } from "@/components/ui/responsive-popover";
+import i18n from "@/i18n";
 
 export function searchAction(ctx: ToolbarContext): ToolbarAction | null {
   if (!ctx.headerSearchActive) return null;
@@ -20,10 +21,10 @@ export function searchAction(ctx: ToolbarContext): ToolbarAction | null {
     mobile: {
       kind: "modal",
       icon: Search,
-      label: "Search",
+      label: i18n.t("Search"),
       renderModal: (open, onOpenChange) => (
         <ResponsivePopover
-          title="Search"
+          title={i18n.t("Search")}
           open={open}
           onOpenChange={onOpenChange}
         >
@@ -42,10 +43,10 @@ export function filterLocationAction(ctx: ToolbarContext): ToolbarAction | null 
     mobile: {
       kind: "modal",
       icon: Filter,
-      label: "Filters",
+      label: i18n.t("Filters"),
       renderModal: (open, onOpenChange) => (
         <ResponsivePopover
-          title="Filters"
+          title={i18n.t("Filters")}
           open={open}
           onOpenChange={onOpenChange}
         >
@@ -65,10 +66,10 @@ export function displayOptionsAction(ctx: ToolbarContext): ToolbarAction | null 
     mobile: {
       kind: "modal",
       icon: Eye,
-      label: "Display",
+      label: i18n.t("Display"),
       renderModal: (open, onOpenChange) => (
         <ResponsivePopover
-          title="Display"
+          title={i18n.t("Display")}
           open={open}
           onOpenChange={onOpenChange}
         >
@@ -100,7 +101,7 @@ export function sortAction(ctx: ToolbarContext): ToolbarAction | null {
     mobile: {
       kind: "modal",
       icon: ArrowUpDown,
-      label: "Sort",
+      label: i18n.t("Sort"),
       renderModal: (open, onOpenChange) => (
         <BookmarkSortPopover
           open={open}

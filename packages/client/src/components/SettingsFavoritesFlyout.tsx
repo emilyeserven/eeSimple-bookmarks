@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useIsMobile } from "../hooks/use-mobile";
 import { useFavoriteSettingsPages } from "../hooks/useFavoriteSettingsPages";
@@ -33,10 +34,13 @@ function FavoritesList({
   resolved: readonly ResolvedFavorite[];
   onNavigate: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   if (resolved.length === 0) {
     return (
       <p className="px-2 py-1.5 text-sm text-muted-foreground">
-        Star a settings page to add it here.
+        {t("Star a settings page to add it here.")}
       </p>
     );
   }
@@ -54,7 +58,7 @@ function FavoritesList({
             "
           >
             <favorite.icon className="size-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate">{favorite.label}</span>
+            <span className="truncate">{t(favorite.label)}</span>
           </Link>
         </li>
       ))}
@@ -74,6 +78,9 @@ export function SettingsFavoritesFlyout({
 }: {
   pathname: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: favorites = [],
   } = useFavoriteSettingsPages();
@@ -116,7 +123,7 @@ export function SettingsFavoritesFlyout({
       size="lg"
       asChild
       isActive={pathname.startsWith("/settings")}
-      tooltip="Settings"
+      tooltip={t("Settings")}
     >
       <Link to="/settings">
         <div
@@ -128,8 +135,8 @@ export function SettingsFavoritesFlyout({
           <Settings className="size-4" />
         </div>
         <div className="grid flex-1 text-left text-sm/tight">
-          <span className="truncate font-semibold">Settings</span>
-          <span className="truncate text-xs">Manage preferences</span>
+          <span className="truncate font-semibold">{t("Settings")}</span>
+          <span className="truncate text-xs">{t("Manage preferences")}</span>
         </div>
       </Link>
     </SidebarMenuButton>
@@ -143,7 +150,7 @@ export function SettingsFavoritesFlyout({
           ? (
             <SidebarMenuItem className="px-1 pb-1">
               <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">
-                Favorited Settings
+                {t("Favorited Settings")}
               </p>
               <FavoritesList
                 resolved={resolved}
@@ -155,7 +162,7 @@ export function SettingsFavoritesFlyout({
         <SidebarMenuItem>
           {settingsButton}
           <SidebarMenuAction
-            aria-label={expanded ? "Hide favorited settings" : "Show favorited settings"}
+            aria-label={expanded ? t("Hide favorited settings") : t("Show favorited settings")}
             onClick={() => setExpanded(value => !value)}
           >
             <ChevronDown
@@ -198,7 +205,7 @@ export function SettingsFavoritesFlyout({
         <p
           className="px-2 pb-1 text-xs font-medium text-muted-foreground"
         >
-          Favorited Settings
+          {t("Favorited Settings")}
         </p>
         <FavoritesList
           resolved={resolved}

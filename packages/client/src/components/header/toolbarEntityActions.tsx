@@ -11,11 +11,12 @@ import { HeaderPinButton } from "@/components/HeaderPinButton";
 import { HeaderSettingsFavoriteButton } from "@/components/HeaderSettingsFavoriteButton";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import i18n from "@/i18n";
 
 export function addChildAction(ctx: ToolbarContext): ToolbarAction | null {
   if (!ctx.addChild) return null;
   const addChild = ctx.addChild;
-  const label = addChild.kind === "tag" ? "New sub-tag" : "New sub-type";
+  const label = addChild.kind === "tag" ? i18n.t("New sub-tag") : i18n.t("New sub-type");
   return {
     key: "add-child",
     desktop: (
@@ -104,6 +105,7 @@ export function pinAction(ctx: ToolbarContext): ToolbarAction | null {
  */
 export function homepageSettingsAction(ctx: ToolbarContext): ToolbarAction | null {
   if (ctx.pathParts.length > 0) return null;
+  const homepageSettings = i18n.t("Homepage settings");
   return {
     key: "homepage-settings",
     desktop: (
@@ -111,8 +113,8 @@ export function homepageSettingsAction(ctx: ToolbarContext): ToolbarAction | nul
         type="button"
         variant="ghost"
         size="icon"
-        aria-label="Homepage settings"
-        title="Homepage settings"
+        aria-label={homepageSettings}
+        title={homepageSettings}
         asChild
       >
         <Link to="/settings/display/homepage">
@@ -126,7 +128,7 @@ export function homepageSettingsAction(ctx: ToolbarContext): ToolbarAction | nul
         <DropdownMenuItem asChild>
           <Link to="/settings/display/homepage">
             <Settings className="size-4" />
-            Homepage settings
+            {homepageSettings}
           </Link>
         </DropdownMenuItem>
       ),
@@ -142,7 +144,7 @@ export function openPanelAction(ctx: ToolbarContext): ToolbarAction {
         type="button"
         variant="ghost"
         size="icon"
-        aria-label="Open panel"
+        aria-label={i18n.t("Open panel")}
         onClick={ctx.openPanel}
       >
         <PanelRight className="size-4" />

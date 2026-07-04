@@ -15,6 +15,7 @@ import {
   PinOffIcon,
   PlusIcon,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CommandGroup, CommandItem } from "@/components/ui/command";
 import { usePinToggle } from "@/hooks/usePinToggle";
@@ -39,9 +40,18 @@ function PinCommandItem({
   onDone: () => void;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     isPinned, name, toggle,
   } = usePinToggle(context);
-  const label = isPinned ? `Unpin ${name}` : `Pin ${name}`;
+  const label = isPinned
+    ? t("Unpin {{name}}", {
+      name,
+    })
+    : t("Pin {{name}}", {
+      name,
+    });
   return (
     <CommandItem
       value={label}
@@ -76,6 +86,9 @@ export function EntityCommandGroup({
   onClose: () => void;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     route, entity, name, fields, viewPath, editPath, config, saveField,
   } = matched;
 
@@ -91,15 +104,22 @@ export function EntityCommandGroup({
     ? "tag" as const
     : route.kind === "media-type" ? "mediaType" as const : null;
 
+  const newSubTag = t("New sub-tag");
+  const newSubType = t("New sub-type");
+
   return (
-    <CommandGroup heading={`Current ${route.singular}`}>
+    <CommandGroup
+      heading={t("Current {{entity}}", {
+        entity: t(route.singular),
+      })}
+    >
       {fields.map((field) => {
         if (field.type === "boolean") {
           const value = entity ? field.getValue(entity) : false;
           return (
             <CommandItem
               key={field.key}
-              value={field.label}
+              value={t(field.label)}
               disabled={!entity}
               onSelect={() => {
                 saveField(field.label, {
@@ -109,19 +129,19 @@ export function EntityCommandGroup({
               }}
             >
               {value && <CheckIcon className="text-primary" />}
-              {field.label}
+              {t(field.label)}
             </CommandItem>
           );
         }
         return (
           <CommandItem
             key={field.key}
-            value={field.label}
+            value={t(field.label)}
             disabled={!entity}
             onSelect={() => onEnterChoiceField(field)}
           >
             <ArrowLeftIcon className="rotate-180" />
-            {field.label}
+            {t(field.label)}
             …
           </CommandItem>
         );
@@ -129,11 +149,11 @@ export function EntityCommandGroup({
 
       {addChildKind && entity && (
         <CommandItem
-          value={addChildKind === "tag" ? "New sub-tag" : "New sub-type"}
+          value={addChildKind === "tag" ? newSubTag : newSubType}
           onSelect={() => onAddChild(addChildKind, entity.id)}
         >
           <PlusIcon />
-          {addChildKind === "tag" ? "New sub-tag" : "New sub-type"}
+          {addChildKind === "tag" ? newSubTag : newSubType}
         </CommandItem>
       )}
 
@@ -145,31 +165,35 @@ export function EntityCommandGroup({
       )}
 
       <CommandItem
-        value={`View ${name}`}
+        value={t("View {{name}}", {
+          name,
+        })}
         onSelect={() => onNavigate(viewPath)}
       >
         <EyeIcon />
-        View
+        {t("View")}
         {" "}
         {name}
       </CommandItem>
       <CommandItem
-        value={`Edit ${name}`}
+        value={t("Edit {{name}}", {
+          name,
+        })}
         onSelect={() => onNavigate(editPath)}
       >
         <PencilIcon />
-        Edit
+        {t("Edit")}
         {" "}
         {name}
       </CommandItem>
       {(config.extraEditTabs ?? []).map(tab => (
         <CommandItem
           key={tab.tab}
-          value={tab.label}
+          value={t(tab.label)}
           onSelect={() => onNavigate(`${route.prefix}/${matched.slug}/edit/${tab.tab}`)}
         >
           <PencilIcon />
-          {tab.label}
+          {t(tab.label)}
         </CommandItem>
       ))}
     </CommandGroup>
@@ -193,26 +217,34 @@ export function EntityChoiceSubPalette({
   onBack: () => void;
   onSelect: (id: string | null) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const options = field.options === "categories"
     ? choiceOptions.categories
     : choiceOptions.mediaTypes;
   const current = matched.entity ? field.getValue(matched.entity) : null;
 
   return (
-    <CommandGroup heading={`${matched.name}: ${field.label}`}>
+    <CommandGroup
+      heading={t("{{name}}: {{field}}", {
+        name: matched.name,
+        field: t(field.label),
+      })}
+    >
       <CommandItem
         value="back"
         onSelect={onBack}
       >
         <ArrowLeftIcon />
-        Back
+        {t("Back")}
       </CommandItem>
       <CommandItem
         value="none"
         onSelect={() => onSelect(null)}
       >
         {current === null && <CheckIcon className="text-primary" />}
-        None
+        {t("None")}
       </CommandItem>
       {options.map(option => (
         <CommandItem

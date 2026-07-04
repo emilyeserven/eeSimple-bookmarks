@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 import { CHOICES_DISPLAY_OPTIONS } from "@/lib/propertyForm";
 
 function slugifyChoice(text: string): string {
@@ -59,6 +60,11 @@ interface ChoicesOptionsProps {
 export function ChoicesOptions({
   form, idPrefix, defaultOpen, full,
 }: ChoicesOptionsProps) {
+  const tLabel = useTranslatedLabel();
+  const choicesDisplayOptions = CHOICES_DISPLAY_OPTIONS.map(option => ({
+    ...option,
+    label: tLabel(option.label),
+  }));
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -107,7 +113,7 @@ export function ChoicesOptions({
                       {field => (
                         <field.SelectField
                           label="Display"
-                          options={CHOICES_DISPLAY_OPTIONS}
+                          options={choicesDisplayOptions}
                           onValueChange={(value) => {
                             field.handleChange(value as PropertyFormValues["choicesDisplay"]);
                             if (value === "checkbox") {

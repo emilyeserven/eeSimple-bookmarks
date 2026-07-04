@@ -1,5 +1,7 @@
 import type { SwitcherSpec } from "@/components/BreadcrumbSwitcher";
 
+import { useTranslation } from "react-i18next";
+
 import { useShowRomanizedByDefault } from "@/hooks/useAppSettings";
 import { orderRomanized } from "@/lib/romanized";
 
@@ -26,10 +28,16 @@ export function CrumbLabel({
   label: string;
   romanizedLabel?: string | null;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const showRomanizedFirst = useShowRomanizedByDefault();
+  // Translate the static label before it's ordered against the (never-translated) romanized entity
+  // data — an untranslated label (e.g. a real entity name) simply falls through to itself.
+  const translatedLabel = t(label);
   const {
     primary, secondary,
-  } = orderRomanized(label, romanizedLabel, showRomanizedFirst);
+  } = orderRomanized(translatedLabel, romanizedLabel, showRomanizedFirst);
   return (
     <span className="flex min-w-0 flex-col">
       <span className="truncate">{primary}</span>

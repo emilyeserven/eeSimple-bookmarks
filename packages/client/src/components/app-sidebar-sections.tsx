@@ -4,6 +4,7 @@ import type { ConnectorLink } from "../lib/connectorLinks";
 import * as React from "react";
 
 import { BookOpen, ChevronDown, ChevronUp, Database, GitBranch, Palette, Server } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useSidebarVisibility } from "../hooks/useAppSettings";
 import { useConnectors } from "../hooks/useConnectors";
@@ -81,6 +82,9 @@ export function SidebarAdvancedSection({
   advanced: SidebarAdvanced;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     coolifyLinkEnabled, coolifyUrl, docsLinkEnabled, storybookLinkEnabled,
     drizzleGatewayLinkEnabled, drizzleGatewayUrl, githubLinkEnabled,
   } = advanced;
@@ -91,7 +95,7 @@ export function SidebarAdvancedSection({
   return (
     <CollapsibleSection
       sectionKey="advanced"
-      label="Advanced"
+      label={t("Advanced")}
     >
       <SidebarMenu>
         {showCoolify
@@ -107,7 +111,7 @@ export function SidebarAdvancedSection({
           ? (
             <SidebarExternalLink
               href="/docs"
-              label="Docs"
+              label={t("Docs")}
               icon={<BookOpen />}
             />
           )
@@ -152,6 +156,9 @@ export function SidebarAdvancedSection({
  */
 export function SidebarConnectorsSection() {
   const {
+    t,
+  } = useTranslation();
+  const {
     state,
   } = useSidebar();
   const {
@@ -189,19 +196,19 @@ export function SidebarConnectorsSection() {
   return (
     <CollapsibleSection
       sectionKey="connectors"
-      label="Connectors"
+      label={t("Connectors")}
     >
       <SidebarMenu>
         {visible.map(renderLink)}
         {seeMore.length > 0 && !expanded && state !== "collapsed" && (
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip="See more connectors"
+              tooltip={t("See more connectors")}
               onClick={() => setExpanded(true)}
               className="text-xs text-muted-foreground"
             >
               <ChevronDown className="size-4" />
-              <span>See More</span>
+              <span>{t("See More")}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         )}
@@ -209,12 +216,12 @@ export function SidebarConnectorsSection() {
         {seeMore.length > 0 && expanded && state !== "collapsed" && (
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip="See less"
+              tooltip={t("See less")}
               onClick={() => setExpanded(false)}
               className="text-xs text-muted-foreground"
             >
               <ChevronUp className="size-4" />
-              <span>See Less</span>
+              <span>{t("See Less")}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         )}

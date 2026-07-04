@@ -1,6 +1,7 @@
 import type { SettingsPage } from "@/lib/settingsPages";
 
 import { Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { useSettingsFavorite } from "@/hooks/useSettingsFavorite";
@@ -18,15 +19,25 @@ export function HeaderSettingsFavoriteButton({
   page: SettingsPage;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     isFavorited, toggle,
   } = useSettingsFavorite(page);
 
+  const translatedLabel = t(page.label);
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon"
-      aria-label={isFavorited ? `Unfavorite ${page.label}` : `Favorite ${page.label}`}
+      aria-label={isFavorited
+        ? t("Unfavorite {{label}}", {
+          label: translatedLabel,
+        })
+        : t("Favorite {{label}}", {
+          label: translatedLabel,
+        })}
       aria-pressed={isFavorited}
       onClick={toggle}
     >

@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { IconPicker } from "@/components/ui/icon-picker";
+import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 import { CUSTOM_PROPERTY_TYPE_ICONS } from "@/lib/propertyFormat";
 
 interface PropertyTypeIconsCardProps {
@@ -32,6 +33,7 @@ interface PropertyTypeIconsCardProps {
 export function PropertyTypeIconsCard({
   customPropertyTypeIcons, onSetIcon, onReset,
 }: PropertyTypeIconsCardProps) {
+  const tLabel = useTranslatedLabel();
   return (
     <Card>
       <CardHeader>
@@ -54,12 +56,14 @@ export function PropertyTypeIconsCard({
               className="flex items-center gap-3"
             >
               <span className="w-28 shrink-0 text-sm font-medium">
-                {CUSTOM_PROPERTY_TYPE_LABELS[type]}
+                {tLabel(CUSTOM_PROPERTY_TYPE_LABELS[type])}
               </span>
               <IconPicker
                 value={customPropertyTypeIcons?.[type] ?? CUSTOM_PROPERTY_TYPE_ICONS[type]}
                 onChange={iconName => onSetIcon(type, iconName)}
-                aria-label={`Icon for ${CUSTOM_PROPERTY_TYPE_LABELS[type]}`}
+                aria-label={tLabel("Icon for {{type}}", {
+                  type: tLabel(CUSTOM_PROPERTY_TYPE_LABELS[type]),
+                })}
                 className="max-w-xs"
               />
             </div>

@@ -11,6 +11,7 @@ import {
   PlusIcon,
   TagIcon,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "./RomanizedLabel";
 
@@ -102,26 +103,29 @@ export function CategorySubPalette({
   onSelect: (categoryId: string) => void;
   onCreateNew: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
-      <CommandGroup heading="Category">
+      <CommandGroup heading={t("Category")}>
         <CommandItem
           value="back"
           onSelect={onBack}
         >
           <ArrowLeftIcon />
-          Back
+          {t("Back")}
         </CommandItem>
         <CommandItem
           value="new category"
           onSelect={onCreateNew}
         >
           <PlusIcon />
-          New category…
+          {t("New category…")}
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
-      <CommandGroup heading="Select category">
+      <CommandGroup heading={t("Select category")}>
         {categories.map(category => (
           <CommandItem
             key={category.id}
@@ -152,26 +156,29 @@ export function MediaTypeSubPalette({
   onSelect: (mediaTypeId: string | null) => void;
   onCreateNew: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
-      <CommandGroup heading="Media Type">
+      <CommandGroup heading={t("Media Type")}>
         <CommandItem
           value="back"
           onSelect={onBack}
         >
           <ArrowLeftIcon />
-          Back
+          {t("Back")}
         </CommandItem>
         <CommandItem
           value="new media type"
           onSelect={onCreateNew}
         >
           <PlusIcon />
-          New media type…
+          {t("New media type…")}
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
-      <CommandGroup heading="Select media type">
+      <CommandGroup heading={t("Select media type")}>
         <CommandItem
           value="None"
           onSelect={() => onSelect(null)}
@@ -179,7 +186,7 @@ export function MediaTypeSubPalette({
           {currentMediaTypeId == null && (
             <CheckIcon className="text-primary" />
           )}
-          None
+          {t("None")}
         </CommandItem>
         {flatMediaTypes.map(({
           node: mt, depth,
@@ -224,6 +231,9 @@ export function TagsSubPalette({
   onCreateNew: () => void;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     priorityTags, otherTags,
   } = useTagsPalette(flatTags, pendingTagIds, categoryId);
 
@@ -258,33 +268,33 @@ export function TagsSubPalette({
 
   return (
     <>
-      <CommandGroup heading="Tags">
+      <CommandGroup heading={t("Tags")}>
         <CommandItem
           value="back"
           onSelect={onBack}
         >
           <ArrowLeftIcon />
-          Back
+          {t("Back")}
         </CommandItem>
         <CommandItem
           value="new tag"
           onSelect={onCreateNew}
         >
           <PlusIcon />
-          New tag…
+          {t("New tag…")}
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
       {priorityTags.length > 0
         ? (
           <>
-            <CommandGroup heading="Selected & related">
+            <CommandGroup heading={t("Selected & related")}>
               {priorityTags.map(renderTagItem)}
             </CommandGroup>
             {otherTags.length > 0 && (
               <>
                 <CommandSeparator />
-                <CommandGroup heading="Other tags">
+                <CommandGroup heading={t("Other tags")}>
                   {otherTags.map(renderTagItem)}
                 </CommandGroup>
               </>
@@ -292,7 +302,7 @@ export function TagsSubPalette({
           </>
         )
         : (
-          <CommandGroup heading="Toggle tags">
+          <CommandGroup heading={t("Toggle tags")}>
             {otherTags.map(renderTagItem)}
           </CommandGroup>
         )}
@@ -303,7 +313,9 @@ export function TagsSubPalette({
           onSelect={() => onDone(pendingTagIds)}
         >
           <CheckIcon />
-          {`Done (${pendingTagIds.length.toString()} selected)`}
+          {t("Done ({{count}} selected)", {
+            count: pendingTagIds.length,
+          })}
         </CommandItem>
       </CommandGroup>
     </>
@@ -325,6 +337,9 @@ export function LocationsSubPalette({
   onDone: (locationIds: string[]) => void;
   onCreateNew: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const renderLocationItem = ({
     node: location, depth,
   }: FlatNode<LocationNode>) => {
@@ -356,24 +371,24 @@ export function LocationsSubPalette({
 
   return (
     <>
-      <CommandGroup heading="Locations">
+      <CommandGroup heading={t("Locations")}>
         <CommandItem
           value="back"
           onSelect={onBack}
         >
           <ArrowLeftIcon />
-          Back
+          {t("Back")}
         </CommandItem>
         <CommandItem
           value="new location"
           onSelect={onCreateNew}
         >
           <PlusIcon />
-          New location…
+          {t("New location…")}
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
-      <CommandGroup heading="Toggle locations">
+      <CommandGroup heading={t("Toggle locations")}>
         {flatLocations.map(renderLocationItem)}
       </CommandGroup>
       <CommandSeparator />
@@ -383,7 +398,9 @@ export function LocationsSubPalette({
           onSelect={() => onDone(pendingLocationIds)}
         >
           <CheckIcon />
-          {`Done (${pendingLocationIds.length.toString()} selected)`}
+          {t("Done ({{count}} selected)", {
+            count: pendingLocationIds.length,
+          })}
         </CommandItem>
       </CommandGroup>
     </>
@@ -405,26 +422,29 @@ export function PeopleSubPalette({
   onDone: (personIds: string[]) => void;
   onCreateNew: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
-      <CommandGroup heading="People">
+      <CommandGroup heading={t("People")}>
         <CommandItem
           value="back"
           onSelect={onBack}
         >
           <ArrowLeftIcon />
-          Back
+          {t("Back")}
         </CommandItem>
         <CommandItem
           value="new person"
           onSelect={onCreateNew}
         >
           <PlusIcon />
-          New person…
+          {t("New person…")}
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
-      <CommandGroup heading="Toggle people">
+      <CommandGroup heading={t("Toggle people")}>
         {people.map((person) => {
           const selected = pendingPersonIds.includes(person.id);
           return (
@@ -446,7 +466,9 @@ export function PeopleSubPalette({
           onSelect={() => onDone(pendingPersonIds)}
         >
           <CheckIcon />
-          {`Done (${pendingPersonIds.length.toString()} selected)`}
+          {t("Done ({{count}} selected)", {
+            count: pendingPersonIds.length,
+          })}
         </CommandItem>
       </CommandGroup>
     </>
@@ -468,26 +490,29 @@ export function GroupsSubPalette({
   onDone: (groupIds: string[]) => void;
   onCreateNew: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
-      <CommandGroup heading="Groups">
+      <CommandGroup heading={t("Groups")}>
         <CommandItem
           value="back"
           onSelect={onBack}
         >
           <ArrowLeftIcon />
-          Back
+          {t("Back")}
         </CommandItem>
         <CommandItem
           value="new group"
           onSelect={onCreateNew}
         >
           <PlusIcon />
-          New group…
+          {t("New group…")}
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
-      <CommandGroup heading="Toggle groups">
+      <CommandGroup heading={t("Toggle groups")}>
         {groups.map((group) => {
           const selected = pendingGroupIds.includes(group.id);
           return (
@@ -509,7 +534,9 @@ export function GroupsSubPalette({
           onSelect={() => onDone(pendingGroupIds)}
         >
           <CheckIcon />
-          {`Done (${pendingGroupIds.length.toString()} selected)`}
+          {t("Done ({{count}} selected)", {
+            count: pendingGroupIds.length,
+          })}
         </CommandItem>
       </CommandGroup>
     </>
@@ -531,6 +558,9 @@ export function ChoicesSubPalette({
   onSelectSingle: (value: string) => void;
   onDoneMultiple: (values: string[]) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   if (!prop) return null;
   return (
     <>
@@ -540,11 +570,15 @@ export function ChoicesSubPalette({
           onSelect={onBack}
         >
           <ArrowLeftIcon />
-          Back
+          {t("Back")}
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
-      <CommandGroup heading={`Select ${prop.name}`}>
+      <CommandGroup
+        heading={t("Select {{name}}", {
+          name: prop.name,
+        })}
+      >
         {prop.choicesItems.map((item) => {
           const selected = pendingValues.includes(item.value);
           return (
@@ -575,7 +609,9 @@ export function ChoicesSubPalette({
               onSelect={() => onDoneMultiple(pendingValues)}
             >
               <CheckIcon />
-              {`Done (${pendingValues.length.toString()} selected)`}
+              {t("Done ({{count}} selected)", {
+                count: pendingValues.length,
+              })}
             </CommandItem>
           </CommandGroup>
         </>
@@ -595,6 +631,9 @@ export function RatingSubPalette({
   onBack: () => void;
   onSelect: (value: number | null) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   if (!prop) return null;
   const max = prop.ratingMax ?? 5;
   const allowZero = prop.ratingAllowZero ?? false;
@@ -609,11 +648,15 @@ export function RatingSubPalette({
           onSelect={onBack}
         >
           <ArrowLeftIcon />
-          Back
+          {t("Back")}
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
-      <CommandGroup heading={`Select ${prop.name}`}>
+      <CommandGroup
+        heading={t("Select {{name}}", {
+          name: prop.name,
+        })}
+      >
         {allowZero && (
           <CommandItem
             value="No rating"
@@ -622,7 +665,7 @@ export function RatingSubPalette({
             {currentValue === null && (
               <CheckIcon className="text-primary" />
             )}
-            No rating
+            {t("No rating")}
           </CommandItem>
         )}
         {options.map(n => (
@@ -654,26 +697,29 @@ export function NewsletterSubPalette({
   onSelect: (newsletterId: string | null) => void;
   onCreateNew: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
-      <CommandGroup heading="Newsletter">
+      <CommandGroup heading={t("Newsletter")}>
         <CommandItem
           value="back"
           onSelect={onBack}
         >
           <ArrowLeftIcon />
-          Back
+          {t("Back")}
         </CommandItem>
         <CommandItem
           value="new newsletter"
           onSelect={onCreateNew}
         >
           <PlusIcon />
-          New newsletter…
+          {t("New newsletter…")}
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
-      <CommandGroup heading="Select newsletter">
+      <CommandGroup heading={t("Select newsletter")}>
         <CommandItem
           value="None"
           onSelect={() => onSelect(null)}
@@ -681,7 +727,7 @@ export function NewsletterSubPalette({
           {currentNewsletterId == null && (
             <CheckIcon className="text-primary" />
           )}
-          None
+          {t("None")}
         </CommandItem>
         {newsletters.map(nl => (
           <CommandItem
@@ -740,98 +786,119 @@ export function BookmarkTaxonomiesGroup({
   onNavigateProperties: () => void;
   onClose: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
+  const changeCategory = t("Change Category");
+  const changeTags = t("Change Tags");
+  const changeLocations = t("Change Locations");
+  const changeMediaType = t("Change Media Type");
+  const changePeople = t("Change People");
+  const changeGroups = t("Change Groups");
+  const changeNewsletter = t("Change Newsletter");
+  const none = t("None");
   return (
     <>
       <CommandGroup
         heading={isBookmarkViewPage
-          ? "Bookmark Taxonomies"
-          : `Bookmark Taxonomies — ${bookmark.title}`}
+          ? t("Bookmark Taxonomies")
+          : t("Bookmark Taxonomies — {{title}}", {
+            title: bookmark.title,
+          })}
       >
         <CommandItem
-          value="Change Category"
+          value={changeCategory}
           onSelect={() => onEnterMode("category")}
         >
           <TagIcon />
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span>Change Category</span>
+            <span>{changeCategory}</span>
             <span className="text-xs text-muted-foreground">
               {currentCategoryName}
             </span>
           </span>
         </CommandItem>
         <CommandItem
-          value="Change Tags"
+          value={changeTags}
           onSelect={() => onEnterMode("tags")}
         >
           <TagIcon />
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span>Change Tags</span>
+            <span>{changeTags}</span>
             <span className="text-xs text-muted-foreground">
-              {`${bookmark.tags.length.toString()} selected`}
+              {t("{{count}} selected", {
+                count: bookmark.tags.length,
+              })}
             </span>
           </span>
         </CommandItem>
         <CommandItem
-          value="Change Locations"
+          value={changeLocations}
           onSelect={() => onEnterMode("locations")}
         >
           <TagIcon />
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span>Change Locations</span>
+            <span>{changeLocations}</span>
             <span className="text-xs text-muted-foreground">
-              {`${bookmark.locations.length.toString()} selected`}
+              {t("{{count}} selected", {
+                count: bookmark.locations.length,
+              })}
             </span>
           </span>
         </CommandItem>
         <CommandItem
-          value="Change Media Type"
+          value={changeMediaType}
           onSelect={() => onEnterMode("media-type")}
         >
           <TagIcon />
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span>Change Media Type</span>
+            <span>{changeMediaType}</span>
             <span className="text-xs text-muted-foreground">
-              {bookmark.mediaType?.name ?? "None"}
+              {bookmark.mediaType?.name ?? none}
             </span>
           </span>
         </CommandItem>
         {people.length > 0 && (
           <CommandItem
-            value="Change People"
+            value={changePeople}
             onSelect={() => onEnterMode("people")}
           >
             <TagIcon />
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span>Change People</span>
+              <span>{changePeople}</span>
               <span className="text-xs text-muted-foreground">
-                {`${bookmark.people.length.toString()} selected`}
+                {t("{{count}} selected", {
+                  count: bookmark.people.length,
+                })}
               </span>
             </span>
           </CommandItem>
         )}
         {groups.length > 0 && (
           <CommandItem
-            value="Change Groups"
+            value={changeGroups}
             onSelect={() => onEnterMode("groups")}
           >
             <TagIcon />
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span>Change Groups</span>
+              <span>{changeGroups}</span>
               <span className="text-xs text-muted-foreground">
-                {`${bookmark.groups.length.toString()} selected`}
+                {t("{{count}} selected", {
+                  count: bookmark.groups.length,
+                })}
               </span>
             </span>
           </CommandItem>
         )}
         <CommandItem
-          value="Change Newsletter"
+          value={changeNewsletter}
           onSelect={() => onEnterMode("newsletter")}
         >
           <TagIcon />
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span>Change Newsletter</span>
+            <span>{changeNewsletter}</span>
             <span className="text-xs text-muted-foreground">
-              {bookmark.newsletter?.name ?? "None"}
+              {bookmark.newsletter?.name ?? none}
             </span>
           </span>
         </CommandItem>
@@ -842,7 +909,9 @@ export function BookmarkTaxonomiesGroup({
           return (
             <CommandItem
               key={p.id}
-              value={`Toggle ${p.name}`}
+              value={t("Toggle {{name}}", {
+                name: p.name,
+              })}
               onSelect={() => {
                 updateBookmark.mutate({
                   id: bookmarkId,
@@ -865,7 +934,7 @@ export function BookmarkTaxonomiesGroup({
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span>{p.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {current ? "On" : "Off"}
+                  {current ? t("On") : t("Off")}
                 </span>
               </span>
             </CommandItem>
@@ -878,17 +947,19 @@ export function BookmarkTaxonomiesGroup({
           return (
             <CommandItem
               key={p.id}
-              value={`Set ${p.name}`}
+              value={t("Set {{name}}", {
+                name: p.name,
+              })}
               onSelect={() => onEnterChoicesMode(p.id)}
             >
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span>
-                  Set
+                  {t("Set")}
                   {" "}
                   {p.name}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {current.length > 0 ? current.join(", ") : "None"}
+                  {current.length > 0 ? current.join(", ") : none}
                 </span>
               </span>
             </CommandItem>
@@ -902,19 +973,21 @@ export function BookmarkTaxonomiesGroup({
           return (
             <CommandItem
               key={p.id}
-              value={`Set ${p.name}`}
+              value={t("Set {{name}}", {
+                name: p.name,
+              })}
               onSelect={() => onEnterRatingMode(p.id)}
             >
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span>
-                  Set
+                  {t("Set")}
                   {" "}
                   {p.name}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {current !== null
                     ? `${"★".repeat(current)}${"☆".repeat(max - current)}`
-                    : "Not rated"}
+                    : t("Not rated")}
                 </span>
               </span>
             </CommandItem>
@@ -923,17 +996,19 @@ export function BookmarkTaxonomiesGroup({
         {editableProperties.map(p => (
           <CommandItem
             key={p.id}
-            value={`Edit ${p.name}`}
+            value={t("Edit {{name}}", {
+              name: p.name,
+            })}
             onSelect={onNavigateProperties}
           >
             <span className="flex min-w-0 flex-col gap-0.5">
               <span>
-                Edit
+                {t("Edit")}
                 {" "}
                 {p.name}
               </span>
               <span className="text-xs text-muted-foreground">
-                Opens properties tab
+                {t("Opens properties tab")}
               </span>
             </span>
           </CommandItem>
@@ -956,10 +1031,13 @@ export function CardDisplayRulesGroup({
   rules: CardDisplayRule[];
   onSelect: (slug: string) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   if (rules.length === 0) return null;
   return (
     <>
-      <CommandGroup heading="Card Display Rules">
+      <CommandGroup heading={t("Card Display Rules")}>
         {rules.map(rule => (
           <CommandItem
             key={rule.id}
@@ -970,11 +1048,14 @@ export function CardDisplayRulesGroup({
             <LayoutGridIcon />
             <span className="flex min-w-0 flex-col gap-0.5">
               <span>
-                {rule.name}
-                {rule.isDefault ? " (Default)" : ""}
+                {rule.isDefault
+                  ? t("{{name}} (Default)", {
+                    name: rule.name,
+                  })
+                  : rule.name}
               </span>
               <span className="text-xs text-muted-foreground">
-                View display rule
+                {t("View display rule")}
               </span>
             </span>
           </CommandItem>

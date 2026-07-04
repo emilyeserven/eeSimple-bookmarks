@@ -24,6 +24,7 @@ import { useAppForm } from "../lib/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 
 interface PropertyFormProps {
   /** `create` shows an editable Type select; `edit` locks Type (it is immutable) and prefills values. */
@@ -83,6 +84,11 @@ export function PropertyForm({
   idPrefix,
   section,
 }: PropertyFormProps) {
+  const tLabel = useTranslatedLabel();
+  const typeOptions = TYPE_OPTIONS.map(option => ({
+    ...option,
+    label: tLabel(option.label),
+  }));
   const isBuiltIn = mode === "edit" && Boolean(property?.builtIn);
   const groupOptions = [...propertyGroups]
     .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name))
@@ -139,7 +145,7 @@ export function PropertyForm({
                 {field => (
                   <field.SelectField
                     label="Type"
-                    options={TYPE_OPTIONS}
+                    options={typeOptions}
                     disabled={mode === "edit"}
                   />
                 )}

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { Captions, ChevronDown, ChevronRight, Languages } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useIsMobile } from "../hooks/use-mobile";
 
@@ -21,6 +22,9 @@ function UsageLevelsLink({
   onNavigate: () => void;
   usageLevelsCount?: number;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Link
       to="/taxonomies/language-usage-levels"
@@ -31,7 +35,7 @@ function UsageLevelsLink({
       "
     >
       <Captions className="size-3.5 shrink-0 text-muted-foreground" />
-      <span className="flex-1 truncate">Usage Levels</span>
+      <span className="flex-1 truncate">{t("Usage Levels")}</span>
       {usageLevelsCount != null && usageLevelsCount > 0
         ? (
           <Badge
@@ -64,6 +68,9 @@ export function LanguagesSidebarItem({
   usageLevelsCount?: number;
   sidebarState?: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -92,11 +99,11 @@ export function LanguagesSidebarItem({
     <SidebarMenuButton
       asChild
       isActive={isActive}
-      tooltip="Languages"
+      tooltip={t("Languages")}
     >
       <Link to="/taxonomies/languages">
         <Languages />
-        <span className="flex-1 truncate">Languages</span>
+        <span className="flex-1 truncate">{t("Languages")}</span>
         {showTrailingContent && languagesCount != null && languagesCount > 0
           ? (
             <Badge
@@ -127,7 +134,7 @@ export function LanguagesSidebarItem({
         <SidebarMenuItem>
           {languagesButton}
           <SidebarMenuAction
-            aria-label={expanded ? "Hide Usage Levels" : "Show Usage Levels"}
+            aria-label={expanded ? t("Hide Usage Levels") : t("Show Usage Levels")}
             onClick={() => setExpanded(value => !value)}
           >
             <ChevronDown
@@ -175,7 +182,7 @@ export function LanguagesSidebarItem({
           onMouseLeave={closeSoon}
         >
           <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">
-            Languages
+            {t("Languages")}
           </p>
           <UsageLevelsLink
             onNavigate={() => setOpen(false)}

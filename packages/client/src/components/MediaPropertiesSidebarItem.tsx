@@ -15,6 +15,7 @@ import {
   Tv,
   Tv2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useIsMobile } from "../hooks/use-mobile";
 
@@ -92,54 +93,57 @@ function FlyoutChildren({
   tracksCount?: number;
   onNavigate: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
       <FlyoutChildLink
         to="/taxonomies/books"
         icon={BookOpen}
-        label="Books"
+        label={t("Books")}
         count={booksCount}
         onNavigate={onNavigate}
       />
       <FlyoutChildLink
         to="/taxonomies/podcasts"
         icon={Podcast}
-        label="Podcasts"
+        label={t("Podcasts")}
         count={podcastsCount}
         onNavigate={onNavigate}
       />
       <FlyoutChildLink
         to="/taxonomies/movies"
         icon={Film}
-        label="Movies"
+        label={t("Movies")}
         count={moviesCount}
         onNavigate={onNavigate}
       />
       <FlyoutChildLink
         to="/taxonomies/tv-shows"
         icon={Tv}
-        label="TV Shows"
+        label={t("TV Shows")}
         count={tvShowsCount}
         onNavigate={onNavigate}
       />
       <FlyoutChildLink
         to="/taxonomies/episodes"
         icon={Tv2}
-        label="Episodes"
+        label={t("Episodes")}
         count={episodesCount}
         onNavigate={onNavigate}
       />
       <FlyoutChildLink
         to="/taxonomies/albums"
         icon={Disc3}
-        label="Albums"
+        label={t("Albums")}
         count={albumsCount}
         onNavigate={onNavigate}
       />
       <FlyoutChildLink
         to="/taxonomies/tracks"
         icon={Music}
-        label="Tracks"
+        label={t("Tracks")}
         count={tracksCount}
         onNavigate={onNavigate}
       />
@@ -177,6 +181,9 @@ export function MediaPropertiesSidebarItem({
   tracksCount?: number;
   sidebarState?: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -205,11 +212,11 @@ export function MediaPropertiesSidebarItem({
     <SidebarMenuButton
       asChild
       isActive={isActive}
-      tooltip="Media Properties"
+      tooltip={t("Media Properties")}
     >
       <Link to="/taxonomies/media-properties">
         <Library />
-        <span className="flex-1 truncate">Media Properties</span>
+        <span className="flex-1 truncate">{t("Media Properties")}</span>
         {showTrailingContent && mediaPropertiesCount != null && mediaPropertiesCount > 0
           ? (
             <Badge
@@ -240,7 +247,7 @@ export function MediaPropertiesSidebarItem({
         <SidebarMenuItem>
           {mediaPropertiesButton}
           <SidebarMenuAction
-            aria-label={expanded ? "Hide taxonomies" : "Show taxonomies"}
+            aria-label={expanded ? t("Hide taxonomies") : t("Show taxonomies")}
             onClick={() => setExpanded(value => !value)}
           >
             <ChevronDown
@@ -294,7 +301,7 @@ export function MediaPropertiesSidebarItem({
           onMouseLeave={closeSoon}
         >
           <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">
-            Media Properties
+            {t("Media Properties")}
           </p>
           <FlyoutChildren
             booksCount={booksCount}

@@ -10,6 +10,7 @@ import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPo
 import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { ResponsivePopover } from "@/components/ui/responsive-popover";
+import i18n from "@/i18n";
 
 export function bookmarkLayoutAction(ctx: ToolbarContext): ToolbarAction | null {
   if (!ctx.isBookmarkDetail) return null;
@@ -19,10 +20,10 @@ export function bookmarkLayoutAction(ctx: ToolbarContext): ToolbarAction | null 
     mobile: {
       kind: "modal",
       icon: Columns2,
-      label: "Layout",
+      label: i18n.t("Layout"),
       renderModal: (open, onOpenChange) => (
         <ResponsivePopover
-          title="Layout"
+          title={i18n.t("Layout")}
           open={open}
           onOpenChange={onOpenChange}
         >
@@ -48,8 +49,8 @@ export function viewDetailsAction(ctx: ToolbarContext): ToolbarAction | null {
         type="button"
         variant="ghost"
         size="icon"
-        aria-label="View details"
-        title="View details"
+        aria-label={i18n.t("View details")}
+        title={i18n.t("View details")}
         asChild
       >
         {viewDesktopLink}
@@ -63,7 +64,7 @@ export function viewDetailsAction(ctx: ToolbarContext): ToolbarAction | null {
             ctx.pathParts, (
               <>
                 <Info className="size-4" />
-                View details
+                {i18n.t("View details")}
               </>
             ),
           )}
@@ -88,8 +89,8 @@ export function editTaxonomyAction(ctx: ToolbarContext): ToolbarAction | null {
         type="button"
         variant="ghost"
         size="icon"
-        aria-label="Edit"
-        title="Edit"
+        aria-label={i18n.t("Edit")}
+        title={i18n.t("Edit")}
         asChild
       >
         {editDesktopLink}
@@ -103,7 +104,7 @@ export function editTaxonomyAction(ctx: ToolbarContext): ToolbarAction | null {
             ctx.pathParts, (
               <>
                 <Pencil className="size-4" />
-                Edit
+                {i18n.t("Edit")}
               </>
             ),
           )}
@@ -131,7 +132,7 @@ export function editBookmarkAction(ctx: ToolbarContext): ToolbarAction | null {
             bookmarkId,
           }}
         >
-          Edit
+          {i18n.t("Edit")}
         </Link>
       </Button>
     ),
@@ -146,7 +147,7 @@ export function editBookmarkAction(ctx: ToolbarContext): ToolbarAction | null {
             }}
           >
             <Pencil className="size-4" />
-            Edit
+            {i18n.t("Edit")}
           </Link>
         </DropdownMenuItem>
       ),
