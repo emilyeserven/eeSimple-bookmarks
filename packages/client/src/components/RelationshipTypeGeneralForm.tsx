@@ -1,6 +1,7 @@
 import type { RelationshipType, UpdateRelationshipTypeInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -14,11 +15,6 @@ const relationshipTypeGeneralSchema = z.object({
   directional: z.boolean(),
 });
 
-const LABELS: Partial<Record<keyof UpdateRelationshipTypeInput, string>> = {
-  name: "Name",
-  directional: "Direction",
-};
-
 interface Props {
   relationshipType: RelationshipType;
 }
@@ -30,6 +26,13 @@ interface Props {
 export function RelationshipTypeGeneralForm({
   relationshipType,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
+  const LABELS: Partial<Record<keyof UpdateRelationshipTypeInput, string>> = {
+    name: t("Name"),
+    directional: t("Direction"),
+  };
   const navigate = useNavigate();
   const update = useUpdateRelationshipType();
   const autoSave = useFieldAutoSave<UpdateRelationshipTypeInput, RelationshipType>({
@@ -57,7 +60,7 @@ export function RelationshipTypeGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
+            label={t("Name")}
             disabled={relationshipType.builtIn}
             onBlur={() => autoSave.saveField(
               "name",
@@ -81,7 +84,7 @@ export function RelationshipTypeGeneralForm({
         )}
       </form.AppField>
       {relationshipType.builtIn
-        ? <p className="text-xs text-muted-foreground">Built-in types can&apos;t be renamed.</p>
+        ? <p className="text-xs text-muted-foreground">{t("Built-in types can't be renamed.")}</p>
         : null}
 
       <form.AppField name="directional">
@@ -94,9 +97,9 @@ export function RelationshipTypeGeneralForm({
                 field.handleChange(next);
                 autoSave.saveField("directional", next);
               }}
-              aria-label="Directional"
+              aria-label={t("Directional")}
             />
-            Directional (reads parent → child rather than symmetric)
+            {t("Directional (reads parent → child rather than symmetric)")}
           </label>
         )}
       </form.AppField>

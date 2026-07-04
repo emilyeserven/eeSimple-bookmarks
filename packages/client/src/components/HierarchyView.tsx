@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 /** Minimal shape of a node in an ancestor chain rendered by {@link HierarchyView}. */
 export interface HierarchyAncestor {
   id: string;
@@ -34,13 +36,16 @@ export function HierarchyView({
   childrenEmptyLabel,
   childrenList,
 }: HierarchyViewProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="text-sm font-medium">Parents</p>
+        <p className="text-sm font-medium">{t("Parents")}</p>
         {ancestors.length === 0
           ? (
-            <p className="text-sm text-muted-foreground">(root — no parent)</p>
+            <p className="text-sm text-muted-foreground">{t("(root — no parent)")}</p>
           )
           : (
             <ol className="flex flex-wrap items-center gap-1 text-sm">
@@ -58,7 +63,7 @@ export function HierarchyView({
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium">Children</p>
+        <p className="text-sm font-medium">{t("Children")}</p>
         {hasChildren
           ? childrenList
           : (

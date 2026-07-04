@@ -1,5 +1,7 @@
 import type { Newsletter } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateNewsletter } from "../hooks/useNewsletters";
 
@@ -15,15 +17,18 @@ export function AddNewsletterModal({
   open, onOpenChange, onCreated,
 }: AddNewsletterModalProps) {
   const createNewsletter = useCreateNewsletter();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title="New import"
-      description="Give the import a name — you can set its default category, tags, and media type later from its edit page."
-      placeholder="e.g. The Pragmatic Engineer"
-      submitLabel="Add import"
+      title={t("New import")}
+      description={t("Give the import a name — you can set its default category, tags, and media type later from its edit page.")}
+      placeholder={t("e.g. The Pragmatic Engineer")}
+      submitLabel={t("Add import")}
       isError={createNewsletter.isError}
       errorMessage={createNewsletter.error?.message}
       onSubmit={(name, done) => {

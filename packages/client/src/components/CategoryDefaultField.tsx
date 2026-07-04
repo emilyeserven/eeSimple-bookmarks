@@ -1,5 +1,7 @@
 import type { CustomProperty } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { renderPropertyScalarInput } from "./PropertyScalarInput";
 
 import { Label } from "@/components/ui/label";
@@ -36,6 +38,9 @@ export function CategoryDefaultField({
   onBooleanChange,
   onDateTimeChange,
 }: CategoryDefaultFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   const htmlId = `default-${category.id}-${property.id}`;
   const scalar = renderPropertyScalarInput({
     property,
@@ -61,9 +66,9 @@ export function CategoryDefaultField({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="unset">No default</SelectItem>
-          <SelectItem value="true">Yes</SelectItem>
-          <SelectItem value="false">No</SelectItem>
+          <SelectItem value="unset">{t("No default")}</SelectItem>
+          <SelectItem value="true">{t("Yes")}</SelectItem>
+          <SelectItem value="false">{t("No")}</SelectItem>
         </SelectContent>
       </Select>
     </div>

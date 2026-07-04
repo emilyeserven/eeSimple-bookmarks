@@ -2,6 +2,8 @@ import type { SourceDefaults } from "./BookmarkAdvancedSection";
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { MediaTypeNode } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
@@ -20,6 +22,9 @@ interface BookmarkAdvancedMediaTypeFieldProps {
 export function BookmarkAdvancedMediaTypeField({
   form, mediaTypes, sourceDefaults,
 }: BookmarkAdvancedMediaTypeFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   const mediaTypeCreate = useEntityCreateOption("media-type", mediaType => form.setFieldValue("mediaTypeId", mediaType.id));
 
   return (
@@ -27,10 +32,10 @@ export function BookmarkAdvancedMediaTypeField({
       <form.AppField name="mediaTypeId">
         {field => (
           <field.TreeComboboxField
-            label="Media type"
-            placeholder="No media type"
-            searchPlaceholder="Search media types…"
-            emptyText="No media types found."
+            label={t("Media type")}
+            placeholder={t("No media type")}
+            searchPlaceholder={t("Search media types…")}
+            emptyText={t("No media types found.")}
             createOption={mediaTypeCreate.createOption}
             options={mediaTypeNodesToOptions(mediaTypes)}
           />
@@ -48,9 +53,9 @@ export function BookmarkAdvancedMediaTypeField({
                 checked={sourceDefaults.setMediaType ?? false}
                 onCheckedChange={sourceDefaults.onSetMediaType ?? (() => undefined)}
               >
-                Set as default media type for
-                {" "}
-                {sourceDefaults.label}
+                {t("Set as default media type for {{label}}", {
+                  label: sourceDefaults.label,
+                })}
               </SourceDefaultCheckbox>
             )
             : null)}

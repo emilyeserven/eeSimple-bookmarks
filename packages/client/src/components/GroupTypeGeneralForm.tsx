@@ -1,6 +1,7 @@
 import type { GroupType, UpdateGroupTypeInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -26,6 +27,9 @@ interface Props {
 export function GroupTypeGeneralForm({
   groupType,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateGroupType = useUpdateGroupType();
   const autoSave = useFieldAutoSave<UpdateGroupTypeInput, GroupType>({
@@ -59,7 +63,7 @@ export function GroupTypeGeneralForm({
         <form.AppField name="name">
           {field => (
             <field.TextField
-              label="Name"
+              label={t("Name")}
               onBlur={() => autoSave.saveField(
                 "name",
                 field.state.value.trim(),
@@ -84,8 +88,8 @@ export function GroupTypeGeneralForm({
         <form.AppField name="sortOrder">
           {field => (
             <field.NumberField
-              label="Sort order"
-              hint="Lower sorts first."
+              label={t("Sort order")}
+              hint={t("Lower sorts first.")}
               onBlur={() => autoSave.saveField(
                 "sortOrder",
                 field.state.value,

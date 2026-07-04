@@ -1,5 +1,7 @@
 import type { Category, LocationNode, MediaTypeNode, TagNode } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { NO_CATEGORY, NO_MEDIA_TYPE } from "./AutofillRuleForm";
 import { Combobox } from "./Combobox";
 import { LocationPickerWithCreate } from "./LocationPickerWithCreate";
@@ -10,8 +12,6 @@ import { useGatedTagTree } from "../hooks/useGatedTagTree";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 
 import { Label } from "@/components/ui/label";
-
-const LEAVE_UNCHANGED = "— Leave unchanged —";
 
 interface Props {
   categories: Category[];
@@ -36,16 +36,20 @@ export function AutofillRulePrefillPickers({
   setMediaTypeId, onMediaTypeChange, tagIds, onToggleTag, locationIds, onToggleLocation,
   appliedCategoryId,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const categoryCreate = useEntityCreateOption("category", c => onCategoryChange(c.id));
   const mediaTypeCreate = useEntityCreateOption("media-type", m => onMediaTypeChange(m.id));
   const {
     tree: gatedTagTree,
   } = useGatedTagTree(appliedCategoryId, tagTree);
 
+  const leaveUnchanged = t("— Leave unchanged —");
   const categoryOptions = [
     {
       value: NO_CATEGORY,
-      label: LEAVE_UNCHANGED,
+      label: leaveUnchanged,
     },
     ...iconComboboxOptions(categories),
   ];
@@ -53,35 +57,35 @@ export function AutofillRulePrefillPickers({
   return (
     <>
       <div className="space-y-1">
-        <Label>Set category</Label>
+        <Label>{t("Set category")}</Label>
         <Combobox
           options={categoryOptions}
           value={setCategoryId}
           onValueChange={v => onCategoryChange(v ?? NO_CATEGORY)}
-          searchPlaceholder="Search categories…"
-          emptyText="No categories found."
+          searchPlaceholder={t("Search categories…")}
+          emptyText={t("No categories found.")}
           createOption={categoryCreate.createOption}
         />
       </div>
 
       <div className="space-y-1">
-        <Label>Set media type</Label>
+        <Label>{t("Set media type")}</Label>
         <TreeCombobox
           options={mediaTypeNodesToOptions(mediaTypeTree)}
           leadingOption={{
             value: NO_MEDIA_TYPE,
-            label: LEAVE_UNCHANGED,
+            label: leaveUnchanged,
           }}
           value={setMediaTypeId}
           onValueChange={v => onMediaTypeChange(v ?? NO_MEDIA_TYPE)}
-          searchPlaceholder="Search media types…"
-          emptyText="No media types found."
+          searchPlaceholder={t("Search media types…")}
+          emptyText={t("No media types found.")}
           createOption={mediaTypeCreate.createOption}
         />
       </div>
 
       <div className="space-y-1">
-        <Label>Apply tags</Label>
+        <Label>{t("Apply tags")}</Label>
         <TagPickerWithCreate
           tree={gatedTagTree}
           selectedIds={tagIds}
@@ -90,7 +94,7 @@ export function AutofillRulePrefillPickers({
       </div>
 
       <div className="space-y-1">
-        <Label>Apply locations</Label>
+        <Label>{t("Apply locations")}</Label>
         <LocationPickerWithCreate
           tree={locationTree}
           selectedIds={locationIds}

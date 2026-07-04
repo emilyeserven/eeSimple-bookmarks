@@ -1,6 +1,7 @@
 import type { LocationAlternateName } from "@eesimple/types";
 
 import { Plus, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,10 @@ interface AlternateNamesEditorProps {
 export function AlternateNamesEditor({
   value, onChange, onCommit,
 }: AlternateNamesEditorProps) {
+  const {
+    t,
+  } = useTranslation();
+
   function updateRow(index: number, patch: Partial<LocationAlternateName>) {
     onChange(value.map((row, i) => (i === index
       ? {
@@ -46,9 +51,9 @@ export function AlternateNamesEditor({
 
   return (
     <div className="space-y-2">
-      <Label>Alternate names</Label>
+      <Label>{t("Alternate names")}</Label>
       {value.length === 0
-        ? <p className="text-xs text-muted-foreground">No alternate names yet.</p>
+        ? <p className="text-xs text-muted-foreground">{t("No alternate names yet.")}</p>
         : null}
       <div className="space-y-2">
         {value.map((row, index) => (
@@ -57,8 +62,10 @@ export function AlternateNamesEditor({
             className="flex items-center gap-2"
           >
             <Input
-              aria-label={`Alternate name ${index + 1}`}
-              placeholder="Alternate name"
+              aria-label={t("Alternate name {{n}}", {
+                n: index + 1,
+              })}
+              placeholder={t("Alternate name")}
               value={row.value}
               onChange={event => updateRow(index, {
                 value: event.target.value,
@@ -67,8 +74,10 @@ export function AlternateNamesEditor({
               className="flex-1"
             />
             <Input
-              aria-label={`Style for alternate name ${index + 1}`}
-              placeholder="Style (e.g. Hepburn)"
+              aria-label={t("Style for alternate name {{n}}", {
+                n: index + 1,
+              })}
+              placeholder={t("Style (e.g. Hepburn)")}
               value={row.style ?? ""}
               onChange={event => updateRow(index, {
                 style: event.target.value || null,
@@ -80,7 +89,9 @@ export function AlternateNamesEditor({
               type="button"
               variant="ghost"
               size="icon"
-              aria-label={`Remove alternate name ${index + 1}`}
+              aria-label={t("Remove alternate name {{n}}", {
+                n: index + 1,
+              })}
               onClick={() => removeRow(index)}
             >
               <X className="size-4" />
@@ -95,7 +106,7 @@ export function AlternateNamesEditor({
         onClick={addRow}
       >
         <Plus className="mr-2 size-4" />
-        Add alternate name
+        {t("Add alternate name")}
       </Button>
     </div>
   );

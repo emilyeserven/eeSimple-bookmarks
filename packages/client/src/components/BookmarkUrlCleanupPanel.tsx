@@ -2,6 +2,7 @@ import type { UrlCleanupMode } from "../lib/urlCleanup";
 import type { Website } from "@eesimple/types";
 
 import { ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { isFetchableUrl } from "../lib/url";
 import { canonicalize } from "../lib/urlCleanup";
@@ -24,6 +25,9 @@ interface UrlCleanupPanelProps {
 export function UrlCleanupPanel({
   url, cleanupId, mode, onModeChange, websites, ignoreList, customStripParams = [],
 }: UrlCleanupPanelProps) {
+  const {
+    t,
+  } = useTranslation();
   const preview = canonicalize(url, {
     mode,
     websites,
@@ -37,22 +41,22 @@ export function UrlCleanupPanel({
         sm:col-span-2
       "
     >
-      <p className="text-sm font-medium">URL Cleanup</p>
+      <p className="text-sm font-medium">{t("URL Cleanup")}</p>
 
       <div className="space-y-2">
         {(
           [
             {
               value: "none" as UrlCleanupMode,
-              label: "No modification",
+              label: t("No modification"),
             },
             {
               value: "trackers" as UrlCleanupMode,
-              label: "Just trackers",
+              label: t("Just trackers"),
             },
             {
               value: "all" as UrlCleanupMode,
-              label: "All params",
+              label: t("All params"),
             },
           ]
         ).map(option => (
@@ -75,13 +79,13 @@ export function UrlCleanupPanel({
       </div>
 
       <div className="space-y-1">
-        <p className="text-xs text-muted-foreground">Preview</p>
+        <p className="text-xs text-muted-foreground">{t("Preview")}</p>
         <div className="flex items-center gap-2">
           <Input
             value={preview}
             readOnly
             className="font-mono text-sm"
-            aria-label="Cleaned URL preview"
+            aria-label={t("Cleaned URL preview")}
           />
           {isFetchableUrl(preview)
             ? (
@@ -95,7 +99,7 @@ export function UrlCleanupPanel({
                   href={preview}
                   target="_blank"
                   rel="noreferrer"
-                  aria-label="Open cleaned URL in new tab"
+                  aria-label={t("Open cleaned URL in new tab")}
                 >
                   <ExternalLink className="size-4" />
                 </a>
@@ -107,7 +111,7 @@ export function UrlCleanupPanel({
                 variant="outline"
                 size="icon"
                 disabled
-                aria-label="Open cleaned URL in new tab"
+                aria-label={t("Open cleaned URL in new tab")}
               >
                 <ExternalLink className="size-4" />
               </Button>

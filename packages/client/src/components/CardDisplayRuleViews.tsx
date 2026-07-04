@@ -1,5 +1,7 @@
 import type { CardDisplayRule } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { CardDisplayRulePreview } from "./CardDisplayRulePreview";
 import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
@@ -16,17 +18,20 @@ interface ViewProps {
 export function CardDisplayRuleGeneralView({
   entity: rule,
 }: ViewProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-3 text-sm">
       {rule.description
         ? <p>{rule.description}</p>
-        : <p className="text-muted-foreground">No description.</p>}
+        : <p className="text-muted-foreground">{t("No description.")}</p>}
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2">
-        <dt className="text-muted-foreground">Priority</dt>
-        <dd>{rule.isDefault ? "Baseline (lowest)" : rule.sortOrder}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{t("Priority")}</dt>
+        <dd>{rule.isDefault ? t("Baseline (lowest)") : rule.sortOrder}</dd>
+        <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{rule.slug}</dd>
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{t("Added")}</dt>
         <dd>{new Date(rule.createdAt).toLocaleDateString()}</dd>
       </dl>
     </div>
@@ -37,8 +42,11 @@ export function CardDisplayRuleGeneralView({
 export function CardDisplayRuleConditionsView({
   entity: rule,
 }: ViewProps) {
+  const {
+    t,
+  } = useTranslation();
   if (rule.isDefault) {
-    return <p className="text-sm text-muted-foreground">The Default rule matches every bookmark card.</p>;
+    return <p className="text-sm text-muted-foreground">{t("The Default rule matches every bookmark card.")}</p>;
   }
   return (
     <div className="space-y-6">
@@ -47,8 +55,8 @@ export function CardDisplayRuleConditionsView({
       <Separator />
 
       <LabeledSection
-        title="Matching bookmarks"
-        description="Existing bookmarks this rule currently applies to."
+        title={t("Matching bookmarks")}
+        description={t("Existing bookmarks this rule currently applies to.")}
       >
         <PreviewBookmarksSection conditions={rule.conditions} />
       </LabeledSection>

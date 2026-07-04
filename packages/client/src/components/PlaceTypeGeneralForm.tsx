@@ -1,6 +1,7 @@
 import type { PlaceType, UpdatePlaceTypeInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -25,6 +26,9 @@ interface PlaceTypeGeneralFormProps {
 export function PlaceTypeGeneralForm({
   placeType,
 }: PlaceTypeGeneralFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updatePlaceType = useUpdatePlaceType();
   const autoSave = useFieldAutoSave<UpdatePlaceTypeInput, PlaceType>({
@@ -58,7 +62,7 @@ export function PlaceTypeGeneralForm({
         <form.AppField name="name">
           {field => (
             <field.TextField
-              label="Name"
+              label={t("Name")}
               onBlur={() => autoSave.saveField(
                 "name",
                 field.state.value.trim(),
@@ -83,8 +87,8 @@ export function PlaceTypeGeneralForm({
         <form.AppField name="sortOrder">
           {field => (
             <field.NumberField
-              label="Sort order"
-              hint="Lower numbers sort first."
+              label={t("Sort order")}
+              hint={t("Lower numbers sort first.")}
               onBlur={() => autoSave.saveField(
                 "sortOrder",
                 field.state.value,

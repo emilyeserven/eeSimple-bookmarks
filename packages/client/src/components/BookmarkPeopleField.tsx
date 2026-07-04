@@ -1,6 +1,8 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { Person } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { MultiCombobox } from "./MultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
@@ -22,13 +24,16 @@ export function BookmarkPeopleField({
     const current = form.getFieldValue("personIds");
     if (!current.includes(person.id)) form.setFieldValue("personIds", [...current, person.id]);
   });
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <>
       <form.Field name="personIds">
         {field => (
           <div className="space-y-1">
-            <Label>People</Label>
+            <Label>{t("People")}</Label>
             <MultiCombobox
               options={people.map(a => ({
                 value: a.id,
@@ -36,9 +41,9 @@ export function BookmarkPeopleField({
               }))}
               values={field.state.value}
               onValuesChange={field.handleChange}
-              placeholder="Select people…"
-              searchPlaceholder="Search people…"
-              emptyText="No people found."
+              placeholder={t("Select people…")}
+              searchPlaceholder={t("Search people…")}
+              emptyText={t("No people found.")}
               createOption={personCreate.createOption}
             />
           </div>

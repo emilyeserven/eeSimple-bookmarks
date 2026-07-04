@@ -1,5 +1,7 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 
+import { useTranslation } from "react-i18next";
+
 import { MultiCombobox } from "./MultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useGenreMoodTree } from "../hooks/useGenreMoods";
@@ -20,6 +22,9 @@ export function BookmarkGenreMoodsField({
   form,
 }: BookmarkGenreMoodsFieldProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tree = [],
   } = useGenreMoodTree();
   const genreMoodCreate = useEntityCreateOption("genre-mood", (entry) => {
@@ -32,14 +37,14 @@ export function BookmarkGenreMoodsField({
       <form.Field name="genreMoodIds">
         {field => (
           <div className="space-y-1">
-            <Label>Genres & Moods</Label>
+            <Label>{t("Genres & Moods")}</Label>
             <MultiCombobox
               options={genreMoodTreeComboboxOptions(tree)}
               values={field.state.value}
               onValuesChange={field.handleChange}
-              placeholder="Add Genres & Moods…"
-              searchPlaceholder="Search Genres & Moods…"
-              emptyText="No entries found."
+              placeholder={t("Add Genres & Moods…")}
+              searchPlaceholder={t("Search Genres & Moods…")}
+              emptyText={t("No entries found.")}
               createOption={genreMoodCreate.createOption}
             />
           </div>

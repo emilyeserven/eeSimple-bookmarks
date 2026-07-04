@@ -2,6 +2,7 @@ import type { SectionDisplayValue } from "./SectionDisplaySettings";
 import type { HomepageSection, UpdateHomepageSectionInput } from "@eesimple/types";
 
 import { defaultCardZoneLayouts } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { conditionsBreakdown, conditionsSummaryLabel } from "./conditions/summarizeConditions";
@@ -22,6 +23,9 @@ interface HomepageSectionViewProps {
 export function HomepageSectionView({
   section, onPatchDisplay,
 }: HomepageSectionViewProps) {
+  const {
+    t,
+  } = useTranslation();
   const breakdown = conditionsBreakdown(section.conditions);
   const {
     data: properties,
@@ -47,8 +51,8 @@ export function HomepageSectionView({
         : null}
 
       <CollapsibleFormSection
-        title="Display"
-        description="How this section's bookmarks are laid out on the homepage."
+        title={t("Display")}
+        description={t("How this section's bookmarks are laid out on the homepage.")}
         preview={sectionDisplayPreview(display)}
       >
         <SectionDisplaySettings
@@ -62,14 +66,14 @@ export function HomepageSectionView({
       <Separator />
 
       <CollapsibleFormSection
-        title="Filter"
-        description="The bookmarks shown in this section — use Edit to change them."
+        title={t("Filter")}
+        description={t("The bookmarks shown in this section — use Edit to change them.")}
         preview={conditionsSummaryLabel(section.conditions)}
       >
         {breakdown.length === 0
           ? (
             <p className="text-sm text-muted-foreground">
-              No conditions yet — use Edit to choose which bookmarks appear here.
+              {t("No conditions yet — use Edit to choose which bookmarks appear here.")}
             </p>
           )
           : (

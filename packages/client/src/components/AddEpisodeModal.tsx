@@ -2,6 +2,8 @@ import type { Episode, PlexItemResult } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { AddTvShowModal } from "./AddTvShowModal";
 import { Combobox } from "./Combobox";
 import { PlexTitleForm } from "./PlexTitleForm";
@@ -33,6 +35,9 @@ export function AddEpisodeModal({
   open, onOpenChange, onCreated,
 }: AddEpisodeModalProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tvShows,
   } = useTvShows();
   const [tvShowId, setTvShowId] = useState("");
@@ -54,9 +59,9 @@ export function AddEpisodeModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New episode</DialogTitle>
+          <DialogTitle>{t("New episode")}</DialogTitle>
           <DialogDescription>
-            Give the episode a name, or look it up on Plex to fill in its details automatically.
+            {t("Give the episode a name, or look it up on Plex to fill in its details automatically.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -68,20 +73,20 @@ export function AddEpisodeModal({
           }}
           extraFields={(
             <div className="space-y-1.5">
-              <Label>TV show</Label>
+              <Label>{t("TV show")}</Label>
               <Combobox
-                aria-label="TV show"
+                aria-label={t("TV show")}
                 options={(tvShows ?? []).map(show => ({
                   value: show.id,
                   label: show.name,
                 }))}
                 value={tvShowId || undefined}
                 onValueChange={value => setTvShowId(value ?? "")}
-                placeholder="No TV show"
-                searchPlaceholder="Search TV shows…"
-                emptyText="No TV shows found."
+                placeholder={t("No TV show")}
+                searchPlaceholder={t("Search TV shows…")}
+                emptyText={t("No TV shows found.")}
                 createOption={{
-                  label: "Create TV show",
+                  label: t("Create TV show"),
                   onSelect: () => setAddTvShowOpen(true),
                 }}
               />

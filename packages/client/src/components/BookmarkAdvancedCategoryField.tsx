@@ -2,6 +2,8 @@ import type { SourceDefaults } from "./BookmarkAdvancedSection";
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { Category } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
@@ -22,6 +24,9 @@ interface BookmarkAdvancedCategoryFieldProps {
 export function BookmarkAdvancedCategoryField({
   form, lockedCategoryId, categories, sourceDefaults,
 }: BookmarkAdvancedCategoryFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   const categoryCreate = useEntityCreateOption("category", category => form.setFieldValue("categoryId", category.id));
 
   return (
@@ -33,21 +38,21 @@ export function BookmarkAdvancedCategoryField({
               rounded-md border bg-muted px-3 py-2 text-xs text-muted-foreground
             "
           >
-            Category is pre-filled (
+            {t("Category is pre-filled (")}
             <span className="font-medium">
-              {categories.find(c => c.id === lockedCategoryId)?.name ?? "a specific category"}
+              {categories.find(c => c.id === lockedCategoryId)?.name ?? t("a specific category")}
             </span>
-            ) — open from any other view to change it.
+            {t(") — open from any other view to change it.")}
           </p>
         )
         : (
           <form.AppField name="categoryId">
             {field => (
               <field.ComboboxField
-                label="Category"
-                placeholder="Select a category"
-                searchPlaceholder="Search categories…"
-                emptyText="No categories found."
+                label={t("Category")}
+                placeholder={t("Select a category")}
+                searchPlaceholder={t("Search categories…")}
+                emptyText={t("No categories found.")}
                 createOption={categoryCreate.createOption}
                 options={categories.map(category => ({
                   value: category.id,
@@ -75,7 +80,7 @@ export function BookmarkAdvancedCategoryField({
                 checked={sourceDefaults.setCategory}
                 onCheckedChange={sourceDefaults.onSetCategory}
               >
-                Set as default category for
+                {t("Set as default category for")}
                 {" "}
                 {sourceDefaults.label}
               </SourceDefaultCheckbox>

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { LinkPreview } from "./LinkPreview";
 import { useCustomStripParams, useShortenerIgnoreList } from "../hooks/useAppSettings";
 import { useWebsites } from "../hooks/useWebsites";
@@ -21,14 +23,16 @@ export function CheckLinkSettings() {
   const {
     data: websites = [],
   } = useWebsites();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Check a link</CardTitle>
+        <CardTitle>{t("Check a link")}</CardTitle>
         <CardDescription>
-          Paste any URL to see which site it resolves to and how it would be canonicalized when
-          saved — including verified short-link expansion and shortener nudges.
+          {t("Paste any URL to see which site it resolves to and how it would be canonicalized when saved — including verified short-link expansion and shortener nudges.")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -36,7 +40,7 @@ export function CheckLinkSettings() {
           websites={websites}
           ignoreList={ignoreList}
           customStripParams={customStripParams}
-          label="URL"
+          label={t("URL")}
           placeholder="https://www.youtube.com/watch?v=…"
         />
       </CardContent>

@@ -1,6 +1,7 @@
 import type { CustomProperty, CustomPropertyType } from "@eesimple/types";
 
 import { CUSTOM_PROPERTY_TYPES } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useCreateCustomProperty } from "../hooks/useCustomProperties";
@@ -32,6 +33,9 @@ interface AddCustomPropertyModalProps {
 export function AddCustomPropertyModal({
   open, onOpenChange, onCreated,
 }: AddCustomPropertyModalProps) {
+  const {
+    t,
+  } = useTranslation();
   const tLabel = useTranslatedLabel();
   const typeOptions = TYPE_OPTIONS.map(option => ({
     ...option,
@@ -72,9 +76,9 @@ export function AddCustomPropertyModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New custom property</DialogTitle>
+          <DialogTitle>{t("New custom property")}</DialogTitle>
           <DialogDescription>
-            Pick a name and type — fill in the rest from its edit page.
+            {t("Pick a name and type — fill in the rest from its edit page.")}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -88,15 +92,15 @@ export function AddCustomPropertyModal({
           <form.AppField name="name">
             {field => (
               <field.TextField
-                label="Name"
-                placeholder="e.g. Rating"
+                label={t("Name")}
+                placeholder={t("e.g. Rating")}
               />
             )}
           </form.AppField>
           <form.AppField name="type">
             {field => (
               <field.SelectField
-                label="Type"
+                label={t("Type")}
                 options={typeOptions}
               />
             )}
@@ -107,8 +111,8 @@ export function AddCustomPropertyModal({
           <DialogFooter>
             <form.AppForm>
               <form.SubmitButton
-                label="Add property"
-                pendingLabel="Adding…"
+                label={t("Add property")}
+                pendingLabel={t("Adding…")}
               />
             </form.AppForm>
           </DialogFooter>

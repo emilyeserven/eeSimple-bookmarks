@@ -2,6 +2,7 @@ import type { RelationshipType } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Link2, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -24,6 +25,9 @@ export function RelationshipTypeCard({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -37,9 +41,9 @@ export function RelationshipTypeCard({
       icon={<Link2 className="size-5 shrink-0 text-muted-foreground" />}
       title={relationshipType.name}
       titleAdornment={relationshipType.builtIn
-        ? <Badge variant="secondary">Built-in</Badge>
+        ? <Badge variant="secondary">{t("Built-in")}</Badge>
         : undefined}
-      subtitle={relationshipType.directional ? "Directional" : "Symmetric"}
+      subtitle={relationshipType.directional ? t("Directional") : t("Symmetric")}
       count={relationshipType.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
@@ -61,11 +65,16 @@ export function RelationshipTypeCard({
             params={{
               relationshipTypeSlug: relationshipType.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "relationship-type", relationshipType.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {relationshipType.name}</span>
+            <span className="sr-only">{t("Edit {{name}}", {
+              name: relationshipType.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -80,7 +89,10 @@ export function RelationshipTypeCard({
             onClick={event => viewClick(event, "relationship-type", relationshipType.id, relationshipType.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {relationshipType.name}</span>
+            <span className="sr-only">{t("View {{name}}", {
+              name: relationshipType.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
