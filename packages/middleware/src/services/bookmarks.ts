@@ -644,6 +644,21 @@ type ScalarBookmarkPatch = Partial<
 >;
 
 /**
+ * Nullable scalar columns copied through verbatim when the caller provided the field, coalescing an
+ * explicit `null`/`undefined` value to `null` (an omitted key leaves the column untouched).
+ */
+const NULLABLE_SCALAR_FIELDS = [
+  "originalUrl", "romanizedName", "description", "mediaTypeId", "groupId", "bookId", "movieId",
+  "tvShowId", "episodeId", "albumId", "trackId", "podcastId", "kavitaSeriesId", "kavitaLibraryId",
+  "kavitaSeriesName", "plexRatingKey", "plexItemType", "plexItemTitle", "imageDisplayPreference",
+] as const satisfies readonly (keyof ScalarBookmarkPatch)[];
+
+/** Scalar columns copied through exactly as given (no null-coalescing) when the caller set them. */
+const PASSTHROUGH_SCALAR_FIELDS = [
+  "title", "categoryId", "priority",
+] as const satisfies readonly (keyof ScalarBookmarkPatch)[];
+
+/**
  * The straight scalar-column part of an update's patch (everything except the URL-derived
  * `url`/`websiteId`/`youtubeChannelId`, which need async resolution). Pure, so it is unit-testable.
  * `mediaTypeDefault` is applied only when the caller did not set a media type.
@@ -652,31 +667,20 @@ export function scalarBookmarkPatch(
   input: UpdateBookmarkInput,
   mediaTypeDefault: string | undefined,
 ): ScalarBookmarkPatch {
-  const patch: ScalarBookmarkPatch = {};
-  if (input.originalUrl !== undefined) patch.originalUrl = input.originalUrl ?? null;
-  if (input.title !== undefined) patch.title = input.title;
-  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
-  if (input.description !== undefined) patch.description = input.description ?? null;
-  if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
-  if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;
-  else if (mediaTypeDefault !== undefined) patch.mediaTypeId = mediaTypeDefault;
-  if (input.groupId !== undefined) patch.groupId = input.groupId ?? null;
-  if (input.bookId !== undefined) patch.bookId = input.bookId ?? null;
-  if (input.movieId !== undefined) patch.movieId = input.movieId ?? null;
-  if (input.tvShowId !== undefined) patch.tvShowId = input.tvShowId ?? null;
-  if (input.episodeId !== undefined) patch.episodeId = input.episodeId ?? null;
-  if (input.albumId !== undefined) patch.albumId = input.albumId ?? null;
-  if (input.trackId !== undefined) patch.trackId = input.trackId ?? null;
-  if (input.podcastId !== undefined) patch.podcastId = input.podcastId ?? null;
-  if (input.kavitaSeriesId !== undefined) patch.kavitaSeriesId = input.kavitaSeriesId ?? null;
-  if (input.kavitaLibraryId !== undefined) patch.kavitaLibraryId = input.kavitaLibraryId ?? null;
-  if (input.kavitaSeriesName !== undefined) patch.kavitaSeriesName = input.kavitaSeriesName ?? null;
-  if (input.plexRatingKey !== undefined) patch.plexRatingKey = input.plexRatingKey ?? null;
-  if (input.plexItemType !== undefined) patch.plexItemType = input.plexItemType ?? null;
-  if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
-  if (input.priority !== undefined) patch.priority = input.priority;
-  if (input.imageDisplayPreference !== undefined) patch.imageDisplayPreference = input.imageDisplayPreference ?? null;
-  return patch;
+  const patch = {} as Record<string, unknown>;
+  for (const field of NULLABLE_SCALAR_FIELDS) {
+    const value = input[field];
+    if (value !== undefined) patch[field] = value ?? null;
+  }
+  for (const field of PASSTHROUGH_SCALAR_FIELDS) {
+    const value = input[field];
+    if (value !== undefined) patch[field] = value;
+  }
+  // The "Video" media-type default fills in only when the caller left the media type unset entirely.
+  if (input.mediaTypeId === undefined && mediaTypeDefault !== undefined) {
+    patch.mediaTypeId = mediaTypeDefault;
+  }
+  return patch as ScalarBookmarkPatch;
 }
 
 /**

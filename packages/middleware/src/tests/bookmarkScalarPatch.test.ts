@@ -54,6 +54,28 @@ test("scalarBookmarkPatch copies the Kavita link fields, coalescing null to unli
   });
 });
 
+test("scalarBookmarkPatch copies passthrough fields (categoryId, priority) verbatim", () => {
+  assert.deepEqual(scalarBookmarkPatch({
+    categoryId: "cat-1",
+    priority: 5,
+  }, undefined), {
+    categoryId: "cat-1",
+    priority: 5,
+  });
+});
+
+test("scalarBookmarkPatch coalesces the Plex link fields, mixing set and cleared values", () => {
+  assert.deepEqual(scalarBookmarkPatch({
+    plexRatingKey: "rk-9",
+    plexItemType: null,
+    plexItemTitle: "Dune",
+  } as UpdateBookmarkInput, undefined), {
+    plexRatingKey: "rk-9",
+    plexItemType: null,
+    plexItemTitle: "Dune",
+  });
+});
+
 test("scalarBookmarkPatch applies the media-type default only when the caller set none", () => {
   assert.deepEqual(scalarBookmarkPatch({}, "mt-video"), {
     mediaTypeId: "mt-video",

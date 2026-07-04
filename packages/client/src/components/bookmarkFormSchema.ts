@@ -224,33 +224,12 @@ export interface BookmarkInitialValues {
  * URL/title (used by the quick-add popup). Extracted so the controller's `useAppForm` call stays a
  * single line and the nullish-fallback chain lives in one tested place.
  */
-export function buildBookmarkDefaultValues(
+/** Scalar string fields, drawn from the bookmark, then the locked category / initial seed, else "". */
+function scalarBookmarkDefaults(
   bookmark: Bookmark | undefined,
   lockedCategoryId: string | undefined,
-  initial: BookmarkInitialValues = {},
-): {
-  url: string;
-  title: string;
-  romanizedName: string;
-  categoryId: string;
-  mediaTypeId: string;
-  description: string;
-  tagIds: string[];
-  genreMoodIds: string[];
-  locationIds: string[];
-  blacklistedTagIds: string[];
-  blacklistedLocationIds: string[];
-  personIds: string[];
-  groupIds: string[];
-  groupId: string;
-  bookId: string;
-  movieId: string;
-  tvShowId: string;
-  episodeId: string;
-  albumId: string;
-  trackId: string;
-  podcastId: string;
-} {
+  initial: BookmarkInitialValues,
+) {
   return {
     url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
     title: bookmark?.title ?? initial.title ?? "",
@@ -258,14 +237,13 @@ export function buildBookmarkDefaultValues(
     categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
     mediaTypeId: bookmark?.mediaType?.id ?? "",
     description: bookmark?.description ?? "",
-    tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
-    genreMoodIds: (bookmark?.genreMoods.map(entry => entry.id) ?? []) as string[],
-    locationIds: (bookmark?.locations.map(location => location.id) ?? []) as string[],
-    blacklistedTagIds: (bookmark?.blacklistedTagIds ?? []) as string[],
-    blacklistedLocationIds: (bookmark?.blacklistedLocationIds ?? []) as string[],
-    personIds: (bookmark?.people.map(a => a.id) ?? []) as string[],
-    groupIds: (bookmark?.groups.map(g => g.id) ?? []) as string[],
     groupId: bookmark?.group?.id ?? "",
+  };
+}
+
+/** The six media-link FK fields, defaulting to "" when the bookmark isn't linked to that media item. */
+function mediaLinkDefaults(bookmark: Bookmark | undefined) {
+  return {
     bookId: bookmark?.bookId ?? "",
     movieId: bookmark?.movieId ?? "",
     tvShowId: bookmark?.tvShowId ?? "",
@@ -273,6 +251,31 @@ export function buildBookmarkDefaultValues(
     albumId: bookmark?.albumId ?? "",
     trackId: bookmark?.trackId ?? "",
     podcastId: bookmark?.podcastId ?? "",
+  };
+}
+
+/** The multi-select relation id arrays, defaulting to [] when the bookmark has no such relations. */
+function relationDefaults(bookmark: Bookmark | undefined) {
+  return {
+    tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
+    genreMoodIds: (bookmark?.genreMoods.map(entry => entry.id) ?? []) as string[],
+    locationIds: (bookmark?.locations.map(location => location.id) ?? []) as string[],
+    blacklistedTagIds: (bookmark?.blacklistedTagIds ?? []) as string[],
+    blacklistedLocationIds: (bookmark?.blacklistedLocationIds ?? []) as string[],
+    personIds: (bookmark?.people.map(a => a.id) ?? []) as string[],
+    groupIds: (bookmark?.groups.map(g => g.id) ?? []) as string[],
+  };
+}
+
+export function buildBookmarkDefaultValues(
+  bookmark: Bookmark | undefined,
+  lockedCategoryId: string | undefined,
+  initial: BookmarkInitialValues = {},
+) {
+  return {
+    ...scalarBookmarkDefaults(bookmark, lockedCategoryId, initial),
+    ...mediaLinkDefaults(bookmark),
+    ...relationDefaults(bookmark),
   };
 }
 
