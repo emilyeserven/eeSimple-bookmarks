@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import {
   extractApplePodcastsId,
+  extractPocketCastsUuid,
+  lookupPocketCastsByUuid,
   lookupPodcastByItunesId,
   parsePodcastFeed,
   resolvePodcastByUrl,
@@ -280,6 +282,152 @@ test("extractApplePodcastsId returns null for other hosts or missing id", () => 
   assert.equal(extractApplePodcastsId("https://feeds.megaphone.fm/replyall"), null);
   assert.equal(extractApplePodcastsId("https://podcasts.apple.com/us/podcast/reply-all"), null);
   assert.equal(extractApplePodcastsId("not a url"), null);
+});
+
+// --- extractPocketCastsUuid: pure URL parsing, no network ---
+
+test("extractPocketCastsUuid parses a share page URL with a slug", () => {
+  assert.equal(
+    extractPocketCastsUuid("https://pocketcasts.com/podcast/oyasumi-japanese-with-shun/052cf240-0797-013a-d55a-0acc26574db2"),
+    "052cf240-0797-013a-d55a-0acc26574db2",
+  );
+});
+
+test("extractPocketCastsUuid parses the pca.st short form", () => {
+  assert.equal(
+    extractPocketCastsUuid("https://pca.st/podcast/052cf240-0797-013a-d55a-0acc26574db2"),
+    "052cf240-0797-013a-d55a-0acc26574db2",
+  );
+});
+
+test("extractPocketCastsUuid returns null for other hosts or a non-uuid trailing segment", () => {
+  assert.equal(extractPocketCastsUuid("https://feeds.megaphone.fm/replyall"), null);
+  assert.equal(extractPocketCastsUuid("https://pocketcasts.com/podcast/oyasumi-japanese-with-shun"), null);
+  assert.equal(extractPocketCastsUuid("not a url"), null);
+});
+
+// --- lookupPocketCastsByUuid + Pocket Casts branch of resolvePodcastByUrl ---
+
+function stubFetch(handler: (url: string) => Response): () => void {
+  const original = global.fetch;
+  global.fetch = (async (input: string | URL | Request) => {
+    const url = typeof input === "string" ? input : input.toString();
+    return handler(url);
+  }) as typeof fetch;
+  return () => {
+    global.fetch = original;
+  };
+}
+
+test("lookupPocketCastsByUuid resolves a direct (non-nested) response", async () => {
+  const restore = stubFetch(() => new Response(JSON.stringify({
+    uuid: "052cf240-0797-013a-d55a-0acc26574db2",
+    title: "Oyasumi, Japanese with Shun",
+    author: "Shun",
+    url: "https://feeds.example.com/oyasumi.xml",
+  }), {
+    status: 200,
+  }));
+  try {
+    const result = await lookupPocketCastsByUuid("052cf240-0797-013a-d55a-0acc26574db2");
+    assert.deepEqual(result, {
+      provider: "pocketCasts",
+      itunesId: null,
+      pocketCastsUuid: "052cf240-0797-013a-d55a-0acc26574db2",
+      name: "Oyasumi, Japanese with Shun",
+      author: "Shun",
+      feedUrl: "https://feeds.example.com/oyasumi.xml",
+      itunesUrl: null,
+      pocketCastsUrl: "https://pca.st/podcast/052cf240-0797-013a-d55a-0acc26574db2",
+      artworkUrl: null,
+    });
+  }
+  finally {
+    restore();
+  }
+});
+
+test("lookupPocketCastsByUuid resolves a response nested under a `podcast` key", async () => {
+  const restore = stubFetch(() => new Response(JSON.stringify({
+    podcast: {
+      uuid: "052cf240-0797-013a-d55a-0acc26574db2",
+      title: "Oyasumi, Japanese with Shun",
+      url: "https://feeds.example.com/oyasumi.xml",
+    },
+  }), {
+    status: 200,
+  }));
+  try {
+    const result = await lookupPocketCastsByUuid("052cf240-0797-013a-d55a-0acc26574db2");
+    assert.equal(result?.name, "Oyasumi, Japanese with Shun");
+    assert.equal(result?.feedUrl, "https://feeds.example.com/oyasumi.xml");
+  }
+  finally {
+    restore();
+  }
+});
+
+test("lookupPocketCastsByUuid returns null on failure or an unrecognized shape", async () => {
+  const restore = stubFetch(() => new Response("boom", {
+    status: 500,
+  }));
+  try {
+    assert.equal(await lookupPocketCastsByUuid("052cf240-0797-013a-d55a-0acc26574db2"), null);
+  }
+  finally {
+    restore();
+  }
+});
+
+test("resolvePodcastByUrl resolves a Pocket Casts share URL via the uuid lookup", async () => {
+  const restore = stubFetch(() => new Response(JSON.stringify({
+    uuid: "052cf240-0797-013a-d55a-0acc26574db2",
+    title: "Oyasumi, Japanese with Shun",
+    author: "Shun",
+    url: "https://feeds.example.com/oyasumi.xml",
+  }), {
+    status: 200,
+  }));
+  try {
+    const result = await resolvePodcastByUrl(
+      "https://pocketcasts.com/podcast/oyasumi-japanese-with-shun/052cf240-0797-013a-d55a-0acc26574db2",
+    );
+    assert.equal(result?.provider, "pocketCasts");
+    assert.equal(result?.pocketCastsUuid, "052cf240-0797-013a-d55a-0acc26574db2");
+    assert.equal(result?.feedUrl, "https://feeds.example.com/oyasumi.xml");
+  }
+  finally {
+    restore();
+  }
+});
+
+test("resolvePodcastByUrl falls back to scraping the share page when the uuid lookup fails", async () => {
+  const restore = stubFetch((url) => {
+    if (url.includes("podcast-api.pocketcasts.com")) {
+      return new Response("boom", {
+        status: 500,
+      });
+    }
+    return new Response(
+      "<html><head><meta property=\"og:title\" content=\"Oyasumi, Japanese with Shun\"/>"
+      + "<meta property=\"og:image\" content=\"https://cdn.example.com/oyasumi.jpg\"/></head></html>",
+      {
+        status: 200,
+      },
+    );
+  });
+  try {
+    const result = await resolvePodcastByUrl(
+      "https://pocketcasts.com/podcast/oyasumi-japanese-with-shun/052cf240-0797-013a-d55a-0acc26574db2",
+    );
+    assert.equal(result?.provider, "pocketCasts");
+    assert.equal(result?.name, "Oyasumi, Japanese with Shun");
+    assert.equal(result?.artworkUrl, "https://cdn.example.com/oyasumi.jpg");
+    assert.equal(result?.feedUrl, null);
+  }
+  finally {
+    restore();
+  }
 });
 
 // --- resolvePodcastByUrl: stub global.fetch ---
