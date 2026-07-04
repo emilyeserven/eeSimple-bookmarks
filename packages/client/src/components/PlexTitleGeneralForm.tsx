@@ -9,11 +9,10 @@ import { Clapperboard, X } from "lucide-react";
 import { z } from "zod";
 
 import { PlexItemLookup } from "./PlexItemLookup";
-import { useEntityCreateOption } from "./useEntityCreateOption";
+import { TaxonomyGeneralFields } from "./TaxonomyGeneralFields";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { usePlexTitleSyncRegistration } from "../hooks/usePlexTitleSyncRegistration";
 
-import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { notifyFieldSaved, notifyFieldSaveError } from "@/lib/autoSave";
 import { useAppForm } from "@/lib/form";
 
@@ -113,9 +112,6 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
   imagesApi,
   queryKeyPrefix,
 }: PlexTitleGeneralFormProps<E>) {
-  const {
-    data: mediaProperties,
-  } = useMediaProperties();
   const autoSave = useFieldAutoSave<PlexTitleUpdateInput, E>({
     id: entity.id,
     update,
@@ -128,24 +124,6 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       wikipediaLinkEn: entity.wikipediaLinkEn ?? "",
       wikipediaLinkLocal: entity.wikipediaLinkLocal ?? "",
     },
-  });
-
-  const mediaPropertyCreate = useEntityCreateOption("media-property", (mediaProperty) => {
-    update.mutate(
-      {
-        id: entity.id,
-        input: {
-          mediaPropertyId: mediaProperty.id,
-        },
-      },
-      {
-        onSuccess: () => notifyFieldSaved("Media property"),
-        onError: error => notifyFieldSaveError(
-          "Media property",
-          error instanceof Error ? error.message : undefined,
-        ),
-      },
-    );
   });
 
   const form = useAppForm({
@@ -235,79 +213,18 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
 
   return (
     <div className="space-y-4">
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-[1fr_8rem]
-        "
-      >
-        <form.AppField name="name">
-          {field => (
-            <field.TextField
-              label="Name"
-              onBlur={() => autoSave.saveField(
-                "name",
-                field.state.value.trim(),
-                {
-                  valid: field.state.meta.errors.length === 0,
-                  onSuccess: (updated) => {
-                    if (updated.slug !== entity.slug) onRenamed(updated.slug);
-                  },
-                },
-              )}
-            />
-          )}
-        </form.AppField>
-        <form.AppField name="sortOrder">
-          {field => (
-            <field.NumberField
-              label="Sort order"
-              hint="Lower sorts first."
-              onBlur={() => autoSave.saveField(
-                "sortOrder",
-                field.state.value,
-                {
-                  valid: field.state.meta.errors.length === 0,
-                },
-              )}
-            />
-          )}
-        </form.AppField>
-      </div>
-
-      <form.AppField name="romanizedName">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
-          />
-        )}
-      </form.AppField>
-
-      <form.AppField name="mediaPropertyId">
-        {field => (
-          <field.ComboboxField
-            label="Media property"
-            placeholder="No media property"
-            searchPlaceholder="Search media properties…"
-            emptyText="No media properties found."
-            createOption={mediaPropertyCreate.createOption}
-            options={(mediaProperties ?? []).map(prop => ({
-              value: prop.id,
-              label: prop.name,
-            }))}
-            onValueChange={value => autoSave.saveField(
-              "mediaPropertyId",
-              value || null,
-              {
-                valid: true,
-              },
-            )}
-          />
-        )}
-      </form.AppField>
-      {mediaPropertyCreate.modal}
+      <TaxonomyGeneralFields
+        form={form}
+        fields={{
+          name: "name",
+          romanizedName: "romanizedName",
+          sortOrder: "sortOrder",
+          mediaPropertyId: "mediaPropertyId",
+        }}
+        saveField={autoSave.saveField}
+        currentSlug={entity.slug}
+        onRenamed={onRenamed}
+      />
 
       <form.AppField name="year">
         {field => (
