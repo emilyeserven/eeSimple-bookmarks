@@ -20,6 +20,7 @@ import {
   websites,
 } from "@/db/schema";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import { getGroupImageRow } from "@/services/groupImages";
 import { buildStringMap } from "@/utils/mapUtils";
 import { deleteObject } from "@/utils/objectStore";
@@ -328,7 +329,7 @@ export async function createGroup(input: CreateGroupInput): Promise<Group> {
   if (existing.length > 0) throw new DuplicateGroupError(input.name);
 
   const takenSlugs = await takenSlugsOf(groups, groups.slug, groups.id);
-  const slug = uniqueSlug(slugify(input.name), takenSlugs);
+  const slug = uniqueSlug(slugify(input.name), takenSlugs, "group");
 
   const [row] = await db
     .insert(groups)
@@ -373,7 +374,7 @@ export async function updateGroup(id: string, input: UpdateGroupInput): Promise<
   if (input.name !== undefined) {
     updates.name = input.name;
     const takenSlugs = await takenSlugsOf(groups, groups.slug, groups.id, id);
-    updates.slug = uniqueSlug(slugify(input.name), takenSlugs);
+    updates.slug = uniqueSlug(slugify(input.name), takenSlugs, "group");
   }
   if ("websiteId" in input) {
     updates.websiteId = input.websiteId ?? null;
@@ -422,6 +423,7 @@ export async function deleteGroup(id: string): Promise<boolean> {
   if (deleted) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("group", id);
+    await deleteEntityNamesForOwner("group", id);
     if (imageRow) await deleteObject(imageRow.objectKey).catch(() => undefined);
   }
   return deleted;
@@ -442,7 +444,7 @@ export async function backfillGroupSlugs(): Promise<void> {
   if (rows.length === 0) return;
   const takenSlugs = await takenSlugsOf(groups, groups.slug, groups.id);
   for (const row of rows) {
-    const slug = uniqueSlug(slugify(row.name), takenSlugs);
+    const slug = uniqueSlug(slugify(row.name), takenSlugs, "group");
     takenSlugs.push(slug);
     await db.update(groups).set({
       slug,

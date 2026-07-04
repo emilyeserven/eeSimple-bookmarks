@@ -106,6 +106,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     website: null,
     mediaType: null,
     languageUsages: [],
+    names: [],
     youtubeChannel: null,
     newsletter: null,
     import: null,

@@ -64,7 +64,7 @@ export async function createMediaProperty(input: CreateMediaPropertyInput): Prom
   }).from(mediaProperties).where(eq(mediaProperties.name, name));
   if (clash) throw new DuplicateMediaPropertyError(name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "media-property");
   const [row] = await db.insert(mediaProperties).values({
     name,
     slug,
@@ -89,7 +89,7 @@ export async function updateMediaProperty(
     }).from(mediaProperties).where(eq(mediaProperties.name, name));
     if (clash && clash.id !== id) throw new DuplicateMediaPropertyError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "media-property");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (Object.keys(patch).length === 0) return toMediaProperty(existing);
@@ -124,7 +124,7 @@ export async function backfillMediaPropertySlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const prop of missing) {
-    const slug = uniqueSlug(prop.name, taken);
+    const slug = uniqueSlug(prop.name, taken, "media-property");
     taken.push(slug);
     await db.update(mediaProperties).set({
       slug,

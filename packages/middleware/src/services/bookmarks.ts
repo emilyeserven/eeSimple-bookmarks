@@ -30,6 +30,7 @@ import {
   bookmarks,
   type BookmarkRow,
   bookmarkTags,
+  entityNames,
   genreMoodAssignments,
   relationshipTypes,
 } from "@/db/schema";
@@ -210,6 +211,18 @@ async function cleanupGenreMoodAssignments(bookmarkIds: string[]): Promise<void>
   ));
 }
 
+/**
+ * Remove the polymorphic multilingual-name rows for deleted bookmark ids. `ownerId` carries no
+ * cascade FK (like the genre/mood assignments above), so every bookmark-delete path must call this.
+ */
+async function cleanupBookmarkEntityNames(bookmarkIds: string[]): Promise<void> {
+  if (bookmarkIds.length === 0) return;
+  await db.delete(entityNames).where(and(
+    eq(entityNames.ownerType, "bookmark"),
+    inArray(entityNames.ownerId, bookmarkIds),
+  ));
+}
+
 export async function bulkDeleteBookmarks(ids: string[]): Promise<BulkBookmarkResult[]> {
   if (ids.length === 0) return [];
   const rows = await db
@@ -220,6 +233,7 @@ export async function bulkDeleteBookmarks(ids: string[]): Promise<BulkBookmarkRe
     });
   const deleted = new Set(rows.map(row => row.id));
   await cleanupGenreMoodAssignments([...deleted]);
+  await cleanupBookmarkEntityNames([...deleted]);
   if (deleted.size > 0) invalidateBookmarkCache();
   return ids.map(id => ({
     id,
@@ -899,6 +913,7 @@ export async function deleteBookmark(id: string): Promise<boolean> {
     // Polymorphic language-usage rows have no FK on ownerId — clean them up explicitly.
     await deleteLanguageUsagesForOwner("bookmark", id);
     await cleanupGenreMoodAssignments([id]);
+    await cleanupBookmarkEntityNames([id]);
     invalidateBookmarkCache();
   }
   return rows.length > 0;
@@ -925,6 +940,7 @@ export async function deleteOrphanedBookmarks(): Promise<OrphanDeleteResult> {
     });
   if (rows.length > 0) {
     await cleanupGenreMoodAssignments(rows.map(row => row.id));
+    await cleanupBookmarkEntityNames(rows.map(row => row.id));
     invalidateBookmarkCache();
   }
   return {

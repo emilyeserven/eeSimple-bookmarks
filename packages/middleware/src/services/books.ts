@@ -8,6 +8,7 @@ import type {
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner, mainTaxonomyImageUrl } from "@/services/taxonomyImages";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import { bookmarks, books, taxonomyImages, type BookRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -118,7 +119,7 @@ export async function createBook(input: CreateBookInput): Promise<Book> {
   }).from(books).where(eq(books.name, name));
   if (clash) throw new DuplicateBookError(name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "book");
   const [row] = await db.insert(books).values({
     name,
     slug,
@@ -143,7 +144,7 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
     }).from(books).where(eq(books.name, name));
     if (clash && clash.id !== id) throw new DuplicateBookError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "book");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (Object.keys(patch).length === 0) return toBook(existing);
@@ -157,7 +158,10 @@ export async function deleteBook(id: string): Promise<boolean> {
   const rows = await db.delete(books).where(eq(books.id, id)).returning({
     id: books.id,
   });
-  if (rows.length > 0) await deleteTaxonomyImagesForOwner("book", id);
+  if (rows.length > 0) {
+    await deleteTaxonomyImagesForOwner("book", id);
+    await deleteEntityNamesForOwner("book", id);
+  }
   return rows.length > 0;
 }
 
@@ -179,7 +183,7 @@ export async function backfillBookSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const book of missing) {
-    const slug = uniqueSlug(book.name, taken);
+    const slug = uniqueSlug(book.name, taken, "book");
     taken.push(slug);
     await db.update(books).set({
       slug,

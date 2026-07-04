@@ -48,6 +48,7 @@ const service = createPlexTaxonomyService<typeof episodes, Episode, CreateEpisod
   table: episodes,
   bookmarkFk: bookmarks.episodeId,
   taxonomyImageOwnerType: "episode",
+  entityNameOwnerType: "episode",
   makeDuplicateError: name => new DuplicateEpisodeError(name),
   toWire: toEpisode,
   extraDataFromInput: (input) => {

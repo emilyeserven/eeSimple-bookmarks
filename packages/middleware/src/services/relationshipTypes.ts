@@ -138,7 +138,7 @@ export async function createRelationshipType(
   }).from(relationshipTypes).where(eq(relationshipTypes.name, name));
   if (clash) throw new DuplicateRelationshipTypeError(name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "relationship-type");
   const [row] = await db.insert(relationshipTypes).values({
     name,
     slug,
@@ -167,7 +167,7 @@ export async function updateRelationshipType(
     }).from(relationshipTypes).where(eq(relationshipTypes.name, name));
     if (clash && clash.id !== id) throw new DuplicateRelationshipTypeError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "relationship-type");
   }
   if (input.directional !== undefined) patch.directional = input.directional;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;

@@ -2,10 +2,12 @@ import { and, asc, eq, getTableColumns, isNull } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import type {
   BulkDeleteResult,
+  EntityNameOwnerType,
   LanguageUsageOwnerType,
   TaxonomyImageOwnerType,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
@@ -93,6 +95,8 @@ export interface PlexTaxonomyServiceConfig<TTable extends PlexTaxonomyTable, T, 
   taxonomyImageOwnerType: TaxonomyImageOwnerType;
   /** Owner-type tag for language-usage cleanup on delete (movies/tvShows only; omit otherwise). */
   languageUsageOwnerType?: LanguageUsageOwnerType;
+  /** Owner-type tag for multilingual-name cleanup on delete (all five Plex taxonomies). */
+  entityNameOwnerType?: EntityNameOwnerType;
   /** Build the entity's distinct `Duplicate*Error` (kept per-entity so routes can `instanceof`). */
   makeDuplicateError: (name: string) => Error;
   /** Map a DB row (+ optional `bookmarkCount`/`mainImage`, joined by `list()`) to the shared wire type. */
@@ -126,8 +130,9 @@ export function createPlexTaxonomyService<
   U extends PlexTaxonomyUpdateInput,
 >(config: PlexTaxonomyServiceConfig<TTable, T, C, U>): PlexTaxonomyService<T, C, U> {
   const {
-    bookmarkFk, taxonomyImageOwnerType, languageUsageOwnerType, makeDuplicateError,
+    bookmarkFk, taxonomyImageOwnerType, languageUsageOwnerType, entityNameOwnerType, makeDuplicateError,
   } = config;
+  const slugFallback = taxonomyImageOwnerType.toLowerCase();
   // The real table object, narrowed to the concrete representative type so drizzle's builders
   // resolve (see `RepresentativePlexTable`). Rows read back are narrowed to the caller's row type.
   const table = config.table as unknown as RepresentativePlexTable;
@@ -181,7 +186,7 @@ export function createPlexTaxonomyService<
     }).from(table).where(eq(table.name, name));
     if (clash) throw makeDuplicateError(name);
 
-    const slug = uniqueSlug(name, await takenSlugs());
+    const slug = uniqueSlug(name, await takenSlugs(), slugFallback);
     const values: RepresentativePlexTable["$inferInsert"] = {
       name,
       slug,
@@ -206,7 +211,7 @@ export function createPlexTaxonomyService<
       }).from(table).where(eq(table.name, name));
       if (clash && clash.id !== id) throw makeDuplicateError(name);
       patch.name = name;
-      patch.slug = uniqueSlug(name, await takenSlugs(id));
+      patch.slug = uniqueSlug(name, await takenSlugs(id), slugFallback);
     }
     if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
     if (Object.keys(patch).length === 0) return toWire(existing);
@@ -221,6 +226,7 @@ export function createPlexTaxonomyService<
     });
     if (rows.length > 0) {
       if (languageUsageOwnerType) await deleteLanguageUsagesForOwner(languageUsageOwnerType, id);
+      if (entityNameOwnerType) await deleteEntityNamesForOwner(entityNameOwnerType, id);
       await deleteTaxonomyImagesForOwner(taxonomyImageOwnerType, id);
     }
     return rows.length > 0;
@@ -242,7 +248,7 @@ export function createPlexTaxonomyService<
 
     const taken = await takenSlugs();
     for (const entity of missing) {
-      const slug = uniqueSlug(entity.name, taken);
+      const slug = uniqueSlug(entity.name, taken, slugFallback);
       taken.push(slug);
       await db.update(table).set({
         slug,

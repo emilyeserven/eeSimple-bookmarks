@@ -43,7 +43,7 @@ export async function getSavedFilterById(id: string): Promise<SavedFilter | null
 }
 
 export async function createSavedFilter(input: CreateSavedFilterInput): Promise<SavedFilter> {
-  const slug = uniqueSlug(input.name, await takenSlugs());
+  const slug = uniqueSlug(input.name, await takenSlugs(), "saved-filter");
   const [row] = await db
     .insert(savedFilters)
     .values({
@@ -64,7 +64,7 @@ export async function updateSavedFilter(
   const updates: Partial<typeof savedFilters.$inferInsert> = {};
   if (input.name !== undefined) {
     updates.name = input.name;
-    updates.slug = uniqueSlug(input.name, await takenSlugs(id));
+    updates.slug = uniqueSlug(input.name, await takenSlugs(id), "saved-filter");
   }
   if (input.description !== undefined) updates.description = input.description ?? null;
   if (input.filters !== undefined) updates.filters = input.filters;
@@ -109,7 +109,7 @@ export async function backfillSavedFilterSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const filter of missing) {
-    const slug = uniqueSlug(filter.name, taken);
+    const slug = uniqueSlug(filter.name, taken, "saved-filter");
     taken.push(slug);
     await db.update(savedFilters).set({
       slug,

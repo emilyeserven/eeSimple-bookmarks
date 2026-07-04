@@ -7,6 +7,7 @@ import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { InvalidRootTagError } from "@/services/categories";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import {
   collectSubtreeIds as collectParentTreeSubtreeIds,
   computeSubtreeBookmarkCounts,
@@ -165,7 +166,7 @@ export async function getDescendantIds(rootId: string): Promise<Set<string>> {
 }
 
 export async function createTag(input: CreateTagInput): Promise<Tag> {
-  const slug = uniqueSlug(input.name, await takenTagSlugs());
+  const slug = uniqueSlug(input.name, await takenTagSlugs(), "tag");
   const [row] = await db
     .insert(tags)
     .values({
@@ -191,7 +192,7 @@ export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag 
   if (input.name !== undefined) patch.name = input.name;
   // Keep the slug in sync when the name changes.
   if (input.name !== undefined) {
-    patch.slug = uniqueSlug(input.name, await takenTagSlugs(id));
+    patch.slug = uniqueSlug(input.name, await takenTagSlugs(id), "tag");
   }
   if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
@@ -217,7 +218,7 @@ export async function backfillTagSlugs(): Promise<void> {
 
   const taken = await takenTagSlugs();
   for (const tag of missing) {
-    const slug = uniqueSlug(tag.name, taken);
+    const slug = uniqueSlug(tag.name, taken, "tag");
     taken.push(slug);
     await db.update(tags).set({
       slug,
@@ -234,6 +235,7 @@ export async function deleteTag(id: string): Promise<boolean> {
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("tag", id);
+    await deleteEntityNamesForOwner("tag", id);
     invalidateBookmarkCache();
   }
   return rows.length > 0;

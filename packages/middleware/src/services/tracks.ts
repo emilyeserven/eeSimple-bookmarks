@@ -48,6 +48,7 @@ const service = createPlexTaxonomyService<typeof tracks, Track, CreateTrackInput
   table: tracks,
   bookmarkFk: bookmarks.trackId,
   taxonomyImageOwnerType: "track",
+  entityNameOwnerType: "track",
   makeDuplicateError: name => new DuplicateTrackError(name),
   toWire: toTrack,
   extraDataFromInput: (input) => {

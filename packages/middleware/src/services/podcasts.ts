@@ -9,6 +9,7 @@ import type {
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import { bookmarks, podcastGroups, podcastPeople, podcasts, taxonomyImages, type PodcastRow } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -221,7 +222,7 @@ export async function createPodcast(input: CreatePodcastInput): Promise<Podcast>
   }).from(podcasts).where(eq(podcasts.name, name));
   if (clash) throw new DuplicatePodcastError(name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "podcast");
   return db.transaction(async (tx) => {
     const [row] = await tx.insert(podcasts).values({
       name,
@@ -250,7 +251,7 @@ export async function updatePodcast(id: string, input: UpdatePodcastInput): Prom
     }).from(podcasts).where(eq(podcasts.name, name));
     if (clash && clash.id !== id) throw new DuplicatePodcastError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "podcast");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
 
@@ -273,7 +274,10 @@ export async function deletePodcast(id: string): Promise<boolean> {
   const rows = await db.delete(podcasts).where(eq(podcasts.id, id)).returning({
     id: podcasts.id,
   });
-  if (rows.length > 0) await deleteTaxonomyImagesForOwner("podcast", id);
+  if (rows.length > 0) {
+    await deleteTaxonomyImagesForOwner("podcast", id);
+    await deleteEntityNamesForOwner("podcast", id);
+  }
   return rows.length > 0;
 }
 
@@ -295,7 +299,7 @@ export async function backfillPodcastSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const podcast of missing) {
-    const slug = uniqueSlug(podcast.name, taken);
+    const slug = uniqueSlug(podcast.name, taken, "podcast");
     taken.push(slug);
     await db.update(podcasts).set({
       slug,

@@ -459,6 +459,50 @@ export const languageUsages = pgTable("language_usages", {
 export type LanguageUsageRow = typeof languageUsages.$inferSelect;
 
 /**
+ * The owner entities an `entity_names` row can attach to. Polymorphic (`ownerId` carries no FK),
+ * the same trade `language_usages` / `taxonomy_images` make. Mirrors `ENTITY_NAME_OWNER_TYPES` in
+ * `@eesimple/types`.
+ */
+export const ENTITY_NAME_OWNER_TYPES = [
+  "bookmark", "category", "tag", "mediaType", "genreMood", "location", "person", "group",
+  "book", "podcast", "movie", "tvShow", "episode", "album", "track",
+] as const;
+
+/**
+ * `entity_names` table — multilingual titles for an owner entity (bookmark or taxonomy term). Each
+ * row is one title labelled by a language; the row flagged `isPrimary` mirrors the owner's base
+ * `name`/`title` column so every existing query/sort/hydration keeps working untouched (the table is
+ * additive). Polymorphic on `(ownerType, ownerId)` like `language_usages`; `languageId` is a real FK
+ * (cascade) but `ownerId` is not, so each owner's delete service must call
+ * `deleteEntityNamesForOwner` to avoid orphans. See `services/entityNames.ts`.
+ */
+export const entityNames = pgTable("entity_names", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerType: text("owner_type").notNull(),
+  ownerId: uuid("owner_id").notNull(),
+  languageId: uuid("language_id").notNull().references(() => languages.id, {
+    onDelete: "cascade",
+  }),
+  value: text("value").notNull(),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  index("entity_names_owner_idx").on(table.ownerType, table.ownerId),
+  // At most one name per (owner, language). A composite `uniqueIndex`, NOT a table `unique()`
+  // constraint — the same drizzle-kit push non-convergence as `language_usages` (see migrate.ts).
+  uniqueIndex("entity_names_owner_language_unique").on(
+    table.ownerType,
+    table.ownerId,
+    table.languageId,
+  ),
+]);
+
+export type EntityNameRow = typeof entityNames.$inferSelect;
+
+/**
  * `group_types` table — a flat taxonomy classifying groups (e.g. Company, Creator Collaborative,
  * Podcast Multi-Host, Doujin Circle). Referenced by `groups.group_type_id`. Seeded on boot.
  */

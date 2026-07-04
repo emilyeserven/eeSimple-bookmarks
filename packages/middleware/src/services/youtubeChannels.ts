@@ -359,7 +359,7 @@ export async function ensureYouTubeChannel(
     channelId = existing.id;
   }
   else {
-    const slug = uniqueSlug(name, await takenSlugs());
+    const slug = uniqueSlug(name, await takenSlugs(), "youtube-channel");
     const inserted = await tx
       .insert(youtubeChannels)
       .values({
@@ -410,7 +410,7 @@ export async function updateYouTubeChannel(
       }).from(youtubeChannels).where(eq(youtubeChannels.name, name));
       if (clash && clash.id !== id) throw new DuplicateYouTubeChannelError(name);
 
-      const slug = uniqueSlug(name, await takenSlugs(id));
+      const slug = uniqueSlug(name, await takenSlugs(id), "youtube-channel");
       await db
         .update(youtubeChannels)
         .set({
@@ -482,7 +482,7 @@ export async function createYouTubeChannel(input: CreateYouTubeChannelInput): Pr
   if (existing) throw new DuplicateChannelKeyError(channelKey);
 
   const name = input.name.trim();
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "youtube-channel");
   const [row] = await db
     .insert(youtubeChannels)
     .values({
@@ -510,7 +510,7 @@ export async function backfillYouTubeChannelSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const channel of missing) {
-    const slug = uniqueSlug(channel.name, taken);
+    const slug = uniqueSlug(channel.name, taken, "youtube-channel");
     taken.push(slug);
     await db.update(youtubeChannels).set({
       slug,

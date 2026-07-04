@@ -12,11 +12,13 @@ export function slugify(name: string): string {
 
 /**
  * Pick a slug for `name` that does not collide with `taken`. Appends `-2`, `-3`, …
- * to the base slug until it is unique. Falls back to `"category"` when `name`
- * slugifies to empty.
+ * to the base slug until it is unique. Falls back to `fallback` (default `"item"`)
+ * when `name` slugifies to empty — pass the entity's kind (e.g. `"tag"`, `"person"`)
+ * so a fully non-Latin name doesn't slugify to the misleading shared literal it used
+ * to (`"category"`, `"category-2"`, … across every entity type).
  */
-export function uniqueSlug(name: string, taken: Iterable<string>): string {
-  const base = slugify(name) || "category";
+export function uniqueSlug(name: string, taken: Iterable<string>, fallback = "item"): string {
+  const base = slugify(name) || fallback;
   const used = new Set(taken);
   if (!used.has(base)) return base;
   for (let n = 2; ; n += 1) {

@@ -50,6 +50,7 @@ const service = createPlexTaxonomyService<typeof movies, Movie, CreateMovieInput
   bookmarkFk: bookmarks.movieId,
   taxonomyImageOwnerType: "movie",
   languageUsageOwnerType: "movie",
+  entityNameOwnerType: "movie",
   makeDuplicateError: name => new DuplicateMovieError(name),
   toWire: toMovie,
 });

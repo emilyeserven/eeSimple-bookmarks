@@ -127,7 +127,7 @@ export async function createNewsletter(input: CreateNewsletterInput): Promise<Ne
   }).from(newsletters).where(eq(newsletters.name, name));
   if (clash) throw new DuplicateNewsletterError(name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "newsletter");
   const [row] = await db
     .insert(newsletters)
     .values({
@@ -154,7 +154,7 @@ export async function updateNewsletter(
       }).from(newsletters).where(eq(newsletters.name, name));
       if (clash && clash.id !== id) throw new DuplicateNewsletterError(name);
 
-      const slug = uniqueSlug(name, await takenSlugs(id));
+      const slug = uniqueSlug(name, await takenSlugs(id), "newsletter");
       await db
         .update(newsletters)
         .set({

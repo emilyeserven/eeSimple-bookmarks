@@ -83,7 +83,7 @@ export async function createPlaceType(input: CreatePlaceTypeInput): Promise<Plac
   }).from(placeTypes).where(eq(placeTypes.name, name));
   if (clash) throw new DuplicatePlaceTypeError(name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "place-type");
   const [row] = await db.insert(placeTypes).values({
     name,
     slug,
@@ -108,7 +108,7 @@ export async function updatePlaceType(
     }).from(placeTypes).where(eq(placeTypes.name, name));
     if (clash && clash.id !== id) throw new DuplicatePlaceTypeError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "place-type");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (Object.keys(patch).length === 0) return toPlaceType(existing);
@@ -205,7 +205,7 @@ export async function backfillPlaceTypeSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const pt of missing) {
-    const slug = uniqueSlug(pt.name, taken);
+    const slug = uniqueSlug(pt.name, taken, "place-type");
     taken.push(slug);
     await db.update(placeTypes).set({
       slug,

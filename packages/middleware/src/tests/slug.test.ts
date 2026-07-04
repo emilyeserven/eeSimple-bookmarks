@@ -20,6 +20,7 @@ test("uniqueSlug appends a numeric suffix on collision", () => {
 });
 
 test("uniqueSlug falls back to a default base for empty slugs", () => {
-  assert.equal(uniqueSlug("!!!", []), "category");
-  assert.equal(uniqueSlug("!!!", ["category"]), "category-2");
+  assert.equal(uniqueSlug("!!!", []), "item");
+  assert.equal(uniqueSlug("!!!", ["item"]), "item-2");
+  assert.equal(uniqueSlug("!!!", [], "tag"), "tag");
 });

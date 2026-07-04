@@ -100,7 +100,7 @@ export async function createLanguage(input: CreateLanguageInput): Promise<Langua
     }
   }
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "language");
   const [row] = await db.insert(languages).values({
     name,
     isoCode,
@@ -131,7 +131,7 @@ export async function updateLanguage(
       throw new DuplicateLanguageError(`A language named "${name}" already exists`);
     }
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "language");
   }
   if (input.isoCode !== undefined) {
     const isoCode = input.isoCode?.trim() || null;

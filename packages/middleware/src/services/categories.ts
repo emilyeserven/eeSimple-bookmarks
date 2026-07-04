@@ -13,6 +13,7 @@ import { db } from "@/db";
 import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import {
   bookmarks,
   categories,
@@ -108,7 +109,7 @@ export async function listCategories(): Promise<Category[]> {
 }
 
 export async function createCategory(input: CreateCategoryInput): Promise<Category> {
-  const slug = uniqueSlug(input.name, await takenSlugs());
+  const slug = uniqueSlug(input.name, await takenSlugs(), "category");
   const [row] = await db
     .insert(categories)
     .values({
@@ -139,7 +140,7 @@ export async function updateCategory(
   if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   // Keep the slug in sync when the name changes (built-ins can't be renamed, so "default" sticks).
   if (input.name !== undefined && input.name !== existing.name) {
-    patch.slug = uniqueSlug(input.name, await takenSlugs(id));
+    patch.slug = uniqueSlug(input.name, await takenSlugs(id), "category");
   }
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.icon !== undefined) patch.icon = input.icon ?? null;
@@ -170,6 +171,7 @@ export async function deleteCategory(id: string): Promise<boolean> {
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("category", id);
+    await deleteEntityNamesForOwner("category", id);
     const defaultId = await ensureDefaultCategory();
     await db.update(bookmarks).set({
       categoryId: defaultId,
@@ -239,7 +241,7 @@ async function backfillSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const category of missing) {
-    const slug = uniqueSlug(category.name, taken);
+    const slug = uniqueSlug(category.name, taken, "category");
     taken.push(slug);
     await db.update(categories).set({
       slug,
