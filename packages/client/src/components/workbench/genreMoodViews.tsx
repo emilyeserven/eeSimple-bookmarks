@@ -1,5 +1,6 @@
 import type { GenreMoodNode } from "@eesimple/types";
 
+import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
 import { GenreMoodGeneralForm } from "../GenreMoodGeneralForm";
 import { TaxonomyNodeStats } from "./TaxonomyNodeStats";
 
@@ -24,6 +25,10 @@ export function GenreMoodGeneralView({
       <TaxonomyNodeStats
         node={node}
         parent={parent}
+      />
+      <EntityNamesTabView
+        ownerType="genreMood"
+        ownerId={node.id}
       />
     </div>
   );

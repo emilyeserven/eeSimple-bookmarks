@@ -1,6 +1,7 @@
 import type { TagNode } from "@eesimple/types";
 
 import { EntityAutofillSources } from "../EntityAutofillSources";
+import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
 import { RomanizedLabel } from "../RomanizedLabel";
 import { TagGeneralForm } from "../TagGeneralForm";
 import { TaxonomyNodeStats } from "./TaxonomyNodeStats";
@@ -33,6 +34,10 @@ export function TagGeneralView({
           />
         )}
         autofillClassName="pt-2"
+      />
+      <EntityNamesTabView
+        ownerType="tag"
+        ownerId={node.id}
       />
       <EntityAutofillSources
         match={{

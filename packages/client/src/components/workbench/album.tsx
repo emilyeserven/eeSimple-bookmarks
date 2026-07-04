@@ -57,6 +57,7 @@ export const albumWorkbench: EntityWorkbench<Album> = {
         }) => (
           <PlexTitleGeneralView
             entity={entity}
+            ownerType="album"
             createdAt={entity.createdAt}
             bookmarkCount={entity.bookmarkCount}
             renderExtra={<AlbumCreditsValue album={entity} />}

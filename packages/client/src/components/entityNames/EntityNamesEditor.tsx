@@ -5,11 +5,11 @@ import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
 import { useLanguages } from "../../hooks/useLanguages";
+import { AddLanguageModal } from "../AddLanguageModal";
 import { Combobox } from "../Combobox";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
-import { useEntityCreateOption } from "../useEntityCreateOption";
 
 interface EntityNamesEditorProps {
   value: DraftEntityName[];
@@ -21,7 +21,12 @@ interface EntityNamesEditorProps {
  * in that language, with a "Primary" marker — at most one row may be primary, since saving mirrors
  * the primary row's value into the owner's base name/title column. Controlled over
  * {@link DraftEntityName}[] — the parent persists the complete rows via {@link entriesFromDrafts}.
- * Languages are inline-creatable.
+ * Languages are inline-creatable via `AddLanguageModal` directly (not the shared
+ * `useEntityCreateOption` registry) — this editor is imported by several `Add*Form`-wrapped create
+ * forms (Tag/Location/Book/Plex-title), and that registry itself imports every `Add*Modal`,
+ * including the ones wrapping those forms; going through it here would create an import cycle
+ * (mirrors the same manual-modal workaround already used by `LocationForm`/`BookForm` for their own
+ * pickers).
  */
 export function EntityNamesEditor({
   value, onChange,
@@ -32,12 +37,7 @@ export function EntityNamesEditor({
 
   // Which row a just-created language should be applied to.
   const [createTarget, setCreateTarget] = useState<number | null>(null);
-  const languageCreate = useEntityCreateOption("language", (language) => {
-    if (createTarget !== null) updateRow(createTarget, {
-      languageId: language.id,
-    });
-    setCreateTarget(null);
-  });
+  const [addLanguageOpen, setAddLanguageOpen] = useState(false);
 
   function updateRow(index: number, patch: Partial<DraftEntityName>) {
     onChange(value.map((row, i) => (i === index
@@ -94,10 +94,10 @@ export function EntityNamesEditor({
                 languageId: v ?? "",
               })}
               createOption={{
-                label: languageCreate.createOption.label,
+                label: "Create language",
                 onSelect: () => {
                   setCreateTarget(index);
-                  languageCreate.createOption.onSelect();
+                  setAddLanguageOpen(true);
                 },
               }}
             />
@@ -138,7 +138,16 @@ export function EntityNamesEditor({
         <Plus className="size-4" />
         Add name
       </Button>
-      {languageCreate.modal}
+      <AddLanguageModal
+        open={addLanguageOpen}
+        onOpenChange={setAddLanguageOpen}
+        onCreated={(language) => {
+          if (createTarget !== null) updateRow(createTarget, {
+            languageId: language.id,
+          });
+          setCreateTarget(null);
+        }}
+      />
     </div>
   );
 }

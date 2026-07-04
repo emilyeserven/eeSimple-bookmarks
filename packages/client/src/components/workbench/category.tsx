@@ -9,6 +9,7 @@ import { CategoryGeneralForm } from "../CategoryGeneralForm";
 import { CategoryGeneralFields } from "../CategoryPreviewCard";
 import { CategoryTieredTags } from "../CategoryTieredTags";
 import { EntityAutofillSources } from "../EntityAutofillSources";
+import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
 import { ListingDisplayControls } from "../ListingDisplayControls";
 
 import { useCategories, useCategoryBySlug, useDeleteCategory } from "@/hooks/useCategories";
@@ -21,6 +22,10 @@ function CategoryGeneralView({
   return (
     <div className="space-y-6">
       <CategoryGeneralFields category={category} />
+      <EntityNamesTabView
+        ownerType="category"
+        ownerId={category.id}
+      />
       <EntityAutofillSources
         match={{
           kind: "category",
