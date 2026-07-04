@@ -7,17 +7,19 @@ import { BookmarkPropertiesForm } from "./BookmarkPropertiesForm";
 import { renderWithRouter } from "../test-utils/router";
 import { sampleBookmark, sampleProperties } from "../test-utils/story-mocks";
 
-// The form seeds its number/boolean/datetime inputs from the bookmark and persists the values
-// scoped to the bookmark's category on Save. These tests pin that — plus the empty state and the
-// YouTube runtime/date-posted block — before the seeding state is shared with the prefill hook and
-// the metadata fields are lifted into their own component.
+// The form seeds its number/boolean/datetime inputs from the bookmark and debounce-auto-saves the
+// values scoped to the bookmark's category (no Save button — the edit-tab standard). These tests pin
+// that — plus the empty state and the YouTube runtime/date-posted block.
 
-const updateMutateAsync = vi.fn<(args: unknown) => Promise<unknown>>();
+// The debounced auto-save calls `updateBookmark.mutate(vars, opts)`.
+const updateMutate = vi.fn(
+  (_vars: unknown, opts?: { onSuccess?: (data: unknown) => void }) => opts?.onSuccess?.(undefined),
+);
 let customPropertiesData: CustomProperty[] = [];
 
 vi.mock("../hooks/useBookmarks", () => ({
   useUpdateBookmark: () => ({
-    mutateAsync: updateMutateAsync,
+    mutate: updateMutate,
     isPending: false,
     isError: false,
     error: null,
@@ -54,31 +56,38 @@ describe("bookmarkPropertiesForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the applicable properties and submits the seeded values", async () => {
+  it("renders the applicable properties and auto-saves an edited value (no Save button)", async () => {
     customPropertiesData = sampleProperties;
-    updateMutateAsync.mockResolvedValue(undefined);
     await renderWithRouter(<BookmarkPropertiesForm bookmark={sampleBookmark} />);
 
-    // Priority is a number property scoped to the bookmark's category.
+    // Priority is a number property scoped to the bookmark's category, seeded to 8.
     expect(screen.getByText("Priority")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", {
+    expect(screen.queryByRole("button", {
       name: "Save changes",
-    }));
+    })).toBeNull();
 
-    await waitFor(() => expect(updateMutateAsync).toHaveBeenCalledTimes(1));
-    const arg = updateMutateAsync.mock.calls[0][0] as {
+    // Editing a value debounce-persists the whole property set (no Save click).
+    fireEvent.change(screen.getByLabelText("Priority"), {
+      target: {
+        value: "9",
+      },
+    });
+
+    // The 700ms debounce fires; wait it out on real timers.
+    await waitFor(() => expect(updateMutate).toHaveBeenCalledTimes(1), {
+      timeout: 2000,
+    });
+    const arg = updateMutate.mock.calls[0][0] as {
       id: string;
       input: { numberValues: { propertyId: string;
         value: number; }[]; };
     };
     expect(arg.id).toBe(sampleBookmark.id);
-    // The Priority value (8) seeded from the bookmark must survive the round-trip.
     expect(arg.input.numberValues).toEqual(
       expect.arrayContaining([
         {
           propertyId: "prop-priority",
-          value: 8,
+          value: 9,
         },
       ]),
     );

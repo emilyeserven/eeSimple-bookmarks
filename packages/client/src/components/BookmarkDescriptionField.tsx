@@ -14,6 +14,8 @@ interface BookmarkDescriptionFieldProps {
   form: BookmarkFormApi;
   fetchMetadata: ReturnType<typeof useFetchMetadata>;
   runFetchDescription: ScanHandlers["runFetchDescription"];
+  /** Optional per-field auto-save-on-blur hook (edit form); omitted on the create form. */
+  onBlur?: () => void;
 }
 
 /**
@@ -24,6 +26,7 @@ export function BookmarkDescriptionField({
   form,
   fetchMetadata,
   runFetchDescription,
+  onBlur,
 }: BookmarkDescriptionFieldProps) {
   return (
     <form.Subscribe selector={state => state.values.url}>
@@ -32,6 +35,7 @@ export function BookmarkDescriptionField({
           {field => (
             <field.TextareaField
               label="Description"
+              onBlur={onBlur}
               action={(
                 <Button
                   type="button"

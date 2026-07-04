@@ -27,6 +27,7 @@ export function BookmarkGeneralRelationsSection({
     setAddTagOpen,
     addPersonOpen,
     setAddPersonOpen,
+    saveField,
     saveTags,
     saveLocations,
     saveBlacklistedTagIds,
@@ -35,7 +36,10 @@ export function BookmarkGeneralRelationsSection({
     saveGroups,
     touchedRef,
   } = ctrl;
-  const mediaTypeCreate = useEntityCreateOption("media-type", mediaType => form.setFieldValue("mediaTypeId", mediaType.id));
+  const mediaTypeCreate = useEntityCreateOption("media-type", (mediaType) => {
+    form.setFieldValue("mediaTypeId", mediaType.id);
+    saveField("mediaTypeId", mediaType.id);
+  });
   const groupCreate = useEntityCreateOption("group", (group) => {
     const current = form.getFieldValue("groupIds");
     if (!current.includes(group.id)) {
@@ -62,6 +66,7 @@ export function BookmarkGeneralRelationsSection({
             placeholder="No media type"
             searchPlaceholder="Search media types…"
             emptyText="No media types found."
+            onValueChange={value => saveField("mediaTypeId", value || null)}
             createOption={mediaTypeCreate.createOption}
             options={mediaTypeNodesToOptions(mediaTypes ?? [])}
           />
@@ -186,7 +191,10 @@ export function BookmarkGeneralRelationsSection({
                 label: a.name,
               }))}
               values={field.state.value}
-              onValuesChange={field.handleChange}
+              onValuesChange={(ids) => {
+                field.handleChange(ids);
+                savePeople(ids);
+              }}
               placeholder="Select people…"
               searchPlaceholder="Search people…"
               emptyText="No people found."
@@ -221,7 +229,10 @@ export function BookmarkGeneralRelationsSection({
                 label: g.name,
               }))}
               values={field.state.value}
-              onValuesChange={field.handleChange}
+              onValuesChange={(ids) => {
+                field.handleChange(ids);
+                saveGroups(ids);
+              }}
               placeholder="Select groups…"
               searchPlaceholder="Search groups…"
               emptyText="No groups found."

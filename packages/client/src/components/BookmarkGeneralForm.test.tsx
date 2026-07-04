@@ -7,10 +7,14 @@ import { sampleBookmark, sampleCategories } from "../test-utils/story-mocks";
 
 // BookmarkGeneralForm composes several already-extracted hooks (data, url-processing, scan
 // handlers). These tests mock those boundaries so they can pin the form's OWN behavior — that the
-// core fields seed from the bookmark and that Save submits the edited values — which the
-// decomposition into a state hook + field-group components must preserve.
+// core fields seed from the bookmark and that each field auto-saves on blur (no Save button) — which
+// the decomposition into a state hook + field-group components must preserve.
 
 const updateMutateAsync = vi.fn<(args: unknown) => Promise<unknown>>();
+// The per-field auto-save engine + saveUrl/save* helpers all call `updateBookmark.mutate(vars, opts)`.
+const updateMutate = vi.fn(
+  (_vars: unknown, opts?: { onSuccess?: (data: unknown) => void }) => opts?.onSuccess?.({}),
+);
 const resolveSubmitUrl = vi.fn((url: string) => ({
   finalUrl: url,
   originalUrl: null,
@@ -31,6 +35,7 @@ vi.mock("./useBookmarkFormData", () => ({
   useBookmarkFormData: () => ({
     actions: {
       updateBookmark: {
+        mutate: updateMutate,
         mutateAsync: updateMutateAsync,
         isError: false,
         error: null,
@@ -84,6 +89,7 @@ vi.mock("./useBookmarkScanHandlers", () => ({
 
 vi.mock("../lib/notifications", () => ({
   notifySuccess: vi.fn(),
+  notifyError: vi.fn(),
 }));
 
 afterEach(() => {
@@ -101,8 +107,15 @@ describe("bookmarkGeneralForm", () => {
     expect(screen.getByText("Tags")).toBeInTheDocument();
   });
 
-  it("submits the edited values through updateBookmark", async () => {
-    updateMutateAsync.mockResolvedValue(undefined);
+  it("has no Save button — the tab auto-saves", async () => {
+    await renderWithRouter(<BookmarkGeneralForm bookmark={sampleBookmark} />);
+
+    expect(screen.queryByRole("button", {
+      name: "Save changes",
+    })).toBeNull();
+  });
+
+  it("auto-saves the name field on blur through updateBookmark", async () => {
     await renderWithRouter(<BookmarkGeneralForm bookmark={sampleBookmark} />);
 
     fireEvent.change(screen.getByLabelText("Name"), {
@@ -110,34 +123,18 @@ describe("bookmarkGeneralForm", () => {
         value: "GitHub renamed",
       },
     });
-    fireEvent.click(screen.getByRole("button", {
-      name: "Save changes",
-    }));
+    fireEvent.blur(screen.getByLabelText("Name"));
 
-    await waitFor(() => expect(updateMutateAsync).toHaveBeenCalledTimes(1));
-    expect(updateMutateAsync.mock.calls[0][0]).toMatchObject({
+    await waitFor(() => expect(updateMutate).toHaveBeenCalled());
+    // Exactly the edited field is PATCHed (single-key auto-save), not the whole form.
+    const titleSave = updateMutate.mock.calls.find(
+      call => (call[0] as { input: Record<string, unknown> }).input.title !== undefined,
+    );
+    expect(titleSave?.[0]).toMatchObject({
       id: sampleBookmark.id,
       input: {
         title: "GitHub renamed",
-        url: "https://github.com",
       },
     });
-    expect(resolveSubmitUrl).toHaveBeenCalledWith("https://github.com", false);
-  });
-
-  it("includes people and group in the update payload (editable post-create)", async () => {
-    updateMutateAsync.mockResolvedValue(undefined);
-    await renderWithRouter(<BookmarkGeneralForm bookmark={sampleBookmark} />);
-
-    fireEvent.click(screen.getByRole("button", {
-      name: "Save changes",
-    }));
-
-    await waitFor(() => expect(updateMutateAsync).toHaveBeenCalledTimes(1));
-    const {
-      input,
-    } = updateMutateAsync.mock.calls[0][0] as { input: Record<string, unknown> };
-    expect(input).toHaveProperty("personIds");
-    expect(input).toHaveProperty("groupId");
   });
 });

@@ -30,7 +30,6 @@ export function BookmarkGeneralForm({
     fetchTitle,
     fetchMetadata,
     groups,
-    updateBookmark,
     websiteLookup,
     channelHintRef,
     youtubeChannel,
@@ -53,23 +52,24 @@ export function BookmarkGeneralForm({
     runFetchDescription,
     runYouTubeEnrichment,
     undoTitleFetch,
+    saveField,
+    saveTitle,
+    saveDescription,
   } = ctrl;
 
-  // Register the header "Sync from source" button for this bookmark (re-scan its URL).
+  // Register the header "Sync from source" button for this bookmark (re-scan its URL). Staged
+  // Title/Description values persist through the same per-field auto-save the form's fields use.
   useBookmarkSyncRegistration({
     bookmark,
     form,
+    onFieldStaged: () => {
+      saveTitle();
+      saveDescription();
+    },
   });
 
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void form.handleSubmit();
-      }}
-    >
+    <div className="space-y-4">
       <BookmarkNameField
         form={form}
         fetchTitle={fetchTitle}
@@ -83,7 +83,10 @@ export function BookmarkGeneralForm({
         setIsReportingTitle={setIsReportingTitle}
         expectedTitle={expectedTitle}
         setExpectedTitle={setExpectedTitle}
-        onNameBlur={runAutofill}
+        onNameBlur={() => {
+          runAutofill();
+          saveTitle();
+        }}
       />
 
       <form.AppField name="romanizedName">
@@ -91,6 +94,7 @@ export function BookmarkGeneralForm({
           <field.TextField
             label="Romanized name"
             placeholder="Optional romanized form"
+            onBlur={() => saveField("romanizedName", field.state.value.trim() || null)}
           />
         )}
       </form.AppField>
@@ -140,11 +144,13 @@ export function BookmarkGeneralForm({
         form={form}
         fetchMetadata={fetchMetadata}
         runFetchDescription={runFetchDescription}
+        onBlur={saveDescription}
       />
 
       <BookmarkCategoryField
         form={form}
         categories={categories ?? []}
+        onValueChange={id => saveField("categoryId", id)}
       />
 
       <PersonSocialAccountOffer
@@ -160,6 +166,7 @@ export function BookmarkGeneralForm({
       <BookmarkAdvancedGroupField
         form={form}
         groups={groups ?? []}
+        onValueChange={id => saveField("groupId", id || null)}
       />
 
       <BookmarkMediaField
@@ -172,18 +179,6 @@ export function BookmarkGeneralForm({
         ownerType="bookmark"
         ownerId={bookmark.id}
       />
-
-      <form.AppForm>
-        <form.SubmitButton
-          label="Save changes"
-          pendingLabel="Saving…"
-          size="sm"
-        />
-      </form.AppForm>
-
-      {updateBookmark.isError
-        ? <p className="text-sm text-destructive">{updateBookmark.error?.message}</p>
-        : null}
-    </form>
+    </div>
   );
 }

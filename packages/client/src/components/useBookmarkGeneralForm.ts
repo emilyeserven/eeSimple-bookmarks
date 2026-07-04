@@ -9,6 +9,7 @@ import {
   looksLikeYouTube,
 } from "./bookmarkFormSchema";
 import { useBookmarkFormData } from "./useBookmarkFormData";
+import { useBookmarkGeneralAutoSave } from "./useBookmarkGeneralAutoSave";
 import { useBookmarkInlineCreateModals } from "./useBookmarkInlineCreateModals";
 import { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
@@ -118,35 +119,18 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     validators: {
       onChange: bookmarkSchema,
     },
-    onSubmit: async ({
-      value,
-    }) => {
-      const {
-        finalUrl, originalUrl,
-      } = resolveSubmitUrl(value.url, false);
+  });
 
-      await updateBookmark.mutateAsync({
-        id: bookmark.id,
-        input: {
-          url: finalUrl,
-          originalUrl,
-          title: value.title,
-          romanizedName: value.romanizedName.trim() || null,
-          categoryId: value.categoryId,
-          mediaTypeId: value.mediaTypeId || null,
-          description: value.description || null,
-          tagIds: value.tagIds,
-          locationIds: value.locationIds,
-          personIds: value.personIds,
-          groupIds: value.groupIds,
-          groupId: value.groupId || null,
-          ...(channelHintRef.current && {
-            youtubeChannel: channelHintRef.current,
-          }),
-        },
-      });
-      notifySuccess("Changes saved");
-    },
+  // Per-field auto-save for the scalar fields (edit-tab standard — no Save button). Extracted so this
+  // hook's cognitive complexity doesn't rise (mirrors `useBookmarkSyncRegistration`).
+  const {
+    saveField, saveUrl, saveTitle, saveDescription,
+  } = useBookmarkGeneralAutoSave({
+    bookmark,
+    form,
+    updateBookmark,
+    resolveSubmitUrl,
+    channelHintRef,
   });
 
   function saveTags(tagIds: string[]): void {
@@ -272,6 +256,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     if (result.categoryId) {
       if (!touchedRef.current.has("categoryId")) {
         form.setFieldValue("categoryId", result.categoryId);
+        saveField("categoryId", result.categoryId);
       }
     }
 
@@ -280,26 +265,32 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       form.getFieldValue("tagIds"),
       touchedRef.current.has("tags"),
     );
-    if (mergedTagIds) form.setFieldValue("tagIds", mergedTagIds);
+    if (mergedTagIds) {
+      form.setFieldValue("tagIds", mergedTagIds);
+      saveTags(mergedTagIds);
+    }
 
     const mergedLocationIds = mergeAutofillIds(
       result.locationIds,
       form.getFieldValue("locationIds"),
       touchedRef.current.has("locations"),
     );
-    if (mergedLocationIds) form.setFieldValue("locationIds", mergedLocationIds);
+    if (mergedLocationIds) {
+      form.setFieldValue("locationIds", mergedLocationIds);
+      saveLocations(mergedLocationIds);
+    }
   }
 
   const {
-    runFetchTitle,
-    runFetchDescription,
-    runYouTubeEnrichment,
+    runFetchTitle: rawFetchTitle,
+    runFetchDescription: rawFetchDescription,
+    runYouTubeEnrichment: rawYouTubeEnrichment,
     applyScanMetadata,
     createPersonFromSocialAccount,
     reconcileSocialAccountOnEdit,
     runUrlCleanup,
-    undoUrlCleanup,
-    undoTitleFetch,
+    undoUrlCleanup: rawUndoUrlCleanup,
+    undoTitleFetch: rawUndoTitleFetch,
     runWebsiteLookup,
   } = useBookmarkScanHandlers({
     form,
@@ -318,7 +309,12 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     undoCleanup,
     people,
     getPersonIds: () => form.getFieldValue("personIds") as string[],
-    setPersonIds: (ids: string[]) => form.setFieldValue("personIds", ids),
+    // Persist any person change the scan handlers make (author-name / social-account matching),
+    // since there's no blur/change event for a programmatic write.
+    setPersonIds: (ids: string[]) => {
+      form.setFieldValue("personIds", ids);
+      savePeople(ids);
+    },
     createPerson,
     updatePerson,
     autoPersonImage,
@@ -329,6 +325,31 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     attachPrimaryLanguageUsage,
     createLanguage,
   });
+
+  // The scan handlers write Title/Description into form state; on the edit form each such write must
+  // persist (there's no blur/change event for it). Wrap them so the value is saved after they resolve
+  // — the engine's no-op skip means an unchanged field never toasts.
+  const runFetchTitle: typeof rawFetchTitle = async (url, opts) => {
+    await rawFetchTitle(url, opts);
+    saveTitle();
+  };
+  const runFetchDescription: typeof rawFetchDescription = async (url, opts) => {
+    await rawFetchDescription(url, opts);
+    saveDescription();
+  };
+  const runYouTubeEnrichment: typeof rawYouTubeEnrichment = async (url, opts) => {
+    await rawYouTubeEnrichment(url, opts);
+    saveTitle();
+    saveDescription();
+  };
+  const undoTitleFetch = (): void => {
+    rawUndoTitleFetch();
+    saveTitle();
+  };
+  const undoUrlCleanup = (): void => {
+    rawUndoUrlCleanup();
+    saveUrl();
+  };
 
   async function performUrlScan(): Promise<void> {
     runUrlCleanup(form.getFieldValue("url"));
@@ -348,6 +369,8 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       fillTitle: autoFetchTitle,
       force: false,
     });
+    // Persist the cleaned URL (+ resolved channel hint from enrichment) last, so a URL edit sticks.
+    saveUrl();
   }
 
   // Manual "Rescan" action: re-runs the consolidated `/api/scan` pipeline against the bookmark's
@@ -377,6 +400,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
         force: false,
       });
       await reconcileSocialAccountOnEdit(scan.socialAccount, form.getFieldValue("personIds") as string[]);
+      // Persist the fields the rescan may have filled (people persist via the wrapped setPersonIds).
+      saveTitle();
+      saveDescription();
       const peopleChanged = (form.getFieldValue("personIds") as string[]).length !== personIdsBefore.length;
       notifySuccess(peopleChanged ? "Rescanned — person linked" : "Rescanned");
     }
@@ -401,6 +427,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     groups,
     updateBookmark,
     ...modals,
+    saveField,
+    saveTitle,
+    saveDescription,
     saveTags,
     saveLocations,
     saveBlacklistedTagIds,

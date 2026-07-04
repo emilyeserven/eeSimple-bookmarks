@@ -1,6 +1,6 @@
 import type { Bookmark, CustomProperty, SectionEntry } from "@eesimple/types";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 
@@ -15,7 +15,8 @@ import { useSeededPropertyInputs } from "./useSeededPropertyInputs";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
-import { notifySuccess } from "../lib/notifications";
+import { describeError } from "../lib/apiError";
+import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 
 /**
  * Whether any property is editable for this bookmark: a YouTube built-in (Runtime/Date Posted) on a
@@ -68,7 +69,59 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
     setTextInputs,
     customRef,
   } = useSeededPropertyInputs(bookmark);
-  const [isPending, setIsPending] = useState(false);
+
+  // Per-field auto-save (edit-tab standard — no Save button). The property values ride in one
+  // array-shaped PATCH, so we mirror the Languages tab: debounce-persist the whole set whenever it
+  // changes from the last-saved snapshot, firing a single "Properties" toast. The serialized entries
+  // last persisted, so the debounce skips no-op saves (including the initial seed on load).
+  const savedRef = useRef<string | null>(null);
+  const mutateRef = useRef(updateBookmark.mutate);
+  mutateRef.current = updateBookmark.mutate;
+
+  useEffect(() => {
+    if (!customProperties) return;
+    const values = buildAllPropertyValues(
+      customProperties,
+      bookmark.categoryId ?? "",
+      customRef.current,
+      bookmark.mediaType?.id ?? null,
+    );
+    const serialized = JSON.stringify(values);
+    // Seed the snapshot on first load without saving.
+    if (savedRef.current === null) {
+      savedRef.current = serialized;
+      return;
+    }
+    if (serialized === savedRef.current) return;
+    const timer = setTimeout(() => {
+      mutateRef.current(
+        {
+          id: bookmark.id,
+          input: values,
+        },
+        {
+          onSuccess: () => {
+            savedRef.current = serialized;
+            notifyFieldSaved("Properties");
+          },
+          onError: error => notifyFieldSaveError("Properties", describeError(error)),
+        },
+      );
+    }, 700);
+    return () => clearTimeout(timer);
+    // customRef is a stable ref mirroring the maps below; the maps are the reactive triggers.
+  }, [
+    numberInputs,
+    booleanInputs,
+    dateTimeInputs,
+    choicesInputs,
+    progressInputs,
+    sectionsInputs,
+    textInputs,
+    customProperties,
+    bookmark,
+    customRef,
+  ]);
 
   function handleNumberChange(id: string, value: string): void {
     setNumberInputs(current => ({
@@ -129,27 +182,6 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
     onApply: handleSectionsChange,
   });
 
-  async function handleSubmit(event: React.FormEvent): Promise<void> {
-    event.preventDefault();
-    setIsPending(true);
-    try {
-      const values = buildAllPropertyValues(
-        customProperties ?? [],
-        bookmark.categoryId ?? "",
-        customRef.current,
-        bookmark.mediaType?.id ?? null,
-      );
-      await updateBookmark.mutateAsync({
-        id: bookmark.id,
-        input: values,
-      });
-      notifySuccess("Changes saved");
-    }
-    finally {
-      setIsPending(false);
-    }
-  }
-
   const runtimeProp = (customProperties ?? []).find(p => p.slug === RUNTIME_SLUG);
   const datePostedProp = (customProperties ?? []).find(p => p.slug === DATE_POSTED_SLUG);
   const isYouTubeBookmark = looksLikeYouTube(bookmark.url ?? "");
@@ -169,8 +201,6 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
   return {
     customProperties: customProperties ?? [],
     fetchMetadata,
-    updateBookmark,
-    isPending,
     numberInputs,
     booleanInputs,
     dateTimeInputs,
@@ -188,7 +218,6 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
     canImportSections,
     handleSectionsImport,
     isSectionsImportPending,
-    handleSubmit,
     runtimeProp,
     datePostedProp,
     isYouTubeBookmark,
