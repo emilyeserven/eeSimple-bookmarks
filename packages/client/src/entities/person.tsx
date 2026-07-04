@@ -11,8 +11,8 @@ import { peopleApi } from "../lib/api/taxonomies";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const PERSON_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const PERSON_ROUTE: EntityRoute = {
   kind: "person",
   prefix: "/taxonomies/people",
   slugIndex: 2,
@@ -21,8 +21,8 @@ export const PERSON_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const PERSON_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const PERSON_PALETTE: EntityPaletteConfig = {
   queryKey: ["people"],
   listFn: () => peopleApi.list(),
   updateFn: (id, patch) => peopleApi.update(id, patch as UpdatePersonInput),

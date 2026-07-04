@@ -14,8 +14,8 @@ import { languagesApi } from "../lib/api/taxonomies";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const LANGUAGE_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const LANGUAGE_ROUTE: EntityRoute = {
   kind: "language",
   prefix: "/taxonomies/languages",
   slugIndex: 2,
@@ -24,8 +24,8 @@ export const LANGUAGE_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const LANGUAGE_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const LANGUAGE_PALETTE: EntityPaletteConfig = {
   queryKey: ["languages"],
   listFn: () => languagesApi.list(),
   updateFn: (id, patch) => languagesApi.update(id, patch as UpdateLanguageInput),

@@ -12,8 +12,8 @@ import { TYPE_LABELS } from "../lib/propertyFormat";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const CUSTOM_PROPERTY_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const CUSTOM_PROPERTY_ROUTE: EntityRoute = {
   kind: "custom-property",
   prefix: "/custom-properties",
   slugIndex: 1,
@@ -23,8 +23,8 @@ export const CUSTOM_PROPERTY_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const CUSTOM_PROPERTY_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const CUSTOM_PROPERTY_PALETTE: EntityPaletteConfig = {
   queryKey: ["custom-properties"],
   listFn: () => customPropertiesApi.list(),
   updateFn: (id, patch) => customPropertiesApi.update(id, patch as UpdateCustomPropertyInput),

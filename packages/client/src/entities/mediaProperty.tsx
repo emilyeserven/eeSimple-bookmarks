@@ -9,8 +9,8 @@ import { mediaPropertyWorkbench } from "../components/workbench/mediaProperty";
 import { useBulkDeleteMediaProperties, useMediaProperties } from "../hooks/useMediaProperties";
 import { mediaPropertiesApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const MEDIA_PROPERTY_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const MEDIA_PROPERTY_ROUTE: EntityRoute = {
   kind: "media-property",
   prefix: "/taxonomies/media-properties",
   slugIndex: 2,
@@ -19,8 +19,8 @@ export const MEDIA_PROPERTY_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const MEDIA_PROPERTY_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const MEDIA_PROPERTY_PALETTE: EntityPaletteConfig = {
   queryKey: ["media-properties"],
   listFn: () => mediaPropertiesApi.list(),
   updateFn: (id, patch) => mediaPropertiesApi.update(id, patch as UpdateMediaPropertyInput),

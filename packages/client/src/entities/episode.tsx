@@ -9,8 +9,8 @@ import { episodeWorkbench } from "../components/workbench/episode";
 import { useBulkDeleteEpisodes, useEpisodes } from "../hooks/useEpisodes";
 import { episodesApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const EPISODE_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const EPISODE_ROUTE: EntityRoute = {
   kind: "episode",
   prefix: "/taxonomies/episodes",
   slugIndex: 2,
@@ -19,8 +19,8 @@ export const EPISODE_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const EPISODE_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const EPISODE_PALETTE: EntityPaletteConfig = {
   queryKey: ["episodes"],
   listFn: () => episodesApi.list(),
   updateFn: (id, patch) => episodesApi.update(id, patch as UpdateEpisodeInput),
