@@ -2,6 +2,7 @@ import type { BookmarkImageEditFormController } from "./useBookmarkImageEditForm
 import type { Bookmark } from "@eesimple/types";
 
 import { BookImage, BookOpen, Search, Sparkles, Tv } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkImageDisplayToggle } from "./BookmarkImageDisplayToggle";
 import { BookmarkImagePicker } from "./BookmarkImagePicker";
@@ -22,6 +23,9 @@ function ImageActionButtons({
   pageUrl: string | null;
   c: BookmarkImageEditFormController;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button
@@ -29,7 +33,7 @@ function ImageActionButtons({
         size="sm"
         disabled={c.isPending || c.isMutating}
       >
-        {c.isPending || c.isMutating ? "Saving…" : "Save changes"}
+        {c.isPending || c.isMutating ? t("Saving…") : t("Save changes")}
       </Button>
       {pageUrl
         ? (
@@ -42,18 +46,18 @@ function ImageActionButtons({
               onClick={c.onFindImages}
             >
               <Search className="size-4" />
-              {c.isScanning ? "Finding…" : "Find images on page"}
+              {c.isScanning ? t("Finding…") : t("Find images on page")}
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               disabled={c.getPageImagePending}
-              title="Fetch the page's preview image (og:image)"
+              title={t("Fetch the page's preview image (og:image)")}
               onClick={c.onGetPageImage}
             >
               <Sparkles className="size-4" />
-              {c.getPageImagePending ? "Fetching…" : "Get page image"}
+              {c.getPageImagePending ? t("Fetching…") : t("Get page image")}
             </Button>
           </>
         )
@@ -65,11 +69,11 @@ function ImageActionButtons({
             variant="outline"
             size="sm"
             disabled={c.kavitaCoverPending}
-            title="Import the linked Kavita series' cover as the main image"
+            title={t("Import the linked Kavita series' cover as the main image")}
             onClick={c.onUseKavitaCover}
           >
             <BookOpen className="size-4" />
-            {c.kavitaCoverPending ? "Importing…" : "Use Kavita cover"}
+            {c.kavitaCoverPending ? t("Importing…") : t("Use Kavita cover")}
           </Button>
         )
         : null}
@@ -80,11 +84,11 @@ function ImageActionButtons({
             variant="outline"
             size="sm"
             disabled={c.plexPosterPending}
-            title="Import the linked Plex item's poster as the main image"
+            title={t("Import the linked Plex item's poster as the main image")}
             onClick={c.onUsePlexPoster}
           >
             <Tv className="size-4" />
-            {c.plexPosterPending ? "Importing…" : "Use Plex poster"}
+            {c.plexPosterPending ? t("Importing…") : t("Use Plex poster")}
           </Button>
         )
         : null}
@@ -95,11 +99,11 @@ function ImageActionButtons({
             variant="outline"
             size="sm"
             disabled={c.isbnCoverPending}
-            title="Look up the bookmark's ISBN/ASIN and use its cover as the main image"
+            title={t("Look up the bookmark's ISBN/ASIN and use its cover as the main image")}
             onClick={c.onUseIsbnCover}
           >
             <BookImage className="size-4" />
-            {c.isbnCoverPending ? "Importing…" : "Pull cover from ISBN"}
+            {c.isbnCoverPending ? t("Importing…") : t("Pull cover from ISBN")}
           </Button>
         )
         : null}

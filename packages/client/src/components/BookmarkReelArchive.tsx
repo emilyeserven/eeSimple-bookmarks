@@ -2,6 +2,7 @@ import type { Bookmark } from "@eesimple/types";
 
 import { isInstagramReelUrl } from "@eesimple/types";
 import { Download, Film, Loader2, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useArchiveBookmarkReel, useDeleteBookmarkReelArchive } from "../hooks/useBookmarks";
 import { useActiveReelArchiveJobs } from "../hooks/useReelArchive";
@@ -25,6 +26,9 @@ export function BookmarkArchiveReelButton({
   enabled: boolean;
   /** Render as a labeled outline button (for a tab body) instead of the icon-only header trigger. */
   showLabel?: boolean; }) {
+  const {
+    t,
+  } = useTranslation();
   const archive = useArchiveBookmarkReel();
   const {
     data: activeJobs,
@@ -35,7 +39,7 @@ export function BookmarkArchiveReelButton({
   const jobActive = activeJobs?.some(job => job.bookmarkId === bookmark.id) ?? false;
   const busy = archive.isPending || jobActive;
   const hasArchive = bookmark.reelArchive !== null;
-  const label = hasArchive ? "Re-archive reel video" : "Archive reel video";
+  const label = hasArchive ? t("Re-archive reel video") : t("Archive reel video");
   const icon = busy
     ? <Loader2 className="size-4 animate-spin" />
     : <Film className="size-4" />;
@@ -50,7 +54,7 @@ export function BookmarkArchiveReelButton({
         onClick={() => archive.mutate(bookmark.id)}
       >
         {icon}
-        {busy ? "Archiving…" : label}
+        {busy ? t("Archiving…") : label}
       </Button>
     );
   }
@@ -78,6 +82,9 @@ export function BookmarkArchiveReelButton({
 export function BookmarkReelArchivePlayer({
   bookmark,
 }: { bookmark: Bookmark }) {
+  const {
+    t,
+  } = useTranslation();
   const remove = useDeleteBookmarkReelArchive();
   const archive = bookmark.reelArchive;
   if (!archive) return null;
@@ -85,14 +92,14 @@ export function BookmarkReelArchivePlayer({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-medium">Archived reel</h2>
+        <h2 className="text-sm font-medium">{t("Archived reel")}</h2>
         <div className="flex items-center gap-1">
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            aria-label="Download archived reel"
-            title="Download archived reel"
+            aria-label={t("Download archived reel")}
+            title={t("Download archived reel")}
             asChild
           >
             <a
@@ -106,8 +113,8 @@ export function BookmarkReelArchivePlayer({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label="Remove archived reel"
-            title="Remove archived reel"
+            aria-label={t("Remove archived reel")}
+            title={t("Remove archived reel")}
             disabled={remove.isPending}
             onClick={() => remove.mutate(bookmark.id)}
           >

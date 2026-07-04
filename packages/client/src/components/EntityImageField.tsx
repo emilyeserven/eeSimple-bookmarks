@@ -1,16 +1,9 @@
 import type { ReactNode } from "react";
 
-const IMAGE_GRAB_ERROR_LABELS: Record<string, string> = {
-  no_image: "No favicon found for this site",
-  bad_image: "Favicon image couldn't be loaded",
-  blocked: "Access to the site was blocked",
-  server_error: "Site returned a server error",
-  fetch_error: "Site couldn't be reached",
-};
-
 import { useRef, useState } from "react";
 
 import { ImagePlus, Sparkles, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -87,8 +80,19 @@ interface EntityImageFieldProps {
  * than deferring an intent (the entity already has an id on its edit page).
  */
 export function EntityImageField({
-  label, imageUrl, shape = "square", fallback, onUpload, onAuto, autoLabel = "Fetch image", onRemove, busy, autoError,
+  label, imageUrl, shape = "square", fallback, onUpload, onAuto, autoLabel, onRemove, busy, autoError,
 }: EntityImageFieldProps) {
+  const {
+    t,
+  } = useTranslation();
+  const resolvedAutoLabel = autoLabel ?? t("Fetch image");
+  const imageGrabErrorLabels: Record<string, string> = {
+    no_image: t("No favicon found for this site"),
+    bad_image: t("Favicon image couldn't be loaded"),
+    blocked: t("Access to the site was blocked"),
+    server_error: t("Site returned a server error"),
+    fetch_error: t("Site couldn't be reached"),
+  };
   const inputRef = useRef<HTMLInputElement>(null);
   // Hide an image that 404s/fails to decode so the fallback icon shows instead.
   const [imageFailed, setImageFailed] = useState(false);
@@ -145,7 +149,7 @@ export function EntityImageField({
             onClick={() => inputRef.current?.click()}
           >
             <ImagePlus className="size-4" />
-            Choose image
+            {t("Choose image")}
           </Button>
           {onAuto
             ? (
@@ -154,20 +158,24 @@ export function EntityImageField({
                 variant="outline"
                 size="sm"
                 disabled={busy || !!autoError}
-                title={autoLabel}
+                title={resolvedAutoLabel}
                 onClick={() => {
                   setImageFailed(false);
                   onAuto();
                 }}
               >
                 <Sparkles className="size-4" />
-                {autoLabel}
+                {resolvedAutoLabel}
               </Button>
             )
             : null}
           {autoError && (
             <p className="text-xs text-muted-foreground">
-              {IMAGE_GRAB_ERROR_LABELS[autoError] ?? "Previous auto-grab failed"} — upload an image manually to reset.
+              {imageGrabErrorLabels[autoError] ?? t("Previous auto-grab failed")}
+              {" "}
+              —
+              {" "}
+              {t("upload an image manually to reset.")}
             </p>
           )}
           {imageUrl
@@ -180,14 +188,14 @@ export function EntityImageField({
                 onClick={onRemove}
               >
                 <X className="size-4" />
-                Remove
+                {t("Remove")}
               </Button>
             )
             : null}
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        Choose an image to upload, or fetch one from the source. Stored as a WebP.
+        {t("Choose an image to upload, or fetch one from the source. Stored as a WebP.")}
       </p>
     </div>
   );

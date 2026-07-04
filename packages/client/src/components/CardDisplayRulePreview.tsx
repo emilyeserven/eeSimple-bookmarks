@@ -1,6 +1,7 @@
 import type { CardDisplayRulePreviewProps } from "../hooks/useCardDisplayRulePreview";
 
 import { ChevronLeft, ChevronRight, TriangleAlert } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkCard } from "./BookmarkCard";
 import { useCardDisplayRulePreview } from "../hooks/useCardDisplayRulePreview";
@@ -18,6 +19,9 @@ import { RowCard } from "@/components/ui/card";
  */
 export function CardDisplayRulePreview(props: CardDisplayRulePreviewProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     mode, setMode, setIndex, matches, safeIndex, matchedBookmark, subject,
     properties, resolved, otherMatching,
   } = useCardDisplayRulePreview(props);
@@ -32,7 +36,7 @@ export function CardDisplayRulePreview(props: CardDisplayRulePreviewProps) {
             size="sm"
             onClick={() => setMode("sample")}
           >
-            Sample
+            {t("Sample")}
           </Button>
           <Button
             type="button"
@@ -40,7 +44,7 @@ export function CardDisplayRulePreview(props: CardDisplayRulePreviewProps) {
             size="sm"
             onClick={() => setMode("existing")}
           >
-            Existing
+            {t("Existing")}
           </Button>
         </div>
         {mode === "existing" && matches.length > 1 && (
@@ -50,7 +54,7 @@ export function CardDisplayRulePreview(props: CardDisplayRulePreviewProps) {
               variant="outline"
               size="icon"
               className="size-7"
-              aria-label="Previous matching bookmark"
+              aria-label={t("Previous matching bookmark")}
               onClick={() => setIndex(() => (safeIndex - 1 + matches.length) % matches.length)}
             >
               <ChevronLeft className="size-4" />
@@ -60,7 +64,7 @@ export function CardDisplayRulePreview(props: CardDisplayRulePreviewProps) {
               variant="outline"
               size="icon"
               className="size-7"
-              aria-label="Next matching bookmark"
+              aria-label={t("Next matching bookmark")}
               onClick={() => setIndex(() => (safeIndex + 1) % matches.length)}
             >
               <ChevronRight className="size-4" />
@@ -71,10 +75,14 @@ export function CardDisplayRulePreview(props: CardDisplayRulePreviewProps) {
 
       <p className="min-w-0 truncate text-xs text-muted-foreground">
         {mode === "sample"
-          ? "Generic sample showing every field with placeholder values."
+          ? t("Generic sample showing every field with placeholder values.")
           : matchedBookmark
-            ? `${safeIndex + 1} of ${matches.length}: ${matchedBookmark.title}`
-            : "No bookmarks match this rule."}
+            ? t("{{index}} of {{total}}: {{title}}", {
+              index: safeIndex + 1,
+              total: matches.length,
+              title: matchedBookmark.title,
+            })
+            : t("No bookmarks match this rule.")}
       </p>
 
       {subject && (
@@ -103,11 +111,15 @@ export function CardDisplayRulePreview(props: CardDisplayRulePreviewProps) {
         >
           <TriangleAlert className="mt-0.5 size-4 shrink-0" />
           <p>
-            On listing pages,
+            {t("On listing pages,")}
             {" "}
-            {otherMatching.length === 1 ? "another rule also applies" : `${otherMatching.length} other rules also apply`}
+            {otherMatching.length === 1
+              ? t("another rule also applies")
+              : t("{{count}} other rules also apply", {
+                count: otherMatching.length,
+              })}
             {" "}
-            to this bookmark and may override these settings:
+            {t("to this bookmark and may override these settings:")}
             {" "}
             <span className="font-medium">{otherMatching.map(rule => rule.name).join(", ")}</span>
             .

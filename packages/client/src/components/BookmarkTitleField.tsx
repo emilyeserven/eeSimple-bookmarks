@@ -2,6 +2,7 @@ import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { ReactNode } from "react";
 
 import { Loader2, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TitleFetchFeedback } from "./BookmarkTitleFeedback";
 import { isFetchableUrl } from "../lib/url";
@@ -60,6 +61,9 @@ export function BookmarkTitleField({
   onCancelReporting = () => undefined,
   romanizedSlot,
 }: BookmarkTitleFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="flex flex-col gap-4">
       <form.Subscribe selector={state => state.values.url}>
@@ -67,7 +71,7 @@ export function BookmarkTitleField({
           <form.AppField name="title">
             {field => (
               <field.TextareaField
-                label="Name"
+                label={t("Name")}
                 rows={1}
                 inputClassName="min-h-9"
                 onBlur={onTitleBlur}
@@ -77,8 +81,8 @@ export function BookmarkTitleField({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    title="Fetch title from URL"
-                    aria-label="Fetch title from URL"
+                    title={t("Fetch title from URL")}
+                    aria-label={t("Fetch title from URL")}
                     disabled={!isFetchableUrl(url) || isFetchTitlePending || isFetchMetadataPending}
                     onClick={() => onFetchTitleClick(url)}
                   >
@@ -97,7 +101,7 @@ export function BookmarkTitleField({
 
       {titleFetch && (
         <p className="text-sm text-muted-foreground">
-          Changed from
+          {t("Changed from")}
           {" "}
           <span className="font-mono">{titleFetch.previous}</span>
           {" · "}
@@ -108,7 +112,7 @@ export function BookmarkTitleField({
             className="h-auto p-0"
             onClick={onUndoTitleFetch}
           >
-            Undo
+            {t("Undo")}
           </Button>
         </p>
       )}

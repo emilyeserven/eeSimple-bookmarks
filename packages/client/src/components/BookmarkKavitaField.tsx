@@ -1,6 +1,7 @@
 import type { Bookmark, KavitaSeriesResult } from "@eesimple/types";
 
 import { BookOpen, ExternalLink, Loader2, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useBookmarkKavitaLink } from "../hooks/useBooks";
 import { useConnectors } from "../hooks/useConnectors";
@@ -23,11 +24,16 @@ export function BookmarkKavitaDetailLink({
   bookmark,
 }: { bookmark: Bookmark }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: connectors,
   } = useConnectors();
   const link = useBookmarkKavitaLink(bookmark);
   if (!link) return null;
-  const name = link.seriesName ?? `Series #${link.seriesId}`;
+  const name = link.seriesName ?? t("Series #{{id}}", {
+    id: link.seriesId,
+  });
   const baseUrl = connectors?.kavita.enabled ? connectors.kavita.baseUrl : null;
   if (!baseUrl || link.libraryId === null) return <span>{name}</span>;
   return (
@@ -50,10 +56,13 @@ export function BookmarkKavitaDetailLink({
 export function BookmarkKavitaDetailRow({
   bookmark,
 }: { bookmark: Bookmark }) {
+  const {
+    t,
+  } = useTranslation();
   const link = useBookmarkKavitaLink(bookmark);
   if (!link) return null;
   return (
-    <DetailField label="Kavita">
+    <DetailField label={t("Kavita")}>
       <BookmarkKavitaDetailLink bookmark={bookmark} />
     </DetailField>
   );
@@ -85,6 +94,9 @@ export function BookmarkKavitaField({
   onSelect,
 }: BookmarkKavitaFieldProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     query, setQuery, enabled, baseUrl, search,
   } = useKavitaSeriesSearch();
 
@@ -94,7 +106,7 @@ export function BookmarkKavitaField({
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor="bookmark-kavita-series">Kavita series</Label>
+      <Label htmlFor="bookmark-kavita-series">{t("Kavita series")}</Label>
       {linked
         ? (
           <div className="flex items-center gap-2 rounded-md border px-3 py-2">
@@ -111,13 +123,18 @@ export function BookmarkKavitaField({
                     hover:underline
                   "
                 >
-                  <span className="truncate">{bookmark.kavitaSeriesName ?? `Series #${bookmark.kavitaSeriesId}`}</span>
+                  <span className="truncate">{bookmark.kavitaSeriesName ?? t("Series #{{id}}", {
+                    id: bookmark.kavitaSeriesId,
+                  })}
+                  </span>
                   <ExternalLink className="size-3.5 shrink-0" />
                 </a>
               )
               : (
                 <span className="truncate text-sm font-medium">
-                  {bookmark.kavitaSeriesName ?? `Series #${bookmark.kavitaSeriesId}`}
+                  {bookmark.kavitaSeriesName ?? t("Series #{{id}}", {
+                    id: bookmark.kavitaSeriesId,
+                  })}
                 </span>
               )}
             <Button
@@ -125,7 +142,7 @@ export function BookmarkKavitaField({
               variant="ghost"
               size="icon"
               className="ml-auto size-6 shrink-0"
-              aria-label="Unlink Kavita series"
+              aria-label={t("Unlink Kavita series")}
               onClick={() => onSelect(null)}
             >
               <X className="size-4" />
@@ -137,7 +154,7 @@ export function BookmarkKavitaField({
             <div className="relative">
               <Input
                 id="bookmark-kavita-series"
-                placeholder="Search your Kavita library…"
+                placeholder={t("Search your Kavita library…")}
                 value={query}
                 onChange={event => setQuery(event.target.value)}
               />
@@ -156,7 +173,7 @@ export function BookmarkKavitaField({
               ? <p className="text-xs text-destructive">{search.error.message}</p>
               : null}
             {search.isSuccess && search.data.length === 0
-              ? <p className="text-xs text-muted-foreground">No matching series found.</p>
+              ? <p className="text-xs text-muted-foreground">{t("No matching series found.")}</p>
               : null}
             {search.isSuccess && search.data.length > 0
               ? (
@@ -182,7 +199,7 @@ export function BookmarkKavitaField({
               )
               : null}
             <p className="text-xs text-muted-foreground">
-              Link this bookmark to a series on your Kavita server.
+              {t("Link this bookmark to a series on your Kavita server.")}
             </p>
           </>
         )}

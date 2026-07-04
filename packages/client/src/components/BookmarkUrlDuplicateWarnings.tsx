@@ -1,5 +1,7 @@
 import type { BookmarkUrlDuplicateResult } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/components/ui/button";
 
 interface BookmarkUrlDuplicateWarningsProps {
@@ -13,6 +15,9 @@ export function BookmarkUrlDuplicateWarnings({
   urlDuplicate,
   currentBookmarkId,
 }: BookmarkUrlDuplicateWarningsProps) {
+  const {
+    t,
+  } = useTranslation();
   const exactMatch = urlDuplicate?.exactMatch ?? null;
   const pathMatch = urlDuplicate?.pathMatch ?? null;
 
@@ -32,7 +37,7 @@ export function BookmarkUrlDuplicateWarnings({
         >
           <div className="flex items-center justify-between gap-2">
             <span>
-              A bookmark with this exact URL already exists:
+              {t("A bookmark with this exact URL already exists:")}
               {" "}
               <strong>{exactMatch.title}</strong>
             </span>
@@ -42,12 +47,12 @@ export function BookmarkUrlDuplicateWarnings({
               variant="outline"
               onClick={() => window.open(exactMatch.url ?? undefined, "_blank")}
             >
-              Open in new tab
+              {t("Open in new tab")}
             </Button>
           </div>
           {!currentBookmarkId && (
             <p className="text-xs text-muted-foreground">
-              Change the URL above to save a new bookmark.
+              {t("Change the URL above to save a new bookmark.")}
             </p>
           )}
         </div>
@@ -61,7 +66,7 @@ export function BookmarkUrlDuplicateWarnings({
         >
           <div className="flex items-center justify-between gap-2">
             <span>
-              A bookmark with a similar URL already exists:
+              {t("A bookmark with a similar URL already exists:")}
               {" "}
               <strong>{pathMatch.title}</strong>
             </span>
@@ -71,11 +76,11 @@ export function BookmarkUrlDuplicateWarnings({
               variant="outline"
               onClick={() => window.open(pathMatch.url ?? undefined, "_blank")}
             >
-              Open in new tab
+              {t("Open in new tab")}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            You can still save — the query parameters differ.
+            {t("You can still save — the query parameters differ.")}
           </p>
         </div>
       )}

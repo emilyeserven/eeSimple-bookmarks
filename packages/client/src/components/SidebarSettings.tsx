@@ -4,6 +4,8 @@ import type {
   SidebarOpenModifier,
 } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import {
   useAutomationSettings,
   useDisplayPreferenceSettings,
@@ -66,6 +68,9 @@ const AUTOMATION_DEFAULTS: AutomationSettings = {
 /** Drawer preferences — pin behaviour, responsive breakpoints, and modifier key. */
 export function SidebarSettings() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: displayData,
   } = useDisplayPreferenceSettings();
   const {
@@ -95,7 +100,7 @@ export function SidebarSettings() {
       {
         panelPinned: isPinned,
       },
-      isPinned ? "Drawer pinned by default" : "Drawer unpinned by default",
+      isPinned ? t("Drawer pinned by default") : t("Drawer unpinned by default"),
     );
     if (isPinned && !isOpen) open();
   }
@@ -106,7 +111,7 @@ export function SidebarSettings() {
         ...automation,
         sidebarOpenModifier: value,
       },
-      successMessage: "Open-in-drawer key updated",
+      successMessage: t("Open-in-drawer key updated"),
     });
   }
 
@@ -114,10 +119,11 @@ export function SidebarSettings() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Pin drawer by default</CardTitle>
+          <CardTitle>{t("Pin drawer by default")}</CardTitle>
           <CardDescription>
-            When on, the drawer docks as a persistent column on the right side. The pin button
-            inside the drawer lets you toggle this on the fly.
+            {t(
+              "When on, the drawer docks as a persistent column on the right side. The pin button inside the drawer lets you toggle this on the fly.",
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -127,21 +133,22 @@ export function SidebarSettings() {
               checked={display.panelPinned}
               onCheckedChange={checked => setPanelPinned(checked === true)}
             />
-            <Label htmlFor="panel-pinned">Pin the drawer by default</Label>
+            <Label htmlFor="panel-pinned">{t("Pin the drawer by default")}</Label>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Open in drawer</CardTitle>
+          <CardTitle>{t("Open in drawer")}</CardTitle>
           <CardDescription>
-            Edit buttons open the item&rsquo;s full page by default. Hold this key while clicking an
-            Edit button to open the item in the right-hand drawer instead.
+            {t(
+              "Edit buttons open the item’s full page by default. Hold this key while clicking an Edit button to open the item in the right-hand drawer instead.",
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-1">
-          <Label htmlFor="sidebar-modifier-select">Modifier key</Label>
+          <Label htmlFor="sidebar-modifier-select">{t("Modifier key")}</Label>
           <Select
             value={automation.sidebarOpenModifier}
             onValueChange={value => setSidebarOpenModifier(value as SidebarOpenModifier)}

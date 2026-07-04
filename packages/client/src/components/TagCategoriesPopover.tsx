@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { Folder, FolderOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategories } from "../hooks/useCategories";
 import { useTagCategories } from "../hooks/useTags";
@@ -17,6 +18,9 @@ export function TagCategoriesPopover({
   tagId, tagName,
 }: TagCategoriesPopoverProps) {
   const [open, setOpen] = useState(false);
+  const {
+    t,
+  } = useTranslation();
   const {
     data: categoryIds, isLoading,
   } = useTagCategories(tagId, {
@@ -38,7 +42,9 @@ export function TagCategoriesPopover({
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={`Categories for ${tagName}`}
+          aria-label={t("Categories for {{tagName}}", {
+            tagName,
+          })}
           onClick={e => e.stopPropagation()}
           className="
             text-muted-foreground transition-colors
@@ -60,12 +66,12 @@ export function TagCategoriesPopover({
             uppercase
           "
         >
-          Categories
+          {t("Categories")}
         </p>
         {isLoading || categoryIds === undefined
-          ? <p className="text-sm text-muted-foreground">Loading…</p>
+          ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
           : categoryIds.length === 0
-            ? <p className="text-sm text-muted-foreground italic">All categories</p>
+            ? <p className="text-sm text-muted-foreground italic">{t("All categories")}</p>
             : (
               <ul className="space-y-1">
                 {(assignedCategories ?? []).map(c => (

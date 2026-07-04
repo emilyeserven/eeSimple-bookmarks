@@ -1,5 +1,7 @@
 import type { Person } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { useGroups } from "../hooks/useGroups";
 import { useUpdatePerson } from "../hooks/usePeople";
 import { describeError } from "../lib/apiError";
@@ -18,6 +20,9 @@ export function PersonGroupsForm({
   person,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: groups,
   } = useGroups();
   const update = useUpdatePerson();
@@ -26,7 +31,7 @@ export function PersonGroupsForm({
   return (
     <div className="space-y-3">
       {(groups ?? []).length === 0
-        ? <p className="text-sm text-muted-foreground">No groups exist yet.</p>
+        ? <p className="text-sm text-muted-foreground">{t("No groups exist yet.")}</p>
         : (
           <ul className="space-y-2">
             {(groups ?? []).map(pub => (
@@ -77,12 +82,15 @@ export function PersonGroupsView({
   person,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: groups,
   } = useGroups();
   const connected = (groups ?? []).filter(pub => person.groupIds.includes(pub.id));
 
   if (connected.length === 0) {
-    return <p className="text-sm text-muted-foreground">No groups connected.</p>;
+    return <p className="text-sm text-muted-foreground">{t("No groups connected.")}</p>;
   }
 
   return (

@@ -2,6 +2,8 @@ import type { Person } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { AddPersonModal } from "./AddPersonModal";
 import { MultiCombobox } from "./MultiCombobox";
 import { usePeople, useUpdatePerson } from "../hooks/usePeople";
@@ -31,6 +33,9 @@ export function GroupMembersEditor({
   } = usePeople();
   const update = useUpdatePerson();
   const [addPersonOpen, setAddPersonOpen] = useState(false);
+  const {
+    t,
+  } = useTranslation();
 
   const memberIds = (people ?? []).filter(person => person.groupIds.includes(groupId)).map(person => person.id);
 
@@ -65,9 +70,9 @@ export function GroupMembersEditor({
   return (
     <div className="space-y-1">
       <Label className="text-xs text-muted-foreground">
-        Add people to
-        {" "}
-        {groupName}
+        {t("Add people to {{groupName}}", {
+          groupName,
+        })}
       </Label>
       <MultiCombobox
         options={(people ?? []).map(person => ({
@@ -76,11 +81,11 @@ export function GroupMembersEditor({
         }))}
         values={memberIds}
         onValuesChange={handleValuesChange}
-        placeholder="Add people…"
-        searchPlaceholder="Search people…"
-        emptyText="No people found."
+        placeholder={t("Add people…")}
+        searchPlaceholder={t("Search people…")}
+        emptyText={t("No people found.")}
         createOption={{
-          label: "Create person",
+          label: t("Create person"),
           onSelect: () => setAddPersonOpen(true),
         }}
       />

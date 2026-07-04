@@ -1,6 +1,7 @@
 import type { Category } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { CategoryGeneralForm } from "./CategoryGeneralForm";
 import { useEditPanelClick } from "./panel/useEditPanelClick";
@@ -26,6 +27,9 @@ export function CategoryCard({
   const deleteCategory = useDeleteCategory();
   const editClick = useEditPanelClick();
   const modifier = useSidebarOpenModifier();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <div className="space-y-6">
@@ -36,7 +40,7 @@ export function CategoryCard({
             className="size-5"
           />
           <h2 className="text-xl font-semibold">{category.name}</h2>
-          {category.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
+          {category.builtIn ? <Badge variant="secondary">{t("Built-in")}</Badge> : null}
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -49,10 +53,12 @@ export function CategoryCard({
               params={{
                 categorySlug: category.slug,
               }}
-              title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+              title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+                modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+              })}
               onClick={event => editClick(event, "category", category.id)}
             >
-              Edit
+              {t("Edit")}
             </Link>
           </Button>
           {category.builtIn
@@ -67,7 +73,7 @@ export function CategoryCard({
                   onSuccess: onDeleted,
                 })}
               >
-                Delete
+                {t("Delete")}
               </Button>
             )}
         </div>

@@ -1,5 +1,7 @@
 import type { GenreMoodOwnerType } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { LabeledSection } from "./LabeledSection";
 import { MultiCombobox } from "./MultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
@@ -27,9 +29,14 @@ export function GenreMoodAssignmentSection({
   ownerType,
   ownerId,
   excludeId,
-  title = "Genres & Moods",
-  description = "Genres & Moods associated with this item.",
+  title: titleProp,
+  description: descriptionProp,
 }: GenreMoodAssignmentSectionProps) {
+  const {
+    t,
+  } = useTranslation();
+  const title = titleProp ?? t("Genres & Moods");
+  const description = descriptionProp ?? t("Genres & Moods associated with this item.");
   const {
     data: tree = [],
   } = useGenreMoodTree();
@@ -41,8 +48,12 @@ export function GenreMoodAssignmentSection({
 
   const save = (next: string[]) => {
     setAssignments.mutate(next, {
-      onSuccess: () => notifySuccess(`${title} saved`),
-      onError: () => notifyError(`Couldn't save ${title.toLowerCase()}`),
+      onSuccess: () => notifySuccess(t("{{title}} saved", {
+        title,
+      })),
+      onError: () => notifyError(t("Couldn't save {{title}}", {
+        title: title.toLowerCase(),
+      })),
     });
   };
 
@@ -59,9 +70,9 @@ export function GenreMoodAssignmentSection({
     >
       <MultiCombobox
         aria-label={title}
-        placeholder="Add Genres & Moods…"
-        searchPlaceholder="Search Genres & Moods…"
-        emptyText="No entries found."
+        placeholder={t("Add Genres & Moods…")}
+        searchPlaceholder={t("Search Genres & Moods…")}
+        emptyText={t("No entries found.")}
         options={options}
         values={values}
         onValuesChange={save}

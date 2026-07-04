@@ -3,6 +3,7 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import { useState } from "react";
 
 import { Bookmark, ChevronDown, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { InlineCreateModal } from "./InlineCreateModal";
 import {
@@ -32,6 +33,9 @@ export function SavedFiltersSection({
   search, onSearchChange,
 }: SavedFiltersSectionProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: savedFilters = [], isLoading,
   } = useSavedFilters();
   const createMutation = useCreateSavedFilter();
@@ -60,7 +64,7 @@ export function SavedFiltersSection({
           onClick={() => onSearchChange({})}
         >
           <X className="size-3.5" />
-          Clear Filters
+          {t("Clear Filters")}
         </Button>
 
         <DropdownMenu>
@@ -71,7 +75,7 @@ export function SavedFiltersSection({
               size="sm"
               className="w-full justify-between font-normal"
             >
-              <span className="truncate">{activeFilter?.name ?? "Saved Filters"}</span>
+              <span className="truncate">{activeFilter?.name ?? t("Saved Filters")}</span>
               <ChevronDown className="size-3.5 shrink-0 opacity-70" />
             </Button>
           </DropdownMenuTrigger>
@@ -81,11 +85,11 @@ export function SavedFiltersSection({
             className="w-(--radix-dropdown-menu-trigger-width) min-w-48"
           >
             {isLoading
-              ? <p className="px-2 py-1.5 text-xs text-muted-foreground">Loading…</p>
+              ? <p className="px-2 py-1.5 text-xs text-muted-foreground">{t("Loading…")}</p>
               : null}
 
             {!isLoading && savedFilters.length === 0
-              ? <p className="px-2 py-1.5 text-xs text-muted-foreground">No saved filters yet.</p>
+              ? <p className="px-2 py-1.5 text-xs text-muted-foreground">{t("No saved filters yet.")}</p>
               : null}
 
             {savedFilters.map(filter => (
@@ -104,7 +108,7 @@ export function SavedFiltersSection({
               onSelect={() => setSaveModalOpen(true)}
             >
               <Bookmark className="size-3.5" />
-              Save current filters…
+              {t("Save current filters…")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -113,11 +117,11 @@ export function SavedFiltersSection({
       <InlineCreateModal
         open={saveModalOpen}
         onOpenChange={setSaveModalOpen}
-        title="Save current filters"
-        description="Give this set of filters a name so you can apply it again later."
-        placeholder="e.g. Tech Videos"
-        submitLabel="Save filter"
-        pendingLabel="Saving…"
+        title={t("Save current filters")}
+        description={t("Give this set of filters a name so you can apply it again later.")}
+        placeholder={t("e.g. Tech Videos")}
+        submitLabel={t("Save filter")}
+        pendingLabel={t("Saving…")}
         isError={createMutation.isError}
         errorMessage={createMutation.error?.message}
         onSubmit={(name, done) => {

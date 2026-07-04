@@ -1,5 +1,7 @@
 import type { TagNode } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { CategoryCheckboxList } from "./PropertyFormFields";
 import { useCategories } from "../hooks/useCategories";
 import { useSetTagCategories, useTagCategories } from "../hooks/useTags";
@@ -22,6 +24,9 @@ export function TagCategories({
   tag,
 }: TagCategoriesProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: categories,
   } = useCategories();
   const {
@@ -32,7 +37,7 @@ export function TagCategories({
   if (tag.parentId !== null) {
     return (
       <p className="text-sm text-muted-foreground">
-        Only top-level (root) tags can be scoped to categories.
+        {t("Only top-level (root) tags can be scoped to categories.")}
       </p>
     );
   }
@@ -41,24 +46,22 @@ export function TagCategories({
   const allCategories = categories ?? [];
 
   const save = (categoryIds: string[]) => setCategories.mutate(categoryIds, {
-    onSuccess: () => notifyFieldSaved("Categories"),
-    onError: error => notifyFieldSaveError("Categories", describeError(error)),
+    onSuccess: () => notifyFieldSaved(t("Categories")),
+    onError: error => notifyFieldSaveError(t("Categories"), describeError(error)),
   });
 
   return (
     <div className="space-y-1">
-      <Label>Categories offering this tag</Label>
+      <Label>{t("Categories offering this tag")}</Label>
       <p className="text-xs text-muted-foreground">
-        Choose which categories offer this tag when tagging a bookmark. Checking a category that
-        currently allows every tag will limit it to an explicit list. Use “All categories” to offer
-        this tag in every category at once.
+        {t("Choose which categories offer this tag when tagging a bookmark. Checking a category that currently allows every tag will limit it to an explicit list. Use “All categories” to offer this tag in every category at once.")}
       </p>
       <div className="rounded-md border p-2">
         <CategoryCheckboxList
           categories={allCategories}
           selectedIds={selected}
           idPrefix={`tag-${tag.id}-category`}
-          selectAllLabel="All categories"
+          selectAllLabel={t("All categories")}
           onToggle={id => save(toggleId(selected, id))}
           onToggleAll={selectAll => save(selectAll ? allCategories.map(category => category.id) : [])}
         />

@@ -3,6 +3,7 @@ import type { Tag, TagNode, UpdateTagInput } from "@eesimple/types";
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddTagModal } from "./AddTagModal";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
@@ -38,6 +39,9 @@ export function TagGeneralForm({
   allTags,
   forbiddenIds,
 }: TagGeneralFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateTag = useUpdateTag();
   const [addTagOpen, setAddTagOpen] = useState(false);
@@ -71,8 +75,8 @@ export function TagGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
-            placeholder="Tag name"
+            label={t("Name")}
+            placeholder={t("Tag name")}
             onBlur={() => autoSave.saveField(
               "name",
               field.state.value.trim(),
@@ -96,7 +100,7 @@ export function TagGeneralForm({
       </form.AppField>
 
       <div className="space-y-1">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesTabEditor
           ownerType="tag"
           ownerId={node.id}
@@ -106,17 +110,17 @@ export function TagGeneralForm({
       <form.AppField name="parent">
         {field => (
           <field.TreeComboboxField
-            label="Parent"
+            label={t("Parent")}
             options={parentOptions}
-            placeholder="Choose a parent"
-            searchPlaceholder="Search tags…"
-            emptyText="No tags found."
+            placeholder={t("Choose a parent")}
+            searchPlaceholder={t("Search tags…")}
+            emptyText={t("No tags found.")}
             leadingOption={{
               value: "",
-              label: "(root)",
+              label: t("(root)"),
             }}
             createOption={{
-              label: "Create tag",
+              label: t("Create tag"),
               onSelect: () => setAddTagOpen(true),
             }}
             onValueChange={value => autoSave.saveField("parentId", value || null)}
@@ -130,7 +134,7 @@ export function TagGeneralForm({
           checked={node.editableOnCard ?? false}
           onCheckedChange={checked => autoSave.saveField("editableOnCard", checked === true)}
         />
-        <Label htmlFor="tag-editable-on-card">Show as quick toggle on bookmark cards</Label>
+        <Label htmlFor="tag-editable-on-card">{t("Show as quick toggle on bookmark cards")}</Label>
       </div>
 
       <div className="flex items-center gap-2">
@@ -139,7 +143,7 @@ export function TagGeneralForm({
           checked={node.excludeFromBackfill ?? false}
           onCheckedChange={checked => autoSave.saveField("excludeFromBackfill", checked === true)}
         />
-        <Label htmlFor="tag-exclude-from-backfill">Exclude from autofill backfilling</Label>
+        <Label htmlFor="tag-exclude-from-backfill">{t("Exclude from autofill backfilling")}</Label>
       </div>
 
       <GenreMoodAssignmentSection

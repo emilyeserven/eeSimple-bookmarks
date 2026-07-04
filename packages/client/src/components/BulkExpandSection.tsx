@@ -3,6 +3,7 @@ import type { BulkUrlUpdateResult, Website } from "@eesimple/types";
 import { useEffect, useState } from "react";
 
 import { ExternalLink } from "lucide-react";
+import { Trans, useTranslation } from "react-i18next";
 
 import { LabeledSection } from "./LabeledSection";
 import { useBookmarksOnHost, useBulkExpandBookmarkUrls } from "../hooks/useBookmarks";
@@ -15,10 +16,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 export function BulkExpandSection({
   website,
 }: { website: Website }) {
+  const {
+    t,
+  } = useTranslation();
   const expandable = website.shortenedLinks.filter(link => link.expandTo && !link.keepShortened);
   if (expandable.length === 0) return null;
   return (
-    <LabeledSection title="Expand existing bookmarks">
+    <LabeledSection title={t("Expand existing bookmarks")}>
       {expandable.map(link => (
         <BulkExpandShortened
           key={link.domain}
@@ -35,6 +39,9 @@ function BulkExpandShortened({
   website, domain,
 }: { website: Website;
   domain: string; }) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   const {
     data: bookmarks = [], isLoading,
@@ -88,11 +95,15 @@ function BulkExpandShortened({
     <div className="rounded-md border p-3">
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm">
-          Review
-          {" "}
-          <span className="font-mono">{domain}</span>
-          {" "}
-          links to expand
+          <Trans
+            i18nKey="Review <mono>{{domain}}</mono> links to expand"
+            values={{
+              domain,
+            }}
+            components={{
+              mono: <span className="font-mono" />,
+            }}
+          />
         </span>
         <Button
           type="button"
@@ -100,16 +111,16 @@ function BulkExpandShortened({
           size="sm"
           onClick={() => setOpen(value => !value)}
         >
-          {open ? "Hide" : "Review"}
+          {open ? t("Hide") : t("Review")}
         </Button>
       </div>
 
       {open
         ? (
           <div className="mt-3 space-y-2">
-            {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
+            {isLoading ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p> : null}
             {!isLoading && items.length === 0
-              ? <p className="text-sm text-muted-foreground">No bookmarks to expand.</p>
+              ? <p className="text-sm text-muted-foreground">{t("No bookmarks to expand.")}</p>
               : null}
             {items.map(item => (
               <div
@@ -119,7 +130,9 @@ function BulkExpandShortened({
                 <Checkbox
                   checked={selected.has(item.id)}
                   onCheckedChange={() => toggle(item.id)}
-                  aria-label={`Expand ${item.title}`}
+                  aria-label={t("Expand {{title}}", {
+                    title: item.title,
+                  })}
                   className="mt-1"
                 />
                 <div className="min-w-0 flex-1">
@@ -135,7 +148,7 @@ function BulkExpandShortened({
                   variant="ghost"
                   size="icon"
                   asChild
-                  aria-label="Open expanded link in new tab"
+                  aria-label={t("Open expanded link in new tab")}
                 >
                   <a
                     href={item.after}
@@ -156,7 +169,11 @@ function BulkExpandShortened({
                   disabled={selected.size === 0 || bulk.isPending}
                   onClick={apply}
                 >
-                  {bulk.isPending ? "Applying…" : `Apply ${selected.size} selected`}
+                  {bulk.isPending
+                    ? t("Applying…")
+                    : t("Apply {{count}} selected", {
+                      count: selected.size,
+                    })}
                 </Button>
               )
               : null}
@@ -164,12 +181,10 @@ function BulkExpandShortened({
             {results
               ? (
                 <p className="text-sm text-muted-foreground">
-                  Applied
-                  {" "}
-                  {results.filter(result => result.status === "applied").length}
-                  {", skipped "}
-                  {results.filter(result => result.status !== "applied").length}
-                  .
+                  {t("Applied {{applied}}, skipped {{skipped}}.", {
+                    applied: results.filter(result => result.status === "applied").length,
+                    skipped: results.filter(result => result.status !== "applied").length,
+                  })}
                 </p>
               )
               : null}

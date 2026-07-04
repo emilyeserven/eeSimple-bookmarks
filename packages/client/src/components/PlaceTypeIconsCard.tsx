@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { NO_LEVEL_MAP_COLOR } from "@eesimple/types";
 import { MapPin, Shapes } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { LevelColorControl } from "./LevelColorControl";
 
@@ -48,6 +49,9 @@ interface PlaceTypeIconsCardProps {
 export function PlaceTypeIconsCard({
   options, groups, icons, onSetIcon, onReset, colors, onSetColor, onResetColors,
 }: PlaceTypeIconsCardProps) {
+  const {
+    t,
+  } = useTranslation();
   const [tab, setTab] = useState<"pin" | "area">("pin");
 
   // Place types assigned to at least one pin-mode level.
@@ -68,29 +72,30 @@ export function PlaceTypeIconsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Pin Style</CardTitle>
+        <CardTitle className="text-base">{t("Pin Style")}</CardTitle>
         <CardDescription>
-          Choose an icon and a color for each place type. The icon is drawn inside the pin on the
-          Locations map; the color overrides the level-group color for that place type.
+          {t(
+            "Choose an icon and a color for each place type. The icon is drawn inside the pin on the Locations map; the color overrides the level-group color for that place type.",
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Tab switcher */}
         <nav
-          aria-label="Place type icon tabs"
+          aria-label={t("Place type icon tabs")}
           className="flex gap-1 border-b pb-1"
         >
-          {(["pin", "area"] as const).map(t => (
+          {(["pin", "area"] as const).map(tabKey => (
             <button
-              key={t}
+              key={tabKey}
               type="button"
-              onClick={() => setTab(t)}
+              onClick={() => setTab(tabKey)}
               className={cn(
                 `
                   flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm
                   font-medium transition-colors
                 `,
-                tab === t
+                tab === tabKey
                   ? "bg-accent text-accent-foreground"
                   : `
                     text-muted-foreground
@@ -98,10 +103,10 @@ export function PlaceTypeIconsCard({
                   `,
               )}
             >
-              {t === "pin"
+              {tabKey === "pin"
                 ? <MapPin className="size-3.5" />
                 : <Shapes className="size-3.5" />}
-              {t === "pin" ? "Pin" : "Area"}
+              {tabKey === "pin" ? t("Pin") : t("Area")}
             </button>
           ))}
         </nav>
@@ -109,16 +114,19 @@ export function PlaceTypeIconsCard({
         {options.length === 0
           ? (
             <p className="text-sm text-muted-foreground">
-              No place types discovered yet. Add locations (or assign place types to a level above) and
-              they will appear here.
+              {t(
+                "No place types discovered yet. Add locations (or assign place types to a level above) and they will appear here.",
+              )}
             </p>
           )
           : currentOptions.length === 0
             ? (
               <p className="text-sm text-muted-foreground">
                 {tab === "pin"
-                  ? "No place types are assigned to any pin-mode level. Switch to the Area tab or assign place types to a Pin level group above."
-                  : "No area or unassigned place types yet."}
+                  ? t(
+                    "No place types are assigned to any pin-mode level. Switch to the Area tab or assign place types to a Pin level group above.",
+                  )
+                  : t("No area or unassigned place types yet.")}
               </p>
             )
             : (
@@ -147,7 +155,9 @@ export function PlaceTypeIconsCard({
                               style={{
                                 backgroundColor: NO_LEVEL_MAP_COLOR,
                               }}
-                              title={`${option.label} isn’t assigned to any level`}
+                              title={t("{{label}} isn’t assigned to any level", {
+                                label: option.label,
+                              })}
                               aria-hidden="true"
                             />
                           )
@@ -157,7 +167,9 @@ export function PlaceTypeIconsCard({
                       <IconPicker
                         value={icons[option.key] ?? null}
                         onChange={iconName => onSetIcon(option.key, iconName)}
-                        aria-label={`Icon for ${option.label}`}
+                        aria-label={t("Icon for {{label}}", {
+                          label: option.label,
+                        })}
                         className="max-w-xs"
                       />
                       <LevelColorControl
@@ -175,7 +187,7 @@ export function PlaceTypeIconsCard({
                     size="sm"
                     onClick={onReset}
                   >
-                    Reset icons
+                    {t("Reset icons")}
                   </Button>
                   <Button
                     type="button"
@@ -183,7 +195,7 @@ export function PlaceTypeIconsCard({
                     size="sm"
                     onClick={onResetColors}
                   >
-                    Reset colors
+                    {t("Reset colors")}
                   </Button>
                 </div>
               </>
