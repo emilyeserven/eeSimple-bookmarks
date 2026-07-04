@@ -16,7 +16,7 @@ import type { PodcastFeedResult, PodcastProviderLinks, PodcastSearchResult } fro
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { podcasts } from "@/db/schema";
-import { downloadImage, isPublicHttpUrl } from "@/services/metadata";
+import { downloadImage, extractImageUrl, extractTitle, fetchHeadHtml, isPublicHttpUrl } from "@/services/metadata";
 import { addTaxonomyImage, type AddTaxonomyImageResult } from "@/services/taxonomyImages";
 import { normalizeLanguageCode } from "@/utils/languageCodes";
 
@@ -24,6 +24,8 @@ const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const ITUNES_LOOKUP = "https://itunes.apple.com/lookup";
 /** The public Pocket Casts search endpoint (unofficial — same one the web player uses). */
 const POCKET_CASTS_SEARCH = "https://podcast-api.pocketcasts.com/search";
+/** The public Pocket Casts per-podcast lookup endpoint (unofficial — same one the web player uses). */
+const POCKET_CASTS_LOOKUP = "https://podcast-api.pocketcasts.com/podcast";
 const FETCH_TIMEOUT_MS = 8000;
 /** Cap the feed body we read so a huge response can't exhaust memory. */
 const MAX_FEED_BYTES = 4 * 1024 * 1024;
@@ -349,14 +351,103 @@ export function extractApplePodcastsId(url: string): number | null {
 }
 
 /**
+ * Extract the Pocket Casts podcast uuid from a share page URL — either
+ * `https://pocketcasts.com/podcast/<slug>/<uuid>` or the short `https://pca.st/podcast/<uuid>`.
+ * `null` for any other host, an unparsable URL, or a path whose trailing segment isn't uuid-shaped.
+ */
+export function extractPocketCastsUuid(url: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  }
+  catch {
+    return null;
+  }
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+  if (host !== "pocketcasts.com" && host !== "pca.st") return null;
+  const segments = parsed.pathname.split("/").filter(Boolean);
+  const last = segments.at(-1);
+  if (!last) return null;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(last) ? last : null;
+}
+
+interface PocketCastsLookupResult {
+  uuid?: unknown;
+  title?: unknown;
+  author?: unknown;
+  url?: unknown;
+}
+
+/** Unwrap a lookup response that may nest the podcast under a `podcast` key, or be it directly. */
+function pocketCastsLookupPodcast(json: unknown): PocketCastsLookupResult | null {
+  if (!json || typeof json !== "object") return null;
+  const nested = (json as { podcast?: unknown }).podcast;
+  if (nested && typeof nested === "object") return nested as PocketCastsLookupResult;
+  return json as PocketCastsLookupResult;
+}
+
+/**
+ * Resolve a single Pocket Casts entry by podcast uuid via the unofficial per-podcast lookup
+ * endpoint. Keyless; `null` on any failure or unrecognized response shape.
+ */
+export async function lookupPocketCastsByUuid(uuid: string): Promise<PodcastSearchResult | null> {
+  const json = await fetchJson(`${POCKET_CASTS_LOOKUP}/${encodeURIComponent(uuid)}`);
+  const podcast = pocketCastsLookupPodcast(json);
+  if (!podcast) return null;
+  const resolvedUuid = str(podcast.uuid) ?? uuid;
+  const name = str(podcast.title);
+  if (!name) return null;
+  return {
+    provider: "pocketCasts",
+    itunesId: null,
+    pocketCastsUuid: resolvedUuid,
+    name,
+    author: str(podcast.author),
+    feedUrl: str(podcast.url),
+    itunesUrl: null,
+    pocketCastsUrl: pocketCastsUrl(resolvedUuid),
+    artworkUrl: null,
+  };
+}
+
+/**
+ * Fall back to scraping the Pocket Casts share page's `og:title`/`og:image` when the uuid lookup
+ * endpoint fails (shape drift, rate limit, …). No feed URL is known this way — the caller can
+ * complete it later via `resolvePodcastProviderLinks` once the podcast is saved.
+ */
+async function scrapePocketCastsSharePage(url: string, uuid: string): Promise<PodcastSearchResult | null> {
+  const html = await fetchHeadHtml(url);
+  if (!html) return null;
+  const name = extractTitle(html);
+  if (!name) return null;
+  const artworkUrl = extractImageUrl(html, url);
+  return {
+    provider: "pocketCasts",
+    itunesId: null,
+    pocketCastsUuid: uuid,
+    name,
+    author: null,
+    feedUrl: null,
+    itunesUrl: null,
+    pocketCastsUrl: pocketCastsUrl(uuid),
+    artworkUrl: artworkUrl && isPublicHttpUrl(artworkUrl) ? artworkUrl : null,
+  };
+}
+
+/**
  * Resolve a pasted podcast URL for the search picker — an Apple Podcasts show page (via its
- * collection id) or a raw RSS/XML feed URL. Keyless; `null` when the URL doesn't resolve to a
- * podcast either way.
+ * collection id), a Pocket Casts share page (via its uuid), or a raw RSS/XML feed URL. Keyless;
+ * `null` when the URL doesn't resolve to a podcast any of these ways.
  */
 export async function resolvePodcastByUrl(url: string): Promise<PodcastSearchResult | null> {
   const appleId = extractApplePodcastsId(url);
   if (appleId != null) {
     const result = await lookupPodcastByItunesId(appleId);
+    if (result) return result;
+  }
+  const pocketCastsUuid = extractPocketCastsUuid(url);
+  if (pocketCastsUuid != null) {
+    const result = await lookupPocketCastsByUuid(pocketCastsUuid) ?? await scrapePocketCastsSharePage(url, pocketCastsUuid);
     if (result) return result;
   }
   const feed = await resolvePodcastFeed(url);
