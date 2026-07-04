@@ -1,6 +1,8 @@
 import type { SectionDisplayValue } from "./SectionDisplaySettings";
 import type { BookmarkSort, Category, ConditionTree, CustomProperty, TagNode } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { BookmarkSortEditor } from "./BookmarkSortFields";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { ConditionsField } from "./conditions/ConditionsField";
@@ -51,32 +53,35 @@ export function HomepageSectionFields({
   properties,
   tagTree,
 }: HomepageSectionFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
       <CollapsibleFormSection
-        title="General"
-        description="Name and description shown above the section's bookmarks."
+        title={t("General")}
+        description={t("Name and description shown above the section's bookmarks.")}
         defaultOpen
-        preview={title.trim() || "Untitled section"}
+        preview={title.trim() || t("Untitled section")}
       >
         <div className="space-y-1">
-          <Label htmlFor="section-title">Name</Label>
+          <Label htmlFor="section-title">{t("Name")}</Label>
           <Input
             id="section-title"
             value={title}
             onChange={e => setTitle(e.target.value)}
-            placeholder="Section name"
+            placeholder={t("Section name")}
             required
           />
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="section-description">Description</Label>
+          <Label htmlFor="section-description">{t("Description")}</Label>
           <Textarea
             id="section-description"
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder="Optional description shown above the bookmarks"
+            placeholder={t("Optional description shown above the bookmarks")}
             rows={2}
           />
         </div>
@@ -85,8 +90,8 @@ export function HomepageSectionFields({
       <Separator />
 
       <CollapsibleFormSection
-        title="Display"
-        description="How this section's bookmarks are laid out on the homepage."
+        title={t("Display")}
+        description={t("How this section's bookmarks are laid out on the homepage.")}
         defaultOpen={displayDefaultOpen}
         preview={sectionDisplayPreview(display, hideIfEmpty)}
       >
@@ -108,10 +113,10 @@ export function HomepageSectionFields({
               htmlFor="section-hide-if-empty"
               className="cursor-pointer"
             >
-              Hide when empty
+              {t("Hide when empty")}
             </Label>
             <p className="text-sm text-muted-foreground">
-              Don&rsquo;t show this section when no bookmarks match its filter.
+              {t("Don't show this section when no bookmarks match its filter.")}
             </p>
           </div>
         </div>
@@ -120,8 +125,8 @@ export function HomepageSectionFields({
       <Separator />
 
       <CollapsibleFormSection
-        title="Filter"
-        description="Choose which bookmarks appear in this section. Combine conditions with AND/OR."
+        title={t("Filter")}
+        description={t("Choose which bookmarks appear in this section. Combine conditions with AND/OR.")}
         defaultOpen={filterDefaultOpen}
         preview={conditionsDetailedLabel(conditions)}
       >
@@ -137,8 +142,8 @@ export function HomepageSectionFields({
       <Separator />
 
       <CollapsibleFormSection
-        title="Sorting"
-        description="Choose how this section's bookmarks are ordered. Uses the same sort options as the Listings page."
+        title={t("Sorting")}
+        description={t("Choose how this section's bookmarks are ordered. Uses the same sort options as the Listings page.")}
         defaultOpen={sort != null}
         preview={sortSummaryLabel(sort, properties)}
       >

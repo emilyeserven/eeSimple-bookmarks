@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   useCroppedHeight,
@@ -30,6 +31,9 @@ import { Separator } from "@/components/ui/separator";
  * keystroke).
  */
 export function ImageAspectRatiosCard() {
+  const {
+    t,
+  } = useTranslation();
   const croppedWidth = useCroppedWidth();
   const croppedHeight = useCroppedHeight();
   const {
@@ -64,7 +68,7 @@ export function ImageAspectRatiosCard() {
         ...displayData,
         ...patch,
       },
-      successMessage: "Cropped ratio updated",
+      successMessage: t("Cropped ratio updated"),
     });
   }
 
@@ -107,17 +111,16 @@ export function ImageAspectRatiosCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Image aspect ratios</CardTitle>
+        <CardTitle>{t("Image aspect ratios")}</CardTitle>
         <CardDescription>
-          Configure the built-in &ldquo;Cropped&rdquo; ratio and add custom named ratios to the
-          aspect picker.
+          {t("Configure the built-in \"Cropped\" ratio and add custom named ratios to the aspect picker.")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <p className="text-sm font-medium">Cropped ratio</p>
+          <p className="text-sm font-medium">{t("Cropped ratio")}</p>
           <p className="text-xs text-muted-foreground">
-            The ratio used when the &ldquo;Cropped&rdquo; mode is selected.
+            {t("The ratio used when the \"Cropped\" mode is selected.")}
           </p>
           <div className="flex items-center gap-2">
             <Input
@@ -127,7 +130,7 @@ export function ImageAspectRatiosCard() {
               onChange={e => setWidthInput(e.target.value)}
               onBlur={commitWidth}
               className="w-20"
-              aria-label="Cropped width"
+              aria-label={t("Cropped width")}
             />
             <span className="text-muted-foreground">:</span>
             <Input
@@ -137,7 +140,7 @@ export function ImageAspectRatiosCard() {
               onChange={e => setHeightInput(e.target.value)}
               onBlur={commitHeight}
               className="w-20"
-              aria-label="Cropped height"
+              aria-label={t("Cropped height")}
             />
           </div>
         </div>
@@ -145,8 +148,8 @@ export function ImageAspectRatiosCard() {
         <Separator />
 
         <div className="space-y-2">
-          <p className="text-sm font-medium">Custom ratios</p>
-          {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
+          <p className="text-sm font-medium">{t("Custom ratios")}</p>
+          {isLoading ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p> : null}
           {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
           {!isLoading && customRatios.length > 0
             ? (
@@ -174,7 +177,10 @@ export function ImageAspectRatiosCard() {
                       onClick={() => deleteMutation.mutate(ratio.id)}
                     >
                       <Trash2 className="size-3.5" />
-                      <span className="sr-only">Delete {ratio.name}</span>
+                      <span className="sr-only">{t("Delete {{name}}", {
+                        name: ratio.name,
+                      })}
+                      </span>
                     </Button>
                   </RowCard>
                 ))}
@@ -182,7 +188,7 @@ export function ImageAspectRatiosCard() {
             )
             : null}
           {!isLoading && customRatios.length === 0
-            ? <p className="text-sm text-muted-foreground">No custom ratios yet.</p>
+            ? <p className="text-sm text-muted-foreground">{t("No custom ratios yet.")}</p>
             : null}
 
           <div className="flex flex-wrap items-end gap-2 pt-1">
@@ -191,13 +197,13 @@ export function ImageAspectRatiosCard() {
                 htmlFor="new-ratio-name"
                 className="text-xs"
               >
-                Name
+                {t("Name")}
               </Label>
               <Input
                 id="new-ratio-name"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
-                placeholder="e.g. Widescreen"
+                placeholder={t("e.g. Widescreen")}
                 className="w-36"
               />
             </div>
@@ -206,7 +212,7 @@ export function ImageAspectRatiosCard() {
                 htmlFor="new-ratio-width"
                 className="text-xs"
               >
-                Width
+                {t("Width")}
               </Label>
               <Input
                 id="new-ratio-width"
@@ -222,7 +228,7 @@ export function ImageAspectRatiosCard() {
                 htmlFor="new-ratio-height"
                 className="text-xs"
               >
-                Height
+                {t("Height")}
               </Label>
               <Input
                 id="new-ratio-height"
@@ -239,7 +245,7 @@ export function ImageAspectRatiosCard() {
               disabled={!newName.trim() || !newWidth || !newHeight || createMutation.isPending}
               onClick={handleAdd}
             >
-              {createMutation.isPending ? "Adding…" : "Add ratio"}
+              {createMutation.isPending ? t("Adding…") : t("Add ratio")}
             </Button>
           </div>
           {createMutation.isError

@@ -2,6 +2,7 @@ import type { GroupRowProps, SortableHandle } from "./levelGroupRowTypes";
 
 import { DEFAULT_LOCATION_MAP_COLOR } from "@eesimple/types";
 import { ArrowDown, ArrowUp, EyeOff, Map as MapIcon, MapPin, Shapes, TriangleAlert } from "lucide-react";
+import { useTranslation } from "react-i18next";
 // EyeOff now flags a group that hides some levels by default (per-anchor checklist).
 
 import { LevelGroupDragHandle } from "./LevelGroupDragHandle";
@@ -23,6 +24,9 @@ export function LevelGroupSummaryRow({
   attributes,
   listeners,
 }: LevelGroupSummaryRowProps) {
+  const {
+    t,
+  } = useTranslation();
   const colorSwatch = group.color ?? DEFAULT_LOCATION_MAP_COLOR;
 
   // A place type can end up assigned to this group AND another one (e.g. a past bug, or a race
@@ -55,7 +59,7 @@ export function LevelGroupSummaryRow({
         />
 
         <span className="flex-1 truncate text-sm font-medium">
-          {group.name || <span className="text-muted-foreground italic">Unnamed level</span>}
+          {group.name || <span className="text-muted-foreground italic">{t("Unnamed level")}</span>}
         </span>
 
         <span
@@ -69,7 +73,7 @@ export function LevelGroupSummaryRow({
           {group.displayMode === "area"
             ? <Shapes className="size-3" />
             : <MapPin className="size-3" />}
-          {group.displayMode === "area" ? "Area" : "Pin"}
+          {group.displayMode === "area" ? t("Area") : t("Pin")}
         </span>
 
         {group.defaultHiddenGroupIds && group.defaultHiddenGroupIds.length > 0
@@ -79,10 +83,10 @@ export function LevelGroupSummaryRow({
                 flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs
                 text-muted-foreground
               "
-              title="Hides some levels by default on maps anchored at this level"
+              title={t("Hides some levels by default on maps anchored at this level")}
             >
               <EyeOff className="size-3" />
-              Hides
+              {t("Hides")}
               {" "}
               {group.defaultHiddenGroupIds.length}
             </span>
@@ -96,10 +100,10 @@ export function LevelGroupSummaryRow({
                 flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs
                 text-muted-foreground
               "
-              title="Shown by default on the main map"
+              title={t("Shown by default on the main map")}
             >
               <MapIcon className="size-3" />
-              Main map
+              {t("Main map")}
             </span>
           )
           : null}
@@ -111,12 +115,14 @@ export function LevelGroupSummaryRow({
                 flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs
                 text-muted-foreground
               "
-              title={`Maps of places at this level also show the levels ${group.levelMode} it by default`}
+              title={t("Maps of places at this level also show the levels {{mode}} it by default", {
+                mode: group.levelMode,
+              })}
             >
               {group.levelMode === "above"
                 ? <ArrowUp className="size-3" />
                 : <ArrowDown className="size-3" />}
-              Shows
+              {t("Shows")}
               {" "}
               {group.levelMode}
             </span>
@@ -129,7 +135,7 @@ export function LevelGroupSummaryRow({
           size="sm"
           onClick={onEdit}
         >
-          Edit
+          {t("Edit")}
         </Button>
       </div>
 
@@ -153,7 +159,9 @@ export function LevelGroupSummaryRow({
                       underline-offset-2
                       hover:text-amber-700
                     "
-                    title={`"${placeType}" is also assigned to another level — click to remove it from this level`}
+                    title={t("\"{{placeType}}\" is also assigned to another level — click to remove it from this level", {
+                      placeType,
+                    })}
                   >
                     <TriangleAlert className="size-3" />
                     {placeType}
@@ -163,7 +171,7 @@ export function LevelGroupSummaryRow({
               {index < group.placeTypes.length - 1 ? "," : ""}
             </span>
           ))
-          : <span className="italic">No place types assigned</span>}
+          : <span className="italic">{t("No place types assigned")}</span>}
       </p>
     </div>
   );

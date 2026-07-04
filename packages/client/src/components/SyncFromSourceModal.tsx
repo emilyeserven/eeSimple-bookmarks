@@ -1,6 +1,7 @@
 import type { SyncProvider } from "@/lib/syncSources/syncSourceTypes";
 
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { SyncDiffRow } from "@/components/SyncDiffRow";
 import { SyncImageDiffRow } from "@/components/SyncImageDiffRow";
@@ -32,6 +33,9 @@ export function SyncFromSourceModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     diff, isLoading, error, selectedKeys, toggle, regeocode, setRegeocode, apply, applying, selectedCount,
   } = useSyncFromSourceModal(provider, open, () => onOpenChange(false));
 
@@ -49,14 +53,13 @@ export function SyncFromSourceModal({
         "
       >
         <DialogHeader>
-          <DialogTitle>Sync from source</DialogTitle>
+          <DialogTitle>{t("Sync from source")}</DialogTitle>
           <DialogDescription>
-            Review the latest values for
+            {t("Review the latest values for")}
             {" "}
             <span className="font-medium text-foreground">{provider.entityLabel}</span>
             {" "}
-            and choose what to apply. Nothing is saved until you save the form (images apply
-            immediately).
+            {t("and choose what to apply. Nothing is saved until you save the form (images apply immediately).")}
           </DialogDescription>
         </DialogHeader>
 
@@ -74,9 +77,9 @@ export function SyncFromSourceModal({
                 className="mt-0.5"
               />
               <div className="text-sm">
-                <div className="font-medium">Re-geocode from the provider</div>
+                <div className="font-medium">{t("Re-geocode from the provider")}</div>
                 <div className="text-muted-foreground">
-                  Overwrite existing coordinates &amp; boundary, not just fill empty fields.
+                  {t("Overwrite existing coordinates & boundary, not just fill empty fields.")}
                 </div>
               </div>
             </label>
@@ -94,7 +97,7 @@ export function SyncFromSourceModal({
                 "
               >
                 <Loader2 className="size-4 animate-spin" />
-                Checking the source for the latest values…
+                {t("Checking the source for the latest values…")}
               </div>
             )
             : null}
@@ -108,7 +111,7 @@ export function SyncFromSourceModal({
           {isEmpty
             ? (
               <div className="py-8 text-sm text-muted-foreground">
-                Everything is already in sync with the source.
+                {t("Everything is already in sync with the source.")}
               </div>
             )
             : null}
@@ -157,7 +160,7 @@ export function SyncFromSourceModal({
             onClick={() => onOpenChange(false)}
             disabled={applying}
           >
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             type="button"
@@ -165,7 +168,7 @@ export function SyncFromSourceModal({
             disabled={applying || selectedCount === 0}
           >
             {applying ? <Loader2 className="size-4 animate-spin" /> : null}
-            Apply
+            {t("Apply")}
             {selectedCount > 0 ? ` ${selectedCount}` : ""}
           </Button>
         </DialogFooter>

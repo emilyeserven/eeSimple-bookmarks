@@ -1,6 +1,7 @@
 import type { Category } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { CategoryPreviewRow } from "./CategoryPreviewRow";
 import { LabeledSection } from "./LabeledSection";
@@ -24,6 +25,9 @@ function CategoryControls({
 }) {
   const editClick = useEditPanelClick();
   const modifier = useSidebarOpenModifier();
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="flex items-center gap-2">
       <div
@@ -43,10 +47,12 @@ function CategoryControls({
             params={{
               categorySlug: category.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "category", category.id)}
           >
-            Edit
+            {t("Edit")}
           </Link>
         </Button>
         <Button
@@ -60,7 +66,7 @@ function CategoryControls({
               categorySlug: category.slug,
             }}
           >
-            See All
+            {t("See All")}
           </Link>
         </Button>
       </div>
@@ -91,6 +97,9 @@ interface CategoryPreviewCardProps {
 export function CategoryPreviewCard({
   category, variant = "full", selectable, selected, onSelectToggle, inSelectionMode,
 }: CategoryPreviewCardProps) {
+  const {
+    t,
+  } = useTranslation();
   if (variant === "row") {
     return (
       <CategoryPreviewRow
@@ -114,7 +123,7 @@ export function CategoryPreviewCard({
           <div className="min-w-0 space-y-1">
             <h2 className="flex items-center gap-2 text-xl font-semibold">
               {category.name}
-              {category.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
+              {category.builtIn ? <Badge variant="secondary">{t("Built-in")}</Badge> : null}
             </h2>
             {category.description
               ? <p className="text-sm text-muted-foreground">{category.description}</p>
@@ -126,7 +135,7 @@ export function CategoryPreviewCard({
 
       <Separator />
 
-      <LabeledSection title="Details">
+      <LabeledSection title={t("Details")}>
         <CategoryGeneralFields category={category} />
       </LabeledSection>
     </div>
@@ -138,18 +147,21 @@ export function CategoryGeneralFields({
 }: {
   category: Category;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-      <dt className="text-muted-foreground">Slug</dt>
+      <dt className="text-muted-foreground">{t("Slug")}</dt>
       <dd className="font-mono">{category.slug}</dd>
-      <dt className="text-muted-foreground">Bookmarks</dt>
+      <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
       <dd>{category.bookmarkCount ?? 0}</dd>
-      <dt className="text-muted-foreground">Added</dt>
+      <dt className="text-muted-foreground">{t("Added")}</dt>
       <dd>{new Date(category.createdAt).toLocaleDateString()}</dd>
-      <dt className="text-muted-foreground">Built-in</dt>
-      <dd>{category.builtIn ? "Yes — name is fixed" : "No"}</dd>
-      <dt className="text-muted-foreground">On homepage</dt>
-      <dd>{category.isHomepage ? "Yes" : "No"}</dd>
+      <dt className="text-muted-foreground">{t("Built-in")}</dt>
+      <dd>{category.builtIn ? t("Yes — name is fixed") : t("No")}</dd>
+      <dt className="text-muted-foreground">{t("On homepage")}</dt>
+      <dd>{category.isHomepage ? t("Yes") : t("No")}</dd>
     </dl>
   );
 }

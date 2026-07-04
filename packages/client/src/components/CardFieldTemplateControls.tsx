@@ -3,6 +3,7 @@ import type { CardFieldZones } from "@eesimple/types";
 import { useState } from "react";
 
 import { BookMarked, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   useCardFieldTemplates,
@@ -27,6 +28,9 @@ interface SaveTemplatePopoverProps {
 export function SaveTemplatePopover({
   fieldZones,
 }: SaveTemplatePopoverProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const {
@@ -62,20 +66,20 @@ export function SaveTemplatePopover({
           size="sm"
           className="h-6 px-2 text-xs"
         >
-          Save as template
+          {t("Save as template")}
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align="end"
         className="w-64 space-y-3 p-3"
       >
-        <p className="text-sm font-medium">Save as template</p>
+        <p className="text-sm font-medium">{t("Save as template")}</p>
         <div className="space-y-1">
           <Label
             htmlFor="card-field-template-name"
             className="text-xs"
           >
-            Template name
+            {t("Template name")}
           </Label>
           <Input
             id="card-field-template-name"
@@ -87,7 +91,7 @@ export function SaveTemplatePopover({
                 handleSave();
               }
             }}
-            placeholder="e.g. Compact layout"
+            placeholder={t("e.g. Compact layout")}
             className="h-7 text-xs"
           />
         </div>
@@ -98,7 +102,7 @@ export function SaveTemplatePopover({
           disabled={!name.trim() || isPending}
           onClick={handleSave}
         >
-          {isPending ? "Saving..." : "Save"}
+          {isPending ? t("Saving...") : t("Save")}
         </Button>
       </PopoverContent>
     </Popover>
@@ -113,6 +117,9 @@ interface LoadTemplateDropdownProps {
 export function LoadTemplateDropdown({
   onLoad,
 }: LoadTemplateDropdownProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   const {
     data: templates, isLoading,
@@ -134,7 +141,7 @@ export function LoadTemplateDropdown({
           className="h-6 px-2 text-xs"
         >
           <BookMarked className="size-3" />
-          Load template
+          {t("Load template")}
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -143,11 +150,11 @@ export function LoadTemplateDropdown({
       >
         {isLoading
           ? (
-            <p className="px-2 py-1.5 text-xs text-muted-foreground">Loading...</p>
+            <p className="px-2 py-1.5 text-xs text-muted-foreground">{t("Loading...")}</p>
           )
           : !templates?.length
             ? (
-              <p className="px-2 py-1.5 text-xs text-muted-foreground">No templates saved yet.</p>
+              <p className="px-2 py-1.5 text-xs text-muted-foreground">{t("No templates saved yet.")}</p>
             )
             : (
               <ul className="space-y-0.5">
@@ -172,7 +179,9 @@ export function LoadTemplateDropdown({
                     </button>
                     <button
                       type="button"
-                      aria-label={`Delete template "${template.name}"`}
+                      aria-label={t("Delete template \"{{name}}\"", {
+                        name: template.name,
+                      })}
                       disabled={isDeleting}
                       className="
                         shrink-0 rounded-sm p-1 text-muted-foreground

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { LocationMapSection } from "./LocationMapSection";
 import { RomanizedLabel } from "./RomanizedLabel";
@@ -26,6 +27,9 @@ interface BookmarkLocationsTabContentProps {
 export function BookmarkLocationsTabContent({
   bookmarkId, locations, locationTree,
 }: BookmarkLocationsTabContentProps) {
+  const {
+    t,
+  } = useTranslation();
   // Full LocationNode for each tagged location — strips children so only the tagged nodes appear.
   const taggedNodes = useMemo(() => {
     if (!locationTree) return [];
@@ -103,11 +107,11 @@ export function BookmarkLocationsTabContent({
             }}
           />
         )
-        : <p className="text-sm text-muted-foreground">Loading map…</p>}
+        : <p className="text-sm text-muted-foreground">{t("Loading map…")}</p>}
 
       <Separator />
 
-      <LabeledSection title="Locations">
+      <LabeledSection title={t("Locations")}>
         <ul className="space-y-3">
           {locations.map((loc) => {
             const path = ancestorPaths.get(loc.id) ?? [];

@@ -1,6 +1,7 @@
 import type { Album } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { MultiCombobox } from "./MultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
@@ -22,6 +23,9 @@ export function AlbumCreditsSection({
 }: {
   album: Album;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const update = useUpdateAlbum();
   const {
     data: people,
@@ -69,12 +73,12 @@ export function AlbumCreditsSection({
 
   return (
     <LabeledSection
-      title="Credits"
-      description="People (individuals) and Groups (groups/bands) credited on this album."
+      title={t("Credits")}
+      description={t("People (individuals) and Groups (groups/bands) credited on this album.")}
     >
       <div className="space-y-4">
         <div className="space-y-1">
-          <Label>People</Label>
+          <Label>{t("People")}</Label>
           <MultiCombobox
             options={(people ?? []).map(p => ({
               value: p.id,
@@ -82,15 +86,15 @@ export function AlbumCreditsSection({
             }))}
             values={album.personIds}
             onValuesChange={savePeople}
-            placeholder="Select people…"
-            searchPlaceholder="Search people…"
-            emptyText="No people found."
+            placeholder={t("Select people…")}
+            searchPlaceholder={t("Search people…")}
+            emptyText={t("No people found.")}
             createOption={personCreate.createOption}
           />
           {personCreate.modal}
         </div>
         <div className="space-y-1">
-          <Label>Groups</Label>
+          <Label>{t("Groups")}</Label>
           <MultiCombobox
             options={(groups ?? []).map(p => ({
               value: p.id,
@@ -98,9 +102,9 @@ export function AlbumCreditsSection({
             }))}
             values={album.groupIds}
             onValuesChange={saveGroups}
-            placeholder="Select groups…"
-            searchPlaceholder="Search groups…"
-            emptyText="No groups found."
+            placeholder={t("Select groups…")}
+            searchPlaceholder={t("Search groups…")}
+            emptyText={t("No groups found.")}
             createOption={groupCreate.createOption}
           />
           {groupCreate.modal}
@@ -117,6 +121,9 @@ export function AlbumCreditsValue({
   album: Album;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: people,
   } = usePeople();
   const {
@@ -127,14 +134,14 @@ export function AlbumCreditsValue({
   const creditedGroups = (groups ?? []).filter(p => album.groupIds.includes(p.id));
 
   return (
-    <LabeledSection title="Credits">
+    <LabeledSection title={t("Credits")}>
       {creditedPeople.length === 0 && creditedGroups.length === 0
-        ? <p className="text-sm text-muted-foreground">No credits.</p>
+        ? <p className="text-sm text-muted-foreground">{t("No credits.")}</p>
         : (
           <div className="space-y-3 text-sm">
             {creditedPeople.length > 0 && (
               <div className="space-y-1">
-                <Label className="text-muted-foreground">People</Label>
+                <Label className="text-muted-foreground">{t("People")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {creditedPeople.map(person => (
                     <Link
@@ -156,7 +163,7 @@ export function AlbumCreditsValue({
             )}
             {creditedGroups.length > 0 && (
               <div className="space-y-1">
-                <Label className="text-muted-foreground">Groups</Label>
+                <Label className="text-muted-foreground">{t("Groups")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {creditedGroups.map(group => (
                     <Link

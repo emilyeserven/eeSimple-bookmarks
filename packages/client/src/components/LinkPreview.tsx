@@ -3,6 +3,7 @@ import type { Website } from "@eesimple/types";
 import { useState } from "react";
 
 import { ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { isFetchableUrl } from "../lib/url";
 import { canonicalize } from "../lib/urlCleanup";
@@ -30,8 +31,13 @@ interface LinkPreviewProps {
  * expansion or nudge, and the resulting URL (openable in a new tab to confirm it resolves).
  */
 export function LinkPreview({
-  websites, ignoreList, customStripParams = [], label = "Check a link", placeholder = "https://…",
+  websites, ignoreList, customStripParams = [], label, placeholder,
 }: LinkPreviewProps) {
+  const {
+    t,
+  } = useTranslation();
+  const resolvedLabel = label ?? t("Check a link");
+  const resolvedPlaceholder = placeholder ?? t("https://…");
   const [url, setUrl] = useState("");
   const trimmed = url.trim();
   const result = trimmed
@@ -46,12 +52,12 @@ export function LinkPreview({
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <Label htmlFor="link-preview-input">{label}</Label>
+        <Label htmlFor="link-preview-input">{resolvedLabel}</Label>
         <Input
           id="link-preview-input"
           value={url}
           onChange={event => setUrl(event.target.value)}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           className="font-mono text-sm"
         />
       </div>
@@ -64,12 +70,12 @@ export function LinkPreview({
                 ? (
                   <>
                     <Badge variant="secondary">{result.matchedWebsite.siteName}</Badge>
-                    {result.expanded ? <Badge variant="outline">Expanded short link</Badge> : null}
+                    {result.expanded ? <Badge variant="outline">{t("Expanded short link")}</Badge> : null}
                   </>
                 )
-                : <span className="text-muted-foreground">No matching site</span>}
+                : <span className="text-muted-foreground">{t("No matching site")}</span>}
               {result.shortener === "generic"
-                ? <Badge variant="outline">Shortened link</Badge>
+                ? <Badge variant="outline">{t("Shortened link")}</Badge>
                 : null}
             </div>
 
@@ -81,19 +87,19 @@ export function LinkPreview({
                     dark:text-amber-500
                   "
                 >
-                  This looks like a shortened link — consider using the full URL.
+                  {t("This looks like a shortened link — consider using the full URL.")}
                 </p>
               )
               : null}
 
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Result</p>
+              <p className="text-xs text-muted-foreground">{t("Result")}</p>
               <div className="flex items-center gap-2">
                 <Input
                   value={result.url}
                   readOnly
                   className="font-mono text-sm"
-                  aria-label="Canonical URL preview"
+                  aria-label={t("Canonical URL preview")}
                 />
                 <Button
                   type="button"
@@ -101,7 +107,7 @@ export function LinkPreview({
                   size="icon"
                   asChild={isFetchableUrl(result.url)}
                   disabled={!isFetchableUrl(result.url)}
-                  aria-label="Open result in new tab"
+                  aria-label={t("Open result in new tab")}
                 >
                   {isFetchableUrl(result.url)
                     ? (

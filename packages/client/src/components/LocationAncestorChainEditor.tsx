@@ -2,6 +2,8 @@ import type { ComboboxOption } from "./Combobox";
 import type { AncestorDraft } from "./locationFormSchema";
 import type { LocationLookupCandidate } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { Combobox } from "./Combobox";
 import { emptyAncestorDraft } from "./locationFormSchema";
 import { LocationLookupBox } from "./LocationLookupBox";
@@ -28,6 +30,10 @@ interface LocationAncestorChainEditorProps {
 export function LocationAncestorChainEditor({
   value, onChange, existingOptions,
 }: LocationAncestorChainEditorProps) {
+  const {
+    t,
+  } = useTranslation();
+
   function updateRow(index: number, patch: Partial<AncestorDraft>) {
     onChange(value.map((row, i) => (i === index
       ? {
@@ -79,11 +85,9 @@ export function LocationAncestorChainEditor({
   return (
     <div className="space-y-3">
       <div>
-        <Label>Ancestors</Label>
+        <Label>{t("Ancestors")}</Label>
         <p className="text-xs text-muted-foreground">
-          Optionally add higher-level locations, from the immediate parent up to the root. Pick an
-          existing location to reuse it, or fill in a new one — new ancestors are created (or reused
-          by name) when you save.
+          {t("Optionally add higher-level locations, from the immediate parent up to the root. Pick an existing location to reuse it, or fill in a new one — new ancestors are created (or reused by name) when you save.")}
         </p>
       </div>
       {value.map((row, index) => {
@@ -95,7 +99,11 @@ export function LocationAncestorChainEditor({
           >
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-medium text-muted-foreground">
-                {index === 0 ? "Immediate parent" : `Level ${index + 1}`}
+                {index === 0
+                  ? t("Immediate parent")
+                  : t("Level {{level}}", {
+                    level: index + 1,
+                  })}
               </span>
               <Button
                 type="button"
@@ -103,41 +111,47 @@ export function LocationAncestorChainEditor({
                 size="sm"
                 onClick={() => onChange(value.filter((_, i) => i !== index))}
               >
-                Remove
+                {t("Remove")}
               </Button>
             </div>
             <div className="space-y-1">
-              <Label htmlFor={`ancestor-${index}-existing`}>Use an existing location</Label>
+              <Label htmlFor={`ancestor-${index}-existing`}>{t("Use an existing location")}</Label>
               <Combobox
                 id={`ancestor-${index}-existing`}
-                aria-label={`Ancestor ${index + 1} existing location`}
+                aria-label={t("Ancestor {{number}} existing location", {
+                  number: index + 1,
+                })}
                 options={existingOptions}
                 value={row.existingId ?? ""}
                 onValueChange={selected => selectExisting(index, selected)}
-                placeholder="Choose an existing location"
-                searchPlaceholder="Search locations…"
-                emptyText="No locations found."
+                placeholder={t("Choose an existing location")}
+                searchPlaceholder={t("Search locations…")}
+                emptyText={t("No locations found.")}
               />
             </div>
             {isExisting
               ? (
                 <p className="text-xs text-muted-foreground">
-                  Reusing an existing location — its own ancestors are kept, so this caps the chain.
+                  {t("Reusing an existing location — its own ancestors are kept, so this caps the chain.")}
                 </p>
               )
               : (
                 <>
                   <Input
-                    aria-label={`Ancestor ${index + 1} name`}
-                    placeholder="Or create a new one — name (e.g. Yamaguchi Prefecture)"
+                    aria-label={t("Ancestor {{number}} name", {
+                      number: index + 1,
+                    })}
+                    placeholder={t("Or create a new one — name (e.g. Yamaguchi Prefecture)")}
                     value={row.name}
                     onChange={event => updateRow(index, {
                       name: event.target.value,
                     })}
                   />
                   <Input
-                    aria-label={`Ancestor ${index + 1} romanized name`}
-                    placeholder="Romanized name (auto-filled from lookup)"
+                    aria-label={t("Ancestor {{number}} romanized name", {
+                      number: index + 1,
+                    })}
+                    placeholder={t("Romanized name (auto-filled from lookup)")}
                     value={row.romanizedName ?? ""}
                     onChange={event => updateRow(index, {
                       romanizedName: event.target.value.trim() === "" ? null : event.target.value,
@@ -158,7 +172,7 @@ export function LocationAncestorChainEditor({
             size="sm"
             onClick={() => onChange([...value, emptyAncestorDraft()])}
           >
-            Add ancestor
+            {t("Add ancestor")}
           </Button>
         )}
     </div>

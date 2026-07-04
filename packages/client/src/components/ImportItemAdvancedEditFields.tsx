@@ -1,5 +1,7 @@
 import type { ImportItemAdvancedEditState } from "./useImportItemAdvancedEdit";
 
+import { useTranslation } from "react-i18next";
+
 import { GatedTagPicker } from "./BookmarkTagsField";
 import { Combobox } from "./Combobox";
 import { LocationPicker } from "./LocationPicker";
@@ -39,6 +41,9 @@ export function ImportItemAdvancedEditFields({
   onGroupChange,
 }: ImportItemAdvancedEditFieldsProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     categories,
     mediaTypeTree,
     tagTree,
@@ -59,27 +64,27 @@ export function ImportItemAdvancedEditFields({
   return (
     <>
       <div className="space-y-1">
-        <Label className="text-xs">Category</Label>
+        <Label className="text-xs">{t("Category")}</Label>
         <Combobox
           options={iconComboboxOptions(categories)}
           value={categoryId}
           onValueChange={onCategoryChange}
-          placeholder="No category"
-          searchPlaceholder="Search categories…"
-          emptyText="No categories found."
+          placeholder={t("No category")}
+          searchPlaceholder={t("Search categories…")}
+          emptyText={t("No categories found.")}
           createOption={categoryCreate.createOption}
         />
       </div>
 
       <div className="space-y-1">
-        <Label className="text-xs">Media type</Label>
+        <Label className="text-xs">{t("Media type")}</Label>
         <TreeCombobox
           options={mediaTypeNodesToOptions(mediaTypeTree)}
           value={mediaTypeId}
           onValueChange={onMediaTypeChange}
-          placeholder="No media type"
-          searchPlaceholder="Search media types…"
-          emptyText="No media types found."
+          placeholder={t("No media type")}
+          searchPlaceholder={t("Search media types…")}
+          emptyText={t("No media types found.")}
           createOption={mediaTypeCreate.createOption}
         />
       </div>
@@ -90,13 +95,13 @@ export function ImportItemAdvancedEditFields({
         selectedIds={tagIds}
         onToggle={handleTagToggle}
         createOption={{
-          label: "Create tag",
+          label: t("Create tag"),
           onSelect: () => addModalState.setAddTagOpen(true),
         }}
       />
 
       <div className="space-y-1">
-        <Label className="text-xs">Locations</Label>
+        <Label className="text-xs">{t("Locations")}</Label>
         <LocationPicker
           tree={locationTree}
           selectedIds={locationIds}
@@ -106,7 +111,7 @@ export function ImportItemAdvancedEditFields({
       </div>
 
       <div className="space-y-1">
-        <Label className="text-xs">People</Label>
+        <Label className="text-xs">{t("People")}</Label>
         <MultiCombobox
           options={people.map(a => ({
             value: a.id,
@@ -115,18 +120,18 @@ export function ImportItemAdvancedEditFields({
           }))}
           values={personIds}
           onValuesChange={onPeopleChange}
-          placeholder="Select people…"
-          searchPlaceholder="Search people…"
-          emptyText="No people found."
+          placeholder={t("Select people…")}
+          searchPlaceholder={t("Search people…")}
+          emptyText={t("No people found.")}
           createOption={{
-            label: "Create person",
+            label: t("Create person"),
             onSelect: () => addModalState.setAddPersonOpen(true),
           }}
         />
       </div>
 
       <div className="space-y-1">
-        <Label className="text-xs">Group</Label>
+        <Label className="text-xs">{t("Group")}</Label>
         <Combobox
           options={groups.map(p => ({
             value: p.id,
@@ -135,9 +140,9 @@ export function ImportItemAdvancedEditFields({
           }))}
           value={groupId}
           onValueChange={onGroupChange}
-          placeholder="No group"
-          searchPlaceholder="Search groups…"
-          emptyText="No groups found."
+          placeholder={t("No group")}
+          searchPlaceholder={t("Search groups…")}
+          emptyText={t("No groups found.")}
           createOption={groupCreate.createOption}
         />
       </div>
@@ -150,12 +155,12 @@ export function ImportItemAdvancedEditFields({
         >
           {matchedWebsite && (
             <span>
-              Website:
+              {t("Website:")}
               {" "}
               <span className="font-medium">{matchedWebsite.siteName}</span>
             </span>
           )}
-          {isYouTube && <span>YouTube video</span>}
+          {isYouTube && <span>{t("YouTube video")}</span>}
         </div>
       )}
     </>

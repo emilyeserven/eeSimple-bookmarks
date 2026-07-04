@@ -9,20 +9,23 @@ import { toggleId } from "../lib/tag-utils";
 
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import i18n from "@/i18n";
 
-const TYPE_LABELS: Record<CustomPropertyType, string> = {
-  number: "Number",
-  boolean: "Boolean",
-  calculate: "Calculate (Sum)",
-  datetime: "Date / Time",
-  ratingScale: "Rating Scale",
-  image: "Image",
-  file: "File",
-  choices: "Choices",
-  itemInItems: "Two Numbers",
-  sections: "Sections",
-  text: "Text",
-};
+function buildTypeLabels(): Record<CustomPropertyType, string> {
+  return {
+    number: i18n.t("Number"),
+    boolean: i18n.t("Boolean"),
+    calculate: i18n.t("Calculate (Sum)"),
+    datetime: i18n.t("Date / Time"),
+    ratingScale: i18n.t("Rating Scale"),
+    image: i18n.t("Image"),
+    file: i18n.t("File"),
+    choices: i18n.t("Choices"),
+    itemInItems: i18n.t("Two Numbers"),
+    sections: i18n.t("Sections"),
+    text: i18n.t("Text"),
+  };
+}
 
 /** Mutation shape needed to toggle a property's category assignment from the table. */
 interface UpdatePropertyMutation {
@@ -46,17 +49,20 @@ export function buildCategoryPropertyColumns(
   categoryId: string,
   updateProperty: UpdatePropertyMutation,
 ): ColumnDef<CustomProperty>[] {
+  const typeLabels = buildTypeLabels();
   return [
     {
       id: "assigned",
-      header: "Assigned",
+      header: i18n.t("Assigned"),
       cell: ({
         row,
       }) => {
         const property = row.original;
         return (
           <Checkbox
-            aria-label={`Assign ${property.name}`}
+            aria-label={i18n.t("Assign {{name}}", {
+              name: property.name,
+            })}
             checked={propertyAppliesToCategory(property, categoryId)}
             onCheckedChange={() =>
               updateProperty.mutate({
@@ -68,8 +74,8 @@ export function buildCategoryPropertyColumns(
                   categoryIds: toggleId(property.categoryIds, categoryId),
                 },
               }, {
-                onSuccess: () => notifyFieldSaved("Assigned properties"),
-                onError: error => notifyFieldSaveError("Assigned properties", describeError(error)),
+                onSuccess: () => notifyFieldSaved(i18n.t("Assigned properties")),
+                onError: error => notifyFieldSaveError(i18n.t("Assigned properties"), describeError(error)),
               })}
           />
         );
@@ -77,15 +83,15 @@ export function buildCategoryPropertyColumns(
     },
     {
       accessorKey: "name",
-      header: "Name",
+      header: i18n.t("Name"),
     },
     {
       accessorKey: "type",
-      header: "Type",
+      header: i18n.t("Type"),
       cell: ({
         row,
       }) => (
-        <Badge variant="secondary">{TYPE_LABELS[row.original.type]}</Badge>
+        <Badge variant="secondary">{typeLabels[row.original.type]}</Badge>
       ),
     },
   ];

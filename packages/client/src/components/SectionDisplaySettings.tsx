@@ -7,6 +7,8 @@ import type {
   ViewMode,
 } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { LoadTemplateDropdown, SaveTemplatePopover } from "./CardFieldTemplateControls";
 import { CardFieldZoneBoard } from "./CardFieldZoneBoard";
 import { CardZoneLayoutControls } from "./CardZoneLayoutControls";
@@ -54,6 +56,9 @@ interface SectionDisplaySettingsProps {
 export function SectionDisplaySettings({
   value, onChange, properties, idPrefix,
 }: SectionDisplaySettingsProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-4">
       <DisplaySettingsControlsBase
@@ -84,7 +89,7 @@ export function SectionDisplaySettings({
 
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-4">
-          <Label className="text-sm font-medium">Hide website for YouTube</Label>
+          <Label className="text-sm font-medium">{t("Hide website for YouTube")}</Label>
           <OnOffToggleGroup
             value={value.hideWebsiteForYouTube}
             onChange={hideWebsiteForYouTube => onChange({
@@ -93,7 +98,7 @@ export function SectionDisplaySettings({
           />
         </div>
         <p className="text-xs text-muted-foreground">
-          Hides the website pill on this section&rsquo;s cards that also have a YouTube channel.
+          {t("Hides the website pill on this section's cards that also have a YouTube channel.")}
         </p>
       </div>
 
@@ -102,7 +107,7 @@ export function SectionDisplaySettings({
           htmlFor={`${idPrefix}-bookmark-limit`}
           className="text-sm font-medium"
         >
-          Bookmark limit
+          {t("Bookmark limit")}
         </Label>
         <Input
           id={`${idPrefix}-bookmark-limit`}
@@ -110,7 +115,7 @@ export function SectionDisplaySettings({
           min={1}
           step={1}
           value={value.bookmarkLimit ?? ""}
-          placeholder="No limit"
+          placeholder={t("No limit")}
           onChange={(e) => {
             const raw = e.target.value;
             onChange({
@@ -120,18 +125,17 @@ export function SectionDisplaySettings({
           className="max-w-32"
         />
         <p className="text-xs text-muted-foreground">
-          Maximum number of bookmarks shown in this section, applied after sorting. Leave blank for no limit.
+          {t("Maximum number of bookmarks shown in this section, applied after sorting. Leave blank for no limit.")}
         </p>
       </div>
 
       <Separator />
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Card fields</Label>
+        <Label className="text-sm font-medium">{t("Card fields")}</Label>
         <div className="flex items-start justify-between gap-2">
           <p className="text-xs text-muted-foreground">
-            Drag each field onto a zone. Image corners overlay it on the card image; anything left in
-            &ldquo;Available&rdquo; is hidden.
+            {t("Drag each field onto a zone. Image corners overlay it on the card image; anything left in \"Available\" is hidden.")}
           </p>
           <div className="flex shrink-0 items-center gap-1">
             <LoadTemplateDropdown
@@ -155,9 +159,9 @@ export function SectionDisplaySettings({
       <Separator />
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Section layout</Label>
+        <Label className="text-sm font-medium">{t("Section layout")}</Label>
         <p className="text-xs text-muted-foreground">
-          How each card-body section arranges its fields: inline flow (Flex) or a two-column grid.
+          {t("How each card-body section arranges its fields: inline flow (Flex) or a two-column grid.")}
         </p>
         <CardZoneLayoutControls
           value={value.cardZoneLayouts}

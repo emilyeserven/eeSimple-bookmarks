@@ -3,6 +3,8 @@ import type { UseMutationResult } from "@tanstack/react-query";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import {
   useDeleteOrphanBookmarks,
   useDeleteOrphanInboxItems,
@@ -43,6 +45,9 @@ function OrphanRow({
   noun: string;
   onDelete: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div
       className="
@@ -61,7 +66,14 @@ function OrphanRow({
         onClick={onDelete}
         className="shrink-0"
       >
-        {count === 0 ? `No ${noun}` : `Delete ${count} ${noun}`}
+        {count === 0
+          ? t("No {{noun}}", {
+            noun,
+          })
+          : t("Delete {{count}} {{noun}}", {
+            count,
+            noun,
+          })}
       </Button>
     </div>
   );
@@ -73,6 +85,9 @@ function OrphanRow({
  * a recorded toast (mirroring the Gallery orphan cleanup).
  */
 export function OrphanCleanupCard() {
+  const {
+    t,
+  } = useTranslation();
   const {
     data, isLoading,
   } = useOrphanCounts();
@@ -91,12 +106,12 @@ export function OrphanCleanupCard() {
   }> = {
     bookmarks: {
       count: bookmarkCount,
-      noun: "bookmarks",
+      noun: t("bookmarks"),
       mutation: deleteBookmarks,
     },
     inboxItems: {
       count: inboxCount,
-      noun: "inbox items",
+      noun: t("inbox items"),
       mutation: deleteInboxItems,
     },
   };
@@ -112,7 +127,10 @@ export function OrphanCleanupCard() {
       onSuccess: ({
         deleted,
       }) => {
-        notifySuccess(`Deleted ${deleted} orphaned ${noun}`);
+        notifySuccess(t("Deleted {{deleted}} orphaned {{noun}}", {
+          deleted,
+          noun,
+        }));
         setPending(null);
       },
       onError: error => notifyError(error.message),
@@ -122,28 +140,28 @@ export function OrphanCleanupCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Clean up orphaned items</CardTitle>
+        <CardTitle>{t("Clean up orphaned items")}</CardTitle>
         <CardDescription>
-          Permanently delete records that have lost their parent. This can&apos;t be undone.
+          {t("Permanently delete records that have lost their parent. This can't be undone.")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading
-          ? <p className="text-sm text-muted-foreground">Loading…</p>
+          ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
           : (
             <>
               <OrphanRow
-                title="Bookmarks without a category"
-                description="Bookmarks whose category was removed and never reassigned."
+                title={t("Bookmarks without a category")}
+                description={t("Bookmarks whose category was removed and never reassigned.")}
                 count={bookmarkCount}
-                noun="bookmarks"
+                noun={t("bookmarks")}
                 onDelete={() => setPending("bookmarks")}
               />
               <OrphanRow
-                title="Inbox items without a newsletter"
-                description="Inbox items from newsletter imports whose newsletter was deleted. Extension quick-saves are excluded. Created bookmarks are kept."
+                title={t("Inbox items without a newsletter")}
+                description={t("Inbox items from newsletter imports whose newsletter was deleted. Extension quick-saves are excluded. Created bookmarks are kept.")}
                 count={inboxCount}
-                noun="inbox items"
+                noun={t("inbox items")}
                 onDelete={() => setPending("inboxItems")}
               />
             </>
@@ -156,10 +174,13 @@ export function OrphanCleanupCard() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete orphaned items?</DialogTitle>
+            <DialogTitle>{t("Delete orphaned items?")}</DialogTitle>
             <DialogDescription>
               {active
-                ? `This permanently deletes ${active.count} ${active.noun}. This can't be undone.`
+                ? t("This permanently deletes {{count}} {{noun}}. This can't be undone.", {
+                  count: active.count,
+                  noun: active.noun,
+                })
                 : ""}
             </DialogDescription>
           </DialogHeader>
@@ -169,7 +190,7 @@ export function OrphanCleanupCard() {
               variant="outline"
               onClick={() => setPending(null)}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               type="button"
@@ -177,7 +198,7 @@ export function OrphanCleanupCard() {
               disabled={active?.mutation.isPending}
               onClick={onConfirm}
             >
-              {active?.mutation.isPending ? "Deleting…" : "Delete"}
+              {active?.mutation.isPending ? t("Deleting…") : t("Delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

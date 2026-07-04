@@ -2,6 +2,8 @@ import type { HomepageContentSettings as HomepageContent, HomepageContentWidth, 
 
 import { useEffect, useRef, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { LabeledSection } from "./LabeledSection";
 import {
   useHomepageContentSettings,
@@ -33,6 +35,9 @@ const AUTOSAVE_DELAY_MS = 800;
  * auto-save after a short debounce (no Save button), firing a recorded success/error toast.
  */
 export function HomepageContentSettings() {
+  const {
+    t,
+  } = useTranslation();
   const {
     data, isLoading,
   } = useHomepageContentSettings();
@@ -79,14 +84,14 @@ export function HomepageContentSettings() {
   }
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">{t("Loading…")}</p>;
   }
 
   return (
     <div className="space-y-6">
       <LabeledSection
-        title="Homepage Text"
-        description="Markdown shown at the very top of your homepage. Uncheck “Show homepage text” to hide it without losing your draft."
+        title={t("Homepage Text")}
+        description={t("Markdown shown at the very top of your homepage. Uncheck “Show homepage text” to hide it without losing your draft.")}
       >
         <div className="space-y-3">
           <label className="flex items-center gap-2 text-sm">
@@ -94,21 +99,21 @@ export function HomepageContentSettings() {
               checked={form.homepageHeaderHidden}
               onCheckedChange={checked => setField("homepageHeaderHidden", checked === true)}
             />
-            Hide default &ldquo;Homepage&rdquo; title and description
+            {t("Hide default “Homepage” title and description")}
           </label>
           <label className="flex items-center gap-2 text-sm">
             <Checkbox
               checked={form.homepageTextEnabled}
               onCheckedChange={checked => setField("homepageTextEnabled", checked === true)}
             />
-            Show homepage text
+            {t("Show homepage text")}
           </label>
           <RichTextEditor
             value={form.homepageText}
             onChange={markdown => setField("homepageText", markdown)}
           />
           <WidthToggle
-            label="Desktop width"
+            label={t("Desktop width")}
             value={form.homepageTextWidth}
             onChange={width => setField("homepageTextWidth", width)}
           />
@@ -118,8 +123,8 @@ export function HomepageContentSettings() {
       <Separator />
 
       <LabeledSection
-        title="Bookmark Quick Add"
-        description="Show the Add Bookmark form on the homepage, below the homepage text."
+        title={t("Bookmark Quick Add")}
+        description={t("Show the Add Bookmark form on the homepage, below the homepage text.")}
       >
         <div className="space-y-3">
           <label className="flex items-center gap-2 text-sm">
@@ -127,19 +132,19 @@ export function HomepageContentSettings() {
               checked={form.bookmarkQuickAddEnabled}
               onCheckedChange={checked => setField("bookmarkQuickAddEnabled", checked === true)}
             />
-            Enable Bookmark Quick Add
+            {t("Enable Bookmark Quick Add")}
           </label>
 
           {form.bookmarkQuickAddEnabled
             ? (
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                 <WidthToggle
-                  label="Desktop width"
+                  label={t("Desktop width")}
                   value={form.bookmarkQuickAddWidth}
                   onChange={width => setField("bookmarkQuickAddWidth", width)}
                 />
                 <div className="flex items-center gap-2">
-                  <Label className="text-xs text-muted-foreground">Display</Label>
+                  <Label className="text-xs text-muted-foreground">{t("Display")}</Label>
                   <ToggleGroup
                     type="single"
                     size="sm"
@@ -148,8 +153,8 @@ export function HomepageContentSettings() {
                       if (value) setField("bookmarkQuickAddDisplay", value as QuickAddDisplay);
                     }}
                   >
-                    <ToggleGroupItem value="collapsible">Collapsible</ToggleGroupItem>
-                    <ToggleGroupItem value="expanded">Expanded</ToggleGroupItem>
+                    <ToggleGroupItem value="collapsible">{t("Collapsible")}</ToggleGroupItem>
+                    <ToggleGroupItem value="expanded">{t("Expanded")}</ToggleGroupItem>
                   </ToggleGroup>
                 </div>
               </div>
@@ -171,6 +176,9 @@ interface WidthToggleProps {
 function WidthToggle({
   label, value, onChange,
 }: WidthToggleProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="flex items-center gap-2">
       <Label className="text-xs text-muted-foreground">{label}</Label>
@@ -182,8 +190,8 @@ function WidthToggle({
           if (next) onChange(next as HomepageContentWidth);
         }}
       >
-        <ToggleGroupItem value="full">Full</ToggleGroupItem>
-        <ToggleGroupItem value="half">Half</ToggleGroupItem>
+        <ToggleGroupItem value="full">{t("Full")}</ToggleGroupItem>
+        <ToggleGroupItem value="half">{t("Half")}</ToggleGroupItem>
       </ToggleGroup>
     </div>
   );

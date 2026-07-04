@@ -1,6 +1,7 @@
 import type { MediaType, UpdateMediaTypeInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
@@ -22,14 +23,6 @@ const mediaTypeGeneralSchema = z.object({
   parent: z.string(),
 });
 
-const LABELS: Record<keyof UpdateMediaTypeInput, string> = {
-  name: "Name",
-  romanizedName: "Romanized name",
-  sortOrder: "Sort order",
-  icon: "Icon",
-  parentId: "Parent",
-};
-
 interface Props {
   mediaType: MediaType;
 }
@@ -43,15 +36,25 @@ interface Props {
 export function MediaTypeGeneralForm({
   mediaType,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateMediaType = useUpdateMediaType();
   const {
     data: allMediaTypes,
   } = useMediaTypes();
+  const labels: Record<keyof UpdateMediaTypeInput, string> = {
+    name: t("Name"),
+    romanizedName: t("Romanized name"),
+    sortOrder: t("Sort order"),
+    icon: t("Icon"),
+    parentId: t("Parent"),
+  };
   const autoSave = useFieldAutoSave<UpdateMediaTypeInput, MediaType>({
     id: mediaType.id,
     update: updateMediaType,
-    labels: LABELS,
+    labels,
     initial: {
       name: mediaType.name,
       romanizedName: mediaType.romanizedName ?? "",
@@ -66,7 +69,7 @@ export function MediaTypeGeneralForm({
   const parentOptions = [
     {
       value: ROOT,
-      label: "(top level)",
+      label: t("(top level)"),
     },
     ...all
       // One level only: a parent must be a root, and a type can't parent itself.
@@ -95,7 +98,7 @@ export function MediaTypeGeneralForm({
       {mediaType.builtIn
         ? (
           <p className="text-sm text-muted-foreground">
-            Built-in media type — it can&apos;t be renamed or reordered.
+            {t("Built-in media type — it can't be renamed or reordered.")}
           </p>
         )
         : null}
@@ -109,7 +112,7 @@ export function MediaTypeGeneralForm({
         <form.AppField name="name">
           {field => (
             <field.TextField
-              label="Name"
+              label={t("Name")}
               disabled={mediaType.builtIn}
               onBlur={() => autoSave.saveField(
                 "name",
@@ -135,7 +138,7 @@ export function MediaTypeGeneralForm({
         <form.AppField name="sortOrder">
           {field => (
             <field.NumberField
-              label="Sort order"
+              label={t("Sort order")}
               disabled={mediaType.builtIn}
               onBlur={() => autoSave.saveField(
                 "sortOrder",
@@ -150,7 +153,7 @@ export function MediaTypeGeneralForm({
       </div>
 
       <div className="space-y-1">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesTabEditor
           ownerType="mediaType"
           ownerId={mediaType.id}
@@ -160,9 +163,9 @@ export function MediaTypeGeneralForm({
       <form.AppField name="parent">
         {field => (
           <field.SelectField
-            label="Parent"
+            label={t("Parent")}
             options={parentOptions}
-            placeholder="Choose a parent"
+            placeholder={t("Choose a parent")}
             disabled={hasChildren}
             onValueChange={value => autoSave.saveField(
               "parentId",
@@ -174,7 +177,7 @@ export function MediaTypeGeneralForm({
       {hasChildren
         ? (
           <p className="text-xs text-muted-foreground">
-            This type has nested types, so it stays at the top level. Media types nest one level deep.
+            {t("This type has nested types, so it stays at the top level. Media types nest one level deep.")}
           </p>
         )
         : null}
@@ -182,9 +185,11 @@ export function MediaTypeGeneralForm({
       <form.AppField name="icon">
         {field => (
           <div className="space-y-1">
-            <Label>Icon</Label>
+            <Label>{t("Icon")}</Label>
             <IconPicker
-              aria-label={`Icon for ${mediaType.name}`}
+              aria-label={t("Icon for {{name}}", {
+                name: mediaType.name,
+              })}
               value={field.state.value}
               onChange={(value) => {
                 field.handleChange(value);
