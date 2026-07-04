@@ -407,7 +407,6 @@ import { Route as TaxonomiesLocationsLocationSlugEditDisplayRulesRouteImport } f
 import { Route as TaxonomiesLocationsLocationSlugEditAutofillRouteImport } from './routes/taxonomies.locations.$locationSlug.edit.autofill'
 import { Route as TaxonomiesLocationsLocationSlugViewHierarchyRouteImport } from './routes/taxonomies.locations.$locationSlug._view.hierarchy'
 import { Route as TaxonomiesLocationsLocationSlugViewGeneralRouteImport } from './routes/taxonomies.locations.$locationSlug._view.general'
-import { Route as TaxonomiesLocationsLocationSlugViewGalleryRouteImport } from './routes/taxonomies.locations.$locationSlug._view.gallery'
 import { Route as TaxonomiesLocationsLocationSlugViewDisplayRulesRouteImport } from './routes/taxonomies.locations.$locationSlug._view.display-rules'
 import { Route as TaxonomiesLocationsLocationSlugViewAutofillRouteImport } from './routes/taxonomies.locations.$locationSlug._view.autofill'
 import { Route as TaxonomiesLanguagesLanguageSlugEditGeneralRouteImport } from './routes/taxonomies.languages.$languageSlug.edit.general'
@@ -2692,12 +2691,6 @@ const TaxonomiesLocationsLocationSlugViewGeneralRoute =
     path: '/general',
     getParentRoute: () => TaxonomiesLocationsLocationSlugViewRoute,
   } as any)
-const TaxonomiesLocationsLocationSlugViewGalleryRoute =
-  TaxonomiesLocationsLocationSlugViewGalleryRouteImport.update({
-    id: '/gallery',
-    path: '/gallery',
-    getParentRoute: () => TaxonomiesLocationsLocationSlugViewRoute,
-  } as any)
 const TaxonomiesLocationsLocationSlugViewDisplayRulesRoute =
   TaxonomiesLocationsLocationSlugViewDisplayRulesRouteImport.update({
     id: '/display-rules',
@@ -3150,7 +3143,6 @@ export interface FileRoutesByFullPath {
   '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/autofill': typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
   '/taxonomies/locations/$locationSlug/display-rules': typeof TaxonomiesLocationsLocationSlugViewDisplayRulesRoute
-  '/taxonomies/locations/$locationSlug/gallery': typeof TaxonomiesLocationsLocationSlugViewGalleryRoute
   '/taxonomies/locations/$locationSlug/general': typeof TaxonomiesLocationsLocationSlugViewGeneralRoute
   '/taxonomies/locations/$locationSlug/hierarchy': typeof TaxonomiesLocationsLocationSlugViewHierarchyRoute
   '/taxonomies/locations/$locationSlug/edit/autofill': typeof TaxonomiesLocationsLocationSlugEditAutofillRoute
@@ -3455,7 +3447,6 @@ export interface FileRoutesByTo {
   '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/autofill': typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
   '/taxonomies/locations/$locationSlug/display-rules': typeof TaxonomiesLocationsLocationSlugViewDisplayRulesRoute
-  '/taxonomies/locations/$locationSlug/gallery': typeof TaxonomiesLocationsLocationSlugViewGalleryRoute
   '/taxonomies/locations/$locationSlug/general': typeof TaxonomiesLocationsLocationSlugViewGeneralRoute
   '/taxonomies/locations/$locationSlug/hierarchy': typeof TaxonomiesLocationsLocationSlugViewHierarchyRoute
   '/taxonomies/locations/$locationSlug/edit/autofill': typeof TaxonomiesLocationsLocationSlugEditAutofillRoute
@@ -3882,7 +3873,6 @@ export interface FileRoutesById {
   '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/_view/autofill': typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
   '/taxonomies/locations/$locationSlug/_view/display-rules': typeof TaxonomiesLocationsLocationSlugViewDisplayRulesRoute
-  '/taxonomies/locations/$locationSlug/_view/gallery': typeof TaxonomiesLocationsLocationSlugViewGalleryRoute
   '/taxonomies/locations/$locationSlug/_view/general': typeof TaxonomiesLocationsLocationSlugViewGeneralRoute
   '/taxonomies/locations/$locationSlug/_view/hierarchy': typeof TaxonomiesLocationsLocationSlugViewHierarchyRoute
   '/taxonomies/locations/$locationSlug/edit/autofill': typeof TaxonomiesLocationsLocationSlugEditAutofillRoute
@@ -4282,7 +4272,6 @@ export interface FileRouteTypes {
     | '/taxonomies/languages/$languageSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/autofill'
     | '/taxonomies/locations/$locationSlug/display-rules'
-    | '/taxonomies/locations/$locationSlug/gallery'
     | '/taxonomies/locations/$locationSlug/general'
     | '/taxonomies/locations/$locationSlug/hierarchy'
     | '/taxonomies/locations/$locationSlug/edit/autofill'
@@ -4587,7 +4576,6 @@ export interface FileRouteTypes {
     | '/taxonomies/languages/$languageSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/autofill'
     | '/taxonomies/locations/$locationSlug/display-rules'
-    | '/taxonomies/locations/$locationSlug/gallery'
     | '/taxonomies/locations/$locationSlug/general'
     | '/taxonomies/locations/$locationSlug/hierarchy'
     | '/taxonomies/locations/$locationSlug/edit/autofill'
@@ -5013,7 +5001,6 @@ export interface FileRouteTypes {
     | '/taxonomies/languages/$languageSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/_view/autofill'
     | '/taxonomies/locations/$locationSlug/_view/display-rules'
-    | '/taxonomies/locations/$locationSlug/_view/gallery'
     | '/taxonomies/locations/$locationSlug/_view/general'
     | '/taxonomies/locations/$locationSlug/_view/hierarchy'
     | '/taxonomies/locations/$locationSlug/edit/autofill'
@@ -7937,13 +7924,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugViewGeneralRouteImport
       parentRoute: typeof TaxonomiesLocationsLocationSlugViewRoute
     }
-    '/taxonomies/locations/$locationSlug/_view/gallery': {
-      id: '/taxonomies/locations/$locationSlug/_view/gallery'
-      path: '/gallery'
-      fullPath: '/taxonomies/locations/$locationSlug/gallery'
-      preLoaderRoute: typeof TaxonomiesLocationsLocationSlugViewGalleryRouteImport
-      parentRoute: typeof TaxonomiesLocationsLocationSlugViewRoute
-    }
     '/taxonomies/locations/$locationSlug/_view/display-rules': {
       id: '/taxonomies/locations/$locationSlug/_view/display-rules'
       path: '/display-rules'
@@ -9407,7 +9387,6 @@ const TaxonomiesLanguagesRouteWithChildren =
 interface TaxonomiesLocationsLocationSlugViewRouteChildren {
   TaxonomiesLocationsLocationSlugViewAutofillRoute: typeof TaxonomiesLocationsLocationSlugViewAutofillRoute
   TaxonomiesLocationsLocationSlugViewDisplayRulesRoute: typeof TaxonomiesLocationsLocationSlugViewDisplayRulesRoute
-  TaxonomiesLocationsLocationSlugViewGalleryRoute: typeof TaxonomiesLocationsLocationSlugViewGalleryRoute
   TaxonomiesLocationsLocationSlugViewGeneralRoute: typeof TaxonomiesLocationsLocationSlugViewGeneralRoute
   TaxonomiesLocationsLocationSlugViewHierarchyRoute: typeof TaxonomiesLocationsLocationSlugViewHierarchyRoute
 }
@@ -9418,8 +9397,6 @@ const TaxonomiesLocationsLocationSlugViewRouteChildren: TaxonomiesLocationsLocat
       TaxonomiesLocationsLocationSlugViewAutofillRoute,
     TaxonomiesLocationsLocationSlugViewDisplayRulesRoute:
       TaxonomiesLocationsLocationSlugViewDisplayRulesRoute,
-    TaxonomiesLocationsLocationSlugViewGalleryRoute:
-      TaxonomiesLocationsLocationSlugViewGalleryRoute,
     TaxonomiesLocationsLocationSlugViewGeneralRoute:
       TaxonomiesLocationsLocationSlugViewGeneralRoute,
     TaxonomiesLocationsLocationSlugViewHierarchyRoute:

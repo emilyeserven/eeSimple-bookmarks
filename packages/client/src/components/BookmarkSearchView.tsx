@@ -49,6 +49,8 @@ interface BookmarkSearchViewProps {
   addFormCategoryId?: string;
   /** Optional content rendered at the top of the list pane (e.g. a location map). */
   afterAddForm?: ReactNode;
+  /** When true (default), the list pane offers a Bookmarks | Gallery tab strip. */
+  showGallery?: boolean;
 }
 
 /**
@@ -79,6 +81,7 @@ export function BookmarkSearchView({
   noMatchMessage,
   addFormCategoryId,
   afterAddForm,
+  showGallery,
 }: BookmarkSearchViewProps) {
   const {
     columns, hideSidebar, textFilteredBookmarks, textSearchActive,
@@ -145,6 +148,7 @@ export function BookmarkSearchView({
           noMatchMessage={noMatchMessage}
           addFormCategoryId={addFormCategoryId}
           afterAddForm={afterAddForm}
+          showGallery={showGallery}
         />
       </div>
     </section>

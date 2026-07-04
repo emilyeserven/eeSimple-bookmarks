@@ -1,18 +1,12 @@
-import type { BookmarkImage, LocationNode } from "@eesimple/types";
-
-import { useState } from "react";
+import type { BookmarkImage, Bookmark } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
-import { useViewPanelClick } from "../panel/useEditPanelClick";
+import { useViewPanelClick } from "./panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { useSidebarOpenModifier } from "@/hooks/useAppSettings";
-import { useBookmarks } from "@/hooks/useBookmarks";
 import { entityLinkTitle } from "@/lib/sidebarModifier";
-import { subtreeIds } from "@/lib/tagTree";
 
 interface Tile {
   image: BookmarkImage;
@@ -20,25 +14,20 @@ interface Tile {
   bookmarkTitle: string;
 }
 
-export function LocationGalleryView({
-  entity: node,
+/**
+ * A responsive grid of every image carried by the given bookmarks, each tile linking to its
+ * bookmark. Scope + filtering are owned by the caller (the listing page passes the already-filtered
+ * set), so this component only flattens `bookmark.images` into tiles and renders them.
+ */
+export function BookmarkImageGallery({
+  bookmarks,
 }: {
-  entity: LocationNode;
+  bookmarks: Bookmark[];
 }) {
-  const [includeDescendants, setIncludeDescendants] = useState(true);
-  const {
-    data: bookmarks, isLoading,
-  } = useBookmarks();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
 
-  if (isLoading) {
-    return <p className="text-muted-foreground">Loading…</p>;
-  }
-
-  const locationIds = includeDescendants ? new Set(subtreeIds(node)) : new Set([node.id]);
-  const matching = (bookmarks ?? []).filter(b => b.locations.some(l => locationIds.has(l.id)));
-  const tiles: Tile[] = matching.flatMap(b => b.images.map(image => ({
+  const tiles: Tile[] = bookmarks.flatMap(b => b.images.map(image => ({
     image,
     bookmarkId: b.id,
     bookmarkTitle: b.title,
@@ -46,29 +35,12 @@ export function LocationGalleryView({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold">Images</h2>
-          <Badge variant="secondary">{tiles.length}</Badge>
-        </div>
-        {node.children.length > 0 && (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="loc-gallery-descendants"
-              checked={includeDescendants}
-              onCheckedChange={checked => setIncludeDescendants(checked === true)}
-            />
-            <Label
-              htmlFor="loc-gallery-descendants"
-              className="cursor-pointer"
-            >
-              Include sub-locations
-            </Label>
-          </div>
-        )}
+      <div className="flex items-center gap-2">
+        <h2 className="text-lg font-semibold">Images</h2>
+        <Badge variant="secondary">{tiles.length}</Badge>
       </div>
       {tiles.length === 0
-        ? <p className="text-muted-foreground">No images for this location yet.</p>
+        ? <p className="text-muted-foreground">No images yet.</p>
         : (
           <ul
             className="

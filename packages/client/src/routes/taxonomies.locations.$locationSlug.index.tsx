@@ -4,7 +4,7 @@ import type { LocationNode } from "@eesimple/types";
 import { useState } from "react";
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Images, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -14,7 +14,6 @@ import { useLocationBySlug, useLocationTree } from "../hooks/useLocations";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 import { findAncestorPath, flattenTree, subtreeIds } from "../lib/tagTree";
 
-import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export const Route = createFileRoute("/taxonomies/locations/$locationSlug/")({
@@ -106,31 +105,13 @@ function LocationBookmarksPage() {
     <BookmarkSearchView
       header={(
         <div className="space-y-2">
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="flex min-w-0 items-center gap-2 text-2xl font-bold">
-              <MapPin className="size-6 shrink-0" />
-              <RomanizedLabel
-                name={location.name}
-                romanized={location.romanizedName}
-              />
-            </h1>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-            >
-              <Link
-                to="/taxonomies/locations/$locationSlug/gallery"
-                params={{
-                  locationSlug,
-                }}
-              >
-                <Images className="size-4" />
-                Gallery
-              </Link>
-            </Button>
-          </div>
+          <h1 className="flex min-w-0 items-center gap-2 text-2xl font-bold">
+            <MapPin className="size-6 shrink-0" />
+            <RomanizedLabel
+              name={location.name}
+              romanized={location.romanizedName}
+            />
+          </h1>
           {location.children.length > 0 && (
             <div
               className="
