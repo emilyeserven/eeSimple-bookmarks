@@ -1,22 +1,16 @@
 import type { Bookmark, KavitaSeriesResult } from "@eesimple/types";
 
-import { useEffect, useState } from "react";
-
-import { useQuery } from "@tanstack/react-query";
 import { BookOpen, ExternalLink, Loader2, X } from "lucide-react";
 
 import { useBookmarkKavitaLink } from "../hooks/useBooks";
 import { useConnectors } from "../hooks/useConnectors";
-import { kavitaApi } from "../lib/api/kavita";
+import { useKavitaSeriesSearch } from "../hooks/useKavitaSeriesSearch";
 import { kavitaSeriesUrl } from "../lib/kavita";
 
 import { DetailField } from "@/components/DetailField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const SEARCH_DEBOUNCE_MS = 300;
-const MIN_QUERY_LENGTH = 2;
 
 /**
  * The linked Kavita series as a detail-view value: the series name, deep-linked into Kavita's web
@@ -91,27 +85,11 @@ export function BookmarkKavitaField({
   onSelect,
 }: BookmarkKavitaFieldProps) {
   const {
-    data: connectors,
-  } = useConnectors();
+    query, setQuery, enabled, baseUrl, search,
+  } = useKavitaSeriesSearch();
 
-  const [query, setQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
+  if (!enabled) return null;
 
-  useEffect(() => {
-    const handle = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(handle);
-  }, [query]);
-
-  const trimmedQuery = debouncedQuery.trim();
-  const search = useQuery({
-    queryKey: ["kavita-series-search", trimmedQuery],
-    queryFn: () => kavitaApi.searchSeries(trimmedQuery),
-    enabled: Boolean(connectors?.kavita.enabled) && trimmedQuery.length >= MIN_QUERY_LENGTH,
-  });
-
-  if (!connectors?.kavita.enabled) return null;
-
-  const baseUrl = connectors.kavita.baseUrl;
   const linked = bookmark.kavitaSeriesId !== null;
 
   return (

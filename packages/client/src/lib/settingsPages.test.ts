@@ -64,6 +64,15 @@ describe("settingsPages registry", () => {
     expect(page?.icon).toBeDefined();
   });
 
+  it("resolves the Language Usage Levels edit page reachable from the overview", () => {
+    const page = findSettingsPage("/taxonomies/language-usage-levels/edit");
+    expect(page).toMatchObject({
+      path: "/taxonomies/language-usage-levels/edit",
+      label: "Usage Levels: Edit",
+    });
+    expect(page?.icon).toBeDefined();
+  });
+
   it("derives an entry for every sidebar taxonomy/action/customization item", () => {
     for (const item of [...taxonomyItems, ...actionItems, ...customizationItems]) {
       const page = findSettingsPage(item.to);

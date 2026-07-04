@@ -9,8 +9,8 @@ import { tvShowWorkbench } from "../components/workbench/tvShow";
 import { useBulkDeleteTvShows, useTvShows } from "../hooks/useTvShows";
 import { tvShowsApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const TV_SHOW_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const TV_SHOW_ROUTE: EntityRoute = {
   kind: "tv-show",
   prefix: "/taxonomies/tv-shows",
   slugIndex: 2,
@@ -19,8 +19,8 @@ export const TV_SHOW_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const TV_SHOW_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const TV_SHOW_PALETTE: EntityPaletteConfig = {
   queryKey: ["tv-shows"],
   listFn: () => tvShowsApi.list(),
   updateFn: (id, patch) => tvShowsApi.update(id, patch as UpdateTvShowInput),

@@ -6,7 +6,6 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { languageUsageLevelsApi } from "../lib/api/taxonomies";
 
 const LEVELS_KEY = ["language-usage-levels"] as const;
@@ -69,9 +68,4 @@ export function useDeleteLanguageUsageLevel() {
       reassignTo?: string; }) => languageUsageLevelsApi.remove(id, reassignTo),
     onSuccess: () => invalidateAll(queryClient),
   });
-}
-
-export function useBulkDeleteLanguageUsageLevels() {
-  const queryClient = useQueryClient();
-  return useBulkDeleteEntity(languageUsageLevelsApi.bulkDelete, () => invalidateAll(queryClient));
 }

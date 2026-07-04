@@ -12,19 +12,20 @@ import { flattenTree } from "../lib/tagTree";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const GENRE_MOOD_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const GENRE_MOOD_ROUTE: EntityRoute = {
   kind: "genre-mood",
   prefix: "/taxonomies/genres-moods",
   slugIndex: 2,
   listLabel: "Genres & Moods",
   singular: "Genres & Moods entry",
-  // Tree taxonomy — detail crumbs are bespoke like Tags/Locations, so excluded from flat crumbs.
-  flatCrumbs: false,
+  // Unlike Tags/Media Types/Locations, the tree is surfaced via a view-only Hierarchy tab rather
+  // than an ancestor-chain breadcrumb, so the detail/edit crumbs are the shared flat `List → Name`.
+  flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const GENRE_MOOD_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const GENRE_MOOD_PALETTE: EntityPaletteConfig = {
   queryKey: ["genre-moods"],
   listFn: () => genreMoodsApi.list(),
   updateFn: (id, patch) => genreMoodsApi.update(id, patch as UpdateGenreMoodInput),

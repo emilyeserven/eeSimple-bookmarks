@@ -196,3 +196,25 @@ export async function removeTaxonomyImage(
   }
   return true;
 }
+
+/**
+ * Delete every image object + row for an owner — called from an owning entity's delete service
+ * since `ownerId` carries no cascade FK. Mirrors `bookmarkImages.ts`'s `deleteAllBookmarkImages`:
+ * when the object store isn't configured there are no rows to begin with (uploads would have
+ * 503'd), so this is a no-op in that case.
+ */
+export async function deleteTaxonomyImagesForOwner(
+  ownerType: TaxonomyImageOwnerType,
+  ownerId: string,
+): Promise<void> {
+  const rows = await listTaxonomyImageRows(ownerType, ownerId);
+  for (const row of rows) {
+    await deleteObject(row.objectKey);
+  }
+  if (rows.length > 0) {
+    await db.delete(taxonomyImages).where(and(
+      eq(taxonomyImages.ownerType, ownerType),
+      eq(taxonomyImages.ownerId, ownerId),
+    ));
+  }
+}

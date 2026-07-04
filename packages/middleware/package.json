@@ -10,7 +10,7 @@
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "dev": "nodemon --quiet --watch src --ext ts --exec \"tsx src/index.ts\"",
     "start": "node dist/index.js",
-    "test": "node --test --import tsx \"./src/tests/**/*.test.ts\"",
+    "test": "node --experimental-test-module-mocks --test --import tsx \"./src/tests/**/*.test.ts\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "migrate:dev": "dotenv -e .env -- tsx src/db/migrate.ts",
     "migrate:prod": "node dist/db/migrate.js",

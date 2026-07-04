@@ -11,17 +11,3 @@ export function plexItemUrl(baseUrl: string, machineIdentifier: string, ratingKe
   const key = encodeURIComponent(`/library/metadata/${ratingKey}`);
   return `${baseUrl.replace(/\/$/, "")}/web/index.html#!/server/${machineIdentifier}/details?key=${key}`;
 }
-
-/** Human label for a Plex item type (`movie` → "Movie", `show` → "TV Show", …). */
-export function plexTypeLabel(type: string): string {
-  switch (type) {
-    case "movie": return "Movie";
-    case "show": return "TV Show";
-    case "season": return "Season";
-    case "episode": return "Episode";
-    case "artist": return "Artist";
-    case "album": return "Album";
-    case "track": return "Track";
-    default: return type.charAt(0).toUpperCase() + type.slice(1);
-  }
-}

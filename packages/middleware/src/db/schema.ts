@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, type PgColumnBuilderBase, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { TAXONOMY_IMAGE_OWNER_TYPES } from "@eesimple/types";
 import type { BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
@@ -766,12 +767,14 @@ export const podcasts = pgTable("podcasts", {
 
 /**
  * `taxonomy_images` — a shared, polymorphic multi-image gallery for the Plex/Kavita-backed media
- * taxonomies (Movies, TV Shows, Episodes, Albums, Tracks, Books). Mirrors `bookmark_images`
+ * taxonomies (Movies, TV Shows, Episodes, Albums, Tracks, Books, Podcasts). Mirrors `bookmark_images`
  * (up to {@link MAX_TAXONOMY_IMAGES} per owner, one flagged `isMain`) but keyed by
  * `(ownerType, ownerId)` instead of a single `bookmarkId` FK, since one physical table can't carry a
- * foreign key into six different owner tables. `ownerType` is one of `TAXONOMY_IMAGE_OWNER_TYPES`.
+ * foreign key into seven different owner tables. `ownerType` is one of the shared
+ * `TAXONOMY_IMAGE_OWNER_TYPES` (`@eesimple/types`) — re-exported here so schema consumers don't need
+ * a second import for it.
  */
-export const TAXONOMY_IMAGE_OWNER_TYPES = ["movie", "tvShow", "episode", "album", "track", "book", "podcast"] as const;
+export { TAXONOMY_IMAGE_OWNER_TYPES };
 
 export const taxonomyImages = pgTable("taxonomy_images", {
   id: uuid("id").primaryKey().defaultRandom(),

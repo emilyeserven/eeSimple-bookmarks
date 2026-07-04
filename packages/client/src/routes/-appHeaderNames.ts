@@ -6,6 +6,7 @@ import { useBookBySlug } from "@/hooks/useBooks";
 import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useEpisodeBySlug } from "@/hooks/useEpisodes";
+import { useGenreMoodBySlug } from "@/hooks/useGenreMoods";
 import { useGroupBySlug } from "@/hooks/useGroups";
 import { useGroupTypeBySlug } from "@/hooks/useGroupTypes";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
@@ -29,6 +30,7 @@ export interface TaxonomyNameSlugs {
   person: string;
   group: string;
   groupType: string;
+  genreMood: string;
   language: string;
   placeType: string;
   propertyGroup: string;
@@ -70,6 +72,9 @@ export function useTaxonomyNameMap(
   const {
     groupType,
   } = useGroupTypeBySlug(slugs.groupType);
+  const {
+    genreMood,
+  } = useGenreMoodBySlug(slugs.genreMood);
   const {
     language,
   } = useLanguageBySlug(slugs.language);
@@ -136,6 +141,10 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/group-types": {
       name: groupType?.name,
+    },
+    "/taxonomies/genres-moods": {
+      name: genreMood?.name,
+      romanized: genreMood?.romanizedName,
     },
     "/taxonomies/languages": {
       name: language?.name,

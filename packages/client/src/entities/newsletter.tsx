@@ -11,8 +11,8 @@ import { newslettersApi } from "../lib/api/imports";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const NEWSLETTER_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const NEWSLETTER_ROUTE: EntityRoute = {
   kind: "newsletter",
   prefix: "/taxonomies/newsletters",
   slugIndex: 2,
@@ -21,8 +21,8 @@ export const NEWSLETTER_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const NEWSLETTER_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const NEWSLETTER_PALETTE: EntityPaletteConfig = {
   queryKey: ["newsletters"],
   listFn: () => newslettersApi.list(),
   updateFn: (id, patch) => newslettersApi.update(id, patch as UpdateNewsletterInput),
