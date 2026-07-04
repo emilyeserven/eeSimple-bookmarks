@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { Tag } from "@eesimple/types";
+import type { EntityName, Tag } from "@eesimple/types";
 import {
   buildTagTree,
   computeTagBookmarkCounts,
@@ -9,6 +9,22 @@ import {
   wouldCreateCycle,
 } from "@/services/tags";
 import { collectSubtreeIds } from "@/utils/parentTree";
+
+/** A minimal language-labelled name for candidate fixtures. */
+function nm(value: string): EntityName {
+  return {
+    id: value,
+    language: {
+      id: value,
+      name: value,
+      slug: value,
+      isoCode: null,
+    },
+    value,
+    isPrimary: false,
+    sortOrder: 0,
+  };
+}
 
 // Pure-helper tests run without a live database, matching the `isValidUrl` style.
 
@@ -139,14 +155,29 @@ test("matchTagIdsByTitle matches name and romanizedName across title and romaniz
     },
   ];
   // Native name inside a Korean compound title.
-  assert.deepEqual(matchTagIdsByTitle("부산광역시", null, tagList), ["t-busan"]);
+  assert.deepEqual(matchTagIdsByTitle(["부산광역시"], tagList), ["t-busan"]);
   // Romanized name against a Latin title.
   assert.deepEqual(
-    matchTagIdsByTitle("Ferry from Busan to Fukuoka", null, tagList),
+    matchTagIdsByTitle(["Ferry from Busan to Fukuoka"], tagList),
     ["t-busan"],
   );
   // Latin whole-word plus a romanizedName haystack.
-  assert.deepEqual(matchTagIdsByTitle("Styling React with CSS", null, tagList), ["t-react"]);
-  assert.deepEqual(matchTagIdsByTitle("旅行", "Busan trip", tagList), ["t-busan"]);
-  assert.deepEqual(matchTagIdsByTitle("", null, tagList), []);
+  assert.deepEqual(matchTagIdsByTitle(["Styling React with CSS"], tagList), ["t-react"]);
+  assert.deepEqual(matchTagIdsByTitle(["旅行", "Busan trip"], tagList), ["t-busan"]);
+  assert.deepEqual(matchTagIdsByTitle([""], tagList), []);
+});
+
+test("matchTagIdsByTitle matches a tag's language-labelled names against the bookmark's names", () => {
+  const tagList = [
+    {
+      id: "t-eva",
+      name: "エヴァンゲリオン",
+      romanizedName: null,
+      names: [nm("エヴァンゲリオン"), nm("Evangelion")],
+    },
+  ];
+  // Bookmark titled only in English still matches the tag via the tag's English `names` value.
+  assert.deepEqual(matchTagIdsByTitle(["Watching Evangelion tonight"], tagList), ["t-eva"]);
+  // And a bookmark whose names carry the Japanese form matches the same tag.
+  assert.deepEqual(matchTagIdsByTitle(["My list", "新世紀エヴァンゲリオン"], tagList), ["t-eva"]);
 });

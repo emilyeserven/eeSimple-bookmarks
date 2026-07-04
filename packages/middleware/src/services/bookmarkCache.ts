@@ -23,6 +23,7 @@ import {
 } from "@/db/schema";
 import { bookmarkCacheVersion } from "@/services/bookmarkCacheVersion";
 import { ensureDefaultCategory } from "@/services/categories";
+import { loadEntityNames } from "@/services/entityNames";
 
 // Re-exported so writers keep one import site; the counter lives in a leaf module purely to let
 // `services/categories.ts` (which the cache loads from) invalidate without a circular import.
@@ -152,6 +153,8 @@ export interface ConditionInputGroups {
   relTypesByBid: Map<string, Set<string>>;
   languageUsagesByBid: Map<string, { languageId: string;
     usageLevelId: string; }[]>;
+  /** Per-bookmark language-labelled name values (values only), matched alongside title/romanized. */
+  namesByBid: Map<string, string[]>;
 }
 
 /**
@@ -183,6 +186,7 @@ export function assembleConditionInput(
     textValues: groups.textsByBid.get(row.id) ?? new Map(),
     relationshipTypeIds: groups.relTypesByBid.get(row.id) ?? new Set(),
     languageUsages: groups.languageUsagesByBid.get(row.id) ?? [],
+    names: groups.namesByBid.get(row.id) ?? [],
   };
 }
 
@@ -358,6 +362,14 @@ async function buildConditionInputs(
     languageUsagesByBid.set(r.bookmarkId, list);
   }
 
+  // Language-labelled names (values only), so the shared predicate's title match sees every name
+  // variant. The batched loader is the same one bookmark hydration uses — no N+1.
+  const entityNamesByBid = await loadEntityNames("bookmark", ids);
+  const namesByBid = new Map<string, string[]>();
+  for (const [bookmarkId, names] of entityNamesByBid) {
+    namesByBid.set(bookmarkId, names.map(name => name.value));
+  }
+
   const groups: ConditionInputGroups = {
     tagsByBid,
     genreMoodsByBid,
@@ -371,6 +383,7 @@ async function buildConditionInputs(
     textsByBid,
     relTypesByBid,
     languageUsagesByBid,
+    namesByBid,
   };
   const result = new Map<string, ConditionInput>();
   for (const row of baseRows) {

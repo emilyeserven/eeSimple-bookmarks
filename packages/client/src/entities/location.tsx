@@ -9,6 +9,7 @@ import { LocationTreeList } from "../components/LocationTreeList";
 import { locationWorkbench } from "../components/workbench/location";
 import { usePlaceTypeDisplayConfig } from "../hooks/useAppSettings";
 import { useBulkDeleteLocations, useLocationTree } from "../hooks/useLocations";
+import { useInterfaceTitleSort } from "../hooks/useTitleSortContext";
 import { locationsApi } from "../lib/api/taxonomies";
 import { sortLocationTree } from "../lib/locationSort";
 import { flattenTree } from "../lib/tagTree";
@@ -43,7 +44,8 @@ const LOCATION_PALETTE: EntityPaletteConfig = {
 export function useLocationSortedTree(tree: LocationNode[]): LocationNode[] {
   const sortMode = useUiStore(state => state.locationSortMode);
   const displayConfig = usePlaceTypeDisplayConfig();
-  return sortLocationTree(tree, sortMode, displayConfig);
+  const titleSort = useInterfaceTitleSort();
+  return sortLocationTree(tree, sortMode, displayConfig, titleSort);
 }
 
 /**

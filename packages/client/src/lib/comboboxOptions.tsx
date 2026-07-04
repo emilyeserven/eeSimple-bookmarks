@@ -1,8 +1,9 @@
 import type { ComboboxOption } from "@/components/Combobox";
 import type { TreeComboboxOption } from "@/components/TreeMultiCombobox";
-import type { GenreMoodNode, MediaTypeNode } from "@eesimple/types";
+import type { EntityName, GenreMoodNode, MediaTypeNode } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { buildSearchAlias } from "./searchAlias";
 import { flattenTree } from "./tagTree";
 
 import { CategoryIcon } from "@/lib/icons";
@@ -18,19 +19,20 @@ export interface IconComboboxOption {
 /**
  * Build `{ value, label, icon }` combobox options for an icon-bearing taxonomy row (Category,
  * MediaType, …). Shared by the auto-save general forms so the default category / media-type pickers
- * don't re-list the same `.map()` + `<CategoryIcon>` block. A romanized name (when present) is carried
- * as `searchAlias` so the picker search matches it too.
+ * don't re-list the same `.map()` + `<CategoryIcon>` block. Every name variant (romanized + each
+ * language-labelled name) is carried as `searchAlias` so the picker search matches any of them.
  */
 export function iconComboboxOptions(
   items: { id: string;
     name: string;
     icon: string | null;
-    romanizedName?: string | null; }[],
+    romanizedName?: string | null;
+    names?: EntityName[]; }[],
 ): IconComboboxOption[] {
   return items.map(item => ({
     value: item.id,
     label: item.name,
-    searchAlias: item.romanizedName ?? undefined,
+    searchAlias: buildSearchAlias(item.romanizedName, item.names),
     icon: (
       <CategoryIcon
         name={item.icon}
@@ -74,7 +76,7 @@ export function mediaTypeNodesToOptions(nodes: MediaTypeNode[]): TreeComboboxOpt
   return nodes.map(node => ({
     value: node.id,
     label: node.name,
-    searchAlias: node.romanizedName ?? undefined,
+    searchAlias: buildSearchAlias(node.romanizedName, node.names),
     icon: (
       <CategoryIcon
         name={node.icon}

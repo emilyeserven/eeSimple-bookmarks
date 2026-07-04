@@ -9,6 +9,7 @@ import { TagTreeList } from "../TagTreeList";
 import { useSortByRomanized } from "@/hooks/useAppSettings";
 import { useExpandedSet } from "@/hooks/useExpandedSet";
 import { useTagTree } from "@/hooks/useTags";
+import { useInterfaceTitleSort } from "@/hooks/useTitleSortContext";
 import { findAncestorPath, sortTagTreeByRomanized } from "@/lib/tagTree";
 
 export function TagHierarchyView({
@@ -24,7 +25,8 @@ export function TagHierarchyView({
   } = useExpandedSet(node.children.map(c => c.id));
   // TagTreeList no longer sorts internally (the listing scaffold owns that); sort here instead.
   const sortByRomanized = useSortByRomanized();
-  const children = sortTagTreeByRomanized(node.children, sortByRomanized);
+  const titleSort = useInterfaceTitleSort();
+  const children = sortTagTreeByRomanized(node.children, sortByRomanized, titleSort);
   const path = findAncestorPath(data ?? [], node.slug);
   const ancestors = path ? path.slice(0, -1) : [];
   return (

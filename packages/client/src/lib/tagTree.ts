@@ -1,7 +1,9 @@
 import type { TreeComboboxOption } from "@/components/TreeMultiCombobox";
-import type { LocationNode, TagNode } from "@eesimple/types";
+import type { LocationNode, PreferredLanguage, TagNode } from "@eesimple/types";
 
-import { romanizedSortKey } from "./romanized";
+import { namesWithLegacyFallback, resolveNameSortKey } from "@eesimple/types";
+
+import { buildSearchAlias } from "./searchAlias";
 
 /** A tree node paired with its depth in the tree, for indented flat rendering. */
 export interface FlatNode<T> {
@@ -89,8 +91,8 @@ export function tagNodesToOptions(nodes: TagNode[], excludeIds?: Set<string>): T
     .map(n => ({
       value: n.id,
       label: n.name,
-      // Carry the romanized form so the combobox search matches it too.
-      searchAlias: n.romanizedName ?? undefined,
+      // Carry every name variant (romanized + each language-labelled name) so the search matches any.
+      searchAlias: buildSearchAlias(n.romanizedName, n.names),
       children: tagNodesToOptions(n.children, excludeIds),
     }));
 }
@@ -100,26 +102,52 @@ export function locationNodesToOptions(nodes: LocationNode[]): TreeComboboxOptio
   return nodes.map(n => ({
     value: n.id,
     label: n.name,
-    // Carry the romanized form so the combobox search matches it too.
-    searchAlias: n.romanizedName ?? undefined,
+    // Carry every name variant (romanized + each language-labelled name) so the search matches any.
+    searchAlias: buildSearchAlias(n.romanizedName, n.names),
     children: locationNodesToOptions(n.children),
   }));
 }
 
+/** Locale + language preference for tree title sorting (both optional; default = today's behavior). */
+export interface TreeSortContext {
+  /** The language whose name to sort by when a node has one (interface language / override). */
+  preferredLanguage?: PreferredLanguage | null;
+  /** BCP-47 collation locale for the comparison (e.g. `ja`), or undefined for the default locale. */
+  locale?: string;
+}
+
+/** A tag node's sort key: its preferred-language name, else the romanized form (per the toggle), else name. */
+function tagNodeSortKey(node: TagNode, sortByRomanized: boolean, ctx: TreeSortContext): string {
+  return resolveNameSortKey(
+    namesWithLegacyFallback(node.names, node.romanizedName),
+    node.name,
+    {
+      preferredLanguage: ctx.preferredLanguage,
+      preferRomanized: sortByRomanized,
+    },
+  );
+}
+
 /**
- * Sort a tag tree (recursively, children included) by name/title. When `sortByRomanized` is true the
- * romanized form is the sort key (falling back to the name when a tag has none). Returns a new tree;
- * the input is not mutated. Client-side sorting is the sanctioned presentation carve-out.
+ * Sort a tag tree (recursively, children included) by name/title through the multilingual names
+ * model. The preferred-language name (interface language / override in `ctx`) wins when a tag has
+ * one; otherwise, when `sortByRomanized` is true, the romanized/English form is the sort key
+ * (falling back to the name when a tag has none). Returns a new tree; the input is not mutated.
+ * Client-side sorting is the sanctioned presentation carve-out.
  */
-export function sortTagTreeByRomanized(nodes: TagNode[], sortByRomanized: boolean): TagNode[] {
+export function sortTagTreeByRomanized(
+  nodes: TagNode[],
+  sortByRomanized: boolean,
+  ctx: TreeSortContext = {},
+): TagNode[] {
   return nodes
     .map(node => ({
       ...node,
-      children: sortTagTreeByRomanized(node.children, sortByRomanized),
+      children: sortTagTreeByRomanized(node.children, sortByRomanized, ctx),
     }))
     .sort((a, b) =>
-      romanizedSortKey(a.name, a.romanizedName, sortByRomanized)
-        .localeCompare(romanizedSortKey(b.name, b.romanizedName, sortByRomanized)));
+      tagNodeSortKey(a, sortByRomanized, ctx)
+        .localeCompare(tagNodeSortKey(b, sortByRomanized, ctx), ctx.locale));
 }
 
 /**

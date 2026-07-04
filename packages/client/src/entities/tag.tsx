@@ -8,6 +8,7 @@ import { TagTreeList } from "../components/TagTreeList";
 import { tagWorkbench } from "../components/workbench/tag";
 import { useSortByRomanized } from "../hooks/useAppSettings";
 import { useBulkDeleteTags, useTagTree } from "../hooks/useTags";
+import { useInterfaceTitleSort } from "../hooks/useTitleSortContext";
 import { tagsApi } from "../lib/api/taxonomies";
 import { flattenTree, sortTagTreeByRomanized } from "../lib/tagTree";
 
@@ -48,7 +49,8 @@ const TAG_PALETTE: EntityPaletteConfig = {
 /** Romanized re-sort for the filtered tag tree — the `useSortedTree` slot (see the config's doc). */
 function useRomanizedSortedTree(tree: TagNode[]): TagNode[] {
   const sortByRomanized = useSortByRomanized();
-  return sortTagTreeByRomanized(tree, sortByRomanized);
+  const titleSort = useInterfaceTitleSort();
+  return sortTagTreeByRomanized(tree, sortByRomanized, titleSort);
 }
 
 /**

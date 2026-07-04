@@ -14,6 +14,7 @@ import { MediaItemsPane } from "./MediaItemsPane";
 import { navLinkClass, navStripClass } from "./TabbedShell";
 import { useBookmarksPerPage } from "../hooks/useAppSettings";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
+import { usePageTitleSort } from "../hooks/useTitleSortContext";
 import { useViewMode } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
 import { sortBookmarks } from "../lib/bookmarkSort";
@@ -269,8 +270,9 @@ export function BookmarkListPane({
 }: BookmarkListPaneProps) {
   useRegisterBulkSelect(pageKey);
   const [tab, setTab] = useState<ResultsTab>("bookmarks");
+  const titleSort = usePageTitleSort(pageKey);
   const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
-  const visibleBookmarks = sortBookmarks(filtered, search.sort, properties);
+  const visibleBookmarks = sortBookmarks(filtered, search.sort, properties, titleSort);
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
   // Guard against a stale "gallery" selection if a page opts out of the gallery.
   const activeTab = tab === "gallery" && !showGallery ? "bookmarks" : tab;

@@ -19,6 +19,7 @@ function emptyGroups(): ConditionInputGroups {
     textsByBid: new Map(),
     relTypesByBid: new Map(),
     languageUsagesByBid: new Map(),
+    namesByBid: new Map(),
   };
 }
 
@@ -44,6 +45,14 @@ test("assembleConditionInput falls back to empty collections and the default cat
   assert.equal(input.genreMoodIds.size, 0);
   assert.equal(input.numberValues.size, 0);
   assert.deepEqual(input.languageUsages, []);
+  assert.deepEqual(input.names, []);
+});
+
+test("assembleConditionInput pulls the bookmark's language-labelled names into the match haystack", () => {
+  const groups = emptyGroups();
+  groups.namesByBid.set("b1", ["新世紀エヴァンゲリオン", "Neon Genesis Evangelion"]);
+  const input = assembleConditionInput(bookmarkRow(), groups, "cat-default");
+  assert.deepEqual(input.names, ["新世紀エヴァンゲリオン", "Neon Genesis Evangelion"]);
 });
 
 test("assembleConditionInput uses the bookmark's own category over the default and pulls its grouped values", () => {

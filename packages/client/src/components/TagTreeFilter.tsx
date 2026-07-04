@@ -2,6 +2,7 @@ import type { TagNode } from "@eesimple/types";
 
 import { RomanizedLabel } from "./RomanizedLabel";
 import { useSortByRomanized } from "../hooks/useAppSettings";
+import { useInterfaceTitleSort } from "../hooks/useTitleSortContext";
 import { flattenTree, sortTagTreeByRomanized } from "../lib/tagTree";
 
 interface TagTreeFilterProps {
@@ -19,7 +20,8 @@ export function TagTreeFilter({
   tree, activeId, onSelect,
 }: TagTreeFilterProps) {
   const sortByRomanized = useSortByRomanized();
-  const flat = flattenTree(sortTagTreeByRomanized(tree, sortByRomanized));
+  const titleSort = useInterfaceTitleSort();
+  const flat = flattenTree(sortTagTreeByRomanized(tree, sortByRomanized, titleSort));
   if (flat.length === 0) return null;
 
   const item = "w-full rounded-md px-2 py-1 text-left text-sm transition-colors";
