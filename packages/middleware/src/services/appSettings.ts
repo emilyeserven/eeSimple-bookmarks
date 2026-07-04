@@ -13,6 +13,7 @@ import type {
   HomepageContentSettings,
   HomepageContentWidth,
   ImportBlacklistEntry,
+  InterfaceLanguage,
   PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
   PlaceTypeIconConfig,
@@ -109,6 +110,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   bookmarkDetailImageSize: "medium",
   bookmarkDetailVideoSize: "standard",
   bookmarkDetailLayout: "single",
+  interfaceLanguage: "en",
   customPropertyTypeIcons: null,
   onDemandFilters: [],
   filtersInDrawer: false,
@@ -156,6 +158,11 @@ function asVideoSize(value: string | null | undefined): BookmarkDetailVideoSize 
 /** Coerce a stored detail-layout string to the typed union, defaulting to "single". */
 function asDetailLayout(value: string | null | undefined): BookmarkDetailLayout {
   return value === "tabbed" ? "tabbed" : "single";
+}
+
+/** Coerce a stored interface-language string to the typed union, defaulting to "en". */
+function asInterfaceLanguage(value: string | null | undefined): InterfaceLanguage {
+  return value === "ja" ? "ja" : "en";
 }
 
 /** Clamp a stored cropped dimension to a positive integer (mirrors the old client setter). */
@@ -1050,6 +1057,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       bookmarkDetailImageSize: appSettings.bookmarkDetailImageSize,
       bookmarkDetailVideoSize: appSettings.bookmarkDetailVideoSize,
       bookmarkDetailLayout: appSettings.bookmarkDetailLayout,
+      interfaceLanguage: appSettings.interfaceLanguage,
       filtersInDrawer: appSettings.filtersInDrawer,
       filtersHidden: appSettings.filtersHidden,
       panelPinned: appSettings.panelPinned,
@@ -1075,6 +1083,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     bookmarkDetailImageSize: asImageSize(row.bookmarkDetailImageSize),
     bookmarkDetailVideoSize: asVideoSize(row.bookmarkDetailVideoSize),
     bookmarkDetailLayout: asDetailLayout(row.bookmarkDetailLayout),
+    interfaceLanguage: asInterfaceLanguage(row.interfaceLanguage),
     filtersInDrawer: row.filtersInDrawer,
     filtersHidden: row.filtersHidden,
     panelPinned: row.panelPinned,
@@ -1396,6 +1405,7 @@ export async function updateDisplayPreferenceSettings(
     bookmarkDetailImageSize: asImageSize(input.bookmarkDetailImageSize),
     bookmarkDetailVideoSize: asVideoSize(input.bookmarkDetailVideoSize),
     bookmarkDetailLayout: asDetailLayout(input.bookmarkDetailLayout),
+    interfaceLanguage: asInterfaceLanguage(input.interfaceLanguage),
     filtersInDrawer: input.filtersInDrawer,
     filtersHidden: input.filtersHidden,
     panelPinned: input.panelPinned,

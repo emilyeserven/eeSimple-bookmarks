@@ -315,6 +315,7 @@ describe("useBookmarkImageEditForm", () => {
       bookmarkDetailImageSize: "medium",
       bookmarkDetailVideoSize: "standard",
       bookmarkDetailLayout: "single",
+      interfaceLanguage: "en",
       filtersInDrawer: false,
       filtersHidden: false,
       panelPinned: false,

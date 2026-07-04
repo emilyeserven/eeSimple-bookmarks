@@ -2,11 +2,13 @@ import type { Theme } from "../stores/uiStore";
 import type {
   CustomPropertyType,
   DisplayPreferenceSettings,
+  InterfaceLanguage,
 } from "@eesimple/types";
 
 import { BOOKMARKS_PER_PAGE_OPTIONS, DEFAULT_BOOKMARKS_PER_PAGE } from "@eesimple/types";
 
 import { PropertyTypeIconsCard } from "./PropertyTypeIconsCard";
+import { SegmentedToggleRow } from "./SegmentedToggleRow";
 import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
@@ -38,13 +40,26 @@ const THEME_LABELS: Record<Theme, string> = {
 
 const DISPLAY_DEFAULTS: Pick<
   DisplayPreferenceSettings,
-  "customPropertyTypeIcons" | "showRomanizedByDefault" | "sortByRomanized" | "bookmarksPerPage"
+  "customPropertyTypeIcons" | "showRomanizedByDefault" | "sortByRomanized" | "bookmarksPerPage" | "interfaceLanguage"
 > = {
   customPropertyTypeIcons: null,
   showRomanizedByDefault: false,
   sortByRomanized: true,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
+  interfaceLanguage: "en",
 };
+
+const LANGUAGE_OPTIONS = [
+  {
+    value: "en",
+    label: "English",
+  },
+  {
+    value: "ja",
+    label: "日本語",
+  },
+] as const satisfies readonly { value: InterfaceLanguage;
+  label: string; }[];
 
 /** General display preferences — theme, romanized-name handling, and per-type property icons. */
 export function DisplayGeneralSettings() {
@@ -101,9 +116,30 @@ export function DisplayGeneralSettings() {
     saveDisplay({
       bookmarksPerPage: value,
     }, "Bookmarks per page updated");
+  const setInterfaceLanguage = (value: InterfaceLanguage) =>
+    saveDisplay({
+      interfaceLanguage: value,
+    }, "Interface language updated");
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Interface language</CardTitle>
+          <CardDescription>
+            Choose the language the interface is displayed in.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SegmentedToggleRow
+            label="Interface language"
+            options={LANGUAGE_OPTIONS}
+            value={display.interfaceLanguage}
+            onChange={setInterfaceLanguage}
+          />
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Theme</CardTitle>

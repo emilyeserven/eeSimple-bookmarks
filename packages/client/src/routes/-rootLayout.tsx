@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useOfflineToast } from "@/hooks/useOfflineToast";
 import { useServerUnreachableToast } from "@/hooks/useServerUnreachableToast";
+import { useSyncInterfaceLanguage } from "@/hooks/useSyncInterfaceLanguage";
 import { useUiStore } from "@/stores/uiStore";
 
 export function RootLayout() {
@@ -23,6 +24,8 @@ export function RootLayout() {
   useOfflineToast();
   // Show a Tailscale-specific warning when the browser is online but the app server is unreachable.
   useServerUnreachableToast();
+  // Keep i18next + document.lang in sync with the persisted interface-language setting.
+  useSyncInterfaceLanguage();
   // The quick-add popup is chrome-less: it renders the bare form (no sidebar/header/right panel) so
   // it fits a small popup window.
   const isQuickAdd = useRouterState({

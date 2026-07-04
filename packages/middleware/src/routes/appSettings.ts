@@ -13,7 +13,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { BOOKMARK_ADD_FORM_PLACEMENTS, IMPORT_BLACKLIST_KINDS, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
+import { BOOKMARK_ADD_FORM_PLACEMENTS, IMPORT_BLACKLIST_KINDS, INTERFACE_LANGUAGES, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import { getDatabaseTableDetail, getDatabaseUsageReport } from "@/services/databaseUsage";
 import {
@@ -328,6 +328,7 @@ const displayPreferenceBody = {
     "bookmarkDetailImageSize",
     "bookmarkDetailVideoSize",
     "bookmarkDetailLayout",
+    "interfaceLanguage",
     "filtersInDrawer",
     "filtersHidden",
     "panelPinned",
@@ -357,6 +358,10 @@ const displayPreferenceBody = {
     bookmarkDetailLayout: {
       type: "string",
       enum: ["single", "tabbed"],
+    },
+    interfaceLanguage: {
+      type: "string",
+      enum: [...INTERFACE_LANGUAGES],
     },
     filtersInDrawer: {
       type: "boolean",

@@ -495,7 +495,13 @@ export interface DisplayPreferenceSettings {
   screenshotDefaultWidth: number;
   screenshotDefaultHeight: number;
   screenshotDefaultScrollDistance: number;
+  /** The interface language driving i18next + `Intl` formatting. */
+  interfaceLanguage: InterfaceLanguage;
 }
+
+/** The interface locales the app can render in. */
+export const INTERFACE_LANGUAGES = ["en", "ja"] as const;
+export type InterfaceLanguage = typeof INTERFACE_LANGUAGES[number];
 
 /** Minimum allowed value for {@link DisplayPreferenceSettings.mapPinScale}. */
 export const MAP_PIN_SCALE_MIN = 0.5;
