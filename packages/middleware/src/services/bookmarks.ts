@@ -527,6 +527,61 @@ async function resolveCreateMediaTypeId(
   return mediaTypeId;
 }
 
+/** The FK columns of a new bookmark row resolved before/inside the create transaction. */
+interface ResolvedBookmarkRefs {
+  categoryId: string | null;
+  websiteId: string | null;
+  mediaTypeId: string | null;
+  youtubeChannelId: string | null;
+}
+
+/** The scalar (text/number) columns of a new bookmark row, coalescing absent inputs to null. */
+function newBookmarkScalarColumns(input: CreateBookmarkInput) {
+  return {
+    url: input.url ?? null,
+    originalUrl: input.originalUrl ?? null,
+    title: input.title,
+    romanizedName: input.romanizedName ?? null,
+    description: input.description ?? null,
+    newsletterId: input.newsletterId ?? null,
+    importId: input.importId ?? null,
+    groupId: input.groupId ?? null,
+    priority: input.priority ?? 0,
+    imageDisplayPreference: input.imageDisplayPreference ?? null,
+  };
+}
+
+/** The media-item link FK columns of a new bookmark row (book/movie/…/Kavita/Plex). */
+function newBookmarkMediaColumns(input: CreateBookmarkInput) {
+  return {
+    bookId: input.bookId ?? null,
+    movieId: input.movieId ?? null,
+    tvShowId: input.tvShowId ?? null,
+    episodeId: input.episodeId ?? null,
+    albumId: input.albumId ?? null,
+    trackId: input.trackId ?? null,
+    podcastId: input.podcastId ?? null,
+    kavitaSeriesId: input.kavitaSeriesId ?? null,
+    kavitaLibraryId: input.kavitaLibraryId ?? null,
+    kavitaSeriesName: input.kavitaSeriesName ?? null,
+    plexRatingKey: input.plexRatingKey ?? null,
+    plexItemType: input.plexItemType ?? null,
+    plexItemTitle: input.plexItemTitle ?? null,
+  };
+}
+
+/** The full `bookmarks` insert row: scalar + media columns merged with the resolved FK refs. */
+function buildBookmarkInsertValues(input: CreateBookmarkInput, refs: ResolvedBookmarkRefs) {
+  return {
+    ...newBookmarkScalarColumns(input),
+    ...newBookmarkMediaColumns(input),
+    categoryId: refs.categoryId,
+    websiteId: refs.websiteId,
+    mediaTypeId: refs.mediaTypeId,
+    youtubeChannelId: refs.youtubeChannelId,
+  };
+}
+
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
   if (input.url) {
     const existing = await db.select({
@@ -562,35 +617,12 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     const youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
     const [row] = await tx
       .insert(bookmarks)
-      .values({
-        url: input.url ?? null,
-        originalUrl: input.originalUrl ?? null,
-        title: input.title,
-        romanizedName: input.romanizedName ?? null,
-        description: input.description ?? null,
+      .values(buildBookmarkInsertValues(input, {
         categoryId,
         websiteId,
         mediaTypeId,
         youtubeChannelId,
-        newsletterId: input.newsletterId ?? null,
-        importId: input.importId ?? null,
-        groupId: input.groupId ?? null,
-        bookId: input.bookId ?? null,
-        movieId: input.movieId ?? null,
-        tvShowId: input.tvShowId ?? null,
-        episodeId: input.episodeId ?? null,
-        albumId: input.albumId ?? null,
-        trackId: input.trackId ?? null,
-        podcastId: input.podcastId ?? null,
-        kavitaSeriesId: input.kavitaSeriesId ?? null,
-        kavitaLibraryId: input.kavitaLibraryId ?? null,
-        kavitaSeriesName: input.kavitaSeriesName ?? null,
-        plexRatingKey: input.plexRatingKey ?? null,
-        plexItemType: input.plexItemType ?? null,
-        plexItemTitle: input.plexItemTitle ?? null,
-        priority: input.priority ?? 0,
-        imageDisplayPreference: input.imageDisplayPreference ?? null,
-      })
+      }))
       .returning({
         id: bookmarks.id,
       });
