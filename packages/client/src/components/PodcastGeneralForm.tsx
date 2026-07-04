@@ -9,14 +9,13 @@ import { z } from "zod";
 
 import { PodcastAuthorsFields } from "./PodcastAuthorsFields";
 import { PodcastSearchPicker } from "./PodcastSearchPicker";
-import { useEntityCreateOption } from "./useEntityCreateOption";
+import { TaxonomyGeneralFields } from "./TaxonomyGeneralFields";
 import { usePodcastAuthors } from "./usePodcastAuthors";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { usePodcastSyncRegistration } from "../hooks/usePodcastSyncRegistration";
 import { podcastLinkOptions } from "../lib/podcastLinks";
 
 import { Label } from "@/components/ui/label";
-import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { useUpdatePodcast } from "@/hooks/usePodcasts";
 import { podcastsApi } from "@/lib/api/taxonomies";
 import { notifyFieldSaved, notifyFieldSaveError } from "@/lib/autoSave";
@@ -60,9 +59,6 @@ export function PodcastGeneralForm({
 }: Props) {
   const navigate = useNavigate();
   const updatePodcast = useUpdatePodcast();
-  const {
-    data: mediaProperties,
-  } = useMediaProperties();
   const autoSave = useFieldAutoSave<UpdatePodcastInput, Podcast>({
     id: podcast.id,
     update: updatePodcast,
@@ -115,24 +111,6 @@ export function PodcastGeneralForm({
     groupIds: podcast.groupIds,
     onPersonIdsChange: savePeople,
     onGroupIdsChange: saveGroups,
-  });
-
-  const mediaPropertyCreate = useEntityCreateOption("media-property", (mediaProperty) => {
-    void updatePodcast.mutate(
-      {
-        id: podcast.id,
-        input: {
-          mediaPropertyId: mediaProperty.id,
-        },
-      },
-      {
-        onSuccess: () => notifyFieldSaved("Media property"),
-        onError: error => notifyFieldSaveError(
-          "Media property",
-          error instanceof Error ? error.message : undefined,
-        ),
-      },
-    );
   });
 
   const form = useAppForm({
@@ -264,86 +242,23 @@ export function PodcastGeneralForm({
   return (
     <div className="space-y-4">
       <PodcastSearchPicker onSelect={applyPickedPodcast} />
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-[1fr_8rem]
-        "
-      >
-        <form.AppField name="name">
-          {field => (
-            <field.TextField
-              label="Name"
-              onBlur={() => autoSave.saveField(
-                "name",
-                field.state.value.trim(),
-                {
-                  valid: field.state.meta.errors.length === 0,
-                  onSuccess: (updated) => {
-                    if (updated.slug !== podcast.slug) {
-                      void navigate({
-                        to: "/taxonomies/podcasts/$podcastSlug/edit/general",
-                        params: {
-                          podcastSlug: updated.slug,
-                        },
-                      });
-                    }
-                  },
-                },
-              )}
-            />
-          )}
-        </form.AppField>
-        <form.AppField name="sortOrder">
-          {field => (
-            <field.NumberField
-              label="Sort order"
-              hint="Lower sorts first."
-              onBlur={() => autoSave.saveField(
-                "sortOrder",
-                field.state.value,
-                {
-                  valid: field.state.meta.errors.length === 0,
-                },
-              )}
-            />
-          )}
-        </form.AppField>
-      </div>
-
-      <form.AppField name="romanizedName">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
-          />
-        )}
-      </form.AppField>
-
-      <form.AppField name="mediaPropertyId">
-        {field => (
-          <field.ComboboxField
-            label="Media property"
-            placeholder="No media property"
-            searchPlaceholder="Search media properties…"
-            emptyText="No media properties found."
-            createOption={mediaPropertyCreate.createOption}
-            options={(mediaProperties ?? []).map(prop => ({
-              value: prop.id,
-              label: prop.name,
-            }))}
-            onValueChange={value => autoSave.saveField(
-              "mediaPropertyId",
-              value || null,
-              {
-                valid: true,
-              },
-            )}
-          />
-        )}
-      </form.AppField>
-      {mediaPropertyCreate.modal}
+      <TaxonomyGeneralFields
+        form={form}
+        fields={{
+          name: "name",
+          romanizedName: "romanizedName",
+          sortOrder: "sortOrder",
+          mediaPropertyId: "mediaPropertyId",
+        }}
+        saveField={autoSave.saveField}
+        currentSlug={podcast.slug}
+        onRenamed={slug => void navigate({
+          to: "/taxonomies/podcasts/$podcastSlug/edit/general",
+          params: {
+            podcastSlug: slug,
+          },
+        })}
+      />
 
       <form.AppField name="feedUrl">
         {field => (
