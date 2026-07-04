@@ -1,5 +1,7 @@
 import type { Person } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreatePerson } from "../hooks/usePeople";
 
@@ -15,15 +17,18 @@ export function AddPersonModal({
   open, onOpenChange, onCreated,
 }: AddPersonModalProps) {
   const createPerson = useCreatePerson();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title="New person"
-      description="Give the person a name — you can assign them to bookmarks from the bookmark form."
-      placeholder="e.g. Jane Doe"
-      submitLabel="Add person"
+      title={t("New person")}
+      description={t("Give the person a name — you can assign them to bookmarks from the bookmark form.")}
+      placeholder={t("e.g. Jane Doe")}
+      submitLabel={t("Add person")}
       isError={createPerson.isError}
       errorMessage={createPerson.error?.message}
       onSubmit={(name, done) => {

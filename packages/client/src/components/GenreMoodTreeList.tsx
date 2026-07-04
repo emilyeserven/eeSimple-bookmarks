@@ -2,6 +2,7 @@ import type { GenreMoodNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { RomanizedLabel } from "./RomanizedLabel";
@@ -25,6 +26,9 @@ interface GenreMoodTreeListProps {
 export function GenreMoodTreeList({
   tree, expanded, onToggle, columns,
 }: GenreMoodTreeListProps) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -41,7 +45,9 @@ export function GenreMoodTreeList({
           params={{
             genreMoodSlug: node.slug,
           }}
-          title={`Show ${node.name} bookmarks`}
+          title={t("Show {{name}} bookmarks", {
+            name: node.name,
+          })}
           className="
             flex-1 truncate
             hover:underline
@@ -59,8 +65,12 @@ export function GenreMoodTreeList({
           params={{
             genreMoodSlug: node.slug,
           }}
-          aria-label={`Edit ${node.name}`}
-          title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          aria-label={t("Edit {{name}}", {
+            name: node.name,
+          })}
+          title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+            modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+          })}
           onClick={event => editClick(event, "genre-mood", node.id)}
         >
           <Pencil className="size-4" />
@@ -72,7 +82,9 @@ export function GenreMoodTreeList({
           params={{
             genreMoodSlug: node.slug,
           }}
-          aria-label={`View ${node.name}`}
+          aria-label={t("View {{name}}", {
+            name: node.name,
+          })}
           title={entityLinkTitle(modifier)}
           onClick={event => viewClick(event, "genre-mood", node.id, node.slug)}
         >

@@ -4,6 +4,8 @@ import type React from "react";
 
 import { Fragment, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { entriesFromDrafts } from "./entityNames/draftEntityName";
 import { EntityNamesEditor } from "./entityNames/EntityNamesEditor";
 import { tagSchema } from "./tagFormSchema";
@@ -67,6 +69,9 @@ export function TagForm({
   onSubmit,
   renderParentCreateModal,
 }: TagFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const [addTagOpen, setAddTagOpen] = useState(false);
   const [nameDrafts, setNameDrafts] = useState<DraftEntityName[]>([]);
   const parentOptions = tagNodesToOptions(allTags, forbiddenIds);
@@ -106,14 +111,14 @@ export function TagForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
-            placeholder="Tag name"
+            label={t("Name")}
+            placeholder={t("Tag name")}
           />
         )}
       </form.AppField>
 
       <div className="space-y-1">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesEditor
           value={nameDrafts}
           onChange={setNameDrafts}
@@ -126,17 +131,17 @@ export function TagForm({
             <form.AppField name="parent">
               {field => (
                 <field.TreeComboboxField
-                  label="Parent"
+                  label={t("Parent")}
                   options={parentOptions}
-                  placeholder="Choose a parent"
-                  searchPlaceholder="Search tags…"
-                  emptyText="No tags found."
+                  placeholder={t("Choose a parent")}
+                  searchPlaceholder={t("Search tags…")}
+                  emptyText={t("No tags found.")}
                   leadingOption={{
                     value: "",
-                    label: "(root)",
+                    label: t("(root)"),
                   }}
                   createOption={{
-                    label: "Create tag",
+                    label: t("Create tag"),
                     onSelect: () => setAddTagOpen(true),
                   }}
                 />

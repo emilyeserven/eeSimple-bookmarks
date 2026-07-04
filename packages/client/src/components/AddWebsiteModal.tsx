@@ -1,5 +1,6 @@
 import type { Website } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useCreateWebsite } from "../hooks/useWebsites";
@@ -30,6 +31,9 @@ export function AddWebsiteModal({
   onOpenChange,
   onCreated,
 }: AddWebsiteModalProps) {
+  const {
+    t,
+  } = useTranslation();
   const createWebsite = useCreateWebsite();
   const form = useAppForm({
     defaultValues: {
@@ -65,10 +69,9 @@ export function AddWebsiteModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New website</DialogTitle>
+          <DialogTitle>{t("New website")}</DialogTitle>
           <DialogDescription>
-            Websites are normally created automatically from bookmark URLs — use this to add one
-            by hand.
+            {t("Websites are normally created automatically from bookmark URLs — use this to add one by hand.")}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -82,7 +85,7 @@ export function AddWebsiteModal({
           <form.AppField name="domain">
             {field => (
               <field.TextField
-                label="Domain"
+                label={t("Domain")}
                 placeholder="example.com"
               />
             )}
@@ -90,8 +93,8 @@ export function AddWebsiteModal({
           <form.AppField name="siteName">
             {field => (
               <field.TextField
-                label="Site name (optional)"
-                placeholder="Defaults to the domain"
+                label={t("Site name (optional)")}
+                placeholder={t("Defaults to the domain")}
               />
             )}
           </form.AppField>
@@ -101,8 +104,8 @@ export function AddWebsiteModal({
           <DialogFooter>
             <form.AppForm>
               <form.SubmitButton
-                label="Add website"
-                pendingLabel="Adding…"
+                label={t("Add website")}
+                pendingLabel={t("Adding…")}
               />
             </form.AppForm>
           </DialogFooter>

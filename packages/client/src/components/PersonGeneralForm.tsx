@@ -1,6 +1,7 @@
 import type { Person, SocialLink } from "@eesimple/types";
 
 import { Sparkles, UserCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CreatorMediaSection } from "./CreatorMediaSection";
 import { EntityImageField } from "./EntityImageField";
@@ -26,6 +27,9 @@ export function PersonGeneralForm({
   person,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     form, avatarBusy, uploadAvatar, autoAvatar, deleteAvatar, adoptChannel, adoptWebsite,
     detectLinks, connectedChannelsWithImage, connectedWebsitesWithImage,
     saveField, saveName, detectSocialLinks, saveSocialLinks,
@@ -38,7 +42,7 @@ export function PersonGeneralForm({
   useImageTaxonomySyncRegistration({
     entityId: person.id,
     entityLabel: person.name,
-    sourceLabel: "Website",
+    sourceLabel: t("Website"),
     previewKind: "person",
     currentImageUrl: person.imageUrl ?? null,
     personSource: avatarSource ?? undefined,
@@ -55,14 +59,14 @@ export function PersonGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
+            label={t("Name")}
             onBlur={() => saveName(field.state.value, field.state.meta.errors.length === 0)}
           />
         )}
       </form.AppField>
 
       <div className="space-y-1">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesTabEditor
           ownerType="person"
           ownerId={person.id}
@@ -72,7 +76,7 @@ export function PersonGeneralForm({
       <form.AppField name="personWebsiteUrl">
         {field => (
           <field.TextField
-            label="Person website URL"
+            label={t("Person website URL")}
             type="url"
             placeholder="https://example.com"
             onBlur={() => saveField(
@@ -86,7 +90,7 @@ export function PersonGeneralForm({
       <form.AppField name="biographyUrl">
         {field => (
           <field.TextField
-            label="Biography URL"
+            label={t("Biography URL")}
             type="url"
             placeholder="https://example.com/bio"
             onBlur={() => saveField(
@@ -98,7 +102,7 @@ export function PersonGeneralForm({
       </form.AppField>
 
       <EntityImageField
-        label="Avatar"
+        label={t("Avatar")}
         imageUrl={person.imageUrl}
         shape="circle"
         fallback={<UserCircle className="size-5" />}
@@ -131,7 +135,7 @@ export function PersonGeneralForm({
           onClick={detectSocialLinks}
         >
           <Sparkles className="size-4" />
-          Detect social links from website
+          {t("Detect social links from website")}
         </Button>
       </div>
 

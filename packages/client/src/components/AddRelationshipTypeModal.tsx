@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateRelationshipType } from "../hooks/useRelationshipTypes";
 
@@ -19,15 +21,18 @@ export function AddRelationshipTypeModal({
 }: AddRelationshipTypeModalProps) {
   const createRelationshipType = useCreateRelationshipType();
   const [directional, setDirectional] = useState(false);
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title="New relationship type"
-      description="Directional types read as parent → child and power the Hierarchy view; symmetric types read the same from either bookmark."
-      placeholder="e.g. Inspiration"
-      submitLabel="Add relationship type"
+      title={t("New relationship type")}
+      description={t("Directional types read as parent → child and power the Hierarchy view; symmetric types read the same from either bookmark.")}
+      placeholder={t("e.g. Inspiration")}
+      submitLabel={t("Add relationship type")}
       isError={createRelationshipType.isError}
       errorMessage={createRelationshipType.error?.message}
       extraFields={(
@@ -35,9 +40,9 @@ export function AddRelationshipTypeModal({
           <Checkbox
             checked={directional}
             onCheckedChange={checked => setDirectional(checked === true)}
-            aria-label="Directional"
+            aria-label={t("Directional")}
           />
-          Directional
+          {t("Directional")}
         </label>
       )}
       onSubmit={(name, done) => {

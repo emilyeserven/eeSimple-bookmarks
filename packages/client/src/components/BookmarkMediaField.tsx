@@ -2,6 +2,7 @@ import type { MediaSelection } from "./useBookmarkMediaField";
 import type { Bookmark } from "@eesimple/types";
 
 import { ChevronRight, ChevronsUpDown, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { AddMediaTitleModal } from "./AddMediaTitleModal";
 import { BookmarkKavitaDetailLink } from "./BookmarkKavitaField";
@@ -43,12 +44,15 @@ export function BookmarkMediaField({
   onSelect,
   bookmark,
 }: BookmarkMediaFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   const ctrl = useBookmarkMediaField(value, onSelect, bookmark);
   const noMatches = ctrl.query.trim().length > 0 && ctrl.sections.every(section => section.items.length === 0);
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor="bookmark-media">Media</Label>
+      <Label htmlFor="bookmark-media">{t("Media")}</Label>
       <Popover
         open={ctrl.open}
         onOpenChange={ctrl.setOpen}
@@ -60,7 +64,7 @@ export function BookmarkMediaField({
             role="combobox"
             id="bookmark-media"
             aria-expanded={ctrl.open}
-            aria-label="Media"
+            aria-label={t("Media")}
             className="w-full justify-between font-normal"
           >
             <span
@@ -68,7 +72,7 @@ export function BookmarkMediaField({
                 text-muted-foreground
               `)}
             >
-              {ctrl.selectedLabel ?? "No media"}
+              {ctrl.selectedLabel ?? t("No media")}
             </span>
             <ChevronsUpDown className="opacity-50" />
           </Button>
@@ -81,7 +85,7 @@ export function BookmarkMediaField({
           align="start"
         >
           <Input
-            placeholder="Search books, movies, shows, episodes, albums, tracks…"
+            placeholder={t("Search books, movies, shows, episodes, albums, tracks…")}
             value={ctrl.query}
             onChange={event => ctrl.setQuery(event.target.value)}
           />
@@ -136,7 +140,7 @@ export function BookmarkMediaField({
           {noMatches
             ? (
               <p className="px-2 py-1.5 text-xs text-muted-foreground">
-                No matching items found.
+                {t("No matching items found.")}
               </p>
             )
             : null}
@@ -154,7 +158,7 @@ export function BookmarkMediaField({
             }}
           >
             <Plus className="size-4 shrink-0" />
-            Create title…
+            {t("Create title…")}
           </button>
         </PopoverContent>
       </Popover>
@@ -166,7 +170,7 @@ export function BookmarkMediaField({
       {ctrl.showLegacyKavita && bookmark
         ? (
           <p className="text-xs text-muted-foreground">
-            Legacy Kavita link:
+            {t("Legacy Kavita link:")}
             {" "}
             <BookmarkKavitaDetailLink bookmark={bookmark} />
           </p>
@@ -175,7 +179,7 @@ export function BookmarkMediaField({
       {ctrl.showLegacyPlex && bookmark
         ? (
           <p className="text-xs text-muted-foreground">
-            Legacy Plex link:
+            {t("Legacy Plex link:")}
             {" "}
             <BookmarkPlexDetailLink bookmark={bookmark} />
           </p>

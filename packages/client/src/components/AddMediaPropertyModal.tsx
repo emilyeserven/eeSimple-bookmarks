@@ -1,5 +1,7 @@
 import type { MediaProperty } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateMediaProperty } from "../hooks/useMediaProperties";
 
@@ -15,15 +17,18 @@ export function AddMediaPropertyModal({
   open, onOpenChange, onCreated,
 }: AddMediaPropertyModalProps) {
   const createMediaProperty = useCreateMediaProperty();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title="New media property"
-      description="Give the media property a name — you can set its sort order later from its edit page."
-      placeholder="e.g. The Lord of the Rings"
-      submitLabel="Add media property"
+      title={t("New media property")}
+      description={t("Give the media property a name — you can set its sort order later from its edit page.")}
+      placeholder={t("e.g. The Lord of the Rings")}
+      submitLabel={t("Add media property")}
       isError={createMediaProperty.isError}
       errorMessage={createMediaProperty.error?.message}
       onSubmit={(name, done) => {

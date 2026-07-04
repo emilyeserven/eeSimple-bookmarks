@@ -3,6 +3,7 @@ import type { HomepageSection, UpdateHomepageSectionInput } from "@eesimple/type
 import { useEffect, useRef, useState } from "react";
 
 import { ChevronDown, EyeOff, GripVertical, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { HomepageSectionForm } from "./HomepageSectionForm";
 import { HomepageSectionView } from "./HomepageSectionView";
@@ -32,6 +33,9 @@ const AUTOSAVE_DELAY_MS = 800;
 export function HomepageSectionCard({
   section, dragHandleProps, isDragging,
 }: HomepageSectionCardProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const update = useUpdateHomepageSection();
@@ -84,7 +88,7 @@ export function HomepageSectionCard({
             cursor-grab touch-none text-muted-foreground
             hover:text-foreground
           "
-          aria-label="Drag to reorder"
+          aria-label={t("Drag to reorder")}
           {...dragHandleProps}
         >
           <GripVertical className="size-4" />
@@ -94,7 +98,7 @@ export function HomepageSectionCard({
           {section.hideIfEmpty && (
             <EyeOff
               className="ml-1.5 inline size-3.5 text-muted-foreground"
-              aria-label="Hides when empty"
+              aria-label={t("Hides when empty")}
             />
           )}
         </span>
@@ -104,7 +108,7 @@ export function HomepageSectionCard({
             variant="ghost"
             size="icon"
             className="size-8"
-            aria-label="Edit section"
+            aria-label={t("Edit section")}
             onClick={startEditing}
           >
             <Pencil className="size-4" />
@@ -116,7 +120,7 @@ export function HomepageSectionCard({
             variant="ghost"
             size="icon"
             className="size-8"
-            aria-label={open ? "Collapse section" : "Expand section"}
+            aria-label={open ? t("Collapse section") : t("Expand section")}
           >
             <ChevronDown
               className={cn(
@@ -136,7 +140,9 @@ export function HomepageSectionCard({
               onChange={handleFieldChange}
               onCancel={() => setEditing(false)}
               onDelete={() => {
-                if (confirm(`Delete section "${section.title}"?`)) {
+                if (confirm(t("Delete section \"{{title}}\"?", {
+                  title: section.title,
+                }))) {
                   remove.mutate(section.id);
                 }
               }}

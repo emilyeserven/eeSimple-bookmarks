@@ -2,6 +2,8 @@ import type { YouTubeChannelHint } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { SelfIdsField } from "./SelfIdsField";
 
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +35,9 @@ export function WebsiteLookupBanner({
   data, isYouTube, youtubeChannel, onChannelSelfIdsChange,
   websiteSiteName, onSiteNameChange, onSiteNameBlur,
 }: WebsiteLookupBannerProps) {
+  const {
+    t,
+  } = useTranslation();
   const [newSelfId, setNewSelfId] = useState("");
 
   if (!data?.domain) return null;
@@ -61,17 +66,17 @@ export function WebsiteLookupBanner({
           {data.exists
             ? (
               <>
-                <Badge variant="secondary">Existing site</Badge>
+                <Badge variant="secondary">{t("Existing site")}</Badge>
                 <span>{data.siteName}</span>
               </>
             )
             : (
               <>
-                <Badge variant="outline">New site</Badge>
+                <Badge variant="outline">{t("New site")}</Badge>
                 <span>
-                  {data.domain}
-                  {" "}
-                  will be added
+                  {t("{{domain}} will be added", {
+                    domain: data.domain,
+                  })}
                 </span>
               </>
             )}
@@ -87,12 +92,12 @@ export function WebsiteLookupBanner({
                     flex items-center gap-2 text-sm text-muted-foreground
                   "
                 >
-                  <Badge variant="secondary">YouTube channel</Badge>
+                  <Badge variant="secondary">{t("YouTube channel")}</Badge>
                   <span>{youtubeChannel.name}</span>
                 </p>
                 <SelfIdsField
-                  label="Channel self-identifiers"
-                  description="Short names this channel appends to video titles (e.g. “SNL”). They are stripped from the bookmark title automatically."
+                  label={t("Channel self-identifiers")}
+                  description={t("Short names this channel appends to video titles (e.g. “SNL”). They are stripped from the bookmark title automatically.")}
                   selfIds={youtubeChannel.selfIds ?? []}
                   newSelfId={newSelfId}
                   onNewSelfIdChange={setNewSelfId}
@@ -111,7 +116,7 @@ export function WebsiteLookupBanner({
                   htmlFor="website-site-name"
                   className="mb-1 block text-sm"
                 >
-                  Site name
+                  {t("Site name")}
                 </Label>
                 <Input
                   id="website-site-name"

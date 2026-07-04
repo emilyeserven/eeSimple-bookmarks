@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { NO_LEVEL_MAP_COLOR, placeTypeKey } from "@eesimple/types";
 import { Pencil, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { DeletePlaceTypeDialog } from "./DeletePlaceTypeDialog";
 import { useCreatePlaceType, usePlaceTypes, useUpdatePlaceType } from "../hooks/usePlaceTypes";
@@ -20,6 +21,9 @@ interface PlaceTypesCardProps {
 export function PlaceTypesCard({
   groups,
 }: PlaceTypesCardProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: placeTypesData, isLoading,
   } = usePlaceTypes();
@@ -83,12 +87,12 @@ export function PlaceTypesCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Place Types</CardTitle>
+        <CardTitle className="text-base">{t("Place Types")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input
-            placeholder="New place type…"
+            placeholder={t("New place type…")}
             value={newName}
             onChange={e => setNewName(e.target.value)}
             onKeyDown={(e) => {
@@ -102,16 +106,16 @@ export function PlaceTypesCard({
             onClick={handleAdd}
             disabled={!newName.trim() || createPlaceType.isPending}
           >
-            Add
+            {t("Add")}
           </Button>
         </div>
 
-        {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
+        {isLoading ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p> : null}
 
         {!isLoading && sorted.length === 0
           ? (
             <p className="text-sm text-muted-foreground">
-              No place types yet. Add one to start classifying your locations.
+              {t("No place types yet. Add one to start classifying your locations.")}
             </p>
           )
           : null}
@@ -159,9 +163,11 @@ export function PlaceTypesCard({
                               color: NO_LEVEL_MAP_COLOR,
                               borderColor: NO_LEVEL_MAP_COLOR,
                             }}
-                            title={`${pt.name} isn’t assigned to any level`}
+                            title={t("{{name}} isn’t assigned to any level", {
+                              name: pt.name,
+                            })}
                           >
-                            No level
+                            {t("No level")}
                           </span>
                         )
                         : null}

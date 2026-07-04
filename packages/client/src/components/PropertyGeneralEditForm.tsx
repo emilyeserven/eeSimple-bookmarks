@@ -1,6 +1,7 @@
 import type { CustomProperty, UpdateCustomPropertyInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TYPE_OPTIONS, propertySchema, valuesFromProperty } from "./propertyFormParts";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
@@ -29,6 +30,9 @@ interface PropertyGeneralEditFormProps {
 export function PropertyGeneralEditForm({
   property,
 }: PropertyGeneralEditFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const tLabel = useTranslatedLabel();
   const typeOptions = TYPE_OPTIONS.map(option => ({
     ...option,
@@ -66,8 +70,8 @@ export function PropertyGeneralEditForm({
         <form.AppField name="name">
           {field => (
             <field.TextField
-              label="Name"
-              placeholder="e.g. Priority"
+              label={t("Name")}
+              placeholder={t("e.g. Priority")}
               onBlur={() => autoSave.saveField(
                 "name",
                 field.state.value.trim(),
@@ -93,7 +97,7 @@ export function PropertyGeneralEditForm({
         <form.AppField name="type">
           {field => (
             <field.SelectField
-              label="Type"
+              label={t("Type")}
               options={typeOptions}
               disabled
             />
@@ -115,10 +119,10 @@ export function PropertyGeneralEditForm({
                   autoSave.saveField("enabled", next);
                 }}
               />
-              <Label htmlFor={`property-${property.id}-enabled`}>Property is active</Label>
+              <Label htmlFor={`property-${property.id}-enabled`}>{t("Property is active")}</Label>
             </div>
             {isBuiltIn
-              ? <p className="text-xs text-muted-foreground">Built-in properties can&apos;t be disabled.</p>
+              ? <p className="text-xs text-muted-foreground">{t("Built-in properties can't be disabled.")}</p>
               : null}
           </div>
         )}
@@ -127,8 +131,8 @@ export function PropertyGeneralEditForm({
       <form.AppField name="description">
         {field => (
           <field.TextareaField
-            label="Description"
-            placeholder="Optional — shown as a hint where this property appears."
+            label={t("Description")}
+            placeholder={t("Optional — shown as a hint where this property appears.")}
             rows={2}
             onBlur={() => autoSave.saveField(
               "description",

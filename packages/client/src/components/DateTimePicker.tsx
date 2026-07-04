@@ -1,6 +1,7 @@
 import type { DateTimeFormat } from "@eesimple/types";
 
 import { CalendarIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -36,6 +37,9 @@ interface DateTimePickerProps {
 export function DateTimePicker({
   format, value, onChange, id, placeholder, className,
 }: DateTimePickerProps) {
+  const {
+    t,
+  } = useTranslation();
   const locale = useAppLocale();
   const datePart = parseDatePart(value);
   const timePart = parseTimePart(value);
@@ -53,7 +57,7 @@ export function DateTimePicker({
     );
   }
 
-  const label = value ? formatDateTimeValue(value, format, locale) : (placeholder ?? "Pick a date");
+  const label = value ? formatDateTimeValue(value, format, locale) : (placeholder ?? t("Pick a date"));
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -119,6 +123,9 @@ interface DateTimeRangeFieldsProps {
 export function DateTimeRangeFields({
   format, from, to, onChange, layout = "stack",
 }: DateTimeRangeFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div
       className={cn(
@@ -131,11 +138,11 @@ export function DateTimeRangeFields({
       )}
     >
       <div className="space-y-1">
-        <Label className="text-xs text-muted-foreground">From</Label>
+        <Label className="text-xs text-muted-foreground">{t("From")}</Label>
         <DateTimePicker
           format={format}
           value={from}
-          placeholder="Any"
+          placeholder={t("Any")}
           onChange={next => onChange({
             from: next,
             to,
@@ -143,11 +150,11 @@ export function DateTimeRangeFields({
         />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs text-muted-foreground">To</Label>
+        <Label className="text-xs text-muted-foreground">{t("To")}</Label>
         <DateTimePicker
           format={format}
           value={to}
-          placeholder="Any"
+          placeholder={t("Any")}
           onChange={next => onChange({
             from,
             to: next,
