@@ -2,6 +2,8 @@ import type { CreatedMediaTitle, MediaTaxoKey } from "./useBookmarkMediaField";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { BookForm } from "./BookForm";
 import { PlexTitleForm } from "./PlexTitleForm";
 import { PodcastForm } from "./PodcastForm";
@@ -75,8 +77,20 @@ interface AddMediaTitleModalProps {
 export function AddMediaTitleModal({
   open, onOpenChange, onCreated,
 }: AddMediaTitleModalProps) {
+  const {
+    t,
+  } = useTranslation();
   const [kind, setKind] = useState<CreateKind>("book");
   const active = KIND_OPTIONS.find(option => option.kind === kind) ?? KIND_OPTIONS[0];
+  const KIND_LABELS: Record<CreateKind, string> = {
+    book: t("Book"),
+    podcast: t("Podcast"),
+    movie: t("Movie"),
+    show: t("TV Show"),
+    episode: t("Episode"),
+    album: t("Album"),
+    track: t("Track"),
+  };
 
   return (
     <Dialog
@@ -85,10 +99,9 @@ export function AddMediaTitleModal({
     >
       <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>New media title</DialogTitle>
+          <DialogTitle>{t("New media title")}</DialogTitle>
           <DialogDescription>
-            Create a book, movie, TV show, episode, album, or track — or look it up on
-            Kavita or Plex to fill in its details automatically.
+            {t("Create a book, movie, TV show, episode, album, or track — or look it up on Kavita or Plex to fill in its details automatically.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -105,7 +118,7 @@ export function AddMediaTitleModal({
               key={option.kind}
               value={option.kind}
             >
-              {option.label}
+              {KIND_LABELS[option.kind]}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>

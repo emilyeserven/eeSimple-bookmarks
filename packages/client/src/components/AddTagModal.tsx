@@ -1,5 +1,7 @@
 import type { Tag } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { TagForm } from "./TagForm";
 import { useCreateEntityNames } from "../hooks/useEntityNames";
 import { useCreateTag, useTagTree } from "../hooks/useTags";
@@ -27,6 +29,9 @@ export function AddTagModal({
   open, onOpenChange, onCreated, showParent = true, defaultParentId = null,
 }: AddTagModalProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tree,
   } = useTagTree();
   const createTag = useCreateTag();
@@ -39,11 +44,11 @@ export function AddTagModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{showParent ? "New tag" : "New sub-tag"}</DialogTitle>
+          <DialogTitle>{showParent ? t("New tag") : t("New sub-tag")}</DialogTitle>
           <DialogDescription>
             {showParent
-              ? "Create a root tag or a subtag under an existing parent."
-              : "Create a subtag under the current tag."}
+              ? t("Create a root tag or a subtag under an existing parent.")
+              : t("Create a subtag under the current tag.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -51,8 +56,8 @@ export function AddTagModal({
           allTags={tree ?? []}
           showParent={showParent}
           defaultParentId={defaultParentId}
-          submitLabel="Add tag"
-          pendingLabel="Adding…"
+          submitLabel={t("Add tag")}
+          pendingLabel={t("Adding…")}
           SubmitWrapper={DialogFooter}
           isError={createTag.isError}
           errorMessage={createTag.error?.message}

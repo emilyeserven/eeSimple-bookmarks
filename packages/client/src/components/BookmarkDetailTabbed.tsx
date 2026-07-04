@@ -3,6 +3,8 @@ import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimpl
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
 import { navLinkClass, navStripClass } from "./TabbedShell";
 import { useBookmarks } from "../hooks/useBookmarks";
@@ -31,6 +33,9 @@ export function BookmarkDetailTabbed({
   bookmark, categories, properties, propertyGroups, onSaveBoolean,
 }: BookmarkDetailTabbedProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allBookmarks,
   } = useBookmarks();
   const {
@@ -57,7 +62,7 @@ export function BookmarkDetailTabbed({
     <div className="min-w-0 flex-1 space-y-4">
       <nav
         className={navStripClass}
-        aria-label="Bookmark sections"
+        aria-label={t("Bookmark sections")}
       >
         {sections.map(tab => (
           <button

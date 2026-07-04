@@ -6,15 +6,16 @@ import { useEffect, useRef } from "react";
 import { PropertyDisplaySection, propertySchema, valuesFromProperty } from "./propertyFormParts";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import i18n from "../i18n";
 import { useAppForm } from "../lib/form";
 
 const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
-  propertyGroupId: "Group",
-  showInListings: "Bookmark listings",
-  showInDetails: "Details page",
-  editableOnCard: "Card editing",
-  editableViaCmdk: "CMD+K editing",
-  enabledInInbox: "Inbox pre-fill",
+  propertyGroupId: i18n.t("Group"),
+  showInListings: i18n.t("Bookmark listings"),
+  showInDetails: i18n.t("Details page"),
+  editableOnCard: i18n.t("Card editing"),
+  editableViaCmdk: i18n.t("CMD+K editing"),
+  enabledInInbox: i18n.t("Inbox pre-fill"),
 };
 
 /** The display form values that auto-save, mapped to their `UpdateCustomPropertyInput` payload key. */

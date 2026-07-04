@@ -1,40 +1,42 @@
 import type { ImportRule, ImportRuleAction, UpdateImportRuleInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateImportRule } from "../hooks/useImportRules";
+import i18n from "../i18n";
 import { useAppForm } from "../lib/form";
 
 const ACTION_OPTIONS: { value: ImportRuleAction;
   label: string; }[] = [
   {
     value: "approve",
-    label: "Approve — create the bookmark automatically",
+    label: i18n.t("Approve — create the bookmark automatically"),
   },
   {
     value: "reject",
-    label: "Reject — mark the item rejected (skip review)",
+    label: i18n.t("Reject — mark the item rejected (skip review)"),
   },
   {
     value: "block",
-    label: "Block — add domain to blacklist and mark blocked",
+    label: i18n.t("Block — add domain to blacklist and mark blocked"),
   },
 ];
 
 const schema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
+  name: z.string().trim().min(1, i18n.t("Name is required")),
   description: z.string(),
   action: z.enum(["approve", "reject", "block"]),
   sortOrder: z.number().int(),
 });
 
 const LABELS: Partial<Record<keyof UpdateImportRuleInput, string>> = {
-  name: "Name",
-  description: "Description",
-  action: "Action",
-  sortOrder: "Priority",
+  name: i18n.t("Name"),
+  description: i18n.t("Description"),
+  action: i18n.t("Action"),
+  sortOrder: i18n.t("Priority"),
 };
 
 interface Props {
@@ -48,6 +50,9 @@ interface Props {
 export function ImportRuleGeneralForm({
   rule,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateRule = useUpdateImportRule();
   const autoSave = useFieldAutoSave<UpdateImportRuleInput, ImportRule>({
@@ -79,8 +84,8 @@ export function ImportRuleGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
-            placeholder="e.g. Block social media"
+            label={t("Name")}
+            placeholder={t("e.g. Block social media")}
             onBlur={() => autoSave.saveField(
               "name",
               field.state.value.trim(),
@@ -105,7 +110,7 @@ export function ImportRuleGeneralForm({
       <form.AppField name="description">
         {field => (
           <field.TextareaField
-            label="Description"
+            label={t("Description")}
             onBlur={() => autoSave.saveField(
               "description",
               field.state.value.trim() || null,
@@ -120,7 +125,7 @@ export function ImportRuleGeneralForm({
       <form.AppField name="action">
         {field => (
           <field.SelectField
-            label="Action"
+            label={t("Action")}
             options={ACTION_OPTIONS}
             onValueChange={value => autoSave.saveField(
               "action",
@@ -136,9 +141,9 @@ export function ImportRuleGeneralForm({
       <form.AppField name="sortOrder">
         {field => (
           <field.NumberField
-            label="Priority"
+            label={t("Priority")}
             className="max-w-32"
-            hint="Lower numbers run first; the first matching rule wins."
+            hint={t("Lower numbers run first; the first matching rule wins.")}
             onBlur={() => autoSave.saveField(
               "sortOrder",
               field.state.value,

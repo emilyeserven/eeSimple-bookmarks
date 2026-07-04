@@ -1,6 +1,7 @@
 import type { HomepageSectionBookmarks, CustomProperty } from "@eesimple/types";
 
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkCard } from "./BookmarkCard";
 import { HomepageSectionTable } from "./HomepageSectionTable";
@@ -22,6 +23,9 @@ interface HomepageSectionBlockProps {
 export function HomepageSectionBlock({
   data, customProperties,
 }: HomepageSectionBlockProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     section, bookmarks: unsortedBookmarks,
   } = data;
@@ -68,7 +72,13 @@ export function HomepageSectionBlock({
           variant="ghost"
           size="icon"
           className="shrink-0"
-          aria-label={isCollapsed ? `Expand ${section.title}` : `Collapse ${section.title}`}
+          aria-label={isCollapsed
+            ? t("Expand {{name}}", {
+              name: section.title,
+            })
+            : t("Collapse {{name}}", {
+              name: section.title,
+            })}
           onClick={() => toggle(section.id)}
         >
           {isCollapsed
@@ -81,7 +91,7 @@ export function HomepageSectionBlock({
         bookmarks.length === 0
           ? (
             <p className="text-sm text-muted-foreground">
-              No bookmarks match this section&rsquo;s filter.
+              {t("No bookmarks match this section’s filter.")}
             </p>
           )
           : section.viewMode === "table"

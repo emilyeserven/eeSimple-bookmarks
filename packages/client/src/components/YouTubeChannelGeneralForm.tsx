@@ -2,6 +2,7 @@ import type { YouTubeChannel } from "@eesimple/types";
 
 import { channelUrlFromKey } from "@eesimple/types";
 import { MonitorPlay } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { ChannelGroupsField } from "./ChannelGroupsField";
 import { ChannelWebsitesField } from "./ChannelWebsitesField";
@@ -23,6 +24,9 @@ interface Props {
 export function YouTubeChannelGeneralForm({
   channel,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const {
     form, avatarBusy, selfIds, newSelfId, setNewSelfId, tagIds,
     saveField, saveName, addSelfId, removeSelfId, toggleTag,
@@ -47,14 +51,14 @@ export function YouTubeChannelGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Channel name"
+            label={t("Channel name")}
             onBlur={() => saveName(field.state.value, field.state.meta.errors.length === 0)}
           />
         )}
       </form.AppField>
 
       <EntityImageField
-        label="Avatar"
+        label={t("Avatar")}
         imageUrl={channel.imageUrl}
         shape="circle"
         fallback={<MonitorPlay className="size-5" />}
@@ -67,7 +71,7 @@ export function YouTubeChannelGeneralForm({
           id: channel.id,
           sourceUrl: channelUrlFromKey(channel.channelKey),
         })}
-        autoLabel="Fetch avatar"
+        autoLabel={t("Fetch avatar")}
         onRemove={() => deleteAvatar.mutate(channel.id)}
       />
 
@@ -76,7 +80,7 @@ export function YouTubeChannelGeneralForm({
         categoryOptions={categoryOptions}
         onCategoryChange={id => saveField("categoryId", id)}
         showMediaType={false}
-        note="Category applied automatically to bookmarks saved from this channel."
+        note={t("Category applied automatically to bookmarks saved from this channel.")}
       />
 
       <Separator />
@@ -87,7 +91,7 @@ export function YouTubeChannelGeneralForm({
         onNewSelfIdChange={setNewSelfId}
         onAdd={addSelfId}
         onRemove={removeSelfId}
-        description="Short names this channel appends to video titles (e.g. “SNL”). Stripped automatically when a bookmark title is fetched."
+        description={t("Short names this channel appends to video titles (e.g. “SNL”). Stripped automatically when a bookmark title is fetched.")}
       />
 
       <Separator />
@@ -96,7 +100,7 @@ export function YouTubeChannelGeneralForm({
         tree={tagTree}
         selectedIds={tagIds}
         onToggle={toggleTag}
-        description="Tags applied automatically to bookmarks saved from this channel."
+        description={t("Tags applied automatically to bookmarks saved from this channel.")}
         categoryId={channel.category?.id ?? null}
       />
 

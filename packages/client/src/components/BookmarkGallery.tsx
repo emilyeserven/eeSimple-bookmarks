@@ -2,6 +2,8 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { cn } from "@/lib/utils";
 
 interface BookmarkGalleryProps {
@@ -18,6 +20,9 @@ interface BookmarkGalleryProps {
 export function BookmarkGallery({
   bookmark,
 }: BookmarkGalleryProps) {
+  const {
+    t,
+  } = useTranslation();
   const images = bookmark.screenshot
     ? [...bookmark.images, bookmark.screenshot]
     : bookmark.images;
@@ -49,7 +54,7 @@ export function BookmarkGallery({
               <button
                 key={img.id}
                 type="button"
-                aria-label={img.isMain ? "Main image" : img.source === "screenshot" ? "Page screenshot" : "Show image"}
+                aria-label={img.isMain ? t("Main image") : img.source === "screenshot" ? t("Page screenshot") : t("Show image")}
                 aria-pressed={img.id === selected.id}
                 onClick={() => setSelectedId(img.id)}
                 className={cn(

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { Link, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TabbedShell, navLinkClass } from "./TabbedShell";
 
@@ -71,6 +72,9 @@ function MoreMenu({
   group: TabNavGroup;
   params?: LinkProps["params"];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const matchRoute = useMatchRoute();
   const isActive = group.items.some(item => Boolean(matchRoute({
     to: item.to,
@@ -88,7 +92,7 @@ function MoreMenu({
             isActive && "bg-accent text-accent-foreground",
           )}
         >
-          More
+          {t("More")}
           <ChevronDown className="size-4" />
         </button>
       </DropdownMenuTrigger>

@@ -1,6 +1,7 @@
 import type { createTaxonomyImageApi } from "../lib/api/taxonomyImages";
 
 import { Clapperboard } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TaxonomyImageGallery } from "./TaxonomyImageGallery";
 import { useConnectors } from "../hooks/useConnectors";
@@ -34,6 +35,9 @@ export function PlexTaxonomyImageTab<E extends PlexTaxonomyEntity>({
   readOnly = false,
 }: PlexTaxonomyImageTabProps<E>) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: connectors,
   } = useConnectors();
   const gallery = useTaxonomyImages(imagesApi, entity.id, [queryKeyPrefix, entity.id]);
@@ -45,8 +49,8 @@ export function PlexTaxonomyImageTab<E extends PlexTaxonomyEntity>({
   const canSyncPlex = !readOnly && Boolean(connectors?.plex.enabled) && entity.plexRatingKey !== null;
   useImageTaxonomySyncRegistration({
     entityId: entity.id,
-    entityLabel: entity.plexItemTitle ?? "Plex item",
-    sourceLabel: "Plex",
+    entityLabel: entity.plexItemTitle ?? t("Plex item"),
+    sourceLabel: t("Plex"),
     previewKind: "plex",
     currentImageUrl: currentMainImageUrl,
     plexRatingKey: entity.plexRatingKey,
@@ -61,7 +65,7 @@ export function PlexTaxonomyImageTab<E extends PlexTaxonomyEntity>({
       autoFetchActions={[
         {
           source: "plex-poster",
-          label: "Use Plex poster",
+          label: t("Use Plex poster"),
           icon: Clapperboard,
           enabled: Boolean(connectors?.plex.enabled) && entity.plexRatingKey !== null,
         },

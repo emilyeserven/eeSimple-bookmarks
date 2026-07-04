@@ -1,5 +1,7 @@
 import type { WebsiteParamRule } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 interface ParamRulesListProps {
   rules: WebsiteParamRule[];
   /** Text shown when there are no rules. */
@@ -13,6 +15,9 @@ interface ParamRulesListProps {
 export function ParamRulesList({
   rules, emptyText,
 }: ParamRulesListProps) {
+  const {
+    t,
+  } = useTranslation();
   if (rules.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyText}</p>;
   }
@@ -23,10 +28,10 @@ export function ParamRulesList({
           key={index}
           className="rounded-md border p-2"
         >
-          <span className="font-mono">{rule.pathSuffix || "any path"}</span>
+          <span className="font-mono">{rule.pathSuffix || t("any path")}</span>
           <span className="text-muted-foreground"> → </span>
           <span className="font-mono">
-            {rule.params.length > 0 ? rule.params.join(", ") : "(none kept)"}
+            {rule.params.length > 0 ? rule.params.join(", ") : t("(none kept)")}
           </span>
         </li>
       ))}

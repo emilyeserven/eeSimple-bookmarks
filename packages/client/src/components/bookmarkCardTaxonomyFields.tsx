@@ -12,6 +12,7 @@ import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
 
 import { Badge } from "@/components/ui/badge";
+import i18n from "@/i18n";
 
 /**
  * How one field can render in the card body. `inline` is its compact pill/badge form (the `label`
@@ -40,7 +41,7 @@ function categoryField({
   return {
     inline: pill,
     block: pill,
-    tableName: "Category",
+    tableName: i18n.t("Category"),
     tableValue: <span className="text-sm">{bookmarkCategory.name}</span>,
   };
 }
@@ -61,7 +62,7 @@ function websiteField({
   return {
     inline: pill,
     block: pill,
-    tableName: "Website",
+    tableName: i18n.t("Website"),
     tableValue: <span className="text-sm">{website.siteName}</span>,
   };
 }
@@ -83,7 +84,7 @@ function mediaTypeField({
   return {
     inline: pill,
     block: pill,
-    tableName: "Media Type",
+    tableName: i18n.t("Media Type"),
     tableValue: <span className="text-sm">{mediaType.name}</span>,
   };
 }
@@ -104,7 +105,7 @@ function youtubeChannelField({
   return {
     inline: pill,
     block: pill,
-    tableName: "YouTube Channel",
+    tableName: i18n.t("YouTube Channel"),
     tableValue: <span className="text-sm">{youtubeChannel.name}</span>,
   };
 }
@@ -127,7 +128,7 @@ function tagsField({
   return {
     inline: null,
     block: box,
-    tableName: "Tags",
+    tableName: i18n.t("Tags"),
     tableValue: clickableTags
       ? (
         <BookmarkTagLinks
@@ -171,7 +172,7 @@ function genreMoodsField({
   return {
     inline: badges,
     block: badges,
-    tableName: "Genres & Moods",
+    tableName: i18n.t("Genres & Moods"),
     tableValue: <span className="text-sm">{bookmark.genreMoods.map(entry => entry.name).join(", ")}</span>,
   };
 }
@@ -193,7 +194,7 @@ function locationsField({
   return {
     inline: badges,
     block: badges,
-    tableName: "Locations",
+    tableName: i18n.t("Locations"),
     tableValue: (
       <BookmarkLocationLinks
         locations={bookmark.locations}
@@ -211,7 +212,7 @@ function peopleField({
   return {
     inline: badges,
     block: badges,
-    tableName: "People",
+    tableName: i18n.t("People"),
     tableValue: <BookmarkPeopleLinks people={bookmark.people} />,
   };
 }
@@ -224,7 +225,7 @@ function groupsField({
   return {
     inline: badges,
     block: badges,
-    tableName: "Groups",
+    tableName: i18n.t("Groups"),
     tableValue: <BookmarkGroupLinks groups={bookmark.groups} />,
   };
 }

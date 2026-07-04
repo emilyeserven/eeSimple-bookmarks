@@ -1,6 +1,7 @@
 import type { ComboboxOption } from "./Combobox";
 
 import { Ban, Circle, CircleDot, CircleMinus, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Badge } from "./ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
@@ -20,7 +21,7 @@ const collapseWhenInactive = `
  * entity-specific states.
  */
 export function FacetPresenceToggle({
-  value, onChange, hasLabel, missingLabel, excludeLabel = "Excludes selected values",
+  value, onChange, hasLabel, missingLabel, excludeLabel,
 }: {
   value: "has" | "missing" | "exclude" | undefined;
   onChange: (mode: "has" | "missing" | "exclude" | undefined) => void;
@@ -28,11 +29,15 @@ export function FacetPresenceToggle({
   missingLabel: string;
   excludeLabel?: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const toggleValue = value ?? "any";
+  const resolvedExcludeLabel = excludeLabel ?? t("Excludes selected values");
   const options = [
     {
       value: "any",
-      label: "Any",
+      label: t("Any"),
       Icon: Circle,
     },
     {
@@ -47,7 +52,7 @@ export function FacetPresenceToggle({
     },
     {
       value: "exclude",
-      label: excludeLabel,
+      label: resolvedExcludeLabel,
       Icon: CircleMinus,
     },
   ] as const;
@@ -94,6 +99,9 @@ export function FacetChips({
   values: string[];
   onValuesChange: (values: string[]) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const selectedSet = new Set(values);
   const selectedOptions = options.filter(option => selectedSet.has(option.value));
   if (selectedOptions.length === 0) return null;
@@ -110,7 +118,9 @@ export function FacetChips({
           <span className="truncate">{option.label}</span>
           <button
             type="button"
-            aria-label={`Remove ${option.label}`}
+            aria-label={t("Remove {{label}}", {
+              label: option.label,
+            })}
             className="
               rounded-sm text-muted-foreground
               hover:text-foreground

@@ -1,5 +1,7 @@
 import type { ShortenedLink } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 interface ShortenedLinksListProps {
   links: ShortenedLink[];
   /** Text shown when there are no links. */
@@ -13,6 +15,9 @@ interface ShortenedLinksListProps {
 export function ShortenedLinksList({
   links, emptyText,
 }: ShortenedLinksListProps) {
+  const {
+    t,
+  } = useTranslation();
   if (links.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyText}</p>;
   }
@@ -25,7 +30,14 @@ export function ShortenedLinksList({
         >
           <span className="font-mono">{link.domain}</span>
           {link.keepShortened || !link.expandTo
-            ? <span className="text-muted-foreground"> — kept shortened</span>
+            ? (
+              <span className="text-muted-foreground">
+                {" "}
+                —
+                {" "}
+                {t("kept shortened")}
+              </span>
+            )
             : (
               <>
                 <span className="text-muted-foreground"> → </span>

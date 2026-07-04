@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   Command,
@@ -28,6 +29,9 @@ export type { SwitcherSpec, TaxonomyEntity } from "@/lib/breadcrumbSwitcherOptio
 export function BreadcrumbSwitcher({
   spec,
 }: { spec: SwitcherSpec }) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const navigate = useNavigate();
   const {
@@ -46,7 +50,7 @@ export function BreadcrumbSwitcher({
         <button
           type="button"
           data-slot="breadcrumb-switcher"
-          aria-label="Switch to a related page"
+          aria-label={t("Switch to a related page")}
           className={cn(`
             ml-0.5 inline-flex items-center rounded-sm p-0.5
             text-muted-foreground opacity-0 transition-opacity
@@ -64,9 +68,9 @@ export function BreadcrumbSwitcher({
         align="start"
       >
         <Command>
-          <CommandInput placeholder="Search…" />
+          <CommandInput placeholder={t("Search…")} />
           <CommandList>
-            <CommandEmpty>{isLoading ? "Loading…" : "No matches."}</CommandEmpty>
+            <CommandEmpty>{isLoading ? t("Loading…") : t("No matches.")}</CommandEmpty>
             <CommandGroup>
               {options.map(option => (
                 <CommandItem

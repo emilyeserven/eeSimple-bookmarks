@@ -1,5 +1,7 @@
 import type { Newsletter } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { DefaultTagsField } from "./DefaultTagsField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { SourceDefaultFields } from "./SourceDefaultFields";
@@ -16,6 +18,9 @@ export function NewsletterGeneralForm({
   newsletter,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     form, tagIds, saveName, toggleTag, saveCategoryId, saveMediaTypeId,
     categoryOptions, mediaTypeOptions, tagTree,
   } = useNewsletterGeneralForm(newsletter);
@@ -25,7 +30,7 @@ export function NewsletterGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Newsletter name"
+            label={t("Newsletter name")}
             onBlur={() => saveName(field.state.value, field.state.meta.errors.length === 0)}
           />
         )}
@@ -34,13 +39,13 @@ export function NewsletterGeneralForm({
       <SourceDefaultFields
         initialCategoryId={newsletter.category?.id ?? null}
         initialMediaTypeId={newsletter.mediaTypeId ?? null}
-        categoryLabel="Default category"
-        mediaTypeLabel="Default media type"
+        categoryLabel={t("Default category")}
+        mediaTypeLabel={t("Default media type")}
         categoryOptions={categoryOptions}
         mediaTypeOptions={mediaTypeOptions}
         onCategoryChange={saveCategoryId}
         onMediaTypeChange={saveMediaTypeId}
-        note="Category and media type applied automatically to bookmarks imported from this newsletter."
+        note={t("Category and media type applied automatically to bookmarks imported from this newsletter.")}
       />
 
       <Separator />
@@ -49,7 +54,7 @@ export function NewsletterGeneralForm({
         tree={tagTree}
         selectedIds={tagIds}
         onToggle={toggleTag}
-        description="Tags applied automatically to bookmarks imported from this newsletter."
+        description={t("Tags applied automatically to bookmarks imported from this newsletter.")}
         categoryId={newsletter.category?.id ?? null}
       />
 

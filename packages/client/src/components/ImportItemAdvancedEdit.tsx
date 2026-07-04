@@ -1,6 +1,7 @@
 import type { InboxItem } from "@eesimple/types";
 
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { ImportItemAdvancedEditFields } from "./ImportItemAdvancedEditFields";
 import { ImportItemAdvancedEditModals } from "./ImportItemAdvancedEditModals";
@@ -56,6 +57,9 @@ export function ImportItemAdvancedEdit({
   onPeopleChange,
   onGroupChange,
 }: ImportItemAdvancedEditProps) {
+  const {
+    t,
+  } = useTranslation();
   const state = useImportItemAdvancedEdit({
     item,
     tagIds,
@@ -84,7 +88,7 @@ export function ImportItemAdvancedEdit({
               ${open ? "rotate-180" : ""}
             `}
           />
-          Advanced
+          {t("Advanced")}
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="mt-2 space-y-3">

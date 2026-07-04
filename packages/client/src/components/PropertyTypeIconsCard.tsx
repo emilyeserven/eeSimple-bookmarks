@@ -37,10 +37,9 @@ export function PropertyTypeIconsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Property Type Icons</CardTitle>
+        <CardTitle>{tLabel("Property Type Icons")}</CardTitle>
         <CardDescription>
-          Choose an icon for each custom property type. These icons appear next to the type badge
-          in property listings.
+          {tLabel("Choose an icon for each custom property type. These icons appear next to the type badge in property listings.")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -76,7 +75,7 @@ export function PropertyTypeIconsCard({
             size="sm"
             onClick={onReset}
           >
-            Reset to defaults
+            {tLabel("Reset to defaults")}
           </Button>
         </div>
       </CardContent>
