@@ -9,8 +9,8 @@ import { movieWorkbench } from "../components/workbench/movie";
 import { useBulkDeleteMovies, useMovies } from "../hooks/useMovies";
 import { moviesApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const MOVIE_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const MOVIE_ROUTE: EntityRoute = {
   kind: "movie",
   prefix: "/taxonomies/movies",
   slugIndex: 2,
@@ -19,8 +19,8 @@ export const MOVIE_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const MOVIE_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const MOVIE_PALETTE: EntityPaletteConfig = {
   queryKey: ["movies"],
   listFn: () => moviesApi.list(),
   updateFn: (id, patch) => moviesApi.update(id, patch as UpdateMovieInput),

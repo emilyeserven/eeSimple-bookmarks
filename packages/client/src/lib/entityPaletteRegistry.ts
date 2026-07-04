@@ -1,33 +1,6 @@
 import type { EntityRouteKind } from "./entityRoutes";
 
-import { ALBUM_PALETTE } from "../entities/album";
-import { AUTOFILL_PALETTE } from "../entities/autofillRule";
-import { BOOK_PALETTE } from "../entities/book";
-import { CARD_DISPLAY_RULE_PALETTE } from "../entities/cardDisplayRule";
-import { CATEGORY_PALETTE } from "../entities/category";
-import { EPISODE_PALETTE } from "../entities/episode";
-import { GENRE_MOOD_PALETTE } from "../entities/genreMood";
-import { GROUP_PALETTE } from "../entities/group";
-import { GROUP_TYPE_PALETTE } from "../entities/groupType";
-import { IMPORT_RULE_PALETTE } from "../entities/importRule";
-import { LANGUAGE_PALETTE } from "../entities/language";
-import { LOCATION_PALETTE } from "../entities/location";
-import { MEDIA_PROPERTY_PALETTE } from "../entities/mediaProperty";
-import { MEDIA_TYPE_PALETTE } from "../entities/mediaType";
-import { MOVIE_PALETTE } from "../entities/movie";
-import { NEWSLETTER_PALETTE } from "../entities/newsletter";
-import { PERSON_PALETTE } from "../entities/person";
-import { PLACE_TYPE_PALETTE } from "../entities/placeType";
-import { PODCAST_PALETTE } from "../entities/podcast";
-import { CUSTOM_PROPERTY_PALETTE } from "../entities/property";
-import { PROPERTY_GROUP_PALETTE } from "../entities/propertyGroup";
-import { RELATIONSHIP_TYPE_PALETTE } from "../entities/relationshipType";
-import { SAVED_FILTER_PALETTE } from "../entities/savedFilter";
-import { TAG_PALETTE } from "../entities/tag";
-import { TRACK_PALETTE } from "../entities/track";
-import { TV_SHOW_PALETTE } from "../entities/tvShow";
-import { WEBSITE_PALETTE } from "../entities/website";
-import { YOUTUBE_CHANNEL_PALETTE } from "../entities/youtubeChannel";
+import { ENTITY_DESCRIPTORS } from "../entities/registry";
 
 /** The minimal shape the CMD+K entity context needs from any slug-routed entity. */
 export interface PaletteEntity {
@@ -80,37 +53,11 @@ export interface EntityPaletteConfig {
 }
 
 /**
- * One entry per slug-routed entity kind. Exhaustive over `EntityRouteKind`, so adding an entity to
- * `ENTITY_ROUTES` without registering its data layer here fails `tsc` (see the
- * `cmd-k-entity-context` skill for the recipe).
+ * One entry per slug-routed entity kind, derived from `ENTITY_DESCRIPTORS`.
+ *
+ * Exhaustiveness now lives on `ENTITY_DESCRIPTORS` (`satisfies Record<EntityRouteKind, …>`) — a
+ * missing kind still fails `tsc`, there. The cast only re-labels `fromEntries`' string-keyed result.
  */
-export const ENTITY_PALETTE_CONFIGS: Record<EntityRouteKind, EntityPaletteConfig> = {
-  "category": CATEGORY_PALETTE,
-  "tag": TAG_PALETTE,
-  "website": WEBSITE_PALETTE,
-  "media-type": MEDIA_TYPE_PALETTE,
-  "genre-mood": GENRE_MOOD_PALETTE,
-  "language": LANGUAGE_PALETTE,
-  "location": LOCATION_PALETTE,
-  "place-type": PLACE_TYPE_PALETTE,
-  "youtube-channel": YOUTUBE_CHANNEL_PALETTE,
-  "newsletter": NEWSLETTER_PALETTE,
-  "person": PERSON_PALETTE,
-  "group": GROUP_PALETTE,
-  "group-type": GROUP_TYPE_PALETTE,
-  "property-group": PROPERTY_GROUP_PALETTE,
-  "media-property": MEDIA_PROPERTY_PALETTE,
-  "book": BOOK_PALETTE,
-  "podcast": PODCAST_PALETTE,
-  "movie": MOVIE_PALETTE,
-  "tv-show": TV_SHOW_PALETTE,
-  "episode": EPISODE_PALETTE,
-  "album": ALBUM_PALETTE,
-  "track": TRACK_PALETTE,
-  "relationship-type": RELATIONSHIP_TYPE_PALETTE,
-  "custom-property": CUSTOM_PROPERTY_PALETTE,
-  "autofill": AUTOFILL_PALETTE,
-  "import-rule": IMPORT_RULE_PALETTE,
-  "saved-filter": SAVED_FILTER_PALETTE,
-  "card-display-rule": CARD_DISPLAY_RULE_PALETTE,
-};
+export const ENTITY_PALETTE_CONFIGS = Object.fromEntries(
+  Object.entries(ENTITY_DESCRIPTORS).map(([kind, d]) => [kind, d.palette]),
+) as Record<EntityRouteKind, EntityPaletteConfig>;

@@ -8,8 +8,8 @@ import { savedFilterWorkbench } from "../components/workbench/savedFilter";
 import { useBulkDeleteSavedFilters, useSavedFilters } from "../hooks/useSavedFilters";
 import { savedFiltersApi } from "../lib/api/settings";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const SAVED_FILTER_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const SAVED_FILTER_ROUTE: EntityRoute = {
   kind: "saved-filter",
   prefix: "/saved-filters",
   slugIndex: 1,
@@ -18,8 +18,8 @@ export const SAVED_FILTER_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const SAVED_FILTER_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const SAVED_FILTER_PALETTE: EntityPaletteConfig = {
   queryKey: ["saved-filters"],
   listFn: () => savedFiltersApi.list(),
   updateFn: (id, patch) => savedFiltersApi.update(id, patch as UpdateSavedFilterInput),

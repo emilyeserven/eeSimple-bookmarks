@@ -9,8 +9,8 @@ import { placeTypeWorkbench } from "../components/workbench/placeType";
 import { useBulkDeletePlaceTypes, usePlaceTypes } from "../hooks/usePlaceTypes";
 import { placeTypesApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const PLACE_TYPE_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const PLACE_TYPE_ROUTE: EntityRoute = {
   kind: "place-type",
   prefix: "/taxonomies/place-types",
   slugIndex: 2,
@@ -19,8 +19,8 @@ export const PLACE_TYPE_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const PLACE_TYPE_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const PLACE_TYPE_PALETTE: EntityPaletteConfig = {
   queryKey: ["place-types"],
   listFn: () => placeTypesApi.list(),
   updateFn: (id, patch) => placeTypesApi.update(id, patch as UpdatePlaceTypeInput),

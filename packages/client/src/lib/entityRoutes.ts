@@ -1,33 +1,6 @@
 import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
 
-import { ALBUM_ROUTE } from "../entities/album";
-import { AUTOFILL_ROUTE } from "../entities/autofillRule";
-import { BOOK_ROUTE } from "../entities/book";
-import { CARD_DISPLAY_RULE_ROUTE } from "../entities/cardDisplayRule";
-import { CATEGORY_ROUTE } from "../entities/category";
-import { EPISODE_ROUTE } from "../entities/episode";
-import { GENRE_MOOD_ROUTE } from "../entities/genreMood";
-import { GROUP_ROUTE } from "../entities/group";
-import { GROUP_TYPE_ROUTE } from "../entities/groupType";
-import { IMPORT_RULE_ROUTE } from "../entities/importRule";
-import { LANGUAGE_ROUTE } from "../entities/language";
-import { LOCATION_ROUTE } from "../entities/location";
-import { MEDIA_PROPERTY_ROUTE } from "../entities/mediaProperty";
-import { MEDIA_TYPE_ROUTE } from "../entities/mediaType";
-import { MOVIE_ROUTE } from "../entities/movie";
-import { NEWSLETTER_ROUTE } from "../entities/newsletter";
-import { PERSON_ROUTE } from "../entities/person";
-import { PLACE_TYPE_ROUTE } from "../entities/placeType";
-import { PODCAST_ROUTE } from "../entities/podcast";
-import { CUSTOM_PROPERTY_ROUTE } from "../entities/property";
-import { PROPERTY_GROUP_ROUTE } from "../entities/propertyGroup";
-import { RELATIONSHIP_TYPE_ROUTE } from "../entities/relationshipType";
-import { SAVED_FILTER_ROUTE } from "../entities/savedFilter";
-import { TAG_ROUTE } from "../entities/tag";
-import { TRACK_ROUTE } from "../entities/track";
-import { TV_SHOW_ROUTE } from "../entities/tvShow";
-import { WEBSITE_ROUTE } from "../entities/website";
-import { YOUTUBE_CHANNEL_ROUTE } from "../entities/youtubeChannel";
+import { ENTITY_DESCRIPTORS } from "../entities/registry";
 
 /** Stable identifier for each slug-routed entity (used by the CMD+K registry and pin mapping). */
 export type EntityRouteKind
@@ -63,7 +36,8 @@ export type EntityRouteKind
 /**
  * Route data for one slug-routed entity — the single source the breadcrumb `TAXONOMY_DESCRIPTORS`
  * (`routes/-appHeaderCrumbs.tsx`) and the CMD+K entity registry (`lib/entityPaletteRegistry.ts`)
- * derive from. Adding a slug-routed entity means adding one entry here (see the `add-entity` skill).
+ * derive from. Adding a slug-routed entity means building its `EntityDescriptor` and adding one line
+ * to `entities/registry.ts` (see the `add-entity` skill).
  */
 export interface EntityRoute {
   kind: EntityRouteKind;
@@ -87,36 +61,13 @@ export interface EntityRoute {
   flatCrumbs: boolean;
 }
 
-export const ENTITY_ROUTES: readonly EntityRoute[] = [
-  CATEGORY_ROUTE,
-  TAG_ROUTE,
-  WEBSITE_ROUTE,
-  MEDIA_TYPE_ROUTE,
-  GENRE_MOOD_ROUTE,
-  LANGUAGE_ROUTE,
-  LOCATION_ROUTE,
-  PLACE_TYPE_ROUTE,
-  YOUTUBE_CHANNEL_ROUTE,
-  NEWSLETTER_ROUTE,
-  PERSON_ROUTE,
-  GROUP_ROUTE,
-  GROUP_TYPE_ROUTE,
-  PROPERTY_GROUP_ROUTE,
-  MEDIA_PROPERTY_ROUTE,
-  BOOK_ROUTE,
-  PODCAST_ROUTE,
-  MOVIE_ROUTE,
-  TV_SHOW_ROUTE,
-  EPISODE_ROUTE,
-  ALBUM_ROUTE,
-  TRACK_ROUTE,
-  RELATIONSHIP_TYPE_ROUTE,
-  CUSTOM_PROPERTY_ROUTE,
-  AUTOFILL_ROUTE,
-  IMPORT_RULE_ROUTE,
-  SAVED_FILTER_ROUTE,
-  CARD_DISPLAY_RULE_ROUTE,
-] as const;
+/**
+ * Derived from the `ENTITY_DESCRIPTORS` registry — the match order follows that object's
+ * `Object.values` insertion order (its key order is load-bearing for exactly this reason).
+ */
+export const ENTITY_ROUTES: readonly EntityRoute[] = Object.values(ENTITY_DESCRIPTORS).map(
+  d => d.route,
+);
 
 /** Non-slug segments that can sit where an entity slug would (create pages, fixed sub-pages). */
 const NON_SLUG_SEGMENTS = new Set(["new", "backfill"]);

@@ -16,8 +16,8 @@ import { useUiStore } from "../stores/uiStore";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const LOCATION_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const LOCATION_ROUTE: EntityRoute = {
   kind: "location",
   prefix: "/taxonomies/locations",
   slugIndex: 2,
@@ -26,8 +26,8 @@ export const LOCATION_ROUTE: EntityRoute = {
   flatCrumbs: false,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const LOCATION_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const LOCATION_PALETTE: EntityPaletteConfig = {
   queryKey: ["locations"],
   listFn: () => locationsApi.list(),
   updateFn: (id, patch) => locationsApi.update(id, patch as UpdateLocationInput),

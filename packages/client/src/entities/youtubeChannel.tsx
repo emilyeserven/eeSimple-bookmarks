@@ -16,8 +16,8 @@ import { useCategories } from "@/hooks/useCategories";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const YOUTUBE_CHANNEL_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const YOUTUBE_CHANNEL_ROUTE: EntityRoute = {
   kind: "youtube-channel",
   prefix: "/taxonomies/youtube-channels",
   slugIndex: 2,
@@ -27,8 +27,8 @@ export const YOUTUBE_CHANNEL_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const YOUTUBE_CHANNEL_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const YOUTUBE_CHANNEL_PALETTE: EntityPaletteConfig = {
   queryKey: ["youtube-channels"],
   listFn: () => youtubeChannelsApi.list(),
   updateFn: (id, patch) => youtubeChannelsApi.update(id, patch as UpdateYouTubeChannelInput),

@@ -9,8 +9,8 @@ import { trackWorkbench } from "../components/workbench/track";
 import { useBulkDeleteTracks, useTracks } from "../hooks/useTracks";
 import { tracksApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const TRACK_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const TRACK_ROUTE: EntityRoute = {
   kind: "track",
   prefix: "/taxonomies/tracks",
   slugIndex: 2,
@@ -19,8 +19,8 @@ export const TRACK_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const TRACK_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const TRACK_PALETTE: EntityPaletteConfig = {
   queryKey: ["tracks"],
   listFn: () => tracksApi.list(),
   updateFn: (id, patch) => tracksApi.update(id, patch as UpdateTrackInput),

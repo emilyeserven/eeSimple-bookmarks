@@ -9,8 +9,8 @@ import { propertyGroupWorkbench } from "../components/workbench/propertyGroup";
 import { useBulkDeletePropertyGroups, usePropertyGroups } from "../hooks/usePropertyGroups";
 import { propertyGroupsApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const PROPERTY_GROUP_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const PROPERTY_GROUP_ROUTE: EntityRoute = {
   kind: "property-group",
   prefix: "/taxonomies/property-groups",
   slugIndex: 2,
@@ -20,8 +20,8 @@ export const PROPERTY_GROUP_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const PROPERTY_GROUP_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const PROPERTY_GROUP_PALETTE: EntityPaletteConfig = {
   queryKey: ["property-groups"],
   listFn: () => propertyGroupsApi.list(),
   updateFn: (id, patch) => propertyGroupsApi.update(id, patch as UpdatePropertyGroupInput),

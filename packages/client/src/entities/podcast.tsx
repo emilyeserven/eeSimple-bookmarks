@@ -9,8 +9,8 @@ import { podcastWorkbench } from "../components/workbench/podcast";
 import { useBulkDeletePodcasts, usePodcasts } from "../hooks/usePodcasts";
 import { podcastsApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const PODCAST_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const PODCAST_ROUTE: EntityRoute = {
   kind: "podcast",
   prefix: "/taxonomies/podcasts",
   slugIndex: 2,
@@ -19,8 +19,8 @@ export const PODCAST_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const PODCAST_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const PODCAST_PALETTE: EntityPaletteConfig = {
   queryKey: ["podcasts"],
   listFn: () => podcastsApi.list(),
   updateFn: (id, patch) => podcastsApi.update(id, patch as UpdatePodcastInput),

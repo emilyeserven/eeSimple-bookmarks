@@ -13,8 +13,8 @@ import { flattenTree, sortTagTreeByRomanized } from "../lib/tagTree";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const TAG_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const TAG_ROUTE: EntityRoute = {
   kind: "tag",
   prefix: "/tags",
   slugIndex: 1,
@@ -23,8 +23,8 @@ export const TAG_ROUTE: EntityRoute = {
   flatCrumbs: false,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const TAG_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const TAG_PALETTE: EntityPaletteConfig = {
   queryKey: ["tags"],
   listFn: () => tagsApi.list(),
   updateFn: (id, patch) => tagsApi.update(id, patch as UpdateTagInput),

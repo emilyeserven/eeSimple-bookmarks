@@ -12,8 +12,8 @@ import { flattenTree } from "../lib/tagTree";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const GENRE_MOOD_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const GENRE_MOOD_ROUTE: EntityRoute = {
   kind: "genre-mood",
   prefix: "/taxonomies/genres-moods",
   slugIndex: 2,
@@ -23,8 +23,8 @@ export const GENRE_MOOD_ROUTE: EntityRoute = {
   flatCrumbs: false,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const GENRE_MOOD_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const GENRE_MOOD_PALETTE: EntityPaletteConfig = {
   queryKey: ["genre-moods"],
   listFn: () => genreMoodsApi.list(),
   updateFn: (id, patch) => genreMoodsApi.update(id, patch as UpdateGenreMoodInput),

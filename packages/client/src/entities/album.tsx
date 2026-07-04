@@ -9,8 +9,8 @@ import { albumWorkbench } from "../components/workbench/album";
 import { useBulkDeleteAlbums, useAlbums } from "../hooks/useAlbums";
 import { albumsApi } from "../lib/api/taxonomies";
 
-/** Hoisted so `entityRoutes.ts`'s `ENTITY_ROUTES` can reference this entry by identity. */
-export const ALBUM_ROUTE: EntityRoute = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
+const ALBUM_ROUTE: EntityRoute = {
   kind: "album",
   prefix: "/taxonomies/albums",
   slugIndex: 2,
@@ -19,8 +19,8 @@ export const ALBUM_ROUTE: EntityRoute = {
   flatCrumbs: true,
 };
 
-/** Hoisted so `entityPaletteRegistry.ts`'s `ENTITY_PALETTE_CONFIGS` can reference this entry by identity. */
-export const ALBUM_PALETTE: EntityPaletteConfig = {
+/** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_PALETTE_CONFIGS` derives from). */
+const ALBUM_PALETTE: EntityPaletteConfig = {
   queryKey: ["albums"],
   listFn: () => albumsApi.list(),
   updateFn: (id, patch) => albumsApi.update(id, patch as UpdateAlbumInput),
