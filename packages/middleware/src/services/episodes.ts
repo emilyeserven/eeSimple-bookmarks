@@ -4,6 +4,7 @@ import type {
   UpdateEpisodeInput,
 } from "@eesimple/types";
 import { createPlexTaxonomyService } from "@/services/plexTaxonomyService";
+import { mainTaxonomyImageUrl } from "@/services/taxonomyImages";
 import { bookmarks, episodes, type EpisodeRow } from "@/db/schema";
 import { slugify } from "@/utils/slug";
 
@@ -16,7 +17,10 @@ export class DuplicateEpisodeError extends Error {
 }
 
 /** Map a DB row to the shared `Episode` wire type. */
-function toEpisode(row: EpisodeRow & { bookmarkCount?: number }): Episode {
+function toEpisode(row: EpisodeRow & {
+  bookmarkCount?: number;
+  mainImage?: { id: string; createdAt: Date | string } | null;
+}): Episode {
   return {
     id: row.id,
     name: row.name,
@@ -35,6 +39,7 @@ function toEpisode(row: EpisodeRow & { bookmarkCount?: number }): Episode {
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
+    imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
   };
 }
 

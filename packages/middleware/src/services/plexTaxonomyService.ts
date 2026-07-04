@@ -1,4 +1,4 @@
-import { asc, eq, getTableColumns, isNull } from "drizzle-orm";
+import { and, asc, eq, getTableColumns, isNull } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import type {
   BulkDeleteResult,
@@ -9,9 +9,15 @@ import { db } from "@/db";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
-import { bookmarks, movies } from "@/db/schema";
+import { bookmarks, movies, taxonomyImages } from "@/db/schema";
 import { uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
+
+/** The main taxonomy-image row's id/createdAt, as joined into a `list()` row (or `null` when unset). */
+export interface PlexTaxonomyMainImage {
+  id: string;
+  createdAt: Date | string;
+}
 
 /**
  * A concrete representative Plex-taxonomy table type. drizzle's query builders resolve a conditional
@@ -89,8 +95,11 @@ export interface PlexTaxonomyServiceConfig<TTable extends PlexTaxonomyTable, T, 
   languageUsageOwnerType?: LanguageUsageOwnerType;
   /** Build the entity's distinct `Duplicate*Error` (kept per-entity so routes can `instanceof`). */
   makeDuplicateError: (name: string) => Error;
-  /** Map a DB row (+ optional `bookmarkCount`) to the shared wire type. */
-  toWire: (row: TTable["$inferSelect"] & { bookmarkCount?: number }) => T;
+  /** Map a DB row (+ optional `bookmarkCount`/`mainImage`, joined by `list()`) to the shared wire type. */
+  toWire: (row: TTable["$inferSelect"] & {
+    bookmarkCount?: number;
+    mainImage?: PlexTaxonomyMainImage | null;
+  }) => T;
   /** Extra settable columns beyond the shared Plex set (episodes' `tvShowId`, tracks' `albumId`). */
   extraDataFromInput?: (input: C | U) => Record<string, unknown>;
 }
@@ -122,7 +131,10 @@ export function createPlexTaxonomyService<
   // The real table object, narrowed to the concrete representative type so drizzle's builders
   // resolve (see `RepresentativePlexTable`). Rows read back are narrowed to the caller's row type.
   const table = config.table as unknown as RepresentativePlexTable;
-  const toWire = config.toWire as (row: RepresentativePlexTable["$inferSelect"] & { bookmarkCount?: number }) => T;
+  const toWire = config.toWire as (row: RepresentativePlexTable["$inferSelect"] & {
+    bookmarkCount?: number;
+    mainImage?: PlexTaxonomyMainImage | null;
+  }) => T;
 
   /** Existing slugs, optionally excluding one row (when renaming). */
   const takenSlugs = (excludeId?: string) =>
@@ -139,10 +151,25 @@ export function createPlexTaxonomyService<
       .select({
         ...getTableColumns(table),
         bookmarkCount: db.$count(bookmarks, eq(bookmarkFk, table.id)),
+        mainImage: {
+          id: taxonomyImages.id,
+          createdAt: taxonomyImages.createdAt,
+        },
       })
       .from(table)
+      .leftJoin(
+        taxonomyImages,
+        and(
+          eq(taxonomyImages.ownerType, taxonomyImageOwnerType),
+          eq(taxonomyImages.ownerId, table.id),
+          eq(taxonomyImages.isMain, true),
+        ),
+      )
       .orderBy(asc(table.sortOrder), asc(table.name));
-    return rows.map(toWire);
+    return rows.map(row => toWire({
+      ...row,
+      mainImage: row.mainImage?.id ? row.mainImage : null,
+    }));
   }
 
   async function create(input: C): Promise<T> {

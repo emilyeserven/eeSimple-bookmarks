@@ -37,6 +37,8 @@ export interface Movie {
   bookmarkCount?: number;
   /** Languages associated with this movie, each qualified by a usage level. Populated by get endpoints. */
   languageUsages?: LanguageUsage[];
+  /** Main artwork image URL (from the taxonomy-image gallery), or null when none is set. */
+  imageUrl: string | null;
 }
 
 /** Payload for creating a movie. */

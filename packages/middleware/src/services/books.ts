@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import type {
   Book,
   BulkDeleteResult,
@@ -7,8 +7,8 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
-import { bookmarks, books, type BookRow } from "@/db/schema";
+import { deleteTaxonomyImagesForOwner, mainTaxonomyImageUrl } from "@/services/taxonomyImages";
+import { bookmarks, books, taxonomyImages, type BookRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -21,7 +21,13 @@ export class DuplicateBookError extends Error {
 }
 
 /** Map a DB row to the shared `Book` wire type. */
-function toBook(row: BookRow & { bookmarkCount?: number }): Book {
+function toBook(
+  row: BookRow & {
+    bookmarkCount?: number;
+    mainImage?: { id: string;
+      createdAt: Date | string; } | null;
+  },
+): Book {
   return {
     id: row.id,
     name: row.name,
@@ -37,6 +43,7 @@ function toBook(row: BookRow & { bookmarkCount?: number }): Book {
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
+    imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
   };
 }
 
@@ -80,10 +87,25 @@ export async function listBooks(): Promise<Book[]> {
       releaseYear: books.releaseYear,
       createdAt: books.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.bookId, books.id)),
+      mainImage: {
+        id: taxonomyImages.id,
+        createdAt: taxonomyImages.createdAt,
+      },
     })
     .from(books)
+    .leftJoin(
+      taxonomyImages,
+      and(
+        eq(taxonomyImages.ownerType, "book"),
+        eq(taxonomyImages.ownerId, books.id),
+        eq(taxonomyImages.isMain, true),
+      ),
+    )
     .orderBy(asc(books.sortOrder), asc(books.name));
-  return rows.map(toBook);
+  return rows.map(row => toBook({
+    ...row,
+    mainImage: row.mainImage?.id ? row.mainImage : null,
+  }));
 }
 
 /** Add a book. Throws `DuplicateBookError` on a name clash. */

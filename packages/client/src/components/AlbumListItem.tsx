@@ -7,6 +7,7 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
+import { useEntityImage } from "@/hooks/useEntityImage";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /**
@@ -29,6 +30,9 @@ export function AlbumListItem({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const {
+    showImage, onError,
+  } = useEntityImage(album.imageUrl);
 
   return (
     <StandardListingCard
@@ -36,7 +40,25 @@ export function AlbumListItem({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
-      icon={<Disc3 className="size-5 shrink-0 text-muted-foreground" />}
+      icon={(
+        <span
+          className="
+            flex size-8 shrink-0 items-center justify-center overflow-hidden
+            rounded-sm bg-muted text-muted-foreground
+          "
+        >
+          {showImage
+            ? (
+              <img
+                src={album.imageUrl ?? undefined}
+                alt=""
+                className="size-full object-contain"
+                onError={onError}
+              />
+            )
+            : <Disc3 className="size-4" />}
+        </span>
+      )}
       title={album.name}
       subtitle={album.year ? String(album.year) : undefined}
       count={album.bookmarkCount}
