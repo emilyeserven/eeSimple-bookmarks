@@ -10,6 +10,7 @@ import { BookmarkPagination } from "./BookmarkPagination";
 import { BookmarkTableView } from "./BookmarkTableView";
 import { BookmarkBulkActions } from "./bulk/BookmarkBulkActions";
 import { BulkActionBar } from "./bulk/BulkActionBar";
+import { MediaItemsPane } from "./MediaItemsPane";
 import { navLinkClass, navStripClass } from "./TabbedShell";
 import { useBookmarksPerPage } from "../hooks/useAppSettings";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
@@ -192,7 +193,65 @@ function BookmarkListBody({
   );
 }
 
-/** Right column of the search view: the matching bookmarks, as a grid, table, or image gallery. */
+type ResultsTab = "bookmarks" | "gallery" | "media";
+
+/**
+ * The tab strip above the results — Bookmarks, an optional Gallery, and Media (the taxonomy items the
+ * filtered bookmarks reference). Both non-bookmark tabs share the filter sidebar; only the body pane
+ * switches. Extracted so `BookmarkListPane` stays under the complexity cap.
+ */
+function ResultsTabNav({
+  tab, onChange, showGallery,
+}: {
+  tab: ResultsTab;
+  onChange: (tab: ResultsTab) => void;
+  showGallery: boolean;
+}) {
+  const tabs: { key: ResultsTab;
+    label: string; }[] = [
+    {
+      key: "bookmarks",
+      label: "Bookmarks",
+    },
+    ...(showGallery
+      ? [{
+        key: "gallery" as const,
+        label: "Gallery",
+      }]
+      : []),
+    {
+      key: "media",
+      label: "Media",
+    },
+  ];
+
+  return (
+    <nav
+      className={navStripClass}
+      aria-label="Bookmarks view"
+    >
+      {tabs.map(entry => (
+        <button
+          key={entry.key}
+          type="button"
+          onClick={() => onChange(entry.key)}
+          aria-current={entry.key === tab ? "page" : undefined}
+          className={cn(navLinkClass, entry.key === tab && `
+            bg-accent text-accent-foreground
+          `)}
+        >
+          {entry.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+/**
+ * Right column of the search view: the matching bookmarks (grid/table), an image gallery, or the
+ * media taxonomy items those bookmarks reference — switched by the tab strip, all sharing the same
+ * filtered set.
+ */
 export function BookmarkListPane({
   pageKey,
   columns,
@@ -209,44 +268,27 @@ export function BookmarkListPane({
   showGallery = true,
 }: BookmarkListPaneProps) {
   useRegisterBulkSelect(pageKey);
-  const [tab, setTab] = useState<"bookmarks" | "gallery">("bookmarks");
+  const [tab, setTab] = useState<ResultsTab>("bookmarks");
   const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const visibleBookmarks = sortBookmarks(filtered, search.sort, properties);
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
+  // Guard against a stale "gallery" selection if a page opts out of the gallery.
+  const activeTab = tab === "gallery" && !showGallery ? "bookmarks" : tab;
 
   return (
     <div className="min-w-0 space-y-6">
       {afterAddForm}
 
-      {showGallery && (
-        <nav
-          className={navStripClass}
-          aria-label="Bookmarks view"
-        >
-          <button
-            type="button"
-            onClick={() => setTab("bookmarks")}
-            className={cn(navLinkClass, tab === "bookmarks" && `
-              bg-accent text-accent-foreground
-            `)}
-          >
-            Bookmarks
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("gallery")}
-            className={cn(navLinkClass, tab === "gallery" && `
-              bg-accent text-accent-foreground
-            `)}
-          >
-            Gallery
-          </button>
-        </nav>
-      )}
+      <ResultsTabNav
+        tab={activeTab}
+        onChange={setTab}
+        showGallery={showGallery}
+      />
 
-      {showGallery && tab === "gallery"
-        ? <BookmarkImageGallery bookmarks={visibleBookmarks} />
-        : (
+      {activeTab === "gallery" ? <BookmarkImageGallery bookmarks={visibleBookmarks} /> : null}
+      {activeTab === "media" ? <MediaItemsPane bookmarks={visibleBookmarks} /> : null}
+      {activeTab === "bookmarks"
+        ? (
           <BookmarkListBody
             pageKey={pageKey}
             columns={columns}
@@ -260,7 +302,8 @@ export function BookmarkListPane({
             noMatchMessage={noMatchMessage}
             addFormCategoryId={addFormCategoryId}
           />
-        )}
+        )
+        : null}
     </div>
   );
 }
