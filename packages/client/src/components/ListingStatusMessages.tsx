@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 export interface ListingStatusMessagesProps {
   isLoading: boolean;
   error: Error | null;
@@ -36,12 +38,19 @@ export function ListingStatusMessages({
   entityPlural,
   emptyMessage,
 }: ListingStatusMessagesProps) {
+  const {
+    t,
+  } = useTranslation();
+
   return (
     <>
       {hasQuery && filteredCount < totalCount
         ? (
           <p className="text-sm text-muted-foreground">
-            Showing {filteredCount} of {totalCount}
+            {t("Showing {{filteredCount}} of {{totalCount}}", {
+              filteredCount,
+              totalCount,
+            })}
           </p>
         )
         : null}
@@ -54,7 +63,10 @@ export function ListingStatusMessages({
       {!isLoading && totalCount > 0 && filteredCount === 0
         ? (
           <p className="text-muted-foreground">
-            No {entityPlural} match &ldquo;{rawQuery}&rdquo;.
+            {t("No {{entityPlural}} match “{{rawQuery}}”.", {
+              entityPlural,
+              rawQuery,
+            })}
           </p>
         )
         : null}

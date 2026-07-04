@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
@@ -12,6 +13,9 @@ export function BookmarkCardEditMenuItem({
 }: {
   bookmarkId: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const modifier = useSidebarOpenModifier();
 
@@ -22,10 +26,12 @@ export function BookmarkCardEditMenuItem({
         params={{
           bookmarkId,
         }}
-        title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+        title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+          modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+        })}
         onClick={event => editClick(event, "bookmark", bookmarkId)}
       >
-        Edit
+        {t("Edit")}
       </Link>
     </DropdownMenuItem>
   );

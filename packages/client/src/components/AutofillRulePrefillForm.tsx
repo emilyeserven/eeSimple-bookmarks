@@ -5,6 +5,8 @@ import type {
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import {
   buildBooleanValues,
   buildDateTimeValues,
@@ -15,16 +17,6 @@ import { NO_CATEGORY, NO_MEDIA_TYPE, RulePropertyFields } from "./AutofillRuleFo
 import { AutofillRulePrefillPickers } from "./AutofillRulePrefillPickers";
 import { useAutofillPrefillData } from "./useAutofillPrefillData";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-
-const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
-  setCategoryId: "Category",
-  setMediaTypeId: "Media Type",
-  tagIds: "Tags",
-  locationIds: "Locations",
-  numberValues: "Number values",
-  booleanValues: "Boolean values",
-  dateTimeValues: "Date/Time values",
-};
 
 interface Props {
   rule: AutofillRule;
@@ -38,8 +30,21 @@ export function AutofillRulePrefillForm({
   rule,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     categories, properties, tagTree, mediaTypeTree, locationTree, updateRule,
   } = useAutofillPrefillData();
+
+  const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
+    setCategoryId: t("Category"),
+    setMediaTypeId: t("Media Type"),
+    tagIds: t("Tags"),
+    locationIds: t("Locations"),
+    numberValues: t("Number values"),
+    booleanValues: t("Boolean values"),
+    dateTimeValues: t("Date/Time values"),
+  };
 
   const initialCategoryId = rule.setCategoryId ?? NO_CATEGORY;
   const initialMediaTypeId = rule.setMediaTypeId ?? NO_MEDIA_TYPE;

@@ -1,6 +1,7 @@
 import type { InboxPreFillDefaults, TagNode } from "@eesimple/types";
 
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
 import { useGatedTagTree } from "../hooks/useGatedTagTree";
@@ -24,6 +25,9 @@ export function InboxPreFillTags({
   setPreFill: (preFill: InboxPreFillDefaults) => void;
   selectedTagNames: string[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const selectedTagIds = preFill.tagIds ?? [];
   const {
     tree: gated,
@@ -31,7 +35,7 @@ export function InboxPreFillTags({
 
   return (
     <div className="space-y-1">
-      <Label className="text-sm">Tags</Label>
+      <Label className="text-sm">{t("Tags")}</Label>
       {selectedTagNames.length > 0 && (
         <div className="mb-1 flex flex-wrap gap-1">
           {selectedTagNames.map((name, i) => (
@@ -43,7 +47,9 @@ export function InboxPreFillTags({
               {name}
               <button
                 type="button"
-                aria-label={`Remove tag ${name}`}
+                aria-label={t("Remove tag {{name}}", {
+                  name,
+                })}
                 className="
                   ml-0.5 rounded-sm
                   hover:text-destructive

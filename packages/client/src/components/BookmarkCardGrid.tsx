@@ -1,5 +1,7 @@
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { BookmarkCard } from "./BookmarkCard";
 import { useDeleteBookmark } from "../hooks/useBookmarks";
 import { COLUMN_CLASS } from "../lib/bookmarkColumns";
@@ -33,6 +35,9 @@ export function BookmarkCardGrid({
   isSelected,
   onToggleSelect,
 }: BookmarkCardGridProps) {
+  const {
+    t,
+  } = useTranslation();
   const deleteBookmark = useDeleteBookmark();
   const setHoveredBookmarkId = useUiStore(state => state.setHoveredBookmarkId);
   const {
@@ -87,7 +92,7 @@ export function BookmarkCardGrid({
                     group-hover:opacity-100
                   "
                 >
-                  ⌘K to edit
+                  {t("⌘K to edit")}
                 </span>
               )}
             {/* In selection mode an overlay swallows card clicks so the whole card toggles. */}
@@ -96,7 +101,9 @@ export function BookmarkCardGrid({
                 <>
                   <button
                     type="button"
-                    aria-label={`Select ${bookmark.title}`}
+                    aria-label={t("Select {{title}}", {
+                      title: bookmark.title,
+                    })}
                     aria-pressed={selected}
                     className="absolute inset-0 z-10 cursor-pointer rounded-xl"
                     onClick={() => onToggleSelect?.(bookmark.id)}

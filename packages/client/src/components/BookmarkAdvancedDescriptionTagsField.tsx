@@ -5,6 +5,7 @@ import type { TagNode } from "@eesimple/types";
 import { useState } from "react";
 
 import { Loader2, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { AddTagModal } from "./AddTagModal";
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
@@ -37,6 +38,9 @@ export function BookmarkAdvancedDescriptionTagsField({
   onFetchDescription,
   isFetchDescriptionPending,
 }: BookmarkAdvancedDescriptionTagsFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   const [addTagOpen, setAddTagOpen] = useState(false);
 
   return (
@@ -51,7 +55,7 @@ export function BookmarkAdvancedDescriptionTagsField({
           <form.AppField name="description">
             {field => (
               <field.TextareaField
-                label="Description"
+                label={t("Description")}
                 fill
                 inputClassName="min-h-24"
                 action={onFetchDescription
@@ -60,8 +64,8 @@ export function BookmarkAdvancedDescriptionTagsField({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      title="Fetch description from URL"
-                      aria-label="Fetch description from URL"
+                      title={t("Fetch description from URL")}
+                      aria-label={t("Fetch description from URL")}
                       disabled={!isFetchableUrl(url) || isFetchDescriptionPending}
                       onClick={() => onFetchDescription(url)}
                     >
@@ -96,7 +100,7 @@ export function BookmarkAdvancedDescriptionTagsField({
                     );
                   }}
                   createOption={{
-                    label: "Create tag",
+                    label: t("Create tag"),
                     onSelect: () => setAddTagOpen(true),
                   }}
                   below={sourceDefaults.showSourceDefault && field.state.value.length > 0
@@ -105,9 +109,9 @@ export function BookmarkAdvancedDescriptionTagsField({
                         checked={sourceDefaults.setTags}
                         onCheckedChange={sourceDefaults.onSetTags}
                       >
-                        Apply selected tags as defaults for
-                        {" "}
-                        {sourceDefaults.label}
+                        {t("Apply selected tags as defaults for {{label}}", {
+                          label: sourceDefaults.label,
+                        })}
                       </SourceDefaultCheckbox>
                     )
                     : null}

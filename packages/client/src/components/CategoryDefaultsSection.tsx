@@ -3,6 +3,7 @@ import type { Category } from "@eesimple/types";
 import { useEffect, useRef, useState } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { CategoryDefaultField } from "./CategoryDefaultField";
 import {
@@ -27,6 +28,9 @@ interface CategoryDefaultsSectionProps {
 export function CategoryDefaultsSection({
   category,
 }: CategoryDefaultsSectionProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: properties,
   } = useCustomProperties();
@@ -90,10 +94,9 @@ export function CategoryDefaultsSection({
 
   return (
     <div className="space-y-2">
-      <Label>Default property values</Label>
+      <Label>{t("Default property values")}</Label>
       <p className="text-xs text-muted-foreground">
-        Prefilled when you add a bookmark to this category. You can still change them per bookmark.
-        Changes save automatically.
+        {t("Prefilled when you add a bookmark to this category. You can still change them per bookmark. Changes save automatically.")}
       </p>
       <div
         className="

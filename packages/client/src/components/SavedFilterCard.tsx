@@ -2,6 +2,7 @@ import type { SavedFilter } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Globe, Info, ListFilter, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -30,6 +31,9 @@ export function SavedFilterCard({
   onSelectToggle,
   inSelectionMode,
 }: SavedFilterCardProps) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -79,11 +83,17 @@ export function SavedFilterCard({
               params={{
                 filterSlug: slug,
               }}
-              title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+              title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+                modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+              })}
               onClick={event => editClick(event, "saved-filter", filter.id)}
             >
               <Pencil className="size-4" />
-              <span className="sr-only">Edit {filter.name}</span>
+              <span className="sr-only">
+                {t("Edit {{name}}", {
+                  name: filter.name,
+                })}
+              </span>
             </Link>
           </HoverIconButton>
         )
@@ -100,7 +110,11 @@ export function SavedFilterCard({
               onClick={event => viewClick(event, "saved-filter", filter.id, slug)}
             >
               <Info className="size-4" />
-              <span className="sr-only">View {filter.name}</span>
+              <span className="sr-only">
+                {t("View {{name}}", {
+                  name: filter.name,
+                })}
+              </span>
             </Link>
           </HoverIconButton>
         )
@@ -128,8 +142,12 @@ export function SavedFilterCard({
                     onSuccess: () =>
                       notifySuccess(
                         viewableOnline
-                          ? `"${filter.name}" is now a sidebar shortcut`
-                          : `"${filter.name}" is no longer a sidebar shortcut`,
+                          ? t("\"{{name}}\" is now a sidebar shortcut", {
+                            name: filter.name,
+                          })
+                          : t("\"{{name}}\" is no longer a sidebar shortcut", {
+                            name: filter.name,
+                          }),
                       ),
                   },
                 );
@@ -143,7 +161,7 @@ export function SavedFilterCard({
               "
             >
               <Globe className="size-3.5" />
-              Viewable online
+              {t("Viewable online")}
             </Label>
           </div>
         </div>

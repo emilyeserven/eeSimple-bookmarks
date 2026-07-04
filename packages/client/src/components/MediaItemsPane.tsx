@@ -4,6 +4,7 @@ import type { Bookmark } from "@eesimple/types";
 import { useMemo } from "react";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { useAlbums } from "../hooks/useAlbums";
 import { useBooks } from "../hooks/useBooks";
@@ -29,7 +30,12 @@ function MediaItemLink({
   className: string;
   children: React.ReactNode;
 }) {
-  const title = `Show bookmarks for ${item.name}`;
+  const {
+    t,
+  } = useTranslation();
+  const title = t("Show bookmarks for {{name}}", {
+    name: item.name,
+  });
   switch (item.kind) {
     case "movie":
       return (
@@ -129,6 +135,9 @@ export function MediaItemsPane({
 }: {
   bookmarks: Bookmark[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const movies = useMovies();
   const tvShows = useTvShows();
   const episodes = useEpisodes();
@@ -154,13 +163,13 @@ export function MediaItemsPane({
   );
 
   if (anyLoading && items.length === 0) {
-    return <p className="text-muted-foreground">Loading media…</p>;
+    return <p className="text-muted-foreground">{t("Loading media…")}</p>;
   }
 
   if (items.length === 0) {
     return (
       <p className="text-muted-foreground">
-        No media items are linked to the bookmarks matching these filters.
+        {t("No media items are linked to the bookmarks matching these filters.")}
       </p>
     );
   }
@@ -185,7 +194,7 @@ export function MediaItemsPane({
               {item.name}
             </MediaItemLink>
             <span className="shrink-0 text-sm text-muted-foreground">
-              {item.matchCount} {item.matchCount === 1 ? "bookmark" : "bookmarks"}
+              {item.matchCount} {item.matchCount === 1 ? t("bookmark") : t("bookmarks")}
             </span>
           </RowCard>
         </li>

@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { AddGroupModal } from "./AddGroupModal";
 import { AddPersonModal } from "./AddPersonModal";
 import { useCreatePerson, usePeople } from "../hooks/usePeople";
@@ -47,6 +49,9 @@ export function usePodcastAuthors({
   onGroupIdsChange,
 }: Params): PodcastAuthorsControls {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: people,
   } = usePeople();
   const createPerson = useCreatePerson();
@@ -71,11 +76,11 @@ export function usePodcastAuthors({
 
   return {
     personCreateOption: {
-      label: "Create person",
+      label: t("Create person"),
       onSelect: () => setAddPersonOpen(true),
     },
     groupCreateOption: {
-      label: "Create group",
+      label: t("Create group"),
       onSelect: () => setAddGroupOpen(true),
     },
     modals: (

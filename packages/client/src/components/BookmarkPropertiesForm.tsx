@@ -1,6 +1,7 @@
 import type { Bookmark } from "@eesimple/types";
 
 import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import { BookmarkYouTubeMetadataFields } from "./BookmarkYouTubeMetadataFields";
@@ -17,6 +18,9 @@ interface BookmarkPropertiesFormProps {
 export function BookmarkPropertiesForm({
   bookmark,
 }: BookmarkPropertiesFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     customProperties,
     fetchMetadata,
@@ -51,7 +55,7 @@ export function BookmarkPropertiesForm({
   if (!hasEditable) {
     return (
       <p className="text-sm text-muted-foreground">
-        No custom properties are assigned to this bookmark&apos;s category.
+        {t("No custom properties are assigned to this bookmark's category.")}
       </p>
     );
   }
@@ -132,7 +136,7 @@ export function BookmarkPropertiesForm({
       ))}
       {hasUngrouped && (
         <RowCard className="space-y-4 p-4">
-          <p className="text-sm font-medium">Properties</p>
+          <p className="text-sm font-medium">{t("Properties")}</p>
           <CategoryCustomFields
             {...fieldProps}
             groupId={null}

@@ -1,6 +1,7 @@
 import type { Book } from "@eesimple/types";
 
 import { BookImage, BookOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TaxonomyImageGallery } from "./TaxonomyImageGallery";
 import { useConnectors } from "../hooks/useConnectors";
@@ -20,6 +21,9 @@ export function BookImageTab({
   readOnly?: boolean;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: connectors,
   } = useConnectors();
   const gallery = useTaxonomyImages(booksApi.images, book.id, ["book-images", book.id]);
@@ -32,13 +36,13 @@ export function BookImageTab({
       autoFetchActions={[
         {
           source: "kavita-cover",
-          label: "Use Kavita cover",
+          label: t("Use Kavita cover"),
           icon: BookOpen,
           enabled: Boolean(connectors?.kavita.enabled) && book.kavitaSeriesId !== null,
         },
         {
           source: "isbn-cover",
-          label: "Pull cover from ISBN",
+          label: t("Pull cover from ISBN"),
           icon: BookImage,
           enabled: Boolean(book.isbn?.trim()),
         },

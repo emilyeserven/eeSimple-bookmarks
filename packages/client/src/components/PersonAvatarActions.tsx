@@ -2,6 +2,7 @@ import type { usePersonGeneralForm } from "./usePersonGeneralForm";
 import type { Person, Website, YouTubeChannel } from "@eesimple/types";
 
 import { AtSign, Globe, MonitorPlay, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
@@ -28,6 +29,9 @@ export function PersonAvatarActions({
   connectedChannelsWithImage,
   connectedWebsitesWithImage,
 }: PersonAvatarActionsProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="flex flex-col gap-2">
       <Button
@@ -42,7 +46,7 @@ export function PersonAvatarActions({
         })}
       >
         <Sparkles className="size-4" />
-        Fetch from Person Website
+        {t("Fetch from Person Website")}
       </Button>
       <Button
         type="button"
@@ -56,7 +60,7 @@ export function PersonAvatarActions({
         })}
       >
         <Sparkles className="size-4" />
-        Fetch from Biography
+        {t("Fetch from Biography")}
       </Button>
       {person.socialLinks
         .filter(link => link.platform === "instagram")
@@ -75,9 +79,9 @@ export function PersonAvatarActions({
             })}
           >
             <AtSign className="size-4" />
-            Fetch from
-            {" "}
-            {SOCIAL_MEDIA_PLATFORM_LABELS[link.platform]}
+            {t("Fetch from {{platform}}", {
+              platform: SOCIAL_MEDIA_PLATFORM_LABELS[link.platform],
+            })}
           </Button>
         ))}
       {connectedChannelsWithImage.map(ch => (
@@ -93,9 +97,9 @@ export function PersonAvatarActions({
           })}
         >
           <MonitorPlay className="size-4" />
-          Use &ldquo;
-          {ch.name}
-          &rdquo; photo
+          {t("Use “{{name}}” photo", {
+            name: ch.name,
+          })}
         </Button>
       ))}
       {connectedWebsitesWithImage.map(site => (
@@ -111,9 +115,9 @@ export function PersonAvatarActions({
           })}
         >
           <Globe className="size-4" />
-          Use &ldquo;
-          {site.siteName}
-          &rdquo; favicon
+          {t("Use “{{name}}” favicon", {
+            name: site.siteName,
+          })}
         </Button>
       ))}
     </div>

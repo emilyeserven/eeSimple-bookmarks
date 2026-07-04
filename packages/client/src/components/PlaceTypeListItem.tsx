@@ -3,6 +3,7 @@ import type { PlaceType } from "@eesimple/types";
 import { placeTypeKey } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { Info, Map, Pencil, Shapes } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -40,6 +41,9 @@ export function PlaceTypeListItem({
   /** Toggle this place type in/out of the map filter. Omit to hide the "Filter map" button. */
   onToggleFilter?: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -78,9 +82,15 @@ export function PlaceTypeListItem({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={filtered ? `Remove ${placeType.name} from map filter` : `Filter map to ${placeType.name}`}
+            aria-label={filtered
+              ? t("Remove {{name}} from map filter", {
+                name: placeType.name,
+              })
+              : t("Filter map to {{name}}", {
+                name: placeType.name,
+              })}
             aria-pressed={filtered}
-            title={filtered ? "Filtering map (click to clear)" : "Filter map to this place type"}
+            title={filtered ? t("Filtering map (click to clear)") : t("Filter map to this place type")}
             onClick={onToggleFilter}
             className={cn(
               "shrink-0 transition-opacity",
@@ -117,11 +127,17 @@ export function PlaceTypeListItem({
             params={{
               placeTypeSlug: placeType.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "place-type", placeType.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {placeType.name}</span>
+            <span className="sr-only">
+              {t("Edit {{name}}", {
+                name: placeType.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -136,7 +152,11 @@ export function PlaceTypeListItem({
             onClick={event => viewClick(event, "place-type", placeType.id, placeType.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {placeType.name}</span>
+            <span className="sr-only">
+              {t("View {{name}}", {
+                name: placeType.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

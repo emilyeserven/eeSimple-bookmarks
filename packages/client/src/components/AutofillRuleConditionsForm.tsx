@@ -1,6 +1,7 @@
 import type { AutofillRule, UpdateAutofillRuleInput } from "@eesimple/types";
 
 import { emptyConditionTree } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { ConditionsField } from "./conditions/ConditionsField";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
@@ -10,10 +11,6 @@ import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
 import { LabeledSection } from "@/components/LabeledSection";
 import { Separator } from "@/components/ui/separator";
-
-const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
-  conditions: "Conditions",
-};
 
 interface Props {
   rule: AutofillRule;
@@ -26,6 +23,12 @@ interface Props {
 export function AutofillRuleConditionsForm({
   rule,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
+  const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
+    conditions: t("Conditions"),
+  };
   const {
     categories, properties, tagTree, updateRule,
   } = useAutofillRuleFormData();
@@ -56,8 +59,8 @@ export function AutofillRuleConditionsForm({
       <Separator />
 
       <LabeledSection
-        title="Preview Bookmarks"
-        description="Test which existing bookmarks match the activation conditions above."
+        title={t("Preview Bookmarks")}
+        description={t("Test which existing bookmarks match the activation conditions above.")}
       >
         <PreviewBookmarksSection
           conditions={conditions}
