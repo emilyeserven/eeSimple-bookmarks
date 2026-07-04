@@ -30,6 +30,13 @@ function imageVersion(row: { createdAt: Date | string }): number {
   return created.getTime();
 }
 
+/** Build the same versioned URL `taxonomyImageFromRow` produces, from just a main-image row's id/createdAt. */
+export function mainTaxonomyImageUrl(image: { id: string;
+  createdAt: Date | string; } | null): string | null {
+  if (!image) return null;
+  return `/api/taxonomy-images/${image.id}?v=${imageVersion(image)}`;
+}
+
 function compareImageRows(a: TaxonomyImageRow, b: TaxonomyImageRow): number {
   if (a.isMain !== b.isMain) return a.isMain ? -1 : 1;
   if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;

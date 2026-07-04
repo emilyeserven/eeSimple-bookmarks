@@ -29,6 +29,8 @@ export interface Book {
   createdAt: string;
   /** Number of bookmarks linked to this book (populated by list endpoints). */
   bookmarkCount?: number;
+  /** Main artwork image URL (from the taxonomy-image gallery), or null when none is set. */
+  imageUrl: string | null;
 }
 
 /** Payload for creating a book. */

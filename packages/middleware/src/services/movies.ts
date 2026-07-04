@@ -6,6 +6,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { createPlexTaxonomyService } from "@/services/plexTaxonomyService";
+import { mainTaxonomyImageUrl } from "@/services/taxonomyImages";
 import { albums, bookmarks, episodes, movies, tracks, tvShows, type MovieRow } from "@/db/schema";
 import { slugify } from "@/utils/slug";
 
@@ -18,7 +19,11 @@ export class DuplicateMovieError extends Error {
 }
 
 /** Map a DB row to the shared `Movie` wire type. */
-function toMovie(row: MovieRow & { bookmarkCount?: number }): Movie {
+function toMovie(row: MovieRow & {
+  bookmarkCount?: number;
+  mainImage?: { id: string;
+    createdAt: Date | string; } | null;
+}): Movie {
   return {
     id: row.id,
     name: row.name,
@@ -36,6 +41,7 @@ function toMovie(row: MovieRow & { bookmarkCount?: number }): Movie {
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
+    imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
   };
 }
 

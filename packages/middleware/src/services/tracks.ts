@@ -4,6 +4,7 @@ import type {
   UpdateTrackInput,
 } from "@eesimple/types";
 import { createPlexTaxonomyService } from "@/services/plexTaxonomyService";
+import { mainTaxonomyImageUrl } from "@/services/taxonomyImages";
 import { bookmarks, tracks, type TrackRow } from "@/db/schema";
 import { slugify } from "@/utils/slug";
 
@@ -16,7 +17,11 @@ export class DuplicateTrackError extends Error {
 }
 
 /** Map a DB row to the shared `Track` wire type. */
-function toTrack(row: TrackRow & { bookmarkCount?: number }): Track {
+function toTrack(row: TrackRow & {
+  bookmarkCount?: number;
+  mainImage?: { id: string;
+    createdAt: Date | string; } | null;
+}): Track {
   return {
     id: row.id,
     name: row.name,
@@ -35,6 +40,7 @@ function toTrack(row: TrackRow & { bookmarkCount?: number }): Track {
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
+    imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
   };
 }
 

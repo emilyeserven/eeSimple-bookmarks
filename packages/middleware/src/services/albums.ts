@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import type {
   Album,
   BulkDeleteResult,
@@ -7,8 +7,10 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
-import { albumPeople, albumGroups, albums, bookmarks, type AlbumRow } from "@/db/schema";
+import { deleteTaxonomyImagesForOwner, mainTaxonomyImageUrl } from "@/services/taxonomyImages";
+import {
+  albumPeople, albumGroups, albums, bookmarks, taxonomyImages, type AlbumRow,
+} from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -25,7 +27,11 @@ export class DuplicateAlbumError extends Error {
 
 /** Map a DB row to the shared `Album` wire type. */
 function toAlbum(
-  row: AlbumRow & { bookmarkCount?: number },
+  row: AlbumRow & {
+    bookmarkCount?: number;
+    mainImage?: { id: string;
+      createdAt: Date | string; } | null;
+  },
   personIds: string[] = [],
   groupIds: string[] = [],
 ): Album {
@@ -48,6 +54,7 @@ function toAlbum(
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
+    imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
   };
 }
 
@@ -152,15 +159,34 @@ export async function listAlbums(): Promise<Album[]> {
       wikipediaLinkLocal: albums.wikipediaLinkLocal,
       createdAt: albums.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.albumId, albums.id)),
+      mainImage: {
+        id: taxonomyImages.id,
+        createdAt: taxonomyImages.createdAt,
+      },
     })
     .from(albums)
+    .leftJoin(
+      taxonomyImages,
+      and(
+        eq(taxonomyImages.ownerType, "album"),
+        eq(taxonomyImages.ownerId, albums.id),
+        eq(taxonomyImages.isMain, true),
+      ),
+    )
     .orderBy(asc(albums.sortOrder), asc(albums.name));
   const ids = rows.map(r => r.id);
   const [personMap, groupMap] = await Promise.all([
     loadAlbumPersonMap(ids),
     loadAlbumGroupMap(ids),
   ]);
-  return rows.map(row => toAlbum(row, personMap.get(row.id) ?? [], groupMap.get(row.id) ?? []));
+  return rows.map(row => toAlbum(
+    {
+      ...row,
+      mainImage: row.mainImage?.id ? row.mainImage : null,
+    },
+    personMap.get(row.id) ?? [],
+    groupMap.get(row.id) ?? [],
+  ));
 }
 
 /** Add an album. Throws `DuplicateAlbumError` on a name clash. */

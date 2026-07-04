@@ -7,6 +7,7 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
+import { useEntityImage } from "@/hooks/useEntityImage";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /**
@@ -29,6 +30,9 @@ export function TrackListItem({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const {
+    showImage, onError,
+  } = useEntityImage(track.imageUrl);
 
   return (
     <StandardListingCard
@@ -36,7 +40,25 @@ export function TrackListItem({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
-      icon={<Music className="size-5 shrink-0 text-muted-foreground" />}
+      icon={(
+        <span
+          className="
+            flex size-8 shrink-0 items-center justify-center overflow-hidden
+            rounded-sm bg-muted text-muted-foreground
+          "
+        >
+          {showImage
+            ? (
+              <img
+                src={track.imageUrl ?? undefined}
+                alt=""
+                className="size-full object-contain"
+                onError={onError}
+              />
+            )
+            : <Music className="size-4" />}
+        </span>
+      )}
       title={track.name}
       subtitle={track.year ? String(track.year) : undefined}
       count={track.bookmarkCount}

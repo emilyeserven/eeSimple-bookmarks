@@ -36,6 +36,8 @@ export interface Album {
   createdAt: string;
   /** Number of bookmarks linked to this album (populated by list endpoints). */
   bookmarkCount?: number;
+  /** Main artwork image URL (from the taxonomy-image gallery), or null when none is set. */
+  imageUrl: string | null;
 }
 
 /** Payload for creating an album. */

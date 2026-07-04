@@ -4,6 +4,7 @@ import type {
   UpdateTvShowInput,
 } from "@eesimple/types";
 import { createPlexTaxonomyService } from "@/services/plexTaxonomyService";
+import { mainTaxonomyImageUrl } from "@/services/taxonomyImages";
 import { bookmarks, tvShows, type TvShowRow } from "@/db/schema";
 import { slugify } from "@/utils/slug";
 
@@ -16,7 +17,11 @@ export class DuplicateTvShowError extends Error {
 }
 
 /** Map a DB row to the shared `TvShow` wire type. */
-function toTvShow(row: TvShowRow & { bookmarkCount?: number }): TvShow {
+function toTvShow(row: TvShowRow & {
+  bookmarkCount?: number;
+  mainImage?: { id: string;
+    createdAt: Date | string; } | null;
+}): TvShow {
   return {
     id: row.id,
     name: row.name,
@@ -34,6 +39,7 @@ function toTvShow(row: TvShowRow & { bookmarkCount?: number }): TvShow {
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
+    imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
   };
 }
 
