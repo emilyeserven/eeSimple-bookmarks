@@ -38,6 +38,22 @@ jobs:
       - name: Test
         run: pnpm test
 
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-pnpm
+      - name: i18n coverage & stale check
+        # Informational only — ja.json is owner-authored and untranslated is a normal, permanent
+        # state, so this job never fails the PR (see pnpm i18n:status / i18n:check-stale).
+        shell: bash
+        run: |
+          echo "## i18n" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Coverage" >> "$GITHUB_STEP_SUMMARY"
+          pnpm i18n:status >> "$GITHUB_STEP_SUMMARY" 2>&1
+          echo "### Stale keys" >> "$GITHUB_STEP_SUMMARY"
+          pnpm i18n:check-stale >> "$GITHUB_STEP_SUMMARY" 2>&1
+
   build:
     runs-on: ubuntu-latest
     steps:

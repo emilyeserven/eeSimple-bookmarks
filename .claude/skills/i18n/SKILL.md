@@ -48,6 +48,26 @@ t(`Updated ${label}`);             // ❌  bakes the value into the key
 
 Outside a component (module-level helper), import the app instance: `import i18n from "@/i18n"; i18n.t("…")`.
 
+### Keeping `ja.json` in sync
+
+Three commands (`scripts/i18n.mjs` via `scripts/lib/i18nKeys.mjs`, a TS-Compiler-API walk over
+`packages/client/src` — no new dependency) keep the catalog complete and clean:
+
+- **`pnpm i18n:extract`** — statically collects every `t("…")`/`i18n.t("…")` call and adds any
+  missing key to `ja.json` with an English-placeholder value (`"key": "key"`), keeps the file
+  sorted, and **never touches an existing value** (translated or not). Run this after adding new
+  `t()` calls, before committing. Prints a warning (never fails) for a call site it can't
+  statically resolve — a template-literal key (forbidden — use `{{var}}` interpolation instead) or
+  a dynamic key (`t(someVariable)`), which needs a manual look.
+- **`pnpm i18n:status`** — prints translated vs. untranslated counts, with the untranslated list
+  grouped by source directory so translation can proceed area-by-area. Always exits 0 —
+  untranslated is a normal, permanent state, never a CI failure.
+- **`pnpm i18n:check-stale`** — flags `ja.json` keys no longer referenced by any `t()` call.
+  Untranslated stale keys are reported as safe to remove; **translated** stale keys print a loud
+  warning instead, since the phrase may have been renamed and the existing translation is worth
+  carrying forward rather than discarding. Exits 0 unless run with `--fail-on-stale`. Wired as a
+  non-blocking `i18n` job in `.github/workflows/ci.yml` that posts to the job summary.
+
 ### The `packages/types` boundary
 
 `packages/types` stays **i18n-free**. Label registries there (`*_LABELS`, option lists) keep their
@@ -82,9 +102,12 @@ The other ~38 incidental `toLocaleString`/`Intl.*` call sites are left for the s
 **`ja.json` is owner-authored.** The Japanese strings are written by the repo owner as a learning
 exercise. Automated sessions:
 
-- **may** add/maintain English-placeholder **keys** (via #975's sync tooling — every extracted key
-  present with its value initialized to a copy of the key; `value === key` means untranslated;
-  behavior-neutral because an English-valued entry renders like a missing one), and
-- **must never** add, machine-translate, or overwrite Japanese **values**.
+- **may** add English-placeholder **keys** via `pnpm i18n:extract` (every extracted key present
+  with its value initialized to a copy of the key; `value === key` means untranslated;
+  behavior-neutral because an English-valued entry renders like a missing one), and may remove an
+  **untranslated**-stale key flagged by `pnpm i18n:check-stale`, and
+- **must never** add, machine-translate, or overwrite a Japanese **value** — and must never delete
+  a **translated**-stale key (`check-stale`'s loud-warning bucket) without owner confirmation, since
+  it may carry a translation worth keeping for a renamed phrase.
 
 If a task would require authoring Japanese, stop and leave it to the owner.
