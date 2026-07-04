@@ -448,6 +448,12 @@ instead.
   `/api/media-types/tree`. The client only flattens for indentation.
 - **Batched hydration** — `hydrateBookmarkRows` (`services/bookmarkHydration.ts`) joins
   website/mediaType/channel/tags/property-values/images into a render-ready `Bookmark` with no N+1.
+- **Plex media taxonomy CRUD is a factory** — `createPlexTaxonomyService`
+  (`services/plexTaxonomyService.ts`) generates the list/create/update/delete/bulkDelete/
+  backfillSlugs set for movies/tvShows/episodes/tracks (albums stays custom for its People/Group
+  credit transactions). A new Plex-shaped taxonomy service should be a thin factory wrapper, not a
+  copy of a sibling file; the client table columns for these come from `plexMediaColumns` in
+  `components/tables/columnHelpers.tsx` the same way.
 - **"Load once → evaluate the shared predicate in-memory → hydrate matches"** —
   `listHomepageSectionBookmarks` (`services/homepageSections.ts`) and `previewAutofillMatches`
   (`services/autofill.ts`) both load via the **bookmark cache** (below) and run the **shared**
