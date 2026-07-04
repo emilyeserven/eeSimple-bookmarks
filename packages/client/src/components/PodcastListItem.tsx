@@ -2,6 +2,7 @@ import type { Podcast } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Pencil, Podcast as PodcastIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -27,6 +28,9 @@ export function PodcastListItem({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -68,7 +72,9 @@ export function PodcastListItem({
           params={{
             podcastSlug: podcast.slug,
           }}
-          title={`Show bookmarks for ${podcast.name}`}
+          title={t("Show bookmarks for {{name}}", {
+            name: podcast.name,
+          })}
           className={className}
         >
           {children}
@@ -81,11 +87,16 @@ export function PodcastListItem({
             params={{
               podcastSlug: podcast.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "podcast", podcast.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {podcast.name}</span>
+            <span className="sr-only">{t("Edit {{name}}", {
+              name: podcast.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -100,7 +111,10 @@ export function PodcastListItem({
             onClick={event => viewClick(event, "podcast", podcast.id, podcast.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {podcast.name}</span>
+            <span className="sr-only">{t("View {{name}}", {
+              name: podcast.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

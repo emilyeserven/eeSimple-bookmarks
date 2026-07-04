@@ -7,6 +7,7 @@ import type {
 } from "@eesimple/types";
 
 import { defaultCardZoneLayouts } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { CardDisplayImageControls } from "./CardDisplayImageControls";
 import { LoadTemplateDropdown, SaveTemplatePopover } from "./CardFieldTemplateControls";
@@ -52,6 +53,9 @@ interface CardDisplayRuleDisplaySettingsProps {
 export function CardDisplayRuleDisplaySettings({
   value, onChange, properties, idPrefix, isDefault = false,
 }: CardDisplayRuleDisplaySettingsProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-4">
       <CardDisplayImageControls
@@ -65,7 +69,7 @@ export function CardDisplayRuleDisplaySettings({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-4">
-          <Label className="text-sm font-medium">Card fields</Label>
+          <Label className="text-sm font-medium">{t("Card fields")}</Label>
           {!isDefault && (
             <label
               className="flex items-center gap-2 text-xs text-muted-foreground"
@@ -77,7 +81,7 @@ export function CardDisplayRuleDisplaySettings({
                   fieldZones: checked === true ? defaultCardFieldZones(properties) : null,
                 })}
               />
-              Override
+              {t("Override")}
             </label>
           )}
         </div>
@@ -86,8 +90,7 @@ export function CardDisplayRuleDisplaySettings({
             <>
               <div className="flex items-start justify-between gap-2">
                 <p className="text-xs text-muted-foreground">
-                  Drag each field onto a zone. Image corners overlay it on the card image; anything left
-                  in &ldquo;Available&rdquo; is hidden.
+                  {t("Drag each field onto a zone. Image corners overlay it on the card image; anything left in “Available” is hidden.")}
                 </p>
                 <div className="flex shrink-0 items-center gap-1">
                   <LoadTemplateDropdown
@@ -108,14 +111,14 @@ export function CardDisplayRuleDisplaySettings({
               />
             </>
           )
-          : <p className="text-xs text-muted-foreground">Inheriting card fields from lower-priority rules.</p>}
+          : <p className="text-xs text-muted-foreground">{t("Inheriting card fields from lower-priority rules.")}</p>}
       </div>
 
       <Separator />
 
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-4">
-          <Label className="text-sm font-medium">Section layout</Label>
+          <Label className="text-sm font-medium">{t("Section layout")}</Label>
           {!isDefault && (
             <label
               className="flex items-center gap-2 text-xs text-muted-foreground"
@@ -127,7 +130,7 @@ export function CardDisplayRuleDisplaySettings({
                   cardZoneLayouts: checked === true ? defaultCardZoneLayouts() : null,
                 })}
               />
-              Override
+              {t("Override")}
             </label>
           )}
         </div>
@@ -135,7 +138,7 @@ export function CardDisplayRuleDisplaySettings({
           ? (
             <>
               <p className="text-xs text-muted-foreground">
-                How each card-body section arranges its fields: inline flow (Flex) or a two-column grid.
+                {t("How each card-body section arranges its fields: inline flow (Flex) or a two-column grid.")}
               </p>
               <CardZoneLayoutControls
                 value={value.cardZoneLayouts}
@@ -145,7 +148,7 @@ export function CardDisplayRuleDisplaySettings({
               />
             </>
           )
-          : <p className="text-xs text-muted-foreground">Inheriting section layout from lower-priority rules.</p>}
+          : <p className="text-xs text-muted-foreground">{t("Inheriting section layout from lower-priority rules.")}</p>}
       </div>
     </div>
   );

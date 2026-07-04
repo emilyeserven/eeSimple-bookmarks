@@ -2,6 +2,7 @@ import type { Movie } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Film, Info, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -27,6 +28,9 @@ export function MovieListItem({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -68,7 +72,9 @@ export function MovieListItem({
           params={{
             movieSlug: movie.slug,
           }}
-          title={`Show bookmarks for ${movie.name}`}
+          title={t("Show bookmarks for {{name}}", {
+            name: movie.name,
+          })}
           className={className}
         >
           {children}
@@ -81,11 +87,16 @@ export function MovieListItem({
             params={{
               movieSlug: movie.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "movie", movie.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {movie.name}</span>
+            <span className="sr-only">{t("Edit {{name}}", {
+              name: movie.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -100,7 +111,10 @@ export function MovieListItem({
             onClick={event => viewClick(event, "movie", movie.id, movie.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {movie.name}</span>
+            <span className="sr-only">{t("View {{name}}", {
+              name: movie.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

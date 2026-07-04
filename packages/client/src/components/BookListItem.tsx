@@ -2,6 +2,7 @@ import type { Book } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Info, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -27,6 +28,9 @@ export function BookListItem({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -68,7 +72,9 @@ export function BookListItem({
           params={{
             bookSlug: book.slug,
           }}
-          title={`Show bookmarks for ${book.name}`}
+          title={t("Show bookmarks for {{name}}", {
+            name: book.name,
+          })}
           className={className}
         >
           {children}
@@ -81,11 +87,16 @@ export function BookListItem({
             params={{
               bookSlug: book.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "book", book.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {book.name}</span>
+            <span className="sr-only">{t("Edit {{name}}", {
+              name: book.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -100,7 +111,10 @@ export function BookListItem({
             onClick={event => viewClick(event, "book", book.id, book.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {book.name}</span>
+            <span className="sr-only">{t("View {{name}}", {
+              name: book.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

@@ -2,6 +2,7 @@ import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimpl
 
 import { youtubeEmbedUrl } from "@eesimple/types";
 import { BookOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkArchiveLinkButton, BookmarkArchiveNowButton } from "./BookmarkCardActions";
 import { BookmarkDetailBody } from "./BookmarkDetailBody";
@@ -36,6 +37,9 @@ interface BookmarkDetailProps {
 export function BookmarkDetail({
   bookmark, categories = [], properties = [], propertyGroups = [], onEdit, onDelete, onSaveBoolean,
 }: BookmarkDetailProps) {
+  const {
+    t,
+  } = useTranslation();
   const layout = useBookmarkDetailLayout();
   const {
     data: connectors,
@@ -115,7 +119,7 @@ export function BookmarkDetail({
               "
             >
               <BookOpen className="size-3.5" />
-              View on Kavita
+              {t("View on Kavita")}
             </a>
           )}
           <a

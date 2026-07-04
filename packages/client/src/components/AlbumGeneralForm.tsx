@@ -1,6 +1,7 @@
 import type { Album, PlexItemResult } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AlbumCreditsSection } from "./AlbumCreditsSection";
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
@@ -28,6 +29,9 @@ export function AlbumGeneralForm({
     data: people,
   } = usePeople();
   const createPerson = useCreatePerson();
+  const {
+    t,
+  } = useTranslation();
 
   async function handlePlexSelected(item: PlexItemResult) {
     if (album.personIds.length > 0 || album.groupIds.length > 0 || !item.parentTitle) return;
@@ -45,7 +49,7 @@ export function AlbumGeneralForm({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("People"),
+        onSuccess: () => notifyFieldSaved(t("People")),
       },
     );
   }

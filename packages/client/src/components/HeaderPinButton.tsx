@@ -1,6 +1,7 @@
 import type { PinnedSidebarEntityType } from "@eesimple/types";
 
 import { Pin, PinOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { usePinToggle } from "@/hooks/usePinToggle";
@@ -24,13 +25,22 @@ export function HeaderPinButton({
   const {
     isPinned, name, toggle,
   } = usePinToggle(context);
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon"
-      aria-label={isPinned ? `Unpin ${name}` : `Pin ${name}`}
+      aria-label={isPinned
+        ? t("Unpin {{name}}", {
+          name,
+        })
+        : t("Pin {{name}}", {
+          name,
+        })}
       aria-pressed={isPinned}
       onClick={toggle}
     >

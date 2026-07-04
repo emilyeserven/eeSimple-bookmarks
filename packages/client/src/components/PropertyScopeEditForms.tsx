@@ -3,6 +3,8 @@ import type { Category, CustomProperty, MediaType, UpdateCustomPropertyInput } f
 
 import { useEffect, useRef } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { propertySchema, valuesFromProperty } from "./propertyFormParts";
 import { PropertyCategoriesSection, PropertyMediaTypesSection } from "./PropertyScopeSections";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
@@ -45,6 +47,9 @@ export function PropertyCategoriesEditForm({
   property: CustomProperty;
   categories: Category[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const updateProperty = useUpdateCustomProperty();
   const {
     saveSection,
@@ -77,7 +82,7 @@ export function PropertyCategoriesEditForm({
         {values => (
           <ScopeAutoSaver
             values={values}
-            label="Categories"
+            label={t("Categories")}
             save={saveSection}
           />
         )}
@@ -94,6 +99,9 @@ export function PropertyMediaTypesEditForm({
   property: CustomProperty;
   mediaTypes: MediaType[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const updateProperty = useUpdateCustomProperty();
   const {
     saveSection,
@@ -125,7 +133,7 @@ export function PropertyMediaTypesEditForm({
         {values => (
           <ScopeAutoSaver
             values={values}
-            label="Media Types"
+            label={t("Media Types")}
             save={saveSection}
           />
         )}

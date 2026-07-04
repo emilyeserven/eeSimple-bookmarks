@@ -1,6 +1,8 @@
 import type { PropertyFormApi, PropertyFormSection } from "./propertyFormSchema";
 import type { Category, MediaType } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import {
   CategoryCheckboxList,
@@ -27,10 +29,14 @@ export function PropertyCategoriesSection({
   mode: "create" | "edit";
   section?: PropertyFormSection;
 }) {
+  const {
+    t,
+  } = useTranslation();
+
   return (
     <CollapsibleFormSection
-      title="Categories"
-      description="Choose which categories this property applies to."
+      title={t("Categories")}
+      description={t("Choose which categories this property applies to.")}
       defaultOpen={mode === "create" || section === "categories"}
       preview={(
         <form.Subscribe
@@ -96,10 +102,14 @@ export function PropertyMediaTypesSection({
   idPrefix: string;
   section?: PropertyFormSection;
 }) {
+  const {
+    t,
+  } = useTranslation();
+
   return (
     <CollapsibleFormSection
-      title="Media Types"
-      description="Also show this property on bookmarks of the chosen media types (in addition to its categories)."
+      title={t("Media Types")}
+      description={t("Also show this property on bookmarks of the chosen media types (in addition to its categories).")}
       defaultOpen={section === "media-types"}
       preview={(
         <form.Subscribe

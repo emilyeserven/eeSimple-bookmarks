@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { Star, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 
@@ -37,6 +38,9 @@ export function StarRating({
   value, max, allowHalf = false, allowZero = false, readOnly = false,
   onChange, label, size = 18, className,
 }: StarRatingProps) {
+  const {
+    t,
+  } = useTranslation();
   const [hover, setHover] = useState<number | null>(null);
   const display = hover ?? value;
 
@@ -94,14 +98,20 @@ export function StarRating({
                   <>
                     <button
                       type="button"
-                      aria-label={`Rate ${position - 0.5} of ${max}`}
+                      aria-label={t("Rate {{value}} of {{max}}", {
+                        value: position - 0.5,
+                        max,
+                      })}
                       className="absolute inset-y-0 left-0 w-1/2 cursor-pointer"
                       onMouseEnter={() => setHover(position - 0.5)}
                       onClick={() => commit(position - 0.5)}
                     />
                     <button
                       type="button"
-                      aria-label={`Rate ${position} of ${max}`}
+                      aria-label={t("Rate {{value}} of {{max}}", {
+                        value: position,
+                        max,
+                      })}
                       className="
                         absolute inset-y-0 right-0 w-1/2 cursor-pointer
                       "
@@ -113,7 +123,10 @@ export function StarRating({
                 : (
                   <button
                     type="button"
-                    aria-label={`Rate ${position} of ${max}`}
+                    aria-label={t("Rate {{value}} of {{max}}", {
+                      value: position,
+                      max,
+                    })}
                     className="absolute inset-0 cursor-pointer"
                     onMouseEnter={() => setHover(position)}
                     onClick={() => commit(position)}
@@ -126,7 +139,7 @@ export function StarRating({
         ? (
           <button
             type="button"
-            aria-label="Clear rating"
+            aria-label={t("Clear rating")}
             className="
               ml-1 rounded-sm text-muted-foreground
               hover:text-foreground

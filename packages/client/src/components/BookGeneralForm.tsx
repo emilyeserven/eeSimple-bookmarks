@@ -2,6 +2,7 @@ import type { Book, KavitaSeriesResult, UpdateBookInput } from "@eesimple/types"
 
 import { useNavigate } from "@tanstack/react-router";
 import { BookOpen, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { renderKavitaFieldSyncHint } from "./KavitaFieldSyncHint";
@@ -11,29 +12,18 @@ import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
 import { useUpdateBook } from "@/hooks/useBooks";
 import { useKavitaSeriesDetail } from "@/hooks/useKavitaSeriesDetail";
+import i18n from "@/i18n";
 import { notifyFieldSaved, notifyFieldSaveError } from "@/lib/autoSave";
 import { useAppForm } from "@/lib/form";
 
 const bookGeneralSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
+  name: z.string().trim().min(1, i18n.t("Name is required")),
   romanizedName: z.string(),
   sortOrder: z.number().int(),
   releaseYear: z.number().int(),
   mediaPropertyId: z.string(),
   isbn: z.string(),
 });
-
-const LABELS: Record<keyof UpdateBookInput, string> = {
-  name: "Name",
-  romanizedName: "Romanized name",
-  sortOrder: "Sort order",
-  mediaPropertyId: "Media property",
-  releaseYear: "Release year",
-  kavitaSeriesId: "Kavita series",
-  kavitaLibraryId: "Kavita series",
-  kavitaSeriesName: "Kavita series",
-  isbn: "ISBN",
-};
 
 interface Props {
   book: Book;
@@ -43,8 +33,22 @@ interface Props {
 export function BookGeneralForm({
   book,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateBook = useUpdateBook();
+  const LABELS: Record<keyof UpdateBookInput, string> = {
+    name: t("Name"),
+    romanizedName: t("Romanized name"),
+    sortOrder: t("Sort order"),
+    mediaPropertyId: t("Media property"),
+    releaseYear: t("Release year"),
+    kavitaSeriesId: t("Kavita series"),
+    kavitaLibraryId: t("Kavita series"),
+    kavitaSeriesName: t("Kavita series"),
+    isbn: t("ISBN"),
+  };
   const autoSave = useFieldAutoSave<UpdateBookInput, Book>({
     id: book.id,
     update: updateBook,
@@ -90,9 +94,9 @@ export function BookGeneralForm({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Kavita series"),
+        onSuccess: () => notifyFieldSaved(t("Kavita series")),
         onError: error => notifyFieldSaveError(
-          "Kavita series",
+          t("Kavita series"),
           error instanceof Error ? error.message : undefined,
         ),
       },
@@ -110,9 +114,9 @@ export function BookGeneralForm({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Kavita series"),
+        onSuccess: () => notifyFieldSaved(t("Kavita series")),
         onError: error => notifyFieldSaveError(
-          "Kavita series",
+          t("Kavita series"),
           error instanceof Error ? error.message : undefined,
         ),
       },
@@ -145,7 +149,7 @@ export function BookGeneralForm({
       <form.AppField name="releaseYear">
         {field => (
           <field.NumberField
-            label="Release year"
+            label={t("Release year")}
             action={renderKavitaFieldSyncHint("release year", book.releaseYear, kavitaDetail?.releaseYear)}
             onBlur={() => autoSave.saveField(
               "releaseYear",
@@ -161,7 +165,7 @@ export function BookGeneralForm({
       <form.AppField name="isbn">
         {field => (
           <field.TextField
-            label="ISBN"
+            label={t("ISBN")}
             onBlur={() => autoSave.saveField("isbn", field.state.value.trim() || null)}
           />
         )}
@@ -177,11 +181,15 @@ export function BookGeneralForm({
             >
               <BookOpen className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate">
-                Kavita: {book.kavitaSeriesName ?? `Series #${book.kavitaSeriesId}`}
+                {t("Kavita: {{series}}", {
+                  series: book.kavitaSeriesName ?? t("Series #{{id}}", {
+                    id: book.kavitaSeriesId,
+                  }),
+                })}
               </span>
               <button
                 type="button"
-                aria-label="Unlink Kavita series"
+                aria-label={t("Unlink Kavita series")}
                 className="
                   text-muted-foreground
                   hover:text-foreground

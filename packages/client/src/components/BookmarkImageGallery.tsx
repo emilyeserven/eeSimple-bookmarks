@@ -1,6 +1,7 @@
 import type { BookmarkImage, Bookmark } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 
@@ -24,6 +25,9 @@ export function BookmarkImageGallery({
 }: {
   bookmarks: Bookmark[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
 
@@ -36,11 +40,11 @@ export function BookmarkImageGallery({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">Images</h2>
+        <h2 className="text-lg font-semibold">{t("Images")}</h2>
         <Badge variant="secondary">{tiles.length}</Badge>
       </div>
       {tiles.length === 0
-        ? <p className="text-muted-foreground">No images yet.</p>
+        ? <p className="text-muted-foreground">{t("No images yet.")}</p>
         : (
           <ul
             className="

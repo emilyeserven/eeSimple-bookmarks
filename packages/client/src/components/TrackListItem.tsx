@@ -2,6 +2,7 @@ import type { Track } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Music, Info, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -27,6 +28,9 @@ export function TrackListItem({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -68,7 +72,9 @@ export function TrackListItem({
           params={{
             trackSlug: track.slug,
           }}
-          title={`Show bookmarks for ${track.name}`}
+          title={t("Show bookmarks for {{name}}", {
+            name: track.name,
+          })}
           className={className}
         >
           {children}
@@ -81,11 +87,16 @@ export function TrackListItem({
             params={{
               trackSlug: track.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "track", track.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {track.name}</span>
+            <span className="sr-only">{t("Edit {{name}}", {
+              name: track.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -100,7 +111,10 @@ export function TrackListItem({
             onClick={event => viewClick(event, "track", track.id, track.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {track.name}</span>
+            <span className="sr-only">{t("View {{name}}", {
+              name: track.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

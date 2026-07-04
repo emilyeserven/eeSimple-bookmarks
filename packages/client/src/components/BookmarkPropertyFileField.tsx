@@ -3,6 +3,7 @@ import type { BookmarkFileValue, CustomProperty } from "@eesimple/types";
 import { useRef } from "react";
 
 import { FileText, ImagePlus, Paperclip, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useDeleteBookmarkPropertyFile, useUploadBookmarkPropertyFile } from "../hooks/useBookmarks";
 
@@ -38,6 +39,9 @@ function formatBytes(bytes: number): string {
 export function BookmarkPropertyFileField({
   bookmarkId, property, value,
 }: BookmarkPropertyFileFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   const isImage = property.type === "image";
   const upload = useUploadBookmarkPropertyFile();
   const remove = useDeleteBookmarkPropertyFile();
@@ -112,7 +116,7 @@ export function BookmarkPropertyFileField({
                   className="size-4"
                 />
               )}
-            {value ? "Replace" : isImage ? "Choose image" : "Choose file"}
+            {value ? t("Replace") : isImage ? t("Choose image") : t("Choose file")}
           </Button>
           {value && !isImage
             ? (
@@ -122,7 +126,7 @@ export function BookmarkPropertyFileField({
                 target="_blank"
                 rel="noreferrer"
               >
-                {value.originalFilename ?? "Download"}
+                {value.originalFilename ?? t("Download")}
                 {" "}
                 ({formatBytes(value.byteSize)})
               </a>
@@ -138,7 +142,7 @@ export function BookmarkPropertyFileField({
                 onClick={clear}
               >
                 <X className="size-4" />
-                Remove
+                {t("Remove")}
               </Button>
             )
             : null}

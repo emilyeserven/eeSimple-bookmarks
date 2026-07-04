@@ -3,6 +3,7 @@ import type { PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
 import { MapPin, Square } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { LocationLevelModeToggle } from "./LocationLevelModeToggle";
 import { LocationMapFilterSection } from "./LocationMapFilterSection";
@@ -66,6 +67,9 @@ export function LevelsFooter({
   filter?: MapFilterControls;
   compact?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const idPrefix = compact ? "map" : "levels";
   const section = compact ? "mt-2 border-t pt-2" : "mt-3 border-t pt-3";
   const labelClass = cn("cursor-pointer", compact && "text-xs");
@@ -93,7 +97,7 @@ export function LevelsFooter({
           htmlFor={`${idPrefix}-hide-admin-borders`}
           className={labelClass}
         >
-          Hide map borders
+          {t("Hide map borders")}
         </Label>
       </div>
 
@@ -109,7 +113,7 @@ export function LevelsFooter({
               htmlFor={`${idPrefix}-only-direct-relatives`}
               className={labelClass}
             >
-              Only show direct ancestors/children of current location
+              {t("Only show direct ancestors/children of current location")}
             </Label>
           </div>
         )

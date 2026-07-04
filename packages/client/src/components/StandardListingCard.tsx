@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
@@ -74,6 +76,9 @@ export function StandardListingCard({
   renderPrimaryLink, renderEdit, renderInfo, renderExtra, footer,
   selectable = false, selected = false, onSelectToggle, inSelectionMode = false,
 }: StandardListingCardProps) {
+  const {
+    t,
+  } = useTranslation();
   // Zero-count items are de-emphasized but stay clickable. Items without a count are not muted.
   const muted = count === 0;
 
@@ -110,7 +115,13 @@ export function StandardListingCard({
             <button
               type="button"
               className="flex min-w-0 flex-1 items-center gap-3 p-4 text-left"
-              aria-label={selected ? `Deselect ${title}` : `Select ${title}`}
+              aria-label={selected
+                ? t("Deselect {{title}}", {
+                  title,
+                })
+                : t("Select {{title}}", {
+                  title,
+                })}
               onClick={() => onSelectToggle?.()}
             >
               {linkChildren}

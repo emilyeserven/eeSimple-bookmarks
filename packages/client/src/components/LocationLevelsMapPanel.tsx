@@ -1,6 +1,7 @@
 import type { AncestorChildrenScopeControls, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 
 import { MapPin, Settings, Shapes } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { LevelGroupGlyph, LevelsFooter } from "./locationLevelsShared";
 import { useLocationLevels } from "../hooks/useLocationLevels";
@@ -22,6 +23,9 @@ function ViewOptionsPopover({
   groups: ReturnType<typeof useLocationLevels>["groups"];
   setGroupDisplayMode: ReturnType<typeof useLocationLevels>["setGroupDisplayMode"];
 }) {
+  const {
+    t,
+  } = useTranslation();
   if (groups.length === 0) return null;
   return (
     <Popover>
@@ -35,21 +39,21 @@ function ViewOptionsPopover({
           "
         >
           <Settings className="size-3" />
-          View Options
+          {t("View Options")}
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align="end"
         className="w-52 p-3"
       >
-        <p className="mb-2 text-xs font-semibold">Display Mode</p>
+        <p className="mb-2 text-xs font-semibold">{t("Display Mode")}</p>
         <ul className="space-y-2">
           {groups.map(group => (
             <li
               key={group.id}
               className="flex items-center justify-between gap-2"
             >
-              <span className="truncate text-sm">{group.name || "Level"}</span>
+              <span className="truncate text-sm">{group.name || t("Level")}</span>
               <ToggleGroup
                 type="single"
                 size="sm"
@@ -60,17 +64,19 @@ function ViewOptionsPopover({
                     setGroupDisplayMode(group.id, value);
                   }
                 }}
-                aria-label={`${group.name || "Level"} display mode`}
+                aria-label={t("{{name}} display mode", {
+                  name: group.name || t("Level"),
+                })}
               >
                 <ToggleGroupItem
                   value="pin"
-                  aria-label="Pin"
+                  aria-label={t("Pin")}
                 >
                   <MapPin className="size-3" />
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="area"
-                  aria-label="Area"
+                  aria-label={t("Area")}
                 >
                   <Shapes className="size-3" />
                 </ToggleGroupItem>
@@ -99,6 +105,9 @@ export function LocationLevelsMapPanel({
   ancestorChildrenScope?: AncestorChildrenScopeControls;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     groups,
     setGroupDisplayMode,
   } = useLocationLevels({
@@ -113,7 +122,7 @@ export function LocationLevelsMapPanel({
       "
     >
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold">Levels</span>
+        <span className="text-xs font-semibold">{t("Levels")}</span>
         <ViewOptionsPopover
           groups={groups}
           setGroupDisplayMode={setGroupDisplayMode}
@@ -123,7 +132,7 @@ export function LocationLevelsMapPanel({
       {groups.length === 0
         ? (
           <p className="text-xs text-muted-foreground">
-            No levels yet.
+            {t("No levels yet.")}
           </p>
         )
         : (
@@ -144,7 +153,7 @@ export function LocationLevelsMapPanel({
                   htmlFor={`map-level-${group.id}`}
                   className="cursor-pointer text-xs"
                 >
-                  {group.name || "Level"}
+                  {group.name || t("Level")}
                 </Label>
               </li>
             ))}

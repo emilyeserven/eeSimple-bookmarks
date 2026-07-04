@@ -1,6 +1,7 @@
 import type { SocialLink, Website } from "@eesimple/types";
 
 import { Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
@@ -24,6 +25,9 @@ export function WebsiteGeneralForm({
   website,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     form, faviconBusy, tagIds, alternateNames, newAlternateName, setNewAlternateName,
     saveField, saveSiteName, saveDomain, toggleTag, addAlternateName, removeAlternateName,
     uploadFavicon, autoFavicon, deleteFavicon, categoryOptions, mediaTypeOptions, tagTree, youtubeChannels,
@@ -33,7 +37,7 @@ export function WebsiteGeneralForm({
   useImageTaxonomySyncRegistration({
     entityId: website.id,
     entityLabel: website.siteName ?? website.domain,
-    sourceLabel: "Website",
+    sourceLabel: t("Website"),
     previewKind: "website",
     currentImageUrl: website.imageUrl ?? null,
     applyImage: website.builtIn
@@ -49,7 +53,7 @@ export function WebsiteGeneralForm({
       {website.builtIn
         ? (
           <p className="text-sm text-muted-foreground">
-            Built-in site — its name and domain are fixed.
+            {t("Built-in site — its name and domain are fixed.")}
           </p>
         )
         : null}
@@ -63,7 +67,7 @@ export function WebsiteGeneralForm({
         <form.AppField name="siteName">
           {field => (
             <field.TextField
-              label="Site name"
+              label={t("Site name")}
               disabled={website.builtIn}
               onBlur={() => saveSiteName(field.state.value, field.state.meta.errors.length === 0)}
             />
@@ -72,7 +76,7 @@ export function WebsiteGeneralForm({
         <form.AppField name="domain">
           {field => (
             <field.TextField
-              label="Domain"
+              label={t("Domain")}
               disabled={website.builtIn}
               onBlur={() => saveDomain(field.state.value, field.state.meta.errors.length === 0)}
             />
@@ -86,12 +90,12 @@ export function WebsiteGeneralForm({
         onNewSelfIdChange={setNewAlternateName}
         onAdd={addAlternateName}
         onRemove={removeAlternateName}
-        label="Alternate Names"
-        description='Extra names this site appends to titles (e.g. "Example", "EN"). Stripped automatically when a bookmark title is fetched.'
+        label={t("Alternate Names")}
+        description={t("Extra names this site appends to titles (e.g. \"Example\", \"EN\"). Stripped automatically when a bookmark title is fetched.")}
       />
 
       <EntityImageField
-        label="Favicon"
+        label={t("Favicon")}
         imageUrl={website.imageUrl}
         shape="square"
         fallback={<Globe className="size-5" />}
@@ -104,7 +108,7 @@ export function WebsiteGeneralForm({
           id: website.id,
           sourceUrl: `https://${website.domain}`,
         })}
-        autoLabel="Fetch favicon"
+        autoLabel={t("Fetch favicon")}
         autoError={website.faviconAutoGrabError ?? null}
         onRemove={() => deleteFavicon.mutate(website.id)}
       />
@@ -116,7 +120,7 @@ export function WebsiteGeneralForm({
         mediaTypeOptions={mediaTypeOptions}
         onCategoryChange={id => saveField("categoryId", id)}
         onMediaTypeChange={id => saveField("mediaTypeId", id)}
-        note="Media type applied automatically to bookmarks saved from this site."
+        note={t("Media type applied automatically to bookmarks saved from this site.")}
       />
 
       <Separator />
@@ -125,7 +129,7 @@ export function WebsiteGeneralForm({
         tree={tagTree}
         selectedIds={tagIds}
         onToggle={toggleTag}
-        description="Tags applied automatically to bookmarks saved from this site."
+        description={t("Tags applied automatically to bookmarks saved from this site.")}
         categoryId={website.category?.id ?? null}
       />
 

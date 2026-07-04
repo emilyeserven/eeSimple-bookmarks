@@ -1,6 +1,7 @@
 import type { CustomProperty, CustomPropertyType } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useDisplayPreferenceSettings, useSidebarOpenModifier } from "../hooks/useAppSettings";
@@ -34,6 +35,9 @@ function PropertyPreviewBody({
   summary: string | null;
   typeIcons: Partial<Record<CustomPropertyType, string>> | null;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const categoryCount = property.categoryIds.length;
   const isAllCategories = property.allCategories || categoryCount === 0;
   const mediaTypeCount = property.mediaTypeIds.length;
@@ -48,8 +52,8 @@ function PropertyPreviewBody({
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{property.name}</span>
-          {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
-          {!property.enabled && <Badge variant="outline">Disabled</Badge>}
+          {property.builtIn && <Badge variant="secondary">{t("Built-in")}</Badge>}
+          {!property.enabled && <Badge variant="outline">{t("Disabled")}</Badge>}
           <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
           {summary ? <span className="text-xs text-muted-foreground">{summary}</span> : null}
         </div>
@@ -63,13 +67,25 @@ function PropertyPreviewBody({
         >
           <span>
             {isAllCategories
-              ? "All categories"
-              : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
+              ? t("All categories")
+              : (categoryCount === 1
+                ? t("{{count}} category", {
+                  count: categoryCount,
+                })
+                : t("{{count}} categories", {
+                  count: categoryCount,
+                }))}
           </span>
           <span>
             {isAllMediaTypes
-              ? "All media types"
-              : `${mediaTypeCount} ${mediaTypeCount === 1 ? "media type" : "media types"}`}
+              ? t("All media types")
+              : (mediaTypeCount === 1
+                ? t("{{count}} media type", {
+                  count: mediaTypeCount,
+                })
+                : t("{{count}} media types", {
+                  count: mediaTypeCount,
+                }))}
           </span>
         </div>
       </div>
@@ -82,6 +98,9 @@ export function PropertyPreview({
   property, allProperties, selectable = false, selected = false, onSelectToggle,
   inSelectionMode = false,
 }: PropertyPreviewProps) {
+  const {
+    t,
+  } = useTranslation();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
   const {
@@ -101,7 +120,13 @@ export function PropertyPreview({
         ? (
           <button
             type="button"
-            aria-label={selected ? `Deselect ${property.name}` : `Select ${property.name}`}
+            aria-label={selected
+              ? t("Deselect {{name}}", {
+                name: property.name,
+              })
+              : t("Select {{name}}", {
+                name: property.name,
+              })}
             onClick={() => onSelectToggle?.()}
             className="flex flex-col gap-1 p-4 text-left"
           >

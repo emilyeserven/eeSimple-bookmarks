@@ -2,6 +2,7 @@ import type { PropertyGroup } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Layers, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -27,6 +28,9 @@ export function PropertyGroupListItem({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -39,7 +43,9 @@ export function PropertyGroupListItem({
       inSelectionMode={inSelectionMode}
       icon={<Layers className="size-5 shrink-0 text-muted-foreground" />}
       title={group.name}
-      subtitle={group.description || `Priority ${group.priority}`}
+      subtitle={group.description || t("Priority {{priority}}", {
+        priority: group.priority,
+      })}
       count={group.propertyCount}
       renderPrimaryLink={(className, children) => (
         <Link
@@ -61,11 +67,17 @@ export function PropertyGroupListItem({
             params={{
               propertyGroupSlug: group.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "property-group", group.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {group.name}</span>
+            <span className="sr-only">
+              {t("Edit {{name}}", {
+                name: group.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -80,7 +92,11 @@ export function PropertyGroupListItem({
             onClick={event => viewClick(event, "property-group", group.id, group.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {group.name}</span>
+            <span className="sr-only">
+              {t("View {{name}}", {
+                name: group.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

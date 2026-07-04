@@ -2,6 +2,7 @@ import type { Newsletter } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Mail, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
@@ -24,6 +25,9 @@ export function NewsletterListItem({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -52,7 +56,9 @@ export function NewsletterListItem({
           params={{
             newsletterSlug: newsletter.slug,
           }}
-          title={`Show issues of ${newsletter.name}`}
+          title={t("Show issues of {{name}}", {
+            name: newsletter.name,
+          })}
           className={className}
         >
           {children}
@@ -65,11 +71,17 @@ export function NewsletterListItem({
             params={{
               newsletterSlug: newsletter.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "newsletter", newsletter.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {newsletter.name}</span>
+            <span className="sr-only">
+              {t("Edit {{name}}", {
+                name: newsletter.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -84,7 +96,11 @@ export function NewsletterListItem({
             onClick={event => viewClick(event, "newsletter", newsletter.id, newsletter.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {newsletter.name}</span>
+            <span className="sr-only">
+              {t("View {{name}}", {
+                name: newsletter.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

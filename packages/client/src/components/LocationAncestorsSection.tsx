@@ -4,6 +4,8 @@ import type { Location, LocationNode } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { LocationAncestorChainEditor } from "./LocationAncestorChainEditor";
 import { ancestorToInput, splitAncestorChain } from "./locationFormSchema";
 import { useSetLocationAncestors } from "../hooks/useLocations";
@@ -29,6 +31,9 @@ interface LocationAncestorsSectionProps {
 export function LocationAncestorsSection({
   node, existingOptions, onReparented,
 }: LocationAncestorsSectionProps) {
+  const {
+    t,
+  } = useTranslation();
   const setAncestors = useSetLocationAncestors();
   const [draft, setDraft] = useState<AncestorDraft[]>([]);
 
@@ -48,12 +53,12 @@ export function LocationAncestorsSection({
       },
       {
         onSuccess: (updated) => {
-          notifyFieldSaved("Ancestors");
+          notifyFieldSaved(t("Ancestors"));
           setDraft([]);
           onReparented?.(updated);
         },
         onError: error => notifyFieldSaveError(
-          "Ancestors",
+          t("Ancestors"),
           error instanceof Error ? error.message : undefined,
         ),
       },
@@ -73,7 +78,7 @@ export function LocationAncestorsSection({
         disabled={!hasChange || setAncestors.isPending}
         onClick={save}
       >
-        {setAncestors.isPending ? "Saving…" : "Save ancestors"}
+        {setAncestors.isPending ? t("Saving…") : t("Save ancestors")}
       </Button>
     </div>
   );

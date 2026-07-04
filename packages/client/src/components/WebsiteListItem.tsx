@@ -2,6 +2,7 @@ import type { Website } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Globe, Info, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
@@ -27,6 +28,9 @@ export function WebsiteListItem({
   onSelectToggle,
   inSelectionMode,
 }: WebsiteListItemProps) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -69,7 +73,9 @@ export function WebsiteListItem({
           params={{
             websiteSlug: website.slug,
           }}
-          title={`Show bookmarks from ${website.siteName}`}
+          title={t("Show bookmarks from {{name}}", {
+            name: website.siteName,
+          })}
           className={className}
         >
           {children}
@@ -82,11 +88,17 @@ export function WebsiteListItem({
             params={{
               websiteSlug: website.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "website", website.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {website.siteName}</span>
+            <span className="sr-only">
+              {t("Edit {{name}}", {
+                name: website.siteName,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -101,7 +113,11 @@ export function WebsiteListItem({
             onClick={event => viewClick(event, "website", website.id, website.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {website.siteName}</span>
+            <span className="sr-only">
+              {t("View {{name}}", {
+                name: website.siteName,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

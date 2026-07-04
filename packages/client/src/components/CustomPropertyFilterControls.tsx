@@ -1,6 +1,8 @@
 import type { ComboboxOption } from "./Combobox";
 import type { CustomProperty } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { Combobox } from "./Combobox";
 import { DateTimeRangeFields } from "./DateTimePicker";
 import { MultiCombobox } from "./MultiCombobox";
@@ -52,6 +54,9 @@ interface BooleanControlProps {
 export function BooleanFilterControl({
   property, value, onChange,
 }: BooleanControlProps) {
+  const {
+    t,
+  } = useTranslation();
   const selected = value === undefined ? undefined : String(value);
   const booleanOptions: ComboboxOption[] = [
     {
@@ -68,8 +73,12 @@ export function BooleanFilterControl({
     <Combobox
       options={booleanOptions}
       value={selected}
-      placeholder={`Filter by ${property.name}…`}
-      aria-label={`Filter by ${property.name}`}
+      placeholder={t("Filter by {{name}}…", {
+        name: property.name,
+      })}
+      aria-label={t("Filter by {{name}}", {
+        name: property.name,
+      })}
       onValueChange={next =>
         onChange(property.id, next === undefined ? undefined : next === "true")}
     />
@@ -86,6 +95,9 @@ interface ChoicesControlProps {
 export function ChoicesFilterControl({
   property, value, onChange,
 }: ChoicesControlProps) {
+  const {
+    t,
+  } = useTranslation();
   const options = (property.choicesItems ?? []).map(item => ({
     value: item.value,
     label: item.label,
@@ -95,8 +107,12 @@ export function ChoicesFilterControl({
       options={options}
       values={value ?? []}
       onValuesChange={values => onChange(property.id, values)}
-      placeholder={`Filter by ${property.name}…`}
-      aria-label={`Filter by ${property.name}`}
+      placeholder={t("Filter by {{name}}…", {
+        name: property.name,
+      })}
+      aria-label={t("Filter by {{name}}", {
+        name: property.name,
+      })}
     />
   );
 }
