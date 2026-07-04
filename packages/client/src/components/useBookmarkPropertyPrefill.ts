@@ -12,6 +12,7 @@ import { useEffect, useRef } from "react";
 
 import { computeAutofill } from "./bookmarkFormSchema";
 import { useSeededPropertyInputs } from "./useSeededPropertyInputs";
+import { mergeAutofillIds } from "../lib/autofillPrefill";
 
 interface UseBookmarkPropertyPrefillArgs {
   /** When editing, the bookmark whose stored values seed the inputs. */
@@ -128,15 +129,19 @@ export function useBookmarkPropertyPrefill({
       }
     }
 
-    if (result.tagIds.length > 0 && !touchedRef.current.has("tags")) {
-      const current = form.getFieldValue("tagIds");
-      form.setFieldValue("tagIds", [...new Set([...current, ...result.tagIds])]);
-    }
+    const mergedTagIds = mergeAutofillIds(
+      result.tagIds,
+      form.getFieldValue("tagIds"),
+      touchedRef.current.has("tags"),
+    );
+    if (mergedTagIds) form.setFieldValue("tagIds", mergedTagIds);
 
-    if (result.locationIds.length > 0 && !touchedRef.current.has("locations")) {
-      const current = form.getFieldValue("locationIds");
-      form.setFieldValue("locationIds", [...new Set([...current, ...result.locationIds])]);
-    }
+    const mergedLocationIds = mergeAutofillIds(
+      result.locationIds,
+      form.getFieldValue("locationIds"),
+      touchedRef.current.has("locations"),
+    );
+    if (mergedLocationIds) form.setFieldValue("locationIds", mergedLocationIds);
 
     ruleSetRef.current = {
       numbers: new Set(result.numberValues.map(entry => entry.propertyId)),
