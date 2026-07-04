@@ -6,14 +6,11 @@ import type { ReactNode } from "react";
 
 import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
 
-import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkKavitaLinkButton, BookmarkMoreMenu, BookmarkPlexLinkButton, BookmarkPodcastLinkButton } from "./BookmarkCardActions";
+import { BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
 import { badgeNode, ratingStars } from "./bookmarkCardFieldRenders";
 import { describeTaxonomyField } from "./bookmarkCardTaxonomyFields";
 import { BookmarkRomanizedField, BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
-import { useBookmarkKavitaLink } from "../hooks/useBooks";
-import { useConnectors } from "../hooks/useConnectors";
-import { useBookmarkPlexLink } from "../hooks/useMovies";
-import { useBookmarkPodcastLink } from "../hooks/usePodcasts";
+import { useBookmarkLinkOutNodes } from "./useBookmarkLinkOutNodes";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
@@ -132,62 +129,14 @@ export function BookmarkCardDetails({
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
   const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
 
-  // ArchiveBox base URL (link-out only); the archiveLink field renders nothing when unset.
-  const {
-    data: connectors,
-  } = useConnectors();
-  const archiveBaseUrl = connectors?.archiveBox.baseUrl ?? null;
-
   // The card header elements, now placeable fields (title link, open-URL button, "More" menu).
   // BookmarkTitleLink owns its own useViewPanelClick / useSidebarOpenModifier hooks.
   const titleNode = <BookmarkTitleLink bookmark={bookmark} />;
   const externalLinkNode = <BookmarkExternalLinkButton url={bookmark.url ?? ""} />;
-  const archiveLinkNode = archiveBaseUrl !== null && bookmark.url
-    ? (
-      <BookmarkArchiveLinkButton
-        baseUrl={archiveBaseUrl}
-        url={bookmark.url}
-      />
-    )
-    : null;
-  // Kavita deep link; the kavitaLink field renders nothing when unconfigured or unlinked — resolved
-  // through the linked Book when one carries the Kavita linkage, else the bookmark's legacy columns.
-  const kavitaBaseUrl = connectors?.kavita.enabled ? connectors.kavita.baseUrl : null;
-  const kavitaLink = useBookmarkKavitaLink(bookmark);
-  const kavitaLinkNode = kavitaBaseUrl !== null && kavitaLink !== null && kavitaLink.libraryId !== null
-    ? (
-      <BookmarkKavitaLinkButton
-        baseUrl={kavitaBaseUrl}
-        libraryId={kavitaLink.libraryId}
-        seriesId={kavitaLink.seriesId}
-      />
-    )
-    : null;
-  // Plex deep link; the plexLink field renders nothing when unconfigured, unlinked, or the server's
-  // machineIdentifier isn't known yet — resolved through whichever Plex-backed taxonomy is linked,
-  // else the bookmark's legacy columns.
-  const plexConnector = connectors?.plex.enabled ? connectors.plex : null;
-  const plexLink = useBookmarkPlexLink(bookmark);
-  const plexLinkNode = plexConnector?.baseUrl && plexConnector.machineIdentifier && plexLink !== null
-    ? (
-      <BookmarkPlexLinkButton
-        baseUrl={plexConnector.baseUrl}
-        machineIdentifier={plexConnector.machineIdentifier}
-        ratingKey={plexLink.ratingKey}
-      />
-    )
-    : null;
-  // Podcast deep link; renders nothing when the bookmark isn't linked to a podcast or none of its
-  // services has a URL. Public URLs, so no connector gating.
-  const podcastLink = useBookmarkPodcastLink(bookmark);
-  const podcastLinkNode = podcastLink !== null
-    ? (
-      <BookmarkPodcastLinkButton
-        url={podcastLink.url}
-        label={podcastLink.label}
-      />
-    )
-    : null;
+  // The four connector deep-link buttons (ArchiveBox / Kavita / Plex / Podcast), each null when N/A.
+  const {
+    archiveLinkNode, kavitaLinkNode, plexLinkNode, podcastLinkNode,
+  } = useBookmarkLinkOutNodes(bookmark);
   const moreNode = (
     <BookmarkMoreMenu
       bookmark={bookmark}
