@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/components/ui/button";
 
 interface DetailHeaderActionsProps {
@@ -14,6 +16,9 @@ interface DetailHeaderActionsProps {
 export function DetailHeaderActions({
   onEdit, onDelete,
 }: DetailHeaderActionsProps) {
+  const {
+    t,
+  } = useTranslation();
   if (!onEdit && !onDelete) return null;
 
   return (
@@ -26,7 +31,7 @@ export function DetailHeaderActions({
             size="sm"
             onClick={onEdit}
           >
-            Edit
+            {t("Edit")}
           </Button>
         )
         : null}
@@ -42,7 +47,7 @@ export function DetailHeaderActions({
               hover:text-destructive
             "
           >
-            Delete
+            {t("Delete")}
           </Button>
         )
         : null}

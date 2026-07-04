@@ -1,4 +1,5 @@
 import { Eye } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { ListingDisplayControls } from "./ListingDisplayControls";
 
@@ -21,9 +22,12 @@ export function DisplayOptionsPopover({
   open,
   onOpenChange,
 }: DisplayOptionsPopoverProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <ResponsivePopover
-      title="Display"
+      title={t("Display")}
       open={open}
       onOpenChange={onOpenChange}
       trigger={(
@@ -31,7 +35,7 @@ export function DisplayOptionsPopover({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="Display options"
+          aria-label={t("Display options")}
         >
           <Eye className="size-4" />
         </Button>

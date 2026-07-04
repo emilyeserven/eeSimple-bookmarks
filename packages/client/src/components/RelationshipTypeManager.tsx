@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { AddRelationshipTypeModal } from "./AddRelationshipTypeModal";
 import { ListingScaffold } from "./ListingScaffold";
@@ -11,22 +12,24 @@ import { useListingScaffold } from "@/hooks/useListingScaffold";
 
 /** Browsable relationship-type listing. Each card opens its detail page; hover to Edit / view Info. */
 export function RelationshipTypesListing() {
+  const {
+    t,
+  } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   useSetListingPage("relationship-types-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New relationship type",
+    createLabel: t("New relationship type"),
   });
   const state = useListingScaffold(relationshipTypeListingConfig);
 
   return (
     <div className="space-y-4">
       <p className="flex items-center gap-1 text-sm text-muted-foreground">
-        Directional types
+        {t("Directional types")}
         {" ("}
         <ArrowRight className="inline size-3" />
-        ) read as parent → child and power the Hierarchy view; symmetric types read the same
-        {" from either bookmark."}
+        {t(") read as parent → child and power the Hierarchy view; symmetric types read the same from either bookmark.")}
       </p>
 
       <ListingScaffold

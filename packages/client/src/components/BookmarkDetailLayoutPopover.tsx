@@ -1,4 +1,5 @@
 import { Columns2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkDetailLayoutControls } from "./BookmarkDetailLayoutControls";
 
@@ -17,9 +18,12 @@ export function BookmarkDetailLayoutPopover({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 } = {}) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <ResponsivePopover
-      title="Layout"
+      title={t("Layout")}
       open={open}
       onOpenChange={onOpenChange}
       trigger={(
@@ -27,7 +31,7 @@ export function BookmarkDetailLayoutPopover({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="Layout"
+          aria-label={t("Layout")}
         >
           <Columns2 className="size-4" />
         </Button>

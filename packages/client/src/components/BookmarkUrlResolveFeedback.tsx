@@ -1,4 +1,5 @@
 import { TriangleAlert } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface BookmarkUrlResolveFeedbackProps {
   error: string;
@@ -8,6 +9,10 @@ interface BookmarkUrlResolveFeedbackProps {
 export function BookmarkUrlResolveFeedback({
   error,
 }: BookmarkUrlResolveFeedbackProps) {
+  const {
+    t,
+  } = useTranslation();
+
   return (
     <div
       className="
@@ -18,7 +23,7 @@ export function BookmarkUrlResolveFeedback({
     >
       <TriangleAlert className="mt-0.5 size-4 shrink-0" />
       <div className="space-y-1">
-        <p className="font-medium">Couldn&apos;t follow this redirect</p>
+        <p className="font-medium">{t("Couldn't follow this redirect")}</p>
         <p>{error}</p>
         <p
           className="
@@ -26,7 +31,7 @@ export function BookmarkUrlResolveFeedback({
             dark:text-amber-400
           "
         >
-          Edit the URL field above to replace it with the final destination link.
+          {t("Edit the URL field above to replace it with the final destination link.")}
         </p>
       </div>
     </div>

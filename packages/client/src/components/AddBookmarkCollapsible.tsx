@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkForm } from "./BookmarkForm";
 import { useUiStore } from "../stores/uiStore";
@@ -18,6 +19,9 @@ interface AddBookmarkCollapsibleProps {
 export function AddBookmarkCollapsible({
   lockedCategoryId,
 }: AddBookmarkCollapsibleProps) {
+  const {
+    t,
+  } = useTranslation();
   const addBookmarkFormOpen = useUiStore(state => state.addBookmarkFormOpen);
   const setAddBookmarkFormOpen = useUiStore(state => state.setAddBookmarkFormOpen);
 
@@ -33,7 +37,7 @@ export function AddBookmarkCollapsible({
           hover:text-foreground
         "
       >
-        Add Bookmark
+        {t("Add Bookmark")}
         <ChevronDown
           className="
             size-4 transition-transform

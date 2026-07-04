@@ -1,5 +1,7 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 
+import { useTranslation } from "react-i18next";
+
 import { LocationPicker } from "./LocationPicker";
 import { useLocationTree } from "../hooks/useLocations";
 
@@ -18,6 +20,9 @@ export function BookmarkExcludedLocationsField({
   form,
 }: BookmarkExcludedLocationsFieldProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tree = [],
   } = useLocationTree();
 
@@ -25,9 +30,9 @@ export function BookmarkExcludedLocationsField({
     <form.Field name="blacklistedLocationIds">
       {field => (
         <div className="space-y-1">
-          <Label>Excluded Locations</Label>
+          <Label>{t("Excluded Locations")}</Label>
           <p className="text-xs text-muted-foreground">
-            Locations toggled here will never be auto-applied by autofill rules.
+            {t("Locations toggled here will never be auto-applied by autofill rules.")}
           </p>
           <LocationPicker
             tree={tree}

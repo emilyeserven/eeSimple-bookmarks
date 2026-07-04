@@ -1,5 +1,7 @@
 import type { TagNode } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
 import { useGatedTagTree } from "../hooks/useGatedTagTree";
 
@@ -18,12 +20,15 @@ export function RuleTagsField({
   tagTree, selectedIds, onToggle, categoryId,
 }: RuleTagsFieldProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     tree: gated,
   } = useGatedTagTree(categoryId, tagTree);
 
   return (
     <div className="space-y-1">
-      <Label>Apply tags</Label>
+      <Label>{t("Apply tags")}</Label>
       <TagPickerWithCreate
         tree={gated}
         selectedIds={selectedIds}

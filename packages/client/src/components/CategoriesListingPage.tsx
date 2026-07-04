@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddCategoryModal } from "./AddCategoryModal";
 import { ListingScaffold } from "./ListingScaffold";
@@ -12,12 +13,15 @@ import { useListingScaffold } from "@/hooks/useListingScaffold";
 
 /** Browse view for the Categories taxonomy: a searchable list with preview info; each row opens the category. */
 export function CategoriesListingPage() {
+  const {
+    t,
+  } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
   useSetListingPage("categories-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New category",
+    createLabel: t("New category"),
   });
   const state = useListingScaffold(categoryListingConfig);
 
@@ -25,14 +29,13 @@ export function CategoriesListingPage() {
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Categories</h1>
+          <h1 className="text-2xl font-bold">{t("Categories")}</h1>
           {!state.isLoading
             ? <Badge variant="secondary">{state.items.length}</Badge>
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Group bookmarks by category. Click a category to view it, or edit it for tiered tags,
-          custom properties and autofill rules.
+          {t("Group bookmarks by category. Click a category to view it, or edit it for tiered tags, custom properties and autofill rules.")}
         </p>
       </div>
 

@@ -1,5 +1,7 @@
 import type { Podcast } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { PodcastForm } from "./PodcastForm";
 
 import {
@@ -21,6 +23,9 @@ interface AddPodcastModalProps {
 export function AddPodcastModal({
   open, onOpenChange, onCreated,
 }: AddPodcastModalProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Dialog
       open={open}
@@ -28,9 +33,9 @@ export function AddPodcastModal({
     >
       <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>New podcast</DialogTitle>
+          <DialogTitle>{t("New podcast")}</DialogTitle>
           <DialogDescription>
-            Give the podcast a name, or paste its RSS feed URL to sync its details later.
+            {t("Give the podcast a name, or paste its RSS feed URL to sync its details later.")}
           </DialogDescription>
         </DialogHeader>
 

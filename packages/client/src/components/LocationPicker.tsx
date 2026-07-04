@@ -1,6 +1,8 @@
 import type { LocationNode } from "@eesimple/types";
 import type { ComponentProps } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { locationNodesToOptions } from "../lib/tagTree";
 
@@ -17,6 +19,9 @@ interface LocationPickerProps {
 export function LocationPicker({
   tree, selectedIds, onToggle, createOption,
 }: LocationPickerProps) {
+  const {
+    t,
+  } = useTranslation();
   function handleValuesChange(next: string[]) {
     const prev = new Set(selectedIds);
     const added = next.find(id => !prev.has(id));
@@ -33,9 +38,9 @@ export function LocationPicker({
       options={locationNodesToOptions(tree)}
       values={selectedIds}
       onValuesChange={handleValuesChange}
-      placeholder="Select locations…"
-      searchPlaceholder="Search locations…"
-      emptyText="No locations yet."
+      placeholder={t("Select locations…")}
+      searchPlaceholder={t("Search locations…")}
+      emptyText={t("No locations yet.")}
       createOption={createOption}
     />
   );

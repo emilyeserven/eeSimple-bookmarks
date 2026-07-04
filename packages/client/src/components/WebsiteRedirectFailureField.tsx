@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
@@ -11,6 +13,10 @@ export function WebsiteRedirectFailureField({
   checked,
   onCheckedChange,
 }: WebsiteRedirectFailureFieldProps) {
+  const {
+    t,
+  } = useTranslation();
+
   return (
     <div className="flex items-start gap-3">
       <Checkbox
@@ -19,10 +25,9 @@ export function WebsiteRedirectFailureField({
         onCheckedChange={value => onCheckedChange(value === true)}
       />
       <div className="space-y-1">
-        <Label htmlFor="redirect-resolution-failure">Redirect resolution failure</Label>
+        <Label htmlFor="redirect-resolution-failure">{t("Redirect resolution failure")}</Label>
         <p className="text-sm text-muted-foreground">
-          Flag this site when its redirects resolve unreliably. Flagged bookmarks appear in
-          Settings → Redirect Failures for URL correction.
+          {t("Flag this site when its redirects resolve unreliably. Flagged bookmarks appear in Settings → Redirect Failures for URL correction.")}
         </p>
       </div>
     </div>

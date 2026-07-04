@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { TagPicker } from "./TagPicker";
 import {
   useCategoryRootTags,
@@ -22,6 +24,9 @@ export function CategoryTieredTags({
   categoryId,
 }: CategoryTieredTagsProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tagTree,
   } = useTagTree();
   const {
@@ -34,10 +39,9 @@ export function CategoryTieredTags({
 
   return (
     <div className="space-y-1">
-      <Label>Enabled parent tags</Label>
+      <Label>{t("Enabled parent tags")}</Label>
       <p className="text-xs text-muted-foreground">
-        Choose which root tags are available when tagging bookmarks in this category. Leave all
-        unchecked to hide the tag picker entirely for this category.
+        {t("Choose which root tags are available when tagging bookmarks in this category. Leave all unchecked to hide the tag picker entirely for this category.")}
       </p>
       <TagPicker
         tree={roots}

@@ -1,5 +1,7 @@
 import type { Album } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { PlexTitleForm } from "./PlexTitleForm";
 
 import {
@@ -21,6 +23,9 @@ interface AddAlbumModalProps {
 export function AddAlbumModal({
   open, onOpenChange, onCreated,
 }: AddAlbumModalProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Dialog
       open={open}
@@ -28,9 +33,9 @@ export function AddAlbumModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New album</DialogTitle>
+          <DialogTitle>{t("New album")}</DialogTitle>
           <DialogDescription>
-            Give the album a name, or look it up on Plex to fill in its details automatically.
+            {t("Give the album a name, or look it up on Plex to fill in its details automatically.")}
           </DialogDescription>
         </DialogHeader>
 

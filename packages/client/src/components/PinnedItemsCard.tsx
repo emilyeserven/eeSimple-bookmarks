@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { PinManager } from "./PinManager";
 
 import {
@@ -15,12 +17,16 @@ import {
  * header's `HeaderPinButton` popover.
  */
 export function PinnedItemsCard() {
+  const {
+    t,
+  } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Pinned Items</CardTitle>
+        <CardTitle>{t("Pinned Items")}</CardTitle>
         <CardDescription>
-          Quick-access links pinned below the Bookmarks link in the sidebar.
+          {t("Quick-access links pinned below the Bookmarks link in the sidebar.")}
         </CardDescription>
       </CardHeader>
       <CardContent>

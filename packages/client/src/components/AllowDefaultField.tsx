@@ -1,5 +1,7 @@
 import type { PropertyFormApi } from "./propertyFormSchema";
 
+import { useTranslation } from "react-i18next";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
@@ -19,6 +21,9 @@ export function AllowDefaultField({
   idPrefix,
   className,
 }: AllowDefaultFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className={className}>
       <form.AppField name="allowDefault">
@@ -29,12 +34,12 @@ export function AllowDefaultField({
               checked={field.state.value}
               onCheckedChange={checked => field.handleChange(checked === true)}
             />
-            <Label htmlFor={`${idPrefix}-allow-default`}>Allow default value</Label>
+            <Label htmlFor={`${idPrefix}-allow-default`}>{t("Allow default value")}</Label>
           </div>
         )}
       </form.AppField>
       <p className="text-xs text-muted-foreground">
-        When disabled, this property will not appear in the category defaults editor.
+        {t("When disabled, this property will not appear in the category defaults editor.")}
       </p>
     </div>
   );

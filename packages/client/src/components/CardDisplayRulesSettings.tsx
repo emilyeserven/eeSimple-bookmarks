@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { CardDisplayRuleCard } from "./CardDisplayRuleCard";
 import { CardDisplayRuleInspector } from "./CardDisplayRuleInspector";
 import { CardDisplayRuleSortableList } from "./CardDisplayRuleSortableList";
@@ -11,6 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  */
 export function CardDisplayRulesSettings() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: serverRules, isLoading,
   } = useCardDisplayRules();
 
@@ -20,7 +25,7 @@ export function CardDisplayRulesSettings() {
     <div className="space-y-4">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Inspect a bookmark</CardTitle>
+          <CardTitle className="text-base">{t("Inspect a bookmark")}</CardTitle>
         </CardHeader>
         <CardContent>
           <CardDisplayRuleInspector />
@@ -28,12 +33,11 @@ export function CardDisplayRulesSettings() {
       </Card>
 
       <p className="text-sm text-muted-foreground">
-        Rules change how bookmark cards display based on their category, media type, website, tags, and
-        more. Higher rules win; each card falls back to the Default rule at the bottom.
+        {t("Rules change how bookmark cards display based on their category, media type, website, tags, and more. Higher rules win; each card falls back to the Default rule at the bottom.")}
       </p>
 
       {isLoading
-        ? <p className="text-sm text-muted-foreground">Loading…</p>
+        ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
         : null}
 
       <CardDisplayRuleSortableList

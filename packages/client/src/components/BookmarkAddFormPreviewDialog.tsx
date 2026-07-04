@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { BookmarkForm } from "./BookmarkForm";
 
 import {
@@ -22,6 +24,9 @@ export function BookmarkAddFormPreviewDialog({
   open,
   onOpenChange,
 }: BookmarkAddFormPreviewDialogProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Dialog
       open={open}
@@ -29,10 +34,9 @@ export function BookmarkAddFormPreviewDialog({
     >
       <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Bookmark form preview</DialogTitle>
+          <DialogTitle>{t("Add Bookmark form preview")}</DialogTitle>
           <DialogDescription>
-            This shows the Add Bookmark form with your current field placement settings. It&apos;s a
-            preview only — no bookmark will be created.
+            {t("This shows the Add Bookmark form with your current field placement settings. It's a preview only — no bookmark will be created.")}
           </DialogDescription>
         </DialogHeader>
         <BookmarkForm previewMode />

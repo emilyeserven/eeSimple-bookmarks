@@ -1,5 +1,7 @@
 import type { Bookmark } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { useConnectors } from "../hooks/useConnectors";
 import { useBookmarkPlexLink } from "../hooks/useMovies";
 import { plexItemUrl } from "../lib/plex";
@@ -54,10 +56,13 @@ export function BookmarkPlexDetailLink({
 export function BookmarkPlexDetailRow({
   bookmark,
 }: { bookmark: Bookmark }) {
+  const {
+    t,
+  } = useTranslation();
   const link = useBookmarkPlexLink(bookmark);
   if (!link) return null;
   return (
-    <DetailField label="Plex">
+    <DetailField label={t("Plex")}>
       <BookmarkPlexDetailLink bookmark={bookmark} />
     </DetailField>
   );

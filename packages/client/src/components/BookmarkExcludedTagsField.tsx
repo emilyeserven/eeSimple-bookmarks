@@ -1,6 +1,8 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { TagNode } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { GatedTagPicker } from "./BookmarkTagsField";
 
 interface BookmarkExcludedTagsFieldProps {
@@ -16,6 +18,9 @@ interface BookmarkExcludedTagsFieldProps {
 export function BookmarkExcludedTagsField({
   form, tagTree,
 }: BookmarkExcludedTagsFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <form.Subscribe selector={state => state.values.categoryId}>
       {categoryId => (
@@ -33,8 +38,8 @@ export function BookmarkExcludedTagsField({
                     : [...current, id],
                 );
               }}
-              label="Excluded Tags"
-              description="Tags toggled here will never be auto-applied by autofill rules."
+              label={t("Excluded Tags")}
+              description={t("Tags toggled here will never be auto-applied by autofill rules.")}
             />
           )}
         </form.Field>

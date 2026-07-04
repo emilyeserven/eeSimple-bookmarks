@@ -1,5 +1,7 @@
 import type { Movie } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { PlexTitleForm } from "./PlexTitleForm";
 
 import {
@@ -21,6 +23,9 @@ interface AddMovieModalProps {
 export function AddMovieModal({
   open, onOpenChange, onCreated,
 }: AddMovieModalProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Dialog
       open={open}
@@ -28,9 +33,9 @@ export function AddMovieModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New movie</DialogTitle>
+          <DialogTitle>{t("New movie")}</DialogTitle>
           <DialogDescription>
-            Give the movie a name, or look it up on Plex to fill in its details automatically.
+            {t("Give the movie a name, or look it up on Plex to fill in its details automatically.")}
           </DialogDescription>
         </DialogHeader>
 

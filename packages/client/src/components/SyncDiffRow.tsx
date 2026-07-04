@@ -1,5 +1,7 @@
 import type { SyncFieldDiff } from "@/lib/syncSources/syncSourceTypes";
 
+import { useTranslation } from "react-i18next";
+
 import { Checkbox } from "@/components/ui/checkbox";
 
 /** Renders a value cell, showing an em dash for an empty/null value. */
@@ -19,6 +21,9 @@ export function SyncDiffRow({
   checked: boolean;
   onToggle: (checked: boolean) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <label
       className="flex cursor-pointer items-start gap-3 py-2"
@@ -39,7 +44,7 @@ export function SyncDiffRow({
                 text-[10px] tracking-wide text-muted-foreground uppercase
               "
             >
-              Current
+              {t("Current")}
             </div>
             <div className="wrap-break-word text-muted-foreground">{displayValue(row.current)}</div>
           </div>
@@ -49,7 +54,7 @@ export function SyncDiffRow({
                 text-[10px] tracking-wide text-muted-foreground uppercase
               "
             >
-              New
+              {t("New")}
             </div>
             <div className="wrap-break-word">{displayValue(row.next)}</div>
           </div>

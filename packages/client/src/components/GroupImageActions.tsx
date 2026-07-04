@@ -1,6 +1,7 @@
 import type { Group } from "@eesimple/types";
 
 import { MonitorPlay, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useConnectors } from "../hooks/useConnectors";
 import { useAutoGroupImage } from "../hooks/useGroups";
@@ -13,6 +14,9 @@ export function GroupImageActions({
 }: {
   group: Group;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const autoImage = useAutoGroupImage();
   const {
     data: connectors,
@@ -32,7 +36,7 @@ export function GroupImageActions({
         })}
       >
         <Sparkles className="size-4" />
-        Fetch from linked website
+        {t("Fetch from linked website")}
       </Button>
       {connectors?.plex.enabled && (
         <Button
@@ -46,7 +50,7 @@ export function GroupImageActions({
           })}
         >
           <MonitorPlay className="size-4" />
-          Use Plex poster
+          {t("Use Plex poster")}
         </Button>
       )}
     </div>
