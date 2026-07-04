@@ -1,5 +1,7 @@
 import type { GroupType } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateGroupType } from "../hooks/useGroupTypes";
 
@@ -15,15 +17,18 @@ export function AddGroupTypeModal({
   open, onOpenChange, onCreated,
 }: AddGroupTypeModalProps) {
   const createGroupType = useCreateGroupType();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title="New group type"
-      description="Give the group type a name — you can reorder it later from its listing page."
-      placeholder="e.g. Doujin Circle"
-      submitLabel="Add group type"
+      title={t("New group type")}
+      description={t("Give the group type a name — you can reorder it later from its listing page.")}
+      placeholder={t("e.g. Doujin Circle")}
+      submitLabel={t("Add group type")}
       isError={createGroupType.isError}
       errorMessage={createGroupType.error?.message}
       onSubmit={(name, done) => {

@@ -1,5 +1,7 @@
 import type { Category } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateCategory } from "../hooks/useCategories";
 
@@ -15,15 +17,18 @@ export function AddCategoryModal({
   open, onOpenChange, onCreated,
 }: AddCategoryModalProps) {
   const createCategory = useCreateCategory();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title="New category"
-      description="Give the category a name — you can fill in the rest later from its edit page."
-      placeholder="e.g. Workflow"
-      submitLabel="Add category"
+      title={t("New category")}
+      description={t("Give the category a name — you can fill in the rest later from its edit page.")}
+      placeholder={t("e.g. Workflow")}
+      submitLabel={t("Add category")}
       isError={createCategory.isError}
       errorMessage={createCategory.error?.message}
       onSubmit={(name, done) => {

@@ -172,7 +172,7 @@ export function InboxPropertyField({
                 : next,
             });
           }}
-          placeholder="Select…"
+          placeholder={t("Select…")}
           aria-label={property.name}
         />
       </div>

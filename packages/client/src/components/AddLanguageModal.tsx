@@ -1,5 +1,7 @@
 import type { Language } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateLanguage } from "../hooks/useLanguages";
 
@@ -15,15 +17,18 @@ export function AddLanguageModal({
   open, onOpenChange, onCreated,
 }: AddLanguageModalProps) {
   const createLanguage = useCreateLanguage();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title="New language"
-      description="Give the language a name — you can set its ISO code from its edit page."
-      placeholder="e.g. Esperanto"
-      submitLabel="Add language"
+      title={t("New language")}
+      description={t("Give the language a name — you can set its ISO code from its edit page.")}
+      placeholder={t("e.g. Esperanto")}
+      submitLabel={t("Add language")}
       isError={createLanguage.isError}
       errorMessage={createLanguage.error?.message}
       onSubmit={(name, done) => {
