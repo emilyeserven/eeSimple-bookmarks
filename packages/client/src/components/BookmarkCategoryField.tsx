@@ -8,6 +8,8 @@ import { CategoryIcon } from "@/lib/icons";
 interface BookmarkCategoryFieldProps {
   form: BookmarkFormApi;
   categories: Category[];
+  /** Optional per-field auto-save hook (edit form); omitted on the create form. */
+  onValueChange?: (id: string) => void;
 }
 
 /**
@@ -17,8 +19,12 @@ interface BookmarkCategoryFieldProps {
 export function BookmarkCategoryField({
   form,
   categories,
+  onValueChange,
 }: BookmarkCategoryFieldProps) {
-  const categoryCreate = useEntityCreateOption("category", category => form.setFieldValue("categoryId", category.id));
+  const categoryCreate = useEntityCreateOption("category", (category) => {
+    form.setFieldValue("categoryId", category.id);
+    onValueChange?.(category.id);
+  });
 
   return (
     <>
@@ -29,6 +35,7 @@ export function BookmarkCategoryField({
             placeholder="Select a category"
             searchPlaceholder="Search categories…"
             emptyText="No categories found."
+            onValueChange={onValueChange}
             createOption={categoryCreate.createOption}
             options={categories.map(category => ({
               value: category.id,

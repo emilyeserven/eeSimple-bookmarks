@@ -16,17 +16,19 @@ type AutoImageMutation = ReturnType<typeof useAutoBookmarkImage>;
 interface BookmarkSyncRegistrationParams {
   bookmark: Bookmark;
   form: BookmarkForm;
+  /** Persist the staged Title/Description after they're written into the form (edit-tab auto-save). */
+  onFieldStaged: () => void;
 }
 
 /**
  * Registers the bookmark General edit form's {@link SyncProvider} so the header Sync button re-scans
- * the bookmark's URL. `applyStaged` stages the selected Title/Description into the form (persisted by
- * the tab's Save button — the review-then-save flow) and applies the page-image row immediately via
- * the existing auto-image mutation (images can't be staged into a form field). Kept out of
- * `useBookmarkGeneralForm` so that hook's cognitive complexity doesn't rise.
+ * the bookmark's URL. `applyStaged` stages the selected Title/Description into the form and then
+ * persists them via the form's per-field auto-save (`onFieldStaged`), and applies the page-image row
+ * immediately via the existing auto-image mutation (images can't be staged into a form field). Kept
+ * out of `useBookmarkGeneralForm` so that hook's cognitive complexity doesn't rise.
  */
 export function useBookmarkSyncRegistration({
-  bookmark, form,
+  bookmark, form, onFieldStaged,
 }: BookmarkSyncRegistrationParams) {
   const autoImage = useAutoBookmarkImage();
   const scanUrl = bookmark.url ?? bookmark.originalUrl ?? "";
@@ -34,20 +36,23 @@ export function useBookmarkSyncRegistration({
 
   const ctxRef = useRef<{ bookmark: Bookmark;
     form: BookmarkForm;
-    autoImage: AutoImageMutation; }>({
+    autoImage: AutoImageMutation;
+    onFieldStaged: () => void; }>({
     bookmark,
     form,
     autoImage,
+    onFieldStaged,
   });
   ctxRef.current = {
     bookmark,
     form,
     autoImage,
+    onFieldStaged,
   };
 
   const applyStaged = useCallback((selected: SyncFieldDiff[]) => {
     const {
-      bookmark: bm, form: f, autoImage: auto,
+      bookmark: bm, form: f, autoImage: auto, onFieldStaged: persist,
     } = ctxRef.current;
     let stagedFields = 0;
     for (const row of selected) {
@@ -66,7 +71,8 @@ export function useBookmarkSyncRegistration({
       }
     }
     if (stagedFields > 0) {
-      notifySuccess("Synced from source — review and save");
+      persist();
+      notifySuccess("Synced from source");
     }
   }, [scanUrl]);
 

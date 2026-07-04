@@ -410,7 +410,12 @@ skill — consult it before building or changing an edit tab. In short:
   mutation.
 - **Exceptions:** **create** flows (create pages, right-panel create, inline-create modals) keep an
   explicit submit button — `PropertyForm` (full) and `TagForm` stay submit-driven for create while
-  their per-tab **edit** forms auto-save. **Local-only Zustand prefs** stay instant with **no toast**
+  their per-tab **edit** forms auto-save. **Bookmark edit** also auto-saves per field now (General tab
+  scalars via `useFieldAutoSave` + a bespoke `saveUrl`; the Properties tab debounce-persists the whole
+  value set like the Languages tab, one "Properties" toast) — the **only** Save button left on bookmark
+  edit is the Image tab's, which applies the staged multi-image picker intent (uploads/kept/main/
+  removals) that can't be expressed as a single field; every other Image action already saves
+  immediately. **Local-only Zustand prefs** stay instant with **no toast**
   (nothing persists server-side). The no-toast carve-out is **only** for *ephemeral, device-local
   view prefs* in `uiStore` — what now remains there is `theme`, `collapsedSidebarSections`, the
   physical sizing (`sidebarWidth`/`panelWidth`/`tableColumnWidths`), open/closed state
@@ -702,9 +707,11 @@ new source, see the `sync-from-source` skill** — don't re-implement the modal 
   builds `applyStaged` closing over the live form. Diff-building is a **pure, unit-tested** helper in
   `lib/syncSources/{bookmark,location,imageTaxonomy}Diff.ts` (`fillEmptyDefault` for the checkbox
   default, `rowDiffers` to skip in-sync fields). Types live in `lib/syncSources/syncSourceTypes.ts`.
-- **Stage vs immediate.** Text/data rows **stage** into the form and persist through its own save (the
-  bookmark form's explicit Save; per-field auto-save for locations/taxonomies). **Image rows apply
-  immediately** (`applyImmediately: true`) — every image source stores-on-fetch and can't be staged.
+- **Stage vs immediate.** Text/data rows **stage** into the form and persist through its own save —
+  per-field auto-save everywhere now, including bookmarks (the bookmark sync registration threads an
+  `onFieldStaged` callback that re-runs the General tab's title/description auto-save after staging).
+  **Image rows apply immediately** (`applyImmediately: true`) — every image source stores-on-fetch and
+  can't be staged.
   Keep providers referentially stable (memoize the provider, stabilize `applyStaged` via a `useRef` of
   the latest deps) or the register-effect thrashes the store.
 - **Locations** get a **default-off re-geocode toggle** (`supportsRegeocode`): off = fill empty fields;

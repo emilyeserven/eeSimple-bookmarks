@@ -6,6 +6,8 @@ import { useEntityCreateOption } from "./useEntityCreateOption";
 interface BookmarkAdvancedGroupFieldProps {
   form: BookmarkFormApi;
   groups: Group[];
+  /** Optional per-field auto-save hook (edit form); omitted on the create form. */
+  onValueChange?: (id: string) => void;
 }
 
 /**
@@ -13,9 +15,12 @@ interface BookmarkAdvancedGroupFieldProps {
  * create modal.
  */
 export function BookmarkAdvancedGroupField({
-  form, groups,
+  form, groups, onValueChange,
 }: BookmarkAdvancedGroupFieldProps) {
-  const groupCreate = useEntityCreateOption("group", group => form.setFieldValue("groupId", group.id));
+  const groupCreate = useEntityCreateOption("group", (group) => {
+    form.setFieldValue("groupId", group.id);
+    onValueChange?.(group.id);
+  });
 
   return (
     <>
@@ -26,6 +31,7 @@ export function BookmarkAdvancedGroupField({
             placeholder="No group"
             searchPlaceholder="Search groups…"
             emptyText="No groups found."
+            onValueChange={onValueChange}
             createOption={groupCreate.createOption}
             options={groups.map(p => ({
               value: p.id,

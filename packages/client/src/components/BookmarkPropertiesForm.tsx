@@ -7,7 +7,6 @@ import { BookmarkYouTubeMetadataFields } from "./BookmarkYouTubeMetadataFields";
 import { useBookmarkPropertiesForm } from "./useBookmarkPropertiesForm";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
-import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
 
 interface BookmarkPropertiesFormProps {
@@ -21,8 +20,6 @@ export function BookmarkPropertiesForm({
   const {
     customProperties,
     fetchMetadata,
-    updateBookmark,
-    isPending,
     numberInputs,
     booleanInputs,
     dateTimeInputs,
@@ -40,7 +37,6 @@ export function BookmarkPropertiesForm({
     canImportSections,
     handleSectionsImport,
     isSectionsImportPending,
-    handleSubmit,
     runtimeProp,
     datePostedProp,
     isYouTubeBookmark,
@@ -106,10 +102,7 @@ export function BookmarkPropertiesForm({
   };
 
   return (
-    <form
-      className="space-y-4"
-      onSubmit={event => void handleSubmit(event)}
-    >
+    <div className="space-y-4">
       {(runtimeProp || datePostedProp) && isYouTubeBookmark && (
         <RowCard className="p-4">
           <BookmarkYouTubeMetadataFields
@@ -147,18 +140,6 @@ export function BookmarkPropertiesForm({
           />
         </RowCard>
       )}
-      <div>
-        <Button
-          type="submit"
-          size="sm"
-          disabled={isPending || updateBookmark.isPending}
-        >
-          {isPending || updateBookmark.isPending ? "Saving…" : "Save changes"}
-        </Button>
-        {updateBookmark.isError
-          ? <p className="mt-2 text-sm text-destructive">{updateBookmark.error?.message}</p>
-          : null}
-      </div>
-    </form>
+    </div>
   );
 }
