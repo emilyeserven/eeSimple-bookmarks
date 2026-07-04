@@ -2,6 +2,7 @@ import type { TvShow } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Pencil, Tv } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -27,6 +28,9 @@ export function TvShowListItem({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -68,7 +72,9 @@ export function TvShowListItem({
           params={{
             tvShowSlug: tvShow.slug,
           }}
-          title={`Show bookmarks for ${tvShow.name}`}
+          title={t("Show bookmarks for {{name}}", {
+            name: tvShow.name,
+          })}
           className={className}
         >
           {children}
@@ -81,11 +87,17 @@ export function TvShowListItem({
             params={{
               tvShowSlug: tvShow.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "tv-show", tvShow.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {tvShow.name}</span>
+            <span className="sr-only">
+              {t("Edit {{name}}", {
+                name: tvShow.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -100,7 +112,11 @@ export function TvShowListItem({
             onClick={event => viewClick(event, "tv-show", tvShow.id, tvShow.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {tvShow.name}</span>
+            <span className="sr-only">
+              {t("View {{name}}", {
+                name: tvShow.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

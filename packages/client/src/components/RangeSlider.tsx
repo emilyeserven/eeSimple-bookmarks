@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +24,9 @@ export function RangeSlider({
   const [lo, hi] = value;
   // Guard against an empty range (min === max) which would make the track inert.
   const safeMax = max > min ? max : min + 1;
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <div
@@ -34,7 +39,7 @@ export function RangeSlider({
           flex items-center justify-between text-xs text-muted-foreground
         "
       >
-        <span>{label ?? "Range"}</span>
+        <span>{label ?? t("Range")}</span>
         <span className="font-medium text-foreground">
           {lo}
           {" – "}

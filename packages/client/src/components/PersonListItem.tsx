@@ -2,6 +2,7 @@ import type { Person } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Pencil, UserRound } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -25,6 +26,9 @@ export function PersonListItem({
   onSelectToggle,
   inSelectionMode,
 }: PersonListItemProps) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -66,7 +70,9 @@ export function PersonListItem({
           params={{
             personSlug: person.slug,
           }}
-          title={`View ${person.name}`}
+          title={t("View {{name}}", {
+            name: person.name,
+          })}
           className={className}
         >
           {children}
@@ -79,11 +85,16 @@ export function PersonListItem({
             params={{
               personSlug: person.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "person", person.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {person.name}</span>
+            <span className="sr-only">{t("Edit {{name}}", {
+              name: person.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -98,7 +109,10 @@ export function PersonListItem({
             onClick={event => viewClick(event, "person", person.id, person.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {person.name}</span>
+            <span className="sr-only">{t("View {{name}}", {
+              name: person.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

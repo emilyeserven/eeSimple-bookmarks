@@ -2,6 +2,7 @@ import type { Category, SidebarOpenModifier } from "@eesimple/types";
 import type { MouseEvent } from "react";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { SidebarCountBadge } from "./SidebarCountBadge";
 
@@ -24,6 +25,9 @@ export function SidebarCategoryMenuItem({
   onViewClick: (event: MouseEvent, id: string) => void;
 }) {
   const isActive = pathname.startsWith(`/categories/${category.slug}`);
+  const {
+    t,
+  } = useTranslation();
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -36,7 +40,9 @@ export function SidebarCategoryMenuItem({
           params={{
             categorySlug: category.slug,
           }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          title={t("Open (hold {{modifier}} to open in the sidebar)", {
+            modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+          })}
           onClick={event => onViewClick(event, category.id)}
         >
           <CategoryIcon name={category.icon} />

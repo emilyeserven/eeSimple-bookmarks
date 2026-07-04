@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,11 +25,14 @@ interface SelfIdsFieldProps {
  * `WebsiteLookupBanner` so the badge-list + add-input UI lives in one place.
  */
 export function SelfIdsField({
-  selfIds, newSelfId, onNewSelfIdChange, onAdd, onRemove, label = "Self-identifiers", description,
+  selfIds, newSelfId, onNewSelfIdChange, onAdd, onRemove, label, description,
 }: SelfIdsFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-2">
-      <Label className="block">{label}</Label>
+      <Label className="block">{label ?? t("Self-identifiers")}</Label>
       <p className="text-sm text-muted-foreground">{description}</p>
       {selfIds.length > 0 && (
         <div className="flex flex-wrap gap-1">
@@ -37,7 +42,9 @@ export function SelfIdsField({
               variant="secondary"
               className="cursor-pointer gap-1"
               onClick={() => onRemove(id)}
-              title={`Remove "${id}"`}
+              title={t("Remove \"{{id}}\"", {
+                id,
+              })}
             >
               {id}
               <span aria-hidden>×</span>
@@ -55,7 +62,7 @@ export function SelfIdsField({
               onAdd();
             }
           }}
-          placeholder="e.g. SNL"
+          placeholder={t("e.g. SNL")}
           className="h-8 text-sm"
         />
         <Button
@@ -65,7 +72,7 @@ export function SelfIdsField({
           onClick={onAdd}
           disabled={!newSelfId.trim()}
         >
-          Add
+          {t("Add")}
         </Button>
       </div>
     </div>

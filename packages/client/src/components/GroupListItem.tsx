@@ -2,6 +2,7 @@ import type { Group } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Info, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -24,6 +25,9 @@ export function GroupListItem({
   onSelectToggle,
   inSelectionMode,
 }: GroupListItemProps) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -59,7 +63,9 @@ export function GroupListItem({
           params={{
             groupSlug: group.slug,
           }}
-          title={`View ${group.name}`}
+          title={t("View {{name}}", {
+            name: group.name,
+          })}
           className={className}
         >
           {children}
@@ -72,11 +78,16 @@ export function GroupListItem({
             params={{
               groupSlug: group.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "group", group.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {group.name}</span>
+            <span className="sr-only">{t("Edit {{name}}", {
+              name: group.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -91,7 +102,10 @@ export function GroupListItem({
             onClick={event => viewClick(event, "group", group.id, group.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {group.name}</span>
+            <span className="sr-only">{t("View {{name}}", {
+              name: group.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

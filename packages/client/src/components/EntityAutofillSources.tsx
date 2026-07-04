@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { SourcePill } from "./SourcePill";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
@@ -36,14 +38,24 @@ function sourceMatches(
 }
 
 /** Per-source-kind wording for what the matched entity is auto-applied as. */
-function noteFor(sourceLabel: "sites" | "channels", matchKind: EntityAutofillSourcesProps["match"]["kind"]): string {
+function noteFor(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  sourceLabel: string,
+  matchKind: EntityAutofillSourcesProps["match"]["kind"],
+): string {
   switch (matchKind) {
     case "category":
-      return `Bookmarks saved from these ${sourceLabel} are automatically added to this category.`;
+      return t("Bookmarks saved from these {{source}} are automatically added to this category.", {
+        source: sourceLabel,
+      });
     case "media-type":
-      return `Bookmarks saved from these ${sourceLabel} are automatically marked as this media type.`;
+      return t("Bookmarks saved from these {{source}} are automatically marked as this media type.", {
+        source: sourceLabel,
+      });
     case "tag":
-      return `Bookmarks saved from these ${sourceLabel} are automatically tagged with this tag.`;
+      return t("Bookmarks saved from these {{source}} are automatically tagged with this tag.", {
+        source: sourceLabel,
+      });
   }
 }
 
@@ -57,6 +69,9 @@ export function EntityAutofillSources({
   match,
 }: EntityAutofillSourcesProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: websites,
   } = useWebsites();
   const {
@@ -68,15 +83,15 @@ export function EntityAutofillSources({
 
   if (matchedWebsites.length === 0 && matchedChannels.length === 0) return null;
 
-  const websiteNote = noteFor("sites", match.kind);
-  const channelNote = noteFor("channels", match.kind);
+  const websiteNote = noteFor(t, t("sites"), match.kind);
+  const channelNote = noteFor(t, t("channels"), match.kind);
 
   return (
     <div className="space-y-3">
       {matchedWebsites.length > 0
         ? (
           <RowCard className="space-y-2 p-4">
-            <h3 className="text-sm font-semibold">Websites</h3>
+            <h3 className="text-sm font-semibold">{t("Websites")}</h3>
             <p className="text-xs text-muted-foreground">{websiteNote}</p>
             <div className="flex flex-wrap gap-2">
               {matchedWebsites.map(site => (
@@ -93,7 +108,7 @@ export function EntityAutofillSources({
       {matchedChannels.length > 0
         ? (
           <RowCard className="space-y-2 p-4">
-            <h3 className="text-sm font-semibold">YouTube Channels</h3>
+            <h3 className="text-sm font-semibold">{t("YouTube Channels")}</h3>
             <p className="text-xs text-muted-foreground">{channelNote}</p>
             <div className="flex flex-wrap gap-2">
               {matchedChannels.map(channel => (

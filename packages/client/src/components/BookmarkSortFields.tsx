@@ -1,5 +1,7 @@
 import type { BookmarkSort, SortDirection, CustomProperty } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { RANDOM_FIELD, sortFieldOptions } from "../lib/bookmarkSort";
 import { Button } from "./ui/button";
 import {
@@ -31,6 +33,9 @@ export function SortDimensionRow({
   onFieldChange,
   onDirectionChange,
 }: SortDimensionRowProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="flex items-center gap-2">
       <Select
@@ -65,15 +70,15 @@ export function SortDimensionRow({
         >
           <ToggleGroupItem
             value="asc"
-            aria-label="Ascending"
+            aria-label={t("Ascending")}
           >
-            Asc
+            {t("Asc")}
           </ToggleGroupItem>
           <ToggleGroupItem
             value="desc"
-            aria-label="Descending"
+            aria-label={t("Descending")}
           >
-            Desc
+            {t("Desc")}
           </ToggleGroupItem>
         </ToggleGroup>
       )}
@@ -96,6 +101,9 @@ interface BookmarkSortEditorProps {
 export function BookmarkSortEditor({
   value, onChange, properties, allowRandom,
 }: BookmarkSortEditorProps) {
+  const {
+    t,
+  } = useTranslation();
   const isRandom = value != null && "random" in value;
   const fieldsSort = value && !isRandom ? value : undefined;
 
@@ -178,12 +186,12 @@ export function BookmarkSortEditor({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Primary</span>
+        <span className="text-xs font-medium text-muted-foreground">{t("Primary")}</span>
         <SortDimensionRow
           fieldOptions={fieldOptions}
           field={primaryField}
           direction={primaryDir}
-          placeholder="Default order"
+          placeholder={t("Default order")}
           showDirection={!isRandom}
           onFieldChange={field => setPrimary(field)}
           onDirectionChange={dir => setPrimaryDir(dir)}
@@ -192,12 +200,12 @@ export function BookmarkSortEditor({
 
       {primaryField != null && !isRandom && (
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted-foreground">Secondary</span>
+          <span className="text-xs font-medium text-muted-foreground">{t("Secondary")}</span>
           <SortDimensionRow
             fieldOptions={secondaryOptions}
             field={secondaryField}
             direction={secondaryDir}
-            placeholder="None"
+            placeholder={t("None")}
             onFieldChange={field => setSecondary(field)}
             onDirectionChange={dir => setSecondaryDir(dir)}
           />
@@ -213,7 +221,7 @@ export function BookmarkSortEditor({
               size="sm"
               onClick={reshuffle}
             >
-              Shuffle again
+              {t("Shuffle again")}
             </Button>
           )}
           <Button
@@ -222,7 +230,7 @@ export function BookmarkSortEditor({
             size="sm"
             onClick={() => onChange(undefined)}
           >
-            Clear sort
+            {t("Clear sort")}
           </Button>
         </div>
       )}

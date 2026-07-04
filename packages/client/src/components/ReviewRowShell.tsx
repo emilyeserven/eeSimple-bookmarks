@@ -1,6 +1,8 @@
 import type { useSwipeGesture } from "../hooks/useSwipeGesture";
 import type { CSSProperties, ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 type SwipeState = ReturnType<typeof useSwipeGesture>;
 
 import { RowCard } from "@/components/ui/card";
@@ -19,6 +21,9 @@ export function ReviewRowHoverShell({
   children: ReactNode;
 }) {
   const setHoveredBookmarkId = useUiStore(state => state.setHoveredBookmarkId);
+  const {
+    t,
+  } = useTranslation();
   return (
     <div
       className="group relative"
@@ -36,7 +41,7 @@ export function ReviewRowHoverShell({
               group-hover:opacity-100
             "
           >
-            ⌘K to edit
+            {t("⌘K to edit")}
           </span>
         )
         : null}

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkUrlFixRow } from "./BookmarkUrlFixRow";
 import { useUrlSanitizer } from "../hooks/useUrlSanitizer";
@@ -35,6 +36,9 @@ function SiteGroup({
   onCollapse,
   onFixed,
 }: SiteGroupProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Card>
       <CardHeader className="flex flex-row items-center gap-3 pb-3">
@@ -54,7 +58,7 @@ function SiteGroup({
             {" · "}
             {site.bookmarks.length}
             {" "}
-            {site.bookmarks.length === 1 ? "bookmark" : "bookmarks"}
+            {site.bookmarks.length === 1 ? t("bookmark") : t("bookmarks")}
           </CardDescription>
         </div>
         <Link
@@ -67,7 +71,7 @@ function SiteGroup({
             hover:underline
           "
         >
-          Edit website
+          {t("Edit website")}
         </Link>
       </CardHeader>
       <CardContent className="pt-0">
@@ -93,6 +97,9 @@ function SiteGroup({
 /** Settings page listing bookmarks whose website is flagged for redirect resolution failure. */
 export function RedirectFailuresSettings() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: sites = [], isLoading,
   } = useRedirectFailureWebsites();
   const sanitizeUrl = useUrlSanitizer();
@@ -110,7 +117,7 @@ export function RedirectFailuresSettings() {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="size-4 animate-spin" />
-        Loading…
+        {t("Loading…")}
       </div>
     );
   }
@@ -118,8 +125,7 @@ export function RedirectFailuresSettings() {
   if (sites.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No websites are currently flagged for redirect resolution failure. To flag one, open a
-        website&apos;s edit page and enable the &quot;Redirect resolution failure&quot; toggle.
+        {t("No websites are currently flagged for redirect resolution failure. To flag one, open a website's edit page and enable the \"Redirect resolution failure\" toggle.")}
       </p>
     );
   }

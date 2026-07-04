@@ -2,6 +2,7 @@ import type { GroupType } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Library, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -27,6 +28,9 @@ export function GroupTypeListItem({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -60,11 +64,17 @@ export function GroupTypeListItem({
             params={{
               groupTypeSlug: groupType.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "group-type", groupType.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {groupType.name}</span>
+            <span className="sr-only">
+              {t("Edit {{name}}", {
+                name: groupType.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -79,7 +89,11 @@ export function GroupTypeListItem({
             onClick={event => viewClick(event, "group-type", groupType.id, groupType.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {groupType.name}</span>
+            <span className="sr-only">
+              {t("View {{name}}", {
+                name: groupType.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

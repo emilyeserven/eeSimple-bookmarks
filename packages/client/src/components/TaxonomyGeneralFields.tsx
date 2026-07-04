@@ -1,6 +1,8 @@
 import type { EntityNameOwnerType } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { Label } from "./ui/label";
 import { useEntityCreateOption } from "./useEntityCreateOption";
@@ -85,6 +87,9 @@ export const TaxonomyGeneralFields = withFieldGroup({
     ownerId,
   }) {
     const {
+      t,
+    } = useTranslation();
+    const {
       data: mediaProperties,
     } = useMediaProperties();
 
@@ -105,7 +110,7 @@ export const TaxonomyGeneralFields = withFieldGroup({
           <group.AppField name="name">
             {field => (
               <field.TextField
-                label="Name"
+                label={t("Name")}
                 action={nameAction}
                 onBlur={() => saveField(
                   "name",
@@ -123,8 +128,8 @@ export const TaxonomyGeneralFields = withFieldGroup({
           <group.AppField name="sortOrder">
             {field => (
               <field.NumberField
-                label="Sort order"
-                hint="Lower sorts first."
+                label={t("Sort order")}
+                hint={t("Lower sorts first.")}
                 onBlur={() => saveField(
                   "sortOrder",
                   field.state.value,
@@ -138,7 +143,7 @@ export const TaxonomyGeneralFields = withFieldGroup({
         </div>
 
         <div className="space-y-1">
-          <Label>Names</Label>
+          <Label>{t("Names")}</Label>
           <EntityNamesTabEditor
             ownerType={ownerType}
             ownerId={ownerId}
@@ -148,10 +153,10 @@ export const TaxonomyGeneralFields = withFieldGroup({
         <group.AppField name="mediaPropertyId">
           {field => (
             <field.ComboboxField
-              label="Media property"
-              placeholder="No media property"
-              searchPlaceholder="Search media properties…"
-              emptyText="No media properties found."
+              label={t("Media property")}
+              placeholder={t("No media property")}
+              searchPlaceholder={t("Search media properties…")}
+              emptyText={t("No media properties found.")}
               createOption={mediaPropertyCreate.createOption}
               options={(mediaProperties ?? []).map(prop => ({
                 value: prop.id,

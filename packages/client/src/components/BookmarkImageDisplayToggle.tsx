@@ -1,30 +1,36 @@
 import type { ImageDisplayPreference } from "@eesimple/types";
 
 import { Camera, ImageIcon, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-const OPTIONS: { value: ImageDisplayPreference;
+function useOptions(): { value: ImageDisplayPreference;
   label: string;
-  Icon: typeof Sparkles; }[] = [
-  {
-    value: "auto",
-    label: "Automatic (image, falling back to screenshot)",
-    Icon: Sparkles,
-  },
-  {
-    value: "image",
-    label: "Always use the image",
-    Icon: ImageIcon,
-  },
-  {
-    value: "screenshot",
-    label: "Always use the screenshot",
-    Icon: Camera,
-  },
-];
+  Icon: typeof Sparkles; }[] {
+  const {
+    t,
+  } = useTranslation();
+  return [
+    {
+      value: "auto",
+      label: t("Automatic (image, falling back to screenshot)"),
+      Icon: Sparkles,
+    },
+    {
+      value: "image",
+      label: t("Always use the image"),
+      Icon: ImageIcon,
+    },
+    {
+      value: "screenshot",
+      label: t("Always use the screenshot"),
+      Icon: Camera,
+    },
+  ];
+}
 
 interface BookmarkImageDisplayToggleProps {
   value: ImageDisplayPreference;
@@ -42,9 +48,13 @@ interface BookmarkImageDisplayToggleProps {
 export function BookmarkImageDisplayToggle({
   value, onChange, hasImage, hasScreenshot, disabled = false,
 }: BookmarkImageDisplayToggleProps) {
+  const {
+    t,
+  } = useTranslation();
+  const options = useOptions();
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs font-semibold">Cover image:</span>
+      <span className="text-xs font-semibold">{t("Cover image:")}</span>
       <ToggleGroup
         type="single"
         size="sm"
@@ -53,9 +63,9 @@ export function BookmarkImageDisplayToggle({
         onValueChange={(next) => {
           if (next === "auto" || next === "image" || next === "screenshot") onChange(next);
         }}
-        aria-label="Which image source the bookmark's cover displays"
+        aria-label={t("Which image source the bookmark's cover displays")}
       >
-        {OPTIONS.map(({
+        {options.map(({
           value: optionValue, label, Icon,
         }) => {
           const optionDisabled = disabled
@@ -80,7 +90,11 @@ export function BookmarkImageDisplayToggle({
                 </ToggleGroupItem>
               </TooltipTrigger>
               <TooltipContent>
-                {optionDisabled ? `${label} (none captured yet)` : label}
+                {optionDisabled
+                  ? t("{{label}} (none captured yet)", {
+                    label,
+                  })
+                  : label}
               </TooltipContent>
             </Tooltip>
           );

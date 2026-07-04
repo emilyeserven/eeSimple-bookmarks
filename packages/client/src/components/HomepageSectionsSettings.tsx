@@ -21,6 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { HomepageSectionCard } from "./HomepageSectionCard";
 import { HomepageSectionForm } from "./HomepageSectionForm";
@@ -69,6 +70,9 @@ function SortableSectionCard({
 /** The main settings component — a drag-sortable list of homepage section cards. */
 export function HomepageSectionsSettings() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: serverSections, isLoading,
   } = useHomepageSections();
   const [localSections, setLocalSections] = useState<HomepageSection[]>([]);
@@ -113,13 +117,13 @@ export function HomepageSectionsSettings() {
   return (
     <div className="space-y-4">
       {isLoading
-        ? <p className="text-sm text-muted-foreground">Loading…</p>
+        ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
         : null}
 
       {!isLoading && localSections.length === 0 && !addingNew
         ? (
           <p className="text-sm text-muted-foreground">
-            No sections yet. Add one below to start building your homepage.
+            {t("No sections yet. Add one below to start building your homepage.")}
           </p>
         )
         : null}
@@ -167,7 +171,7 @@ export function HomepageSectionsSettings() {
         ? (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">New section</CardTitle>
+              <CardTitle className="text-base">{t("New section")}</CardTitle>
             </CardHeader>
             <CardContent>
               <HomepageSectionForm
@@ -207,7 +211,7 @@ export function HomepageSectionsSettings() {
             onClick={() => setAddingNew(true)}
           >
             <Plus className="mr-2 size-4" />
-            Add section
+            {t("Add section")}
           </Button>
         )}
     </div>

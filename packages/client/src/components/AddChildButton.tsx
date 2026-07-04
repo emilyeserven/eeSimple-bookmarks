@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { AddChildModal } from "./AddChildModal";
 
@@ -22,6 +23,9 @@ export function AddChildButton({
   kind, parentId,
 }: AddChildButtonProps) {
   const [open, setOpen] = useState(false);
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <>
@@ -29,8 +33,8 @@ export function AddChildButton({
         type="button"
         variant="ghost"
         size="icon"
-        aria-label={kind === "tag" ? "New sub-tag" : "New sub-type"}
-        title={kind === "tag" ? "New sub-tag" : "New sub-type"}
+        aria-label={kind === "tag" ? t("New sub-tag") : t("New sub-type")}
+        title={kind === "tag" ? t("New sub-tag") : t("New sub-type")}
         disabled={!parentId}
         onClick={() => setOpen(true)}
       >

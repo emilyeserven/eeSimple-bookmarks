@@ -2,6 +2,7 @@ import type { Album } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Disc3, Info, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -27,6 +28,9 @@ export function AlbumListItem({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -68,7 +72,9 @@ export function AlbumListItem({
           params={{
             albumSlug: album.slug,
           }}
-          title={`Show bookmarks for ${album.name}`}
+          title={t("Show bookmarks for {{name}}", {
+            name: album.name,
+          })}
           className={className}
         >
           {children}
@@ -81,11 +87,16 @@ export function AlbumListItem({
             params={{
               albumSlug: album.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "album", album.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {album.name}</span>
+            <span className="sr-only">{t("Edit {{name}}", {
+              name: album.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -100,7 +111,10 @@ export function AlbumListItem({
             onClick={event => viewClick(event, "album", album.id, album.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {album.name}</span>
+            <span className="sr-only">{t("View {{name}}", {
+              name: album.name,
+            })}
+            </span>
           </Link>
         </HoverIconButton>
       )}

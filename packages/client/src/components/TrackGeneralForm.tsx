@@ -1,6 +1,7 @@
 import type { PlexItemResult, Track } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
 import { TrackAlbumField } from "./TrackAlbumField";
@@ -25,6 +26,9 @@ export function TrackGeneralForm({
   const {
     data: albums,
   } = useAlbums();
+  const {
+    t,
+  } = useTranslation();
 
   function handlePlexSelected(item: PlexItemResult) {
     if (track.albumId) return;
@@ -41,7 +45,7 @@ export function TrackGeneralForm({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Album"),
+        onSuccess: () => notifyFieldSaved(t("Album")),
       },
     );
   }

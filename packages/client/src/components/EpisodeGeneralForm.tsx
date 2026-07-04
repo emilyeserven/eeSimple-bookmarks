@@ -1,6 +1,7 @@
 import type { Episode, PlexItemResult } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { EpisodeTvShowField } from "./EpisodeTvShowField";
 import { PlexTitleGeneralForm } from "./PlexTitleGeneralForm";
@@ -25,6 +26,9 @@ export function EpisodeGeneralForm({
   const {
     data: tvShows,
   } = useTvShows();
+  const {
+    t,
+  } = useTranslation();
 
   function handlePlexSelected(item: PlexItemResult) {
     if (episode.tvShowId) return;
@@ -41,7 +45,7 @@ export function EpisodeGeneralForm({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("TV show"),
+        onSuccess: () => notifyFieldSaved(t("TV show")),
       },
     );
   }

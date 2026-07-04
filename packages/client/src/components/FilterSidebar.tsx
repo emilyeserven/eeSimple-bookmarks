@@ -4,6 +4,7 @@ import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, 
 import { useState } from "react";
 
 import { ChevronDown, Plus, Search, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { FilterSections } from "./FilterSidebarSections";
 import { SavedFiltersSection } from "./SavedFiltersSection";
@@ -57,6 +58,9 @@ interface FilterSidebarProps {
 export function FilterSidebar({
   tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
+  const {
+    t,
+  } = useTranslation();
   const [sectionFilter, setSectionFilter] = useState("");
   // Filters configured as "on demand" (Settings → Display → Filters) are hidden until the user adds
   // them from the "Add filter" control; `added` tracks the ones revealed this session.
@@ -96,7 +100,7 @@ export function FilterSidebar({
             lg:hidden
           "
         >
-          Filters
+          {t("Filters")}
           <ChevronDown
             className="
               size-4 transition-transform
@@ -121,7 +125,7 @@ export function FilterSidebar({
             {hasFilters
               ? (
                 <>
-                  <h2 className="text-sm font-semibold">Filters</h2>
+                  <h2 className="text-sm font-semibold">{t("Filters")}</h2>
 
                   <div className="relative flex items-center">
                     <Search
@@ -134,14 +138,14 @@ export function FilterSidebar({
                       type="text"
                       value={sectionFilter}
                       onChange={e => setSectionFilter(e.target.value)}
-                      placeholder="Search filters…"
+                      placeholder={t("Search filters…")}
                       className="h-8 pr-7 pl-8 text-xs"
                     />
                     {sectionFilter
                       ? (
                         <button
                           type="button"
-                          aria-label="Clear filter search"
+                          aria-label={t("Clear filter search")}
                           onClick={() => setSectionFilter("")}
                           className="
                             absolute right-2 text-muted-foreground
@@ -165,7 +169,7 @@ export function FilterSidebar({
                           "
                         >
                           <Plus className="size-3.5" />
-                          Add filter
+                          {t("Add filter")}
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start">
                           {addableFilters.map(item => (
@@ -211,7 +215,7 @@ export function FilterSidebar({
                   />
                 </>
               )
-              : <p className="text-sm text-muted-foreground">No filters available yet.</p>}
+              : <p className="text-sm text-muted-foreground">{t("No filters available yet.")}</p>}
           </div>
         </CollapsibleContent>
       </Collapsible>

@@ -2,6 +2,7 @@ import type { MediaProperty } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Info, Library, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -27,6 +28,9 @@ export function MediaPropertyListItem({
   onSelectToggle?: () => void;
   inSelectionMode?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -46,7 +50,9 @@ export function MediaPropertyListItem({
           params={{
             mediaPropertySlug: mediaProperty.slug,
           }}
-          title={`Show bookmarks for ${mediaProperty.name}`}
+          title={t("Show bookmarks for {{name}}", {
+            name: mediaProperty.name,
+          })}
           className={className}
         >
           {children}
@@ -59,11 +65,17 @@ export function MediaPropertyListItem({
             params={{
               mediaPropertySlug: mediaProperty.slug,
             }}
-            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
+              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            })}
             onClick={event => editClick(event, "media-property", mediaProperty.id)}
           >
             <Pencil className="size-4" />
-            <span className="sr-only">Edit {mediaProperty.name}</span>
+            <span className="sr-only">
+              {t("Edit {{name}}", {
+                name: mediaProperty.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
@@ -78,7 +90,11 @@ export function MediaPropertyListItem({
             onClick={event => viewClick(event, "media-property", mediaProperty.id, mediaProperty.slug)}
           >
             <Info className="size-4" />
-            <span className="sr-only">View {mediaProperty.name}</span>
+            <span className="sr-only">
+              {t("View {{name}}", {
+                name: mediaProperty.name,
+              })}
+            </span>
           </Link>
         </HoverIconButton>
       )}
