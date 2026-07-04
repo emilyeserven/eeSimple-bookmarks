@@ -1,18 +1,8 @@
-import type { PreferredLanguage } from "@eesimple/types";
+import type { TitleSortContext } from "../lib/bookmarkSort";
 
 import { useInterfaceLanguage } from "./useAppSettings";
 import { useLanguages } from "./useLanguages";
 import { useUiStore } from "../stores/uiStore";
-
-/**
- * The language preference + collation locale that drive locale-aware title sorting (bookmarks, the
- * tag tree, locations). `preferredLanguage` picks which of an entity's multilingual names to sort by
- * when it has one; `locale` is the BCP-47 tag passed to `localeCompare` (so Japanese collates as `ja`).
- */
-export interface TitleSortContext {
-  preferredLanguage: PreferredLanguage | null;
-  locale: string | undefined;
-}
 
 /**
  * Resolve the interface/display language (`en`/`ja` — both valid ISO-639-1 codes and BCP-47 tags)
