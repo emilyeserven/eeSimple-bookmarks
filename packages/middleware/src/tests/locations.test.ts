@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { Location } from "@eesimple/types";
+import type { EntityName, Location } from "@eesimple/types";
 import {
   buildLocationTree,
   collectLocationSubtreeIds,
@@ -11,6 +11,22 @@ import {
   wouldCreateLocationCycle,
 } from "@/services/locations";
 import { slugify } from "@/utils/slug";
+
+/** A minimal language-labelled name for candidate fixtures. */
+function nm(value: string): EntityName {
+  return {
+    id: value,
+    language: {
+      id: value,
+      name: value,
+      slug: value,
+      isoCode: null,
+    },
+    value,
+    isPrimary: false,
+    sortOrder: 0,
+  };
+}
 
 // Pure-helper tests run without a live database (mirrors tags.test.ts).
 
@@ -160,15 +176,29 @@ test("matchLocationIdsByTitle matches name, romanizedName, and alternate names",
     },
   ];
   // Native name inside a Korean compound title.
-  assert.deepEqual(matchLocationIdsByTitle("부산광역시", null, candidates), ["l-busan"]);
+  assert.deepEqual(matchLocationIdsByTitle(["부산광역시"], candidates), ["l-busan"]);
   // Romanized name against a Latin title.
-  assert.deepEqual(matchLocationIdsByTitle("Ferry from Busan", null, candidates), ["l-busan"]);
+  assert.deepEqual(matchLocationIdsByTitle(["Ferry from Busan"], candidates), ["l-busan"]);
   // An alternate romanization style matches too.
-  assert.deepEqual(matchLocationIdsByTitle("A trip to Pusan", null, candidates), ["l-busan"]);
+  assert.deepEqual(matchLocationIdsByTitle(["A trip to Pusan"], candidates), ["l-busan"]);
   // Whole-word Latin name.
-  assert.deepEqual(matchLocationIdsByTitle("Living in Tokyo now", null, candidates), ["l-tokyo"]);
+  assert.deepEqual(matchLocationIdsByTitle(["Living in Tokyo now"], candidates), ["l-tokyo"]);
   // No spurious substring match.
-  assert.deepEqual(matchLocationIdsByTitle("Stockyard tour", null, candidates), []);
+  assert.deepEqual(matchLocationIdsByTitle(["Stockyard tour"], candidates), []);
+});
+
+test("matchLocationIdsByTitle matches a location's language-labelled names against the bookmark's names", () => {
+  const candidates = [
+    {
+      id: "l-kyoto",
+      name: "Kyoto",
+      romanizedName: null,
+      alternateNames: [],
+      names: [nm("京都"), nm("Kyoto")],
+    },
+  ];
+  // Bookmark carrying the Japanese name matches the location via its `names` value.
+  assert.deepEqual(matchLocationIdsByTitle(["旅行", "京都旅行"], candidates), ["l-kyoto"]);
 });
 
 test("matchLocationIdsByTitle drops a matched ancestor of a more specific matched location", () => {
@@ -192,14 +222,13 @@ test("matchLocationIdsByTitle drops a matched ancestor of a more specific matche
   // specific temple match should survive; Busan is implied by it.
   assert.deepEqual(
     matchLocationIdsByTitle(
-      "Seokbulsa Temple: A Rewarding Cave Temple Hike in Busan - Nickkembel Travels",
-      null,
+      ["Seokbulsa Temple: A Rewarding Cave Temple Hike in Busan - Nickkembel Travels"],
       candidates,
     ),
     ["l-temple"],
   );
   // A title mentioning only the ancestor still matches the ancestor.
-  assert.deepEqual(matchLocationIdsByTitle("A day trip to Busan", null, candidates), ["l-busan"]);
+  assert.deepEqual(matchLocationIdsByTitle(["A day trip to Busan"], candidates), ["l-busan"]);
 });
 
 test("locationInputToPatch copies only the fields that are present", () => {

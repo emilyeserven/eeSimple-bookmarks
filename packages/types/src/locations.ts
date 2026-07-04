@@ -195,6 +195,8 @@ export interface LocationTitleCandidate {
   name: string;
   romanizedName?: string | null;
   alternateNames?: LocationAlternateName[];
+  /** The location's language-labelled names, matched (by value) alongside `name`/`romanizedName`. */
+  names?: EntityName[];
   /** The location's parent id, used to drop a matched ancestor of another matched (more specific) location. */
   parentId?: string | null;
 }
@@ -214,26 +216,28 @@ function isLocationAncestor(
 }
 
 /**
- * The ids of locations implied by a bookmark's title. Each location's `name`, `romanizedName`, and
- * every `alternateNames[].value` are tested against both the bookmark's `title` and its
- * `romanizedName` via {@link titleMatchesTerm}. Pure helper — mirrors `matchTagIdsByTitle`.
+ * The ids of locations implied by a bookmark's title/name forms. Each location's `name`,
+ * `romanizedName`, every `alternateNames[].value`, and every language-labelled `names` value are
+ * tested against each of the bookmark's `titles` (its title + romanized title + every
+ * language-labelled name value) via {@link titleMatchesTerm}. Pure helper — mirrors
+ * `matchTagIdsByTitle`.
  *
  * A matched location that is an ancestor of another matched (more specific) location is dropped —
  * a title mentioning both a place and its containing region (e.g. a temple's name and the city it's
  * in) should only be tagged with the most specific match; the ancestor is implied by it.
  */
 export function matchLocationIdsByTitle(
-  title: string,
-  romanizedName: string | null | undefined,
+  titles: string[],
   locations: LocationTitleCandidate[],
 ): string[] {
-  const haystacks = [title, romanizedName ?? ""].filter(text => text.trim() !== "");
+  const haystacks = titles.filter(text => text.trim() !== "");
   if (haystacks.length === 0) return [];
   const matched = locations.filter((loc) => {
     const terms = [
       loc.name,
       loc.romanizedName ?? "",
       ...(loc.alternateNames ?? []).map(alt => alt.value),
+      ...(loc.names ?? []).map(name => name.value),
     ].filter(text => text.trim() !== "");
     return terms.some(term => haystacks.some(haystack => titleMatchesTerm(haystack, term)));
   });

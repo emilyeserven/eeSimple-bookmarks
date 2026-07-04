@@ -14,7 +14,7 @@ import type {
   UpdateBookmarkRelationshipsInput,
 } from "@eesimple/types";
 import { db } from "@/db";
-import { setEntityNames } from "@/services/entityNames";
+import { loadEntityNames, setEntityNames } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner, setLanguageUsages } from "@/services/languageUsages";
 import {
   bookmarkPeople,
@@ -356,11 +356,13 @@ export async function backfillTitleTags(): Promise<TitleTagBackfillResult> {
       romanizedName: bookmarks.romanizedName,
     })
     .from(bookmarks);
+  const namesByBid = await loadEntityNames("bookmark", rows.map(row => row.id));
 
   const links: { bookmarkId: string;
     tagId: string; }[] = [];
   for (const row of rows) {
-    for (const tagId of matchTagIdsByTitle(row.title, row.romanizedName, allTags)) {
+    const titles = [row.title, row.romanizedName ?? "", ...(namesByBid.get(row.id) ?? []).map(n => n.value)];
+    for (const tagId of matchTagIdsByTitle(titles, allTags)) {
       links.push({
         bookmarkId: row.id,
         tagId,
@@ -405,11 +407,13 @@ export async function backfillTitleLocations(): Promise<TitleTagBackfillResult> 
       romanizedName: bookmarks.romanizedName,
     })
     .from(bookmarks);
+  const namesByBid = await loadEntityNames("bookmark", rows.map(row => row.id));
 
   const links: { bookmarkId: string;
     locationId: string; }[] = [];
   for (const row of rows) {
-    for (const locationId of matchLocationIdsByTitle(row.title, row.romanizedName, allLocations)) {
+    const titles = [row.title, row.romanizedName ?? "", ...(namesByBid.get(row.id) ?? []).map(n => n.value)];
+    for (const locationId of matchLocationIdsByTitle(titles, allLocations)) {
       links.push({
         bookmarkId: row.id,
         locationId,
@@ -470,7 +474,7 @@ async function titleMatchTagIds(title: string, romanizedName: string | null): Pr
   } = await getAutomationSettings();
   if (!autoApplyTitleTags) return [];
   const allTags = await listTagNames();
-  return matchTagIdsByTitle(title, romanizedName, allTags);
+  return matchTagIdsByTitle([title, romanizedName ?? ""], allTags);
 }
 
 /** Tags: union of user-provided + website defaults + channel defaults + title matches (deduped). */
@@ -496,7 +500,7 @@ async function titleMatchLocationIds(title: string, romanizedName: string | null
   } = await getAutomationSettings();
   if (!autoApplyTitleLocations) return [];
   const allLocations = await listLocationNames();
-  return matchLocationIdsByTitle(title, romanizedName, allLocations);
+  return matchLocationIdsByTitle([title, romanizedName ?? ""], allLocations);
 }
 
 /** Locations: union of user-provided + title matches (deduped). */

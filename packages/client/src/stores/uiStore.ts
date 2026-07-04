@@ -79,6 +79,13 @@ interface UiState {
   /** Per-listing view mode ("cards" | "table"), keyed by a stable page key. */
   viewMode: Record<string, ViewMode>;
   setViewMode: (pageKey: string, mode: ViewMode) => void;
+  /**
+   * Per-listing "sort titles by" language (a language id), keyed by a stable page key. `""`/absent =
+   * follow the interface/display language. Overrides which of a bookmark's multilingual names its
+   * title sorts by; falls back to the resolved key when a bookmark lacks that language's name.
+   */
+  titleSortLanguage: Record<string, string>;
+  setTitleSortLanguage: (pageKey: string, languageId: string) => void;
   /** Card field keys hidden per listing page (standard field key or custom-property id). Empty/absent = all shown. */
   hiddenCardFields: Record<string, string[]>;
   toggleCardField: (pageKey: string, fieldKey: string) => void;
@@ -219,6 +226,13 @@ export const useUiStore = create<UiState>()(
         viewMode: {
           ...state.viewMode,
           [pageKey]: mode,
+        },
+      })),
+      titleSortLanguage: {},
+      setTitleSortLanguage: (pageKey, languageId) => set(state => ({
+        titleSortLanguage: {
+          ...state.titleSortLanguage,
+          [pageKey]: languageId,
         },
       })),
       hiddenCardFields: {},
@@ -406,6 +420,7 @@ export const useUiStore = create<UiState>()(
         bookmarkImageVisibility: state.bookmarkImageVisibility,
         bookmarkColumns: state.bookmarkColumns,
         viewMode: state.viewMode,
+        titleSortLanguage: state.titleSortLanguage,
         hiddenCardFields: state.hiddenCardFields,
         selectedDisplayPreset: state.selectedDisplayPreset,
         sidebarWidth: state.sidebarWidth,

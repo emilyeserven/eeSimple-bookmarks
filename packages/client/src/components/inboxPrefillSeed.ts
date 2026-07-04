@@ -55,8 +55,8 @@ export function computeInboxPrefillSeed(
   }, autofillRules);
 
   // Inbox items carry no romanized title, so only the plain title is matched here.
-  const titleTagIds = matchTagIdsByTitle(title, null, tags);
-  const titleLocationIds = matchLocationIdsByTitle(title, null, locations);
+  const titleTagIds = matchTagIdsByTitle([title], tags);
+  const titleLocationIds = matchLocationIdsByTitle([title], locations);
 
   const domain = url ? hostOf(url) : null;
   const website = domain ? websites.find(w => w.domain === domain) ?? null : null;

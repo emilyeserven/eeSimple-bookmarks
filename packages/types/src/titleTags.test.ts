@@ -1,9 +1,26 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import type { EntityName } from "./entityNames.js";
 import type { TitleTagCandidate } from "./titleTags.js";
 
 import { matchTagIdsByTitle, titleMatchesTerm } from "./titleTags.js";
+
+/** A minimal language-labelled name for candidate fixtures. */
+function nm(value: string): EntityName {
+  return {
+    id: value,
+    language: {
+      id: value,
+      name: value,
+      slug: value,
+      isoCode: null,
+    },
+    value,
+    isPrimary: false,
+    sortOrder: 0,
+  };
+}
 
 // --- titleMatchesTerm ---
 
@@ -55,27 +72,40 @@ const react: TitleTagCandidate = {
 };
 
 test("matchTagIdsByTitle matches a native name inside a non-spaced compound title", () => {
-  assert.deepEqual(matchTagIdsByTitle("부산광역시", null, [busan, kyushu, react]), ["t-busan"]);
+  assert.deepEqual(matchTagIdsByTitle(["부산광역시"], [busan, kyushu, react]), ["t-busan"]);
 });
 
 test("matchTagIdsByTitle matches a romanized name against a Latin title", () => {
   assert.deepEqual(
-    matchTagIdsByTitle("Taking the Ferry from Busan to Fukuoka", null, [busan, kyushu, react]),
+    matchTagIdsByTitle(["Taking the Ferry from Busan to Fukuoka"], [busan, kyushu, react]),
     ["t-busan"],
   );
 });
 
-test("matchTagIdsByTitle matches against the romanizedName haystack", () => {
+test("matchTagIdsByTitle matches against every title/name haystack entry", () => {
   // Title in one script, the bookmark's romanized title carries the other form.
   assert.deepEqual(
-    matchTagIdsByTitle("旅行記", "Kyushu travel notes", [busan, kyushu, react]),
+    matchTagIdsByTitle(["旅行記", "Kyushu travel notes"], [busan, kyushu, react]),
     ["t-kyushu"],
   );
 });
 
+test("matchTagIdsByTitle matches a tag's language-labelled names against the bookmark's names", () => {
+  const eva: TitleTagCandidate = {
+    id: "t-eva",
+    name: "エヴァンゲリオン",
+    romanizedName: null,
+    names: [nm("エヴァンゲリオン"), nm("Evangelion")],
+  };
+  // A bookmark titled in kana matches the tag whose English `names` value appears in the bookmark's
+  // English name — and vice-versa.
+  assert.deepEqual(matchTagIdsByTitle(["Rewatching Evangelion"], [eva]), ["t-eva"]);
+  assert.deepEqual(matchTagIdsByTitle(["雑記", "新世紀エヴァンゲリオン"], [eva]), ["t-eva"]);
+});
+
 test("matchTagIdsByTitle returns every matching tag and ignores empty input", () => {
-  assert.deepEqual(matchTagIdsByTitle("Styling React with CSS", null, [react]), ["t-react"]);
-  assert.deepEqual(matchTagIdsByTitle("Martin's portfolio", null, [react]), []);
-  assert.deepEqual(matchTagIdsByTitle("", null, [busan]), []);
-  assert.deepEqual(matchTagIdsByTitle("", "   ", [busan]), []);
+  assert.deepEqual(matchTagIdsByTitle(["Styling React with CSS"], [react]), ["t-react"]);
+  assert.deepEqual(matchTagIdsByTitle(["Martin's portfolio"], [react]), []);
+  assert.deepEqual(matchTagIdsByTitle([""], [busan]), []);
+  assert.deepEqual(matchTagIdsByTitle(["", "   "], [busan]), []);
 });

@@ -1,12 +1,23 @@
 import { ArrowUpDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkSortEditor } from "./BookmarkSortFields";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useLanguages } from "../hooks/useLanguages";
+import { useTitleSortLanguage } from "../hooks/useTitleSortContext";
 import { withSort } from "../lib/bookmarkSearch";
 import { cn } from "../lib/utils";
 import { useUiStore } from "../stores/uiStore";
 import { Button } from "./ui/button";
+import { Label } from "./ui/label";
 import { ResponsivePopover } from "./ui/responsive-popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 interface BookmarkSortPopoverProps {
   open?: boolean;
@@ -50,19 +61,76 @@ export function BookmarkSortPopover({
 
 function BookmarkSortControls() {
   const filterContext = useUiStore(s => s.filterContext);
+  const pageKey = useUiStore(s => s.listingPage?.key);
   const sort = filterContext?.search.sort;
   const {
     data: allProperties = [],
   } = useCustomProperties();
 
   return (
-    <BookmarkSortEditor
-      value={sort}
-      onChange={(next) => {
-        if (filterContext) filterContext.onSearchChange(withSort(filterContext.search, next));
-      }}
-      properties={allProperties}
-      allowRandom
-    />
+    <div className="space-y-3">
+      <BookmarkSortEditor
+        value={sort}
+        onChange={(next) => {
+          if (filterContext) filterContext.onSearchChange(withSort(filterContext.search, next));
+        }}
+        properties={allProperties}
+        allowRandom
+      />
+      {pageKey ? <TitleSortLanguageField pageKey={pageKey} /> : null}
+    </div>
+  );
+}
+
+/** Sentinel Select value for "follow the interface/display language" (Radix rejects an empty value). */
+const DISPLAY_LANGUAGE = "__display__";
+
+/**
+ * Per-page "Sort titles by" language picker. Picks which of a bookmark's multilingual names its
+ * title sorts by; defaults to the interface/display language. Persisted per listing page in uiStore
+ * (like the view mode) — kept out of the shared `BookmarkSort` object so homepage sections and saved
+ * filters are unaffected.
+ */
+function TitleSortLanguageField({
+  pageKey,
+}: {
+  pageKey: string;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    languageId, setLanguage,
+  } = useTitleSortLanguage(pageKey);
+  const {
+    data: languages = [],
+  } = useLanguages();
+
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <Label className="text-sm font-medium">{t("Sort titles by")}</Label>
+      <Select
+        value={languageId === "" ? DISPLAY_LANGUAGE : languageId}
+        onValueChange={value => setLanguage(value === DISPLAY_LANGUAGE ? "" : value)}
+      >
+        <SelectTrigger
+          size="sm"
+          className="w-40"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={DISPLAY_LANGUAGE}>{t("Display language")}</SelectItem>
+          {languages.map(language => (
+            <SelectItem
+              key={language.id}
+              value={language.id}
+            >
+              {language.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

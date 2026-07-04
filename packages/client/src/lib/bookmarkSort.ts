@@ -7,8 +7,11 @@ import type {
   BuiltinSortField,
   CustomProperty,
   CustomPropertyType,
+  PreferredLanguage,
   SortDirection,
 } from "@eesimple/types";
+
+import { namesWithLegacyFallback, resolveNameSortKey } from "@eesimple/types";
 
 export type {
   BookmarkFieldSort,
@@ -112,10 +115,31 @@ function compareNullable<T>(
   return sign * cmp(av, bv);
 }
 
-const localeCmp = (a: string, b: string): number =>
-  a.localeCompare(b, undefined, {
+const localeCmp = (a: string, b: string, locale?: string): number =>
+  a.localeCompare(b, locale, {
     sensitivity: "base",
   });
+
+/**
+ * How to resolve a bookmark's title for sorting: which language's name to prefer, and the BCP-47
+ * collation locale for the comparison. Both default to "no preference / default locale" so callers
+ * that don't care (and existing tests) get today's behavior.
+ */
+export interface TitleSortContext {
+  preferredLanguage?: PreferredLanguage | null;
+  locale?: string;
+}
+
+/** The string a bookmark's title sorts by — its preferred-language name, else primary, else title. */
+function bookmarkTitleSortKey(bookmark: Bookmark, ctx: TitleSortContext): string {
+  return resolveNameSortKey(
+    namesWithLegacyFallback(bookmark.names, bookmark.romanizedName),
+    bookmark.title,
+    {
+      preferredLanguage: ctx.preferredLanguage,
+    },
+  );
+}
 /** Ordinal comparison for values that compare with `<` / `>` (ISO dates, etc.). */
 const ordinalCmp = <T>(a: T, b: T): number => (a < b ? -1 : a > b ? 1 : 0);
 
@@ -168,8 +192,20 @@ const PROPERTY_COMPARATORS: Partial<Record<CustomPropertyType, PropComparator>> 
 };
 
 /** Compares by a built-in field, or returns null when `field` is not a built-in. */
-function compareBuiltInField(a: Bookmark, b: Bookmark, field: string, sign: number): number | null {
-  if (field === "title") return sign * localeCmp(a.title, b.title);
+function compareBuiltInField(
+  a: Bookmark,
+  b: Bookmark,
+  field: string,
+  sign: number,
+  titleCtx: TitleSortContext,
+): number | null {
+  if (field === "title") {
+    return sign * localeCmp(
+      bookmarkTitleSortKey(a, titleCtx),
+      bookmarkTitleSortKey(b, titleCtx),
+      titleCtx.locale,
+    );
+  }
   if (field === "createdAt") return sign * ordinalCmp(a.createdAt, b.createdAt);
   // Null (never-updated) always sorts last regardless of direction.
   if (field === "updatedAt") return compareNullable(a.updatedAt, b.updatedAt, sign, ordinalCmp);
@@ -182,10 +218,11 @@ function compareOneDimension(
   b: Bookmark,
   dim: BookmarkSortDimension,
   properties: CustomProperty[],
+  titleCtx: TitleSortContext,
 ): number {
   const sign = dim.direction === "asc" ? 1 : -1;
 
-  const builtIn = compareBuiltInField(a, b, dim.field, sign);
+  const builtIn = compareBuiltInField(a, b, dim.field, sign, titleCtx);
   if (builtIn !== null) return builtIn;
 
   const prop = properties.find(p => p.id === dim.field);
@@ -206,11 +243,15 @@ function seededRank(id: string, seed: number): number {
 /**
  * Returns a stable sorted copy of `bookmarks` according to `sort`.
  * When `sort` is undefined the original order is preserved (server's `createdAt DESC`).
+ *
+ * `titleCtx` picks which language's name a title sorts by (and the collation locale) — the interface
+ * language, or a per-page override. Defaulted so callers/tests that don't care get today's behavior.
  */
 export function sortBookmarks(
   bookmarks: Bookmark[],
   sort: BookmarkSort | undefined,
   properties: CustomProperty[],
+  titleCtx: TitleSortContext = {},
 ): Bookmark[] {
   if (!sort) return bookmarks;
   if ("random" in sort) {
@@ -218,9 +259,9 @@ export function sortBookmarks(
       seededRank(a.id, sort.seed) - seededRank(b.id, sort.seed));
   }
   return [...bookmarks].sort((a, b) => {
-    const primary = compareOneDimension(a, b, sort.primary, properties);
+    const primary = compareOneDimension(a, b, sort.primary, properties, titleCtx);
     if (primary !== 0) return primary;
-    if (sort.secondary) return compareOneDimension(a, b, sort.secondary, properties);
+    if (sort.secondary) return compareOneDimension(a, b, sort.secondary, properties, titleCtx);
     return 0;
   });
 }

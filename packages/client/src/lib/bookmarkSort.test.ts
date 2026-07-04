@@ -425,4 +425,65 @@ describe("sortBookmarks", () => {
       expect(a).not.toEqual(b);
     });
   });
+
+  describe("multilingual title sort", () => {
+    /** Build a minimal language-labelled name row for a bookmark. */
+    const name = (value: string, isoCode: string, isPrimary: boolean) => ({
+      id: `${value}-${isoCode}`,
+      language: {
+        id: isoCode,
+        name: isoCode,
+        slug: isoCode,
+        isoCode,
+      },
+      value,
+      isPrimary,
+      sortOrder: 0,
+    });
+
+    // X: Japanese "あ" (sorts first in ja) / English "Zebra" (sorts last in en).
+    // Y: Japanese "い" (sorts second in ja) / English "Apple" (sorts first in en).
+    const list = [
+      makeBookmark({
+        id: "x",
+        title: "あ",
+        names: [name("あ", "ja", true), name("Zebra", "en", false)],
+      }),
+      makeBookmark({
+        id: "y",
+        title: "い",
+        names: [name("い", "ja", true), name("Apple", "en", false)],
+      }),
+    ];
+
+    it("sorts by the preferred language's name (Japanese)", () => {
+      const sorted = sortBookmarks(list, asc("title"), [], {
+        preferredLanguage: {
+          isoCode: "ja",
+        },
+        locale: "ja",
+      });
+      expect(sorted.map(b => b.id)).toEqual(["x", "y"]);
+    });
+
+    it("sorts by the preferred language's name (English) — a different order", () => {
+      const sorted = sortBookmarks(list, asc("title"), [], {
+        preferredLanguage: {
+          isoCode: "en",
+        },
+        locale: "en",
+      });
+      expect(sorted.map(b => b.id)).toEqual(["y", "x"]);
+    });
+
+    it("falls back to the primary name when the preferred language is absent", () => {
+      // No German names exist; both fall back to their primary (Japanese) name → あ before い.
+      const sorted = sortBookmarks(list, asc("title"), [], {
+        preferredLanguage: {
+          isoCode: "de",
+        },
+      });
+      expect(sorted.map(b => b.id)).toEqual(["x", "y"]);
+    });
+  });
 });

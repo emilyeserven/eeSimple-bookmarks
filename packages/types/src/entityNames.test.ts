@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import type { EntityName } from "./entityNames.js";
-import { nameSortKey, namesWithLegacyFallback, resolveDisplayNames, slugSourceFromNames } from "./entityNames.js";
+import { nameSortKey, namesWithLegacyFallback, resolveDisplayNames, resolveNameSortKey, slugSourceFromNames } from "./entityNames.js";
 
 function makeName(overrides: Partial<EntityName> & { value: string;
   isoCode: string | null;
@@ -147,6 +147,52 @@ test("nameSortKey falls back to base when there are no names", () => {
   assert.equal(nameSortKey([], "Fallback", {
     isoCode: "en",
   }), "Fallback");
+});
+
+// --- resolveNameSortKey ---
+
+test("resolveNameSortKey prefers the preferred-language name over the romanized fallback", () => {
+  assert.equal(
+    resolveNameSortKey([japanese, english], "進撃の巨人", {
+      preferredLanguage: {
+        isoCode: "ja",
+      },
+      preferRomanized: true,
+    }),
+    "進撃の巨人",
+  );
+});
+
+test("resolveNameSortKey uses the English/romanized name when preferRomanized and no preferred match", () => {
+  // No German name; preferRomanized falls to the English name rather than the primary.
+  assert.equal(
+    resolveNameSortKey([japanese, english], "進撃の巨人", {
+      preferredLanguage: {
+        isoCode: "de",
+      },
+      preferRomanized: true,
+    }),
+    "Attack on Titan",
+  );
+});
+
+test("resolveNameSortKey falls back to the primary name when preferRomanized is off", () => {
+  assert.equal(
+    resolveNameSortKey([japanese, english], "進撃の巨人", {
+      preferRomanized: false,
+    }),
+    "進撃の巨人",
+  );
+});
+
+test("resolveNameSortKey uses a synthesized legacy-romanized row as the romanized fallback", () => {
+  const names = namesWithLegacyFallback([], "Shingeki no Kyojin");
+  assert.equal(
+    resolveNameSortKey(names, "進撃の巨人", {
+      preferRomanized: true,
+    }),
+    "Shingeki no Kyojin",
+  );
 });
 
 // --- slugSourceFromNames ---

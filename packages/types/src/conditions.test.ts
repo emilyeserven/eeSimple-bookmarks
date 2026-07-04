@@ -16,11 +16,13 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     title: "An Example Article",
     categoryId: "cat-1",
     tagIds: new Set(),
+    locationIds: new Set(),
     genreMoodIds: new Set(),
     youtubeChannelId: null,
     mediaTypeId: null,
     relationshipTypeIds: new Set(),
     languageUsages: [],
+    names: [],
     numberValues: new Map(),
     booleanValues: new Map(),
     dateTimeValues: new Map(),
@@ -134,6 +136,34 @@ test("match: the title field also matches the romanized title", () => {
       pattern: "tokyo",
     }, input),
     false,
+  );
+});
+
+test("match: the title field matches a non-primary language-labelled name", () => {
+  // Neither the base title nor the romanized title contains the pattern — only a `names` entry does.
+  const input = makeInput({
+    title: "新世紀エヴァンゲリオン",
+    romanizedName: null,
+    names: ["新世紀エヴァンゲリオン", "Neon Genesis Evangelion"],
+  });
+  assert.equal(
+    evaluateConditions({
+      type: "match",
+      field: "title",
+      operator: "contains",
+      pattern: "Evangelion",
+    }, input),
+    true,
+  );
+  // The native-script name still matches.
+  assert.equal(
+    evaluateConditions({
+      type: "match",
+      field: "title",
+      operator: "contains",
+      pattern: "エヴァンゲリオン",
+    }, input),
+    true,
   );
 });
 
