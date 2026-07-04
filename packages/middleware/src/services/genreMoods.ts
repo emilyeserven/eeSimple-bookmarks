@@ -117,12 +117,6 @@ export async function getGenreMoodTree(): Promise<GenreMoodNode[]> {
   return buildGenreMoodTree(await listGenreMoods());
 }
 
-/** Fetch an entry by its slug, or `null` when absent. */
-export async function getGenreMoodBySlug(slug: string): Promise<GenreMood | null> {
-  const [row] = await db.select().from(genreMoods).where(eq(genreMoods.slug, slug));
-  return row ? toGenreMood(row) : null;
-}
-
 /** Add an entry. Throws `DuplicateGenreMoodError` on a sibling name clash. */
 export async function createGenreMood(input: CreateGenreMoodInput): Promise<GenreMood> {
   const name = input.name.trim();
