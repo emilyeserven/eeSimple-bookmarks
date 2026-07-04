@@ -2,7 +2,10 @@ import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import type { EntityName, EntityNameOwnerType, UpdateEntityNameEntry } from "@eesimple/types";
 import { db } from "@/db";
-import { invalidateBookmarkCache } from "@/services/bookmarkCache";
+// Import from the leaf `bookmarkCacheVersion` module (not `bookmarkCache`, which imports
+// `categories`) so an owner service the cache loads from — `categories` calls
+// `deleteEntityNamesForOwner` — doesn't form a circular import.
+import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import {
   albums,
   books,
