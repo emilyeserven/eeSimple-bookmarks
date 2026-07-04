@@ -17,6 +17,7 @@ import { backfillImageCropModes, ensureHomepageSections } from "@/services/homep
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { ensureBuiltInLanguages } from "@/services/languages";
 import { backfillLanguageUsageLevelSlugs, ensureBuiltInLanguageUsageLevels } from "@/services/languageUsageLevels";
+import { backfillEntityNames } from "@/services/entityNames";
 import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
 import { backfillMediaPropertySlugs } from "@/services/mediaProperties";
 import { backfillBookSlugs } from "@/services/books";
@@ -107,6 +108,10 @@ try {
   await ensureDefaultPlaceTypeLevelGroups();
   await backfillPersonSlugs();
   await maybeSeed();
+  // One-time, idempotent (#966): seed multilingual `entity_names` from each owner's existing
+  // name/title + `romanized_name` with script detection, after every owner's base name/slug is
+  // populated and the Primary Language usage level is seeded. Re-runs insert nothing.
+  await backfillEntityNames();
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
   // previous is-homepage / homepage-tags mechanism on first boot.
   await ensureAutofillConditions();

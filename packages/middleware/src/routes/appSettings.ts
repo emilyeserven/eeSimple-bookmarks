@@ -337,6 +337,7 @@ const displayPreferenceBody = {
     "croppedHeight",
     "showRomanizedByDefault",
     "sortByRomanized",
+    "hanScriptLanguage",
     "minAreaPinThresholdKm2",
     "bookmarksPerPage",
     "mapPinScale",
@@ -411,6 +412,10 @@ const displayPreferenceBody = {
     },
     sortByRomanized: {
       type: "boolean",
+    },
+    hanScriptLanguage: {
+      type: "string",
+      enum: ["ja", "zh"],
     },
     minAreaPinThresholdKm2: {
       type: "number",

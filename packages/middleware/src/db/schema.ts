@@ -1957,6 +1957,9 @@ export const appSettings = pgTable("app_settings", {
   // When true, alphabetical name/title sorting uses the romanized value as the sort key.
   // NOT NULL on an existing table -> pre-applied in migrate.ts to avoid a push prompt.
   sortByRomanized: boolean("sort_by_romanized").notNull().default(true),
+  // Language to assume for Han-only (no-kana) names, which are ambiguous Japanese vs. Chinese:
+  // "ja" | "zh". Nullable so `drizzle-kit push` stays additive; the resolver defaults it to "ja".
+  hanScriptLanguage: text("han_script_language"),
   // Prompt text used to instruct an AI to summarize bookmarks in the AI Summary Queue.
   aiSummarizationPrompt: text("ai_summarization_prompt").notNull().default(""),
   // Hosted metadata provider (Microlink-compatible) configured from Settings → Connectors.

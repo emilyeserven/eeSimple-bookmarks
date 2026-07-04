@@ -478,6 +478,11 @@ export interface DisplayPreferenceSettings {
   /** When true, alphabetical name/title sorting uses the romanized value as the sort key. */
   sortByRomanized: boolean;
   /**
+   * Language to assume for Han-only (no-kana) names, which are ambiguous Japanese vs. Chinese.
+   * Drives the multilingual names migration and future script detection. Defaults to `"ja"`.
+   */
+  hanScriptLanguage: "ja" | "zh";
+  /**
    * Minimum area (km²) an `"area"`-mode location's boundary must have to still render as a polygon
    * on the map; smaller boundaries render as a pin instead. `0` disables the threshold (legacy
    * behavior — any boundary renders as an area).

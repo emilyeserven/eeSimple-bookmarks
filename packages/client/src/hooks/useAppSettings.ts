@@ -238,6 +238,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   croppedHeight: 9,
   showRomanizedByDefault: false,
   sortByRomanized: true,
+  hanScriptLanguage: "ja" as "ja" | "zh",
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   mapPinScale: MAP_PIN_SCALE_DEFAULT,

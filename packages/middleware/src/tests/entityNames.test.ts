@@ -1,7 +1,116 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { buildEntityNameRows } from "@/services/entityNames";
+import { buildEntityNameRows, planEntityNameBackfillRows } from "@/services/entityNames";
+
+const IDS = {
+  en: "en-id",
+  ja: "ja-id",
+  ko: "ko-id",
+  zh: "zh-id",
+};
+
+test("planEntityNameBackfillRows: Korean title → single primary ko row", () => {
+  const result = planEntityNameBackfillRows("bookmark", "b1", "강남", null, "ko", IDS);
+  assert.deepEqual(result.rows, [
+    {
+      ownerType: "bookmark",
+      ownerId: "b1",
+      languageId: "ko-id",
+      value: "강남",
+      isPrimary: true,
+      sortOrder: 0,
+    },
+  ]);
+  assert.equal(result.undetermined, false);
+  assert.equal(result.duplicateEnglish, false);
+});
+
+test("planEntityNameBackfillRows: Japanese title + romanized → ja primary + en romanized row", () => {
+  const result = planEntityNameBackfillRows("movie", "m1", "進撃の巨人", "Shingeki no Kyojin", "ja", IDS);
+  assert.deepEqual(result.rows, [
+    {
+      ownerType: "movie",
+      ownerId: "m1",
+      languageId: "ja-id",
+      value: "進撃の巨人",
+      isPrimary: true,
+      sortOrder: 0,
+    },
+    {
+      ownerType: "movie",
+      ownerId: "m1",
+      languageId: "en-id",
+      value: "Shingeki no Kyojin",
+      isPrimary: false,
+      sortOrder: 1,
+    },
+  ]);
+  assert.equal(result.undetermined, false);
+});
+
+test("planEntityNameBackfillRows: detected Chinese (Han fallback) → single primary zh row", () => {
+  const result = planEntityNameBackfillRows("bookmark", "b9", "三国志", null, "zh", IDS);
+  assert.deepEqual(result.rows, [
+    {
+      ownerType: "bookmark",
+      ownerId: "b9",
+      languageId: "zh-id",
+      value: "三国志",
+      isPrimary: true,
+      sortOrder: 0,
+    },
+  ]);
+  assert.equal(result.undetermined, false);
+});
+
+test("planEntityNameBackfillRows: undetermined (Han-only, no preference) with no romanized → no rows", () => {
+  const result = planEntityNameBackfillRows("category", "c1", "三国志", null, null, IDS);
+  assert.deepEqual(result.rows, []);
+  assert.equal(result.undetermined, true);
+  assert.equal(result.duplicateEnglish, false);
+});
+
+test("planEntityNameBackfillRows: undetermined with romanized → lone non-primary en row, no primary", () => {
+  const result = planEntityNameBackfillRows("category", "c1", "三国志", "Sanguozhi", null, IDS);
+  assert.deepEqual(result.rows, [
+    {
+      ownerType: "category",
+      ownerId: "c1",
+      languageId: "en-id",
+      value: "Sanguozhi",
+      isPrimary: false,
+      sortOrder: 0,
+    },
+  ]);
+  assert.equal(result.undetermined, true);
+});
+
+test("planEntityNameBackfillRows: English primary + romanized → skip duplicate English", () => {
+  const result = planEntityNameBackfillRows("tag", "t1", "Attack on Titan", "Attack on Titan", "en", IDS);
+  assert.deepEqual(result.rows, [
+    {
+      ownerType: "tag",
+      ownerId: "t1",
+      languageId: "en-id",
+      value: "Attack on Titan",
+      isPrimary: true,
+      sortOrder: 0,
+    },
+  ]);
+  assert.equal(result.duplicateEnglish, true);
+});
+
+test("planEntityNameBackfillRows: detected ja but ja language id missing → no primary row", () => {
+  const result = planEntityNameBackfillRows("bookmark", "b1", "進撃の巨人", null, "ja", {
+    en: "en-id",
+    ja: null,
+    ko: null,
+    zh: null,
+  });
+  assert.deepEqual(result.rows, []);
+  assert.equal(result.undetermined, true);
+});
 
 test("buildEntityNameRows keeps entries, assigns sortOrder in array order, and finds no primary", () => {
   const {
