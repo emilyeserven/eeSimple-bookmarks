@@ -1,4 +1,5 @@
 import { ArrowUpDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkSortEditor } from "./BookmarkSortFields";
 import { useCustomProperties } from "../hooks/useCustomProperties";
@@ -96,6 +97,9 @@ function TitleSortLanguageField({
   pageKey: string;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     languageId, setLanguage,
   } = useTitleSortLanguage(pageKey);
   const {
@@ -104,7 +108,7 @@ function TitleSortLanguageField({
 
   return (
     <div className="flex items-center justify-between gap-4">
-      <Label className="text-sm font-medium">Sort titles by</Label>
+      <Label className="text-sm font-medium">{t("Sort titles by")}</Label>
       <Select
         value={languageId === "" ? DISPLAY_LANGUAGE : languageId}
         onValueChange={value => setLanguage(value === DISPLAY_LANGUAGE ? "" : value)}
@@ -116,7 +120,7 @@ function TitleSortLanguageField({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={DISPLAY_LANGUAGE}>Display language</SelectItem>
+          <SelectItem value={DISPLAY_LANGUAGE}>{t("Display language")}</SelectItem>
           {languages.map(language => (
             <SelectItem
               key={language.id}
