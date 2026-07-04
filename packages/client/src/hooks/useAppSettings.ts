@@ -6,6 +6,7 @@ import type {
   BookmarkDetailVideoSize,
   ConnectorsAppSettings,
   ImportBlacklistEntry,
+  InterfaceLanguage,
   PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
   PlaceTypeIconConfig,
@@ -227,6 +228,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   bookmarkDetailImageSize: "medium" as BookmarkDetailImageSize,
   bookmarkDetailVideoSize: "standard" as BookmarkDetailVideoSize,
   bookmarkDetailLayout: "single" as BookmarkDetailLayout,
+  interfaceLanguage: "en" as InterfaceLanguage,
   onDemandFilters: [] as string[],
   filtersInDrawer: false,
   filtersHidden: false,
@@ -474,6 +476,14 @@ export function useBookmarkDetailLayout(): BookmarkDetailLayout {
     data,
   } = useDisplayPreferenceSettings();
   return data?.bookmarkDetailLayout ?? DISPLAY_PREFERENCE_DEFAULTS.bookmarkDetailLayout;
+}
+
+/** Interface language driving i18next + Intl formatting (default "en"). */
+export function useInterfaceLanguage(): InterfaceLanguage {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.interfaceLanguage ?? DISPLAY_PREFERENCE_DEFAULTS.interfaceLanguage;
 }
 
 /** How many bookmarks to show per listing page (default 25). */

@@ -1548,6 +1548,15 @@ const migrations: RuntimeMigration[] = [
     name: "drop bookmarks.language_id column",
     run: db => db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "language_id"`),
   },
+  {
+    // `app_settings` gained the interface-language display preference (issue #971). NOT NULL with a
+    // default matching schema.ts; pre-apply to keep push's diff additive-only.
+    name: "add app_settings interface_language column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "interface_language" text NOT NULL DEFAULT 'en'
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

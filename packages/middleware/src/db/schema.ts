@@ -1932,6 +1932,8 @@ export const appSettings = pgTable("app_settings", {
   bookmarkDetailVideoSize: text("bookmark_detail_video_size").notNull().default("standard"),
   // Bookmark detail layout: "single" | "tabbed".
   bookmarkDetailLayout: text("bookmark_detail_layout").notNull().default("single"),
+  // Interface language: "en" | "ja".
+  interfaceLanguage: text("interface_language").notNull().default("en"),
   // When true, listing pages open filters in the right-hand drawer by default.
   filtersInDrawer: boolean("filters_in_drawer").notNull().default(false),
   // When true, the left filter rail is hidden on listing pages.
