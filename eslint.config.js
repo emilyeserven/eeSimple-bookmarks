@@ -17,6 +17,9 @@ export default [
       "**/*.gen.ts",
       "packages/client/src/routeTree.gen.ts",
       ".claude/skills/fallow/**",
+      // Agent worktrees are full repo copies; linting them from the root doubles every
+      // finding, and their files fail type-aware parsing (no project service there).
+      ".claude/worktrees/**",
       // Fallow's working dir holds generated baselines/caches, not source.
       ".fallow/**",
       // Storybook build output and the generated MSW service worker are not source.

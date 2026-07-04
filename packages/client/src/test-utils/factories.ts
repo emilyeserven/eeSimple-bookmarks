@@ -9,6 +9,7 @@ import type {
   Group,
   GroupType,
   Location,
+  LanguageUsageLevel,
   MediaType,
   Newsletter,
   Tag,
@@ -287,6 +288,21 @@ export function makeLanguage(overrides: Partial<Language> = {}): Language {
     sortOrder: 0,
     createdAt: NOW,
     bookmarkCount: 0,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `LanguageUsageLevel`, an availability-kind built-in by default. */
+export function makeLanguageUsageLevel(overrides: Partial<LanguageUsageLevel> = {}): LanguageUsageLevel {
+  return {
+    id: "level",
+    name: "Subtitles",
+    slug: "subtitles",
+    kind: "availability",
+    builtIn: true,
+    sortOrder: 0,
+    createdAt: NOW,
+    usageCount: 0,
     ...overrides,
   };
 }

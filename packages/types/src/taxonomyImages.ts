@@ -1,12 +1,12 @@
 /**
  * Shared multi-image gallery for the Plex/Kavita-backed media taxonomies (Movies, TV Shows, Episodes,
- * Artists, Albums, Tracks, Books). Mirrors `BookmarkImage`/`bookmark_images`, but one physical owner
+ * Albums, Tracks, Books). Mirrors `BookmarkImage`/`bookmark_images`, but one physical owner
  * table can't carry a foreign key into seven different entity tables, so images are keyed by
  * `(ownerType, ownerId)` instead.
  */
 
 /** Which taxonomy a `taxonomy_images` row belongs to. Add a new entity here in exactly one place. */
-export const TAXONOMY_IMAGE_OWNER_TYPES = ["movie", "tvShow", "episode", "artist", "album", "track", "book", "podcast"] as const;
+export const TAXONOMY_IMAGE_OWNER_TYPES = ["movie", "tvShow", "episode", "album", "track", "book", "podcast"] as const;
 
 export type TaxonomyImageOwnerType = typeof TAXONOMY_IMAGE_OWNER_TYPES[number];
 

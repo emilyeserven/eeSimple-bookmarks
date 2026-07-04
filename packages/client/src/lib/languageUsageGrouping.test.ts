@@ -4,17 +4,15 @@ import type { LanguageUsageAssociation, LanguageUsageLevel } from "@eesimple/typ
 import { describe, expect, it } from "vitest";
 
 import { groupLanguageUsages } from "./languageUsageGrouping";
+import { makeLanguageUsageLevel } from "../test-utils/factories";
 
-const level = (id: string, name: string, slug: string, kind: LanguageUsageLevel["kind"] = "availability"): LanguageUsageLevel => ({
-  id,
-  name,
-  slug,
-  kind,
-  builtIn: true,
-  sortOrder: 0,
-  createdAt: "2026-01-01T00:00:00.000Z",
-  usageCount: 0,
-});
+const level = (id: string, name: string, slug: string, kind: LanguageUsageLevel["kind"] = "availability"): LanguageUsageLevel =>
+  makeLanguageUsageLevel({
+    id,
+    name,
+    slug,
+    kind,
+  });
 
 const assoc = (
   langId: string,

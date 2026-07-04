@@ -96,6 +96,12 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
     label: "Usage Levels",
     icon: Captions,
   },
+  {
+    // Grouped-card CRUD reachable from the Usage Levels overview's "Edit levels" button.
+    path: "/taxonomies/language-usage-levels/edit",
+    label: "Usage Levels: Edit",
+    icon: Captions,
+  },
 ];
 
 /** Favorite labels that differ from the sidebar item's title. */

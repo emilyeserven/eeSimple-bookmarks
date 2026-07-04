@@ -1,18 +1,11 @@
 import type { KavitaSeriesResult } from "@eesimple/types";
 
-import { useEffect, useState } from "react";
-
-import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
-import { useConnectors } from "../hooks/useConnectors";
-import { kavitaApi } from "../lib/api/kavita";
+import { useKavitaSeriesSearch } from "../hooks/useKavitaSeriesSearch";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const SEARCH_DEBOUNCE_MS = 300;
-const MIN_QUERY_LENGTH = 2;
 
 /** One-line summary of a search hit: name — library (year). */
 function seriesSummary(series: KavitaSeriesResult): string {
@@ -37,25 +30,10 @@ export function KavitaSeriesLookup({
   onSelect,
 }: KavitaSeriesLookupProps) {
   const {
-    data: connectors,
-  } = useConnectors();
+    query, setQuery, enabled, search,
+  } = useKavitaSeriesSearch();
 
-  const [query, setQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-
-  useEffect(() => {
-    const handle = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(handle);
-  }, [query]);
-
-  const trimmedQuery = debouncedQuery.trim();
-  const search = useQuery({
-    queryKey: ["kavita-series-search", trimmedQuery],
-    queryFn: () => kavitaApi.searchSeries(trimmedQuery),
-    enabled: Boolean(connectors?.kavita.enabled) && trimmedQuery.length >= MIN_QUERY_LENGTH,
-  });
-
-  if (!connectors?.kavita.enabled) return null;
+  if (!enabled) return null;
 
   return (
     <div className="space-y-1.5">

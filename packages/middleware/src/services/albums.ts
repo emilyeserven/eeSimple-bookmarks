@@ -7,6 +7,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
 import { albumPeople, albumGroups, albums, bookmarks, type AlbumRow } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -224,6 +225,7 @@ export async function deleteAlbum(id: string): Promise<boolean> {
   const rows = await db.delete(albums).where(eq(albums.id, id)).returning({
     id: albums.id,
   });
+  if (rows.length > 0) await deleteTaxonomyImagesForOwner("album", id);
   return rows.length > 0;
 }
 

@@ -62,6 +62,7 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
     person: slugFor(pathname, pathParts, "/taxonomies/people", 2),
     group: slugFor(pathname, pathParts, "/taxonomies/groups", 2),
     groupType: slugFor(pathname, pathParts, "/taxonomies/group-types", 2),
+    genreMood: slugFor(pathname, pathParts, "/taxonomies/genres-moods", 2),
     language: slugFor(pathname, pathParts, "/taxonomies/languages", 2),
     placeType: slugFor(pathname, pathParts, "/taxonomies/place-types", 2),
     propertyGroup: slugFor(pathname, pathParts, "/taxonomies/property-groups", 2),

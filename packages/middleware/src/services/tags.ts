@@ -6,6 +6,7 @@ import { bookmarkTags, categoryRootTags, tags, type TagRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { InvalidRootTagError } from "@/services/categories";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import {
   collectSubtreeIds as collectParentTreeSubtreeIds,
   computeSubtreeBookmarkCounts,
@@ -230,7 +231,11 @@ export async function deleteTag(id: string): Promise<boolean> {
     id: tags.id,
   });
   // Cascade removes descendant tags and bookmark_tags links — both feed condition matching.
-  if (rows.length > 0) invalidateBookmarkCache();
+  if (rows.length > 0) {
+    // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
+    await deleteGenreMoodAssignmentsForOwner("tag", id);
+    invalidateBookmarkCache();
+  }
   return rows.length > 0;
 }
 

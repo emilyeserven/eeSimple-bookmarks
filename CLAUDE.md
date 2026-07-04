@@ -448,6 +448,12 @@ instead.
   `/api/media-types/tree`. The client only flattens for indentation.
 - **Batched hydration** — `hydrateBookmarkRows` (`services/bookmarkHydration.ts`) joins
   website/mediaType/channel/tags/property-values/images into a render-ready `Bookmark` with no N+1.
+- **Plex media taxonomy CRUD is a factory** — `createPlexTaxonomyService`
+  (`services/plexTaxonomyService.ts`) generates the list/create/update/delete/bulkDelete/
+  backfillSlugs set for movies/tvShows/episodes/tracks (albums stays custom for its People/Group
+  credit transactions). A new Plex-shaped taxonomy service should be a thin factory wrapper, not a
+  copy of a sibling file; the client table columns for these come from `plexMediaColumns` in
+  `components/tables/columnHelpers.tsx` the same way.
 - **"Load once → evaluate the shared predicate in-memory → hydrate matches"** —
   `listHomepageSectionBookmarks` (`services/homepageSections.ts`) and `previewAutofillMatches`
   (`services/autofill.ts`) both load via the **bookmark cache** (below) and run the **shared**
@@ -581,7 +587,11 @@ precedent after `taxonomy_images`:
   Bookmarks do this via `cleanupGenreMoodAssignments` across **all three** bookmark-delete paths
   (`deleteBookmark`/`bulkDeleteBookmarks`/`deleteOrphanedBookmarks`); the assignment service exposes
   `deleteGenreMoodAssignmentsForOwner` for taxonomy owners. Bookmark-owner writes call
-  `invalidateBookmarkCache()`.
+  `invalidateBookmarkCache()`. The same no-FK cleanup rule covers **`taxonomy_images`**: every
+  media-taxonomy delete (Movies / TV Shows / Episodes / Albums / Tracks / Books / Podcasts) calls
+  `deleteTaxonomyImagesForOwner` (`services/taxonomyImages.ts`), which removes the stored objects
+  and then the rows — a new `TAXONOMY_IMAGE_OWNER_TYPES` owner must wire this into its delete
+  service too.
 - **Bookmarks** carry `genreMoods: BookmarkGenreMood[]` (hydrated via a batched join on
   `ownerType='bookmark'`, linked in the create/update tx like `bookmarkTags`, submitted as
   `genreMoodIds`) and expose a placeable **`genreMoods`** card field (kept in sync in both
