@@ -4,18 +4,22 @@
  * (`@eesimple/middleware`, at create / backfill time) and in the browser (`@eesimple/client`, for
  * the Inbox prefill preview) — one implementation, no parallel re-translation.
  *
- * A tag matches when any of its name forms (`name`, `romanizedName`) is found in any of the
- * bookmark's title forms (`title`, `romanizedName`). Latin terms match on whole-word boundaries
- * (so a tag named "art" does not match "Martin"); terms in scripts that aren't space-delimited
- * (Han / Hiragana / Katakana / Hangul) match as substrings (so "부산" matches "부산광역시", which
- * has no word boundary). Matching is case-insensitive throughout.
+ * A tag matches when any of its name forms (`name`, `romanizedName`, and every language-labelled
+ * `names` value) is found in any of the bookmark's title/name forms. Latin terms match on
+ * whole-word boundaries (so a tag named "art" does not match "Martin"); terms in scripts that
+ * aren't space-delimited (Han / Hiragana / Katakana / Hangul) match as substrings (so "부산" matches
+ * "부산광역시", which has no word boundary). Matching is case-insensitive throughout.
  */
+
+import type { EntityName } from "./entityNames.js";
 
 /** A tag reduced to the fields the title matcher needs. */
 export interface TitleTagCandidate {
   id: string;
   name: string;
   romanizedName?: string | null;
+  /** The tag's language-labelled names, matched (by value) alongside `name`/`romanizedName`. */
+  names?: EntityName[];
 }
 
 /** Escape a string for safe interpolation into a RegExp body. Pure helper. */
@@ -49,20 +53,21 @@ export function titleMatchesTerm(haystack: string, term: string): boolean {
 }
 
 /**
- * The ids of tags implied by a bookmark's title. Each tag's `name` and `romanizedName` are tested
- * against both the bookmark's `title` and its `romanizedName` (when present) via
- * {@link titleMatchesTerm}. Empty/whitespace haystacks and terms are ignored. Pure helper.
+ * The ids of tags implied by a bookmark's title/name forms. Each tag's `name`, `romanizedName`, and
+ * every language-labelled `names` value are tested against each of the bookmark's `titles` (its
+ * title + romanized title + every language-labelled name value) via {@link titleMatchesTerm}.
+ * Empty/whitespace haystacks and terms are ignored. Pure helper.
  */
 export function matchTagIdsByTitle(
-  title: string,
-  romanizedName: string | null | undefined,
+  titles: string[],
   tags: TitleTagCandidate[],
 ): string[] {
-  const haystacks = [title, romanizedName ?? ""].filter(text => text.trim() !== "");
+  const haystacks = titles.filter(text => text.trim() !== "");
   if (haystacks.length === 0) return [];
   return tags
     .filter((tag) => {
-      const terms = [tag.name, tag.romanizedName ?? ""].filter(text => text.trim() !== "");
+      const terms = [tag.name, tag.romanizedName ?? "", ...(tag.names ?? []).map(name => name.value)]
+        .filter(text => text.trim() !== "");
       return terms.some(term => haystacks.some(haystack => titleMatchesTerm(haystack, term)));
     })
     .map(tag => tag.id);

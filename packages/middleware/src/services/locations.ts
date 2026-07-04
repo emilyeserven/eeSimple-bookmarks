@@ -81,7 +81,11 @@ function toLocation(
 // import it from `@/services/locations`.
 export { matchLocationIdsByTitle };
 
-/** Lightweight id/name/romanized/alternate-name listing, used by the title-matching automation. */
+/**
+ * Lightweight id/name/romanized/alternate-name listing, used by the title-matching automation. Each
+ * location also carries its language-labelled `names` values so the matcher matches a bookmark
+ * title written in any script against a location named in another.
+ */
 export async function listLocationNames(): Promise<LocationTitleCandidate[]> {
   const rows = await db
     .select({
@@ -92,11 +96,13 @@ export async function listLocationNames(): Promise<LocationTitleCandidate[]> {
       parentId: locations.parentId,
     })
     .from(locations);
+  const namesById = await loadEntityNames("location", rows.map(row => row.id));
   return rows.map(row => ({
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName,
     alternateNames: row.alternateNames ?? [],
+    names: namesById.get(row.id) ?? [],
     parentId: row.parentId,
   }));
 }

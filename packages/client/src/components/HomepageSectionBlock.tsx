@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { BookmarkCard } from "./BookmarkCard";
 import { HomepageSectionTable } from "./HomepageSectionTable";
+import { useInterfaceTitleSort } from "../hooks/useTitleSortContext";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { flattenFieldZonesToCard, hiddenFieldKeysFromZones, restrictFieldZones } from "../lib/bookmarkCardValues";
 import { COLUMN_CLASS } from "../lib/bookmarkColumns";
@@ -24,7 +25,8 @@ export function HomepageSectionBlock({
   const {
     section, bookmarks: unsortedBookmarks,
   } = data;
-  const sortedBookmarks = sortBookmarks(unsortedBookmarks, section.sort ?? undefined, customProperties);
+  const titleSort = useInterfaceTitleSort();
+  const sortedBookmarks = sortBookmarks(unsortedBookmarks, section.sort ?? undefined, customProperties, titleSort);
   const bookmarks = section.bookmarkLimit
     ? sortedBookmarks.slice(0, section.bookmarkLimit)
     : sortedBookmarks;

@@ -136,6 +136,52 @@ export function nameSortKey(
   return primaryRow?.value ?? base;
 }
 
+/** Options for {@link resolveNameSortKey}. */
+export interface NameSortOptions {
+  /**
+   * The language whose name to sort by when the entity has one — the interface/display language, or
+   * a per-surface override. Wins over `preferRomanized` when the entity has a name in it.
+   */
+  preferredLanguage?: PreferredLanguage | null;
+  /**
+   * Legacy "sort by romanized" fallback (the tag-tree toggle): when no preferred-language name
+   * exists, prefer the English / legacy-romanized form (the same "romanized" the display model uses)
+   * before falling back to the primary/base name.
+   */
+  preferRomanized?: boolean;
+}
+
+/** The English/legacy-romanized name — the "romanized" form the display + slug helpers already prefer. */
+function romanizedName(names: EntityName[]): EntityName | undefined {
+  return names.find(
+    name => name.id === "legacy-romanized" || name.language.isoCode?.toLowerCase() === "en",
+  );
+}
+
+/**
+ * The string to sort an entity by, reconciling the interface/override language preference with the
+ * legacy `sortByRomanized` toggle. Superset of {@link nameSortKey}: the preferred-language name wins
+ * when present; otherwise, when `preferRomanized` is set, the English/legacy-romanized form is used;
+ * otherwise the primary name, else `base`. The `localeCompare` collation locale is applied by the
+ * caller, not here. Shared by bookmark, tag-tree, and location sorting.
+ */
+export function resolveNameSortKey(
+  names: EntityName[],
+  base: string,
+  opts: NameSortOptions = {},
+): string {
+  const preferred = opts.preferredLanguage
+    ? names.find(name => matchesLanguage(name, opts.preferredLanguage as PreferredLanguage))
+    : undefined;
+  if (preferred) return preferred.value;
+  if (opts.preferRomanized) {
+    const rom = romanizedName(names);
+    if (rom) return rom.value;
+  }
+  const primaryRow = names.find(name => name.isPrimary);
+  return primaryRow?.value ?? base;
+}
+
 /**
  * The string to derive an entity's slug from: the English-language name row (ISO 639-1 `en`) when
  * present and non-empty, else `baseName`. Keeps slugs ASCII/readable even when the primary name is

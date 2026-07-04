@@ -54,15 +54,24 @@ function toTag(row: TagRow, counts?: TagBookmarkCounts, names?: EntityName[]): T
 // callers and tests keep importing from `@/services/tags`.
 export { matchTagIdsByTitle, titleMatchesTerm };
 
-/** Lightweight id/name/romanized listing of every tag, used by the title-matching automation. */
+/**
+ * Lightweight id/name/romanized listing of every tag, used by the title-matching automation. Each
+ * tag also carries its language-labelled `names` values so the matcher matches a bookmark title
+ * written in any script against a tag named in another.
+ */
 export async function listTagNames(): Promise<TitleTagCandidate[]> {
-  return db
+  const rows = await db
     .select({
       id: tags.id,
       name: tags.name,
       romanizedName: tags.romanizedName,
     })
     .from(tags);
+  const namesById = await loadEntityNames("tag", rows.map(row => row.id));
+  return rows.map(row => ({
+    ...row,
+    names: namesById.get(row.id) ?? [],
+  }));
 }
 
 /**
