@@ -1,4 +1,5 @@
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 
@@ -21,6 +22,9 @@ interface ExpandAllToggleProps {
 export function ExpandAllToggle({
   expandableIds, expanded, onExpandAll, onCollapseAll,
 }: ExpandAllToggleProps) {
+  const {
+    t,
+  } = useTranslation();
   if (expandableIds.length === 0) return null;
 
   const allExpanded = expandableIds.every(id => expanded.has(id));
@@ -36,13 +40,13 @@ export function ExpandAllToggle({
         ? (
           <>
             <ChevronsDownUp />
-            Collapse all
+            {t("Collapse all")}
           </>
         )
         : (
           <>
             <ChevronsUpDown />
-            Expand all
+            {t("Expand all")}
           </>
         )}
     </Button>

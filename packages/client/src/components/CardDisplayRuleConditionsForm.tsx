@@ -1,5 +1,7 @@
 import type { CardDisplayRule } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { ConditionsField } from "./conditions/ConditionsField";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
 import { useCardDisplayRuleConditionsForm } from "./useCardDisplayRuleConditionsForm";
@@ -18,6 +20,9 @@ interface Props {
 export function CardDisplayRuleConditionsForm({
   entity: rule,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const {
     categories,
     properties,
@@ -39,8 +44,8 @@ export function CardDisplayRuleConditionsForm({
       <Separator />
 
       <LabeledSection
-        title="Preview Bookmarks"
-        description="Test which existing bookmarks match the conditions above."
+        title={t("Preview Bookmarks")}
+        description={t("Test which existing bookmarks match the conditions above.")}
       >
         <PreviewBookmarksSection conditions={conditions} />
       </LabeledSection>

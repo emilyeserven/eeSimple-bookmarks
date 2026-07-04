@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { BookmarkForm } from "./BookmarkForm";
 
 import {
@@ -23,6 +25,9 @@ export function AddBookmarkModal({
   autoScan,
   lockedCategoryId,
 }: AddBookmarkModalProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Dialog
       open={open}
@@ -30,7 +35,7 @@ export function AddBookmarkModal({
     >
       <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Bookmark</DialogTitle>
+          <DialogTitle>{t("Add Bookmark")}</DialogTitle>
         </DialogHeader>
         <BookmarkForm
           key={`${initialUrl ?? "empty"}|${lockedCategoryId ?? ""}`}

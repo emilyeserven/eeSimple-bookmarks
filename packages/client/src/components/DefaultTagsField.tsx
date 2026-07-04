@@ -1,5 +1,7 @@
 import type { TagNode } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
 import { useGatedTagTree } from "../hooks/useGatedTagTree";
 
@@ -27,12 +29,15 @@ export function DefaultTagsField({
   tree, selectedIds, onToggle, description, categoryId,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     tree: gated,
   } = useGatedTagTree(categoryId, tree);
 
   return (
     <div className="space-y-2">
-      <Label className="block">Default tags</Label>
+      <Label className="block">{t("Default tags")}</Label>
       <p className="text-sm text-muted-foreground">{description}</p>
       <TagPickerWithCreate
         tree={gated}

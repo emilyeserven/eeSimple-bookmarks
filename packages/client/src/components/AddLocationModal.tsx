@@ -1,5 +1,7 @@
 import type { Location } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { LocationForm } from "./LocationForm";
 
 import {
@@ -21,6 +23,9 @@ interface AddLocationModalProps {
 export function AddLocationModal({
   open, onOpenChange, onCreated,
 }: AddLocationModalProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Dialog
       open={open}
@@ -28,9 +33,9 @@ export function AddLocationModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New location</DialogTitle>
+          <DialogTitle>{t("New location")}</DialogTitle>
           <DialogDescription>
-            Create a location, including its parent chain if needed.
+            {t("Create a location, including its parent chain if needed.")}
           </DialogDescription>
         </DialogHeader>
 

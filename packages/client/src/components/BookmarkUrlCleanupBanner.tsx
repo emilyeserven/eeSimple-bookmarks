@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/components/ui/button";
 
 interface BookmarkUrlCleanupBannerProps {
@@ -14,6 +16,9 @@ export function BookmarkUrlCleanupBanner({
   urlShortener,
   onUndo,
 }: BookmarkUrlCleanupBannerProps) {
+  const {
+    t,
+  } = useTranslation();
   if (!urlCleanup?.applied) return null;
   return (
     <div className="space-y-1 text-sm text-muted-foreground">
@@ -24,11 +29,11 @@ export function BookmarkUrlCleanupBanner({
             dark:text-amber-500
           "
         >
-          This looks like a shortened link — consider using the full URL.
+          {t("This looks like a shortened link — consider using the full URL.")}
         </p>
       )}
       <p>
-        Shortened from
+        {t("Shortened from")}
         {" "}
         <span className="font-mono break-all">{urlCleanup.original}</span>
         {" · "}
@@ -39,12 +44,12 @@ export function BookmarkUrlCleanupBanner({
           className="h-auto p-0"
           onClick={onUndo}
         >
-          Undo
+          {t("Undo")}
         </Button>
       </p>
       {urlShortener.expandedUrl && (
         <p>
-          Will be saved as
+          {t("Will be saved as")}
           {" "}
           <span className="font-mono break-all">{urlShortener.expandedUrl}</span>
         </p>

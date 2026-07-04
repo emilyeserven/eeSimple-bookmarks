@@ -1,5 +1,7 @@
 import type { TagNode } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { RomanizedLabel } from "./RomanizedLabel";
 import { useSortByRomanized } from "../hooks/useAppSettings";
 import { flattenTree, sortTagTreeByRomanized } from "../lib/tagTree";
@@ -18,6 +20,9 @@ interface TagTreeFilterProps {
 export function TagTreeFilter({
   tree, activeId, onSelect,
 }: TagTreeFilterProps) {
+  const {
+    t,
+  } = useTranslation();
   const sortByRomanized = useSortByRomanized();
   const flat = flattenTree(sortTagTreeByRomanized(tree, sortByRomanized));
   if (flat.length === 0) return null;
@@ -36,7 +41,7 @@ export function TagTreeFilter({
           ${activeId === undefined ? active : inactive}
         `}
       >
-        All tags
+        {t("All tags")}
       </button>
       {flat.map(({
         node, depth,

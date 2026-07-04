@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { highlightAnchor } from "../lib/newsletterContext";
 
@@ -18,6 +19,9 @@ export function NewsletterContextBlock({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Collapsible
       open={open}
@@ -35,7 +39,7 @@ export function NewsletterContextBlock({
               ${open ? "rotate-180" : ""}
             `}
           />
-          Context
+          {t("Context")}
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent

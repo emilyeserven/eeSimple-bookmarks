@@ -1,6 +1,8 @@
 import type { TagNode } from "@eesimple/types";
 import type { ComponentProps } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { tagNodesToOptions } from "../lib/tagTree";
 
@@ -17,6 +19,9 @@ interface TagPickerProps {
 export function TagPicker({
   tree, selectedIds, onToggle, createOption,
 }: TagPickerProps) {
+  const {
+    t,
+  } = useTranslation();
   function handleValuesChange(next: string[]) {
     const prev = new Set(selectedIds);
     const added = next.find(id => !prev.has(id));
@@ -33,9 +38,9 @@ export function TagPicker({
       options={tagNodesToOptions(tree)}
       values={selectedIds}
       onValuesChange={handleValuesChange}
-      placeholder="Select tags…"
-      searchPlaceholder="Search tags…"
-      emptyText="No tags yet."
+      placeholder={t("Select tags…")}
+      searchPlaceholder={t("Search tags…")}
+      emptyText={t("No tags yet.")}
       createOption={createOption}
     />
   );

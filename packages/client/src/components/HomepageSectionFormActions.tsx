@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/components/ui/button";
 
 interface HomepageSectionFormActionsProps {
@@ -12,6 +14,9 @@ interface HomepageSectionFormActionsProps {
 export function HomepageSectionFormActions({
   isAutoSave, canSave, onCancel, isPending, onDelete, isDeleting,
 }: HomepageSectionFormActionsProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="flex flex-wrap gap-2">
       {isAutoSave
@@ -21,7 +26,7 @@ export function HomepageSectionFormActions({
             variant="outline"
             onClick={onCancel}
           >
-            Done
+            {t("Done")}
           </Button>
         )
         : (
@@ -30,7 +35,7 @@ export function HomepageSectionFormActions({
               type="submit"
               disabled={isPending || !canSave}
             >
-              {isPending ? "Saving…" : "Save section"}
+              {isPending ? t("Saving…") : t("Save section")}
             </Button>
             <Button
               type="button"
@@ -38,7 +43,7 @@ export function HomepageSectionFormActions({
               onClick={onCancel}
               disabled={isPending}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
           </>
         )}
@@ -51,7 +56,7 @@ export function HomepageSectionFormActions({
             onClick={onDelete}
             disabled={isDeleting}
           >
-            {isDeleting ? "Deleting…" : "Delete section"}
+            {isDeleting ? t("Deleting…") : t("Delete section")}
           </Button>
         )
         : null}

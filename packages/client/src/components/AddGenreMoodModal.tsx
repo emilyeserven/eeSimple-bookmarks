@@ -1,5 +1,7 @@
 import type { GenreMood } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateGenreMood } from "../hooks/useGenreMoods";
 
@@ -16,18 +18,21 @@ interface AddGenreMoodModalProps {
 export function AddGenreMoodModal({
   open, onOpenChange, onCreated, defaultParentId = null,
 }: AddGenreMoodModalProps) {
+  const {
+    t,
+  } = useTranslation();
   const createGenreMood = useCreateGenreMood();
 
   return (
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title={defaultParentId ? "New sub-entry" : "New Genres & Moods entry"}
+      title={defaultParentId ? t("New sub-entry") : t("New Genres & Moods entry")}
       description={defaultParentId
-        ? "Create an entry under the current one — you can fill in the rest from its edit page."
-        : "Give the entry a name — you can fill in the rest from its edit page."}
-      placeholder="e.g. Science Fiction"
-      submitLabel="Add entry"
+        ? t("Create an entry under the current one — you can fill in the rest from its edit page.")
+        : t("Give the entry a name — you can fill in the rest from its edit page.")}
+      placeholder={t("e.g. Science Fiction")}
+      submitLabel={t("Add entry")}
       isError={createGenreMood.isError}
       errorMessage={createGenreMood.error?.message}
       onSubmit={(name, done) => {

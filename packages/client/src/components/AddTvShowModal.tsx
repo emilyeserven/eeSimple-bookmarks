@@ -1,5 +1,7 @@
 import type { TvShow } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { PlexTitleForm } from "./PlexTitleForm";
 
 import {
@@ -21,6 +23,9 @@ interface AddTvShowModalProps {
 export function AddTvShowModal({
   open, onOpenChange, onCreated,
 }: AddTvShowModalProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Dialog
       open={open}
@@ -28,9 +33,9 @@ export function AddTvShowModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New TV show</DialogTitle>
+          <DialogTitle>{t("New TV show")}</DialogTitle>
           <DialogDescription>
-            Give the show a name, or look it up on Plex to fill in its details automatically.
+            {t("Give the show a name, or look it up on Plex to fill in its details automatically.")}
           </DialogDescription>
         </DialogHeader>
 

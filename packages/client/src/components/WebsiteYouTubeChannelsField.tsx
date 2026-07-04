@@ -1,5 +1,7 @@
 import type { YouTubeChannel } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { EntityYouTubeChannelsField } from "./EntityYouTubeChannelsField";
 
 interface Props {
@@ -13,10 +15,14 @@ interface Props {
  * Saving happens immediately on each selection change.
  */
 export function WebsiteYouTubeChannelsField(props: Props) {
+  const {
+    t,
+  } = useTranslation();
+
   return (
     <EntityYouTubeChannelsField
       {...props}
-      description="YouTube channels associated with this website."
+      description={t("YouTube channels associated with this website.")}
     />
   );
 }

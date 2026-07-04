@@ -1,6 +1,7 @@
 import type { BookmarkValueItem } from "../lib/bookmarkCardValues";
 import type { ReactNode } from "react";
 
+import i18n from "../i18n";
 import { StarRating } from "./StarRating";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,7 @@ export function badgeNode(
   return (
     <button
       type="button"
-      title="Click to toggle"
+      title={i18n.t("Click to toggle")}
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();

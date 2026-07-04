@@ -1,5 +1,7 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 
+import { useTranslation } from "react-i18next";
+
 import { LocationPicker } from "./LocationPicker";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useLocationTree } from "../hooks/useLocations";
@@ -19,6 +21,9 @@ export function BookmarkLocationsField({
   form,
 }: BookmarkLocationsFieldProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tree = [],
   } = useLocationTree();
   const locationCreate = useEntityCreateOption("location", (location) => {
@@ -31,7 +36,7 @@ export function BookmarkLocationsField({
       <form.Field name="locationIds">
         {field => (
           <div className="space-y-1">
-            <Label>Locations</Label>
+            <Label>{t("Locations")}</Label>
             <LocationPicker
               tree={tree}
               selectedIds={field.state.value}

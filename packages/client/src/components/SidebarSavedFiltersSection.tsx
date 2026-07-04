@@ -1,6 +1,7 @@
 import type { useAppSidebarData } from "./useAppSidebarData";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { CollapsibleSection } from "./app-sidebar-sections";
 import { SidebarCountBadge } from "./SidebarCountBadge";
@@ -21,10 +22,13 @@ export function SidebarSavedFiltersSection({
   viewableFilters: SidebarData["viewableFilters"];
   sidebarState: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <CollapsibleSection
       sectionKey="saved-filters"
-      label="Saved Filters"
+      label={t("Saved Filters")}
     >
       <SidebarMenu>
         {viewableFilters.map(filter => (

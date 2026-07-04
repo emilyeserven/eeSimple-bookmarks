@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { ALL_CATEGORIES } from "../lib/autofillScope";
 
 import {
@@ -31,19 +33,33 @@ interface FacetSelectProps {
 export function FacetSelect({
   label, value, options, onChange, loading, children,
 }: FacetSelectProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Select
       value={value ?? ALL_CATEGORIES}
       onValueChange={next => onChange(next === ALL_CATEGORIES ? undefined : next)}
     >
       <SelectTrigger
-        aria-label={`Filter by ${label}`}
+        aria-label={t("Filter by {{label}}", {
+          label,
+        })}
         className="w-48"
       >
-        <SelectValue placeholder={loading ? "Loading…" : `All ${label}`} />
+        <SelectValue
+          placeholder={loading
+            ? t("Loading…")
+            : t("All {{label}}", {
+              label,
+            })}
+        />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={ALL_CATEGORIES}>All {label}</SelectItem>
+        <SelectItem value={ALL_CATEGORIES}>{t("All {{label}}", {
+          label,
+        })}
+        </SelectItem>
         {children}
         {options.map(option => (
           <SelectItem

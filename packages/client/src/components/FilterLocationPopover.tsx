@@ -1,4 +1,5 @@
 import { Filter } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { FilterLocationControls } from "./FilterLocationControls";
 
@@ -16,9 +17,12 @@ export function FilterLocationPopover({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 } = {}) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <ResponsivePopover
-      title="Filters"
+      title={t("Filters")}
       open={open}
       onOpenChange={onOpenChange}
       trigger={(
@@ -26,7 +30,7 @@ export function FilterLocationPopover({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="Filters"
+          aria-label={t("Filters")}
         >
           <Filter className="size-4" />
         </Button>

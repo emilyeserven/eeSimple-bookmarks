@@ -1,5 +1,7 @@
 import type { Book } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { BookForm } from "./BookForm";
 
 import {
@@ -21,6 +23,9 @@ interface AddBookModalProps {
 export function AddBookModal({
   open, onOpenChange, onCreated,
 }: AddBookModalProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Dialog
       open={open}
@@ -28,9 +33,9 @@ export function AddBookModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New book</DialogTitle>
+          <DialogTitle>{t("New book")}</DialogTitle>
           <DialogDescription>
-            Give the book a name, or look it up on Kavita to fill in its details automatically.
+            {t("Give the book a name, or look it up on Kavita to fill in its details automatically.")}
           </DialogDescription>
         </DialogHeader>
 

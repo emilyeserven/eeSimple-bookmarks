@@ -1,5 +1,7 @@
 import type { BookmarkDetailLayout } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import {
   useBookmarkDetailLayout,
   useDisplayPreferenceSettings,
@@ -14,6 +16,9 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
  * is a global, server-persisted preference (`bookmarkDetailLayout`) and fires a recorded toast.
  */
 export function BookmarkDetailLayoutControls() {
+  const {
+    t,
+  } = useTranslation();
   const layout = useBookmarkDetailLayout();
   const {
     data,
@@ -27,7 +32,7 @@ export function BookmarkDetailLayoutControls() {
         ...data,
         bookmarkDetailLayout: next,
       },
-      successMessage: next === "tabbed" ? "Detail layout: tabbed" : "Detail layout: single",
+      successMessage: next === "tabbed" ? t("Detail layout: tabbed") : t("Detail layout: single"),
     });
   }
 
@@ -48,7 +53,7 @@ export function BookmarkDetailLayoutControls() {
           first:rounded-l-sm
         "
       >
-        Single
+        {t("Single")}
       </ToggleGroupItem>
       <ToggleGroupItem
         value="tabbed"
@@ -57,7 +62,7 @@ export function BookmarkDetailLayoutControls() {
           last:rounded-r-sm
         "
       >
-        Tabbed
+        {t("Tabbed")}
       </ToggleGroupItem>
     </ToggleGroup>
   );
