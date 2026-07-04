@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { Link } from "@tanstack/react-router";
 import { Bookmark, ChevronDown, ChevronUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   CollapsibleSection,
@@ -91,6 +92,9 @@ function ExpandableLinkSection({
   tracksCount?: number;
   groupTypesCount?: number;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const renderItem = (item: LinkSidebarItem) => {
     // Locations gets a hover flyout surfacing its Place Types taxonomy; every other item is a plain link.
     if (item.key === "locations") {
@@ -151,12 +155,12 @@ function ExpandableLinkSection({
         <SidebarMenuButton
           asChild
           isActive={isActive}
-          tooltip={item.title}
+          tooltip={t(item.title)}
         >
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <Link to={item.to as any}>
             <item.icon />
-            <span>{item.title}</span>
+            <span>{t(item.title)}</span>
           </Link>
         </SidebarMenuButton>
         <SidebarCountBadge
@@ -182,7 +186,7 @@ function ExpandableLinkSection({
               className="text-xs text-muted-foreground"
             >
               <ChevronDown className="size-4" />
-              <span>See More</span>
+              <span>{t("See More")}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         )}
@@ -190,12 +194,12 @@ function ExpandableLinkSection({
         {seeMoreItems.length > 0 && expanded && sidebarState !== "collapsed" && (
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip="See less"
+              tooltip={t("See less")}
               onClick={() => setExpanded(false)}
               className="text-xs text-muted-foreground"
             >
               <ChevronUp className="size-4" />
-              <span>See Less</span>
+              <span>{t("See Less")}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         )}
@@ -209,6 +213,9 @@ function ExpandableLinkSection({
 export function AppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
+  const {
+    t,
+  } = useTranslation();
   const {
     state,
     isMobile,
@@ -328,14 +335,14 @@ export function AppSidebar({
           ? (
             <ExpandableLinkSection
               sectionKey="taxonomies"
-              label="Taxonomies"
+              label={t("Taxonomies")}
               visibleItems={visibleTaxonomyItems}
               seeMoreItems={seeMoreTaxonomyItemsList}
               expanded={taxonomiesExpanded}
               setExpanded={setTaxonomiesExpanded}
               pathname={pathname}
               sidebarState={state}
-              seeMoreTooltip="Show more taxonomy links"
+              seeMoreTooltip={t("Show more taxonomy links")}
               placeTypesCount={placeTypesCount}
               booksCount={booksCount}
               podcastsCount={podcastsCount}
@@ -353,14 +360,14 @@ export function AppSidebar({
           ? (
             <ExpandableLinkSection
               sectionKey="customization"
-              label="Customization"
+              label={t("Customization")}
               visibleItems={visibleCustomizationItems}
               seeMoreItems={seeMoreCustomizationItemsList}
               expanded={customizationExpanded}
               setExpanded={setCustomizationExpanded}
               pathname={pathname}
               sidebarState={state}
-              seeMoreTooltip="Show more customization links"
+              seeMoreTooltip={t("Show more customization links")}
             />
           )
           : null}
@@ -369,7 +376,7 @@ export function AppSidebar({
           ? (
             <CollapsibleSection
               sectionKey="action"
-              label="Action"
+              label={t("Action")}
             >
               <SidebarMenu>
                 {actionItems.map((item) => {
@@ -380,11 +387,11 @@ export function AppSidebar({
                       <SidebarMenuButton
                         asChild
                         isActive={isActive}
-                        tooltip={item.title}
+                        tooltip={t(item.title)}
                       >
                         <Link to={item.to}>
                           <item.icon />
-                          <span>{item.title}</span>
+                          <span>{t(item.title)}</span>
                         </Link>
                       </SidebarMenuButton>
                       <SidebarCountBadge

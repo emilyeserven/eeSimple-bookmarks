@@ -9,6 +9,7 @@ import { DATE_TIME_FORMAT_LABELS, NUMBER_FORMAT_LABELS } from "../lib/propertyFo
 
 import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
+import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 import { CategoryIcon } from "@/lib/icons";
 import { BOOLEAN_LABEL_PRESET_OPTIONS } from "@/lib/propertyForm";
 
@@ -159,10 +160,11 @@ function ItemInItemsOptionsFields({
 function ChoicesOptionsFields({
   property,
 }: PropertyOptionsFieldsProps) {
+  const tLabel = useTranslatedLabel();
   return (
     <>
       <DetailField label="Display">
-        {CHOICES_DISPLAY_LABELS[property.choicesDisplay ?? "radio"]}
+        {tLabel(CHOICES_DISPLAY_LABELS[property.choicesDisplay ?? "radio"])}
       </DetailField>
       <DetailField label="Selection">
         {property.choicesMultiple ? "Multiple" : "Single"}

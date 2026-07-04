@@ -1,6 +1,7 @@
 import type { BookmarkSort } from "@/lib/bookmarkSort";
 
 import { CheckIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useListingPageContext } from "./useListingPageContext";
 
@@ -105,6 +106,9 @@ export function ListingPageCommandGroup({
   listingCtx: ReturnType<typeof useListingPageContext>;
   onClose: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   if (!listingCtx.listingPage) return null;
 
   const pick = (apply: () => void) => () => {
@@ -112,23 +116,28 @@ export function ListingPageCommandGroup({
     onClose();
   };
 
+  const disableSelectMode = t("Disable Select Mode");
+  const enableSelectMode = t("Enable Select Mode");
+
   return (
     <>
-      <CommandGroup heading="Current Page">
+      <CommandGroup heading={t("Current Page")}>
         <CheckedCommandItem
-          value="Cards View"
+          value={t("Cards View")}
           checked={listingCtx.currentViewMode === "cards"}
           onSelect={pick(() => listingCtx.setViewMode("cards"))}
         />
         <CheckedCommandItem
-          value="Table View"
+          value={t("Table View")}
           checked={listingCtx.currentViewMode === "table"}
           onSelect={pick(() => listingCtx.setViewMode("table"))}
         />
         {listingCtx.currentViewMode === "cards" && ([1, 2, 3, 4] as const).map(n => (
           <CheckedCommandItem
             key={n}
-            value={`${n.toString()} ${n === 1 ? "Column" : "Columns"}`}
+            value={t(n === 1 ? "{{count}} Column" : "{{count}} Columns", {
+              count: n,
+            })}
             checked={listingCtx.currentColumns === n}
             onSelect={pick(() => listingCtx.setColumns(n))}
           />
@@ -136,17 +145,17 @@ export function ListingPageCommandGroup({
         {listingCtx.listingPage.hasFilters && (
           <>
             <CheckedCommandItem
-              value="Filters in Sidebar"
+              value={t("Filters in Sidebar")}
               checked={listingCtx.filterLocation === "sidebar"}
               onSelect={pick(() => listingCtx.setFilterLocation("sidebar"))}
             />
             <CheckedCommandItem
-              value="Filters in Drawer"
+              value={t("Filters in Drawer")}
               checked={listingCtx.filterLocation === "drawer"}
               onSelect={pick(() => listingCtx.setFilterLocation("drawer"))}
             />
             <CheckedCommandItem
-              value="Hide Filters"
+              value={t("Hide Filters")}
               checked={listingCtx.filterLocation === "hide"}
               onSelect={pick(() => listingCtx.setFilterLocation("hide"))}
             />
@@ -160,7 +169,7 @@ export function ListingPageCommandGroup({
                 value={item.value}
                 onSelect={pick(() => listingCtx.setSort(item.sort))}
               >
-                {item.label}
+                {t(item.label)}
               </CommandItem>
             ))}
             <CommandItem
@@ -170,26 +179,24 @@ export function ListingPageCommandGroup({
                 seed: Math.random(),
               }))}
             >
-              Sort Randomly
+              {t("Sort Randomly")}
             </CommandItem>
             {listingCtx.currentSort != null && (
               <CommandItem
                 value="Clear Sort"
                 onSelect={pick(() => listingCtx.clearSort())}
               >
-                Clear Sort
+                {t("Clear Sort")}
               </CommandItem>
             )}
           </>
         )}
         {listingCtx.bulkSelectPageKey && (
           <CommandItem
-            value={listingCtx.selectionMode
-              ? "Disable Select Mode"
-              : "Enable Select Mode"}
+            value={listingCtx.selectionMode ? disableSelectMode : enableSelectMode}
             onSelect={pick(() => listingCtx.setSelectionMode(!listingCtx.selectionMode))}
           >
-            {listingCtx.selectionMode ? "Disable Select Mode" : "Enable Select Mode"}
+            {listingCtx.selectionMode ? disableSelectMode : enableSelectMode}
           </CommandItem>
         )}
       </CommandGroup>

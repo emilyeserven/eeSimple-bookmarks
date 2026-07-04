@@ -14,6 +14,7 @@ import {
 } from "./useAppSettings";
 import { useCustomProperties, useUpdateCustomProperty } from "./useCustomProperties";
 import { usePropertyGroups } from "./usePropertyGroups";
+import { useTranslatedLabel } from "./useTranslatedLabel";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 /** Human labels for each standard Add Bookmark form field (used for both rows and toast wording). */
@@ -103,6 +104,7 @@ function propertyScopeHint(property: CustomProperty): string | undefined {
  * persist through their own `showInForm`/`hiddenFromForm` flags. Each save fires a field-named toast.
  */
 export function useBookmarkAddFormSettingsPage() {
+  const tLabel = useTranslatedLabel();
   const config = useBookmarkAddFormConfig();
   const updateSettings = useUpdateBookmarkAddFormSettings();
   const {
@@ -133,7 +135,7 @@ export function useBookmarkAddFormSettingsPage() {
         ...config.standardFieldPlacements,
         [field]: placement,
       },
-    }, BOOKMARK_ADD_FORM_STANDARD_LABELS[field]);
+    }, tLabel(BOOKMARK_ADD_FORM_STANDARD_LABELS[field]));
   }
 
   function setBuiltInPropertyPlacement(slug: string, label: string, placement: BookmarkAddFormPlacement): void {

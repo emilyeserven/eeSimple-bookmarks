@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, ChevronRight, MapPin, MapPinned } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useIsMobile } from "../hooks/use-mobile";
 
@@ -21,6 +22,9 @@ function PlaceTypesLink({
   onNavigate: () => void;
   placeTypesCount?: number;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Link
       to="/taxonomies/place-types"
@@ -31,7 +35,7 @@ function PlaceTypesLink({
       "
     >
       <MapPinned className="size-3.5 shrink-0 text-muted-foreground" />
-      <span className="flex-1 truncate">Place Types</span>
+      <span className="flex-1 truncate">{t("Place Types")}</span>
       {placeTypesCount != null && placeTypesCount > 0
         ? (
           <Badge
@@ -64,6 +68,9 @@ export function LocationsSidebarItem({
   placeTypesCount?: number;
   sidebarState?: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -92,11 +99,11 @@ export function LocationsSidebarItem({
     <SidebarMenuButton
       asChild
       isActive={isActive}
-      tooltip="Locations"
+      tooltip={t("Locations")}
     >
       <Link to="/taxonomies/locations">
         <MapPin />
-        <span className="flex-1 truncate">Locations</span>
+        <span className="flex-1 truncate">{t("Locations")}</span>
         {showTrailingContent && locationsCount != null && locationsCount > 0
           ? (
             <Badge
@@ -127,7 +134,7 @@ export function LocationsSidebarItem({
         <SidebarMenuItem>
           {locationsButton}
           <SidebarMenuAction
-            aria-label={expanded ? "Hide Place Types" : "Show Place Types"}
+            aria-label={expanded ? t("Hide Place Types") : t("Show Place Types")}
             onClick={() => setExpanded(value => !value)}
           >
             <ChevronDown
@@ -175,7 +182,7 @@ export function LocationsSidebarItem({
           onMouseLeave={closeSoon}
         >
           <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">
-            Locations
+            {t("Locations")}
           </p>
           <PlaceTypesLink
             onNavigate={() => setOpen(false)}

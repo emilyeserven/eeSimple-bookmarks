@@ -37,6 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 
 /** The droppable id for the tray of unplaced (hidden) fields. */
 const TRAY_ID = "zone-tray";
@@ -159,7 +160,14 @@ interface CardFieldZoneBoardProps {
 export function CardFieldZoneBoard({
   value, onChange, properties, idPrefix,
 }: CardFieldZoneBoardProps) {
-  const fields = [...STANDARD_CARD_FIELDS, ...eligibleCustomCardFields(properties)];
+  const tLabel = useTranslatedLabel();
+  const fields = [
+    ...STANDARD_CARD_FIELDS.map(field => ({
+      ...field,
+      label: tLabel(field.label),
+    })),
+    ...eligibleCustomCardFields(properties),
+  ];
   const labelByKey = new Map(fields.map(field => [field.key, field.label]));
   const propertyById = new Map(properties.map(property => [property.id, property]));
   /** The boolean custom property for `key`, or undefined when `key` isn't a boolean property. */

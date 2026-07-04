@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 import { PlusIcon, RefreshCw, StarIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { AddChildModal } from "./AddChildModal";
 import { BookmarkViewPageCommandGroup } from "./BookmarkViewPageCommandGroup";
@@ -57,9 +58,12 @@ function SettingsFavoriteCommandItem({
   onDone: () => void;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     isFavorited, toggle,
   } = useSettingsFavorite(page);
-  const label = isFavorited ? "Unfavorite This Page" : "Favorite This Page";
+  const label = isFavorited ? t("Unfavorite This Page") : t("Favorite This Page");
   return (
     <CommandItem
       value={label}
@@ -86,6 +90,9 @@ function SyncFromSourceCommandItem({
   entityLabel: string;
   onDone: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const setSyncModalOpen = useUiStore(state => state.setSyncModalOpen);
   return (
     <CommandItem
@@ -96,11 +103,9 @@ function SyncFromSourceCommandItem({
       }}
     >
       <RefreshCw />
-      Sync
-      {" "}
-      {entityLabel}
-      {" "}
-      from source
+      {t("Sync {{entity}} from source", {
+        entity: entityLabel,
+      })}
     </CommandItem>
   );
 }
@@ -108,6 +113,9 @@ function SyncFromSourceCommandItem({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function CommandPalette() {
+  const {
+    t,
+  } = useTranslation();
   const {
     open, setOpen, inputValue, setInputValue,
   } = useCommandPaletteShell();
@@ -295,7 +303,7 @@ export function CommandPalette() {
         onOpenChange={handleOpenChange}
       >
         <DialogContent className="max-w-2xl gap-0 overflow-hidden p-0">
-          <DialogTitle className="sr-only">Command palette</DialogTitle>
+          <DialogTitle className="sr-only">{t("Command palette")}</DialogTitle>
           <Command>
             <CommandInput
               placeholder={paletteInputPlaceholder(taxonomy, customProperties)}
@@ -303,7 +311,7 @@ export function CommandPalette() {
               onValueChange={setInputValue}
             />
             <CommandList className="max-h-[500px]">
-              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandEmpty>{t("No results found.")}</CommandEmpty>
 
               <CommandPaletteTaxonomyModes
                 taxonomy={taxonomy}
@@ -323,14 +331,14 @@ export function CommandPalette() {
 
                   {looksLikeUrl && (
                     <>
-                      <CommandGroup heading="Quick Add">
+                      <CommandGroup heading={t("Quick Add")}>
                         <CommandItem
                           value={inputValue}
                           onSelect={() => handleAddBookmark(inputValue)}
                         >
                           <PlusIcon />
                           <span>
-                            Add bookmark:
+                            {t("Add bookmark:")}
                             {" "}
                             <span className="text-muted-foreground">{inputValue}</span>
                           </span>
@@ -347,7 +355,7 @@ export function CommandPalette() {
 
                   {syncProvider && (
                     <>
-                      <CommandGroup heading="Current Page">
+                      <CommandGroup heading={t("Current Page")}>
                         <SyncFromSourceCommandItem
                           entityLabel={syncProvider.entityLabel}
                           onDone={handleClose}
@@ -372,7 +380,7 @@ export function CommandPalette() {
 
                   {settingsPage && (
                     <>
-                      <CommandGroup heading="Current Page">
+                      <CommandGroup heading={t("Current Page")}>
                         <SettingsFavoriteCommandItem
                           page={settingsPage}
                           onDone={handleClose}

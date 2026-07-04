@@ -21,6 +21,7 @@ import {
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 
 const IMAGE_GRAB_ERROR_LABELS: Record<string, string> = {
   no_image: "No preview image on this page",
@@ -55,6 +56,7 @@ export function BookmarkCardMenu({
   onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags,
   onChangeChoicesDisplay, onDelete,
 }: BookmarkCardMenuProps) {
+  const tLabel = useTranslatedLabel();
   return (
     <DropdownMenuContent align="end">
       <BookmarkCardEditMenuItem bookmarkId={bookmark.id} />
@@ -103,7 +105,7 @@ export function BookmarkCardMenu({
                         />
                         <span className="text-xs text-muted-foreground">
                           Display as:{" "}
-                          {CHOICES_DISPLAY_LABELS[property.choicesDisplay ?? "checkbox"]}
+                          {tLabel(CHOICES_DISPLAY_LABELS[property.choicesDisplay ?? "checkbox"])}
                         </span>
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent>
@@ -117,7 +119,7 @@ export function BookmarkCardMenu({
                               key={dt}
                               value={dt}
                             >
-                              {CHOICES_DISPLAY_LABELS[dt]}
+                              {tLabel(CHOICES_DISPLAY_LABELS[dt])}
                             </DropdownMenuRadioItem>
                           ))}
                         </DropdownMenuRadioGroup>

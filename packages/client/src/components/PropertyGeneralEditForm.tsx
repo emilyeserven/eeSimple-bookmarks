@@ -9,6 +9,7 @@ import { useAppForm } from "../lib/form";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 
 const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
   name: "Name",
@@ -28,6 +29,11 @@ interface PropertyGeneralEditFormProps {
 export function PropertyGeneralEditForm({
   property,
 }: PropertyGeneralEditFormProps) {
+  const tLabel = useTranslatedLabel();
+  const typeOptions = TYPE_OPTIONS.map(option => ({
+    ...option,
+    label: tLabel(option.label),
+  }));
   const navigate = useNavigate();
   const updateProperty = useUpdateCustomProperty();
   const isBuiltIn = property.builtIn;
@@ -88,7 +94,7 @@ export function PropertyGeneralEditForm({
           {field => (
             <field.SelectField
               label="Type"
-              options={TYPE_OPTIONS}
+              options={typeOptions}
               disabled
             />
           )}

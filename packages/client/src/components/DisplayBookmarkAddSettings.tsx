@@ -38,6 +38,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 
 /** The three placement segments shown on every row. */
 const PLACEMENT_OPTIONS = [
@@ -83,6 +84,7 @@ function fieldIcon(Icon: LucideIcon) {
  * control for every field of the quick Add Bookmark form.
  */
 export function DisplayBookmarkAddSettings() {
+  const tLabel = useTranslatedLabel();
   const {
     config,
     setStandardFieldPlacement,
@@ -125,7 +127,7 @@ export function DisplayBookmarkAddSettings() {
           {BOOKMARK_ADD_FORM_STANDARD_FIELDS.map(field => (
             <SegmentedToggleRow
               key={field}
-              label={BOOKMARK_ADD_FORM_STANDARD_LABELS[field]}
+              label={tLabel(BOOKMARK_ADD_FORM_STANDARD_LABELS[field])}
               icon={fieldIcon(STANDARD_FIELD_ICONS[field])}
               options={PLACEMENT_OPTIONS}
               value={standardFieldPlacement(config, field)}

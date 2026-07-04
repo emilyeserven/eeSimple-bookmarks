@@ -2,6 +2,7 @@ import type { CreateKind } from "./commandPaletteModals";
 import type { Bookmark } from "@eesimple/types";
 
 import { FolderIcon, PlusIcon, SettingsIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
 import { SETTINGS_TAB_SECTIONS } from "@/lib/settingsNav";
@@ -101,15 +102,18 @@ export function CommandPaletteNavGroups({
   onAddBookmark: () => void;
   onCreate: (kind: CreateKind) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
-      <CommandGroup heading="Actions">
+      <CommandGroup heading={t("Actions")}>
         <CommandItem
           value="Add Bookmark"
           onSelect={onAddBookmark}
         >
           <PlusIcon />
-          Add Bookmark
+          {t("Add Bookmark")}
         </CommandItem>
         {CREATE_ITEMS.map(item => (
           <CommandItem
@@ -118,14 +122,14 @@ export function CommandPaletteNavGroups({
             onSelect={() => onCreate(item.kind)}
           >
             <PlusIcon />
-            {item.label}
+            {t(item.label)}
           </CommandItem>
         ))}
       </CommandGroup>
 
       <CommandSeparator />
 
-      <CommandGroup heading="Pages">
+      <CommandGroup heading={t("Pages")}>
         {PAGES.map(({
           label, path, icon: Icon,
         }) => (
@@ -135,14 +139,14 @@ export function CommandPaletteNavGroups({
             onSelect={() => onSelect(path)}
           >
             <Icon />
-            {label}
+            {t(label)}
           </CommandItem>
         ))}
       </CommandGroup>
 
       <CommandSeparator />
 
-      <CommandGroup heading="Taxonomies">
+      <CommandGroup heading={t("Taxonomies")}>
         {TAXONOMIES.map(({
           label, path, icon: Icon,
         }) => (
@@ -152,14 +156,14 @@ export function CommandPaletteNavGroups({
             onSelect={() => onSelect(path)}
           >
             <Icon />
-            {label}
+            {t(label)}
           </CommandItem>
         ))}
       </CommandGroup>
 
       <CommandSeparator />
 
-      <CommandGroup heading="Settings">
+      <CommandGroup heading={t("Settings")}>
         {SETTINGS.map(({
           label, path, icon: Icon,
         }) => (
@@ -169,7 +173,7 @@ export function CommandPaletteNavGroups({
             onSelect={() => onSelect(path)}
           >
             <Icon />
-            {label}
+            {t(label)}
           </CommandItem>
         ))}
       </CommandGroup>
@@ -177,7 +181,7 @@ export function CommandPaletteNavGroups({
       {inputValue && (
         <>
           <CommandSeparator />
-          <CommandGroup heading="Bookmarks">
+          <CommandGroup heading={t("Bookmarks")}>
             {bookmarks.map(b => (
               <CommandItem
                 key={b.id}

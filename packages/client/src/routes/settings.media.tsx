@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { VerticalTabbedLayout } from "../components/VerticalTabbedLayout";
 
@@ -9,6 +10,9 @@ export const Route = createFileRoute("/settings/media")({
 });
 
 function MediaLayout() {
+  const {
+    t,
+  } = useTranslation();
   return (
     <VerticalTabbedLayout
       header={(
@@ -20,7 +24,7 @@ function MediaLayout() {
         </div>
       )}
       nav={mediaNav}
-      navAriaLabel="Media settings sections"
+      navAriaLabel={t("Media settings sections")}
     />
   );
 }

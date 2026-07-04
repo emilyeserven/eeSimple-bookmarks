@@ -3,6 +3,7 @@ import type { LinkProps } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import { Link, Outlet } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { navLinkClass } from "./TabbedShell";
 
@@ -25,6 +26,9 @@ interface Props {
 export function VerticalTabbedLayout({
   header, nav, navAriaLabel,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <section className="space-y-6">
       {header}
@@ -50,7 +54,7 @@ export function VerticalTabbedLayout({
                 className: "bg-accent text-accent-foreground",
               }}
             >
-              {item.label}
+              {t(item.label)}
             </Link>
           ))}
         </nav>

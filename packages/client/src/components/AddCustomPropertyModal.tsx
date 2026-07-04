@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -31,6 +32,11 @@ interface AddCustomPropertyModalProps {
 export function AddCustomPropertyModal({
   open, onOpenChange, onCreated,
 }: AddCustomPropertyModalProps) {
+  const tLabel = useTranslatedLabel();
+  const typeOptions = TYPE_OPTIONS.map(option => ({
+    ...option,
+    label: tLabel(option.label),
+  }));
   const createProperty = useCreateCustomProperty();
   const form = useAppForm({
     defaultValues: {
@@ -91,7 +97,7 @@ export function AddCustomPropertyModal({
             {field => (
               <field.SelectField
                 label="Type"
-                options={TYPE_OPTIONS}
+                options={typeOptions}
               />
             )}
           </form.AppField>

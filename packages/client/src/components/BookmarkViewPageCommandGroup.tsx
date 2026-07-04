@@ -2,6 +2,7 @@ import type { BookmarkDetailLayout } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
 import { CheckIcon, Columns2Icon, PencilIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
 
@@ -17,10 +18,13 @@ export function BookmarkViewPageCommandGroup({
   setDetailLayout: (layout: BookmarkDetailLayout) => void;
   onClose: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   return (
     <>
-      <CommandGroup heading="Current Page">
+      <CommandGroup heading={t("Current Page")}>
         <CommandItem
           value="Go to Edit"
           onSelect={() => {
@@ -34,7 +38,7 @@ export function BookmarkViewPageCommandGroup({
           }}
         >
           <PencilIcon />
-          Go to Edit
+          {t("Go to Edit")}
         </CommandItem>
         <CommandItem
           value="Single Layout"
@@ -49,7 +53,7 @@ export function BookmarkViewPageCommandGroup({
             />
           )}
           <Columns2Icon />
-          Single Layout
+          {t("Single Layout")}
         </CommandItem>
         <CommandItem
           value="Tabbed Layout"
@@ -64,7 +68,7 @@ export function BookmarkViewPageCommandGroup({
             />
           )}
           <Columns2Icon />
-          Tabbed Layout
+          {t("Tabbed Layout")}
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />

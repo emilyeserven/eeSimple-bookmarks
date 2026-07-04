@@ -11,6 +11,7 @@ import { useCardDisplayRules } from "./useCardDisplayRules";
 import { useCustomAspectRatios } from "./useCustomAspectRatios";
 import { useCustomProperties } from "./useCustomProperties";
 import { useTags } from "./useTags";
+import { useTranslatedLabel } from "./useTranslatedLabel";
 import { buildAspectOptions } from "../lib/aspectOptions";
 import { STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFields";
 
@@ -37,6 +38,7 @@ function hostOf(url: string): string {
 
 /** All the loaded data + derived lookups the inspector needs, gathered into one hook to keep the view thin. */
 export function useCardRuleInspectorData() {
+  const tLabel = useTranslatedLabel();
   const {
     data: bookmarks = [],
   } = useBookmarks();
@@ -79,13 +81,15 @@ export function useCardRuleInspectorData() {
 
   const labels = useMemo<RuleAttrLabels>(() => {
     const aspectOptions = buildAspectOptions(croppedWidth, croppedHeight, customRatios);
-    const fieldLabel = new Map<string, string>(STANDARD_CARD_FIELDS.map(f => [f.key, f.label]));
+    const fieldLabel = new Map<string, string>(
+      STANDARD_CARD_FIELDS.map(f => [f.key, tLabel(f.label)]),
+    );
     for (const property of properties) fieldLabel.set(property.id, property.name);
     return {
       aspectLabel: new Map(aspectOptions.map(opt => [opt.value, opt.label])),
       fieldLabel,
     };
-  }, [croppedWidth, croppedHeight, customRatios, properties]);
+  }, [croppedWidth, croppedHeight, customRatios, properties, tLabel]);
 
   return {
     bookmarks,

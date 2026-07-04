@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { Building2, ChevronDown, ChevronRight, Shapes } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useIsMobile } from "../hooks/use-mobile";
 
@@ -21,6 +22,9 @@ function GroupTypesLink({
   onNavigate: () => void;
   groupTypesCount?: number;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Link
       to="/taxonomies/group-types"
@@ -31,7 +35,7 @@ function GroupTypesLink({
       "
     >
       <Shapes className="size-3.5 shrink-0 text-muted-foreground" />
-      <span className="flex-1 truncate">Group Types</span>
+      <span className="flex-1 truncate">{t("Group Types")}</span>
       {groupTypesCount != null && groupTypesCount > 0
         ? (
           <Badge
@@ -64,6 +68,9 @@ export function GroupsSidebarItem({
   groupTypesCount?: number;
   sidebarState?: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -92,11 +99,11 @@ export function GroupsSidebarItem({
     <SidebarMenuButton
       asChild
       isActive={isActive}
-      tooltip="Groups"
+      tooltip={t("Groups")}
     >
       <Link to="/taxonomies/groups">
         <Building2 />
-        <span className="flex-1 truncate">Groups</span>
+        <span className="flex-1 truncate">{t("Groups")}</span>
         {showTrailingContent && groupsCount != null && groupsCount > 0
           ? (
             <Badge
@@ -127,7 +134,7 @@ export function GroupsSidebarItem({
         <SidebarMenuItem>
           {groupsButton}
           <SidebarMenuAction
-            aria-label={expanded ? "Hide Group Types" : "Show Group Types"}
+            aria-label={expanded ? t("Hide Group Types") : t("Show Group Types")}
             onClick={() => setExpanded(value => !value)}
           >
             <ChevronDown
@@ -175,7 +182,7 @@ export function GroupsSidebarItem({
           onMouseLeave={closeSoon}
         >
           <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">
-            Groups
+            {t("Groups")}
           </p>
           <GroupTypesLink
             onNavigate={() => setOpen(false)}
