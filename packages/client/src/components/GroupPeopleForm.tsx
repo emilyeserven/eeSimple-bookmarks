@@ -1,6 +1,7 @@
 import type { Group } from "@eesimple/types";
 
 import { UserCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { usePeople, useUpdatePerson } from "../hooks/usePeople";
 import { describeError } from "../lib/apiError";
@@ -19,6 +20,9 @@ export function GroupPeopleForm({
   group,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: people,
   } = usePeople();
   const update = useUpdatePerson();
@@ -26,7 +30,7 @@ export function GroupPeopleForm({
   return (
     <div className="space-y-3">
       {(people ?? []).length === 0
-        ? <p className="text-sm text-muted-foreground">No people exist yet.</p>
+        ? <p className="text-sm text-muted-foreground">{t("No people exist yet.")}</p>
         : (
           <ul className="space-y-2">
             {(people ?? []).map(person => (
@@ -83,12 +87,15 @@ export function GroupPeopleView({
   group,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: people,
   } = usePeople();
   const connected = (people ?? []).filter(a => a.groupIds.includes(group.id));
 
   if (connected.length === 0) {
-    return <p className="text-sm text-muted-foreground">No people connected.</p>;
+    return <p className="text-sm text-muted-foreground">{t("No people connected.")}</p>;
   }
 
   return (

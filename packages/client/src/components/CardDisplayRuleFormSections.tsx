@@ -1,6 +1,7 @@
 import type { ConditionTree } from "@eesimple/types";
 
 import { Maximize2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
@@ -56,17 +57,19 @@ export function CardDisplayRuleFormSections({
   isDefault, displayDefaultOpen, nameValue, conditions, displayModalOpen, ruleModalOpen,
   onExpandDisplay, onExpandRule, editingNote, displayWithPreview, generalFields, whenFields,
 }: CardDisplayRuleFormSectionsProps) {
+  const {
+    t,
+  } = useTranslation();
   if (isDefault) {
     return (
       <>
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm text-muted-foreground">
-            The Default rule is the baseline applied to every bookmark card. Other rules override it
-            for the bookmarks they match.
+            {t("The Default rule is the baseline applied to every bookmark card. Other rules override it for the bookmarks they match.")}
           </p>
           <ExpandButton
             onClick={onExpandDisplay}
-            label="Expand display settings"
+            label={t("Expand display settings")}
           />
         </div>
         {displayModalOpen ? editingNote : displayWithPreview}
@@ -79,15 +82,15 @@ export function CardDisplayRuleFormSections({
       <div className="flex items-center justify-end">
         <ExpandButton
           onClick={onExpandRule}
-          label="Expand rule settings"
+          label={t("Expand rule settings")}
         />
       </div>
 
       <CollapsibleFormSection
-        title="General"
-        description="Name and optional note for this rule."
+        title={t("General")}
+        description={t("Name and optional note for this rule.")}
         defaultOpen
-        preview={nameValue.trim() || "Untitled rule"}
+        preview={nameValue.trim() || t("Untitled rule")}
       >
         {ruleModalOpen ? editingNote : generalFields}
       </CollapsibleFormSection>
@@ -95,8 +98,8 @@ export function CardDisplayRuleFormSections({
       <Separator />
 
       <CollapsibleFormSection
-        title="When"
-        description="Which bookmarks this rule applies to. Combine conditions with AND/OR."
+        title={t("When")}
+        description={t("Which bookmarks this rule applies to. Combine conditions with AND/OR.")}
         defaultOpen
         preview={conditionsSummaryLabel(conditions)}
       >
@@ -106,15 +109,15 @@ export function CardDisplayRuleFormSections({
       <Separator />
 
       <CollapsibleFormSection
-        title="Display"
-        description="How matching bookmark cards are shown. Unset attributes inherit from lower-priority rules."
+        title={t("Display")}
+        description={t("How matching bookmark cards are shown. Unset attributes inherit from lower-priority rules.")}
         defaultOpen={displayDefaultOpen}
-        preview="Card field & image overrides"
+        preview={t("Card field & image overrides")}
       >
         <div className="mb-2 flex items-center justify-end">
           <ExpandButton
             onClick={onExpandDisplay}
-            label="Expand display settings"
+            label={t("Expand display settings")}
           />
         </div>
         {displayModalOpen ? editingNote : displayWithPreview}
@@ -124,9 +127,9 @@ export function CardDisplayRuleFormSections({
 
       <section className="space-y-3">
         <div>
-          <h3 className="text-sm font-semibold">Preview Bookmarks</h3>
+          <h3 className="text-sm font-semibold">{t("Preview Bookmarks")}</h3>
           <p className="text-xs text-muted-foreground">
-            Which existing bookmarks match this rule.
+            {t("Which existing bookmarks match this rule.")}
           </p>
         </div>
         <PreviewBookmarksSection conditions={conditions} />

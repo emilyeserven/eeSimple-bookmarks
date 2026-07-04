@@ -2,6 +2,7 @@ import type { CardDisplayRule } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { GripVertical, Info, Lock, Pencil, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
 import { useDeleteCardDisplayRule } from "../hooks/useCardDisplayRules";
@@ -25,6 +26,9 @@ interface CardDisplayRuleCardProps {
 export function CardDisplayRuleCard({
   rule, dragHandleProps, isDragging,
 }: CardDisplayRuleCardProps) {
+  const {
+    t,
+  } = useTranslation();
   const remove = useDeleteCardDisplayRule();
   const {
     openItem,
@@ -43,7 +47,7 @@ export function CardDisplayRuleCard({
           ? (
             <span
               className="text-muted-foreground"
-              aria-label="Default rule (pinned last)"
+              aria-label={t("Default rule (pinned last)")}
             >
               <Lock className="size-4" />
             </span>
@@ -55,7 +59,7 @@ export function CardDisplayRuleCard({
                 cursor-grab touch-none text-muted-foreground
                 hover:text-foreground
               "
-              aria-label="Drag to reorder"
+              aria-label={t("Drag to reorder")}
               {...dragHandleProps}
             >
               <GripVertical className="size-4" />
@@ -72,7 +76,7 @@ export function CardDisplayRuleCard({
           <span className="block truncate text-base font-semibold">
             {rule.name}
             {rule.isDefault && (
-              <span className="ml-2 text-xs font-normal text-muted-foreground">baseline</span>
+              <span className="ml-2 text-xs font-normal text-muted-foreground">{t("baseline")}</span>
             )}
           </span>
           {rule.isDefault
@@ -96,7 +100,9 @@ export function CardDisplayRuleCard({
               params={{
                 ruleSlug,
               }}
-              aria-label={`Edit ${rule.name}`}
+              aria-label={t("Edit {{name}}", {
+                name: rule.name,
+              })}
             >
               <Pencil className="size-4" />
             </Link>
@@ -106,7 +112,9 @@ export function CardDisplayRuleCard({
             variant="ghost"
             size="icon"
             className="size-8"
-            aria-label={`Info about ${rule.name}`}
+            aria-label={t("Info about {{name}}", {
+              name: rule.name,
+            })}
             onClick={() => openItem("card-display-rule", rule.id, "view")}
           >
             <Info className="size-4" />
@@ -122,10 +130,14 @@ export function CardDisplayRuleCard({
                   size-8 text-destructive
                   hover:text-destructive
                 "
-                aria-label={`Delete ${rule.name}`}
+                aria-label={t("Delete {{name}}", {
+                  name: rule.name,
+                })}
                 disabled={remove.isPending}
                 onClick={() => {
-                  if (confirm(`Delete rule "${rule.name}"?`)) remove.mutate(rule.id);
+                  if (confirm(t("Delete rule \"{{name}}\"?", {
+                    name: rule.name,
+                  }))) remove.mutate(rule.id);
                 }}
               >
                 <Trash2 className="size-4" />

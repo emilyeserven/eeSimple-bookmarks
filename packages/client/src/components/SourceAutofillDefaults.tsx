@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Fragment } from "react";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
@@ -55,6 +56,9 @@ export function SourceAutofillDefaults({
   kind, category, mediaTypeId, tagIds,
 }: SourceAutofillDefaultsProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tags,
   } = useTags();
   const {
@@ -72,17 +76,17 @@ export function SourceAutofillDefaults({
   if (!category && !mediaType && !hasTags) return null;
 
   const source = kind === "website"
-    ? "this site"
+    ? t("this site")
     : kind === "newsletter"
-      ? "this newsletter"
-      : "this channel";
+      ? t("this newsletter")
+      : t("this channel");
 
   // Each default contributes a clause; clauses are joined with "and".
   const clauses: ReactNode[] = [];
   if (category) {
     clauses.push(
       <>
-        <span>added to</span>
+        <span>{t("added to")}</span>
         <CategoryPill category={category} />
       </>,
     );
@@ -90,7 +94,7 @@ export function SourceAutofillDefaults({
   if (mediaType) {
     clauses.push(
       <>
-        <span>marked as</span>
+        <span>{t("marked as")}</span>
         <MediaTypePill mediaType={mediaType} />
       </>,
     );
@@ -98,7 +102,7 @@ export function SourceAutofillDefaults({
   if (hasTags) {
     clauses.push(
       <>
-        <span>tagged</span>
+        <span>{t("tagged")}</span>
         {resolvedTags.map(tag => (
           <TagPill
             key={tag.id}
@@ -116,10 +120,14 @@ export function SourceAutofillDefaults({
         text-sm text-muted-foreground
       "
     >
-      <span>{`New bookmarks saved from ${source} are automatically`}</span>
+      <span>
+        {t("New bookmarks saved from {{source}} are automatically", {
+          source,
+        })}
+      </span>
       {clauses.map((clause, index) => (
         <Fragment key={index}>
-          {index > 0 ? <span>and</span> : null}
+          {index > 0 ? <span>{t("and")}</span> : null}
           {clause}
         </Fragment>
       ))}

@@ -2,6 +2,8 @@ import type { SocialAccountRef } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/components/ui/button";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
@@ -24,6 +26,9 @@ export function PersonSocialAccountOffer({
   onDismiss,
 }: PersonSocialAccountOfferProps) {
   const [isPending, setIsPending] = useState(false);
+  const {
+    t,
+  } = useTranslation();
 
   if (!account) return null;
 
@@ -45,20 +50,22 @@ export function PersonSocialAccountOffer({
       "
     >
       <p className="text-muted-foreground">
-        New
+        {t("New")}
         {" "}
         <span className="font-medium text-foreground">
           {SOCIAL_MEDIA_PLATFORM_LABELS[account.platform]}
         </span>
         {" "}
-        account
+        {t("account")}
         {" "}
         <span className="font-medium text-foreground">
           @
           {account.handle}
         </span>
         {" "}
-        — create an person?
+        —
+        {" "}
+        {t("create an person?")}
       </p>
       <div className="flex shrink-0 gap-2">
         <Button
@@ -68,7 +75,7 @@ export function PersonSocialAccountOffer({
           disabled={isPending}
           onClick={() => void handleCreate()}
         >
-          Create person
+          {t("Create person")}
         </Button>
         <Button
           type="button"
@@ -76,7 +83,7 @@ export function PersonSocialAccountOffer({
           variant="ghost"
           onClick={onDismiss}
         >
-          Dismiss
+          {t("Dismiss")}
         </Button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { GroupMembersEditor } from "./GroupMembersEditor";
 import { MultiCombobox } from "./MultiCombobox";
@@ -39,6 +40,9 @@ export function PodcastAuthorsFields({
   groupCreateOption,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: people,
   } = usePeople();
   const {
@@ -50,7 +54,7 @@ export function PodcastAuthorsFields({
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <Label>People</Label>
+        <Label>{t("People")}</Label>
         <MultiCombobox
           options={(people ?? []).map(person => ({
             value: person.id,
@@ -58,14 +62,14 @@ export function PodcastAuthorsFields({
           }))}
           values={personIds}
           onValuesChange={onPersonIdsChange}
-          placeholder="Select people…"
-          searchPlaceholder="Search people…"
-          emptyText="No people found."
+          placeholder={t("Select people…")}
+          searchPlaceholder={t("Search people…")}
+          emptyText={t("No people found.")}
           createOption={personCreateOption}
         />
       </div>
       <div className="space-y-1">
-        <Label>Groups</Label>
+        <Label>{t("Groups")}</Label>
         <MultiCombobox
           options={(groups ?? []).map(group => ({
             value: group.id,
@@ -73,9 +77,9 @@ export function PodcastAuthorsFields({
           }))}
           values={groupIds}
           onValuesChange={onGroupIdsChange}
-          placeholder="Select groups…"
-          searchPlaceholder="Search groups…"
-          emptyText="No groups found."
+          placeholder={t("Select groups…")}
+          searchPlaceholder={t("Search groups…")}
+          emptyText={t("No groups found.")}
           createOption={groupCreateOption}
         />
         {selectedGroups.length > 0
@@ -105,6 +109,9 @@ export function PodcastAuthorsValue({
   groupIds: string[];
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: people,
   } = usePeople();
   const {
@@ -115,7 +122,7 @@ export function PodcastAuthorsValue({
   const creditedGroups = (groups ?? []).filter(group => groupIds.includes(group.id));
 
   if (creditedPeople.length === 0 && creditedGroups.length === 0) {
-    return <span className="text-muted-foreground">Unknown</span>;
+    return <span className="text-muted-foreground">{t("Unknown")}</span>;
   }
 
   return (

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 
 import { Upload, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,11 +19,14 @@ export function NewsletterFileField({
 }: NewsletterFileFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const {
+    t,
+  } = useTranslation();
 
   function handleFile(next: File | null) {
     if (!next) return;
     if (!ACCEPTED.test(next.name)) {
-      setError("Unsupported file — choose an .eml, .html, or .txt file.");
+      setError(t("Unsupported file — choose an .eml, .html, or .txt file."));
       return;
     }
     setError(null);
@@ -31,7 +35,7 @@ export function NewsletterFileField({
 
   return (
     <div className="space-y-1">
-      <Label>Newsletter file</Label>
+      <Label>{t("Newsletter file")}</Label>
       {file
         ? (
           <div
@@ -46,7 +50,7 @@ export function NewsletterFileField({
               variant="ghost"
               size="icon"
               onClick={() => onChange(null)}
-              aria-label="Remove file"
+              aria-label={t("Remove file")}
             >
               <X className="size-4" />
             </Button>
@@ -79,7 +83,7 @@ export function NewsletterFileField({
               onClick={() => inputRef.current?.click()}
             >
               <Upload className="size-4" />
-              Choose a file or drag it here
+              {t("Choose a file or drag it here")}
             </Button>
           </div>
         )}

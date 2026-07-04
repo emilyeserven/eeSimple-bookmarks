@@ -4,6 +4,7 @@ import type { useFetchMetadata } from "../hooks/useFetchMetadata";
 import type { useFetchTitle } from "../hooks/useFetchTitle";
 
 import { Loader2, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { looksLikeYouTube } from "./bookmarkFormSchema";
 import { TitleFetchFeedback } from "./BookmarkTitleFeedback";
@@ -52,6 +53,9 @@ export function BookmarkNameField({
   setExpectedTitle,
   onNameBlur,
 }: BookmarkNameFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
       <form.Subscribe selector={state => state.values.url}>
@@ -59,7 +63,7 @@ export function BookmarkNameField({
           <form.AppField name="title">
             {field => (
               <field.TextareaField
-                label="Name"
+                label={t("Name")}
                 rows={1}
                 inputClassName="min-h-9"
                 onBlur={onNameBlur}
@@ -69,8 +73,8 @@ export function BookmarkNameField({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    title="Fetch title from URL"
-                    aria-label="Fetch title from URL"
+                    title={t("Fetch title from URL")}
+                    aria-label={t("Fetch title from URL")}
                     disabled={!isFetchableUrl(url) || fetchTitle.isPending || fetchMetadata.isPending}
                     onClick={() => {
                       const yt = looksLikeYouTube(url);
@@ -98,7 +102,7 @@ export function BookmarkNameField({
 
       {titleFetch && (
         <p className="text-sm text-muted-foreground">
-          Changed from
+          {t("Changed from")}
           {" "}
           <span className="font-mono">{titleFetch.previous}</span>
           {" · "}
@@ -109,7 +113,7 @@ export function BookmarkNameField({
             className="h-auto p-0"
             onClick={undoTitleFetch}
           >
-            Undo
+            {t("Undo")}
           </Button>
         </p>
       )}

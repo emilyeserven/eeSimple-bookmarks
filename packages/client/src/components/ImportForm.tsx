@@ -1,27 +1,13 @@
 import type { IngestSource } from "./importFormSchema";
 
+import { useTranslation } from "react-i18next";
+
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { NewsletterFileField } from "./NewsletterFileField";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useImportForm } from "./useImportForm";
 
 import { CategoryIcon } from "@/lib/icons";
-
-const SOURCE_OPTIONS: { value: IngestSource;
-  label: string; }[] = [
-  {
-    value: "paste",
-    label: "Paste content",
-  },
-  {
-    value: "url",
-    label: "Fetch from a URL",
-  },
-  {
-    value: "upload",
-    label: "Upload a file",
-  },
-];
 
 /**
  * Submit-style create form for an import (the create-flow exception — not auto-save). Picks one of
@@ -38,6 +24,9 @@ export function ImportForm({
   onComplete?: () => void;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     form,
     source,
     setSource,
@@ -50,11 +39,27 @@ export function ImportForm({
     onComplete,
   });
 
+  const sourceOptions: { value: IngestSource;
+    label: string; }[] = [
+    {
+      value: "paste",
+      label: t("Paste content"),
+    },
+    {
+      value: "url",
+      label: t("Fetch from a URL"),
+    },
+    {
+      value: "upload",
+      label: t("Upload a file"),
+    },
+  ];
+
   const newsletterCreate = useEntityCreateOption("newsletter", newsletter => form.setFieldValue("newsletterId", newsletter.id));
   const categoryCreate = useEntityCreateOption("category", category => form.setFieldValue("categoryId", category.id));
 
   const selectedNewsletter = newsletters?.find(n => n.id === form.state.values.newsletterId);
-  const advancedPreview = selectedNewsletter?.name ?? "None";
+  const advancedPreview = selectedNewsletter?.name ?? t("None");
 
   return (
     <form
@@ -67,8 +72,8 @@ export function ImportForm({
       <form.AppField name="source">
         {field => (
           <field.SelectField
-            label="Source"
-            options={SOURCE_OPTIONS}
+            label={t("Source")}
+            options={sourceOptions}
             onValueChange={value => setSource(value as IngestSource)}
           />
         )}
@@ -79,8 +84,8 @@ export function ImportForm({
           <form.AppField name="pastedContent">
             {field => (
               <field.RichTextField
-                label="Content"
-                hint="Paste a newsletter or article here — links are preserved."
+                label={t("Content")}
+                hint={t("Paste a newsletter or article here — links are preserved.")}
               />
             )}
           </form.AppField>
@@ -92,9 +97,9 @@ export function ImportForm({
           <form.AppField name="fetchUrl">
             {field => (
               <field.TextField
-                label="Content"
+                label={t("Content")}
                 type="url"
-                placeholder="https://… (an article page, or a view-in-browser link)"
+                placeholder={t("https://… (an article page, or a view-in-browser link)")}
               />
             )}
           </form.AppField>
@@ -111,8 +116,8 @@ export function ImportForm({
         : null}
 
       <CollapsibleFormSection
-        title="Advanced"
-        description="Approved bookmarks inherit the import group's default category, tags, and media type."
+        title={t("Advanced")}
+        description={t("Approved bookmarks inherit the import group's default category, tags, and media type.")}
         preview={advancedPreview}
         defaultOpen={!!initialNewsletterId}
       >
@@ -120,10 +125,10 @@ export function ImportForm({
           <form.AppField name="newsletterId">
             {field => (
               <field.ComboboxField
-                label="Import Group"
-                placeholder="No import group"
-                searchPlaceholder="Search import groups…"
-                emptyText="No import groups found."
+                label={t("Import Group")}
+                placeholder={t("No import group")}
+                searchPlaceholder={t("Search import groups…")}
+                emptyText={t("No import groups found.")}
                 createOption={newsletterCreate.createOption}
                 options={(newsletters ?? []).map(newsletter => ({
                   value: newsletter.id,
@@ -138,10 +143,10 @@ export function ImportForm({
           <form.AppField name="categoryId">
             {field => (
               <field.ComboboxField
-                label="Category for all links (optional)"
-                placeholder="No category"
-                searchPlaceholder="Search categories…"
-                emptyText="No categories found."
+                label={t("Category for all links (optional)")}
+                placeholder={t("No category")}
+                searchPlaceholder={t("Search categories…")}
+                emptyText={t("No categories found.")}
                 createOption={categoryCreate.createOption}
                 options={categories.map(category => ({
                   value: category.id,
@@ -161,8 +166,8 @@ export function ImportForm({
 
       <form.AppForm>
         <form.SubmitButton
-          label="Import links"
-          pendingLabel="Queuing…"
+          label={t("Import links")}
+          pendingLabel={t("Queuing…")}
           disabledWhen={source === "upload" && !file}
         />
       </form.AppForm>

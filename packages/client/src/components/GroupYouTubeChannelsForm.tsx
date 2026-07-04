@@ -1,5 +1,7 @@
 import type { Group } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { useUpdateGroup } from "../hooks/useGroups";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { describeError } from "../lib/apiError";
@@ -18,6 +20,9 @@ export function GroupYouTubeChannelsForm({
   group,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: channels,
   } = useYouTubeChannels();
   const update = useUpdateGroup();
@@ -26,7 +31,7 @@ export function GroupYouTubeChannelsForm({
   return (
     <div className="space-y-3">
       {(channels ?? []).length === 0
-        ? <p className="text-sm text-muted-foreground">No YouTube channels exist yet.</p>
+        ? <p className="text-sm text-muted-foreground">{t("No YouTube channels exist yet.")}</p>
         : (
           <ul className="space-y-2">
             {(channels ?? []).map(ch => (
@@ -79,12 +84,15 @@ export function GroupYouTubeChannelsView({
   group,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: channels,
   } = useYouTubeChannels();
   const connected = (channels ?? []).filter(ch => group.youtubeChannelIds.includes(ch.id));
 
   if (connected.length === 0) {
-    return <p className="text-sm text-muted-foreground">No YouTube channels connected.</p>;
+    return <p className="text-sm text-muted-foreground">{t("No YouTube channels connected.")}</p>;
   }
 
   return (

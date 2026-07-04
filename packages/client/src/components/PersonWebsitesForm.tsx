@@ -1,6 +1,7 @@
 import type { Person } from "@eesimple/types";
 
 import { Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useUpdatePerson } from "../hooks/usePeople";
 import { useWebsites } from "../hooks/useWebsites";
@@ -20,6 +21,9 @@ export function PersonWebsitesForm({
   person,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: websites,
   } = useWebsites();
   const update = useUpdatePerson();
@@ -28,7 +32,7 @@ export function PersonWebsitesForm({
   return (
     <div className="space-y-3">
       {(websites ?? []).length === 0
-        ? <p className="text-sm text-muted-foreground">No websites exist yet.</p>
+        ? <p className="text-sm text-muted-foreground">{t("No websites exist yet.")}</p>
         : (
           <ul className="space-y-2">
             {(websites ?? []).map(site => (
@@ -82,12 +86,15 @@ export function PersonWebsitesView({
   person,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: websites,
   } = useWebsites();
   const connected = (websites ?? []).filter(site => person.websiteIds.includes(site.id));
 
   if (connected.length === 0) {
-    return <p className="text-sm text-muted-foreground">No websites connected.</p>;
+    return <p className="text-sm text-muted-foreground">{t("No websites connected.")}</p>;
   }
 
   return (

@@ -8,6 +8,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { useTranslation } from "react-i18next";
 
 import { CategoryDefaultsSection } from "./CategoryDefaultsSection";
 import { buildCategoryPropertyColumns } from "./categoryPropertyColumns";
@@ -34,6 +35,9 @@ export function CategoryCustomProperties({
   category,
 }: CategoryCustomPropertiesProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: properties, isLoading,
   } = useCustomProperties();
   const updateProperty = useUpdateCustomProperty();
@@ -57,17 +61,17 @@ export function CategoryCustomProperties({
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label>Assigned properties</Label>
+        <Label>{t("Assigned properties")}</Label>
         <p className="text-xs text-muted-foreground">
-          Custom properties checked here are available on bookmarks in this category.
+          {t("Custom properties checked here are available on bookmarks in this category.")}
         </p>
         {isLoading
-          ? <p className="text-sm text-muted-foreground">Loading properties…</p>
+          ? <p className="text-sm text-muted-foreground">{t("Loading properties…")}</p>
           : null}
         {!isLoading && enabledProperties.length === 0
           ? (
             <p className="text-sm text-muted-foreground">
-              No custom properties yet. Create some on the Custom Properties settings page.
+              {t("No custom properties yet. Create some on the Custom Properties settings page.")}
             </p>
           )
           : null}

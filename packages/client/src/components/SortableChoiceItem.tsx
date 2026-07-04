@@ -3,6 +3,7 @@ import type { ChoicesItem } from "@eesimple/types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,9 @@ export function SortableChoiceItem({
   item, index, idPrefix, onLabelChange, onLabelBlur, onDefaultChange, onRemove,
 }: SortableChoiceItemProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     attributes, listeners, setNodeRef, transform, transition,
   } = useSortable({
     id: item.value,
@@ -39,7 +43,7 @@ export function SortableChoiceItem({
       <button
         type="button"
         className="cursor-grab touch-none text-muted-foreground"
-        aria-label="Drag to reorder"
+        aria-label={t("Drag to reorder")}
         {...attributes}
         {...listeners}
       >
@@ -47,7 +51,7 @@ export function SortableChoiceItem({
       </button>
       <Input
         value={item.label}
-        placeholder="Label"
+        placeholder={t("Label")}
         className="flex-1"
         onChange={e => onLabelChange(index, e.target.value)}
         onBlur={e => onLabelBlur(index, e.target.value)}
@@ -64,7 +68,7 @@ export function SortableChoiceItem({
           htmlFor={`${idPrefix}-choices-default-${index}`}
           className="text-xs text-muted-foreground"
         >
-          Default
+          {t("Default")}
         </Label>
       </div>
       <Button
@@ -73,7 +77,7 @@ export function SortableChoiceItem({
         size="sm"
         onClick={() => onRemove(index)}
       >
-        Remove
+        {t("Remove")}
       </Button>
     </li>
   );

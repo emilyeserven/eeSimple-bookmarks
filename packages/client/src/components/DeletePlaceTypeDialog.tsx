@@ -2,6 +2,8 @@ import type { PlaceType } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { Combobox } from "./Combobox";
 import { useDeletePlaceType } from "../hooks/usePlaceTypes";
 
@@ -35,6 +37,9 @@ export function DeletePlaceTypeDialog({
   placeTypes,
   onClose,
 }: DeletePlaceTypeDialogProps) {
+  const {
+    t,
+  } = useTranslation();
   const deletePlaceType = useDeletePlaceType();
   const [reassignTo, setReassignTo] = useState<string | undefined>(undefined);
 
@@ -75,32 +80,38 @@ export function DeletePlaceTypeDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Delete “
-            {placeType?.name}
-            ”?
+            {t("Delete “{{name}}”?", {
+              name: placeType?.name,
+            })}
           </DialogTitle>
           <DialogDescription>
             {count > 0
-              ? `${count} location${count === 1 ? "" : "s"} use this place type.`
-              : "No locations use this place type."}
+              ? (count === 1
+                ? t("{{count}} location uses this place type.", {
+                  count,
+                })
+                : t("{{count}} locations use this place type.", {
+                  count,
+                }))
+              : t("No locations use this place type.")}
           </DialogDescription>
         </DialogHeader>
 
         {count > 0 && options.length > 0
           ? (
             <div className="space-y-2">
-              <Label htmlFor="reassign-place-type">Reassign locations to… (optional)</Label>
+              <Label htmlFor="reassign-place-type">{t("Reassign locations to… (optional)")}</Label>
               <Combobox
                 id="reassign-place-type"
                 options={options}
                 value={reassignTo}
                 onValueChange={setReassignTo}
-                placeholder="Leave blank to remove the place type"
-                searchPlaceholder="Search place types…"
-                emptyText="No other place types."
+                placeholder={t("Leave blank to remove the place type")}
+                searchPlaceholder={t("Search place types…")}
+                emptyText={t("No other place types.")}
               />
               <p className="text-xs text-muted-foreground">
-                Leaving this blank deletes the place type and leaves those locations without one.
+                {t("Leaving this blank deletes the place type and leaves those locations without one.")}
               </p>
             </div>
           )
@@ -108,14 +119,14 @@ export function DeletePlaceTypeDialog({
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("Cancel")}</Button>
           </DialogClose>
           <Button
             variant="destructive"
             disabled={deletePlaceType.isPending}
             onClick={handleDelete}
           >
-            {deletePlaceType.isPending ? "Deleting…" : "Delete"}
+            {deletePlaceType.isPending ? t("Deleting…") : t("Delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

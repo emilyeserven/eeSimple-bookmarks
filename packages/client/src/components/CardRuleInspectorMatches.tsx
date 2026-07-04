@@ -2,6 +2,7 @@ import type { RuleAttrLabels } from "../lib/cardDisplayRuleAttrFormat";
 import type { RuleInspection } from "../lib/cardDisplayRules";
 
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { formatRuleAttrValue } from "../lib/cardDisplayRuleAttrFormat";
 
@@ -27,6 +28,9 @@ interface CardRuleInspectorMatchesProps {
 export function CardRuleInspectorMatches({
   matchedRules, unmatchedRules, ruleNameById, labels,
 }: CardRuleInspectorMatchesProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-3">
       {matchedRules.map(ri => (
@@ -37,13 +41,13 @@ export function CardRuleInspectorMatches({
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">{ri.rule.name}</span>
             {ri.rule.isDefault
-              ? <Badge variant="secondary">Default</Badge>
+              ? <Badge variant="secondary">{t("Default")}</Badge>
               : null}
           </div>
           {ri.attrs.length === 0
             ? (
               <p className="text-sm text-muted-foreground">
-                Matches, but sets no display attributes.
+                {t("Matches, but sets no display attributes.")}
               </p>
             )
             : (
@@ -66,15 +70,15 @@ export function CardRuleInspectorMatches({
                       {formatRuleAttrValue(attr, labels)}
                     </span>
                     {attr.status === "applied"
-                      ? <Badge className="shrink-0 bg-green-600">Applied</Badge>
+                      ? <Badge className="shrink-0 bg-green-600">{t("Applied")}</Badge>
                       : (
                         <Badge
                           variant="outline"
                           className="shrink-0 text-muted-foreground"
                         >
-                          Overridden by
-                          {" "}
-                          {ruleNameById.get(attr.overriddenBy ?? "") ?? "a higher rule"}
+                          {t("Overridden by {{ruleName}}", {
+                            ruleName: ruleNameById.get(attr.overriddenBy ?? "") ?? t("a higher rule"),
+                          })}
                         </Badge>
                       )}
                   </li>
@@ -99,12 +103,13 @@ export function CardRuleInspectorMatches({
                   group-data-[state=open]:rotate-180
                 "
               />
-              {unmatchedRules.length}
-              {" "}
-              rule
-              {unmatchedRules.length === 1 ? "" : "s"}
-              {" "}
-              don&rsquo;t apply
+              {unmatchedRules.length === 1
+                ? t("{{count}} rule doesn't apply", {
+                  count: unmatchedRules.length,
+                })
+                : t("{{count}} rules don't apply", {
+                  count: unmatchedRules.length,
+                })}
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-2 pl-5">
               <ul className="space-y-1 text-sm text-muted-foreground">

@@ -1,5 +1,7 @@
 import type { AutomationSettings } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { useAutomationSettings, useUpdateAutomationSettings } from "../hooks/useAppSettings";
 import { useBackfillTitleLocations, useBackfillTitleTags } from "../hooks/useBookmarks";
 
@@ -48,6 +50,9 @@ function useSaveAutomationSetting() {
 
 export function TitleTagBackfillCard() {
   const {
+    t,
+  } = useTranslation();
+  const {
     settings, save,
   } = useSaveAutomationSetting();
   const backfillTags = useBackfillTitleTags();
@@ -55,11 +60,11 @@ export function TitleTagBackfillCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Auto-tag from title</CardTitle>
+        <CardTitle>{t("Auto-tag from title")}</CardTitle>
         <CardDescription>
-          When enabled, saving a bookmark whose title contains an existing tag’s name automatically
-          applies that tag. Matching is case-insensitive and only counts whole words, so a tag named
-          “art” won’t match “Martin”.
+          {t(
+            "When enabled, saving a bookmark whose title contains an existing tag’s name automatically applies that tag. Matching is case-insensitive and only counts whole words, so a tag named “art” won’t match “Martin”.",
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -73,12 +78,12 @@ export function TitleTagBackfillCard() {
                 {
                   autoApplyTitleTags: enabled,
                 },
-                enabled ? "Auto-tag from title on" : "Auto-tag from title off",
+                enabled ? t("Auto-tag from title on") : t("Auto-tag from title off"),
               );
             }}
           />
           <Label htmlFor="auto-apply-title-tags">
-            Apply tags whose name appears in the bookmark title
+            {t("Apply tags whose name appears in the bookmark title")}
           </Label>
         </div>
         <div className="mt-4 flex flex-col items-start gap-1">
@@ -89,11 +94,12 @@ export function TitleTagBackfillCard() {
             disabled={backfillTags.isPending}
             onClick={() => backfillTags.mutate()}
           >
-            {backfillTags.isPending ? "Backfilling…" : "Backfill existing bookmarks"}
+            {backfillTags.isPending ? t("Backfilling…") : t("Backfill existing bookmarks")}
           </Button>
           <p className="text-sm text-muted-foreground">
-            Scan every existing bookmark now and apply any tags whose name appears in its title.
-            Existing tags are kept — this only adds matches.
+            {t(
+              "Scan every existing bookmark now and apply any tags whose name appears in its title. Existing tags are kept — this only adds matches.",
+            )}
           </p>
         </div>
       </CardContent>
@@ -103,6 +109,9 @@ export function TitleTagBackfillCard() {
 
 export function TitleLocationBackfillCard() {
   const {
+    t,
+  } = useTranslation();
+  const {
     settings, save,
   } = useSaveAutomationSetting();
   const backfillLocations = useBackfillTitleLocations();
@@ -110,11 +119,11 @@ export function TitleLocationBackfillCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Auto-apply locations from title</CardTitle>
+        <CardTitle>{t("Auto-apply locations from title")}</CardTitle>
         <CardDescription>
-          When enabled, saving a bookmark whose title contains an existing location’s name
-          automatically applies that location. Matching is case-insensitive and only counts whole
-          words.
+          {t(
+            "When enabled, saving a bookmark whose title contains an existing location’s name automatically applies that location. Matching is case-insensitive and only counts whole words.",
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -128,12 +137,12 @@ export function TitleLocationBackfillCard() {
                 {
                   autoApplyTitleLocations: enabled,
                 },
-                enabled ? "Auto-apply locations from title on" : "Auto-apply locations from title off",
+                enabled ? t("Auto-apply locations from title on") : t("Auto-apply locations from title off"),
               );
             }}
           />
           <Label htmlFor="auto-apply-title-locations">
-            Apply locations whose name appears in the bookmark title
+            {t("Apply locations whose name appears in the bookmark title")}
           </Label>
         </div>
         <div className="mt-4 flex flex-col items-start gap-1">
@@ -144,11 +153,12 @@ export function TitleLocationBackfillCard() {
             disabled={backfillLocations.isPending}
             onClick={() => backfillLocations.mutate()}
           >
-            {backfillLocations.isPending ? "Backfilling…" : "Backfill existing bookmarks"}
+            {backfillLocations.isPending ? t("Backfilling…") : t("Backfill existing bookmarks")}
           </Button>
           <p className="text-sm text-muted-foreground">
-            Scan every existing bookmark now and apply any locations whose name appears in its
-            title. Existing locations are kept — this only adds matches.
+            {t(
+              "Scan every existing bookmark now and apply any locations whose name appears in its title. Existing locations are kept — this only adds matches.",
+            )}
           </p>
         </div>
       </CardContent>

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import {
   useDisplayPreferenceSettings,
   useFiltersHidden,
@@ -9,26 +11,6 @@ import { usePanelControls } from "./panel/usePanelControls";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type FilterLocation = "sidebar" | "drawer" | "hide";
-
-const LOCATION_PATCH: Record<FilterLocation, { filtersHidden: boolean;
-  filtersInDrawer: boolean;
-  message: string; }> = {
-  sidebar: {
-    filtersHidden: false,
-    filtersInDrawer: false,
-    message: "Filters in sidebar",
-  },
-  drawer: {
-    filtersHidden: false,
-    filtersInDrawer: true,
-    message: "Filters in drawer",
-  },
-  hide: {
-    filtersHidden: true,
-    filtersInDrawer: false,
-    message: "Filters hidden",
-  },
-};
 
 /**
  * The filter-location chooser body (sidebar / drawer / hide). Shared by `FilterLocationPopover`
@@ -44,15 +26,38 @@ export function FilterLocationControls() {
   const {
     openType, close, dCT,
   } = usePanelControls();
+  const {
+    t,
+  } = useTranslation();
 
   const current: FilterLocation = filtersHidden ? "hide" : filtersInDrawer ? "drawer" : "sidebar";
+
+  const locationPatch: Record<FilterLocation, { filtersHidden: boolean;
+    filtersInDrawer: boolean;
+    message: string; }> = {
+    sidebar: {
+      filtersHidden: false,
+      filtersInDrawer: false,
+      message: t("Filters in sidebar"),
+    },
+    drawer: {
+      filtersHidden: false,
+      filtersInDrawer: true,
+      message: t("Filters in drawer"),
+    },
+    hide: {
+      filtersHidden: true,
+      filtersInDrawer: false,
+      message: t("Filters hidden"),
+    },
+  };
 
   function handleChange(value: string) {
     if (!value || !displayData) return;
     const next = value as FilterLocation;
     const {
       filtersHidden: hidden, filtersInDrawer: inDrawer, message,
-    } = LOCATION_PATCH[next];
+    } = locationPatch[next];
     update.mutate({
       input: {
         ...displayData,
@@ -85,13 +90,13 @@ export function FilterLocationControls() {
           first:rounded-l-sm
         "
       >
-        Sidebar
+        {t("Sidebar")}
       </ToggleGroupItem>
       <ToggleGroupItem
         value="drawer"
         className="rounded-none border-r border-input"
       >
-        Drawer
+        {t("Drawer")}
       </ToggleGroupItem>
       <ToggleGroupItem
         value="hide"
@@ -100,7 +105,7 @@ export function FilterLocationControls() {
           last:rounded-r-sm
         "
       >
-        Hide
+        {t("Hide")}
       </ToggleGroupItem>
     </ToggleGroup>
   );

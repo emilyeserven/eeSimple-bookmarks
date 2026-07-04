@@ -2,6 +2,7 @@ import type { GalleryLayout, GalleryView } from "./galleryFormat";
 import type { useAutoFetchImages, useAutoFetchWithFallback, useScanBucket } from "../hooks/useGallery";
 
 import { Download, Images, LayoutGrid, RefreshCw, Square, Table } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { formatSize } from "./galleryFormat";
 
@@ -27,6 +28,9 @@ export function GalleryToolbar({
   view, onViewChange, layout, onLayoutChange, scan, autoFetch, autoFetchRunning,
   autoFetchWithFallback, autoFetchWithFallbackRunning, pendingAutoFetchCount,
 }: GalleryToolbarProps) {
+  const {
+    t,
+  } = useTranslation();
   const eitherRunning = autoFetchRunning || autoFetchWithFallbackRunning;
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -43,7 +47,7 @@ export function GalleryToolbar({
             ${scan.isPending ? "animate-spin" : ""}
           `}
         />
-        {scan.isPending ? "Scanning…" : "Scan bucket"}
+        {scan.isPending ? t("Scanning…") : t("Scan bucket")}
       </Button>
 
       {pendingAutoFetchCount > 0
@@ -57,7 +61,7 @@ export function GalleryToolbar({
               onClick={() => autoFetch.mutate()}
             >
               <Download className="size-4" />
-              {autoFetchRunning ? "Fetching…" : "Fetch missing images"}
+              {autoFetchRunning ? t("Fetching…") : t("Fetch missing images")}
             </Button>
             <Button
               type="button"
@@ -67,7 +71,7 @@ export function GalleryToolbar({
               onClick={() => autoFetchWithFallback.mutate()}
             >
               <Download className="size-4" />
-              {autoFetchWithFallbackRunning ? "Fetching…" : "Fetch missing images (screenshot fallback)"}
+              {autoFetchWithFallbackRunning ? t("Fetching…") : t("Fetch missing images (screenshot fallback)")}
             </Button>
           </>
         )
@@ -81,13 +85,13 @@ export function GalleryToolbar({
       >
         <ToggleGroupItem
           value="grid"
-          title="Grid"
+          title={t("Grid")}
         >
           <LayoutGrid className="size-4" />
         </ToggleGroupItem>
         <ToggleGroupItem
           value="table"
-          title="Table"
+          title={t("Table")}
         >
           <Table className="size-4" />
         </ToggleGroupItem>
@@ -103,13 +107,13 @@ export function GalleryToolbar({
           >
             <ToggleGroupItem
               value="natural"
-              title="Natural aspect ratio"
+              title={t("Natural aspect ratio")}
             >
               <Images className="size-4" />
             </ToggleGroupItem>
             <ToggleGroupItem
               value="square"
-              title="Square"
+              title={t("Square")}
             >
               <Square className="size-4" />
             </ToggleGroupItem>
@@ -120,7 +124,10 @@ export function GalleryToolbar({
       {pendingAutoFetchCount > 0 && !autoFetchRunning
         ? (
           <p className="text-sm text-muted-foreground">
-            {`${pendingAutoFetchCount} missing (~${formatSize(pendingAutoFetchCount * BYTES_PER_IMAGE_ESTIMATE)} est.)`}
+            {t("{{count}} missing (~{{size}} est.)", {
+              count: pendingAutoFetchCount,
+              size: formatSize(pendingAutoFetchCount * BYTES_PER_IMAGE_ESTIMATE),
+            })}
           </p>
         )
         : null}
@@ -128,7 +135,11 @@ export function GalleryToolbar({
       {scan.data
         ? (
           <p className="text-sm text-muted-foreground">
-            {`Added ${scan.data.added}, updated ${scan.data.updated}, pruned ${scan.data.pruned}.`}
+            {t("Added {{added}}, updated {{updated}}, pruned {{pruned}}.", {
+              added: scan.data.added,
+              updated: scan.data.updated,
+              pruned: scan.data.pruned,
+            })}
           </p>
         )
         : null}

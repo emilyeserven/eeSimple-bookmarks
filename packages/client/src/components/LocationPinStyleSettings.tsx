@@ -1,4 +1,5 @@
 import { MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { PlaceTypeIconsCard } from "./PlaceTypeIconsCard";
 import {
@@ -14,6 +15,9 @@ import { Slider } from "@/components/ui/slider";
 
 /** Settings → Locations → Pin Style "Pin size": a slider controlling every map pin's display size. */
 function PinSizeCard() {
+  const {
+    t,
+  } = useTranslation();
   const pinScale = useMapPinScale();
   const {
     data: displayPrefs,
@@ -27,16 +31,16 @@ function PinSizeCard() {
         ...displayPrefs,
         mapPinScale: next,
       },
-      successMessage: "Pin size updated",
+      successMessage: t("Pin size updated"),
     });
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Pin Size</CardTitle>
+        <CardTitle className="text-base">{t("Pin Size")}</CardTitle>
         <CardDescription>
-          Adjust how large every pin renders on the Locations map.
+          {t("Adjust how large every pin renders on the Locations map.")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-1.5">
@@ -44,7 +48,7 @@ function PinSizeCard() {
           htmlFor="map-pin-scale"
           className="text-sm font-medium"
         >
-          Size
+          {t("Size")}
         </Label>
         <div className="flex items-center gap-3">
           <Slider
@@ -55,7 +59,7 @@ function PinSizeCard() {
             value={[pinScale]}
             onValueChange={([next]) => next !== undefined && commitScale(next)}
             className="max-w-xs"
-            aria-label="Map pin size"
+            aria-label={t("Map pin size")}
           />
           <span className="w-12 shrink-0 text-sm text-muted-foreground">
             {Math.round(pinScale * 100)}

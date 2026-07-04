@@ -4,6 +4,7 @@ import type { GenreMood, GenreMoodNode, UpdateGenreMoodInput } from "@eesimple/t
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddGenreMoodModal } from "./AddGenreMoodModal";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
@@ -39,6 +40,9 @@ export function GenreMoodGeneralForm({
   allGenreMoods,
   forbiddenIds,
 }: GenreMoodGeneralFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateGenreMood = useUpdateGenreMood();
   const [addOpen, setAddOpen] = useState(false);
@@ -56,7 +60,7 @@ export function GenreMoodGeneralForm({
   const parentOptions: ComboboxOption[] = [
     {
       value: ROOT,
-      label: "(root)",
+      label: t("(root)"),
     },
     ...flattenTree(allGenreMoods)
       .filter(item => !forbiddenIds.has(item.node.id))
@@ -83,8 +87,8 @@ export function GenreMoodGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
-            placeholder="Entry name"
+            label={t("Name")}
+            placeholder={t("Entry name")}
             onBlur={() => autoSave.saveField(
               "name",
               field.state.value.trim(),
@@ -108,7 +112,7 @@ export function GenreMoodGeneralForm({
       </form.AppField>
 
       <div className="space-y-1">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesTabEditor
           ownerType="genreMood"
           ownerId={node.id}
@@ -118,13 +122,13 @@ export function GenreMoodGeneralForm({
       <form.AppField name="parent">
         {field => (
           <field.ComboboxField
-            label="Parent"
+            label={t("Parent")}
             options={parentOptions}
-            placeholder="Choose a parent"
-            searchPlaceholder="Search entries…"
-            emptyText="No entries found."
+            placeholder={t("Choose a parent")}
+            searchPlaceholder={t("Search entries…")}
+            emptyText={t("No entries found.")}
             createOption={{
-              label: "Create entry",
+              label: t("Create entry"),
               onSelect: () => setAddOpen(true),
             }}
             onValueChange={value =>
@@ -137,8 +141,8 @@ export function GenreMoodGeneralForm({
         ownerType="genreMood"
         ownerId={node.id}
         excludeId={node.id}
-        title="Related Genres & Moods"
-        description="Other Genres & Moods entries associated with this one."
+        title={t("Related Genres & Moods")}
+        description={t("Other Genres & Moods entries associated with this one.")}
       />
 
       <AddGenreMoodModal

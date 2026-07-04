@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 
@@ -39,26 +40,25 @@ export function BookmarkPagination({
   total,
   onPageChange,
 }: BookmarkPaginationProps) {
+  const {
+    t,
+  } = useTranslation();
   if (totalPages <= 1) return null;
 
   return (
     <nav
-      aria-label="Bookmark pages"
+      aria-label={t("Bookmark pages")}
       className="
         flex flex-col items-center justify-between gap-3 pt-2
         sm:flex-row
       "
     >
       <p className="text-sm text-muted-foreground">
-        Showing
-        {" "}
-        {rangeStart}
-        –
-        {rangeEnd}
-        {" "}
-        of
-        {" "}
-        {total}
+        {t("Showing {{rangeStart}}–{{rangeEnd}} of {{total}}", {
+          rangeStart,
+          rangeEnd,
+          total,
+        })}
       </p>
 
       <div className="flex items-center gap-1">
@@ -70,7 +70,7 @@ export function BookmarkPagination({
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeft />
-          Prev
+          {t("Prev")}
         </Button>
 
         {pageWindow(page, totalPages).map((entry, index) =>
@@ -104,7 +104,7 @@ export function BookmarkPagination({
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >
-          Next
+          {t("Next")}
           <ChevronRight />
         </Button>
       </div>

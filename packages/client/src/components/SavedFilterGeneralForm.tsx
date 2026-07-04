@@ -1,6 +1,7 @@
 import type { SavedFilter, UpdateSavedFilterInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -30,6 +31,9 @@ interface Props {
 export function SavedFilterGeneralForm({
   filter,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateFilter = useUpdateSavedFilter();
   const autoSave = useFieldAutoSave<UpdateSavedFilterInput, SavedFilter>({
@@ -60,7 +64,7 @@ export function SavedFilterGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
+            label={t("Name")}
             onBlur={() => autoSave.saveField(
               "name",
               field.state.value.trim(),
@@ -85,8 +89,8 @@ export function SavedFilterGeneralForm({
       <form.AppField name="description">
         {field => (
           <field.TextareaField
-            label="Description"
-            placeholder="Optional — what this filter is for."
+            label={t("Description")}
+            placeholder={t("Optional — what this filter is for.")}
             onBlur={() => autoSave.saveField(
               "description",
               field.state.value.trim() || null,
@@ -99,12 +103,12 @@ export function SavedFilterGeneralForm({
       </form.AppField>
 
       <div className="space-y-1">
-        <p className="text-sm leading-none font-medium">Filters</p>
+        <p className="text-sm leading-none font-medium">{t("Filters")}</p>
         <p className="text-sm text-muted-foreground">
           {summarizeBookmarkSearch(filter.filters)}
         </p>
         <p className="text-xs text-muted-foreground">
-          Edit filters from a bookmark listing page and use &ldquo;Save current filters&rdquo;.
+          {t("Edit filters from a bookmark listing page and use “Save current filters”.")}
         </p>
       </div>
 
@@ -118,7 +122,7 @@ export function SavedFilterGeneralForm({
           htmlFor={checkboxId}
           className="font-normal"
         >
-          Show as a sidebar shortcut
+          {t("Show as a sidebar shortcut")}
         </Label>
       </div>
     </div>

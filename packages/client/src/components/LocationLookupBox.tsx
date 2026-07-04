@@ -3,6 +3,7 @@ import type { LocationLookupCandidate } from "@eesimple/types";
 import { useState } from "react";
 
 import { ChevronDown, Globe, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "./RomanizedLabel";
 import { useLocationLookup } from "../hooks/useLocations";
@@ -27,6 +28,9 @@ interface LocationLookupBoxProps {
 export function LocationLookupBox({
   onSelect,
 }: LocationLookupBoxProps) {
+  const {
+    t,
+  } = useTranslation();
   const [query, setQuery] = useState("");
   const lookup = useLocationLookup();
   const results = lookup.data?.results ?? [];
@@ -43,11 +47,11 @@ export function LocationLookupBox({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="location-lookup">Look up location</Label>
+      <Label htmlFor="location-lookup">{t("Look up location")}</Label>
       <div className="flex items-center gap-2">
         <Input
           id="location-lookup"
-          placeholder="Search for a place…"
+          placeholder={t("Search for a place…")}
           value={query}
           onChange={event => setQuery(event.target.value)}
           onKeyDown={(event) => {
@@ -67,7 +71,7 @@ export function LocationLookupBox({
             onClick={() => runLookup()}
           >
             <Search className="mr-2 size-4" />
-            {lookup.isPending ? "Searching…" : "Search"}
+            {lookup.isPending ? t("Searching…") : t("Search")}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -77,7 +81,7 @@ export function LocationLookupBox({
                 size="icon"
                 className="-ml-px rounded-l-none"
                 disabled={lookup.isPending}
-                aria-label="More search options"
+                aria-label={t("More search options")}
               >
                 <ChevronDown className="size-4" />
               </Button>
@@ -88,7 +92,7 @@ export function LocationLookupBox({
                 onClick={() => runLookup("wikidata")}
               >
                 <Globe className="size-4" />
-                Search Wikidata instead
+                {t("Search Wikidata instead")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -98,7 +102,7 @@ export function LocationLookupBox({
         ? <p className="text-xs text-destructive">{lookup.error.message}</p>
         : null}
       {!lookup.isPending && lookup.isSuccess && results.length === 0
-        ? <p className="text-xs text-muted-foreground">No matches found.</p>
+        ? <p className="text-xs text-muted-foreground">{t("No matches found.")}</p>
         : null}
       {results.length > 0
         ? (
