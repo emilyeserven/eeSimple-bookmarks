@@ -54,6 +54,7 @@ export function AlbumGeneralForm({
     <PlexTitleGeneralForm
       entity={album}
       kind="album"
+      ownerType="album"
       update={update}
       onRenamed={slug => void navigate({
         to: "/taxonomies/albums/$albumSlug/edit/general",

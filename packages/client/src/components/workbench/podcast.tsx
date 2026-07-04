@@ -11,6 +11,7 @@ import {
   podcastLinkUrl,
   resolvePodcastDefaultLink,
 } from "../../lib/podcastLinks";
+import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
 import { PodcastAuthorsValue } from "../PodcastAuthorsFields";
 import { PodcastGeneralForm } from "../PodcastGeneralForm";
 import { PodcastImageTab } from "../PodcastImageTab";
@@ -40,6 +41,13 @@ function PodcastGeneralView({
         <dd>{new Date(podcast.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">Slug</dt>
         <dd className="font-mono">{podcast.slug}</dd>
+        <dt className="text-muted-foreground">Names</dt>
+        <dd>
+          <EntityNamesTabView
+            ownerType="podcast"
+            ownerId={podcast.id}
+          />
+        </dd>
         <dt className="text-muted-foreground">Media property</dt>
         <dd>{mediaProperty?.name ?? <span className="text-muted-foreground">None</span>}</dd>
         <dt className="text-muted-foreground">Authors</dt>

@@ -14,6 +14,7 @@ import type {
   UpdateBookmarkRelationshipsInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { setEntityNames } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner, setLanguageUsages } from "@/services/languageUsages";
 import {
   bookmarkPeople,
@@ -662,6 +663,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   void captureChannelAvatar(youtubeChannelId, "create");
   // Auto-detected language (scan/ISBN), attached as ordinary language_usages rows.
   if (input.languageUsages?.length) await setLanguageUsages("bookmark", id, input.languageUsages);
+  if (input.names?.length) await setEntityNames("bookmark", id, input.names);
 
   // A new bookmark changes what homepage sections / autofill previews match.
   invalidateBookmarkCache();

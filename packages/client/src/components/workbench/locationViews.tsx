@@ -3,6 +3,7 @@ import type { LocationNode } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
 import { LocationMapSection } from "../LocationMapSection";
 import { RomanizedLabel } from "../RomanizedLabel";
 
@@ -86,6 +87,13 @@ export function LocationGeneralView({
         <dd>{node.children.length}</dd>
         <dt className="text-muted-foreground">Slug</dt>
         <dd className="font-mono">{node.slug}</dd>
+        <dt className="text-muted-foreground">Names</dt>
+        <dd>
+          <EntityNamesTabView
+            ownerType="location"
+            ownerId={node.id}
+          />
+        </dd>
         <dt className="text-muted-foreground">Coordinates</dt>
         <dd>{coordinates}</dd>
         {node.placeType

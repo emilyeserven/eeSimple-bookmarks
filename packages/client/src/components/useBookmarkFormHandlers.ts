@@ -1,4 +1,5 @@
 import type { BookmarkFormApi, BookmarkInputType } from "./bookmarkFormSchema";
+import type { DraftEntityName } from "./entityNames/draftEntityName";
 import type { useBookmarkFormChannel } from "./useBookmarkFormChannel";
 import type { useBookmarkFormData } from "./useBookmarkFormData";
 import type { useBookmarkFormImageState } from "./useBookmarkFormImageState";
@@ -19,6 +20,7 @@ import {
   looksLikeYouTube,
 } from "./bookmarkFormSchema";
 import { applyImageIntent, promoteSourceDefaults } from "./bookmarkSubmit";
+import { entriesFromDrafts } from "./entityNames/draftEntityName";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { metadataApi } from "../lib/api/metadata";
 import { notifySuccess } from "../lib/notifications";
@@ -207,6 +209,7 @@ export function useBookmarkFormHandlers({
     url: string;
     title: string;
     romanizedName: string;
+    names: DraftEntityName[];
     categoryId: string;
     mediaTypeId: string;
     description: string;
@@ -287,6 +290,7 @@ export function useBookmarkFormHandlers({
     }
 
     const trimmedSiteName = websiteSiteName.trim();
+    const nameEntries = entriesFromDrafts(value.names);
     const created = await createBookmark.mutateAsync({
       ...input,
       ...(trimmedSiteName && {
@@ -294,6 +298,9 @@ export function useBookmarkFormHandlers({
       }),
       ...(pendingLanguageUsagesRef.current.length > 0 && {
         languageUsages: pendingLanguageUsagesRef.current,
+      }),
+      ...(nameEntries.length > 0 && {
+        names: nameEntries,
       }),
     });
     await applyImageIntent(created.id, finalUrl ?? "", imageIntentRef.current, {

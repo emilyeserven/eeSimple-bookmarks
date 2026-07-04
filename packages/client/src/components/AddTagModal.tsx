@@ -1,6 +1,7 @@
 import type { Tag } from "@eesimple/types";
 
 import { TagForm } from "./TagForm";
+import { useCreateEntityNames } from "../hooks/useEntityNames";
 import { useCreateTag, useTagTree } from "../hooks/useTags";
 
 import {
@@ -29,6 +30,7 @@ export function AddTagModal({
     data: tree,
   } = useTagTree();
   const createTag = useCreateTag();
+  const createNames = useCreateEntityNames();
 
   return (
     <Dialog
@@ -55,15 +57,21 @@ export function AddTagModal({
           isError={createTag.isError}
           errorMessage={createTag.error?.message}
           onSubmit={({
-            name, romanizedName, parentId,
+            name, names, parentId,
           }) => createTag.mutate(
             {
               name,
-              romanizedName,
               parentId,
             },
             {
               onSuccess: (tag) => {
+                if (names.length > 0) {
+                  createNames.mutate({
+                    ownerType: "tag",
+                    ownerId: tag.id,
+                    entries: names,
+                  });
+                }
                 onCreated?.(tag);
                 onOpenChange(false);
               },

@@ -5,6 +5,7 @@ import type { Group } from "@eesimple/types";
 import { Building2 } from "lucide-react";
 
 import { EntityImagePreview } from "../EntityImageField";
+import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
 import { GroupGeneralForm } from "../GroupGeneralForm";
 import { GroupPeopleForm, GroupPeopleView } from "../GroupPeopleForm";
 import { GroupWebsitesForm, GroupWebsitesView } from "../GroupWebsitesForm";
@@ -40,6 +41,13 @@ function GroupGeneralView({
         <dd>{new Date(group.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">Slug</dt>
         <dd className="font-mono">{group.slug}</dd>
+        <dt className="text-muted-foreground">Names</dt>
+        <dd>
+          <EntityNamesTabView
+            ownerType="group"
+            ownerId={group.id}
+          />
+        </dd>
         <dt className="text-muted-foreground">Group type</dt>
         <dd>{group.groupType?.name ?? <span className="text-muted-foreground">None</span>}</dd>
         {group.website != null

@@ -57,6 +57,7 @@ export const episodeWorkbench: EntityWorkbench<Episode> = {
         }) => (
           <PlexTitleGeneralView
             entity={entity}
+            ownerType="episode"
             createdAt={entity.createdAt}
             bookmarkCount={entity.bookmarkCount}
             renderExtra={<EpisodeTvShowValue episode={entity} />}

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddTagModal } from "./AddTagModal";
+import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { tagSchema } from "./tagFormSchema";
 import { Checkbox } from "./ui/checkbox";
@@ -58,7 +59,6 @@ export function TagGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: node.name,
-      romanizedName: node.romanizedName ?? "",
       parent: node.parentId ?? "",
     },
     validators: {
@@ -95,15 +95,13 @@ export function TagGeneralForm({
         )}
       </form.AppField>
 
-      <form.AppField name="romanizedName">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
-          />
-        )}
-      </form.AppField>
+      <div className="space-y-1">
+        <Label>Names</Label>
+        <EntityNamesTabEditor
+          ownerType="tag"
+          ownerId={node.id}
+        />
+      </div>
 
       <form.AppField name="parent">
         {field => (

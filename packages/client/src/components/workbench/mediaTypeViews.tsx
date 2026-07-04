@@ -3,6 +3,7 @@ import type { MediaType } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { EntityAutofillSources } from "../EntityAutofillSources";
+import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
 import { HierarchyView } from "../HierarchyView";
 import { MediaTypeTreeList } from "../MediaTypeTreeList";
 
@@ -58,6 +59,10 @@ export function MediaTypeGeneralView({
           )
           : null}
       </dl>
+      <EntityNamesTabView
+        ownerType="mediaType"
+        ownerId={mt.id}
+      />
       <EntityAutofillSources
         match={{
           kind: "media-type",

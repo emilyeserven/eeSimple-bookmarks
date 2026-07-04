@@ -4,6 +4,7 @@ import type { Book } from "@eesimple/types";
 
 import { BookGeneralForm } from "../BookGeneralForm";
 import { BookImageTab } from "../BookImageTab";
+import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
 
 import { useBookBySlug, useBooks, useDeleteBook } from "@/hooks/useBooks";
 import { useConnectors } from "@/hooks/useConnectors";
@@ -59,6 +60,13 @@ function BookGeneralView({
         <dd>{new Date(book.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">Slug</dt>
         <dd className="font-mono">{book.slug}</dd>
+        <dt className="text-muted-foreground">Names</dt>
+        <dd>
+          <EntityNamesTabView
+            ownerType="book"
+            ownerId={book.id}
+          />
+        </dd>
         <dt className="text-muted-foreground">Media property</dt>
         <dd>{mediaProperty?.name ?? <span className="text-muted-foreground">None</span>}</dd>
         {book.releaseYear != null

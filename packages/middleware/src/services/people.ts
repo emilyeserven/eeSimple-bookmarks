@@ -1,8 +1,8 @@
 import { asc, count, eq, inArray, isNull } from "drizzle-orm";
-import type { Person, BulkDeleteResult, CreatePersonInput, SocialLink, UpdatePersonInput } from "@eesimple/types";
+import type { Person, BulkDeleteResult, CreatePersonInput, EntityName, SocialLink, UpdatePersonInput } from "@eesimple/types";
 import { db } from "@/db";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
@@ -175,11 +175,13 @@ function toPerson(
   websiteIds: string[] = [],
   groupIds: string[] = [],
   albumIds: string[] = [],
+  names?: EntityName[],
 ): Person {
   return {
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName,
+    names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount,
@@ -230,7 +232,7 @@ export async function listPeople(): Promise<Person[]> {
 
   const ids = rows.map(r => r.id);
 
-  const [counts, channelMap, websiteMap, groupMap, albumMap] = await Promise.all([
+  const [counts, channelMap, websiteMap, groupMap, albumMap, namesMap] = await Promise.all([
     db
       .select({
         personId: bookmarkPeople.personId,
@@ -242,6 +244,7 @@ export async function listPeople(): Promise<Person[]> {
     loadPersonWebsiteMap(ids),
     loadPersonGroupMap(ids),
     loadPersonAlbumMap(ids),
+    loadEntityNames("person", ids),
   ]);
 
   const countMap = new Map(counts.map(c => [c.personId, Number(c.count)]));
@@ -253,6 +256,7 @@ export async function listPeople(): Promise<Person[]> {
       websiteMap.get(row.id) ?? [],
       groupMap.get(row.id) ?? [],
       albumMap.get(row.id) ?? [],
+      namesMap.get(row.id),
     ));
 }
 

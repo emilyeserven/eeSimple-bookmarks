@@ -3,12 +3,13 @@ import type {
   Album,
   BulkDeleteResult,
   CreateAlbumInput,
+  EntityName,
   UpdateAlbumInput,
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner, mainTaxonomyImageUrl } from "@/services/taxonomyImages";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import {
   albumPeople, albumGroups, albums, bookmarks, taxonomyImages, type AlbumRow,
 } from "@/db/schema";
@@ -35,11 +36,13 @@ function toAlbum(
   },
   personIds: string[] = [],
   groupIds: string[] = [],
+  names?: EntityName[],
 ): Album {
   return {
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName ?? null,
+    names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
     mediaPropertyId: row.mediaPropertyId ?? null,
@@ -176,9 +179,10 @@ export async function listAlbums(): Promise<Album[]> {
     )
     .orderBy(asc(albums.sortOrder), asc(albums.name));
   const ids = rows.map(r => r.id);
-  const [personMap, groupMap] = await Promise.all([
+  const [personMap, groupMap, namesMap] = await Promise.all([
     loadAlbumPersonMap(ids),
     loadAlbumGroupMap(ids),
+    loadEntityNames("album", ids),
   ]);
   return rows.map(row => toAlbum(
     {
@@ -187,6 +191,7 @@ export async function listAlbums(): Promise<Album[]> {
     },
     personMap.get(row.id) ?? [],
     groupMap.get(row.id) ?? [],
+    namesMap.get(row.id),
   ));
 }
 
@@ -239,11 +244,12 @@ export async function updateAlbum(id: string, input: UpdateAlbumInput): Promise<
       : existing;
     if (input.personIds !== undefined) await setAlbumPeople(tx, id, input.personIds);
     if (input.groupIds !== undefined) await setAlbumGroups(tx, id, input.groupIds);
-    const [personMap, groupMap] = await Promise.all([
+    const [personMap, groupMap, namesMap] = await Promise.all([
       loadAlbumPersonMap([id]),
       loadAlbumGroupMap([id]),
+      loadEntityNames("album", [id]),
     ]);
-    return toAlbum(row, personMap.get(id) ?? [], groupMap.get(id) ?? []);
+    return toAlbum(row, personMap.get(id) ?? [], groupMap.get(id) ?? [], namesMap.get(id));
   });
 }
 

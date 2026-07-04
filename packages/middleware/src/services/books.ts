@@ -3,12 +3,13 @@ import type {
   Book,
   BulkDeleteResult,
   CreateBookInput,
+  EntityName,
   UpdateBookInput,
 } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner, mainTaxonomyImageUrl } from "@/services/taxonomyImages";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { bookmarks, books, taxonomyImages, type BookRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -28,11 +29,13 @@ function toBook(
     mainImage?: { id: string;
       createdAt: Date | string; } | null;
   },
+  names?: EntityName[],
 ): Book {
   return {
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName ?? null,
+    names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
     mediaPropertyId: row.mediaPropertyId ?? null,
@@ -103,10 +106,11 @@ export async function listBooks(): Promise<Book[]> {
       ),
     )
     .orderBy(asc(books.sortOrder), asc(books.name));
+  const namesMap = await loadEntityNames("book", rows.map(row => row.id));
   return rows.map(row => toBook({
     ...row,
     mainImage: row.mainImage?.id ? row.mainImage : null,
-  }));
+  }, namesMap.get(row.id)));
 }
 
 /** Add a book. Throws `DuplicateBookError` on a name clash. */
@@ -147,10 +151,15 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
     patch.slug = uniqueSlug(name, await takenSlugs(id), "book");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
-  if (Object.keys(patch).length === 0) return toBook(existing);
+  if (Object.keys(patch).length === 0) {
+    const namesMap = await loadEntityNames("book", [id]);
+    return toBook(existing, namesMap.get(id));
+  }
 
   const [row] = await db.update(books).set(patch).where(eq(books.id, id)).returning();
-  return row ? toBook(row) : null;
+  if (!row) return null;
+  const namesMap = await loadEntityNames("book", [id]);
+  return toBook(row, namesMap.get(id));
 }
 
 /** Delete a book. The `set null` FK unlinks any bookmarks pointing at it. */

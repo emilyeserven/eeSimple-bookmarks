@@ -57,6 +57,7 @@ export const movieWorkbench: EntityWorkbench<Movie> = {
         }) => (
           <PlexTitleGeneralView
             entity={entity}
+            ownerType="movie"
             createdAt={entity.createdAt}
             bookmarkCount={entity.bookmarkCount}
           />

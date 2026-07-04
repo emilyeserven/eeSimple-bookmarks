@@ -2,6 +2,7 @@ import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreatePodcastInput,
+  EntityName,
   Podcast,
   PodcastLinkProvider,
   UpdatePodcastInput,
@@ -9,7 +10,7 @@ import type {
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { bookmarks, podcastGroups, podcastPeople, podcasts, taxonomyImages, type PodcastRow } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -42,11 +43,13 @@ function toPodcast(
   },
   personIds: string[] = [],
   groupIds: string[] = [],
+  names?: EntityName[],
 ): Podcast {
   return {
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName ?? null,
+    names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
     mediaPropertyId: row.mediaPropertyId ?? null,
@@ -192,9 +195,10 @@ export async function listPodcasts(): Promise<Podcast[]> {
     )
     .orderBy(asc(podcasts.sortOrder), asc(podcasts.name));
   const ids = rows.map(r => r.id);
-  const [personMap, groupMap] = await Promise.all([
+  const [personMap, groupMap, namesMap] = await Promise.all([
     loadPodcastPersonMap(ids),
     loadPodcastGroupMap(ids),
+    loadEntityNames("podcast", ids),
   ]);
   return rows.map(row => toPodcast(
     {
@@ -203,13 +207,16 @@ export async function listPodcasts(): Promise<Podcast[]> {
     },
     personMap.get(row.id) ?? [],
     groupMap.get(row.id) ?? [],
+    namesMap.get(row.id),
   ));
 }
 
 /** Fetch a single podcast by id, or `null` when it doesn't exist. */
 export async function getPodcast(id: string): Promise<Podcast | null> {
   const [row] = await db.select().from(podcasts).where(eq(podcasts.id, id));
-  return row ? toPodcast(row) : null;
+  if (!row) return null;
+  const namesMap = await loadEntityNames("podcast", [id]);
+  return toPodcast(row, undefined, undefined, namesMap.get(id));
 }
 
 /** Add a podcast. Throws `DuplicatePodcastError` on a name clash. */
@@ -261,11 +268,12 @@ export async function updatePodcast(id: string, input: UpdatePodcastInput): Prom
       : existing;
     if (input.personIds !== undefined) await setPodcastPeople(tx, id, input.personIds);
     if (input.groupIds !== undefined) await setPodcastGroups(tx, id, input.groupIds);
-    const [personMap, groupMap] = await Promise.all([
+    const [personMap, groupMap, namesMap] = await Promise.all([
       loadPodcastPersonMap([id], tx),
       loadPodcastGroupMap([id], tx),
+      loadEntityNames("podcast", [id]),
     ]);
-    return toPodcast(row, personMap.get(id) ?? [], groupMap.get(id) ?? []);
+    return toPodcast(row, personMap.get(id) ?? [], groupMap.get(id) ?? [], namesMap.get(id));
   });
 }
 

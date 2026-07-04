@@ -4,6 +4,7 @@ import { Building2 } from "lucide-react";
 
 import { CreatorMediaSection } from "./CreatorMediaSection";
 import { EntityImageField } from "./EntityImageField";
+import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { GroupImageActions } from "./GroupImageActions";
 import { GroupYouTubeChannelsField } from "./GroupYouTubeChannelsField";
@@ -15,6 +16,7 @@ import {
   useUploadGroupImage,
 } from "../hooks/useGroups";
 
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { notifyFieldSaved } from "@/lib/autoSave";
 
@@ -52,15 +54,13 @@ export function GroupGeneralForm({
         )}
       </form.AppField>
 
-      <form.AppField name="romanizedName">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-            onBlur={() => saveField("romanizedName", field.state.value.trim())}
-          />
-        )}
-      </form.AppField>
+      <div className="space-y-1">
+        <Label>Names</Label>
+        <EntityNamesTabEditor
+          ownerType="group"
+          ownerId={group.id}
+        />
+      </div>
 
       <form.AppField name="websiteId">
         {field => (

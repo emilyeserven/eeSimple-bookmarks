@@ -6,8 +6,10 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddGenreMoodModal } from "./AddGenreMoodModal";
+import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { genreMoodSchema } from "./genreMoodFormSchema";
+import { Label } from "./ui/label";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateGenreMood } from "../hooks/useGenreMoods";
 import { useAppForm } from "../lib/form";
@@ -69,7 +71,6 @@ export function GenreMoodGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: node.name,
-      romanizedName: node.romanizedName ?? "",
       parent: node.parentId ?? ROOT,
     },
     validators: {
@@ -106,15 +107,13 @@ export function GenreMoodGeneralForm({
         )}
       </form.AppField>
 
-      <form.AppField name="romanizedName">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
-          />
-        )}
-      </form.AppField>
+      <div className="space-y-1">
+        <Label>Names</Label>
+        <EntityNamesTabEditor
+          ownerType="genreMood"
+          ownerId={node.id}
+        />
+      </div>
 
       <form.AppField name="parent">
         {field => (

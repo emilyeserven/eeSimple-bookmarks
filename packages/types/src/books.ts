@@ -3,12 +3,17 @@
  * Kavita series; the Book carries the Kavita linkage so cover/ToC/deep-link features resolve the
  * series id from it. A Book may optionally belong to a Media Property (franchise/IP grouping).
  */
+
+import type { EntityName } from "./entityNames.js";
+
 export interface Book {
   id: string;
   /** Display name. Unique. */
   name: string;
   /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
   romanizedName?: string | null;
+  /** Multilingual names for this book, each labelled by language; the `isPrimary` row mirrors `name`. */
+  names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
   /** Display ordering weight; lower sorts first. */

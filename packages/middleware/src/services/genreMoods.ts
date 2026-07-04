@@ -2,6 +2,7 @@ import { asc, eq, isNull } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateGenreMoodInput,
+  EntityName,
   GenreMood,
   GenreMoodNode,
   UpdateGenreMoodInput,
@@ -11,7 +12,7 @@ import { genreMoodAssignments, genreMoods, type GenreMoodRow } from "@/db/schema
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
-import { deleteEntityNamesForOwner } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import {
   collectSubtreeIds,
   computeSubtreeBookmarkCounts,
@@ -37,11 +38,12 @@ export class GenreMoodCycleError extends Error {
 }
 
 /** Map a DB row (plus optional precomputed counts) to the shared `GenreMood` wire type. */
-function toGenreMood(row: GenreMoodRow, counts?: SubtreeBookmarkCounts): GenreMood {
+function toGenreMood(row: GenreMoodRow, counts?: SubtreeBookmarkCounts, names?: EntityName[]): GenreMood {
   return {
     id: row.id,
     name: row.name,
     romanizedName: row.romanizedName,
+    names: names ?? [],
     // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
     slug: row.slug ?? slugify(row.name),
     parentId: row.parentId,
@@ -111,7 +113,8 @@ export async function listGenreMoods(): Promise<GenreMood[]> {
     .from(genreMoodAssignments)
     .where(eq(genreMoodAssignments.ownerType, "bookmark"));
   const counts = computeGenreMoodBookmarkCounts(rows, links);
-  return rows.map(row => toGenreMood(row, counts.get(row.id)));
+  const namesMap = await loadEntityNames("genreMood", rows.map(row => row.id));
+  return rows.map(row => toGenreMood(row, counts.get(row.id), namesMap.get(row.id)));
 }
 
 /** The full taxonomy as a nested tree (roots first). */

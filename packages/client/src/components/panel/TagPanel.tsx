@@ -1,4 +1,5 @@
 import { usePanelControls } from "./usePanelControls";
+import { useCreateEntityNames } from "../../hooks/useEntityNames";
 import { useCreateTag } from "../../hooks/useTags";
 import { TagForm } from "../TagForm";
 
@@ -11,6 +12,7 @@ export function TagCreateForm() {
     close,
   } = usePanelControls();
   const createTag = useCreateTag();
+  const createNames = useCreateEntityNames();
 
   return (
     <div className="space-y-6">
@@ -23,15 +25,23 @@ export function TagCreateForm() {
         isError={createTag.isError}
         errorMessage={createTag.error?.message}
         onSubmit={({
-          name, romanizedName,
+          name, names,
         }) => createTag.mutate(
           {
             name,
-            romanizedName,
             parentId: null,
           },
           {
-            onSuccess: close,
+            onSuccess: (tag) => {
+              if (names.length > 0) {
+                createNames.mutate({
+                  ownerType: "tag",
+                  ownerId: tag.id,
+                  entries: names,
+                });
+              }
+              close();
+            },
           },
         )}
       />

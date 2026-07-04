@@ -3,6 +3,7 @@ import type { Person } from "@eesimple/types";
 import { UserCircle } from "lucide-react";
 
 import { EntityImagePreview } from "../EntityImageField";
+import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
 
 import { useAlbums } from "@/hooks/useAlbums";
 import { useGroups } from "@/hooks/useGroups";
@@ -45,6 +46,13 @@ export function PersonGeneralView({
         <dd>{new Date(person.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">Slug</dt>
         <dd className="font-mono">{person.slug}</dd>
+        <dt className="text-muted-foreground">Names</dt>
+        <dd>
+          <EntityNamesTabView
+            ownerType="person"
+            ownerId={person.id}
+          />
+        </dd>
         {person.bookmarkCount != null
           ? (
             <>

@@ -1,4 +1,7 @@
 import type { PlexTitle } from "./PlexTitleGeneralForm";
+import type { EntityNameOwnerType } from "@eesimple/types";
+
+import { EntityNamesTabView } from "./entityNames/EntityNamesTab";
 
 import { useConnectors } from "@/hooks/useConnectors";
 import { useMediaProperties } from "@/hooks/useMediaProperties";
@@ -39,11 +42,14 @@ function PlexItemValue({
 /** Read-only General view for any Plex-backed taxonomy row — shared by all workbench descriptors. */
 export function PlexTitleGeneralView({
   entity,
+  ownerType,
   createdAt,
   bookmarkCount,
   renderExtra,
 }: {
   entity: PlexTitle;
+  /** Which `entity_names` owner type this row is, for the read-only multilingual names row. */
+  ownerType: EntityNameOwnerType;
   createdAt: string;
   bookmarkCount?: number;
   /** Extra read-only rows (parent link / credits) appended below the standard fields. */
@@ -117,6 +123,13 @@ export function PlexTitleGeneralView({
             </>
           )
           : null}
+        <dt className="text-muted-foreground">Names</dt>
+        <dd>
+          <EntityNamesTabView
+            ownerType={ownerType}
+            ownerId={entity.id}
+          />
+        </dd>
         <dt className="text-muted-foreground">Sort order</dt>
         <dd>{entity.sortOrder}</dd>
         {bookmarkCount != null

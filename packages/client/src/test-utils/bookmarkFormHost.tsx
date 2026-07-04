@@ -1,4 +1,5 @@
 import type { BookmarkFormApi } from "../components/bookmarkFormSchema";
+import type { DraftEntityName } from "../components/entityNames/draftEntityName";
 import type { ReactNode } from "react";
 
 import { bookmarkSchema } from "../components/bookmarkFormSchema";
@@ -8,6 +9,7 @@ interface BookmarkFormHostValues {
   url: string;
   title: string;
   romanizedName: string;
+  names: DraftEntityName[];
   categoryId: string;
   mediaTypeId: string;
   description: string;
@@ -50,6 +52,7 @@ export function BookmarkFormHost({
       url: "",
       title: "",
       romanizedName: "",
+      names: [],
       categoryId: "",
       mediaTypeId: "",
       description: "",

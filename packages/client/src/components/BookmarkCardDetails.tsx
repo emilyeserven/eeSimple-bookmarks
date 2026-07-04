@@ -162,15 +162,15 @@ export function BookmarkCardDetails({
         };
       }
       case "romanizedName": {
-        // Only hidden when there is no romanized value at all; when present, BookmarkRomanizedField
-        // renders the toggle-aware secondary (romanized, or the native title when "show romanized
-        // first" is on) so the title/romanized pair matches every other surface.
-        if (!bookmark.romanizedName) return null;
+        // Only hidden when there is no secondary name at all (neither `names` nor the legacy
+        // `romanizedName` scalar); when present, BookmarkRomanizedField renders the resolved
+        // secondary name (via `resolveDisplayNames`) so it matches every other surface.
+        if (bookmark.names.length === 0 && !bookmark.romanizedName) return null;
         const romanizedNameNode = <BookmarkRomanizedField bookmark={bookmark} />;
         return {
           inline: romanizedNameNode,
           block: romanizedNameNode,
-          tableName: "Romanized Title",
+          tableName: "Secondary Title",
           tableValue: romanizedNameNode,
         };
       }

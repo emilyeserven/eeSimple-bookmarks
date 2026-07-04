@@ -57,6 +57,7 @@ export const trackWorkbench: EntityWorkbench<Track> = {
         }) => (
           <PlexTitleGeneralView
             entity={entity}
+            ownerType="track"
             createdAt={entity.createdAt}
             bookmarkCount={entity.bookmarkCount}
             renderExtra={<TrackAlbumValue track={entity} />}

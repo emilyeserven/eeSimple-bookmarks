@@ -8,12 +8,15 @@ import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSecti
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
 import { BookmarkMediaField } from "./BookmarkMediaField";
 import { BookmarkNameField } from "./BookmarkNameField";
+import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { PersonSocialAccountOffer } from "./PersonSocialAccountOffer";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { mediaSelectionFromBookmark } from "./useBookmarkMediaField";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 import { useBookmarkSyncRegistration } from "../hooks/useBookmarkSyncRegistration";
+
+import { Label } from "@/components/ui/label";
 
 interface BookmarkGeneralFormProps {
   bookmark: Bookmark;
@@ -89,15 +92,13 @@ export function BookmarkGeneralForm({
         }}
       />
 
-      <form.AppField name="romanizedName">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-            onBlur={() => saveField("romanizedName", field.state.value.trim() || null)}
-          />
-        )}
-      </form.AppField>
+      <div className="space-y-1">
+        <Label>Names</Label>
+        <EntityNamesTabEditor
+          ownerType="bookmark"
+          ownerId={bookmark.id}
+        />
+      </div>
 
       <BookmarkGeneralUrlSection
         ctrl={ctrl}

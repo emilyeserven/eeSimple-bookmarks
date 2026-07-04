@@ -1,9 +1,13 @@
-import type { Tag, TagNode } from "@eesimple/types";
+import type { DraftEntityName } from "./entityNames/draftEntityName";
+import type { Tag, TagNode, UpdateEntityNameEntry } from "@eesimple/types";
 import type React from "react";
 
 import { Fragment, useState } from "react";
 
+import { entriesFromDrafts } from "./entityNames/draftEntityName";
+import { EntityNamesEditor } from "./entityNames/EntityNamesEditor";
 import { tagSchema } from "./tagFormSchema";
+import { Label } from "./ui/label";
 import { useAppForm } from "../lib/form";
 import { tagNodesToOptions } from "../lib/tagTree";
 
@@ -34,7 +38,7 @@ interface TagFormProps {
   SubmitWrapper?: React.ComponentType<{ children: React.ReactNode }>;
   /** Called with normalized values on a valid submit; `parentId` is null for "(root)". */
   onSubmit: (value: { name: string;
-    romanizedName: string | null;
+    names: UpdateEntityNameEntry[];
     parentId: string | null; }) => void;
   /**
    * Renders the parent picker's inline "Create tag" modal (an `AddTagModal`). Taken as a render
@@ -64,12 +68,12 @@ export function TagForm({
   renderParentCreateModal,
 }: TagFormProps) {
   const [addTagOpen, setAddTagOpen] = useState(false);
+  const [nameDrafts, setNameDrafts] = useState<DraftEntityName[]>([]);
   const parentOptions = tagNodesToOptions(allTags, forbiddenIds);
 
   const form = useAppForm({
     defaultValues: {
       name: defaultName,
-      romanizedName: "",
       parent: defaultParentId ?? "",
     },
     validators: {
@@ -80,7 +84,7 @@ export function TagForm({
     }) => {
       onSubmit({
         name: value.name.trim(),
-        romanizedName: value.romanizedName.trim() || null,
+        names: entriesFromDrafts(nameDrafts),
         // With the parent select hidden, honor the fixed `defaultParentId` (used by the header's
         // "New sub-X" quick-add); otherwise read the chosen parent, treating "" (root) as null.
         parentId: !showParent
@@ -108,14 +112,13 @@ export function TagForm({
         )}
       </form.AppField>
 
-      <form.AppField name="romanizedName">
-        {field => (
-          <field.TextField
-            label="Romanized name"
-            placeholder="Optional romanized form"
-          />
-        )}
-      </form.AppField>
+      <div className="space-y-1">
+        <Label>Names</Label>
+        <EntityNamesEditor
+          value={nameDrafts}
+          onChange={setNameDrafts}
+        />
+      </div>
 
       {showParent
         ? (

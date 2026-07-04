@@ -1,3 +1,4 @@
+import type { DraftEntityName } from "./entityNames/draftEntityName";
 import type { Location } from "@eesimple/types";
 
 import { useState } from "react";
@@ -6,10 +7,13 @@ import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AddTagModal } from "./AddTagModal";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { Combobox } from "./Combobox";
+import { entriesFromDrafts } from "./entityNames/draftEntityName";
+import { EntityNamesEditor } from "./entityNames/EntityNamesEditor";
 import { LocationAncestorChainEditor } from "./LocationAncestorChainEditor";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { ROOT, useLocationForm } from "./useLocationForm";
+import { useCreateEntityNames } from "../hooks/useEntityNames";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,9 +40,10 @@ interface LocationFormProps {
 export function LocationForm({
   onCreated,
 }: LocationFormProps) {
+  const [nameDrafts, setNameDrafts] = useState<DraftEntityName[]>([]);
+  const createNames = useCreateEntityNames();
   const {
     name, setName,
-    romanizedName, setRomanizedName,
     latitude, setLatitude,
     longitude, setLongitude,
     mapUrl, setMapUrl,
@@ -60,7 +65,17 @@ export function LocationForm({
     hasExistingParent,
     handleSubmit,
     applyCandidate,
-  } = useLocationForm(onCreated);
+  } = useLocationForm((location) => {
+    const entries = entriesFromDrafts(nameDrafts);
+    if (entries.length > 0) {
+      createNames.mutate({
+        ownerType: "location",
+        ownerId: location.id,
+        entries,
+      });
+    }
+    onCreated?.(location);
+  });
 
   const [addPlaceTypeOpen, setAddPlaceTypeOpen] = useState(false);
   const [addTagOpen, setAddTagOpen] = useState(false);
@@ -83,12 +98,10 @@ export function LocationForm({
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="location-romanized">Romanized name</Label>
-        <Input
-          id="location-romanized"
-          placeholder="Optional romanized form"
-          value={romanizedName}
-          onChange={event => setRomanizedName(event.target.value)}
+        <Label>Names</Label>
+        <EntityNamesEditor
+          value={nameDrafts}
+          onChange={setNameDrafts}
         />
       </div>
 
