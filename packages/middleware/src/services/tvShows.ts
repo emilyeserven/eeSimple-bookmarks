@@ -48,6 +48,7 @@ const service = createPlexTaxonomyService<typeof tvShows, TvShow, CreateTvShowIn
   bookmarkFk: bookmarks.tvShowId,
   taxonomyImageOwnerType: "tvShow",
   languageUsageOwnerType: "tvShow",
+  entityNameOwnerType: "tvShow",
   makeDuplicateError: name => new DuplicateTvShowError(name),
   toWire: toTvShow,
 });

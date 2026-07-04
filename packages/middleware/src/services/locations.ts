@@ -16,6 +16,7 @@ import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { geocodeLocation, refreshLocationBoundary } from "@/services/geocoding";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import { resolveWikipediaLinks } from "@/services/wikidataGeocoding";
 import {
   collectSubtreeIds as collectParentTreeSubtreeIds,
@@ -215,7 +216,7 @@ async function writeLocationTags(
 }
 
 export async function createLocation(input: CreateLocationInput): Promise<Location> {
-  const slug = uniqueSlug(locationSlugSource(input.name, input.romanizedName), await takenLocationSlugs());
+  const slug = uniqueSlug(locationSlugSource(input.name, input.romanizedName), await takenLocationSlugs(), "location");
   const row = await db.transaction(async (tx) => {
     const [inserted] = await tx
       .insert(locations)
@@ -375,7 +376,7 @@ async function deriveUpdatedLocationSlug(id: string, input: UpdateLocationInput)
   if (!current) return undefined;
   const effectiveName = input.name ?? current.name;
   const effectiveRomanized = input.romanizedName !== undefined ? input.romanizedName : current.romanizedName;
-  return uniqueSlug(locationSlugSource(effectiveName, effectiveRomanized), await takenLocationSlugs(id));
+  return uniqueSlug(locationSlugSource(effectiveName, effectiveRomanized), await takenLocationSlugs(id), "location");
 }
 
 export async function updateLocation(id: string, input: UpdateLocationInput): Promise<Location | null> {
@@ -546,7 +547,7 @@ export async function backfillLocationSlugs(): Promise<void> {
 
   const taken = await takenLocationSlugs();
   for (const loc of missing) {
-    const slug = uniqueSlug(locationSlugSource(loc.name, loc.romanizedName), taken);
+    const slug = uniqueSlug(locationSlugSource(loc.name, loc.romanizedName), taken, "location");
     taken.push(slug);
     await db.update(locations).set({
       slug,
@@ -586,7 +587,7 @@ export async function backfillLocationRomanizedSlugs(): Promise<void> {
   }
 
   for (const loc of toRewrite) {
-    const slug = uniqueSlug(loc.source, taken);
+    const slug = uniqueSlug(loc.source, taken, "location");
     taken.add(slug);
     await db.update(locations).set({
       slug,
@@ -602,6 +603,7 @@ export async function deleteLocation(id: string): Promise<boolean> {
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("location", id);
+    await deleteEntityNamesForOwner("location", id);
     invalidateBookmarkCache();
   }
   return rows.length > 0;

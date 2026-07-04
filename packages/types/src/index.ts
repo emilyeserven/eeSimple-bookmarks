@@ -7,6 +7,7 @@
 
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
+import type { EntityName } from "./entityNames.js";
 import type { BookmarkGenreMood } from "./genreMoods.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
 import type { LanguageUsage, UpdateLanguageUsageEntry } from "./languageUsages.js";
@@ -17,6 +18,7 @@ export * from "./autofillMerge.js";
 export * from "./albums.js";
 export * from "./bookmarkAddForm.js";
 export * from "./books.js";
+export * from "./entityNames.js";
 export * from "./episodes.js";
 export * from "./conditions.js";
 export * from "./genreMoods.js";
@@ -1219,6 +1221,8 @@ export interface Bookmark {
   mediaType: BookmarkMediaType | null;
   /** Languages associated with this bookmark, each qualified by a usage level (dub/subtitles/…). */
   languageUsages: LanguageUsage[];
+  /** Multilingual titles for this bookmark, each labelled by language; the `isPrimary` row mirrors `title`. */
+  names: EntityName[];
   /** The YouTube channel this bookmark belongs to (auto-linked for YouTube videos), or `null`. */
   youtubeChannel: BookmarkYouTubeChannel | null;
   /** The newsletter this bookmark was imported from, or `null`. */

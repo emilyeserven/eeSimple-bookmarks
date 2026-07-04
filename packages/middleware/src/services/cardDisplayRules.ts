@@ -79,7 +79,7 @@ export async function createCardDisplayRule(
     .insert(cardDisplayRules)
     .values({
       name: input.name,
-      slug: uniqueSlug(input.name, await takenSlugs()),
+      slug: uniqueSlug(input.name, await takenSlugs(), "card-display-rule"),
       description: input.description ?? null,
       conditions: input.conditions,
       sortOrder,
@@ -106,7 +106,7 @@ export async function updateCardDisplayRule(
   const updates: Partial<typeof cardDisplayRules.$inferInsert> = {};
   if (input.name !== undefined) {
     updates.name = input.name;
-    updates.slug = uniqueSlug(input.name, await takenSlugs(id));
+    updates.slug = uniqueSlug(input.name, await takenSlugs(id), "card-display-rule");
   }
   if (input.description !== undefined) updates.description = input.description ?? null;
   if (input.conditions !== undefined) updates.conditions = input.conditions;
@@ -184,7 +184,7 @@ export async function ensureDefaultCardDisplayRule(): Promise<void> {
 
   await db.insert(cardDisplayRules).values({
     name: "Default",
-    slug: uniqueSlug("Default", await takenSlugs()),
+    slug: uniqueSlug("Default", await takenSlugs(), "card-display-rule"),
     description: null,
     conditions: emptyConditionTree(),
     // Pinned last regardless; a high sortOrder keeps it last even if isDefault sorting changes.
@@ -580,7 +580,7 @@ export async function backfillCardDisplayRuleSlugs(): Promise<void> {
 
   const taken = new Set(await takenSlugs());
   for (const rule of missing) {
-    const slug = uniqueSlug(rule.name, taken);
+    const slug = uniqueSlug(rule.name, taken, "card-display-rule");
     taken.add(slug);
     await db.update(cardDisplayRules).set({
       slug,

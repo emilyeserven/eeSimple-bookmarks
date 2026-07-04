@@ -10,6 +10,7 @@ import { db } from "@/db";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import { bookmarks, mediaTypes, type MediaTypeRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -282,7 +283,7 @@ export async function createMediaType(input: CreateMediaTypeInput): Promise<Medi
   const parentId = input.parentId ?? null;
   if (parentId !== null) await assertParentIsRoot(parentId);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "media-type");
   const [row] = await db.insert(mediaTypes).values({
     name,
     romanizedName: input.romanizedName ?? null,
@@ -314,7 +315,7 @@ export async function updateMediaType(
     }).from(mediaTypes).where(eq(mediaTypes.name, name));
     if (clash && clash.id !== id) throw new DuplicateMediaTypeError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "media-type");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.icon !== undefined) patch.icon = input.icon;
@@ -353,6 +354,7 @@ export async function deleteMediaType(id: string): Promise<boolean> {
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("mediaType", id);
+    await deleteEntityNamesForOwner("mediaType", id);
     invalidateBookmarkCache();
   }
   return rows.length > 0;
@@ -449,7 +451,7 @@ export async function backfillMediaTypeSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const mt of missing) {
-    const slug = uniqueSlug(mt.name, taken);
+    const slug = uniqueSlug(mt.name, taken, "media-type");
     taken.push(slug);
     await db.update(mediaTypes).set({
       slug,

@@ -11,6 +11,7 @@ import { genreMoodAssignments, genreMoods, type GenreMoodRow } from "@/db/schema
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import {
   collectSubtreeIds,
   computeSubtreeBookmarkCounts,
@@ -123,7 +124,7 @@ export async function createGenreMood(input: CreateGenreMoodInput): Promise<Genr
   const name = input.name.trim();
   if (name.length === 0) throw new DuplicateGenreMoodError(input.name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "genre-mood");
   const [row] = await db
     .insert(genreMoods)
     .values({
@@ -150,7 +151,7 @@ export async function updateGenreMood(
   const patch: Partial<Pick<GenreMoodRow, "name" | "romanizedName" | "slug" | "parentId">> = {};
   if (input.name !== undefined) {
     patch.name = input.name.trim();
-    patch.slug = uniqueSlug(input.name, await takenSlugs(id));
+    patch.slug = uniqueSlug(input.name, await takenSlugs(id), "genre-mood");
   }
   if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
@@ -172,6 +173,7 @@ export async function deleteGenreMood(id: string): Promise<boolean> {
     // A genre/mood can itself be an assignment owner (attached to another genre/mood); ownerId
     // carries no cascade FK, so clean up those rows here.
     await deleteGenreMoodAssignmentsForOwner("genreMood", id);
+    await deleteEntityNamesForOwner("genreMood", id);
     // Cascade removes descendants + value-side assignment rows (incl. bookmark owners) — refresh the cache.
     invalidateBookmarkCache();
   }
@@ -196,7 +198,7 @@ export async function backfillGenreMoodSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const node of missing) {
-    const slug = uniqueSlug(node.name, taken);
+    const slug = uniqueSlug(node.name, taken, "genre-mood");
     taken.push(slug);
     await db.update(genreMoods).set({
       slug,

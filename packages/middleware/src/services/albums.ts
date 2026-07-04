@@ -8,6 +8,7 @@ import type {
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner, mainTaxonomyImageUrl } from "@/services/taxonomyImages";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import {
   albumPeople, albumGroups, albums, bookmarks, taxonomyImages, type AlbumRow,
 } from "@/db/schema";
@@ -199,7 +200,7 @@ export async function createAlbum(input: CreateAlbumInput): Promise<Album> {
   }).from(albums).where(eq(albums.name, name));
   if (clash) throw new DuplicateAlbumError(name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "album");
   return db.transaction(async (tx) => {
     const [row] = await tx.insert(albums).values({
       name,
@@ -228,7 +229,7 @@ export async function updateAlbum(id: string, input: UpdateAlbumInput): Promise<
     }).from(albums).where(eq(albums.name, name));
     if (clash && clash.id !== id) throw new DuplicateAlbumError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "album");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
 
@@ -251,7 +252,10 @@ export async function deleteAlbum(id: string): Promise<boolean> {
   const rows = await db.delete(albums).where(eq(albums.id, id)).returning({
     id: albums.id,
   });
-  if (rows.length > 0) await deleteTaxonomyImagesForOwner("album", id);
+  if (rows.length > 0) {
+    await deleteTaxonomyImagesForOwner("album", id);
+    await deleteEntityNamesForOwner("album", id);
+  }
   return rows.length > 0;
 }
 
@@ -273,7 +277,7 @@ export async function backfillAlbumSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const album of missing) {
-    const slug = uniqueSlug(album.name, taken);
+    const slug = uniqueSlug(album.name, taken, "album");
     taken.push(slug);
     await db.update(albums).set({
       slug,

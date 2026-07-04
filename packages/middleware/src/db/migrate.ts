@@ -357,6 +357,39 @@ const migrations: RuntimeMigration[] = [
     },
   },
   {
+    // New table on a populated DB ⇒ pre-create so push's diff stays additive (else the
+    // `pgSuggestions` truncate prompt crashes the non-TTY deploy and silently skips the rest of the
+    // additive diff). `language_id` is a plain uuid here (no REFERENCES — the `languages` base table
+    // may not exist yet when migrate runs, before push); push adds the FK constraint afterward.
+    name: "create entity_names table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "entity_names" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "owner_type" text NOT NULL,
+        "owner_id" uuid NOT NULL,
+        "language_id" uuid NOT NULL,
+        "value" text NOT NULL,
+        "is_primary" boolean DEFAULT false NOT NULL,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    name: "create entity_names owner index",
+    run: db => db.execute(
+      sql`CREATE INDEX IF NOT EXISTS "entity_names_owner_idx" ON "entity_names" ("owner_type", "owner_id")`,
+    ),
+  },
+  {
+    // Composite unique as an INDEX (schema.ts declares `uniqueIndex`) — a composite `unique()`
+    // constraint would make push re-propose it every deploy → truncate prompt → non-TTY crash.
+    name: "create entity_names owner/language unique index",
+    run: db => db.execute(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS "entity_names_owner_language_unique" ON "entity_names" ("owner_type", "owner_id", "language_id")`,
+    ),
+  },
+  {
     // `app_settings.homepage_header_hidden` is NOT NULL DEFAULT false. Adding a NOT NULL column to
     // the populated singleton makes drizzle-kit push prompt — the same non-TTY crash as above — so
     // pre-apply it here to keep push's diff additive-only.

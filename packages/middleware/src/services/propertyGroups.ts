@@ -64,7 +64,7 @@ export async function createPropertyGroup(input: CreatePropertyGroupInput): Prom
   }).from(propertyGroups).where(eq(propertyGroups.name, name));
   if (clash) throw new DuplicatePropertyGroupError(name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "property-group");
   const [row] = await db.insert(propertyGroups).values({
     name,
     slug,
@@ -90,7 +90,7 @@ export async function updatePropertyGroup(
     }).from(propertyGroups).where(eq(propertyGroups.name, name));
     if (clash && clash.id !== id) throw new DuplicatePropertyGroupError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "property-group");
   }
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.priority !== undefined) patch.priority = input.priority;
@@ -126,7 +126,7 @@ export async function backfillPropertyGroupSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const group of missing) {
-    const slug = uniqueSlug(group.name, taken);
+    const slug = uniqueSlug(group.name, taken, "property-group");
     taken.push(slug);
     await db.update(propertyGroups).set({
       slug,

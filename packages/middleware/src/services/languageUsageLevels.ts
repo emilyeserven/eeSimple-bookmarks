@@ -96,7 +96,7 @@ export async function createLanguageUsageLevel(
     .where(and(eq(languageUsageLevels.kind, input.kind), eq(languageUsageLevels.name, name)));
   if (clash) throw new DuplicateLanguageUsageLevelError(name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "language-usage-level");
   const [row] = await db
     .insert(languageUsageLevels)
     .values({
@@ -129,7 +129,7 @@ export async function updateLanguageUsageLevel(
       .where(and(eq(languageUsageLevels.kind, existing.kind), eq(languageUsageLevels.name, name)));
     if (clash && clash.id !== id) throw new DuplicateLanguageUsageLevelError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "language-usage-level");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (Object.keys(patch).length === 0) return toLevel(existing);
@@ -271,7 +271,7 @@ export async function backfillLanguageUsageLevelSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const level of missing) {
-    const slug = uniqueSlug(level.name, taken);
+    const slug = uniqueSlug(level.name, taken, "language-usage-level");
     taken.push(slug);
     await db.update(languageUsageLevels).set({
       slug,

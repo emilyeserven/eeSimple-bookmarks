@@ -2,6 +2,7 @@ import { asc, count, eq, inArray, isNull } from "drizzle-orm";
 import type { Person, BulkDeleteResult, CreatePersonInput, SocialLink, UpdatePersonInput } from "@eesimple/types";
 import { db } from "@/db";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteEntityNamesForOwner } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
@@ -276,7 +277,7 @@ export async function createPerson(input: CreatePersonInput): Promise<Person> {
   }).from(people).where(eq(people.name, name));
   if (clash) throw new DuplicatePersonError(name);
 
-  const slug = uniqueSlug(name, await takenSlugs());
+  const slug = uniqueSlug(name, await takenSlugs(), "person");
   const [row] = await db.insert(people).values({
     name,
     romanizedName: input.romanizedName ?? null,
@@ -301,7 +302,7 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
     }).from(people).where(eq(people.name, name));
     if (clash && clash.id !== id) throw new DuplicatePersonError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(name, await takenSlugs(id));
+    patch.slug = uniqueSlug(name, await takenSlugs(id), "person");
   }
   if ("personWebsiteUrl" in input) patch.personWebsiteUrl = input.personWebsiteUrl ?? null;
   if ("biographyUrl" in input) patch.biographyUrl = input.biographyUrl ?? null;
@@ -407,6 +408,7 @@ export async function deletePerson(id: string): Promise<boolean> {
     await deleteLanguageUsagesForOwner("person", id);
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("person", id);
+    await deleteEntityNamesForOwner("person", id);
   }
   return rows.length > 0;
 }
@@ -438,7 +440,7 @@ export async function backfillPersonSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const person of missing) {
-    const slug = uniqueSlug(person.name, taken);
+    const slug = uniqueSlug(person.name, taken, "person");
     taken.push(slug);
     await db.update(people).set({
       slug,

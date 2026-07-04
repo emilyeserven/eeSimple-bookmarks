@@ -326,7 +326,7 @@ export function buildInsertValues(
 export async function createCustomProperty(
   input: CreateCustomPropertyInput,
 ): Promise<CustomProperty> {
-  const slug = uniqueSlug(input.name, await takenSlugs());
+  const slug = uniqueSlug(input.name, await takenSlugs(), "property");
   const values = buildInsertValues(input, slug);
   const id = await db.transaction(async (tx) => {
     const [row] = await tx
@@ -494,7 +494,7 @@ export async function updateCustomProperty(
       .from(customProperties)
       .where(eq(customProperties.id, id));
     if (current && input.name !== current.name) {
-      renamedSlug = uniqueSlug(input.name, await takenSlugs(id));
+      renamedSlug = uniqueSlug(input.name, await takenSlugs(id), "property");
     }
   }
 
@@ -1194,7 +1194,7 @@ export async function backfillCustomPropertySlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const property of missing) {
-    const slug = uniqueSlug(property.name, taken);
+    const slug = uniqueSlug(property.name, taken, "property");
     taken.push(slug);
     await db.update(customProperties).set({
       slug,

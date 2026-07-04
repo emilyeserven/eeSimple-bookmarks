@@ -8,6 +8,7 @@ import type {
   BookmarkFileValue,
   BookmarkImage,
   BookmarkImport,
+  BookmarkEntityName,
   BookmarkLanguageUsage,
   BookmarkLocation,
   BookmarkMediaType,
@@ -66,6 +67,7 @@ import {
   youtubeChannels,
 } from "@/db/schema";
 import { loadLanguageUsages } from "@/services/languageUsages";
+import { loadEntityNames } from "@/services/entityNames";
 import { bookmarkImageFromRow, bookmarkScreenshotFromRow, bookmarkScreenshotSettingsFromRow } from "@/services/bookmarkImages";
 import { reelArchiveFromRow } from "@/services/reelArchive";
 import { bookmarkFileValueFromRow } from "@/services/bookmarkPropertyFiles";
@@ -77,6 +79,7 @@ interface BookmarkExtras {
   website: BookmarkWebsite | null;
   mediaType: BookmarkMediaType | null;
   languageUsages: BookmarkLanguageUsage[];
+  names: BookmarkEntityName[];
   youtubeChannel: BookmarkYouTubeChannel | null;
   newsletter: BookmarkNewsletter | null;
   group: BookmarkGroup | null;
@@ -107,6 +110,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   website: null,
   mediaType: null,
   languageUsages: [],
+  names: [],
   youtubeChannel: null,
   newsletter: null,
   group: null,
@@ -146,6 +150,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     website: extras.website,
     mediaType: extras.mediaType,
     languageUsages: extras.languageUsages,
+    names: extras.names,
     youtubeChannel: extras.youtubeChannel,
     newsletter: extras.newsletter,
     group: extras.group,
@@ -914,7 +919,7 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, genreMoodsMap, locationsMap, blacklistedMap, blacklistedLocationMap, peopleMap, bmGroupsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap, languageUsagesMap] = await Promise.all([
+  const [tagsMap, genreMoodsMap, locationsMap, blacklistedMap, blacklistedLocationMap, peopleMap, bmGroupsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap, languageUsagesMap, entityNamesMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     genreMoodsByBookmarkId(bookmarkIds),
     locationsByBookmarkId(bookmarkIds),
@@ -935,6 +940,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
     reelArchivesByBookmarkId(bookmarkIds),
     relationshipsByBookmarkId(bookmarkIds),
     loadLanguageUsages("bookmark", bookmarkIds),
+    loadEntityNames("bookmark", bookmarkIds),
   ]);
   const grouped = new Map<string, BookmarkExtras>();
   for (const id of bookmarkIds) {
@@ -942,6 +948,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       website: null,
       mediaType: null,
       languageUsages: languageUsagesMap.get(id) ?? [],
+      names: entityNamesMap.get(id) ?? [],
       youtubeChannel: null,
       newsletter: null,
       group: null,

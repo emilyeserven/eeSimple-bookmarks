@@ -88,7 +88,7 @@ export async function createGroupType(input: CreateGroupTypeInput): Promise<Grou
   }).from(groupTypes).where(eq(groupTypes.name, name));
   if (clash) throw new DuplicateGroupTypeError(name);
 
-  const slug = uniqueSlug(slugify(name), await takenSlugs());
+  const slug = uniqueSlug(slugify(name), await takenSlugs(), "group-type");
   const [row] = await db.insert(groupTypes).values({
     name,
     slug,
@@ -113,7 +113,7 @@ export async function updateGroupType(
     }).from(groupTypes).where(eq(groupTypes.name, name));
     if (clash && clash.id !== id) throw new DuplicateGroupTypeError(name);
     patch.name = name;
-    patch.slug = uniqueSlug(slugify(name), await takenSlugs(id));
+    patch.slug = uniqueSlug(slugify(name), await takenSlugs(id), "group-type");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (Object.keys(patch).length === 0) return toGroupType(existing);
@@ -148,7 +148,7 @@ export async function backfillGroupTypeSlugs(): Promise<void> {
 
   const taken = await takenSlugs();
   for (const gt of missing) {
-    const slug = uniqueSlug(slugify(gt.name), taken);
+    const slug = uniqueSlug(slugify(gt.name), taken, "group-type");
     taken.push(slug);
     await db.update(groupTypes).set({
       slug,
@@ -164,7 +164,7 @@ export async function ensureDefaultGroupTypes(): Promise<void> {
       id: groupTypes.id,
     }).from(groupTypes).where(eq(groupTypes.name, name));
     if (existing) continue;
-    const slug = uniqueSlug(slugify(name), taken);
+    const slug = uniqueSlug(slugify(name), taken, "group-type");
     taken.push(slug);
     await db.insert(groupTypes).values({
       name,
