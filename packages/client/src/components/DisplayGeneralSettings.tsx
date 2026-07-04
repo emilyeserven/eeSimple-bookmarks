@@ -40,13 +40,15 @@ const THEME_LABELS: Record<Theme, string> = {
 
 const DISPLAY_DEFAULTS: Pick<
   DisplayPreferenceSettings,
-  "customPropertyTypeIcons" | "showRomanizedByDefault" | "sortByRomanized" | "bookmarksPerPage" | "interfaceLanguage"
+  "customPropertyTypeIcons" | "showRomanizedByDefault" | "sortByRomanized" | "bookmarksPerPage"
+  | "interfaceLanguage" | "hanScriptLanguage"
 > = {
   customPropertyTypeIcons: null,
   showRomanizedByDefault: false,
   sortByRomanized: true,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   interfaceLanguage: "en",
+  hanScriptLanguage: "ja",
 };
 
 const LANGUAGE_OPTIONS = [
@@ -112,6 +114,10 @@ export function DisplayGeneralSettings() {
     saveDisplay({
       sortByRomanized: value,
     }, "Romanized sort updated");
+  const setHanScriptLanguage = (value: "ja" | "zh") =>
+    saveDisplay({
+      hanScriptLanguage: value,
+    }, "Han-only name language updated");
   const setBookmarksPerPage = (value: number) =>
     saveDisplay({
       bookmarksPerPage: value,
@@ -250,6 +256,31 @@ export function DisplayGeneralSettings() {
                 romanized form fall back to their name). On by default.
               </p>
             </div>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="han-script-language-select">Han-only name language</Label>
+            <p className="text-sm text-muted-foreground">
+              Names written only in Han characters (kanji/hanzi, no kana) are ambiguous between
+              Japanese and Chinese. Choose which language to assume for them. Japanese by default.
+            </p>
+            <Select
+              value={display.hanScriptLanguage}
+              onValueChange={value => setHanScriptLanguage(value === "zh" ? "zh" : "ja")}
+            >
+              <SelectTrigger
+                id="han-script-language-select"
+                className="
+                  w-full
+                  sm:w-60
+                "
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ja">Japanese</SelectItem>
+                <SelectItem value="zh">Chinese</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

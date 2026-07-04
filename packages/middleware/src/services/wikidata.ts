@@ -77,9 +77,18 @@ export async function fetchJson(url: URL): Promise<unknown> {
   }
 }
 
+// Character-class ranges for the CJK / non-Latin scripts these two detectors key off. Defined once so
+// the two functions below share the ones they have in common (kana). These are the legacy ranges used
+// to pick the Wikidata query language — kept verbatim so behaviour is unchanged. For classifying an
+// entity's own name, use the precise `\p{Script=…}` classifier in `utils/scriptDetection.ts` instead.
+const KANA = "぀-ヿ"; // hiragana + katakana (U+3040–U+30FF)
+const CJK_IDEOGRAPHS_EXTENDED = "㐀-鿿豈-﫿"; // CJK Unified (incl. Ext A) + Compatibility Ideographs
+const HAN_BASIC = "一-鿿"; // CJK Unified Ideographs (U+4E00–U+9FFF)
+const HANGUL = "가-힣"; // hangul syllables
+
 /** Detect whether a query is in Japanese (CJK / kana) so we ask Wikidata in the right language. */
 function detectLanguage(query: string): string {
-  return /[぀-ヿ㐀-鿿豈-﫿]/.test(query) ? "ja" : "en";
+  return new RegExp(`[${KANA}${CJK_IDEOGRAPHS_EXTENDED}]`).test(query) ? "ja" : "en";
 }
 
 /** The `value` of an entity's first claim for a property, or `null`. */
@@ -252,9 +261,9 @@ export const COUNTRY_LANGUAGE_FALLBACK: Record<string, string> = {
  * country breaks the tie when it maps to ja/ko/zh, falling back to Chinese when unknown.
  */
 export function detectWikipediaLanguage(text: string, countryCode: string | null): string | null {
-  if (/[぀-ヿ]/.test(text)) return "ja"; // hiragana / katakana
-  if (/[가-힣]/.test(text)) return "ko"; // hangul
-  if (/[一-鿿]/.test(text)) {
+  if (new RegExp(`[${KANA}]`).test(text)) return "ja"; // hiragana / katakana
+  if (new RegExp(`[${HANGUL}]`).test(text)) return "ko"; // hangul
+  if (new RegExp(`[${HAN_BASIC}]`).test(text)) {
     const byCountry = countryCode ? COUNTRY_LANGUAGE_FALLBACK[countryCode.toUpperCase()] : undefined;
     return byCountry === "ja" || byCountry === "ko" || byCountry === "zh" ? byCountry : "zh";
   }

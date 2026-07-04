@@ -219,6 +219,14 @@ const BUILT_IN_LEVELS: { name: string;
     name: "Explanations",
     kind: "availability",
   },
+  // A bookmark's main content language is expressed as an availability-kind usage row on this level
+  // (there is no dedicated primary-language field). Seeding it also un-breaks the client scan
+  // auto-detect, which looks up a level named `PRIMARY_LANGUAGE_LEVEL_NAME` (case-insensitive) and
+  // silently no-ops until one exists. The #966 backfill attaches it to Korean/Japanese bookmarks.
+  {
+    name: "Primary Language",
+    kind: "availability",
+  },
   {
     name: "Native",
     kind: "proficiency",

@@ -20,6 +20,7 @@ const displayPreferences: DisplayPreferenceSettings = {
   onDemandFilters: [],
   showRomanizedByDefault: false,
   sortByRomanized: false,
+  hanScriptLanguage: "ja",
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,
   mapPinScale: 1,

@@ -6,6 +6,7 @@ import {
   asBookmarkAddFormPlacements,
   asBreakpoints,
   asCropped,
+  asHanScriptLanguage,
   asMapPinScale,
   asMinAreaThreshold,
   asScreenshotDefault,
@@ -25,6 +26,15 @@ test("asCropped: rounds to a positive integer and falls back on junk", () => {
   assert.equal(asCropped(undefined, 9), 9);
   assert.equal(asCropped(Number.NaN, 9), 9);
   assert.equal(asCropped(Number.POSITIVE_INFINITY, 9), 9);
+});
+
+test("asHanScriptLanguage: only 'zh' maps to Chinese, everything else defaults to Japanese", () => {
+  assert.equal(asHanScriptLanguage("zh"), "zh");
+  assert.equal(asHanScriptLanguage("ja"), "ja");
+  assert.equal(asHanScriptLanguage(null), "ja");
+  assert.equal(asHanScriptLanguage(undefined), "ja");
+  assert.equal(asHanScriptLanguage("en"), "ja");
+  assert.equal(asHanScriptLanguage("chinese"), "ja");
 });
 
 test("asMinAreaThreshold: clamps to non-negative, defaults to 0", () => {

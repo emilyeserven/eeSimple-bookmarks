@@ -121,6 +121,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   croppedHeight: 9,
   showRomanizedByDefault: false,
   sortByRomanized: true,
+  hanScriptLanguage: "ja",
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   mapPinScale: MAP_PIN_SCALE_DEFAULT,
@@ -163,6 +164,11 @@ function asDetailLayout(value: string | null | undefined): BookmarkDetailLayout 
 /** Coerce a stored interface-language string to the typed union, defaulting to "en". */
 function asInterfaceLanguage(value: string | null | undefined): InterfaceLanguage {
   return value === "ja" ? "ja" : "en";
+}
+
+/** Coerce a stored Han-only-name language to the typed union, defaulting to "ja" (Japanese). */
+export function asHanScriptLanguage(value: string | null | undefined): "ja" | "zh" {
+  return value === "zh" ? "zh" : "ja";
 }
 
 /** Clamp a stored cropped dimension to a positive integer (mirrors the old client setter). */
@@ -1068,6 +1074,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       onDemandFilters: appSettings.onDemandFilters,
       showRomanizedByDefault: appSettings.showRomanizedByDefault,
       sortByRomanized: appSettings.sortByRomanized,
+      hanScriptLanguage: appSettings.hanScriptLanguage,
       minAreaPinThresholdKm2: appSettings.minAreaPinThresholdKm2,
       bookmarksPerPage: appSettings.bookmarksPerPage,
       mapPinScale: appSettings.mapPinScale,
@@ -1094,6 +1101,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     onDemandFilters: row.onDemandFilters ?? [],
     showRomanizedByDefault: row.showRomanizedByDefault,
     sortByRomanized: row.sortByRomanized,
+    hanScriptLanguage: asHanScriptLanguage(row.hanScriptLanguage),
     minAreaPinThresholdKm2: asMinAreaThreshold(row.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(row.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
     mapPinScale: asMapPinScale(row.mapPinScale),
@@ -1416,6 +1424,7 @@ export async function updateDisplayPreferenceSettings(
     onDemandFilters: [...(input.onDemandFilters ?? [])],
     showRomanizedByDefault: input.showRomanizedByDefault,
     sortByRomanized: input.sortByRomanized,
+    hanScriptLanguage: asHanScriptLanguage(input.hanScriptLanguage),
     minAreaPinThresholdKm2: asMinAreaThreshold(input.minAreaPinThresholdKm2),
     bookmarksPerPage: asCropped(input.bookmarksPerPage, DEFAULT_DISPLAY_PREFERENCES.bookmarksPerPage),
     mapPinScale: asMapPinScale(input.mapPinScale),
