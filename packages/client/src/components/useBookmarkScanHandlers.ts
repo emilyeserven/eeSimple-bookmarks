@@ -6,6 +6,7 @@ import type { Dispatch, RefObject, SetStateAction } from "react";
 import { sameSocialAccount, socialAccountFromLink } from "@eesimple/types";
 
 import { looksLikeYouTube, stripSelfId } from "./bookmarkFormSchema";
+import { useAppLocale } from "../hooks/useAppLocale";
 import { languageDisplayName } from "../lib/languageDisplay";
 
 type Actions = ReturnType<typeof useBookmarkFormActions>;
@@ -106,6 +107,7 @@ export function useBookmarkScanHandlers({
   attachPrimaryLanguageUsage,
   createLanguage,
 }: UseBookmarkScanHandlersParams) {
+  const locale = useAppLocale();
   // Fetch the page title for the current URL and write it into the Title field.
   // `force` (manual button) always overwrites; the on-blur path only fills a blank title.
   async function runFetchTitle(url: string, {
@@ -317,7 +319,7 @@ export function useBookmarkScanHandlers({
     if (!createLanguage) return;
     try {
       const created = await createLanguage.mutateAsync({
-        name: languageDisplayName(code),
+        name: languageDisplayName(code, locale),
         isoCode: code,
       });
       attachPrimaryLanguageUsage(created.id);

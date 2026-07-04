@@ -36,9 +36,13 @@ export function formatNumber(value: number, property: CustomProperty): string {
   return unit ? `${prefix}${value} ${unit}` : `${prefix}${value}`;
 }
 
-/** Format a `datetime` property's stored value for display, honoring its `dateTimeFormat`. */
-export function formatDateTime(value: string, property: CustomProperty): string {
-  return formatDateTimeValue(value, property.dateTimeFormat);
+/**
+ * Format a `datetime` property's stored value for display, honoring its `dateTimeFormat`. Pass the
+ * active interface locale (`useAppLocale()`) to render dates/times in that locale; omit for the
+ * runtime default.
+ */
+export function formatDateTime(value: string, property: CustomProperty, locale?: string): string {
+  return formatDateTimeValue(value, property.dateTimeFormat, locale);
 }
 
 /**
