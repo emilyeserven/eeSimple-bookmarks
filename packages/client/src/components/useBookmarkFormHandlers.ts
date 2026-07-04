@@ -11,6 +11,7 @@ import type { KeyboardEvent } from "react";
 
 import { useStore } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import {
   buildAllPropertyValues,
@@ -81,6 +82,9 @@ export function useBookmarkFormHandlers({
   primaryLanguage,
 }: UseBookmarkFormHandlersParams) {
   const navigate = useNavigate();
+  const {
+    t,
+  } = useTranslation();
 
   const {
     actions: {
@@ -313,7 +317,7 @@ export function useBookmarkFormHandlers({
 
     // Offer a shortcut to refine the chosen category right after saving.
     const categorySlug = (categories ?? []).find(category => category.id === value.categoryId)?.slug;
-    notifySuccess("Bookmark added", categorySlug
+    notifySuccess(t("Bookmark added"), categorySlug
       ? {
         action: {
           label: "Edit category",

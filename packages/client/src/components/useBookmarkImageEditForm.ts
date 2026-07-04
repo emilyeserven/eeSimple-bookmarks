@@ -3,6 +3,8 @@ import type { Bookmark, ImageCandidate, ImageDisplayPreference } from "@eesimple
 
 import { useRef, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { ISBN_SLUG } from "./bookmarkFormSchema";
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { applyImageIntent } from "./bookmarkSubmit";
@@ -84,6 +86,9 @@ export interface BookmarkImageEditFormController {
 export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditFormController {
   const mutations = useBookmarkImageMutations();
   const {
+    t,
+  } = useTranslation();
+  const {
     data: connectors,
   } = useConnectors();
   const kavitaSeriesId = useBookmarkKavitaSeriesId(bookmark);
@@ -121,7 +126,7 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     setIsPending(true);
     try {
       await applyImageIntent(bookmark.id, bookmark.url ?? "", imageIntentRef.current, mutations);
-      notifySuccess("Changes saved");
+      notifySuccess(t("Changes saved"));
       imageIntentRef.current = EMPTY_IMAGE_INTENT;
       setCandidates([]);
       setImageFieldKey(key => key + 1);
@@ -180,7 +185,7 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
           imageDisplayPreference: preference,
         },
       }, {
-        onSuccess: () => notifySuccess("Updated cover image preference"),
+        onSuccess: () => notifySuccess(t("Updated cover image preference")),
       });
     },
   };

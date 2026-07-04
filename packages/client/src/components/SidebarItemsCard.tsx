@@ -1,5 +1,7 @@
 import type React from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { SegmentedToggleRow } from "@/components/SegmentedToggleRow";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -33,9 +35,13 @@ interface SidebarItemsMatrixProps {
  * the consolidated Sidebar settings card and wrapped by {@link SidebarItemsCard}.
  */
 export function SidebarItemsMatrix({
-  items, hiddenItems, seeMoreItems, onSetMode, hiddenLabel = "Listing only",
+  items, hiddenItems, seeMoreItems, onSetMode, hiddenLabel,
 }: SidebarItemsMatrixProps) {
+  const {
+    t,
+  } = useTranslation();
   const hasThreeStates = seeMoreItems !== undefined;
+  const resolvedHiddenLabel = t(hiddenLabel ?? "Listing only");
 
   function modeFor(key: string): SidebarItemMode {
     if (hiddenItems.includes(key)) return "hidden";
@@ -48,25 +54,25 @@ export function SidebarItemsMatrix({
     ? [
       {
         value: "visible",
-        label: "Default",
+        label: t("Default"),
       },
       {
         value: "see-more",
-        label: "See More",
+        label: t("See More"),
       },
       {
         value: "hidden",
-        label: hiddenLabel,
+        label: resolvedHiddenLabel,
       },
     ]
     : [
       {
         value: "visible",
-        label: "Default",
+        label: t("Default"),
       },
       {
         value: "hidden",
-        label: hiddenLabel,
+        label: resolvedHiddenLabel,
       },
     ];
 

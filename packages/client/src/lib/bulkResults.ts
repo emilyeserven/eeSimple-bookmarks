@@ -2,6 +2,8 @@ import type { BulkBookmarkResult, BulkDeleteResult } from "@eesimple/types";
 
 import { notifyError, notifySuccess } from "./notifications";
 
+import i18n from "@/i18n";
+
 /** Any per-item bulk outcome — both bookmark and taxonomy results share the `status`/`message` shape. */
 type AnyBulkResult = BulkBookmarkResult | BulkDeleteResult;
 
@@ -12,16 +14,28 @@ function successCount(results: AnyBulkResult[]): number {
 
 /**
  * Build a human summary like "12 updated, 1 skipped (built-in), 2 failed" from per-item bulk results.
- * `verb` is the past-tense success word for the action (e.g. "updated", "deleted", "tagged").
+ * `verb` is the past-tense success word for the action (e.g. "updated", "deleted", "tagged"),
+ * translated as its own phrase key so callers don't need to wrap it individually.
  */
 export function summarizeBulk(results: AnyBulkResult[], verb: string): string {
   const builtIn = results.filter(r => r.status === "skipped-built-in").length;
   const notFound = results.filter(r => r.status === "not-found").length;
   const errors = results.filter(r => r.status === "error").length;
-  const parts = [`${successCount(results)} ${verb}`];
-  if (builtIn > 0) parts.push(`${builtIn} skipped (built-in)`);
-  if (notFound > 0) parts.push(`${notFound} not found`);
-  if (errors > 0) parts.push(`${errors} failed`);
+  const parts = [
+    i18n.t("{{count}} {{verb}}", {
+      count: successCount(results),
+      verb: i18n.t(verb),
+    }),
+  ];
+  if (builtIn > 0) parts.push(i18n.t("{{count}} skipped (built-in)", {
+    count: builtIn,
+  }));
+  if (notFound > 0) parts.push(i18n.t("{{count}} not found", {
+    count: notFound,
+  }));
+  if (errors > 0) parts.push(i18n.t("{{count}} failed", {
+    count: errors,
+  }));
   return parts.join(", ");
 }
 

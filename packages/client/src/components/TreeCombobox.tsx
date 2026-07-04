@@ -3,6 +3,7 @@ import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import * as React from "react";
 
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { renderTreeComboboxRows } from "./treeComboboxRow";
 import { ancestorIdsForSelected, filterTreeByTerm, flattenOptions } from "./treeExpansion";
@@ -60,15 +61,18 @@ export function TreeCombobox({
   options,
   value,
   onValueChange,
-  placeholder = "Select…",
-  searchPlaceholder = "Search…",
-  emptyText = "No matches.",
+  placeholder,
+  searchPlaceholder,
+  emptyText,
   className,
   id,
   "aria-label": ariaLabel,
   leadingOption,
   createOption,
 }: TreeComboboxProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
@@ -109,7 +113,7 @@ export function TreeCombobox({
 
   const triggerLabel = isLeadingSelected
     ? leadingOption.label
-    : (selectedNode?.label ?? placeholder);
+    : (selectedNode?.label ?? placeholder ?? t("Select…"));
 
   return (
     <Popover
@@ -147,7 +151,7 @@ export function TreeCombobox({
       >
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholder ?? t("Search…")}
             value={searchTerm}
             onValueChange={setSearchTerm}
           />
@@ -171,7 +175,7 @@ export function TreeCombobox({
               )
               : null}
             {isEmpty
-              ? <p className="py-6 text-center text-sm">{emptyText}</p>
+              ? <p className="py-6 text-center text-sm">{emptyText ?? t("No matches.")}</p>
               : (
                 <CommandGroup>
                   {renderTreeComboboxRows(visibleNodes, {

@@ -1,6 +1,7 @@
 import type { CreateWebsiteInput, RedirectFailureWebsite, UpdateWebsiteInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { useRateLimitCooldown } from "./useRateLimitCooldown";
@@ -165,6 +166,9 @@ export function useBulkWebsiteTags() {
 /** Upload a user-chosen favicon for a website, replacing any existing one. */
 export function useUploadWebsiteFavicon() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id, file,
@@ -178,7 +182,7 @@ export function useUploadWebsiteFavicon() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("Favicon updated");
+      notifySuccess(t("Favicon updated"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not upload the favicon")),
   });
@@ -187,6 +191,9 @@ export function useUploadWebsiteFavicon() {
 /** Remove a website's stored favicon. */
 export function useDeleteWebsiteFavicon() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => websitesApi.deleteImage(id),
     onSuccess: () => {
@@ -197,7 +204,7 @@ export function useDeleteWebsiteFavicon() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("Favicon removed");
+      notifySuccess(t("Favicon removed"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not remove the favicon")),
   });
@@ -206,6 +213,9 @@ export function useDeleteWebsiteFavicon() {
 /** Re-grab a website's favicon from its homepage (icon link / og:image). */
 export function useAutoWebsiteFavicon() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   const cooldown = useRateLimitCooldown(30_000);
   const mutation = useMutation({
     mutationFn: ({
@@ -220,7 +230,7 @@ export function useAutoWebsiteFavicon() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("Favicon fetched");
+      notifySuccess(t("Favicon fetched"));
     },
     onError: (err: Error, {
       sourceUrl,

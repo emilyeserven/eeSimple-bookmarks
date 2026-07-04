@@ -2,6 +2,8 @@ import type { BookmarkBooleanValue, CustomProperty } from "@eesimple/types";
 
 import { formatDateTimeValue } from "./datetime";
 
+import i18n from "@/i18n";
+
 /**
  * Format a count of seconds as a clock duration: `H:MM:SS` when an hour or more, otherwise `M:SS`
  * (e.g. `260` → `"4:20"`, `3723` → `"1:02:03"`). Negative/NaN values fall back to `"0:00"`.
@@ -58,20 +60,20 @@ export function formatBoolean(
   const preset = property.booleanLabelPreset ?? "yes-no";
   if (opts.hideIcon && (preset === "icons" || preset === "stars")) {
     return value
-      ? (property.booleanTrueLabel || "Yes")
-      : (property.booleanFalseLabel || "No");
+      ? (property.booleanTrueLabel || i18n.t("Yes"))
+      : (property.booleanFalseLabel || i18n.t("No"));
   }
   switch (preset) {
-    case "yes-no": return value ? "Yes" : "No";
-    case "true-false": return value ? "True" : "False";
-    case "enabled-disabled": return value ? "Enabled" : "Disabled";
+    case "yes-no": return value ? i18n.t("Yes") : i18n.t("No");
+    case "true-false": return value ? i18n.t("True") : i18n.t("False");
+    case "enabled-disabled": return value ? i18n.t("Enabled") : i18n.t("Disabled");
     case "icons": return value ? "✓" : "✗";
     case "stars": return value ? "★" : "☆";
     case "custom":
       return value
-        ? (property.booleanTrueLabel || "Yes")
-        : (property.booleanFalseLabel || "No");
-    default: return value ? "Yes" : "No";
+        ? (property.booleanTrueLabel || i18n.t("Yes"))
+        : (property.booleanFalseLabel || i18n.t("No"));
+    default: return value ? i18n.t("Yes") : i18n.t("No");
   }
 }
 

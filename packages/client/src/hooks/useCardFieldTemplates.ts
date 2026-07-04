@@ -1,6 +1,7 @@
 import type { CreateCardFieldTemplateInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { cardFieldTemplatesApi } from "../lib/api/settings";
 import { notifySuccess } from "../lib/notifications";
@@ -16,26 +17,32 @@ export function useCardFieldTemplates() {
 
 export function useCreateCardFieldTemplate() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (input: CreateCardFieldTemplateInput) => cardFieldTemplatesApi.create(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: TEMPLATES_KEY,
       });
-      notifySuccess("Template saved");
+      notifySuccess(t("Template saved"));
     },
   });
 }
 
 export function useDeleteCardFieldTemplate() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => cardFieldTemplatesApi.remove(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: TEMPLATES_KEY,
       });
-      notifySuccess("Template deleted");
+      notifySuccess(t("Template deleted"));
     },
   });
 }

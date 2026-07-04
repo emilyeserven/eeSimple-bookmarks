@@ -1,6 +1,7 @@
 import type { Person, SocialLink, UpdatePersonInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -43,6 +44,9 @@ const LABELS: Partial<Record<keyof UpdatePersonInput, string>> = {
  */
 export function usePersonGeneralForm(person: Person) {
   const navigate = useNavigate();
+  const {
+    t,
+  } = useTranslation();
   const update = useUpdatePerson();
   const uploadAvatar = useUploadPersonImage();
   const autoAvatar = useAutoPersonImage();
@@ -119,13 +123,13 @@ export function usePersonGeneralForm(person: Person) {
         detected,
       }) => {
         if (detected.length === 0) {
-          notifySuccess("No new social links found on the person's website");
+          notifySuccess(t("No new social links found on the person's website"));
           return;
         }
         const existingPlatforms = new Set(person.socialLinks.map(l => l.platform));
         const toAdd = detected.filter(l => !existingPlatforms.has(l.platform));
         if (toAdd.length === 0) {
-          notifySuccess("Social links already up to date");
+          notifySuccess(t("Social links already up to date"));
           return;
         }
         const merged = [...person.socialLinks, ...toAdd];

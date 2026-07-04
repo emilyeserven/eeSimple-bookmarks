@@ -1,6 +1,7 @@
 import type { Bookmark, SectionEntry } from "@eesimple/types";
 
 import { useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBookmarkKavitaSeriesId } from "../hooks/useBooks";
 import { useConnectors } from "../hooks/useConnectors";
@@ -29,6 +30,9 @@ export function useKavitaSectionsImport({
   const {
     data: connectors,
   } = useConnectors();
+  const {
+    t,
+  } = useTranslation();
   const seriesId = useBookmarkKavitaSeriesId(bookmark);
   const tocFetch = useMutation({
     mutationFn: (id: number) => kavitaApi.getToc(id),
@@ -42,7 +46,7 @@ export function useKavitaSectionsImport({
       const toc = await tocFetch.mutateAsync(seriesId);
       const sections = kavitaTocToSections(toc);
       if (sections.length === 0) {
-        notifyError("This book has no table of contents in Kavita");
+        notifyError(t("This book has no table of contents in Kavita"));
         return;
       }
       // A full ToC covers the whole book; the user can untick Exhaustive before saving.

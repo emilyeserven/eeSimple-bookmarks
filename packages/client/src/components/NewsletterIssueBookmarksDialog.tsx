@@ -2,6 +2,8 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useAddIssueBookmarks, useRemoveIssueBookmarks } from "../hooks/useImports";
 import { notifySuccess } from "../lib/notifications";
 
@@ -34,6 +36,9 @@ interface Props {
 export function NewsletterIssueBookmarksDialog({
   importId, allBookmarks, memberIds, open, onOpenChange,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Set<string>>(() => new Set(memberIds));
   const addBookmarks = useAddIssueBookmarks(importId);
@@ -62,7 +67,7 @@ export function NewsletterIssueBookmarksDialog({
     const toRemove = memberIds.filter(id => !selected.has(id));
     if (toAdd.length > 0) await addBookmarks.mutateAsync(toAdd);
     if (toRemove.length > 0) await removeBookmarks.mutateAsync(toRemove);
-    notifySuccess("Issue bookmarks updated");
+    notifySuccess(t("Issue bookmarks updated"));
     onOpenChange(false);
   }
 

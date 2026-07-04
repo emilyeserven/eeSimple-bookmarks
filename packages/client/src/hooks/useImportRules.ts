@@ -4,6 +4,7 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { importRulesApi } from "../lib/api/importRules";
@@ -61,13 +62,16 @@ export function useUpdateImportRule() {
 
 export function useDeleteImportRule() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => importRulesApi.remove(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: IMPORT_RULES_KEY,
       });
-      notifySuccess("Import rule deleted");
+      notifySuccess(t("Import rule deleted"));
     },
   });
 }

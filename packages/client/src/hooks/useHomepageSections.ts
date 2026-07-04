@@ -5,6 +5,7 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { homepageSectionsApi } from "../lib/api/settings";
 import { describeError } from "../lib/apiError";
@@ -38,17 +39,23 @@ export function useHomepageSectionBookmarks() {
 
 export function useCreateHomepageSection() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (input: CreateHomepageSectionInput) => homepageSectionsApi.create(input),
     onSuccess: () => {
       invalidateAll(queryClient);
-      notifySuccess("Section created");
+      notifySuccess(t("Section created"));
     },
   });
 }
 
 export function useUpdateHomepageSection() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id, input,
@@ -57,18 +64,21 @@ export function useUpdateHomepageSection() {
       homepageSectionsApi.update(id, input),
     onSuccess: () => {
       invalidateAll(queryClient);
-      notifySuccess("Section saved");
+      notifySuccess(t("Section saved"));
     },
   });
 }
 
 export function useDeleteHomepageSection() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => homepageSectionsApi.remove(id),
     onSuccess: () => {
       invalidateAll(queryClient);
-      notifySuccess("Section deleted");
+      notifySuccess(t("Section deleted"));
     },
   });
 }

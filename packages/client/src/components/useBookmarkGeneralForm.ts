@@ -3,6 +3,8 @@ import type { Bookmark, BookmarkUrlDuplicateResult, ScanResult, SocialAccountRef
 
 import { useRef, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import {
   bookmarkSchema,
   computeAutofill,
@@ -80,6 +82,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
   } = useBookmarkPrimaryLanguage(bookmark, availabilityLanguageLevels);
 
   const modals = useBookmarkInlineCreateModals();
+  const {
+    t,
+  } = useTranslation();
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
@@ -404,7 +409,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       saveTitle();
       saveDescription();
       const peopleChanged = (form.getFieldValue("personIds") as string[]).length !== personIdsBefore.length;
-      notifySuccess(peopleChanged ? "Rescanned — person linked" : "Rescanned");
+      notifySuccess(peopleChanged ? t("Rescanned — person linked") : t("Rescanned"));
     }
     finally {
       setIsRescanning(false);

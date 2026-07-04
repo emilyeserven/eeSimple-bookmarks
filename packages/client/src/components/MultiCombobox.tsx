@@ -3,6 +3,7 @@ import type { ComboboxOption } from "./Combobox";
 import * as React from "react";
 
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -47,20 +48,23 @@ export function MultiCombobox({
   options,
   values,
   onValuesChange,
-  placeholder = "Select…",
-  searchPlaceholder = "Search…",
-  emptyText = "No matches.",
+  placeholder,
+  searchPlaceholder,
+  emptyText,
   className,
   id,
   "aria-label": ariaLabel,
   createOption,
 }: MultiComboboxProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const selectedSet = new Set(values);
   const selectedOptions = options.filter(option => selectedSet.has(option.value));
   const summary
     = selectedOptions.length === 0
-      ? placeholder
+      ? (placeholder ?? t("Select…"))
       : selectedOptions.map(option => option.label).join(", ");
 
   function toggle(value: string, disabled?: boolean) {
@@ -104,9 +108,9 @@ export function MultiCombobox({
         align="start"
       >
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput placeholder={searchPlaceholder ?? t("Search…")} />
           <CommandList>
-            <CommandEmpty>{emptyText}</CommandEmpty>
+            <CommandEmpty>{emptyText ?? t("No matches.")}</CommandEmpty>
             <CommandGroup>
               {options.map(option => (
                 <CommandItem

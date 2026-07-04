@@ -2,6 +2,8 @@ import type { AiSummarizationSettings as AiSummarizationForm } from "@eesimple/t
 
 import { useEffect, useRef, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useAiSummaryQueue, useMarkAiQueueSummarized } from "../hooks/useAiSummarization";
 import { useAiSummarizationSettings, useUpdateAiSummarizationSettings, AI_SUMMARIZATION_DEFAULTS } from "../hooks/useAppSettings";
 import { describeError } from "../lib/apiError";
@@ -38,6 +40,9 @@ function buildGeneratedPrompt(template: string, items: { url: string | null;
  * bulk action to mark queued bookmarks as "Summarized by AI".
  */
 export function AiSummarizationSettings() {
+  const {
+    t,
+  } = useTranslation();
   const {
     data, isLoading,
   } = useAiSummarizationSettings();
@@ -90,7 +95,7 @@ export function AiSummarizationSettings() {
         count,
       }) => {
         if (count === 0) {
-          notifySuccess("No bookmarks in the AI Summary Queue");
+          notifySuccess(t("No bookmarks in the AI Summary Queue"));
         }
         else {
           notifySuccess(`Marked ${count} bookmark${count === 1 ? "" : "s"} as Summarized by AI`);
@@ -106,7 +111,7 @@ export function AiSummarizationSettings() {
     navigator.clipboard.writeText(full).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    }).catch(() => notifyError("Could not copy to clipboard"));
+    }).catch(() => notifyError(t("Could not copy to clipboard")));
   }
 
   if (isLoading || isQueueLoading) {

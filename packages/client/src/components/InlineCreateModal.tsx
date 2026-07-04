@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
@@ -60,12 +61,15 @@ export function InlineCreateModal({
   description,
   placeholder,
   submitLabel,
-  pendingLabel = "Adding…",
+  pendingLabel,
   extraFields,
   isError,
   errorMessage,
   onSubmit,
 }: InlineCreateModalProps) {
+  const {
+    t,
+  } = useTranslation();
   const form = useAppForm({
     defaultValues: {
       name: "",
@@ -105,7 +109,7 @@ export function InlineCreateModal({
           <form.AppField name="name">
             {field => (
               <field.TextField
-                label="Name"
+                label={t("Name")}
                 placeholder={placeholder}
               />
             )}
@@ -121,7 +125,7 @@ export function InlineCreateModal({
             <form.AppForm>
               <form.SubmitButton
                 label={submitLabel}
-                pendingLabel={pendingLabel}
+                pendingLabel={pendingLabel ?? t("Adding…")}
               />
             </form.AppForm>
           </DialogFooter>

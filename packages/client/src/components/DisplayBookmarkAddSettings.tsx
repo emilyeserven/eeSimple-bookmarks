@@ -21,6 +21,7 @@ import {
   Users,
   UserRound,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkAddFormPreviewDialog } from "./BookmarkAddFormPreviewDialog";
 import { SegmentedToggleRow } from "./SegmentedToggleRow";
@@ -39,23 +40,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
-
-/** The three placement segments shown on every row. */
-const PLACEMENT_OPTIONS = [
-  {
-    value: "default",
-    label: "Default",
-  },
-  {
-    value: "advanced",
-    label: "Advanced",
-  },
-  {
-    value: "hidden",
-    label: "Hidden",
-  },
-] as const satisfies readonly { value: typeof BOOKMARK_ADD_FORM_PLACEMENTS[number];
-  label: string; }[];
 
 /** A distinct lucide icon per standard field. */
 const STANDARD_FIELD_ICONS: Record<BookmarkAddFormStandardField, LucideIcon> = {
@@ -86,6 +70,9 @@ function fieldIcon(Icon: LucideIcon) {
 export function DisplayBookmarkAddSettings() {
   const tLabel = useTranslatedLabel();
   const {
+    t,
+  } = useTranslation();
+  const {
     config,
     setStandardFieldPlacement,
     setBuiltInPropertyPlacement,
@@ -95,13 +82,30 @@ export function DisplayBookmarkAddSettings() {
   } = useBookmarkAddFormSettingsPage();
   const [previewOpen, setPreviewOpen] = useState(false);
 
+  /** The three placement segments shown on every row. */
+  const PLACEMENT_OPTIONS = [
+    {
+      value: "default",
+      label: t("Default"),
+    },
+    {
+      value: "advanced",
+      label: t("Advanced"),
+    },
+    {
+      value: "hidden",
+      label: t("Hidden"),
+    },
+  ] as const satisfies readonly { value: typeof BOOKMARK_ADD_FORM_PLACEMENTS[number];
+    label: string; }[];
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Bookmark Add Form</h2>
+          <h2 className="text-lg font-semibold">{t("Bookmark Add Form")}</h2>
           <p className="text-sm text-muted-foreground">
-            Choose which fields the quick Add Bookmark form shows, and where.
+            {t("Choose which fields the quick Add Bookmark form shows, and where.")}
           </p>
         </div>
         <Button
@@ -110,17 +114,17 @@ export function DisplayBookmarkAddSettings() {
           onClick={() => setPreviewOpen(true)}
         >
           <Eye className="size-4" />
-          Preview
+          {t("Preview")}
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Standard fields</CardTitle>
+          <CardTitle>{t("Standard fields")}</CardTitle>
           <CardDescription>
-            Choose where each Add Bookmark form field appears — in the main area (Default), tucked into
-            the collapsible Advanced section, or hidden. The URL field is always shown. Placement only
-            affects the Add Bookmark form; every field stays editable after a bookmark is created.
+            {t(
+              "Choose where each Add Bookmark form field appears — in the main area (Default), tucked into the collapsible Advanced section, or hidden. The URL field is always shown. Placement only affects the Add Bookmark form; every field stays editable after a bookmark is created.",
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -139,11 +143,11 @@ export function DisplayBookmarkAddSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Built-in detail properties</CardTitle>
+          <CardTitle>{t("Built-in detail properties")}</CardTitle>
           <CardDescription>
-            Detail properties (runtime, progress, sections…) are hidden from the quick Add form by
-            default and are better filled after creation. They stay editable on a bookmark&apos;s
-            edit Properties tab regardless of the choice here.
+            {t(
+              "Detail properties (runtime, progress, sections…) are hidden from the quick Add form by default and are better filled after creation. They stay editable on a bookmark's edit Properties tab regardless of the choice here.",
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -161,10 +165,11 @@ export function DisplayBookmarkAddSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Custom properties</CardTitle>
+          <CardTitle>{t("Custom properties")}</CardTitle>
           <CardDescription>
-            Place your own custom properties on the Add Bookmark form. Unlike the other sections,
-            Hidden here hides the property from every bookmark form — both creating and editing.
+            {t(
+              "Place your own custom properties on the Add Bookmark form. Unlike the other sections, Hidden here hides the property from every bookmark form — both creating and editing.",
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -179,7 +184,7 @@ export function DisplayBookmarkAddSettings() {
             />
           ))}
           {customProperties.length === 0 && (
-            <p className="text-sm text-muted-foreground">No custom properties yet.</p>
+            <p className="text-sm text-muted-foreground">{t("No custom properties yet.")}</p>
           )}
         </CardContent>
       </Card>

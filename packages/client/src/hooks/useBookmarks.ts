@@ -2,6 +2,7 @@ import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookm
 import type { QueryClient } from "@tanstack/react-query";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { bookmarksApi } from "../lib/api/bookmarks";
@@ -122,6 +123,9 @@ export function useUpdateBookmark() {
 
 export function useDeleteBookmark() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => bookmarksApi.remove(id),
     onSuccess: () => {
@@ -140,7 +144,7 @@ export function useDeleteBookmark() {
       void queryClient.invalidateQueries({
         queryKey: YOUTUBE_CHANNELS_KEY,
       });
-      notifySuccess("Bookmark deleted");
+      notifySuccess(t("Bookmark deleted"));
     },
   });
 }
@@ -197,6 +201,9 @@ export function useBulkBookmarkTags() {
  */
 export function useBackfillTitleTags() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: () => bookmarksApi.backfillTitleTags(),
     onSuccess: (result) => {
@@ -206,7 +213,7 @@ export function useBackfillTitleTags() {
       });
       notifySuccess(
         result.tagsApplied === 0
-          ? "No bookmark titles matched a tag name"
+          ? t("No bookmark titles matched a tag name")
           : `Tagged ${result.updated} bookmark${result.updated === 1 ? "" : "s"} (${result.tagsApplied} tag${result.tagsApplied === 1 ? "" : "s"} applied)`,
       );
     },
@@ -220,6 +227,9 @@ export function useBackfillTitleTags() {
  */
 export function useBackfillTitleLocations() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: () => bookmarksApi.backfillTitleLocations(),
     onSuccess: (result) => {
@@ -229,7 +239,7 @@ export function useBackfillTitleLocations() {
       });
       notifySuccess(
         result.tagsApplied === 0
-          ? "No bookmark titles matched a location name"
+          ? t("No bookmark titles matched a location name")
           : `Updated ${result.updated} bookmark${result.updated === 1 ? "" : "s"} (${result.tagsApplied} location${result.tagsApplied === 1 ? "" : "s"} applied)`,
       );
     },
@@ -256,6 +266,9 @@ export function useUploadBookmarkImage() {
 /** Auto-capture a bookmark's preview image from its page (og:image). */
 export function useAutoBookmarkImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id,
@@ -265,7 +278,7 @@ export function useAutoBookmarkImage() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("Page image fetched");
+      notifySuccess(t("Page image fetched"));
     },
     onError: (err: Error, {
       sourceUrl,
@@ -281,13 +294,16 @@ export function useAutoBookmarkImage() {
 /** Import the linked Kavita series' cover as the bookmark's main image. */
 export function useKavitaCoverImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => bookmarksApi.kavitaCover(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("Kavita cover added");
+      notifySuccess(t("Kavita cover added"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not fetch the cover from Kavita")),
   });
@@ -296,13 +312,16 @@ export function useKavitaCoverImage() {
 /** Import the linked Plex item's poster as the bookmark's main image. */
 export function usePlexPosterImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => bookmarksApi.plexPoster(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("Plex poster added");
+      notifySuccess(t("Plex poster added"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not fetch the poster from Plex")),
   });
@@ -311,13 +330,16 @@ export function usePlexPosterImage() {
 /** Import the cover from the bookmark's stored ISBN/ASIN as its main image. */
 export function useIsbnCoverImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => bookmarksApi.isbnCover(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("ISBN cover added");
+      notifySuccess(t("ISBN cover added"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not fetch a cover for that ISBN/ASIN")),
   });
@@ -400,6 +422,9 @@ export function useDeleteBookmarkImageById() {
 /** Take a Browserless screenshot and store it as the bookmark's screenshot image. */
 export function useTakeBookmarkScreenshot() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id, delayMs, width, height, scrollDistance,
@@ -420,7 +445,7 @@ export function useTakeBookmarkScreenshot() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("Screenshot captured");
+      notifySuccess(t("Screenshot captured"));
     },
     onError: (err: Error, _, context) => {
       toast.dismiss(context?.toastId);
@@ -460,13 +485,16 @@ export function useArchiveBookmarkReel() {
 /** Remove a bookmark's archived reel. */
 export function useDeleteBookmarkReelArchive() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => bookmarksApi.deleteReelArchive(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("Reel archive removed");
+      notifySuccess(t("Reel archive removed"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not remove the reel archive")),
   });

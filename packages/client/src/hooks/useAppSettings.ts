@@ -25,6 +25,7 @@ import type {
 
 import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, expandLevelGroupsToDisplayConfig, MAP_PIN_SCALE_DEFAULT } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { appSettingsApi } from "../lib/api/settings";
 import { describeError } from "../lib/apiError";
@@ -156,12 +157,15 @@ export function useHomepageContentSettings() {
 
 export function useUpdateHomepageContentSettings() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (input: UpdateHomepageContentInput) =>
       appSettingsApi.updateHomepageContent(input),
     onSuccess: (saved) => {
       queryClient.setQueryData(HOMEPAGE_CONTENT_KEY, saved);
-      notifySuccess("Homepage content saved");
+      notifySuccess(t("Homepage content saved"));
     },
     onError: error => notifyError(describeError(error)),
   });
@@ -597,12 +601,15 @@ export function useAiSummarizationSettings() {
 
 export function useUpdateAiSummarizationSettings() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (input: UpdateAiSummarizationInput) =>
       appSettingsApi.updateAiSummarization(input),
     onSuccess: (saved) => {
       queryClient.setQueryData(AI_SUMMARIZATION_KEY, saved);
-      notifySuccess("AI summarization prompt saved");
+      notifySuccess(t("AI summarization prompt saved"));
     },
     onError: error => notifyError(describeError(error)),
   });

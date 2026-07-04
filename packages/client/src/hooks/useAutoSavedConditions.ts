@@ -3,6 +3,7 @@ import type { ConditionTree } from "@eesimple/types";
 import { useState } from "react";
 
 import { emptyConditionTree } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { autofillConditionsValidator } from "../lib/conditionsSchema";
 
@@ -19,6 +20,9 @@ export function useAutoSavedConditions(
   conditionsError: string | null;
   handleChange: (next: ConditionTree) => void;
 } {
+  const {
+    t,
+  } = useTranslation();
   const [conditions, setConditions] = useState<ConditionTree>(initial ?? emptyConditionTree());
   const [conditionsError, setConditionsError] = useState<string | null>(null);
 
@@ -26,7 +30,7 @@ export function useAutoSavedConditions(
     setConditions(next);
     const parsed = autofillConditionsValidator.safeParse(next);
     if (!parsed.success) {
-      setConditionsError(parsed.error.issues.map(i => i.message).join(" "));
+      setConditionsError(parsed.error.issues.map(i => t(i.message)).join(" "));
       return;
     }
     setConditionsError(null);

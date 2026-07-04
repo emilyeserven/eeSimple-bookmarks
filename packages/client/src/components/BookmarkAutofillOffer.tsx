@@ -2,6 +2,8 @@ import type { Category } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useCreateAutofillRule } from "../hooks/useAutofill";
 import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
@@ -32,6 +34,9 @@ export function BookmarkAutofillOffer({
   dismissed,
   onDismiss,
 }: BookmarkAutofillOfferProps) {
+  const {
+    t,
+  } = useTranslation();
   const [isPending, setIsPending] = useState(false);
   const createRule = useCreateAutofillRule();
 
@@ -56,7 +61,7 @@ export function BookmarkAutofillOffer({
         },
         setCategoryId: effectiveCategoryId,
       });
-      notifySuccess("Autofill rule created");
+      notifySuccess(t("Autofill rule created"));
       onDismiss();
     }
     catch (err) {

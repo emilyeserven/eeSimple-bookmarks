@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 
@@ -29,6 +30,9 @@ export function BulkActionBar({
   onClear,
   children,
 }: BulkActionBarProps) {
+  const {
+    t,
+  } = useTranslation();
   if (count === 0) return null;
   return (
     <div
@@ -38,8 +42,9 @@ export function BulkActionBar({
       "
     >
       <span className="text-sm font-medium">
-        {count}
-        {" selected"}
+        {t("{{count}} selected", {
+          count,
+        })}
       </span>
       {!allSelected && totalSelectable > count
         ? (
@@ -48,9 +53,9 @@ export function BulkActionBar({
             size="sm"
             onClick={onSelectAll}
           >
-            Select all
-            {" "}
-            {totalSelectable}
+            {t("Select all {{total}}", {
+              total: totalSelectable,
+            })}
           </Button>
         )
         : null}
@@ -62,7 +67,7 @@ export function BulkActionBar({
           onClick={onClear}
         >
           <X className="size-4" />
-          Clear
+          {t("Clear")}
         </Button>
       </div>
     </div>

@@ -3,6 +3,7 @@ import type { IngestSource } from "./importFormSchema";
 import { useRef, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { importFormSchema } from "./importFormSchema";
 import { useCategories } from "../hooks/useCategories";
@@ -32,6 +33,9 @@ export function useImportForm({
   onComplete,
 }: UseImportFormParams) {
   const navigate = useNavigate();
+  const {
+    t,
+  } = useTranslation();
   const pasteMutation = useIngestPaste();
   const urlMutation = useIngestUrl();
   const uploadMutation = useIngestUpload();
@@ -109,7 +113,7 @@ export function useImportForm({
         if (!result) return;
         // Ingest is queued and processed in the background — the links appear in the Inbox as the
         // worker finishes (a per-import completion toast fires then, and progress shows in the header).
-        notifySuccess("Import queued — links will appear in your Inbox as they're processed.");
+        notifySuccess(t("Import queued — links will appear in your Inbox as they're processed."));
         if (done) {
           done();
         }
@@ -120,7 +124,7 @@ export function useImportForm({
         }
       }
       catch (err) {
-        notifyError(err instanceof ApiError ? err.message : "Couldn't import those links.");
+        notifyError(err instanceof ApiError ? err.message : t("Couldn't import those links."));
       }
     },
   });

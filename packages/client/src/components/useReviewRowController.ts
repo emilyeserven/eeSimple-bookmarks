@@ -2,6 +2,8 @@ import type { ImportApproveResult, InboxItem, InboxPreFillDefaults } from "@eesi
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { mergeInboxPreFill } from "./inboxPreFillMerge";
 import { useInboxPrefillSeed } from "./useInboxPrefillSeed";
 import { useIsMobile } from "../hooks/use-mobile";
@@ -13,10 +15,10 @@ import {
 import { useSwipeGesture } from "../hooks/useSwipeGesture";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
-function notifyApprove(result: ImportApproveResult): void {
-  if (result.status === "approved") notifySuccess("Bookmark added");
-  else if (result.status === "duplicate") notifyError(result.message ?? "Already saved as a bookmark");
-  else if (result.status === "error") notifyError(result.message ?? "Couldn't add bookmark");
+function notifyApprove(result: ImportApproveResult, t: (key: string) => string): void {
+  if (result.status === "approved") notifySuccess(t("Bookmark added"));
+  else if (result.status === "duplicate") notifyError(result.message ?? t("Already saved as a bookmark"));
+  else if (result.status === "error") notifyError(result.message ?? t("Couldn't add bookmark"));
 }
 
 /**
@@ -33,6 +35,9 @@ export function useReviewRowController(
   const {
     data: categories = [],
   } = useCategories();
+  const {
+    t,
+  } = useTranslation();
   const [contextOpen, setContextOpen] = useState(false);
   const [advancedEditOpen, setAdvancedEditOpen] = useState(false);
   // Seed the per-item advanced-edit fields from the matching system (autofill rules + website /
@@ -54,13 +59,13 @@ export function useReviewRowController(
         itemId: item.id,
         preFill: effectivePreFill,
       }, {
-        onSuccess: notifyApprove,
+        onSuccess: result => notifyApprove(result, t),
       });
     },
     () => {
       onDismiss?.(item.id);
       reject.mutate(item.id, {
-        onSuccess: () => notifySuccess("Rejected link"),
+        onSuccess: () => notifySuccess(t("Rejected link")),
       });
     },
   );

@@ -6,6 +6,7 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { locationsApi } from "../lib/api/taxonomies";
@@ -25,10 +26,10 @@ const BOOKMARKS_KEY = ["bookmarks"] as const;
  * else uses the default Nominatim-first auto path (which itself falls back to Wikidata server-side
  * when Nominatim has no hit).
  */
-function notifyGeocodeCall(source?: "wikidata"): void {
+function notifyGeocodeCall(t: (key: string) => string, source?: "wikidata"): void {
   notifySuccess(source === "wikidata"
-    ? "Querying Wikidata…"
-    : "Querying OpenStreetMap Nominatim…");
+    ? t("Querying Wikidata…")
+    : t("Querying OpenStreetMap Nominatim…"));
 }
 
 export function useLocations() {
@@ -132,11 +133,14 @@ export function useUpdateLocation() {
 
 export function useDeleteLocation() {
   const invalidate = useLocationInvalidation();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => locationsApi.remove(id),
     onSuccess: () => {
       invalidate();
-      notifySuccess("Location deleted");
+      notifySuccess(t("Location deleted"));
     },
   });
 }
@@ -154,6 +158,9 @@ export function useBulkDeleteLocations() {
  */
 export function useRefreshLocationBoundary() {
   const invalidate = useLocationInvalidation();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id,
@@ -162,7 +169,7 @@ export function useRefreshLocationBoundary() {
     onMutate: ({
       usesWikidataCoordinates,
     }: { id: string;
-      usesWikidataCoordinates?: boolean; }) => notifyGeocodeCall(usesWikidataCoordinates ? "wikidata" : undefined),
+      usesWikidataCoordinates?: boolean; }) => notifyGeocodeCall(t, usesWikidataCoordinates ? "wikidata" : undefined),
     onSuccess: invalidate,
   });
 }
@@ -174,6 +181,9 @@ export function useRefreshLocationBoundary() {
  */
 export function useRefreshLocationCoordinates() {
   const invalidate = useLocationInvalidation();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id,
@@ -182,7 +192,7 @@ export function useRefreshLocationCoordinates() {
     onMutate: ({
       usesWikidataCoordinates,
     }: { id: string;
-      usesWikidataCoordinates?: boolean; }) => notifyGeocodeCall(usesWikidataCoordinates ? "wikidata" : undefined),
+      usesWikidataCoordinates?: boolean; }) => notifyGeocodeCall(t, usesWikidataCoordinates ? "wikidata" : undefined),
     onSuccess: invalidate,
   });
 }
@@ -194,11 +204,14 @@ export function useRefreshLocationCoordinates() {
  */
 export function useAutofillLocationWikipediaLinks() {
   const invalidate = useLocationInvalidation();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id,
     }: { id: string }) => locationsApi.autofillWikipediaLinks(id),
-    onMutate: () => notifyGeocodeCall("wikidata"),
+    onMutate: () => notifyGeocodeCall(t, "wikidata"),
     onSuccess: invalidate,
   });
 }
@@ -211,6 +224,9 @@ export function useAutofillLocationWikipediaLinks() {
  * "Search Wikidata instead" dropdown action.
  */
 export function useLocationLookup() {
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       query, source,
@@ -219,6 +235,6 @@ export function useLocationLookup() {
     onMutate: ({
       source,
     }: { query: string;
-      source?: "wikidata"; }) => notifyGeocodeCall(source),
+      source?: "wikidata"; }) => notifyGeocodeCall(t, source),
   });
 }

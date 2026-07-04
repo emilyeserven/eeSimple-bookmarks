@@ -4,6 +4,8 @@ import {
   useEffect, useMemo, useRef, useState,
 } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useInboxColumns } from "./tables/inboxColumns";
 import { useCategories } from "../hooks/useCategories";
 import {
@@ -34,6 +36,9 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
   const {
     data: categories = [],
   } = useCategories();
+  const {
+    t,
+  } = useTranslation();
   const [bulkRunning, setBulkRunning] = useState(false);
   const [preFill, setPreFill] = useState<InboxPreFillDefaults>({});
 
@@ -124,7 +129,7 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
       onSuccess: ({
         rejected,
       }) => notifySuccess(`Rejected ${rejected} item${rejected === 1 ? "" : "s"}`),
-      onError: () => notifyError("Couldn't reject the pending items."),
+      onError: () => notifyError(t("Couldn't reject the pending items.")),
     });
   }
 
@@ -138,11 +143,11 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
         if (rejected > 0) parts.push(`rejected ${rejected} item${rejected === 1 ? "" : "s"}`);
         notifySuccess(
           parts.length === 0
-            ? "No pending items matched any rules."
+            ? t("No pending items matched any rules.")
             : `${parts.join(", ")}.`,
         );
       },
-      onError: () => notifyError("Couldn't recheck the pending items."),
+      onError: () => notifyError(t("Couldn't recheck the pending items.")),
     });
   }
 
@@ -151,7 +156,7 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
       onSuccess: ({
         deleted,
       }) => notifySuccess(`Deleted ${deleted} rejected item${deleted === 1 ? "" : "s"}`),
-      onError: () => notifyError("Couldn't delete the rejected items."),
+      onError: () => notifyError(t("Couldn't delete the rejected items.")),
     });
   }
 
@@ -160,7 +165,7 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
       onSuccess: ({
         deleted,
       }) => notifySuccess(`Deleted ${deleted} added item${deleted === 1 ? "" : "s"}`),
-      onError: () => notifyError("Couldn't delete the added items."),
+      onError: () => notifyError(t("Couldn't delete the added items.")),
     });
   }
 
@@ -169,7 +174,7 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
       onSuccess: ({
         deleted,
       }) => notifySuccess(`Deleted ${deleted} blocked item${deleted === 1 ? "" : "s"}`),
-      onError: () => notifyError("Couldn't delete the blocked items."),
+      onError: () => notifyError(t("Couldn't delete the blocked items.")),
     });
   }
 
