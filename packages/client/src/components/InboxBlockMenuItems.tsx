@@ -3,6 +3,7 @@ import type { ImportItem } from "@eesimple/types";
 import { useState } from "react";
 
 import { blacklistPatternsFor } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { useBlockImportItem } from "../hooks/useImports";
 import { notifyError, notifySuccess } from "../lib/notifications";
@@ -26,6 +27,9 @@ import { Input } from "@/components/ui/input";
 export function BlockMenuItems({
   item,
 }: { item: ImportItem }) {
+  const {
+    t,
+  } = useTranslation();
   const block = useBlockImportItem();
   const [pathPrefixDialog, setPathPrefixDialog] = useState<string | null>(null);
 
@@ -39,7 +43,7 @@ export function BlockMenuItems({
       entry,
     }, {
       onSuccess: () => notifySuccess(message),
-      onError: () => notifyError("Couldn't block this link"),
+      onError: () => notifyError(t("Couldn't block this link")),
     });
   }
 

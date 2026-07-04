@@ -1,6 +1,8 @@
 import type { PropertyFormApi, PropertyFormSection } from "./propertyFormSchema";
 import type { CustomProperty } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { AllowDefaultField } from "./AllowDefaultField";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { LabeledSection } from "./LabeledSection";
@@ -22,6 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { formatBooleanBadge } from "@/lib/bookmarkFormat";
+import { fieldErrorMessages } from "@/lib/form";
 
 interface PropertyOptionsSectionProps {
   form: PropertyFormApi;
@@ -660,6 +663,9 @@ function CalculateOperands({
   numberProperties: CustomProperty[];
   full: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
       {full ? <Separator /> : null}
@@ -677,7 +683,7 @@ function CalculateOperands({
               {field.state.meta.errors.length > 0
                 ? (
                   <p className="text-xs text-destructive">
-                    Select at least two Number properties.
+                    {fieldErrorMessages(field.state.meta.errors).map(m => t(m)).join(", ")}
                   </p>
                 )
                 : null}

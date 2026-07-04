@@ -2,6 +2,7 @@ import type { ImportItemStatus, ImportSummary } from "@eesimple/types";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Mail, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { StandardListingCard } from "../components/StandardListingCard";
 import { useDeleteImport, useNewsletterIssues } from "../hooks/useImports";
@@ -47,6 +48,9 @@ function urlDispositionLine(summary: ImportSummary): string {
 }
 
 function NewsletterIssuesPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     newsletterSlug,
   } = Route.useParams();
@@ -139,7 +143,7 @@ function NewsletterIssuesPage() {
                           focus-visible:opacity-100
                         "
                         onClick={() => removeIssue.mutate(issue.id, {
-                          onSuccess: () => notifySuccess("Import group deleted"),
+                          onSuccess: () => notifySuccess(t("Import group deleted")),
                         })}
                         aria-label="Delete import group"
                       >

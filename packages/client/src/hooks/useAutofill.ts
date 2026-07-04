@@ -6,6 +6,7 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { autofillApi } from "../lib/api/autofill";
@@ -70,13 +71,16 @@ export function useUpdateAutofillRule() {
 
 export function useDeleteAutofillRule() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => autofillApi.remove(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: AUTOFILL_KEY,
       });
-      notifySuccess("Autofill rule deleted");
+      notifySuccess(t("Autofill rule deleted"));
     },
   });
 }
@@ -102,6 +106,9 @@ export function useAutofillBackfill(ruleId: string) {
 /** Apply a rule's prefill values to a selected set of bookmarks. */
 export function useApplyAutofillBackfill() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       ruleId, input,
@@ -122,7 +129,7 @@ export function useApplyAutofillBackfill() {
       });
       notifySuccess(`Applied to ${result.applied} bookmark${result.applied === 1 ? "" : "s"}`);
     },
-    onError: () => notifyError("Failed to apply rule"),
+    onError: () => notifyError(t("Failed to apply rule")),
   });
 }
 
@@ -139,6 +146,9 @@ export function useGlobalAutofillBackfill() {
 /** Mark a bookmark as exempt from a specific rule's backfill. */
 export function useSetAutofillExempt() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       ruleId, bookmarkId,
@@ -154,15 +164,18 @@ export function useSetAutofillExempt() {
       void queryClient.invalidateQueries({
         queryKey: GLOBAL_BACKFILL_KEY,
       });
-      notifySuccess("Bookmark exempted from rule");
+      notifySuccess(t("Bookmark exempted from rule"));
     },
-    onError: () => notifyError("Failed to set exemption"),
+    onError: () => notifyError(t("Failed to set exemption")),
   });
 }
 
 /** Remove a bookmark's exemption from a specific rule's backfill. */
 export function useRemoveAutofillExempt() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       ruleId, bookmarkId,
@@ -178,8 +191,8 @@ export function useRemoveAutofillExempt() {
       void queryClient.invalidateQueries({
         queryKey: GLOBAL_BACKFILL_KEY,
       });
-      notifySuccess("Exemption removed");
+      notifySuccess(t("Exemption removed"));
     },
-    onError: () => notifyError("Failed to remove exemption"),
+    onError: () => notifyError(t("Failed to remove exemption")),
   });
 }

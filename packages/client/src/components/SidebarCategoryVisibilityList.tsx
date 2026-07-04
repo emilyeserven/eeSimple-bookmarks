@@ -1,25 +1,11 @@
+import { useTranslation } from "react-i18next";
+
 import { useCategories } from "../hooks/useCategories";
 
 import { SegmentedToggleRow } from "@/components/SegmentedToggleRow";
 import { CategoryIcon } from "@/lib/icons";
 
 type CategoryDisplayMode = "visible" | "see-more" | "hidden";
-
-const CATEGORY_MODE_OPTIONS: { value: CategoryDisplayMode;
-  label: string; }[] = [
-  {
-    value: "visible",
-    label: "Default",
-  },
-  {
-    value: "see-more",
-    label: "See More",
-  },
-  {
-    value: "hidden",
-    label: "Listing only",
-  },
-];
 
 interface SidebarCategoryVisibilityListProps {
   onSetMode: (id: string, mode: CategoryDisplayMode) => void;
@@ -36,11 +22,30 @@ export function SidebarCategoryVisibilityList({
   onSetMode, hiddenCategoryIds, seeMoreCategoryIds,
 }: SidebarCategoryVisibilityListProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: categories,
   } = useCategories();
 
+  const categoryModeOptions: { value: CategoryDisplayMode;
+    label: string; }[] = [
+    {
+      value: "visible",
+      label: t("Default"),
+    },
+    {
+      value: "see-more",
+      label: t("See More"),
+    },
+    {
+      value: "hidden",
+      label: t("Listing only"),
+    },
+  ];
+
   if (!categories || categories.length === 0) {
-    return <p className="text-sm text-muted-foreground">No categories yet.</p>;
+    return <p className="text-sm text-muted-foreground">{t("No categories yet.")}</p>;
   }
 
   return (
@@ -56,7 +61,7 @@ export function SidebarCategoryVisibilityList({
             key={category.id}
             label={category.name}
             icon={<CategoryIcon name={category.icon} />}
-            options={CATEGORY_MODE_OPTIONS}
+            options={categoryModeOptions}
             value={mode}
             onChange={next => onSetMode(category.id, next)}
           />

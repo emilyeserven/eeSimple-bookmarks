@@ -7,6 +7,7 @@ import type {
 
 import { Link } from "@tanstack/react-router";
 import { Check, Eye, RotateCcw, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { MoreActionsMenu } from "./InboxMoreActionsMenu";
 import {
@@ -55,10 +56,10 @@ const STATUS_META: Record<ImportItemStatus, { label: string;
 };
 
 /** Surface the outcome of an approve call (one item or a bulk run) as a recorded toast. */
-function notifyApprove(result: ImportApproveResult): void {
-  if (result.status === "approved") notifySuccess("Bookmark added");
-  else if (result.status === "duplicate") notifyError(result.message ?? "Already saved as a bookmark");
-  else if (result.status === "error") notifyError(result.message ?? "Couldn't add bookmark");
+function notifyApprove(result: ImportApproveResult, t: (key: string) => string): void {
+  if (result.status === "approved") notifySuccess(t("Bookmark added"));
+  else if (result.status === "duplicate") notifyError(result.message ?? t("Already saved as a bookmark"));
+  else if (result.status === "error") notifyError(result.message ?? t("Couldn't add bookmark"));
 }
 
 export function StatusBadge({
@@ -89,6 +90,9 @@ export function StatusBadge({
 function RejectButton({
   item,
 }: { item: ImportItem }) {
+  const {
+    t,
+  } = useTranslation();
   const reject = useRejectImportItem();
   return (
     <Tooltip>
@@ -99,7 +103,7 @@ function RejectButton({
           aria-label="Reject"
           disabled={reject.isPending}
           onClick={() => reject.mutate(item.id, {
-            onSuccess: () => notifySuccess("Rejected link"),
+            onSuccess: () => notifySuccess(t("Rejected link")),
           })}
         >
           <X className="size-4" />
@@ -114,6 +118,9 @@ function RejectButton({
 function UnrejectButton({
   item,
 }: { item: ImportItem }) {
+  const {
+    t,
+  } = useTranslation();
   const unreject = useUnrejectImportItem();
   return (
     <Tooltip>
@@ -124,7 +131,7 @@ function UnrejectButton({
           aria-label="Restore to pending"
           disabled={unreject.isPending}
           onClick={() => unreject.mutate(item.id, {
-            onSuccess: () => notifySuccess("Restored to pending"),
+            onSuccess: () => notifySuccess(t("Restored to pending")),
           })}
         >
           <RotateCcw className="size-4" />
@@ -169,6 +176,9 @@ export function RowActions({
   preFill,
 }: { item: ImportItem;
   preFill?: InboxPreFillDefaults; }) {
+  const {
+    t,
+  } = useTranslation();
   const approve = useApproveImportItem();
   const resultBookmarkId = item.createdBookmarkId ?? item.duplicateBookmarkId;
 
@@ -186,7 +196,7 @@ export function RowActions({
                     itemId: item.id,
                     preFill,
                   }, {
-                    onSuccess: notifyApprove,
+                    onSuccess: result => notifyApprove(result, t),
                   })}
                   disabled={approve.isPending}
                   aria-label="Approve – save as bookmark"

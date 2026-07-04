@@ -4,6 +4,7 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { savedFiltersApi } from "../lib/api/settings";
@@ -29,13 +30,16 @@ export function useSavedFilterBySlug(slug: string) {
 
 export function useCreateSavedFilter() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (input: CreateSavedFilterInput) => savedFiltersApi.create(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: SAVED_FILTERS_KEY,
       });
-      notifySuccess("Filter saved");
+      notifySuccess(t("Filter saved"));
     },
     onError: (err: Error) => {
       notifyError(describeError(err, "Failed to save filter"));
@@ -72,13 +76,16 @@ export function useBulkDeleteSavedFilters() {
 
 export function useDeleteSavedFilter() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => savedFiltersApi.remove(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: SAVED_FILTERS_KEY,
       });
-      notifySuccess("Filter deleted");
+      notifySuccess(t("Filter deleted"));
     },
     onError: (err: Error) => {
       notifyError(describeError(err, "Failed to delete filter"));

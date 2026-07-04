@@ -1,4 +1,5 @@
 import { Copy } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { copyText } from "../lib/clipboard";
 import { notifyError, notifySuccess } from "../lib/notifications";
@@ -9,13 +10,16 @@ export function CopyJsonButton({
   data, label = "Copy JSON",
 }: { data: unknown;
   label?: string; }) {
+  const {
+    t,
+  } = useTranslation();
   async function handleCopy() {
     try {
       await copyText(JSON.stringify(data, null, 2));
-      notifySuccess("Copied to clipboard");
+      notifySuccess(t("Copied to clipboard"));
     }
     catch {
-      notifyError("Couldn't copy to clipboard");
+      notifyError(t("Couldn't copy to clipboard"));
     }
   }
   return (

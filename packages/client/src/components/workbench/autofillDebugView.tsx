@@ -3,6 +3,7 @@ import type { AutofillRule } from "@eesimple/types";
 import { useMemo, useState } from "react";
 
 import { Copy } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Combobox } from "../Combobox";
 import { CopyJsonButton } from "../CopyJsonButton";
@@ -17,6 +18,9 @@ export function DebugView({
 }: {
   entity: AutofillRule;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const [selectedBookmarkId, setSelectedBookmarkId] = useState<string | undefined>();
   const {
     data: allBookmarks = [],
@@ -50,10 +54,10 @@ export function DebugView({
     ].join("\n");
     try {
       await copyText(text);
-      notifySuccess("Copied to clipboard");
+      notifySuccess(t("Copied to clipboard"));
     }
     catch {
-      notifyError("Couldn't copy to clipboard");
+      notifyError(t("Couldn't copy to clipboard"));
     }
   }
 

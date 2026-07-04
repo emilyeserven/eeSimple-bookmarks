@@ -4,6 +4,7 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { customPropertiesApi } from "../lib/api/taxonomies";
@@ -31,13 +32,16 @@ export function usePropertyBySlug(slug: string) {
 
 export function useCreateCustomProperty() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (input: CreateCustomPropertyInput) => customPropertiesApi.create(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: PROPERTIES_KEY,
       });
-      notifySuccess("Property created");
+      notifySuccess(t("Property created"));
     },
     onError: error => notifyError(describeError(error)),
   });
@@ -68,6 +72,9 @@ export function useUpdateCustomProperty() {
 
 export function useDeleteCustomProperty() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => customPropertiesApi.remove(id),
     onSuccess: () => {
@@ -78,7 +85,7 @@ export function useDeleteCustomProperty() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("Property deleted");
+      notifySuccess(t("Property deleted"));
     },
     onError: error => notifyError(describeError(error)),
   });

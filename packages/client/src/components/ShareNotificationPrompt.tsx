@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { Bell, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { notifySuccess } from "../lib/notifications";
 import {
@@ -21,6 +22,9 @@ import { Button } from "@/components/ui/button";
  * Inbox page, where shared links land.
  */
 export function ShareNotificationPrompt() {
+  const {
+    t,
+  } = useTranslation();
   const [visible, setVisible] = useState(() =>
     shouldShowSharePrompt({
       supported: notificationsSupported(),
@@ -32,7 +36,7 @@ export function ShareNotificationPrompt() {
 
   async function enable(): Promise<void> {
     const result = await requestNotificationPermission();
-    if (result === "granted") notifySuccess("Share notifications enabled");
+    if (result === "granted") notifySuccess(t("Share notifications enabled"));
     // Granted, denied, or unsupported: either way the prompt is now resolved — hide it.
     setVisible(false);
   }

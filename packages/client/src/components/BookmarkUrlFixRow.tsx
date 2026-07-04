@@ -3,6 +3,7 @@ import type { RedirectFailureBookmark } from "@eesimple/types";
 import { useState } from "react";
 
 import { ExternalLink, Loader2, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
@@ -34,6 +35,9 @@ export function BookmarkUrlFixRow({
   onCollapse,
   onFixed,
 }: BookmarkRowProps) {
+  const {
+    t,
+  } = useTranslation();
   const [urlInput, setUrlInput] = useState(bookmark.url ?? "");
   const [fetchedTitle, setFetchedTitle] = useState("");
   const [fetchedDescription, setFetchedDescription] = useState("");
@@ -54,7 +58,7 @@ export function BookmarkUrlFixRow({
       setHasFetched(true);
     }
     catch {
-      notifyError("Could not fetch metadata for that URL.");
+      notifyError(t("Could not fetch metadata for that URL."));
     }
   }
 
@@ -71,11 +75,11 @@ export function BookmarkUrlFixRow({
         },
       });
       void bookmarksApi.autoImage(bookmark.id).catch(() => undefined);
-      notifySuccess("Bookmark updated");
+      notifySuccess(t("Bookmark updated"));
       onFixed();
     }
     catch {
-      notifyError("Could not update the bookmark.");
+      notifyError(t("Could not update the bookmark."));
     }
   }
 

@@ -2,6 +2,8 @@ import type { AdvancedSettings as AdvancedSettingsValues } from "@eesimple/types
 
 import { useEffect, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useAdvancedSettings, useUpdateAdvancedSettings } from "../hooks/useAppSettings";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -35,6 +37,9 @@ const DEFAULTS: AdvancedSettingsValues = {
  * Advanced section reads the same settings to render the links.
  */
 export function SidebarExternalLinksSettings() {
+  const {
+    t,
+  } = useTranslation();
   const {
     data, isLoading,
   } = useAdvancedSettings();
@@ -96,7 +101,7 @@ export function SidebarExternalLinksSettings() {
                   {
                     coolifyLinkEnabled: enabled,
                   },
-                  enabled ? "Coolify link shown" : "Coolify link hidden",
+                  enabled ? t("Coolify link shown") : t("Coolify link hidden"),
                 );
               }}
             />
@@ -114,7 +119,7 @@ export function SidebarExternalLinksSettings() {
                 if (coolifyUrl.trim() !== settings.coolifyUrl) {
                   save({
                     coolifyUrl,
-                  }, "Coolify URL updated");
+                  }, t("Coolify URL updated"));
                 }
               }}
               className="
@@ -147,7 +152,7 @@ export function SidebarExternalLinksSettings() {
                   {
                     docsLinkEnabled: enabled,
                   },
-                  enabled ? "Docs link shown" : "Docs link hidden",
+                  enabled ? t("Docs link shown") : t("Docs link hidden"),
                 );
               }}
             />
@@ -177,7 +182,7 @@ export function SidebarExternalLinksSettings() {
                   {
                     storybookLinkEnabled: enabled,
                   },
-                  enabled ? "Storybook link shown" : "Storybook link hidden",
+                  enabled ? t("Storybook link shown") : t("Storybook link hidden"),
                 );
               }}
             />
@@ -204,7 +209,7 @@ export function SidebarExternalLinksSettings() {
                   {
                     drizzleGatewayLinkEnabled: enabled,
                   },
-                  enabled ? "Drizzle Gateway link shown" : "Drizzle Gateway link hidden",
+                  enabled ? t("Drizzle Gateway link shown") : t("Drizzle Gateway link hidden"),
                 );
               }}
             />
@@ -222,7 +227,7 @@ export function SidebarExternalLinksSettings() {
                 if (drizzleGatewayUrl.trim() !== settings.drizzleGatewayUrl) {
                   save({
                     drizzleGatewayUrl,
-                  }, "Drizzle Gateway URL updated");
+                  }, t("Drizzle Gateway URL updated"));
                 }
               }}
               className="
@@ -252,7 +257,7 @@ export function SidebarExternalLinksSettings() {
                   {
                     githubLinkEnabled: enabled,
                   },
-                  enabled ? "GitHub link shown" : "GitHub link hidden",
+                  enabled ? t("GitHub link shown") : t("GitHub link hidden"),
                 );
               }}
             />

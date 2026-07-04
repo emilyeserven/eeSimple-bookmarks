@@ -3,6 +3,7 @@ import type { ImportItem } from "@eesimple/types";
 import { useState } from "react";
 
 import { blacklistPatternsFor } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { Combobox } from "./Combobox";
 import {
@@ -49,6 +50,9 @@ function extractDomain(url: string | null): string | null {
 export function MarkAsShortenerDialog({
   item, open, onClose, initialMode = "ignore-list",
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const domain = extractDomain(item.url);
   const [mode, setMode] = useState<Mode>(initialMode);
   const [selectedWebsiteId, setSelectedWebsiteId] = useState<string | undefined>(undefined);
@@ -110,7 +114,7 @@ export function MarkAsShortenerDialog({
           notifySuccess(`Added ${domain} to ${selectedWebsite.siteName || selectedWebsite.domain}`);
           onClose();
         },
-        onError: () => notifyError("Couldn't update the website"),
+        onError: () => notifyError(t("Couldn't update the website")),
       });
     }
   }

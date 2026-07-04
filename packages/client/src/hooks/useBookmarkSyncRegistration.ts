@@ -5,6 +5,8 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useCallback, useMemo, useRef } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useAutoBookmarkImage } from "./useBookmarks";
 import { useRegisterSyncProvider } from "./useRegisterSyncProvider";
 import { resolveBookmarkDisplayImage } from "../lib/bookmarkImage";
@@ -31,6 +33,9 @@ export function useBookmarkSyncRegistration({
   bookmark, form, onFieldStaged,
 }: BookmarkSyncRegistrationParams) {
   const autoImage = useAutoBookmarkImage();
+  const {
+    t,
+  } = useTranslation();
   const scanUrl = bookmark.url ?? bookmark.originalUrl ?? "";
   const currentImageUrl = resolveBookmarkDisplayImage(bookmark)?.url ?? null;
 
@@ -72,9 +77,9 @@ export function useBookmarkSyncRegistration({
     }
     if (stagedFields > 0) {
       persist();
-      notifySuccess("Synced from source");
+      notifySuccess(t("Synced from source"));
     }
-  }, [scanUrl]);
+  }, [scanUrl, t]);
 
   const provider = useMemo<SyncProvider>(() => ({
     descriptorKind: "bookmark",

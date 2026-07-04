@@ -1,6 +1,7 @@
 import type { CreateTagInput, UpdateTagInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { tagsApi } from "../lib/api/taxonomies";
@@ -73,11 +74,14 @@ export function useUpdateTag() {
 
 export function useDeleteTag() {
   const invalidate = useTagInvalidation();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => tagsApi.remove(id),
     onSuccess: () => {
       invalidate();
-      notifySuccess("Tag deleted");
+      notifySuccess(t("Tag deleted"));
     },
   });
 }

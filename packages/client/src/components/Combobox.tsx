@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "./RomanizedLabel";
 
@@ -117,17 +118,23 @@ export function Combobox({
   groups,
   value,
   onValueChange,
-  placeholder = "Select…",
-  searchPlaceholder = "Search…",
-  emptyText = "No matches.",
+  placeholder,
+  searchPlaceholder,
+  emptyText,
   className,
   id,
   "aria-label": ariaLabel,
   createOption,
 }: ComboboxProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const allOptions = groups ? groups.flatMap(g => g.options) : (options ?? []);
   const selected = allOptions.find(option => option.value === value);
+  const resolvedPlaceholder = placeholder ?? t("Select…");
+  const resolvedSearchPlaceholder = searchPlaceholder ?? t("Search…");
+  const resolvedEmptyText = emptyText ?? t("No matches.");
 
   return (
     <Popover
@@ -161,7 +168,7 @@ export function Combobox({
                     />
                   )
                   : selected.label
-                : placeholder}
+                : resolvedPlaceholder}
             </span>
           </span>
           <ChevronsUpDown className="opacity-50" />
@@ -172,9 +179,9 @@ export function Combobox({
         align="start"
       >
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput placeholder={resolvedSearchPlaceholder} />
           <CommandList>
-            <CommandEmpty>{emptyText}</CommandEmpty>
+            <CommandEmpty>{resolvedEmptyText}</CommandEmpty>
             {groups
               ? groups.map(group => (
                 <CommandGroup

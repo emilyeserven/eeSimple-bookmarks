@@ -1,4 +1,5 @@
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { usePurgeProcessedItems } from "../hooks/useImports";
 import { notifyError, notifySuccess } from "../lib/notifications";
@@ -14,6 +15,9 @@ import {
 
 /** Sweep processed inbox items: those marked for deletion (a bookmark was created) + blocked items. */
 export function ProcessedItemsCard() {
+  const {
+    t,
+  } = useTranslation();
   const purge = usePurgeProcessedItems();
 
   function onPurge(): void {
@@ -21,11 +25,11 @@ export function ProcessedItemsCard() {
       onSuccess: (result) => {
         notifySuccess(
           result.deleted === 0
-            ? "No processed items to delete"
+            ? t("No processed items to delete")
             : `Deleted ${result.deleted} processed item${result.deleted === 1 ? "" : "s"}`,
         );
       },
-      onError: () => notifyError("Couldn't delete processed items"),
+      onError: () => notifyError(t("Couldn't delete processed items")),
     });
   }
 

@@ -3,6 +3,7 @@ import type { Bookmark, CustomProperty } from "@eesimple/types";
 import { useState } from "react";
 
 import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import { buildAllPropertyValues } from "./bookmarkFormSchema";
@@ -40,6 +41,9 @@ function hasDetailsProperties(
 export function BookmarkDetailsPropertiesForm({
   bookmark,
 }: BookmarkDetailsPropertiesFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const updateBookmark = useUpdateBookmark();
   const {
     data: customProperties,
@@ -80,7 +84,7 @@ export function BookmarkDetailsPropertiesForm({
         id: bookmark.id,
         input: values,
       });
-      notifySuccess("Changes saved");
+      notifySuccess(t("Changes saved"));
     }
     finally {
       setIsPending(false);

@@ -1,5 +1,7 @@
 import type { SidebarCustomizationSettings } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import {
   useSidebarVisibility,
   useUpdateSidebarCustomizationSettings,
@@ -16,6 +18,9 @@ type CategoryDisplayMode = "visible" | "see-more" | "hidden";
 export function useSidebarSettings() {
   const sidebar = useSidebarVisibility();
   const updateSidebar = useUpdateSidebarCustomizationSettings();
+  const {
+    t,
+  } = useTranslation();
 
   /** Toggle a value in one of the sidebar hidden-lists, persist the whole group, and toast. */
   function toggleSidebarKey(key: keyof SidebarCustomizationSettings, value: string): void {
@@ -27,7 +32,7 @@ export function useSidebarSettings() {
       ...sidebar,
       [key]: next,
     }, {
-      onSuccess: () => notifySuccess("Sidebar updated"),
+      onSuccess: () => notifySuccess(t("Sidebar updated")),
       onError: error => notifyError(error.message),
     });
   }
@@ -42,7 +47,7 @@ export function useSidebarSettings() {
         ? [...sidebar.seeMoreCategoryIds.filter(x => x !== id), id]
         : sidebar.seeMoreCategoryIds.filter(x => x !== id),
     }, {
-      onSuccess: () => notifySuccess("Sidebar updated"),
+      onSuccess: () => notifySuccess(t("Sidebar updated")),
       onError: error => notifyError(error.message),
     });
   }
@@ -57,7 +62,7 @@ export function useSidebarSettings() {
         ? [...sidebar.seeMoreTaxonomyItems.filter(x => x !== key), key]
         : sidebar.seeMoreTaxonomyItems.filter(x => x !== key),
     }, {
-      onSuccess: () => notifySuccess("Sidebar updated"),
+      onSuccess: () => notifySuccess(t("Sidebar updated")),
       onError: error => notifyError(error.message),
     });
   }
@@ -72,7 +77,7 @@ export function useSidebarSettings() {
         ? [...sidebar.seeMoreCustomizationItems.filter(x => x !== key), key]
         : sidebar.seeMoreCustomizationItems.filter(x => x !== key),
     }, {
-      onSuccess: () => notifySuccess("Sidebar updated"),
+      onSuccess: () => notifySuccess(t("Sidebar updated")),
       onError: error => notifyError(error.message),
     });
   }
@@ -87,7 +92,7 @@ export function useSidebarSettings() {
         ? [...sidebar.seeMoreConnectorLinks.filter(x => x !== key), key]
         : sidebar.seeMoreConnectorLinks.filter(x => x !== key),
     }, {
-      onSuccess: () => notifySuccess("Sidebar updated"),
+      onSuccess: () => notifySuccess(t("Sidebar updated")),
       onError: error => notifyError(error.message),
     });
   }

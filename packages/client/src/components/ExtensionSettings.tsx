@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ChevronDown, ChevronRight, Copy } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Extension file contents inlined at build time so they can be shown/copied even when the
 // browser blocks or fails the native file download.
@@ -58,6 +59,9 @@ function buildBookmarklet(origin: string): string {
  * inline `javascript:` URLs.
  */
 export function ExtensionSettings() {
+  const {
+    t,
+  } = useTranslation();
   const origin = typeof window === "undefined" ? "" : window.location.origin;
   const bookmarklet = useMemo(() => buildBookmarklet(origin), [origin]);
   const linkRef = useRef<HTMLAnchorElement>(null);
@@ -72,7 +76,7 @@ export function ExtensionSettings() {
     setShowBookmarklet(true);
     try {
       await navigator.clipboard.writeText(bookmarklet);
-      notifySuccess("Bookmarklet copied to clipboard");
+      notifySuccess(t("Bookmarklet copied to clipboard"));
     }
     catch {
       // Clipboard API unavailable (HTTP context) — the textarea below lets the user copy manually.

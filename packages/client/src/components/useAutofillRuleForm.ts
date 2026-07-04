@@ -8,6 +8,7 @@ import type {
 import { useState } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { buildAutofillRuleDefaultValues, NO_MEDIA_TYPE } from "./autofillRuleForm";
@@ -52,6 +53,9 @@ export function useAutofillRuleForm({
   rule, properties, defaultCategoryId, defaultMediaTypeId, defaultTagIds, defaultLocationIds, defaultWebsiteDomain, defaultChannelIds, defaultGenreMoodIds, resetOnSubmit, onSubmit,
 }: UseAutofillRuleFormArgs) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: locationTree = [],
   } = useLocationTree();
   // The condition tree and custom-property values live outside the typed form (they're dynamic and,
@@ -89,7 +93,7 @@ export function useAutofillRuleForm({
     }) => {
       const parsedConditions = autofillConditionsValidator.safeParse(conditions);
       if (!parsedConditions.success) {
-        setConditionsError(parsedConditions.error.issues.map(issue => issue.message).join(" "));
+        setConditionsError(parsedConditions.error.issues.map(issue => t(issue.message)).join(" "));
         return;
       }
       setConditionsError(null);

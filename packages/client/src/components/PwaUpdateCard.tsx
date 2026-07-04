@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { usePwaUpdate } from "../hooks/usePwaUpdate";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -17,16 +19,19 @@ import {
  */
 export function PwaUpdateCard() {
   const {
+    t,
+  } = useTranslation();
+  const {
     updateAvailable, checking, lastChecked, lastUpdated, checkForUpdate, applyUpdate,
   } = usePwaUpdate();
 
   async function handleCheck(): Promise<void> {
     try {
       await checkForUpdate();
-      notifySuccess("Checked for updates");
+      notifySuccess(t("Checked for updates"));
     }
     catch (error) {
-      notifyError(error instanceof Error ? error.message : "Update check failed");
+      notifyError(error instanceof Error ? error.message : t("Update check failed"));
     }
   }
 

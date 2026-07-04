@@ -5,6 +5,7 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { cardDisplayRulesApi } from "../lib/api/settings";
 import { describeError } from "../lib/apiError";
@@ -39,13 +40,16 @@ export function useCardDisplayRuleBySlug(slug: string) {
 
 export function useCreateCardDisplayRule() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (input: CreateCardDisplayRuleInput) => cardDisplayRulesApi.create(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: RULES_KEY,
       });
-      notifySuccess("Rule created");
+      notifySuccess(t("Rule created"));
     },
   });
 }
@@ -69,13 +73,16 @@ export function useUpdateCardDisplayRule() {
 
 export function useDeleteCardDisplayRule() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => cardDisplayRulesApi.remove(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: RULES_KEY,
       });
-      notifySuccess("Rule deleted");
+      notifySuccess(t("Rule deleted"));
     },
   });
 }

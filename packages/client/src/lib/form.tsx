@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import { useId } from "react";
 
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
+import { useTranslation } from "react-i18next";
 
 import { Combobox } from "@/components/Combobox";
 import { TreeCombobox } from "@/components/TreeCombobox";
@@ -31,7 +32,7 @@ const {
   = createFormHookContexts();
 
 /** Normalise a field's errors (string | { message } | …) into displayable strings. */
-function fieldErrorMessages(errors: unknown[]): string[] {
+export function fieldErrorMessages(errors: unknown[]): string[] {
   return errors
     .map(error => (typeof error === "string" ? error : (error as { message?: string })?.message))
     .filter((message): message is string => Boolean(message));
@@ -43,9 +44,12 @@ function FieldErrors({
 }: {
   errors: unknown[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const messages = fieldErrorMessages(errors);
   if (messages.length === 0) return null;
-  return <span className="block text-xs text-destructive">{messages.join(", ")}</span>;
+  return <span className="block text-xs text-destructive">{messages.map(m => t(m)).join(", ")}</span>;
 }
 
 interface TextFieldProps {

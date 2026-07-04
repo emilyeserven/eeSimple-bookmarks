@@ -1,6 +1,7 @@
 import type { CreatePersonInput, SocialMediaPlatform, UpdatePersonInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { useRateLimitCooldown } from "./useRateLimitCooldown";
@@ -97,6 +98,9 @@ export function useBulkDeletePeople() {
 
 export function useUploadPersonImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id, file,
@@ -107,7 +111,7 @@ export function useUploadPersonImage() {
       void queryClient.invalidateQueries({
         queryKey: PERSONS_KEY,
       });
-      notifySuccess("Avatar updated");
+      notifySuccess(t("Avatar updated"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not upload the avatar")),
   });
@@ -115,6 +119,9 @@ export function useUploadPersonImage() {
 
 export function useAutoPersonImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   const cooldown = useRateLimitCooldown(60_000);
   const mutation = useMutation({
     mutationFn: ({
@@ -128,7 +135,7 @@ export function useAutoPersonImage() {
       void queryClient.invalidateQueries({
         queryKey: PERSONS_KEY,
       });
-      notifySuccess("Avatar fetched");
+      notifySuccess(t("Avatar fetched"));
     },
     onError: (err: Error, {
       sourceUrl,
@@ -145,13 +152,16 @@ export function useAutoPersonImage() {
 
 export function useDeletePersonImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => peopleApi.deleteImage(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: PERSONS_KEY,
       });
-      notifySuccess("Avatar removed");
+      notifySuccess(t("Avatar removed"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not remove the avatar")),
   });
@@ -159,6 +169,9 @@ export function useDeletePersonImage() {
 
 export function useAdoptChannelImageForPerson() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id, channelId,
@@ -169,7 +182,7 @@ export function useAdoptChannelImageForPerson() {
       void queryClient.invalidateQueries({
         queryKey: PERSONS_KEY,
       });
-      notifySuccess("Avatar updated");
+      notifySuccess(t("Avatar updated"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not copy the channel avatar")),
   });
@@ -177,6 +190,9 @@ export function useAdoptChannelImageForPerson() {
 
 export function useAdoptWebsiteFaviconForPerson() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id, websiteId,
@@ -187,7 +203,7 @@ export function useAdoptWebsiteFaviconForPerson() {
       void queryClient.invalidateQueries({
         queryKey: PERSONS_KEY,
       });
-      notifySuccess("Avatar updated");
+      notifySuccess(t("Avatar updated"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not copy the website favicon")),
   });

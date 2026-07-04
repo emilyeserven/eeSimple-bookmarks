@@ -3,6 +3,7 @@ import type { AutoFetchJobStatus, CreateYouTubeChannelInput, UpdateYouTubeChanne
 import { useEffect, useRef } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { useRateLimitCooldown } from "./useRateLimitCooldown";
@@ -120,6 +121,9 @@ export function useBulkDeleteYouTubeChannels() {
 /** Upload a user-chosen avatar for a channel, replacing any existing one. */
 export function useUploadYouTubeChannelImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id, file,
@@ -136,7 +140,7 @@ export function useUploadYouTubeChannelImage() {
       void queryClient.invalidateQueries({
         queryKey: MISSING_IMAGE_COUNT_KEY,
       });
-      notifySuccess("Avatar updated");
+      notifySuccess(t("Avatar updated"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not upload the avatar")),
   });
@@ -145,6 +149,9 @@ export function useUploadYouTubeChannelImage() {
 /** Re-grab a channel's avatar from its public channel page (`og:image`). */
 export function useAutoYouTubeChannelImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   const cooldown = useRateLimitCooldown(60_000);
   const mutation = useMutation({
     mutationFn: ({
@@ -162,7 +169,7 @@ export function useAutoYouTubeChannelImage() {
       void queryClient.invalidateQueries({
         queryKey: MISSING_IMAGE_COUNT_KEY,
       });
-      notifySuccess("Avatar fetched");
+      notifySuccess(t("Avatar fetched"));
     },
     onError: (err: Error, {
       sourceUrl,
@@ -242,6 +249,9 @@ export function useBackfillChannelImagesCompletionToast(status: AutoFetchJobStat
 
 export function useDeleteYouTubeChannelImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => youtubeChannelsApi.deleteImage(id),
     onSuccess: () => {
@@ -255,7 +265,7 @@ export function useDeleteYouTubeChannelImage() {
       void queryClient.invalidateQueries({
         queryKey: MISSING_IMAGE_COUNT_KEY,
       });
-      notifySuccess("Avatar removed");
+      notifySuccess(t("Avatar removed"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not remove the avatar")),
   });

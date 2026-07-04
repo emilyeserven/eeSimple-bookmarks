@@ -1,6 +1,8 @@
 import { ApiError, describeError } from "./apiError";
 import { notifyError } from "./notifications";
 
+import i18n from "@/i18n";
+
 const GITHUB_ISSUES_URL = "https://github.com/emilyeserven/eesimple-bookmarks/issues/new";
 
 export interface BugReportContext {
@@ -35,7 +37,7 @@ export function notifyImageFetchError(
   // Notifications log, not lost when the transient toast dismisses.
   notifyError(describeError(err, fallback), {
     link: {
-      label: "File issue",
+      label: i18n.t("File issue"),
       href: buildGitHubIssueUrl({
         operation,
         errorMessage: err.message,

@@ -1,6 +1,7 @@
 import type { CreateGroupInput, UpdateGroupInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { groupsApi } from "../lib/api/taxonomies";
@@ -79,6 +80,9 @@ export function useBulkDeleteGroups() {
 
 export function useUploadGroupImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id, file,
@@ -88,7 +92,7 @@ export function useUploadGroupImage() {
       void queryClient.invalidateQueries({
         queryKey: GROUPS_KEY,
       });
-      notifySuccess("Image updated");
+      notifySuccess(t("Image updated"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not upload the image")),
   });
@@ -96,6 +100,9 @@ export function useUploadGroupImage() {
 
 export function useAutoGroupImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: ({
       id, source,
@@ -106,7 +113,7 @@ export function useAutoGroupImage() {
       void queryClient.invalidateQueries({
         queryKey: GROUPS_KEY,
       });
-      notifySuccess("Image fetched");
+      notifySuccess(t("Image fetched"));
     },
     onError: (err: Error, {
       sourceUrl,
@@ -116,13 +123,16 @@ export function useAutoGroupImage() {
 
 export function useDeleteGroupImage() {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => groupsApi.deleteImage(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: GROUPS_KEY,
       });
-      notifySuccess("Image removed");
+      notifySuccess(t("Image removed"));
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not remove the image")),
   });

@@ -3,6 +3,7 @@ import type { ImportItem } from "@eesimple/types";
 import { useState } from "react";
 
 import { Ban, FolderInput, MoreHorizontal, RefreshCw, Scissors } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BlockMenuItems } from "./InboxBlockMenuItems";
 import { MarkAsShortenerDialog } from "./MarkAsShortenerDialog";
@@ -78,6 +79,9 @@ export function ShortenerMenuItems({
 export function MoreActionsMenu({
   item,
 }: { item: ImportItem }) {
+  const {
+    t,
+  } = useTranslation();
   const recheck = useRecheckImportItemUrl();
   const ingest = useIngestUrl();
   const [shortenerMode, setShortenerMode] = useState<ShortenerMode | null>(null);
@@ -135,8 +139,8 @@ export function MoreActionsMenu({
                   onSuccess: ({
                     updated,
                   }) =>
-                    updated ? notifySuccess("Link resolved") : notifySuccess("No change"),
-                  onError: () => notifyError("Couldn't recheck this link"),
+                    updated ? notifySuccess(t("Link resolved")) : notifySuccess(t("No change")),
+                  onError: () => notifyError(t("Couldn't recheck this link")),
                 })}
             >
               <RefreshCw className="size-4 text-muted-foreground" />
@@ -150,8 +154,8 @@ export function MoreActionsMenu({
                     ingest.mutate({
                       url,
                     }, {
-                      onSuccess: () => notifySuccess("Queued as new import group"),
-                      onError: () => notifyError("Couldn't queue this URL for import"),
+                      onSuccess: () => notifySuccess(t("Queued as new import group")),
+                      onError: () => notifyError(t("Couldn't queue this URL for import")),
                     })}
                 >
                   <FolderInput className="size-4 text-muted-foreground" />

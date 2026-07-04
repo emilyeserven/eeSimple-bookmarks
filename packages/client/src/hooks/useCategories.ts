@@ -5,6 +5,7 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { categoriesApi } from "../lib/api/taxonomies";
@@ -71,11 +72,14 @@ export function useUpdateCategory() {
 
 export function useDeleteCategory() {
   const invalidate = useCategoryInvalidation();
+  const {
+    t,
+  } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => categoriesApi.remove(id),
     onSuccess: () => {
       invalidate();
-      notifySuccess("Category deleted");
+      notifySuccess(t("Category deleted"));
     },
   });
 }
