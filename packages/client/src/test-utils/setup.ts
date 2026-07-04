@@ -1,5 +1,9 @@
 import "@testing-library/jest-dom/vitest";
 
+// Initialize i18next synchronously (defaults to `lng: "en"`), so any component under test that calls
+// `useTranslation()`/`t()` renders its English-phrase keys verbatim — no assertion changes needed.
+import "../i18n";
+
 // Pure lib tests opt into the faster `node` environment via a per-file
 // `@vitest-environment node` pragma; skip the DOM stubs when no DOM exists.
 if (typeof window !== "undefined") {

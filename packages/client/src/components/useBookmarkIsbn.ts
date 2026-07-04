@@ -4,6 +4,7 @@ import type { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import type { CustomProperty, ImageCandidate, Language, MediaType, Person, Group } from "@eesimple/types";
 
 import { ISBN_SLUG, normalizeIsbn } from "./bookmarkFormSchema";
+import { useAppLocale } from "../hooks/useAppLocale";
 import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
 import { ApiError, describeError } from "../lib/apiError";
 import { languageDisplayName } from "../lib/languageDisplay";
@@ -53,6 +54,7 @@ export function useBookmarkIsbn({
   primaryLanguage,
 }: UseBookmarkIsbnParams) {
   const isbnFetch = useFetchIsbnMetadata();
+  const locale = useAppLocale();
 
   async function handleIsbnFetch(isbn: string): Promise<void> {
     let result;
@@ -97,6 +99,7 @@ export function useBookmarkIsbn({
         languages ?? [],
         createLanguage,
         id => primaryLanguage.attachPrimaryLanguageUsage(id),
+        locale,
       );
     }
     // Feed the cover into the same image-candidate picker the URL scan uses, so the existing
@@ -200,6 +203,7 @@ async function resolveLanguage(
   existingLanguages: Language[],
   createLanguage: Actions["createLanguage"],
   setId: (id: string) => void,
+  locale: string,
 ): Promise<void> {
   const match = existingLanguages.find(l => l.isoCode === isoCode);
   if (match) {
@@ -208,7 +212,7 @@ async function resolveLanguage(
   }
   try {
     const created = await createLanguage.mutateAsync({
-      name: languageDisplayName(isoCode),
+      name: languageDisplayName(isoCode, locale),
       isoCode,
     });
     setId(created.id);

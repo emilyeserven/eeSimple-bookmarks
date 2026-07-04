@@ -3,7 +3,11 @@ import { StrictMode } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { createRoot } from "react-dom/client";
+import { I18nextProvider } from "react-i18next";
 
+// Importing `./i18n` initializes i18next before the first render so `t()` resolves during the
+// initial paint; the instance is also provided via context below.
+import i18n from "./i18n";
 import { queryClient } from "./lib/queryClient";
 import { watchTheme } from "./lib/theme";
 import { routeTree } from "./routeTree.gen";
@@ -40,8 +44,10 @@ if (!rootElement) throw new Error("Root element #root not found");
 
 createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </I18nextProvider>
   </StrictMode>,
 );

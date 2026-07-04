@@ -10,7 +10,9 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { initialize, mswLoader } from "msw-storybook-addon";
+import { I18nextProvider } from "react-i18next";
 
+import i18n from "../src/i18n";
 import "../src/index.css";
 
 // Start the MSW worker so stories can mock `/api/*` requests via
@@ -59,9 +61,47 @@ const withRouter: Decorator = (Story) => {
   return <RouterProvider router={router as never} />;
 };
 
+/**
+ * Wrap each story in the i18next provider and switch the active locale from the toolbar `locale`
+ * global (`en`/`ja`). Lets the owner review translated states as `ja.json` is filled in; with
+ * English-phrase keys, an untranslated `ja` entry renders identically to `en`.
+ */
+const withI18n: Decorator = (Story, context) => {
+  const locale = (context.globals.locale as string) ?? "en";
+  if (i18n.language !== locale) {
+    void i18n.changeLanguage(locale);
+  }
+  return (
+    <I18nextProvider i18n={i18n}>
+      <Story />
+    </I18nextProvider>
+  );
+};
+
 const preview: Preview = {
-  decorators: [withQueryClient, withRouter],
+  decorators: [withI18n, withQueryClient, withRouter],
   loaders: [mswLoader],
+  globalTypes: {
+    locale: {
+      description: "Interface language",
+      defaultValue: "en",
+      toolbar: {
+        title: "Locale",
+        icon: "globe",
+        items: [
+          {
+            value: "en",
+            title: "English",
+          },
+          {
+            value: "ja",
+            title: "日本語 (Japanese)",
+          },
+        ],
+        dynamicTitle: true,
+      },
+    },
+  },
   parameters: {
     controls: {
       matchers: {

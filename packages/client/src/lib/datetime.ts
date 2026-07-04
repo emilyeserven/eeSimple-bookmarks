@@ -42,15 +42,26 @@ export function composeDateTime(
 /**
  * Format a canonical date/time value for display, honoring the property's `format`. Falls back to
  * the raw string when it can't be parsed.
+ *
+ * `locale` is an optional BCP-47 tag (e.g. the active interface locale from `useAppLocale`) threaded
+ * into the `Intl`-backed `toLocale*` calls; omit it to keep the runtime-default behavior. Kept a
+ * plain parameter (not a hook) so this stays a pure, node-env-testable function — components pass
+ * `useAppLocale()`.
  */
-export function formatDateTimeValue(value: string, format: DateTimeFormat | null): string {
+export function formatDateTimeValue(
+  value: string,
+  format: DateTimeFormat | null,
+  locale?: string,
+): string {
+  // `Intl` accepts an empty array as "use the runtime default locale"; keep that when unspecified.
+  const locales = locale ?? [];
   if (format === "time") {
     const time = parseTimePart(value);
     if (!time) return value;
     const [h, m] = time.split(":");
     const date = new Date();
     date.setHours(Number(h), Number(m), 0, 0);
-    return date.toLocaleTimeString([], {
+    return date.toLocaleTimeString(locales, {
       hour: "numeric",
       minute: "2-digit",
     });
@@ -63,12 +74,12 @@ export function formatDateTimeValue(value: string, format: DateTimeFormat | null
       const [h, m] = time.split(":");
       date.setHours(Number(h), Number(m), 0, 0);
     }
-    return date.toLocaleString([], {
+    return date.toLocaleString(locales, {
       dateStyle: "medium",
       timeStyle: "short",
     });
   }
-  return date.toLocaleDateString([], {
+  return date.toLocaleDateString(locales, {
     dateStyle: "medium",
   });
 }

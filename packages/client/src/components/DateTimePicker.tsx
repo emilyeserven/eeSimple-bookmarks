@@ -7,6 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useAppLocale } from "@/hooks/useAppLocale";
 import {
   composeDateTime,
   formatDateTimeValue,
@@ -35,6 +36,7 @@ interface DateTimePickerProps {
 export function DateTimePicker({
   format, value, onChange, id, placeholder, className,
 }: DateTimePickerProps) {
+  const locale = useAppLocale();
   const datePart = parseDatePart(value);
   const timePart = parseTimePart(value);
 
@@ -51,7 +53,7 @@ export function DateTimePicker({
     );
   }
 
-  const label = value ? formatDateTimeValue(value, format) : (placeholder ?? "Pick a date");
+  const label = value ? formatDateTimeValue(value, format, locale) : (placeholder ?? "Pick a date");
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
