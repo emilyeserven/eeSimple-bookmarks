@@ -10,6 +10,9 @@ import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner, mainTaxonomyImageUrl } from "@/services/taxonomyImages";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
+import { deleteLocationAssignmentsForOwner } from "@/services/locationAssignments";
 import { bookmarks, books, taxonomyImages, type BookRow } from "@/db/schema";
 import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -170,6 +173,9 @@ export async function deleteBook(id: string): Promise<boolean> {
   if (rows.length > 0) {
     await deleteTaxonomyImagesForOwner("book", id);
     await deleteEntityNamesForOwner("book", id);
+    await deleteLanguageUsagesForOwner("book", id);
+    await deleteGenreMoodAssignmentsForOwner("book", id);
+    await deleteLocationAssignmentsForOwner("book", id);
   }
   return rows.length > 0;
 }

@@ -2,6 +2,7 @@ import type { EntityWorkbench } from "./types";
 import type { Track } from "@eesimple/types";
 
 import i18n from "../../i18n";
+import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
 import { TrackAlbumValue } from "../TrackAlbumField";
@@ -100,6 +101,35 @@ export const trackWorkbench: EntityWorkbench<Track> = {
             entity={entity}
             imagesApi={tracksApi.images}
             queryKeyPrefix="track-images"
+          />
+        ),
+      },
+    },
+    {
+      key: "languages",
+      label: i18n.t("Languages"),
+      view: {
+        title: i18n.t("Languages"),
+        description: i18n.t("Languages this track is available in and how."),
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabView
+            ownerType="track"
+            ownerId={entity.id}
+          />
+        ),
+      },
+      edit: {
+        title: i18n.t("Languages"),
+        description: i18n.t("Record which languages this track offers (dub, subtitles, …)."),
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabEditor
+            ownerType="track"
+            ownerId={entity.id}
+            kind="availability"
           />
         ),
       },

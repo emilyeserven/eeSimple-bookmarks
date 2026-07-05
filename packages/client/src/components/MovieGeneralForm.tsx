@@ -20,6 +20,7 @@ export function MovieGeneralForm({
       entity={movie}
       kind="movie"
       ownerType="movie"
+      mediaOwnerType="movie"
       update={update}
       onRenamed={slug => void navigate({
         to: "/taxonomies/movies/$movieSlug/edit/general",

@@ -6,6 +6,7 @@ import i18n from "../../i18n";
 import { BookGeneralForm } from "../BookGeneralForm";
 import { BookImageTab } from "../BookImageTab";
 import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
+import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 
 import { useBookBySlug, useBooks, useDeleteBook } from "@/hooks/useBooks";
 import { useConnectors } from "@/hooks/useConnectors";
@@ -175,6 +176,35 @@ export const bookWorkbench: EntityWorkbench<Book> = {
         render: ({
           entity,
         }) => <BookImageTab book={entity} />,
+      },
+    },
+    {
+      key: "languages",
+      label: i18n.t("Languages"),
+      view: {
+        title: i18n.t("Languages"),
+        description: i18n.t("Languages this book is available in and how."),
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabView
+            ownerType="book"
+            ownerId={entity.id}
+          />
+        ),
+      },
+      edit: {
+        title: i18n.t("Languages"),
+        description: i18n.t("Record which languages this book offers (translation, original, …)."),
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabEditor
+            ownerType="book"
+            ownerId={entity.id}
+            kind="availability"
+          />
+        ),
       },
     },
   ],

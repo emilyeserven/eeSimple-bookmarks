@@ -1385,6 +1385,31 @@ const migrations: RuntimeMigration[] = [
     ),
   },
   {
+    // `location_assignments` — the polymorphic layer attaching Location terms to the media taxonomies
+    // (mirrors `genre_mood_assignments`). A brand-new table with a composite PK + NOT NULL columns,
+    // so against a populated DB `drizzle-kit push` treats it as a "truncate?" prompt and, non-TTY,
+    // SILENTLY SKIPS it (and every additive statement after it) while exiting 0 — the classic missing
+    // table/column 500. Pre-create it here so push's diff for it is empty. `location_id` is declared as
+    // a PLAIN uuid with NO `REFERENCES` — unlike genre_mood_assignments (which references genre_moods,
+    // created one step earlier here), `locations` is a push-created base table that does not exist yet
+    // when migrate runs on a fresh DB; push adds the FK constraint afterward (additive, never prompts).
+    name: "create location_assignments table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "location_assignments" (
+        "location_id" uuid NOT NULL,
+        "owner_type" text NOT NULL,
+        "owner_id" uuid NOT NULL,
+        PRIMARY KEY ("location_id", "owner_type", "owner_id")
+      )
+    `),
+  },
+  {
+    name: "create location_assignments owner index",
+    run: db => db.execute(
+      sql`CREATE INDEX IF NOT EXISTS "location_assignments_owner_idx" ON "location_assignments" ("owner_type", "owner_id")`,
+    ),
+  },
+  {
     // `bookmarks.image_display_preference` ("image" | "screenshot" | null) is a plain nullable text
     // column — normally a push-safe additive change. But it shipped in the same release window as the
     // brand-new `genre_mood_assignments` table (the step above), which `drizzle-kit push` treats as a

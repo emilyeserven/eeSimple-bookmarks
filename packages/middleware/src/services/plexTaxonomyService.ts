@@ -4,12 +4,16 @@ import type {
   BulkDeleteResult,
   EntityName,
   EntityNameOwnerType,
+  GenreMoodOwnerType,
   LanguageUsageOwnerType,
+  LocationAssignmentOwnerType,
   TaxonomyImageOwnerType,
 } from "@eesimple/types";
 import { db } from "@/db";
 import { deleteEntityNamesForOwner, loadEntityNames, mergeEnglishEntityName } from "@/services/entityNames";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
+import { deleteLocationAssignmentsForOwner } from "@/services/locationAssignments";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
 import { bookmarks, movies, taxonomyImages } from "@/db/schema";
@@ -94,8 +98,12 @@ export interface PlexTaxonomyServiceConfig<TTable extends PlexTaxonomyTable, T, 
   bookmarkFk: PgColumn;
   /** Owner-type tag for taxonomy-image cleanup on delete. */
   taxonomyImageOwnerType: TaxonomyImageOwnerType;
-  /** Owner-type tag for language-usage cleanup on delete (movies/tvShows only; omit otherwise). */
+  /** Owner-type tag for language-usage cleanup on delete. */
   languageUsageOwnerType?: LanguageUsageOwnerType;
+  /** Owner-type tag for genre/mood-assignment cleanup on delete. */
+  genreMoodOwnerType?: GenreMoodOwnerType;
+  /** Owner-type tag for location-assignment cleanup on delete. */
+  locationOwnerType?: LocationAssignmentOwnerType;
   /** Owner-type tag for multilingual-name cleanup on delete (all five Plex taxonomies). */
   entityNameOwnerType?: EntityNameOwnerType;
   /** Build the entity's distinct `Duplicate*Error` (kept per-entity so routes can `instanceof`). */
@@ -131,7 +139,8 @@ export function createPlexTaxonomyService<
   U extends PlexTaxonomyUpdateInput,
 >(config: PlexTaxonomyServiceConfig<TTable, T, C, U>): PlexTaxonomyService<T, C, U> {
   const {
-    bookmarkFk, taxonomyImageOwnerType, languageUsageOwnerType, entityNameOwnerType, makeDuplicateError,
+    bookmarkFk, taxonomyImageOwnerType, languageUsageOwnerType, genreMoodOwnerType, locationOwnerType,
+    entityNameOwnerType, makeDuplicateError,
   } = config;
   const slugFallback = taxonomyImageOwnerType.toLowerCase();
   // The real table object, narrowed to the concrete representative type so drizzle's builders
@@ -248,6 +257,8 @@ export function createPlexTaxonomyService<
     });
     if (rows.length > 0) {
       if (languageUsageOwnerType) await deleteLanguageUsagesForOwner(languageUsageOwnerType, id);
+      if (genreMoodOwnerType) await deleteGenreMoodAssignmentsForOwner(genreMoodOwnerType, id);
+      if (locationOwnerType) await deleteLocationAssignmentsForOwner(locationOwnerType, id);
       if (entityNameOwnerType) await deleteEntityNamesForOwner(entityNameOwnerType, id);
       await deleteTaxonomyImagesForOwner(taxonomyImageOwnerType, id);
     }

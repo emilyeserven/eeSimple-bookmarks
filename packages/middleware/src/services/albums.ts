@@ -10,6 +10,9 @@ import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner, mainTaxonomyImageUrl } from "@/services/taxonomyImages";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
+import { deleteLocationAssignmentsForOwner } from "@/services/locationAssignments";
 import {
   albumPeople, albumGroups, albums, bookmarks, taxonomyImages, type AlbumRow,
 } from "@/db/schema";
@@ -261,6 +264,9 @@ export async function deleteAlbum(id: string): Promise<boolean> {
   if (rows.length > 0) {
     await deleteTaxonomyImagesForOwner("album", id);
     await deleteEntityNamesForOwner("album", id);
+    await deleteLanguageUsagesForOwner("album", id);
+    await deleteGenreMoodAssignmentsForOwner("album", id);
+    await deleteLocationAssignmentsForOwner("album", id);
   }
   return rows.length > 0;
 }

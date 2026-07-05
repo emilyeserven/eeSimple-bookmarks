@@ -59,6 +59,7 @@ export function AlbumGeneralForm({
       entity={album}
       kind="album"
       ownerType="album"
+      mediaOwnerType="album"
       update={update}
       onRenamed={slug => void navigate({
         to: "/taxonomies/albums/$albumSlug/edit/general",

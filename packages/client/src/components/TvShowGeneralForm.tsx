@@ -20,6 +20,7 @@ export function TvShowGeneralForm({
       entity={tvShow}
       kind="show"
       ownerType="tvShow"
+      mediaOwnerType="tvShow"
       update={update}
       onRenamed={slug => void navigate({
         to: "/taxonomies/tv-shows/$tvShowSlug/edit/general",

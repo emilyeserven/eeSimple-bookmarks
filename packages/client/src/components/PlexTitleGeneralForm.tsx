@@ -1,7 +1,7 @@
 import type { createTaxonomyImageApi } from "../lib/api/taxonomyImages";
 import type { PlexTitleSyncField } from "../lib/syncSources/plexTitleDiff";
 import type { PlexKind } from "@/lib/plexParent";
-import type { EntityNameOwnerType, PlexItemResult } from "@eesimple/types";
+import type { EntityNameOwnerType, LocationAssignmentOwnerType, PlexItemResult } from "@eesimple/types";
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -9,6 +9,8 @@ import { Clapperboard, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
+import { LocationAssignmentSection } from "./LocationAssignmentSection";
 import { PlexItemLookup } from "./PlexItemLookup";
 import { TaxonomyGeneralFields } from "./TaxonomyGeneralFields";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -77,6 +79,8 @@ interface PlexTitleGeneralFormProps<E extends PlexTitle> {
   kind: PlexKind;
   /** Which `entity_names` owner type this entity is (distinct from `kind`, which is the Plex item type — e.g. TV Shows pass `kind="show"` but `ownerType="tvShow"`). */
   ownerType: EntityNameOwnerType;
+  /** The media-taxonomy owner type for the Genres & Moods + Locations association sections (same value as `ownerType`, but narrowed to the assignable-owner union). */
+  mediaOwnerType: LocationAssignmentOwnerType;
   /** The entity's update mutation (`useUpdateMovie` / `useUpdateEpisode` / …). */
   update: UseMutationResult<E, Error, { id: string;
     input: PlexTitleUpdateInput; }>;
@@ -104,6 +108,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
   entity,
   kind,
   ownerType,
+  mediaOwnerType,
   update,
   onRenamed,
   renderExtra,
@@ -299,6 +304,16 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
           onSelect={applyPlex}
         />
       </div>
+
+      <GenreMoodAssignmentSection
+        ownerType={mediaOwnerType}
+        ownerId={entity.id}
+      />
+
+      <LocationAssignmentSection
+        ownerType={mediaOwnerType}
+        ownerId={entity.id}
+      />
     </div>
   );
 }

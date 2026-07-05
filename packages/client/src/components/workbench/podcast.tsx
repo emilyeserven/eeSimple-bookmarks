@@ -14,6 +14,7 @@ import {
   resolvePodcastDefaultLink,
 } from "../../lib/podcastLinks";
 import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
+import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { PodcastAuthorsValue } from "../PodcastAuthorsFields";
 import { PodcastGeneralForm } from "../PodcastGeneralForm";
 import { PodcastImageTab } from "../PodcastImageTab";
@@ -193,6 +194,35 @@ export const podcastWorkbench: EntityWorkbench<Podcast> = {
         render: ({
           entity,
         }) => <PodcastImageTab podcast={entity} />,
+      },
+    },
+    {
+      key: "languages",
+      label: i18n.t("Languages"),
+      view: {
+        title: i18n.t("Languages"),
+        description: i18n.t("Languages this podcast is available in and how."),
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabView
+            ownerType="podcast"
+            ownerId={entity.id}
+          />
+        ),
+      },
+      edit: {
+        title: i18n.t("Languages"),
+        description: i18n.t("Record which languages this podcast offers (dub, subtitles, …)."),
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabEditor
+            ownerType="podcast"
+            ownerId={entity.id}
+            kind="availability"
+          />
+        ),
       },
     },
   ],

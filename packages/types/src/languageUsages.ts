@@ -19,7 +19,7 @@ export type LanguageUsageKind = "availability" | "proficiency";
  * The owner entities a {@link LanguageUsage} can attach to. Mirrors the middleware's
  * `LANGUAGE_USAGE_OWNER_TYPES`; the polymorphic association is keyed by `(ownerType, ownerId)`.
  */
-export const LANGUAGE_USAGE_OWNER_TYPES = ["bookmark", "movie", "tvShow", "website", "youtubeChannel", "person"] as const;
+export const LANGUAGE_USAGE_OWNER_TYPES = ["bookmark", "movie", "tvShow", "episode", "album", "track", "book", "podcast", "website", "youtubeChannel", "person"] as const;
 export type LanguageUsageOwnerType = typeof LANGUAGE_USAGE_OWNER_TYPES[number];
 
 /** A user-managed usage-level vocabulary entry. */

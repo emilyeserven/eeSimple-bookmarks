@@ -5,8 +5,10 @@ import { BookOpen, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { renderKavitaFieldSyncHint } from "./KavitaFieldSyncHint";
 import { KavitaSeriesLookup } from "./KavitaSeriesLookup";
+import { LocationAssignmentSection } from "./LocationAssignmentSection";
 import { TaxonomyGeneralFields } from "./TaxonomyGeneralFields";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
@@ -198,6 +200,16 @@ export function BookGeneralForm({
           : null}
         <KavitaSeriesLookup onSelect={applyKavita} />
       </div>
+
+      <GenreMoodAssignmentSection
+        ownerType="book"
+        ownerId={book.id}
+      />
+
+      <LocationAssignmentSection
+        ownerType="book"
+        ownerId={book.id}
+      />
     </div>
   );
 }

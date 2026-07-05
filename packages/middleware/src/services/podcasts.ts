@@ -11,6 +11,9 @@ import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
+import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
+import { deleteLocationAssignmentsForOwner } from "@/services/locationAssignments";
 import { bookmarks, podcastGroups, podcastPeople, podcasts, taxonomyImages, type PodcastRow } from "@/db/schema";
 import { AppError } from "@/utils/errors";
 import { buildStringMap } from "@/utils/mapUtils";
@@ -285,6 +288,9 @@ export async function deletePodcast(id: string): Promise<boolean> {
   if (rows.length > 0) {
     await deleteTaxonomyImagesForOwner("podcast", id);
     await deleteEntityNamesForOwner("podcast", id);
+    await deleteLanguageUsagesForOwner("podcast", id);
+    await deleteGenreMoodAssignmentsForOwner("podcast", id);
+    await deleteLocationAssignmentsForOwner("podcast", id);
   }
   return rows.length > 0;
 }
