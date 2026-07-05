@@ -28,6 +28,8 @@ interface SidebarItemsMatrixProps {
   onSetMode: (key: string, mode: SidebarItemMode) => void;
   /** Label for the "hidden" option (default "Listing only"; e.g. "Hide" for connector links). */
   hiddenLabel?: string;
+  /** Label for the "visible" option (default "Default"). */
+  visibleLabel?: string;
 }
 
 /**
@@ -35,13 +37,14 @@ interface SidebarItemsMatrixProps {
  * the consolidated Sidebar settings card and wrapped by {@link SidebarItemsCard}.
  */
 export function SidebarItemsMatrix({
-  items, hiddenItems, seeMoreItems, onSetMode, hiddenLabel,
+  items, hiddenItems, seeMoreItems, onSetMode, hiddenLabel, visibleLabel,
 }: SidebarItemsMatrixProps) {
   const {
     t,
   } = useTranslation();
   const hasThreeStates = seeMoreItems !== undefined;
   const resolvedHiddenLabel = t(hiddenLabel ?? "Listing only");
+  const resolvedVisibleLabel = t(visibleLabel ?? "Default");
 
   function modeFor(key: string): SidebarItemMode {
     if (hiddenItems.includes(key)) return "hidden";
@@ -54,7 +57,7 @@ export function SidebarItemsMatrix({
     ? [
       {
         value: "visible",
-        label: t("Default"),
+        label: resolvedVisibleLabel,
       },
       {
         value: "see-more",
@@ -68,7 +71,7 @@ export function SidebarItemsMatrix({
     : [
       {
         value: "visible",
-        label: t("Default"),
+        label: resolvedVisibleLabel,
       },
       {
         value: "hidden",
@@ -114,6 +117,8 @@ interface SidebarItemsCardProps {
   onSetMode: (key: string, mode: SidebarItemMode) => void;
   /** Label for the "hidden" option (default "Listing only"; e.g. "Hide" for connector links). */
   hiddenLabel?: string;
+  /** Label for the "visible" option (default "Default"). */
+  visibleLabel?: string;
 }
 
 /**
@@ -123,7 +128,7 @@ interface SidebarItemsCardProps {
  * (Default / Listing only).
  */
 export function SidebarItemsCard({
-  title, description, items, hiddenItems, seeMoreItems, onSetMode, hiddenLabel,
+  title, description, items, hiddenItems, seeMoreItems, onSetMode, hiddenLabel, visibleLabel,
 }: SidebarItemsCardProps) {
   return (
     <Card>
@@ -138,6 +143,7 @@ export function SidebarItemsCard({
           seeMoreItems={seeMoreItems}
           onSetMode={onSetMode}
           hiddenLabel={hiddenLabel}
+          visibleLabel={visibleLabel}
         />
       </CardContent>
     </Card>

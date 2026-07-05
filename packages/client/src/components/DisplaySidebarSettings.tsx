@@ -5,11 +5,14 @@ import { Fragment } from "react";
 import {
   Building2,
   Clapperboard,
+  Drama,
   FileInput,
   FolderOpen,
   Globe,
+  Languages,
   LayoutGrid,
   Layers,
+  Library,
   ListFilter,
   Mail,
   MapPin,
@@ -76,6 +79,21 @@ const TAXONOMY_ITEMS = [
     key: "media-types",
     label: "Media Types",
     icon: Clapperboard,
+  },
+  {
+    key: "genres-moods",
+    label: "Genres & Moods",
+    icon: Drama,
+  },
+  {
+    key: "languages",
+    label: "Languages",
+    icon: Languages,
+  },
+  {
+    key: "media-properties",
+    label: "Media Properties",
+    icon: Library,
   },
   {
     key: "locations",
@@ -215,6 +233,7 @@ export function DisplaySidebarSettings() {
           hiddenItems={hiddenTaxonomyItems}
           seeMoreItems={seeMoreTaxonomyItems}
           onSetMode={setTaxonomyItemMode}
+          hiddenLabel={t("Hide")}
         />
       </SidebarSettingsSection>,
     );
@@ -233,6 +252,7 @@ export function DisplaySidebarSettings() {
           hiddenItems={hiddenCustomizationItems}
           seeMoreItems={seeMoreCustomizationItems}
           onSetMode={setCustomizationItemMode}
+          hiddenLabel={t("Hide")}
         />
       </SidebarSettingsSection>,
     );
