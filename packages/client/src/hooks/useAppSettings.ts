@@ -11,6 +11,7 @@ import type {
   PlaceTypeDisplayConfig,
   PlaceTypeIconConfig,
   PlaceTypeLevelGroupConfig,
+  PreferredLanguage,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
@@ -28,6 +29,7 @@ import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, expandL
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
+import { useLanguages } from "./useLanguages";
 import { appSettingsApi } from "../lib/api/settings";
 import { describeError } from "../lib/apiError";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
@@ -243,6 +245,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   croppedWidth: 16,
   croppedHeight: 9,
   hanScriptLanguage: "ja" as "ja" | "zh",
+  secondaryLanguageId: null as string | null,
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   mapPinScale: MAP_PIN_SCALE_DEFAULT,
@@ -510,6 +513,28 @@ export function useInterfaceLanguage(): InterfaceLanguage {
     data,
   } = useDisplayPreferenceSettings();
   return data?.interfaceLanguage ?? DISPLAY_PREFERENCE_DEFAULTS.interfaceLanguage;
+}
+
+/**
+ * The language a multilingual entity's secondary display name (breadcrumbs, etc.) is drawn from —
+ * `null` when unset (auto: an English-tagged name, else the entity's first other name).
+ */
+export function useSecondaryDisplayLanguage(): PreferredLanguage | null {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  const {
+    data: languages,
+  } = useLanguages();
+  const id = data?.secondaryLanguageId ?? DISPLAY_PREFERENCE_DEFAULTS.secondaryLanguageId;
+  if (!id) return null;
+  const language = languages?.find(l => l.id === id);
+  return language
+    ? {
+      id: language.id,
+      isoCode: language.isoCode,
+    }
+    : null;
 }
 
 /** How many bookmarks to show per listing page (default 25). */

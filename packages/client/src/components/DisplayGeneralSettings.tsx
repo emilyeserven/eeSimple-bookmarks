@@ -8,12 +8,14 @@ import type {
 import { BOOKMARKS_PER_PAGE_OPTIONS, DEFAULT_BOOKMARKS_PER_PAGE } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
+import { Combobox } from "./Combobox";
 import { PropertyTypeIconsCard } from "./PropertyTypeIconsCard";
 import { SegmentedToggleRow } from "./SegmentedToggleRow";
 import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
+import { useLanguages } from "../hooks/useLanguages";
 import { useUiStore } from "../stores/uiStore";
 
 import {
@@ -40,12 +42,13 @@ const THEME_LABELS: Record<Theme, string> = {
 
 const DISPLAY_DEFAULTS: Pick<
   DisplayPreferenceSettings,
-  "customPropertyTypeIcons" | "bookmarksPerPage" | "interfaceLanguage" | "hanScriptLanguage"
+  "customPropertyTypeIcons" | "bookmarksPerPage" | "interfaceLanguage" | "hanScriptLanguage" | "secondaryLanguageId"
 > = {
   customPropertyTypeIcons: null,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   interfaceLanguage: "en",
   hanScriptLanguage: "ja",
+  secondaryLanguageId: null,
 };
 
 const LANGUAGE_OPTIONS = [
@@ -73,6 +76,9 @@ export function DisplayGeneralSettings() {
     data: displayData,
   } = useDisplayPreferenceSettings();
   const updateDisplay = useUpdateDisplayPreferenceSettings();
+  const {
+    data: languages = [],
+  } = useLanguages();
   const display = {
     ...DISPLAY_DEFAULTS,
     ...displayData,
@@ -118,6 +124,15 @@ export function DisplayGeneralSettings() {
     saveDisplay({
       interfaceLanguage: value,
     }, "Interface language updated");
+  const setSecondaryLanguageId = (value: string | undefined) =>
+    saveDisplay({
+      secondaryLanguageId: value ?? null,
+    }, "Secondary display language updated");
+
+  const languageOptions = languages.map(l => ({
+    value: l.id,
+    label: l.name,
+  }));
 
   return (
     <div className="space-y-6">
@@ -241,6 +256,26 @@ export function DisplayGeneralSettings() {
                 <SelectItem value="zh">{t("Chinese")}</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="secondary-display-language-combobox">{t("Secondary display language")}</Label>
+            <p className="text-sm text-muted-foreground">
+              {t("When an entity has names in multiple languages, this is the language shown as the secondary name (e.g. in breadcrumbs). Leave unset to auto-choose an English or other alternate name.")}
+            </p>
+            <Combobox
+              id="secondary-display-language-combobox"
+              className="
+                w-full
+                sm:w-60
+              "
+              placeholder={t("None (auto)")}
+              searchPlaceholder={t("Search languages…")}
+              emptyText={t("No languages found.")}
+              options={languageOptions}
+              value={display.secondaryLanguageId ?? undefined}
+              onValueChange={setSecondaryLanguageId}
+            />
           </div>
         </CardContent>
       </Card>

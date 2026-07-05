@@ -87,15 +87,18 @@ function matchesLanguage(name: EntityName, preferred: PreferredLanguage): boolea
  * is present, else the `isPrimary` name, else `base`. The secondary is the "other" canonical name —
  * the primary/base name — rendered de-emphasized after the primary when it differs from the chosen
  * primary. When no `preferredLanguage` match is found (there is no interface-language setting yet, so
- * this is the common case today), the secondary falls back to "the most useful other name": an
- * English-tagged name if one exists, else the first other name, so a romanized/alternate name still
- * shows even with no explicit preference — generalizing `orderRomanized` (romanized.ts) for the
- * multi-language model while keeping today's always-show-a-secondary behavior stable.
+ * this is the common case today), the secondary prefers `secondaryLanguage` when given (the user's
+ * configured secondary display language, e.g. Settings → Display → "Secondary display language"),
+ * else falls back to "the most useful other name": an English-tagged name if one exists, else the
+ * first other name, so a romanized/alternate name still shows even with no explicit preference —
+ * generalizing `orderRomanized` (romanized.ts) for the multi-language model while keeping today's
+ * always-show-a-secondary behavior stable.
  */
 export function resolveDisplayNames(
   names: EntityName[],
   preferredLanguage: PreferredLanguage | null | undefined,
   base: string,
+  secondaryLanguage?: PreferredLanguage | null,
 ): EntityDisplayNames {
   const preferred = preferredLanguage
     ? names.find(name => matchesLanguage(name, preferredLanguage))
@@ -110,8 +113,11 @@ export function resolveDisplayNames(
     };
   }
   const others = names.filter(name => name.value !== primary);
+  const secondaryMatch = secondaryLanguage
+    ? others.find(name => matchesLanguage(name, secondaryLanguage))
+    : undefined;
   const englishOther = others.find(name => name.language.isoCode?.toLowerCase() === "en");
-  const fallback = englishOther ?? others[0];
+  const fallback = secondaryMatch ?? englishOther ?? others[0];
   return {
     primary,
     secondary: fallback ? fallback.value : null,

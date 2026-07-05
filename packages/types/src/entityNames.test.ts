@@ -131,6 +131,45 @@ test("resolveDisplayNames falls back to the most useful other name when the pref
   });
 });
 
+test("resolveDisplayNames prefers the secondaryLanguage match over the English-tagged fallback", () => {
+  const french = makeName({
+    value: "L'Attaque des Titans",
+    isoCode: "fr",
+    languageId: "lang-fr",
+    sortOrder: 2,
+  });
+  assert.deepEqual(resolveDisplayNames([japanese, french, english], null, "進撃の巨人", {
+    isoCode: "fr",
+  }), {
+    primary: "進撃の巨人",
+    secondary: "L'Attaque des Titans",
+  });
+});
+
+test("resolveDisplayNames matches secondaryLanguage by id too", () => {
+  const french = makeName({
+    value: "L'Attaque des Titans",
+    isoCode: "fr",
+    languageId: "lang-fr",
+    sortOrder: 2,
+  });
+  assert.deepEqual(resolveDisplayNames([japanese, french, english], null, "進撃の巨人", {
+    id: "lang-fr",
+  }), {
+    primary: "進撃の巨人",
+    secondary: "L'Attaque des Titans",
+  });
+});
+
+test("resolveDisplayNames falls back to the English/first-other name when secondaryLanguage has no match", () => {
+  assert.deepEqual(resolveDisplayNames([japanese, english], null, "進撃の巨人", {
+    isoCode: "fr",
+  }), {
+    primary: "進撃の巨人",
+    secondary: "Attack on Titan",
+  });
+});
+
 // --- nameSortKey ---
 
 test("nameSortKey sorts by the primary name by default", () => {
