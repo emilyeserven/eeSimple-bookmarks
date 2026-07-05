@@ -59,6 +59,8 @@ interface UseBookmarkFormHandlersParams {
   imageState: ImageState;
   prefill: Prefill;
   primaryLanguage: ReturnType<typeof useBookmarkPrimaryLanguage>;
+  /** Amazon-scan ISBN detection (see `useBookmarkIsbn`) — invoked from `performUrlScan`. */
+  handleAmazonIsbnDetected: (isbn13: string) => Promise<void>;
 }
 
 /**
@@ -82,6 +84,7 @@ export function useBookmarkFormHandlers({
   imageState,
   prefill,
   primaryLanguage,
+  handleAmazonIsbnDetected,
 }: UseBookmarkFormHandlersParams) {
   const navigate = useNavigate();
   const {
@@ -417,6 +420,9 @@ export function useBookmarkFormHandlers({
       });
       if (scan) {
         setImageCandidates(scan.imageCandidates);
+        if (scan.isbn) {
+          await handleAmazonIsbnDetected(scan.isbn);
+        }
         await applyScanMetadata(finalUrl, scan, {
           fillTitle,
           force: false,

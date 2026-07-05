@@ -3,6 +3,7 @@ import type { useBookmarkFormActions } from "./useBookmarkFormActions";
 import type { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import type { CustomProperty, ImageCandidate, Language, MediaType, Person, Group } from "@eesimple/types";
 
+import { normalizeIsbnTo13 } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { ISBN_SLUG, normalizeIsbn } from "./bookmarkFormSchema";
@@ -18,6 +19,8 @@ type Actions = ReturnType<typeof useBookmarkFormActions>;
 interface UseBookmarkIsbnParams {
   form: BookmarkFormApi;
   customProperties: CustomProperty[] | undefined;
+  /** Current custom-property text values, keyed by property id — used to detect an already-filled ISBN. */
+  textInputs: Record<string, string>;
   mediaTypes: MediaType[] | undefined;
   people: Person[] | undefined;
   groups: Group[] | undefined;
@@ -42,6 +45,7 @@ interface UseBookmarkIsbnParams {
 export function useBookmarkIsbn({
   form,
   customProperties,
+  textInputs,
   mediaTypes,
   people,
   groups,
@@ -128,8 +132,9 @@ export function useBookmarkIsbn({
   // built-in property so it persists, default the media type to Book, reveal the form, and fetch the
   // book's metadata. Mirrors handleAddOfflineBookmark, but the Name field stays visible.
   async function handleLookupIsbn(): Promise<void> {
-    const isbn = normalizeIsbn(form.getFieldValue("url"));
-    if (!isbn) return;
+    const rawIsbn = normalizeIsbn(form.getFieldValue("url"));
+    if (!rawIsbn) return;
+    const isbn = normalizeIsbnTo13(rawIsbn) ?? rawIsbn;
     form.setFieldValue("url", "");
     const isbnProp = (customProperties ?? []).find(p => p.slug === ISBN_SLUG);
     if (isbnProp) handleTextChange(isbnProp.id, isbn);
@@ -140,10 +145,39 @@ export function useBookmarkIsbn({
     await handleIsbnFetch(isbn);
   }
 
+  // The ISBN property field's own inline "fetch metadata" button: normalize whatever the user typed
+  // there to ISBN-13 before persisting/fetching, same as every other ISBN-capture path.
+  async function handleIsbnFieldFetch(rawValue: string): Promise<void> {
+    const isbn = normalizeIsbnTo13(rawValue) ?? rawValue;
+    if (isbn !== rawValue) {
+      const isbnProp = (customProperties ?? []).find(p => p.slug === ISBN_SLUG);
+      if (isbnProp) handleTextChange(isbnProp.id, isbn);
+    }
+    await handleIsbnFetch(isbn);
+  }
+
+  // Amazon-scan entry point: `isbn13` was already extracted + checksum-verified server-side from an
+  // Amazon product URL's ASIN. Only fill the ISBN property when it's still empty — never clobber a
+  // value the user already entered or a previous scan already resolved — then run the same
+  // metadata enrichment as manual ISBN entry.
+  async function handleAmazonIsbnDetected(isbn13: string): Promise<void> {
+    const isbnProp = (customProperties ?? []).find(p => p.slug === ISBN_SLUG);
+    if (!isbnProp) return;
+    if ((textInputs[isbnProp.id] ?? "").trim()) return;
+    handleTextChange(isbnProp.id, isbn13);
+    const bookMediaType = mediaTypes?.find(mt => mt.name === "Book");
+    if (bookMediaType && !form.getFieldValue("mediaTypeId")) {
+      form.setFieldValue("mediaTypeId", bookMediaType.id);
+    }
+    await handleIsbnFetch(isbn13);
+  }
+
   return {
     isbnFetch,
     handleIsbnFetch,
     handleLookupIsbn,
+    handleIsbnFieldFetch,
+    handleAmazonIsbnDetected,
   };
 }
 
