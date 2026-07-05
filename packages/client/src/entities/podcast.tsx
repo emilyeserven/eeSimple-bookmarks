@@ -7,6 +7,7 @@ import { PodcastListItem } from "../components/PodcastListItem";
 import { PodcastTable } from "../components/PodcastTable";
 import { podcastWorkbench } from "../components/workbench/podcast";
 import { useBulkDeletePodcasts, usePodcasts } from "../hooks/usePodcasts";
+import i18n from "../i18n";
 import { podcastsApi } from "../lib/api/taxonomies";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -14,8 +15,8 @@ const PODCAST_ROUTE: EntityRoute = {
   kind: "podcast",
   prefix: "/taxonomies/podcasts",
   slugIndex: 2,
-  listLabel: "Podcasts",
-  singular: "Podcast",
+  listLabel: i18n.t("Podcasts"),
+  singular: i18n.t("Podcast"),
   flatCrumbs: true,
 };
 
@@ -33,12 +34,12 @@ export const podcastListingConfig: EntityListingConfig<Podcast> = {
   matches: (podcast, query) =>
     podcast.name.toLowerCase().includes(query) || podcast.slug.toLowerCase().includes(query),
   useBulkDelete: useBulkDeletePodcasts,
-  noun: ["podcast", "podcasts"],
-  loadingLabel: "Loading podcasts…",
-  entityPlural: "podcasts",
+  noun: [i18n.t("podcast"), i18n.t("podcasts")],
+  loadingLabel: i18n.t("Loading podcasts…"),
+  entityPlural: i18n.t("podcasts"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No podcasts yet.
+      {i18n.t("No podcasts yet.")}
     </p>
   ),
   renderListItem: ({

@@ -4,6 +4,7 @@ import type { EntityRoute } from "../lib/entityRoutes";
 import type { CardDisplayRule, UpdateCardDisplayRuleInput } from "@eesimple/types";
 
 import { cardDisplayRuleWorkbench } from "../components/workbench/cardDisplayRule";
+import i18n from "../i18n";
 import { cardDisplayRulesApi } from "../lib/api/settings";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -11,8 +12,8 @@ const CARD_DISPLAY_RULE_ROUTE: EntityRoute = {
   kind: "card-display-rule",
   prefix: "/card-display-rules",
   slugIndex: 1,
-  listLabel: "Card Display Rules",
-  singular: "Card Display Rule",
+  listLabel: i18n.t("Card Display Rules"),
+  singular: i18n.t("Card Display Rule"),
   flatCrumbs: true,
 };
 
@@ -23,11 +24,11 @@ const CARD_DISPLAY_RULE_PALETTE: EntityPaletteConfig = {
   updateFn: (id, patch) => cardDisplayRulesApi.update(id, patch as UpdateCardDisplayRuleInput),
   extraEditTabs: [
     {
-      label: "Edit Conditions",
+      label: i18n.t("Edit Conditions"),
       tab: "conditions",
     },
     {
-      label: "Edit Display",
+      label: i18n.t("Edit Display"),
       tab: "display",
     },
   ],

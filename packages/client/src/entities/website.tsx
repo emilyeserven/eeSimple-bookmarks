@@ -8,6 +8,7 @@ import { WebsiteListItem } from "../components/WebsiteListItem";
 import { WebsiteTable } from "../components/WebsiteTable";
 import { websiteWorkbench } from "../components/workbench/website";
 import { useWebsites } from "../hooks/useWebsites";
+import i18n from "../i18n";
 import { websitesApi } from "../lib/api/taxonomies";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -17,8 +18,8 @@ const WEBSITE_ROUTE: EntityRoute = {
   kind: "website",
   prefix: "/taxonomies/websites",
   slugIndex: 2,
-  listLabel: "Websites",
-  singular: "Website",
+  listLabel: i18n.t("Websites"),
+  singular: i18n.t("Website"),
   switcher: "website",
   flatCrumbs: true,
 };
@@ -34,14 +35,14 @@ const WEBSITE_PALETTE: EntityPaletteConfig = {
     {
       type: "choice",
       key: "categoryId",
-      label: "Category",
+      label: i18n.t("Category"),
       options: "categories",
       getValue: entity => (entity as Website).category?.id ?? null,
     },
     {
       type: "choice",
       key: "mediaTypeId",
-      label: "Default Media Type",
+      label: i18n.t("Default Media Type"),
       options: "media-types",
       getValue: entity => (entity as Website).mediaTypeId ?? null,
     },
@@ -63,11 +64,11 @@ export const websiteListingConfig: EntityListingConfig<Website> = {
       onDone={onDone}
     />
   ),
-  loadingLabel: "Loading websites…",
-  entityPlural: "websites",
+  loadingLabel: i18n.t("Loading websites…"),
+  entityPlural: i18n.t("websites"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No websites yet. They&apos;re created automatically when you add bookmarks.
+      {i18n.t("No websites yet. They're created automatically when you add bookmarks.")}
     </p>
   ),
   renderListItem: ({

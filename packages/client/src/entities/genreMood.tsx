@@ -7,6 +7,7 @@ import { GenreMoodTable } from "../components/GenreMoodTable";
 import { GenreMoodTreeList } from "../components/GenreMoodTreeList";
 import { genreMoodWorkbench } from "../components/workbench/genreMood";
 import { useBulkDeleteGenreMoods, useGenreMoodTree } from "../hooks/useGenreMoods";
+import i18n from "../i18n";
 import { genreMoodsApi } from "../lib/api/taxonomies";
 import { flattenTree } from "../lib/tagTree";
 
@@ -17,8 +18,8 @@ const GENRE_MOOD_ROUTE: EntityRoute = {
   kind: "genre-mood",
   prefix: "/taxonomies/genres-moods",
   slugIndex: 2,
-  listLabel: "Genres & Moods",
-  singular: "Genres & Moods entry",
+  listLabel: i18n.t("Genres & Moods"),
+  singular: i18n.t("Genres & Moods entry"),
   // Unlike Tags/Media Types/Locations, the tree is surfaced via a view-only Hierarchy tab rather
   // than an ancestor-chain breadcrumb, so the detail/edit crumbs are the shared flat `List → Name`.
   flatCrumbs: true,
@@ -41,12 +42,12 @@ export const genreMoodTreeListingConfig: EntityTreeListingConfig<GenreMoodNode> 
     || (node.romanizedName ?? "").toLowerCase().includes(query),
   deletableIds: tree => flattenTree(tree).map(f => f.node.id),
   useBulkDelete: useBulkDeleteGenreMoods,
-  noun: ["entry", "entries"],
-  loadingLabel: "Loading Genres & Moods…",
-  entityPlural: "Genres & Moods",
+  noun: [i18n.t("entry"), i18n.t("entries")],
+  loadingLabel: i18n.t("Loading Genres & Moods…"),
+  entityPlural: i18n.t("Genres & Moods"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No Genres & Moods yet.
+      {i18n.t("No Genres & Moods yet.")}
     </p>
   ),
   renderTree: ({

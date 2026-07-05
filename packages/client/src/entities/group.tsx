@@ -7,6 +7,7 @@ import { GroupListItem } from "../components/GroupListItem";
 import { GroupTable } from "../components/GroupTable";
 import { groupWorkbench } from "../components/workbench/group";
 import { useBulkDeleteGroups, useGroups } from "../hooks/useGroups";
+import i18n from "../i18n";
 import { groupsApi } from "../lib/api/taxonomies";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -16,8 +17,8 @@ const GROUP_ROUTE: EntityRoute = {
   kind: "group",
   prefix: "/taxonomies/groups",
   slugIndex: 2,
-  listLabel: "Groups",
-  singular: "Group",
+  listLabel: i18n.t("Groups"),
+  singular: i18n.t("Group"),
   flatCrumbs: true,
 };
 
@@ -34,12 +35,12 @@ export const groupListingConfig: EntityListingConfig<Group> = {
   useItems: useGroups,
   matches: (group, query) => group.name.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteGroups,
-  noun: ["group", "groups"],
-  loadingLabel: "Loading groups…",
-  entityPlural: "groups",
+  noun: [i18n.t("group"), i18n.t("groups")],
+  loadingLabel: i18n.t("Loading groups…"),
+  entityPlural: i18n.t("groups"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No groups yet. Add one above, then assign them to bookmarks.
+      {i18n.t("No groups yet. Add one above, then assign them to bookmarks.")}
     </p>
   ),
   renderListItem: ({

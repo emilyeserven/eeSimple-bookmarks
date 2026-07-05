@@ -6,6 +6,7 @@ import type { SavedFilter, UpdateSavedFilterInput } from "@eesimple/types";
 import { SavedFilterCard } from "../components/SavedFilterCard";
 import { savedFilterWorkbench } from "../components/workbench/savedFilter";
 import { useBulkDeleteSavedFilters, useSavedFilters } from "../hooks/useSavedFilters";
+import i18n from "../i18n";
 import { savedFiltersApi } from "../lib/api/settings";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -13,8 +14,8 @@ const SAVED_FILTER_ROUTE: EntityRoute = {
   kind: "saved-filter",
   prefix: "/saved-filters",
   slugIndex: 1,
-  listLabel: "Saved Filters",
-  singular: "Saved Filter",
+  listLabel: i18n.t("Saved Filters"),
+  singular: i18n.t("Saved Filter"),
   flatCrumbs: true,
 };
 
@@ -27,7 +28,7 @@ const SAVED_FILTER_PALETTE: EntityPaletteConfig = {
     {
       type: "boolean",
       key: "viewableOnline",
-      label: "Sidebar Shortcut",
+      label: i18n.t("Sidebar Shortcut"),
       getValue: entity => (entity as SavedFilter).viewableOnline,
     },
   ],
@@ -39,12 +40,12 @@ export const savedFilterListingConfig: EntityListingConfig<SavedFilter> = {
   useItems: useSavedFilters,
   matches: (filter, query) => filter.name.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteSavedFilters,
-  noun: ["saved filter", "saved filters"],
-  loadingLabel: "Loading saved filters…",
-  entityPlural: "saved filters",
+  noun: [i18n.t("saved filter"), i18n.t("saved filters")],
+  loadingLabel: i18n.t("Loading saved filters…"),
+  entityPlural: i18n.t("saved filters"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No saved filters yet. Set filters on the Bookmarks page and click &ldquo;Save&rdquo; to create one.
+      {i18n.t("No saved filters yet. Set filters on the Bookmarks page and click “Save” to create one.")}
     </p>
   ),
   renderListItem: ({

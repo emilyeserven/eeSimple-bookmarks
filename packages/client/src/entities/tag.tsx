@@ -9,6 +9,7 @@ import { tagWorkbench } from "../components/workbench/tag";
 import { useSortByRomanized } from "../hooks/useAppSettings";
 import { useBulkDeleteTags, useTagTree } from "../hooks/useTags";
 import { useInterfaceTitleSort } from "../hooks/useTitleSortContext";
+import i18n from "../i18n";
 import { tagsApi } from "../lib/api/taxonomies";
 import { flattenTree, sortTagTreeByRomanized } from "../lib/tagTree";
 
@@ -19,8 +20,8 @@ const TAG_ROUTE: EntityRoute = {
   kind: "tag",
   prefix: "/tags",
   slugIndex: 1,
-  listLabel: "Tags",
-  singular: "Tag",
+  listLabel: i18n.t("Tags"),
+  singular: i18n.t("Tag"),
   flatCrumbs: false,
 };
 
@@ -34,13 +35,13 @@ const TAG_PALETTE: EntityPaletteConfig = {
     {
       type: "boolean",
       key: "editableOnCard",
-      label: "Editable on Card",
+      label: i18n.t("Editable on Card"),
       getValue: entity => (entity as Tag).editableOnCard ?? false,
     },
     {
       type: "boolean",
       key: "excludeFromBackfill",
-      label: "Exclude from Backfill",
+      label: i18n.t("Exclude from Backfill"),
       getValue: entity => (entity as Tag).excludeFromBackfill ?? false,
     },
   ],
@@ -67,12 +68,12 @@ export function buildTagTreeListingConfig(opts: { onNew: () => void }): EntityTr
       || (node.romanizedName ?? "").toLowerCase().includes(query),
     deletableIds: tree => flattenTree(tree).map(f => f.node.id),
     useBulkDelete: useBulkDeleteTags,
-    noun: ["tag", "tags"],
-    loadingLabel: "Loading tags…",
-    entityPlural: "tags",
+    noun: [i18n.t("tag"), i18n.t("tags")],
+    loadingLabel: i18n.t("Loading tags…"),
+    entityPlural: i18n.t("tags"),
     emptyMessage: (
       <p className="text-muted-foreground">
-        {"No tags yet. "}
+        {`${i18n.t("No tags yet.")} `}
         <button
           type="button"
           className="
@@ -81,7 +82,7 @@ export function buildTagTreeListingConfig(opts: { onNew: () => void }): EntityTr
           "
           onClick={opts.onNew}
         >
-          Add your first tag.
+          {i18n.t("Add your first tag.")}
         </button>
       </p>
     ),

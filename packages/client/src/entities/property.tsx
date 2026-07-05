@@ -7,6 +7,7 @@ import { CustomPropertyTable } from "../components/CustomPropertyTable";
 import { PropertyPreview } from "../components/PropertyPreview";
 import { propertyWorkbench } from "../components/workbench/property";
 import { useBulkDeleteCustomProperties, useCustomProperties } from "../hooks/useCustomProperties";
+import i18n from "../i18n";
 import { customPropertiesApi } from "../lib/api/taxonomies";
 import { TYPE_LABELS } from "../lib/propertyFormat";
 
@@ -17,8 +18,8 @@ const CUSTOM_PROPERTY_ROUTE: EntityRoute = {
   kind: "custom-property",
   prefix: "/custom-properties",
   slugIndex: 1,
-  listLabel: "Custom Properties",
-  singular: "Custom Property",
+  listLabel: i18n.t("Custom Properties"),
+  singular: i18n.t("Custom Property"),
   switcher: "custom-property",
   flatCrumbs: true,
 };
@@ -33,25 +34,25 @@ const CUSTOM_PROPERTY_PALETTE: EntityPaletteConfig = {
     {
       type: "boolean",
       key: "enabled",
-      label: "Enabled",
+      label: i18n.t("Enabled"),
       getValue: entity => (entity as CustomProperty).enabled,
     },
     {
       type: "boolean",
       key: "editableOnCard",
-      label: "Editable on Card",
+      label: i18n.t("Editable on Card"),
       getValue: entity => (entity as CustomProperty).editableOnCard,
     },
     {
       type: "boolean",
       key: "editableViaCmdk",
-      label: "Editable via CMD+K",
+      label: i18n.t("Editable via CMD+K"),
       getValue: entity => (entity as CustomProperty).editableViaCmdk,
     },
     {
       type: "boolean",
       key: "enabledInInbox",
-      label: "Enabled in Inbox",
+      label: i18n.t("Enabled in Inbox"),
       getValue: entity => (entity as CustomProperty).enabledInInbox,
     },
   ],
@@ -65,12 +66,12 @@ export const customPropertyListingConfig: EntityListingConfig<CustomProperty> = 
   deletableIds: items => items.filter(p => !p.builtIn).map(p => p.id),
   isSelectable: property => !property.builtIn,
   useBulkDelete: useBulkDeleteCustomProperties,
-  noun: ["property", "properties"],
-  loadingLabel: "Loading custom properties…",
-  entityPlural: "custom properties",
+  noun: [i18n.t("property"), i18n.t("properties")],
+  loadingLabel: i18n.t("Loading custom properties…"),
+  entityPlural: i18n.t("custom properties"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No custom properties yet. Create one to get started.
+      {i18n.t("No custom properties yet. Create one to get started.")}
     </p>
   ),
   renderListItem: ({

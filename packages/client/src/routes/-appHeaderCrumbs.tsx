@@ -11,19 +11,22 @@ import { useCategories } from "@/hooks/useCategories";
 import { useLocationTree } from "@/hooks/useLocations";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
+import i18n from "@/i18n";
 import { ENTITY_ROUTES } from "@/lib/entityRoutes";
 import { findAncestorPath } from "@/lib/tagTree";
 
 /** Labels for path segments whose human form differs from a plain title-cased slug. */
-const LABEL_OVERRIDES: Record<string, string> = {
-  "youtube-channels": "YouTube Channels",
-  "genres-moods": "Genres & Moods",
-  "autofill": "Autofill Rules",
-  "import-rules": "Import Rules",
-  "saved-filters": "Saved Filters",
-  "ai-summarization": "AI Summarization",
-  "bookmark-add": "Bookmark Add Form",
-};
+function labelOverrides(): Record<string, string> {
+  return {
+    "youtube-channels": i18n.t("YouTube Channels"),
+    "genres-moods": i18n.t("Genres & Moods"),
+    "autofill": i18n.t("Autofill Rules"),
+    "import-rules": i18n.t("Import Rules"),
+    "saved-filters": i18n.t("Saved Filters"),
+    "ai-summarization": i18n.t("AI Summarization"),
+    "bookmark-add": i18n.t("Bookmark Add Form"),
+  };
+}
 
 /** Title-case a slug segment: `shortened-links` → `Shortened Links`. */
 function titleCaseSegment(segment: string): string {
@@ -36,7 +39,7 @@ function titleCaseSegment(segment: string): string {
 
 /** Human label for a single path segment — a settings sub-page, an edit tab, etc. */
 function crumbLabel(segment: string): string {
-  return LABEL_OVERRIDES[segment] ?? titleCaseSegment(segment);
+  return labelOverrides()[segment] ?? titleCaseSegment(segment);
 }
 
 interface TaxonomyDescriptor {
@@ -131,20 +134,20 @@ function taxonomyCrumbs(
     href: `${prefix}/${slug}/general`,
     truncatable: true,
   }, {
-    label: tab ? crumbLabel(tab) : "Edit",
+    label: tab ? crumbLabel(tab) : i18n.t("Edit"),
   }];
 }
 
 function settingsCrumbs(pathname: string): BreadcrumbSegment[] {
   const rest = pathname.slice("/settings".length).replace(/^\//, "");
   if (!rest) return [{
-    label: "Settings",
+    label: i18n.t("Settings"),
   }];
   // One crumb per path segment (e.g. /settings/display/general → Settings → Display → General),
   // each non-last crumb linking to its cumulative path.
   const segments = rest.split("/").filter(Boolean);
   const crumbs: BreadcrumbSegment[] = [{
-    label: "Settings",
+    label: i18n.t("Settings"),
     href: "/settings",
   }];
   let acc = "/settings";
@@ -220,7 +223,7 @@ function treeTaxonomyCrumbs(
       };
     return isEdit
       ? [listCrumb, fallback, {
-        label: "Edit",
+        label: i18n.t("Edit"),
       }]
       : [listCrumb, fallback];
   }
@@ -235,7 +238,7 @@ function treeTaxonomyCrumbs(
         truncatable: true,
       })),
       {
-        label: "Edit",
+        label: i18n.t("Edit"),
       },
     ];
   }
@@ -261,11 +264,11 @@ function treeTaxonomyCrumbs(
 
 function tagCrumbs(pathname: string, tagAncestors?: TagNode[]): BreadcrumbSegment[] {
   return treeTaxonomyCrumbs(pathname, tagAncestors, {
-    listLabel: "Tags",
+    listLabel: i18n.t("Tags"),
     viewPrefix: "/tags",
     tree: "tag",
     slugIndex: 1,
-    singular: "Tag",
+    singular: i18n.t("Tag"),
   });
 }
 
@@ -274,11 +277,11 @@ function mediaTypeCrumbs(
   mediaTypeAncestors?: MediaTypeNode[],
 ): BreadcrumbSegment[] {
   return treeTaxonomyCrumbs(pathname, mediaTypeAncestors, {
-    listLabel: "Media Types",
+    listLabel: i18n.t("Media Types"),
     viewPrefix: "/taxonomies/media-types",
     tree: "media-type",
     slugIndex: 2,
-    singular: "Media Type",
+    singular: i18n.t("Media Type"),
   });
 }
 
@@ -290,20 +293,20 @@ function locationCrumbs(
   if (pathname === "/taxonomies/locations/new") {
     return [
       {
-        label: "Locations",
+        label: i18n.t("Locations"),
         href: "/taxonomies/locations",
       },
       {
-        label: "New",
+        label: i18n.t("New"),
       },
     ];
   }
   return treeTaxonomyCrumbs(pathname, locationAncestors, {
-    listLabel: "Locations",
+    listLabel: i18n.t("Locations"),
     viewPrefix: "/taxonomies/locations",
     tree: "location",
     slugIndex: 2,
-    singular: "Location",
+    singular: i18n.t("Location"),
   });
 }
 
@@ -319,7 +322,7 @@ interface BookmarkCrumbData {
 
 function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbSegment[] {
   const listCrumb: BreadcrumbSegment = {
-    label: "Bookmarks",
+    label: i18n.t("Bookmarks"),
     href: "/bookmarks",
   };
   // The category crumb keeps its own-page link AND switches among all categories.
@@ -331,18 +334,18 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
     : undefined;
   const catCrumb: BreadcrumbSegment = data?.categorySlug
     ? {
-      label: data.categoryName ?? "Category",
+      label: data.categoryName ?? i18n.t("Category"),
       romanizedLabel: data.categoryName ? data.categoryRomanized : undefined,
       href: `/categories/${data.categorySlug}`,
       switcher: catSwitcher,
       truncatable: true,
     }
     : {
-      label: data?.categoryName ?? "Category",
+      label: data?.categoryName ?? i18n.t("Category"),
       romanizedLabel: data?.categoryName ? data?.categoryRomanized : undefined,
     };
   const titleCrumb: BreadcrumbSegment = {
-    label: data?.title ?? "Bookmark",
+    label: data?.title ?? i18n.t("Bookmark"),
     romanizedLabel: data?.title ? data?.romanizedName : undefined,
   };
 
@@ -355,7 +358,7 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
       href: detailHref,
       truncatable: true,
     }, {
-      label: "Edit",
+      label: i18n.t("Edit"),
     }];
   }
   // Detail view: the title switches among bookmarks in the same category.
@@ -384,25 +387,25 @@ interface BreadcrumbContext {
 /** Derive breadcrumb segments from a pathname. */
 function breadcrumbsForPath(pathname: string, ctx: BreadcrumbContext): BreadcrumbSegment[] {
   if (pathname === "/") return [{
-    label: "Home",
+    label: i18n.t("Home"),
   }];
   if (pathname === "/bookmarks") return [{
-    label: "Bookmarks",
+    label: i18n.t("Bookmarks"),
   }];
   if (pathname.startsWith("/bookmarks/"))
     return bookmarkCrumbs(pathname, ctx.bookmarkData);
   if (pathname === "/inbox") return [{
-    label: "Inbox",
+    label: i18n.t("Inbox"),
   }];
   if (pathname === "/inbox/new")
     return [{
-      label: "Inbox",
+      label: i18n.t("Inbox"),
       href: "/inbox",
     }, {
-      label: "Add import",
+      label: i18n.t("Add import"),
     }];
   if (pathname === "/card-display-rules") return [{
-    label: "Card Display Rules",
+    label: i18n.t("Card Display Rules"),
   }];
   if (pathname.startsWith("/settings")) return settingsCrumbs(pathname);
   if (pathname === "/tags" || pathname.startsWith("/tags/")) return tagCrumbs(pathname, ctx.tagAncestors);
@@ -420,7 +423,7 @@ function breadcrumbsForPath(pathname: string, ctx: BreadcrumbContext): Breadcrum
     return taxonomyCrumbs(pathname, descriptor, ctx.taxonomyNames?.[descriptor.prefix]);
 
   return [{
-    label: "eeSimple Bookmarks",
+    label: i18n.t("eeSimple Bookmarks"),
   }];
 }
 

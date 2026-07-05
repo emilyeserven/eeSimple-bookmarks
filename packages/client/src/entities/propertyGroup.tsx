@@ -7,6 +7,7 @@ import { PropertyGroupListItem } from "../components/PropertyGroupListItem";
 import { PropertyGroupTable } from "../components/PropertyGroupTable";
 import { propertyGroupWorkbench } from "../components/workbench/propertyGroup";
 import { useBulkDeletePropertyGroups, usePropertyGroups } from "../hooks/usePropertyGroups";
+import i18n from "../i18n";
 import { propertyGroupsApi } from "../lib/api/taxonomies";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -14,8 +15,8 @@ const PROPERTY_GROUP_ROUTE: EntityRoute = {
   kind: "property-group",
   prefix: "/taxonomies/property-groups",
   slugIndex: 2,
-  listLabel: "Property Groups",
-  singular: "Property Group",
+  listLabel: i18n.t("Property Groups"),
+  singular: i18n.t("Property Group"),
   switcher: "property-group",
   flatCrumbs: true,
 };
@@ -34,12 +35,12 @@ export const propertyGroupListingConfig: EntityListingConfig<PropertyGroup> = {
   matches: (group, query) =>
     group.name.toLowerCase().includes(query) || group.slug.toLowerCase().includes(query),
   useBulkDelete: useBulkDeletePropertyGroups,
-  noun: ["property group", "property groups"],
-  loadingLabel: "Loading property groups…",
-  entityPlural: "property groups",
+  noun: [i18n.t("property group"), i18n.t("property groups")],
+  loadingLabel: i18n.t("Loading property groups…"),
+  entityPlural: i18n.t("property groups"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No property groups yet.
+      {i18n.t("No property groups yet.")}
     </p>
   ),
   renderListItem: ({

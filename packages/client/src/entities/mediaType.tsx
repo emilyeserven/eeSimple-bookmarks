@@ -7,6 +7,7 @@ import { MediaTypeTable } from "../components/MediaTypeTable";
 import { MediaTypeTreeList } from "../components/MediaTypeTreeList";
 import { mediaTypeWorkbench } from "../components/workbench/mediaType";
 import { useBulkDeleteMediaTypes, useMediaTypeTree } from "../hooks/useMediaTypes";
+import i18n from "../i18n";
 import { mediaTypesApi } from "../lib/api/taxonomies";
 import { flattenTree } from "../lib/tagTree";
 
@@ -17,8 +18,8 @@ const MEDIA_TYPE_ROUTE: EntityRoute = {
   kind: "media-type",
   prefix: "/taxonomies/media-types",
   slugIndex: 2,
-  listLabel: "Media Types",
-  singular: "Media Type",
+  listLabel: i18n.t("Media Types"),
+  singular: i18n.t("Media Type"),
   flatCrumbs: true,
 };
 
@@ -37,12 +38,12 @@ export const mediaTypeTreeListingConfig: EntityTreeListingConfig<MediaTypeNode> 
     node.name.toLowerCase().includes(query) || node.slug.toLowerCase().includes(query),
   deletableIds: tree => flattenTree(tree).filter(f => !f.node.builtIn).map(f => f.node.id),
   useBulkDelete: useBulkDeleteMediaTypes,
-  noun: ["media type", "media types"],
-  loadingLabel: "Loading media types…",
-  entityPlural: "media types",
+  noun: [i18n.t("media type"), i18n.t("media types")],
+  loadingLabel: i18n.t("Loading media types…"),
+  entityPlural: i18n.t("media types"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No media types yet.
+      {i18n.t("No media types yet.")}
     </p>
   ),
   renderTree: ({

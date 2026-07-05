@@ -7,6 +7,7 @@ import { NewsletterListItem } from "../components/NewsletterListItem";
 import { NewsletterTable } from "../components/NewsletterTable";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
 import { useBulkDeleteNewsletters, useNewsletters } from "../hooks/useNewsletters";
+import i18n from "../i18n";
 import { newslettersApi } from "../lib/api/imports";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -16,8 +17,8 @@ const NEWSLETTER_ROUTE: EntityRoute = {
   kind: "newsletter",
   prefix: "/taxonomies/newsletters",
   slugIndex: 2,
-  listLabel: "Imports",
-  singular: "Import",
+  listLabel: i18n.t("Imports"),
+  singular: i18n.t("Import"),
   flatCrumbs: true,
 };
 
@@ -34,12 +35,12 @@ export const newsletterListingConfig: EntityListingConfig<Newsletter> = {
   useItems: useNewsletters,
   matches: (newsletter, query) => newsletter.name.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteNewsletters,
-  noun: ["newsletter", "newsletters"],
-  loadingLabel: "Loading imports…",
-  entityPlural: "imports",
+  noun: [i18n.t("newsletter"), i18n.t("newsletters")],
+  loadingLabel: i18n.t("Loading imports…"),
+  entityPlural: i18n.t("imports"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No imports yet. Add one above, then select it when adding an import.
+      {i18n.t("No imports yet. Add one above, then select it when adding an import.")}
     </p>
   ),
   renderListItem: ({

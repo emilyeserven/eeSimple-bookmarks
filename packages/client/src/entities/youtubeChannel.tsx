@@ -9,6 +9,7 @@ import { youtubeChannelWorkbench } from "../components/workbench/youtubeChannel"
 import { YouTubeChannelListItem } from "../components/YouTubeChannelListItem";
 import { YouTubeChannelTable } from "../components/YouTubeChannelTable";
 import { useBulkDeleteYouTubeChannels, useYouTubeChannels } from "../hooks/useYouTubeChannels";
+import i18n from "../i18n";
 import { youtubeChannelsApi } from "../lib/api/taxonomies";
 import { iconComboboxOptions } from "../lib/comboboxOptions";
 
@@ -21,8 +22,8 @@ const YOUTUBE_CHANNEL_ROUTE: EntityRoute = {
   kind: "youtube-channel",
   prefix: "/taxonomies/youtube-channels",
   slugIndex: 2,
-  listLabel: "YouTube Channels",
-  singular: "Channel",
+  listLabel: i18n.t("YouTube Channels"),
+  singular: i18n.t("Channel"),
   switcher: "youtube-channel",
   flatCrumbs: true,
 };
@@ -37,7 +38,7 @@ const YOUTUBE_CHANNEL_PALETTE: EntityPaletteConfig = {
     {
       type: "choice",
       key: "categoryId",
-      label: "Category",
+      label: i18n.t("Category"),
       options: "categories",
       getValue: entity => (entity as YouTubeChannel).category?.id ?? null,
     },
@@ -62,10 +63,10 @@ function CategoryFilterCombobox({
       options={categoryOptions}
       value={value ?? undefined}
       onValueChange={next => onChange(next ?? null)}
-      placeholder="Filter by category…"
-      searchPlaceholder="Search categories…"
+      placeholder={i18n.t("Filter by category…")}
+      searchPlaceholder={i18n.t("Search categories…")}
       className="max-w-sm"
-      aria-label="Filter channels by category"
+      aria-label={i18n.t("Filter channels by category")}
     />
   );
 }
@@ -76,7 +77,7 @@ export const youtubeChannelListingConfig: EntityListingConfig<YouTubeChannel> = 
   matches: (channel, query) =>
     channel.name.toLowerCase().includes(query) || channel.channelKey.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteYouTubeChannels,
-  noun: ["channel", "channels"],
+  noun: [i18n.t("channel"), i18n.t("channels")],
   secondaryFilter: {
     render: ({
       value, onChange,
@@ -88,11 +89,11 @@ export const youtubeChannelListingConfig: EntityListingConfig<YouTubeChannel> = 
     ),
     matches: (channel, categoryId) => !categoryId || channel.category?.id === categoryId,
   },
-  loadingLabel: "Loading channels…",
-  entityPlural: "channels",
+  loadingLabel: i18n.t("Loading channels…"),
+  entityPlural: i18n.t("channels"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No channels yet. Add one above or they&apos;re created automatically when you add YouTube bookmarks.
+      {i18n.t("No channels yet. Add one above or they're created automatically when you add YouTube bookmarks.")}
     </p>
   ),
   renderListItem: ({

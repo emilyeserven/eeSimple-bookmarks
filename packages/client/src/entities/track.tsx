@@ -7,6 +7,7 @@ import { TrackListItem } from "../components/TrackListItem";
 import { TrackTable } from "../components/TrackTable";
 import { trackWorkbench } from "../components/workbench/track";
 import { useBulkDeleteTracks, useTracks } from "../hooks/useTracks";
+import i18n from "../i18n";
 import { tracksApi } from "../lib/api/taxonomies";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -14,8 +15,8 @@ const TRACK_ROUTE: EntityRoute = {
   kind: "track",
   prefix: "/taxonomies/tracks",
   slugIndex: 2,
-  listLabel: "Tracks",
-  singular: "Track",
+  listLabel: i18n.t("Tracks"),
+  singular: i18n.t("Track"),
   flatCrumbs: true,
 };
 
@@ -33,12 +34,12 @@ export const trackListingConfig: EntityListingConfig<Track> = {
   matches: (track, query) =>
     track.name.toLowerCase().includes(query) || track.slug.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteTracks,
-  noun: ["track", "tracks"],
-  loadingLabel: "Loading tracks…",
-  entityPlural: "tracks",
+  noun: [i18n.t("track"), i18n.t("tracks")],
+  loadingLabel: i18n.t("Loading tracks…"),
+  entityPlural: i18n.t("tracks"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No tracks yet.
+      {i18n.t("No tracks yet.")}
     </p>
   ),
   renderListItem: ({

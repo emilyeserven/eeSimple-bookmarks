@@ -7,6 +7,7 @@ import { MovieListItem } from "../components/MovieListItem";
 import { MovieTable } from "../components/MovieTable";
 import { movieWorkbench } from "../components/workbench/movie";
 import { useBulkDeleteMovies, useMovies } from "../hooks/useMovies";
+import i18n from "../i18n";
 import { moviesApi } from "../lib/api/taxonomies";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -14,8 +15,8 @@ const MOVIE_ROUTE: EntityRoute = {
   kind: "movie",
   prefix: "/taxonomies/movies",
   slugIndex: 2,
-  listLabel: "Movies",
-  singular: "Movie",
+  listLabel: i18n.t("Movies"),
+  singular: i18n.t("Movie"),
   flatCrumbs: true,
 };
 
@@ -33,12 +34,12 @@ export const movieListingConfig: EntityListingConfig<Movie> = {
   matches: (movie, query) =>
     movie.name.toLowerCase().includes(query) || movie.slug.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteMovies,
-  noun: ["movie", "movies"],
-  loadingLabel: "Loading movies…",
-  entityPlural: "movies",
+  noun: [i18n.t("movie"), i18n.t("movies")],
+  loadingLabel: i18n.t("Loading movies…"),
+  entityPlural: i18n.t("movies"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No movies yet.
+      {i18n.t("No movies yet.")}
     </p>
   ),
   renderListItem: ({

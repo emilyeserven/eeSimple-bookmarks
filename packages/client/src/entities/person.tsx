@@ -7,6 +7,7 @@ import { PersonListItem } from "../components/PersonListItem";
 import { PersonTable } from "../components/PersonTable";
 import { personWorkbench } from "../components/workbench/person";
 import { usePeople, useBulkDeletePeople } from "../hooks/usePeople";
+import i18n from "../i18n";
 import { peopleApi } from "../lib/api/taxonomies";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -16,8 +17,8 @@ const PERSON_ROUTE: EntityRoute = {
   kind: "person",
   prefix: "/taxonomies/people",
   slugIndex: 2,
-  listLabel: "People",
-  singular: "Person",
+  listLabel: i18n.t("People"),
+  singular: i18n.t("Person"),
   flatCrumbs: true,
 };
 
@@ -34,12 +35,12 @@ export const personListingConfig: EntityListingConfig<Person> = {
   useItems: usePeople,
   matches: (person, query) => person.name.toLowerCase().includes(query),
   useBulkDelete: useBulkDeletePeople,
-  noun: ["person", "people"],
-  loadingLabel: "Loading people…",
-  entityPlural: "people",
+  noun: [i18n.t("person"), i18n.t("people")],
+  loadingLabel: i18n.t("Loading people…"),
+  entityPlural: i18n.t("people"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No people yet. Add one above, then assign them to bookmarks.
+      {i18n.t("No people yet. Add one above, then assign them to bookmarks.")}
     </p>
   ),
   renderListItem: ({

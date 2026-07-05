@@ -7,6 +7,7 @@ import { ImportRuleListItem } from "../components/ImportRuleListItem";
 import { ImportRuleTable } from "../components/ImportRuleTable";
 import { importRuleWorkbench } from "../components/workbench/importRule";
 import { useBulkDeleteImportRules, useImportRules } from "../hooks/useImportRules";
+import i18n from "../i18n";
 import { importRulesApi } from "../lib/api/importRules";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
@@ -15,8 +16,8 @@ const IMPORT_RULE_ROUTE: EntityRoute = {
   kind: "import-rule",
   prefix: "/import-rules",
   slugIndex: 1,
-  listLabel: "Import Rules",
-  singular: "Rule",
+  listLabel: i18n.t("Import Rules"),
+  singular: i18n.t("Rule"),
   switcher: "import-rule",
   flatCrumbs: true,
 };
@@ -28,7 +29,7 @@ const IMPORT_RULE_PALETTE: EntityPaletteConfig = {
   updateFn: (id, patch) => importRulesApi.update(id, patch as UpdateImportRuleInput),
   extraEditTabs: [
     {
-      label: "Edit Conditions",
+      label: i18n.t("Edit Conditions"),
       tab: "conditions",
     },
   ],
@@ -40,12 +41,12 @@ export const importRuleListingConfig: EntityListingConfig<ImportRule> = {
   matches: (rule, query) => rule.name.toLowerCase().includes(query)
     || summarizeConditions(rule.conditions).toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteImportRules,
-  noun: ["import rule", "import rules"],
-  loadingLabel: "Loading rules…",
-  entityPlural: "rules",
+  noun: [i18n.t("import rule"), i18n.t("import rules")],
+  loadingLabel: i18n.t("Loading rules…"),
+  entityPlural: i18n.t("rules"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No import rules yet. Create one to get started.
+      {i18n.t("No import rules yet. Create one to get started.")}
     </p>
   ),
   renderListItem: ({

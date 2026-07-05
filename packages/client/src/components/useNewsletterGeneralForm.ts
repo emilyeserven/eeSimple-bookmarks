@@ -3,6 +3,7 @@ import type { Newsletter, UpdateNewsletterInput } from "@eesimple/types";
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -13,10 +14,6 @@ import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 import { useAppForm } from "@/lib/form";
-
-const newsletterGeneralSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-});
 
 const LABELS: Partial<Record<keyof UpdateNewsletterInput, string>> = {
   name: "Name",
@@ -31,6 +28,12 @@ const LABELS: Partial<Record<keyof UpdateNewsletterInput, string>> = {
  * Returns one bag so `NewsletterGeneralForm` stays a presentational shell.
  */
 export function useNewsletterGeneralForm(newsletter: Newsletter) {
+  const {
+    t,
+  } = useTranslation();
+  const newsletterGeneralSchema = z.object({
+    name: z.string().trim().min(1, t("Name is required")),
+  });
   const navigate = useNavigate();
   const updateNewsletter = useUpdateNewsletter();
   const [tagIds, setTagIds] = useState<string[]>(newsletter.tagIds ?? []);

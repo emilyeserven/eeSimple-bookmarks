@@ -19,13 +19,14 @@ import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple
 import { z } from "zod";
 
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
+import i18n from "../i18n";
 import { applyAutofill } from "../lib/autofill";
 import { useAppForm } from "../lib/form";
 import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
 export const bookmarkSchema = z.object({
   url: z.string(),
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1, i18n.t("Title is required")),
   romanizedName: z.string(),
   // Staged multilingual names for the create form (create-only — edit uses its own EntityNamesTabEditor).
   names: z.array(z.object({
@@ -33,7 +34,7 @@ export const bookmarkSchema = z.object({
     value: z.string(),
     isPrimary: z.boolean(),
   })),
-  categoryId: z.string().min(1, "Category is required"),
+  categoryId: z.string().min(1, i18n.t("Category is required")),
   mediaTypeId: z.string(),
   description: z.string(),
   tagIds: z.array(z.string()),
@@ -128,9 +129,9 @@ export function detectBookmarkInputType(value: string): BookmarkInputType {
 export function bookmarkInputHint(value: string): string | null {
   if (value.trim() === "") return null;
   const type = detectBookmarkInputType(value);
-  if (type === "url") return "Web link";
-  if (type === "isbn") return normalizeIsbn(value)?.length === 13 ? "ISBN-13" : "ISBN-10";
-  return "Text — saved as the name";
+  if (type === "url") return i18n.t("Web link");
+  if (type === "isbn") return normalizeIsbn(value)?.length === 13 ? i18n.t("ISBN-13") : i18n.t("ISBN-10");
+  return i18n.t("Text — saved as the name");
 }
 
 /** Client-side mirror of the server's stripSiteNameSuffix for user-entered selfIds. */
