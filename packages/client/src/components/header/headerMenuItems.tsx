@@ -2,6 +2,7 @@ import type { PinContext } from "@/components/HeaderPinButton";
 import type { SettingsPage } from "@/lib/settingsPages";
 
 import { Pin, PinOff, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -12,12 +13,15 @@ import { useUiStore } from "@/stores/uiStore";
 
 /** Mobile search modal body — the same `uiStore` query the desktop inline search bar reads/writes. */
 export function SearchControls() {
+  const {
+    t,
+  } = useTranslation();
   const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
   const setHeaderSearchQuery = useUiStore(state => state.setHeaderSearchQuery);
   return (
     <Input
       type="text"
-      placeholder="Search…"
+      placeholder={t("Search…")}
       value={headerSearchQuery}
       onChange={e => setHeaderSearchQuery(e.target.value)}
       autoFocus
@@ -32,6 +36,9 @@ export function FavoriteMenuItem({
   page: SettingsPage;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     isFavorited, toggle,
   } = useSettingsFavorite(page);
   return (
@@ -39,7 +46,13 @@ export function FavoriteMenuItem({
       <Star
         className={cn("size-4", isFavorited && "fill-current text-yellow-500")}
       />
-      {isFavorited ? `Unfavorite ${page.label}` : `Favorite ${page.label}`}
+      {isFavorited
+        ? t("Unfavorite {{label}}", {
+          label: page.label,
+        })
+        : t("Favorite {{label}}", {
+          label: page.label,
+        })}
     </DropdownMenuItem>
   );
 }
@@ -51,12 +64,21 @@ export function PinMenuItem({
   context: PinContext;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     isPinned, name, toggle,
   } = usePinToggle(context);
   return (
     <DropdownMenuItem onSelect={toggle}>
       {isPinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
-      {isPinned ? `Unpin ${name}` : `Pin ${name}`}
+      {isPinned
+        ? t("Unpin {{name}}", {
+          name,
+        })
+        : t("Pin {{name}}", {
+          name,
+        })}
     </DropdownMenuItem>
   );
 }

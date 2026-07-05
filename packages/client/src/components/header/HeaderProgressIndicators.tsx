@@ -2,6 +2,7 @@ import type { ActivitySection } from "@/hooks/useHeaderActivity";
 import type { ActivityRow } from "@/lib/headerActivity";
 
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { ResponsivePopover } from "@/components/ui/responsive-popover";
@@ -66,6 +67,9 @@ function ActivitySectionBlock({
  */
 export function HeaderProgressIndicators() {
   const {
+    t,
+  } = useTranslation();
+  const {
     sections, activeCount,
   } = useHeaderActivity();
 
@@ -73,7 +77,7 @@ export function HeaderProgressIndicators() {
 
   return (
     <ResponsivePopover
-      title="Background activity"
+      title={t("Background activity")}
       align="end"
       trigger={(
         <Button
@@ -82,7 +86,14 @@ export function HeaderProgressIndicators() {
           // `ml-auto` anchors the right-hand header cluster when this indicator is present
           // (HeaderToolbar carries its own `ml-auto` for when this is absent).
           className="ml-auto gap-2"
-          aria-label={`${activeCount} background task${activeCount === 1 ? "" : "s"} in progress`}
+          aria-label={t(
+            activeCount === 1
+              ? "{{count}} background task in progress"
+              : "{{count}} background tasks in progress",
+            {
+              count: activeCount,
+            },
+          )}
         >
           <Loader2 className="size-4 animate-spin" />
           <span className="text-xs tabular-nums">{activeCount}</span>

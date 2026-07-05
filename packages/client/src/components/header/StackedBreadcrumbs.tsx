@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { ListTree } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CrumbLabel } from "./CrumbLabel";
 
@@ -72,6 +73,9 @@ export function StackedBreadcrumbs({
 }: {
   crumbs: BreadcrumbSegment[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   const current = crumbs[crumbs.length - 1];
   if (!current) return null;
@@ -79,7 +83,7 @@ export function StackedBreadcrumbs({
 
   return (
     <nav
-      aria-label="breadcrumb"
+      aria-label={t("breadcrumb")}
       className="
         flex min-w-0 items-center gap-1
         md:hidden
@@ -95,7 +99,7 @@ export function StackedBreadcrumbs({
             variant="ghost"
             size="icon"
             className="size-7 shrink-0 text-muted-foreground"
-            aria-label="Show breadcrumb trail"
+            aria-label={t("Show breadcrumb trail")}
             onClick={() => setOpen(true)}
           >
             <ListTree className="size-4" />
@@ -105,7 +109,7 @@ export function StackedBreadcrumbs({
             className="gap-0"
           >
             <SheetHeader className="pb-2">
-              <SheetTitle>Breadcrumb trail</SheetTitle>
+              <SheetTitle>{t("Breadcrumb trail")}</SheetTitle>
             </SheetHeader>
             <ol className="flex flex-col gap-0.5 px-2 pb-4">
               {crumbs.map((crumb, i) => (
