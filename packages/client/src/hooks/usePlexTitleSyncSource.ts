@@ -2,6 +2,7 @@ import type { PlexTitleDiffCurrent } from "../lib/syncSources/plexTitleDiff";
 import type { SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourceTypes";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { request } from "../lib/api/client";
 import { buildPlexTitleDiff } from "../lib/syncSources/plexTitleDiff";
@@ -26,9 +27,12 @@ interface MetadataPreview {
  * poster proxy URL, built into a current-vs-source diff. Only runs while the sync modal is open.
  */
 export function usePlexTitleSyncSource(provider: SyncProvider, enabled: boolean): SyncSourceFetch {
+  const {
+    t,
+  } = useTranslation();
   const base = strRef(provider.refs, "base");
   const ratingKey = strRef(provider.refs, "plexRatingKey");
-  const label = strRef(provider.refs, "sourceLabel") ?? "Plex";
+  const label = strRef(provider.refs, "sourceLabel") ?? t("Plex");
   const path = base ? `/${base}/${provider.entityId}/plex-metadata-preview` : null;
 
   const query = useQuery({
@@ -58,7 +62,7 @@ export function usePlexTitleSyncSource(provider: SyncProvider, enabled: boolean)
     return {
       diff: null,
       isLoading: false,
-      error: "Couldn't reach the source. Try again in a moment.",
+      error: t("Couldn't reach the source. Try again in a moment."),
     };
   }
 
