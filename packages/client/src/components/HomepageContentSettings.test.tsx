@@ -13,6 +13,9 @@ const settings: HomepageContent = {
   bookmarkQuickAddDisplay: "collapsible",
   homepageHeaderHidden: false,
   homepageTextEnabled: true,
+  searchEnabled: false,
+  searchWidth: "full",
+  widgetOrder: ["homepageText", "bookmarkQuickAdd", "search"],
 };
 
 const updateMutate = vi.fn<(input: HomepageContent, opts?: unknown) => void>();

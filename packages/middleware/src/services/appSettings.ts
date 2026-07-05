@@ -31,7 +31,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { BOOKMARK_ADD_FORM_PLACEMENTS, CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, normalizeLevelMode, placeTypeKey } from "@eesimple/types";
+import { BOOKMARK_ADD_FORM_PLACEMENTS, CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, DEFAULT_HOMEPAGE_WIDGET_ORDER, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, normalizeLevelMode, placeTypeKey, resolveHomepageWidgetOrder } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
@@ -64,6 +64,9 @@ const DEFAULT_HOMEPAGE_CONTENT: HomepageContentSettings = {
   bookmarkQuickAddDisplay: "collapsible",
   homepageHeaderHidden: false,
   homepageTextEnabled: true,
+  searchEnabled: false,
+  searchWidth: "full",
+  widgetOrder: DEFAULT_HOMEPAGE_WIDGET_ORDER,
 };
 
 /** Default advanced settings (all opt-in sidebar links off), used when seeding / when row absent. */
@@ -244,6 +247,9 @@ export async function getHomepageContentSettings(): Promise<HomepageContentSetti
       bookmarkQuickAddDisplay: appSettings.bookmarkQuickAddDisplay,
       homepageHeaderHidden: appSettings.homepageHeaderHidden,
       homepageTextEnabled: appSettings.homepageTextEnabled,
+      searchEnabled: appSettings.searchEnabled,
+      searchWidth: appSettings.searchWidth,
+      widgetOrder: appSettings.widgetOrder,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -256,6 +262,9 @@ export async function getHomepageContentSettings(): Promise<HomepageContentSetti
     bookmarkQuickAddDisplay: asQuickAddDisplay(row.bookmarkQuickAddDisplay),
     homepageHeaderHidden: row.homepageHeaderHidden,
     homepageTextEnabled: row.homepageTextEnabled,
+    searchEnabled: row.searchEnabled ?? false,
+    searchWidth: asWidth(row.searchWidth),
+    widgetOrder: resolveHomepageWidgetOrder(row.widgetOrder),
   };
 }
 
@@ -271,6 +280,9 @@ export async function updateHomepageContentSettings(
     bookmarkQuickAddDisplay: asQuickAddDisplay(input.bookmarkQuickAddDisplay),
     homepageHeaderHidden: input.homepageHeaderHidden,
     homepageTextEnabled: input.homepageTextEnabled,
+    searchEnabled: input.searchEnabled,
+    searchWidth: asWidth(input.searchWidth),
+    widgetOrder: resolveHomepageWidgetOrder(input.widgetOrder),
   };
   await db
     .insert(appSettings)

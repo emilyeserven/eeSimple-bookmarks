@@ -12,6 +12,9 @@ const baseContent: HomepageContentSettings = {
   bookmarkQuickAddDisplay: "collapsible",
   homepageHeaderHidden: false,
   homepageTextEnabled: true,
+  searchEnabled: false,
+  searchWidth: "full",
+  widgetOrder: ["homepageText", "bookmarkQuickAdd", "search"],
 };
 
 const meta = {

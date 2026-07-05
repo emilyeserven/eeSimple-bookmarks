@@ -1,7 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, type PgColumnBuilderBase, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { TAXONOMY_IMAGE_OWNER_TYPES } from "@eesimple/types";
-import type { BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -1857,6 +1857,13 @@ export const appSettings = pgTable("app_settings", {
   homepageHeaderHidden: boolean("homepage_header_hidden").notNull().default(false),
   // When false, the homepage text block is hidden even if homepage_text is non-empty.
   homepageTextEnabled: boolean("homepage_text_enabled").notNull().default(true),
+  // When true, the Search from Homepage bar appears on the homepage. Nullable (push-safe additive);
+  // the service reads it as `?? false`.
+  searchEnabled: boolean("search_enabled"),
+  // Desktop width of the homepage Search block: "full" | "half". Nullable; coerced via asWidth.
+  searchWidth: text("search_width"),
+  // Order the top-of-homepage widgets render in. Nullable; resolved via resolveHomepageWidgetOrder.
+  widgetOrder: jsonb("widget_order").$type<HomepageWidget[]>(),
   // When on, the left sidebar shows a link to the Coolify instance (opens in a new tab).
   coolifyLinkEnabled: boolean("coolify_link_enabled").notNull().default(false),
   // URL of the Coolify instance shown in the sidebar when coolify_link_enabled is on.

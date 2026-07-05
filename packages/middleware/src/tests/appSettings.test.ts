@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, RUNTIME_SLUG } from "@eesimple/types";
+import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_HOMEPAGE_WIDGET_ORDER, resolveHomepageWidgetOrder, RUNTIME_SLUG } from "@eesimple/types";
 import {
   asBookmarkAddFormPlacements,
   asBreakpoints,
@@ -305,6 +305,33 @@ test("resolveBookmarkAddFormSettings: junk entries in the stored placements map 
   });
   // The junk value is dropped, so the slug falls back to its default rather than the bogus string.
   assert.equal(out.builtInPropertyPlacements[RUNTIME_SLUG], "hidden");
+});
+
+test("resolveHomepageWidgetOrder: non-array / junk input falls back to the default order", () => {
+  assert.deepEqual(resolveHomepageWidgetOrder(null), DEFAULT_HOMEPAGE_WIDGET_ORDER);
+  assert.deepEqual(resolveHomepageWidgetOrder(undefined), DEFAULT_HOMEPAGE_WIDGET_ORDER);
+  assert.deepEqual(resolveHomepageWidgetOrder("junk"), DEFAULT_HOMEPAGE_WIDGET_ORDER);
+  assert.deepEqual(resolveHomepageWidgetOrder({}), DEFAULT_HOMEPAGE_WIDGET_ORDER);
+  // Only unknown/duplicate values → nothing recognized, so the default order is used.
+  assert.deepEqual(resolveHomepageWidgetOrder(["nope", 42, null]), DEFAULT_HOMEPAGE_WIDGET_ORDER);
+});
+
+test("resolveHomepageWidgetOrder: keeps saved order, dedupes, and appends missing widgets", () => {
+  // A fully-specified custom order is preserved verbatim.
+  assert.deepEqual(
+    resolveHomepageWidgetOrder(["search", "bookmarkQuickAdd", "homepageText"]),
+    ["search", "bookmarkQuickAdd", "homepageText"],
+  );
+  // Duplicates and unknown keys are dropped; missing known widgets are appended in default order.
+  assert.deepEqual(
+    resolveHomepageWidgetOrder(["search", "search", "bogus"]),
+    ["search", "homepageText", "bookmarkQuickAdd"],
+  );
+  // A partial order keeps the saved leader and appends the rest.
+  assert.deepEqual(
+    resolveHomepageWidgetOrder(["bookmarkQuickAdd"]),
+    ["bookmarkQuickAdd", "homepageText", "search"],
+  );
 });
 
 test("bookmark-add-form update round-trip: the stored shape built by the update path resolves back to the same settings", () => {

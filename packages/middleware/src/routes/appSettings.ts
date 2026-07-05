@@ -13,7 +13,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { BOOKMARK_ADD_FORM_PLACEMENTS, IMPORT_BLACKLIST_KINDS, INTERFACE_LANGUAGES, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
+import { BOOKMARK_ADD_FORM_PLACEMENTS, HOMEPAGE_WIDGETS, IMPORT_BLACKLIST_KINDS, INTERFACE_LANGUAGES, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import { getDatabaseTableDetail, getDatabaseUsageReport } from "@/services/databaseUsage";
 import { NotFoundError } from "@/utils/errors";
@@ -108,6 +108,9 @@ const homepageContentBody = {
     "bookmarkQuickAddDisplay",
     "homepageHeaderHidden",
     "homepageTextEnabled",
+    "searchEnabled",
+    "searchWidth",
+    "widgetOrder",
   ],
   additionalProperties: false,
   properties: {
@@ -134,6 +137,20 @@ const homepageContentBody = {
     },
     homepageTextEnabled: {
       type: "boolean",
+    },
+    searchEnabled: {
+      type: "boolean",
+    },
+    searchWidth: {
+      type: "string",
+      enum: ["full", "half"],
+    },
+    widgetOrder: {
+      type: "array",
+      items: {
+        type: "string",
+        enum: [...HOMEPAGE_WIDGETS],
+      },
     },
   },
 } as const;
