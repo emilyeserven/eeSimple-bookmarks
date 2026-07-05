@@ -70,6 +70,13 @@ interface UiState {
   /** Per-listing image display mode: "natural", "cropped", "square", "opengraph", or a custom ratio UUID. Keyed by a stable page key. */
   bookmarkImageMode: Record<string, string>;
   setBookmarkImageMode: (pageKey: string, mode: string) => void;
+  /**
+   * Per-listing Gallery-tab image mode. "natural" = masonry (true aspect ratio); any other value
+   * ("square" | "opengraph" | "cropped" | a custom ratio UUID) crops tiles to that aspect in a uniform
+   * grid. Keyed by a stable page key.
+   */
+  galleryImageMode: Record<string, string>;
+  setGalleryImageMode: (pageKey: string, mode: string) => void;
   /** Per-listing image visibility ("shown" | "image-only" | "off"), keyed by a stable page key. */
   bookmarkImageVisibility: Record<string, BookmarkImageVisibility>;
   setBookmarkImageVisibility: (pageKey: string, value: BookmarkImageVisibility) => void;
@@ -201,6 +208,13 @@ export const useUiStore = create<UiState>()(
       setBookmarkImageMode: (pageKey, mode) => set(state => ({
         bookmarkImageMode: {
           ...state.bookmarkImageMode,
+          [pageKey]: mode,
+        },
+      })),
+      galleryImageMode: {},
+      setGalleryImageMode: (pageKey, mode) => set(state => ({
+        galleryImageMode: {
+          ...state.galleryImageMode,
           [pageKey]: mode,
         },
       })),
@@ -410,6 +424,7 @@ export const useUiStore = create<UiState>()(
       partialize: state => ({
         theme: state.theme,
         bookmarkImageMode: state.bookmarkImageMode,
+        galleryImageMode: state.galleryImageMode,
         bookmarkImageVisibility: state.bookmarkImageVisibility,
         bookmarkColumns: state.bookmarkColumns,
         viewMode: state.viewMode,

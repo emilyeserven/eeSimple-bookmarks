@@ -33,6 +33,14 @@ export function useBookmarkImageMode(pageKey: string): string {
   return useUiStore(state => state.bookmarkImageMode?.[pageKey] ?? DEFAULT_BOOKMARK_IMAGE_MODE);
 }
 
+/**
+ * The chosen Gallery-tab image mode for a listing page: "natural" (masonry) or a crop ratio
+ * ("square" | "opengraph" | "cropped" | a custom ratio UUID). Falls back to masonry.
+ */
+export function useGalleryImageMode(pageKey: string): string {
+  return useUiStore(state => state.galleryImageMode?.[pageKey] ?? DEFAULT_BOOKMARK_IMAGE_MODE);
+}
+
 /** Human-readable label for a BookmarkImageMode string value. */
 export function bookmarkImageModeLabel(mode: string): string {
   if (mode === "natural") return i18n.t("Natural");

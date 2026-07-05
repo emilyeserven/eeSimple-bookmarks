@@ -19,3 +19,19 @@ export function formatSize(bytes: number | null): string {
 export function isVideoObject(object: MediaObject): boolean {
   return object.contentType?.startsWith("video/") ?? false;
 }
+
+/** Tailwind classes for a tile container: masonry columns (natural) vs. a uniform grid (square). */
+export function layoutContainerClass(layout: GalleryLayout): string {
+  return layout === "natural"
+    ? "columns-2 gap-3 sm:columns-3 lg:columns-4"
+    : `
+      grid grid-cols-2 gap-3
+      sm:grid-cols-3
+      lg:grid-cols-4
+    `;
+}
+
+/** Tailwind classes for a tile: masonry items must avoid breaking across columns. */
+export function layoutItemClass(layout: GalleryLayout): string {
+  return layout === "natural" ? "mb-3 break-inside-avoid space-y-1" : "space-y-1";
+}

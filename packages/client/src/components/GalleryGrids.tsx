@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { Download, Loader2, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { formatSize, isVideoObject } from "./galleryFormat";
+import { formatSize, isVideoObject, layoutContainerClass, layoutItemClass } from "./galleryFormat";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useDeleteBookmarkReelArchive } from "../hooks/useBookmarks";
@@ -88,22 +88,6 @@ export function Thumb({
       {media}
     </div>
   );
-}
-
-/** Tailwind classes for the tile container: masonry columns vs. a uniform square grid. */
-function layoutContainerClass(layout: GalleryLayout): string {
-  return layout === "natural"
-    ? "columns-2 gap-3 sm:columns-3 lg:columns-4"
-    : `
-      grid grid-cols-2 gap-3
-      sm:grid-cols-3
-      lg:grid-cols-4
-    `;
-}
-
-/** Tailwind classes for a tile: masonry items must avoid breaking across columns. */
-function layoutItemClass(layout: GalleryLayout): string {
-  return layout === "natural" ? "mb-3 break-inside-avoid space-y-1" : "space-y-1";
 }
 
 /** The grid of images still linked to a live bookmark. */
