@@ -268,21 +268,29 @@ function passesRelationshipTypeFilter(
   return bookmark.relationships.some(rel => selected.includes(rel.relationshipTypeId));
 }
 
+/** A single owner's language-usage association, reduced to the two ids the filter compares against. */
+export interface OwnerLanguageUsage {
+  languageId: string;
+  usageLevelId: string;
+}
+
 /**
  * The language-usage facets pass when both are empty, or when a *single* association row satisfies
- * both non-empty constraints (a language-only or level-only filter matches on that one axis).
+ * both non-empty constraints (a language-only or level-only filter matches on that one axis). Takes
+ * the owner's association rows directly (not a full bookmark) so it can be reused against any owner
+ * — e.g. a media taxonomy item's own `language_usages` rows in the "Media" tab.
  */
-function passesLanguageUsagesFilter(
+export function passesLanguageUsagesFilter(
   languages: string[] | undefined,
   levels: string[] | undefined,
-  bookmark: SearchableBookmark,
+  usages: OwnerLanguageUsage[],
 ): boolean {
   const hasLang = languages !== undefined && languages.length > 0;
   const hasLevel = levels !== undefined && levels.length > 0;
   if (!hasLang && !hasLevel) return true;
-  return bookmark.languageUsages.some(usage =>
-    (!hasLang || languages.includes(usage.language.id))
-    && (!hasLevel || levels.includes(usage.level.id)));
+  return usages.some(usage =>
+    (!hasLang || languages.includes(usage.languageId))
+    && (!hasLevel || levels.includes(usage.usageLevelId)));
 }
 
 /** A multi-select person filter passes when empty or the bookmark has at least one matching person. */
@@ -317,7 +325,7 @@ function bookmarkPlaceTypeKeys(bookmarkLocations: BookmarkLocation[]): string[] 
 }
 
 /** A multi-select place-type filter passes when empty or the bookmark has a location with a matching place type. */
-function passesPlaceTypesFilter(selected: string[] | undefined, keys: string[]): boolean {
+export function passesPlaceTypesFilter(selected: string[] | undefined, keys: string[]): boolean {
   if (!selected || selected.length === 0) return true;
   return keys.some(key => selected.includes(key));
 }
@@ -328,25 +336,25 @@ function bookmarkGenreMoodIds(genreMoods: BookmarkGenreMood[]): string[] {
 }
 
 /** A multi-select Genres & Moods filter passes when empty or the bookmark carries a matching entry. */
-function passesGenreMoodsFilter(selected: string[] | undefined, ids: string[]): boolean {
+export function passesGenreMoodsFilter(selected: string[] | undefined, ids: string[]): boolean {
   if (!selected || selected.length === 0) return true;
   return ids.some(id => selected.includes(id));
 }
 
 /** An exclusion Genres & Moods filter passes when empty or the bookmark carries none of the excluded entries. */
-function passesGenreMoodsExclusion(selected: string[] | undefined, ids: string[]): boolean {
+export function passesGenreMoodsExclusion(selected: string[] | undefined, ids: string[]): boolean {
   if (!selected || selected.length === 0) return true;
   return !ids.some(id => selected.includes(id));
 }
 
 /** An exclusion place-type filter passes when empty (no filter) or none of the bookmark's location place types are in the excluded list. */
-function passesPlaceTypesExclusion(selected: string[] | undefined, keys: string[]): boolean {
+export function passesPlaceTypesExclusion(selected: string[] | undefined, keys: string[]): boolean {
   if (!selected || selected.length === 0) return true;
   return !keys.some(key => selected.includes(key));
 }
 
 /** A "has"/"missing" presence filter checks whether the dimension is present. "exclude" is handled elsewhere; returns true so it doesn't double-filter. */
-function passesPresence(mode: "has" | "missing" | "exclude" | undefined, present: boolean): boolean {
+export function passesPresence(mode: "has" | "missing" | "exclude" | undefined, present: boolean): boolean {
   if (mode === "has") return present;
   if (mode === "missing") return !present;
   return true;
@@ -438,7 +446,14 @@ export function bookmarkMatchesSearch(
         : passesIdFilter(search.websites, bookmark.website?.id)
           && passesPresence(search.websitePresence, Boolean(bookmark.website)))
         && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
-        && passesLanguageUsagesFilter(search.languageUsageLanguages, search.languageUsageLevels, bookmark)
+        && passesLanguageUsagesFilter(
+          search.languageUsageLanguages,
+          search.languageUsageLevels,
+          bookmark.languageUsages.map(usage => ({
+            languageId: usage.language.id,
+            usageLevelId: usage.level.id,
+          })),
+        )
         && passesPeopleFilter(search.people, bookmark.people)
     // Place types: multi-valued (a bookmark can carry several locations), so "any match" like tags.
         && (search.placeTypePresence === "exclude"

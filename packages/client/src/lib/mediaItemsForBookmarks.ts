@@ -1,14 +1,27 @@
+import type { BookmarkSearch, OwnerLanguageUsage } from "./bookmarkSearch";
 import type { Bookmark } from "@eesimple/types";
 
 import i18n from "../i18n";
+import {
+  passesGenreMoodsExclusion,
+  passesGenreMoodsFilter,
+  passesLanguageUsagesFilter,
+  passesPlaceTypesExclusion,
+  passesPlaceTypesFilter,
+  passesPresence,
+} from "./bookmarkSearch";
 
 /**
  * The listing pages let you filter a bookmark set in memory. A bookmark links to at most one media
- * taxonomy item via a nullable FK (`movieId`/`bookId`/…). This helper is the inverse join of
- * `mediaPropertyMembership.ts`: given the *filtered* bookmarks, it returns the distinct media items
- * they reference — each with the count of matching bookmarks — so a listing page can show a "Media"
- * tab beside its bookmarks. Purely client-side over lists the page already caches (no endpoint), per
- * the sanctioned client-side-derivation rule.
+ * taxonomy item via a nullable FK (`movieId`/`bookId`/…). This helper backs the "Media" tab beside a
+ * listing page's bookmarks: it returns the distinct media items the *filtered* bookmarks reference
+ * (with a match count), **plus** any item that independently matches the active free-text query,
+ * Genre/Mood, place-type, or language-usage filters via its own associations — even with zero linked
+ * bookmarks (issue #1027). Independent-match checks mirror `bookmarkMatchesSearch`'s predicates for
+ * those four dimensions; other filter dimensions (tags, category, custom properties, …) don't apply
+ * to media items and are ignored here — so with no active filters/query, every cached item counts as
+ * an independent match and the tab shows everything. Purely client-side over lists/associations the
+ * page already caches (no endpoint), per the sanctioned client-side-derivation rule.
  */
 
 /** The seven media taxonomies a bookmark can link to. */
@@ -40,7 +53,7 @@ export interface MediaLists {
   podcasts: MediaListItem[];
 }
 
-/** One media item referenced by the filtered bookmarks. */
+/** One media item referenced by the filtered bookmarks, or independently matching the active filters. */
 export interface MediaMatchItem {
   kind: MediaKind;
   id: string;
@@ -48,9 +61,25 @@ export interface MediaMatchItem {
   name: string;
   /** Human label for the item's kind, e.g. "Movie". */
   label: string;
-  /** How many of the filtered bookmarks link to this item. */
+  /** How many of the filtered bookmarks link to this item. 0 = shown only via an independent match. */
   matchCount: number;
 }
+
+/** One media item's own Genre/Mood, place-type, and language-usage associations, keyed by item id. */
+export interface MediaKindAssociations {
+  genreMoodIdsByOwner: Record<string, string[]>;
+  placeTypeKeysByOwner: Record<string, string[]>;
+  languageUsagesByOwner: Record<string, OwnerLanguageUsage[]>;
+}
+
+/** Per-kind associations, keyed by `MediaKind`. A missing/absent kind is treated as having none. */
+export type MediaAssociationsByKind = Partial<Record<MediaKind, MediaKindAssociations>>;
+
+const EMPTY_KIND_ASSOCIATIONS: MediaKindAssociations = {
+  genreMoodIdsByOwner: {},
+  placeTypeKeysByOwner: {},
+  languageUsagesByOwner: {},
+};
 
 interface MediaKindConfig {
   kind: MediaKind;
@@ -119,25 +148,65 @@ function tallyFkCounts(bookmarks: readonly Bookmark[], fkField: MediaFkField): M
 }
 
 /**
- * The distinct media items referenced by `bookmarks`, resolved against the cached `lists`, sorted by
- * descending match count then name. Referenced ids missing from a list (e.g. still loading) are
- * skipped rather than shown as a broken row.
+ * Whether a media item independently matches the active filters via its own associations — the four
+ * dimensions a media item can carry (free-text name, Genre/Mood, place-type, language usage). Each
+ * check is vacuously true when its filter is inactive, so with nothing active every item matches.
+ */
+function matchesIndependently(
+  item: MediaListItem,
+  search: BookmarkSearch,
+  normalizedQuery: string,
+  associations: MediaKindAssociations,
+): boolean {
+  if (normalizedQuery && !item.name.toLowerCase().includes(normalizedQuery)) return false;
+
+  const genreMoodIds = associations.genreMoodIdsByOwner[item.id] ?? [];
+  const genreMoodOk = search.genreMoodPresence === "exclude"
+    ? passesGenreMoodsExclusion(search.genreMoods, genreMoodIds)
+    : passesGenreMoodsFilter(search.genreMoods, genreMoodIds)
+      && passesPresence(search.genreMoodPresence, genreMoodIds.length > 0);
+  if (!genreMoodOk) return false;
+
+  const placeTypeKeys = associations.placeTypeKeysByOwner[item.id] ?? [];
+  const placeTypeOk = search.placeTypePresence === "exclude"
+    ? passesPlaceTypesExclusion(search.placeTypes, placeTypeKeys)
+    : passesPlaceTypesFilter(search.placeTypes, placeTypeKeys)
+      && passesPresence(search.placeTypePresence, placeTypeKeys.length > 0);
+  if (!placeTypeOk) return false;
+
+  const languageUsages = associations.languageUsagesByOwner[item.id] ?? [];
+  if (!passesLanguageUsagesFilter(search.languageUsageLanguages, search.languageUsageLevels, languageUsages)) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * The media items referenced by `bookmarks` (resolved against the cached `lists`) plus any item that
+ * independently matches `search`/`textQuery` via its own associations, sorted by descending match
+ * count then name. Referenced ids missing from a list (e.g. still loading) are skipped rather than
+ * shown as a broken row. `search`/`textQuery`/`associations` default to "no active filters", under
+ * which every cached item independently matches.
  */
 export function mediaItemsForBookmarks(
   bookmarks: readonly Bookmark[],
   lists: MediaLists,
+  search: BookmarkSearch = {},
+  textQuery = "",
+  associations: MediaAssociationsByKind = {},
 ): MediaMatchItem[] {
+  const normalizedQuery = textQuery.trim().toLowerCase();
   const results: MediaMatchItem[] = [];
   for (const config of MEDIA_KINDS) {
     const counts = tallyFkCounts(bookmarks, config.fkField);
-    if (counts.size === 0) continue;
-    const byId = new Map(lists[config.listKey].map(item => [item.id, item]));
-    for (const [id, matchCount] of counts) {
-      const item = byId.get(id);
-      if (!item) continue;
+    const kindAssociations = associations[config.kind] ?? EMPTY_KIND_ASSOCIATIONS;
+    for (const item of lists[config.listKey]) {
+      const matchCount = counts.get(item.id) ?? 0;
+      if (matchCount === 0 && !matchesIndependently(item, search, normalizedQuery, kindAssociations)) continue;
       results.push({
         kind: config.kind,
-        id,
+        id: item.id,
         slug: item.slug,
         name: item.name,
         label: config.label,

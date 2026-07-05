@@ -19,6 +19,14 @@ export function useOwnerGenreMoods(
   });
 }
 
+/** The genre/mood ids attached to every owner of one `ownerType`, grouped by `ownerId`. */
+export function useGenreMoodIdsByOwnerType(ownerType: GenreMoodOwnerType) {
+  return useQuery({
+    queryKey: ["genre-mood-assignments", "by-owner-type", ownerType],
+    queryFn: () => genreMoodAssignmentsApi.listByOwnerType(ownerType),
+  });
+}
+
 /** Replace the full set of Genres & Moods entries attached to one owner. */
 export function useSetOwnerGenreMoods(
   ownerType: GenreMoodOwnerType,

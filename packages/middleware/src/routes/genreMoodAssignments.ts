@@ -3,6 +3,7 @@ import type { GenreMoodOwnerType } from "@eesimple/types";
 import { GENRE_MOOD_OWNER_TYPES } from "@eesimple/types";
 import {
   getOwnerGenreMoods,
+  listGenreMoodIdsByOwnerType,
   setOwnerGenreMoods,
 } from "@/services/genreMoodAssignments";
 
@@ -17,6 +18,17 @@ const assignmentParams = {
     ownerId: {
       type: "string",
       format: "uuid",
+    },
+  },
+} as const;
+
+const ownerTypeOnlyParams = {
+  type: "object",
+  required: ["ownerType"],
+  properties: {
+    ownerType: {
+      type: "string",
+      enum: [...GENRE_MOOD_OWNER_TYPES],
     },
   },
 } as const;
@@ -38,6 +50,18 @@ const setAssignmentsBody = {
 
 /** Read/replace the Genres & Moods entries attached to any owner, mounted under `/api/genre-mood-assignments`. */
 export async function genreMoodAssignmentRoutes(app: FastifyInstance): Promise<void> {
+  app.get("/api/genre-mood-assignments/by-owner-type/:ownerType", {
+    schema: {
+      tags: ["genre-moods"],
+      params: ownerTypeOnlyParams,
+    },
+  }, async (req) => {
+    const {
+      ownerType,
+    } = req.params as { ownerType: GenreMoodOwnerType };
+    return listGenreMoodIdsByOwnerType(ownerType);
+  });
+
   app.get("/api/genre-mood-assignments/:ownerType/:ownerId", {
     schema: {
       tags: ["genre-moods"],

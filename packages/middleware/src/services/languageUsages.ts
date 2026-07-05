@@ -129,6 +129,35 @@ export async function listLanguageUsageAssociations(): Promise<LanguageUsageAsso
   }));
 }
 
+/**
+ * The `(languageId, usageLevelId)` pairs for every owner of one `ownerType`, grouped by `ownerId`.
+ * Powers the bookmark-listing "Media" tab's independent-match check (see
+ * `mediaItemsForBookmarks.ts`) without an N+1 per media item — ids only, no join, since the caller
+ * only needs to compare against the sidebar's selected language/level ids.
+ */
+export async function listLanguageUsagesByOwnerType(
+  ownerType: LanguageUsageOwnerType,
+): Promise<Record<string, { languageId: string;
+  usageLevelId: string; }[]>> {
+  const rows = await db
+    .select({
+      ownerId: languageUsages.ownerId,
+      languageId: languageUsages.languageId,
+      usageLevelId: languageUsages.usageLevelId,
+    })
+    .from(languageUsages)
+    .where(eq(languageUsages.ownerType, ownerType));
+  const byOwner: Record<string, { languageId: string;
+    usageLevelId: string; }[]> = {};
+  for (const row of rows) {
+    (byOwner[row.ownerId] ??= []).push({
+      languageId: row.languageId,
+      usageLevelId: row.usageLevelId,
+    });
+  }
+  return byOwner;
+}
+
 /** Load a single owner's language usages. */
 export async function getLanguageUsages(
   ownerType: LanguageUsageOwnerType,

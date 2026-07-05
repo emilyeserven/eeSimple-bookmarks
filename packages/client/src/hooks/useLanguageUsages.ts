@@ -16,6 +16,14 @@ export function useLanguageUsages(ownerType: LanguageUsageOwnerType, ownerId: st
   });
 }
 
+/** The `(languageId, usageLevelId)` pairs for every owner of one `ownerType`, grouped by `ownerId`. */
+export function useLanguageUsagesByOwnerType(ownerType: LanguageUsageOwnerType) {
+  return useQuery({
+    queryKey: ["language-usages", "by-owner-type", ownerType],
+    queryFn: () => languageUsagesApi.listByOwnerType(ownerType),
+  });
+}
+
 /** Replace an owner's full set of language usages. */
 export function useSetLanguageUsages(ownerType: LanguageUsageOwnerType, ownerId: string) {
   const queryClient = useQueryClient();

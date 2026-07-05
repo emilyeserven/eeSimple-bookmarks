@@ -3,6 +3,7 @@ import type { LocationAssignmentOwnerType } from "@eesimple/types";
 import { LOCATION_ASSIGNMENT_OWNER_TYPES } from "@eesimple/types";
 import {
   getOwnerLocations,
+  listPlaceTypeKeysByOwnerType,
   setOwnerLocations,
 } from "@/services/locationAssignments";
 
@@ -17,6 +18,17 @@ const assignmentParams = {
     ownerId: {
       type: "string",
       format: "uuid",
+    },
+  },
+} as const;
+
+const ownerTypeOnlyParams = {
+  type: "object",
+  required: ["ownerType"],
+  properties: {
+    ownerType: {
+      type: "string",
+      enum: [...LOCATION_ASSIGNMENT_OWNER_TYPES],
     },
   },
 } as const;
@@ -38,6 +50,18 @@ const setAssignmentsBody = {
 
 /** Read/replace the Locations attached to any owner, mounted under `/api/location-assignments`. */
 export async function locationAssignmentRoutes(app: FastifyInstance): Promise<void> {
+  app.get("/api/location-assignments/by-owner-type/:ownerType", {
+    schema: {
+      tags: ["locations"],
+      params: ownerTypeOnlyParams,
+    },
+  }, async (req) => {
+    const {
+      ownerType,
+    } = req.params as { ownerType: LocationAssignmentOwnerType };
+    return listPlaceTypeKeysByOwnerType(ownerType);
+  });
+
   app.get("/api/location-assignments/:ownerType/:ownerId", {
     schema: {
       tags: ["locations"],
