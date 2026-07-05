@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddMovieModal } from "../components/AddMovieModal";
 import { MoviesListing } from "../components/MovieManager";
@@ -16,6 +17,9 @@ export const Route = createFileRoute("/taxonomies/movies/")({
 /** Browse view for Movies: every movie with search filtering. */
 function MoviesPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allMovies,
   } = useMovies();
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,14 +27,14 @@ function MoviesPage() {
   useSetListingPage("movies-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New movie",
+    createLabel: t("New movie"),
   });
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Movies</h1>
+          <h1 className="text-2xl font-bold">{t("Movies")}</h1>
           {allMovies
             ? (
               <Badge variant="secondary">
@@ -40,8 +44,7 @@ function MoviesPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Individual movies, optionally grouped under a media property and linked to a Plex item.
-          Bookmarks link to a movie here. Click one to view or edit it.
+          {t("Individual movies, optionally grouped under a media property and linked to a Plex item. Bookmarks link to a movie here. Click one to view or edit it.")}
         </p>
       </div>
 

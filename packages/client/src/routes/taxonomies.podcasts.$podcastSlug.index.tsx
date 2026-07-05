@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Podcast } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/taxonomies/podcasts/$podcastSlug/")({
 });
 
 function PodcastBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     podcastSlug,
   } = Route.useParams();
@@ -40,11 +44,11 @@ function PodcastBookmarksPage() {
   } = usePodcastBySlug(podcastSlug);
 
   if (podcastLoading) {
-    return <p className="text-muted-foreground">Loading podcast…</p>;
+    return <p className="text-muted-foreground">{t("Loading podcast…")}</p>;
   }
 
   if (!podcast) {
-    return <p className="text-destructive">Podcast not found.</p>;
+    return <p className="text-destructive">{t("Podcast not found.")}</p>;
   }
 
   const podcastBookmarks = (bookmarks ?? []).filter(b => b.podcastId === podcast.id);
@@ -78,8 +82,8 @@ function PodcastBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks for this podcast yet."
-      noMatchMessage="No bookmarks for this podcast match these filters."
+      emptyMessage={t("No bookmarks for this podcast yet.")}
+      noMatchMessage={t("No bookmarks for this podcast match these filters.")}
     />
   );
 }

@@ -1,7 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useTagBySlug } from "../hooks/useTags";
+
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/tags/$tagSlug/edit")({
   component: TagEditLayout,
@@ -10,29 +13,32 @@ export const Route = createFileRoute("/tags/$tagSlug/edit")({
 const editNav = [
   {
     to: "/tags/$tagSlug/edit/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/tags/$tagSlug/edit/categories",
-    label: "Categories",
+    label: i18n.t("Categories"),
   },
   {
     type: "group",
-    label: "Rules",
+    label: i18n.t("Rules"),
     items: [
       {
         to: "/tags/$tagSlug/edit/autofill",
-        label: "Autofill Rules",
+        label: i18n.t("Autofill Rules"),
       },
       {
         to: "/tags/$tagSlug/edit/display-rules",
-        label: "Display Rules",
+        label: i18n.t("Display Rules"),
       },
     ],
   },
 ] as const;
 
 function TagEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     tagSlug,
   } = Route.useParams();
@@ -54,16 +60,18 @@ function TagEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "tag" : (tag?.name ?? "tag")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("tag") : (tag?.name ?? t("tag")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit tag</h1>
+          <h1 className="text-2xl font-bold">{t("Edit tag")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         tagSlug,
       }}
-      navAriaLabel="Tag edit sections"
+      navAriaLabel={t("Tag edit sections")}
     />
   );
 }

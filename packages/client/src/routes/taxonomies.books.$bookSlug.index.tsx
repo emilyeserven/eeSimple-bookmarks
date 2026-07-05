@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BookOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/taxonomies/books/$bookSlug/")({
 });
 
 function BookBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     bookSlug,
   } = Route.useParams();
@@ -40,11 +44,11 @@ function BookBookmarksPage() {
   } = useBookBySlug(bookSlug);
 
   if (bookLoading) {
-    return <p className="text-muted-foreground">Loading book…</p>;
+    return <p className="text-muted-foreground">{t("Loading book…")}</p>;
   }
 
   if (!book) {
-    return <p className="text-destructive">Book not found.</p>;
+    return <p className="text-destructive">{t("Book not found.")}</p>;
   }
 
   const bookBookmarks = (bookmarks ?? []).filter(b => b.bookId === book.id);
@@ -78,8 +82,8 @@ function BookBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks for this book yet."
-      noMatchMessage="No bookmarks for this book match these filters."
+      emptyMessage={t("No bookmarks for this book yet.")}
+      noMatchMessage={t("No bookmarks for this book match these filters.")}
     />
   );
 }

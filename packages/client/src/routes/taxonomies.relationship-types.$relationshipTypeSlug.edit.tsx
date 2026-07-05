@@ -1,7 +1,9 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useRelationshipTypeBySlug } from "../hooks/useRelationshipTypes";
+import i18n from "../i18n";
 
 export const Route = createFileRoute("/taxonomies/relationship-types/$relationshipTypeSlug/edit")({
   component: RelationshipTypeEditLayout,
@@ -10,11 +12,14 @@ export const Route = createFileRoute("/taxonomies/relationship-types/$relationsh
 const editNav = [
   {
     to: "/taxonomies/relationship-types/$relationshipTypeSlug/edit/general",
-    label: "General",
+    label: i18n.t("General"),
   },
 ] as const;
 
 function RelationshipTypeEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     relationshipTypeSlug,
   } = Route.useParams();
@@ -36,18 +41,20 @@ function RelationshipTypeEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading
-              ? "relationship type"
-              : (relationshipType?.name ?? "relationship type")}
+            {t("← Back to {{name}}", {
+              name: isLoading
+                ? t("relationship type")
+                : (relationshipType?.name ?? t("relationship type")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit relationship type</h1>
+          <h1 className="text-2xl font-bold">{t("Edit relationship type")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         relationshipTypeSlug,
       }}
-      navAriaLabel="Relationship type edit sections"
+      navAriaLabel={t("Relationship type edit sections")}
     />
   );
 }

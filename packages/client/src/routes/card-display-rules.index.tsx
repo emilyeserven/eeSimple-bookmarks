@@ -1,6 +1,7 @@
 import { emptyConditionTree } from "@eesimple/types";
 import { createFileRoute } from "@tanstack/react-router";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CardDisplayRulesList } from "../components/CardDisplayRulesList";
 import { CardDisplayRulesSettings } from "../components/CardDisplayRulesSettings";
@@ -26,6 +27,9 @@ export const Route = createFileRoute("/card-display-rules/")({
 
 function CardDisplayRulesPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     scope, scopeSlug,
   } = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -38,7 +42,7 @@ function CardDisplayRulesPage() {
   function handleAddRule() {
     create.mutate(
       {
-        name: "New rule",
+        name: t("New rule"),
         conditions: emptyConditionTree(),
       },
       {
@@ -58,15 +62,15 @@ function CardDisplayRulesPage() {
 
   useSetListingPage("card-display-rules-listing", {
     createAction: handleAddRule,
-    createLabel: "New rule",
+    createLabel: t("New rule"),
   });
 
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Card Display Rules</h2>
+        <h2 className="text-xl font-semibold">{t("Card Display Rules")}</h2>
         <p className="text-sm text-muted-foreground">
-          Control how bookmark cards display, based on prioritized rules. Drag to set priority.
+          {t("Control how bookmark cards display, based on prioritized rules. Drag to set priority.")}
         </p>
       </div>
 
@@ -81,7 +85,9 @@ function CardDisplayRulesPage() {
                 "
               >
                 <span className="text-muted-foreground">
-                  Filtered to {CARD_DISPLAY_SCOPE_LABELS[scope]}:
+                  {t("Filtered to {{scopeLabel}}:", {
+                    scopeLabel: CARD_DISPLAY_SCOPE_LABELS[scope],
+                  })}
                 </span>
                 <span className="font-medium">{label ?? scopeSlug}</span>
                 <Button
@@ -89,7 +95,7 @@ function CardDisplayRulesPage() {
                   variant="ghost"
                   size="icon"
                   className="size-5 rounded-full"
-                  aria-label="Clear filter"
+                  aria-label={t("Clear filter")}
                   onClick={() => navigate({
                     search: prev => ({
                       ...prev,

@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddAlbumModal } from "../components/AddAlbumModal";
 import { AlbumsListing } from "../components/AlbumManager";
@@ -16,6 +17,9 @@ export const Route = createFileRoute("/taxonomies/albums/")({
 /** Browse view for Albums: every album with search filtering. */
 function AlbumsPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allAlbums,
   } = useAlbums();
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,14 +27,14 @@ function AlbumsPage() {
   useSetListingPage("albums-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New album",
+    createLabel: t("New album"),
   });
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Albums</h1>
+          <h1 className="text-2xl font-bold">{t("Albums")}</h1>
           {allAlbums
             ? (
               <Badge variant="secondary">
@@ -40,8 +44,7 @@ function AlbumsPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Individual albums, optionally grouped under a media property and linked to a Plex item.
-          Bookmarks link to an album here. Click one to view or edit it.
+          {t("Individual albums, optionally grouped under a media property and linked to a Plex item. Bookmarks link to an album here. Click one to view or edit it.")}
         </p>
       </div>
 

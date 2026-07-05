@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -22,6 +23,9 @@ export const Route = createFileRoute("/taxonomies/locations/$locationSlug/")({
 });
 
 function LocationBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     locationSlug,
   } = Route.useParams();
@@ -51,11 +55,11 @@ function LocationBookmarksPage() {
   } = useLocationTree();
 
   if (locationLoading) {
-    return <p className="text-muted-foreground">Loading location…</p>;
+    return <p className="text-muted-foreground">{t("Loading location…")}</p>;
   }
 
   if (!location) {
-    return <p className="text-destructive">Location not found.</p>;
+    return <p className="text-destructive">{t("Location not found.")}</p>;
   }
 
   // Include bookmarks tagged with this location or any of its descendants.
@@ -118,7 +122,7 @@ function LocationBookmarksPage() {
                 flex flex-wrap items-center gap-2 text-sm text-muted-foreground
               "
             >
-              <span>Sub-locations:</span>
+              <span>{t("Sub-locations:")}</span>
               {location.children.map(child => (
                 <SubLocationPill
                   key={child.id}
@@ -162,8 +166,8 @@ function LocationBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks for this location yet."
-      noMatchMessage="No bookmarks for this location match these filters."
+      emptyMessage={t("No bookmarks for this location yet.")}
+      noMatchMessage={t("No bookmarks for this location match these filters.")}
     />
   );
 }

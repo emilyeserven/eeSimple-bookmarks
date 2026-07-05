@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/")({
 });
 
 function WebsiteBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     websiteSlug,
   } = Route.useParams();
@@ -39,11 +43,11 @@ function WebsiteBookmarksPage() {
   } = useWebsiteBySlug(websiteSlug);
 
   if (websiteLoading) {
-    return <p className="text-muted-foreground">Loading website…</p>;
+    return <p className="text-muted-foreground">{t("Loading website…")}</p>;
   }
 
   if (!website) {
-    return <p className="text-destructive">Website not found.</p>;
+    return <p className="text-destructive">{t("Website not found.")}</p>;
   }
 
   const websiteBookmarks = (bookmarks ?? []).filter(b => b.website?.id === website.id);
@@ -79,8 +83,8 @@ function WebsiteBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks for this website yet."
-      noMatchMessage="No bookmarks for this website match these filters."
+      emptyMessage={t("No bookmarks for this website yet.")}
+      noMatchMessage={t("No bookmarks for this website match these filters.")}
     />
   );
 }

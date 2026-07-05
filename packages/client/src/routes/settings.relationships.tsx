@@ -2,6 +2,7 @@ import type { ComboboxOption } from "../components/Combobox";
 
 import { createFileRoute } from "@tanstack/react-router";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkRelationshipsEditor } from "../components/BookmarkRelationshipsEditor";
 import { Combobox } from "../components/Combobox";
@@ -24,6 +25,9 @@ export const Route = createFileRoute("/settings/relationships")({
 });
 
 function RelationshipsSettingsPage() {
+  const {
+    t,
+  } = useTranslation();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const {
@@ -53,10 +57,9 @@ function RelationshipsSettingsPage() {
   return (
     <section className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold">Bookmark Relationships</h2>
+        <h2 className="text-xl font-semibold">{t("Bookmark Relationships")}</h2>
         <p className="text-sm text-muted-foreground">
-          Link a bookmark to related bookmarks and classify how they relate. Pick a bookmark to edit its
-          relationships.
+          {t("Link a bookmark to related bookmarks and classify how they relate. Pick a bookmark to edit its relationships.")}
         </p>
       </div>
 
@@ -71,10 +74,10 @@ function RelationshipsSettingsPage() {
           <Combobox
             options={bookmarkOptions}
             onValueChange={value => value && select(value)}
-            placeholder="Select a bookmark…"
-            searchPlaceholder="Search bookmarks…"
-            emptyText="No bookmarks found."
-            aria-label="Bookmark to edit relationships"
+            placeholder={t("Select a bookmark…")}
+            searchPlaceholder={t("Search bookmarks…")}
+            emptyText={t("No bookmarks found.")}
+            aria-label={t("Bookmark to edit relationships")}
           />
         )}
     </section>
@@ -89,12 +92,15 @@ function RelationshipsEditorPanel({
   onClear: () => void;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: bookmark, isLoading, error,
   } = useBookmark(bookmarkId);
 
-  if (isLoading) return <p className="text-muted-foreground">Loading bookmark…</p>;
+  if (isLoading) return <p className="text-muted-foreground">{t("Loading bookmark…")}</p>;
   if (error || !bookmark) {
-    return <p className="text-destructive">{error?.message ?? "Bookmark not found."}</p>;
+    return <p className="text-destructive">{error?.message ?? t("Bookmark not found.")}</p>;
   }
 
   return (
@@ -110,7 +116,7 @@ function RelationshipsEditorPanel({
           size="icon"
           className="size-4"
           onClick={onClear}
-          aria-label="Clear selected bookmark"
+          aria-label={t("Clear selected bookmark")}
         >
           <X className="size-3" />
         </Button>

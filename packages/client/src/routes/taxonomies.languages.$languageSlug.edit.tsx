@@ -1,7 +1,9 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useLanguageBySlug } from "../hooks/useLanguages";
+import i18n from "../i18n";
 
 export const Route = createFileRoute("/taxonomies/languages/$languageSlug/edit")({
   component: LanguageEditLayout,
@@ -10,11 +12,14 @@ export const Route = createFileRoute("/taxonomies/languages/$languageSlug/edit")
 const editNav = [
   {
     to: "/taxonomies/languages/$languageSlug/edit/general",
-    label: "General",
+    label: i18n.t("General"),
   },
 ] as const;
 
 function LanguageEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     languageSlug,
   } = Route.useParams();
@@ -36,18 +41,20 @@ function LanguageEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading
-              ? "language"
-              : (language?.name ?? "language")}
+            {t("← Back to {{name}}", {
+              name: isLoading
+                ? t("language")
+                : (language?.name ?? t("language")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit language</h1>
+          <h1 className="text-2xl font-bold">{t("Edit language")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         languageSlug,
       }}
-      navAriaLabel="Language edit sections"
+      navAriaLabel={t("Language edit sections")}
     />
   );
 }

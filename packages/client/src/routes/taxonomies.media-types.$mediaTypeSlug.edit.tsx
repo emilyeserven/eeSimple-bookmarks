@@ -1,7 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useMediaTypeBySlug } from "../hooks/useMediaTypes";
+
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/edit")({
   component: MediaTypeEditLayout,
@@ -10,25 +13,28 @@ export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/edi
 const editNav = [
   {
     to: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     type: "group",
-    label: "Rules",
+    label: i18n.t("Rules"),
     items: [
       {
         to: "/taxonomies/media-types/$mediaTypeSlug/edit/autofill",
-        label: "Autofill Rules",
+        label: i18n.t("Autofill Rules"),
       },
       {
         to: "/taxonomies/media-types/$mediaTypeSlug/edit/display-rules",
-        label: "Display Rules",
+        label: i18n.t("Display Rules"),
       },
     ],
   },
 ] as const;
 
 function MediaTypeEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     mediaTypeSlug,
   } = Route.useParams();
@@ -50,16 +56,18 @@ function MediaTypeEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "media type" : (mediaType?.name ?? "media type")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("media type") : (mediaType?.name ?? t("media type")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit media type</h1>
+          <h1 className="text-2xl font-bold">{t("Edit media type")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         mediaTypeSlug,
       }}
-      navAriaLabel="Media type edit sections"
+      navAriaLabel={t("Media type edit sections")}
     />
   );
 }

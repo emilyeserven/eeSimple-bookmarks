@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkEditTabWrapper } from "../components/BookmarkEditTabWrapper";
 import { BookmarkGeneralForm } from "../components/BookmarkGeneralForm";
@@ -13,6 +14,9 @@ export const Route = createFileRoute("/bookmarks/$bookmarkId/edit/general")({
 });
 
 function GeneralTab() {
+  const {
+    t,
+  } = useTranslation();
   const {
     bookmarkId,
   } = Route.useParams();
@@ -46,8 +50,8 @@ function GeneralTab() {
   return (
     <BookmarkEditTabWrapper
       bookmarkId={bookmarkId}
-      title="General"
-      description="URL, name, description, category, and tags."
+      title={t("General")}
+      description={t("URL, name, description, category, and tags.")}
     >
       {bookmark => (
         <>
@@ -55,8 +59,8 @@ function GeneralTab() {
           <Separator />
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Delete bookmark</p>
-              <p className="text-sm text-muted-foreground">This action cannot be undone.</p>
+              <p className="text-sm font-medium">{t("Delete bookmark")}</p>
+              <p className="text-sm text-muted-foreground">{t("This action cannot be undone.")}</p>
             </div>
             <Button
               type="button"
@@ -65,7 +69,7 @@ function GeneralTab() {
               onClick={handleDelete}
               disabled={deleteBookmark.isPending}
             >
-              Delete
+              {t("Delete")}
             </Button>
           </div>
         </>

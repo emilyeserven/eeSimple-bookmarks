@@ -8,6 +8,7 @@ import { describeError } from "../lib/apiError";
 import { parseSharedInput } from "../lib/shareTarget";
 
 import { Button } from "@/components/ui/button";
+import i18n from "@/i18n";
 
 /**
  * Search params for the quick-add popup: the page URL/title the bookmarklet hands in via a GET
@@ -96,43 +97,45 @@ function QuickAddPage() {
 
   return (
     <main className="mx-auto max-w-md space-y-3 p-4">
-      <h1 className="text-xl font-bold">Add to Inbox</h1>
+      <h1 className="text-xl font-bold">{i18n.t("Add to Inbox")}</h1>
       {status === "saving" && (
-        <p className="text-sm text-muted-foreground">Adding to Inbox…</p>
+        <p className="text-sm text-muted-foreground">{i18n.t("Adding to Inbox…")}</p>
       )}
       {status === "saved" && (
         <>
-          <p className="font-semibold">Queued in Inbox.</p>
+          <p className="font-semibold">{i18n.t("Queued in Inbox.")}</p>
           {!window.opener && (
             <Button
               asChild
               size="sm"
             >
-              <Link to="/inbox">View Inbox</Link>
+              <Link to="/inbox">{i18n.t("View Inbox")}</Link>
             </Button>
           )}
           {window.opener && (
             <p className="text-sm text-muted-foreground">
-              Closing in {AUTO_CLOSE_MS / 1000}s…
+              {i18n.t("Closing in {{seconds}}s…", {
+                seconds: AUTO_CLOSE_MS / 1000,
+              })}
             </p>
           )}
         </>
       )}
       {status === "duplicate" && (
         <>
-          <p className="font-semibold">Already saved.</p>
+          <p className="font-semibold">{i18n.t("Already saved.")}</p>
           <Button
             asChild
             size="sm"
             variant="outline"
           >
-            <Link to="/inbox">View Inbox</Link>
+            <Link to="/inbox">{i18n.t("View Inbox")}</Link>
           </Button>
         </>
       )}
       {status === "error" && (
         <>
-          <p className="text-sm text-destructive">{errorMsg || "Something went wrong."}</p>
+          <p className="text-sm text-destructive">{errorMsg || i18n.t("Something went wrong.")}</p>
           <Button
             size="sm"
             variant="outline"
@@ -146,12 +149,12 @@ function QuickAddPage() {
               }
             }}
           >
-            Retry
+            {i18n.t("Retry")}
           </Button>
         </>
       )}
       {status === "no-url" && (
-        <p className="text-sm text-muted-foreground">No URL provided.</p>
+        <p className="text-sm text-muted-foreground">{i18n.t("No URL provided.")}</p>
       )}
     </main>
   );

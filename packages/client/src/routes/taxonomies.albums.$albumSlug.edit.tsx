@@ -1,7 +1,9 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useAlbumBySlug } from "../hooks/useAlbums";
+import i18n from "../i18n";
 
 export const Route = createFileRoute("/taxonomies/albums/$albumSlug/edit")({
   component: AlbumEditLayout,
@@ -10,15 +12,18 @@ export const Route = createFileRoute("/taxonomies/albums/$albumSlug/edit")({
 const editNav = [
   {
     to: "/taxonomies/albums/$albumSlug/edit/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/albums/$albumSlug/edit/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
 ] as const;
 
 function AlbumEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     albumSlug,
   } = Route.useParams();
@@ -40,16 +45,18 @@ function AlbumEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "album" : (album?.name ?? "album")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("album") : (album?.name ?? t("album")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit album</h1>
+          <h1 className="text-2xl font-bold">{t("Edit album")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         albumSlug,
       }}
-      navAriaLabel="Album edit sections"
+      navAriaLabel={t("Album edit sections")}
     />
   );
 }

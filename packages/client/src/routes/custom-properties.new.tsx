@@ -2,6 +2,7 @@ import type { CustomProperty } from "@eesimple/types";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { PropertyForm } from "../components/PropertyForm";
 import { useCategories } from "../hooks/useCategories";
@@ -14,6 +15,9 @@ export const Route = createFileRoute("/custom-properties/new")({
 });
 
 function NewCustomPropertyPage() {
+  const {
+    t,
+  } = useTranslation();
   const navigate = Route.useNavigate();
   const queryClient = useQueryClient();
   const {
@@ -42,9 +46,9 @@ function NewCustomPropertyPage() {
             hover:text-foreground
           "
         >
-          ← Back to custom properties
+          {t("← Back to custom properties")}
         </Link>
-        <h1 className="text-2xl font-bold">New custom property</h1>
+        <h1 className="text-2xl font-bold">{t("New custom property")}</h1>
       </div>
 
       <div className="rounded-lg border bg-card p-4">
@@ -69,8 +73,8 @@ function NewCustomPropertyPage() {
               });
             },
           })}
-          submitLabel="Add property"
-          pendingLabel="Adding…"
+          submitLabel={t("Add property")}
+          pendingLabel={t("Adding…")}
           errorMessage={createProperty.isError ? createProperty.error.message : undefined}
           idPrefix="new-property-category"
         />

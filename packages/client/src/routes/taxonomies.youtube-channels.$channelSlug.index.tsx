@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MonitorPlay } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/taxonomies/youtube-channels/$channelSlug/
 });
 
 function YouTubeChannelBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     channelSlug,
   } = Route.useParams();
@@ -38,11 +42,11 @@ function YouTubeChannelBookmarksPage() {
   } = useYouTubeChannelBySlug(channelSlug);
 
   if (channelLoading) {
-    return <p className="text-muted-foreground">Loading channel…</p>;
+    return <p className="text-muted-foreground">{t("Loading channel…")}</p>;
   }
 
   if (!channel) {
-    return <p className="text-destructive">Channel not found.</p>;
+    return <p className="text-destructive">{t("Channel not found.")}</p>;
   }
 
   const channelBookmarks = (bookmarks ?? []).filter(b => b.youtubeChannel?.id === channel.id);
@@ -79,8 +83,8 @@ function YouTubeChannelBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks for this channel yet."
-      noMatchMessage="No bookmarks for this channel match these filters."
+      emptyMessage={t("No bookmarks for this channel yet.")}
+      noMatchMessage={t("No bookmarks for this channel match these filters.")}
     />
   );
 }

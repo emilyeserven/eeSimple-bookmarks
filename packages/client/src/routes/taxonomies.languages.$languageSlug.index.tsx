@@ -2,6 +2,7 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 
 import { createFileRoute } from "@tanstack/react-router";
 import { Languages, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { Badge } from "../components/ui/badge";
@@ -33,6 +34,9 @@ export const Route = createFileRoute("/taxonomies/languages/$languageSlug/")({
 
 function LanguageBookmarksPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     languageSlug,
   } = Route.useParams();
   const search = Route.useSearch();
@@ -62,11 +66,11 @@ function LanguageBookmarksPage() {
   } = useCategoryPageData(tagsForServerQuery(search));
 
   if (languageLoading || bookmarksLoading) {
-    return <p className="text-muted-foreground">Loading…</p>;
+    return <p className="text-muted-foreground">{t("Loading…")}</p>;
   }
 
   if (!language) {
-    return <p className="text-destructive">Language not found.</p>;
+    return <p className="text-destructive">{t("Language not found.")}</p>;
   }
 
   // Bookmarks that involve this language via any usage association.
@@ -98,12 +102,14 @@ function LanguageBookmarksPage() {
                 variant="secondary"
                 className="gap-1"
               >
-                {`Usage: ${activeLevel.name}`}
+                {t("Usage: {{name}}", {
+                  name: activeLevel.name,
+                })}
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  aria-label="Clear usage-level filter"
+                  aria-label={t("Clear usage-level filter")}
                   className="size-4"
                   onClick={() =>
                     navigate({
@@ -147,8 +153,8 @@ function LanguageBookmarksPage() {
         })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks in this language yet."
-      noMatchMessage="No bookmarks in this language match these filters."
+      emptyMessage={t("No bookmarks in this language yet.")}
+      noMatchMessage={t("No bookmarks in this language match these filters.")}
     />
   );
 }

@@ -4,6 +4,7 @@ import type { AutofillRule } from "@eesimple/types";
 import { useEffect, useMemo } from "react";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AutofillFilterSidebar } from "../components/AutofillFilterSidebar";
 import { ruleMatchesFacets } from "../components/autofillRulesFacets";
@@ -28,6 +29,9 @@ export const Route = createFileRoute("/autofill/")({
 
 function AutofillListPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: rules,
   } = useAutofillRules();
   const search = Route.useSearch();
@@ -38,7 +42,7 @@ function AutofillListPage() {
   const newRule = useNewAutofillRule();
   useSetListingPage("autofill-rules-listing", {
     createAction: newRule.openModal,
-    createLabel: "New rule",
+    createLabel: t("New rule"),
   });
 
   // The scoping website's normalized domain (rules reference websites by domain, not id).
@@ -97,7 +101,7 @@ function AutofillListPage() {
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold">Autofill Rules</h2>
+          <h2 className="text-xl font-semibold">{t("Autofill Rules")}</h2>
           {rules
             ? <Badge variant="secondary">{rules.length}</Badge>
             : null}
@@ -107,12 +111,11 @@ function AutofillListPage() {
             size="sm"
             className="ml-auto"
           >
-            <Link to="/autofill/backfill">Backfill</Link>
+            <Link to="/autofill/backfill">{t("Backfill")}</Link>
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Define rules that match a bookmark&apos;s title or website and prefill its category, tags, and
-          custom properties when you add it. Select a rule to edit it, or create a new one.
+          {t("Define rules that match a bookmark's title or website and prefill its category, tags, and custom properties when you add it. Select a rule to edit it, or create a new one.")}
         </p>
       </div>
 

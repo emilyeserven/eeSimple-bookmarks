@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { ViewModeToggle } from "../components/DisplayControlPrimitives";
 import { InboxBulkActions, InboxReviewList } from "../components/InboxReviewList";
@@ -17,6 +18,9 @@ export const Route = createFileRoute("/inbox/")({
 
 function InboxPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: items, isLoading, error, isFetching,
   } = useInboxItems();
   const setAddImportModalOpen = useUiStore(s => s.setAddImportModalOpen);
@@ -28,7 +32,7 @@ function InboxPage() {
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-bold">Inbox</h1>
+          <h1 className="text-2xl font-bold">{t("Inbox")}</h1>
           <div className="flex flex-wrap items-center gap-2">
             {hasItems
               ? (
@@ -42,7 +46,7 @@ function InboxPage() {
                     variant="ghost"
                     onClick={controller.resortNow}
                   >
-                    Sort now
+                    {t("Sort now")}
                   </Button>
                   <InboxBulkActions {...controller} />
                 </>
@@ -53,25 +57,23 @@ function InboxPage() {
               onClick={() => setAddImportModalOpen(true)}
             >
               <Plus className="size-4" />
-              Add import
+              {t("Add import")}
             </Button>
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          Review imported links. Approve to save a bookmark (the import item is then marked for
-          deletion), reject, or block. Approve, edit, or reject each link; duplicates are flagged
-          automatically.
+          {t("Review imported links. Approve to save a bookmark (the import item is then marked for deletion), reject, or block. Approve, edit, or reject each link; duplicates are flagged automatically.")}
         </p>
       </div>
 
       <ShareNotificationPrompt />
 
-      {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
-      {error ? <p className="text-sm text-destructive">Couldn&apos;t load the inbox.</p> : null}
+      {isLoading ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p> : null}
+      {error ? <p className="text-sm text-destructive">{t("Couldn't load the inbox.")}</p> : null}
       {items && items.length === 0
         ? (
           <p className="text-sm text-muted-foreground">
-            Your inbox is empty. Use &ldquo;Add import&rdquo; to import links.
+            {t("Your inbox is empty. Use “Add import” to import links.")}
           </p>
         )
         : null}

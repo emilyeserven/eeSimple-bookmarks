@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddImportRuleModal } from "../components/AddImportRuleModal";
 import { ListingScaffold } from "../components/ListingScaffold";
@@ -15,6 +16,9 @@ export const Route = createFileRoute("/import-rules/")({
 });
 
 function ImportRulesListPage() {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   useSetListingPage("import-rules-listing", {
@@ -26,21 +30,20 @@ function ImportRulesListPage() {
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold">Import Rules</h2>
+          <h2 className="text-xl font-semibold">{t("Import Rules")}</h2>
           {!state.isLoading
             ? <Badge variant="secondary">{state.items.length}</Badge>
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Define rules that evaluate each inbox candidate&apos;s URL. The first matching rule
-          automatically approves, rejects, or blocks the item. Unmatched items stay pending.
+          {t("Define rules that evaluate each inbox candidate's URL. The first matching rule automatically approves, rejects, or blocks the item. Unmatched items stay pending.")}
           {" "}
-          See also
+          {t("See also")}
           {" "}
           <Link
             to="/settings/automations/imports"
             className="underline"
-          >Imports
+          >{t("Imports")}
           </Link>
           .
         </p>

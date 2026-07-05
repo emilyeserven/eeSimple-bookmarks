@@ -1,6 +1,7 @@
 import type { TabNavEntry } from "../components/TabbedEntityLayout";
 
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 
@@ -8,46 +9,49 @@ export const Route = createFileRoute("/settings")({
   component: SettingsLayout,
 });
 
-const settingsNav: readonly TabNavEntry[] = [
-  {
-    to: "/settings/display",
-    label: "Display",
-  },
-  {
-    to: "/settings/media",
-    label: "Media",
-  },
-  {
-    to: "/settings/automations",
-    label: "Automations",
-  },
-  {
-    to: "/settings/locations",
-    label: "Locations",
-  },
-  {
-    to: "/settings/extension",
-    label: "Extension",
-  },
-  {
-    to: "/settings/advanced",
-    label: "Advanced",
-  },
-] as const;
-
 function SettingsLayout() {
+  const {
+    t,
+  } = useTranslation();
+  const settingsNav: readonly TabNavEntry[] = [
+    {
+      to: "/settings/display",
+      label: t("Display"),
+    },
+    {
+      to: "/settings/media",
+      label: t("Media"),
+    },
+    {
+      to: "/settings/automations",
+      label: t("Automations"),
+    },
+    {
+      to: "/settings/locations",
+      label: t("Locations"),
+    },
+    {
+      to: "/settings/extension",
+      label: t("Extension"),
+    },
+    {
+      to: "/settings/advanced",
+      label: t("Advanced"),
+    },
+  ] as const;
+
   return (
     <TabbedEntityLayout
       header={(
         <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
+          <h1 className="text-2xl font-bold">{t("Settings")}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage custom properties, display preferences, and automations.
+            {t("Manage custom properties, display preferences, and automations.")}
           </p>
         </div>
       )}
       nav={settingsNav}
-      navAriaLabel="Settings sections"
+      navAriaLabel={t("Settings sections")}
     />
   );
 }

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Film } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/taxonomies/movies/$movieSlug/")({
 });
 
 function MovieBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     movieSlug,
   } = Route.useParams();
@@ -40,11 +44,11 @@ function MovieBookmarksPage() {
   } = useMovieBySlug(movieSlug);
 
   if (movieLoading) {
-    return <p className="text-muted-foreground">Loading movie…</p>;
+    return <p className="text-muted-foreground">{t("Loading movie…")}</p>;
   }
 
   if (!movie) {
-    return <p className="text-destructive">Movie not found.</p>;
+    return <p className="text-destructive">{t("Movie not found.")}</p>;
   }
 
   const movieBookmarks = (bookmarks ?? []).filter(b => b.movieId === movie.id);
@@ -78,8 +82,8 @@ function MovieBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks for this movie yet."
-      noMatchMessage="No bookmarks for this movie match these filters."
+      emptyMessage={t("No bookmarks for this movie yet.")}
+      noMatchMessage={t("No bookmarks for this movie match these filters.")}
     />
   );
 }

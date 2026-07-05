@@ -7,6 +7,7 @@ import {
   Wand2,
   Wrench,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   Card,
@@ -59,12 +60,15 @@ export const Route = createFileRoute("/settings/")({
 });
 
 function SettingsIndexPage() {
+  const {
+    t,
+  } = useTranslation();
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Settings</h2>
+        <h2 className="text-xl font-semibold">{t("Settings")}</h2>
         <p className="text-sm text-muted-foreground">
-          Choose a section to manage your preferences.
+          {t("Choose a section to manage your preferences.")}
         </p>
       </div>
 
@@ -88,9 +92,9 @@ function SettingsIndexPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <tile.icon className="size-4 shrink-0" />
-                  {tile.label}
+                  {t(tile.label)}
                 </CardTitle>
-                <CardDescription>{tile.description}</CardDescription>
+                <CardDescription>{t(tile.description)}</CardDescription>
               </CardHeader>
             </Card>
           </Link>

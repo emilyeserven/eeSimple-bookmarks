@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddTagModal } from "../components/AddTagModal";
 import { TreeListingScaffold } from "../components/TreeListingScaffold";
@@ -18,6 +19,9 @@ export const Route = createFileRoute("/tags/")({
 /** Browse view for the Tags taxonomy: the full tag tree. Click a tag to view it, or add one. */
 function TagsListingPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tags,
   } = useTags();
   const navigate = useNavigate();
@@ -25,7 +29,7 @@ function TagsListingPage() {
   useSetListingPage("tags-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New tag",
+    createLabel: t("New tag"),
   });
 
   // The config is a factory only because the empty state's "Add your first tag" button opens the modal.
@@ -38,13 +42,13 @@ function TagsListingPage() {
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Tags</h1>
+          <h1 className="text-2xl font-bold">{t("Tags")}</h1>
           {tags
             ? <Badge variant="secondary">{tags.length}</Badge>
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Browse the tag taxonomy. Click a tag to view and edit it.
+          {t("Browse the tag taxonomy. Click a tag to view and edit it.")}
         </p>
       </div>
 

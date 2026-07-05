@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useLocationBySlug } from "../hooks/useLocations";
@@ -7,34 +8,37 @@ export const Route = createFileRoute("/taxonomies/locations/$locationSlug/edit")
   component: LocationEditLayout,
 });
 
-const editNav = [
-  {
-    to: "/taxonomies/locations/$locationSlug/edit/general",
-    label: "General",
-  },
-  {
-    type: "group",
-    label: "Rules",
-    items: [
-      {
-        to: "/taxonomies/locations/$locationSlug/edit/autofill",
-        label: "Autofill Rules",
-      },
-      {
-        to: "/taxonomies/locations/$locationSlug/edit/display-rules",
-        label: "Display Rules",
-      },
-    ],
-  },
-] as const;
-
 function LocationEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     locationSlug,
   } = Route.useParams();
   const {
     location, isLoading,
   } = useLocationBySlug(locationSlug);
+
+  const editNav = [
+    {
+      to: "/taxonomies/locations/$locationSlug/edit/general",
+      label: t("General"),
+    },
+    {
+      type: "group",
+      label: t("Rules"),
+      items: [
+        {
+          to: "/taxonomies/locations/$locationSlug/edit/autofill",
+          label: t("Autofill Rules"),
+        },
+        {
+          to: "/taxonomies/locations/$locationSlug/edit/display-rules",
+          label: t("Display Rules"),
+        },
+      ],
+    },
+  ] as const;
 
   return (
     <TabbedEntityLayout
@@ -50,16 +54,18 @@ function LocationEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "location" : (location?.name ?? "location")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("location") : (location?.name ?? t("location")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit location</h1>
+          <h1 className="text-2xl font-bold">{t("Edit location")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         locationSlug,
       }}
-      navAriaLabel="Location edit sections"
+      navAriaLabel={t("Location edit sections")}
     />
   );
 }

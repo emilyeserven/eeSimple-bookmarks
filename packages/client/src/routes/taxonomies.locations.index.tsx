@@ -1,6 +1,7 @@
 import type { MouseEvent } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { LocationsListing } from "../components/LocationManager";
 import { usePanelControls } from "../components/panel/usePanelControls";
@@ -18,6 +19,9 @@ export const Route = createFileRoute("/taxonomies/locations/")({
 
 /** Browse view for the Locations taxonomy: every known location with search filtering. */
 function LocationsTaxonomyPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: allLocations,
   } = useLocations();
@@ -41,14 +45,14 @@ function LocationsTaxonomyPage() {
   useSetListingPage("locations-listing", {
     createAction: createLocation,
     addBookmark: {},
-    createLabel: "New location",
+    createLabel: t("New location"),
   });
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Locations</h1>
+          <h1 className="text-2xl font-bold">{t("Locations")}</h1>
           {allLocations
             ? (
               <Badge variant="secondary">
@@ -58,8 +62,7 @@ function LocationsTaxonomyPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Browse the Locations taxonomy. Use “New location” to add a place — look it up to autograb its
-          coordinates, and add higher-level locations in the same step. Click a location to view or edit it.
+          {t("Browse the Locations taxonomy. Use “New location” to add a place — look it up to autograb its coordinates, and add higher-level locations in the same step. Click a location to view or edit it.")}
         </p>
       </div>
 
