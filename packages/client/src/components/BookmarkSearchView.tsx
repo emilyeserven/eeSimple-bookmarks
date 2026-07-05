@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { BookmarkListPane } from "./BookmarkListPane";
 import { FilterSidebar } from "./FilterSidebar";
+import { ListingSearchBar } from "./ListingSearchBar";
 import { useBookmarkSearchView } from "./useBookmarkSearchView";
 
 interface BookmarkSearchViewProps {
@@ -107,6 +108,8 @@ export function BookmarkSearchView({
   return (
     <section className="space-y-8">
       {header}
+
+      <ListingSearchBar />
 
       <div
         className={hideSidebar

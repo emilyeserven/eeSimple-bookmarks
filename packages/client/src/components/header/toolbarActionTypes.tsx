@@ -31,7 +31,6 @@ export interface ToolbarAction {
 /** Context the header resolves once and hands to {@link buildToolbarActions}. */
 export interface ToolbarContext {
   pathParts: string[];
-  headerSearchActive: boolean;
   listingPage: { key: string;
     hasFilters: boolean;
     hasSort?: boolean;

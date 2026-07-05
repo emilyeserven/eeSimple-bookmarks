@@ -166,10 +166,7 @@ interface UiState {
     createAction?: (event?: ReactMouseEvent) => void;
     addBookmark?: { categoryId?: string };
     createLabel?: string; } | null) => void;
-  /** Transient: true while a listing page with header-search support is mounted. Never persisted. */
-  headerSearchActive: boolean;
-  setHeaderSearchActive: (active: boolean) => void;
-  /** Transient: the live text query from the header search bar. Cleared when leaving the page. Never persisted. */
+  /** Transient: the live text query from the in-page listing search bar. Cleared when leaving the page. Never persisted. */
   headerSearchQuery: string;
   setHeaderSearchQuery: (query: string) => void;
   /** Transient: selected entity ids per listing pageKey, for bulk editing. Never persisted. */
@@ -343,10 +340,6 @@ export const useUiStore = create<UiState>()(
       listingPage: null,
       setListingPage: page => set({
         listingPage: page,
-      }),
-      headerSearchActive: false,
-      setHeaderSearchActive: active => set({
-        headerSearchActive: active,
       }),
       headerSearchQuery: "",
       setHeaderSearchQuery: query => set({

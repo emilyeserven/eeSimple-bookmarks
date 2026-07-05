@@ -5,29 +5,9 @@ import { Pin, PinOff, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { usePinToggle } from "@/hooks/usePinToggle";
 import { useSettingsFavorite } from "@/hooks/useSettingsFavorite";
 import { cn } from "@/lib/utils";
-import { useUiStore } from "@/stores/uiStore";
-
-/** Mobile search modal body — the same `uiStore` query the desktop inline search bar reads/writes. */
-export function SearchControls() {
-  const {
-    t,
-  } = useTranslation();
-  const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
-  const setHeaderSearchQuery = useUiStore(state => state.setHeaderSearchQuery);
-  return (
-    <Input
-      type="text"
-      placeholder={t("Search…")}
-      value={headerSearchQuery}
-      onChange={e => setHeaderSearchQuery(e.target.value)}
-      autoFocus
-    />
-  );
-}
 
 /** Favorite/un-favorite the current Settings page from the More menu. */
 export function FavoriteMenuItem({

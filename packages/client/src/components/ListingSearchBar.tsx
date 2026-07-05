@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 
 import { Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -7,67 +7,52 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUiStore } from "@/stores/uiStore";
 
-/** Search icon + expanding inline input for listing pages. Renders nothing when no listing page has registered. */
+/**
+ * The in-page quick-search input rendered above a listing's content (bookmarks and every taxonomy
+ * listing). Bound to the shared `headerSearchQuery` store value that each listing reads to filter its
+ * rows. Clears the query on unmount so the text doesn't leak to the next page.
+ */
 export function ListingSearchBar() {
-  const headerSearchActive = useUiStore(state => state.headerSearchActive);
   const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
   const setHeaderSearchQuery = useUiStore(state => state.setHeaderSearchQuery);
-  const [open, setOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   const {
     t,
   } = useTranslation();
 
-  useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
-
-  // Collapse and clear when the page unmounts its search registration
-  useEffect(() => {
-    if (!headerSearchActive) setOpen(false);
-  }, [headerSearchActive]);
-
-  if (!headerSearchActive) return null;
-
-  function clearAndClose() {
-    setHeaderSearchQuery("");
-    setOpen(false);
-  }
-
-  if (!open) {
-    return (
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={t("Search")}
-        onClick={() => setOpen(true)}
-      >
-        <Search className="size-4" />
-      </Button>
-    );
-  }
+  // Reset the query when leaving the listing page.
+  useEffect(() => () => setHeaderSearchQuery(""), [setHeaderSearchQuery]);
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="relative max-w-md">
+      <Search
+        className="
+          pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2
+          text-muted-foreground
+        "
+      />
       <Input
-        ref={inputRef}
         type="text"
         placeholder={t("Search…")}
+        aria-label={t("Search")}
         value={headerSearchQuery}
         onChange={e => setHeaderSearchQuery(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Escape") clearAndClose(); }}
-        className="h-8 w-40"
+        onKeyDown={(e) => { if (e.key === "Escape") setHeaderSearchQuery(""); }}
+        className="px-9"
       />
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={t("Clear search")}
-        onClick={clearAndClose}
-      >
-        <X className="size-4" />
-      </Button>
+      {headerSearchQuery
+        ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("Clear search")}
+            className="absolute top-1/2 right-1 size-7 -translate-y-1/2"
+            onClick={() => setHeaderSearchQuery("")}
+          >
+            <X className="size-4" />
+          </Button>
+        )
+        : null}
     </div>
   );
 }

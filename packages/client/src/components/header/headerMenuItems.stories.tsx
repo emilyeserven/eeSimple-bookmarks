@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Monitor } from "lucide-react";
 
-import { FavoriteMenuItem, PinMenuItem, SearchControls } from "./headerMenuItems";
+import { FavoriteMenuItem, PinMenuItem } from "./headerMenuItems";
 
 import {
   DropdownMenu,
@@ -18,23 +18,10 @@ const settingsPage: SettingsPage = {
 
 const meta = {
   title: "Components/Header/HeaderMenuItems",
-  component: SearchControls,
-  render: () => (
-    <div className="w-72">
-      <SearchControls />
-    </div>
-  ),
-} satisfies Meta<typeof SearchControls>;
-
-export default meta;
-
-type Story = StoryObj<typeof meta>;
-
-/** The mobile search modal body — bound to the shared `uiStore` header search query. */
-export const Search: Story = {};
-
-/** The "Favorite this Settings page" item, shown inside an open dropdown menu. */
-export const Favorite: Story = {
+  component: FavoriteMenuItem,
+  args: {
+    page: settingsPage,
+  },
   render: () => (
     <DropdownMenu open>
       <DropdownMenuContent>
@@ -42,7 +29,14 @@ export const Favorite: Story = {
       </DropdownMenuContent>
     </DropdownMenu>
   ),
-};
+} satisfies Meta<typeof FavoriteMenuItem>;
+
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+/** The "Favorite this Settings page" item, shown inside an open dropdown menu. */
+export const Favorite: Story = {};
 
 /** The "Pin this entity" item, shown inside an open dropdown menu. */
 export const Pin: Story = {

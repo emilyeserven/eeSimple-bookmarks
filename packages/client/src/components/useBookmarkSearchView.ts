@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { usePanelControls } from "./panel/usePanelControls";
 import { useFiltersHidden, useFiltersInDrawer } from "../hooks/useAppSettings";
 import { useSetListingPage } from "../hooks/useListingPage";
-import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useBookmarkColumns } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
@@ -63,7 +62,6 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
       categoryId: addFormCategoryId,
     },
   });
-  useRegisterHeaderSearch();
   const columns = useBookmarkColumns(pageKey);
   const filtersInDrawer = useFiltersInDrawer();
   const filtersHidden = useFiltersHidden();

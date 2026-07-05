@@ -1,39 +1,15 @@
 import type { ToolbarAction, ToolbarContext } from "./toolbarActionTypes";
 
-import { ArrowUpDown, Eye, Filter, Search } from "lucide-react";
+import { ArrowUpDown, Eye, Filter } from "lucide-react";
 
 import { BookmarkSortPopover } from "@/components/BookmarkSortPopover";
 import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
 import { FilterLocationControls } from "@/components/FilterLocationControls";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
 import { BulkSelectMenuItem, HeaderBulkSelectButton } from "@/components/header/HeaderBulkSelectButton";
-import { SearchControls } from "@/components/header/headerMenuItems";
 import { ListingDisplayControls } from "@/components/ListingDisplayControls";
-import { ListingSearchBar } from "@/components/ListingSearchBar";
 import { ResponsivePopover } from "@/components/ui/responsive-popover";
 import i18n from "@/i18n";
-
-export function searchAction(ctx: ToolbarContext): ToolbarAction | null {
-  if (!ctx.headerSearchActive) return null;
-  return {
-    key: "search-bar",
-    desktop: <ListingSearchBar />,
-    mobile: {
-      kind: "modal",
-      icon: Search,
-      label: i18n.t("Search"),
-      renderModal: (open, onOpenChange) => (
-        <ResponsivePopover
-          title={i18n.t("Search")}
-          open={open}
-          onOpenChange={onOpenChange}
-        >
-          <SearchControls />
-        </ResponsivePopover>
-      ),
-    },
-  };
-}
 
 export function filterLocationAction(ctx: ToolbarContext): ToolbarAction | null {
   if (!ctx.listingPage?.hasFilters) return null;
