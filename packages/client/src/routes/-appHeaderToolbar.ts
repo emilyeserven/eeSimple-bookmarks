@@ -16,7 +16,7 @@ type ToolbarBreadcrumbData = Pick<
 
 /**
  * Builds the right-side header toolbar actions for the current path. Owns the pin / add-child
- * resolution, the settings-page lookup, the panel controls, and the listing/bulk/search `uiStore`
+ * resolution, the settings-page lookup, the panel controls, and the listing/bulk `uiStore`
  * selectors, so the `AppHeader` component stays thin and under the complexity cap.
  */
 export function useHeaderToolbarActions(
@@ -55,7 +55,6 @@ export function useHeaderToolbarActions(
 
   const listingPage = useUiStore(state => state.listingPage);
   const bulkSelectPageKey = useUiStore(state => state.bulkSelectPageKey);
-  const headerSearchActive = useUiStore(state => state.headerSearchActive);
   const syncProvider = useUiStore(state => state.syncProvider);
 
   // Right-side toolbar controls in canonical left→right order. The builder owns ordering and
@@ -63,7 +62,6 @@ export function useHeaderToolbarActions(
   // everything but the panel toggle into a More menu on small screens.
   return buildToolbarActions({
     pathParts,
-    headerSearchActive,
     listingPage,
     bulkSelectPageKey,
     isBookmarkDetail,

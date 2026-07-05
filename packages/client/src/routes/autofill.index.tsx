@@ -68,12 +68,12 @@ function AutofillListPage() {
   }), [matchesFacets]);
   const state = useListingScaffold(config);
 
-  // Legacy `?q=` deeplinks: the text search moved to the header search box, so seed the query into
-  // it and strip `q` from the URL (it stays accepted by `validateAutofillListSearch`). This effect
-  // sits after `useListingScaffold` on purpose: `useRegisterHeaderSearch` clears the query in its
-  // unmount cleanup, so under StrictMode's mount → cleanup → remount the seed must re-run on the
-  // second mount (keyed on `search.q`, which the async navigate hasn't stripped yet) — a run-once
-  // ref here would leave the query wiped.
+  // Legacy `?q=` deeplinks: the text search moved to the in-page listing search bar, so seed the
+  // query into it and strip `q` from the URL (it stays accepted by `validateAutofillListSearch`). The
+  // in-page `ListingSearchBar` (rendered by `ListingScaffold`) clears the query in its unmount
+  // cleanup, so under StrictMode's mount → cleanup → remount the seed must re-run on the second mount
+  // (keyed on `search.q`, which the async navigate hasn't stripped yet) — a run-once ref here would
+  // leave the query wiped.
   const setHeaderSearchQuery = useUiStore(state => state.setHeaderSearchQuery);
   useEffect(() => {
     if (!search.q) return;

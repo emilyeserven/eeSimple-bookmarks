@@ -3,6 +3,7 @@ import type { TreeListingScaffoldState } from "../hooks/useTreeListingScaffold";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ExpandAllToggle } from "./ExpandAllToggle";
+import { ListingSearchBar } from "./ListingSearchBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
 
 /**
@@ -31,6 +32,8 @@ export function TreeListingScaffold<N extends { id: string;
 
   return (
     <div className="space-y-4">
+      <ListingSearchBar />
+
       <ListingStatusMessages
         isLoading={isLoading}
         error={error}

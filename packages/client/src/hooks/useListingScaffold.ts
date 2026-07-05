@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { useHeaderSearchFilter } from "./useHeaderSearchFilter";
 import { useRegisterBulkSelect } from "./useRegisterBulkSelect";
-import { useRegisterHeaderSearch } from "./useRegisterHeaderSearch";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
 
@@ -24,7 +23,6 @@ export function useListingScaffold<E extends { id: string }>(config: EntityListi
   const {
     data, isLoading, error,
   } = config.useItems();
-  useRegisterHeaderSearch();
   const columns = useBookmarkColumns(config.pageKey);
   const viewMode = useViewMode(config.pageKey);
 

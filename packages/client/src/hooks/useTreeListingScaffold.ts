@@ -2,7 +2,6 @@ import type { EntityTreeListingConfig } from "../entities/types";
 
 import { useExpandedSet } from "./useExpandedSet";
 import { useRegisterBulkSelect } from "./useRegisterBulkSelect";
-import { useRegisterHeaderSearch } from "./useRegisterHeaderSearch";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { countNodes, expandableIds, filterTreeByMatch } from "../lib/tagTree";
 import { useListSelection } from "../lib/useListSelection";
@@ -23,7 +22,6 @@ export function useTreeListingScaffold<N extends { id: string;
   const {
     data, isLoading, error,
   } = config.useTree();
-  useRegisterHeaderSearch();
   const columns = useBookmarkColumns(config.pageKey);
   const viewMode = useViewMode(config.pageKey);
 

@@ -10,7 +10,6 @@ function ctx(overrides: Partial<ToolbarContext> = {}): ToolbarContext {
     // A non-homepage path by default — an empty `pathParts` is the homepage, which adds the
     // homepage-only `homepage-settings` action (covered by its own test below).
     pathParts: ["bookmarks"],
-    headerSearchActive: false,
     listingPage: null,
     bulkSelectPageKey: null,
     isBookmarkDetail: false,
@@ -37,12 +36,6 @@ const keys = (c: ToolbarContext) => buildToolbarActions(c).map(a => a.key);
 describe("buildToolbarActions", () => {
   it("always includes the panel toggle last, even with an otherwise-empty context", () => {
     expect(keys(ctx())).toEqual(["open-panel"]);
-  });
-
-  it("adds the search bar only when header search is active", () => {
-    expect(keys(ctx({
-      headerSearchActive: true,
-    }))).toEqual(["search-bar", "open-panel"]);
   });
 
   it("adds filter + display + create for a listing page with filters and a create action", () => {
@@ -156,7 +149,6 @@ describe("buildToolbarActions", () => {
 
   it("preserves a stable left-to-right order across all present actions", () => {
     const all = ctx({
-      headerSearchActive: true,
       listingPage: {
         key: "bookmarks",
         hasFilters: true,
@@ -173,7 +165,6 @@ describe("buildToolbarActions", () => {
       } as unknown as ToolbarContext["pinContext"],
     });
     expect(keys(all)).toEqual([
-      "search-bar",
       "filter-location",
       "display-options",
       "view-details",

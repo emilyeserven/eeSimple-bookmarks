@@ -3,10 +3,17 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ListingSearchBar } from "./ListingSearchBar";
 import { useUiStore } from "../stores/uiStore";
 
-// The bar renders nothing unless a listing page has registered a header search; activate it.
-useUiStore.setState({
-  headerSearchActive: true,
-});
+/** Seeds the shared search query, then renders the in-page search bar. */
+function Host({
+  query,
+}: {
+  query: string;
+}) {
+  useUiStore.setState({
+    headerSearchQuery: query,
+  });
+  return <ListingSearchBar />;
+}
 
 const meta = {
   title: "Components/ListingSearchBar",
@@ -17,5 +24,12 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** The collapsed search button; clicking it expands the inline input. */
-export const Default: Story = {};
+/** The empty in-page search input. */
+export const Default: Story = {
+  render: () => <Host query="" />,
+};
+
+/** With a query typed, showing the clear button. */
+export const WithQuery: Story = {
+  render: () => <Host query="typescript" />,
+};
