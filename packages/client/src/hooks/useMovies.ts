@@ -4,8 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { useAlbums } from "./useAlbums";
+import { useBooks } from "./useBooks";
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { useEpisodes } from "./useEpisodes";
+import { usePodcasts } from "./usePodcasts";
 import { useTracks } from "./useTracks";
 import { useTvShows } from "./useTvShows";
 import { moviesApi } from "../lib/api/taxonomies";
@@ -112,6 +114,78 @@ export function useBookmarkPlexLink(bookmark: Bookmark): BookmarkPlexLink | null
  */
 export function useBookmarkPlexRatingKey(bookmark: Bookmark): string | null {
   return useBookmarkPlexLink(bookmark)?.ratingKey ?? null;
+}
+
+/** The seven Media Property taxonomies a bookmark can link to via one of its FKs. */
+export type MediaTaxonomyKind = "book" | "podcast" | "movie" | "tvShow" | "episode" | "album" | "track";
+
+/** The minimal shape a Media Property taxonomy row contributes to the bookmark detail link. */
+interface MediaTaxoRow {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+/** The linked Media Property taxonomy row a bookmark's detail view links out to. */
+export interface BookmarkMediaTaxonomyLink {
+  kind: MediaTaxonomyKind;
+  title: string;
+  slug: string;
+}
+
+function mediaTaxoLinkFrom(
+  kind: MediaTaxonomyKind,
+  fkId: string | null,
+  items: readonly MediaTaxoRow[] | undefined,
+): BookmarkMediaTaxonomyLink | null {
+  if (!fkId) return null;
+  const row = (items ?? []).find(item => item.id === fkId);
+  return row
+    ? {
+      kind,
+      title: row.name,
+      slug: row.slug,
+    }
+    : null;
+}
+
+/**
+ * The Media Property taxonomy a bookmark links to via its `bookId`/`podcastId`/`movieId`/
+ * `tvShowId`/`episodeId`/`albumId`/`trackId` FK (exactly one is ever set), independent of whether
+ * that row also carries a Plex link — unlike {@link useBookmarkPlexLink}, Books and Podcasts (which
+ * are never Plex-backed) are included here. Powers the bookmark detail page's linked-media-taxonomy
+ * row, which links into the app's own taxonomy term page rather than out to Plex. Returns `null`
+ * when no media-taxonomy FK is set.
+ */
+export function useBookmarkMediaTaxonomyLink(bookmark: Bookmark): BookmarkMediaTaxonomyLink | null {
+  const {
+    data: books,
+  } = useBooks();
+  const {
+    data: podcasts,
+  } = usePodcasts();
+  const {
+    data: movies,
+  } = useMovies();
+  const {
+    data: tvShows,
+  } = useTvShows();
+  const {
+    data: episodes,
+  } = useEpisodes();
+  const {
+    data: albums,
+  } = useAlbums();
+  const {
+    data: tracks,
+  } = useTracks();
+  return mediaTaxoLinkFrom("book", bookmark.bookId, books)
+    ?? mediaTaxoLinkFrom("podcast", bookmark.podcastId, podcasts)
+    ?? mediaTaxoLinkFrom("movie", bookmark.movieId, movies)
+    ?? mediaTaxoLinkFrom("tvShow", bookmark.tvShowId, tvShows)
+    ?? mediaTaxoLinkFrom("episode", bookmark.episodeId, episodes)
+    ?? mediaTaxoLinkFrom("album", bookmark.albumId, albums)
+    ?? mediaTaxoLinkFrom("track", bookmark.trackId, tracks);
 }
 
 /** Invalidate every query whose rendering depends on movie definitions. */
