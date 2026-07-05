@@ -27,6 +27,9 @@ import type {
   LanguageUsageAssociation,
   LanguageUsageOwnerType,
   UpdateLanguageUsageEntry,
+  TranslationSource,
+  CreateTranslationSourceInput,
+  UpdateTranslationSourceInput,
   EntityName,
   EntityNameOwnerType,
   UpdateEntityNameEntry,
@@ -293,6 +296,18 @@ export const languageUsagesApi = {
         entries,
       }),
     }),
+};
+
+export const translationSourcesApi = {
+  ...createCrudApi<TranslationSource, CreateTranslationSourceInput, UpdateTranslationSourceInput>("translation-sources"),
+  // Deleting a source can reassign its associations to another source instead of clearing them.
+  remove: (id: string, reassignTo?: string) =>
+    request<undefined>(
+      `/translation-sources/${id}${reassignTo ? `?reassignTo=${encodeURIComponent(reassignTo)}` : ""}`,
+      {
+        method: "DELETE",
+      },
+    ),
 };
 
 export const entityNamesApi = {

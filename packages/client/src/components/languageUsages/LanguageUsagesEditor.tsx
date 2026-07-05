@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 
 import { useLanguages } from "../../hooks/useLanguages";
 import { useLanguageUsageLevels } from "../../hooks/useLanguageUsageLevels";
+import { useTranslationSources } from "../../hooks/useTranslationSources";
 import { Combobox } from "../Combobox";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -22,9 +23,10 @@ interface LanguageUsagesEditorProps {
 
 /**
  * A repeatable editor for an owner's language usages: each row picks a language + a usage level (of
- * the given `kind`) and an optional note. Controlled over {@link DraftLanguageUsage}[] — the parent
- * persists the complete rows via {@link entriesFromDrafts}. Languages are inline-creatable; usage
- * levels are managed on Settings → Language Usage Levels.
+ * the given `kind`), an optional translation source, and an optional note. Controlled over
+ * {@link DraftLanguageUsage}[] — the parent persists the complete rows via {@link entriesFromDrafts}.
+ * Languages are inline-creatable; usage levels and translation sources are managed on their
+ * respective settings pages.
  */
 export function LanguageUsagesEditor({
   value, onChange, kind,
@@ -38,6 +40,9 @@ export function LanguageUsagesEditor({
   const {
     data: levels = [],
   } = useLanguageUsageLevels(kind);
+  const {
+    data: translationSources = [],
+  } = useTranslationSources();
 
   // Which row a just-created language should be applied to.
   const [createTarget, setCreateTarget] = useState<number | null>(null);
@@ -63,6 +68,7 @@ export function LanguageUsagesEditor({
     onChange([...value, {
       languageId: "",
       usageLevelId: "",
+      translationSourceId: "",
       note: "",
     }]);
   }
@@ -74,6 +80,10 @@ export function LanguageUsagesEditor({
   const levelOptions = levels.map(l => ({
     value: l.id,
     label: l.name,
+  }));
+  const translationSourceOptions = translationSources.map(s => ({
+    value: s.id,
+    label: s.name,
   }));
 
   return (
@@ -89,7 +99,7 @@ export function LanguageUsagesEditor({
             sm:flex-row sm:items-center
           "
         >
-          <div className="sm:w-1/3">
+          <div className="sm:w-1/4">
             <Combobox
               aria-label={t("Language")}
               placeholder={t("Language")}
@@ -109,7 +119,7 @@ export function LanguageUsagesEditor({
               }}
             />
           </div>
-          <div className="sm:w-1/3">
+          <div className="sm:w-1/4">
             <Combobox
               aria-label={t("Usage level")}
               placeholder={t("Usage level")}
@@ -119,6 +129,20 @@ export function LanguageUsagesEditor({
               value={row.usageLevelId || undefined}
               onValueChange={v => updateRow(index, {
                 usageLevelId: v ?? "",
+              })}
+            />
+          </div>
+          <div className="sm:w-1/4">
+            {/* Optional: how this translation/script was produced. Re-selecting the active option clears it. */}
+            <Combobox
+              aria-label={t("Translation source")}
+              placeholder={t("Translation source")}
+              searchPlaceholder={t("Search translation sources…")}
+              emptyText={t("No translation sources found.")}
+              options={translationSourceOptions}
+              value={row.translationSourceId || undefined}
+              onValueChange={v => updateRow(index, {
+                translationSourceId: v ?? "",
               })}
             />
           </div>

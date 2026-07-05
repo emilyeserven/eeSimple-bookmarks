@@ -8,7 +8,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
-import { languages, languageUsageLevels, languageUsages } from "@/db/schema";
+import { languages, languageUsageLevels, languageUsages, translationSources } from "@/db/schema";
 
 /**
  * Load a batch of owners' language usages, joined with their language + usage-level for display.
@@ -35,10 +35,14 @@ export async function loadLanguageUsages(
       levelName: languageUsageLevels.name,
       levelSlug: languageUsageLevels.slug,
       levelKind: languageUsageLevels.kind,
+      translationSourceId: translationSources.id,
+      translationSourceName: translationSources.name,
+      translationSourceSlug: translationSources.slug,
     })
     .from(languageUsages)
     .innerJoin(languages, eq(languageUsages.languageId, languages.id))
     .innerJoin(languageUsageLevels, eq(languageUsages.usageLevelId, languageUsageLevels.id))
+    .leftJoin(translationSources, eq(languageUsages.translationSourceId, translationSources.id))
     .where(and(eq(languageUsages.ownerType, ownerType), inArray(languageUsages.ownerId, ownerIds)))
     .orderBy(asc(languageUsages.sortOrder));
 
@@ -57,6 +61,13 @@ export async function loadLanguageUsages(
         slug: row.levelSlug ?? "",
         kind: row.levelKind as LanguageUsageKind,
       },
+      translationSource: row.translationSourceId
+        ? {
+          id: row.translationSourceId,
+          name: row.translationSourceName ?? "",
+          slug: row.translationSourceSlug ?? "",
+        }
+        : null,
       note: row.note,
     };
     const list = out.get(row.ownerId);
@@ -142,6 +153,7 @@ export async function setLanguageUsages(
     ownerId: string;
     languageId: string;
     usageLevelId: string;
+    translationSourceId: string | null;
     note: string | null;
     sortOrder: number; }[] = [];
   for (const entry of entries) {
@@ -154,6 +166,7 @@ export async function setLanguageUsages(
       ownerId,
       languageId: entry.languageId,
       usageLevelId: entry.usageLevelId,
+      translationSourceId: entry.translationSourceId ?? null,
       note: note && note.length > 0 ? note : null,
       sortOrder: rows.length,
     });

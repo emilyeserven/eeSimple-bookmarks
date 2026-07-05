@@ -17,6 +17,7 @@ import { backfillImageCropModes, ensureHomepageSections } from "@/services/homep
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { ensureBuiltInLanguages } from "@/services/languages";
 import { backfillLanguageUsageLevelSlugs, ensureBuiltInLanguageUsageLevels } from "@/services/languageUsageLevels";
+import { backfillTranslationSourceSlugs, ensureBuiltInTranslationSources } from "@/services/translationSources";
 import { backfillEntityNames } from "@/services/entityNames";
 import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
 import { backfillMediaPropertySlugs } from "@/services/mediaProperties";
@@ -77,6 +78,8 @@ try {
   await ensureBuiltInLanguages();
   await ensureBuiltInLanguageUsageLevels();
   await backfillLanguageUsageLevelSlugs();
+  await ensureBuiltInTranslationSources();
+  await backfillTranslationSourceSlugs();
   await backfillGroupSlugs();
   await ensureDefaultGroupTypes();
   await backfillGroupTypeSlugs();

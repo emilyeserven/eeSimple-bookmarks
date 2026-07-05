@@ -64,6 +64,12 @@ export interface LanguageUsage {
     slug: string;
     kind: LanguageUsageKind;
   };
+  /** How this language's translation/script was produced (user-managed vocabulary). Optional. */
+  translationSource: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
   note: string | null;
 }
 
@@ -74,6 +80,8 @@ export type BookmarkLanguageUsage = LanguageUsage;
 export interface UpdateLanguageUsageEntry {
   languageId: string;
   usageLevelId: string;
+  /** Optional translation-source id (never autofilled). */
+  translationSourceId?: string | null;
   note?: string | null;
 }
 

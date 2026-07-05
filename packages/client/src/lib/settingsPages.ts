@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { BookOpen, Captions, Disc3, Film, MapPinned, Music, Podcast, Puzzle, Shapes, Tv, Tv2 } from "lucide-react";
+import { BookOpen, Captions, Disc3, Film, Languages, MapPinned, Music, Podcast, Puzzle, Shapes, Tv, Tv2 } from "lucide-react";
 
 import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
@@ -102,6 +102,12 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
     path: "/taxonomies/language-usage-levels/edit",
     label: i18n.t("Usage Levels: Edit"),
     icon: Captions,
+  },
+  {
+    // CRUD reachable from the Languages flyout, not directly from the sidebar.
+    path: "/taxonomies/translation-sources",
+    label: i18n.t("Translation Sources"),
+    icon: Languages,
   },
 ];
 

@@ -10,7 +10,7 @@ interface LanguageUsagesViewProps {
   emptyText?: string;
 }
 
-/** Read-only display of an owner's language usages as `Language — Level (note)` chips. */
+/** Read-only display of an owner's language usages as `Language — Level · Source (note)` chips. */
 export function LanguageUsagesView({
   usages, emptyText,
 }: LanguageUsagesViewProps) {
@@ -31,6 +31,9 @@ export function LanguageUsagesView({
             <span className="font-medium">{usage.language.name}</span>
             <span className="text-muted-foreground">—</span>
             <span>{usage.level.name}</span>
+            {usage.translationSource && (
+              <span className="text-muted-foreground">· {usage.translationSource.name}</span>
+            )}
             {usage.note && <span className="text-muted-foreground">({usage.note})</span>}
           </Badge>
         </li>
