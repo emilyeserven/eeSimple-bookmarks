@@ -1599,6 +1599,7 @@ export function resolveBookmarkAddFormSettings(row?: {
   bookmarkFormHiddenFields?: string[] | null;
   bookmarkFormBuiltInPlacements?: Record<string, unknown> | null;
   bookmarkFormStandardPlacements?: Record<string, unknown> | null;
+  bookmarkFormRevealAutofilledInMain?: boolean | null;
 } | null): BookmarkAddFormSettings {
   if (!row) return DEFAULT_BOOKMARK_ADD_FORM_SETTINGS;
   const builtInPropertyPlacements = {
@@ -1617,6 +1618,7 @@ export function resolveBookmarkAddFormSettings(row?: {
       ...storedStandard,
     },
     builtInPropertyPlacements,
+    revealAutofilledInMain: row.bookmarkFormRevealAutofilledInMain ?? false,
   };
 }
 
@@ -1628,6 +1630,7 @@ export async function getBookmarkAddFormSettings(): Promise<BookmarkAddFormSetti
       bookmarkFormHiddenFields: appSettings.bookmarkFormHiddenFields,
       bookmarkFormBuiltInPlacements: appSettings.bookmarkFormBuiltInPlacements,
       bookmarkFormStandardPlacements: appSettings.bookmarkFormStandardPlacements,
+      bookmarkFormRevealAutofilledInMain: appSettings.bookmarkFormRevealAutofilledInMain,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -1641,6 +1644,7 @@ export async function updateBookmarkAddFormSettings(
   const next = {
     bookmarkFormStandardPlacements: asBookmarkAddFormPlacements(input.standardFieldPlacements),
     bookmarkFormBuiltInPlacements: asBookmarkAddFormPlacements(input.builtInPropertyPlacements),
+    bookmarkFormRevealAutofilledInMain: input.revealAutofilledInMain ?? false,
   };
   await db
     .insert(appSettings)

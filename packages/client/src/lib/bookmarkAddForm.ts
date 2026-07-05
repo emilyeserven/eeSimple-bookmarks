@@ -35,6 +35,11 @@ export interface ResolvedBookmarkAddForm {
    * property lists. `undefined` in edit mode, where placement is never user-configurable.
    */
   placementOverrides: Record<string, BookmarkAddFormPlacement> | undefined;
+  /**
+   * Whether the "reveal auto-filled fields in the main area" setting is on. Threaded to the custom-
+   * property zones so they can lift auto-filled properties too. Always `false` in edit mode.
+   */
+  revealAutofilledInMain: boolean;
 }
 
 /**
@@ -66,6 +71,7 @@ export interface ResolvedBookmarkAddForm {
 export function resolveBookmarkAddForm(
   settings: BookmarkAddFormSettings,
   isEdit: boolean,
+  autofilledFields?: ReadonlySet<BookmarkAddFormStandardField>,
 ): ResolvedBookmarkAddForm {
   if (isEdit) {
     const placementFor = (field: BookmarkAddFormStandardField) => defaultPlacementFor(field);
@@ -75,13 +81,17 @@ export function resolveBookmarkAddForm(
       mainHiddenSlugs: [...BOOKMARK_FORM_DETAIL_SLUGS],
       advancedHiddenSlugs: [RUNTIME_SLUG, DATE_POSTED_SLUG],
       placementOverrides: undefined,
+      revealAutofilledInMain: false,
     };
   }
 
   const mainStandardFields: BookmarkAddFormStandardField[] = [];
   const advancedStandardFields: BookmarkAddFormStandardField[] = [];
   for (const field of BOOKMARK_ADD_FORM_STANDARD_FIELDS) {
-    const placement = settings.standardFieldPlacements[field] ?? defaultPlacementFor(field);
+    let placement = settings.standardFieldPlacements[field] ?? defaultPlacementFor(field);
+    // When the setting is on, a field the automation just filled is lifted into the main area even
+    // if configured Advanced or Hidden — done before the `hidden`-skip so Hidden fields surface too.
+    if (settings.revealAutofilledInMain && autofilledFields?.has(field)) placement = "default";
     if (placement === "hidden") continue;
     if (placement === "advanced") advancedStandardFields.push(field);
     else mainStandardFields.push(field);
@@ -96,5 +106,6 @@ export function resolveBookmarkAddForm(
       ...DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements,
       ...settings.builtInPropertyPlacements,
     },
+    revealAutofilledInMain: settings.revealAutofilledInMain,
   };
 }

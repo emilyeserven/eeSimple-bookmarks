@@ -2,6 +2,7 @@ import type { BookmarkFormApi, CustomPropertyInputs } from "./bookmarkFormSchema
 import type {
   AutofillRule,
   Bookmark,
+  BookmarkAddFormStandardField,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
@@ -23,6 +24,10 @@ interface UseBookmarkPropertyPrefillArgs {
   autofillRules: AutofillRule[] | undefined;
   /** Categories, used to default the category once they load. */
   categories: Category[] | undefined;
+  /** Record a standard field an autofill rule just filled (create-only; lifts it into the main area). */
+  markAutofilledField?: (field: BookmarkAddFormStandardField) => void;
+  /** Record a custom property an autofill rule just set (create-only; lifts it into the main area). */
+  markAutofilledProperty?: (propertyId: string) => void;
 }
 
 /** Everything the bookmark form needs to drive custom-property prefill. */
@@ -74,6 +79,8 @@ export function useBookmarkPropertyPrefill({
   form,
   autofillRules,
   categories,
+  markAutofilledField,
+  markAutofilledProperty,
 }: UseBookmarkPropertyPrefillArgs): BookmarkPropertyPrefill {
   // Custom-property values live outside the typed form (they're dynamic). The shared hook owns the
   // seeded input maps + the submit-time ref mirror; this hook layers prefill precedence on top.
@@ -126,6 +133,7 @@ export function useBookmarkPropertyPrefill({
       if (current === "" || current === lastAutoCategoryRef.current) {
         lastAutoCategoryRef.current = result.categoryId;
         form.setFieldValue("categoryId", result.categoryId);
+        markAutofilledField?.("categoryId");
       }
     }
 
@@ -134,20 +142,39 @@ export function useBookmarkPropertyPrefill({
       form.getFieldValue("tagIds"),
       touchedRef.current.has("tags"),
     );
-    if (mergedTagIds) form.setFieldValue("tagIds", mergedTagIds);
+    if (mergedTagIds) {
+      form.setFieldValue("tagIds", mergedTagIds);
+      // Tags live in the combined "Description & Tags" standard field.
+      markAutofilledField?.("descriptionTags");
+    }
 
     const mergedLocationIds = mergeAutofillIds(
       result.locationIds,
       form.getFieldValue("locationIds"),
       touchedRef.current.has("locations"),
     );
-    if (mergedLocationIds) form.setFieldValue("locationIds", mergedLocationIds);
+    if (mergedLocationIds) {
+      form.setFieldValue("locationIds", mergedLocationIds);
+      markAutofilledField?.("locationIds");
+    }
 
     ruleSetRef.current = {
       numbers: new Set(result.numberValues.map(entry => entry.propertyId)),
       booleans: new Set(result.booleanValues.map(entry => entry.propertyId)),
       dateTimes: new Set(result.dateTimeValues.map(entry => entry.propertyId)),
     };
+    // Mark which properties this run actually writes (skipping user-touched ones), so the reveal
+    // setting can lift them — computed here rather than inside the state updaters, which must stay
+    // pure. The touched check reads a ref, so it's independent of the previous input maps.
+    for (const entry of result.numberValues) {
+      if (!touchedRef.current.has(`number:${entry.propertyId}`)) markAutofilledProperty?.(entry.propertyId);
+    }
+    for (const entry of result.booleanValues) {
+      if (!touchedRef.current.has(`boolean:${entry.propertyId}`)) markAutofilledProperty?.(entry.propertyId);
+    }
+    for (const entry of result.dateTimeValues) {
+      if (!touchedRef.current.has(`datetime:${entry.propertyId}`)) markAutofilledProperty?.(entry.propertyId);
+    }
     if (result.numberValues.length > 0) {
       setNumberInputs((current) => {
         const next = {

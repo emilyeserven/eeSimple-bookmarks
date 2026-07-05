@@ -15,6 +15,7 @@ import { resolveBookmarkAddForm } from "./bookmarkAddForm";
 function settingsWith(
   standardFieldPlacements: Record<string, BookmarkAddFormPlacement>,
   builtInPropertyPlacements: Record<string, BookmarkAddFormPlacement> = {},
+  revealAutofilledInMain = false,
 ): BookmarkAddFormSettings {
   return {
     standardFieldPlacements: {
@@ -22,6 +23,7 @@ function settingsWith(
       ...standardFieldPlacements,
     },
     builtInPropertyPlacements,
+    revealAutofilledInMain,
   };
 }
 
@@ -145,6 +147,80 @@ describe("resolveBookmarkAddForm", () => {
       for (const slug of BOOKMARK_FORM_DETAIL_SLUGS) {
         expect(resolved.placementOverrides?.[slug]).toBe("hidden");
       }
+    });
+
+    describe("revealAutofilledInMain", () => {
+      it("lifts an auto-filled Advanced field and an auto-filled Hidden field into the main area", () => {
+        const settings = settingsWith(
+          {
+            categoryId: "advanced",
+            locationIds: "hidden",
+          },
+          {},
+          /* revealAutofilledInMain */ true,
+        );
+
+        const resolved = resolveBookmarkAddForm(
+          settings,
+          false,
+          new Set(["categoryId", "locationIds"]),
+        );
+
+        expect(resolved.mainStandardFields).toContain("categoryId");
+        expect(resolved.mainStandardFields).toContain("locationIds");
+        expect(resolved.advancedStandardFields).not.toContain("categoryId");
+        expect(resolved.revealAutofilledInMain).toBe(true);
+      });
+
+      it("leaves placement unchanged when the setting is off", () => {
+        const settings = settingsWith({
+          categoryId: "advanced",
+          locationIds: "hidden",
+        });
+
+        const resolved = resolveBookmarkAddForm(
+          settings,
+          false,
+          new Set(["categoryId", "locationIds"]),
+        );
+
+        expect(resolved.advancedStandardFields).toContain("categoryId");
+        expect(resolved.mainStandardFields).not.toContain("categoryId");
+        expect(resolved.mainStandardFields).not.toContain("locationIds");
+        expect(resolved.revealAutofilledInMain).toBe(false);
+      });
+
+      it("only lifts fields present in the auto-filled set", () => {
+        const settings = settingsWith(
+          {
+            categoryId: "advanced",
+            image: "advanced",
+          },
+          {},
+          true,
+        );
+
+        const resolved = resolveBookmarkAddForm(settings, false, new Set(["categoryId"]));
+
+        expect(resolved.mainStandardFields).toContain("categoryId");
+        expect(resolved.advancedStandardFields).toContain("image");
+      });
+
+      it("is ignored in edit mode", () => {
+        const settings = settingsWith(
+          {
+            categoryId: "advanced",
+          },
+          {},
+          true,
+        );
+
+        const resolved = resolveBookmarkAddForm(settings, true, new Set(["categoryId"]));
+
+        expect(resolved.advancedStandardFields).toContain("categoryId");
+        expect(resolved.mainStandardFields).not.toContain("categoryId");
+        expect(resolved.revealAutofilledInMain).toBe(false);
+      });
     });
   });
 });

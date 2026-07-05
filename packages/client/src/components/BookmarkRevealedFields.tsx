@@ -6,6 +6,7 @@ import type { useWebsiteLookup } from "../hooks/useWebsites";
 import type { UrlCleanupMode } from "../lib/urlCleanup";
 import type {
   Person,
+  BookmarkAddFormStandardField,
   BookmarkImage,
   BookmarkUrlDuplicateResult,
   Category,
@@ -122,6 +123,11 @@ interface BookmarkRevealedFieldsProps extends BookmarkCustomFieldControls {
   // ISBN metadata fetch.
   onIsbnFetch?: (isbn: string) => void;
   isIsbnFetchPending?: boolean;
+
+  // Auto-filled tracking (create mode only): fields/properties a URL/title automation just filled,
+  // lifted into the main area when the "reveal auto-filled in main" setting is on.
+  autofilledFields?: ReadonlySet<BookmarkAddFormStandardField>;
+  autofilledPropertyIds?: ReadonlySet<string>;
 }
 
 /**
@@ -140,7 +146,8 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
   // only the few props that need renaming for a leaf component are spelled out below.
   const {
     mainStandardFields, advancedStandardFields, mainHiddenSlugs, advancedHiddenSlugs, placementOverrides,
-  } = useBookmarkAddFormVisibility(props.isEdit ?? false);
+    revealAutofilledInMain,
+  } = useBookmarkAddFormVisibility(props.isEdit ?? false, props.autofilledFields);
 
   // The whole render-props bag the standard-field components need. Threaded into every zone.
   const renderProps: StandardFieldRenderProps = {
@@ -207,6 +214,8 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
         {...props}
         hiddenSlugs={mainHiddenSlugs}
         placementOverrides={placementOverrides}
+        autofilledPropertyIds={props.autofilledPropertyIds}
+        revealAutofilledInMain={revealAutofilledInMain}
       />
 
       <BookmarkAdvancedSection
@@ -215,6 +224,8 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
         standardFields={advancedStandardFields}
         hiddenSlugs={advancedHiddenSlugs}
         placementOverrides={placementOverrides}
+        autofilledPropertyIds={props.autofilledPropertyIds}
+        revealAutofilledInMain={revealAutofilledInMain}
         onIsbnFetch={props.onIsbnFetch}
         isIsbnFetchPending={props.isIsbnFetchPending}
         customFields={{

@@ -39,6 +39,10 @@ export interface RevealedCustomFieldsProps extends CustomFieldControls {
   hiddenSlugs?: string[];
   /** Per-slug placement overrides from the Add Bookmark Form settings (create mode only). */
   placementOverrides?: Record<string, BookmarkAddFormPlacement>;
+  /** Ids of custom properties an automation filled this session (create mode only). */
+  autofilledPropertyIds?: ReadonlySet<string>;
+  /** Whether the "reveal auto-filled fields in main" setting is on (create mode only). */
+  revealAutofilledInMain?: boolean;
 }
 
 /**
@@ -66,6 +70,8 @@ export function RevealedCustomFields({
   isIsbnFetchPending,
   hiddenSlugs = DEFAULT_MAIN_HIDDEN_SLUGS,
   placementOverrides,
+  autofilledPropertyIds,
+  revealAutofilledInMain,
 }: RevealedCustomFieldsProps) {
   return (
     <form.Subscribe
@@ -84,6 +90,8 @@ export function RevealedCustomFields({
           properties={customProperties}
           hiddenSlugs={hiddenSlugs}
           placementOverrides={placementOverrides}
+          autofilledPropertyIds={autofilledPropertyIds}
+          revealAutofilledInMain={revealAutofilledInMain}
           numberInputs={numberInputs}
           booleanInputs={booleanInputs}
           dateTimeInputs={dateTimeInputs}

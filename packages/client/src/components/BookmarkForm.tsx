@@ -196,6 +196,8 @@ export function BookmarkForm({
           })}
           onIsbnFetch={isbn => void c.handleIsbnFieldFetch(isbn)}
           isIsbnFetchPending={c.isbnFetch.isPending}
+          autofilledFields={c.autofilledFields}
+          autofilledPropertyIds={c.autofilledPropertyIds}
         />
       )}
 

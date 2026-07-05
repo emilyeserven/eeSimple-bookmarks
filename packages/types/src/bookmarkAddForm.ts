@@ -97,6 +97,14 @@ export interface BookmarkAddFormSettings {
   standardFieldPlacements: Record<string, BookmarkAddFormPlacement>;
   /** Placement for each built-in detail custom-property slug, keyed by slug. */
   builtInPropertyPlacements: Record<string, BookmarkAddFormPlacement>;
+  /**
+   * When true, any field a URL/title automation just filled (an Autofill Rule's category/tags/
+   * locations/property values, or the URL metadata scan's title/description/people/image) is lifted
+   * into the main area of the *create* form regardless of its configured Advanced/Hidden placement,
+   * so the user can see what the automation did without expanding Advanced. Create-mode only; the
+   * category/media-type scope lock and `hiddenFromForm` still gate visibility. Defaults to `false`.
+   */
+  revealAutofilledInMain: boolean;
 }
 
 /** Payload for replacing the Add Bookmark form placement settings. */
@@ -138,4 +146,5 @@ export const DEFAULT_BOOKMARK_ADD_FORM_SETTINGS: BookmarkAddFormSettings = {
   builtInPropertyPlacements: Object.fromEntries(
     BOOKMARK_FORM_DETAIL_SLUGS.map(slug => [slug, "hidden"]),
   ) as Record<string, BookmarkAddFormPlacement>,
+  revealAutofilledInMain: false,
 };

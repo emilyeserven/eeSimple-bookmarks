@@ -240,6 +240,9 @@ const bookmarkAddFormBody = {
   properties: {
     standardFieldPlacements: placementMap,
     builtInPropertyPlacements: placementMap,
+    revealAutofilledInMain: {
+      type: "boolean",
+    },
   },
 } as const;
 

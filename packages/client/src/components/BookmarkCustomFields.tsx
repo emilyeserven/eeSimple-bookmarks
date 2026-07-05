@@ -89,6 +89,13 @@ interface CategoryCustomFieldsProps extends CustomPropertyInputBundle {
    */
   placementOverrides?: Record<string, BookmarkAddFormPlacement>;
   /**
+   * Ids of custom properties an automation filled this session; with {@link revealAutofilledInMain}
+   * on, they are lifted into the main (`default`) zone. Create-mode only; omitted on edit/detail.
+   */
+  autofilledPropertyIds?: ReadonlySet<string>;
+  /** Whether the "reveal auto-filled fields in main" setting is on (create-mode only). */
+  revealAutofilledInMain?: boolean;
+  /**
    * When provided, only properties whose `propertyGroupId` matches this value are rendered.
    * Pass `null` to render only ungrouped properties (groupId === null or unknown group).
    * Omit to render all properties regardless of group.
@@ -103,6 +110,8 @@ export function CategoryCustomFields({
   categoryId, mediaTypeId = null, properties, bookmark = null, placement, layout = "grid", className,
   hiddenSlugs = [RUNTIME_SLUG, DATE_POSTED_SLUG],
   placementOverrides,
+  autofilledPropertyIds,
+  revealAutofilledInMain,
   groupId, hideHeading = false,
   // The per-type input maps + change handlers travel together to each field — keep them bundled and
   // spread them, rather than threading ~18 individual props through the JSX (a complexity driver).
@@ -118,6 +127,8 @@ export function CategoryCustomFields({
     hiddenSlugs,
     groupId,
     placementOverrides,
+    autofilledPropertyIds,
+    revealAutofilledInMain,
   });
   if (categoryProps.length === 0) return null;
 
