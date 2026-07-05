@@ -1,6 +1,7 @@
 import type { SyncDiff, SyncFieldDiff } from "./syncSourceTypes";
 
 import { fillEmptyDefault, rowDiffers } from "./syncSourceTypes";
+import i18n from "../../i18n";
 
 /** The Plex-backed title's current values, for building the current-vs-source diff. */
 export interface PlexTitleDiffCurrent {
@@ -26,10 +27,10 @@ export interface PlexTitleDiffSource {
 export type PlexTitleSyncField = "name" | "romanizedName" | "wikipediaLinkEn" | "wikipediaLinkLocal";
 
 const FIELD_LABELS: Record<PlexTitleSyncField, string> = {
-  name: "Name (native)",
-  romanizedName: "Romanized name",
-  wikipediaLinkEn: "Wikipedia (English)",
-  wikipediaLinkLocal: "Wikipedia (local)",
+  name: i18n.t("Name (native)"),
+  romanizedName: i18n.t("Romanized name"),
+  wikipediaLinkEn: i18n.t("Wikipedia (English)"),
+  wikipediaLinkLocal: i18n.t("Wikipedia (local)"),
 };
 
 /**
@@ -71,7 +72,7 @@ export function buildPlexTitleDiff(
   if (source.posterUrl) {
     rows.push({
       key: "poster",
-      label: "Poster",
+      label: i18n.t("Poster"),
       current: null,
       next: null,
       kind: "image",

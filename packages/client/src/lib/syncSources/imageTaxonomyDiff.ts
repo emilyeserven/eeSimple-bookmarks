@@ -1,6 +1,7 @@
 import type { SyncDiff } from "./syncSourceTypes";
 
 import { fillEmptyDefault } from "./syncSourceTypes";
+import i18n from "../../i18n";
 
 /**
  * Builds the single image-diff row for an image-only taxonomy (YouTube channel avatar, website
@@ -26,7 +27,7 @@ export function buildImageTaxonomyDiff(
         rows: [
           {
             key: "image",
-            label: "Source image",
+            label: i18n.t("Source image"),
             current: null,
             next: null,
             kind: "image",

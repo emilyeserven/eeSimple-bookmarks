@@ -13,6 +13,8 @@ import type {
 
 import { namesWithLegacyFallback, resolveNameSortKey } from "@eesimple/types";
 
+import i18n from "../i18n";
+
 export type {
   BookmarkFieldSort,
   BookmarkRandomSort,
@@ -41,20 +43,20 @@ export function sortFieldOptions(
     ...(opts?.includeRandom
       ? [{
         value: RANDOM_FIELD,
-        label: "Random",
+        label: i18n.t("Random"),
       }]
       : []),
     {
       value: "title",
-      label: "Title",
+      label: i18n.t("Title"),
     },
     {
       value: "createdAt",
-      label: "Date Added",
+      label: i18n.t("Date Added"),
     },
     {
       value: "updatedAt",
-      label: "Date Updated",
+      label: i18n.t("Date Updated"),
     },
     ...sortableProperties.map(p => ({
       value: p.id,
@@ -65,10 +67,10 @@ export function sortFieldOptions(
 
 /** The display label for a single built-in field or custom-property id. */
 function describeSortField(field: string, properties: CustomProperty[]): string {
-  if (field === "title") return "Title";
-  if (field === "createdAt") return "Date Added";
-  if (field === "updatedAt") return "Date Updated";
-  return properties.find(p => p.id === field)?.name ?? "Custom property";
+  if (field === "title") return i18n.t("Title");
+  if (field === "createdAt") return i18n.t("Date Added");
+  if (field === "updatedAt") return i18n.t("Date Updated");
+  return properties.find(p => p.id === field)?.name ?? i18n.t("Custom property");
 }
 
 /** A one-line summary of a `BookmarkSort`, e.g. for a collapsed section preview. */
@@ -76,13 +78,16 @@ export function sortSummaryLabel(
   sort: BookmarkSort | null | undefined,
   properties: CustomProperty[],
 ): string {
-  if (!sort) return "Default order";
-  if ("random" in sort) return "Random order";
+  if (!sort) return i18n.t("Default order");
+  if ("random" in sort) return i18n.t("Random order");
   const dirArrow = (d: SortDirection) => (d === "asc" ? "↑" : "↓");
   const primary = `${describeSortField(sort.primary.field, properties)} ${dirArrow(sort.primary.direction)}`;
   if (!sort.secondary) return primary;
   const secondary = `${describeSortField(sort.secondary.field, properties)} ${dirArrow(sort.secondary.direction)}`;
-  return `${primary}, then ${secondary}`;
+  return i18n.t("{{primary}}, then {{secondary}}", {
+    primary,
+    secondary,
+  });
 }
 
 /** Custom property types whose values can be meaningfully compared for sorting. */

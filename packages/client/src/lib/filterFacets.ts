@@ -1,5 +1,7 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
 
+import i18n from "../i18n";
+
 /**
  * The standard (non-property) filter facets, in display order. The `key` of each must match the
  * corresponding section `key` used in {@link FilterSections} so the Display → Filters settings tab
@@ -9,43 +11,43 @@ import type { BookmarkSearch } from "./bookmarkSearch";
 export const FILTER_FACETS = [
   {
     key: "tags",
-    label: "Tags",
+    label: i18n.t("Tags"),
   },
   {
     key: "categories",
-    label: "Category",
+    label: i18n.t("Category"),
   },
   {
     key: "media-types",
-    label: "Media type",
+    label: i18n.t("Media type"),
   },
   {
     key: "channels",
-    label: "YouTube channel",
+    label: i18n.t("YouTube channel"),
   },
   {
     key: "websites",
-    label: "Website",
+    label: i18n.t("Website"),
   },
   {
     key: "relationship-types",
-    label: "Relationship type",
+    label: i18n.t("Relationship type"),
   },
   {
     key: "people",
-    label: "Person",
+    label: i18n.t("Person"),
   },
   {
     key: "place-types",
-    label: "Place type",
+    label: i18n.t("Place type"),
   },
   {
     key: "genre-moods",
-    label: "Genres & Moods",
+    label: i18n.t("Genres & Moods"),
   },
   {
     key: "sections",
-    label: "Sections",
+    label: i18n.t("Sections"),
   },
 ] as const;
 

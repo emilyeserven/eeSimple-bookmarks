@@ -2,6 +2,8 @@ import type { ConditionNode, ConditionTree } from "@eesimple/types";
 
 import { z } from "zod";
 
+import i18n from "../i18n";
+
 /**
  * Validates an autofill rule's "when" tree: it must hold at least one condition, and every match
  * leaf needs a non-empty pattern (a valid regular expression when the operator is `regex`). The
@@ -11,7 +13,7 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
   if (!tree || tree.type !== "group" || tree.children.length === 0) {
     ctx.addIssue({
       code: "custom",
-      message: "Add at least one condition.",
+      message: i18n.t("Add at least one condition."),
     });
     return;
   }
@@ -52,49 +54,49 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
   if (emptyPattern) {
     ctx.addIssue({
       code: "custom",
-      message: "Every title condition needs a pattern.",
+      message: i18n.t("Every title condition needs a pattern."),
     });
   }
   if (invalidRegex) {
     ctx.addIssue({
       code: "custom",
-      message: "Enter a valid regular expression.",
+      message: i18n.t("Enter a valid regular expression."),
     });
   }
   if (emptyWebsite) {
     ctx.addIssue({
       code: "custom",
-      message: "Pick at least one website.",
+      message: i18n.t("Pick at least one website."),
     });
   }
   if (emptyMediaType) {
     ctx.addIssue({
       code: "custom",
-      message: "Pick at least one media type.",
+      message: i18n.t("Pick at least one media type."),
     });
   }
   if (emptyGenreMood) {
     ctx.addIssue({
       code: "custom",
-      message: "Pick at least one Genres & Moods entry.",
+      message: i18n.t("Pick at least one Genres & Moods entry."),
     });
   }
   if (emptyRelationshipType) {
     ctx.addIssue({
       code: "custom",
-      message: "Pick at least one relationship type.",
+      message: i18n.t("Pick at least one relationship type."),
     });
   }
   if (emptyLocation) {
     ctx.addIssue({
       code: "custom",
-      message: "Pick at least one location.",
+      message: i18n.t("Pick at least one location."),
     });
   }
   if (emptyLanguageUsage) {
     ctx.addIssue({
       code: "custom",
-      message: "Pick at least one language or usage level.",
+      message: i18n.t("Pick at least one language or usage level."),
     });
   }
 });

@@ -4,6 +4,7 @@ import type { Bookmark, BookmarkGenreMood, BookmarkPerson, BookmarkLocation, Boo
 import { placeTypeKey } from "@eesimple/types";
 
 import { bookmarkMatchesFilters } from "./customPropertyFilter";
+import i18n from "../i18n";
 
 /**
  * URL-persisted filter state shared by the search pages (the Bookmarks page and each
@@ -930,7 +931,7 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     search.sectionTypes && search.sectionTypes.length > 0 ? `section types: ${search.sectionTypes.join(", ")}` : null,
     sortSummaryPart(search.sort),
   ];
-  return parts.filter((part): part is string => part !== null).join(" · ") || "No filters";
+  return parts.filter((part): part is string => part !== null).join(" · ") || i18n.t("No filters");
 }
 
 /**

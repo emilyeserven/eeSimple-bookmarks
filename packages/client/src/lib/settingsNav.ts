@@ -24,6 +24,8 @@ import {
   Wand2,
 } from "lucide-react";
 
+import i18n from "../i18n";
+
 /**
  * The tab-nav data for the tabbed settings sections, extracted so registries can derive from it.
  * The section routes (`settings.display.tsx`, `settings.automations.tsx`, `settings.locations.tsx`,
@@ -39,32 +41,32 @@ export interface SettingsTabNavItem extends TabNavItem {
 export const displayNav: readonly SettingsTabNavItem[] = [
   {
     to: "/settings/display/general",
-    label: "General",
+    label: i18n.t("General"),
     icon: Monitor,
   },
   {
     to: "/settings/display/sidebar",
-    label: "Sidebar",
+    label: i18n.t("Sidebar"),
     icon: PanelLeft,
   },
   {
     to: "/settings/display/bookmark-add",
-    label: "Bookmark Add Form",
+    label: i18n.t("Bookmark Add Form"),
     icon: SquarePlus,
   },
   {
     to: "/settings/display/filters",
-    label: "Filters",
+    label: i18n.t("Filters"),
     icon: Filter,
   },
   {
     to: "/settings/display/drawer",
-    label: "Drawer",
+    label: i18n.t("Drawer"),
     icon: PanelRight,
   },
   {
     to: "/settings/display/homepage",
-    label: "Homepage",
+    label: i18n.t("Homepage"),
     icon: LayoutTemplate,
   },
 ] as const;
@@ -72,17 +74,17 @@ export const displayNav: readonly SettingsTabNavItem[] = [
 export const mediaNav: readonly SettingsTabNavItem[] = [
   {
     to: "/settings/media/display",
-    label: "Display",
+    label: i18n.t("Display"),
     icon: Image,
   },
   {
     to: "/settings/media/manage",
-    label: "Manage Media",
+    label: i18n.t("Manage Media"),
     icon: FolderOpen,
   },
   {
     to: "/settings/media/screenshot-defaults",
-    label: "Screenshot Defaults",
+    label: i18n.t("Screenshot Defaults"),
     icon: Camera,
   },
 ] as const;
@@ -90,32 +92,32 @@ export const mediaNav: readonly SettingsTabNavItem[] = [
 export const automationsNav: readonly SettingsTabNavItem[] = [
   {
     to: "/settings/automations/global",
-    label: "Global",
+    label: i18n.t("Global"),
     icon: Wand2,
   },
   {
     to: "/settings/automations/backfill",
-    label: "Backfill",
+    label: i18n.t("Backfill"),
     icon: History,
   },
   {
     to: "/settings/automations/link-parsing",
-    label: "Link Parsing",
+    label: i18n.t("Link Parsing"),
     icon: Link2,
   },
   {
     to: "/settings/automations/check-links",
-    label: "Check Links",
+    label: i18n.t("Check Links"),
     icon: ListChecks,
   },
   {
     to: "/settings/automations/redirect-failures",
-    label: "Redirect failures",
+    label: i18n.t("Redirect failures"),
     icon: Forward,
   },
   {
     to: "/settings/automations/imports",
-    label: "Imports",
+    label: i18n.t("Imports"),
     icon: Inbox,
   },
 ] as const;
@@ -123,17 +125,17 @@ export const automationsNav: readonly SettingsTabNavItem[] = [
 export const locationsNav: readonly SettingsTabNavItem[] = [
   {
     to: "/settings/locations/level-groups",
-    label: "Level Groups",
+    label: i18n.t("Level Groups"),
     icon: MapPin,
   },
   {
     to: "/settings/locations/pin-style",
-    label: "Pin Style",
+    label: i18n.t("Pin Style"),
     icon: MapPin,
   },
   {
     to: "/settings/locations/place-types",
-    label: "Place Types",
+    label: i18n.t("Place Types"),
     icon: MapPin,
   },
 ] as const;
@@ -141,22 +143,22 @@ export const locationsNav: readonly SettingsTabNavItem[] = [
 export const advancedNav: readonly SettingsTabNavItem[] = [
   {
     to: "/settings/advanced/connectors",
-    label: "Connectors",
+    label: i18n.t("Connectors"),
     icon: Cable,
   },
   {
     to: "/settings/advanced/manage-data",
-    label: "Manage Data",
+    label: i18n.t("Manage Data"),
     icon: Database,
   },
   {
     to: "/settings/advanced/updates",
-    label: "Updates",
+    label: i18n.t("Updates"),
     icon: RefreshCw,
   },
   {
     to: "/settings/advanced/database-usage",
-    label: "Database usage",
+    label: i18n.t("Database usage"),
     icon: HardDrive,
   },
 ] as const;

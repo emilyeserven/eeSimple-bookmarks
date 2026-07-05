@@ -1,5 +1,7 @@
 import type { SidebarOpenModifier } from "@/stores/uiStore";
 
+import i18n from "../i18n";
+
 /** Maps each configurable modifier to the corresponding DOM mouse-event flag. */
 const FLAG = {
   alt: "altKey",
@@ -18,13 +20,15 @@ export function hasSidebarModifier(event: ModifierFlags, modifier: SidebarOpenMo
 
 /** Human-readable labels for the modifier picker in Settings. */
 export const SIDEBAR_MODIFIER_LABELS: Record<SidebarOpenModifier, string> = {
-  alt: "Alt / Option",
-  ctrl: "Ctrl",
-  shift: "Shift",
-  meta: "Cmd / Meta",
+  alt: i18n.t("Alt / Option"),
+  ctrl: i18n.t("Ctrl"),
+  shift: i18n.t("Shift"),
+  meta: i18n.t("Cmd / Meta"),
 };
 
 /** Tooltip title for an entity link that supports Cmd, Shift, and the configured sidebar modifier. */
 export function entityLinkTitle(modifier: SidebarOpenModifier): string {
-  return `Open · Shift: edit · ${SIDEBAR_MODIFIER_LABELS[modifier]}: sidebar`;
+  return i18n.t("Open · Shift: edit · {{modifier}}: sidebar", {
+    modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+  });
 }
