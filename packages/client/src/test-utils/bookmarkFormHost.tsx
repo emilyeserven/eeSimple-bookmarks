@@ -8,7 +8,6 @@ import { useAppForm } from "../lib/form";
 interface BookmarkFormHostValues {
   url: string;
   title: string;
-  romanizedName: string;
   names: DraftEntityName[];
   categoryId: string;
   mediaTypeId: string;
@@ -51,7 +50,6 @@ export function BookmarkFormHost({
     defaultValues: {
       url: "",
       title: "",
-      romanizedName: "",
       names: [],
       categoryId: "",
       mediaTypeId: "",

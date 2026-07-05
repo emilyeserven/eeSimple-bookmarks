@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useTrackBySlug } from "../hooks/useTracks";
@@ -48,9 +48,9 @@ function TrackViewLayout() {
             ? t("Track")
             : track
               ? (
-                <RomanizedLabel
-                  name={track.name}
-                  romanized={track.romanizedName}
+                <LocalizedNameLabel
+                  names={track.names ?? []}
+                  base={track.name}
                 />
               )
               : t("Track not found")}

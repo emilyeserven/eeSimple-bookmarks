@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useGenreMoodBySlug } from "../hooks/useGenreMoods";
 
@@ -41,9 +41,9 @@ function GenreMoodViewLayout() {
         >
           {genreMood
             ? (
-              <RomanizedLabel
-                name={genreMood.name}
-                romanized={genreMood.romanizedName}
+              <LocalizedNameLabel
+                names={genreMood.names ?? []}
+                base={genreMood.name}
               />
             )
             : (isLoading ? t("Entry") : t("Entry not found"))}

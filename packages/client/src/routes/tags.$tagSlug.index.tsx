@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 import { findAncestorPath, subtreeIds } from "../lib/tagTree";
 
@@ -61,9 +61,9 @@ function TagBookmarksPage() {
         <div className="space-y-2">
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <TagIcon className="size-6 shrink-0" />
-            <RomanizedLabel
-              name={tag.name}
-              romanized={tag.romanizedName}
+            <LocalizedNameLabel
+              names={tag.names ?? []}
+              base={tag.name}
             />
           </h1>
           {tag.children.length > 0 && (
@@ -85,9 +85,9 @@ function TagBookmarksPage() {
                     hover:bg-accent
                   "
                 >
-                  <RomanizedLabel
-                    name={child.name}
-                    romanized={child.romanizedName}
+                  <LocalizedNameLabel
+                    names={child.names ?? []}
+                    base={child.name}
                   />
                 </Link>
               ))}

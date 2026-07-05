@@ -22,10 +22,23 @@ type Story = StoryObj<typeof meta>;
 /** A plain label with no romanized form. */
 export const Default: Story = {};
 
-/** A label with a romanized form stacked beneath it in muted text. */
+/** A label with a secondary name form stacked beneath it in muted text. */
 export const WithRomanized: Story = {
   args: {
     label: "日本語",
-    romanizedLabel: "Nihongo",
+    names: [
+      {
+        id: "sample-en",
+        value: "Nihongo",
+        isPrimary: false,
+        sortOrder: 0,
+        language: {
+          id: "sample-en-lang",
+          name: "English",
+          slug: "english",
+          isoCode: "en",
+        },
+      },
+    ],
   },
 };

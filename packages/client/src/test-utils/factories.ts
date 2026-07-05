@@ -93,7 +93,6 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     url: "https://example.com",
     originalUrl: null,
     title: "Example",
-    romanizedName: null,
     description: null,
     image: null,
     images: [],
@@ -166,7 +165,6 @@ export function makeLocation(overrides: Partial<Location> = {}): Location {
   return {
     id: "loc",
     name: "Location",
-    romanizedName: null,
     names: [],
     slug: "location",
     alternateNames: [],
@@ -210,7 +208,6 @@ export function makeTag(overrides: Partial<Tag> = {}): Tag {
   return {
     id: "tag",
     name: "Tag",
-    romanizedName: null,
     names: [],
     slug: "tag",
     parentId: null,
@@ -253,7 +250,6 @@ export function makeMediaType(overrides: Partial<MediaType> = {}): MediaType {
   return {
     id: "mt",
     name: "Media Type",
-    romanizedName: null,
     names: [],
     slug: "media-type",
     icon: null,
@@ -272,7 +268,6 @@ export function makeGenreMood(overrides: Partial<GenreMood> = {}): GenreMood {
   return {
     id: "gm",
     name: "Genre",
-    romanizedName: null,
     names: [],
     slug: "genre",
     parentId: null,
@@ -337,7 +332,6 @@ export function makeGroup(overrides: Partial<Group> = {}): Group {
   return {
     id: "pub",
     name: "Group",
-    romanizedName: null,
     names: [],
     slug: "group",
     websiteId: null,
@@ -378,7 +372,6 @@ export function makePerson(overrides: Partial<Person> = {}): Person {
   return {
     id: "person",
     name: "Person",
-    romanizedName: null,
     names: [],
     slug: "person",
     createdAt: NOW,

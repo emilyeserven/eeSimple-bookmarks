@@ -21,7 +21,6 @@ const categorySchema = z.object({
 
 const LABELS: Partial<Record<keyof UpdateCategoryInput, string>> = {
   name: "Name",
-  romanizedName: "Romanized name",
   description: "Description",
   icon: "Icon",
 };
@@ -45,7 +44,6 @@ export function CategoryGeneralForm({
     labels: LABELS,
     initial: {
       name: category.name,
-      romanizedName: category.romanizedName ?? "",
       description: category.description ?? null,
       icon: category.icon,
     },

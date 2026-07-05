@@ -9,7 +9,7 @@ const sampleResult: LocationLookupResult = {
   results: [
     {
       name: "萩市",
-      romanizedName: "Hagi",
+      englishName: "Hagi",
       displayName: "Hagi, Yamaguchi Prefecture, Japan",
       latitude: 34.4081,
       longitude: 131.3989,

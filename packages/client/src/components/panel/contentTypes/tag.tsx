@@ -25,9 +25,9 @@ function useTagList() {
     }) => ({
       id: node.id,
       label: `${"— ".repeat(depth)}${node.name}`,
-      // Romanized form renders beside the name via the shared toggle-aware RomanizedLabel; the
+      // Other name variants render beside the name via the shared LocalizedNameLabel; the
       // children count is the de-emphasized sublabel.
-      romanized: node.romanizedName,
+      names: node.names,
       sublabel: node.children.length > 0
         ? i18n.t("{{count}} children", {
           count: node.children.length,

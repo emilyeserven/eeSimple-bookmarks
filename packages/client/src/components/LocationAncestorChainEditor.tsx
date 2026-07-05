@@ -66,9 +66,9 @@ export function LocationAncestorChainEditor({
   function applyCandidate(index: number, candidate: LocationLookupCandidate) {
     updateRow(index, {
       name: candidate.name,
-      // Prefill the romanized form just like the leaf form does, so an ancestor looked up
-      // by a native-script name automatically carries its romanization.
-      romanizedName: candidate.romanizedName,
+      // Prefill the English name just like the leaf form does, so an ancestor looked up
+      // by a native-script name automatically carries its English form.
+      englishName: candidate.englishName,
       latitude: candidate.latitude,
       longitude: candidate.longitude,
       mapUrl: candidate.mapUrl,
@@ -148,13 +148,13 @@ export function LocationAncestorChainEditor({
                     })}
                   />
                   <Input
-                    aria-label={t("Ancestor {{number}} romanized name", {
+                    aria-label={t("Ancestor {{number}} English name", {
                       number: index + 1,
                     })}
-                    placeholder={t("Romanized name (auto-filled from lookup)")}
-                    value={row.romanizedName ?? ""}
+                    placeholder={t("English name (auto-filled from lookup)")}
+                    value={row.englishName ?? ""}
                     onChange={event => updateRow(index, {
-                      romanizedName: event.target.value.trim() === "" ? null : event.target.value,
+                      englishName: event.target.value.trim() === "" ? null : event.target.value,
                     })}
                   />
                   <LocationLookupBox onSelect={candidate => applyCandidate(index, candidate)} />

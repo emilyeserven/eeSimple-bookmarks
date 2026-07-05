@@ -16,7 +16,7 @@ function strRef(refs: SyncProvider["refs"], key: string): string | null {
 /** The resolved Wikidata metadata returned by `GET …/:id/plex-metadata-preview`. */
 interface MetadataPreview {
   name: string | null;
-  romanizedName: string | null;
+  englishName: string | null;
   wikipediaLinkEn: string | null;
   wikipediaLinkLocal: string | null;
 }
@@ -44,7 +44,7 @@ export function usePlexTitleSyncSource(provider: SyncProvider, enabled: boolean)
 
   const current: PlexTitleDiffCurrent = {
     name: strRef(provider.refs, "currentName"),
-    romanizedName: strRef(provider.refs, "currentRomanizedName"),
+    englishName: strRef(provider.refs, "currentEnglishName"),
     wikipediaLinkEn: strRef(provider.refs, "currentWikipediaLinkEn"),
     wikipediaLinkLocal: strRef(provider.refs, "currentWikipediaLinkLocal"),
     imageUrl: strRef(provider.refs, "currentImageUrl"),
@@ -70,7 +70,7 @@ export function usePlexTitleSyncSource(provider: SyncProvider, enabled: boolean)
   return {
     diff: buildPlexTitleDiff(current, {
       name: preview?.name ?? null,
-      romanizedName: preview?.romanizedName ?? null,
+      englishName: preview?.englishName ?? null,
       wikipediaLinkEn: preview?.wikipediaLinkEn ?? null,
       wikipediaLinkLocal: preview?.wikipediaLinkLocal ?? null,
       posterUrl,

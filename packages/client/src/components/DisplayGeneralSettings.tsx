@@ -23,7 +23,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -41,12 +40,9 @@ const THEME_LABELS: Record<Theme, string> = {
 
 const DISPLAY_DEFAULTS: Pick<
   DisplayPreferenceSettings,
-  "customPropertyTypeIcons" | "showRomanizedByDefault" | "sortByRomanized" | "bookmarksPerPage"
-  | "interfaceLanguage" | "hanScriptLanguage"
+  "customPropertyTypeIcons" | "bookmarksPerPage" | "interfaceLanguage" | "hanScriptLanguage"
 > = {
   customPropertyTypeIcons: null,
-  showRomanizedByDefault: false,
-  sortByRomanized: true,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   interfaceLanguage: "en",
   hanScriptLanguage: "ja",
@@ -64,7 +60,7 @@ const LANGUAGE_OPTIONS = [
 ] as const satisfies readonly { value: InterfaceLanguage;
   label: string; }[];
 
-/** General display preferences — theme, romanized-name handling, and per-type property icons. */
+/** General display preferences — theme, interface language, and per-type property icons. */
 export function DisplayGeneralSettings() {
   const {
     t,
@@ -110,14 +106,6 @@ export function DisplayGeneralSettings() {
     }, "Property type icons reset to defaults");
   }
 
-  const setShowRomanizedByDefault = (value: boolean) =>
-    saveDisplay({
-      showRomanizedByDefault: value,
-    }, "Romanized display updated");
-  const setSortByRomanized = (value: boolean) =>
-    saveDisplay({
-      sortByRomanized: value,
-    }, "Romanized sort updated");
   const setHanScriptLanguage = (value: "ja" | "zh") =>
     saveDisplay({
       hanScriptLanguage: value,
@@ -224,38 +212,12 @@ export function DisplayGeneralSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("Romanized names")}</CardTitle>
+          <CardTitle>{t("Names")}</CardTitle>
           <CardDescription>
-            {t("Control how romanized names/titles are shown and sorted. When an item has a romanized form it is always shown de-emphasized after the primary label.")}
+            {t("Control how names with ambiguous Han-only script are resolved.")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-start gap-2">
-            <Checkbox
-              id="show-romanized-default"
-              checked={display.showRomanizedByDefault}
-              onCheckedChange={checked => setShowRomanizedByDefault(checked === true)}
-            />
-            <div className="space-y-0.5">
-              <Label htmlFor="show-romanized-default">{t("Show Romanized by default")}</Label>
-              <p className="text-sm text-muted-foreground">
-                {t("Make the romanized form the primary label (the real name shows de-emphasized after it). Off by default.")}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-2">
-            <Checkbox
-              id="sort-by-romanized"
-              checked={display.sortByRomanized}
-              onCheckedChange={checked => setSortByRomanized(checked === true)}
-            />
-            <div className="space-y-0.5">
-              <Label htmlFor="sort-by-romanized">{t("Sort by Romanized")}</Label>
-              <p className="text-sm text-muted-foreground">
-                {t("Use the romanized value as the sort key when sorting alphabetically (items without a romanized form fall back to their name). On by default.")}
-              </p>
-            </div>
-          </div>
           <div className="space-y-1">
             <Label htmlFor="han-script-language-select">{t("Han-only name language")}</Label>
             <p className="text-sm text-muted-foreground">

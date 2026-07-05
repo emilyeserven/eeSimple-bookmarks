@@ -6,8 +6,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
+import { LocalizedNameLabel } from "../LocalizedNameLabel";
 import { LocationMapSection } from "../LocationMapSection";
-import { RomanizedLabel } from "../RomanizedLabel";
 
 import { useLocationTree } from "@/hooks/useLocations";
 import { findAncestorPath, flattenTree } from "@/lib/tagTree";
@@ -81,9 +81,9 @@ export function LocationGeneralView({
         <dt className="text-muted-foreground">{t("Parent")}</dt>
         <dd>{parent
           ? (
-            <RomanizedLabel
-              name={parent.name}
-              romanized={parent.romanizedName}
+            <LocalizedNameLabel
+              names={parent.names ?? []}
+              base={parent.name}
             />
           )
           : t("(root)")}

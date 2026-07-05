@@ -240,8 +240,6 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   drawerUnpinnedBreakpoints: [768],
   croppedWidth: 16,
   croppedHeight: 9,
-  showRomanizedByDefault: false,
-  sortByRomanized: true,
   hanScriptLanguage: "ja" as "ja" | "zh",
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
@@ -531,14 +529,6 @@ export function usePanelPinned(): boolean {
   return data?.panelPinned ?? DISPLAY_PREFERENCE_DEFAULTS.panelPinned;
 }
 
-/** Whether the romanized form is shown as the primary name/title by default (default false). */
-export function useShowRomanizedByDefault(): boolean {
-  const {
-    data,
-  } = useDisplayPreferenceSettings();
-  return data?.showRomanizedByDefault ?? DISPLAY_PREFERENCE_DEFAULTS.showRomanizedByDefault;
-}
-
 /** Minimum boundary area (km²) for an "area"-mode location to still render as a polygon (default 0 = off). */
 export function useMinAreaPinThresholdKm2(): number {
   const {
@@ -553,14 +543,6 @@ export function useMapPinScale(): number {
     data,
   } = useDisplayPreferenceSettings();
   return data?.mapPinScale ?? DISPLAY_PREFERENCE_DEFAULTS.mapPinScale;
-}
-
-/** Whether alphabetical name/title sorting uses the romanized value as the sort key (default true). */
-export function useSortByRomanized(): boolean {
-  const {
-    data,
-  } = useDisplayPreferenceSettings();
-  return data?.sortByRomanized ?? DISPLAY_PREFERENCE_DEFAULTS.sortByRomanized;
 }
 
 /** Viewport widths (px) below which the drawer floats even when pinned (default [768]). */

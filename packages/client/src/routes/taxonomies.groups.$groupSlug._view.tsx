@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useGroupBySlug } from "../hooks/useGroups";
@@ -37,9 +37,9 @@ function GroupViewLayout() {
           }}
           title={group
             ? (
-              <RomanizedLabel
-                name={group.name}
-                romanized={group.romanizedName}
+              <LocalizedNameLabel
+                names={group.names ?? []}
+                base={group.name}
               />
             )
             : (isLoading ? t("Group") : t("Group not found"))}

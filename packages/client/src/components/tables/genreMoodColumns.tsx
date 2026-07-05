@@ -9,8 +9,8 @@ import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 import i18n from "../../i18n";
+import { LocalizedNameLabel } from "../LocalizedNameLabel";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
-import { RomanizedLabel } from "../RomanizedLabel";
 
 import { entityLinkTitle } from "@/lib/sidebarModifier";
 
@@ -45,9 +45,9 @@ export function useGenreMoodColumns(): ColumnDef<GenreMoodNode>[] {
                 hover:underline
               "
             >
-              <RomanizedLabel
-                name={row.original.name}
-                romanized={row.original.romanizedName}
+              <LocalizedNameLabel
+                names={row.original.names ?? []}
+                base={row.original.name}
               />
             </Link>
           </div>

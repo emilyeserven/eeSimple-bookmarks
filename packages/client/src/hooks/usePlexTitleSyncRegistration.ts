@@ -21,7 +21,6 @@ interface PlexTitleSyncEntity {
   id: string;
   name: string;
   plexRatingKey: string | null;
-  romanizedName?: string | null;
   wikipediaLinkEn?: string | null;
   wikipediaLinkLocal?: string | null;
 }
@@ -39,7 +38,7 @@ interface PlexTitleSyncRegistrationParams {
 
 /**
  * Registers a Plex-backed taxonomy edit form's {@link SyncProvider} so the header Sync button can
- * re-pull from Plex + Wikidata: the modal reviews the native/romanized names + Wikipedia links (staged
+ * re-pull from Plex + Wikidata: the modal reviews the native/English names + Wikipedia links (staged
  * into the form on Apply) and the Plex poster (imported immediately via the taxonomy image gallery's
  * `plex-poster` auto-fetch). Registers only while the Plex connector is on and the row is linked, so the
  * button stays hidden otherwise. Kept out of `PlexTitleGeneralForm` so that component's hook-density
@@ -92,14 +91,14 @@ export function usePlexTitleSyncRegistration({
         plexRatingKey: entity.plexRatingKey,
         currentImageUrl,
         currentName: entity.name,
-        currentRomanizedName: entity.romanizedName ?? null,
+        currentEnglishName: null,
         currentWikipediaLinkEn: entity.wikipediaLinkEn ?? null,
         currentWikipediaLinkLocal: entity.wikipediaLinkLocal ?? null,
       },
       applyStaged,
     };
   }, [
-    entity.id, entity.name, entity.plexRatingKey, entity.romanizedName,
+    entity.id, entity.name, entity.plexRatingKey,
     entity.wikipediaLinkEn, entity.wikipediaLinkLocal, base, currentImageUrl, enabled, applyStaged, t,
   ]);
 

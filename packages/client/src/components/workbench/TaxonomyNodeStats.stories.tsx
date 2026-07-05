@@ -4,14 +4,13 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { TaxonomyNodeStats } from "./TaxonomyNodeStats";
 import { makeTag } from "../../test-utils/factories";
 import { apiHandlers } from "../../test-utils/story-mocks";
-import { RomanizedLabel } from "../RomanizedLabel";
+import { LocalizedNameLabel } from "../LocalizedNameLabel";
 
 const parent: TagNode = {
   ...makeTag({
     id: "tag-dev",
     name: "dev",
     slug: "dev",
-    romanizedName: null,
   }),
   children: [],
 };
@@ -53,7 +52,20 @@ const romanizedParent: TagNode = {
     id: "tag-jp",
     name: "開発",
     slug: "kaihatsu",
-    romanizedName: "kaihatsu",
+    names: [
+      {
+        id: "kaihatsu-en",
+        value: "kaihatsu",
+        isPrimary: false,
+        sortOrder: 0,
+        language: {
+          id: "kaihatsu-en-lang",
+          name: "English",
+          slug: "english",
+          isoCode: "en",
+        },
+      },
+    ],
   }),
   children: [],
 };
@@ -87,14 +99,14 @@ export const Root: Story = {
   },
 };
 
-/** A custom parent renderer (Tags style: a `RomanizedLabel` with a romanized form). */
+/** A custom parent renderer (Tags style: a `LocalizedNameLabel` with a secondary name form). */
 export const RomanizedParent: Story = {
   args: {
     parent: romanizedParent,
     renderParent: () => (
-      <RomanizedLabel
-        name={romanizedParent.name}
-        romanized={romanizedParent.romanizedName}
+      <LocalizedNameLabel
+        names={romanizedParent.names ?? []}
+        base={romanizedParent.name}
       />
     ),
     autofillClassName: "pt-2",

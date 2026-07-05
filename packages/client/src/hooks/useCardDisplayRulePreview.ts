@@ -252,7 +252,6 @@ export function useCardDisplayRulePreview({
       url: "https://example.com/sample-bookmark",
       originalUrl: null,
       title: "Sample bookmark",
-      romanizedName: null,
       description: "A placeholder bookmark showing every field with sample values.",
       image: {
         id: "__sample-image__",

@@ -1,5 +1,5 @@
 import type { MapAncestryDebug, MapLayersDebug } from "../lib/locationMapDebug";
-import type { LocationBoundary, LocationNode, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig } from "@eesimple/types";
+import type { EntityName, LocationBoundary, LocationNode, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig } from "@eesimple/types";
 import type { Feature, Geometry } from "geojson";
 import type { LatLngTuple } from "leaflet";
 import type { MutableRefObject, ReactNode } from "react";
@@ -19,9 +19,9 @@ import { Link } from "@tanstack/react-router";
 import { geoJSON, latLngBounds } from "leaflet";
 import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { LocationMapDebugModal } from "./LocationMapDebugModal";
 import { LocationMapFootnotes } from "./LocationMapFootnotes";
-import { RomanizedLabel } from "./RomanizedLabel";
 import { useMapPinScale, useMinAreaPinThresholdKm2 } from "../hooks/useAppSettings";
 import i18n from "../i18n";
 import { boundaryContainsPoint } from "../lib/locationGeo";
@@ -36,7 +36,7 @@ import "leaflet/dist/leaflet.css";
 interface MappedNode {
   id: string;
   name: string;
-  romanizedName: string | null | undefined;
+  names: EntityName[] | undefined;
   slug: string;
   /** Loose place classification, used to resolve the per-level display config. */
   placeType: string | null;
@@ -57,7 +57,7 @@ function collectMapped(nodes: LocationNode[]): MappedNode[] {
       ? [{
         id: node.id,
         name: node.name,
-        romanizedName: node.romanizedName,
+        names: node.names,
         slug: node.slug,
         placeType: node.placeType,
         position,
@@ -273,9 +273,9 @@ function NodeLink({
         hover:underline
       "
     >
-      <RomanizedLabel
-        name={node.name}
-        romanized={node.romanizedName}
+      <LocalizedNameLabel
+        names={node.names ?? []}
+        base={node.name}
       />
     </Link>
   );

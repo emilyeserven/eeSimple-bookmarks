@@ -4,8 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
-import { RomanizedLabel } from "./RomanizedLabel";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
@@ -53,9 +53,9 @@ export function GenreMoodTreeList({
             hover:underline
           "
         >
-          <RomanizedLabel
-            name={node.name}
-            romanized={(node as unknown as GenreMoodNode).romanizedName}
+          <LocalizedNameLabel
+            names={(node as unknown as GenreMoodNode).names ?? []}
+            base={node.name}
           />
         </Link>
       )}

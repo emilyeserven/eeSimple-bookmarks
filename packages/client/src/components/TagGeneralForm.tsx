@@ -18,7 +18,6 @@ import { tagNodesToOptions } from "../lib/tagTree";
 
 const LABELS: Record<keyof UpdateTagInput, string> = {
   name: "Name",
-  romanizedName: "Romanized name",
   parentId: "Parent",
   editableOnCard: "Editable on card",
   excludeFromBackfill: "Exclude from backfilling",
@@ -51,7 +50,6 @@ export function TagGeneralForm({
     labels: LABELS,
     initial: {
       name: node.name,
-      romanizedName: node.romanizedName ?? "",
       parentId: node.parentId,
       editableOnCard: node.editableOnCard ?? false,
       excludeFromBackfill: node.excludeFromBackfill ?? false,

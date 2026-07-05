@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useCategoryBySlug } from "../hooks/useCategories";
 import i18n from "../i18n";
@@ -67,9 +67,9 @@ function CategoryViewLayout() {
           />
           {category
             ? (
-              <RomanizedLabel
-                name={category.name}
-                romanized={category.romanizedName}
+              <LocalizedNameLabel
+                names={category.names ?? []}
+                base={category.name}
               />
             )
             : (isLoading ? t("Category") : t("Category not found"))}

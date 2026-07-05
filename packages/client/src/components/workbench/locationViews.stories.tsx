@@ -18,7 +18,6 @@ function node(overrides: Partial<LocationNode>): LocationNode {
 const tokyo = node({
   id: "loc-tokyo",
   name: "Tokyo",
-  romanizedName: "Tōkyō",
   slug: "tokyo",
   placeType: "city",
   countryCode: "JP",

@@ -30,7 +30,7 @@ function TrailRow({
   const content = (
     <CrumbLabel
       label={crumb.label}
-      romanizedLabel={crumb.romanizedLabel}
+      names={crumb.names}
     />
   );
   if (isCurrent || !crumb.href) {
@@ -132,7 +132,7 @@ export function StackedBreadcrumbs({
       >
         <CrumbLabel
           label={current.label}
-          romanizedLabel={current.romanizedLabel}
+          names={current.names}
         />
         {current.switcher && <BreadcrumbSwitcher spec={current.switcher} />}
       </div>

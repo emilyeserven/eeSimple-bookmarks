@@ -18,7 +18,7 @@ export interface TaxonomyNodeStatsNode {
 /**
  * Shared "General view" stat grid + New Autofill Rule block for tree taxonomy workbench views
  * (Tags, Genres & Moods). The parent cell is rendered plain by default; pass `renderParent` to
- * customize it (e.g. Tags render a `RomanizedLabel`). The outer wrapper stays at the call site.
+ * customize it (e.g. Tags render a `LocalizedNameLabel`). The outer wrapper stays at the call site.
  */
 export function TaxonomyNodeStats<TParent extends { name: string }>({
   node,

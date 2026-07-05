@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useTagBySlug } from "../hooks/useTags";
 import i18n from "../i18n";
@@ -58,9 +58,9 @@ function TagViewLayout() {
             ? t("Tag")
             : tag
               ? (
-                <RomanizedLabel
-                  name={tag.name}
-                  romanized={tag.romanizedName}
+                <LocalizedNameLabel
+                  names={tag.names ?? []}
+                  base={tag.name}
                 />
               )
               : t("Tag not found")}

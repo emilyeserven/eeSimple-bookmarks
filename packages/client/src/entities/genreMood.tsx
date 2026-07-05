@@ -39,7 +39,7 @@ export const genreMoodTreeListingConfig: EntityTreeListingConfig<GenreMoodNode> 
   matches: (node, query) =>
     node.name.toLowerCase().includes(query)
     || node.slug.toLowerCase().includes(query)
-    || (node.romanizedName ?? "").toLowerCase().includes(query),
+    || (node.names ?? []).some(n => n.value.toLowerCase().includes(query)),
   deletableIds: tree => flattenTree(tree).map(f => f.node.id),
   useBulkDelete: useBulkDeleteGenreMoods,
   noun: [i18n.t("entry"), i18n.t("entries")],

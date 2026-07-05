@@ -6,12 +6,11 @@ import type { Tag, TagNode, UpdateTagInput } from "@eesimple/types";
 import { TagTable } from "../components/TagTable";
 import { TagTreeList } from "../components/TagTreeList";
 import { tagWorkbench } from "../components/workbench/tag";
-import { useSortByRomanized } from "../hooks/useAppSettings";
 import { useBulkDeleteTags, useTagTree } from "../hooks/useTags";
 import { useInterfaceTitleSort } from "../hooks/useTitleSortContext";
 import i18n from "../i18n";
 import { tagsApi } from "../lib/api/taxonomies";
-import { flattenTree, sortTagTreeByRomanized } from "../lib/tagTree";
+import { flattenTree, sortTagTree } from "../lib/tagTree";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -47,11 +46,10 @@ const TAG_PALETTE: EntityPaletteConfig = {
   ],
 };
 
-/** Romanized re-sort for the filtered tag tree — the `useSortedTree` slot (see the config's doc). */
-function useRomanizedSortedTree(tree: TagNode[]): TagNode[] {
-  const sortByRomanized = useSortByRomanized();
+/** Name-based re-sort for the filtered tag tree — the `useSortedTree` slot (see the config's doc). */
+function useNameSortedTree(tree: TagNode[]): TagNode[] {
   const titleSort = useInterfaceTitleSort();
-  return sortTagTreeByRomanized(tree, sortByRomanized, titleSort);
+  return sortTagTree(tree, titleSort);
 }
 
 /**
@@ -65,7 +63,7 @@ export function buildTagTreeListingConfig(opts: { onNew: () => void }): EntityTr
     matches: (node, query) =>
       node.name.toLowerCase().includes(query)
       || node.slug.toLowerCase().includes(query)
-      || (node.romanizedName ?? "").toLowerCase().includes(query),
+      || (node.names ?? []).some(n => n.value.toLowerCase().includes(query)),
     deletableIds: tree => flattenTree(tree).map(f => f.node.id),
     useBulkDelete: useBulkDeleteTags,
     noun: [i18n.t("tag"), i18n.t("tags")],
@@ -86,7 +84,7 @@ export function buildTagTreeListingConfig(opts: { onNew: () => void }): EntityTr
         </button>
       </p>
     ),
-    useSortedTree: useRomanizedSortedTree,
+    useSortedTree: useNameSortedTree,
     renderTree: ({
       sortedTree, expanded, onToggle, columns,
     }) => (

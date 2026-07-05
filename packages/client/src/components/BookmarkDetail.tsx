@@ -9,7 +9,7 @@ import { BookmarkDetailBody } from "./BookmarkDetailBody";
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
 import { DetailHeaderActions } from "./DetailHeaderActions";
-import { RomanizedLabel } from "./RomanizedLabel";
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { useBookmarkDetailLayout } from "../hooks/useAppSettings";
 import { useConnectors } from "../hooks/useConnectors";
 import { kavitaSeriesUrl } from "../lib/kavita";
@@ -81,9 +81,9 @@ export function BookmarkDetail({
                   hover:underline
                 "
               >
-                <RomanizedLabel
-                  name={bookmark.title}
-                  romanized={bookmark.romanizedName}
+                <LocalizedNameLabel
+                  names={bookmark.names}
+                  base={bookmark.title}
                   stacked
                 />
               </a>

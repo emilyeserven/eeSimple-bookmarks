@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import { getContentType } from "./contentTypes";
 import { usePanelControls } from "./usePanelControls";
-import { RomanizedLabel } from "../RomanizedLabel";
+import { LocalizedNameLabel } from "../LocalizedNameLabel";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,7 @@ export function PanelList({
     return items.filter(item =>
       item.label.toLowerCase().includes(needle)
       || (item.sublabel?.toLowerCase().includes(needle) ?? false)
-      || (item.romanized?.toLowerCase().includes(needle) ?? false));
+      || (item.names?.some(name => name.value.toLowerCase().includes(needle)) ?? false));
   }, [items, query]);
 
   return (
@@ -88,14 +88,10 @@ export function PanelList({
               onClick={() => openItem(type, item.id, "view")}
             >
               <span className="w-full truncate text-sm font-medium">
-                {item.romanized
-                  ? (
-                    <RomanizedLabel
-                      name={item.label}
-                      romanized={item.romanized}
-                    />
-                  )
-                  : item.label}
+                <LocalizedNameLabel
+                  names={item.names ?? []}
+                  base={item.label}
+                />
               </span>
               {item.sublabel
                 ? (

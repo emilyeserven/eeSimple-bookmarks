@@ -19,7 +19,7 @@ import i18n from "../i18n";
  * seeded/migrated and client-default zones agree.
  */
 export function defaultBodyZone(key: string): CardFieldZone {
-  return key === "description" || key === "romanizedName"
+  return key === "description" || key === "secondaryName"
     || (HEADER_CARD_FIELD_KEYS as readonly string[]).includes(key)
     ? "card-single-top"
     : "card-labels";

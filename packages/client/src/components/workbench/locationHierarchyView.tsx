@@ -4,8 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { HierarchyView } from "../HierarchyView";
+import { LocalizedNameLabel } from "../LocalizedNameLabel";
 import { LocationTreeList } from "../LocationTreeList";
-import { RomanizedLabel } from "../RomanizedLabel";
 
 import { useExpandedSet } from "@/hooks/useExpandedSet";
 import { useLocationTree } from "@/hooks/useLocations";
@@ -38,9 +38,9 @@ export function LocationHierarchyView({
           }}
           className="hover:underline"
         >
-          <RomanizedLabel
-            name={ancestor.name}
-            romanized={ancestor.romanizedName}
+          <LocalizedNameLabel
+            names={ancestor.names ?? []}
+            base={ancestor.name}
           />
         </Link>
       )}

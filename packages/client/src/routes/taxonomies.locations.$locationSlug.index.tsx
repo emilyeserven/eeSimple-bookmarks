@@ -9,8 +9,8 @@ import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { LocationMapSection } from "../components/LocationMapSection";
-import { RomanizedLabel } from "../components/RomanizedLabel";
 import { useLocationBySlug, useLocationTree } from "../hooks/useLocations";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 import { findAncestorPath, flattenTree, subtreeIds } from "../lib/tagTree";
@@ -111,9 +111,9 @@ function LocationBookmarksPage() {
         <div className="space-y-2">
           <h1 className="flex min-w-0 items-center gap-2 text-2xl font-bold">
             <MapPin className="size-6 shrink-0" />
-            <RomanizedLabel
-              name={location.name}
-              romanized={location.romanizedName}
+            <LocalizedNameLabel
+              names={location.names ?? []}
+              base={location.name}
             />
           </h1>
           {location.children.length > 0 && (
@@ -196,9 +196,9 @@ function SubLocationPill({
       onMouseEnter={hasChildren ? () => setOpen(true) : undefined}
       onMouseLeave={hasChildren ? () => setOpen(false) : undefined}
     >
-      <RomanizedLabel
-        name={location.name}
-        romanized={location.romanizedName}
+      <LocalizedNameLabel
+        names={location.names ?? []}
+        base={location.name}
       />
     </Link>
   );
@@ -237,9 +237,9 @@ function LocationChildrenTree({
             }}
             className="hover:underline"
           >
-            <RomanizedLabel
-              name={child.name}
-              romanized={child.romanizedName}
+            <LocalizedNameLabel
+              names={child.names ?? []}
+              base={child.name}
             />
           </Link>
           {child.children.length > 0 && (

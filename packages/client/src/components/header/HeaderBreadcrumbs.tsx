@@ -50,7 +50,7 @@ function CrumbItem({
             <Link to={crumb.href}>
               <CrumbLabel
                 label={crumb.label}
-                romanizedLabel={crumb.romanizedLabel}
+                names={crumb.names}
               />
             </Link>
           </BreadcrumbLink>
@@ -59,7 +59,7 @@ function CrumbItem({
           <BreadcrumbPage>
             <CrumbLabel
               label={crumb.label}
-              romanizedLabel={crumb.romanizedLabel}
+              names={crumb.names}
             />
           </BreadcrumbPage>
         )}
@@ -108,14 +108,14 @@ function CollapsedCrumbs({
                   <Link to={crumb.href}>
                     <CrumbLabel
                       label={crumb.label}
-                      romanizedLabel={crumb.romanizedLabel}
+                      names={crumb.names}
                     />
                   </Link>
                 )
                 : (
                   <CrumbLabel
                     label={crumb.label}
-                    romanizedLabel={crumb.romanizedLabel}
+                    names={crumb.names}
                   />
                 )}
             </DropdownMenuItem>

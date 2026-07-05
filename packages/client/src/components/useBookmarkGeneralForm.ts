@@ -102,7 +102,6 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     defaultValues: {
       url: bookmark.originalUrl ?? bookmark.url ?? "",
       title: bookmark.title,
-      romanizedName: bookmark.romanizedName ?? "",
       names: [] as DraftEntityName[],
       categoryId: bookmark.categoryId ?? "",
       mediaTypeId: bookmark.mediaType?.id ?? "",

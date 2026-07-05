@@ -2,7 +2,7 @@ import type { TagNode } from "@eesimple/types";
 
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
-import { RomanizedLabel } from "../RomanizedLabel";
+import { LocalizedNameLabel } from "../LocalizedNameLabel";
 import { TagGeneralForm } from "../TagGeneralForm";
 import { TaxonomyNodeStats } from "./TaxonomyNodeStats";
 
@@ -28,9 +28,9 @@ export function TagGeneralView({
         node={node}
         parent={parent}
         renderParent={parentNode => (
-          <RomanizedLabel
-            name={parentNode.name}
-            romanized={parentNode.romanizedName}
+          <LocalizedNameLabel
+            names={parentNode.names ?? []}
+            base={parentNode.name}
           />
         )}
         autofillClassName="pt-2"

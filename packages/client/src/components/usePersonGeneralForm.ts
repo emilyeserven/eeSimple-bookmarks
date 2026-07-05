@@ -22,7 +22,6 @@ import { SOCIAL_MEDIA_PLATFORM_LABELS, socialLinkSchema } from "../lib/socialLin
 
 const personGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
-  romanizedName: z.string(),
   personWebsiteUrl: z.string(),
   biographyUrl: z.string(),
   socialLinks: z.array(socialLinkSchema),
@@ -30,7 +29,6 @@ const personGeneralSchema = z.object({
 
 const LABELS: Partial<Record<keyof UpdatePersonInput, string>> = {
   name: "Name",
-  romanizedName: "Romanized name",
   personWebsiteUrl: "Person website",
   biographyUrl: "Biography URL",
   socialLinks: "Social media links",
@@ -81,7 +79,6 @@ export function usePersonGeneralForm(person: Person) {
     labels: LABELS,
     initial: {
       name: person.name,
-      romanizedName: person.romanizedName ?? "",
       personWebsiteUrl: person.personWebsiteUrl,
       biographyUrl: person.biographyUrl,
       socialLinks: person.socialLinks,
@@ -91,7 +88,6 @@ export function usePersonGeneralForm(person: Person) {
   const form = useAppForm({
     defaultValues: {
       name: person.name,
-      romanizedName: person.romanizedName ?? "",
       personWebsiteUrl: person.personWebsiteUrl ?? "",
       biographyUrl: person.biographyUrl ?? "",
     },

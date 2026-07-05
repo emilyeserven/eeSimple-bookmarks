@@ -1,3 +1,4 @@
+import type { EntityName } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useTranslation } from "react-i18next";
@@ -7,8 +8,8 @@ export interface HierarchyAncestor {
   id: string;
   slug: string;
   name: string;
-  /** Optional romanized form, shown de-emphasized after the name (e.g. for tags). */
-  romanizedName?: string | null;
+  /** Optional multilingual names, resolved to a secondary form shown after the name (e.g. for tags). */
+  names?: EntityName[];
 }
 
 interface HierarchyViewProps {

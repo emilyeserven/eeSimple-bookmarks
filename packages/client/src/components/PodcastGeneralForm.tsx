@@ -24,7 +24,6 @@ import { useAppForm } from "@/lib/form";
 
 const podcastGeneralSchema = z.object({
   name: z.string().trim().min(1, i18n.t("Name is required")),
-  romanizedName: z.string(),
   sortOrder: z.number().int(),
   mediaPropertyId: z.string(),
   feedUrl: z.string(),
@@ -35,7 +34,6 @@ const podcastGeneralSchema = z.object({
 
 const LABELS: Record<keyof UpdatePodcastInput, string> = {
   name: i18n.t("Name"),
-  romanizedName: i18n.t("Romanized name"),
   sortOrder: i18n.t("Sort order"),
   mediaPropertyId: i18n.t("Media property"),
   feedUrl: i18n.t("Feed URL"),
@@ -66,7 +64,6 @@ export function PodcastGeneralForm({
     labels: LABELS,
     initial: {
       name: podcast.name,
-      romanizedName: podcast.romanizedName ?? "",
       sortOrder: podcast.sortOrder,
       feedUrl: podcast.feedUrl ?? "",
       spotifyUrl: podcast.spotifyUrl ?? "",
@@ -117,7 +114,6 @@ export function PodcastGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: podcast.name,
-      romanizedName: podcast.romanizedName ?? "",
       sortOrder: podcast.sortOrder,
       mediaPropertyId: podcast.mediaPropertyId ?? "",
       feedUrl: podcast.feedUrl ?? "",
@@ -247,7 +243,6 @@ export function PodcastGeneralForm({
         form={form}
         fields={{
           name: "name",
-          romanizedName: "romanizedName",
           sortOrder: "sortOrder",
           mediaPropertyId: "mediaPropertyId",
         }}

@@ -8,6 +8,7 @@ import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
 import { TreeCombobox } from "./TreeCombobox";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
+import { buildSearchAlias } from "../lib/searchAlias";
 
 import { Label } from "@/components/ui/label";
 
@@ -116,7 +117,7 @@ export function ImportItemAdvancedEditFields({
           options={people.map(a => ({
             value: a.id,
             label: a.name,
-            searchAlias: a.romanizedName ?? undefined,
+            searchAlias: buildSearchAlias(a.names),
           }))}
           values={personIds}
           onValuesChange={onPeopleChange}
@@ -136,7 +137,7 @@ export function ImportItemAdvancedEditFields({
           options={groups.map(p => ({
             value: p.id,
             label: p.name,
-            searchAlias: p.romanizedName ?? undefined,
+            searchAlias: buildSearchAlias(p.names),
           }))}
           value={groupId}
           onValueChange={onGroupChange}

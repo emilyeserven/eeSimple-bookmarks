@@ -7,7 +7,7 @@ import i18n from "../../i18n";
 export interface PlexTitleDiffCurrent {
   /** Native-script display name (the title field). */
   name: string | null;
-  romanizedName: string | null;
+  englishName: string | null;
   wikipediaLinkEn: string | null;
   wikipediaLinkLocal: string | null;
   /** The entity's current main image URL, for the poster row's "current" preview. */
@@ -17,18 +17,22 @@ export interface PlexTitleDiffCurrent {
 /** The freshly-resolved source values: Wikidata metadata + the Plex poster proxy URL. */
 export interface PlexTitleDiffSource {
   name: string | null;
-  romanizedName: string | null;
+  englishName: string | null;
   wikipediaLinkEn: string | null;
   wikipediaLinkLocal: string | null;
   posterUrl: string | null;
 }
 
-/** Which editable text field a diff row stages (the poster row is handled separately, by key). */
-export type PlexTitleSyncField = "name" | "romanizedName" | "wikipediaLinkEn" | "wikipediaLinkLocal";
+/**
+ * Which editable text field a diff row stages (the poster row is handled separately, by key). The
+ * resolved English name isn't one of these — these entities have no English-name scalar to stage it
+ * into (unlike Locations); it's carried on {@link PlexTitleDiffCurrent}/{@link PlexTitleDiffSource}
+ * for future use (e.g. merging into `entity_names`) but doesn't produce a row today.
+ */
+export type PlexTitleSyncField = "name" | "wikipediaLinkEn" | "wikipediaLinkLocal";
 
 const FIELD_LABELS: Record<PlexTitleSyncField, string> = {
   name: i18n.t("Name (native)"),
-  romanizedName: i18n.t("Romanized name"),
   wikipediaLinkEn: i18n.t("Wikipedia (English)"),
   wikipediaLinkLocal: i18n.t("Wikipedia (local)"),
 };
@@ -65,7 +69,6 @@ export function buildPlexTitleDiff(
   };
 
   pushText("name", current.name, source.name);
-  pushText("romanizedName", current.romanizedName, source.romanizedName);
   pushText("wikipediaLinkEn", current.wikipediaLinkEn, source.wikipediaLinkEn);
   pushText("wikipediaLinkLocal", current.wikipediaLinkLocal, source.wikipediaLinkLocal);
 
