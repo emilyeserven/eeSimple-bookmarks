@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Album } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { AlbumCreditsValue } from "../AlbumCreditsSection";
 import { AlbumGeneralForm } from "../AlbumGeneralForm";
 import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
@@ -41,17 +42,17 @@ export const albumWorkbench: EntityWorkbench<Album> = {
       }),
     };
   },
-  notFound: "Album not found.",
-  navAriaLabel: "Album sections",
+  notFound: i18n.t("Album not found."),
+  navAriaLabel: i18n.t("Album sections"),
   listingPath: "/taxonomies/albums",
   getSlug: album => album.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Media property, credits, Plex link, year, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Media property, credits, Plex link, year, and metadata."),
         render: ({
           entity,
         }) => (
@@ -65,8 +66,8 @@ export const albumWorkbench: EntityWorkbench<Album> = {
         ),
       },
       edit: {
-        title: "General",
-        description: "Name, media property, credits, Plex link, and year.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, media property, credits, Plex link, and year."),
         render: ({
           entity,
         }) => <AlbumGeneralForm album={entity} />,
@@ -74,10 +75,10 @@ export const albumWorkbench: EntityWorkbench<Album> = {
     },
     {
       key: "image",
-      label: "Image",
+      label: i18n.t("Image"),
       view: {
-        title: "Image",
-        description: "The album's cover image.",
+        title: i18n.t("Image"),
+        description: i18n.t("The album's cover image."),
         render: ({
           entity,
         }) => (
@@ -90,8 +91,8 @@ export const albumWorkbench: EntityWorkbench<Album> = {
         ),
       },
       edit: {
-        title: "Image",
-        description: "Upload a cover image, or pull it from the linked Plex item.",
+        title: i18n.t("Image"),
+        description: i18n.t("Upload a cover image, or pull it from the linked Plex item."),
         render: ({
           entity,
         }) => (

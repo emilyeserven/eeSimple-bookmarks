@@ -1,6 +1,7 @@
 import type { MediaType } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
@@ -20,22 +21,25 @@ export function MediaTypeGeneralView({
   const {
     data: allMediaTypes,
   } = useMediaTypes();
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-6">
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{t("Added")}</dt>
         <dd>{new Date(mt.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{mt.slug}</dd>
         {mt.parentId != null
           ? (
             <>
-              <dt className="text-muted-foreground">Parent</dt>
+              <dt className="text-muted-foreground">{t("Parent")}</dt>
               <dd>{(allMediaTypes ?? []).find(m => m.id === mt.parentId)?.name ?? "—"}</dd>
             </>
           )
           : null}
-        <dt className="text-muted-foreground">Icon</dt>
+        <dt className="text-muted-foreground">{t("Icon")}</dt>
         <dd>
           {mt.icon
             ? (
@@ -44,16 +48,16 @@ export function MediaTypeGeneralView({
                 className="size-4"
               />
             )
-            : <span className="text-muted-foreground">None</span>}
+            : <span className="text-muted-foreground">{t("None")}</span>}
         </dd>
-        <dt className="text-muted-foreground">Sort order</dt>
+        <dt className="text-muted-foreground">{t("Sort order")}</dt>
         <dd>{mt.sortOrder}</dd>
-        <dt className="text-muted-foreground">Built-in</dt>
-        <dd>{mt.builtIn ? "Yes" : "No"}</dd>
+        <dt className="text-muted-foreground">{t("Built-in")}</dt>
+        <dd>{mt.builtIn ? t("Yes") : t("No")}</dd>
         {mt.bookmarkCount != null
           ? (
             <>
-              <dt className="text-muted-foreground">Bookmarks</dt>
+              <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
               <dd>{mt.bookmarkCount}</dd>
             </>
           )
@@ -81,14 +85,17 @@ export function MediaTypeHierarchyView({
   const {
     data, isLoading,
   } = useMediaTypeTree();
+  const {
+    t,
+  } = useTranslation();
   const tree = data ?? [];
   const node = flattenTree(tree).find(flat => flat.node.slug === mt.slug)?.node;
   const {
     expanded, onToggle,
   } = useExpandedSet(node?.children.map(c => c.id) ?? []);
 
-  if (isLoading && !node) return <p className="text-muted-foreground">Loading…</p>;
-  if (!node) return <p className="text-destructive">Media type not found.</p>;
+  if (isLoading && !node) return <p className="text-muted-foreground">{t("Loading…")}</p>;
+  if (!node) return <p className="text-destructive">{t("Media type not found.")}</p>;
 
   const path = findAncestorPath(tree, mt.slug);
   const ancestors = path ? path.slice(0, -1) : [];
@@ -108,7 +115,7 @@ export function MediaTypeHierarchyView({
         </Link>
       )}
       hasChildren={node.children.length > 0}
-      childrenEmptyLabel="No child media types."
+      childrenEmptyLabel={t("No child media types.")}
       childrenList={(
         <MediaTypeTreeList
           tree={node.children}

@@ -2,6 +2,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Book } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { BookGeneralForm } from "../BookGeneralForm";
 import { BookImageTab } from "../BookImageTab";
 import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
@@ -23,10 +24,12 @@ function KavitaSeriesValue({
   if (book.kavitaSeriesId === null) return (
     <span
       className="text-muted-foreground"
-    >Not linked
+    >{i18n.t("Not linked")}
     </span>
   );
-  const name = book.kavitaSeriesName ?? `Series #${book.kavitaSeriesId}`;
+  const name = book.kavitaSeriesName ?? i18n.t("Series #{{seriesId}}", {
+    seriesId: book.kavitaSeriesId,
+  });
   const baseUrl = connectors?.kavita.enabled ? connectors.kavita.baseUrl : null;
   if (!baseUrl || book.kavitaLibraryId === null) return <span>{name}</span>;
   return (
@@ -56,37 +59,39 @@ function BookGeneralView({
   return (
     <div className="space-y-4">
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{i18n.t("Added")}</dt>
         <dd>{new Date(book.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{i18n.t("Slug")}</dt>
         <dd className="font-mono">{book.slug}</dd>
-        <dt className="text-muted-foreground">Names</dt>
+        <dt className="text-muted-foreground">{i18n.t("Names")}</dt>
         <dd>
           <EntityNamesTabView
             ownerType="book"
             ownerId={book.id}
           />
         </dd>
-        <dt className="text-muted-foreground">Media property</dt>
-        <dd>{mediaProperty?.name ?? <span className="text-muted-foreground">None</span>}</dd>
+        <dt className="text-muted-foreground">{i18n.t("Media property")}</dt>
+        <dd>
+          {mediaProperty?.name ?? <span className="text-muted-foreground">{i18n.t("None")}</span>}
+        </dd>
         {book.releaseYear != null
           ? (
             <>
-              <dt className="text-muted-foreground">Release year</dt>
+              <dt className="text-muted-foreground">{i18n.t("Release year")}</dt>
               <dd>{book.releaseYear}</dd>
             </>
           )
           : null}
-        <dt className="text-muted-foreground">Kavita series</dt>
+        <dt className="text-muted-foreground">{i18n.t("Kavita series")}</dt>
         <dd>
           <KavitaSeriesValue book={book} />
         </dd>
-        <dt className="text-muted-foreground">Sort order</dt>
+        <dt className="text-muted-foreground">{i18n.t("Sort order")}</dt>
         <dd>{book.sortOrder}</dd>
         {book.bookmarkCount != null
           ? (
             <>
-              <dt className="text-muted-foreground">Bookmarks</dt>
+              <dt className="text-muted-foreground">{i18n.t("Bookmarks")}</dt>
               <dd>{book.bookmarkCount}</dd>
             </>
           )
@@ -128,22 +133,22 @@ export const bookWorkbench: EntityWorkbench<Book> = {
       }),
     };
   },
-  notFound: "Book not found.",
-  navAriaLabel: "Book sections",
+  notFound: i18n.t("Book not found."),
+  navAriaLabel: i18n.t("Book sections"),
   listingPath: "/taxonomies/books",
   getSlug: book => book.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Media property, Kavita link, release year, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Media property, Kavita link, release year, and metadata."),
         render: BookGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name, media property, Kavita link, and release year.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, media property, Kavita link, and release year."),
         render: ({
           entity,
         }) => <BookGeneralForm book={entity} />,
@@ -151,10 +156,10 @@ export const bookWorkbench: EntityWorkbench<Book> = {
     },
     {
       key: "image",
-      label: "Image",
+      label: i18n.t("Image"),
       view: {
-        title: "Image",
-        description: "The book's cover image.",
+        title: i18n.t("Image"),
+        description: i18n.t("The book's cover image."),
         render: ({
           entity,
         }) => (
@@ -165,8 +170,8 @@ export const bookWorkbench: EntityWorkbench<Book> = {
         ),
       },
       edit: {
-        title: "Image",
-        description: "Upload a cover, or pull it from Kavita or the book's ISBN.",
+        title: i18n.t("Image"),
+        description: i18n.t("Upload a cover, or pull it from Kavita or the book's ISBN."),
         render: ({
           entity,
         }) => <BookImageTab book={entity} />,

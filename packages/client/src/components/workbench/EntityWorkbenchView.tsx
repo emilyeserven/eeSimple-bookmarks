@@ -1,6 +1,7 @@
 import type { EntityWorkbench, WorkbenchMode, WorkbenchPane } from "./types";
 
 import { PanelLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TabbedShell, navLinkClass } from "../TabbedShell";
 
@@ -58,8 +59,11 @@ export function EntityWorkbenchView<E extends { id: string }>({
     entity, isLoading, error,
   } = workbench.useById(id);
   const del = workbench.useDelete();
+  const {
+    t,
+  } = useTranslation();
 
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
+  if (isLoading) return <p className="text-muted-foreground">{t("Loading…")}</p>;
   if (error) return <p className="text-destructive">{error.message}</p>;
   if (!entity) return <p className="text-destructive">{workbench.notFound}</p>;
 
@@ -72,7 +76,7 @@ export function EntityWorkbenchView<E extends { id: string }>({
   const pane = mode === "edit" ? active?.edit : active?.view;
   const canDelete = del != null && (workbench.canDelete?.(entity) ?? true);
 
-  if (!active || !pane) return <p className="text-muted-foreground">Nothing to show.</p>;
+  if (!active || !pane) return <p className="text-muted-foreground">{t("Nothing to show.")}</p>;
 
   const onSendToMainPane = buildSendToMainPane?.(entity);
 
@@ -81,7 +85,7 @@ export function EntityWorkbenchView<E extends { id: string }>({
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="truncate text-xl font-semibold">{workbench.name(entity)}</h2>
-          {workbench.isBuiltIn?.(entity) ? <Badge variant="secondary">Built-in</Badge> : null}
+          {workbench.isBuiltIn?.(entity) ? <Badge variant="secondary">{t("Built-in")}</Badge> : null}
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {onSendToMainPane && (
@@ -90,7 +94,7 @@ export function EntityWorkbenchView<E extends { id: string }>({
               variant="ghost"
               size="icon"
               className="size-7"
-              aria-label="Open in main pane"
+              aria-label={t("Open in main pane")}
               onClick={onSendToMainPane}
             >
               <PanelLeft className="size-4" />
@@ -102,7 +106,7 @@ export function EntityWorkbenchView<E extends { id: string }>({
             size="sm"
             onClick={() => onModeChange(mode === "edit" ? "view" : "edit")}
           >
-            {mode === "edit" ? "Done" : "Edit"}
+            {mode === "edit" ? t("Done") : t("Edit")}
           </Button>
           {canDelete && del
             ? (
@@ -117,7 +121,7 @@ export function EntityWorkbenchView<E extends { id: string }>({
                 disabled={del.isPending}
                 onClick={() => del.run(entity.id, onDeleted)}
               >
-                {del.isPending ? "Deleting…" : "Delete"}
+                {del.isPending ? t("Deleting…") : t("Delete")}
               </Button>
             )
             : null}

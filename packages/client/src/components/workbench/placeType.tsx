@@ -4,6 +4,7 @@ import type { LocationNode, PlaceType } from "@eesimple/types";
 
 import { placeTypeKey } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { LocationMapSection } from "../LocationMapSection";
 import { PlaceTypeGeneralForm } from "../PlaceTypeGeneralForm";
 
@@ -32,13 +33,13 @@ function PlaceTypeGeneralView({
   return (
     <div className="space-y-4">
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{i18n.t("Added")}</dt>
         <dd>{new Date(placeType.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{i18n.t("Slug")}</dt>
         <dd className="font-mono">{placeType.slug}</dd>
-        <dt className="text-muted-foreground">Sort order</dt>
+        <dt className="text-muted-foreground">{i18n.t("Sort order")}</dt>
         <dd>{placeType.sortOrder}</dd>
-        <dt className="text-muted-foreground">Locations</dt>
+        <dt className="text-muted-foreground">{i18n.t("Locations")}</dt>
         <dd>{placeType.locationCount}</dd>
       </dl>
       {nodes.length > 0
@@ -46,7 +47,7 @@ function PlaceTypeGeneralView({
           <LocationMapSection
             mapKey={`place-type:${placeType.slug}`}
             tree={nodes}
-            title="Map"
+            title={i18n.t("Map")}
             scope={{
               kind: "location",
               currentPlaceType: placeType.slug,
@@ -55,7 +56,7 @@ function PlaceTypeGeneralView({
         )
         : (
           <p className="text-sm text-muted-foreground">
-            No locations use this place type yet.
+            {i18n.t("No locations use this place type yet.")}
           </p>
         )}
     </div>
@@ -97,8 +98,8 @@ export const placeTypeWorkbench: EntityWorkbench<PlaceType> = {
       }),
     };
   },
-  notFound: "Place type not found.",
-  navAriaLabel: "Place type sections",
+  notFound: i18n.t("Place type not found."),
+  navAriaLabel: i18n.t("Place type sections"),
   listingPath: "/taxonomies/place-types",
   getSlug: placeType => placeType.slug,
   tabs: [
@@ -106,13 +107,13 @@ export const placeTypeWorkbench: EntityWorkbench<PlaceType> = {
       key: "general",
       label: "General",
       view: {
-        title: "General",
-        description: "Place type details and a map of its locations.",
+        title: i18n.t("General"),
+        description: i18n.t("Place type details and a map of its locations."),
         render: PlaceTypeGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name and sort order.",
+        title: i18n.t("General"),
+        description: i18n.t("Name and sort order."),
         render: ({
           entity,
         }) => <PlaceTypeGeneralForm placeType={entity} />,

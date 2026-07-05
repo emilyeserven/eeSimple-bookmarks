@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { MediaType } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { MediaTypeGeneralForm } from "../MediaTypeGeneralForm";
@@ -42,22 +43,22 @@ export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
       }),
     };
   },
-  notFound: "Media type not found.",
-  navAriaLabel: "Media type sections",
+  notFound: i18n.t("Media type not found."),
+  navAriaLabel: i18n.t("Media type sections"),
   listingPath: "/taxonomies/media-types",
   getSlug: mediaType => mediaType.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Name, sort order, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, sort order, and metadata."),
         render: MediaTypeGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name and sort order.",
+        title: i18n.t("General"),
+        description: i18n.t("Name and sort order."),
         render: ({
           entity,
         }) => <MediaTypeGeneralForm mediaType={entity} />,
@@ -65,19 +66,19 @@ export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
     },
     {
       key: "hierarchy",
-      label: "Hierarchy",
+      label: i18n.t("Hierarchy"),
       view: {
-        title: "Hierarchy",
-        description: "Parent and child media types.",
+        title: i18n.t("Hierarchy"),
+        description: i18n.t("Parent and child media types."),
         render: MediaTypeHierarchyView,
       },
     },
     {
       key: "autofill",
-      label: "Autofill Rules",
+      label: i18n.t("Autofill Rules"),
       view: {
-        title: "Autofill Rules",
-        description: "Autofill rules that set this media type.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules that set this media type."),
         render: ({
           entity,
         }) => (
@@ -88,8 +89,8 @@ export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
         ),
       },
       edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules that set this media type.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules that set this media type."),
         render: ({
           entity,
         }) => (
@@ -102,17 +103,17 @@ export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
     },
     {
       key: "display-rules",
-      label: "Display Rules",
+      label: i18n.t("Display Rules"),
       view: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this media type.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this media type."),
         render: ({
           entity,
         }) => <CardDisplayRulesList mediaTypeId={entity.id} />,
       },
       edit: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this media type.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this media type."),
         render: ({
           entity,
         }) => <CardDisplayRulesList mediaTypeId={entity.id} />,

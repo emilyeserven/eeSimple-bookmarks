@@ -1,6 +1,7 @@
 import type { Website } from "@eesimple/types";
 
 import { ExternalLink, Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { EntityImagePreview } from "../EntityImageField";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
@@ -16,6 +17,9 @@ export function WebsiteGeneralView({
   entity: Website;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allChannels,
   } = useYouTubeChannels();
   const associatedChannels = (allChannels ?? []).filter(
@@ -30,7 +34,7 @@ export function WebsiteGeneralView({
         fallback={<Globe className="size-5" />}
       />
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Domain</dt>
+        <dt className="text-muted-foreground">{t("Domain")}</dt>
         <dd>
           <a
             href={`https://${website.domain}`}
@@ -45,16 +49,16 @@ export function WebsiteGeneralView({
             <ExternalLink className="size-3" />
           </a>
         </dd>
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{t("Added")}</dt>
         <dd>{new Date(website.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{website.slug}</dd>
-        <dt className="text-muted-foreground">Built-in</dt>
-        <dd>{website.builtIn ? "Yes — name & domain are fixed" : "No"}</dd>
+        <dt className="text-muted-foreground">{t("Built-in")}</dt>
+        <dd>{website.builtIn ? t("Yes — name & domain are fixed") : t("No")}</dd>
         {website.alternateNames.length > 0
           ? (
             <>
-              <dt className="text-muted-foreground">Alternate Names</dt>
+              <dt className="text-muted-foreground">{t("Alternate Names")}</dt>
               <dd>{website.alternateNames.join(", ")}</dd>
             </>
           )
@@ -62,7 +66,7 @@ export function WebsiteGeneralView({
         {website.bookmarkCount != null
           ? (
             <>
-              <dt className="text-muted-foreground">Bookmarks</dt>
+              <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
               <dd>{website.bookmarkCount}</dd>
             </>
           )
@@ -72,7 +76,7 @@ export function WebsiteGeneralView({
             <dt
               key={`ch-label-${ch.id}`}
               className="text-muted-foreground"
-            >YouTube Channel
+            >{t("YouTube Channel")}
             </dt>
             <dd key={`ch-value-${ch.id}`}>{ch.name}</dd>
           </>

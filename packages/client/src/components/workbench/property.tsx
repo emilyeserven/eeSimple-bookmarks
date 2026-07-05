@@ -3,6 +3,7 @@ import type { EntityWorkbench } from "./types";
 import type { PropertyFormSection } from "../propertyFormSchema";
 import type { CustomProperty } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import {
@@ -132,23 +133,23 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
       }),
     };
   },
-  notFound: "Custom property not found.",
-  navAriaLabel: "Custom property sections",
+  notFound: i18n.t("Custom property not found."),
+  navAriaLabel: i18n.t("Custom property sections"),
   getSlug: property => property.slug,
   tabs: [
     {
       key: "general",
       label: "General",
       view: {
-        title: "General",
-        description: "Status, description, and when this property was created.",
+        title: i18n.t("General"),
+        description: i18n.t("Status, description, and when this property was created."),
         render: ({
           entity,
         }) => <PropertyGeneralFields property={entity} />,
       },
       edit: {
-        title: "General",
-        description: "Name, status, and description.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, status, and description."),
         render: editPane("general"),
       },
     },
@@ -157,13 +158,13 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
       label: "Options",
       showIf: hasPropertyOptions,
       view: {
-        title: "Options",
-        description: "Type-specific configuration for this property.",
+        title: i18n.t("Options"),
+        description: i18n.t("Type-specific configuration for this property."),
         render: PropertyOptionsView,
       },
       edit: {
-        title: "Options",
-        description: "Type-specific configuration for this property.",
+        title: i18n.t("Options"),
+        description: i18n.t("Type-specific configuration for this property."),
         render: editPane("options"),
       },
     },
@@ -171,13 +172,13 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
       key: "categories",
       label: "Categories",
       view: {
-        title: "Categories",
-        description: "The categories this property applies to.",
+        title: i18n.t("Categories"),
+        description: i18n.t("The categories this property applies to."),
         render: PropertyCategoriesView,
       },
       edit: {
-        title: "Categories",
-        description: "Choose which categories this property applies to.",
+        title: i18n.t("Categories"),
+        description: i18n.t("Choose which categories this property applies to."),
         render: editPane("categories"),
       },
     },
@@ -185,13 +186,13 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
       key: "media-types",
       label: "Media Types",
       view: {
-        title: "Media Types",
-        description: "The media types this property is also scoped to.",
+        title: i18n.t("Media Types"),
+        description: i18n.t("The media types this property is also scoped to."),
         render: PropertyMediaTypesView,
       },
       edit: {
-        title: "Media Types",
-        description: "Also show this property on bookmarks of the chosen media types (in addition to its categories).",
+        title: i18n.t("Media Types"),
+        description: i18n.t("Also show this property on bookmarks of the chosen media types (in addition to its categories)."),
         render: editPane("media-types"),
       },
     },
@@ -199,13 +200,13 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
       key: "display",
       label: "Display",
       view: {
-        title: "Display",
-        description: "Where this property appears and whether it's editable from the card menu or CMD+K.",
+        title: i18n.t("Display"),
+        description: i18n.t("Where this property appears and whether it's editable from the card menu or CMD+K."),
         render: PropertyDisplayView,
       },
       edit: {
-        title: "Display",
-        description: "Where this property appears and whether it's editable from the card menu or CMD+K.",
+        title: i18n.t("Display"),
+        description: i18n.t("Where this property appears and whether it's editable from the card menu or CMD+K."),
         render: editPane("display"),
       },
     },
@@ -213,8 +214,8 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
       key: "autofill",
       label: "Autofill Rules",
       view: {
-        title: "Autofill Rules",
-        description: "Autofill rules that set a value for this property.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules that set a value for this property."),
         render: ({
           entity,
         }) => (
@@ -225,8 +226,8 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
         ),
       },
       edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules that set a value for this property.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules that set a value for this property."),
         render: ({
           entity,
         }) => (
@@ -241,15 +242,15 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
       key: "display-rules",
       label: "Display Rules",
       view: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this property.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this property."),
         render: ({
           entity,
         }) => <CardDisplayRulesList propertyId={entity.id} />,
       },
       edit: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this property.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this property."),
         render: ({
           entity,
         }) => <CardDisplayRulesList propertyId={entity.id} />,

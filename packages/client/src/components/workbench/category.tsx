@@ -2,6 +2,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Category } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { CategoryCustomProperties } from "../CategoryCustomProperties";
@@ -69,22 +70,22 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
       }),
     };
   },
-  notFound: "Category not found.",
-  navAriaLabel: "Category sections",
+  notFound: i18n.t("Category not found."),
+  navAriaLabel: i18n.t("Category sections"),
   listingPath: "/categories",
   getSlug: category => category.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Name, icon, description, and other details.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, icon, description, and other details."),
         render: CategoryGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name, icon, and description.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, icon, and description."),
         render: ({
           entity,
         }) => <CategoryGeneralForm category={entity} />,
@@ -92,17 +93,17 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
     },
     {
       key: "tiered-tags",
-      label: "Tiered Tags",
+      label: i18n.t("Tiered Tags"),
       view: {
-        title: "Tiered Tags",
-        description: "Tiered (parent) tags scoped to this category.",
+        title: i18n.t("Tiered Tags"),
+        description: i18n.t("Tiered (parent) tags scoped to this category."),
         render: ({
           entity,
         }) => <CategoryTieredTags categoryId={entity.id} />,
       },
       edit: {
-        title: "Tiered Tags",
-        description: "Tiered (parent) tags scoped to this category.",
+        title: i18n.t("Tiered Tags"),
+        description: i18n.t("Tiered (parent) tags scoped to this category."),
         render: ({
           entity,
         }) => <CategoryTieredTags categoryId={entity.id} />,
@@ -110,17 +111,17 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
     },
     {
       key: "custom-properties",
-      label: "Custom Properties",
+      label: i18n.t("Custom Properties"),
       view: {
-        title: "Custom Properties",
-        description: "The custom properties this category has access to, and their default values.",
+        title: i18n.t("Custom Properties"),
+        description: i18n.t("The custom properties this category has access to, and their default values."),
         render: ({
           entity,
         }) => <CategoryCustomProperties category={entity} />,
       },
       edit: {
-        title: "Custom Properties",
-        description: "The custom properties this category has access to, and their default values.",
+        title: i18n.t("Custom Properties"),
+        description: i18n.t("The custom properties this category has access to, and their default values."),
         render: ({
           entity,
         }) => <CategoryCustomProperties category={entity} />,
@@ -128,10 +129,10 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
     },
     {
       key: "display",
-      label: "Display",
+      label: i18n.t("Display"),
       edit: {
-        title: "Display",
-        description: "How this category's bookmark listing is laid out.",
+        title: i18n.t("Display"),
+        description: i18n.t("How this category's bookmark listing is laid out."),
         render: ({
           entity,
         }) => <ListingDisplayControls pageKey={`category:${entity.slug}`} />,
@@ -139,10 +140,10 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
     },
     {
       key: "autofill",
-      label: "Autofill Rules",
+      label: i18n.t("Autofill Rules"),
       view: {
-        title: "Autofill Rules",
-        description: "Autofill rules that set this category.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules that set this category."),
         render: ({
           entity,
         }) => (
@@ -153,8 +154,8 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
         ),
       },
       edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules that set this category.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules that set this category."),
         render: ({
           entity,
         }) => (
@@ -167,17 +168,17 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
     },
     {
       key: "display-rules",
-      label: "Display Rules",
+      label: i18n.t("Display Rules"),
       view: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions target this category.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions target this category."),
         render: ({
           entity,
         }) => <CardDisplayRulesList categoryId={entity.id} />,
       },
       edit: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions target this category.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions target this category."),
         render: ({
           entity,
         }) => <CardDisplayRulesList categoryId={entity.id} />,

@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { CardDisplayRule } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { CardDisplayRuleConditionsForm } from "../CardDisplayRuleConditionsForm";
 import { CardDisplayRuleDisplayForm } from "../CardDisplayRuleDisplayForm";
 import { CardDisplayRuleGeneralForm } from "../CardDisplayRuleGeneralForm";
@@ -45,21 +46,21 @@ export const cardDisplayRuleWorkbench: EntityWorkbench<CardDisplayRule> = {
       }),
     };
   },
-  notFound: "Card display rule not found.",
-  navAriaLabel: "Card display rule sections",
+  notFound: i18n.t("Card display rule not found."),
+  navAriaLabel: i18n.t("Card display rule sections"),
   getSlug: rule => rule.slug,
   tabs: [
     {
       key: "general",
       label: "General",
       view: {
-        title: "General",
-        description: "Name and description.",
+        title: i18n.t("General"),
+        description: i18n.t("Name and description."),
         render: CardDisplayRuleGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name and description.",
+        title: i18n.t("General"),
+        description: i18n.t("Name and description."),
         render: CardDisplayRuleGeneralForm,
       },
     },
@@ -69,13 +70,13 @@ export const cardDisplayRuleWorkbench: EntityWorkbench<CardDisplayRule> = {
       // The Default rule matches every card unconditionally, so it has no conditions to edit.
       showIf: rule => !rule.isDefault,
       view: {
-        title: "Conditions",
-        description: "Which bookmarks this rule applies to.",
+        title: i18n.t("Conditions"),
+        description: i18n.t("Which bookmarks this rule applies to."),
         render: CardDisplayRuleConditionsView,
       },
       edit: {
-        title: "Conditions",
-        description: "Configure which bookmarks this rule applies to.",
+        title: i18n.t("Conditions"),
+        description: i18n.t("Configure which bookmarks this rule applies to."),
         render: CardDisplayRuleConditionsForm,
       },
     },
@@ -83,13 +84,13 @@ export const cardDisplayRuleWorkbench: EntityWorkbench<CardDisplayRule> = {
       key: "display",
       label: "Display",
       view: {
-        title: "Display",
-        description: "How matching bookmark cards are shown.",
+        title: i18n.t("Display"),
+        description: i18n.t("How matching bookmark cards are shown."),
         render: CardDisplayRuleDisplayView,
       },
       edit: {
-        title: "Display",
-        description: "Card field placement and image presentation. Unset attributes inherit from lower-priority rules.",
+        title: i18n.t("Display"),
+        description: i18n.t("Card field placement and image presentation. Unset attributes inherit from lower-priority rules."),
         render: CardDisplayRuleDisplayForm,
       },
     },

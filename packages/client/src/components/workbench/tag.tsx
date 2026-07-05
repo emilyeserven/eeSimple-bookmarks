@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { TagNode } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { TagCategories } from "../TagCategories";
@@ -41,38 +42,38 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
       }),
     };
   },
-  notFound: "Tag not found.",
-  navAriaLabel: "Tag sections",
+  notFound: i18n.t("Tag not found."),
+  navAriaLabel: i18n.t("Tag sections"),
   listingPath: "/tags",
   getSlug: tag => tag.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Name, parent, and tag details.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, parent, and tag details."),
         render: TagGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name and parent tag.",
+        title: i18n.t("General"),
+        description: i18n.t("Name and parent tag."),
         render: TagGeneralEdit,
       },
     },
     {
       key: "categories",
-      label: "Categories",
+      label: i18n.t("Categories"),
       view: {
-        title: "Categories",
-        description: "Categories that offer this tag when tagging bookmarks.",
+        title: i18n.t("Categories"),
+        description: i18n.t("Categories that offer this tag when tagging bookmarks."),
         render: ({
           entity,
         }) => <TagCategories tag={entity} />,
       },
       edit: {
-        title: "Categories",
-        description: "Categories that offer this tag when tagging bookmarks.",
+        title: i18n.t("Categories"),
+        description: i18n.t("Categories that offer this tag when tagging bookmarks."),
         render: ({
           entity,
         }) => <TagCategories tag={entity} />,
@@ -80,19 +81,19 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
     },
     {
       key: "hierarchy",
-      label: "Hierarchy",
+      label: i18n.t("Hierarchy"),
       view: {
-        title: "Hierarchy",
-        description: "Parent and child tags.",
+        title: i18n.t("Hierarchy"),
+        description: i18n.t("Parent and child tags."),
         render: TagHierarchyView,
       },
     },
     {
       key: "autofill",
-      label: "Autofill Rules",
+      label: i18n.t("Autofill Rules"),
       view: {
-        title: "Autofill Rules",
-        description: "Autofill rules that apply this tag.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules that apply this tag."),
         render: ({
           entity,
         }) => (
@@ -103,8 +104,8 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
         ),
       },
       edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules that apply this tag.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules that apply this tag."),
         render: ({
           entity,
         }) => (
@@ -117,17 +118,17 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
     },
     {
       key: "display-rules",
-      label: "Display Rules",
+      label: i18n.t("Display Rules"),
       view: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this tag.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this tag."),
         render: ({
           entity,
         }) => <CardDisplayRulesList tagId={entity.id} />,
       },
       edit: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this tag.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this tag."),
         render: ({
           entity,
         }) => <CardDisplayRulesList tagId={entity.id} />,

@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Bookmark } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { BookmarkGeneralForm } from "../BookmarkGeneralForm";
 import { BookmarkImageEditForm } from "../BookmarkImageEditForm";
 import { BookmarkPropertiesForm } from "../BookmarkPropertiesForm";
@@ -45,16 +46,16 @@ export const bookmarkEditWorkbench: EntityWorkbench<Bookmark> = {
       }),
     };
   },
-  notFound: "Bookmark not found.",
-  navAriaLabel: "Bookmark edit sections",
+  notFound: i18n.t("Bookmark not found."),
+  navAriaLabel: i18n.t("Bookmark edit sections"),
   getSlug: bookmark => bookmark.id,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       edit: {
-        title: "General",
-        description: "URL, name, description, category, and tags.",
+        title: i18n.t("General"),
+        description: i18n.t("URL, name, description, category, and tags."),
         render: ({
           entity,
         }) => <BookmarkGeneralForm bookmark={entity} />,
@@ -62,10 +63,10 @@ export const bookmarkEditWorkbench: EntityWorkbench<Bookmark> = {
     },
     {
       key: "properties",
-      label: "Properties",
+      label: i18n.t("Properties"),
       edit: {
-        title: "Properties",
-        description: "Custom property values for this bookmark.",
+        title: i18n.t("Properties"),
+        description: i18n.t("Custom property values for this bookmark."),
         render: ({
           entity,
         }) => <BookmarkPropertiesForm bookmark={entity} />,
@@ -73,10 +74,10 @@ export const bookmarkEditWorkbench: EntityWorkbench<Bookmark> = {
     },
     {
       key: "image",
-      label: "Image",
+      label: i18n.t("Image"),
       edit: {
-        title: "Image",
-        description: "Manage the bookmark's thumbnail image.",
+        title: i18n.t("Image"),
+        description: i18n.t("Manage the bookmark's thumbnail image."),
         render: ({
           entity,
         }) => <BookmarkImageEditForm bookmark={entity} />,
@@ -84,10 +85,10 @@ export const bookmarkEditWorkbench: EntityWorkbench<Bookmark> = {
     },
     {
       key: "video",
-      label: "Video",
+      label: i18n.t("Video"),
       edit: {
-        title: "Video",
-        description: "Capture and manage the bookmark's archived reel video.",
+        title: i18n.t("Video"),
+        description: i18n.t("Capture and manage the bookmark's archived reel video."),
         render: ({
           entity,
         }) => <BookmarkVideoEditForm bookmark={entity} />,

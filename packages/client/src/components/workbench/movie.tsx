@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Movie } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { MovieGeneralForm } from "../MovieGeneralForm";
 import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
@@ -41,17 +42,17 @@ export const movieWorkbench: EntityWorkbench<Movie> = {
       }),
     };
   },
-  notFound: "Movie not found.",
-  navAriaLabel: "Movie sections",
+  notFound: i18n.t("Movie not found."),
+  navAriaLabel: i18n.t("Movie sections"),
   listingPath: "/taxonomies/movies",
   getSlug: movie => movie.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Media property, Plex link, year, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Media property, Plex link, year, and metadata."),
         render: ({
           entity,
         }) => (
@@ -64,8 +65,8 @@ export const movieWorkbench: EntityWorkbench<Movie> = {
         ),
       },
       edit: {
-        title: "General",
-        description: "Name, media property, Plex link, and year.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, media property, Plex link, and year."),
         render: ({
           entity,
         }) => <MovieGeneralForm movie={entity} />,
@@ -73,10 +74,10 @@ export const movieWorkbench: EntityWorkbench<Movie> = {
     },
     {
       key: "image",
-      label: "Image",
+      label: i18n.t("Image"),
       view: {
-        title: "Image",
-        description: "The movie's poster image.",
+        title: i18n.t("Image"),
+        description: i18n.t("The movie's poster image."),
         render: ({
           entity,
         }) => (
@@ -89,8 +90,8 @@ export const movieWorkbench: EntityWorkbench<Movie> = {
         ),
       },
       edit: {
-        title: "Image",
-        description: "Upload a poster, or pull it from the linked Plex item.",
+        title: i18n.t("Image"),
+        description: i18n.t("Upload a poster, or pull it from the linked Plex item."),
         render: ({
           entity,
         }) => (
@@ -104,10 +105,10 @@ export const movieWorkbench: EntityWorkbench<Movie> = {
     },
     {
       key: "languages",
-      label: "Languages",
+      label: i18n.t("Languages"),
       view: {
-        title: "Languages",
-        description: "Languages this movie is available in and how.",
+        title: i18n.t("Languages"),
+        description: i18n.t("Languages this movie is available in and how."),
         render: ({
           entity,
         }) => (
@@ -118,8 +119,8 @@ export const movieWorkbench: EntityWorkbench<Movie> = {
         ),
       },
       edit: {
-        title: "Languages",
-        description: "Record which languages this movie offers (dub, subtitles, …).",
+        title: i18n.t("Languages"),
+        description: i18n.t("Record which languages this movie offers (dub, subtitles, …)."),
         render: ({
           entity,
         }) => (

@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Person } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { PersonGeneralForm } from "../PersonGeneralForm";
 import { PersonGroupsForm, PersonGroupsView } from "../PersonGroupsForm";
@@ -42,22 +43,22 @@ export const personWorkbench: EntityWorkbench<Person> = {
       }),
     };
   },
-  notFound: "Person not found.",
-  navAriaLabel: "Person sections",
+  notFound: i18n.t("Person not found."),
+  navAriaLabel: i18n.t("Person sections"),
   listingPath: "/taxonomies/people",
   getSlug: person => person.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Person details.",
+        title: i18n.t("General"),
+        description: i18n.t("Person details."),
         render: PersonGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Edit the person's name, URLs, and avatar.",
+        title: i18n.t("General"),
+        description: i18n.t("Edit the person's name, URLs, and avatar."),
         render: ({
           entity,
         }) => <PersonGeneralForm person={entity} />,
@@ -65,17 +66,17 @@ export const personWorkbench: EntityWorkbench<Person> = {
     },
     {
       key: "youtube-channels",
-      label: "YouTube Channels",
+      label: i18n.t("YouTube Channels"),
       view: {
-        title: "YouTube Channels",
-        description: "YouTube channels associated with this person.",
+        title: i18n.t("YouTube Channels"),
+        description: i18n.t("YouTube channels associated with this person."),
         render: ({
           entity,
         }) => <PersonYouTubeChannelsView person={entity} />,
       },
       edit: {
-        title: "YouTube Channels",
-        description: "Connect YouTube channels to this person.",
+        title: i18n.t("YouTube Channels"),
+        description: i18n.t("Connect YouTube channels to this person."),
         render: ({
           entity,
         }) => <PersonYouTubeChannelsForm person={entity} />,
@@ -83,17 +84,17 @@ export const personWorkbench: EntityWorkbench<Person> = {
     },
     {
       key: "websites",
-      label: "Websites",
+      label: i18n.t("Websites"),
       view: {
-        title: "Websites",
-        description: "Websites associated with this person.",
+        title: i18n.t("Websites"),
+        description: i18n.t("Websites associated with this person."),
         render: ({
           entity,
         }) => <PersonWebsitesView person={entity} />,
       },
       edit: {
-        title: "Websites",
-        description: "Connect websites to this person.",
+        title: i18n.t("Websites"),
+        description: i18n.t("Connect websites to this person."),
         render: ({
           entity,
         }) => <PersonWebsitesForm person={entity} />,
@@ -101,17 +102,17 @@ export const personWorkbench: EntityWorkbench<Person> = {
     },
     {
       key: "groups",
-      label: "Groups",
+      label: i18n.t("Groups"),
       view: {
-        title: "Groups",
-        description: "Groups associated with this person.",
+        title: i18n.t("Groups"),
+        description: i18n.t("Groups associated with this person."),
         render: ({
           entity,
         }) => <PersonGroupsView person={entity} />,
       },
       edit: {
-        title: "Groups",
-        description: "Connect groups to this person.",
+        title: i18n.t("Groups"),
+        description: i18n.t("Connect groups to this person."),
         render: ({
           entity,
         }) => <PersonGroupsForm person={entity} />,
@@ -119,10 +120,10 @@ export const personWorkbench: EntityWorkbench<Person> = {
     },
     {
       key: "languages",
-      label: "Languages",
+      label: i18n.t("Languages"),
       view: {
-        title: "Languages",
-        description: "Languages this person uses and their proficiency.",
+        title: i18n.t("Languages"),
+        description: i18n.t("Languages this person uses and their proficiency."),
         render: ({
           entity,
         }) => (
@@ -133,8 +134,8 @@ export const personWorkbench: EntityWorkbench<Person> = {
         ),
       },
       edit: {
-        title: "Languages",
-        description: "Record this person's languages and proficiency levels.",
+        title: i18n.t("Languages"),
+        description: i18n.t("Record this person's languages and proficiency levels."),
         render: ({
           entity,
         }) => (

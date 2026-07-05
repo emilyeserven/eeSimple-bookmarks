@@ -2,6 +2,7 @@ import type { EntityWorkbench } from "./types";
 import type { GenreMoodNode } from "@eesimple/types";
 
 import { GenreMoodGeneralEdit, GenreMoodGeneralView, GenreMoodHierarchyView } from "./genreMoodViews";
+import i18n from "../../i18n";
 
 import { useDeleteGenreMood, useGenreMoodBySlug, useGenreMoodTree } from "@/hooks/useGenreMoods";
 import { flattenTree } from "@/lib/tagTree";
@@ -38,31 +39,31 @@ export const genreMoodWorkbench: EntityWorkbench<GenreMoodNode> = {
       }),
     };
   },
-  notFound: "Entry not found.",
-  navAriaLabel: "Genres & Moods sections",
+  notFound: i18n.t("Entry not found."),
+  navAriaLabel: i18n.t("Genres & Moods sections"),
   listingPath: "/taxonomies/genres-moods",
   getSlug: node => node.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Name, parent, and details.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, parent, and details."),
         render: GenreMoodGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name, parent, and related entries.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, parent, and related entries."),
         render: GenreMoodGeneralEdit,
       },
     },
     {
       key: "hierarchy",
-      label: "Hierarchy",
+      label: i18n.t("Hierarchy"),
       view: {
-        title: "Hierarchy",
-        description: "Parent and child entries.",
+        title: i18n.t("Hierarchy"),
+        description: i18n.t("Parent and child entries."),
         render: GenreMoodHierarchyView,
       },
     },

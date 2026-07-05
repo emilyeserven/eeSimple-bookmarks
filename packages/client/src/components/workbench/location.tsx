@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { LocationNode } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { LocationGeneralForm } from "../LocationGeneralForm";
@@ -42,8 +43,8 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
       }),
     };
   },
-  notFound: "Location not found.",
-  navAriaLabel: "Location sections",
+  notFound: i18n.t("Location not found."),
+  navAriaLabel: i18n.t("Location sections"),
   listingPath: "/taxonomies/locations",
   getSlug: location => location.slug,
   tabs: [
@@ -51,13 +52,13 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
       key: "general",
       label: "General",
       view: {
-        title: "General",
-        description: "Name, coordinates, and location details.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, coordinates, and location details."),
         render: LocationGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name, coordinates, parent, alternate names, and tags.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, coordinates, parent, alternate names, and tags."),
         render: ({
           entity,
         }) => <LocationGeneralForm node={entity} />,
@@ -67,8 +68,8 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
       key: "hierarchy",
       label: "Hierarchy",
       view: {
-        title: "Hierarchy",
-        description: "Parent and child locations.",
+        title: i18n.t("Hierarchy"),
+        description: i18n.t("Parent and child locations."),
         render: LocationHierarchyView,
       },
     },
@@ -76,8 +77,8 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
       key: "autofill",
       label: "Autofill Rules",
       view: {
-        title: "Autofill Rules",
-        description: "Autofill rules that apply this location.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules that apply this location."),
         render: ({
           entity,
         }) => (
@@ -88,8 +89,8 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
         ),
       },
       edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules that apply this location.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules that apply this location."),
         render: ({
           entity,
         }) => (
@@ -104,15 +105,15 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
       key: "display-rules",
       label: "Display Rules",
       view: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this location.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this location."),
         render: ({
           entity,
         }) => <CardDisplayRulesList locationId={entity.id} />,
       },
       edit: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this location.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this location."),
         render: ({
           entity,
         }) => <CardDisplayRulesList locationId={entity.id} />,

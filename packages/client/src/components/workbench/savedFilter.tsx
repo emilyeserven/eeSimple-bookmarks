@@ -4,6 +4,7 @@ import type { SavedFilter } from "@eesimple/types";
 
 import { Globe } from "lucide-react";
 
+import i18n from "../../i18n";
 import { SavedFilterGeneralForm } from "../SavedFilterGeneralForm";
 
 import { useDeleteSavedFilter, useSavedFilterBySlug, useSavedFilters } from "@/hooks/useSavedFilters";
@@ -20,16 +21,16 @@ function SavedFilterGeneralView({
         ? <p className="text-sm text-muted-foreground">{filter.description}</p>
         : null}
       <dl className="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Filters</dt>
+        <dt className="text-muted-foreground">{i18n.t("Filters")}</dt>
         <dd>{summarizeBookmarkSearch(filter.filters)}</dd>
         <dt className="flex items-center gap-1 text-muted-foreground">
           <Globe className="size-3.5" />
-          Sidebar shortcut
+          {i18n.t("Sidebar shortcut")}
         </dt>
-        <dd>{filter.viewableOnline ? "Yes" : "No"}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dd>{filter.viewableOnline ? i18n.t("Yes") : i18n.t("No")}</dd>
+        <dt className="text-muted-foreground">{i18n.t("Slug")}</dt>
         <dd className="font-mono">{filter.slug ?? "—"}</dd>
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{i18n.t("Added")}</dt>
         <dd>{new Date(filter.createdAt).toLocaleDateString()}</dd>
       </dl>
     </div>
@@ -68,21 +69,21 @@ export const savedFilterWorkbench: EntityWorkbench<SavedFilter> = {
       }),
     };
   },
-  notFound: "Saved filter not found.",
-  navAriaLabel: "Saved filter sections",
+  notFound: i18n.t("Saved filter not found."),
+  navAriaLabel: i18n.t("Saved filter sections"),
   getSlug: filter => filter.slug,
   tabs: [
     {
       key: "general",
       label: "General",
       view: {
-        title: "General",
-        description: "Filter summary and sidebar settings.",
+        title: i18n.t("General"),
+        description: i18n.t("Filter summary and sidebar settings."),
         render: SavedFilterGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name, description, and sidebar visibility.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, description, and sidebar visibility."),
         render: ({
           entity,
         }) => <SavedFilterGeneralForm filter={entity} />,

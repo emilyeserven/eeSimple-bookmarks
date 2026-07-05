@@ -1,6 +1,7 @@
 import type { Person } from "@eesimple/types";
 
 import { UserCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { EntityImagePreview } from "../EntityImageField";
 import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
@@ -16,6 +17,9 @@ export function PersonGeneralView({
 }: {
   entity: Person;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: channels,
   } = useYouTubeChannels();
@@ -42,11 +46,11 @@ export function PersonGeneralView({
         fallback={<UserCircle className="size-6" />}
       />
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{t("Added")}</dt>
         <dd>{new Date(person.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{person.slug}</dd>
-        <dt className="text-muted-foreground">Names</dt>
+        <dt className="text-muted-foreground">{t("Names")}</dt>
         <dd>
           <EntityNamesTabView
             ownerType="person"
@@ -56,7 +60,7 @@ export function PersonGeneralView({
         {person.bookmarkCount != null
           ? (
             <>
-              <dt className="text-muted-foreground">Bookmarks</dt>
+              <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
               <dd>{person.bookmarkCount}</dd>
             </>
           )
@@ -64,7 +68,7 @@ export function PersonGeneralView({
         {person.personWebsiteUrl != null
           ? (
             <>
-              <dt className="text-muted-foreground">Website</dt>
+              <dt className="text-muted-foreground">{t("Website")}</dt>
               <dd>
                 <a
                   href={person.personWebsiteUrl}
@@ -81,7 +85,7 @@ export function PersonGeneralView({
         {person.biographyUrl != null
           ? (
             <>
-              <dt className="text-muted-foreground">Biography</dt>
+              <dt className="text-muted-foreground">{t("Biography")}</dt>
               <dd>
                 <a
                   href={person.biographyUrl}
@@ -98,7 +102,7 @@ export function PersonGeneralView({
         {person.year != null
           ? (
             <>
-              <dt className="text-muted-foreground">Year</dt>
+              <dt className="text-muted-foreground">{t("Year")}</dt>
               <dd>{person.year}</dd>
             </>
           )
@@ -106,7 +110,7 @@ export function PersonGeneralView({
         {person.plexItemTitle != null
           ? (
             <>
-              <dt className="text-muted-foreground">Plex</dt>
+              <dt className="text-muted-foreground">{t("Plex")}</dt>
               <dd>{person.plexItemTitle}</dd>
             </>
           )
@@ -114,7 +118,7 @@ export function PersonGeneralView({
         {creditedAlbums.length > 0
           ? (
             <>
-              <dt className="text-muted-foreground">Albums</dt>
+              <dt className="text-muted-foreground">{t("Albums")}</dt>
               <dd>{creditedAlbums.map(album => album.name).join(", ")}</dd>
             </>
           )
@@ -124,7 +128,7 @@ export function PersonGeneralView({
             <dt
               key={`ch-label-${ch.id}`}
               className="text-muted-foreground"
-            >YouTube Channel
+            >{t("YouTube Channel")}
             </dt>
             <dd key={`ch-value-${ch.id}`}>{ch.name}</dd>
           </>
@@ -134,7 +138,7 @@ export function PersonGeneralView({
             <dt
               key={`site-label-${site.id}`}
               className="text-muted-foreground"
-            >Website
+            >{t("Website")}
             </dt>
             <dd key={`site-value-${site.id}`}>{site.siteName}</dd>
           </>
@@ -144,7 +148,7 @@ export function PersonGeneralView({
             <dt
               key={`pub-label-${pub.id}`}
               className="text-muted-foreground"
-            >Group
+            >{t("Group")}
             </dt>
             <dd key={`pub-value-${pub.id}`}>{pub.name}</dd>
           </>

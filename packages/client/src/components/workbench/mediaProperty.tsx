@@ -2,6 +2,7 @@
 import type { EntityWorkbench } from "./types";
 import type { MediaProperty } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { MediaPropertyGeneralForm } from "../MediaPropertyGeneralForm";
 
 import {
@@ -18,16 +19,16 @@ function MediaPropertyGeneralView({
   return (
     <div className="space-y-4">
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{i18n.t("Added")}</dt>
         <dd>{new Date(mediaProperty.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{i18n.t("Slug")}</dt>
         <dd className="font-mono">{mediaProperty.slug}</dd>
-        <dt className="text-muted-foreground">Sort order</dt>
+        <dt className="text-muted-foreground">{i18n.t("Sort order")}</dt>
         <dd>{mediaProperty.sortOrder}</dd>
         {mediaProperty.bookCount != null
           ? (
             <>
-              <dt className="text-muted-foreground">Books</dt>
+              <dt className="text-muted-foreground">{i18n.t("Books")}</dt>
               <dd>{mediaProperty.bookCount}</dd>
             </>
           )
@@ -69,22 +70,22 @@ export const mediaPropertyWorkbench: EntityWorkbench<MediaProperty> = {
       }),
     };
   },
-  notFound: "Media property not found.",
-  navAriaLabel: "Media property sections",
+  notFound: i18n.t("Media property not found."),
+  navAriaLabel: i18n.t("Media property sections"),
   listingPath: "/taxonomies/media-properties",
   getSlug: mediaProperty => mediaProperty.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Name, sort order, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, sort order, and metadata."),
         render: MediaPropertyGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name and sort order.",
+        title: i18n.t("General"),
+        description: i18n.t("Name and sort order."),
         render: ({
           entity,
         }) => <MediaPropertyGeneralForm mediaProperty={entity} />,
