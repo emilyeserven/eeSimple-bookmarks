@@ -51,6 +51,17 @@ export const languageListingConfig: EntityListingConfig<Language> = {
       {i18n.t("No languages yet.")}
     </p>
   ),
+  sections: [
+    {
+      key: "in-use",
+      match: l => (l.bookmarkCount ?? 0) > 0,
+    },
+    {
+      key: "unused",
+      title: i18n.t("Unused"),
+      match: l => (l.bookmarkCount ?? 0) === 0,
+    },
+  ],
   renderListItem: ({
     entity, allItems, ...rest
   }) => (

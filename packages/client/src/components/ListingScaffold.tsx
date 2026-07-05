@@ -8,6 +8,7 @@ import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
 
 import { COLUMN_CLASS } from "@/lib/bookmarkColumns";
+import { partitionListingSections } from "@/lib/listingSections";
 
 /**
  * The shared search/counts/bulk-bar/table-or-card shell for a flat-entity listing page, configured
@@ -26,6 +27,12 @@ export function ListingScaffold<E extends { id: string }>({
     items, isLoading, error, columns, viewMode, rawQuery, hasQuery, filtered, deletableIds, selection, bulkDelete,
     secondaryFilterValue, setSecondaryFilterValue,
   } = state;
+
+  const groups = partitionListingSections(filtered, config.sections);
+  const {
+    renderTable,
+  } = config;
+  const showTable = renderTable != null && viewMode === "table";
 
   return (
     <div className="space-y-4">
@@ -74,34 +81,51 @@ export function ListingScaffold<E extends { id: string }>({
           )
           : null}
 
-      {filtered.length > 0 && config.renderTable != null && viewMode === "table"
-        ? config.renderTable({
-          entities: filtered,
-          selection,
-        })
-        : null}
-
-      {filtered.length > 0 && (config.renderTable == null || viewMode !== "table")
+      {filtered.length > 0
         ? (
-          <div
-            className={config.layout === "list"
-              ? "space-y-2"
-              : `
-                grid gap-2
-                ${COLUMN_CLASS[columns]}
-              `}
-          >
-            {filtered.map(entity => (
-              <Fragment key={entity.id}>
-                {config.renderListItem({
-                  entity,
-                  allItems: items,
-                  selectable: config.isSelectable ? config.isSelectable(entity) : true,
-                  selected: selection.isSelected(entity.id),
-                  onSelectToggle: () => selection.toggle(entity.id),
-                  inSelectionMode: selection.mode,
-                })}
-              </Fragment>
+          <div className="space-y-6">
+            {groups.map(group => (
+              <div
+                key={group.key}
+                className="space-y-2"
+              >
+                {group.title != null
+                  ? (
+                    <h2 className="text-sm font-semibold text-muted-foreground">
+                      {group.title}
+                    </h2>
+                  )
+                  : null}
+
+                {showTable
+                  ? renderTable({
+                    entities: group.items,
+                    selection,
+                  })
+                  : (
+                    <div
+                      className={config.layout === "list"
+                        ? "space-y-2"
+                        : `
+                          grid gap-2
+                          ${COLUMN_CLASS[columns]}
+                        `}
+                    >
+                      {group.items.map(entity => (
+                        <Fragment key={entity.id}>
+                          {config.renderListItem({
+                            entity,
+                            allItems: items,
+                            selectable: config.isSelectable ? config.isSelectable(entity) : true,
+                            selected: selection.isSelected(entity.id),
+                            onSelectToggle: () => selection.toggle(entity.id),
+                            inSelectionMode: selection.mode,
+                          })}
+                        </Fragment>
+                      ))}
+                    </div>
+                  )}
+              </div>
             ))}
           </div>
         )
