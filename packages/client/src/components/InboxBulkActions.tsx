@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useInboxReviewController } from "./useInboxReviewController";
 
@@ -48,6 +49,9 @@ export function InboxBulkActions({
   | "onDeleteAdded"
   | "onDeleteBlocked"
 >) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -55,7 +59,7 @@ export function InboxBulkActions({
           size="sm"
           variant="outline"
         >
-          Bulk Actions
+          {t("Bulk Actions")}
           <ChevronDown className="size-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -64,39 +68,63 @@ export function InboxBulkActions({
           disabled={pendingCount === 0 || bulkRunning || rejectPendingIsPending}
           onClick={onApproveAll}
         >
-          {bulkRunning ? "Approving…" : `Approve all pending (${pendingCount})`}
+          {bulkRunning
+            ? t("Approving…")
+            : t("Approve all pending ({{count}})", {
+              count: pendingCount,
+            })}
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={pendingCount === 0 || rejectPendingIsPending || bulkRunning}
           onClick={onRejectAll}
         >
-          {rejectPendingIsPending ? "Rejecting…" : `Reject all pending (${pendingCount})`}
+          {rejectPendingIsPending
+            ? t("Rejecting…")
+            : t("Reject all pending ({{count}})", {
+              count: pendingCount,
+            })}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={rejectedCount === 0 || deleteRejectedIsPending}
           onClick={onDeleteRejected}
         >
-          {deleteRejectedIsPending ? "Deleting…" : `Delete all rejected (${rejectedCount})`}
+          {deleteRejectedIsPending
+            ? t("Deleting…")
+            : t("Delete all rejected ({{count}})", {
+              count: rejectedCount,
+            })}
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={addedCount === 0 || deleteAddedIsPending}
           onClick={onDeleteAdded}
         >
-          {deleteAddedIsPending ? "Deleting…" : `Delete all added (${addedCount})`}
+          {deleteAddedIsPending
+            ? t("Deleting…")
+            : t("Delete all added ({{count}})", {
+              count: addedCount,
+            })}
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={blockedCount === 0 || deleteBlockedIsPending}
           onClick={onDeleteBlocked}
         >
-          {deleteBlockedIsPending ? "Deleting…" : `Delete all blocked (${blockedCount})`}
+          {deleteBlockedIsPending
+            ? t("Deleting…")
+            : t("Delete all blocked ({{count}})", {
+              count: blockedCount,
+            })}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={pendingCount === 0 || recheckPendingIsPending || bulkRunning}
           onClick={onRecheckBlocklist}
         >
-          {recheckPendingIsPending ? "Rechecking…" : `Recheck block list (${pendingCount})`}
+          {recheckPendingIsPending
+            ? t("Rechecking…")
+            : t("Recheck block list ({{count}})", {
+              count: pendingCount,
+            })}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

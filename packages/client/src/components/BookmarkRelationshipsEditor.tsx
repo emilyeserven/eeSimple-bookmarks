@@ -4,6 +4,7 @@ import type { BookmarkRelationship } from "@eesimple/types";
 import { useMemo, useState } from "react";
 
 import { Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Combobox } from "./Combobox";
 
@@ -50,6 +51,9 @@ export function BookmarkRelationshipsEditor({
   initialRelationships,
   onDone,
 }: BookmarkRelationshipsEditorProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: allBookmarks,
   } = useBookmarks();
@@ -141,8 +145,8 @@ export function BookmarkRelationshipsEditor({
   return (
     <div className="space-y-6">
       <LabeledSection
-        title="Relationships"
-        description="Link this bookmark to others and classify how they relate. Directional types (e.g. Parent/child) ask which bookmark is the parent and power the Hierarchy view."
+        title={t("Relationships")}
+        description={t("Link this bookmark to others and classify how they relate. Directional types (e.g. Parent/child) ask which bookmark is the parent and power the Hierarchy view.")}
       >
         <datalist id={LABEL_SUGGESTIONS_ID}>
           {labelSuggestions.map(label => (
@@ -170,10 +174,10 @@ export function BookmarkRelationshipsEditor({
                   onValueChange={v => patchDraft(draft.key, {
                     bookmarkId: v ?? "",
                   })}
-                  placeholder="Select a bookmark…"
-                  searchPlaceholder="Search bookmarks…"
-                  emptyText="No other bookmarks found."
-                  aria-label="Related bookmark"
+                  placeholder={t("Select a bookmark…")}
+                  searchPlaceholder={t("Search bookmarks…")}
+                  emptyText={t("No other bookmarks found.")}
+                  aria-label={t("Related bookmark")}
                 />
                 <Combobox
                   options={typeOptions}
@@ -181,19 +185,19 @@ export function BookmarkRelationshipsEditor({
                   onValueChange={v => patchDraft(draft.key, {
                     relationshipTypeId: v ?? "",
                   })}
-                  placeholder="Relationship type…"
-                  searchPlaceholder="Search types…"
-                  emptyText="No relationship types."
-                  aria-label="Relationship type"
+                  placeholder={t("Relationship type…")}
+                  searchPlaceholder={t("Search types…")}
+                  emptyText={t("No relationship types.")}
+                  aria-label={t("Relationship type")}
                 />
                 <Input
                   value={draft.label}
                   list={LABEL_SUGGESTIONS_ID}
-                  placeholder="Optional label (e.g. sequel)"
+                  placeholder={t("Optional label (e.g. sequel)")}
                   onChange={e => patchDraft(draft.key, {
                     label: e.target.value,
                   })}
-                  aria-label="Relationship label"
+                  aria-label={t("Relationship label")}
                 />
                 <div className="flex items-center justify-between gap-2">
                   {directional
@@ -208,9 +212,9 @@ export function BookmarkRelationshipsEditor({
                           onCheckedChange={checked => patchDraft(draft.key, {
                             otherIsParent: checked === true,
                           })}
-                          aria-label="The selected bookmark is the parent"
+                          aria-label={t("The selected bookmark is the parent")}
                         />
-                        Selected bookmark is the parent
+                        {t("Selected bookmark is the parent")}
                       </label>
                     )
                     : <span />}
@@ -219,7 +223,7 @@ export function BookmarkRelationshipsEditor({
                     variant="ghost"
                     size="icon"
                     onClick={() => removeDraft(draft.key)}
-                    aria-label="Remove relationship"
+                    aria-label={t("Remove relationship")}
                   >
                     <Trash2 className="size-4" />
                   </Button>
@@ -234,7 +238,7 @@ export function BookmarkRelationshipsEditor({
             onClick={() => setDrafts(prev => [...prev, newDraft()])}
           >
             <Plus className="size-4" />
-            Add relationship
+            {t("Add relationship")}
           </Button>
         </div>
       </LabeledSection>
@@ -244,7 +248,7 @@ export function BookmarkRelationshipsEditor({
           onClick={handleSave}
           disabled={updateRelationships.isPending}
         >
-          {updateRelationships.isPending ? "Saving…" : "Save"}
+          {updateRelationships.isPending ? t("Saving…") : t("Save")}
         </Button>
         <Button
           type="button"
@@ -252,7 +256,7 @@ export function BookmarkRelationshipsEditor({
           onClick={onDone}
           disabled={updateRelationships.isPending}
         >
-          Cancel
+          {t("Cancel")}
         </Button>
       </div>
     </div>

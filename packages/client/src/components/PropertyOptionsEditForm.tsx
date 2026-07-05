@@ -3,6 +3,7 @@ import type { CreateCustomPropertyInput, CustomProperty, UpdateCustomPropertyInp
 
 import { useEffect, useRef } from "react";
 
+import i18n from "../i18n";
 import { payloadFromValues, propertySchema, valuesFromProperty } from "./propertyFormParts";
 import { PropertyOptionsSection } from "./PropertyOptionsSection";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
@@ -43,28 +44,28 @@ const OPTIONS_KEYS = [
 type OptionsKey = (typeof OPTIONS_KEYS)[number];
 
 const LABELS: Partial<Record<OptionsKey, string>> = {
-  numberMin: "Slider minimum",
-  numberMax: "Slider maximum",
-  unitSingular: "Unit",
-  unitPlural: "Unit",
-  valuePrefix: "Value prefix",
-  zeroLabel: "Zero label",
-  maxLabel: "Maximum label",
-  numberFormat: "Number format",
-  quickFilterRange: "Quick filter range",
-  operandPropertyIds: "Operands",
-  dateTimeFormat: "Captures",
-  booleanLabelPreset: "Value display",
-  booleanTrueLabel: "True label",
-  booleanFalseLabel: "False label",
-  ratingMax: "Scale",
-  ratingAllowZero: "Allow zero",
-  ratingAllowHalf: "Allow half ratings",
-  ratingShowLabel: "Rating label",
-  ratingLabel: "Rating label",
-  allowDefault: "Default value",
-  showInDetails: "Show in detail view",
-  showInGallery: "Show in Media Management",
+  numberMin: i18n.t("Slider minimum"),
+  numberMax: i18n.t("Slider maximum"),
+  unitSingular: i18n.t("Unit"),
+  unitPlural: i18n.t("Unit"),
+  valuePrefix: i18n.t("Value prefix"),
+  zeroLabel: i18n.t("Zero label"),
+  maxLabel: i18n.t("Maximum label"),
+  numberFormat: i18n.t("Number format"),
+  quickFilterRange: i18n.t("Quick filter range"),
+  operandPropertyIds: i18n.t("Operands"),
+  dateTimeFormat: i18n.t("Captures"),
+  booleanLabelPreset: i18n.t("Value display"),
+  booleanTrueLabel: i18n.t("True label"),
+  booleanFalseLabel: i18n.t("False label"),
+  ratingMax: i18n.t("Scale"),
+  ratingAllowZero: i18n.t("Allow zero"),
+  ratingAllowHalf: i18n.t("Allow half ratings"),
+  ratingShowLabel: i18n.t("Rating label"),
+  ratingLabel: i18n.t("Rating label"),
+  allowDefault: i18n.t("Default value"),
+  showInDetails: i18n.t("Show in detail view"),
+  showInGallery: i18n.t("Show in Media Management"),
 };
 
 /**
