@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useMediaPropertyBySlug } from "../hooks/useMediaProperties";
@@ -7,20 +8,22 @@ export const Route = createFileRoute("/taxonomies/media-properties/$mediaPropert
   component: MediaPropertyEditLayout,
 });
 
-const editNav = [
-  {
-    to: "/taxonomies/media-properties/$mediaPropertySlug/edit/general",
-    label: "General",
-  },
-] as const;
-
 function MediaPropertyEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     mediaPropertySlug,
   } = Route.useParams();
   const {
     mediaProperty, isLoading,
   } = useMediaPropertyBySlug(mediaPropertySlug);
+  const editNav = [
+    {
+      to: "/taxonomies/media-properties/$mediaPropertySlug/edit/general",
+      label: t("General"),
+    },
+  ] as const;
 
   return (
     <TabbedEntityLayout
@@ -36,16 +39,18 @@ function MediaPropertyEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "media property" : (mediaProperty?.name ?? "media property")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("media property") : (mediaProperty?.name ?? t("media property")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit media property</h1>
+          <h1 className="text-2xl font-bold">{t("Edit media property")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         mediaPropertySlug,
       }}
-      navAriaLabel="Media property edit sections"
+      navAriaLabel={t("Media property edit sections")}
     />
   );
 }

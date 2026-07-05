@@ -1,7 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useGenreMoodBySlug } from "../hooks/useGenreMoods";
+
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/taxonomies/genres-moods/$genreMoodSlug/edit")({
   component: GenreMoodEditLayout,
@@ -10,11 +13,14 @@ export const Route = createFileRoute("/taxonomies/genres-moods/$genreMoodSlug/ed
 const editNav = [
   {
     to: "/taxonomies/genres-moods/$genreMoodSlug/edit/general",
-    label: "General",
+    label: i18n.t("General"),
   },
 ] as const;
 
 function GenreMoodEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     genreMoodSlug,
   } = Route.useParams();
@@ -36,16 +42,18 @@ function GenreMoodEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "entry" : (genreMood?.name ?? "entry")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("entry") : (genreMood?.name ?? t("entry")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit entry</h1>
+          <h1 className="text-2xl font-bold">{t("Edit entry")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         genreMoodSlug,
       }}
-      navAriaLabel="Genres & Moods edit sections"
+      navAriaLabel={t("Genres & Moods edit sections")}
     />
   );
 }

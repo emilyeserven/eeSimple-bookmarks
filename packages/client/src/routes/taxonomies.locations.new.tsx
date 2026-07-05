@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { LocationForm } from "../components/LocationForm";
 
@@ -8,6 +9,9 @@ export const Route = createFileRoute("/taxonomies/locations/new")({
 
 /** Full create form for a location — geocoding lookup, ancestor chain, alternate names, and tags. */
 function NewLocationPage() {
+  const {
+    t,
+  } = useTranslation();
   const navigate = Route.useNavigate();
 
   return (
@@ -20,12 +24,13 @@ function NewLocationPage() {
             hover:text-foreground
           "
         >
-          ← Back to locations
+          {t("← Back to locations")}
         </Link>
-        <h1 className="text-2xl font-bold">New location</h1>
+        <h1 className="text-2xl font-bold">{t("New location")}</h1>
         <p className="text-sm text-muted-foreground">
-          Look up a place to autograb its coordinates, or fill the fields in by hand. Add higher-level
-          locations below to create the whole chain (e.g. Hagi → Yamaguchi Prefecture → … → Japan) at once.
+          {t(
+            "Look up a place to autograb its coordinates, or fill the fields in by hand. Add higher-level locations below to create the whole chain (e.g. Hagi → Yamaguchi Prefecture → … → Japan) at once.",
+          )}
         </p>
       </div>
 

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useNewsletterBySlug } from "../hooks/useNewsletters";
@@ -16,6 +17,9 @@ const viewNav = [
 
 function NewsletterViewLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     newsletterSlug,
   } = Route.useParams();
   const {
@@ -26,14 +30,17 @@ function NewsletterViewLayout() {
     <TabbedEntityLayout
       header={(
         <h1 className="text-2xl font-bold">
-          {isLoading ? "Newsletter" : (newsletter?.name ?? "Newsletter not found")}
+          {isLoading ? t("Newsletter") : (newsletter?.name ?? t("Newsletter not found"))}
         </h1>
       )}
-      nav={viewNav}
+      nav={viewNav.map(item => ({
+        ...item,
+        label: t(item.label),
+      }))}
       params={{
         newsletterSlug,
       }}
-      navAriaLabel="Newsletter sections"
+      navAriaLabel={t("Newsletter sections")}
     />
   );
 }

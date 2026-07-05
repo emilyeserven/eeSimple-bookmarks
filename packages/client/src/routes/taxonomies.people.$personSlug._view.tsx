@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
@@ -9,20 +10,22 @@ export const Route = createFileRoute("/taxonomies/people/$personSlug/_view")({
   component: PersonViewLayout,
 });
 
-const viewNav = [
-  {
-    to: "/taxonomies/people/$personSlug/general",
-    label: "General",
-  },
-] as const;
-
 function PersonViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     personSlug,
   } = Route.useParams();
   const {
     person, isLoading,
   } = usePersonBySlug(personSlug);
+  const viewNav = [
+    {
+      to: "/taxonomies/people/$personSlug/general",
+      label: t("General"),
+    },
+  ] as const;
 
   return (
     <TabbedEntityLayout
@@ -39,14 +42,14 @@ function PersonViewLayout() {
                 romanized={person.romanizedName}
               />
             )
-            : (isLoading ? "Person" : "Person not found")}
+            : (isLoading ? t("Person") : t("Person not found"))}
         />
       )}
       nav={viewNav}
       params={{
         personSlug,
       }}
-      navAriaLabel="Person sections"
+      navAriaLabel={t("Person sections")}
     />
   );
 }

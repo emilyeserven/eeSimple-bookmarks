@@ -1,7 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useNewsletterBySlug } from "../hooks/useNewsletters";
+
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/taxonomies/newsletters/$newsletterSlug/edit")({
   component: NewsletterEditLayout,
@@ -10,11 +13,14 @@ export const Route = createFileRoute("/taxonomies/newsletters/$newsletterSlug/ed
 const editNav = [
   {
     to: "/taxonomies/newsletters/$newsletterSlug/edit/general",
-    label: "General",
+    label: i18n.t("General"),
   },
 ] as const;
 
 function NewsletterEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     newsletterSlug,
   } = Route.useParams();
@@ -36,16 +42,18 @@ function NewsletterEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "newsletter" : (newsletter?.name ?? "newsletter")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("newsletter") : (newsletter?.name ?? t("newsletter")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit newsletter</h1>
+          <h1 className="text-2xl font-bold">{t("Edit newsletter")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         newsletterSlug,
       }}
-      navAriaLabel="Newsletter edit sections"
+      navAriaLabel={t("Newsletter edit sections")}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkEditTabWrapper } from "../components/BookmarkEditTabWrapper";
 import { BookmarkImageEditForm } from "../components/BookmarkImageEditForm";
@@ -9,13 +10,16 @@ export const Route = createFileRoute("/bookmarks/$bookmarkId/edit/image")({
 
 function ImageTab() {
   const {
+    t,
+  } = useTranslation();
+  const {
     bookmarkId,
   } = Route.useParams();
   return (
     <BookmarkEditTabWrapper
       bookmarkId={bookmarkId}
-      title="Image"
-      description="Manage the bookmark's thumbnail image."
+      title={t("Image")}
+      description={t("Manage the bookmark's thumbnail image.")}
     >
       {bookmark => <BookmarkImageEditForm bookmark={bookmark} />}
     </BookmarkEditTabWrapper>

@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { usePropertyGroupBySlug } from "../hooks/usePropertyGroups";
+
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/taxonomies/property-groups/$propertyGroupSlug/_view")({
   component: PropertyGroupViewLayout,
@@ -10,11 +13,14 @@ export const Route = createFileRoute("/taxonomies/property-groups/$propertyGroup
 const viewNav = [
   {
     to: "/taxonomies/property-groups/$propertyGroupSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
 ] as const;
 
 function PropertyGroupViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     propertyGroupSlug,
   } = Route.useParams();
@@ -30,14 +36,14 @@ function PropertyGroupViewLayout() {
             flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
           "
         >
-          {isLoading ? "Property group" : (propertyGroup?.name ?? "Property group not found")}
+          {isLoading ? t("Property group") : (propertyGroup?.name ?? t("Property group not found"))}
         </h1>
       )}
       nav={viewNav}
       params={{
         propertyGroupSlug,
       }}
-      navAriaLabel="Property group sections"
+      navAriaLabel={t("Property group sections")}
     />
   );
 }
