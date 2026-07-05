@@ -1,9 +1,11 @@
-import type { HomepageContentSettings as HomepageContent, HomepageContentWidth, QuickAddDisplay } from "@eesimple/types";
+import type { HomepageContentSettings as HomepageContent, HomepageContentWidth, HomepageWidget, QuickAddDisplay } from "@eesimple/types";
 
 import { useEffect, useRef, useState } from "react";
 
+import { DEFAULT_HOMEPAGE_WIDGET_ORDER, resolveHomepageWidgetOrder } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
+import { HomepageWidgetOrderList } from "./HomepageWidgetOrderList";
 import { LabeledSection } from "./LabeledSection";
 import {
   useHomepageContentSettings,
@@ -24,6 +26,9 @@ const DEFAULTS: HomepageContent = {
   bookmarkQuickAddDisplay: "collapsible",
   homepageHeaderHidden: false,
   homepageTextEnabled: true,
+  searchEnabled: false,
+  searchWidth: "full",
+  widgetOrder: DEFAULT_HOMEPAGE_WIDGET_ORDER,
 };
 
 /** Debounce window (ms) before an edit auto-saves. */
@@ -162,8 +167,57 @@ export function HomepageContentSettings() {
             : null}
         </div>
       </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection
+        title={t("Search from Homepage")}
+        description={t("Show a search box on the homepage. Submitting it opens the Bookmarks page filtered to what you typed.")}
+      >
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={form.searchEnabled}
+              onCheckedChange={checked => setField("searchEnabled", checked === true)}
+            />
+            {t("Enable Search from Homepage")}
+          </label>
+
+          {form.searchEnabled
+            ? (
+              <WidthToggle
+                label={t("Desktop width")}
+                value={form.searchWidth}
+                onChange={width => setField("searchWidth", width)}
+              />
+            )
+            : null}
+        </div>
+      </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection
+        title={t("Reorder Homepage Widgets")}
+        description={t("Drag to change the order the homepage text, Bookmark Quick Add, and search box appear in.")}
+      >
+        <HomepageWidgetOrderList
+          value={resolveHomepageWidgetOrder(form.widgetOrder)}
+          onChange={order => setField("widgetOrder", order)}
+          disabledWidgets={hiddenWidgets(form)}
+        />
+      </LabeledSection>
     </div>
   );
+}
+
+/** Which widgets are currently turned off, for the muted "hidden" hint in the reorder list. */
+function hiddenWidgets(form: HomepageContent): HomepageWidget[] {
+  const hidden: HomepageWidget[] = [];
+  if (!(form.homepageTextEnabled && form.homepageText.trim())) hidden.push("homepageText");
+  if (!form.bookmarkQuickAddEnabled) hidden.push("bookmarkQuickAdd");
+  if (!form.searchEnabled) hidden.push("search");
+  return hidden;
 }
 
 interface WidthToggleProps {

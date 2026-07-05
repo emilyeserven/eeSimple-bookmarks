@@ -35,7 +35,8 @@ function HomePage() {
   const hasContent = Boolean(
     content
     && ((content.homepageTextEnabled && content.homepageText.trim())
-      || content.bookmarkQuickAddEnabled),
+      || content.bookmarkQuickAddEnabled
+      || content.searchEnabled),
   );
 
   const sectionList = (sections ?? []).filter(

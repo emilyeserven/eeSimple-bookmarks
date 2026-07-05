@@ -9,6 +9,7 @@ import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from 
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { EntityName, UpdateEntityNameEntry } from "./entityNames.js";
 import type { BookmarkGenreMood } from "./genreMoods.js";
+import type { HomepageWidget } from "./homepageWidgets.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
 import type { LanguageUsage, UpdateLanguageUsageEntry } from "./languageUsages.js";
 import type { BookmarkLocation } from "./locations.js";
@@ -24,6 +25,7 @@ export * from "./conditions.js";
 export * from "./genreMoods.js";
 export * from "./customProperties.js";
 export * from "./groupTypes.js";
+export * from "./homepageWidgets.js";
 export * from "./importBlacklist.js";
 export * from "./languageUsages.js";
 export * from "./locations.js";
@@ -277,6 +279,12 @@ export interface AppSettings {
   homepageHeaderHidden: boolean;
   /** When false, the homepage text block is hidden even if homepageText is non-empty. */
   homepageTextEnabled: boolean;
+  /** When true, the Search from Homepage bar appears on the homepage. */
+  searchEnabled: boolean;
+  /** Desktop width of the homepage Search block. */
+  searchWidth: HomepageContentWidth;
+  /** Order the top-of-homepage widgets render in. */
+  widgetOrder: HomepageWidget[];
   /** When on, the left sidebar shows a link to the Coolify instance (opens in a new tab). */
   coolifyLinkEnabled: boolean;
   /** URL of the Coolify instance shown in the sidebar when `coolifyLinkEnabled` is on. */
@@ -536,6 +544,12 @@ export interface HomepageContentSettings {
   homepageHeaderHidden: boolean;
   /** When false, the homepage text block is hidden even if homepageText is non-empty. */
   homepageTextEnabled: boolean;
+  /** When true, the Search from Homepage bar appears on the homepage. */
+  searchEnabled: boolean;
+  /** Desktop width of the homepage Search block. */
+  searchWidth: HomepageContentWidth;
+  /** Order the top-of-homepage widgets render in. */
+  widgetOrder: HomepageWidget[];
 }
 
 /** Payload for replacing the homepage content settings. */
