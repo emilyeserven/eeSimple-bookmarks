@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { openGitHubIssue } from "./bookmarkFormSchema";
 
 import { Button } from "@/components/ui/button";
@@ -16,14 +18,17 @@ interface IncorrectTitleReporterProps {
 function IncorrectTitleReporter({
   fetchedTitle, expectedTitle, onExpectedTitleChange, onCancel, getFormUrl, getFormTitle,
 }: IncorrectTitleReporterProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor="expected-title">Expected title</Label>
+      <Label htmlFor="expected-title">{t("Expected title")}</Label>
       <Input
         id="expected-title"
         value={expectedTitle}
         onChange={e => onExpectedTitleChange(e.target.value)}
-        placeholder="Enter the correct title"
+        placeholder={t("Enter the correct title")}
         className="h-8"
       />
       <div className="flex items-center gap-2">
@@ -34,14 +39,20 @@ function IncorrectTitleReporter({
           disabled={!expectedTitle.trim()}
           onClick={() => {
             const body = [
-              `**URL:** ${getFormUrl()}`,
-              `**Actual title parsed:** ${fetchedTitle ?? getFormTitle()}`,
-              `**Expected title:** ${expectedTitle}`,
+              t("**URL:** {{url}}", {
+                url: getFormUrl(),
+              }),
+              t("**Actual title parsed:** {{title}}", {
+                title: fetchedTitle ?? getFormTitle(),
+              }),
+              t("**Expected title:** {{title}}", {
+                title: expectedTitle,
+              }),
             ].join("\n\n");
-            openGitHubIssue("Incorrect page title parsed", body);
+            openGitHubIssue(t("Incorrect page title parsed"), body);
           }}
         >
-          Open GitHub issue
+          {t("Open GitHub issue")}
         </Button>
         <Button
           type="button"
@@ -49,7 +60,7 @@ function IncorrectTitleReporter({
           size="sm"
           onClick={onCancel}
         >
-          Cancel
+          {t("Cancel")}
         </Button>
       </div>
     </div>
@@ -86,13 +97,16 @@ export function TitleFetchFeedback({
   getFormUrl,
   getFormTitle,
 }: TitleFetchFeedbackProps) {
+  const {
+    t,
+  } = useTranslation();
   if (isSuccess) {
     return (
       <div className="flex flex-col gap-2 text-sm text-muted-foreground">
         {!isReportingTitle
           ? (
             <p>
-              Incorrect title?
+              {t("Incorrect title?")}
               {" "}
               <button
                 type="button"
@@ -102,7 +116,7 @@ export function TitleFetchFeedback({
                 "
                 onClick={onStartReporting}
               >
-                Report it
+                {t("Report it")}
               </button>
             </p>
           )
@@ -124,7 +138,7 @@ export function TitleFetchFeedback({
     return (
       <div className="flex flex-col gap-2 text-sm">
         <p className="text-destructive">
-          {errorMessage ?? "Could not fetch a title for that URL."}
+          {errorMessage ?? t("Could not fetch a title for that URL.")}
         </p>
         <div>
           <Button
@@ -133,13 +147,17 @@ export function TitleFetchFeedback({
             size="sm"
             onClick={() => {
               const body = [
-                `**URL:** ${getFormUrl()}`,
-                `**Error:** ${errorMessage ?? "Unknown error"}`,
+                t("**URL:** {{url}}", {
+                  url: getFormUrl(),
+                }),
+                t("**Error:** {{error}}", {
+                  error: errorMessage ?? t("Unknown error"),
+                }),
               ].join("\n\n");
-              openGitHubIssue("Title fetch failed", body);
+              openGitHubIssue(t("Title fetch failed"), body);
             }}
           >
-            File GitHub issue
+            {t("File GitHub issue")}
           </Button>
         </div>
       </div>

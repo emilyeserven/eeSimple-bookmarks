@@ -1,17 +1,23 @@
 import type { CardDisplayRule, UpdateCardDisplayRuleInput } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { CardDisplayRuleDisplaySettings } from "./CardDisplayRuleDisplaySettings";
 import { CardDisplayRulePreview } from "./CardDisplayRulePreview";
 import { useCardDisplayRuleDisplay } from "./useCardDisplayRuleDisplay";
 
-const LABELS: Partial<Record<keyof UpdateCardDisplayRuleInput, string>> = {
-  fieldZones: "Card fields",
-  cardZoneLayouts: "Card layout",
-  imageMode: "Image aspect",
-  imageVisibility: "Image visibility",
-  imageLayout: "Image layout",
-  hideWebsiteForYouTube: "Website pill on YouTube",
-};
+import i18n from "@/i18n";
+
+function buildLabels(): Partial<Record<keyof UpdateCardDisplayRuleInput, string>> {
+  return {
+    fieldZones: i18n.t("Card fields"),
+    cardZoneLayouts: i18n.t("Card layout"),
+    imageMode: i18n.t("Image aspect"),
+    imageVisibility: i18n.t("Image visibility"),
+    imageLayout: i18n.t("Image layout"),
+    hideWebsiteForYouTube: i18n.t("Website pill on YouTube"),
+  };
+}
 
 interface Props {
   entity: CardDisplayRule;
@@ -26,8 +32,11 @@ export function CardDisplayRuleDisplayForm({
   entity: rule,
 }: Props) {
   const {
+    t,
+  } = useTranslation();
+  const {
     properties, display, handleChange,
-  } = useCardDisplayRuleDisplay(rule, LABELS);
+  } = useCardDisplayRuleDisplay(rule, buildLabels());
 
   return (
     <div
@@ -58,9 +67,9 @@ export function CardDisplayRuleDisplayForm({
       >
         <section className="space-y-3">
           <div>
-            <h3 className="text-sm font-semibold">Card preview</h3>
+            <h3 className="text-sm font-semibold">{t("Card preview")}</h3>
             <p className="text-xs text-muted-foreground">
-              How a matching bookmark card looks with these display settings.
+              {t("How a matching bookmark card looks with these display settings.")}
             </p>
           </div>
           <CardDisplayRulePreview

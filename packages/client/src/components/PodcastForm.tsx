@@ -4,6 +4,7 @@ import type { Podcast, PodcastSearchResult, UpdatePodcastInput } from "@eesimple
 import { useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
 import { entriesFromDrafts } from "./entityNames/draftEntityName";
@@ -38,6 +39,9 @@ interface PodcastFormProps {
 export function PodcastForm({
   onCreated,
 }: PodcastFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const createPodcast = useCreatePodcast();
   const createNames = useCreateEntityNames();
   const queryClient = useQueryClient();
@@ -144,10 +148,10 @@ export function PodcastForm({
     >
       <PodcastSearchPicker onSelect={applyPickedPodcast} />
       <div className="space-y-1.5">
-        <Label htmlFor="podcast-name">Name</Label>
+        <Label htmlFor="podcast-name">{t("Name")}</Label>
         <Input
           id="podcast-name"
-          placeholder="e.g. Reply All"
+          placeholder={t("e.g. Reply All")}
           value={name}
           onChange={event => setName(event.target.value)}
           autoFocus
@@ -155,7 +159,7 @@ export function PodcastForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesEditor
           value={nameDrafts}
           onChange={setNameDrafts}
@@ -163,7 +167,7 @@ export function PodcastForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="podcast-feed-url">Feed URL</Label>
+        <Label htmlFor="podcast-feed-url">{t("Feed URL")}</Label>
         <Input
           id="podcast-feed-url"
           placeholder="https://example.com/feed.xml"
@@ -173,7 +177,7 @@ export function PodcastForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="podcast-spotify-url">Spotify link</Label>
+        <Label htmlFor="podcast-spotify-url">{t("Spotify link")}</Label>
         <Input
           id="podcast-spotify-url"
           placeholder="https://open.spotify.com/show/…"
@@ -183,7 +187,7 @@ export function PodcastForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label>Authors</Label>
+        <Label>{t("Authors")}</Label>
         <PodcastAuthorsFields
           personIds={personIds}
           groupIds={groupIds}
@@ -196,30 +200,30 @@ export function PodcastForm({
       {authors.modals}
 
       <div className="space-y-1.5">
-        <Label htmlFor="podcast-description">Description</Label>
+        <Label htmlFor="podcast-description">{t("Description")}</Label>
         <Textarea
           id="podcast-description"
-          placeholder="Optional description"
+          placeholder={t("Optional description")}
           value={description}
           onChange={event => setDescription(event.target.value)}
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label>Media property</Label>
+        <Label>{t("Media property")}</Label>
         <Combobox
-          aria-label="Media property"
+          aria-label={t("Media property")}
           options={(mediaProperties ?? []).map(prop => ({
             value: prop.id,
             label: prop.name,
           }))}
           value={mediaPropertyId || undefined}
           onValueChange={value => setMediaPropertyId(value ?? "")}
-          placeholder="No media property"
-          searchPlaceholder="Search media properties…"
-          emptyText="No media properties found."
+          placeholder={t("No media property")}
+          searchPlaceholder={t("Search media properties…")}
+          emptyText={t("No media properties found.")}
           createOption={{
-            label: "Create media property",
+            label: t("Create media property"),
             onSelect: () => setAddMediaPropertyOpen(true),
           }}
         />
@@ -238,7 +242,7 @@ export function PodcastForm({
         type="submit"
         disabled={createPodcast.isPending || name.trim().length === 0}
       >
-        {createPodcast.isPending ? "Creating…" : "Create podcast"}
+        {createPodcast.isPending ? t("Creating…") : t("Create podcast")}
       </Button>
     </form>
   );

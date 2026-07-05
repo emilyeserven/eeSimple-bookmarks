@@ -1,5 +1,7 @@
 import type { Bookmark } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { BookmarkAdvancedGroupField } from "./BookmarkAdvancedGroupField";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
@@ -26,6 +28,9 @@ interface BookmarkGeneralFormProps {
 export function BookmarkGeneralForm({
   bookmark,
 }: BookmarkGeneralFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const ctrl = useBookmarkGeneralForm(bookmark);
   const {
     form,
@@ -93,7 +98,7 @@ export function BookmarkGeneralForm({
       />
 
       <div className="space-y-1">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesTabEditor
           ownerType="bookmark"
           ownerId={bookmark.id}

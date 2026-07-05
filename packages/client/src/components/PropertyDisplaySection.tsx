@@ -1,6 +1,7 @@
 import type { PropertyFormApi } from "./propertyFormSchema";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { LabeledSection } from "./LabeledSection";
 import { useEntityCreateOption } from "./useEntityCreateOption";
@@ -27,34 +28,37 @@ export function PropertyDisplaySection({
   idPrefix,
   groupOptions,
 }: PropertyDisplaySectionProps) {
+  const {
+    t,
+  } = useTranslation();
   const groupCreate = useEntityCreateOption("property-group", group => form.setFieldValue("propertyGroupId", group.id));
 
   return (
     <>
-      <LabeledSection title="Display options">
+      <LabeledSection title={t("Display options")}>
         <div className="space-y-2">
-          <span className="text-sm font-medium">Grouping</span>
+          <span className="text-sm font-medium">{t("Grouping")}</span>
           <form.AppField name="propertyGroupId">
             {field => (
               <field.ComboboxField
-                label="Property group"
+                label={t("Property group")}
                 options={groupOptions}
-                placeholder="Ungrouped"
-                searchPlaceholder="Search groups…"
-                emptyText="No groups yet."
+                placeholder={t("Ungrouped")}
+                searchPlaceholder={t("Search groups…")}
+                emptyText={t("No groups yet.")}
                 createOption={groupCreate.createOption}
               />
             )}
           </form.AppField>
           <p className="text-xs text-muted-foreground">
-            Grouped properties render together on bookmark pages and in the listings filters.
+            {t("Grouped properties render together on bookmark pages and in the listings filters.")}
           </p>
         </div>
         <div className="space-y-2 border-t pt-3">
-          <span className="text-sm font-medium">Show in…</span>
+          <span className="text-sm font-medium">{t("Show in…")}</span>
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
-              Bookmark form placement is managed in
+              {t("Bookmark form placement is managed in")}
               {" "}
               <Link
                 to="/settings/display/bookmark-add"
@@ -63,7 +67,7 @@ export function PropertyDisplaySection({
                   hover:underline
                 "
               >
-                Bookmark Add Form settings
+                {t("Bookmark Add Form settings")}
               </Link>
               .
             </p>
@@ -75,7 +79,7 @@ export function PropertyDisplaySection({
                     checked={field.state.value}
                     onCheckedChange={checked => field.handleChange(checked === true)}
                   />
-                  <Label htmlFor={`${idPrefix}-show-in-listings`}>Bookmark listings</Label>
+                  <Label htmlFor={`${idPrefix}-show-in-listings`}>{t("Bookmark listings")}</Label>
                 </div>
               )}
             </form.AppField>
@@ -87,7 +91,7 @@ export function PropertyDisplaySection({
                     checked={field.state.value}
                     onCheckedChange={checked => field.handleChange(checked === true)}
                   />
-                  <Label htmlFor={`${idPrefix}-show-in-details`}>Bookmark details page</Label>
+                  <Label htmlFor={`${idPrefix}-show-in-details`}>{t("Bookmark details page")}</Label>
                 </div>
               )}
             </form.AppField>
@@ -99,7 +103,7 @@ export function PropertyDisplaySection({
               ? null
               : (
                 <div className="space-y-2 border-t pt-3">
-                  <span className="text-sm font-medium">Editing</span>
+                  <span className="text-sm font-medium">{t("Editing")}</span>
                   <form.AppField name="editableOnCard">
                     {field => (
                       <div className="flex items-center gap-2">
@@ -109,7 +113,7 @@ export function PropertyDisplaySection({
                           onCheckedChange={checked => field.handleChange(checked === true)}
                         />
                         <Label htmlFor={`${idPrefix}-editable-on-card`}>
-                          Allow editing from the bookmark card menu
+                          {t("Allow editing from the bookmark card menu")}
                         </Label>
                       </div>
                     )}
@@ -123,7 +127,7 @@ export function PropertyDisplaySection({
                           onCheckedChange={checked => field.handleChange(checked === true)}
                         />
                         <Label htmlFor={`${idPrefix}-editable-via-cmdk`}>
-                          Allow editing via CMD+K
+                          {t("Allow editing via CMD+K")}
                         </Label>
                       </div>
                     )}
@@ -137,7 +141,7 @@ export function PropertyDisplaySection({
               ? null
               : (
                 <div className="space-y-2 border-t pt-3">
-                  <span className="text-sm font-medium">Inbox</span>
+                  <span className="text-sm font-medium">{t("Inbox")}</span>
                   <form.AppField name="enabledInInbox">
                     {field => (
                       <div className="flex items-center gap-2">
@@ -147,13 +151,13 @@ export function PropertyDisplaySection({
                           onCheckedChange={checked => field.handleChange(checked === true)}
                         />
                         <Label htmlFor={`${idPrefix}-enabled-in-inbox`}>
-                          Inbox pre-fill defaults
+                          {t("Inbox pre-fill defaults")}
                         </Label>
                       </div>
                     )}
                   </form.AppField>
                   <p className="text-xs text-muted-foreground">
-                    Lets you pre-fill this property&apos;s value in the Inbox review page.
+                    {t("Lets you pre-fill this property's value in the Inbox review page.")}
                   </p>
                 </div>
               )}

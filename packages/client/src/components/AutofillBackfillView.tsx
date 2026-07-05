@@ -2,6 +2,8 @@ import type { AutofillBackfillEntry, AutofillRule } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import {
   useApplyAutofillBackfill,
   useAutofillBackfill,
@@ -20,6 +22,9 @@ interface Props {
 export function AutofillBackfillView({
   rule,
 }: Props) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data, isLoading, error,
   } = useAutofillBackfill(rule.id);
@@ -42,14 +47,13 @@ export function AutofillBackfillView({
   if (!hasPrefill) {
     return (
       <p className="text-sm text-muted-foreground">
-        This rule has no prefill values to apply. Add a category, tags, media type, or custom
-        property values in the &quot;What Gets Prefilled&quot; tab first.
+        {t("This rule has no prefill values to apply. Add a category, tags, media type, or custom property values in the \"What Gets Prefilled\" tab first.")}
       </p>
     );
   }
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
-  if (error) return <p className="text-sm text-destructive">Failed to load matching bookmarks.</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">{t("Loading…")}</p>;
+  if (error) return <p className="text-sm text-destructive">{t("Failed to load matching bookmarks.")}</p>;
 
   const entries = data?.entries ?? [];
   const needCount = entries.filter(e => e.needsBackfill).length;
@@ -78,7 +82,11 @@ export function AutofillBackfillView({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="text-sm text-muted-foreground">
-          {entries.length} matching · {needCount} need backfill · {selected.size} selected
+          {t("{{total}} matching · {{needCount}} need backfill · {{selectedCount}} selected", {
+            total: entries.length,
+            needCount,
+            selectedCount: selected.size,
+          })}
         </span>
         <div className="flex flex-wrap items-center gap-2">
           <Button
@@ -86,28 +94,32 @@ export function AutofillBackfillView({
             size="sm"
             onClick={() => setSelected(new Set(entries.filter(e => e.needsBackfill && !e.isExempt).map(e => e.bookmark.id)))}
           >
-            Select needing backfill
+            {t("Select needing backfill")}
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setSelected(new Set(entries.map(e => e.bookmark.id)))}
           >
-            Select all
+            {t("Select all")}
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setSelected(new Set())}
           >
-            Deselect all
+            {t("Deselect all")}
           </Button>
           <Button
             size="sm"
             disabled={selected.size === 0 || apply.isPending}
             onClick={handleApply}
           >
-            {apply.isPending ? "Applying…" : `Apply to ${selected.size} selected`}
+            {apply.isPending
+              ? t("Applying…")
+              : t("Apply to {{count}} selected", {
+                count: selected.size,
+              })}
           </Button>
         </div>
       </div>
@@ -115,7 +127,7 @@ export function AutofillBackfillView({
       {entries.length === 0
         ? (
           <p className="text-sm text-muted-foreground">
-            No bookmarks currently match this rule&apos;s conditions.
+            {t("No bookmarks currently match this rule's conditions.")}
           </p>
         )
         : (
@@ -143,6 +155,9 @@ function BackfillRow({
   checked: boolean;
   onToggle: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const setExempt = useSetAutofillExempt();
   const removeExempt = useRemoveAutofillExempt();
   const exemptPending = setExempt.isPending || removeExempt.isPending;
@@ -154,7 +169,9 @@ function BackfillRow({
         onCheckedChange={onToggle}
         disabled={entry.isExempt}
         className="mt-0.5 shrink-0"
-        aria-label={`Select ${entry.bookmark.title}`}
+        aria-label={t("Select {{title}}", {
+          title: entry.bookmark.title,
+        })}
       />
       <div className="min-w-0 flex-1 space-y-0.5">
         <p className="truncate text-sm font-medium">{entry.bookmark.title}</p>
@@ -166,7 +183,7 @@ function BackfillRow({
             variant="secondary"
             className="shrink-0"
           >
-            Exempt
+            {t("Exempt")}
           </Badge>
         )
         : entry.needsBackfill
@@ -178,7 +195,7 @@ function BackfillRow({
                 hover:bg-amber-600
               "
             >
-              Needs backfill
+              {t("Needs backfill")}
             </Badge>
           )
           : (
@@ -186,7 +203,7 @@ function BackfillRow({
               variant="outline"
               className="shrink-0 text-muted-foreground"
             >
-              Up to date
+              {t("Up to date")}
             </Badge>
           )}
       <Button
@@ -208,7 +225,7 @@ function BackfillRow({
           }
         }}
       >
-        {entry.isExempt ? "Un-exempt" : "Exempt"}
+        {entry.isExempt ? t("Un-exempt") : t("Exempt")}
       </Button>
     </div>
   );

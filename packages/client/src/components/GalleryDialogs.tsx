@@ -1,6 +1,7 @@
 import type { Bookmark } from "@eesimple/types";
 
 import { Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,11 +31,14 @@ function BookmarkPicker({
   selected: Bookmark | null;
   onSelect: (bookmark: Bookmark) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Command className="rounded-lg border shadow-sm">
-      <CommandInput placeholder="Search bookmarks…" />
+      <CommandInput placeholder={t("Search bookmarks…")} />
       <CommandList className="max-h-60">
-        <CommandEmpty>No bookmarks found.</CommandEmpty>
+        <CommandEmpty>{t("No bookmarks found.")}</CommandEmpty>
         <CommandGroup>
           {bookmarks.map(bookmark => (
             <CommandItem
@@ -85,6 +89,9 @@ export function GalleryDialogs({
   onConfirmAttach,
   attachPending,
 }: GalleryDialogsProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
       {/* Delete confirmation dialog */}
@@ -94,9 +101,11 @@ export function GalleryDialogs({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete orphaned objects?</DialogTitle>
+            <DialogTitle>{t("Delete orphaned objects?")}</DialogTitle>
             <DialogDescription>
-              {`This permanently deletes ${pendingLabel ?? ""} from storage. This can't be undone.`}
+              {t("This permanently deletes {{label}} from storage. This can't be undone.", {
+                label: pendingLabel ?? "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -105,7 +114,7 @@ export function GalleryDialogs({
               variant="outline"
               onClick={onCancelDelete}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               type="button"
@@ -113,7 +122,7 @@ export function GalleryDialogs({
               disabled={deletePending}
               onClick={onConfirmDelete}
             >
-              {deletePending ? "Deleting…" : "Delete"}
+              {deletePending ? t("Deleting…") : t("Delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -126,10 +135,9 @@ export function GalleryDialogs({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Attach to bookmark</DialogTitle>
+            <DialogTitle>{t("Attach to bookmark")}</DialogTitle>
             <DialogDescription>
-              Choose a bookmark to attach this orphaned image to. This will set (or replace) that
-              bookmark&apos;s image.
+              {t("Choose a bookmark to attach this orphaned image to. This will set (or replace) that bookmark's image.")}
             </DialogDescription>
           </DialogHeader>
 
@@ -147,7 +155,7 @@ export function GalleryDialogs({
                   dark:text-amber-400
                 "
               >
-                This bookmark already has an image — it will be replaced.
+                {t("This bookmark already has an image — it will be replaced.")}
               </p>
             )
             : null}
@@ -158,14 +166,14 @@ export function GalleryDialogs({
               variant="outline"
               onClick={onCancelAttach}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               type="button"
               disabled={!attachTarget || attachPending}
               onClick={onConfirmAttach}
             >
-              {attachPending ? "Attaching…" : "Attach"}
+              {attachPending ? t("Attaching…") : t("Attach")}
             </Button>
           </DialogFooter>
         </DialogContent>

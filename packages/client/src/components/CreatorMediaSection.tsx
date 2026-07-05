@@ -3,6 +3,7 @@ import type { PlexItemResult } from "@eesimple/types";
 import { useState } from "react";
 
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { MultiCombobox } from "./MultiCombobox";
 import { PlexItemLookup } from "./PlexItemLookup";
@@ -47,6 +48,9 @@ export function CreatorMediaSection({
   save,
 }: CreatorMediaSectionProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: albums,
   } = useAlbums();
   const {
@@ -58,7 +62,7 @@ export function CreatorMediaSection({
     if (albumIds.includes(album.id)) return;
     save({
       albumIds: [...albumIds, album.id],
-    }, "Albums");
+    }, t("Albums"));
   });
 
   function saveYear(): void {
@@ -68,7 +72,7 @@ export function CreatorMediaSection({
     if (next === year) return;
     save({
       year: next,
-    }, "Year");
+    }, t("Year"));
   }
 
   function linkPlex(item: PlexItemResult): void {
@@ -77,7 +81,7 @@ export function CreatorMediaSection({
       plexItemType: item.type,
       plexItemTitle: item.title,
       year: item.year ?? year,
-    }, "Plex link");
+    }, t("Plex link"));
   }
 
   function unlinkPlex(): void {
@@ -85,18 +89,18 @@ export function CreatorMediaSection({
       plexRatingKey: null,
       plexItemType: null,
       plexItemTitle: null,
-    }, "Plex link");
+    }, t("Plex link"));
   }
 
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <Label htmlFor="creator-year">Year</Label>
+        <Label htmlFor="creator-year">{t("Year")}</Label>
         <Input
           id="creator-year"
           type="number"
           inputMode="numeric"
-          placeholder="Optional release year"
+          placeholder={t("Optional release year")}
           value={yearDraft}
           onChange={e => setYearDraft(e.target.value)}
           onBlur={saveYear}
@@ -106,12 +110,12 @@ export function CreatorMediaSection({
 
       {connectors?.plex.enabled && (
         <div className="space-y-1">
-          <Label>Plex link</Label>
+          <Label>{t("Plex link")}</Label>
           {plexRatingKey
             ? (
               <div className="flex items-center gap-2 text-sm">
                 <span className="rounded-sm bg-muted px-2 py-1">
-                  {plexItemTitle ?? "Linked to Plex"}
+                  {plexItemTitle ?? t("Linked to Plex")}
                 </span>
                 <Button
                   type="button"
@@ -120,7 +124,7 @@ export function CreatorMediaSection({
                   onClick={unlinkPlex}
                 >
                   <X className="size-4" />
-                  Unlink
+                  {t("Unlink")}
                 </Button>
               </div>
             )
@@ -136,7 +140,7 @@ export function CreatorMediaSection({
       <Separator />
 
       <div className="space-y-1">
-        <Label>Albums</Label>
+        <Label>{t("Albums")}</Label>
         <MultiCombobox
           options={(albums ?? []).map(a => ({
             value: a.id,
@@ -145,10 +149,10 @@ export function CreatorMediaSection({
           values={albumIds}
           onValuesChange={ids => save({
             albumIds: ids,
-          }, "Albums")}
-          placeholder="Select albums…"
-          searchPlaceholder="Search albums…"
-          emptyText="No albums found."
+          }, t("Albums"))}
+          placeholder={t("Select albums…")}
+          searchPlaceholder={t("Search albums…")}
+          emptyText={t("No albums found.")}
           createOption={albumCreate.createOption}
         />
         {albumCreate.modal}

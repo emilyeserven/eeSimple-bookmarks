@@ -1,6 +1,7 @@
 import type { SyncFieldDiff } from "@/lib/syncSources/syncSourceTypes";
 
 import { ImageOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -11,6 +12,9 @@ function ThumbBox({
   label: string;
   src: string | null | undefined;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="min-w-0">
       <div
@@ -24,7 +28,9 @@ function ThumbBox({
         ? (
           <img
             src={src}
-            alt={`${label} image`}
+            alt={t("{{label}} image", {
+              label,
+            })}
             className="size-20 rounded-md border object-cover"
           />
         )
@@ -54,6 +60,9 @@ export function SyncImageDiffRow({
   checked: boolean;
   onToggle: (checked: boolean) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <label
       className="flex cursor-pointer items-start gap-3 py-2"
@@ -69,18 +78,18 @@ export function SyncImageDiffRow({
           {row.applyImmediately
             ? (
               <span className="ml-2 text-xs font-normal text-muted-foreground">
-                applies immediately
+                {t("applies immediately")}
               </span>
             )
             : null}
         </div>
         <div className="mt-1 flex items-start gap-4">
           <ThumbBox
-            label="Current"
+            label={t("Current")}
             src={row.currentThumb}
           />
           <ThumbBox
-            label="New"
+            label={t("New")}
             src={row.nextThumb}
           />
         </div>

@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { Captions, ChevronDown, ChevronRight, Languages, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useExpandedSet } from "../hooks/useExpandedSet";
 import { useLanguageUsageAssociations, useLanguageUsageLevels } from "../hooks/useLanguageUsageLevels";
@@ -16,20 +17,25 @@ import { RowCard } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-const KIND_SECTIONS: { kind: LanguageUsageKind;
+function useKindSections(): { kind: LanguageUsageKind;
   title: string;
-  description: string; }[] = [
-  {
-    kind: "availability",
-    title: "Availability",
-    description: "How content offers a language — e.g. Dub, Subtitles, Explanations.",
-  },
-  {
-    kind: "proficiency",
-    title: "Proficiency",
-    description: "A person's command of a language — e.g. Native, Fluent, Learning.",
-  },
-];
+  description: string; }[] {
+  const {
+    t,
+  } = useTranslation();
+  return [
+    {
+      kind: "availability",
+      title: t("Availability"),
+      description: t("How content offers a language — e.g. Dub, Subtitles, Explanations."),
+    },
+    {
+      kind: "proficiency",
+      title: t("Proficiency"),
+      description: t("A person's command of a language — e.g. Native, Fluent, Learning."),
+    },
+  ];
+}
 
 /**
  * The Language Usage Levels overview: browse the (language, level) pairings actually in use,
@@ -38,6 +44,9 @@ const KIND_SECTIONS: { kind: LanguageUsageKind;
  * vocabulary itself is edited on the linked Edit page.
  */
 export function LanguageUsageOverview() {
+  const {
+    t,
+  } = useTranslation();
   const [mode, setMode] = useState<LanguageUsageGroupMode>("level");
   const {
     data: associations = [],
@@ -45,15 +54,15 @@ export function LanguageUsageOverview() {
   const {
     data: levels = [],
   } = useLanguageUsageLevels();
+  const kindSections = useKindSections();
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Language Usage Levels</h1>
+          <h1 className="text-2xl font-bold">{t("Language Usage Levels")}</h1>
           <p className="text-sm text-muted-foreground">
-            Browse which languages are used at each level. Edit the vocabulary itself on the Edit
-            page.
+            {t("Browse which languages are used at each level. Edit the vocabulary itself on the Edit page.")}
           </p>
         </div>
         <Button
@@ -63,13 +72,13 @@ export function LanguageUsageOverview() {
         >
           <Link to="/taxonomies/language-usage-levels/edit">
             <Pencil className="size-4" />
-            Edit levels
+            {t("Edit levels")}
           </Link>
         </Button>
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Group by</span>
+        <span className="text-sm text-muted-foreground">{t("Group by")}</span>
         <ToggleGroup
           type="single"
           size="sm"
@@ -78,14 +87,14 @@ export function LanguageUsageOverview() {
           onValueChange={(value) => {
             if (value === "level" || value === "language") setMode(value);
           }}
-          aria-label="Group by"
+          aria-label={t("Group by")}
         >
-          <ToggleGroupItem value="level">Usage level</ToggleGroupItem>
-          <ToggleGroupItem value="language">Language</ToggleGroupItem>
+          <ToggleGroupItem value="level">{t("Usage level")}</ToggleGroupItem>
+          <ToggleGroupItem value="language">{t("Language")}</ToggleGroupItem>
         </ToggleGroup>
       </div>
 
-      {KIND_SECTIONS.map((section, index) => (
+      {kindSections.map((section, index) => (
         <div key={section.kind}>
           {index > 0 ? <Separator className="mb-6" /> : null}
           <KindSection
@@ -113,6 +122,9 @@ function KindSection({
   mode: LanguageUsageGroupMode;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     expanded, onToggle,
   } = useExpandedSet([]);
 
@@ -123,7 +135,7 @@ function KindSection({
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
       {groups.length === 0
-        ? <p className="text-sm text-muted-foreground">Nothing here yet.</p>
+        ? <p className="text-sm text-muted-foreground">{t("Nothing here yet.")}</p>
         : groups.map(group => (
           <GroupCard
             key={group.id}
