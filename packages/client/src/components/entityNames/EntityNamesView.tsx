@@ -31,7 +31,6 @@ export function EntityNamesView({
             <span className="font-medium">{name.language.name}</span>
             <span className="text-muted-foreground">—</span>
             <span>{name.value}</span>
-            {name.isPrimary && <span className="text-muted-foreground">({t("primary")})</span>}
           </Badge>
         </li>
       ))}

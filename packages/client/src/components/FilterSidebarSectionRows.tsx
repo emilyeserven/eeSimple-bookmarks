@@ -12,6 +12,7 @@ import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { useLanguages } from "../hooks/useLanguages";
 import { useLanguageUsageLevels } from "../hooks/useLanguageUsageLevels";
 import { mediaTypeNodesToOptions } from "../lib/comboboxOptions";
+import { sortLanguagesFavoritesFirst } from "../lib/languageOptions";
 import { buildMediaTypeTree } from "../lib/mediaTypeTree";
 import { tagNodesToOptions } from "../lib/tagTree";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
@@ -736,7 +737,7 @@ export function LanguageUsageFilterSection({
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3">
         <MultiCombobox
-          options={languages.map(l => ({
+          options={sortLanguagesFavoritesFirst(languages).map(l => ({
             value: l.id,
             label: l.name,
             icon: <Languages className="size-4 shrink-0 text-muted-foreground" />,

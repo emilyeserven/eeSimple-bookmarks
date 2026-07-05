@@ -153,6 +153,7 @@ import { Route as SettingsLocationsPinStyleRouteImport } from './routes/settings
 import { Route as SettingsLocationsLevelGroupsRouteImport } from './routes/settings.locations.level-groups'
 import { Route as SettingsDisplaySidebarRouteImport } from './routes/settings.display.sidebar'
 import { Route as SettingsDisplayMediaRouteImport } from './routes/settings.display.media'
+import { Route as SettingsDisplayLanguagesRouteImport } from './routes/settings.display.languages'
 import { Route as SettingsDisplayHomepageRouteImport } from './routes/settings.display.homepage'
 import { Route as SettingsDisplayGeneralRouteImport } from './routes/settings.display.general'
 import { Route as SettingsDisplayFiltersRouteImport } from './routes/settings.display.filters'
@@ -1208,6 +1209,12 @@ const SettingsDisplayMediaRoute = SettingsDisplayMediaRouteImport.update({
   path: '/media',
   getParentRoute: () => SettingsDisplayRoute,
 } as any)
+const SettingsDisplayLanguagesRoute =
+  SettingsDisplayLanguagesRouteImport.update({
+    id: '/languages',
+    path: '/languages',
+    getParentRoute: () => SettingsDisplayRoute,
+  } as any)
 const SettingsDisplayHomepageRoute = SettingsDisplayHomepageRouteImport.update({
   id: '/homepage',
   path: '/homepage',
@@ -2957,6 +2964,7 @@ export interface FileRoutesByFullPath {
   '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
+  '/settings/display/languages': typeof SettingsDisplayLanguagesRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
@@ -3310,6 +3318,7 @@ export interface FileRoutesByTo {
   '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
+  '/settings/display/languages': typeof SettingsDisplayLanguagesRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
@@ -3669,6 +3678,7 @@ export interface FileRoutesById {
   '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
+  '/settings/display/languages': typeof SettingsDisplayLanguagesRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
@@ -4092,6 +4102,7 @@ export interface FileRouteTypes {
     | '/settings/display/filters'
     | '/settings/display/general'
     | '/settings/display/homepage'
+    | '/settings/display/languages'
     | '/settings/display/media'
     | '/settings/display/sidebar'
     | '/settings/locations/level-groups'
@@ -4445,6 +4456,7 @@ export interface FileRouteTypes {
     | '/settings/display/filters'
     | '/settings/display/general'
     | '/settings/display/homepage'
+    | '/settings/display/languages'
     | '/settings/display/media'
     | '/settings/display/sidebar'
     | '/settings/locations/level-groups'
@@ -4803,6 +4815,7 @@ export interface FileRouteTypes {
     | '/settings/display/filters'
     | '/settings/display/general'
     | '/settings/display/homepage'
+    | '/settings/display/languages'
     | '/settings/display/media'
     | '/settings/display/sidebar'
     | '/settings/locations/level-groups'
@@ -6171,6 +6184,13 @@ declare module '@tanstack/react-router' {
       path: '/media'
       fullPath: '/settings/display/media'
       preLoaderRoute: typeof SettingsDisplayMediaRouteImport
+      parentRoute: typeof SettingsDisplayRoute
+    }
+    '/settings/display/languages': {
+      id: '/settings/display/languages'
+      path: '/languages'
+      fullPath: '/settings/display/languages'
+      preLoaderRoute: typeof SettingsDisplayLanguagesRouteImport
       parentRoute: typeof SettingsDisplayRoute
     }
     '/settings/display/homepage': {
@@ -8738,6 +8758,7 @@ interface SettingsDisplayRouteChildren {
   SettingsDisplayFiltersRoute: typeof SettingsDisplayFiltersRoute
   SettingsDisplayGeneralRoute: typeof SettingsDisplayGeneralRoute
   SettingsDisplayHomepageRoute: typeof SettingsDisplayHomepageRoute
+  SettingsDisplayLanguagesRoute: typeof SettingsDisplayLanguagesRoute
   SettingsDisplayMediaRoute: typeof SettingsDisplayMediaRoute
   SettingsDisplaySidebarRoute: typeof SettingsDisplaySidebarRoute
   SettingsDisplayIndexRoute: typeof SettingsDisplayIndexRoute
@@ -8750,6 +8771,7 @@ const SettingsDisplayRouteChildren: SettingsDisplayRouteChildren = {
   SettingsDisplayFiltersRoute: SettingsDisplayFiltersRoute,
   SettingsDisplayGeneralRoute: SettingsDisplayGeneralRoute,
   SettingsDisplayHomepageRoute: SettingsDisplayHomepageRoute,
+  SettingsDisplayLanguagesRoute: SettingsDisplayLanguagesRoute,
   SettingsDisplayMediaRoute: SettingsDisplayMediaRoute,
   SettingsDisplaySidebarRoute: SettingsDisplaySidebarRoute,
   SettingsDisplayIndexRoute: SettingsDisplayIndexRoute,

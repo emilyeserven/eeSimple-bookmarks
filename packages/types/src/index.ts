@@ -703,6 +703,8 @@ export interface Language {
   builtIn: boolean;
   /** Display ordering weight; lower sorts first. */
   sortOrder: number;
+  /** Whether the user has marked this a favorite — shown towards the top of language pickers. */
+  isFavorite: boolean;
   /** ISO-8601 timestamp of when the language was created. */
   createdAt: string;
   /** Distinct bookmarks with this language (populated by list endpoints). */
@@ -721,6 +723,7 @@ export interface UpdateLanguageInput {
   name?: string;
   isoCode?: string | null;
   sortOrder?: number;
+  isFavorite?: boolean;
 }
 
 /**

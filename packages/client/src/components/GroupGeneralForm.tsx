@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { CreatorMediaSection } from "./CreatorMediaSection";
 import { EntityImageField } from "./EntityImageField";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
+import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { GroupImageActions } from "./GroupImageActions";
 import { GroupYouTubeChannelsField } from "./GroupYouTubeChannelsField";
@@ -16,6 +17,7 @@ import {
   useUpdateGroup,
   useUploadGroupImage,
 } from "../hooks/useGroups";
+import { usePrimaryLanguageField } from "../hooks/usePrimaryLanguageField";
 
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -43,6 +45,7 @@ export function GroupGeneralForm({
     youtubeChannels,
   } = useGroupGeneralForm(group);
   const updateGroup = useUpdateGroup();
+  const primaryLanguage = usePrimaryLanguageField("group", group.id);
   const uploadImage = useUploadGroupImage();
   const deleteImage = useDeleteGroupImage();
   const imageBusy = uploadImage.isPending || deleteImage.isPending;
@@ -53,10 +56,18 @@ export function GroupGeneralForm({
         {field => (
           <field.TextField
             label={t("Name")}
-            onBlur={() => saveName(field.state.value, field.state.meta.errors.length === 0)}
+            onBlur={() => {
+              saveName(field.state.value, field.state.meta.errors.length === 0);
+              primaryLanguage.syncPrimaryValue(field.state.value.trim());
+            }}
           />
         )}
       </form.AppField>
+
+      <PrimaryLanguageField
+        value={primaryLanguage.primaryLanguageId}
+        onValueChange={v => primaryLanguage.setPrimaryLanguage(v, form.state.values.name)}
+      />
 
       <div className="space-y-1">
         <Label>{t("Names")}</Label>

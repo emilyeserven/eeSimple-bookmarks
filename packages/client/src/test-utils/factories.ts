@@ -289,6 +289,7 @@ export function makeLanguage(overrides: Partial<Language> = {}): Language {
     slug: "english",
     builtIn: true,
     sortOrder: 0,
+    isFavorite: false,
     createdAt: NOW,
     bookmarkCount: 0,
     ...overrides,
