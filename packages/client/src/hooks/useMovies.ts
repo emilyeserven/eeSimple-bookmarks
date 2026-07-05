@@ -1,6 +1,7 @@
 import type { Bookmark, CreateMovieInput, UpdateMovieInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useAlbums } from "./useAlbums";
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
@@ -66,6 +67,9 @@ export interface BookmarkPlexLink {
  */
 export function useBookmarkPlexLink(bookmark: Bookmark): BookmarkPlexLink | null {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: movies,
   } = useMovies();
   const {
@@ -94,7 +98,9 @@ export function useBookmarkPlexLink(bookmark: Bookmark): BookmarkPlexLink | null
   if (bookmark.plexRatingKey !== null) {
     return {
       ratingKey: bookmark.plexRatingKey,
-      title: bookmark.plexItemTitle ?? `Item ${bookmark.plexRatingKey}`,
+      title: bookmark.plexItemTitle ?? t("Item {{ratingKey}}", {
+        ratingKey: bookmark.plexRatingKey,
+      }),
     };
   }
   return null;

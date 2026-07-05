@@ -89,11 +89,11 @@ function customPropertyPayload(placement: BookmarkAddFormPlacement): UpdateCusto
 }
 
 /** A hint for properties scoped to specific categories/media types (they only appear conditionally). */
-function propertyScopeHint(property: CustomProperty): string | undefined {
+function propertyScopeHint(property: CustomProperty, t: (key: string) => string): string | undefined {
   const scopedToCategory = !property.allCategories && property.categoryIds.length > 0;
   const scopedToMediaType = !property.allMediaTypes && property.mediaTypeIds.length > 0;
   return scopedToCategory || scopedToMediaType
-    ? "Only appears when a matching category or media type is selected"
+    ? t("Only appears when a matching category or media type is selected")
     : undefined;
 }
 
@@ -120,7 +120,9 @@ export function useBookmarkAddFormSettingsPage() {
 
   function persistSettings(next: BookmarkAddFormSettings, label: string): void {
     updateSettings.mutate(next, {
-      onSuccess: () => notifySuccess(`${label} placement saved`),
+      onSuccess: () => notifySuccess(tLabel("{{label}} placement saved", {
+        label,
+      })),
       onError: error => notifyError(error.message),
     });
   }
@@ -156,7 +158,9 @@ export function useBookmarkAddFormSettingsPage() {
       id: property.id,
       input: customPropertyPayload(placement),
     }, {
-      onSuccess: () => notifySuccess(`${property.name} placement saved`),
+      onSuccess: () => notifySuccess(tLabel("{{label}} placement saved", {
+        label: property.name,
+      })),
       onError: error => notifyError(error.message),
     });
   }
@@ -186,7 +190,7 @@ export function useBookmarkAddFormSettingsPage() {
     .map(property => ({
       property,
       placement: customPropertyPlacement(property),
-      hint: propertyScopeHint(property),
+      hint: propertyScopeHint(property, tLabel),
     }));
 
   return {

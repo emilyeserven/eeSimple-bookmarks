@@ -3,6 +3,7 @@ import type { AutoFetchJobStatus } from "@eesimple/types";
 import { useEffect, useRef } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { galleryApi } from "../lib/api/imports";
 import { notifySuccess } from "../lib/notifications";
@@ -39,6 +40,9 @@ function useJobStatus(
  * running to done, then refresh the gallery catalog.
  */
 function useJobCompletionToast(status: AutoFetchJobStatus | undefined) {
+  const {
+    t,
+  } = useTranslation();
   const queryClient = useQueryClient();
   const previous = useRef<AutoFetchJobStatus | undefined>(undefined);
   useEffect(() => {
@@ -49,12 +53,26 @@ function useJobCompletionToast(status: AutoFetchJobStatus | undefined) {
       const {
         fetched, failed,
       } = status;
+      const message = fetched === 1
+        ? (failed > 0
+          ? t("Fetched 1 image, {{failed}} failed.", {
+            failed,
+          })
+          : t("Fetched 1 image."))
+        : (failed > 0
+          ? t("Fetched {{fetched}} images, {{failed}} failed.", {
+            fetched,
+            failed,
+          })
+          : t("Fetched {{fetched}} images.", {
+            fetched,
+          }));
       notifySuccess(
-        `Fetched ${fetched} image${fetched === 1 ? "" : "s"}${failed > 0 ? `, ${failed} failed` : ""}.`,
+        message,
         {
           link: {
             href: "/settings/media/manage",
-            label: "View in Manage Media",
+            label: t("View in Manage Media"),
           },
         },
       );
@@ -63,7 +81,7 @@ function useJobCompletionToast(status: AutoFetchJobStatus | undefined) {
       });
     }
     previous.current = status;
-  }, [status, queryClient]);
+  }, [status, queryClient, t]);
 }
 
 /**

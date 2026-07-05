@@ -1,6 +1,8 @@
 import type { PinContext } from "@/components/HeaderPinButton";
 import type { PinnedSidebarItem } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { useAddPinnedSidebarItem, usePinnedSidebarItems, useRemovePinnedSidebarItem } from "@/hooks/usePinnedSidebarItems";
 
 /**
@@ -8,6 +10,9 @@ import { useAddPinnedSidebarItem, usePinnedSidebarItems, useRemovePinnedSidebarI
  * and the header More menu's pin item, so both stay in sync.
  */
 export function usePinToggle(context: PinContext) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: pins = [],
   } = usePinnedSidebarItems();
@@ -32,7 +37,7 @@ export function usePinToggle(context: PinContext) {
 
   return {
     isPinned: Boolean(pinned),
-    name: context.label ?? "this item",
+    name: context.label ?? t("this item"),
     toggle,
   };
 }

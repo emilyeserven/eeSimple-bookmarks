@@ -2,6 +2,7 @@ import type { createTaxonomyImageApi } from "../lib/api/taxonomyImages";
 import type { TaxonomyImage } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { describeError } from "../lib/apiError";
 import { notifyError } from "../lib/notifications";
@@ -16,6 +17,9 @@ type TaxonomyImageApi = ReturnType<typeof createTaxonomyImageApi>;
  */
 export function useTaxonomyImages(api: TaxonomyImageApi, ownerId: string, queryKey: readonly unknown[]) {
   const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
 
   const query = useQuery({
     queryKey: [...queryKey, ownerId, api],
@@ -31,25 +35,25 @@ export function useTaxonomyImages(api: TaxonomyImageApi, ownerId: string, queryK
   const upload = useMutation({
     mutationFn: (file: File) => api.upload(ownerId, file),
     onSuccess: invalidate,
-    onError: (err: Error) => notifyError(describeError(err, "Could not upload the image")),
+    onError: (err: Error) => notifyError(describeError(err, t("Could not upload the image"))),
   });
 
   const autoFetch = useMutation({
     mutationFn: (source: string) => api.autoFetch(ownerId, source),
     onSuccess: invalidate,
-    onError: (err: Error) => notifyError(describeError(err, "Could not import the image")),
+    onError: (err: Error) => notifyError(describeError(err, t("Could not import the image"))),
   });
 
   const setMain = useMutation({
     mutationFn: (imageId: string) => api.setMain(ownerId, imageId),
     onSuccess: invalidate,
-    onError: (err: Error) => notifyError(describeError(err, "Could not set the main image")),
+    onError: (err: Error) => notifyError(describeError(err, t("Could not set the main image"))),
   });
 
   const remove = useMutation({
     mutationFn: (imageId: string) => api.remove(ownerId, imageId),
     onSuccess: invalidate,
-    onError: (err: Error) => notifyError(describeError(err, "Could not remove the image")),
+    onError: (err: Error) => notifyError(describeError(err, t("Could not remove the image"))),
   });
 
   return {

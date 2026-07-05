@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 const SERVER_UNREACHABLE_TOAST_ID = "server-unreachable";
@@ -24,19 +25,20 @@ async function probeServer(): Promise<boolean> {
   }
 }
 
-function showServerUnreachable(): void {
-  toast.warning("Can't reach the server", {
+function showServerUnreachable(t: (key: string) => string): void {
+  toast.warning(t("Can't reach the server"), {
     id: SERVER_UNREACHABLE_TOAST_ID,
-    description:
+    description: t(
       "You're online but the app server isn't responding. If you use Tailscale, make sure it's connected.",
+    ),
     duration: Infinity,
   });
 }
 
-function showServerReconnected(): void {
+function showServerReconnected(t: (key: string) => string): void {
   toast.dismiss(SERVER_UNREACHABLE_TOAST_ID);
-  toast.success("Server reconnected", {
-    description: "The app server is reachable again.",
+  toast.success(t("Server reconnected"), {
+    description: t("The app server is reachable again."),
   });
 }
 
@@ -50,6 +52,9 @@ type ServerState = "unknown" | "reachable" | "unreachable";
  * Mount once, globally (see {@link RootLayout}).
  */
 export function useServerUnreachableToast(): void {
+  const {
+    t,
+  } = useTranslation();
   const stateRef = useRef<ServerState>("unknown");
 
   useEffect(() => {
@@ -70,11 +75,11 @@ export function useServerUnreachableToast(): void {
 
       stateRef.current = next;
       if (!reachable) {
-        showServerUnreachable();
+        showServerUnreachable(t);
       }
       else if (prev === "unreachable") {
         // Only show "reconnected" after we've previously shown "unreachable" — not on first success.
-        showServerReconnected();
+        showServerReconnected(t);
       }
     }
 
@@ -100,5 +105,5 @@ export function useServerUnreachableToast(): void {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+  }, [t]);
 }

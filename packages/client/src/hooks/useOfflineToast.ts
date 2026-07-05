@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 /**
@@ -9,20 +10,20 @@ import { toast } from "sonner";
 const OFFLINE_TOAST_ID = "app-offline";
 
 /** Show the persistent offline banner. Idempotent thanks to the fixed {@link OFFLINE_TOAST_ID}. */
-function showOffline(): void {
-  toast.warning("You're offline", {
+function showOffline(t: (key: string) => string): void {
+  toast.warning(t("You're offline"), {
     id: OFFLINE_TOAST_ID,
-    description: "Changes can't be saved until your connection comes back.",
+    description: t("Changes can't be saved until your connection comes back."),
     // Connectivity is a sticky state, not a one-off event — keep the banner up until we reconnect.
     duration: Infinity,
   });
 }
 
 /** Dismiss the offline banner and confirm reconnection with a brief toast. */
-function showOnline(): void {
+function showOnline(t: (key: string) => string): void {
   toast.dismiss(OFFLINE_TOAST_ID);
-  toast.success("Back online", {
-    description: "Your connection has been restored.",
+  toast.success(t("Back online"), {
+    description: t("Your connection has been restored."),
   });
 }
 
@@ -36,15 +37,22 @@ function showOnline(): void {
  * transient device-local state, not a user action worth keeping in the persistent Notifications log.
  */
 export function useOfflineToast(): void {
-  useEffect(() => {
-    // Cover the case where the app is loaded while already offline — no `offline` event fires then.
-    if (!navigator.onLine) showOffline();
+  const {
+    t,
+  } = useTranslation();
 
-    window.addEventListener("offline", showOffline);
-    window.addEventListener("online", showOnline);
+  useEffect(() => {
+    const onOffline = () => showOffline(t);
+    const onOnline = () => showOnline(t);
+
+    // Cover the case where the app is loaded while already offline — no `offline` event fires then.
+    if (!navigator.onLine) onOffline();
+
+    window.addEventListener("offline", onOffline);
+    window.addEventListener("online", onOnline);
     return () => {
-      window.removeEventListener("offline", showOffline);
-      window.removeEventListener("online", showOnline);
+      window.removeEventListener("offline", onOffline);
+      window.removeEventListener("online", onOnline);
     };
-  }, []);
+  }, [t]);
 }

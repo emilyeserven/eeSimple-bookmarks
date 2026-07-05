@@ -2,6 +2,7 @@ import type { ActivityRow } from "../lib/headerActivity";
 import type { LucideIcon } from "lucide-react";
 
 import { Download, Film, ImageDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useAutoFetchCompletionToast, useAutoFetchStatus, useAutoFetchWithFallbackCompletionToast, useAutoFetchWithFallbackStatus } from "./useGallery";
 import { useActiveImports, useImportCompletionToasts } from "./useImports";
@@ -32,6 +33,9 @@ export interface HeaderActivity {
  */
 export function useHeaderActivity(): HeaderActivity {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: imports,
   } = useActiveImports();
   const {
@@ -58,7 +62,7 @@ export function useHeaderActivity(): HeaderActivity {
   if (imports && imports.length > 0) {
     sections.push({
       key: "imports",
-      title: "Imports",
+      title: t("Imports"),
       icon: Download,
       rows: imports.map(importRow),
     });
@@ -67,29 +71,29 @@ export function useHeaderActivity(): HeaderActivity {
   if (reels && reels.length > 0) {
     sections.push({
       key: "reels",
-      title: "Reels archiving",
+      title: t("Reels archiving"),
       icon: Film,
       rows: reels.map(reelRow),
     });
   }
 
   // Missing-image and screenshot-fallback fetches are mutually exclusive; show whichever is running.
-  const imageRow = fetchRow("missing", "Fetching missing images", missing)
-    ?? fetchRow("fallback", "Screenshot fallback", fallback);
+  const imageRow = fetchRow("missing", t("Fetching missing images"), missing)
+    ?? fetchRow("fallback", t("Screenshot fallback"), fallback);
   if (imageRow) {
     sections.push({
       key: "images",
-      title: "Fetching images",
+      title: t("Fetching images"),
       icon: ImageDown,
       rows: [imageRow],
     });
   }
 
-  const channelRow = fetchRow("channels", "Fetching channel avatars", channels);
+  const channelRow = fetchRow("channels", t("Fetching channel avatars"), channels);
   if (channelRow) {
     sections.push({
       key: "channels",
-      title: "Channel avatars",
+      title: t("Channel avatars"),
       icon: ImageDown,
       rows: [channelRow],
     });

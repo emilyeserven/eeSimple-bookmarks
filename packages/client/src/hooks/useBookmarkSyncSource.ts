@@ -2,6 +2,7 @@ import type { BookmarkDiffCurrent } from "../lib/syncSources/bookmarkDiff";
 import type { SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourceTypes";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { metadataApi } from "../lib/api/metadata";
 import { buildBookmarkDiff } from "../lib/syncSources/bookmarkDiff";
@@ -19,6 +20,9 @@ function strRef(refs: SyncProvider["refs"], key: string): string | null {
  * modal is cheap.
  */
 export function useBookmarkSyncSource(provider: SyncProvider, enabled: boolean): SyncSourceFetch {
+  const {
+    t,
+  } = useTranslation();
   const url = strRef(provider.refs, "url");
 
   const query = useQuery({
@@ -41,7 +45,7 @@ export function useBookmarkSyncSource(provider: SyncProvider, enabled: boolean):
     return {
       diff: null,
       isLoading: false,
-      error: "Couldn't scan the URL. Check the link and try again.",
+      error: t("Couldn't scan the URL. Check the link and try again."),
     };
   }
   if (!query.data) {

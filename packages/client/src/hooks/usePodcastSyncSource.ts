@@ -2,6 +2,7 @@ import type { PodcastDiffCurrent } from "../lib/syncSources/podcastDiff";
 import type { SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourceTypes";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { podcastsApi } from "../lib/api/taxonomies";
 import { buildPodcastDiff } from "../lib/syncSources/podcastDiff";
@@ -18,6 +19,9 @@ function strRef(refs: SyncProvider["refs"], key: string): string | null {
  * current-vs-source diff. Only runs while the sync modal is open.
  */
 export function usePodcastSyncSource(provider: SyncProvider, enabled: boolean): SyncSourceFetch {
+  const {
+    t,
+  } = useTranslation();
   const query = useQuery({
     queryKey: ["podcast-feed-preview", provider.entityId],
     queryFn: () => podcastsApi.feedPreview(provider.entityId),
@@ -44,7 +48,7 @@ export function usePodcastSyncSource(provider: SyncProvider, enabled: boolean): 
     return {
       diff: null,
       isLoading: false,
-      error: "Couldn't reach the podcast source. Check the feed URL and try again.",
+      error: t("Couldn't reach the podcast source. Check the feed URL and try again."),
     };
   }
 
@@ -56,7 +60,7 @@ export function usePodcastSyncSource(provider: SyncProvider, enabled: boolean): 
       imageUrl: preview?.imageUrl ?? null,
       itunesUrl: preview?.providerLinks?.itunesUrl ?? preview?.itunesUrl ?? null,
       pocketCastsUrl: preview?.providerLinks?.pocketCastsUrl ?? null,
-    }, "Podcast feed"),
+    }, t("Podcast feed")),
     isLoading: false,
     error: null,
   };

@@ -2,6 +2,7 @@ import type { LocationDiffCurrent } from "../lib/syncSources/locationDiff";
 import type { SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourceTypes";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { locationsApi } from "../lib/api/taxonomies";
 import { buildLocationDiff } from "../lib/syncSources/locationDiff";
@@ -24,6 +25,9 @@ function numRef(refs: SyncProvider["refs"], key: string): number | null {
  * current values (passed through `provider.refs`). Only runs while the sync modal is open.
  */
 export function useLocationSyncSource(provider: SyncProvider, enabled: boolean): SyncSourceFetch {
+  const {
+    t,
+  } = useTranslation();
   const name = strRef(provider.refs, "name");
   const source = strRef(provider.refs, "source") === "wikidata" ? "wikidata" as const : undefined;
 
@@ -45,7 +49,7 @@ export function useLocationSyncSource(provider: SyncProvider, enabled: boolean):
     return {
       diff: null,
       isLoading: false,
-      error: "Couldn't reach the geocoder. Try again in a moment.",
+      error: t("Couldn't reach the geocoder. Try again in a moment."),
     };
   }
 

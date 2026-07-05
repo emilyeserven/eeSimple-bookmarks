@@ -9,6 +9,7 @@ import type {
 import { useEffect, useRef } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { importApi } from "../lib/api/imports";
 import { notifyError, notifySuccess } from "../lib/notifications";
@@ -51,6 +52,9 @@ export function useActiveImports() {
  * it tracks the previously-active set in a ref to detect transitions.
  */
 export function useImportCompletionToasts(active: ActiveImport[] | undefined) {
+  const {
+    t,
+  } = useTranslation();
   const queryClient = useQueryClient();
   const previous = useRef<Map<string, ActiveImport>>(new Map());
   useEffect(() => {
@@ -59,16 +63,52 @@ export function useImportCompletionToasts(active: ActiveImport[] | undefined) {
       if (current.has(id)) continue;
       // This import just left the active set — resolve its final state and toast accordingly.
       void importApi.getImport(id).then((record) => {
-        const label = item.sourceLabel ? ` from ${item.sourceLabel}` : "";
+        const source = item.sourceLabel;
         if (record.status === "failed") {
-          notifyError(`Import${label} failed${record.errorReason ? `: ${record.errorReason}` : "."}`);
+          const reason = record.errorReason;
+          if (source && reason) {
+            notifyError(t("Import from {{source}} failed: {{reason}}", {
+              source,
+              reason,
+            }));
+          }
+          else if (source) {
+            notifyError(t("Import from {{source}} failed.", {
+              source,
+            }));
+          }
+          else if (reason) {
+            notifyError(t("Import failed: {{reason}}", {
+              reason,
+            }));
+          }
+          else {
+            notifyError(t("Import failed."));
+          }
           return;
         }
         const count = record.items.length;
-        notifySuccess(`Imported ${count} link${count === 1 ? "" : "s"}${label} for review`, {
+        const message = source
+          ? (count === 1
+            ? t("Imported {{count}} link from {{source}} for review", {
+              count,
+              source,
+            })
+            : t("Imported {{count}} links from {{source}} for review", {
+              count,
+              source,
+            }))
+          : (count === 1
+            ? t("Imported {{count}} link for review", {
+              count,
+            })
+            : t("Imported {{count}} links for review", {
+              count,
+            }));
+        notifySuccess(message, {
           link: {
             href: "/inbox",
-            label: "Review in Inbox",
+            label: t("Review in Inbox"),
           },
         });
       }).catch(() => {
@@ -84,7 +124,7 @@ export function useImportCompletionToasts(active: ActiveImport[] | undefined) {
       });
     }
     previous.current = current;
-  }, [active, queryClient]);
+  }, [active, queryClient, t]);
 }
 
 /** Invalidate the Inbox queue and the import summaries (their counts move together). */

@@ -1,6 +1,7 @@
 import type { SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourceTypes";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { request } from "../lib/api/client";
 import { buildImageTaxonomyDiff } from "../lib/syncSources/imageTaxonomyDiff";
@@ -36,9 +37,12 @@ function previewPath(kind: string | null, entityId: string, refs: SyncProvider["
  * the sync modal is open.
  */
 export function useImageOnlyTaxonomySyncSource(provider: SyncProvider, enabled: boolean): SyncSourceFetch {
+  const {
+    t,
+  } = useTranslation();
   const kind = strRef(provider.refs, "previewKind");
   const currentImageUrl = strRef(provider.refs, "currentImageUrl");
-  const label = strRef(provider.refs, "sourceLabel") ?? "Source";
+  const label = strRef(provider.refs, "sourceLabel") ?? t("Source");
   const path = previewPath(kind, provider.entityId, provider.refs);
 
   const query = useQuery({
@@ -69,7 +73,7 @@ export function useImageOnlyTaxonomySyncSource(provider: SyncProvider, enabled: 
     return {
       diff: null,
       isLoading: false,
-      error: "Couldn't reach the source. Try again in a moment.",
+      error: t("Couldn't reach the source. Try again in a moment."),
     };
   }
 

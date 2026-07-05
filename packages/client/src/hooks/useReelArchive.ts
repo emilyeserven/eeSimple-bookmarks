@@ -3,6 +3,7 @@ import type { ActiveReelArchiveJob } from "@eesimple/types";
 import { useEffect, useRef } from "react";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { reelArchiveApi } from "../lib/api/reelArchive";
 import { notifyError, notifySuccess } from "../lib/notifications";
@@ -33,6 +34,9 @@ export function useActiveReelArchiveJobs() {
  * header indicator); it tracks the previously-active set in a ref to detect transitions.
  */
 export function useReelArchiveCompletionToast(active: ActiveReelArchiveJob[] | undefined) {
+  const {
+    t,
+  } = useTranslation();
   const queryClient = useQueryClient();
   const previous = useRef<Map<string, ActiveReelArchiveJob>>(new Map());
   useEffect(() => {
@@ -41,12 +45,37 @@ export function useReelArchiveCompletionToast(active: ActiveReelArchiveJob[] | u
       if (current.has(id)) continue;
       // This job just left the active set — resolve its final state and toast accordingly.
       void reelArchiveApi.getJob(id).then((record) => {
-        const title = item.bookmarkTitle ? ` for “${item.bookmarkTitle}”` : "";
+        const title = item.bookmarkTitle ?? null;
         if (record.status === "failed") {
-          notifyError(`Reel archive${title} failed${record.errorReason ? `: ${record.errorReason}` : "."}`);
+          const reason = record.errorReason ?? null;
+          if (title && reason) {
+            notifyError(t("Reel archive for \"{{title}}\" failed: {{reason}}", {
+              title,
+              reason,
+            }));
+          }
+          else if (title) {
+            notifyError(t("Reel archive for \"{{title}}\" failed.", {
+              title,
+            }));
+          }
+          else if (reason) {
+            notifyError(t("Reel archive failed: {{reason}}", {
+              reason,
+            }));
+          }
+          else {
+            notifyError(t("Reel archive failed."));
+          }
           return;
         }
-        notifySuccess(`Reel archived${title}`);
+        notifySuccess(
+          title
+            ? t("Reel archived for \"{{title}}\"", {
+              title,
+            })
+            : t("Reel archived"),
+        );
       }).catch(() => {
         // Best-effort notification; the bookmark refresh below still surfaces the stored reel.
       });
@@ -57,5 +86,5 @@ export function useReelArchiveCompletionToast(active: ActiveReelArchiveJob[] | u
       });
     }
     previous.current = current;
-  }, [active, queryClient]);
+  }, [active, queryClient, t]);
 }

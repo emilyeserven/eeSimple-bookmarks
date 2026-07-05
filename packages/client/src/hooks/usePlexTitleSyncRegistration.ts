@@ -4,6 +4,8 @@ import type { SyncFieldDiff, SyncProvider } from "../lib/syncSources/syncSourceT
 
 import { useCallback, useMemo, useRef } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useConnectors } from "./useConnectors";
 import { useRegisterSyncProvider } from "./useRegisterSyncProvider";
 import { useTaxonomyImages } from "./useTaxonomyImages";
@@ -47,6 +49,9 @@ export function usePlexTitleSyncRegistration({
   entity, base, imagesApi, queryKeyPrefix, applyText,
 }: PlexTitleSyncRegistrationParams) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: connectors,
   } = useConnectors();
   const gallery = useTaxonomyImages(imagesApi, entity.id, [queryKeyPrefix, entity.id]);
@@ -83,7 +88,7 @@ export function usePlexTitleSyncRegistration({
       entityId: entity.id,
       refs: {
         base,
-        sourceLabel: "Plex",
+        sourceLabel: t("Plex"),
         plexRatingKey: entity.plexRatingKey,
         currentImageUrl,
         currentName: entity.name,
@@ -95,7 +100,7 @@ export function usePlexTitleSyncRegistration({
     };
   }, [
     entity.id, entity.name, entity.plexRatingKey, entity.romanizedName,
-    entity.wikipediaLinkEn, entity.wikipediaLinkLocal, base, currentImageUrl, enabled, applyStaged,
+    entity.wikipediaLinkEn, entity.wikipediaLinkLocal, base, currentImageUrl, enabled, applyStaged, t,
   ]);
 
   useRegisterSyncProvider(provider);

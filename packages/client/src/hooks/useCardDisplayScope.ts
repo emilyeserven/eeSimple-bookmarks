@@ -1,5 +1,6 @@
 import type { CardDisplayScopeType } from "../lib/cardDisplayScope";
 
+import i18n from "../i18n";
 import { useCategories } from "./useCategories";
 import { useCustomProperties } from "./useCustomProperties";
 import { useMediaTypes } from "./useMediaTypes";
@@ -165,10 +166,10 @@ export function useCardDisplayScope(
 
 /** Human-readable noun for each scope type, used in the filter chip. */
 export const CARD_DISPLAY_SCOPE_LABELS: Record<CardDisplayScopeType, string> = {
-  "category": "category",
-  "property": "property",
-  "website": "website",
-  "tag": "tag",
-  "media-type": "media type",
-  "channel": "channel",
+  "category": i18n.t("category"),
+  "property": i18n.t("property"),
+  "website": i18n.t("website"),
+  "tag": i18n.t("tag"),
+  "media-type": i18n.t("media type"),
+  "channel": i18n.t("channel"),
 };
