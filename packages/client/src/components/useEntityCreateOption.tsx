@@ -7,6 +7,8 @@ import type { ComponentType, ReactNode } from "react";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { AddAlbumModal } from "./AddAlbumModal";
 import { AddBookModal } from "./AddBookModal";
 import { AddCategoryModal } from "./AddCategoryModal";
@@ -181,11 +183,14 @@ export function useEntityCreateOption<K extends CreatableEntityKind>(
 } {
   const [open, setOpen] = useState(false);
   const {
+    t,
+  } = useTranslation();
+  const {
     createLabel, Modal,
   } = CREATABLE_ENTITY_PICKERS[entity];
   return {
     createOption: {
-      label: createLabel,
+      label: t(createLabel),
       onSelect: () => setOpen(true),
     },
     modal: (

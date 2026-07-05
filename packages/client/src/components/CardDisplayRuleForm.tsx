@@ -3,6 +3,8 @@ import type { CardDisplayRule, ConditionTree } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { CardDisplayRuleDisplaySettings } from "./CardDisplayRuleDisplaySettings";
 import { CardDisplayRuleFormModals } from "./CardDisplayRuleFormModals";
 import { CardDisplayRuleFormSections } from "./CardDisplayRuleFormSections";
@@ -39,6 +41,9 @@ interface CardDisplayRuleFormProps {
 export function CardDisplayRuleForm({
   rule, seedConditions, onSave, onChange, onCancel, isPending, onDelete, isDeleting,
 }: CardDisplayRuleFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const isDefault = rule?.isDefault ?? false;
   const {
     values, categories, properties, tagTree, setFields, setDisplay, handleSubmit,
@@ -69,9 +74,9 @@ export function CardDisplayRuleForm({
   const cardPreview = (
     <section className="space-y-3">
       <div>
-        <h3 className="text-sm font-semibold">Card preview</h3>
+        <h3 className="text-sm font-semibold">{t("Card preview")}</h3>
         <p className="text-xs text-muted-foreground">
-          How a matching bookmark card looks with these display settings.
+          {t("How a matching bookmark card looks with these display settings.")}
         </p>
       </div>
       <CardDisplayRulePreview
@@ -150,7 +155,7 @@ export function CardDisplayRuleForm({
   // A field group renders inline when its modal is closed; while the modal is open the inline copy is
   // replaced by a note so the same inputs/DnD ids aren't mounted twice.
   const editingNote = (
-    <p className="text-xs text-muted-foreground">Editing in the expanded view…</p>
+    <p className="text-xs text-muted-foreground">{t("Editing in the expanded view…")}</p>
   );
 
   return (
@@ -194,7 +199,7 @@ export function CardDisplayRuleForm({
               variant="outline"
               onClick={onCancel}
             >
-              Done
+              {t("Done")}
             </Button>
           )
           : (
@@ -203,7 +208,7 @@ export function CardDisplayRuleForm({
                 type="submit"
                 disabled={isPending || !values.name.trim()}
               >
-                {isPending ? "Saving…" : "Save rule"}
+                {isPending ? t("Saving…") : t("Save rule")}
               </Button>
               <Button
                 type="button"
@@ -211,7 +216,7 @@ export function CardDisplayRuleForm({
                 onClick={onCancel}
                 disabled={isPending}
               >
-                Cancel
+                {t("Cancel")}
               </Button>
             </>
           )}
@@ -224,7 +229,7 @@ export function CardDisplayRuleForm({
               onClick={onDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting…" : "Delete rule"}
+              {isDeleting ? t("Deleting…") : t("Delete rule")}
             </Button>
           )
           : null}

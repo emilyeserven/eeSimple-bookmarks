@@ -20,6 +20,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useTranslation } from "react-i18next";
 
 import { CardDisplayRuleCard } from "./CardDisplayRuleCard";
 import {
@@ -68,6 +69,9 @@ interface CardDisplayRuleSortableListProps {
 export function CardDisplayRuleSortableList({
   serverRules, isLoading,
 }: CardDisplayRuleSortableListProps) {
+  const {
+    t,
+  } = useTranslation();
   const [localRules, setLocalRules] = useState<CardDisplayRule[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -113,7 +117,7 @@ export function CardDisplayRuleSortableList({
       {!isLoading && orderedRules.length === 0
         ? (
           <p className="text-sm text-muted-foreground">
-            No rules yet. Add one to override how matching bookmark cards display.
+            {t("No rules yet. Add one to override how matching bookmark cards display.")}
           </p>
         )
         : null}

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { TaxonomyTreeRowInner } from "./TaxonomyTreeRowInner";
 
 import { Badge } from "@/components/ui/badge";
@@ -98,6 +100,9 @@ function NoChildRow({
   node: TaxonomyTreeNode;
   indentDepth: number;
 }) {
+  const {
+    t,
+  } = useTranslation();
   if ((node.ownBookmarkCount ?? 0) === 0) return null;
   return (
     <li
@@ -112,7 +117,7 @@ function NoChildRow({
         className="inline-block size-4"
         aria-hidden="true"
       />
-      <span className="flex-1 truncate">No Child</span>
+      <span className="flex-1 truncate">{t("No Child")}</span>
       <Badge variant="outline">{node.ownBookmarkCount}</Badge>
     </li>
   );

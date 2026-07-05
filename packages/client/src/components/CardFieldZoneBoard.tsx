@@ -19,6 +19,7 @@ import { CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } from "@eesimple/t
 import { ChevronDown, ChevronRight, GripVertical, Move, SlidersHorizontal } from "lucide-react";
 
 import { carryOverPlacement } from "./cardFieldPlacementMove";
+import i18n from "../i18n";
 import { eligibleCustomCardFields, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -57,19 +58,19 @@ const IMAGE_ZONE_DEFS: { zone: CardFieldZone;
   label: string; }[] = [
   {
     zone: "image-top-left",
-    label: "Image top-left",
+    label: i18n.t("Image top-left"),
   },
   {
     zone: "image-top-right",
-    label: "Image top-right",
+    label: i18n.t("Image top-right"),
   },
   {
     zone: "image-bottom-left",
-    label: "Image bottom-left",
+    label: i18n.t("Image bottom-left"),
   },
   {
     zone: "image-bottom-right",
-    label: "Image bottom-right",
+    label: i18n.t("Image bottom-right"),
   },
 ];
 
@@ -79,23 +80,23 @@ const BODY_ZONE_DEFS: { zone: CardFieldZone;
   hint: string; }[] = [
   {
     zone: "card-single-top",
-    label: "Single column top",
-    hint: "Full-width rows above the rest of the card.",
+    label: i18n.t("Single column top"),
+    hint: i18n.t("Full-width rows above the rest of the card."),
   },
   {
     zone: "card-labels",
-    label: "Labels",
-    hint: "Pills and badges in their existing label form.",
+    label: i18n.t("Labels"),
+    hint: i18n.t("Pills and badges in their existing label form."),
   },
   {
     zone: "card-table",
-    label: "Table",
-    hint: "A label : value two-column table.",
+    label: i18n.t("Table"),
+    hint: i18n.t("A label : value two-column table."),
   },
   {
     zone: "card-single-bottom",
-    label: "Single column bottom",
-    hint: "Full-width rows below the rest of the card.",
+    label: i18n.t("Single column bottom"),
+    hint: i18n.t("Full-width rows below the rest of the card."),
   },
 ];
 
@@ -112,7 +113,7 @@ const MOVE_TARGETS: { zone: CardFieldZone | null;
   })),
   {
     zone: null,
-    label: "Available (hidden)",
+    label: i18n.t("Available (hidden)"),
   },
 ];
 
@@ -138,7 +139,7 @@ const SCALE_OPTIONS = [
 const MOBILE_SCALE_OPTIONS = [
   {
     value: "inherit",
-    label: "Inherit",
+    label: i18n.t("Inherit"),
   },
   ...SCALE_OPTIONS,
 ];
@@ -376,12 +377,12 @@ export function CardFieldZoneBoard({
 
         <ZoneDropArea
           zone="tray"
-          label="Available (hidden)"
+          label={i18n.t("Available (hidden)")}
           highlight={overZone === "tray"}
           items={unplaced.map(field => field.key)}
         >
           {unplaced.length === 0
-            ? <p className="text-xs text-muted-foreground">All fields are placed.</p>
+            ? <p className="text-xs text-muted-foreground">{i18n.t("All fields are placed.")}</p>
             : unplaced.map(field => (
               <FieldChip
                 key={field.key}
@@ -455,7 +456,7 @@ function ZoneDropArea({
             <SortableContext items={items}>
               <div className="flex flex-wrap gap-1.5">
                 {(Array.isArray(children) ? children.length === 0 : !children)
-                  ? <p className="text-xs text-muted-foreground">Drop fields here</p>
+                  ? <p className="text-xs text-muted-foreground">{i18n.t("Drop fields here")}</p>
                   : children}
               </div>
             </SortableContext>
@@ -516,7 +517,13 @@ function FieldChip({
             <button
               type="button"
               className="shrink-0 text-muted-foreground"
-              aria-label={`${optionsOpen ? "Hide" : "Show"} ${label} options`}
+              aria-label={optionsOpen
+                ? i18n.t("Hide {{label}} options", {
+                  label,
+                })
+                : i18n.t("Show {{label}} options", {
+                  label,
+                })}
               aria-expanded={optionsOpen}
               onPointerDown={stopDrag}
               onClick={() => setOptionsOpen(prev => !prev)}
@@ -532,14 +539,16 @@ function FieldChip({
             <button
               type="button"
               className="shrink-0 text-muted-foreground"
-              aria-label={`Move ${label} to…`}
+              aria-label={i18n.t("Move {{label}} to…", {
+                label,
+              })}
               onPointerDown={stopDrag}
             >
               <Move className="size-3.5" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Move to…</DropdownMenuLabel>
+            <DropdownMenuLabel>{i18n.t("Move to…")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {MOVE_TARGETS.map(target => (
               <DropdownMenuItem
@@ -578,7 +587,7 @@ function HideLabelToggle({
           hideLabel: checked === true,
         })}
       />
-      Hide label
+      {i18n.t("Hide label")}
     </label>
   );
 }
@@ -619,7 +628,7 @@ function TagsPlacementControls({
             />
             <PlacementCheckbox
               id={`${idPrefix}-clickable-tags`}
-              label="Clickable links"
+              label={i18n.t("Clickable links")}
               checked={placement.clickableTags ?? false}
               onCheckedChange={clickableTags => onPatch({
                 clickableTags,
@@ -630,7 +639,7 @@ function TagsPlacementControls({
         : null}
       <PlacementCheckbox
         id={`${idPrefix}-hover-hierarchy`}
-        label="Show hierarchy on hover"
+        label={i18n.t("Show hierarchy on hover")}
         checked={placement.showTagHierarchyOnHover ?? false}
         onCheckedChange={showTagHierarchyOnHover => onPatch({
           showTagHierarchyOnHover,
@@ -672,7 +681,7 @@ function HierarchyHoverControls({
         : null}
       <PlacementCheckbox
         id={`${idPrefix}-hover-hierarchy`}
-        label="Show hierarchy on hover"
+        label={i18n.t("Show hierarchy on hover")}
         checked={Boolean(placement[prop])}
         onCheckedChange={checked => onPatch({
           [prop]: checked,
@@ -722,7 +731,7 @@ function BooleanPlacementControls({
       />
       <PlacementCheckbox
         id={`${idPrefix}-show-if-false`}
-        label="Show if false"
+        label={i18n.t("Show if false")}
         checked={placement.showIfFalse ?? false}
         onCheckedChange={showIfFalse => onPatch({
           showIfFalse,
@@ -730,7 +739,7 @@ function BooleanPlacementControls({
       />
       <PlacementCheckbox
         id={`${idPrefix}-clickable`}
-        label="Clickable in view"
+        label={i18n.t("Clickable in view")}
         checked={placement.clickableInView ?? false}
         onCheckedChange={clickableInView => onPatch({
           clickableInView,
@@ -741,7 +750,7 @@ function BooleanPlacementControls({
           <>
             <PlacementCheckbox
               id={`${idPrefix}-hide-icon`}
-              label="Hide icon"
+              label={i18n.t("Hide icon")}
               checked={placement.hideIcon ?? false}
               onCheckedChange={hideIcon => onPatch({
                 hideIcon,
@@ -749,7 +758,7 @@ function BooleanPlacementControls({
             />
             <PlacementCheckbox
               id={`${idPrefix}-colon`}
-              label="Colon after label"
+              label={i18n.t("Colon after label")}
               checked={placement.showLabelColon ?? true}
               onCheckedChange={showLabelColon => onPatch({
                 showLabelColon,
@@ -757,7 +766,7 @@ function BooleanPlacementControls({
             />
             <PlacementCheckbox
               id={`${idPrefix}-value-before`}
-              label="Value before label"
+              label={i18n.t("Value before label")}
               checked={placement.showValueBeforeLabel ?? false}
               onCheckedChange={showValueBeforeLabel => onPatch({
                 showValueBeforeLabel,
@@ -811,7 +820,11 @@ function ImagePlacementControls({
               key={opt.value}
               value={opt.value}
             >
-              {opt.value === "inherit" ? "Mobile: inherit" : `Mobile: ${opt.label}`}
+              {opt.value === "inherit"
+                ? i18n.t("Mobile: inherit")
+                : i18n.t("Mobile: {{label}}", {
+                  label: opt.label,
+                })}
             </SelectItem>
           ))}
         </SelectContent>
@@ -824,7 +837,7 @@ function ImagePlacementControls({
             hideIcon: checked === true,
           })}
         />
-        Hide icon/image
+        {i18n.t("Hide icon/image")}
       </label>
       <HideLabelToggle
         placement={placement}
@@ -839,7 +852,7 @@ function ImagePlacementControls({
             clickableInOverlay: checked === true,
           })}
         />
-        Link to item page
+        {i18n.t("Link to item page")}
       </label>
     </div>
   );

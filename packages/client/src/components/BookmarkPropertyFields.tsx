@@ -7,6 +7,7 @@ import type {
 
 import { SECTION_ENTRY_TYPES, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
 import { BookOpen, Loader2, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
 import { ChoicesCheckboxList } from "./ChoicesCheckboxList";
@@ -137,6 +138,9 @@ export function ItemInItemsPropertyField({
     total: string; } | undefined;
   onChange: (field: "current" | "total", value: string) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const current = progress?.current ?? "";
   const total = progress?.total ?? "";
   const before = property.itemInItemsBeforeText ?? "";
@@ -152,7 +156,7 @@ export function ItemInItemsPropertyField({
         <Input
           type="number"
           className="w-24"
-          placeholder="Current"
+          placeholder={t("Current")}
           value={current}
           onChange={event => onChange("current", event.target.value)}
         />
@@ -160,7 +164,7 @@ export function ItemInItemsPropertyField({
         <Input
           type="number"
           className="w-24"
-          placeholder="Total"
+          placeholder={t("Total")}
           value={total}
           onChange={event => onChange("total", event.target.value)}
         />
@@ -180,6 +184,9 @@ export function ChoicesPropertyField({
   selectedValues: string[];
   onChange: (values: string[]) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const display = property.choicesDisplay ?? "radio";
   const multiple = property.choicesMultiple;
   const items = property.choicesItems;
@@ -237,7 +244,7 @@ export function ChoicesPropertyField({
               <Label
                 htmlFor={`${fieldId}-none`}
                 className="font-normal text-muted-foreground"
-              >Clear
+              >{t("Clear")}
               </Label>
             </div>
           )}
@@ -267,7 +274,7 @@ export function ChoicesPropertyField({
         onValueChange={value => onChange(value ? [value] : [])}
       >
         <SelectTrigger id={fieldId}>
-          <SelectValue placeholder="Select…" />
+          <SelectValue placeholder={t("Select…")} />
         </SelectTrigger>
         <SelectContent>
           {items.map(item => (
@@ -296,6 +303,9 @@ export function SectionsPropertyField({
   onImport?: () => void;
   isImportPending?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const allowedTypes = property.sectionsAllowedTypes ?? [...SECTION_ENTRY_TYPES];
   const defaultType: SectionEntryType = (property.sectionsDefaultType ?? allowedTypes[0] ?? "url") as SectionEntryType;
 
@@ -336,9 +346,9 @@ export function SectionsPropertyField({
 
   const fieldId = `property-${property.id}`;
   const startPlaceholder = (type: SectionEntryType) =>
-    type === "page" ? "Start page" : type === "timestamp" ? "Start time" : "URL";
+    type === "page" ? t("Start page") : type === "timestamp" ? t("Start time") : t("URL");
   const endPlaceholder = (type: SectionEntryType) =>
-    type === "page" ? "End page" : type === "timestamp" ? "End time" : "End URL (optional)";
+    type === "page" ? t("End page") : type === "timestamp" ? t("End time") : t("End URL (optional)");
 
   return (
     <div className="col-span-full space-y-2">
@@ -355,7 +365,7 @@ export function SectionsPropertyField({
             >
               <div className="grid grid-cols-2 gap-2">
                 <Input
-                  placeholder="Name"
+                  placeholder={t("Name")}
                   value={entry.name}
                   onChange={e => updateEntry(entry.id, {
                     name: e.target.value,
@@ -377,7 +387,7 @@ export function SectionsPropertyField({
                           <SelectItem
                             key={type}
                             value={type}
-                          >{SECTION_ENTRY_TYPE_LABELS[type]}
+                          >{t(SECTION_ENTRY_TYPE_LABELS[type])}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -389,7 +399,7 @@ export function SectionsPropertyField({
                         flex items-center text-sm text-muted-foreground
                       "
                     >
-                      {SECTION_ENTRY_TYPE_LABELS[entry.type]}
+                      {t(SECTION_ENTRY_TYPE_LABELS[entry.type])}
                     </span>
                   )}
                 <Input
@@ -415,7 +425,7 @@ export function SectionsPropertyField({
                   mt-1 text-lg leading-none text-muted-foreground
                   hover:text-destructive
                 "
-                aria-label="Remove section"
+                aria-label={t("Remove section")}
                 onClick={() => removeEntry(entry.id)}
               >
                 ×
@@ -433,7 +443,7 @@ export function SectionsPropertyField({
           "
           onClick={addSection}
         >
-          + Add section
+          {t("+ Add section")}
         </button>
         <div className="flex items-center gap-2">
           <Checkbox
@@ -448,7 +458,7 @@ export function SectionsPropertyField({
             htmlFor={`${fieldId}-exhaustive`}
             className="text-sm font-normal"
           >
-            Exhaustive
+            {t("Exhaustive")}
           </Label>
         </div>
         {onImport
@@ -458,13 +468,13 @@ export function SectionsPropertyField({
               variant="outline"
               size="sm"
               disabled={isImportPending}
-              title="Import the linked book's table of contents (replaces the current list)"
+              title={t("Import the linked book's table of contents (replaces the current list)")}
               onClick={onImport}
             >
               {isImportPending
                 ? <Loader2 className="size-4 animate-spin" />
                 : <BookOpen className="size-4" />}
-              Import from Kavita
+              {t("Import from Kavita")}
             </Button>
           )
           : null}
@@ -484,6 +494,9 @@ export function TextPropertyField({
   onFetch?: (value: string) => void;
   isFetchPending?: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-1">
       <Label htmlFor={fieldId}>{property.name}</Label>
@@ -500,8 +513,8 @@ export function TextPropertyField({
             type="button"
             variant="ghost"
             size="icon"
-            title="Fetch metadata from Open Library"
-            aria-label="Fetch metadata from Open Library"
+            title={t("Fetch metadata from Open Library")}
+            aria-label={t("Fetch metadata from Open Library")}
             disabled={!value.trim() || isFetchPending}
             onClick={() => onFetch(value)}
           >
@@ -526,14 +539,17 @@ export function CategoryPropertyFileField({
   property: CustomProperty;
   bookmark: Bookmark | null;
 }) {
+  const {
+    t,
+  } = useTranslation();
   if (!bookmark) {
     return (
       <div className="space-y-1">
         <Label>{property.name}</Label>
         <p className="text-xs text-muted-foreground">
-          Save the bookmark first, then attach a
-          {property.type === "image" ? "n image" : " file"}
-          .
+          {property.type === "image"
+            ? t("Save the bookmark first, then attach an image.")
+            : t("Save the bookmark first, then attach a file.")}
         </p>
       </div>
     );

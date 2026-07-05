@@ -5,6 +5,8 @@ import type {
 } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { OnOffToggleGroup } from "./DisplayControlPrimitives";
 import { useCroppedHeight, useCroppedWidth } from "../hooks/useAppSettings";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
@@ -43,6 +45,9 @@ interface CardDisplayImageControlsProps {
 export function CardDisplayImageControls({
   value, onChange, idPrefix, isDefault,
 }: CardDisplayImageControlsProps) {
+  const {
+    t,
+  } = useTranslation();
   const croppedWidth = useCroppedWidth();
   const croppedHeight = useCroppedHeight();
   const {
@@ -53,7 +58,7 @@ export function CardDisplayImageControls({
   return (
     <>
       <OverridableRow
-        label="Images"
+        label={t("Images")}
         idPrefix={idPrefix}
         attr="imageVisibility"
         isDefault={isDefault}
@@ -79,12 +84,12 @@ export function CardDisplayImageControls({
               rounded-none border-r border-input
               first:rounded-l-sm
             "
-          >Show
+          >{t("Show")}
           </ToggleGroupItem>
           <ToggleGroupItem
             value="image-only"
             className="rounded-none border-r border-input"
-          >Only
+          >{t("Only")}
           </ToggleGroupItem>
           <ToggleGroupItem
             value="off"
@@ -92,13 +97,13 @@ export function CardDisplayImageControls({
               rounded-none
               last:rounded-r-sm
             "
-          >Off
+          >{t("Off")}
           </ToggleGroupItem>
         </ToggleGroup>
       </OverridableRow>
 
       <OverridableRow
-        label="Aspect"
+        label={t("Aspect")}
         idPrefix={idPrefix}
         attr="imageMode"
         isDefault={isDefault}
@@ -130,7 +135,7 @@ export function CardDisplayImageControls({
       </OverridableRow>
 
       <OverridableRow
-        label="Layout"
+        label={t("Layout")}
         idPrefix={idPrefix}
         attr="imageLayout"
         isDefault={isDefault}
@@ -138,7 +143,7 @@ export function CardDisplayImageControls({
         onOverrideChange={on => onChange({
           imageLayout: on ? OVERRIDE_DEFAULTS.imageLayout : null,
         })}
-        hint="Side layout only applies at 1–2 columns."
+        hint={t("Side layout only applies at 1–2 columns.")}
       >
         <ToggleGroup
           type="single"
@@ -157,7 +162,7 @@ export function CardDisplayImageControls({
               rounded-none border-r border-input
               first:rounded-l-sm
             "
-          >Above
+          >{t("Above")}
           </ToggleGroupItem>
           <ToggleGroupItem
             value="side"
@@ -165,13 +170,13 @@ export function CardDisplayImageControls({
               rounded-none
               last:rounded-r-sm
             "
-          >Side
+          >{t("Side")}
           </ToggleGroupItem>
         </ToggleGroup>
       </OverridableRow>
 
       <OverridableRow
-        label="Hide website for YouTube"
+        label={t("Hide website for YouTube")}
         idPrefix={idPrefix}
         attr="hideWebsiteForYouTube"
         isDefault={isDefault}
@@ -179,7 +184,7 @@ export function CardDisplayImageControls({
         onOverrideChange={on => onChange({
           hideWebsiteForYouTube: on ? OVERRIDE_DEFAULTS.hideWebsiteForYouTube : null,
         })}
-        hint="Hides the website pill on a card that also has a YouTube channel."
+        hint={t("Hides the website pill on a card that also has a YouTube channel.")}
       >
         <OnOffToggleGroup
           value={value.hideWebsiteForYouTube ?? OVERRIDE_DEFAULTS.hideWebsiteForYouTube}
@@ -207,6 +212,9 @@ interface OverridableRowProps {
 function OverridableRow({
   label, idPrefix, attr, isDefault, isOverridden, onOverrideChange, hint, children,
 }: OverridableRowProps) {
+  const {
+    t,
+  } = useTranslation();
   const active = isDefault || isOverridden;
   return (
     <div className="space-y-1">
@@ -223,7 +231,7 @@ function OverridableRow({
                 checked={false}
                 onCheckedChange={checked => onOverrideChange(checked === true)}
               />
-              Override
+              {t("Override")}
             </label>
           )}
       </div>
@@ -236,7 +244,7 @@ function OverridableRow({
           "
           onClick={() => onOverrideChange(false)}
         >
-          Inherit instead
+          {t("Inherit instead")}
         </button>
       )}
       {active && hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}

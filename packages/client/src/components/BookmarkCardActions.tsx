@@ -1,6 +1,7 @@
 import type { Bookmark, BookmarkTag, ChoicesDisplayType, CustomProperty } from "@eesimple/types";
 
 import { Archive, ArchiveRestore, BookOpen, ExternalLink, MoreVertical, Podcast, Tv } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkCardMenu } from "./BookmarkCardMenu";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
@@ -20,6 +21,9 @@ const noop = (): void => undefined;
 export function BookmarkExternalLinkButton({
   url,
 }: { url: string }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Button
       type="button"
@@ -31,7 +35,7 @@ export function BookmarkExternalLinkButton({
         href={url}
         target="_blank"
         rel="noreferrer"
-        aria-label="Open URL in new tab"
+        aria-label={t("Open URL in new tab")}
       >
         <ExternalLink className="size-4" />
       </a>
@@ -47,6 +51,9 @@ export function BookmarkArchiveLinkButton({
   baseUrl, url,
 }: { baseUrl: string;
   url: string; }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Button
       type="button"
@@ -58,8 +65,8 @@ export function BookmarkArchiveLinkButton({
         href={archiveSearchUrl(baseUrl, url)}
         target="_blank"
         rel="noreferrer"
-        aria-label="View archived page in ArchiveBox"
-        title="View archived page in ArchiveBox"
+        aria-label={t("View archived page in ArchiveBox")}
+        title={t("View archived page in ArchiveBox")}
       >
         <Archive className="size-4" />
       </a>
@@ -76,6 +83,9 @@ export function BookmarkArchiveNowButton({
   baseUrl, url,
 }: { baseUrl: string;
   url: string; }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Button
       type="button"
@@ -87,8 +97,8 @@ export function BookmarkArchiveNowButton({
         href={archiveAddUrl(baseUrl, url)}
         target="_blank"
         rel="noreferrer"
-        aria-label="Archive this page now in ArchiveBox"
-        title="Archive this page now in ArchiveBox"
+        aria-label={t("Archive this page now in ArchiveBox")}
+        title={t("Archive this page now in ArchiveBox")}
       >
         <ArchiveRestore className="size-4" />
       </a>
@@ -105,6 +115,9 @@ export function BookmarkKavitaLinkButton({
 }: { baseUrl: string;
   libraryId: number;
   seriesId: number; }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Button
       type="button"
@@ -116,8 +129,8 @@ export function BookmarkKavitaLinkButton({
         href={kavitaSeriesUrl(baseUrl, libraryId, seriesId)}
         target="_blank"
         rel="noreferrer"
-        aria-label="View series on Kavita"
-        title="View series on Kavita"
+        aria-label={t("View series on Kavita")}
+        title={t("View series on Kavita")}
       >
         <BookOpen className="size-4" />
       </a>
@@ -135,6 +148,9 @@ export function BookmarkPlexLinkButton({
 }: { baseUrl: string;
   machineIdentifier: string;
   ratingKey: string; }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Button
       type="button"
@@ -146,8 +162,8 @@ export function BookmarkPlexLinkButton({
         href={plexItemUrl(baseUrl, machineIdentifier, ratingKey)}
         target="_blank"
         rel="noreferrer"
-        aria-label="View item on Plex"
-        title="View item on Plex"
+        aria-label={t("View item on Plex")}
+        title={t("View item on Plex")}
       >
         <Tv className="size-4" />
       </a>
@@ -164,6 +180,9 @@ export function BookmarkPodcastLinkButton({
   url, label,
 }: { url: string;
   label: string; }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <Button
       type="button"
@@ -175,8 +194,12 @@ export function BookmarkPodcastLinkButton({
         href={url}
         target="_blank"
         rel="noreferrer"
-        aria-label={`View on ${label}`}
-        title={`View on ${label}`}
+        aria-label={t("View on {{label}}", {
+          label,
+        })}
+        title={t("View on {{label}}", {
+          label,
+        })}
       >
         <Podcast className="size-4" />
       </a>
@@ -214,6 +237,9 @@ export function BookmarkMoreMenu({
   screenshotPending = false, onScreenshot,
   onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags, onDelete,
 }: BookmarkMoreMenuProps) {
+  const {
+    t,
+  } = useTranslation();
   const updateProperty = useUpdateCustomProperty();
 
   function handleChangeChoicesDisplay(propertyId: string, display: ChoicesDisplayType) {
@@ -225,8 +251,8 @@ export function BookmarkMoreMenu({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Display"),
-        onError: error => notifyFieldSaveError("Display", describeError(error)),
+        onSuccess: () => notifyFieldSaved(t("Display")),
+        onError: error => notifyFieldSaveError(t("Display"), describeError(error)),
       },
     );
   }
@@ -238,7 +264,7 @@ export function BookmarkMoreMenu({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="More options"
+          aria-label={t("More options")}
         >
           <MoreVertical className="size-4" />
         </Button>

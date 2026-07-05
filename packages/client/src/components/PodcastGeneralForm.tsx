@@ -13,6 +13,7 @@ import { TaxonomyGeneralFields } from "./TaxonomyGeneralFields";
 import { usePodcastAuthors } from "./usePodcastAuthors";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { usePodcastSyncRegistration } from "../hooks/usePodcastSyncRegistration";
+import i18n from "../i18n";
 import { podcastLinkOptions } from "../lib/podcastLinks";
 
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,7 @@ import { notifyFieldSaved, notifyFieldSaveError } from "@/lib/autoSave";
 import { useAppForm } from "@/lib/form";
 
 const podcastGeneralSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
+  name: z.string().trim().min(1, i18n.t("Name is required")),
   romanizedName: z.string(),
   sortOrder: z.number().int(),
   mediaPropertyId: z.string(),
@@ -33,20 +34,20 @@ const podcastGeneralSchema = z.object({
 });
 
 const LABELS: Record<keyof UpdatePodcastInput, string> = {
-  name: "Name",
-  romanizedName: "Romanized name",
-  sortOrder: "Sort order",
-  mediaPropertyId: "Media property",
-  feedUrl: "Feed URL",
-  itunesId: "Apple Podcasts",
-  itunesUrl: "Apple Podcasts",
-  spotifyUrl: "Spotify link",
-  pocketCastsUuid: "Pocket Casts",
-  pocketCastsUrl: "Pocket Casts",
-  defaultLinkProvider: "Default link",
-  personIds: "People",
-  groupIds: "Groups",
-  description: "Description",
+  name: i18n.t("Name"),
+  romanizedName: i18n.t("Romanized name"),
+  sortOrder: i18n.t("Sort order"),
+  mediaPropertyId: i18n.t("Media property"),
+  feedUrl: i18n.t("Feed URL"),
+  itunesId: i18n.t("Apple Podcasts"),
+  itunesUrl: i18n.t("Apple Podcasts"),
+  spotifyUrl: i18n.t("Spotify link"),
+  pocketCastsUuid: i18n.t("Pocket Casts"),
+  pocketCastsUrl: i18n.t("Pocket Casts"),
+  defaultLinkProvider: i18n.t("Default link"),
+  personIds: i18n.t("People"),
+  groupIds: i18n.t("Groups"),
+  description: i18n.t("Description"),
 };
 
 interface Props {
@@ -84,8 +85,8 @@ export function PodcastGeneralForm({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("People"),
-        onError: error => notifyFieldSaveError("People", error instanceof Error ? error.message : undefined),
+        onSuccess: () => notifyFieldSaved(i18n.t("People")),
+        onError: error => notifyFieldSaveError(i18n.t("People"), error instanceof Error ? error.message : undefined),
       },
     );
   }
@@ -100,8 +101,8 @@ export function PodcastGeneralForm({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Groups"),
-        onError: error => notifyFieldSaveError("Groups", error instanceof Error ? error.message : undefined),
+        onSuccess: () => notifyFieldSaved(i18n.t("Groups")),
+        onError: error => notifyFieldSaveError(i18n.t("Groups"), error instanceof Error ? error.message : undefined),
       },
     );
   }
@@ -192,7 +193,7 @@ export function PodcastGeneralForm({
             input,
           },
           {
-            onSuccess: () => notifyFieldSaved("Service links"),
+            onSuccess: () => notifyFieldSaved(i18n.t("Service links")),
           },
         );
       })
@@ -221,7 +222,7 @@ export function PodcastGeneralForm({
       },
       {
         onSuccess: (updated) => {
-          notifyFieldSaved("Podcast");
+          notifyFieldSaved(i18n.t("Podcast"));
           navigateIfSlugChanged(updated);
           void podcastsApi.images
             .autoFetch(podcast.id, "artwork")
@@ -232,7 +233,7 @@ export function PodcastGeneralForm({
           if (result.feedUrl != null) backfillProviderLinks(result);
         },
         onError: error => notifyFieldSaveError(
-          "Podcast",
+          i18n.t("Podcast"),
           error instanceof Error ? error.message : undefined,
         ),
       },
@@ -265,7 +266,7 @@ export function PodcastGeneralForm({
       <form.AppField name="feedUrl">
         {field => (
           <field.TextField
-            label="Feed URL"
+            label={i18n.t("Feed URL")}
             placeholder="https://example.com/feed.xml"
             onBlur={() => autoSave.saveField("feedUrl", field.state.value.trim() || null)}
           />
@@ -276,12 +277,12 @@ export function PodcastGeneralForm({
         {field => (
           <div className="space-y-1">
             <field.TextField
-              label="Spotify link"
+              label={i18n.t("Spotify link")}
               placeholder="https://open.spotify.com/show/…"
               onBlur={() => autoSave.saveField("spotifyUrl", field.state.value.trim() || null)}
             />
             <p className="text-xs text-muted-foreground">
-              Paste the show&apos;s Spotify URL — Spotify can&apos;t be searched automatically.
+              {i18n.t("Paste the show's Spotify URL — Spotify can't be searched automatically.")}
             </p>
           </div>
         )}
@@ -291,10 +292,10 @@ export function PodcastGeneralForm({
         {field => (
           <div className="space-y-1">
             <field.ComboboxField
-              label="Default link"
-              placeholder="First available service"
-              searchPlaceholder="Search services…"
-              emptyText="No service links yet."
+              label={i18n.t("Default link")}
+              placeholder={i18n.t("First available service")}
+              searchPlaceholder={i18n.t("Search services…")}
+              emptyText={i18n.t("No service links yet.")}
               options={podcastLinkOptions(podcast)}
               onValueChange={value => autoSave.saveField(
                 "defaultLinkProvider",
@@ -305,14 +306,14 @@ export function PodcastGeneralForm({
               )}
             />
             <p className="text-xs text-muted-foreground">
-              Which service this podcast links out to (detail page + bookmark cards).
+              {i18n.t("Which service this podcast links out to (detail page + bookmark cards).")}
             </p>
           </div>
         )}
       </form.AppField>
 
       <div className="space-y-1.5">
-        <Label>Authors</Label>
+        <Label>{i18n.t("Authors")}</Label>
         <PodcastAuthorsFields
           personIds={podcast.personIds}
           groupIds={podcast.groupIds}
@@ -327,7 +328,7 @@ export function PodcastGeneralForm({
       <form.AppField name="description">
         {field => (
           <field.TextareaField
-            label="Description"
+            label={i18n.t("Description")}
             onBlur={() => autoSave.saveField("description", field.state.value.trim() || null)}
           />
         )}

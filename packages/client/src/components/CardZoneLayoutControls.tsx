@@ -11,6 +11,7 @@ import type {
 } from "@eesimple/types";
 
 import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -162,6 +163,23 @@ interface CardZoneLayoutControlsProps {
 export function CardZoneLayoutControls({
   value, onChange,
 }: CardZoneLayoutControlsProps) {
+  const {
+    t,
+  } = useTranslation();
+  function translateOptions<T extends string>(options: { value: T;
+    label: string; }[]) {
+    return options.map(opt => ({
+      ...opt,
+      label: t(opt.label),
+    }));
+  }
+  const modeOptions = translateOptions(MODE_OPTIONS);
+  const gapOptions = translateOptions(GAP_OPTIONS);
+  const alignOptions = translateOptions(ALIGN_OPTIONS);
+  const valignOptions = translateOptions(VALIGN_OPTIONS);
+  const directionOptions = translateOptions(DIRECTION_OPTIONS);
+  const wrapOptions = translateOptions(WRAP_OPTIONS);
+
   function patchZone(zone: CardBodyZone, patch: Partial<CardZoneLayout>): void {
     const current = normalizeCardZoneLayout(value[zone], zone === "card-table" ? "grid" : "flex");
     onChange({
@@ -183,40 +201,40 @@ export function CardZoneLayoutControls({
             key={zone}
             className="space-y-1.5"
           >
-            <span className="text-xs font-medium text-muted-foreground">{BODY_ZONE_LABELS[zone]}</span>
+            <span className="text-xs font-medium text-muted-foreground">{t(BODY_ZONE_LABELS[zone])}</span>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
               <SegmentedToggle
                 value={layout.mode}
-                options={MODE_OPTIONS}
+                options={modeOptions}
                 onChange={mode => patchZone(zone, {
                   mode,
                 })}
               />
               <label className="flex items-center gap-1.5">
-                <span className="text-[11px] text-muted-foreground">Gap</span>
+                <span className="text-[11px] text-muted-foreground">{t("Gap")}</span>
                 <SegmentedToggle
                   value={layout.gap ?? "md"}
-                  options={GAP_OPTIONS}
+                  options={gapOptions}
                   onChange={gap => patchZone(zone, {
                     gap,
                   })}
                 />
               </label>
               <label className="flex items-center gap-1.5">
-                <span className="text-[11px] text-muted-foreground">Horizontal</span>
+                <span className="text-[11px] text-muted-foreground">{t("Horizontal")}</span>
                 <SegmentedToggle
                   value={layout.align ?? "start"}
-                  options={ALIGN_OPTIONS}
+                  options={alignOptions}
                   onChange={align => patchZone(zone, {
                     align,
                   })}
                 />
               </label>
               <label className="flex items-center gap-1.5">
-                <span className="text-[11px] text-muted-foreground">Vertical</span>
+                <span className="text-[11px] text-muted-foreground">{t("Vertical")}</span>
                 <SegmentedToggle
                   value={layout.alignItems ?? "start"}
-                  options={VALIGN_OPTIONS}
+                  options={valignOptions}
                   onChange={alignItems => patchZone(zone, {
                     alignItems,
                   })}
@@ -226,20 +244,20 @@ export function CardZoneLayoutControls({
                 ? (
                   <>
                     <label className="flex items-center gap-1.5">
-                      <span className="text-[11px] text-muted-foreground">Direction</span>
+                      <span className="text-[11px] text-muted-foreground">{t("Direction")}</span>
                       <SegmentedToggle
                         value={layout.direction ?? "row"}
-                        options={DIRECTION_OPTIONS}
+                        options={directionOptions}
                         onChange={direction => patchZone(zone, {
                           direction,
                         })}
                       />
                     </label>
                     <label className="flex items-center gap-1.5">
-                      <span className="text-[11px] text-muted-foreground">Wrap</span>
+                      <span className="text-[11px] text-muted-foreground">{t("Wrap")}</span>
                       <SegmentedToggle
                         value={layout.wrap ?? "wrap"}
-                        options={WRAP_OPTIONS}
+                        options={wrapOptions}
                         onChange={wrap => patchZone(zone, {
                           wrap,
                         })}

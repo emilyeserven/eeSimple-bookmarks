@@ -1,6 +1,8 @@
 import type { BookmarkImageEditFormController } from "./useBookmarkImageEditForm";
 import type { Bookmark } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { SCREENSHOT_SIZE_PRESETS } from "./screenshotSizePresets";
 
 import { Button } from "@/components/ui/button";
@@ -21,23 +23,26 @@ export function BookmarkScreenshotSection({
   screenshot: Bookmark["screenshot"];
   c: BookmarkImageEditFormController;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-2 border-t pt-4">
-      <p className="text-sm font-medium">Page screenshot</p>
+      <p className="text-sm font-medium">{t("Page screenshot")}</p>
       <p className="text-xs text-muted-foreground">
         {screenshot
           ? c.displayPreference === "screenshot"
-            ? "This screenshot is set to always display as the bookmark's cover image."
+            ? t("This screenshot is set to always display as the bookmark's cover image.")
             : c.displayPreference === "image"
-              ? "This screenshot is kept, but the normal image always displays as the cover instead."
-              : "A screenshot has been captured. It is used as the bookmark image when no other image exists."
-          : "Take a screenshot of the page via Browserless. Used as a fallback image when no other image is set."}
+              ? t("This screenshot is kept, but the normal image always displays as the cover instead.")
+              : t("A screenshot has been captured. It is used as the bookmark image when no other image exists.")
+          : t("Take a screenshot of the page via Browserless. Used as a fallback image when no other image is set.")}
       </p>
       {screenshot
         ? (
           <img
             src={screenshot.url}
-            alt="Page screenshot"
+            alt={t("Page screenshot")}
             className="max-h-32 rounded-sm border object-cover"
           />
         )
@@ -46,24 +51,24 @@ export function BookmarkScreenshotSection({
         <label
           className="flex items-center gap-1.5 text-xs text-muted-foreground"
         >
-          Wait
+          {t("Wait")}
           <select
             className={SELECT_CLASS}
             value={c.screenshotDelayMs}
             disabled={c.isMutating}
             onChange={e => c.setScreenshotDelayMs(Number(e.target.value))}
           >
-            <option value={0}>None</option>
-            <option value={2000}>2 s</option>
-            <option value={5000}>5 s</option>
-            <option value={10000}>10 s</option>
-            <option value={30000}>30 s</option>
+            <option value={0}>{t("None")}</option>
+            <option value={2000}>{t("2 s")}</option>
+            <option value={5000}>{t("5 s")}</option>
+            <option value={10000}>{t("10 s")}</option>
+            <option value={30000}>{t("30 s")}</option>
           </select>
         </label>
         <label
           className="flex items-center gap-1.5 text-xs text-muted-foreground"
         >
-          Size
+          {t("Size")}
           <select
             className={SELECT_CLASS}
             value={`${c.screenshotWidth}x${c.screenshotHeight}`}
@@ -86,18 +91,18 @@ export function BookmarkScreenshotSection({
         <label
           className="flex items-center gap-1.5 text-xs text-muted-foreground"
         >
-          Scroll
+          {t("Scroll")}
           <select
             className={SELECT_CLASS}
             value={c.screenshotScrollDistance}
             disabled={c.isMutating}
             onChange={e => c.setScreenshotScrollDistance(Number(e.target.value))}
           >
-            <option value={0}>None</option>
-            <option value={500}>500 px</option>
-            <option value={1000}>1000 px</option>
-            <option value={2000}>2000 px</option>
-            <option value={5000}>5000 px</option>
+            <option value={0}>{t("None")}</option>
+            <option value={500}>{t("500 px")}</option>
+            <option value={1000}>{t("1000 px")}</option>
+            <option value={2000}>{t("2000 px")}</option>
+            <option value={5000}>{t("5000 px")}</option>
           </select>
         </label>
         <Button
@@ -107,7 +112,7 @@ export function BookmarkScreenshotSection({
           disabled={c.isMutating}
           onClick={c.onTakeScreenshot}
         >
-          {c.takeScreenshotPending ? "Capturing…" : screenshot ? "Retake screenshot" : "Take screenshot"}
+          {c.takeScreenshotPending ? t("Capturing…") : screenshot ? t("Retake screenshot") : t("Take screenshot")}
         </Button>
         {screenshot
           ? (
@@ -118,7 +123,7 @@ export function BookmarkScreenshotSection({
               disabled={c.isMutating}
               onClick={c.onDeleteScreenshot}
             >
-              {c.deleteScreenshotPending ? "Removing…" : "Remove screenshot"}
+              {c.deleteScreenshotPending ? t("Removing…") : t("Remove screenshot")}
             </Button>
           )
           : null}

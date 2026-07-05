@@ -4,6 +4,7 @@ import type { BookmarkImage, ImageCandidate } from "@eesimple/types";
 import { useEffect, useRef, useState } from "react";
 
 import { Check, ImagePlus, Sparkles, Star, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { isFetchableUrl } from "../lib/url";
 
@@ -70,6 +71,9 @@ function usePreventWindowFileDrop(): void {
 export function BookmarkImagePicker({
   existingImages, candidates, pageUrl, onChange, defaultAuto, autoGrabError,
 }: BookmarkImagePickerProps) {
+  const {
+    t,
+  } = useTranslation();
   const [uploads, setUploads] = useState<Upload[]>([]);
   const [keptCandidateUrls, setKeptCandidateUrls] = useState<string[]>([]);
   const [removedExistingIds, setRemovedExistingIds] = useState<string[]>([]);
@@ -175,7 +179,7 @@ export function BookmarkImagePicker({
 
   return (
     <div className="space-y-2">
-      <Label>Images</Label>
+      <Label>{t("Images")}</Label>
       <div
         data-testid="image-dropzone"
         className={cn(
@@ -251,14 +255,14 @@ export function BookmarkImagePicker({
                 ? (
                   <>
                     <Sparkles className="size-5" />
-                    <span className="px-2 text-xs">Page image on save</span>
+                    <span className="px-2 text-xs">{t("Page image on save")}</span>
                   </>
                 )
                 : (
                   <>
                     <ImagePlus className="size-6" />
                     <span className="px-2 text-xs">
-                      Drag &amp; drop images here, or use “Add image”
+                      {t("Drag & drop images here, or use “Add image”")}
                     </span>
                   </>
                 )}
@@ -286,23 +290,25 @@ export function BookmarkImagePicker({
           onClick={() => inputRef.current?.click()}
         >
           <ImagePlus className="size-4" />
-          Add image
+          {t("Add image")}
         </Button>
         {autoGrabError && (
           <p className="text-xs text-muted-foreground">
-            {IMAGE_GRAB_ERROR_LABELS[autoGrabError] ?? "Previous auto-grab failed"} — you can still try again after saving.
+            {t(IMAGE_GRAB_ERROR_LABELS[autoGrabError] ?? "Previous auto-grab failed")}
+            {" "}
+            {t("— you can still try again after saving.")}
           </p>
         )}
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Keep any of the images found on the page (or drag, paste, or add your own), then click the
+        {t("Keep any of the images found on the page (or drag, paste, or add your own), then click the")}
         {" "}
         <Star className="inline size-3" />
         {" "}
-        star to choose the main one. Stored as 1200px WebP.
+        {t("star to choose the main one. Stored as 1200px WebP.")}
         {!isFetchableUrl(pageUrl) && existingImages.length === 0 && candidates.length === 0
-          ? " Enter a URL and scan it to pull its images."
+          ? ` ${t("Enter a URL and scan it to pull its images.")}`
           : ""}
       </p>
     </div>
@@ -319,6 +325,9 @@ function ImageTile({
   onToggleKeep: () => void;
   onSetMain: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div
       className={cn(
@@ -337,7 +346,7 @@ function ImageTile({
       {/* Keep / remove toggle (top-left). */}
       <button
         type="button"
-        aria-label={kept ? "Remove image" : "Keep image"}
+        aria-label={kept ? t("Remove image") : t("Keep image")}
         aria-pressed={kept}
         onClick={onToggleKeep}
         className="
@@ -352,7 +361,7 @@ function ImageTile({
       {kept && (
         <button
           type="button"
-          aria-label={isMain ? "Main image" : "Set as main image"}
+          aria-label={isMain ? t("Main image") : t("Set as main image")}
           aria-pressed={isMain}
           onClick={onSetMain}
           className={cn(
@@ -373,7 +382,7 @@ function ImageTile({
             text-[10px] font-medium text-primary-foreground
           "
         >
-          Main
+          {t("Main")}
         </span>
       )}
     </div>

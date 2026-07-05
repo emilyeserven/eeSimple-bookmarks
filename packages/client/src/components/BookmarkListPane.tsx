@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 
 import { useMemo, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { BookmarkCardGrid } from "./BookmarkCardGrid";
 import { BookmarkImageGallery } from "./BookmarkImageGallery";
 import { BookmarkPagination } from "./BookmarkPagination";
@@ -150,6 +152,9 @@ function BookmarkListBody({
   noMatchMessage,
   addFormCategoryId,
 }: BookmarkListBodyProps) {
+  const {
+    t,
+  } = useTranslation();
   const headerSearchQuery = useUiStore(s => s.headerSearchQuery);
   const perPage = useBookmarksPerPage();
   const resetKey = `${pageKey}|${headerSearchQuery}|${JSON.stringify(search)}`;
@@ -159,7 +164,7 @@ function BookmarkListBody({
 
   return (
     <>
-      {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
+      {isLoading ? <p className="text-muted-foreground">{t("Loading bookmarks…")}</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && visibleBookmarks.length === 0
         ? (
@@ -208,28 +213,31 @@ function ResultsTabNav({
   onChange: (tab: ResultsTab) => void;
   showGallery: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const tabs: { key: ResultsTab;
     label: string; }[] = [
     {
       key: "bookmarks",
-      label: "Bookmarks",
+      label: t("Bookmarks"),
     },
     ...(showGallery
       ? [{
         key: "gallery" as const,
-        label: "Gallery",
+        label: t("Gallery"),
       }]
       : []),
     {
       key: "media",
-      label: "Media",
+      label: t("Media"),
     },
   ];
 
   return (
     <nav
       className={navStripClass}
-      aria-label="Bookmarks view"
+      aria-label={t("Bookmarks view")}
     >
       {tabs.map(entry => (
         <button

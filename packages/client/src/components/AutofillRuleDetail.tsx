@@ -9,11 +9,14 @@ import type {
   Tag,
 } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { LabeledSection } from "./LabeledSection";
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 import { describePropertyPredicate } from "../lib/describePropertyPredicate";
 
 import { Separator } from "@/components/ui/separator";
+import i18n from "@/i18n";
 
 const OPERATOR_VERBS: Record<ConditionMatchOperator, string> = {
   contains: "contains",
@@ -31,54 +34,84 @@ function describeConditionNode(
 ): string {
   switch (node.type) {
     case "group": {
-      if (node.children.length === 0) return "(empty group)";
-      const combLabel = node.combinator === "and" ? "ALL" : "ANY";
+      if (node.children.length === 0) return i18n.t("(empty group)");
+      const combLabel = node.combinator === "and" ? i18n.t("ALL") : i18n.t("ANY");
       const inner = node.children
         .map(c => describeConditionNode(c, categories, tags, properties, locations))
-        .join(node.combinator === "and" ? " AND " : " OR ");
-      return `${combLabel} of: (${inner})`;
+        .join(node.combinator === "and" ? ` ${i18n.t("AND")} ` : ` ${i18n.t("OR")} `);
+      return i18n.t("{{combLabel}} of: ({{inner}})", {
+        combLabel,
+        inner,
+      });
     }
     case "match":
       return node.operator === "domain"
-        ? `Domain is "${node.pattern}"`
-        : `${node.field === "url" ? "URL" : "Title"} ${OPERATOR_VERBS[node.operator]} "${node.pattern}"`;
+        ? i18n.t("Domain is \"{{pattern}}\"", {
+          pattern: node.pattern,
+        })
+        : i18n.t("{{field}} {{verb}} \"{{pattern}}\"", {
+          field: node.field === "url" ? i18n.t("URL") : i18n.t("Title"),
+          verb: i18n.t(OPERATOR_VERBS[node.operator]),
+          pattern: node.pattern,
+        });
     case "category": {
       const names = node.categoryIds.map(id => categories.find(c => c.id === id)?.name ?? id);
-      return `Category is one of: ${names.join(", ")}`;
+      return i18n.t("Category is one of: {{names}}", {
+        names: names.join(", "),
+      });
     }
     case "website":
       return node.domains.length === 1
-        ? `Website is: ${node.domains[0]}`
-        : `Website is one of: ${node.domains.join(", ")}`;
+        ? i18n.t("Website is: {{domain}}", {
+          domain: node.domains[0],
+        })
+        : i18n.t("Website is one of: {{domains}}", {
+          domains: node.domains.join(", "),
+        });
     case "tag": {
       const names = node.tagIds.map(id => tags.find(t => t.id === id)?.name ?? id);
-      return `Tagged with any of: ${names.join(", ")}`;
+      return i18n.t("Tagged with any of: {{names}}", {
+        names: names.join(", "),
+      });
     }
     case "location": {
       const names = node.locationIds.map(id => locations.find(l => l.id === id)?.name ?? id);
-      return `Located in any of: ${names.join(", ")}`;
+      return i18n.t("Located in any of: {{names}}", {
+        names: names.join(", "),
+      });
     }
     case "youtube-channel":
       return node.channelIds.length === 1
-        ? "YouTube channel is (1)"
-        : `YouTube channel is one of (${node.channelIds.length})`;
+        ? i18n.t("YouTube channel is (1)")
+        : i18n.t("YouTube channel is one of ({{count}})", {
+          count: node.channelIds.length,
+        });
     case "media-type":
       return node.mediaTypeIds.length === 1
-        ? "media type is (1)"
-        : `media type is one of (${node.mediaTypeIds.length})`;
+        ? i18n.t("media type is (1)")
+        : i18n.t("media type is one of ({{count}})", {
+          count: node.mediaTypeIds.length,
+        });
     case "genre-mood":
       return node.genreMoodIds.length === 1
-        ? "Genres & Moods is (1)"
-        : `Genres & Moods is one of (${node.genreMoodIds.length})`;
+        ? i18n.t("Genres & Moods is (1)")
+        : i18n.t("Genres & Moods is one of ({{count}})", {
+          count: node.genreMoodIds.length,
+        });
     case "relationship-type":
       return node.relationshipTypeIds.length === 1
-        ? "has a relationship of type (1)"
-        : `has a relationship of one of (${node.relationshipTypeIds.length})`;
+        ? i18n.t("has a relationship of type (1)")
+        : i18n.t("has a relationship of one of ({{count}})", {
+          count: node.relationshipTypeIds.length,
+        });
     case "language-usage":
-      return `has a language usage (${node.languageIds.length} language / ${node.usageLevelIds.length} level)`;
+      return i18n.t("has a language usage ({{languageCount}} language / {{levelCount}} level)", {
+        languageCount: node.languageIds.length,
+        levelCount: node.usageLevelIds.length,
+      });
     case "property": {
       const property = properties.find(p => p.id === node.propertyId);
-      const name = property?.name ?? "Unknown property";
+      const name = property?.name ?? i18n.t("Unknown property");
       return `${name}: ${describePropertyPredicate(node.predicate, property)}`;
     }
     default: {
@@ -92,17 +125,20 @@ function describeConditionNode(
 export function AutofillGeneralFields({
   rule,
 }: { rule: AutofillRule }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-3 text-sm">
       {rule.description
         ? <p>{rule.description}</p>
-        : <p className="text-muted-foreground">No description.</p>}
+        : <p className="text-muted-foreground">{t("No description.")}</p>}
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2">
-        <dt className="text-muted-foreground">Priority</dt>
+        <dt className="text-muted-foreground">{t("Priority")}</dt>
         <dd>{rule.sortOrder}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{rule.slug}</dd>
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{t("Added")}</dt>
         <dd>{new Date(rule.createdAt).toLocaleDateString()}</dd>
       </dl>
     </div>
@@ -119,19 +155,26 @@ export function AutofillConditionsFields({
   properties: CustomProperty[];
   locations: Location[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const tree = rule.conditions;
   if (tree.children.length === 0) {
-    return <p className="text-sm text-muted-foreground">Always matches (no conditions set.)</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t("Always matches (no conditions set.)")}
+      </p>
+    );
   }
-  const combinatorLabel = tree.combinator === "and" ? "ALL" : "ANY";
+  const combinatorLabel = tree.combinator === "and" ? t("ALL") : t("ANY");
   return (
     <div className="space-y-2 text-sm">
       <p className="text-muted-foreground">
-        Matches
+        {t("Matches")}
         {" "}
         {combinatorLabel}
         {" "}
-        of:
+        {t("of:")}
       </p>
       <ul className="space-y-1">
         {tree.children.map((child, index) => (
@@ -160,6 +203,9 @@ export function AutofillPrefillFields({
   properties: CustomProperty[];
   locations: Location[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const categoryName = rule.setCategoryId
     ? (categories.find(c => c.id === rule.setCategoryId)?.name ?? null)
     : null;
@@ -179,7 +225,7 @@ export function AutofillPrefillFields({
       const prop = properties.find(p => p.id === e.propertyId);
       return {
         id: e.propertyId,
-        name: prop?.name ?? "Unknown",
+        name: prop?.name ?? t("Unknown"),
         display: prop ? formatNumber(e.value, prop) : String(e.value),
       };
     }),
@@ -187,15 +233,15 @@ export function AutofillPrefillFields({
       const prop = properties.find(p => p.id === e.propertyId);
       return {
         id: e.propertyId,
-        name: prop?.name ?? "Unknown",
-        display: e.value ? "Yes" : "No",
+        name: prop?.name ?? t("Unknown"),
+        display: e.value ? t("Yes") : t("No"),
       };
     }),
     ...rule.dateTimeValues.map((e) => {
       const prop = properties.find(p => p.id === e.propertyId);
       return {
         id: e.propertyId,
-        name: prop?.name ?? "Unknown",
+        name: prop?.name ?? t("Unknown"),
         display: prop ? formatDateTime(e.value, prop) : e.value,
       };
     }),
@@ -203,23 +249,23 @@ export function AutofillPrefillFields({
 
   return (
     <div className="space-y-6">
-      <LabeledSection title="Category">
+      <LabeledSection title={t("Category")}>
         {categoryName
           ? <p className="text-sm">{categoryName}</p>
-          : <p className="text-sm text-muted-foreground">— Leave unchanged —</p>}
+          : <p className="text-sm text-muted-foreground">{t("— Leave unchanged —")}</p>}
       </LabeledSection>
 
       <Separator />
 
-      <LabeledSection title="Media type">
+      <LabeledSection title={t("Media type")}>
         {mediaTypeName
           ? <p className="text-sm">{mediaTypeName}</p>
-          : <p className="text-sm text-muted-foreground">— Leave unchanged —</p>}
+          : <p className="text-sm text-muted-foreground">{t("— Leave unchanged —")}</p>}
       </LabeledSection>
 
       <Separator />
 
-      <LabeledSection title="Tags">
+      <LabeledSection title={t("Tags")}>
         {tagNames.length > 0
           ? (
             <ul className="space-y-1 text-sm">
@@ -233,12 +279,12 @@ export function AutofillPrefillFields({
               ))}
             </ul>
           )
-          : <p className="text-sm text-muted-foreground">None</p>}
+          : <p className="text-sm text-muted-foreground">{t("None")}</p>}
       </LabeledSection>
 
       <Separator />
 
-      <LabeledSection title="Locations">
+      <LabeledSection title={t("Locations")}>
         {locationNames.length > 0
           ? (
             <ul className="space-y-1 text-sm">
@@ -252,12 +298,12 @@ export function AutofillPrefillFields({
               ))}
             </ul>
           )
-          : <p className="text-sm text-muted-foreground">None</p>}
+          : <p className="text-sm text-muted-foreground">{t("None")}</p>}
       </LabeledSection>
 
       <Separator />
 
-      <LabeledSection title="Custom Properties">
+      <LabeledSection title={t("Custom Properties")}>
         {propertyValues.length > 0
           ? (
             <ul className="space-y-1 text-sm">
@@ -273,7 +319,7 @@ export function AutofillPrefillFields({
               ))}
             </ul>
           )
-          : <p className="text-sm text-muted-foreground">None</p>}
+          : <p className="text-sm text-muted-foreground">{t("None")}</p>}
       </LabeledSection>
     </div>
   );

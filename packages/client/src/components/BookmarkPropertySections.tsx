@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { StarRating } from "./StarRating";
+import i18n from "../i18n";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { buildBookmarkPropertyRows } from "../lib/bookmarkPropertyRows";
 import { formatSectionEntry } from "../lib/propertyFormat";
@@ -84,7 +85,7 @@ export function BookmarkPropertySections({
     })),
     {
       key: "__ungrouped__",
-      title: "Properties",
+      title: i18n.t("Properties"),
       target: null as string | null,
     },
   ].filter(section =>
@@ -116,7 +117,7 @@ export function BookmarkPropertySections({
                   <dt className="text-muted-foreground">
                     {row.name}
                     {row.isCalculated
-                      ? <span className="text-xs"> (calculated)</span>
+                      ? <span className="text-xs"> {i18n.t("(calculated)")}</span>
                       : null}
                     :
                   </dt>
@@ -141,7 +142,7 @@ export function BookmarkPropertySections({
                           cursor-pointer
                           hover:underline
                         "
-                        title="Click to toggle"
+                        title={i18n.t("Click to toggle")}
                         type="button"
                         onClick={toggle}
                       >
@@ -255,7 +256,7 @@ export function BookmarkPropertySections({
                           rel="noreferrer"
                           className="text-primary underline underline-offset-2"
                         >
-                          {row.filename ?? "Download"}
+                          {row.filename ?? i18n.t("Download")}
                         </a>
                       )}
                   </dd>
@@ -321,13 +322,13 @@ export function BookmarkPropertySections({
                   <dt className="text-muted-foreground">
                     {row.name}
                     {row.exhaustive
-                      ? <span className="ml-1 text-xs">(exhaustive)</span>
+                      ? <span className="ml-1 text-xs">{i18n.t("(exhaustive)")}</span>
                       : null}
                     :
                   </dt>
                   <dd>
                     {row.sections.length === 0
-                      ? <span className="text-xs text-muted-foreground">No sections</span>
+                      ? <span className="text-xs text-muted-foreground">{i18n.t("No sections")}</span>
                       : (
                         <ul className="space-y-0.5 text-sm">
                           {row.sections.map((entry: SectionEntry) => (

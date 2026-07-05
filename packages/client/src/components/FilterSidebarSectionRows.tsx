@@ -3,6 +3,7 @@ import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, 
 
 import { SECTION_ENTRY_TYPE_LABELS, SECTION_ENTRY_TYPES } from "@eesimple/types";
 import { Captions, ChevronDown, Drama, Globe, Languages, MapPin, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { FacetChips, FacetPresenceToggle } from "./FilterFacetControls";
@@ -49,6 +50,9 @@ export function TagsFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const selectedTags = search.tags ?? [];
   const tagFilterActive = selectedTags.length > 0 || search.tagPresence !== undefined;
 
@@ -70,13 +74,13 @@ export function TagsFilterSection({
               group-data-[state=open]/tags:rotate-180
             "
           />
-          Tags
+          {t("Tags")}
         </CollapsibleTrigger>
         <FacetPresenceToggle
           value={search.tagPresence}
           onChange={mode => onSearchChange(withTagPresence(search, mode))}
-          hasLabel="Has tags"
-          missingLabel="No tags"
+          hasLabel={t("Has tags")}
+          missingLabel={t("No tags")}
         />
       </div>
 
@@ -87,10 +91,10 @@ export function TagsFilterSection({
               options={tagNodesToOptions(tree)}
               values={selectedTags}
               onValuesChange={ids => onSearchChange(withTags(search, ids))}
-              placeholder="All tags"
-              searchPlaceholder="Search tags…"
-              emptyText="No tags found."
-              aria-label="Filter by tag"
+              placeholder={t("All tags")}
+              searchPlaceholder={t("Search tags…")}
+              emptyText={t("No tags found.")}
+              aria-label={t("Filter by tag")}
             />
           )
           : null}
@@ -105,7 +109,7 @@ export function TagsFilterSection({
                 hover:underline
               "
             >
-              Reset
+              {t("Reset")}
             </button>
           )
           : null}
@@ -122,6 +126,9 @@ export function CategoryFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const categoryOptions = (categories ?? []).map(category => ({
     value: category.id,
     label: category.name,
@@ -146,15 +153,15 @@ export function CategoryFilterSection({
             group-data-[state=open]/category:rotate-180
           "
         />
-        Category
+        {t("Category")}
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3">
         <MultiCombobox
           options={categoryOptions}
           values={selectedCategories}
           onValuesChange={ids => onSearchChange(withCategories(search, ids))}
-          placeholder="All categories"
-          aria-label="Filter by category"
+          placeholder={t("All categories")}
+          aria-label={t("Filter by category")}
         />
         {categoryOptions.length > 0 || selectedCategories.length > 0
           ? (
@@ -169,7 +176,7 @@ export function CategoryFilterSection({
                     "
                     onClick={() => onSearchChange(withCategories(search, categoryOptions.map(option => option.value)))}
                   >
-                    Select all
+                    {t("Select all")}
                   </button>
                 )
                 : null}
@@ -183,7 +190,7 @@ export function CategoryFilterSection({
                     "
                     onClick={() => onSearchChange(withCategories(search, []))}
                   >
-                    Reset
+                    {t("Reset")}
                   </button>
                 )
                 : null}
@@ -203,6 +210,9 @@ export function MediaTypeFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const options = mediaTypeNodesToOptions(buildMediaTypeTree(mediaTypes ?? []));
   const selected = search.mediaTypes ?? [];
 
@@ -223,17 +233,17 @@ export function MediaTypeFilterSection({
             group-data-[state=open]/media-type:rotate-180
           "
         />
-        Media type
+        {t("Media type")}
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3">
         <TreeMultiCombobox
           options={options}
           values={selected}
           onValuesChange={ids => onSearchChange(withMediaTypes(search, ids))}
-          placeholder="All media types"
-          searchPlaceholder="Search media types…"
-          emptyText="No media types found."
-          aria-label="Filter by media type"
+          placeholder={t("All media types")}
+          searchPlaceholder={t("Search media types…")}
+          emptyText={t("No media types found.")}
+          aria-label={t("Filter by media type")}
         />
         {selected.length > 0
           ? (
@@ -245,7 +255,7 @@ export function MediaTypeFilterSection({
               "
               onClick={() => onSearchChange(withMediaTypes(search, []))}
             >
-              Reset
+              {t("Reset")}
             </button>
           )
           : null}
@@ -262,6 +272,9 @@ export function YouTubeChannelFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const options = (youtubeChannels ?? []).map(channel => ({
     value: channel.id,
     label: channel.name,
@@ -296,13 +309,13 @@ export function YouTubeChannelFilterSection({
               group-data-[state=open]/channel:rotate-180
             "
           />
-          YouTube channel
+          {t("YouTube channel")}
         </CollapsibleTrigger>
         <FacetPresenceToggle
           value={search.youtubeChannelPresence}
           onChange={mode => onSearchChange(withYouTubeChannelPresence(search, mode))}
-          hasLabel="Has value"
-          missingLabel="No value"
+          hasLabel={t("Has value")}
+          missingLabel={t("No value")}
         />
       </div>
       <CollapsibleContent className="space-y-3">
@@ -313,8 +326,8 @@ export function YouTubeChannelFilterSection({
                 options={options}
                 values={selected}
                 onValuesChange={ids => onSearchChange(withYouTubeChannels(search, ids))}
-                placeholder="All channels"
-                aria-label="Filter by YouTube channel"
+                placeholder={t("All channels")}
+                aria-label={t("Filter by YouTube channel")}
               />
               <FacetChips
                 options={options}
@@ -334,7 +347,7 @@ export function YouTubeChannelFilterSection({
               "
               onClick={() => onSearchChange(withYouTubeChannelPresence(withYouTubeChannels(search, []), undefined))}
             >
-              Reset
+              {t("Reset")}
             </button>
           )
           : null}
@@ -356,6 +369,9 @@ export function PlaceTypeFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const options = (placeTypes ?? []).map(placeType => ({
     value: placeType.slug,
     label: placeType.name,
@@ -382,13 +398,13 @@ export function PlaceTypeFilterSection({
               group-data-[state=open]/place-type:rotate-180
             "
           />
-          Place type
+          {t("Place type")}
         </CollapsibleTrigger>
         <FacetPresenceToggle
           value={search.placeTypePresence}
           onChange={mode => onSearchChange(withPlaceTypePresence(search, mode))}
-          hasLabel="Has place type"
-          missingLabel="No place type"
+          hasLabel={t("Has place type")}
+          missingLabel={t("No place type")}
         />
       </div>
       <CollapsibleContent className="space-y-3">
@@ -399,8 +415,8 @@ export function PlaceTypeFilterSection({
                 options={options}
                 values={selected}
                 onValuesChange={ids => onSearchChange(withPlaceTypes(search, ids))}
-                placeholder="All place types"
-                aria-label="Filter by place type"
+                placeholder={t("All place types")}
+                aria-label={t("Filter by place type")}
               />
               <FacetChips
                 options={options}
@@ -420,7 +436,7 @@ export function PlaceTypeFilterSection({
               "
               onClick={() => onSearchChange(withPlaceTypePresence(withPlaceTypes(search, []), undefined))}
             >
-              Reset
+              {t("Reset")}
             </button>
           )
           : null}
@@ -437,6 +453,9 @@ export function GenreMoodFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const options = (genreMoods ?? []).map(genreMood => ({
     value: genreMood.id,
     label: genreMood.name,
@@ -463,13 +482,13 @@ export function GenreMoodFilterSection({
               group-data-[state=open]/genre-mood:rotate-180
             "
           />
-          Genres & Moods
+          {t("Genres & Moods")}
         </CollapsibleTrigger>
         <FacetPresenceToggle
           value={search.genreMoodPresence}
           onChange={mode => onSearchChange(withGenreMoodPresence(search, mode))}
-          hasLabel="Has any"
-          missingLabel="Has none"
+          hasLabel={t("Has any")}
+          missingLabel={t("Has none")}
         />
       </div>
       <CollapsibleContent className="space-y-3">
@@ -480,8 +499,8 @@ export function GenreMoodFilterSection({
                 options={options}
                 values={selected}
                 onValuesChange={ids => onSearchChange(withGenreMoods(search, ids))}
-                placeholder="All Genres & Moods"
-                aria-label="Filter by Genres & Moods"
+                placeholder={t("All Genres & Moods")}
+                aria-label={t("Filter by Genres & Moods")}
               />
               <FacetChips
                 options={options}
@@ -501,7 +520,7 @@ export function GenreMoodFilterSection({
               "
               onClick={() => onSearchChange(withGenreMoodPresence(withGenreMoods(search, []), undefined))}
             >
-              Reset
+              {t("Reset")}
             </button>
           )
           : null}
@@ -518,6 +537,9 @@ export function WebsiteFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const options = (websites ?? []).map(website => ({
     value: website.id,
     label: website.siteName,
@@ -552,13 +574,13 @@ export function WebsiteFilterSection({
               group-data-[state=open]/website:rotate-180
             "
           />
-          Website
+          {t("Website")}
         </CollapsibleTrigger>
         <FacetPresenceToggle
           value={search.websitePresence}
           onChange={mode => onSearchChange(withWebsitePresence(search, mode))}
-          hasLabel="Has value"
-          missingLabel="No value"
+          hasLabel={t("Has value")}
+          missingLabel={t("No value")}
         />
       </div>
       <CollapsibleContent className="space-y-3">
@@ -569,10 +591,10 @@ export function WebsiteFilterSection({
                 options={options}
                 values={selected}
                 onValuesChange={ids => onSearchChange(withWebsites(search, ids))}
-                placeholder="All websites"
-                searchPlaceholder="Search websites…"
-                emptyText="No websites found."
-                aria-label="Filter by website"
+                placeholder={t("All websites")}
+                searchPlaceholder={t("Search websites…")}
+                emptyText={t("No websites found.")}
+                aria-label={t("Filter by website")}
               />
               <FacetChips
                 options={options}
@@ -592,7 +614,7 @@ export function WebsiteFilterSection({
               "
               onClick={() => onSearchChange(withWebsitePresence(withWebsites(search, []), undefined))}
             >
-              Reset
+              {t("Reset")}
             </button>
           )
           : null}
@@ -609,6 +631,9 @@ export function RelationshipTypeFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const options = (relationshipTypes ?? []).map(rt => ({
     value: rt.id,
     label: rt.name,
@@ -633,17 +658,17 @@ export function RelationshipTypeFilterSection({
             group-data-[state=open]/relationship-type:rotate-180
           "
         />
-        Relationship type
+        {t("Relationship type")}
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3">
         <MultiCombobox
           options={options}
           values={selected}
           onValuesChange={ids => onSearchChange(withRelationshipTypes(search, ids))}
-          placeholder="All relationship types"
-          searchPlaceholder="Search relationship types…"
-          emptyText="No relationship types found."
-          aria-label="Filter by relationship type"
+          placeholder={t("All relationship types")}
+          searchPlaceholder={t("Search relationship types…")}
+          emptyText={t("No relationship types found.")}
+          aria-label={t("Filter by relationship type")}
         />
         {selected.length > 0
           ? (
@@ -655,7 +680,7 @@ export function RelationshipTypeFilterSection({
               "
               onClick={() => onSearchChange(withRelationshipTypes(search, []))}
             >
-              Reset
+              {t("Reset")}
             </button>
           )
           : null}
@@ -675,6 +700,9 @@ export function LanguageUsageFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: languages = [],
   } = useLanguages();
@@ -704,7 +732,7 @@ export function LanguageUsageFilterSection({
             group-data-[state=open]/language-usage:rotate-180
           "
         />
-        Language usage
+        {t("Language usage")}
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3">
         <MultiCombobox
@@ -715,10 +743,10 @@ export function LanguageUsageFilterSection({
           }))}
           values={selectedLanguages}
           onValuesChange={ids => onSearchChange(withLanguageUsageLanguages(search, ids))}
-          placeholder="Any language"
-          searchPlaceholder="Search languages…"
-          emptyText="No languages found."
-          aria-label="Filter by language"
+          placeholder={t("Any language")}
+          searchPlaceholder={t("Search languages…")}
+          emptyText={t("No languages found.")}
+          aria-label={t("Filter by language")}
         />
         <MultiCombobox
           options={levels.map(l => ({
@@ -728,10 +756,10 @@ export function LanguageUsageFilterSection({
           }))}
           values={selectedLevels}
           onValuesChange={ids => onSearchChange(withLanguageUsageLevels(search, ids))}
-          placeholder="Any usage level"
-          searchPlaceholder="Search usage levels…"
-          emptyText="No usage levels found."
-          aria-label="Filter by usage level"
+          placeholder={t("Any usage level")}
+          searchPlaceholder={t("Search usage levels…")}
+          emptyText={t("No usage levels found.")}
+          aria-label={t("Filter by usage level")}
         />
         {(selectedLanguages.length > 0 || selectedLevels.length > 0)
           ? (
@@ -744,7 +772,7 @@ export function LanguageUsageFilterSection({
               onClick={() =>
                 onSearchChange(withLanguageUsageLevels(withLanguageUsageLanguages(search, []), []))}
             >
-              Reset
+              {t("Reset")}
             </button>
           )
           : null}
@@ -761,6 +789,9 @@ export function PersonFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const options = (people ?? []).map(person => ({
     value: person.id,
     label: person.name,
@@ -784,17 +815,17 @@ export function PersonFilterSection({
             group-data-[state=open]/person:rotate-180
           "
         />
-        Person
+        {t("Person")}
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3">
         <MultiCombobox
           options={options}
           values={selected}
           onValuesChange={ids => onSearchChange(withPeople(search, ids))}
-          placeholder="All people"
-          searchPlaceholder="Search people…"
-          emptyText="No people found."
-          aria-label="Filter by person"
+          placeholder={t("All people")}
+          searchPlaceholder={t("Search people…")}
+          emptyText={t("No people found.")}
+          aria-label={t("Filter by person")}
         />
         {selected.length > 0
           ? (
@@ -806,7 +837,7 @@ export function PersonFilterSection({
               "
               onClick={() => onSearchChange(withPeople(search, []))}
             >
-              Reset
+              {t("Reset")}
             </button>
           )
           : null}
@@ -828,6 +859,9 @@ export function PropertiesFilterSection({
   hasCategoryFilter: boolean;
   nameFilter?: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const selectedCategories = search.categories ?? [];
   // A property assigned to no category is almost certainly orphaned; flag it as an error.
   const unassignedProperties = hasCategoryFilter
@@ -867,7 +901,7 @@ export function PropertiesFilterSection({
 
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-semibold">Properties</h2>
+      <h2 className="text-sm font-semibold">{t("Properties")}</h2>
       <CustomPropertyFilters
         properties={enabledProperties}
         propertyGroups={propertyGroups}
@@ -895,8 +929,10 @@ export function PropertiesFilterSection({
               <p className="flex items-center gap-1.5 font-medium">
                 <TriangleAlert className="size-3.5 shrink-0" />
                 {unassignedProperties.length === 1
-                  ? "1 property isn't assigned to a category"
-                  : `${unassignedProperties.length} properties aren't assigned to a category`}
+                  ? t("1 property isn't assigned to a category")
+                  : t("{{count}} properties aren't assigned to a category", {
+                    count: unassignedProperties.length,
+                  })}
               </p>
               <p>{unassignedProperties.map(property => property.name).join(", ")}</p>
             </div>
@@ -914,6 +950,9 @@ export function SectionsFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const selectedTypes: SectionEntryType[] = search.sectionTypes ?? [];
   const filterActive = search.sectionsPresence !== undefined || selectedTypes.length > 0;
 
@@ -942,13 +981,13 @@ export function SectionsFilterSection({
               group-data-[state=open]/sections:rotate-180
             "
           />
-          Sections
+          {t("Sections")}
         </CollapsibleTrigger>
         <FacetPresenceToggle
           value={search.sectionsPresence}
           onChange={mode => onSearchChange(withSectionsPresence(search, mode))}
-          hasLabel="Has sections"
-          missingLabel="No sections"
+          hasLabel={t("Has sections")}
+          missingLabel={t("No sections")}
         />
       </div>
       <CollapsibleContent className="space-y-2">
@@ -966,7 +1005,7 @@ export function SectionsFilterSection({
                     onChange={() => toggleType(type)}
                     className="rounded-sm"
                   />
-                  {SECTION_ENTRY_TYPE_LABELS[type]}
+                  {t(SECTION_ENTRY_TYPE_LABELS[type])}
                 </label>
               ))}
             </div>
@@ -982,7 +1021,7 @@ export function SectionsFilterSection({
               "
               onClick={() => onSearchChange(withSectionTypes(withSectionsPresence(search, undefined), []))}
             >
-              Reset
+              {t("Reset")}
             </button>
           )
           : null}

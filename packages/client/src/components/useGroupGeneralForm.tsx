@@ -10,11 +10,12 @@ import { useUpdateGroup } from "../hooks/useGroups";
 import { useGroupTypes } from "../hooks/useGroupTypes";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
+import i18n from "../i18n";
 import { useAppForm } from "../lib/form";
 import { socialLinkSchema } from "../lib/socialLinks";
 
 const groupGeneralSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
+  name: z.string().trim().min(1, i18n.t("Name is required")),
   romanizedName: z.string(),
   websiteId: z.string().nullable(),
   groupTypeId: z.string().nullable(),
@@ -22,12 +23,12 @@ const groupGeneralSchema = z.object({
 });
 
 const LABELS: Partial<Record<keyof UpdateGroupInput, string>> = {
-  name: "Name",
-  romanizedName: "Romanized name",
-  websiteId: "Website",
-  groupTypeId: "Group type",
-  socialLinks: "Social media links",
-  youtubeChannelIds: "YouTube channels",
+  name: i18n.t("Name"),
+  romanizedName: i18n.t("Romanized name"),
+  websiteId: i18n.t("Website"),
+  groupTypeId: i18n.t("Group type"),
+  socialLinks: i18n.t("Social media links"),
+  youtubeChannelIds: i18n.t("YouTube channels"),
 };
 
 /**

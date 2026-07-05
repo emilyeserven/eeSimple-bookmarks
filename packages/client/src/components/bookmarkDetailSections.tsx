@@ -20,6 +20,7 @@ import { DetailField } from "@/components/DetailField";
 import { LabeledSection } from "@/components/LabeledSection";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import i18n from "@/i18n";
 
 export type BookmarkDetailSectionId
   = | "general"
@@ -65,18 +66,18 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
   const hasProperties = hasBookmarkPropertyRows(bookmark, properties, defaultFieldZones);
   return {
     id: "general",
-    label: "Details",
+    label: i18n.t("Details"),
     content: (
       <div className="space-y-6">
-        <LabeledSection title="Details">
+        <LabeledSection title={i18n.t("Details")}>
           <dl className="space-y-3">
-            <DetailField label="Description">
+            <DetailField label={i18n.t("Description")}>
               {bookmark.description
                 ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
                 : null}
             </DetailField>
 
-            <DetailField label="Category">
+            <DetailField label={i18n.t("Category")}>
               {category
                 ? <BookmarkCategoryLink category={category} />
                 : null}
@@ -84,7 +85,7 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
 
             {bookmark.tags.length > 0
               ? (
-                <DetailField label="Tags">
+                <DetailField label={i18n.t("Tags")}>
                   <ul className="flex flex-wrap gap-1">
                     {bookmark.tags.map(tag => (
                       <li key={tag.id}>
@@ -113,13 +114,13 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
 
             {bookmark.locations.length > 0
               ? (
-                <DetailField label="Locations">
+                <DetailField label={i18n.t("Locations")}>
                   <BookmarkLocationsBox locations={bookmark.locations} />
                 </DetailField>
               )
               : null}
 
-            <DetailField label="Website">
+            <DetailField label={i18n.t("Website")}>
               {bookmark.website
                 ? (
                   <Link
@@ -135,7 +136,7 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
                 : null}
             </DetailField>
 
-            <DetailField label="Media type">
+            <DetailField label={i18n.t("Media type")}>
               {bookmark.mediaType
                 ? (
                   <Link
@@ -151,7 +152,7 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
                 : null}
             </DetailField>
 
-            <DetailField label="Channel">
+            <DetailField label={i18n.t("Channel")}>
               {bookmark.youtubeChannel
                 ? (
                   <Link
@@ -169,7 +170,7 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
 
             {bookmark.people.length > 0
               ? (
-                <DetailField label="Person">
+                <DetailField label={i18n.t("Person")}>
                   <span className="flex flex-wrap gap-x-1">
                     {bookmark.people.map((person, i) => (
                       <span key={person.id}>
@@ -192,7 +193,7 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
 
             {bookmark.languageUsages.length > 0
               ? (
-                <DetailField label="Languages">
+                <DetailField label={i18n.t("Languages")}>
                   <span className="flex flex-wrap gap-x-2 gap-y-1">
                     {bookmark.languageUsages.map(usage => (
                       <span key={usage.id}>
@@ -234,7 +235,7 @@ function gallerySection(bookmark: Bookmark): BookmarkDetailSection | null {
   if (bookmark.images.length === 0 && bookmark.screenshot === null) return null;
   return {
     id: "gallery",
-    label: "Gallery",
+    label: i18n.t("Gallery"),
     content: <BookmarkGallery bookmark={bookmark} />,
   };
 }
@@ -243,7 +244,7 @@ function videoSection(bookmark: Bookmark): BookmarkDetailSection | null {
   if (bookmark.reelArchive === null) return null;
   return {
     id: "video",
-    label: "Video",
+    label: i18n.t("Video"),
     content: <BookmarkReelArchivePlayer bookmark={bookmark} />,
   };
 }
@@ -252,9 +253,9 @@ function relationshipsSection(bookmark: Bookmark): BookmarkDetailSection | null 
   if (bookmark.relationships.length === 0) return null;
   return {
     id: "relationships",
-    label: "Relationships",
+    label: i18n.t("Relationships"),
     content: (
-      <LabeledSection title="Relationships">
+      <LabeledSection title={i18n.t("Relationships")}>
         <ul className="space-y-2">
           {bookmark.relationships.map(rel => (
             <li key={`${rel.relationshipTypeId}:${rel.bookmark.id}`}>
@@ -275,7 +276,7 @@ function relationshipsSection(bookmark: Bookmark): BookmarkDetailSection | null 
                 {rel.directional
                   ? (
                     <Badge variant="outline">
-                      {rel.role === "child" ? "child" : "parent"}
+                      {rel.role === "child" ? i18n.t("child") : i18n.t("parent")}
                     </Badge>
                   )
                   : null}
@@ -298,11 +299,11 @@ function hierarchySection(
   if (flatHierarchy.length === 0) return null;
   return {
     id: "hierarchy",
-    label: "Hierarchy",
+    label: i18n.t("Hierarchy"),
     content: (
       <LabeledSection
-        title="Hierarchy"
-        description="Parent/child relationships above and below this bookmark."
+        title={i18n.t("Hierarchy")}
+        description={i18n.t("Parent/child relationships above and below this bookmark.")}
       >
         <ul className="space-y-1">
           {flatHierarchy.map(({
@@ -347,7 +348,7 @@ function locationsSection(
   if (bookmark.locations.length === 0) return null;
   return {
     id: "locations",
-    label: "Locations",
+    label: i18n.t("Locations"),
     content: (
       <BookmarkLocationsTabContent
         bookmarkId={bookmark.id}
@@ -361,15 +362,15 @@ function locationsSection(
 function metadataSection(bookmark: Bookmark): BookmarkDetailSection {
   return {
     id: "metadata",
-    label: "Metadata",
+    label: i18n.t("Metadata"),
     content: (
-      <LabeledSection title="Metadata">
+      <LabeledSection title={i18n.t("Metadata")}>
         <dl className="space-y-3">
-          <DetailField label="Priority">
+          <DetailField label={i18n.t("Priority")}>
             <span>{bookmark.priority}</span>
           </DetailField>
 
-          <DetailField label="Created">
+          <DetailField label={i18n.t("Created")}>
             <span>{new Date(bookmark.createdAt).toLocaleString()}</span>
           </DetailField>
         </dl>
@@ -381,7 +382,7 @@ function metadataSection(bookmark: Bookmark): BookmarkDetailSection {
 function debugSection(bookmark: Bookmark): BookmarkDetailSection {
   return {
     id: "debug",
-    label: "Debug",
+    label: i18n.t("Debug"),
     content: (
       <BookmarkDetailDebug
         bookmark={bookmark}

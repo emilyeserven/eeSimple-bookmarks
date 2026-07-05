@@ -3,6 +3,7 @@ import type { GroupRowProps, SortableHandle } from "./levelGroupRowTypes";
 import { useEffect, useState } from "react";
 
 import { MapPin, Shapes, Trash2, TriangleAlert } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { LevelColorControl } from "./LevelColorControl";
 import { LevelGroupDragHandle } from "./LevelGroupDragHandle";
@@ -38,6 +39,9 @@ export function LevelGroupEditRow({
   attributes,
   listeners,
 }: LevelGroupEditRowProps) {
+  const {
+    t,
+  } = useTranslation();
   // Local name so typing feels instant; the rename auto-saves on blur.
   const [name, setName] = useState(group.name);
   useEffect(() => {
@@ -71,8 +75,8 @@ export function LevelGroupEditRow({
           onBlur={() => {
             if (name !== group.name) renameGroup(group.id, name.trim());
           }}
-          aria-label="Level name"
-          placeholder="Level name"
+          aria-label={t("Level name")}
+          placeholder={t("Level name")}
           className="h-9 flex-1"
         />
       </div>
@@ -100,21 +104,23 @@ export function LevelGroupEditRow({
               setGroupDisplayMode(group.id, value);
             }
           }}
-          aria-label={`${group.name || "Level"} display mode`}
+          aria-label={t("{{name}} display mode", {
+            name: group.name || t("Level"),
+          })}
         >
           <ToggleGroupItem
             value="pin"
-            aria-label="Pin"
+            aria-label={t("Pin")}
           >
             <MapPin className="size-3" />
-            Pin
+            {t("Pin")}
           </ToggleGroupItem>
           <ToggleGroupItem
             value="area"
-            aria-label="Area"
+            aria-label={t("Area")}
           >
             <Shapes className="size-3" />
-            Area
+            {t("Area")}
           </ToggleGroupItem>
         </ToggleGroup>
 
@@ -129,10 +135,12 @@ export function LevelGroupEditRow({
             variant="ghost"
             size="sm"
             onClick={() => removeGroup(group.id)}
-            aria-label={`Remove ${group.name || "level"}`}
+            aria-label={t("Remove {{name}}", {
+              name: group.name || t("level"),
+            })}
           >
             <Trash2 className="size-4" />
-            Remove
+            {t("Remove")}
           </Button>
 
           <Button
@@ -141,7 +149,7 @@ export function LevelGroupEditRow({
             size="sm"
             onClick={onDone}
           >
-            Done
+            {t("Done")}
           </Button>
         </div>
       </div>
@@ -157,7 +165,7 @@ export function LevelGroupEditRow({
           htmlFor={`level-main-map-${group.id}`}
           className="cursor-pointer text-xs font-normal"
         >
-          Show by default on main map
+          {t("Show by default on main map")}
         </Label>
       </div>
 
@@ -168,19 +176,19 @@ export function LevelGroupEditRow({
           onChange={mode => setGroupLevelMode(group.id, mode)}
         />
         <p className="text-xs text-muted-foreground">
-          Which levels a place&rsquo;s map (or a bookmark&rsquo;s map, when one of its tagged
-          locations is this level) shows by default when this is its own level — broader levels too,
-          only this level, or narrower levels. The map&rsquo;s Levels overlay edits the same default.
+          {t(
+            "Which levels a place’s map (or a bookmark’s map, when one of its tagged locations is this level) shows by default when this is its own level — broader levels too, only this level, or narrower levels. The map’s Levels overlay edits the same default.",
+          )}
         </p>
       </div>
 
       {/* Row 4b: per-anchor default-visibility checklist for maps anchored at this level */}
       <div className="space-y-1.5 pl-6">
-        <Label className="text-xs text-muted-foreground">Levels visible by default</Label>
+        <Label className="text-xs text-muted-foreground">{t("Levels visible by default")}</Label>
         <p className="text-xs text-muted-foreground">
-          When this is a map&rsquo;s current level, only the checked levels show by default. The
-          &ldquo;Show&rdquo; buttons above still bound the range — unchecking a level removes it from
-          the default — and a map&rsquo;s Levels overlay can still turn any level back on for that map.
+          {t(
+            "When this is a map’s current level, only the checked levels show by default. The “Show” buttons above still bound the range — unchecking a level removes it from the default — and a map’s Levels overlay can still turn any level back on for that map.",
+          )}
         </p>
         <div className="space-y-1 pt-0.5">
           {allGroups.map(other => (
@@ -197,9 +205,9 @@ export function LevelGroupEditRow({
                 htmlFor={`level-default-${group.id}-${other.id}`}
                 className="cursor-pointer text-xs font-normal"
               >
-                {other.name || <span className="italic">Unnamed level</span>}
+                {other.name || <span className="italic">{t("Unnamed level")}</span>}
                 {other.id === group.id
-                  ? <span className="text-muted-foreground"> (this level)</span>
+                  ? <span className="text-muted-foreground"> {t("(this level)")}</span>
                   : null}
               </Label>
             </div>
@@ -209,7 +217,7 @@ export function LevelGroupEditRow({
 
       {/* Row 5: place type assignment */}
       <div className="space-y-1 pl-6">
-        <Label className="text-xs text-muted-foreground">Place types</Label>
+        <Label className="text-xs text-muted-foreground">{t("Place types")}</Label>
         <MultiCombobox
           options={options.map(option => ({
             value: option.key,
@@ -220,19 +228,21 @@ export function LevelGroupEditRow({
           }))}
           values={group.placeTypes}
           onValuesChange={values => setGroupPlaceTypes(group.id, values)}
-          placeholder="Assign place types…"
-          searchPlaceholder="Search place types…"
-          emptyText="No place types discovered yet."
-          aria-label={`Place types for ${group.name || "level"}`}
+          placeholder={t("Assign place types…")}
+          searchPlaceholder={t("Search place types…")}
+          emptyText={t("No place types discovered yet.")}
+          aria-label={t("Place types for {{name}}", {
+            name: group.name || t("level"),
+          })}
         />
         {duplicatePlaceTypes.size > 0
           ? (
             <p className="flex items-center gap-1 text-xs text-amber-600">
               <TriangleAlert className="size-3 shrink-0" />
-              Also assigned to another level:
+              {t("Also assigned to another level:")}
               {" "}
               {[...duplicatePlaceTypes].join(", ")}
-              . Open the picker above and click it again to remove it from this level.
+              {t(". Open the picker above and click it again to remove it from this level.")}
             </p>
           )
           : null}

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { Clapperboard, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
 import { entriesFromDrafts } from "./entityNames/draftEntityName";
@@ -97,6 +98,9 @@ export function PlexTitleForm({
   buildExtraInput,
   onCandidateSelected,
 }: PlexTitleFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const create = {
     movie: useCreateMovie(),
     show: useCreateTvShow(),
@@ -165,10 +169,10 @@ export function PlexTitleForm({
       />
 
       <div className="space-y-1.5">
-        <Label htmlFor="plex-title-name">Name</Label>
+        <Label htmlFor="plex-title-name">{t("Name")}</Label>
         <Input
           id="plex-title-name"
-          placeholder="e.g. The title"
+          placeholder={t("e.g. The title")}
           value={name}
           onChange={event => setName(event.target.value)}
           autoFocus
@@ -176,7 +180,7 @@ export function PlexTitleForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesEditor
           value={nameDrafts}
           onChange={setNameDrafts}
@@ -192,14 +196,17 @@ export function PlexTitleForm({
           >
             <Clapperboard className="size-4 shrink-0 text-muted-foreground" />
             <span className="min-w-0 flex-1 truncate">
-              Linked to Plex: {plex.plexItemTitle ?? "Untitled"}{plex.year ? ` (${plex.year})` : ""}
+              {t("Linked to Plex: {{title}}", {
+                title: plex.plexItemTitle ?? t("Untitled"),
+              })}
+              {plex.year ? ` (${plex.year})` : ""}
             </span>
             <Button
               type="button"
               variant="ghost"
               size="icon"
               className="size-6 shrink-0"
-              aria-label="Clear Plex link"
+              aria-label={t("Clear Plex link")}
               onClick={() => setPlex(EMPTY_PLEX)}
             >
               <X className="size-4" />
@@ -209,20 +216,20 @@ export function PlexTitleForm({
         : null}
 
       <div className="space-y-1.5">
-        <Label>Media property</Label>
+        <Label>{t("Media property")}</Label>
         <Combobox
-          aria-label="Media property"
+          aria-label={t("Media property")}
           options={(mediaProperties ?? []).map(prop => ({
             value: prop.id,
             label: prop.name,
           }))}
           value={mediaPropertyId || undefined}
           onValueChange={value => setMediaPropertyId(value ?? "")}
-          placeholder="No media property"
-          searchPlaceholder="Search media properties…"
-          emptyText="No media properties found."
+          placeholder={t("No media property")}
+          searchPlaceholder={t("Search media properties…")}
+          emptyText={t("No media properties found.")}
           createOption={{
-            label: "Create media property",
+            label: t("Create media property"),
             onSelect: () => setAddMediaPropertyOpen(true),
           }}
         />
@@ -243,7 +250,11 @@ export function PlexTitleForm({
         type="submit"
         disabled={create.isPending || name.trim().length === 0}
       >
-        {create.isPending ? "Creating…" : `Create ${NOUNS[kind]}`}
+        {create.isPending
+          ? t("Creating…")
+          : t("Create {{noun}}", {
+            noun: t(NOUNS[kind]),
+          })}
       </Button>
     </form>
   );

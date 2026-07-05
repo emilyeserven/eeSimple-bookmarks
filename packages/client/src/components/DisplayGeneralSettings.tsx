@@ -6,6 +6,7 @@ import type {
 } from "@eesimple/types";
 
 import { BOOKMARKS_PER_PAGE_OPTIONS, DEFAULT_BOOKMARKS_PER_PAGE } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { PropertyTypeIconsCard } from "./PropertyTypeIconsCard";
 import { SegmentedToggleRow } from "./SegmentedToggleRow";
@@ -65,6 +66,9 @@ const LANGUAGE_OPTIONS = [
 
 /** General display preferences — theme, romanized-name handling, and per-type property icons. */
 export function DisplayGeneralSettings() {
+  const {
+    t,
+  } = useTranslation();
   // Theme stays a device-local pref (often dark-on-phone / light-on-desktop), so it remains in uiStore.
   const theme = useUiStore(state => state.theme);
   const setTheme = useUiStore(state => state.setTheme);
@@ -131,14 +135,14 @@ export function DisplayGeneralSettings() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Interface language</CardTitle>
+          <CardTitle>{t("Interface language")}</CardTitle>
           <CardDescription>
-            Choose the language the interface is displayed in.
+            {t("Choose the language the interface is displayed in.")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <SegmentedToggleRow
-            label="Interface language"
+            label={t("Interface language")}
             options={LANGUAGE_OPTIONS}
             value={display.interfaceLanguage}
             onChange={setInterfaceLanguage}
@@ -148,13 +152,13 @@ export function DisplayGeneralSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Theme</CardTitle>
+          <CardTitle>{t("Theme")}</CardTitle>
           <CardDescription>
-            Choose a color theme. &ldquo;System&rdquo; follows your operating system setting.
+            {t("Choose a color theme. “System” follows your operating system setting.")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-1">
-          <Label htmlFor="theme-select">Theme</Label>
+          <Label htmlFor="theme-select">{t("Theme")}</Label>
           <Select
             value={theme}
             onValueChange={value => setTheme(value as Theme)}
@@ -174,7 +178,7 @@ export function DisplayGeneralSettings() {
                   key={value}
                   value={value}
                 >
-                  {THEME_LABELS[value]}
+                  {t(THEME_LABELS[value])}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -184,15 +188,13 @@ export function DisplayGeneralSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Bookmarks per page</CardTitle>
+          <CardTitle>{t("Bookmarks per page")}</CardTitle>
           <CardDescription>
-            How many bookmarks each listing page shows before paginating. Applies to the Bookmarks
-            page and every entity-scoped bookmark listing (categories, tags, websites, media types,
-            YouTube channels, …).
+            {t("How many bookmarks each listing page shows before paginating. Applies to the Bookmarks page and every entity-scoped bookmark listing (categories, tags, websites, media types, YouTube channels, …).")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-1">
-          <Label htmlFor="bookmarks-per-page-select">Bookmarks per page</Label>
+          <Label htmlFor="bookmarks-per-page-select">{t("Bookmarks per page")}</Label>
           <Select
             value={String(display.bookmarksPerPage)}
             onValueChange={value => setBookmarksPerPage(Number(value))}
@@ -222,10 +224,9 @@ export function DisplayGeneralSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Romanized names</CardTitle>
+          <CardTitle>{t("Romanized names")}</CardTitle>
           <CardDescription>
-            Control how romanized names/titles are shown and sorted. When an item has a romanized
-            form it is always shown de-emphasized after the primary label.
+            {t("Control how romanized names/titles are shown and sorted. When an item has a romanized form it is always shown de-emphasized after the primary label.")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -236,10 +237,9 @@ export function DisplayGeneralSettings() {
               onCheckedChange={checked => setShowRomanizedByDefault(checked === true)}
             />
             <div className="space-y-0.5">
-              <Label htmlFor="show-romanized-default">Show Romanized by default</Label>
+              <Label htmlFor="show-romanized-default">{t("Show Romanized by default")}</Label>
               <p className="text-sm text-muted-foreground">
-                Make the romanized form the primary label (the real name shows de-emphasized after
-                it). Off by default.
+                {t("Make the romanized form the primary label (the real name shows de-emphasized after it). Off by default.")}
               </p>
             </div>
           </div>
@@ -250,18 +250,16 @@ export function DisplayGeneralSettings() {
               onCheckedChange={checked => setSortByRomanized(checked === true)}
             />
             <div className="space-y-0.5">
-              <Label htmlFor="sort-by-romanized">Sort by Romanized</Label>
+              <Label htmlFor="sort-by-romanized">{t("Sort by Romanized")}</Label>
               <p className="text-sm text-muted-foreground">
-                Use the romanized value as the sort key when sorting alphabetically (items without a
-                romanized form fall back to their name). On by default.
+                {t("Use the romanized value as the sort key when sorting alphabetically (items without a romanized form fall back to their name). On by default.")}
               </p>
             </div>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="han-script-language-select">Han-only name language</Label>
+            <Label htmlFor="han-script-language-select">{t("Han-only name language")}</Label>
             <p className="text-sm text-muted-foreground">
-              Names written only in Han characters (kanji/hanzi, no kana) are ambiguous between
-              Japanese and Chinese. Choose which language to assume for them. Japanese by default.
+              {t("Names written only in Han characters (kanji/hanzi, no kana) are ambiguous between Japanese and Chinese. Choose which language to assume for them. Japanese by default.")}
             </p>
             <Select
               value={display.hanScriptLanguage}
@@ -277,8 +275,8 @@ export function DisplayGeneralSettings() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ja">Japanese</SelectItem>
-                <SelectItem value="zh">Chinese</SelectItem>
+                <SelectItem value="ja">{t("Japanese")}</SelectItem>
+                <SelectItem value="zh">{t("Chinese")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

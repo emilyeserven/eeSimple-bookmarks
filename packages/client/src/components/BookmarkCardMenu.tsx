@@ -2,6 +2,7 @@ import type { Bookmark, BookmarkTag, ChoicesDisplayType, CustomProperty } from "
 
 import { CHOICES_DISPLAY_LABELS, CHOICES_DISPLAY_TYPES } from "@eesimple/types";
 import { Camera, SlidersHorizontal, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkCardEditMenuItem } from "./BookmarkCardEditMenuItem";
 import { CardNumberPropertyEditor } from "./CardNumberPropertyEditor";
@@ -23,13 +24,24 @@ import {
 import { Label } from "@/components/ui/label";
 import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 
-const IMAGE_GRAB_ERROR_LABELS: Record<string, string> = {
-  no_image: "No preview image on this page",
-  bad_image: "Preview image couldn't be loaded",
-  blocked: "Access to this page was blocked",
-  server_error: "Site returned a server error",
-  fetch_error: "Page couldn't be reached",
-};
+/** Translates a raw `imageAutoGrabError` code's English label. Each key is a literal `t()` call so
+ * `pnpm i18n:extract` can find it statically. */
+function imageGrabErrorLabel(t: (key: string) => string, code: string): string {
+  switch (code) {
+    case "no_image":
+      return t("No preview image on this page");
+    case "bad_image":
+      return t("Preview image couldn't be loaded");
+    case "blocked":
+      return t("Access to this page was blocked");
+    case "server_error":
+      return t("Site returned a server error");
+    case "fetch_error":
+      return t("Page couldn't be reached");
+    default:
+      return t("Could not fetch a preview image");
+  }
+}
 
 interface BookmarkCardMenuProps {
   bookmark: Bookmark;
@@ -57,6 +69,9 @@ export function BookmarkCardMenu({
   onChangeChoicesDisplay, onDelete,
 }: BookmarkCardMenuProps) {
   const tLabel = useTranslatedLabel();
+  const {
+    t,
+  } = useTranslation();
   return (
     <DropdownMenuContent align="end">
       <BookmarkCardEditMenuItem bookmarkId={bookmark.id} />
@@ -65,7 +80,7 @@ export function BookmarkCardMenu({
           <>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Quick edit
+              {t("Quick edit")}
             </DropdownMenuLabel>
             {editableTags.map((tag) => {
               const checked = bookmark.tags.some(t => t.id === tag.id);
@@ -95,7 +110,7 @@ export function BookmarkCardMenu({
                   .filter((l): l is string => l !== undefined);
                 const triggerHint = selectedLabels.length > 0
                   ? selectedLabels.join(", ")
-                  : "None";
+                  : t("None");
                 const displaySubmenu = (
                   <>
                     <DropdownMenuSub>
@@ -104,7 +119,8 @@ export function BookmarkCardMenu({
                           className="mr-2 size-3.5 text-muted-foreground"
                         />
                         <span className="text-xs text-muted-foreground">
-                          Display as:{" "}
+                          {t("Display as:")}
+                          {" "}
                           {tLabel(CHOICES_DISPLAY_LABELS[property.choicesDisplay ?? "checkbox"])}
                         </span>
                       </DropdownMenuSubTrigger>
@@ -273,11 +289,11 @@ export function BookmarkCardMenu({
         <div className="flex flex-col gap-0.5">
           <span className="flex items-center">
             <Sparkles className="mr-2 size-4" />
-            Get page image
+            {t("Get page image")}
           </span>
           {bookmark.imageAutoGrabError && (
             <span className="ml-6 text-xs text-muted-foreground">
-              {IMAGE_GRAB_ERROR_LABELS[bookmark.imageAutoGrabError] ?? "Could not fetch a preview image"}
+              {imageGrabErrorLabel(t, bookmark.imageAutoGrabError)}
             </span>
           )}
         </div>
@@ -287,7 +303,7 @@ export function BookmarkCardMenu({
         onClick={onScreenshot}
       >
         <Camera className="mr-2 size-4" />
-        Generate screenshot
+        {t("Generate screenshot")}
       </DropdownMenuItem>
       {onDelete
         ? (
@@ -300,7 +316,7 @@ export function BookmarkCardMenu({
               "
               onClick={() => onDelete(bookmark.id)}
             >
-              Delete
+              {t("Delete")}
             </DropdownMenuItem>
           </>
         )

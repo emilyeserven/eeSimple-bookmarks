@@ -1,6 +1,7 @@
 import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 
 import { Ban, ChevronDown, Circle, CircleDot, CircleHelp, CircleMinus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   BooleanFilterControl,
@@ -100,6 +101,9 @@ interface PresenceControlProps {
 function PresenceFilterControl({
   propertyId, value, onChange, supportsExclude = false,
 }: PresenceControlProps) {
+  const {
+    t,
+  } = useTranslation();
   const toggleValue = value ?? "any";
 
   function handleChange(next: string) {
@@ -123,37 +127,37 @@ function PresenceFilterControl({
         <TooltipTrigger asChild>
           <ToggleGroupItem
             value="any"
-            aria-label="Any"
+            aria-label={t("Any")}
             className={cn(toggleValue !== "any" && collapseWhenInactive)}
           >
             <Circle className="size-3.5" />
           </ToggleGroupItem>
         </TooltipTrigger>
-        <TooltipContent>Any</TooltipContent>
+        <TooltipContent>{t("Any")}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
           <ToggleGroupItem
             value="has"
-            aria-label="Has value"
+            aria-label={t("Has value")}
             className={cn(toggleValue !== "has" && collapseWhenInactive)}
           >
             <CircleDot className="size-3.5" />
           </ToggleGroupItem>
         </TooltipTrigger>
-        <TooltipContent>Has value</TooltipContent>
+        <TooltipContent>{t("Has value")}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
           <ToggleGroupItem
             value="missing"
-            aria-label="No value"
+            aria-label={t("No value")}
             className={cn(toggleValue !== "missing" && collapseWhenInactive)}
           >
             <Ban className="size-3.5" />
           </ToggleGroupItem>
         </TooltipTrigger>
-        <TooltipContent>No value</TooltipContent>
+        <TooltipContent>{t("No value")}</TooltipContent>
       </Tooltip>
       {supportsExclude
         ? (
@@ -161,13 +165,13 @@ function PresenceFilterControl({
             <TooltipTrigger asChild>
               <ToggleGroupItem
                 value="exclude"
-                aria-label="Excludes selected values"
+                aria-label={t("Excludes selected values")}
                 className={cn(toggleValue !== "exclude" && collapseWhenInactive)}
               >
                 <CircleMinus className="size-3.5" />
               </ToggleGroupItem>
             </TooltipTrigger>
-            <TooltipContent>Excludes selected values</TooltipContent>
+            <TooltipContent>{t("Excludes selected values")}</TooltipContent>
           </Tooltip>
         )
         : null}
@@ -195,6 +199,9 @@ export function CustomPropertyFilters({
   onPropertyReset,
   nameFilter,
 }: CustomPropertyFiltersProps) {
+  const {
+    t,
+  } = useTranslation();
   if (properties.length === 0) return null;
 
   const categoryName = new Map((categories ?? []).map(category => [category.id, category.name]));
@@ -272,7 +279,7 @@ export function CustomPropertyFilters({
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      aria-label="Associated categories"
+                      aria-label={t("Associated categories")}
                       className="
                         shrink-0 text-muted-foreground
                         hover:text-foreground
@@ -354,7 +361,7 @@ export function CustomPropertyFilters({
                   hover:underline
                 "
               >
-                Reset
+                {t("Reset")}
               </button>
             )
             : null}
@@ -408,7 +415,7 @@ export function CustomPropertyFilters({
       {ungrouped.length > 0
         ? (
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold">Other</h3>
+            <h3 className="text-sm font-semibold">{t("Other")}</h3>
             <div className="space-y-10">
               {ungrouped.map(renderProperty)}
             </div>

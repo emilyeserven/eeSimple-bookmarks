@@ -1,5 +1,7 @@
 import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "../lib/bookmarkColumns";
 
+import { useTranslation } from "react-i18next";
+
 import { ColumnsSelect, ViewModeToggle } from "./DisplayControlPrimitives";
 import { useCroppedHeight, useCroppedWidth } from "../hooks/useAppSettings";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
@@ -54,6 +56,9 @@ export function DisplaySettingsControlsBase({
   showsImages,
 }: DisplaySettingsControlsBaseProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     viewMode, columns, imageMode, imageVisibility, imageLayout, cornerOverlays,
   } = value;
   const croppedWidth = useCroppedWidth();
@@ -80,7 +85,7 @@ export function DisplaySettingsControlsBase({
             <>
               {/* Images */}
               <div className="flex items-center justify-between gap-4">
-                <Label className="text-sm font-medium">Images</Label>
+                <Label className="text-sm font-medium">{t("Images")}</Label>
                 <ToggleGroup
                   type="single"
                   size="sm"
@@ -100,13 +105,13 @@ export function DisplaySettingsControlsBase({
                       last:rounded-r-sm
                     "
                   >
-                    Show
+                    {t("Show")}
                   </ToggleGroupItem>
                   <ToggleGroupItem
                     value="image-only"
                     className="rounded-none border-r border-input"
                   >
-                    Only
+                    {t("Only")}
                   </ToggleGroupItem>
                   <ToggleGroupItem
                     value="off"
@@ -115,14 +120,14 @@ export function DisplaySettingsControlsBase({
                       last:rounded-r-sm
                     "
                   >
-                    Off
+                    {t("Off")}
                   </ToggleGroupItem>
                 </ToggleGroup>
               </div>
 
               {imageVisibility !== "off" && (
                 <div className="flex items-center justify-between gap-4">
-                  <Label className="text-sm font-medium">Aspect</Label>
+                  <Label className="text-sm font-medium">{t("Aspect")}</Label>
                   <Select
                     value={typeof imageMode === "boolean" ? (imageMode ? "natural" : "cropped") : imageMode}
                     onValueChange={next => onImageModeChange(next)}
@@ -146,7 +151,7 @@ export function DisplaySettingsControlsBase({
 
               {imageVisibility === "shown" && (columns === 1 || columns === 2) && (
                 <div className="flex items-center justify-between gap-4">
-                  <Label className="text-sm font-medium">Layout</Label>
+                  <Label className="text-sm font-medium">{t("Layout")}</Label>
                   <ToggleGroup
                     type="single"
                     size="sm"
@@ -165,7 +170,7 @@ export function DisplaySettingsControlsBase({
                         first:rounded-l-sm
                       "
                     >
-                      Above
+                      {t("Above")}
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       value="side"
@@ -174,7 +179,7 @@ export function DisplaySettingsControlsBase({
                         last:rounded-r-sm
                       "
                     >
-                      Side
+                      {t("Side")}
                     </ToggleGroupItem>
                   </ToggleGroup>
                 </div>
@@ -182,7 +187,7 @@ export function DisplaySettingsControlsBase({
 
               {imageVisibility !== "off" && onCornerOverlaysChange && (
                 <div className="flex items-center justify-between gap-4">
-                  <Label className="text-sm font-medium">Image corners</Label>
+                  <Label className="text-sm font-medium">{t("Image corners")}</Label>
                   <ToggleGroup
                     type="single"
                     size="sm"
@@ -201,7 +206,7 @@ export function DisplaySettingsControlsBase({
                         first:rounded-l-sm
                       "
                     >
-                      On
+                      {t("On")}
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       value="off"
@@ -210,7 +215,7 @@ export function DisplaySettingsControlsBase({
                         last:rounded-r-sm
                       "
                     >
-                      Off
+                      {t("Off")}
                     </ToggleGroupItem>
                   </ToggleGroup>
                 </div>

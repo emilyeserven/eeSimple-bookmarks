@@ -3,6 +3,8 @@ import type { Location } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AddTagModal } from "./AddTagModal";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
@@ -40,6 +42,9 @@ interface LocationFormProps {
 export function LocationForm({
   onCreated,
 }: LocationFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const [nameDrafts, setNameDrafts] = useState<DraftEntityName[]>([]);
   const createNames = useCreateEntityNames();
   const {
@@ -88,17 +93,17 @@ export function LocationForm({
       <LocationLookupBox onSelect={applyCandidate} />
 
       <div className="space-y-1">
-        <Label htmlFor="location-name">Name</Label>
+        <Label htmlFor="location-name">{t("Name")}</Label>
         <Input
           id="location-name"
-          placeholder="Location name"
+          placeholder={t("Location name")}
           value={name}
           onChange={event => setName(event.target.value)}
         />
       </div>
 
       <div className="space-y-1">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesEditor
           value={nameDrafts}
           onChange={setNameDrafts}
@@ -112,7 +117,7 @@ export function LocationForm({
         "
       >
         <div className="space-y-1">
-          <Label htmlFor="location-latitude">Latitude</Label>
+          <Label htmlFor="location-latitude">{t("Latitude")}</Label>
           <Input
             id="location-latitude"
             type="number"
@@ -121,7 +126,7 @@ export function LocationForm({
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="location-longitude">Longitude</Label>
+          <Label htmlFor="location-longitude">{t("Longitude")}</Label>
           <Input
             id="location-longitude"
             type="number"
@@ -132,7 +137,7 @@ export function LocationForm({
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="location-map-url">Map URL</Label>
+        <Label htmlFor="location-map-url">{t("Map URL")}</Label>
         <Input
           id="location-map-url"
           placeholder="https://maps.google.com/…"
@@ -148,11 +153,13 @@ export function LocationForm({
           onCheckedChange={value => setUsesWikidataCoordinates(value === true)}
         />
         <div className="space-y-1">
-          <Label htmlFor="location-uses-wikidata-coordinates">Uses Wikidata for coordinates</Label>
+          <Label htmlFor="location-uses-wikidata-coordinates">{t("Uses Wikidata for coordinates")}</Label>
           <p className="text-xs text-muted-foreground">
-            Auto-checked when a Wikidata search result is picked above
-            {wikidataId ? ` (${wikidataId})` : ""}. When checked, future coordinate/area refreshes
-            query Wikidata only — Nominatim is skipped.
+            {t("Auto-checked when a Wikidata search result is picked above")}
+            {wikidataId ? ` (${wikidataId})` : ""}
+            {t(
+              ". When checked, future coordinate/area refreshes query Wikidata only — Nominatim is skipped.",
+            )}
           </p>
         </div>
       </div>
@@ -164,7 +171,7 @@ export function LocationForm({
         "
       >
         <div className="space-y-1">
-          <Label htmlFor="location-plus-code">Plus code</Label>
+          <Label htmlFor="location-plus-code">{t("Plus code")}</Label>
           <Input
             id="location-plus-code"
             value={plusCode}
@@ -172,24 +179,24 @@ export function LocationForm({
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="location-place-type">Place type</Label>
+          <Label htmlFor="location-place-type">{t("Place type")}</Label>
           <Combobox
             id="location-place-type"
-            aria-label="Place type"
+            aria-label={t("Place type")}
             options={placeTypeOptions}
             value={placeType || undefined}
             onValueChange={value => setPlaceType(value ?? "")}
-            placeholder="Select a place type…"
-            searchPlaceholder="Search place types…"
-            emptyText="No place types found."
+            placeholder={t("Select a place type…")}
+            searchPlaceholder={t("Search place types…")}
+            emptyText={t("No place types found.")}
             createOption={{
-              label: "Create place type",
+              label: t("Create place type"),
               onSelect: () => setAddPlaceTypeOpen(true),
             }}
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="location-country">Country code</Label>
+          <Label htmlFor="location-country">{t("Country code")}</Label>
           <Input
             id="location-country"
             placeholder="e.g. JP"
@@ -200,20 +207,21 @@ export function LocationForm({
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="location-parent">Existing parent</Label>
+        <Label htmlFor="location-parent">{t("Existing parent")}</Label>
         <Combobox
           id="location-parent"
-          aria-label="Existing parent"
+          aria-label={t("Existing parent")}
           options={parentOptions}
           value={parentId}
           onValueChange={value => setParentId(value ?? ROOT)}
-          placeholder="Choose an existing parent"
-          searchPlaceholder="Search locations…"
-          emptyText="No locations found."
+          placeholder={t("Choose an existing parent")}
+          searchPlaceholder={t("Search locations…")}
+          emptyText={t("No locations found.")}
         />
         <p className="text-xs text-muted-foreground">
-          Pick an existing location to nest under it. Leave as “no existing parent” to build the
-          ancestor chain below instead — where each level can also reuse an existing location.
+          {t(
+            "Pick an existing location to nest under it. Leave as “no existing parent” to build the ancestor chain below instead — where each level can also reuse an existing location.",
+          )}
         </p>
       </div>
 
@@ -233,18 +241,18 @@ export function LocationForm({
       />
 
       <div className="space-y-1">
-        <Label htmlFor="location-tags">Tags</Label>
+        <Label htmlFor="location-tags">{t("Tags")}</Label>
         <TreeMultiCombobox
           id="location-tags"
-          aria-label="Tags"
+          aria-label={t("Tags")}
           options={tagOptions}
           values={tagIds}
           onValuesChange={setTagIds}
-          placeholder="Select tags…"
-          searchPlaceholder="Search tags…"
-          emptyText="No tags found."
+          placeholder={t("Select tags…")}
+          searchPlaceholder={t("Search tags…")}
+          emptyText={t("No tags found.")}
           createOption={{
-            label: "Create tag",
+            label: t("Create tag"),
             onSelect: () => setAddTagOpen(true),
           }}
         />
@@ -264,7 +272,7 @@ export function LocationForm({
         type="submit"
         disabled={isPending || name.trim().length === 0}
       >
-        {isPending ? "Creating…" : "Create location"}
+        {isPending ? t("Creating…") : t("Create location")}
       </Button>
 
       {error

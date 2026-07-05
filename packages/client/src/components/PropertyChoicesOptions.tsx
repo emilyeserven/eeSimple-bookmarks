@@ -16,6 +16,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { useTranslation } from "react-i18next";
 
 import { AllowDefaultField } from "./AllowDefaultField";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
@@ -61,6 +62,9 @@ export function ChoicesOptions({
   form, idPrefix, defaultOpen, full,
 }: ChoicesOptionsProps) {
   const tLabel = useTranslatedLabel();
+  const {
+    t,
+  } = useTranslation();
   const choicesDisplayOptions = CHOICES_DISPLAY_OPTIONS.map(option => ({
     ...option,
     label: tLabel(option.label),
@@ -85,8 +89,14 @@ export function ChoicesOptions({
             choicesDisplay, choicesItems,
           }) => {
             const preview = choicesItems.length === 0
-              ? "No choices defined"
-              : `${choicesItems.length} choice${choicesItems.length === 1 ? "" : "s"}`;
+              ? t("No choices defined")
+              : (choicesItems.length === 1
+                ? t("{{count}} choice", {
+                  count: choicesItems.length,
+                })
+                : t("{{count}} choices", {
+                  count: choicesItems.length,
+                }));
 
             function handleDragEnd(event: DragEndEvent) {
               const {
@@ -103,8 +113,8 @@ export function ChoicesOptions({
               <>
                 {full ? <Separator /> : null}
                 <CollapsibleFormSection
-                  title="Choices Options"
-                  description="Define the list of choices and how they display."
+                  title={t("Choices Options")}
+                  description={t("Define the list of choices and how they display.")}
                   preview={preview}
                   defaultOpen={defaultOpen}
                 >
@@ -112,7 +122,7 @@ export function ChoicesOptions({
                     <form.AppField name="choicesDisplay">
                       {field => (
                         <field.SelectField
-                          label="Display"
+                          label={t("Display")}
                           options={choicesDisplayOptions}
                           onValueChange={(value) => {
                             field.handleChange(value as PropertyFormValues["choicesDisplay"]);
@@ -139,8 +149,9 @@ export function ChoicesOptions({
                               onCheckedChange={checked => field.handleChange(Boolean(checked))}
                             />
                             <Label htmlFor={`${idPrefix}-choices-multiple`}>
-                              Allow multiple selections
-                              {locked ? " (set by display type)" : ""}
+                              {locked
+                                ? t("Allow multiple selections (set by display type)")
+                                : t("Allow multiple selections")}
                             </Label>
                           </div>
                         );
@@ -150,7 +161,7 @@ export function ChoicesOptions({
                     <Separator />
 
                     <div className="space-y-2">
-                      <Label>Choices</Label>
+                      <Label>{t("Choices")}</Label>
                       {choicesItems.length > 0 && (
                         <DndContext
                           sensors={sensors}
@@ -218,7 +229,7 @@ export function ChoicesOptions({
                           ]);
                         }}
                       >
-                        Add choice
+                        {t("Add choice")}
                       </Button>
                     </div>
 

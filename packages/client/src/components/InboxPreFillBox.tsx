@@ -1,5 +1,7 @@
 import type { InboxPreFillDefaults } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { Combobox } from "./Combobox";
 import { InboxPreFillModals } from "./InboxPreFillModals";
 import { InboxPreFillTags } from "./InboxPreFillTags";
@@ -27,6 +29,9 @@ export function InboxPreFillBox({
   setPreFill: (preFill: InboxPreFillDefaults) => void;
   onReset: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const {
     addPersonOpen,
     setAddPersonOpen,
@@ -63,7 +68,7 @@ export function InboxPreFillBox({
       <RowCard className="p-4">
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-medium">Defaults for approved bookmarks</span>
+            <span className="text-sm font-medium">{t("Defaults for approved bookmarks")}</span>
             <Button
               size="sm"
               variant="ghost"
@@ -71,7 +76,7 @@ export function InboxPreFillBox({
               disabled={isEmpty}
               onClick={onReset}
             >
-              Reset all
+              {t("Reset all")}
             </Button>
           </div>
 
@@ -84,7 +89,7 @@ export function InboxPreFillBox({
           >
             {/* Category */}
             <div className="space-y-1">
-              <Label className="text-sm">Category</Label>
+              <Label className="text-sm">{t("Category")}</Label>
               <Combobox
                 options={categoryOptions}
                 value={preFill.categoryId ?? undefined}
@@ -92,10 +97,10 @@ export function InboxPreFillBox({
                   ...preFill,
                   categoryId: val ?? null,
                 })}
-                placeholder="Any category"
-                searchPlaceholder="Search categories…"
-                emptyText="No categories."
-                aria-label="Default category"
+                placeholder={t("Any category")}
+                searchPlaceholder={t("Search categories…")}
+                emptyText={t("No categories.")}
+                aria-label={t("Default category")}
                 createOption={categoryCreate.createOption}
               />
             </div>
@@ -103,7 +108,7 @@ export function InboxPreFillBox({
             {/* Media Type */}
             {mediaTypeTree.length > 0 && (
               <div className="space-y-1">
-                <Label className="text-sm">Media Type</Label>
+                <Label className="text-sm">{t("Media Type")}</Label>
                 <TreeCombobox
                   options={mediaTypeOptions}
                   value={preFill.mediaTypeId ?? undefined}
@@ -111,10 +116,10 @@ export function InboxPreFillBox({
                     ...preFill,
                     mediaTypeId: val ?? null,
                   })}
-                  placeholder="Any media type"
-                  searchPlaceholder="Search media types…"
-                  emptyText="No media types."
-                  aria-label="Default media type"
+                  placeholder={t("Any media type")}
+                  searchPlaceholder={t("Search media types…")}
+                  emptyText={t("No media types.")}
+                  aria-label={t("Default media type")}
                   createOption={mediaTypeCreate.createOption}
                 />
               </div>
@@ -123,7 +128,7 @@ export function InboxPreFillBox({
             {/* Group */}
             {groups.length > 0 && (
               <div className="space-y-1">
-                <Label className="text-sm">Group</Label>
+                <Label className="text-sm">{t("Group")}</Label>
                 <Combobox
                   options={groupOptions}
                   value={preFill.groupId ?? undefined}
@@ -131,10 +136,10 @@ export function InboxPreFillBox({
                     ...preFill,
                     groupId: val ?? null,
                   })}
-                  placeholder="Any group"
-                  searchPlaceholder="Search groups…"
-                  emptyText="No groups."
-                  aria-label="Default group"
+                  placeholder={t("Any group")}
+                  searchPlaceholder={t("Search groups…")}
+                  emptyText={t("No groups.")}
+                  aria-label={t("Default group")}
                   createOption={groupCreate.createOption}
                 />
               </div>
@@ -143,7 +148,7 @@ export function InboxPreFillBox({
             {/* People */}
             {people.length > 0 && (
               <div className="space-y-1">
-                <Label className="text-sm">People</Label>
+                <Label className="text-sm">{t("People")}</Label>
                 <MultiCombobox
                   options={personOptions}
                   values={selectedPersonIds}
@@ -151,12 +156,12 @@ export function InboxPreFillBox({
                     ...preFill,
                     personIds: vals,
                   })}
-                  placeholder="Any people"
-                  searchPlaceholder="Search people…"
-                  emptyText="No people."
-                  aria-label="Default people"
+                  placeholder={t("Any people")}
+                  searchPlaceholder={t("Search people…")}
+                  emptyText={t("No people.")}
+                  aria-label={t("Default people")}
                   createOption={{
-                    label: "Create person",
+                    label: t("Create person"),
                     onSelect: () => setAddPersonOpen(true),
                   }}
                 />

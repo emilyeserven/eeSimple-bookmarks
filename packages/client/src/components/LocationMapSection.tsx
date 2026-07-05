@@ -6,6 +6,7 @@ import type { LocationNode } from "@eesimple/types";
 import { useMemo, useRef } from "react";
 
 import { ChevronDown, Map as MapIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { LocationLevelsMapPanel } from "./LocationLevelsMapPanel";
 import { LocationLevelsOverlay } from "./LocationLevelsOverlay";
@@ -78,7 +79,7 @@ interface LocationMapSectionProps {
 export function LocationMapSection({
   mapKey,
   tree,
-  title = "Map",
+  title,
   mapClassName,
   autoRefreshLocationId,
   showLevels = false,
@@ -87,6 +88,10 @@ export function LocationMapSection({
   ancestorChildrenScope,
   ancestryDebug,
 }: LocationMapSectionProps) {
+  const {
+    t,
+  } = useTranslation();
+  const label = title ?? t("Map");
   const collapsedKeys = useUiStore(state => state.collapsedLocationMapKeys);
   const toggle = useUiStore(state => state.toggleLocationMapCollapsed);
   const isCollapsed = collapsedKeys.includes(mapKey);
@@ -125,12 +130,18 @@ export function LocationMapSection({
   useAutoRefreshLocationBoundary(autoRefreshLocationId, tree);
 
   return (
-    <section aria-label={title}>
+    <section aria-label={label}>
       <div className="mb-2 flex items-center gap-2">
         <button
           type="button"
           aria-expanded={!isCollapsed}
-          aria-label={isCollapsed ? `Expand ${title}` : `Collapse ${title}`}
+          aria-label={isCollapsed
+            ? t("Expand {{title}}", {
+              title: label,
+            })
+            : t("Collapse {{title}}", {
+              title: label,
+            })}
           onClick={() => toggle(mapKey)}
           className="
             flex flex-1 items-center gap-2 rounded-lg border bg-card px-3 py-2
@@ -139,7 +150,7 @@ export function LocationMapSection({
           "
         >
           <MapIcon className="size-4 shrink-0 text-muted-foreground" />
-          <span className="flex-1">{title}</span>
+          <span className="flex-1">{label}</span>
           <ChevronDown
             className={cn(
               "size-4 shrink-0 text-muted-foreground transition-transform",

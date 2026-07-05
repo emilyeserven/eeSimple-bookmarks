@@ -3,6 +3,7 @@ import type { Bookmark, InstagramReelArchive, MediaObject } from "@eesimple/type
 
 import { Link } from "@tanstack/react-router";
 import { Download, Loader2, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { formatSize, isVideoObject } from "./galleryFormat";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
@@ -23,14 +24,23 @@ export function StorageSummary({
   orphans: MediaObject[];
   quotaBytes: number | null;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const usedBytes = [...registered, ...orphans].reduce(
     (sum, obj) => sum + (obj.byteSize ?? 0),
     0,
   );
   return (
     <p className="text-sm text-muted-foreground">
-      {`Storage used: ${formatSize(usedBytes)}`}
-      {quotaBytes != null ? ` of ${formatSize(quotaBytes)}` : ""}
+      {t("Storage used: {{amount}}", {
+        amount: formatSize(usedBytes),
+      })}
+      {quotaBytes != null
+        ? ` ${t("of {{amount}}", {
+          amount: formatSize(quotaBytes),
+        })}`
+        : ""}
     </p>
   );
 }
@@ -102,12 +112,15 @@ export function RegisteredGrid({
   layout,
 }: { registered: MediaObject[];
   layout: GalleryLayout; }) {
+  const {
+    t,
+  } = useTranslation();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">Registered</h2>
+        <h2 className="text-lg font-semibold">{t("Registered")}</h2>
         <Badge variant="secondary">{registered.length}</Badge>
       </div>
       <ul className={layoutContainerClass(layout)}>
@@ -163,13 +176,16 @@ export function OrphansGrid({
   onAttach,
   onDelete,
 }: OrphansGridProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-lg font-semibold">Orphans</h2>
+        <h2 className="text-lg font-semibold">{t("Orphans")}</h2>
         <Badge variant="secondary">{orphans.length}</Badge>
         <p className="text-sm text-muted-foreground">
-          Objects with no bookmark — attach to a bookmark or reclaim.
+          {t("Objects with no bookmark — attach to a bookmark or reclaim.")}
         </p>
         <Button
           type="button"
@@ -179,7 +195,7 @@ export function OrphansGrid({
           onClick={onDeleteAll}
         >
           <Trash2 className="size-4" />
-          Delete all orphans
+          {t("Delete all orphans")}
         </Button>
       </div>
       <ul className={layoutContainerClass(layout)}>
@@ -210,7 +226,7 @@ export function OrphansGrid({
                       size="sm"
                       onClick={() => onAttach(object.objectKey)}
                     >
-                      Attach
+                      {t("Attach")}
                     </Button>
                   )}
                 <Button
@@ -220,7 +236,7 @@ export function OrphansGrid({
                   onClick={() => onDelete(object.objectKey)}
                 >
                   <Trash2 className="size-4" />
-                  Delete
+                  {t("Delete")}
                 </Button>
               </div>
             </div>
@@ -235,6 +251,9 @@ export function OrphansGrid({
 export function ArchivedReelsGrid({
   bookmarks,
 }: { bookmarks: Bookmark[] }) {
+  const {
+    t,
+  } = useTranslation();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
   const remove = useDeleteBookmarkReelArchive();
@@ -245,7 +264,7 @@ export function ArchivedReelsGrid({
   if (reels.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No archived reel videos yet. Archive one from a bookmark&apos;s Video edit tab.
+        {t("No archived reel videos yet. Archive one from a bookmark's Video edit tab.")}
       </p>
     );
   }
@@ -253,7 +272,7 @@ export function ArchivedReelsGrid({
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">Archived Reels</h2>
+        <h2 className="text-lg font-semibold">{t("Archived Reels")}</h2>
         <Badge variant="secondary">{reels.length}</Badge>
       </div>
       <ul
@@ -297,8 +316,8 @@ export function ArchivedReelsGrid({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label="Download archived reel"
-                    title="Download archived reel"
+                    aria-label={t("Download archived reel")}
+                    title={t("Download archived reel")}
                     asChild
                   >
                     <a
@@ -312,8 +331,8 @@ export function ArchivedReelsGrid({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label="Remove archived reel"
-                    title="Remove archived reel"
+                    aria-label={t("Remove archived reel")}
+                    title={t("Remove archived reel")}
                     disabled={remove.isPending}
                     onClick={() => remove.mutate(bookmark.id)}
                   >

@@ -1,6 +1,7 @@
 import type { LocationNode } from "@eesimple/types";
 
 import { RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
@@ -26,6 +27,9 @@ interface LocationGeneralFormProps {
 export function LocationGeneralForm({
   node,
 }: LocationGeneralFormProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     form, alternateNames, setAlternateNames, tagIds, saveTagIds,
     wikidataId, usesWikidataCoordinates, saveUsesWikidataCoordinates,
@@ -56,8 +60,8 @@ export function LocationGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField
-            label="Name"
-            placeholder="Location name"
+            label={t("Name")}
+            placeholder={t("Location name")}
             onBlur={() => saveField(
               "name",
               field.state.value.trim(),
@@ -72,7 +76,7 @@ export function LocationGeneralForm({
       </form.AppField>
 
       <div className="space-y-1">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesTabEditor
           ownerType="location"
           ownerId={node.id}
@@ -89,7 +93,7 @@ export function LocationGeneralForm({
           <form.AppField name="latitude">
             {field => (
               <field.NumberField
-                label="Latitude"
+                label={t("Latitude")}
                 onBlur={() => saveField(
                   "latitude",
                   field.state.value,
@@ -103,7 +107,7 @@ export function LocationGeneralForm({
           <form.AppField name="longitude">
             {field => (
               <field.NumberField
-                label="Longitude"
+                label={t("Longitude")}
                 onBlur={() => saveField(
                   "longitude",
                   field.state.value,
@@ -127,14 +131,14 @@ export function LocationGeneralForm({
               ? "mr-2 size-3.5 animate-spin"
               : "mr-2 size-3.5"}
           />
-          {isRepullingCoordinates ? "Re-geocoding…" : "Re-geocode"}
+          {isRepullingCoordinates ? t("Re-geocoding…") : t("Re-geocode")}
         </Button>
       </div>
 
       <form.AppField name="mapUrl">
         {field => (
           <field.TextField
-            label="Map URL"
+            label={t("Map URL")}
             placeholder="https://maps.google.com/…"
             onBlur={() => saveField("mapUrl", field.state.value.trim() || null)}
           />
@@ -148,11 +152,13 @@ export function LocationGeneralForm({
           onCheckedChange={value => saveUsesWikidataCoordinates(value === true)}
         />
         <div className="space-y-1">
-          <Label htmlFor="location-uses-wikidata-coordinates">Uses Wikidata for coordinates</Label>
+          <Label htmlFor="location-uses-wikidata-coordinates">{t("Uses Wikidata for coordinates")}</Label>
           <p className="text-xs text-muted-foreground">
-            Auto-checked when a Wikidata search result is picked above
-            {wikidataId ? ` (${wikidataId})` : ""}. When checked, &ldquo;Re-geocode&rdquo; and area
-            refreshes query Wikidata only — Nominatim is skipped.
+            {t("Auto-checked when a Wikidata search result is picked above")}
+            {wikidataId ? ` (${wikidataId})` : ""}
+            {t(
+              ". When checked, “Re-geocode” and area refreshes query Wikidata only — Nominatim is skipped.",
+            )}
           </p>
         </div>
       </div>
@@ -166,7 +172,7 @@ export function LocationGeneralForm({
         <form.AppField name="plusCode">
           {field => (
             <field.TextField
-              label="Plus code"
+              label={t("Plus code")}
               placeholder="e.g. 8Q7XMP+2J"
               onBlur={() => saveField("plusCode", field.state.value.trim() || null)}
             />
@@ -175,14 +181,14 @@ export function LocationGeneralForm({
         <form.AppField name="placeType">
           {field => (
             <field.ComboboxField
-              label="Place type"
+              label={t("Place type")}
               options={placeTypeChoices}
-              placeholder="Select a place type…"
-              searchPlaceholder="Search place types…"
-              emptyText="No place types found."
+              placeholder={t("Select a place type…")}
+              searchPlaceholder={t("Search place types…")}
+              emptyText={t("No place types found.")}
               onValueChange={value => saveField("placeType", value.trim() || null)}
               createOption={{
-                label: "Create place type",
+                label: t("Create place type"),
                 onSelect: () => setAddPlaceTypeOpen(true),
               }}
             />
@@ -191,7 +197,7 @@ export function LocationGeneralForm({
         <form.AppField name="countryCode">
           {field => (
             <field.TextField
-              label="Country code"
+              label={t("Country code")}
               placeholder="e.g. JP"
               onBlur={() => saveField("countryCode", field.state.value.trim() || null)}
             />
@@ -211,7 +217,7 @@ export function LocationGeneralForm({
       <form.AppField name="officialLink">
         {field => (
           <field.TextField
-            label="Official link"
+            label={t("Official link")}
             placeholder="https://…"
             onBlur={() => saveField("officialLink", field.state.value.trim() || null)}
           />
@@ -228,7 +234,7 @@ export function LocationGeneralForm({
           <form.AppField name="wikipediaLinkEn">
             {field => (
               <field.TextField
-                label="Wikipedia link (EN)"
+                label={t("Wikipedia link (EN)")}
                 placeholder="https://en.wikipedia.org/wiki/…"
                 onBlur={() => saveField("wikipediaLinkEn", field.state.value.trim() || null)}
               />
@@ -237,7 +243,7 @@ export function LocationGeneralForm({
           <form.AppField name="wikipediaLinkLocal">
             {field => (
               <field.TextField
-                label="Wikipedia link (Local)"
+                label={t("Wikipedia link (Local)")}
                 placeholder="https://ja.wikipedia.org/wiki/…"
                 onBlur={() => saveField("wikipediaLinkLocal", field.state.value.trim() || null)}
               />
@@ -256,18 +262,18 @@ export function LocationGeneralForm({
               ? "mr-2 size-3.5 animate-spin"
               : "mr-2 size-3.5"}
           />
-          {isAutofillingWikipediaLinks ? "Searching Wikidata…" : "Autofill Wikipedia links"}
+          {isAutofillingWikipediaLinks ? t("Searching Wikidata…") : t("Autofill Wikipedia links")}
         </Button>
       </div>
 
       <form.AppField name="parent">
         {field => (
           <field.ComboboxField
-            label="Parent"
+            label={t("Parent")}
             options={parentOptions}
-            placeholder="Choose a parent"
-            searchPlaceholder="Search locations…"
-            emptyText="No locations found."
+            placeholder={t("Choose a parent")}
+            searchPlaceholder={t("Search locations…")}
+            emptyText={t("No locations found.")}
             onValueChange={value =>
               saveField("parentId", value && value !== ROOT ? value : null)}
           />
@@ -287,20 +293,20 @@ export function LocationGeneralForm({
       />
 
       <div className="space-y-1">
-        <Label htmlFor="location-tags">Tags</Label>
+        <Label htmlFor="location-tags">{t("Tags")}</Label>
         <TreeMultiCombobox
           id="location-tags"
-          aria-label="Tags"
+          aria-label={t("Tags")}
           options={tagOptions}
           values={tagIds}
           onValuesChange={saveTagIds}
-          placeholder="Select tags…"
-          searchPlaceholder="Search tags…"
-          emptyText="No tags found."
+          placeholder={t("Select tags…")}
+          searchPlaceholder={t("Search tags…")}
+          emptyText={t("No tags found.")}
           createOption={tagCreate.createOption}
         />
         <p className="text-xs text-muted-foreground">
-          Looser mood / biome tags associated with this location.
+          {t("Looser mood / biome tags associated with this location.")}
         </p>
       </div>
       {tagCreate.modal}

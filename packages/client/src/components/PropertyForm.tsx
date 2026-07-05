@@ -8,6 +8,8 @@ import type {
 } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import {
   CREATE_DEFAULTS,
   payloadFromValues,
@@ -85,6 +87,9 @@ export function PropertyForm({
   section,
 }: PropertyFormProps) {
   const tLabel = useTranslatedLabel();
+  const {
+    t,
+  } = useTranslation();
   const typeOptions = TYPE_OPTIONS.map(option => ({
     ...option,
     label: tLabel(option.label),
@@ -135,8 +140,8 @@ export function PropertyForm({
               <form.AppField name="name">
                 {field => (
                   <field.TextField
-                    label="Name"
-                    placeholder="e.g. Priority"
+                    label={t("Name")}
+                    placeholder={t("e.g. Priority")}
                   />
                 )}
               </form.AppField>
@@ -144,7 +149,7 @@ export function PropertyForm({
               <form.AppField name="type">
                 {field => (
                   <field.SelectField
-                    label="Type"
+                    label={t("Type")}
                     options={typeOptions}
                     disabled={mode === "edit"}
                   />
@@ -162,10 +167,10 @@ export function PropertyForm({
                       disabled={isBuiltIn}
                       onCheckedChange={checked => field.handleChange(checked === true)}
                     />
-                    <Label htmlFor={`${idPrefix}-enabled`}>Property is active</Label>
+                    <Label htmlFor={`${idPrefix}-enabled`}>{t("Property is active")}</Label>
                   </div>
                   {isBuiltIn
-                    ? <p className="text-xs text-muted-foreground">Built-in properties can&apos;t be disabled.</p>
+                    ? <p className="text-xs text-muted-foreground">{t("Built-in properties can't be disabled.")}</p>
                     : null}
                 </div>
               )}
@@ -174,8 +179,8 @@ export function PropertyForm({
             <form.AppField name="description">
               {field => (
                 <field.TextareaField
-                  label="Description"
-                  placeholder="Optional — shown as a hint where this property appears."
+                  label={t("Description")}
+                  placeholder={t("Optional — shown as a hint where this property appears.")}
                   rows={2}
                 />
               )}

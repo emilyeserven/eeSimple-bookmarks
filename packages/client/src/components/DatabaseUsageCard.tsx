@@ -4,9 +4,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 
 import { RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { formatSize } from "./galleryFormat";
 import { useDatabaseTableDetail, useDatabaseUsage } from "../hooks/useAppSettings";
+import i18n from "../i18n";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,14 +32,14 @@ import { copyText } from "@/lib/clipboard";
 const DATABASE_USAGE_COLUMNS: ColumnDef<DatabaseTableUsage>[] = [
   {
     accessorKey: "tableName",
-    header: "Table",
+    header: () => i18n.t("Table"),
     cell: ({
       row,
     }) => <span className="font-medium">{row.original.tableName}</span>,
   },
   {
     accessorKey: "rowEstimate",
-    header: () => <div className="text-right">Rows (est.)</div>,
+    header: () => <div className="text-right">{i18n.t("Rows (est.)")}</div>,
     cell: ({
       row,
     }) => (
@@ -46,7 +48,7 @@ const DATABASE_USAGE_COLUMNS: ColumnDef<DatabaseTableUsage>[] = [
   },
   {
     accessorKey: "totalBytes",
-    header: () => <div className="text-right">Size</div>,
+    header: () => <div className="text-right">{i18n.t("Size")}</div>,
     cell: ({
       row,
     }) => (
@@ -57,7 +59,7 @@ const DATABASE_USAGE_COLUMNS: ColumnDef<DatabaseTableUsage>[] = [
 
 /** Formats an ISO timestamp for display, or "Never" when absent. */
 function formatTimestamp(value: string | null): string {
-  return value ? new Date(value).toLocaleString() : "Never";
+  return value ? new Date(value).toLocaleString() : i18n.t("Never");
 }
 
 /**
@@ -68,6 +70,9 @@ function formatTimestamp(value: string | null): string {
  */
 export function DatabaseUsageCard() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data, isLoading, isError, error, isFetching, refetch,
   } = useDatabaseUsage();
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
@@ -75,10 +80,11 @@ export function DatabaseUsageCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Database usage</CardTitle>
+        <CardTitle>{t("Database usage")}</CardTitle>
         <CardDescription>
-          Disk space used by each table in the PostgreSQL database (including its indexes). Row
-          counts are estimates. Click a table to see diagnostic detail, or a column header to sort.
+          {t(
+            "Disk space used by each table in the PostgreSQL database (including its indexes). Row counts are estimates. Click a table to see diagnostic detail, or a column header to sort.",
+          )}
         </CardDescription>
         <CardAction>
           <Button
@@ -94,17 +100,19 @@ export function DatabaseUsageCard() {
                 ${isFetching ? "animate-spin" : ""}
               `}
             />
-            {isFetching ? "Refreshing…" : "Refresh"}
+            {isFetching ? t("Refreshing…") : t("Refresh")}
           </Button>
         </CardAction>
       </CardHeader>
       <CardContent>
         {isLoading
-          ? <p className="text-sm text-muted-foreground">Loading…</p>
+          ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
           : isError
             ? (
               <p className="text-sm text-muted-foreground">
-                {`Couldn't load database usage: ${error.message}`}
+                {t("Couldn't load database usage: {{message}}", {
+                  message: error.message,
+                })}
               </p>
             )
             : data && (
@@ -115,7 +123,7 @@ export function DatabaseUsageCard() {
                     bg-muted/40 px-4 py-3
                   "
                 >
-                  <span className="text-sm font-medium">Total (whole database)</span>
+                  <span className="text-sm font-medium">{t("Total (whole database)")}</span>
                   <span className="text-lg font-semibold tabular-nums">
                     {formatSize(data.totalBytes)}
                   </span>
@@ -147,6 +155,9 @@ function DatabaseTableDetailDialog({
   tableName, onOpenChange,
 }: DatabaseTableDetailDialogProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: detail, isLoading, isError, error,
   } = useDatabaseTableDetail(tableName);
 
@@ -159,58 +170,61 @@ function DatabaseTableDetailDialog({
         <DialogHeader>
           <DialogTitle>{tableName}</DialogTitle>
           <DialogDescription>
-            Diagnostic detail for this table — copy it to paste into an LLM when investigating why
-            it&apos;s bulky.
+            {t(
+              "Diagnostic detail for this table — copy it to paste into an LLM when investigating why it's bulky.",
+            )}
           </DialogDescription>
         </DialogHeader>
         {isLoading
-          ? <p className="text-sm text-muted-foreground">Loading…</p>
+          ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
           : isError
             ? (
               <p className="text-sm text-muted-foreground">
-                {`Couldn't load table detail: ${error.message}`}
+                {t("Couldn't load table detail: {{message}}", {
+                  message: error.message,
+                })}
               </p>
             )
             : detail && (
               <div className="space-y-4 text-sm">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                  <span className="text-muted-foreground">Heap size</span>
+                  <span className="text-muted-foreground">{t("Heap size")}</span>
                   <span className="text-right tabular-nums">{formatSize(detail.heapBytes)}</span>
-                  <span className="text-muted-foreground">Index size</span>
+                  <span className="text-muted-foreground">{t("Index size")}</span>
                   <span className="text-right tabular-nums">{formatSize(detail.indexBytes)}</span>
-                  <span className="text-muted-foreground">TOAST size</span>
+                  <span className="text-muted-foreground">{t("TOAST size")}</span>
                   <span className="text-right tabular-nums">{formatSize(detail.toastBytes)}</span>
-                  <span className="font-medium">Total size</span>
+                  <span className="font-medium">{t("Total size")}</span>
                   <span className="text-right font-medium tabular-nums">
                     {formatSize(detail.totalBytes)}
                   </span>
-                  <span className="text-muted-foreground">Live rows (est.)</span>
+                  <span className="text-muted-foreground">{t("Live rows (est.)")}</span>
                   <span className="text-right tabular-nums">
                     {detail.rowEstimate.toLocaleString()}
                   </span>
-                  <span className="text-muted-foreground">Dead rows (est.)</span>
+                  <span className="text-muted-foreground">{t("Dead rows (est.)")}</span>
                   <span className="text-right tabular-nums">
                     {detail.deadRowEstimate.toLocaleString()}
                   </span>
-                  <span className="text-muted-foreground">Sequential scans</span>
+                  <span className="text-muted-foreground">{t("Sequential scans")}</span>
                   <span className="text-right tabular-nums">
                     {detail.sequentialScans.toLocaleString()}
                   </span>
-                  <span className="text-muted-foreground">Index scans</span>
+                  <span className="text-muted-foreground">{t("Index scans")}</span>
                   <span className="text-right tabular-nums">
                     {detail.indexScans.toLocaleString()}
                   </span>
-                  <span className="text-muted-foreground">Last vacuum</span>
+                  <span className="text-muted-foreground">{t("Last vacuum")}</span>
                   <span className="text-right">{formatTimestamp(detail.lastVacuum)}</span>
-                  <span className="text-muted-foreground">Last autovacuum</span>
+                  <span className="text-muted-foreground">{t("Last autovacuum")}</span>
                   <span className="text-right">{formatTimestamp(detail.lastAutoVacuum)}</span>
-                  <span className="text-muted-foreground">Last analyze</span>
+                  <span className="text-muted-foreground">{t("Last analyze")}</span>
                   <span className="text-right">{formatTimestamp(detail.lastAnalyze)}</span>
-                  <span className="text-muted-foreground">Last autoanalyze</span>
+                  <span className="text-muted-foreground">{t("Last autoanalyze")}</span>
                   <span className="text-right">{formatTimestamp(detail.lastAutoAnalyze)}</span>
                 </div>
                 <div>
-                  <p className="mb-1 font-medium">Indexes</p>
+                  <p className="mb-1 font-medium">{t("Indexes")}</p>
                   <ul className="space-y-0.5">
                     {detail.indexes.map(index => (
                       <li
@@ -224,7 +238,7 @@ function DatabaseTableDetailDialog({
                   </ul>
                 </div>
                 <div>
-                  <p className="mb-1 font-medium">Columns</p>
+                  <p className="mb-1 font-medium">{t("Columns")}</p>
                   <ul className="space-y-0.5">
                     {detail.columns.map(column => (
                       <li
@@ -243,7 +257,7 @@ function DatabaseTableDetailDialog({
                   size="sm"
                   onClick={() => void copyText(formatDetailForClipboard(tableName as string, detail))}
                 >
-                  Copy details
+                  {t("Copy details")}
                 </Button>
               </div>
             )}

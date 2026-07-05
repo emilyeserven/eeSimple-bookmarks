@@ -2,6 +2,7 @@ import type { ParamRuleDraft } from "../lib/websiteForm";
 import type { ShortenedLink } from "@eesimple/types";
 
 import { Plus, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { LabeledSection } from "./LabeledSection";
 
@@ -15,6 +16,9 @@ export function ShortenedLinksEditor({
 }: { idBase: string;
   links: ShortenedLink[];
   onChange: (links: ShortenedLink[]) => void; }) {
+  const {
+    t,
+  } = useTranslation();
   function update(index: number, patch: Partial<ShortenedLink>): void {
     onChange(links.map((link, i) => (i === index
       ? {
@@ -25,18 +29,18 @@ export function ShortenedLinksEditor({
   }
   return (
     <LabeledSection
-      title="Verified shortened links"
+      title={t("Verified shortened links")}
       description={(
         <>
-          Short domains that resolve to this site (e.g. youtu.be). Use
+          {t("Short domains that resolve to this site (e.g. youtu.be). Use")}
           {" "}
           <code>{"{id}"}</code>
           {" "}
-          (first path segment) or
+          {t("(first path segment) or")}
           {" "}
           <code>{"{path}"}</code>
           {" "}
-          in the expansion template; leave it blank to keep links shortened.
+          {t("in the expansion template; leave it blank to keep links shortened.")}
         </>
       )}
     >
@@ -50,7 +54,7 @@ export function ShortenedLinksEditor({
             "
           >
             <Input
-              aria-label="Short domain"
+              aria-label={t("Short domain")}
               placeholder="youtu.be"
               value={link.domain}
               onChange={event => update(index, {
@@ -58,7 +62,7 @@ export function ShortenedLinksEditor({
               })}
             />
             <Input
-              aria-label="Expansion template"
+              aria-label={t("Expansion template")}
               placeholder="https://www.youtube.com/watch?v={id}"
               value={link.expandTo ?? ""}
               onChange={event => update(index, {
@@ -73,13 +77,13 @@ export function ShortenedLinksEditor({
                   keepShortened: checked === true,
                 })}
               />
-              Keep shortened
+              {t("Keep shortened")}
             </label>
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              aria-label="Remove shortened link"
+              aria-label={t("Remove shortened link")}
               onClick={() => onChange(links.filter((_, i) => i !== index))}
             >
               <X className="size-4" />
@@ -97,7 +101,7 @@ export function ShortenedLinksEditor({
           }])}
         >
           <Plus className="mr-1 size-4" />
-          Add shortened link
+          {t("Add shortened link")}
         </Button>
       </div>
     </LabeledSection>
@@ -110,6 +114,9 @@ export function ParamRulesEditor({
 }: { idBase: string;
   rules: ParamRuleDraft[];
   onChange: (rules: ParamRuleDraft[]) => void; }) {
+  const {
+    t,
+  } = useTranslation();
   function update(index: number, patch: Partial<ParamRuleDraft>): void {
     onChange(rules.map((rule, i) => (i === index
       ? {
@@ -120,8 +127,10 @@ export function ParamRulesEditor({
   }
   return (
     <LabeledSection
-      title="Keep-param rules"
-      description="For URLs whose path ends with the suffix, keep only these query params (comma-separated) and strip the rest. Leave the path blank to match any path. With rules set, params aren’t kept unless whitelisted."
+      title={t("Keep-param rules")}
+      description={t(
+        "For URLs whose path ends with the suffix, keep only these query params (comma-separated) and strip the rest. Leave the path blank to match any path. With rules set, params aren’t kept unless whitelisted.",
+      )}
     >
       <div className="space-y-2">
         {rules.map((rule, index) => (
@@ -133,7 +142,7 @@ export function ParamRulesEditor({
             "
           >
             <Input
-              aria-label="Path suffix"
+              aria-label={t("Path suffix")}
               placeholder="/watch"
               value={rule.pathSuffix}
               onChange={event => update(index, {
@@ -141,7 +150,7 @@ export function ParamRulesEditor({
               })}
             />
             <Input
-              aria-label="Kept params"
+              aria-label={t("Kept params")}
               placeholder="v, list"
               value={rule.paramsText}
               onChange={event => update(index, {
@@ -152,7 +161,7 @@ export function ParamRulesEditor({
               type="button"
               variant="ghost"
               size="icon"
-              aria-label="Remove rule"
+              aria-label={t("Remove rule")}
               onClick={() => onChange(rules.filter((_, i) => i !== index))}
             >
               <X className="size-4" />
@@ -170,7 +179,7 @@ export function ParamRulesEditor({
           }])}
         >
           <Plus className="mr-1 size-4" />
-          Add rule
+          {t("Add rule")}
         </Button>
       </div>
     </LabeledSection>

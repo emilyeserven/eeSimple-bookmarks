@@ -33,6 +33,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import i18n from "@/i18n";
 
 /** A subtle clickable gap between two level group rows — hover reveals a "+" to insert a new level. */
 function AddLevelGap({
@@ -42,7 +43,7 @@ function AddLevelGap({
     <button
       type="button"
       onClick={onClick}
-      aria-label="Add level here"
+      aria-label={i18n.t("Add level here")}
       className="
         group flex h-6 w-full items-center gap-2 text-muted-foreground/25
         transition-colors
@@ -110,7 +111,7 @@ export function LocationLevelGroupsSettings() {
         ...displayPrefs,
         minAreaPinThresholdKm2: parsed,
       },
-      successMessage: "Minimum area threshold updated",
+      successMessage: i18n.t("Minimum area threshold updated"),
     });
   }
 
@@ -156,7 +157,7 @@ export function LocationLevelGroupsSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Level Groups</CardTitle>
+        <CardTitle className="text-base">{i18n.t("Level Groups")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-1.5">
@@ -164,11 +165,12 @@ export function LocationLevelGroupsSettings() {
             htmlFor="min-area-pin-threshold"
             className="text-sm font-medium"
           >
-            Minimum area size
+            {i18n.t("Minimum area size")}
           </Label>
           <p className="text-xs text-muted-foreground">
-            An &ldquo;area&rdquo; level whose boundary is smaller than this (km²) renders as a pin
-            instead of a polygon. Set to 0 to always draw the area when a boundary exists.
+            {i18n.t(
+              "An “area” level whose boundary is smaller than this (km²) renders as a pin instead of a polygon. Set to 0 to always draw the area when a boundary exists.",
+            )}
           </p>
           <div className="flex items-center gap-2">
             <Input
@@ -180,9 +182,9 @@ export function LocationLevelGroupsSettings() {
               onChange={e => setMinAreaInput(e.target.value)}
               onBlur={commitMinArea}
               className="w-28"
-              aria-label="Minimum area size in square kilometers"
+              aria-label={i18n.t("Minimum area size in square kilometers")}
             />
-            <span className="text-sm text-muted-foreground">km²</span>
+            <span className="text-sm text-muted-foreground">{i18n.t("km²")}</span>
           </div>
         </div>
 
@@ -190,8 +192,9 @@ export function LocationLevelGroupsSettings() {
           ? (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">
-                Apply a color palette across your levels, spread evenly from your largest level
-                down to your smallest, then fine-tune each color individually.
+                {i18n.t(
+                  "Apply a color palette across your levels, spread evenly from your largest level down to your smallest, then fine-tune each color individually.",
+                )}
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -203,12 +206,12 @@ export function LocationLevelGroupsSettings() {
                     text-xs
                     hover:bg-accent
                   "
-                  title="Flip which end of the palette is used for your largest level"
+                  title={i18n.t("Flip which end of the palette is used for your largest level")}
                 >
                   <ArrowLeftRight className="size-3.5" />
                   {paletteReversed
-                    ? "Palette start = smallest"
-                    : "Palette start = largest"}
+                    ? i18n.t("Palette start = smallest")
+                    : i18n.t("Palette start = largest")}
                 </button>
 
                 <div className="flex items-center gap-1.5">
@@ -223,7 +226,7 @@ export function LocationLevelGroupsSettings() {
                       cursor-pointer text-xs font-normal text-muted-foreground
                     "
                   >
-                    Color pin levels too (otherwise pins stay gray)
+                    {i18n.t("Color pin levels too (otherwise pins stay gray)")}
                   </Label>
                 </div>
               </div>
@@ -242,7 +245,9 @@ export function LocationLevelGroupsSettings() {
                       text-xs
                       hover:bg-accent
                     "
-                    title={`Apply the ${palette.name} palette`}
+                    title={i18n.t("Apply the {{name}} palette", {
+                      name: palette.name,
+                    })}
                   >
                     <span
                       className="flex h-3 overflow-hidden rounded-sm"
@@ -274,18 +279,18 @@ export function LocationLevelGroupsSettings() {
             onClick={() => addGroupOfMode("pin")}
           >
             <Plus className="mr-1 size-4" />
-            Add level
+            {i18n.t("Add level")}
           </Button>
         </div>
 
         {isLoading
-          ? <p className="text-sm text-muted-foreground">Loading…</p>
+          ? <p className="text-sm text-muted-foreground">{i18n.t("Loading…")}</p>
           : null}
 
         {!isLoading && orderedGroups.length === 0
           ? (
             <p className="text-sm text-muted-foreground">
-              No levels yet. Add one to group place types for map rendering and sorting.
+              {i18n.t("No levels yet. Add one to group place types for map rendering and sorting.")}
             </p>
           )
           : null}
@@ -336,7 +341,7 @@ export function LocationLevelGroupsSettings() {
         {unassignedPlaceTypes.length > 0
           ? (
             <p className="text-xs text-muted-foreground">
-              Unassigned place types (shown as areas by default):
+              {i18n.t("Unassigned place types (shown as areas by default):")}
               {" "}
               {unassignedPlaceTypes.map(option => option.label).join(", ")}
               .

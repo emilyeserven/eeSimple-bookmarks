@@ -7,6 +7,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
 import { ExternalLink, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { ImportItemAdvancedEdit } from "./ImportItemAdvancedEdit";
 import {
@@ -143,6 +144,9 @@ function ReviewItemBody({
   trailing?: ReactNode;
   advancedEdit?: ReactNode;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="flex items-start gap-3">
       {item.imageUrl
@@ -173,13 +177,19 @@ function ReviewItemBody({
                     className="gap-1 text-muted-foreground"
                   >
                     <Trash2 className="size-3" />
-                    Will be deleted
+                    {t("Will be deleted")}
                   </Badge>
                 )
                 : null}
             </div>
             {item.sourceLabel
-              ? <p className="text-xs text-muted-foreground/70">From {item.sourceLabel}</p>
+              ? (
+                <p className="text-xs text-muted-foreground/70">
+                  {t("From {{source}}", {
+                    source: item.sourceLabel,
+                  })}
+                </p>
+              )
               : null}
           </div>
           {trailing
@@ -205,12 +215,24 @@ function ReviewItemBody({
           )
           : null}
         {item.url && item.rawUrl !== item.url
-          ? <p className="text-xs break-all text-muted-foreground/70">via {item.rawUrl}</p>
+          ? (
+            <p className="text-xs break-all text-muted-foreground/70">
+              {t("via {{rawUrl}}", {
+                rawUrl: item.rawUrl,
+              })}
+            </p>
+          )
           : null}
 
         {/* Row 3: Context */}
         {categoryName
-          ? <p className="text-xs text-muted-foreground">Category: {categoryName}</p>
+          ? (
+            <p className="text-xs text-muted-foreground">
+              {t("Category: {{categoryName}}", {
+                categoryName,
+              })}
+            </p>
+          )
           : null}
         {item.status === "error" && item.errorReason
           ? <p className="text-xs text-destructive">{item.errorReason}</p>
@@ -239,7 +261,11 @@ function ReviewItemBody({
           : null}
 
         {/* Row 4: Date added */}
-        <p className="text-xs text-muted-foreground/70">Added {formatAdded(item.createdAt)}</p>
+        <p className="text-xs text-muted-foreground/70">
+          {t("Added {{date}}", {
+            date: formatAdded(item.createdAt),
+          })}
+        </p>
         {advancedEdit}
       </div>
     </div>
