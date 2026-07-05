@@ -6,6 +6,7 @@ import { EntityMultiSelectCondition } from "./EntityMultiSelectCondition";
 
 import { useLanguages } from "@/hooks/useLanguages";
 import { useLanguageUsageLevels } from "@/hooks/useLanguageUsageLevels";
+import { sortLanguagesFavoritesFirst } from "@/lib/languageOptions";
 
 interface LanguageUsageConditionEditorProps {
   value: LanguageUsageCondition;
@@ -37,7 +38,7 @@ export function LanguageUsageConditionEditor({
         placeholder={languagesLoading ? t("Loading…") : t("Any language")}
         searchPlaceholder={t("Search languages…")}
         emptyText={t("No languages found.")}
-        options={languages.map(l => ({
+        options={sortLanguagesFavoritesFirst(languages).map(l => ({
           value: l.id,
           label: l.name,
         }))}

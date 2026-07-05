@@ -371,6 +371,10 @@ export const languages = pgTable("languages", {
   builtIn: boolean("built_in").notNull().default(false),
   // Display ordering; lower sorts first. Seeded built-ins get a stable order.
   sortOrder: integer("sort_order").notNull().default(0),
+  // User-marked favorite; favorited languages sort towards the top of language pickers. Added via
+  // an idempotent migrate.ts pre-step (NOT NULL + default on an existing populated table would
+  // otherwise trip drizzle-kit push's interactive prompt).
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

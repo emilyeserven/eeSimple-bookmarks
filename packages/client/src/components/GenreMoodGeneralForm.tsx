@@ -8,11 +8,13 @@ import { useTranslation } from "react-i18next";
 
 import { AddGenreMoodModal } from "./AddGenreMoodModal";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
+import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { genreMoodSchema } from "./genreMoodFormSchema";
 import { Label } from "./ui/label";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateGenreMood } from "../hooks/useGenreMoods";
+import { usePrimaryLanguageField } from "../hooks/usePrimaryLanguageField";
 import { useAppForm } from "../lib/form";
 import { flattenTree } from "../lib/tagTree";
 
@@ -44,6 +46,7 @@ export function GenreMoodGeneralForm({
   } = useTranslation();
   const navigate = useNavigate();
   const updateGenreMood = useUpdateGenreMood();
+  const primaryLanguage = usePrimaryLanguageField("genreMood", node.id);
   const [addOpen, setAddOpen] = useState(false);
   const autoSave = useFieldAutoSave<UpdateGenreMoodInput, GenreMood>({
     id: node.id,
@@ -87,27 +90,36 @@ export function GenreMoodGeneralForm({
           <field.TextField
             label={t("Name")}
             placeholder={t("Entry name")}
-            onBlur={() => autoSave.saveField(
-              "name",
-              field.state.value.trim(),
-              {
-                valid: field.state.meta.errors.length === 0,
-                // Renaming changes the slug; follow it so the edit page keeps resolving.
-                onSuccess: (updated) => {
-                  if (updated.slug !== node.slug) {
-                    void navigate({
-                      to: "/taxonomies/genres-moods/$genreMoodSlug/edit/general",
-                      params: {
-                        genreMoodSlug: updated.slug,
-                      },
-                    });
-                  }
+            onBlur={() => {
+              const trimmed = field.state.value.trim();
+              autoSave.saveField(
+                "name",
+                trimmed,
+                {
+                  valid: field.state.meta.errors.length === 0,
+                  // Renaming changes the slug; follow it so the edit page keeps resolving.
+                  onSuccess: (updated) => {
+                    if (updated.slug !== node.slug) {
+                      void navigate({
+                        to: "/taxonomies/genres-moods/$genreMoodSlug/edit/general",
+                        params: {
+                          genreMoodSlug: updated.slug,
+                        },
+                      });
+                    }
+                  },
                 },
-              },
-            )}
+              );
+              primaryLanguage.syncPrimaryValue(trimmed);
+            }}
           />
         )}
       </form.AppField>
+
+      <PrimaryLanguageField
+        value={primaryLanguage.primaryLanguageId}
+        onValueChange={v => primaryLanguage.setPrimaryLanguage(v, form.state.values.name)}
+      />
 
       <div className="space-y-1">
         <Label>{t("Names")}</Label>

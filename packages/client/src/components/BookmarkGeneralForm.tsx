@@ -11,12 +11,14 @@ import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
 import { BookmarkMediaField } from "./BookmarkMediaField";
 import { BookmarkNameField } from "./BookmarkNameField";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
+import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { PersonSocialAccountOffer } from "./PersonSocialAccountOffer";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { mediaSelectionFromBookmark } from "./useBookmarkMediaField";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 import { useBookmarkSyncRegistration } from "../hooks/useBookmarkSyncRegistration";
+import { usePrimaryLanguageField } from "../hooks/usePrimaryLanguageField";
 
 import { Label } from "@/components/ui/label";
 
@@ -32,6 +34,7 @@ export function BookmarkGeneralForm({
     t,
   } = useTranslation();
   const ctrl = useBookmarkGeneralForm(bookmark);
+  const primaryLanguage = usePrimaryLanguageField("bookmark", bookmark.id);
   const {
     form,
     categories,
@@ -94,7 +97,13 @@ export function BookmarkGeneralForm({
         onNameBlur={() => {
           runAutofill();
           saveTitle();
+          primaryLanguage.syncPrimaryValue(form.getFieldValue("title").trim());
         }}
+      />
+
+      <PrimaryLanguageField
+        value={primaryLanguage.primaryLanguageId}
+        onValueChange={v => primaryLanguage.setPrimaryLanguage(v, form.getFieldValue("title"))}
       />
 
       <div className="space-y-1">

@@ -56,6 +56,9 @@ const updateLanguageBody = {
     sortOrder: {
       type: "integer",
     },
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

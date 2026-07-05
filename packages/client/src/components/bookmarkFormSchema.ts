@@ -28,10 +28,11 @@ export const bookmarkSchema = z.object({
   url: z.string(),
   title: z.string().min(1, i18n.t("Title is required")),
   // Staged multilingual names for the create form (create-only — edit uses its own EntityNamesTabEditor).
+  // Primary language is auto-detected server-side at create time (see deriveDetectedPrimaryNames), so
+  // no isPrimary field is staged here.
   names: z.array(z.object({
     languageId: z.string(),
     value: z.string(),
-    isPrimary: z.boolean(),
   })),
   categoryId: z.string().min(1, i18n.t("Category is required")),
   mediaTypeId: z.string(),

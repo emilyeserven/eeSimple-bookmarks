@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
+import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { LocationAncestorsSection } from "./LocationAncestorsSection";
 import { LocationLookupBox } from "./LocationLookupBox";
@@ -13,6 +14,7 @@ import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { ROOT, useLocationGeneralForm } from "./useLocationGeneralForm";
 import { useLocationSyncRegistration } from "../hooks/useLocationSyncRegistration";
+import { usePrimaryLanguageField } from "../hooks/usePrimaryLanguageField";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,6 +41,7 @@ export function LocationGeneralForm({
     autofillWikipediaLinks, isAutofillingWikipediaLinks,
     addPlaceTypeOpen, setAddPlaceTypeOpen,
   } = useLocationGeneralForm(node);
+  const primaryLanguage = usePrimaryLanguageField("location", node.id);
 
   const tagCreate = useEntityCreateOption("tag", (tag) => {
     if (!tagIds.includes(tag.id)) saveTagIds([...tagIds, tag.id]);
@@ -62,18 +65,27 @@ export function LocationGeneralForm({
           <field.TextField
             label={t("Name")}
             placeholder={t("Location name")}
-            onBlur={() => saveField(
-              "name",
-              field.state.value.trim(),
-              {
-                valid: field.state.meta.errors.length === 0,
-                // Renaming can change the slug; follow it so the edit page keeps resolving.
-                onSuccess: followSlug,
-              },
-            )}
+            onBlur={() => {
+              const trimmed = field.state.value.trim();
+              saveField(
+                "name",
+                trimmed,
+                {
+                  valid: field.state.meta.errors.length === 0,
+                  // Renaming can change the slug; follow it so the edit page keeps resolving.
+                  onSuccess: followSlug,
+                },
+              );
+              primaryLanguage.syncPrimaryValue(trimmed);
+            }}
           />
         )}
       </form.AppField>
+
+      <PrimaryLanguageField
+        value={primaryLanguage.primaryLanguageId}
+        onValueChange={v => primaryLanguage.setPrimaryLanguage(v, form.state.values.name)}
+      />
 
       <div className="space-y-1">
         <Label>{t("Names")}</Label>

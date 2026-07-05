@@ -12,6 +12,7 @@ import {
   History,
   Image,
   Inbox,
+  Languages,
   LayoutTemplate,
   Link2,
   ListChecks,
@@ -74,6 +75,11 @@ export const displayNav: readonly SettingsTabNavItem[] = [
     to: "/settings/display/homepage",
     label: i18n.t("Homepage"),
     icon: LayoutTemplate,
+  },
+  {
+    to: "/settings/display/languages",
+    label: i18n.t("Languages"),
+    icon: Languages,
   },
 ] as const;
 

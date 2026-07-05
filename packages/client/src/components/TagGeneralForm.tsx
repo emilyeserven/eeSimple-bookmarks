@@ -7,11 +7,13 @@ import { useTranslation } from "react-i18next";
 
 import { AddTagModal } from "./AddTagModal";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
+import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { tagSchema } from "./tagFormSchema";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import { usePrimaryLanguageField } from "../hooks/usePrimaryLanguageField";
 import { useUpdateTag } from "../hooks/useTags";
 import { useAppForm } from "../lib/form";
 import { tagNodesToOptions } from "../lib/tagTree";
@@ -43,6 +45,7 @@ export function TagGeneralForm({
   } = useTranslation();
   const navigate = useNavigate();
   const updateTag = useUpdateTag();
+  const primaryLanguage = usePrimaryLanguageField("tag", node.id);
   const [addTagOpen, setAddTagOpen] = useState(false);
   const autoSave = useFieldAutoSave<UpdateTagInput, Tag>({
     id: node.id,
@@ -75,27 +78,36 @@ export function TagGeneralForm({
           <field.TextField
             label={t("Name")}
             placeholder={t("Tag name")}
-            onBlur={() => autoSave.saveField(
-              "name",
-              field.state.value.trim(),
-              {
-                valid: field.state.meta.errors.length === 0,
-                // Renaming changes the slug; follow it so the edit page keeps resolving.
-                onSuccess: (updated) => {
-                  if (updated.slug !== node.slug) {
-                    void navigate({
-                      to: "/tags/$tagSlug/edit/general",
-                      params: {
-                        tagSlug: updated.slug,
-                      },
-                    });
-                  }
+            onBlur={() => {
+              const trimmed = field.state.value.trim();
+              autoSave.saveField(
+                "name",
+                trimmed,
+                {
+                  valid: field.state.meta.errors.length === 0,
+                  // Renaming changes the slug; follow it so the edit page keeps resolving.
+                  onSuccess: (updated) => {
+                    if (updated.slug !== node.slug) {
+                      void navigate({
+                        to: "/tags/$tagSlug/edit/general",
+                        params: {
+                          tagSlug: updated.slug,
+                        },
+                      });
+                    }
+                  },
                 },
-              },
-            )}
+              );
+              primaryLanguage.syncPrimaryValue(trimmed);
+            }}
           />
         )}
       </form.AppField>
+
+      <PrimaryLanguageField
+        value={primaryLanguage.primaryLanguageId}
+        onValueChange={v => primaryLanguage.setPrimaryLanguage(v, form.state.values.name)}
+      />
 
       <div className="space-y-1">
         <Label>{t("Names")}</Label>

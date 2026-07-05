@@ -5,8 +5,10 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
+import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import { usePrimaryLanguageField } from "../hooks/usePrimaryLanguageField";
 
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
@@ -41,6 +43,7 @@ export function MediaTypeGeneralForm({
   } = useTranslation();
   const navigate = useNavigate();
   const updateMediaType = useUpdateMediaType();
+  const primaryLanguage = usePrimaryLanguageField("mediaType", mediaType.id);
   const {
     data: allMediaTypes,
   } = useMediaTypes();
@@ -112,24 +115,28 @@ export function MediaTypeGeneralForm({
             <field.TextField
               label={t("Name")}
               disabled={mediaType.builtIn}
-              onBlur={() => autoSave.saveField(
-                "name",
-                field.state.value.trim(),
-                {
-                  valid: field.state.meta.errors.length === 0,
-                  // Renaming changes the slug; follow it so the edit page keeps resolving.
-                  onSuccess: (updated) => {
-                    if (updated.slug !== mediaType.slug) {
-                      void navigate({
-                        to: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
-                        params: {
-                          mediaTypeSlug: updated.slug,
-                        },
-                      });
-                    }
+              onBlur={() => {
+                const trimmed = field.state.value.trim();
+                autoSave.saveField(
+                  "name",
+                  trimmed,
+                  {
+                    valid: field.state.meta.errors.length === 0,
+                    // Renaming changes the slug; follow it so the edit page keeps resolving.
+                    onSuccess: (updated) => {
+                      if (updated.slug !== mediaType.slug) {
+                        void navigate({
+                          to: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
+                          params: {
+                            mediaTypeSlug: updated.slug,
+                          },
+                        });
+                      }
+                    },
                   },
-                },
-              )}
+                );
+                primaryLanguage.syncPrimaryValue(trimmed);
+              }}
             />
           )}
         </form.AppField>
@@ -149,6 +156,11 @@ export function MediaTypeGeneralForm({
           )}
         </form.AppField>
       </div>
+
+      <PrimaryLanguageField
+        value={primaryLanguage.primaryLanguageId}
+        onValueChange={v => primaryLanguage.setPrimaryLanguage(v, form.state.values.name)}
+      />
 
       <div className="space-y-1">
         <Label>{t("Names")}</Label>

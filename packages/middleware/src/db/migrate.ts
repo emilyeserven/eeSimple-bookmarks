@@ -1838,6 +1838,16 @@ const migrations: RuntimeMigration[] = [
       await db.execute(sql`ALTER TABLE IF EXISTS "app_settings" DROP COLUMN IF EXISTS "sort_by_romanized"`);
     },
   },
+  {
+    // `languages.is_favorite` — user-marked favorites sort towards the top of language pickers.
+    // NOT NULL DEFAULT false on the populated table makes drizzle-kit push prompt (non-TTY crash),
+    // so pre-apply it here to keep push's diff additive-only.
+    name: "add languages.is_favorite column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "languages"
+        ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

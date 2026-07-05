@@ -6,12 +6,14 @@ import { useTranslation } from "react-i18next";
 import { CreatorMediaSection } from "./CreatorMediaSection";
 import { EntityImageField } from "./EntityImageField";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
+import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { PersonAvatarActions } from "./PersonAvatarActions";
 import { SocialLinksField } from "./SocialLinksField";
 import { usePersonGeneralForm } from "./usePersonGeneralForm";
 import { useImageTaxonomySyncRegistration } from "../hooks/useImageTaxonomySyncRegistration";
 import { useUpdatePerson } from "../hooks/usePeople";
+import { usePrimaryLanguageField } from "../hooks/usePrimaryLanguageField";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -35,6 +37,7 @@ export function PersonGeneralForm({
     saveField, saveName, detectSocialLinks, saveSocialLinks,
   } = usePersonGeneralForm(person);
   const updatePerson = useUpdatePerson();
+  const primaryLanguage = usePrimaryLanguageField("person", person.id);
 
   // Register the header "Sync from source" button (preview + re-fetch the avatar from the person's
   // website / biography og:image). Only offered when there's a source URL to resolve from.
@@ -60,10 +63,18 @@ export function PersonGeneralForm({
         {field => (
           <field.TextField
             label={t("Name")}
-            onBlur={() => saveName(field.state.value, field.state.meta.errors.length === 0)}
+            onBlur={() => {
+              saveName(field.state.value, field.state.meta.errors.length === 0);
+              primaryLanguage.syncPrimaryValue(field.state.value.trim());
+            }}
           />
         )}
       </form.AppField>
+
+      <PrimaryLanguageField
+        value={primaryLanguage.primaryLanguageId}
+        onValueChange={v => primaryLanguage.setPrimaryLanguage(v, form.state.values.name)}
+      />
 
       <div className="space-y-1">
         <Label>{t("Names")}</Label>

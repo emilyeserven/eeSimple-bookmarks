@@ -4,10 +4,12 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
+import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { Label } from "./ui/label";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { useMediaProperties } from "@/hooks/useMediaProperties";
+import { usePrimaryLanguageField } from "@/hooks/usePrimaryLanguageField";
 import { withFieldGroup } from "@/lib/form";
 
 /** The form fields this shared block reads (matched 1:1 in every taxonomy general form). */
@@ -90,6 +92,7 @@ export const TaxonomyGeneralFields = withFieldGroup({
     const {
       data: mediaProperties,
     } = useMediaProperties();
+    const primaryLanguage = usePrimaryLanguageField(ownerType, ownerId);
 
     const mediaPropertyCreate = useEntityCreateOption("media-property", (mediaProperty) => {
       saveField("mediaPropertyId", mediaProperty.id, {
@@ -110,16 +113,20 @@ export const TaxonomyGeneralFields = withFieldGroup({
               <field.TextField
                 label={t("Name")}
                 action={nameAction}
-                onBlur={() => saveField(
-                  "name",
-                  field.state.value.trim(),
-                  {
-                    valid: field.state.meta.errors.length === 0,
-                    onSuccess: (updated) => {
-                      if (updated.slug !== currentSlug) onRenamed(updated.slug);
+                onBlur={() => {
+                  const trimmed = field.state.value.trim();
+                  saveField(
+                    "name",
+                    trimmed,
+                    {
+                      valid: field.state.meta.errors.length === 0,
+                      onSuccess: (updated) => {
+                        if (updated.slug !== currentSlug) onRenamed(updated.slug);
+                      },
                     },
-                  },
-                )}
+                  );
+                  primaryLanguage.syncPrimaryValue(trimmed);
+                }}
               />
             )}
           </group.AppField>
@@ -139,6 +146,11 @@ export const TaxonomyGeneralFields = withFieldGroup({
             )}
           </group.AppField>
         </div>
+
+        <PrimaryLanguageField
+          value={primaryLanguage.primaryLanguageId}
+          onValueChange={v => primaryLanguage.setPrimaryLanguage(v, group.state.values.name)}
+        />
 
         <div className="space-y-1">
           <Label>{t("Names")}</Label>

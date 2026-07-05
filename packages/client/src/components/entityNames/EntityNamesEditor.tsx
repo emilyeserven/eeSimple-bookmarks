@@ -6,10 +6,10 @@ import { Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useLanguages } from "../../hooks/useLanguages";
+import { languageComboboxGroups } from "../../lib/languageOptions";
 import { AddLanguageModal } from "../AddLanguageModal";
 import { Combobox } from "../Combobox";
 import { Button } from "../ui/button";
-import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 
 interface EntityNamesEditorProps {
@@ -18,11 +18,11 @@ interface EntityNamesEditorProps {
 }
 
 /**
- * A repeatable editor for an owner's multilingual names: each row picks a language + the name text
- * in that language, with a "Primary" marker — at most one row may be primary, since saving mirrors
- * the primary row's value into the owner's base name/title column. Controlled over
- * {@link DraftEntityName}[] — the parent persists the complete rows via {@link entriesFromDrafts}.
- * Languages are inline-creatable via `AddLanguageModal` directly (not the shared
+ * A repeatable editor for an owner's *additional* (non-primary) multilingual names: each row picks a
+ * language + the name text in that language. The primary name's language is set separately, next to
+ * the owner's main Name field (see `PrimaryLanguageField`) — this list never shows or edits that row.
+ * Controlled over {@link DraftEntityName}[] — the parent persists the complete rows via
+ * {@link entriesFromDrafts}. Languages are inline-creatable via `AddLanguageModal` directly (not the shared
  * `useEntityCreateOption` registry) — this editor is imported by several `Add*Form`-wrapped create
  * forms (Tag/Location/Book/Plex-title), and that registry itself imports every `Add*Modal`,
  * including the ones wrapping those forms; going through it here would create an import cycle
@@ -51,12 +51,6 @@ export function EntityNamesEditor({
       }
       : row)));
   }
-  function setPrimary(index: number) {
-    onChange(value.map((row, i) => ({
-      ...row,
-      isPrimary: i === index,
-    })));
-  }
   function removeRow(index: number) {
     onChange(value.filter((_, i) => i !== index));
   }
@@ -64,14 +58,10 @@ export function EntityNamesEditor({
     onChange([...value, {
       languageId: "",
       value: "",
-      isPrimary: false,
     }]);
   }
 
-  const languageOptions = languages.map(l => ({
-    value: l.id,
-    label: l.name,
-  }));
+  const languageGroups = languageComboboxGroups(languages, t);
 
   return (
     <div className="space-y-3">
@@ -92,7 +82,7 @@ export function EntityNamesEditor({
               placeholder={t("Language")}
               searchPlaceholder={t("Search languages…")}
               emptyText={t("No languages found.")}
-              options={languageOptions}
+              groups={languageGroups}
               value={row.languageId || undefined}
               onValueChange={v => updateRow(index, {
                 languageId: v ?? "",
@@ -114,14 +104,6 @@ export function EntityNamesEditor({
               value: e.target.value,
             })}
           />
-          <label className="flex shrink-0 items-center gap-1.5 text-sm">
-            <Checkbox
-              checked={row.isPrimary}
-              onCheckedChange={checked => (checked ? setPrimary(index) : undefined)}
-              aria-label={t("Primary name")}
-            />
-            {t("Primary")}
-          </label>
           <Button
             type="button"
             variant="ghost"

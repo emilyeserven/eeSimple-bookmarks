@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useLanguages } from "../../hooks/useLanguages";
 import { useLanguageUsageLevels } from "../../hooks/useLanguageUsageLevels";
 import { useTranslationSources } from "../../hooks/useTranslationSources";
+import { languageComboboxGroups } from "../../lib/languageOptions";
 import { Combobox } from "../Combobox";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -73,10 +74,7 @@ export function LanguageUsagesEditor({
     }]);
   }
 
-  const languageOptions = languages.map(l => ({
-    value: l.id,
-    label: l.name,
-  }));
+  const languageGroups = languageComboboxGroups(languages, t);
   const levelOptions = levels.map(l => ({
     value: l.id,
     label: l.name,
@@ -105,7 +103,7 @@ export function LanguageUsagesEditor({
               placeholder={t("Language")}
               searchPlaceholder={t("Search languages…")}
               emptyText={t("No languages found.")}
-              options={languageOptions}
+              groups={languageGroups}
               value={row.languageId || undefined}
               onValueChange={v => updateRow(index, {
                 languageId: v ?? "",
