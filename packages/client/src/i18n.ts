@@ -3,6 +3,7 @@ import type { InitOptions } from "i18next";
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
 
+import { registerBuiltInNameKeys } from "./lib/builtInNameKeys";
 import ja from "./locales/ja.json";
 
 /**
@@ -53,5 +54,9 @@ export const I18N_OPTIONS: InitOptions = {
 // Initialize synchronously: `ja.json` is bundled (a single extra locale), so there is no async
 // backend/Suspense to await. Import this module in `main.tsx` before the first render.
 void i18next.use(initReactI18next).init(I18N_OPTIONS);
+
+// Anchor the seeded built-in entity names (rendered via the dynamic `builtInName(row)` / `t(row.name)`)
+// so `i18n:extract` / `i18n:check-stale` track their phrase keys. A one-off no-op at startup.
+registerBuiltInNameKeys(i18next.t);
 
 export default i18next;

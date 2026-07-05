@@ -2,12 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import Fastify from "fastify";
 import { errorHandler } from "@/utils/errorHandler";
-import {
-  AppError,
-  BuiltInImmutableError,
-  DuplicateNameError,
-  NotFoundError,
-} from "@/utils/errors";
+import { AppError, NotFoundError } from "@/utils/errors";
 
 /** A tiny app wired with only the shared error handler + routes that throw — no DB needed. */
 function buildTestApp() {
@@ -16,11 +11,15 @@ function buildTestApp() {
   app.get("/notfound", async () => {
     throw new NotFoundError("Bookmark");
   });
+  // A service `Duplicate*Error` is an `AppError` carrying the `duplicateName` code + params.
   app.get("/duplicate", async () => {
-    throw new DuplicateNameError("media type", "Video");
+    throw new AppError("A media type named \"Video\" already exists", "duplicateName", 409, {
+      entity: "media type",
+      name: "Video",
+    });
   });
   app.get("/builtin", async () => {
-    throw new BuiltInImmutableError();
+    throw new AppError("Built-in usage levels can't be modified or deleted", "builtInImmutable", 403);
   });
   app.get("/raw-app", async () => {
     throw new AppError("boom", "conflict", 409, {

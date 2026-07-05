@@ -72,49 +72,14 @@ export class NotFoundError extends AppError {
   }
 }
 
-/** 409 — a create/rename collides with an existing row's name in the same scope. */
-export class DuplicateNameError extends AppError {
-  constructor(entity: string, name: string, message = `A ${entity} named "${name}" already exists`) {
-    super(message, "duplicateName", 409, {
-      entity,
-      name,
-    });
-  }
-}
-
-/** 403 — attempt to modify or delete a seeded built-in row. */
-export class BuiltInImmutableError extends AppError {
-  constructor(message = "Built-in items can't be modified or deleted", entity?: string) {
-    super(message, "builtInImmutable", 403, entity
-      ? {
-        entity,
-      }
-      : undefined);
-  }
-}
-
-/** 400 — a request failed a domain/business-rule validation. */
+/**
+ * 400 — a request failed a domain/business-rule validation. Also the catch-all for the
+ * `validation`-coded route guards (invalid input, cycle attempts, reassignment-target problems)
+ * whose bespoke wording is passed through as `message`.
+ */
 export class ValidationError extends AppError {
   constructor(message: string, params?: ErrorParams) {
     super(message, "validation", 400, params);
-  }
-}
-
-/** 400 — moving a tree node under itself or a descendant. */
-export class CycleError extends AppError {
-  constructor(message: string, entity?: string) {
-    super(message, "cycle", 400, entity
-      ? {
-        entity,
-      }
-      : undefined);
-  }
-}
-
-/** 400 — a delete's reassignment target is missing or is the row being deleted. */
-export class ReassignTargetError extends AppError {
-  constructor(message = "Invalid reassignment target") {
-    super(message, "invalidReassignTarget", 400);
   }
 }
 
