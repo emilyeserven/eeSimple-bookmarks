@@ -10,8 +10,6 @@ export interface TvShow {
   id: string;
   /** Display name. Unique. */
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this show, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
@@ -47,7 +45,6 @@ export interface TvShow {
 /** Payload for creating a TV show. */
 export interface CreateTvShowInput {
   name: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   plexRatingKey?: string | null;
@@ -62,7 +59,6 @@ export interface CreateTvShowInput {
 /** Payload for updating a TV show (rename, reorder, re-link Plex/media property). */
 export interface UpdateTvShowInput {
   name?: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   plexRatingKey?: string | null;

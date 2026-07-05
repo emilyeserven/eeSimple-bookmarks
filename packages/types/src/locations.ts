@@ -36,13 +36,11 @@ export interface Location {
   id: string;
   /** Primary display title, unique among its siblings. */
   name: string;
-  /** Optional romanized form of the title, shown de-emphasized after the name when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this location, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name; unique across all locations. */
   slug: string;
-  /** Extra names for different romanization styles; matched alongside `name`/`romanizedName`. */
+  /** Extra names for different romanization styles; matched alongside `name`. */
   alternateNames: LocationAlternateName[];
   /** Latitude in decimal degrees (−90…90), or `null` when no coordinate is set. */
   latitude: number | null;
@@ -193,9 +191,8 @@ export interface SetLocationAncestorsInput {
 export interface LocationTitleCandidate {
   id: string;
   name: string;
-  romanizedName?: string | null;
   alternateNames?: LocationAlternateName[];
-  /** The location's language-labelled names, matched (by value) alongside `name`/`romanizedName`. */
+  /** The location's language-labelled names, matched (by value) alongside `name`. */
   names?: EntityName[];
   /** The location's parent id, used to drop a matched ancestor of another matched (more specific) location. */
   parentId?: string | null;
@@ -217,7 +214,7 @@ function isLocationAncestor(
 
 /**
  * The ids of locations implied by a bookmark's title/name forms. Each location's `name`,
- * `romanizedName`, every `alternateNames[].value`, and every language-labelled `names` value are
+ * every `alternateNames[].value`, and every language-labelled `names` value are
  * tested against each of the bookmark's `titles` (its title + romanized title + every
  * language-labelled name value) via {@link titleMatchesTerm}. Pure helper — mirrors
  * `matchTagIdsByTitle`.
@@ -235,7 +232,6 @@ export function matchLocationIdsByTitle(
   const matched = locations.filter((loc) => {
     const terms = [
       loc.name,
-      loc.romanizedName ?? "",
       ...(loc.alternateNames ?? []).map(alt => alt.value),
       ...(loc.names ?? []).map(name => name.value),
     ].filter(text => text.trim() !== "");

@@ -10,8 +10,6 @@ export interface Episode {
   id: string;
   /** Display name. Unique. */
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this episode, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
@@ -47,7 +45,6 @@ export interface Episode {
 /** Payload for creating an episode. */
 export interface CreateEpisodeInput {
   name: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   tvShowId?: string | null;
@@ -63,7 +60,6 @@ export interface CreateEpisodeInput {
 /** Payload for updating an episode (rename, reorder, re-link Plex/media property/parent). */
 export interface UpdateEpisodeInput {
   name?: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   tvShowId?: string | null;

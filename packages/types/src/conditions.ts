@@ -256,13 +256,11 @@ export function emptyConditionTree(): ConditionTree {
 export interface ConditionInput {
   url: string;
   title: string;
-  /** The bookmark's romanized title, or `null`/empty when none — matched alongside `title`. */
-  romanizedName?: string | null;
   /**
-   * All of the bookmark's language-labelled name values (values only) — matched alongside `title`
-   * and `romanizedName`, so a `title` rule written in any script fires on a bookmark named in
-   * another. Absent/empty when the input isn't a real bookmark (URL/title-only matching) or the
-   * bookmark has no `entity_names` rows.
+   * All of the bookmark's language-labelled name values (values only) — matched alongside `title`,
+   * so a `title` rule written in any script fires on a bookmark named in another. Absent/empty
+   * when the input isn't a real bookmark (URL/title-only matching) or the bookmark has no
+   * `entity_names` rows.
    */
   names?: string[];
   /** The bookmark's resolved category id. */
@@ -378,12 +376,12 @@ function evaluateMatch(condition: MatchCondition, input: ConditionInput): boolea
     return host !== null && host === pattern.replace(/^www\./i, "").toLowerCase();
   }
 
-  // The `title` field also matches against the romanized title and every language-labelled name
-  // (when present), so a rule written in any name form fires on a title in another script and
-  // vice-versa. `url` has no name forms.
+  // The `title` field also matches against every language-labelled name (when present), so a rule
+  // written in any name form fires on a title in another script and vice-versa. `url` has no name
+  // forms.
   const haystacks = condition.field === "url"
     ? [input.url]
-    : [input.title, input.romanizedName ?? "", ...(input.names ?? [])];
+    : [input.title, ...(input.names ?? [])];
   const candidates = haystacks.filter(text => text !== "");
   if (candidates.length === 0) return false;
 

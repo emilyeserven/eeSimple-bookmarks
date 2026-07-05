@@ -10,8 +10,6 @@ export interface Movie {
   id: string;
   /** Display name. Unique. */
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this movie, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
@@ -47,7 +45,6 @@ export interface Movie {
 /** Payload for creating a movie. */
 export interface CreateMovieInput {
   name: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   plexRatingKey?: string | null;
@@ -62,7 +59,6 @@ export interface CreateMovieInput {
 /** Payload for updating a movie (rename, reorder, re-link Plex/media property). */
 export interface UpdateMovieInput {
   name?: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   plexRatingKey?: string | null;

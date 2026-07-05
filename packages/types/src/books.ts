@@ -10,8 +10,6 @@ export interface Book {
   id: string;
   /** Display name. Unique. */
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this book, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
@@ -41,7 +39,6 @@ export interface Book {
 /** Payload for creating a book. */
 export interface CreateBookInput {
   name: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   kavitaSeriesId?: number | null;
@@ -54,7 +51,6 @@ export interface CreateBookInput {
 /** Payload for updating a book (rename, reorder, re-link Kavita/media property). */
 export interface UpdateBookInput {
   name?: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   kavitaSeriesId?: number | null;

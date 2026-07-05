@@ -12,8 +12,6 @@ export interface GenreMood {
   id: string;
   /** Display name, unique among its siblings. */
   name: string;
-  /** Optional romanized form of the name, shown de-emphasized after the name when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this entry, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name; unique across all entries. */
@@ -39,7 +37,6 @@ export type BookmarkGenreMood = Pick<GenreMood, "id" | "name" | "slug" | "parent
 /** Payload for creating a Genres & Moods entry. */
 export interface CreateGenreMoodInput {
   name: string;
-  romanizedName?: string | null;
   /** Parent entry id, or `null`/omitted for a root entry. */
   parentId?: string | null;
 }
@@ -47,7 +44,6 @@ export interface CreateGenreMoodInput {
 /** Payload for renaming and/or reparenting a Genres & Moods entry. `parentId === null` moves it to root. */
 export interface UpdateGenreMoodInput {
   name?: string;
-  romanizedName?: string | null;
   parentId?: string | null;
 }
 

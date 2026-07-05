@@ -34,7 +34,6 @@ export * from "./tracks.js";
 export * from "./tvShows.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";
-export * from "./romanized.js";
 export * from "./socialMedia.js";
 export * from "./taxonomyImages.js";
 export * from "./titleTags.js";
@@ -46,8 +45,6 @@ export interface Tag {
   id: string;
   /** Display name, unique among its siblings. */
   name: string;
-  /** Optional romanized form of the name, shown de-emphasized after the name when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this tag, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name; unique across all tags. */
@@ -88,7 +85,6 @@ export type BookmarkTag = Pick<Tag, "id" | "name" | "slug" | "parentId" | "edita
 /** Payload for creating a tag. */
 export interface CreateTagInput {
   name: string;
-  romanizedName?: string | null;
   /** Parent tag id, or `null`/omitted for a root tag. */
   parentId?: string | null;
 }
@@ -96,7 +92,6 @@ export interface CreateTagInput {
 /** Payload for renaming and/or reparenting a tag. `parentId === null` moves it to root. */
 export interface UpdateTagInput {
   name?: string;
-  romanizedName?: string | null;
   parentId?: string | null;
   editableOnCard?: boolean;
   excludeFromBackfill?: boolean;
@@ -574,8 +569,6 @@ export interface MediaType {
   id: string;
   /** Display name, e.g. `"Video"`. Unique. */
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this media type, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name (e.g. `"video"`). Unique. */
@@ -607,7 +600,6 @@ export type BookmarkMediaType = Pick<MediaType, "id" | "name" | "slug" | "icon" 
 /** Payload for creating a custom media type. */
 export interface CreateMediaTypeInput {
   name: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   icon?: string | null;
   /** Parent media type id; omit/null for a root type. */
@@ -617,7 +609,6 @@ export interface CreateMediaTypeInput {
 /** Payload for updating a media type (rename, reorder, and/or reparent). */
 export interface UpdateMediaTypeInput {
   name?: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   icon?: string | null;
   /** Parent media type id; `null` to make it a root. */
@@ -670,8 +661,6 @@ export interface Group {
   id: string;
   /** Display name, e.g. "O'Reilly Media". Unique. */
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this group, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
@@ -720,7 +709,6 @@ export type BookmarkGroup = Pick<Group, "id" | "name" | "slug">;
 /** Payload for creating a group. */
 export interface CreateGroupInput {
   name: string;
-  romanizedName?: string | null;
   /** Id of the website to associate with this group; null to leave unset. */
   websiteId?: string | null;
   /** Id of the group type to classify this group under; null to leave unset. */
@@ -730,7 +718,6 @@ export interface CreateGroupInput {
 /** Payload for updating a group. */
 export interface UpdateGroupInput {
   name?: string;
-  romanizedName?: string | null;
   /** Id of the website to associate with this group; null to clear it. */
   websiteId?: string | null;
   /** Id of the group type to classify this group under; null to clear it. */
@@ -934,8 +921,6 @@ export type BookmarkNewsletter = Pick<Newsletter, "id" | "name" | "slug">;
 export interface Person {
   id: string;
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this person, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   slug: string;
@@ -976,13 +961,11 @@ export type BookmarkPerson = Pick<Person, "id" | "name" | "slug">;
 /** Payload for creating a new person. */
 export interface CreatePersonInput {
   name: string;
-  romanizedName?: string | null;
 }
 
 /** Payload for partially updating an person. */
 export interface UpdatePersonInput {
   name?: string;
-  romanizedName?: string | null;
   personWebsiteUrl?: string | null;
   biographyUrl?: string | null;
   /** Social media links for this person. Replaces the full list; omit to leave unchanged. */
@@ -1209,8 +1192,6 @@ export interface Bookmark {
   originalUrl: string | null;
   /** Human-friendly title, e.g. "GitHub". */
   title: string;
-  /** Optional romanized form of the title, shown de-emphasized after the title when present. */
-  romanizedName: string | null;
   /** Optional free-form description. */
   description: string | null;
   /** The main image attached to this bookmark, or `null` when none has been set. Mirrors the `isMain` entry of `images`. */
@@ -1326,7 +1307,6 @@ export interface CreateBookmarkInput {
   /** Original URL before cleanup; omit when no cleanup was applied. */
   originalUrl?: string | null;
   title: string;
-  romanizedName?: string | null;
   description?: string | null;
   /** Id of the category to assign; omit to fall back to the built-in "Default" category. */
   categoryId?: string;
@@ -2318,8 +2298,6 @@ export interface BookmarkProgressValue {
 export interface Category {
   id: string;
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this category, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name (e.g. `"recipes"`); unique across categories. */
@@ -2340,7 +2318,6 @@ export interface Category {
 /** Payload for creating a category. */
 export interface CreateCategoryInput {
   name: string;
-  romanizedName?: string | null;
   description?: string | null;
   icon?: string | null;
   isHomepage?: boolean;
