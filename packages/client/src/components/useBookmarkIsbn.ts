@@ -3,6 +3,8 @@ import type { useBookmarkFormActions } from "./useBookmarkFormActions";
 import type { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import type { CustomProperty, ImageCandidate, Language, MediaType, Person, Group } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { ISBN_SLUG, normalizeIsbn } from "./bookmarkFormSchema";
 import { useAppLocale } from "../hooks/useAppLocale";
 import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
@@ -53,6 +55,9 @@ export function useBookmarkIsbn({
   setImageCandidates,
   primaryLanguage,
 }: UseBookmarkIsbnParams) {
+  const {
+    t,
+  } = useTranslation();
   const isbnFetch = useFetchIsbnMetadata();
   const locale = useAppLocale();
 
@@ -64,7 +69,7 @@ export function useBookmarkIsbn({
       });
     }
     catch (err) {
-      const message = describeError(err, "Could not fetch book metadata");
+      const message = describeError(err, t("Could not fetch book metadata"));
       // The ISBN 404/502 carries a `detail` clause explaining what the Kavita fallback found (or
       // why it couldn't run) — surface it so a miss is debuggable without opening devtools.
       const detail = err instanceof ApiError && err.detail ? ` ${err.detail}` : "";

@@ -5,6 +5,8 @@ import type { CustomProperty } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
+import i18n from "../i18n";
+
 /** The palette's sub-palette navigation state: which mode is active plus the pending multi-selects. */
 export type CommandPaletteTaxonomyState = ReturnType<typeof useCommandPaletteTaxonomyState>;
 
@@ -159,22 +161,30 @@ export function paletteInputPlaceholder(
 ): string {
   switch (taxonomy.taxonomyMode) {
     case null:
-      return "Search pages and bookmarks…";
+      return i18n.t("Search pages and bookmarks…");
     case "media-type":
-      return "Search media types…";
+      return i18n.t("Search media types…");
     case "newsletter":
-      return "Search newsletters…";
+      return i18n.t("Search newsletters…");
     case "choices-property": {
       const name = customProperties.find(p => p.id === taxonomy.choicesPropertyId)?.name;
-      return `Search ${name ?? "options"}…`;
+      return i18n.t("Search {{name}}…", {
+        name: name ?? i18n.t("options"),
+      });
     }
     case "rating-property": {
       const name = customProperties.find(p => p.id === taxonomy.ratingPropertyId)?.name;
-      return `Select ${name ?? "rating"}…`;
+      return i18n.t("Select {{name}}…", {
+        name: name ?? i18n.t("rating"),
+      });
     }
     case "entity-choice":
-      return `Search ${taxonomy.entityChoiceField?.label.toLowerCase() ?? "options"}…`;
+      return i18n.t("Search {{name}}…", {
+        name: taxonomy.entityChoiceField?.label.toLowerCase() ?? i18n.t("options"),
+      });
     default:
-      return `Search ${taxonomy.taxonomyMode}…`;
+      return i18n.t("Search {{name}}…", {
+        name: taxonomy.taxonomyMode,
+      });
   }
 }

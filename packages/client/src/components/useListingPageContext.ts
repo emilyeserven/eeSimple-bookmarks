@@ -1,6 +1,8 @@
 import type { BookmarkSort } from "../lib/bookmarkSort";
 import type { ViewMode } from "../stores/uiStore";
 
+import { useTranslation } from "react-i18next";
+
 import {
   useDisplayPreferenceSettings,
   useFiltersHidden,
@@ -14,30 +16,33 @@ import { usePanelControls } from "./panel/usePanelControls";
 
 export type FilterLocation = "sidebar" | "drawer" | "hide";
 
-const FILTER_LOCATION_PATCH: Record<FilterLocation, {
-  filtersHidden: boolean;
-  filtersInDrawer: boolean;
-  message: string;
-}> = {
-  sidebar: {
-    filtersHidden: false,
-    filtersInDrawer: false,
-    message: "Filters in sidebar",
-  },
-  drawer: {
-    filtersHidden: false,
-    filtersInDrawer: true,
-    message: "Filters in drawer",
-  },
-  hide: {
-    filtersHidden: true,
-    filtersInDrawer: false,
-    message: "Filters hidden",
-  },
-};
-
 /** Listing-page display state (view mode, columns, filter location, bulk select) for the CMD+K palette. */
 export function useListingPageContext() {
+  const {
+    t,
+  } = useTranslation();
+  const FILTER_LOCATION_PATCH: Record<FilterLocation, {
+    filtersHidden: boolean;
+    filtersInDrawer: boolean;
+    message: string;
+  }> = {
+    sidebar: {
+      filtersHidden: false,
+      filtersInDrawer: false,
+      message: t("Filters in sidebar"),
+    },
+    drawer: {
+      filtersHidden: false,
+      filtersInDrawer: true,
+      message: t("Filters in drawer"),
+    },
+    hide: {
+      filtersHidden: true,
+      filtersInDrawer: false,
+      message: t("Filters hidden"),
+    },
+  };
+
   const listingPage = useUiStore(s => s.listingPage);
   const pageKey = listingPage?.key ?? "";
 
