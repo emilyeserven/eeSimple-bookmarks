@@ -20,6 +20,7 @@ import {
   PanelLeft,
   PanelRight,
   RefreshCw,
+  Share2,
   SquarePlus,
   Wand2,
 } from "lucide-react";
@@ -53,6 +54,11 @@ export const displayNav: readonly SettingsTabNavItem[] = [
     to: "/settings/display/bookmark-add",
     label: i18n.t("Bookmark Add Form"),
     icon: SquarePlus,
+  },
+  {
+    to: "/settings/display/bookmark-graph",
+    label: i18n.t("Bookmark Graph"),
+    icon: Share2,
   },
   {
     to: "/settings/display/filters",

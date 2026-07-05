@@ -463,6 +463,58 @@ export interface AutomationSettings {
 /** Payload for replacing the automation settings. */
 export type UpdateAutomationInput = AutomationSettings;
 
+/** Weight of a single relatedness dimension in the Bookmark Graph: Off / Low / Medium / High. */
+export type BookmarkGraphWeight = 0 | 1 | 2 | 3;
+
+/** The dimensions the Bookmark Graph scores two bookmarks' relatedness across. */
+export interface BookmarkGraphWeights {
+  /** Shared tags. */
+  tags: BookmarkGraphWeight;
+  /** Same category. */
+  category: BookmarkGraphWeight;
+  /** Same media type. */
+  mediaType: BookmarkGraphWeight;
+  /** Shared genres & moods. */
+  genreMoods: BookmarkGraphWeight;
+  /** Shared people (individual creators). */
+  people: BookmarkGraphWeight;
+  /** Shared groups (group creators). */
+  groups: BookmarkGraphWeight;
+  /** Same website. */
+  website: BookmarkGraphWeight;
+  /** Same YouTube channel. */
+  youtubeChannel: BookmarkGraphWeight;
+}
+
+/**
+ * The subset of {@link AppSettings} that drives the "Related bookmarks" list on a bookmark's View
+ * page: a weight per relatedness dimension and how many related cards to show. Related score =
+ * Σ (weight × overlap). Persisted server-side so the choices follow the user across devices.
+ */
+export interface BookmarkGraphSettings {
+  weights: BookmarkGraphWeights;
+  /** Maximum number of related bookmarks to show. */
+  maxRelated: number;
+}
+
+/** Payload for replacing the bookmark-graph settings. */
+export type UpdateBookmarkGraphInput = BookmarkGraphSettings;
+
+/** Default relatedness weights + count, shared by client and server (used when seeding / row absent). */
+export const DEFAULT_BOOKMARK_GRAPH_SETTINGS: BookmarkGraphSettings = {
+  weights: {
+    tags: 3,
+    category: 2,
+    mediaType: 1,
+    genreMoods: 2,
+    people: 3,
+    groups: 2,
+    website: 1,
+    youtubeChannel: 1,
+  },
+  maxRelated: 12,
+};
+
 /**
  * The subset of {@link AppSettings} that drives display/detail preferences: bookmark detail media
  * sizing + layout, filter placement, right-panel pin behavior, and the built-in "Cropped" aspect

@@ -6,6 +6,9 @@ import type {
   BookmarkAddFormPlacement,
   BookmarkAddFormSettings,
   BookmarkDetailImageSize,
+  BookmarkGraphSettings,
+  BookmarkGraphWeight,
+  BookmarkGraphWeights,
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
   ConnectorsAppSettings,
@@ -26,12 +29,13 @@ import type {
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
+  UpdateBookmarkGraphInput,
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { BOOKMARK_ADD_FORM_PLACEMENTS, CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, DEFAULT_HOMEPAGE_WIDGET_ORDER, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, normalizeLevelMode, placeTypeKey, resolveHomepageWidgetOrder } from "@eesimple/types";
+import { BOOKMARK_ADD_FORM_PLACEMENTS, CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARK_GRAPH_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, DEFAULT_HOMEPAGE_WIDGET_ORDER, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, normalizeLevelMode, placeTypeKey, resolveHomepageWidgetOrder } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
@@ -102,6 +106,41 @@ const DEFAULT_AUTOMATION: AutomationSettings = {
   autoApplyTitleLocations: false,
   sidebarOpenModifier: "alt",
 };
+
+/** Default Bookmark Graph relatedness settings, used when seeding / when row absent. */
+const DEFAULT_BOOKMARK_GRAPH: BookmarkGraphSettings = DEFAULT_BOOKMARK_GRAPH_SETTINGS;
+
+/** Clamp an arbitrary stored value to a relatedness weight (0–3), defaulting to `fallback`. */
+function asGraphWeight(value: unknown, fallback: BookmarkGraphWeight): BookmarkGraphWeight {
+  return value === 0 || value === 1 || value === 2 || value === 3 ? value : fallback;
+}
+
+/**
+ * Coerce an arbitrary stored jsonb blob into valid {@link BookmarkGraphSettings}: clamp each weight
+ * to 0–3, clamp `maxRelated` to 1–100, and merge over the defaults so a partial/legacy row is safe.
+ */
+function resolveBookmarkGraph(raw: unknown): BookmarkGraphSettings {
+  const stored = (raw ?? {}) as Partial<BookmarkGraphSettings>;
+  const storedWeights = (stored.weights ?? {}) as Partial<BookmarkGraphWeights>;
+  const defaults = DEFAULT_BOOKMARK_GRAPH.weights;
+  const weights: BookmarkGraphWeights = {
+    tags: asGraphWeight(storedWeights.tags, defaults.tags),
+    category: asGraphWeight(storedWeights.category, defaults.category),
+    mediaType: asGraphWeight(storedWeights.mediaType, defaults.mediaType),
+    genreMoods: asGraphWeight(storedWeights.genreMoods, defaults.genreMoods),
+    people: asGraphWeight(storedWeights.people, defaults.people),
+    groups: asGraphWeight(storedWeights.groups, defaults.groups),
+    website: asGraphWeight(storedWeights.website, defaults.website),
+    youtubeChannel: asGraphWeight(storedWeights.youtubeChannel, defaults.youtubeChannel),
+  };
+  const rawMax = typeof stored.maxRelated === "number" && Number.isFinite(stored.maxRelated)
+    ? Math.round(stored.maxRelated)
+    : DEFAULT_BOOKMARK_GRAPH.maxRelated;
+  return {
+    weights,
+    maxRelated: Math.min(100, Math.max(1, rawMax)),
+  };
+}
 
 /** Default AI summarization settings (empty prompt), used when seeding / when row absent. */
 const DEFAULT_AI_SUMMARIZATION: AiSummarizationSettings = {
@@ -230,6 +269,7 @@ export async function ensureAppSettings(): Promise<void> {
       ...DEFAULT_AUTOMATION,
       ...DEFAULT_DISPLAY_PREFERENCES,
       ...DEFAULT_AI_SUMMARIZATION,
+      bookmarkGraph: DEFAULT_BOOKMARK_GRAPH,
     })
     .onConflictDoNothing({
       target: appSettings.id,
@@ -646,6 +686,39 @@ export async function updateAutomationSettings(
     .onConflictDoUpdate({
       target: appSettings.id,
       set: next,
+    });
+  return next;
+}
+
+/** Read the Bookmark Graph relatedness settings (per-dimension weights + max count). */
+export async function getBookmarkGraphSettings(): Promise<BookmarkGraphSettings> {
+  const [row] = await db
+    .select({
+      bookmarkGraph: appSettings.bookmarkGraph,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_BOOKMARK_GRAPH;
+  return resolveBookmarkGraph(row.bookmarkGraph);
+}
+
+/** Replace the Bookmark Graph settings, upserting the singleton. Returns the stored (coerced) values. */
+export async function updateBookmarkGraphSettings(
+  input: UpdateBookmarkGraphInput,
+): Promise<BookmarkGraphSettings> {
+  const next = resolveBookmarkGraph(input);
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      bookmarkGraph: next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: {
+        bookmarkGraph: next,
+      },
     });
   return next;
 }

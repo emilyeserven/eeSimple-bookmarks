@@ -7,13 +7,18 @@ import { describe, expect, it } from "vitest";
 import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
 import { makeBookmark } from "../test-utils/factories";
 
-function build(bookmark: Bookmark, flatHierarchy: FlatNode<BookmarkHierarchyNode>[] = []) {
+function build(
+  bookmark: Bookmark,
+  flatHierarchy: FlatNode<BookmarkHierarchyNode>[] = [],
+  relatedBookmarks: Bookmark[] = [],
+) {
   return buildBookmarkDetailSections({
     bookmark,
     categories: [],
     properties: [],
     propertyGroups: [],
     flatHierarchy,
+    relatedBookmarks,
   }).map(s => s.id);
 }
 
@@ -82,6 +87,14 @@ describe("buildBookmarkDetailSections", () => {
     });
     expect(build(withReel)).toContain("video");
     expect(build(makeBookmark())).not.toContain("video");
+  });
+
+  it("adds the Related section when related bookmarks are supplied, omitting it otherwise", () => {
+    const related = [makeBookmark({
+      id: "rel-1",
+    })];
+    expect(build(makeBookmark(), [], related)).toContain("related");
+    expect(build(makeBookmark())).not.toContain("related");
   });
 
   it("adds the Hierarchy section when a flat hierarchy is supplied", () => {

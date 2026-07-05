@@ -5,6 +5,7 @@ import { Fragment } from "react";
 import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useLocationTree } from "../hooks/useLocations";
+import { useRelatedBookmarks } from "../hooks/useRelatedBookmarks";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { buildBookmarkHierarchy } from "../lib/bookmarkHierarchy";
 import { flattenTree } from "../lib/tagTree";
@@ -39,6 +40,7 @@ export function BookmarkDetailBody({
   } = useLocationTree();
   const flatHierarchy = flattenTree(buildBookmarkHierarchy(bookmark.id, allBookmarks ?? []));
   const defaultFieldZones = useDefaultFieldZones();
+  const relatedBookmarks = useRelatedBookmarks(bookmark);
 
   const sections = buildBookmarkDetailSections({
     bookmark,
@@ -46,6 +48,7 @@ export function BookmarkDetailBody({
     properties,
     propertyGroups,
     flatHierarchy,
+    relatedBookmarks,
     onSaveBoolean,
     defaultFieldZones,
     locationTree,
