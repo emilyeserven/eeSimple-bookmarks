@@ -5,7 +5,6 @@ import {
   bulkDeleteGroups,
   createGroup,
   deleteGroup,
-  DuplicateGroupError,
   getGroupBySlug,
   listGroups,
   updateGroup,
@@ -19,6 +18,14 @@ import {
 } from "@/services/groupImages";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
+import {
+  ImageTooLargeError,
+  NoFileUploadedError,
+  NotFoundError,
+  StorageUnconfiguredError,
+  UnsupportedImageError,
+  ValidationError,
+} from "@/utils/errors";
 
 const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
   no_image: "No image found for that source",
@@ -155,9 +162,7 @@ export async function groupRoutes(app: FastifyInstance): Promise<void> {
       slug,
     } = req.params as { slug: string };
     const group = await getGroupBySlug(slug);
-    if (!group) return reply.code(404).send({
-      message: "Group not found",
-    });
+    if (!group) throw new NotFoundError("Group");
     return group;
   });
 
@@ -167,18 +172,8 @@ export async function groupRoutes(app: FastifyInstance): Promise<void> {
       body: createGroupBody,
     },
   }, async (req, reply) => {
-    try {
-      const group = await createGroup(req.body as CreateGroupInput);
-      return reply.code(201).send(group);
-    }
-    catch (err) {
-      if (err instanceof DuplicateGroupError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const group = await createGroup(req.body as CreateGroupInput);
+    return reply.code(201).send(group);
   });
 
   app.patch("/api/groups/:id", {
@@ -187,25 +182,13 @@ export async function groupRoutes(app: FastifyInstance): Promise<void> {
       params: groupParams,
       body: updateGroupBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const group = await updateGroup(id, req.body as UpdateGroupInput);
-      if (!group) return reply.code(404).send({
-        message: "Group not found",
-      });
-      return group;
-    }
-    catch (err) {
-      if (err instanceof DuplicateGroupError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const group = await updateGroup(id, req.body as UpdateGroupInput);
+    if (!group) throw new NotFoundError("Group");
+    return group;
   });
 
   app.delete("/api/groups/:id", {
@@ -218,9 +201,7 @@ export async function groupRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteGroup(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Group not found",
-    });
+    if (!deleted) throw new NotFoundError("Group");
     return reply.code(204).send();
   });
 
@@ -236,33 +217,23 @@ export async function groupRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     let bytes: Buffer;
     try {
       const file = await req.file();
-      if (!file) return reply.code(400).send({
-        message: "No file uploaded",
-      });
+      if (!file) throw new NoFileUploadedError();
       bytes = await file.toBuffer();
     }
     catch (err) {
       if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
-        return reply.code(413).send({
-          message: "Image is too large",
-        });
+        throw new ImageTooLargeError();
       }
       throw err;
     }
     const result = await setGroupImageFromBytes(id, bytes);
-    if (result === "not_found") return reply.code(404).send({
-      message: "Group not found",
-    });
-    if (result === "bad_image") return reply.code(415).send({
-      message: "Unsupported or invalid image",
-    });
+    if (result === "not_found") throw new NotFoundError("Group");
+    if (result === "bad_image") throw new UnsupportedImageError();
     return reply.code(201).send(result);
   });
 
@@ -281,19 +252,13 @@ export async function groupRoutes(app: FastifyInstance): Promise<void> {
       source,
     } = req.body as { source: "website" | "plex" };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     const result = source === "plex"
       ? await fetchAndStoreGroupImageFromPlex(id)
       : await fetchAndStoreGroupImage(id);
-    if (result === "not_found") return reply.code(404).send({
-      message: "Group not found",
-    });
-    if (result === "no_url") return reply.code(400).send({
-      message: "No source configured for that image",
-    });
+    if (result === "not_found") throw new NotFoundError("Group");
+    if (result === "no_url") throw new ValidationError("No source configured for that image");
     if (typeof result === "string") {
       return reply.code(502).send({
         message: IMAGE_GRAB_ERROR_MESSAGES[result] ?? "Could not fetch an image",
@@ -314,9 +279,7 @@ export async function groupRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const removed = await removeGroupImage(id);
-    if (!removed) return reply.code(404).send({
-      message: "No image to delete",
-    });
+    if (!removed) throw new NotFoundError("Image", "No image to delete");
     return reply.code(204).send();
   });
 
@@ -331,13 +294,9 @@ export async function groupRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const row = await getGroupImageRow(id);
-    if (!row) return reply.code(404).send({
-      message: "No image",
-    });
+    if (!row) throw new NotFoundError("Image", "No image");
     const object = await getObjectStream(row.objectKey);
-    if (!object) return reply.code(404).send({
-      message: "No image",
-    });
+    if (!object) throw new NotFoundError("Image", "No image");
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
     return reply.send(object.body);

@@ -12,6 +12,7 @@ import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { bookmarks, podcastGroups, podcastPeople, podcasts, taxonomyImages, type PodcastRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -19,10 +20,12 @@ import { takenSlugsOf } from "@/utils/taxonomySlugs";
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Thrown when a create/rename collides with an existing podcast name. */
-export class DuplicatePodcastError extends Error {
+export class DuplicatePodcastError extends AppError {
   constructor(name: string) {
-    super(`A podcast named "${name}" already exists`);
-    this.name = "DuplicatePodcastError";
+    super(`A podcast named "${name}" already exists`, "duplicateName", 409, {
+      entity: "podcast",
+      name,
+    });
   }
 }
 

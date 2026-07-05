@@ -4,9 +4,30 @@ import { describe, expect, it } from "vitest";
 import { ApiError, describeError } from "./apiError";
 
 describe("describeError", () => {
-  it("includes the diagnostic code for an ApiError that carries one", () => {
-    expect(describeError(new ApiError("Duplicate URL", "DUPLICATE_URL")))
-      .toBe("Duplicate URL (DUPLICATE_URL)");
+  it("translates a known error code to its mapped phrase", () => {
+    // At `lng: "en"` the phrase key resolves to itself; params are interpolated.
+    expect(
+      describeError(new ApiError("Bookmark not found", "notFound", undefined, {
+        entity: "Bookmark",
+      })),
+    ).toBe("Bookmark not found");
+  });
+
+  it("interpolates params into a coded message", () => {
+    expect(
+      describeError(
+        new ApiError("A media type named \"X\" already exists", "duplicateName", undefined, {
+          entity: "media type",
+          name: "X",
+        }),
+      ),
+    ).toBe("A media type named \"X\" already exists");
+  });
+
+  it("falls back to the raw message for an unmapped code", () => {
+    expect(
+      describeError(new ApiError("A calculate property needs at least two operands", "validation")),
+    ).toBe("A calculate property needs at least two operands");
   });
 
   it("returns just the message for an ApiError without a code", () => {

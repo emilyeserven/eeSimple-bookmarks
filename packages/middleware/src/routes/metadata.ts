@@ -24,6 +24,7 @@ import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
 import { channelKeyFromUrl, getYouTubeChannelByKey } from "@/services/youtubeChannels";
 import { normalizeLanguageCode } from "@/utils/languageCodes";
 import { isValidUrl } from "@/utils/url";
+import { ValidationError } from "@/utils/errors";
 
 const fetchTitleQuery = {
   type: "object",
@@ -320,9 +321,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     } = req.query as { url: string;
       siteName?: string; };
     if (!isValidUrl(url)) {
-      return reply.code(400).send({
-        message: "url must be a valid http(s) URL",
-      });
+      throw new ValidationError("url must be a valid http(s) URL");
     }
     // YouTube watch pages rarely expose a parseable <title> before the </head> cutoff,
     // so use the same oEmbed lookup as /api/fetch-metadata before the strict HTML path.
@@ -395,14 +394,12 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       tags: ["metadata"],
       querystring: fetchTitleQuery,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       url,
     } = req.query as { url: string };
     if (!isValidUrl(url)) {
-      return reply.code(400).send({
-        message: "url must be a valid http(s) URL",
-      });
+      throw new ValidationError("url must be a valid http(s) URL");
     }
     const result = await checkUrl(url);
     return {
@@ -422,14 +419,12 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       tags: ["metadata"],
       querystring: fetchTitleQuery,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       url,
     } = req.query as { url: string };
     if (!isValidUrl(url)) {
-      return reply.code(400).send({
-        message: "url must be a valid http(s) URL",
-      });
+      throw new ValidationError("url must be a valid http(s) URL");
     }
     // Falls back to the original URL on any failure (with a user-facing message); see resolveRedirectResult.
     return resolveRedirectResult(url);
@@ -476,15 +471,13 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       tags: ["metadata"],
       querystring: fetchTitleQuery,
     },
-  }, async (req, reply): Promise<FetchMetadataResult> => {
+  }, async (req): Promise<FetchMetadataResult> => {
     const {
       url, siteName: siteNameHint,
     } = req.query as { url: string;
       siteName?: string; };
     if (!isValidUrl(url)) {
-      return reply.code(400).send({
-        message: "url must be a valid http(s) URL",
-      }) as unknown as FetchMetadataResult;
+      throw new ValidationError("url must be a valid http(s) URL");
     }
 
     return isYouTubeVideoUrl(url)
@@ -502,16 +495,14 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       tags: ["metadata"],
       querystring: scanQuery,
     },
-  }, async (req, reply): Promise<ScanResult> => {
+  }, async (req): Promise<ScanResult> => {
     const {
       url, siteName: siteNameHint, resolveRedirect = true,
     } = req.query as { url: string;
       siteName?: string;
       resolveRedirect?: boolean; };
     if (!isValidUrl(url)) {
-      return reply.code(400).send({
-        message: "url must be a valid http(s) URL",
-      }) as unknown as ScanResult;
+      throw new ValidationError("url must be a valid http(s) URL");
     }
 
     // Serve a recent identical scan from the short-TTL cache so re-scans / duplicate adds are instant.

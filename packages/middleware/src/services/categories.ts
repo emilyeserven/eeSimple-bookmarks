@@ -25,21 +25,20 @@ import {
   categoryRootTags,
   tags,
 } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when an update or delete targets a built-in category in a disallowed way. */
-export class BuiltInCategoryError extends Error {
+export class BuiltInCategoryError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "BuiltInCategoryError";
+    super(message, "builtInImmutable", 403);
   }
 }
 
 /** Thrown when a root-tag allowlist references an unknown or non-root tag. */
-export class InvalidRootTagError extends Error {
+export class InvalidRootTagError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "InvalidRootTagError";
+    super(message, "validation", 400);
   }
 }
 

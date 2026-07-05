@@ -16,6 +16,7 @@ import {
   youtubeChannelTags,
   youtubeChannels,
 } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -35,26 +36,30 @@ function avatarUrlFrom(channelId: string, createdAt: Date | string | null): stri
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Thrown when a rename collides with an existing channel name. */
-export class DuplicateYouTubeChannelError extends Error {
+export class DuplicateYouTubeChannelError extends AppError {
   constructor(name: string) {
-    super(`A channel named "${name}" already exists`);
-    this.name = "DuplicateYouTubeChannelError";
+    super(`A channel named "${name}" already exists`, "duplicateName", 409, {
+      entity: "channel",
+      name,
+    });
   }
 }
 
 /** Thrown when the provided channel URL cannot be parsed into a channel key. */
-export class InvalidChannelUrlError extends Error {
+export class InvalidChannelUrlError extends AppError {
   constructor(url: string) {
-    super(`"${url}" is not a valid YouTube channel URL`);
-    this.name = "InvalidChannelUrlError";
+    super(`"${url}" is not a valid YouTube channel URL`, "validation", 400, {
+      url,
+    });
   }
 }
 
 /** Thrown when trying to create a channel whose key already exists in the database. */
-export class DuplicateChannelKeyError extends Error {
+export class DuplicateChannelKeyError extends AppError {
   constructor(channelKey: string) {
-    super(`A channel with the key "${channelKey}" already exists`);
-    this.name = "DuplicateChannelKeyError";
+    super(`A channel with the key "${channelKey}" already exists`, "duplicateChannelKey", 409, {
+      channelKey,
+    });
   }
 }
 

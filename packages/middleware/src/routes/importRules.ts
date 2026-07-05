@@ -12,6 +12,7 @@ import {
   updateImportRule,
 } from "@/services/importRules";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const ruleParams = {
   type: "object",
@@ -91,9 +92,7 @@ export async function importRulesRoutes(app: FastifyInstance): Promise<void> {
       slug,
     } = req.params as { slug: string };
     const rule = await getImportRuleBySlug(slug);
-    if (!rule) return reply.code(404).send({
-      message: "Import rule not found",
-    });
+    if (!rule) throw new NotFoundError("Import rule");
     return rule;
   });
 
@@ -118,9 +117,7 @@ export async function importRulesRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const rule = await updateImportRule(id, req.body as UpdateImportRuleInput);
-    if (!rule) return reply.code(404).send({
-      message: "Import rule not found",
-    });
+    if (!rule) throw new NotFoundError("Import rule");
     return rule;
   });
 
@@ -134,9 +131,7 @@ export async function importRulesRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteImportRule(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Import rule not found",
-    });
+    if (!deleted) throw new NotFoundError("Import rule");
     return reply.code(204).send();
   });
 }

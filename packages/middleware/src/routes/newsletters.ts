@@ -8,12 +8,12 @@ import {
   bulkDeleteNewsletters,
   createNewsletter,
   deleteNewsletter,
-  DuplicateNewsletterError,
   getNewsletter,
   listNewsletters,
   updateNewsletter,
 } from "@/services/newsletters";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const idParam = {
   type: "object",
@@ -81,19 +81,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       tags: ["newsletters"],
       body: createNewsletterBody,
     },
-  }, async (req, reply) => {
-    try {
-      return await createNewsletter(req.body as CreateNewsletterInput);
-    }
-    catch (err) {
-      if (err instanceof DuplicateNewsletterError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
-  });
+  }, async req => createNewsletter(req.body as CreateNewsletterInput));
 
   // List a newsletter's issues (= its imports), newest first.
   app.get("/api/newsletters/:id/issues", {
@@ -101,13 +89,11 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       tags: ["newsletters"],
       params: idParam,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
-    if (!(await getNewsletter(id))) return reply.code(404).send({
-      message: "Newsletter not found",
-    });
+    if (!(await getNewsletter(id))) throw new NotFoundError("Newsletter");
     return listNewsletterIssues(id);
   });
 
@@ -118,25 +104,13 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       params: idParam,
       body: updateNewsletterBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const updated = await updateNewsletter(id, req.body as UpdateNewsletterInput);
-      if (!updated) return reply.code(404).send({
-        message: "Newsletter not found",
-      });
-      return updated;
-    }
-    catch (err) {
-      if (err instanceof DuplicateNewsletterError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const updated = await updateNewsletter(id, req.body as UpdateNewsletterInput);
+    if (!updated) throw new NotFoundError("Newsletter");
+    return updated;
   });
 
   // Delete a newsletter.
@@ -150,9 +124,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const ok = await deleteNewsletter(id);
-    if (!ok) return reply.code(404).send({
-      message: "Newsletter not found",
-    });
+    if (!ok) throw new NotFoundError("Newsletter");
     return reply.code(204).send();
   });
 }

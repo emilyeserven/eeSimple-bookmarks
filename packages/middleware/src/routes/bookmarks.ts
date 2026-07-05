@@ -29,7 +29,6 @@ import {
   checkBookmarkUrlDuplicate,
   createBookmark,
   deleteBookmark,
-  DuplicateUrlError,
   getBookmark,
   listBookmarks,
   listBookmarksOnHost,
@@ -47,6 +46,7 @@ import { importKavitaSeriesCover, kavitaEnabledAsync } from "@/services/kavita";
 import { importPlexPoster, plexEnabledAsync } from "@/services/plex";
 import { getObjectRange, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { isValidUrl } from "@/utils/url";
+import { AppError, ImageTooLargeError, MaxImagesReachedError, NoFileUploadedError, NotFoundError, StorageUnconfiguredError, ValidationError } from "@/utils/errors";
 
 const bookmarkParams = {
   type: "object",
@@ -575,13 +575,11 @@ function registerBookmarkQueryRoutes(app: FastifyInstance): void {
     schema: {
       tags: ["bookmarks"],
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       url,
     } = req.query as { url?: string };
-    if (!url) return reply.code(400).send({
-      message: "url is required",
-    });
+    if (!url) throw new ValidationError("url is required");
     return checkBookmarkUrlDuplicate(url);
   });
 }
@@ -682,15 +680,11 @@ function registerBookmarkCrudRoutes(app: FastifyInstance): void {
     } = req.body as { url: string;
       title?: string; };
     if (!isValidUrl(url)) {
-      return reply.code(400).send({
-        message: "url must be a valid http(s) URL",
-      });
+      throw new ValidationError("url must be a valid http(s) URL");
     }
     const item = await quickSaveToInbox(url, title?.trim() || url);
     if (!item) {
-      return reply.code(409).send({
-        message: "This URL is already saved.",
-      });
+      throw new AppError("This URL is already saved.", "conflict", 409);
     }
     return reply.code(201).send(item);
   });
@@ -705,9 +699,7 @@ function registerBookmarkCrudRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     const bookmark = await getBookmark(id);
-    if (!bookmark) return reply.code(404).send({
-      message: "Bookmark not found",
-    });
+    if (!bookmark) throw new NotFoundError("Bookmark");
     return bookmark;
   });
 
@@ -719,22 +711,10 @@ function registerBookmarkCrudRoutes(app: FastifyInstance): void {
   }, async (req, reply) => {
     const input = req.body as CreateBookmarkInput;
     if (input.url != null && !isValidUrl(input.url)) {
-      return reply.code(400).send({
-        message: "url must be a valid http(s) URL",
-      });
+      throw new ValidationError("url must be a valid http(s) URL");
     }
-    try {
-      const bookmark = await createBookmark(input);
-      return reply.code(201).send(bookmark);
-    }
-    catch (err) {
-      if (err instanceof DuplicateUrlError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const bookmark = await createBookmark(input);
+    return reply.code(201).send(bookmark);
   });
 
   app.patch(
@@ -752,25 +732,11 @@ function registerBookmarkCrudRoutes(app: FastifyInstance): void {
       } = req.params as { id: string };
       const input = req.body as UpdateBookmarkInput;
       if (input.url != null && !isValidUrl(input.url)) {
-        return reply.code(400).send({
-          message: "url must be a valid http(s) URL",
-        });
+        throw new ValidationError("url must be a valid http(s) URL");
       }
-      try {
-        const bookmark = await updateBookmark(id, input);
-        if (!bookmark) return reply.code(404).send({
-          message: "Bookmark not found",
-        });
-        return bookmark;
-      }
-      catch (err) {
-        if (err instanceof DuplicateUrlError) {
-          return reply.code(409).send({
-            message: err.message,
-          });
-        }
-        throw err;
-      }
+      const bookmark = await updateBookmark(id, input);
+      if (!bookmark) throw new NotFoundError("Bookmark");
+      return bookmark;
     },
   );
 
@@ -784,9 +750,7 @@ function registerBookmarkCrudRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     const deleted = await deleteBookmark(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Bookmark not found",
-    });
+    if (!deleted) throw new NotFoundError("Bookmark");
     return reply.code(204).send();
   });
 }
@@ -805,39 +769,29 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     let bytes: Buffer;
     try {
       const file = await req.file();
       if (!file) {
-        return reply.code(400).send({
-          message: "No file uploaded",
-        });
+        throw new NoFileUploadedError();
       }
       bytes = await file.toBuffer();
     }
     catch (err) {
       // @fastify/multipart throws this when the upload exceeds the configured size limit.
       if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
-        return reply.code(413).send({
-          message: "Image is too large",
-        });
+        throw new ImageTooLargeError();
       }
       throw err;
     }
     const result = await setBookmarkImage(id, bytes, "upload");
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Bookmark not found",
-      });
+      throw new NotFoundError("Bookmark");
     }
     if (result === "bad_image") {
-      return reply.code(415).send({
-        message: "Unsupported or invalid image",
-      });
+      throw new AppError("Unsupported or invalid image", "unsupportedImage", 415);
     }
     return reply.code(201).send(result);
   });
@@ -853,9 +807,7 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     const result = await fetchAndStoreOgImage(id);
     const success = typeof result !== "string";
@@ -867,9 +819,7 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       success ? "[image-auto] auto-capture succeeded" : "[image-auto] auto-capture failed",
     );
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Bookmark not found",
-      });
+      throw new NotFoundError("Bookmark");
     }
     if (typeof result === "string") {
       const errorMessages: Record<string, string> = {
@@ -898,40 +848,26 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     if (!(await kavitaEnabledAsync())) {
-      return reply.code(503).send({
-        message: "Kavita is not configured",
-      });
+      throw new StorageUnconfiguredError("Kavita is not configured");
     }
     const result = await importKavitaSeriesCover(id);
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Bookmark not found",
-      });
+      throw new NotFoundError("Bookmark");
     }
     if (result === "not_linked") {
-      return reply.code(400).send({
-        message: "Bookmark is not linked to a Kavita series",
-      });
+      throw new ValidationError("Bookmark is not linked to a Kavita series");
     }
     if (result === "cover_unavailable") {
-      return reply.code(502).send({
-        message: "Could not fetch the cover from Kavita",
-      });
+      throw new AppError("Could not fetch the cover from Kavita", "internal", 502);
     }
     if (result === "too_many") {
-      return reply.code(409).send({
-        message: "This bookmark already has the maximum number of images",
-      });
+      throw new MaxImagesReachedError();
     }
     if (result === "bad_image") {
-      return reply.code(415).send({
-        message: "Unsupported or invalid image",
-      });
+      throw new AppError("Unsupported or invalid image", "unsupportedImage", 415);
     }
     return reply.code(201).send(result);
   });
@@ -947,40 +883,26 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     if (!(await plexEnabledAsync())) {
-      return reply.code(503).send({
-        message: "Plex is not configured",
-      });
+      throw new StorageUnconfiguredError("Plex is not configured");
     }
     const result = await importPlexPoster(id);
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Bookmark not found",
-      });
+      throw new NotFoundError("Bookmark");
     }
     if (result === "not_linked") {
-      return reply.code(400).send({
-        message: "Bookmark is not linked to a Plex item",
-      });
+      throw new ValidationError("Bookmark is not linked to a Plex item");
     }
     if (result === "poster_unavailable") {
-      return reply.code(502).send({
-        message: "Could not fetch the poster from Plex",
-      });
+      throw new AppError("Could not fetch the poster from Plex", "internal", 502);
     }
     if (result === "too_many") {
-      return reply.code(409).send({
-        message: "This bookmark already has the maximum number of images",
-      });
+      throw new MaxImagesReachedError();
     }
     if (result === "bad_image") {
-      return reply.code(415).send({
-        message: "Unsupported or invalid image",
-      });
+      throw new AppError("Unsupported or invalid image", "unsupportedImage", 415);
     }
     return reply.code(201).send(result);
   });
@@ -996,40 +918,26 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     const result = await importIsbnCover(id);
     if (result === "no_isbn") {
-      return reply.code(400).send({
-        message: "Bookmark has no ISBN/ASIN set",
-      });
+      throw new ValidationError("Bookmark has no ISBN/ASIN set");
     }
     if (result === "isbn_not_found") {
-      return reply.code(404).send({
-        message: "No book found for that ISBN/ASIN",
-      });
+      throw new NotFoundError("Book", "No book found for that ISBN/ASIN");
     }
     if (result === "cover_unavailable") {
-      return reply.code(502).send({
-        message: "Could not fetch a cover image for that ISBN/ASIN",
-      });
+      throw new AppError("Could not fetch a cover image for that ISBN/ASIN", "internal", 502);
     }
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Bookmark not found",
-      });
+      throw new NotFoundError("Bookmark");
     }
     if (result === "too_many") {
-      return reply.code(409).send({
-        message: "This bookmark already has the maximum number of images",
-      });
+      throw new MaxImagesReachedError();
     }
     if (result === "bad_image") {
-      return reply.code(415).send({
-        message: "Unsupported or invalid image",
-      });
+      throw new AppError("Unsupported or invalid image", "unsupportedImage", 415);
     }
     return reply.code(201).send(result);
   });
@@ -1046,9 +954,7 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
     } = req.params as { id: string };
     const removed = await removeBookmarkImage(id);
     if (!removed) {
-      return reply.code(404).send({
-        message: "No image to delete",
-      });
+      throw new NotFoundError("Image", "No image to delete");
     }
     return reply.code(204).send();
   });
@@ -1078,25 +984,19 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       main,
     } = req.query as { main?: boolean };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     let bytes: Buffer;
     try {
       const file = await req.file();
       if (!file) {
-        return reply.code(400).send({
-          message: "No file uploaded",
-        });
+        throw new NoFileUploadedError();
       }
       bytes = await file.toBuffer();
     }
     catch (err) {
       if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
-        return reply.code(413).send({
-          message: "Image is too large",
-        });
+        throw new ImageTooLargeError();
       }
       throw err;
     }
@@ -1104,19 +1004,13 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       setMain: main === true,
     });
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Bookmark not found",
-      });
+      throw new NotFoundError("Bookmark");
     }
     if (result === "too_many") {
-      return reply.code(409).send({
-        message: "This bookmark already has the maximum number of images",
-      });
+      throw new MaxImagesReachedError();
     }
     if (result === "bad_image") {
-      return reply.code(415).send({
-        message: "Unsupported or invalid image",
-      });
+      throw new AppError("Unsupported or invalid image", "unsupportedImage", 415);
     }
     return reply.code(201).send(result);
   });
@@ -1156,15 +1050,11 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
     } = req.body as { urls: string[];
       mainUrl?: string | null; };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     const result = await storeBookmarkImagesFromCandidates(id, urls, mainUrl ?? null);
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Bookmark not found",
-      });
+      throw new NotFoundError("Bookmark");
     }
     return reply.code(201).send(result);
   });
@@ -1182,9 +1072,7 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       imageId: string; };
     const result = await setMainImage(id, imageId);
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Image not found",
-      });
+      throw new NotFoundError("Image");
     }
     return reply.code(200).send(result);
   });
@@ -1202,9 +1090,7 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       imageId: string; };
     const removed = await removeBookmarkImageById(id, imageId);
     if (!removed) {
-      return reply.code(404).send({
-        message: "No image to delete",
-      });
+      throw new NotFoundError("Image", "No image to delete");
     }
     return reply.code(204).send();
   });
@@ -1252,9 +1138,7 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       height?: number;
       scrollDistance?: number; };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     const viewport = width != null && height != null
       ? {
@@ -1263,15 +1147,9 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       }
       : undefined;
     const result = await takeAndStoreScreenshot(id, delayMs, viewport, scrollDistance);
-    if (result === "not_found") return reply.code(404).send({
-      message: "Bookmark not found",
-    });
-    if (result === "not_configured") return reply.code(503).send({
-      message: "No screenshot provider configured",
-    });
-    if (result === "bad_image") return reply.code(502).send({
-      message: "Screenshot could not be captured",
-    });
+    if (result === "not_found") throw new NotFoundError("Bookmark");
+    if (result === "not_configured") throw new StorageUnconfiguredError("No screenshot provider configured");
+    if (result === "bad_image") throw new AppError("Screenshot could not be captured", "internal", 502);
     return reply.code(201).send(result);
   });
 
@@ -1286,9 +1164,7 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     const removed = await removeBookmarkScreenshot(id);
-    if (!removed) return reply.code(404).send({
-      message: "No screenshot to delete",
-    });
+    if (!removed) throw new NotFoundError("Screenshot", "No screenshot to delete");
     return reply.code(204).send();
   });
 
@@ -1305,9 +1181,7 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     const job = await queueReelArchive(id);
     return reply.code(202).send(job);
@@ -1324,9 +1198,7 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     const removed = await removeBookmarkReelArchive(id);
-    if (!removed) return reply.code(404).send({
-      message: "No reel archive to delete",
-    });
+    if (!removed) throw new NotFoundError("Reel archive", "No reel archive to delete");
     return reply.code(204).send();
   });
 }
@@ -1379,9 +1251,7 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
     const input = req.body as UpdateBookmarkRelationshipsInput;
     const existing = await getBookmark(id);
     if (!existing) {
-      return reply.code(404).send({
-        message: "Bookmark not found",
-      });
+      throw new NotFoundError("Bookmark");
     }
     await updateBookmarkRelationships(id, input);
     return getBookmark(id);
@@ -1400,15 +1270,11 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
     } = req.params as { id: string };
     const row = await getBookmarkImageRow(id);
     if (!row) {
-      return reply.code(404).send({
-        message: "No image",
-      });
+      throw new NotFoundError("Image", "No image");
     }
     const object = await getObjectStream(row.objectKey);
     if (!object) {
-      return reply.code(404).send({
-        message: "No image",
-      });
+      throw new NotFoundError("Image", "No image");
     }
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
@@ -1428,15 +1294,11 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
       imageId: string; };
     const row = await getBookmarkImageRowById(id, imageId);
     if (!row) {
-      return reply.code(404).send({
-        message: "No image",
-      });
+      throw new NotFoundError("Image", "No image");
     }
     const object = await getObjectStream(row.objectKey);
     if (!object) {
-      return reply.code(404).send({
-        message: "No image",
-      });
+      throw new NotFoundError("Image", "No image");
     }
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
@@ -1454,13 +1316,9 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     const row = await getBookmarkScreenshotRow(id);
-    if (!row) return reply.code(404).send({
-      message: "No screenshot",
-    });
+    if (!row) throw new NotFoundError("Screenshot", "No screenshot");
     const object = await getObjectStream(row.objectKey);
-    if (!object) return reply.code(404).send({
-      message: "No screenshot",
-    });
+    if (!object) throw new NotFoundError("Screenshot", "No screenshot");
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
     return reply.send(object.body);
@@ -1478,9 +1336,7 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     const row = await getBookmarkReelArchiveRow(id);
-    if (!row) return reply.code(404).send({
-      message: "No reel archive",
-    });
+    if (!row) throw new NotFoundError("Reel archive", "No reel archive");
 
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
@@ -1489,18 +1345,14 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
     const range = req.headers.range;
     if (range) {
       const partial = await getObjectRange(row.objectKey, range);
-      if (!partial) return reply.code(404).send({
-        message: "No reel archive",
-      });
+      if (!partial) throw new NotFoundError("Reel archive", "No reel archive");
       if (partial.contentRange) reply.header("Content-Range", partial.contentRange);
       if (partial.contentLength !== undefined) reply.header("Content-Length", partial.contentLength);
       return reply.code(206).send(partial.body);
     }
 
     const object = await getObjectStream(row.objectKey);
-    if (!object) return reply.code(404).send({
-      message: "No reel archive",
-    });
+    if (!object) throw new NotFoundError("Reel archive", "No reel archive");
     if (object.contentLength !== undefined) reply.header("Content-Length", object.contentLength);
     return reply.send(object.body);
   });
@@ -1522,9 +1374,7 @@ function registerBookmarkPropertyFileRoutes(app: FastifyInstance): void {
     } = req.params as { id: string;
       propertyId: string; };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "File storage is not configured",
-      });
+      throw new StorageUnconfiguredError("File storage is not configured");
     }
     let bytes: Buffer;
     let contentType = "application/octet-stream";
@@ -1532,9 +1382,7 @@ function registerBookmarkPropertyFileRoutes(app: FastifyInstance): void {
     try {
       const file = await req.file();
       if (!file) {
-        return reply.code(400).send({
-          message: "No file uploaded",
-        });
+        throw new NoFileUploadedError();
       }
       contentType = file.mimetype || contentType;
       originalFilename = file.filename || null;
@@ -1543,27 +1391,19 @@ function registerBookmarkPropertyFileRoutes(app: FastifyInstance): void {
     catch (err) {
       // @fastify/multipart throws this when the upload exceeds the configured size limit.
       if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
-        return reply.code(413).send({
-          message: "File is too large",
-        });
+        throw new ImageTooLargeError("File is too large");
       }
       throw err;
     }
     const result = await setBookmarkPropertyFile(id, propertyId, bytes, contentType, originalFilename);
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Bookmark or property not found",
-      });
+      throw new NotFoundError("Bookmark", "Bookmark or property not found");
     }
     if (result === "wrong_type") {
-      return reply.code(422).send({
-        message: "Property is not an image or file type",
-      });
+      throw new AppError("Property is not an image or file type", "validation", 422);
     }
     if (result === "bad_image") {
-      return reply.code(415).send({
-        message: "Unsupported or invalid image",
-      });
+      throw new AppError("Unsupported or invalid image", "unsupportedImage", 415);
     }
     return reply.code(201).send(result);
   });
@@ -1581,9 +1421,7 @@ function registerBookmarkPropertyFileRoutes(app: FastifyInstance): void {
       propertyId: string; };
     const removed = await removeBookmarkPropertyFile(id, propertyId);
     if (!removed) {
-      return reply.code(404).send({
-        message: "No file to delete",
-      });
+      throw new NotFoundError("File", "No file to delete");
     }
     return reply.code(204).send();
   });
@@ -1603,15 +1441,11 @@ function registerBookmarkPropertyFileRoutes(app: FastifyInstance): void {
       propertyId: string; };
     const row = await getBookmarkPropertyFileRow(id, propertyId);
     if (!row) {
-      return reply.code(404).send({
-        message: "No file",
-      });
+      throw new NotFoundError("File", "No file");
     }
     const object = await getObjectStream(row.objectKey);
     if (!object) {
-      return reply.code(404).send({
-        message: "No file",
-      });
+      throw new NotFoundError("File", "No file");
     }
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");

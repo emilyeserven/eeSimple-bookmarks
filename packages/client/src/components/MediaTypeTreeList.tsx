@@ -8,6 +8,7 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
+import { useBuiltInName } from "@/lib/builtInName";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface MediaTypeTreeListProps {
@@ -31,6 +32,7 @@ export function MediaTypeTreeList({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const builtInName = useBuiltInName();
 
   return (
     <TaxonomyTreeList
@@ -52,7 +54,7 @@ export function MediaTypeTreeList({
             hover:underline
           "
         >
-          {node.name}
+          {builtInName(node)}
         </Link>
       )}
       renderEditLink={node => (

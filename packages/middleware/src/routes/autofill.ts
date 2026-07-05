@@ -20,6 +20,7 @@ import {
   updateAutofillRule,
 } from "@/services/autofill";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const ruleParams = {
   type: "object",
@@ -188,9 +189,7 @@ export async function autofillRoutes(app: FastifyInstance): Promise<void> {
       slug,
     } = req.params as { slug: string };
     const rule = await getAutofillRuleBySlug(slug);
-    if (!rule) return reply.code(404).send({
-      message: "Autofill rule not found",
-    });
+    if (!rule) throw new NotFoundError("Autofill rule");
     return rule;
   });
 
@@ -228,9 +227,7 @@ export async function autofillRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const rule = await updateAutofillRule(id, req.body as UpdateAutofillRuleInput);
-    if (!rule) return reply.code(404).send({
-      message: "Autofill rule not found",
-    });
+    if (!rule) throw new NotFoundError("Autofill rule");
     return rule;
   });
 
@@ -244,9 +241,7 @@ export async function autofillRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteAutofillRule(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Autofill rule not found",
-    });
+    if (!deleted) throw new NotFoundError("Autofill rule");
     return reply.code(204).send();
   });
 
@@ -260,9 +255,7 @@ export async function autofillRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const result = await getAutofillBackfillEntries(id);
-    if (!result) return reply.code(404).send({
-      message: "Autofill rule not found",
-    });
+    if (!result) throw new NotFoundError("Autofill rule");
     return result;
   });
 
@@ -293,9 +286,7 @@ export async function autofillRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const result = await applyAutofillBackfill(id, req.body as AutofillApplyInput);
-    if (!result) return reply.code(404).send({
-      message: "Autofill rule not found",
-    });
+    if (!result) throw new NotFoundError("Autofill rule");
     return result;
   });
 

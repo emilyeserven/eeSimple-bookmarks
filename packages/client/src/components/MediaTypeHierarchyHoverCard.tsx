@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 
 import { EntityHierarchyHoverCard } from "./EntityHierarchyHoverCard";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
+import { useBuiltInName } from "../lib/builtInName";
 import { findAncestorPath } from "../lib/tagTree";
 
 interface MediaTypeHierarchyHoverCardProps {
@@ -26,6 +27,7 @@ export function MediaTypeHierarchyHoverCard({
   const {
     data: tree,
   } = useMediaTypeTree();
+  const builtInName = useBuiltInName();
   const path = useMemo(
     () => (tree ? findAncestorPath(tree, mediaType.slug) : null),
     [tree, mediaType.slug],
@@ -41,7 +43,7 @@ export function MediaTypeHierarchyHoverCard({
             mediaTypeSlug: node.slug,
           }}
         >
-          {node.name}
+          {builtInName(node)}
         </Link>
       )}
     >

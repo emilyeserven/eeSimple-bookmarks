@@ -9,6 +9,7 @@ import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
+import { useLanguageName } from "@/lib/builtInName";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A single language listing card: body → its detail page, with hover Edit / Info. */
@@ -31,6 +32,7 @@ export function LanguageCard({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const languageName = useLanguageName();
 
   return (
     <StandardListingCard
@@ -39,7 +41,7 @@ export function LanguageCard({
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
       icon={<Languages className="size-5 shrink-0 text-muted-foreground" />}
-      title={language.name}
+      title={languageName(language)}
       titleAdornment={language.builtIn
         ? <Badge variant="secondary">{t("Built-in")}</Badge>
         : undefined}

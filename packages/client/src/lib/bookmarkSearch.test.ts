@@ -420,6 +420,7 @@ describe("bookmarkMatchesSearch", () => {
       slug: "video",
       icon: null,
       parentId: null,
+      builtIn: false,
     },
     youtubeChannel: {
       id: "ch-1",

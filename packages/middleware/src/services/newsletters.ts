@@ -4,15 +4,18 @@ import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { bookmarks, categories, type NewsletterRow, newsletters, newsletterTags } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing newsletter name. */
-export class DuplicateNewsletterError extends Error {
+export class DuplicateNewsletterError extends AppError {
   constructor(name: string) {
-    super(`A newsletter named "${name}" already exists`);
-    this.name = "DuplicateNewsletterError";
+    super(`A newsletter named "${name}" already exists`, "duplicateName", 409, {
+      entity: "newsletter",
+      name,
+    });
   }
 }
 

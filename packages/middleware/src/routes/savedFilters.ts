@@ -3,6 +3,7 @@ import type {
   CreateSavedFilterInput,
   UpdateSavedFilterInput,
 } from "@eesimple/types";
+import { NotFoundError } from "@/utils/errors";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import {
   bulkDeleteSavedFilters,
@@ -106,11 +107,7 @@ export async function savedFilterRoutes(app: FastifyInstance): Promise<void> {
     },
     async (request, reply) => {
       const filter = await updateSavedFilter(request.params.id, request.body);
-      if (!filter) return reply.status(404).send({
-        error: "Not Found",
-        message: "Saved filter not found",
-        statusCode: 404,
-      });
+      if (!filter) throw new NotFoundError("Saved filter");
       return filter;
     },
   );
@@ -126,11 +123,7 @@ export async function savedFilterRoutes(app: FastifyInstance): Promise<void> {
     },
     async (request, reply) => {
       const deleted = await deleteSavedFilter(request.params.id);
-      if (!deleted) return reply.status(404).send({
-        error: "Not Found",
-        message: "Saved filter not found",
-        statusCode: 404,
-      });
+      if (!deleted) throw new NotFoundError("Saved filter");
       return reply.status(204).send();
     },
   );

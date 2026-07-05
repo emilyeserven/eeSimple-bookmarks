@@ -12,6 +12,7 @@ import i18n from "../../i18n";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
+import { builtInName } from "@/lib/builtInName";
 import { CategoryIcon } from "@/lib/icons";
 import { entityLinkTitle } from "@/lib/sidebarModifier";
 
@@ -50,7 +51,7 @@ export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
                 hover:underline
               "
             >
-              {row.original.name}
+              {builtInName(row.original, i18n.t)}
             </Link>
             {row.original.builtIn ? <Badge variant="outline">{i18n.t("Built-in")}</Badge> : null}
           </div>

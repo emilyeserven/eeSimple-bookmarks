@@ -13,6 +13,7 @@ import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNam
 import {
   albumPeople, albumGroups, albums, bookmarks, taxonomyImages, type AlbumRow,
 } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -20,10 +21,12 @@ import { takenSlugsOf } from "@/utils/taxonomySlugs";
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Thrown when a create/rename collides with an existing album name. */
-export class DuplicateAlbumError extends Error {
+export class DuplicateAlbumError extends AppError {
   constructor(name: string) {
-    super(`An album named "${name}" already exists`);
-    this.name = "DuplicateAlbumError";
+    super(`An album named "${name}" already exists`, "duplicateName", 409, {
+      entity: "album",
+      name,
+    });
   }
 }
 

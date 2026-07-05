@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { PlexSearchKind } from "@/services/plex";
 import { fetchPlexPoster, plexEnabledAsync, searchPlexItems } from "@/services/plex";
+import { AppError, NotFoundError } from "@/utils/errors";
 
 const searchQuery = {
   type: "object",
@@ -43,9 +44,7 @@ export async function plexRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (req, reply) => {
     if (!(await plexEnabledAsync())) {
-      return reply.code(503).send({
-        message: "Plex is not configured",
-      });
+      throw new AppError("Plex is not configured", "storageUnconfigured", 503);
     }
     const {
       q, kind,
@@ -63,18 +62,14 @@ export async function plexRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (req, reply) => {
     if (!(await plexEnabledAsync())) {
-      return reply.code(503).send({
-        message: "Plex is not configured",
-      });
+      throw new AppError("Plex is not configured", "storageUnconfigured", 503);
     }
     const {
       ratingKey,
     } = req.query as { ratingKey: string };
     const bytes = await fetchPlexPoster(ratingKey);
     if (!bytes) {
-      return reply.code(404).send({
-        message: "No poster",
-      });
+      throw new NotFoundError("Poster", "No poster");
     }
     reply.header("Content-Type", "image/jpeg");
     reply.header("Cache-Control", "public, max-age=31536000, immutable");

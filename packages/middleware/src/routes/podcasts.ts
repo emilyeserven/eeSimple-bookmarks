@@ -5,7 +5,6 @@ import {
   bulkDeletePodcasts,
   createPodcast,
   deletePodcast,
-  DuplicatePodcastError,
   getPodcast,
   listPodcasts,
   updatePodcast,
@@ -20,6 +19,7 @@ import {
 } from "@/services/podcastFeed";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
+import { NotFoundError, ValidationError } from "@/utils/errors";
 
 const podcastParams = {
   type: "object",
@@ -158,7 +158,7 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
         },
       },
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       url,
     } = req.query as { url: string };
@@ -167,19 +167,13 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
       parsed = new URL(url);
     }
     catch {
-      return reply.code(400).send({
-        message: "Invalid URL",
-      });
+      throw new ValidationError("Invalid URL");
     }
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return reply.code(400).send({
-        message: "Invalid URL",
-      });
+      throw new ValidationError("Invalid URL");
     }
     const result = await resolvePodcastByUrl(url);
-    if (!result) return reply.code(404).send({
-      message: "No podcast found at that URL",
-    });
+    if (!result) throw new NotFoundError("Podcast", "No podcast found at that URL");
     return result;
   });
 
@@ -189,18 +183,8 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
       body: createPodcastBody,
     },
   }, async (req, reply) => {
-    try {
-      const podcast = await createPodcast(req.body as CreatePodcastInput);
-      return reply.code(201).send(podcast);
-    }
-    catch (err) {
-      if (err instanceof DuplicatePodcastError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const podcast = await createPodcast(req.body as CreatePodcastInput);
+    return reply.code(201).send(podcast);
   });
 
   app.patch("/api/podcasts/:id", {
@@ -209,25 +193,13 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
       params: podcastParams,
       body: updatePodcastBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const podcast = await updatePodcast(id, req.body as UpdatePodcastInput);
-      if (!podcast) return reply.code(404).send({
-        message: "Podcast not found",
-      });
-      return podcast;
-    }
-    catch (err) {
-      if (err instanceof DuplicatePodcastError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const podcast = await updatePodcast(id, req.body as UpdatePodcastInput);
+    if (!podcast) throw new NotFoundError("Podcast");
+    return podcast;
   });
 
   app.delete("/api/podcasts/:id", {
@@ -240,9 +212,7 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deletePodcast(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Podcast not found",
-    });
+    if (!deleted) throw new NotFoundError("Podcast");
     return reply.code(204).send();
   });
 
@@ -253,14 +223,12 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
       tags: ["podcasts"],
       params: podcastParams,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
     const result = await resolvePodcastFeedPreview(id);
-    if (!result) return reply.code(404).send({
-      message: "No podcast source could be resolved",
-    });
+    if (!result) throw new NotFoundError("Podcast", "No podcast source could be resolved");
     return result;
   });
 
@@ -271,17 +239,13 @@ export async function podcastRoutes(app: FastifyInstance): Promise<void> {
       tags: ["podcasts"],
       params: podcastParams,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
     const podcast = await getPodcast(id);
-    if (!podcast) return reply.code(404).send({
-      message: "Podcast not found",
-    });
-    if (!podcast.feedUrl) return reply.code(404).send({
-      message: "Podcast has no feed URL to match against",
-    });
+    if (!podcast) throw new NotFoundError("Podcast");
+    if (!podcast.feedUrl) throw new NotFoundError("Podcast", "Podcast has no feed URL to match against");
     return resolvePodcastProviderLinks(podcast.name, podcast.feedUrl);
   });
 

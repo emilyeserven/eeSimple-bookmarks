@@ -4,12 +4,12 @@ import {
   bulkDeleteTracks,
   createTrack,
   deleteTrack,
-  DuplicateTrackError,
   listTracks,
   updateTrack,
 } from "@/services/tracks";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
@@ -101,18 +101,8 @@ export async function trackRoutes(app: FastifyInstance): Promise<void> {
       body: createTrackBody,
     },
   }, async (req, reply) => {
-    try {
-      const track = await createTrack(req.body as CreateTrackInput);
-      return reply.code(201).send(track);
-    }
-    catch (err) {
-      if (err instanceof DuplicateTrackError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const track = await createTrack(req.body as CreateTrackInput);
+    return reply.code(201).send(track);
   });
 
   app.patch("/api/tracks/:id", {
@@ -125,21 +115,9 @@ export async function trackRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const track = await updateTrack(id, req.body as UpdateTrackInput);
-      if (!track) return reply.code(404).send({
-        message: "Track not found",
-      });
-      return track;
-    }
-    catch (err) {
-      if (err instanceof DuplicateTrackError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const track = await updateTrack(id, req.body as UpdateTrackInput);
+    if (!track) throw new NotFoundError("Track");
+    return track;
   });
 
   app.delete("/api/tracks/:id", {
@@ -152,9 +130,7 @@ export async function trackRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteTrack(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Track not found",
-    });
+    if (!deleted) throw new NotFoundError("Track");
     return reply.code(204).send();
   });
 

@@ -15,14 +15,13 @@ import {
   createYouTubeChannel,
   deleteYouTubeChannel,
   DuplicateChannelKeyError,
-  DuplicateYouTubeChannelError,
   getYouTubeChannel,
-  InvalidChannelUrlError,
   listYouTubeChannels,
   updateYouTubeChannel,
 } from "@/services/youtubeChannels";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
+import { AppError, ImageTooLargeError, NoFileUploadedError, NotFoundError, StorageUnconfiguredError } from "@/utils/errors";
 
 /** User-facing messages for the typed grab failures shared by the entity-image auto routes. */
 const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
@@ -131,14 +130,10 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     },
   }, async (_req, reply) => {
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     if (getChannelImageAutoFetchJobStatus().status === "running") {
-      return reply.code(409).send({
-        message: "A channel-image backfill job is already in progress",
-      });
+      throw new AppError("A channel-image backfill job is already in progress", "conflict", 409);
     }
 
     setChannelImageAutoFetchJobStatus({
@@ -171,11 +166,9 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     schema: {
       tags: ["youtube-channels"],
     },
-  }, async (_req, reply) => {
+  }, async () => {
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     return getChannelImageAutoFetchJobStatus();
   });
@@ -191,11 +184,6 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
       return reply.code(201).send(channel);
     }
     catch (err) {
-      if (err instanceof InvalidChannelUrlError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
       if (err instanceof DuplicateChannelKeyError) {
         return reply.code(409).send({
           message: "A channel with this URL already exists",
@@ -215,21 +203,9 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const channel = await updateYouTubeChannel(id, req.body as UpdateYouTubeChannelInput);
-      if (!channel) return reply.code(404).send({
-        message: "Channel not found",
-      });
-      return channel;
-    }
-    catch (err) {
-      if (err instanceof DuplicateYouTubeChannelError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const channel = await updateYouTubeChannel(id, req.body as UpdateYouTubeChannelInput);
+    if (!channel) throw new NotFoundError("Channel");
+    return channel;
   });
 
   app.delete("/api/youtube-channels/:id", {
@@ -246,9 +222,7 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     // reconciliation, so without this the object would leak. Best-effort.
     const avatarRow = await getYouTubeChannelImageRow(id);
     const deleted = await deleteYouTubeChannel(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Channel not found",
-    });
+    if (!deleted) throw new NotFoundError("Channel");
     if (avatarRow) await deleteObject(avatarRow.objectKey).catch(() => undefined);
     return reply.code(204).send();
   });
@@ -265,34 +239,26 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     let bytes: Buffer;
     try {
       const file = await req.file();
       if (!file) {
-        return reply.code(400).send({
-          message: "No file uploaded",
-        });
+        throw new NoFileUploadedError();
       }
       bytes = await file.toBuffer();
     }
     catch (err) {
       // @fastify/multipart throws this when the upload exceeds the configured size limit.
       if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
-        return reply.code(413).send({
-          message: "Image is too large",
-        });
+        throw new ImageTooLargeError();
       }
       throw err;
     }
     const result = await setYouTubeChannelImageFromBytes(id, bytes);
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Channel not found",
-      });
+      throw new NotFoundError("Channel");
     }
     if (typeof result === "object" && "code" in result) {
       return reply.code(415).send({
@@ -315,15 +281,11 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     const result = await fetchAndStoreChannelImage(id);
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Channel not found",
-      });
+      throw new NotFoundError("Channel");
     }
     if (typeof result === "object" && "code" in result) {
       return reply.code(502).send({
@@ -354,9 +316,7 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     } = req.params as { id: string };
     const channel = await getYouTubeChannel(id);
     if (!channel) {
-      return reply.code(404).send({
-        message: "Channel not found",
-      });
+      throw new NotFoundError("Channel");
     }
     return {
       imageUrl: await resolveChannelAvatarUrl(id),
@@ -375,9 +335,7 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     } = req.params as { id: string };
     const removed = await removeYouTubeChannelImage(id);
     if (!removed) {
-      return reply.code(404).send({
-        message: "No avatar to delete",
-      });
+      throw new NotFoundError("Avatar", "No avatar to delete");
     }
     return reply.code(204).send();
   });
@@ -395,15 +353,11 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     } = req.params as { id: string };
     const row = await getYouTubeChannelImageRow(id);
     if (!row) {
-      return reply.code(404).send({
-        message: "No avatar",
-      });
+      throw new NotFoundError("Avatar", "No avatar");
     }
     const object = await getObjectStream(row.objectKey);
     if (!object) {
-      return reply.code(404).send({
-        message: "No avatar",
-      });
+      throw new NotFoundError("Avatar", "No avatar");
     }
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");

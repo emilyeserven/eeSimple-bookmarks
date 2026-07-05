@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bookmarkImages, bookmarks, categories, websiteFavicons, websiteTags, websites, websiteYoutubeChannels, type WebsiteRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify } from "@/utils/slug";
 import { builtInWebsiteRenamedOrMoved, buildWebsiteScalarPatch, normalizeWebsiteDomain } from "@/services/websiteUpdate";
@@ -25,18 +26,18 @@ function faviconUrlFrom(websiteId: string, createdAt: Date | string | null): str
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Thrown when a website rename/move would collide with an existing domain. */
-export class DuplicateDomainError extends Error {
+export class DuplicateDomainError extends AppError {
   constructor(domain: string) {
-    super(`A website already exists for "${domain}"`);
-    this.name = "DuplicateDomainError";
+    super(`A website already exists for "${domain}"`, "duplicateDomain", 409, {
+      domain,
+    });
   }
 }
 
 /** Thrown when an update or delete targets a built-in website in a disallowed way. */
-export class BuiltInWebsiteError extends Error {
+export class BuiltInWebsiteError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "BuiltInWebsiteError";
+    super(message, "builtInImmutable", 403);
   }
 }
 
@@ -493,10 +494,9 @@ export async function lookupWebsiteByUrl(
 }
 
 /** Thrown when a manual create is given a domain that normalizes to an empty host. */
-export class InvalidDomainError extends Error {
+export class InvalidDomainError extends AppError {
   constructor() {
-    super("A non-empty domain is required");
-    this.name = "InvalidDomainError";
+    super("A non-empty domain is required", "validation", 400);
   }
 }
 

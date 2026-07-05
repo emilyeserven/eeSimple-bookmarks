@@ -19,6 +19,7 @@ import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames, mergeEnglishEntityName } from "@/services/entityNames";
 import { resolveWikipediaLinks } from "@/services/wikidataGeocoding";
+import { AppError } from "@/utils/errors";
 import {
   collectSubtreeIds as collectParentTreeSubtreeIds,
   computeSubtreeBookmarkCounts,
@@ -26,10 +27,9 @@ import {
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a reparent would put a location under itself or one of its descendants. */
-export class LocationCycleError extends Error {
+export class LocationCycleError extends AppError {
   constructor() {
-    super("Cannot move a location under itself or one of its descendants");
-    this.name = "LocationCycleError";
+    super("Cannot move a location under itself or one of its descendants", "cycle", 400);
   }
 }
 

@@ -13,6 +13,7 @@ import {
   type RelationshipTypeRow,
 } from "@/db/schema";
 import { getBookmarkEvaluationData, invalidateBookmarkCache } from "@/services/bookmarkCache";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -21,18 +22,19 @@ const takenSlugs = (excludeId?: string) =>
   takenSlugsOf(relationshipTypes, relationshipTypes.slug, relationshipTypes.id, excludeId);
 
 /** Thrown when a create/rename collides with an existing relationship type name. */
-export class DuplicateRelationshipTypeError extends Error {
+export class DuplicateRelationshipTypeError extends AppError {
   constructor(name: string) {
-    super(`A relationship type named "${name}" already exists`);
-    this.name = "DuplicateRelationshipTypeError";
+    super(`A relationship type named "${name}" already exists`, "duplicateName", 409, {
+      entity: "relationship type",
+      name,
+    });
   }
 }
 
 /** Thrown when an update or delete targets a built-in relationship type in a disallowed way. */
-export class BuiltInRelationshipTypeError extends Error {
+export class BuiltInRelationshipTypeError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "BuiltInRelationshipTypeError";
+    super(message, "builtInImmutable", 403);
   }
 }
 

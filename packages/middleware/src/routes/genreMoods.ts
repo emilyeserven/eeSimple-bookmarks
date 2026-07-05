@@ -4,13 +4,12 @@ import {
   bulkDeleteGenreMoods,
   createGenreMood,
   deleteGenreMood,
-  DuplicateGenreMoodError,
-  GenreMoodCycleError,
   getGenreMoodTree,
   listGenreMoods,
   updateGenreMood,
 } from "@/services/genreMoods";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const genreMoodParams = {
   type: "object",
@@ -78,18 +77,8 @@ export async function genreMoodRoutes(app: FastifyInstance): Promise<void> {
       body: createGenreMoodBody,
     },
   }, async (req, reply) => {
-    try {
-      const genreMood = await createGenreMood(req.body as CreateGenreMoodInput);
-      return reply.code(201).send(genreMood);
-    }
-    catch (err) {
-      if (err instanceof DuplicateGenreMoodError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const genreMood = await createGenreMood(req.body as CreateGenreMoodInput);
+    return reply.code(201).send(genreMood);
   });
 
   app.patch("/api/genre-moods/:id", {
@@ -102,26 +91,9 @@ export async function genreMoodRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const genreMood = await updateGenreMood(id, req.body as UpdateGenreMoodInput);
-      if (!genreMood) return reply.code(404).send({
-        message: "Genres & Moods entry not found",
-      });
-      return genreMood;
-    }
-    catch (err) {
-      if (err instanceof DuplicateGenreMoodError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof GenreMoodCycleError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const genreMood = await updateGenreMood(id, req.body as UpdateGenreMoodInput);
+    if (!genreMood) throw new NotFoundError("Genres & Moods entry");
+    return genreMood;
   });
 
   app.delete("/api/genre-moods/:id", {
@@ -134,9 +106,7 @@ export async function genreMoodRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteGenreMood(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Genres & Moods entry not found",
-    });
+    if (!deleted) throw new NotFoundError("Genres & Moods entry");
     return reply.code(204).send();
   });
 }

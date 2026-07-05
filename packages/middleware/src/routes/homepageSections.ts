@@ -12,6 +12,7 @@ import {
   updateHomepageSection,
 } from "@/services/homepageSections";
 import { cardZoneLayoutsSchema, fieldZonesSchema } from "@/routes/cardFieldZonesSchema";
+import { NotFoundError } from "@/utils/errors";
 
 /**
  * `sort`: a `BookmarkSort` (@eesimple/types) — either a primary/secondary field ordering or a
@@ -265,12 +266,7 @@ export async function homepageSectionsRoutes(app: FastifyInstance): Promise<void
     const input = req.body as UpdateHomepageSectionInput;
     const section = await updateHomepageSection(id, input);
     if (!section) {
-      reply.status(404);
-      return {
-        error: "Not Found",
-        message: "Section not found",
-        statusCode: 404,
-      };
+      throw new NotFoundError("Section");
     }
     return section;
   });

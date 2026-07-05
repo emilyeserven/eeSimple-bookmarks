@@ -8,14 +8,17 @@ import type {
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { customProperties, propertyGroups, type PropertyGroupRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing property group name. */
-export class DuplicatePropertyGroupError extends Error {
+export class DuplicatePropertyGroupError extends AppError {
   constructor(name: string) {
-    super(`A property group named "${name}" already exists`);
-    this.name = "DuplicatePropertyGroupError";
+    super(`A property group named "${name}" already exists`, "duplicateName", 409, {
+      entity: "property group",
+      name,
+    });
   }
 }
 

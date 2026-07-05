@@ -19,8 +19,14 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
       message?: string;
       code?: string;
       detail?: string;
+      params?: Record<string, string | number>;
     };
-    throw new ApiError(body.message ?? `Request failed with ${res.status}`, body.code, body.detail);
+    throw new ApiError(
+      body.message ?? `Request failed with ${res.status}`,
+      body.code,
+      body.detail,
+      body.params,
+    );
   }
 
   if (res.status === 204) return undefined as T;

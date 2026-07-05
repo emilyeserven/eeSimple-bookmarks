@@ -11,6 +11,7 @@ import {
   updateCardDisplayRule,
 } from "@/services/cardDisplayRules";
 import { cardZoneLayoutsSchema, fieldZonesSchema } from "@/routes/cardFieldZonesSchema";
+import { NotFoundError, ValidationError } from "@/utils/errors";
 
 const ruleParams = {
   type: "object",
@@ -145,12 +146,7 @@ export async function cardDisplayRulesRoutes(app: FastifyInstance): Promise<void
     const input = req.body as UpdateCardDisplayRuleInput;
     const rule = await updateCardDisplayRule(id, input);
     if (!rule) {
-      reply.status(404);
-      return {
-        error: "Not Found",
-        message: "Card display rule not found",
-        statusCode: 404,
-      };
+      throw new NotFoundError("Card display rule");
     }
     return rule;
   });
@@ -166,12 +162,7 @@ export async function cardDisplayRulesRoutes(app: FastifyInstance): Promise<void
     } = req.params as { id: string };
     const deleted = await deleteCardDisplayRule(id);
     if (!deleted) {
-      reply.status(400);
-      return {
-        error: "Bad Request",
-        message: "The Default rule cannot be deleted",
-        statusCode: 400,
-      };
+      throw new ValidationError("The Default rule cannot be deleted");
     }
     reply.status(204);
   });

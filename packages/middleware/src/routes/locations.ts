@@ -14,7 +14,6 @@ import {
   ensureLocationBoundary,
   getLocationTree,
   listLocations,
-  LocationCycleError,
   refreshLocationCoordinates,
   setLocationAncestors,
   updateLocation,
@@ -22,6 +21,7 @@ import {
 import { geocodeLocation } from "@/services/geocoding";
 import { wikidataGeocode } from "@/services/wikidataGeocoding";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const locationParams = {
   type: "object",
@@ -269,25 +269,13 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
       params: locationParams,
       body: setAncestorsBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const location = await setLocationAncestors(id, req.body as SetLocationAncestorsInput);
-      if (!location) return reply.code(404).send({
-        message: "Location not found",
-      });
-      return location;
-    }
-    catch (err) {
-      if (err instanceof LocationCycleError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const location = await setLocationAncestors(id, req.body as SetLocationAncestorsInput);
+    if (!location) throw new NotFoundError("Location");
+    return location;
   });
 
   app.patch("/api/locations/:id", {
@@ -296,25 +284,13 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
       params: locationParams,
       body: updateLocationBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const location = await updateLocation(id, req.body as UpdateLocationInput);
-      if (!location) return reply.code(404).send({
-        message: "Location not found",
-      });
-      return location;
-    }
-    catch (err) {
-      if (err instanceof LocationCycleError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const location = await updateLocation(id, req.body as UpdateLocationInput);
+    if (!location) throw new NotFoundError("Location");
+    return location;
   });
 
   app.post("/api/locations/:id/refresh-boundary", {
@@ -322,14 +298,12 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
       tags: ["locations"],
       params: locationParams,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
     const location = await ensureLocationBoundary(id);
-    if (!location) return reply.code(404).send({
-      message: "Location not found",
-    });
+    if (!location) throw new NotFoundError("Location");
     return location;
   });
 
@@ -338,14 +312,12 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
       tags: ["locations"],
       params: locationParams,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
     const location = await refreshLocationCoordinates(id);
-    if (!location) return reply.code(404).send({
-      message: "Location not found",
-    });
+    if (!location) throw new NotFoundError("Location");
     return location;
   });
 
@@ -354,14 +326,12 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
       tags: ["locations"],
       params: locationParams,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
     const location = await autofillLocationWikipediaLinks(id);
-    if (!location) return reply.code(404).send({
-      message: "Location not found",
-    });
+    if (!location) throw new NotFoundError("Location");
     return location;
   });
 
@@ -375,9 +345,7 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteLocation(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Location not found",
-    });
+    if (!deleted) throw new NotFoundError("Location");
     return reply.code(204).send();
   });
 }

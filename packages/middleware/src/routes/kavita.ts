@@ -7,6 +7,7 @@ import {
   searchKavitaSeries,
 } from "@/services/kavita";
 import { processImage } from "@/utils/image";
+import { AppError, NotFoundError, StorageUnconfiguredError } from "@/utils/errors";
 
 const seriesQuery = {
   type: "object",
@@ -53,11 +54,9 @@ export async function kavitaRoutes(app: FastifyInstance): Promise<void> {
       tags: ["connectors"],
       querystring: seriesQuery,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     if (!(await kavitaEnabledAsync())) {
-      return reply.code(503).send({
-        message: "Kavita is not configured",
-      });
+      throw new StorageUnconfiguredError("Kavita is not configured");
     }
     const {
       q,
@@ -72,25 +71,19 @@ export async function kavitaRoutes(app: FastifyInstance): Promise<void> {
       tags: ["connectors"],
       params: seriesCoverParams,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     if (!(await kavitaEnabledAsync())) {
-      return reply.code(503).send({
-        message: "Kavita is not configured",
-      });
+      throw new StorageUnconfiguredError("Kavita is not configured");
     }
     const {
       seriesId,
     } = req.params as { seriesId: number };
     const outcome = await fetchKavitaSeriesDetail(seriesId);
     if (outcome.status === "not_found") {
-      return reply.code(404).send({
-        message: "Series not found on Kavita",
-      });
+      throw new NotFoundError("Series", "Series not found on Kavita");
     }
     if (outcome.status === "unavailable") {
-      return reply.code(502).send({
-        message: "Could not read series details from Kavita",
-      });
+      throw new AppError("Could not read series details from Kavita", "internal", 502);
     }
     return outcome.result;
   });
@@ -104,24 +97,18 @@ export async function kavitaRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (req, reply) => {
     if (!(await kavitaEnabledAsync())) {
-      return reply.code(503).send({
-        message: "Kavita is not configured",
-      });
+      throw new StorageUnconfiguredError("Kavita is not configured");
     }
     const {
       seriesId,
     } = req.params as { seriesId: number };
     const bytes = await fetchKavitaSeriesCover(seriesId);
     if (!bytes) {
-      return reply.code(404).send({
-        message: "No cover available",
-      });
+      throw new NotFoundError("Cover", "No cover available");
     }
     const processed = await processImage(bytes);
     if ("error" in processed) {
-      return reply.code(404).send({
-        message: "No cover available",
-      });
+      throw new NotFoundError("Cover", "No cover available");
     }
     reply.header("Content-Type", processed.contentType);
     reply.header("Cache-Control", "public, max-age=3600");
@@ -135,25 +122,19 @@ export async function kavitaRoutes(app: FastifyInstance): Promise<void> {
       tags: ["connectors"],
       querystring: tocQuery,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     if (!(await kavitaEnabledAsync())) {
-      return reply.code(503).send({
-        message: "Kavita is not configured",
-      });
+      throw new StorageUnconfiguredError("Kavita is not configured");
     }
     const {
       seriesId,
     } = req.query as { seriesId: number };
     const outcome = await fetchKavitaToc(seriesId);
     if (outcome.status === "no_chapter") {
-      return reply.code(404).send({
-        message: "No EPUB or PDF file found for this series",
-      });
+      throw new NotFoundError("File", "No EPUB or PDF file found for this series");
     }
     if (outcome.status === "unavailable") {
-      return reply.code(502).send({
-        message: "Could not read the table of contents from Kavita",
-      });
+      throw new AppError("Could not read the table of contents from Kavita", "internal", 502);
     }
     return outcome.result;
   });

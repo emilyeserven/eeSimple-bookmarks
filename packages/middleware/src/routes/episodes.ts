@@ -4,11 +4,11 @@ import {
   bulkDeleteEpisodes,
   createEpisode,
   deleteEpisode,
-  DuplicateEpisodeError,
   listEpisodes,
   updateEpisode,
 } from "@/services/episodes";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
+import { NotFoundError } from "@/utils/errors";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
@@ -101,18 +101,8 @@ export async function episodeRoutes(app: FastifyInstance): Promise<void> {
       body: createEpisodeBody,
     },
   }, async (req, reply) => {
-    try {
-      const episode = await createEpisode(req.body as CreateEpisodeInput);
-      return reply.code(201).send(episode);
-    }
-    catch (err) {
-      if (err instanceof DuplicateEpisodeError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const episode = await createEpisode(req.body as CreateEpisodeInput);
+    return reply.code(201).send(episode);
   });
 
   app.patch("/api/episodes/:id", {
@@ -125,21 +115,9 @@ export async function episodeRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const episode = await updateEpisode(id, req.body as UpdateEpisodeInput);
-      if (!episode) return reply.code(404).send({
-        message: "Episode not found",
-      });
-      return episode;
-    }
-    catch (err) {
-      if (err instanceof DuplicateEpisodeError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const episode = await updateEpisode(id, req.body as UpdateEpisodeInput);
+    if (!episode) throw new NotFoundError("Episode");
+    return episode;
   });
 
   app.delete("/api/episodes/:id", {
@@ -152,9 +130,7 @@ export async function episodeRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteEpisode(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Episode not found",
-    });
+    if (!deleted) throw new NotFoundError("Episode");
     return reply.code(204).send();
   });
 

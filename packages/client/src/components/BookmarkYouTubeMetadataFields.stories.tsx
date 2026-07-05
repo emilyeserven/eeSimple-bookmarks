@@ -15,6 +15,7 @@ const bookmark = makeBookmark({
     slug: "video",
     icon: null,
     parentId: null,
+    builtIn: false,
   },
 });
 

@@ -10,23 +10,22 @@ import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { languages, languageUsages, type LanguageRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { LANGUAGE_CODES } from "@/utils/languageCodes";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing language name or ISO code. */
-export class DuplicateLanguageError extends Error {
+export class DuplicateLanguageError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "DuplicateLanguageError";
+    super(message, "duplicateName", 409);
   }
 }
 
 /** Thrown when an update or delete targets a built-in language in a disallowed way. */
-export class BuiltInLanguageError extends Error {
+export class BuiltInLanguageError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "BuiltInLanguageError";
+    super(message, "builtInImmutable", 403);
   }
 }
 

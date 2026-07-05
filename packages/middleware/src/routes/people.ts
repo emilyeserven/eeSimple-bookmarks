@@ -16,13 +16,13 @@ import {
   createPerson,
   deletePerson,
   detectPersonSocialLinksFromWebsite,
-  DuplicatePersonError,
   listPeople,
   personExists,
   updatePerson,
 } from "@/services/people";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
+import { AppError, ImageTooLargeError, NoFileUploadedError, NotFoundError, StorageUnconfiguredError, ValidationError } from "@/utils/errors";
 
 const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
   no_image: "No avatar found at that URL",
@@ -161,18 +161,8 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
       body: createPersonBody,
     },
   }, async (req, reply) => {
-    try {
-      const person = await createPerson(req.body as CreatePersonInput);
-      return reply.code(201).send(person);
-    }
-    catch (err) {
-      if (err instanceof DuplicatePersonError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const person = await createPerson(req.body as CreatePersonInput);
+    return reply.code(201).send(person);
   });
 
   app.patch("/api/people/:id", {
@@ -185,21 +175,9 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const person = await updatePerson(id, req.body as UpdatePersonInput);
-      if (!person) return reply.code(404).send({
-        message: "Person not found",
-      });
-      return person;
-    }
-    catch (err) {
-      if (err instanceof DuplicatePersonError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const person = await updatePerson(id, req.body as UpdatePersonInput);
+    if (!person) throw new NotFoundError("Person");
+    return person;
   });
 
   app.delete("/api/people/:id", {
@@ -213,9 +191,7 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
     } = req.params as { id: string };
     const imageRow = await getPersonImageRow(id);
     const deleted = await deletePerson(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Person not found",
-    });
+    if (!deleted) throw new NotFoundError("Person");
     if (imageRow) await deleteObject(imageRow.objectKey).catch(() => undefined);
     return reply.code(204).send();
   });
@@ -232,33 +208,23 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     let bytes: Buffer;
     try {
       const file = await req.file();
-      if (!file) return reply.code(400).send({
-        message: "No file uploaded",
-      });
+      if (!file) throw new NoFileUploadedError();
       bytes = await file.toBuffer();
     }
     catch (err) {
       if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
-        return reply.code(413).send({
-          message: "Image is too large",
-        });
+        throw new ImageTooLargeError();
       }
       throw err;
     }
     const result = await setPersonImageFromBytes(id, bytes);
-    if (result === "not_found") return reply.code(404).send({
-      message: "Person not found",
-    });
-    if (result === "bad_image") return reply.code(415).send({
-      message: "Unsupported or invalid image",
-    });
+    if (result === "not_found") throw new NotFoundError("Person");
+    if (result === "bad_image") throw new AppError("Unsupported or invalid image", "unsupportedImage", 415);
     return reply.code(201).send(result);
   });
 
@@ -279,24 +245,16 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
     } = req.body as { source: "website" | "biography" | "social";
       platform?: SocialMediaPlatform; };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     if (source === "social" && !platform) {
-      return reply.code(400).send({
-        message: "A platform is required to fetch from a social account",
-      });
+      throw new ValidationError("A platform is required to fetch from a social account");
     }
     const result = source === "social"
       ? await fetchAndStorePersonImageFromSocial(id, platform!)
       : await fetchAndStorePersonImage(id, source);
-    if (result === "not_found") return reply.code(404).send({
-      message: "Person not found",
-    });
-    if (result === "no_url") return reply.code(400).send({
-      message: "No URL configured for that source",
-    });
+    if (result === "not_found") throw new NotFoundError("Person");
+    if (result === "no_url") throw new ValidationError("No URL configured for that source");
     if (typeof result === "string") {
       return reply.code(502).send({
         message: IMAGE_GRAB_ERROR_MESSAGES[result] ?? "Could not fetch an avatar",
@@ -323,9 +281,7 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
     } = req.query as { source: "website" | "biography" | "social";
       platform?: SocialMediaPlatform; };
     if (!(await personExists(id))) {
-      return reply.code(404).send({
-        message: "Person not found",
-      });
+      throw new NotFoundError("Person");
     }
     return {
       imageUrl: await resolvePersonImageUrl(id, source, platform),
@@ -343,9 +299,7 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const removed = await removePersonImage(id);
-    if (!removed) return reply.code(404).send({
-      message: "No avatar to delete",
-    });
+    if (!removed) throw new NotFoundError("Avatar", "No avatar to delete");
     return reply.code(204).send();
   });
 
@@ -360,13 +314,9 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const row = await getPersonImageRow(id);
-    if (!row) return reply.code(404).send({
-      message: "No avatar",
-    });
+    if (!row) throw new NotFoundError("Avatar", "No avatar");
     const object = await getObjectStream(row.objectKey);
-    if (!object) return reply.code(404).send({
-      message: "No avatar",
-    });
+    if (!object) throw new NotFoundError("Avatar", "No avatar");
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
     return reply.send(object.body);
@@ -397,17 +347,11 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
       channelId,
     } = req.body as { channelId: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     const result = await adoptChannelImageForPerson(id, channelId);
-    if (result === "not_found") return reply.code(404).send({
-      message: "Person or channel not found",
-    });
-    if (result === "no_image") return reply.code(404).send({
-      message: "Channel has no stored avatar",
-    });
+    if (result === "not_found") throw new NotFoundError("Person", "Person or channel not found");
+    if (result === "no_image") throw new NotFoundError("Channel", "Channel has no stored avatar");
     return reply.code(201).send(result);
   });
 
@@ -422,15 +366,9 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const result = await detectPersonSocialLinksFromWebsite(id);
-    if (result === "not_found") return reply.code(404).send({
-      message: "Person not found",
-    });
-    if (result === "no_url") return reply.code(400).send({
-      message: "No website URL configured for this person",
-    });
-    if (result === "fetch_error") return reply.code(502).send({
-      message: "Could not fetch the person's website",
-    });
+    if (result === "not_found") throw new NotFoundError("Person");
+    if (result === "no_url") throw new ValidationError("No website URL configured for this person");
+    if (result === "fetch_error") throw new AppError("Could not fetch the person's website", "internal", 502);
     return {
       detected: result,
     };
@@ -461,17 +399,11 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
       websiteId,
     } = req.body as { websiteId: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     const result = await adoptWebsiteFaviconForPerson(id, websiteId);
-    if (result === "not_found") return reply.code(404).send({
-      message: "Person or website not found",
-    });
-    if (result === "no_image") return reply.code(404).send({
-      message: "Website has no stored favicon",
-    });
+    if (result === "not_found") throw new NotFoundError("Person", "Person or website not found");
+    if (result === "no_image") throw new NotFoundError("Website", "Website has no stored favicon");
     return reply.code(201).send(result);
   });
 }

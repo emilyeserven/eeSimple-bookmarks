@@ -18,22 +18,24 @@ import {
   computeSubtreeBookmarkCounts,
   type SubtreeBookmarkCounts,
 } from "@/utils/parentTree";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing entry name under the same parent. */
-export class DuplicateGenreMoodError extends Error {
+export class DuplicateGenreMoodError extends AppError {
   constructor(name: string) {
-    super(`A Genres & Moods entry named "${name}" already exists`);
-    this.name = "DuplicateGenreMoodError";
+    super(`A Genres & Moods entry named "${name}" already exists`, "duplicateName", 409, {
+      entity: "Genres & Moods entry",
+      name,
+    });
   }
 }
 
 /** Thrown when a reparent would put an entry under itself or one of its descendants. */
-export class GenreMoodCycleError extends Error {
+export class GenreMoodCycleError extends AppError {
   constructor() {
-    super("Cannot move an entry under itself or one of its descendants");
-    this.name = "GenreMoodCycleError";
+    super("Cannot move an entry under itself or one of its descendants", "cycle", 400);
   }
 }
 

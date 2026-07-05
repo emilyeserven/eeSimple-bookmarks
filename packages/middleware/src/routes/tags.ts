@@ -5,7 +5,6 @@ import type {
   UpdateTagInput,
 } from "@eesimple/types";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
-import { InvalidRootTagError } from "@/services/categories";
 import {
   bulkDeleteTags,
   createTag,
@@ -14,9 +13,9 @@ import {
   getTagTree,
   listTags,
   setTagCategories,
-  TagCycleError,
   updateTag,
 } from "@/services/tags";
+import { NotFoundError } from "@/utils/errors";
 
 const tagParams = {
   type: "object",
@@ -110,21 +109,9 @@ export async function tagRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const tag = await updateTag(id, req.body as UpdateTagInput);
-      if (!tag) return reply.code(404).send({
-        message: "Tag not found",
-      });
-      return tag;
-    }
-    catch (err) {
-      if (err instanceof TagCycleError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const tag = await updateTag(id, req.body as UpdateTagInput);
+    if (!tag) throw new NotFoundError("Tag");
+    return tag;
   });
 
   app.delete("/api/tags/:id", {
@@ -137,9 +124,7 @@ export async function tagRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteTag(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Tag not found",
-    });
+    if (!deleted) throw new NotFoundError("Tag");
     return reply.code(204).send();
   });
 
@@ -170,22 +155,10 @@ export async function tagRoutes(app: FastifyInstance): Promise<void> {
     const {
       categoryIds,
     } = req.body as UpdateTagCategoriesInput;
-    try {
-      const result = await setTagCategories(id, categoryIds);
-      if (result === null) return reply.code(404).send({
-        message: "Tag not found",
-      });
-      return {
-        categoryIds: result,
-      };
-    }
-    catch (err) {
-      if (err instanceof InvalidRootTagError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const result = await setTagCategories(id, categoryIds);
+    if (result === null) throw new NotFoundError("Tag");
+    return {
+      categoryIds: result,
+    };
   });
 }

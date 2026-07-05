@@ -11,6 +11,7 @@ import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
+import { languageName } from "@/lib/builtInName";
 
 /** Column definitions for the Languages listing Table view. */
 export function useLanguageColumns(): ColumnDef<Language>[] {
@@ -25,7 +26,7 @@ export function useLanguageColumns(): ColumnDef<Language>[] {
         }) => (
           <div className="flex items-center gap-2 font-medium">
             <Languages className="size-4 shrink-0 text-muted-foreground" />
-            {row.original.name}
+            {languageName(row.original, i18n.language)}
             {row.original.builtIn ? <Badge variant="outline">{i18n.t("Built-in")}</Badge> : null}
           </div>
         ),

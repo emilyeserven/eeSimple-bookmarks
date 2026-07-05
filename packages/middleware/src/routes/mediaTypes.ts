@@ -2,16 +2,14 @@ import type { FastifyInstance } from "fastify";
 import type { CreateMediaTypeInput, UpdateMediaTypeInput } from "@eesimple/types";
 import {
   bulkDeleteMediaTypes,
-  BuiltInMediaTypeError,
   createMediaType,
   deleteMediaType,
-  DuplicateMediaTypeError,
   getMediaTypeTree,
   listMediaTypes,
-  MediaTypeNestingError,
   updateMediaType,
 } from "@/services/mediaTypes";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const mediaTypeParams = {
   type: "object",
@@ -93,23 +91,8 @@ export async function mediaTypeRoutes(app: FastifyInstance): Promise<void> {
       body: createMediaTypeBody,
     },
   }, async (req, reply) => {
-    try {
-      const mediaType = await createMediaType(req.body as CreateMediaTypeInput);
-      return reply.code(201).send(mediaType);
-    }
-    catch (err) {
-      if (err instanceof DuplicateMediaTypeError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof MediaTypeNestingError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const mediaType = await createMediaType(req.body as CreateMediaTypeInput);
+    return reply.code(201).send(mediaType);
   });
 
   app.patch("/api/media-types/:id", {
@@ -122,31 +105,9 @@ export async function mediaTypeRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const mediaType = await updateMediaType(id, req.body as UpdateMediaTypeInput);
-      if (!mediaType) return reply.code(404).send({
-        message: "Media type not found",
-      });
-      return mediaType;
-    }
-    catch (err) {
-      if (err instanceof DuplicateMediaTypeError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof BuiltInMediaTypeError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof MediaTypeNestingError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const mediaType = await updateMediaType(id, req.body as UpdateMediaTypeInput);
+    if (!mediaType) throw new NotFoundError("Media type");
+    return mediaType;
   });
 
   app.delete("/api/media-types/:id", {
@@ -158,20 +119,8 @@ export async function mediaTypeRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const deleted = await deleteMediaType(id);
-      if (!deleted) return reply.code(404).send({
-        message: "Media type not found",
-      });
-      return reply.code(204).send();
-    }
-    catch (err) {
-      if (err instanceof BuiltInMediaTypeError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const deleted = await deleteMediaType(id);
+    if (!deleted) throw new NotFoundError("Media type");
+    return reply.code(204).send();
   });
 }

@@ -8,14 +8,17 @@ import type {
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { books, mediaProperties, type MediaPropertyRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing media property name. */
-export class DuplicateMediaPropertyError extends Error {
+export class DuplicateMediaPropertyError extends AppError {
   constructor(name: string) {
-    super(`A media property named "${name}" already exists`);
-    this.name = "DuplicateMediaPropertyError";
+    super(`A media property named "${name}" already exists`, "duplicateName", 409, {
+      entity: "media property",
+      name,
+    });
   }
 }
 

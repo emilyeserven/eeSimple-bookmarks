@@ -6,6 +6,7 @@ import {
   deleteFavoriteSettingsPage,
   listFavoriteSettingsPages,
 } from "@/services/favoriteSettingsPages";
+import { NotFoundError } from "@/utils/errors";
 
 const idParams = {
   type: "object",
@@ -68,11 +69,7 @@ export async function favoriteSettingsPageRoutes(app: FastifyInstance): Promise<
     async (request, reply) => {
       const deleted = await deleteFavoriteSettingsPage(request.params.id);
       if (!deleted) {
-        return reply.status(404).send({
-          error: "Not Found",
-          message: "Favorite settings page not found",
-          statusCode: 404,
-        });
+        throw new NotFoundError("Favorite settings page");
       }
       return reply.status(204).send();
     },

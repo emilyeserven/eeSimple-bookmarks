@@ -6,6 +6,7 @@ import {
   deletePinnedSidebarItem,
   listPinnedSidebarItems,
 } from "@/services/pinnedSidebarItems";
+import { NotFoundError } from "@/utils/errors";
 
 const idParams = {
   type: "object",
@@ -72,11 +73,7 @@ export async function pinnedSidebarItemRoutes(app: FastifyInstance): Promise<voi
     async (request, reply) => {
       const deleted = await deletePinnedSidebarItem(request.params.id);
       if (!deleted) {
-        return reply.status(404).send({
-          error: "Not Found",
-          message: "Pinned item not found",
-          statusCode: 404,
-        });
+        throw new NotFoundError("Pinned item");
       }
       return reply.status(204).send();
     },

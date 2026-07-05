@@ -13,30 +13,31 @@ import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { bookmarks, mediaTypes, type MediaTypeRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing media type name. */
-export class DuplicateMediaTypeError extends Error {
+export class DuplicateMediaTypeError extends AppError {
   constructor(name: string) {
-    super(`A media type named "${name}" already exists`);
-    this.name = "DuplicateMediaTypeError";
+    super(`A media type named "${name}" already exists`, "duplicateName", 409, {
+      entity: "media type",
+      name,
+    });
   }
 }
 
 /** Thrown when an update or delete targets a built-in media type in a disallowed way. */
-export class BuiltInMediaTypeError extends Error {
+export class BuiltInMediaTypeError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "BuiltInMediaTypeError";
+    super(message, "builtInImmutable", 403);
   }
 }
 
 /** Thrown when a parent/child assignment would exceed the single allowed level of nesting. */
-export class MediaTypeNestingError extends Error {
+export class MediaTypeNestingError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "MediaTypeNestingError";
+    super(message, "validation", 400);
   }
 }
 

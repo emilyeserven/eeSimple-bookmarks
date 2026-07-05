@@ -240,6 +240,7 @@ async function mediaTypesById(mediaTypeIds: string[]): Promise<Map<string, Bookm
       slug: mediaTypes.slug,
       icon: mediaTypes.icon,
       parentId: mediaTypes.parentId,
+      builtIn: mediaTypes.builtIn,
     })
     .from(mediaTypes)
     .where(inArray(mediaTypes.id, mediaTypeIds));
@@ -251,6 +252,7 @@ async function mediaTypesById(mediaTypeIds: string[]): Promise<Map<string, Bookm
       slug: row.slug ?? row.id,
       icon: row.icon ?? null,
       parentId: row.parentId,
+      builtIn: row.builtIn,
     });
   }
   return byId;
