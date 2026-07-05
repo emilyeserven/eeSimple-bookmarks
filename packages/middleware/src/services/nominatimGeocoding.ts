@@ -219,7 +219,7 @@ export async function nominatimGeocode(query: string): Promise<LocationLookupRes
   url.searchParams.set("q", trimmed);
   url.searchParams.set("addressdetails", "1");
   // Per-language name tags so we can prefer the local name as the title and the English name as the
-  // romanized form (e.g. 萩市 / Hagi) instead of whatever single localized name `display_name` carries.
+  // secondary form (e.g. 萩市 / Hagi) instead of whatever single localized name `display_name` carries.
   url.searchParams.set("namedetails", "1");
   // Request the area outline so locations can render as polygons, not just pins. `polygon_threshold`
   // simplifies the geometry (Douglas–Peucker, degrees) to keep payloads modest — tunable.

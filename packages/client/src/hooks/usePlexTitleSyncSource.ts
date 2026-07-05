@@ -23,8 +23,8 @@ interface MetadataPreview {
 
 /**
  * Fetches a Plex-backed taxonomy's source metadata for the sync modal: the resolved Wikidata
- * native/romanized names + Wikipedia links (from the `…/plex-metadata-preview` endpoint) and the Plex
- * poster proxy URL, built into a current-vs-source diff. Only runs while the sync modal is open.
+ * native name + English name + Wikipedia links (from the `…/plex-metadata-preview` endpoint) and the
+ * Plex poster proxy URL, built into a current-vs-source diff. Only runs while the sync modal is open.
  */
 export function usePlexTitleSyncSource(provider: SyncProvider, enabled: boolean): SyncSourceFetch {
   const {

@@ -32,13 +32,13 @@ export interface BookmarkTitleFieldProps {
   expectedTitle?: string;
   onExpectedTitleChange?: (v: string) => void;
   onCancelReporting?: () => void;
-  /** Optional field (typically the romanized-name input) rendered between the title and its feedback. */
-  romanizedSlot?: ReactNode;
+  /** Optional field (typically the names-editor field) rendered between the title and its feedback. */
+  namesSlot?: ReactNode;
 }
 
 /**
  * The Name field: a title textarea with its fetch-title button, an optional slot (used for the
- * romanized-name field when co-located), the undo line, and the fetch feedback. Extracted from
+ * names-editor field when co-located), the undo line, and the fetch feedback. Extracted from
  * `RevealedNameField` so the title can be placed independently by the standard-field zone.
  */
 export function BookmarkTitleField({
@@ -59,7 +59,7 @@ export function BookmarkTitleField({
   expectedTitle = "",
   onExpectedTitleChange = () => undefined,
   onCancelReporting = () => undefined,
-  romanizedSlot,
+  namesSlot,
 }: BookmarkTitleFieldProps) {
   const {
     t,
@@ -97,7 +97,7 @@ export function BookmarkTitleField({
         )}
       </form.Subscribe>
 
-      {romanizedSlot}
+      {namesSlot}
 
       {titleFetch && (
         <p className="text-sm text-muted-foreground">

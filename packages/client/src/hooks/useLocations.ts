@@ -199,7 +199,7 @@ export function useRefreshLocationCoordinates() {
 
 /**
  * Try to autofill a location's English + local Wikipedia links from Wikidata, using its regular and
- * romanized titles. Used by the "Autofill Wikipedia links" button on the location edit/general page.
+ * English names. Used by the "Autofill Wikipedia links" button on the location edit/general page.
  * A found link only fills a currently-empty field — never overwrites a manually-entered one.
  */
 export function useAutofillLocationWikipediaLinks() {

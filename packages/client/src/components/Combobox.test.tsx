@@ -99,8 +99,8 @@ describe("Combobox", () => {
     expect(screen.getAllByTestId("web-icon").length).toBeGreaterThan(1);
   });
 
-  it("shows an option's romanized name after its label, in the list and the trigger", async () => {
-    const romanizedOptions: ComboboxOption[] = [
+  it("shows an option's secondary name after its label, in the list and the trigger", async () => {
+    const secondaryNameOptions: ComboboxOption[] = [
       {
         value: "fukuoka",
         label: "福岡県",
@@ -109,14 +109,14 @@ describe("Combobox", () => {
     ];
     await renderWithRouter(
       <Combobox
-        options={romanizedOptions}
+        options={secondaryNameOptions}
         value="fukuoka"
         onValueChange={vi.fn()}
         aria-label="Parent"
       />,
     );
 
-    // The trigger renders both the real name and its de-emphasized romanized form.
+    // The trigger renders both the real name and its de-emphasized secondary form.
     const trigger = screen.getByRole("combobox", {
       name: "Parent",
     });
@@ -130,8 +130,8 @@ describe("Combobox", () => {
     expect(option).toHaveTextContent("Fukuoka Prefecture");
   });
 
-  it("filters options by their romanized form", async () => {
-    const romanizedOptions: ComboboxOption[] = [
+  it("filters options by their secondary form", async () => {
+    const secondaryNameOptions: ComboboxOption[] = [
       {
         value: "fukuoka",
         label: "福岡県",
@@ -145,7 +145,7 @@ describe("Combobox", () => {
     ];
     await renderWithRouter(
       <Combobox
-        options={romanizedOptions}
+        options={secondaryNameOptions}
         onValueChange={vi.fn()}
         aria-label="Parent"
       />,

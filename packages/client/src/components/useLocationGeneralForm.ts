@@ -146,7 +146,7 @@ export function useLocationGeneralForm(node: LocationNode) {
     autoSave.saveField("usesWikidataCoordinates", next);
   }
 
-  // The slug derives from the name/romanized name; when a save moves it, follow it so the edit
+  // The slug derives from the name/English name; when a save moves it, follow it so the edit
   // page keeps resolving.
   const followSlug = (updated: Location) => {
     if (updated.slug !== node.slug) {

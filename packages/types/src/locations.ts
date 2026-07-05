@@ -1,6 +1,6 @@
 /**
  * Shared "Locations" taxonomy types. A Location is a hierarchical place (city → region → country)
- * a bookmark can be tagged with. Locations carry a title + romanized title + free-form alternate
+ * a bookmark can be tagged with. Locations carry a title + multilingual names + free-form alternate
  * names (different romanization styles), an optional geographic coordinate, a map link, and a
  * Google "Plus Code" (Open Location Code).
  *
@@ -217,7 +217,7 @@ function isLocationAncestor(
 /**
  * The ids of locations implied by a bookmark's title/name forms. Each location's `name`,
  * every `alternateNames[].value`, and every language-labelled `names` value are
- * tested against each of the bookmark's `titles` (its title + romanized title + every
+ * tested against each of the bookmark's `titles` (its title + every
  * language-labelled name value) via {@link titleMatchesTerm}. Pure helper — mirrors
  * `matchTagIdsByTitle`.
  *

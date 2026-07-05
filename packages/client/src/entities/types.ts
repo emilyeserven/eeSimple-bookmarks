@@ -116,8 +116,9 @@ export interface EntityTreeListingConfig<N extends { id: string;
   emptyMessage: ReactNode;
   /**
    * Client-side re-sort applied to the filtered tree before render. A hook slot (not a pure fn) so
-   * entities can read settings stores — Tags: romanized sort; Locations: place-type sort. Must be a
-   * stable hook per `pageKey` (same rule as `useBulkDelete`). Defaults to identity.
+   * entities can read settings stores — Tags: multilingual-name sort (`sortTagTree`); Locations:
+   * place-type sort. Must be a stable hook per `pageKey` (same rule as `useBulkDelete`). Defaults to
+   * identity.
    */
   useSortedTree?: (tree: N[]) => N[];
   /** Extra controls rendered left of the ExpandAllToggle (e.g. Locations' sort ToggleGroup). */

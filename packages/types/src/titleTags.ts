@@ -1,6 +1,6 @@
 /**
- * Shared "auto-tag from title" matcher — decides which tags a bookmark's title (and its romanized
- * form) implies. Pure, dependency-free, so it runs unchanged in the Fastify API
+ * Shared "auto-tag from title" matcher — decides which tags a bookmark's title (and its
+ * language-labelled name values) implies. Pure, dependency-free, so it runs unchanged in the Fastify API
  * (`@eesimple/middleware`, at create / backfill time) and in the browser (`@eesimple/client`, for
  * the Inbox prefill preview) — one implementation, no parallel re-translation.
  *
@@ -54,7 +54,7 @@ export function titleMatchesTerm(haystack: string, term: string): boolean {
 /**
  * The ids of tags implied by a bookmark's title/name forms. Each tag's `name` and
  * every language-labelled `names` value are tested against each of the bookmark's `titles` (its
- * title + romanized title + every language-labelled name value) via {@link titleMatchesTerm}.
+ * title + every language-labelled name value) via {@link titleMatchesTerm}.
  * Empty/whitespace haystacks and terms are ignored. Pure helper.
  */
 export function matchTagIdsByTitle(

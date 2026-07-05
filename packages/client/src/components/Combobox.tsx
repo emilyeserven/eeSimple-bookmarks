@@ -25,7 +25,7 @@ export interface ComboboxOption {
   value: string;
   label: string;
   depth?: number;
-  /** Optional secondary text (e.g. a romanized name) the search also matches against. */
+  /** Optional secondary text (e.g. a secondary/English name) the search also matches against. */
   searchAlias?: string;
   /**
    * Optional multilingual names for {@link label}, used to resolve a secondary display form shown

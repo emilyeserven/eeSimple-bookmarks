@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 export interface TreeComboboxOption {
   value: string;
   label: string;
-  /** Optional secondary text (e.g. a romanized name) — matched by search and shown de-emphasized. */
+  /** Optional secondary text (e.g. a secondary/English name) — matched by search and shown de-emphasized. */
   searchAlias?: string;
   icon?: React.ReactNode;
   children?: TreeComboboxOption[];

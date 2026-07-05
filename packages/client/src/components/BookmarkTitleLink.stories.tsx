@@ -28,7 +28,7 @@ export const Default: Story = {};
  * `bookmark.names`); the secondary form is the separately placeable `secondaryName` card field
  * ({@link BookmarkSecondaryNameField}).
  */
-export const Romanized: Story = {
+export const WithSecondaryName: Story = {
   args: {
     bookmark: makeBookmark({
       title: "東京タワー",
@@ -40,7 +40,7 @@ export const Romanized: Story = {
  * The placeable `secondaryName` card field: the de-emphasized **secondary** name. Rendered as its
  * own card field so it can be shown/hidden/repositioned independently of the title.
  */
-export const RomanizedField: StoryObj<typeof BookmarkSecondaryNameField> = {
+export const SecondaryNameField: StoryObj<typeof BookmarkSecondaryNameField> = {
   parameters: {
     msw: {
       handlers: apiHandlers,

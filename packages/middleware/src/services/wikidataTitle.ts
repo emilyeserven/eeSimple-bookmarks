@@ -1,6 +1,6 @@
 /**
  * Resolve a media-taxonomy title (Movie / TV Show / Episode / Album / Track) to its Wikidata
- * item, and from there its native-script name, romanized (English) name, and Wikipedia article links.
+ * item, and from there its native-script name, English name, and Wikipedia article links.
  * Powers the "Autofetch from Plex" action: a Plex item's external IDs (IMDb / TMDb / TVDB / MusicBrainz)
  * pin the exact Wikidata item precisely, falling back to a plain title search when no ID matches — the
  * media sibling of the Locations `resolveWikipediaLinks` convenience autofill.

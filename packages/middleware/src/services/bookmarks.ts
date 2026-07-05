@@ -394,8 +394,8 @@ export async function backfillTitleTags(): Promise<TitleTagBackfillResult> {
 
 /**
  * Apply the "auto-tag from title" automation for Locations to every existing bookmark, additively.
- * Mirrors {@link backfillTitleTags}: each bookmark's title (and romanized title) is matched against
- * every location's name + romanized + alternate names, and the matches are inserted idempotently.
+ * Mirrors {@link backfillTitleTags}: each bookmark's title is matched against every location's
+ * name + names[] (multi-language names) + alternate names, and the matches are inserted idempotently.
  */
 export async function backfillTitleLocations(): Promise<TitleTagBackfillResult> {
   const allLocations = await listLocationNames();

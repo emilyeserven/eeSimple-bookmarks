@@ -471,7 +471,14 @@ async function resolvePrimaryLanguageLevelId(): Promise<string | null> {
   return rows[0]?.id ?? null;
 }
 
-/** Owners of the given type that have no `entity_names` row yet (the idempotency guard). */
+/**
+ * Owners of the given type that have no `entity_names` row yet (the idempotency guard).
+ *
+ * `romanized_name` was dropped from every owner table by the #969 cleanup migration (guarded on
+ * `entity_names` already being populated for that owner type — see `migrate.ts`'s
+ * `shouldBailOnRomanizedDrop`), so this no longer reads that column; a row reaching this query with
+ * no `entity_names` row yet is backfilled from its base name only.
+ */
 async function selectOwnersWithoutNames(
   owner: { table: PgTable;
     nameColumn: string; },
@@ -480,18 +487,19 @@ async function selectOwnersWithoutNames(
   name: string | null;
   romanized: string | null; }[]> {
   const result = (await db.execute<{ id: string;
-    name: string | null;
-    romanized: string | null; }>(sql`
-    SELECT o.id AS id, o.${sql.identifier(owner.nameColumn)} AS name, o.romanized_name AS romanized
+    name: string | null; }>(sql`
+    SELECT o.id AS id, o.${sql.identifier(owner.nameColumn)} AS name
     FROM ${owner.table} o
     WHERE NOT EXISTS (
       SELECT 1 FROM ${entityNames} e
       WHERE e.owner_type = ${ownerType} AND e.owner_id = o.id
     )
   `)) as unknown as { rows: { id: string;
-    name: string | null;
-    romanized: string | null; }[]; };
-  return result.rows;
+    name: string | null; }[]; };
+  return result.rows.map(row => ({
+    ...row,
+    romanized: null,
+  }));
 }
 
 /** Drop bookmarks that already carry a Primary Language usage (belt-and-braces idempotency). */
@@ -563,10 +571,13 @@ async function insertInChunks<T>(rows: T[], insert: (chunk: T[]) => Promise<unkn
 }
 
 /**
- * One-time, idempotent boot backfill (#966): seed `entity_names` from every owner's existing
- * name/title + `romanized_name`, labelling each by its detected script's language, and attach a
- * "Primary Language" `language_usages` row to Korean/Japanese bookmarks. Re-runs insert nothing — an
- * owner that already has any `entity_names` row is skipped, so a second boot logs all-zero counts.
+ * Idempotent boot backfill, originally #966: seed `entity_names` from every owner's existing
+ * name/title, labelling each by its detected script's language, and attach a "Primary Language"
+ * `language_usages` row to Korean/Japanese bookmarks. `romanized_name` was dropped by the #969
+ * cleanup (guarded on `entity_names` already being populated everywhere it had data), so this now
+ * only backstops an owner row that somehow still has no `entity_names` row. Re-runs insert
+ * nothing — an owner that already has any `entity_names` row is skipped, so a second boot logs
+ * all-zero counts.
  */
 export async function backfillEntityNames(): Promise<void> {
   const resolved = await resolveBackfillLanguageIds();

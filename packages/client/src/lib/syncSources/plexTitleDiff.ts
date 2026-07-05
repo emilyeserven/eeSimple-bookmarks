@@ -38,8 +38,8 @@ const FIELD_LABELS: Record<PlexTitleSyncField, string> = {
 };
 
 /**
- * Builds the "Plex" diff group from the resolved `source` (Wikidata native/romanized names + Wikipedia
- * links, plus the Plex poster) and the title's `current` values. Only fields the source returned that
+ * Builds the "Plex" diff group from the resolved `source` (Wikidata native name + English name +
+ * Wikipedia links, plus the Plex poster) and the title's `current` values. Only fields the source returned that
  * differ from the current value become rows; each text row's checkbox defaults to checked only when it
  * fills an empty field (fill-empty). Text rows carry a `{ field, value }` payload the registration hook
  * stages into the edit form; the poster row applies immediately (image sources store on apply). Pure +

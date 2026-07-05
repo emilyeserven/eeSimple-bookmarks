@@ -47,7 +47,7 @@ const rootNode: TagNode = {
   children: [],
 };
 
-const romanizedParent: TagNode = {
+const secondaryNameParent: TagNode = {
   ...makeTag({
     id: "tag-jp",
     name: "開発",
@@ -100,13 +100,13 @@ export const Root: Story = {
 };
 
 /** A custom parent renderer (Tags style: a `LocalizedNameLabel` with a secondary name form). */
-export const RomanizedParent: Story = {
+export const SecondaryNameParent: Story = {
   args: {
-    parent: romanizedParent,
+    parent: secondaryNameParent,
     renderParent: () => (
       <LocalizedNameLabel
-        names={romanizedParent.names ?? []}
-        base={romanizedParent.name}
+        names={secondaryNameParent.names ?? []}
+        base={secondaryNameParent.name}
       />
     ),
     autofillClassName: "pt-2",

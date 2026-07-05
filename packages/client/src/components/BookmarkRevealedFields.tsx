@@ -150,8 +150,8 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
 
   // Name fields (title/other names) live in the banner grid; other main-area fields render below it.
   const showTitle = mainStandardFields.includes("title");
-  const showRomanized = mainStandardFields.includes("names");
-  const showNameCluster = !props.hideNameField && (showTitle || showRomanized);
+  const showNames = mainStandardFields.includes("names");
+  const showNameCluster = !props.hideNameField && (showTitle || showNames);
   const mainBodyFields = mainStandardFields.filter(
     field => field !== "title" && field !== "names",
   );
@@ -182,7 +182,7 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
           <RevealedNameField
             {...props}
             showTitle={showTitle}
-            showRomanized={showRomanized}
+            showNames={showNames}
           />
         )}
       </div>

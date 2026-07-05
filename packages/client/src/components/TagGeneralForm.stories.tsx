@@ -25,11 +25,11 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** Edit a tag's name, romanized name, parent, and card toggles — each field auto-saves on blur/change. */
+/** Edit a tag's name, other names, parent, and card toggles — each field auto-saves on blur/change. */
 export const Default: Story = {};
 
 /** A root tag with the card quick-toggle enabled. */
-export const RootWithRomanized: Story = {
+export const RootWithCardToggle: Story = {
   args: {
     node: {
       ...sampleTagTree[0],

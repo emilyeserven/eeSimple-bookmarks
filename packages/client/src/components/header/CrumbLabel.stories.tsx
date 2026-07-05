@@ -19,11 +19,11 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** A plain label with no romanized form. */
+/** A plain label with no secondary name form. */
 export const Default: Story = {};
 
 /** A label with a secondary name form stacked beneath it in muted text. */
-export const WithRomanized: Story = {
+export const WithSecondaryName: Story = {
   args: {
     label: "日本語",
     names: [
