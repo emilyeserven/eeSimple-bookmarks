@@ -55,6 +55,7 @@ export function TrackGeneralForm({
       entity={track}
       kind="track"
       ownerType="track"
+      mediaOwnerType="track"
       update={update}
       onRenamed={slug => void navigate({
         to: "/taxonomies/tracks/$trackSlug/edit/general",

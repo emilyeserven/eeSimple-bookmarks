@@ -7,6 +7,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
+import { LocationAssignmentSection } from "./LocationAssignmentSection";
 import { PodcastAuthorsFields } from "./PodcastAuthorsFields";
 import { PodcastSearchPicker } from "./PodcastSearchPicker";
 import { TaxonomyGeneralFields } from "./TaxonomyGeneralFields";
@@ -328,6 +330,16 @@ export function PodcastGeneralForm({
           />
         )}
       </form.AppField>
+
+      <GenreMoodAssignmentSection
+        ownerType="podcast"
+        ownerId={podcast.id}
+      />
+
+      <LocationAssignmentSection
+        ownerType="podcast"
+        ownerId={podcast.id}
+      />
     </div>
   );
 }

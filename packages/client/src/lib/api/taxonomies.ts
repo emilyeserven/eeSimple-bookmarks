@@ -51,6 +51,8 @@ import type {
   GenreMoodNode,
   GenreMoodOwnerType,
   BookmarkGenreMood,
+  LocationAssignmentOwnerType,
+  OwnerLocation,
   Location,
   LocationLookupResult,
   LocationNode,
@@ -218,6 +220,18 @@ export const genreMoodAssignmentsApi = {
       method: "PUT",
       body: JSON.stringify({
         genreMoodIds,
+      }),
+    }),
+};
+
+export const locationAssignmentsApi = {
+  list: (ownerType: LocationAssignmentOwnerType, ownerId: string) =>
+    request<OwnerLocation[]>(`/location-assignments/${ownerType}/${ownerId}`),
+  set: (ownerType: LocationAssignmentOwnerType, ownerId: string, locationIds: string[]) =>
+    request<OwnerLocation[]>(`/location-assignments/${ownerType}/${ownerId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        locationIds,
       }),
     }),
 };

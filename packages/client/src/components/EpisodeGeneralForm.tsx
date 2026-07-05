@@ -55,6 +55,7 @@ export function EpisodeGeneralForm({
       entity={episode}
       kind="episode"
       ownerType="episode"
+      mediaOwnerType="episode"
       update={update}
       onRenamed={slug => void navigate({
         to: "/taxonomies/episodes/$episodeSlug/edit/general",

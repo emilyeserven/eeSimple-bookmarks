@@ -439,7 +439,7 @@ export type TranslationSourceRow = typeof translationSources.$inferSelect;
  * because one physical table can't carry a foreign key into six different owner tables — the same
  * trade `taxonomy_images` makes.
  */
-export const LANGUAGE_USAGE_OWNER_TYPES = ["bookmark", "movie", "tvShow", "website", "youtubeChannel", "person"] as const;
+export const LANGUAGE_USAGE_OWNER_TYPES = ["bookmark", "movie", "tvShow", "episode", "album", "track", "book", "podcast", "website", "youtubeChannel", "person"] as const;
 
 /**
  * `language_usages` table — associates a language + a usage level with an owner entity (a bookmark,
@@ -1207,6 +1207,25 @@ export const genreMoodsRelations = relations(genreMoods, ({
   }),
   assignments: many(genreMoodAssignments),
 }));
+
+/**
+ * `location_assignments` — the polymorphic layer attaching a Location term to any owner in
+ * `LOCATION_ASSIGNMENT_OWNER_TYPES` (currently the media taxonomies). A real FK on the value side
+ * (cascade), but `ownerId` carries no FK since one table can't reference a dozen owner tables — so
+ * owner deletes must clean up their rows in the service layer (mirrors `genre_mood_assignments`).
+ */
+export const locationAssignments = pgTable("location_assignments", {
+  locationId: uuid("location_id").notNull().references(() => locations.id, {
+    onDelete: "cascade",
+  }),
+  ownerType: text("owner_type").notNull(),
+  ownerId: uuid("owner_id").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.locationId, table.ownerType, table.ownerId],
+  }),
+  index("location_assignments_owner_idx").on(table.ownerType, table.ownerId),
+]);
 
 export const genreMoodAssignmentsRelations = relations(genreMoodAssignments, ({
   one,

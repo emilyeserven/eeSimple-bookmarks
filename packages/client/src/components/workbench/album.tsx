@@ -4,6 +4,7 @@ import type { Album } from "@eesimple/types";
 import i18n from "../../i18n";
 import { AlbumCreditsValue } from "../AlbumCreditsSection";
 import { AlbumGeneralForm } from "../AlbumGeneralForm";
+import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
 
@@ -100,6 +101,35 @@ export const albumWorkbench: EntityWorkbench<Album> = {
             entity={entity}
             imagesApi={albumsApi.images}
             queryKeyPrefix="album-images"
+          />
+        ),
+      },
+    },
+    {
+      key: "languages",
+      label: i18n.t("Languages"),
+      view: {
+        title: i18n.t("Languages"),
+        description: i18n.t("Languages this album is available in and how."),
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabView
+            ownerType="album"
+            ownerId={entity.id}
+          />
+        ),
+      },
+      edit: {
+        title: i18n.t("Languages"),
+        description: i18n.t("Record which languages this album offers (dub, subtitles, …)."),
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabEditor
+            ownerType="album"
+            ownerId={entity.id}
+            kind="availability"
           />
         ),
       },

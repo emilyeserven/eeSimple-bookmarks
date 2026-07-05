@@ -4,6 +4,7 @@ import type { Episode } from "@eesimple/types";
 import i18n from "../../i18n";
 import { EpisodeGeneralForm } from "../EpisodeGeneralForm";
 import { EpisodeTvShowValue } from "../EpisodeTvShowField";
+import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
 
@@ -100,6 +101,35 @@ export const episodeWorkbench: EntityWorkbench<Episode> = {
             entity={entity}
             imagesApi={episodesApi.images}
             queryKeyPrefix="episode-images"
+          />
+        ),
+      },
+    },
+    {
+      key: "languages",
+      label: i18n.t("Languages"),
+      view: {
+        title: i18n.t("Languages"),
+        description: i18n.t("Languages this episode is available in and how."),
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabView
+            ownerType="episode"
+            ownerId={entity.id}
+          />
+        ),
+      },
+      edit: {
+        title: i18n.t("Languages"),
+        description: i18n.t("Record which languages this episode offers (dub, subtitles, …)."),
+        render: ({
+          entity,
+        }) => (
+          <LanguageUsagesTabEditor
+            ownerType="episode"
+            ownerId={entity.id}
+            kind="availability"
           />
         ),
       },

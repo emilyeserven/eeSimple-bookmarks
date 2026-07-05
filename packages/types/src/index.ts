@@ -30,6 +30,7 @@ export * from "./homepageWidgets.js";
 export * from "./importBlacklist.js";
 export * from "./isbn.js";
 export * from "./languageUsages.js";
+export * from "./locationAssignments.js";
 export * from "./locations.js";
 export * from "./mediaProperties.js";
 export * from "./movies.js";
