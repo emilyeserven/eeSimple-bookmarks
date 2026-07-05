@@ -1,7 +1,7 @@
 import type { BookmarkCardMenuControls } from "./BookmarkCardActions";
 import type { FieldRender } from "./bookmarkCardTaxonomyFields";
 import type { ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
-import type { Bookmark, CardFieldZone, CardZoneAlign, CardZoneDirection, CardZoneGap, CardZoneLayout, CardZoneLayouts, CardZoneVerticalAlign, CardZoneWrap, Category, CustomProperty } from "@eesimple/types";
+import type { Bookmark, CardFieldZone, CardZoneLayout, CardZoneLayouts, Category, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
@@ -14,6 +14,7 @@ import { BookmarkSecondaryNameField, BookmarkTitleLink, DescriptionOverflowDiv }
 import { useBookmarkLinkOutNodes } from "./useBookmarkLinkOutNodes";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
+import { cardBodyContainerClass, gapClass, zoneForm } from "../lib/cardZoneLayoutClasses";
 
 /** The card header field keys, rendered as a justified header row when co-located in a single zone. */
 const HEADER_FIELD_KEYS = new Set(["title", "externalLink", "more"]);
@@ -41,76 +42,12 @@ interface BookmarkCardDetailsProps {
   onSaveRating?: (propertyId: string, value: number) => void;
 }
 
-/** The three render forms a card-body sub-zone imposes on the fields placed in it. */
-type FieldForm = "single" | "label" | "table";
-
-function zoneForm(zone: CardFieldZone): FieldForm {
-  if (zone === "card-labels") return "label";
-  if (zone === "card-table") return "table";
-  return "single";
-}
-
 /** The zone's layout, defaulting to its natural arrangement (Table → grid, others → flex) when unset. */
 function zoneLayout(zone: CardFieldZone, layouts: CardZoneLayouts | undefined): CardZoneLayout {
   return normalizeCardZoneLayout(
     layouts?.[zone as keyof CardZoneLayouts],
     zone === "card-table" ? "grid" : "flex",
   );
-}
-
-// Static Tailwind class maps for the per-zone gap/alignment knobs. These must be whole literal class
-// strings (not interpolated) so Tailwind's content scanner keeps them.
-const GAP_CLASS: Record<CardZoneGap, string> = {
-  sm: "gap-1",
-  md: "gap-2",
-  lg: "gap-4",
-};
-const ALIGN_JUSTIFY: Record<CardZoneAlign, string> = {
-  start: "justify-start",
-  center: "justify-center",
-  end: "justify-end",
-  between: "justify-between",
-};
-const ALIGN_ITEMS: Record<CardZoneVerticalAlign, string> = {
-  start: "items-start",
-  center: "items-center",
-  end: "items-end",
-  stretch: "items-stretch",
-};
-const DIRECTION_CLASS: Record<CardZoneDirection, string> = {
-  row: "flex-row",
-  column: "flex-col",
-};
-const WRAP_CLASS: Record<CardZoneWrap, string> = {
-  wrap: "flex-wrap",
-  nowrap: "flex-nowrap",
-};
-
-/** The gap utility class for a zone's resolved layout (defaults to `md`). */
-function gapClass(layout: CardZoneLayout): string {
-  return GAP_CLASS[layout.gap ?? "md"];
-}
-
-/** The flex main-axis justification class for a zone's resolved layout (defaults to `start`). */
-function justifyClass(layout: CardZoneLayout): string {
-  return ALIGN_JUSTIFY[layout.align ?? "start"];
-}
-
-/**
- * The cross-axis `items-*` class for a zone's resolved layout. `fallback` is the prior hard-coded
- * default for that container (e.g. `center` for the row zones) so an unset `alignItems` keeps today's look.
- */
-function alignItemsClass(layout: CardZoneLayout, fallback: CardZoneVerticalAlign): string {
-  return ALIGN_ITEMS[layout.alignItems ?? fallback];
-}
-
-/**
- * The flex direction + wrap classes for a zone's resolved layout. `fallbackDirection` is the prior
- * hard-coded direction for that container (`row` for the label/table zones, `column` for the
- * single-column zones) so an unset `direction` keeps today's look.
- */
-function flexFlowClass(layout: CardZoneLayout, fallbackDirection: CardZoneDirection = "row"): string {
-  return `${DIRECTION_CLASS[layout.direction ?? fallbackDirection]} ${WRAP_CLASS[layout.wrap ?? "wrap"]}`;
 }
 
 /**
@@ -360,9 +297,7 @@ export function BookmarkCardDetails({
     if (form === "label") {
       // Flex: pills/badges flow in a wrap row. Grid: a fixed two-column grid. Block-only fields
       // (description, tags) span the full width in either layout.
-      const containerClass = layout.mode === "grid"
-        ? `grid grid-cols-2 ${alignItemsClass(layout, "center")} ${gapClass(layout)}`
-        : `flex ${flexFlowClass(layout)} ${alignItemsClass(layout, "center")} ${gapClass(layout)} ${justifyClass(layout)}`;
+      const containerClass = cardBodyContainerClass("label", layout);
       const blockClass = layout.mode === "grid" ? "col-span-2" : "w-full";
       return (
         <div
@@ -394,9 +329,7 @@ export function BookmarkCardDetails({
     const hasHeader = titleEntry !== undefined || actionEntries.length > 0;
     // Grid arranges the non-header rows in two columns; flex honors the zone's resolved layout
     // (direction defaults to `column` so an unset layout still stacks full-width like before).
-    const restClass = layout.mode === "grid"
-      ? `grid grid-cols-2 ${alignItemsClass(layout, "stretch")} ${gapClass(layout)}`
-      : `flex ${flexFlowClass(layout, "column")} ${alignItemsClass(layout, "stretch")} ${justifyClass(layout)} ${gapClass(layout)}`;
+    const restClass = cardBodyContainerClass("single", layout);
     return (
       <div
         key={zone}

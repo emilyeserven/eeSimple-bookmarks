@@ -39,3 +39,25 @@ export const Customized: Story = {
     },
   },
 };
+
+/** Flex rows with distinct main- and cross-axis alignment, so the icon toggles and previews both differ. */
+export const FlexAlignment: Story = {
+  args: {
+    value: {
+      ...defaultCardZoneLayouts(),
+      "card-single-top": {
+        mode: "flex",
+        direction: "row",
+        wrap: "nowrap",
+        align: "between",
+        alignItems: "end",
+        gap: "lg",
+      },
+      "card-labels": {
+        mode: "flex",
+        align: "center",
+        alignItems: "center",
+      },
+    },
+  },
+};
