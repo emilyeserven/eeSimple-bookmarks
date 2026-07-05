@@ -470,10 +470,6 @@ export interface DisplayPreferenceSettings {
   customPropertyTypeIcons: Partial<Record<CustomPropertyType, string>> | null;
   /** Filter facet keys / custom-property ids hidden from the filter rail until added on demand. */
   onDemandFilters: string[];
-  /** When true, the romanized form is shown as the primary name (real name de-emphasized after it). */
-  showRomanizedByDefault: boolean;
-  /** When true, alphabetical name/title sorting uses the romanized value as the sort key. */
-  sortByRomanized: boolean;
   /**
    * Language to assume for Han-only (no-kana) names, which are ambiguous Japanese vs. Chinese.
    * Drives the multilingual names migration and future script detection. Defaults to `"ja"`.

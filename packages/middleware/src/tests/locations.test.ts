@@ -6,11 +6,9 @@ import {
   collectLocationSubtreeIds,
   computeLocationBookmarkCounts,
   locationInputToPatch,
-  locationSlugSource,
   matchLocationIdsByTitle,
   wouldCreateLocationCycle,
 } from "@/services/locations";
-import { slugify } from "@/utils/slug";
 
 /** A minimal language-labelled name for candidate fixtures. */
 function nm(value: string): EntityName {
@@ -145,31 +143,19 @@ test("computeLocationBookmarkCounts counts subtree (distinct) and own bookmarks"
   });
 });
 
-test("locationSlugSource prefers the romanized name, falling back to the name", () => {
-  // Non-Latin name with a romanized form → slug derives from the romanized form.
-  assert.equal(slugify(locationSlugSource("萩市", "Hagi")), "hagi");
-  // No romanized name → fall back to the name.
-  assert.equal(slugify(locationSlugSource("Tokyo", null)), "tokyo");
-  // Blank/whitespace romanized name is ignored.
-  assert.equal(slugify(locationSlugSource("Tokyo", "   ")), "tokyo");
-  // A non-Latin name with no romanized form still slugifies to empty (no readable source available).
-  assert.equal(slugify(locationSlugSource("萩市", null)), "");
-});
-
-test("matchLocationIdsByTitle matches name, romanizedName, and alternate names", () => {
+test("matchLocationIdsByTitle matches name, language-labelled names, and alternate names", () => {
   const candidates = [
     {
       id: "l-busan",
       name: "부산",
-      romanizedName: "Busan",
       alternateNames: [{
         value: "Pusan",
       }],
+      names: [nm("Busan")],
     },
     {
       id: "l-tokyo",
       name: "Tokyo",
-      romanizedName: null,
       alternateNames: [{
         value: "Tōkyō",
       }],
@@ -192,7 +178,6 @@ test("matchLocationIdsByTitle matches a location's language-labelled names again
     {
       id: "l-kyoto",
       name: "Kyoto",
-      romanizedName: null,
       alternateNames: [],
       names: [nm("京都"), nm("Kyoto")],
     },
@@ -206,16 +191,16 @@ test("matchLocationIdsByTitle drops a matched ancestor of a more specific matche
     {
       id: "l-busan",
       name: "부산광역시",
-      romanizedName: "Busan",
       alternateNames: [],
       parentId: null,
+      names: [nm("Busan")],
     },
     {
       id: "l-temple",
       name: "대한불교조계종 석불사",
-      romanizedName: "Seokbulsa Temple",
       alternateNames: [],
       parentId: "l-busan",
+      names: [nm("Seokbulsa Temple")],
     },
   ];
   // Title mentions both the temple (by name) and "Busan" (the temple's ancestor) — only the more
@@ -246,14 +231,15 @@ test("locationInputToPatch copies only the fields that are present", () => {
 
 test("locationInputToPatch omits undefined fields and never includes slug", () => {
   const patch = locationInputToPatch({
-    romanizedName: "Kyoto",
+    name: "Kyoto",
     placeType: undefined,
     parentId: "parent",
     tagIds: ["t1"],
   });
-  // tagIds is written separately (not a row column) and slug is derived by the caller.
+  // tagIds is written separately (not a row column), englishName is written separately via
+  // `mergeEnglishEntityName` (not a row column either), and slug is derived by the caller.
   assert.deepEqual(patch, {
-    romanizedName: "Kyoto",
+    name: "Kyoto",
     parentId: "parent",
   });
   assert.equal("slug" in patch, false);

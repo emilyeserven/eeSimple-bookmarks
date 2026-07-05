@@ -41,7 +41,6 @@ function toAlbum(
   return {
     id: row.id,
     name: row.name,
-    romanizedName: row.romanizedName ?? null,
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
@@ -69,7 +68,7 @@ const takenSlugs = (excludeId?: string) =>
 /** The Plex/media-property columns settable on create and patchable on update (not the M2M). */
 type AlbumDataColumns = Pick<
   AlbumRow,
-  "mediaPropertyId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year" | "romanizedName"
+  "mediaPropertyId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year"
   | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal"
 >;
 
@@ -81,7 +80,6 @@ function dataFromInput(input: CreateAlbumInput | UpdateAlbumInput): Partial<Albu
   if (input.plexItemType !== undefined) patch.plexItemType = input.plexItemType ?? null;
   if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
   if (input.year !== undefined) patch.year = input.year ?? null;
-  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   if (input.wikidataId !== undefined) patch.wikidataId = input.wikidataId ?? null;
   if (input.wikipediaLinkEn !== undefined) patch.wikipediaLinkEn = input.wikipediaLinkEn ?? null;
   if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal ?? null;
@@ -150,7 +148,6 @@ export async function listAlbums(): Promise<Album[]> {
     .select({
       id: albums.id,
       name: albums.name,
-      romanizedName: albums.romanizedName,
       slug: albums.slug,
       sortOrder: albums.sortOrder,
       mediaPropertyId: albums.mediaPropertyId,

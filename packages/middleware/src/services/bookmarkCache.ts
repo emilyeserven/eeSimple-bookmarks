@@ -170,7 +170,6 @@ export function assembleConditionInput(
   return {
     url: row.url ?? "",
     title: row.title,
-    romanizedName: row.romanizedName ?? null,
     categoryId: row.categoryId ?? defaultCategoryId,
     tagIds: groups.tagsByBid.get(row.id) ?? new Set(),
     genreMoodIds: groups.genreMoodsByBid.get(row.id) ?? new Set(),

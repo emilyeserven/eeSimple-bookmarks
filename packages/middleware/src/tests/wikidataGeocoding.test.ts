@@ -164,7 +164,7 @@ test("wikidataGeocode resolves a region Nominatim lacks, with names, country, an
     assert.equal(results.length, 1);
     const [hit] = results;
     assert.equal(hit?.name, "中国地方");
-    assert.equal(hit?.romanizedName, "Chūgoku region");
+    assert.equal(hit?.englishName, "Chūgoku region");
     assert.equal(hit?.latitude, 35.05);
     assert.equal(hit?.longitude, 134.0667);
     assert.equal(hit?.countryCode, "JP");

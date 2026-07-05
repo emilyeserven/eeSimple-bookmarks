@@ -111,7 +111,7 @@ test("resolveTitleWikidata uses an IMDb ID to pin the item, native label → nam
     assert.ok(result);
     assert.equal(result.wikidataId, "Q18535601");
     assert.equal(result.name, "기생충");
-    assert.equal(result.romanizedName, "Parasite");
+    assert.equal(result.englishName, "Parasite");
     assert.equal(result.wikipediaLinkEn, "https://en.wikipedia.org/wiki/Parasite_(2019_film)");
     assert.equal(result.wikipediaLinkLocal, "https://ko.wikipedia.org/wiki/기생충_(영화)");
   }
@@ -175,7 +175,7 @@ test("resolveTitleWikidata falls back to a title search and P364 original-langua
     });
     assert.ok(result);
     assert.equal(result.name, "기생충");
-    assert.equal(result.romanizedName, "Parasite");
+    assert.equal(result.englishName, "Parasite");
     assert.equal(result.wikipediaLinkLocal, "https://ko.wikipedia.org/wiki/기생충_(영화)");
     assert.equal(result.wikipediaLinkEn, null);
   }
@@ -184,7 +184,7 @@ test("resolveTitleWikidata falls back to a title search and P364 original-langua
   }
 });
 
-test("resolveTitleWikidata leaves romanizedName null for an English-only title", async () => {
+test("resolveTitleWikidata leaves englishName null for an English-only title", async () => {
   const restore = stubFetch((url) => {
     if (url.searchParams.get("action") === "wbsearchentities") {
       return {
@@ -221,7 +221,7 @@ test("resolveTitleWikidata leaves romanizedName null for an English-only title",
     });
     assert.ok(result);
     assert.equal(result.name, "The Matrix");
-    assert.equal(result.romanizedName, null);
+    assert.equal(result.englishName, null);
     assert.equal(result.wikipediaLinkEn, "https://en.wikipedia.org/wiki/The_Matrix");
     assert.equal(result.wikipediaLinkLocal, null);
   }

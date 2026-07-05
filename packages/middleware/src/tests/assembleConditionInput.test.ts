@@ -28,7 +28,6 @@ function bookmarkRow(overrides: Partial<BookmarkRow> = {}): BookmarkRow {
     id: "b1",
     url: "https://example.com",
     title: "Example",
-    romanizedName: null,
     categoryId: null,
     youtubeChannelId: null,
     mediaTypeId: null,

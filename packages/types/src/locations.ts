@@ -105,7 +105,8 @@ export type BookmarkLocation = Pick<Location, "id" | "name" | "slug" | "parentId
 /** Payload for creating a location. */
 export interface CreateLocationInput {
   name: string;
-  romanizedName?: string | null;
+  /** English name candidate (e.g. resolved from Wikidata / Nominatim); merged into `entity_names`. */
+  englishName?: string | null;
   alternateNames?: LocationAlternateName[];
   latitude?: number | null;
   longitude?: number | null;
@@ -131,7 +132,8 @@ export interface CreateLocationInput {
 /** Payload for partially updating a location (rename, reparent, edit coordinates, etc.). */
 export interface UpdateLocationInput {
   name?: string;
-  romanizedName?: string | null;
+  /** English name candidate (e.g. resolved from Wikidata / Nominatim); merged into `entity_names`. */
+  englishName?: string | null;
   alternateNames?: LocationAlternateName[];
   latitude?: number | null;
   longitude?: number | null;
@@ -265,8 +267,8 @@ export interface LocationLookupAncestor {
 export interface LocationLookupCandidate {
   /** Local/native-script name (e.g. `"萩市"`), preferred as the location's title. */
   name: string;
-  /** Romanized / English form of the name (e.g. `"Hagi"`), or `null` when the name is already Latin. */
-  romanizedName: string | null;
+  /** English form of the name (e.g. `"Hagi"`), or `null` when the name is already Latin. */
+  englishName: string | null;
   /** Full human-readable address/label (e.g. `"萩市, 山口県, 日本"`). */
   displayName: string;
   latitude: number;

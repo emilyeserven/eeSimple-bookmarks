@@ -258,6 +258,53 @@ export async function deleteEntityNamesForOwner(
   if (ownerType === "bookmark") invalidateBookmarkCache();
 }
 
+/** Resolve the built-in English language's row id by ISO code, or `null` if it's somehow absent. */
+export async function resolveEnglishLanguageId(): Promise<string | null> {
+  const [row] = await db
+    .select({
+      id: languages.id,
+    })
+    .from(languages)
+    .where(eq(languages.isoCode, "en"));
+  return row?.id ?? null;
+}
+
+/**
+ * Merge a single English-language name value into an owner's `entity_names`, replacing any existing
+ * English row while leaving every other language's row untouched (`setEntityNames` is a replace-all
+ * setter, so this loads the current rows first). Used by owners that resolve an "English name"
+ * candidate from an outside source (e.g. Wikidata) alongside their other, already-populated names —
+ * see `services/plexTaxonomyService.ts` and `services/locations.ts`. No-ops when the English language
+ * row is missing or `englishName` is blank.
+ */
+export async function mergeEnglishEntityName(
+  ownerType: EntityNameOwnerType,
+  ownerId: string,
+  englishName: string,
+): Promise<void> {
+  const value = englishName.trim();
+  if (value.length === 0) return;
+  const englishLanguageId = await resolveEnglishLanguageId();
+  if (englishLanguageId === null) return;
+
+  const current = (await loadEntityNames(ownerType, [ownerId])).get(ownerId) ?? [];
+  const merged: UpdateEntityNameEntry[] = [
+    ...current
+      .filter(name => name.language.id !== englishLanguageId)
+      .map(name => ({
+        languageId: name.language.id,
+        value: name.value,
+        isPrimary: name.isPrimary,
+      })),
+    {
+      languageId: englishLanguageId,
+      value,
+      isPrimary: current.some(name => name.language.id === englishLanguageId && name.isPrimary),
+    },
+  ];
+  await setEntityNames(ownerType, ownerId, merged);
+}
+
 // --- #966 backfill: seed entity_names from existing name/title + romanized_name -----------------
 
 /** Rows inserted per batch. Keeps each INSERT within Postgres' bind-parameter limit. */

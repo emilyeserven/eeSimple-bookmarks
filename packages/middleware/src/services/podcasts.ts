@@ -48,7 +48,6 @@ function toPodcast(
   return {
     id: row.id,
     name: row.name,
-    romanizedName: row.romanizedName ?? null,
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
@@ -78,7 +77,7 @@ const takenSlugs = (excludeId?: string) =>
 type PodcastDataColumns = Pick<
   PodcastRow,
   | "mediaPropertyId" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid"
-  | "pocketCastsUrl" | "defaultLinkProvider" | "description" | "romanizedName"
+  | "pocketCastsUrl" | "defaultLinkProvider" | "description"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -93,7 +92,6 @@ function dataFromInput(input: CreatePodcastInput | UpdatePodcastInput): Partial<
   if (input.pocketCastsUrl !== undefined) patch.pocketCastsUrl = input.pocketCastsUrl ?? null;
   if (input.defaultLinkProvider !== undefined) patch.defaultLinkProvider = input.defaultLinkProvider ?? null;
   if (input.description !== undefined) patch.description = input.description ?? null;
-  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   return patch;
 }
 
@@ -165,7 +163,6 @@ export async function listPodcasts(): Promise<Podcast[]> {
     .select({
       id: podcasts.id,
       name: podcasts.name,
-      romanizedName: podcasts.romanizedName,
       slug: podcasts.slug,
       sortOrder: podcasts.sortOrder,
       mediaPropertyId: podcasts.mediaPropertyId,

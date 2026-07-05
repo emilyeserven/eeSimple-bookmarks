@@ -25,7 +25,6 @@ function toTrack(row: TrackRow & {
   return {
     id: row.id,
     name: row.name,
-    romanizedName: row.romanizedName ?? null,
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
     mediaPropertyId: row.mediaPropertyId ?? null,

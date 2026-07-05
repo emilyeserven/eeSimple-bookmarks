@@ -487,32 +487,33 @@ export async function backfillCardDisplayRuleGroupsField(): Promise<void> {
 }
 
 /**
- * One-time boot backfill: place the `romanizedName` field into rules whose stored `field_zones`
- * predate it (it used to render baked into the `title` field). It's appended to its default body
- * zone ({@link defaultBodyZone} → `card-single-top`), so it keeps showing below the title header row.
- * Also rewrites any stray legacy `romanizedTitle` placement key to `romanizedName` — only possible on
- * a dev database that ran an earlier revision of this branch before the field was renamed; a no-op in
- * production, where the placeable romanized field never shipped. Idempotent — a rule already carrying
- * `romanizedName` (and no `romanizedTitle`) is skipped, and inheriting rules (`field_zones IS NULL`)
- * are left untouched. Must run after `ensureDefaultCardDisplayRule`/`backfillCardDisplayRuleFieldZones`.
+ * One-time boot backfill: rewrite any stored `field_zones` placement using the retired
+ * `romanizedName` card-field key to the current `secondaryName` key (issue #969 — the
+ * `romanized_name` concept was renamed/generalized to the multilingual `entity_names` model, and the
+ * card-field key follows suit), and place `secondaryName` into rules whose stored `field_zones`
+ * predate it entirely. It's appended to its default body zone ({@link defaultBodyZone} →
+ * `card-single-top`), so it keeps showing below the title header row. Idempotent — a rule already
+ * carrying `secondaryName` (and no legacy `romanizedName`/`romanizedTitle` key) is skipped, and
+ * inheriting rules (`field_zones IS NULL`) are left untouched. Must run after
+ * `ensureDefaultCardDisplayRule`/`backfillCardDisplayRuleFieldZones`.
  */
-export async function backfillCardDisplayRuleRomanizedNameField(): Promise<void> {
+export async function backfillCardDisplayRuleSecondaryNameField(): Promise<void> {
   const rows = await db.select().from(cardDisplayRules);
   for (const row of rows) {
     const stored = row.fieldZones as Record<string, CardFieldPlacement[]> | null;
     if (!stored) continue;
 
-    // Copy every zone, rewriting a legacy `romanizedTitle` placement key to `romanizedName`.
+    // Copy every zone, rewriting a legacy `romanizedName`/`romanizedTitle` placement key to `secondaryName`.
     let changed = false;
     const next = emptyCardFieldZones();
     for (const zone of CARD_FIELD_ZONES) {
       if (!Array.isArray(stored[zone])) continue;
       next[zone] = stored[zone].map((placement) => {
-        if (placement.key !== "romanizedTitle") return placement;
+        if (placement.key !== "romanizedName" && placement.key !== "romanizedTitle") return placement;
         changed = true;
         return {
           ...placement,
-          key: "romanizedName",
+          key: "secondaryName",
         };
       });
     }
@@ -520,9 +521,9 @@ export async function backfillCardDisplayRuleRomanizedNameField(): Promise<void>
     const placed = new Set(
       CARD_FIELD_ZONES.flatMap(zone => next[zone].map(p => p.key)),
     );
-    if (!placed.has("romanizedName")) {
-      next[defaultBodyZone("romanizedName")].push({
-        key: "romanizedName",
+    if (!placed.has("secondaryName")) {
+      next[defaultBodyZone("secondaryName")].push({
+        key: "secondaryName",
       });
       changed = true;
     }

@@ -180,7 +180,6 @@ function toPerson(
   return {
     id: row.id,
     name: row.name,
-    romanizedName: row.romanizedName,
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -212,7 +211,6 @@ export async function listPeople(): Promise<Person[]> {
     .select({
       id: people.id,
       name: people.name,
-      romanizedName: people.romanizedName,
       slug: people.slug,
       personWebsiteUrl: people.personWebsiteUrl,
       biographyUrl: people.biographyUrl,
@@ -284,7 +282,6 @@ export async function createPerson(input: CreatePersonInput): Promise<Person> {
   const slug = uniqueSlug(name, await takenSlugs(), "person");
   const [row] = await db.insert(people).values({
     name,
-    romanizedName: input.romanizedName ?? null,
     slug,
   }).returning();
   return toPerson(row);
@@ -295,10 +292,9 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
   const [existing] = await db.select().from(people).where(eq(people.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<PersonRow, "name" | "romanizedName" | "slug" | "personWebsiteUrl" | "biographyUrl" | "socialLinks" | "sortOrder">> & Partial<PersonDataColumns> = {
+  const patch: Partial<Pick<PersonRow, "name" | "slug" | "personWebsiteUrl" | "biographyUrl" | "socialLinks" | "sortOrder">> & Partial<PersonDataColumns> = {
     ...creatorDataFromInput(input),
   };
-  if ("romanizedName" in input) patch.romanizedName = input.romanizedName ?? null;
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({

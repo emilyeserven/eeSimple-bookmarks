@@ -34,7 +34,6 @@ function toBook(
   return {
     id: row.id,
     name: row.name,
-    romanizedName: row.romanizedName ?? null,
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     sortOrder: row.sortOrder,
@@ -58,7 +57,7 @@ const takenSlugs = (excludeId?: string) =>
 /** The Kavita/media-property columns settable on create and patchable on update. */
 type BookDataColumns = Pick<
   BookRow,
-  "mediaPropertyId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "isbn" | "releaseYear" | "romanizedName"
+  "mediaPropertyId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "isbn" | "releaseYear"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -70,7 +69,6 @@ function dataFromInput(input: CreateBookInput | UpdateBookInput): Partial<BookDa
   if (input.kavitaSeriesName !== undefined) patch.kavitaSeriesName = input.kavitaSeriesName ?? null;
   if (input.isbn !== undefined) patch.isbn = input.isbn ?? null;
   if (input.releaseYear !== undefined) patch.releaseYear = input.releaseYear ?? null;
-  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   return patch;
 }
 
@@ -80,7 +78,6 @@ export async function listBooks(): Promise<Book[]> {
     .select({
       id: books.id,
       name: books.name,
-      romanizedName: books.romanizedName,
       slug: books.slug,
       sortOrder: books.sortOrder,
       mediaPropertyId: books.mediaPropertyId,
