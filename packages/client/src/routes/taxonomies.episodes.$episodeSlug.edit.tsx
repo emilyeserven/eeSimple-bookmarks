@@ -1,7 +1,9 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useEpisodeBySlug } from "../hooks/useEpisodes";
+import i18n from "../i18n";
 
 export const Route = createFileRoute("/taxonomies/episodes/$episodeSlug/edit")({
   component: EpisodeEditLayout,
@@ -10,15 +12,18 @@ export const Route = createFileRoute("/taxonomies/episodes/$episodeSlug/edit")({
 const editNav = [
   {
     to: "/taxonomies/episodes/$episodeSlug/edit/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/episodes/$episodeSlug/edit/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
 ] as const;
 
 function EpisodeEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     episodeSlug,
   } = Route.useParams();
@@ -40,16 +45,18 @@ function EpisodeEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "episode" : (episode?.name ?? "episode")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("episode") : (episode?.name ?? t("episode")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit episode</h1>
+          <h1 className="text-2xl font-bold">{t("Edit episode")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         episodeSlug,
       }}
-      navAriaLabel="Episode edit sections"
+      navAriaLabel={t("Episode edit sections")}
     />
   );
 }

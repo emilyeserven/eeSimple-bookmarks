@@ -1,7 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useBookBySlug } from "../hooks/useBooks";
+
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/taxonomies/books/$bookSlug/edit")({
   component: BookEditLayout,
@@ -10,15 +13,18 @@ export const Route = createFileRoute("/taxonomies/books/$bookSlug/edit")({
 const editNav = [
   {
     to: "/taxonomies/books/$bookSlug/edit/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/books/$bookSlug/edit/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
 ] as const;
 
 function BookEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     bookSlug,
   } = Route.useParams();
@@ -40,16 +46,18 @@ function BookEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "book" : (book?.name ?? "book")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("book") : (book?.name ?? t("book")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit book</h1>
+          <h1 className="text-2xl font-bold">{t("Edit book")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         bookSlug,
       }}
-      navAriaLabel="Book edit sections"
+      navAriaLabel={t("Book edit sections")}
     />
   );
 }

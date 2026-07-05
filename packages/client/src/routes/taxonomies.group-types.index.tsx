@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddGroupTypeModal } from "../components/AddGroupTypeModal";
 import { GroupTypesListing } from "../components/GroupTypeManager";
@@ -16,6 +17,9 @@ export const Route = createFileRoute("/taxonomies/group-types/")({
 /** Browse view for Group Types: every group type with search filtering. */
 function GroupTypesPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allGroupTypes,
   } = useGroupTypes();
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,14 +27,14 @@ function GroupTypesPage() {
   useSetListingPage("group-types-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New group type",
+    createLabel: t("New group type"),
   });
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Group Types</h1>
+          <h1 className="text-2xl font-bold">{t("Group Types")}</h1>
           {allGroupTypes
             ? (
               <Badge variant="secondary">
@@ -40,7 +44,7 @@ function GroupTypesPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Classify groups by kind (e.g. Company, Podcast, Doujin Circle). Click one to view or edit it.
+          {t("Classify groups by kind (e.g. Company, Podcast, Doujin Circle). Click one to view or edit it.")}
         </p>
       </div>
 

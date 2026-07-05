@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Tv } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/taxonomies/tv-shows/$tvShowSlug/")({
 });
 
 function TvShowBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     tvShowSlug,
   } = Route.useParams();
@@ -40,11 +44,11 @@ function TvShowBookmarksPage() {
   } = useTvShowBySlug(tvShowSlug);
 
   if (tvShowLoading) {
-    return <p className="text-muted-foreground">Loading TV show…</p>;
+    return <p className="text-muted-foreground">{t("Loading TV show…")}</p>;
   }
 
   if (!tvShow) {
-    return <p className="text-destructive">TV show not found.</p>;
+    return <p className="text-destructive">{t("TV show not found.")}</p>;
   }
 
   const tvShowBookmarks = (bookmarks ?? []).filter(b => b.tvShowId === tvShow.id);
@@ -78,8 +82,8 @@ function TvShowBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks for this TV show yet."
-      noMatchMessage="No bookmarks for this TV show match these filters."
+      emptyMessage={t("No bookmarks for this TV show yet.")}
+      noMatchMessage={t("No bookmarks for this TV show match these filters.")}
     />
   );
 }

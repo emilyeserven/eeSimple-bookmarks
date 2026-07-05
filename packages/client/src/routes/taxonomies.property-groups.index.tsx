@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddPropertyGroupModal } from "../components/AddPropertyGroupModal";
 import { PropertyGroupsListing } from "../components/PropertyGroupManager";
@@ -16,6 +17,9 @@ export const Route = createFileRoute("/taxonomies/property-groups/")({
 /** Browse view for Property Groups: every group with search filtering. */
 function PropertyGroupsPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allGroups,
   } = usePropertyGroups();
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,14 +27,14 @@ function PropertyGroupsPage() {
   useSetListingPage("property-groups-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New property group",
+    createLabel: t("New property group"),
   });
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Property Groups</h1>
+          <h1 className="text-2xl font-bold">{t("Property Groups")}</h1>
           {allGroups
             ? (
               <Badge variant="secondary">
@@ -40,8 +44,7 @@ function PropertyGroupsPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Organize custom properties into groups. Grouped properties render together on bookmark
-          detail pages and in the listings filters. Click a group to view or edit it.
+          {t("Organize custom properties into groups. Grouped properties render together on bookmark detail pages and in the listings filters. Click a group to view or edit it.")}
         </p>
       </div>
 

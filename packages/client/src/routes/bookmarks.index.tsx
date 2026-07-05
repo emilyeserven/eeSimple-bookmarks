@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { useBookmarksPageData } from "./-bookmarksPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -10,6 +11,9 @@ export const Route = createFileRoute("/bookmarks/")({
 });
 
 function BookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const {
@@ -29,7 +33,7 @@ function BookmarksPage() {
 
   return (
     <BookmarkSearchView
-      header={<h1 className="text-2xl font-bold">Bookmarks</h1>}
+      header={<h1 className="text-2xl font-bold">{t("Bookmarks")}</h1>}
       pageKey="bookmarks"
       tree={tagTree ?? []}
       properties={customProperties ?? []}
@@ -51,8 +55,8 @@ function BookmarksPage() {
       })}
       isLoading={isLoading}
       error={error}
-      emptyMessage="No bookmarks yet."
-      noMatchMessage="No bookmarks match these filters."
+      emptyMessage={t("No bookmarks yet.")}
+      noMatchMessage={t("No bookmarks match these filters.")}
     />
   );
 }

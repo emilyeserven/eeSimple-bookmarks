@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useTvShowBySlug } from "../hooks/useTvShows";
@@ -20,11 +21,18 @@ const editNav = [
 
 function TvShowEditLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     tvShowSlug,
   } = Route.useParams();
   const {
     tvShow, isLoading,
   } = useTvShowBySlug(tvShowSlug);
+  const nav = editNav.map(item => ({
+    ...item,
+    label: t(item.label),
+  }));
 
   return (
     <TabbedEntityLayout
@@ -40,16 +48,18 @@ function TvShowEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "TV show" : (tvShow?.name ?? "TV show")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("TV show") : (tvShow?.name ?? t("TV show")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit TV show</h1>
+          <h1 className="text-2xl font-bold">{t("Edit TV show")}</h1>
         </div>
       )}
-      nav={editNav}
+      nav={nav}
       params={{
         tvShowSlug,
       }}
-      navAriaLabel="TV show edit sections"
+      navAriaLabel={t("TV show edit sections")}
     />
   );
 }

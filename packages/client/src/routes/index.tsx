@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { HomepageSectionBlock } from "../components/HomepageSectionBlock";
 import { useHomepageContentSettings } from "../hooks/useAppSettings";
@@ -18,6 +19,9 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: sections, isLoading, error,
   } = useHomepageSectionBookmarks();
@@ -45,9 +49,9 @@ function HomePage() {
     <section className="space-y-6">
       {!content?.homepageHeaderHidden && (
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Homepage</h1>
+          <h1 className="text-2xl font-bold">{t("Homepage")}</h1>
           <p className="text-muted-foreground">
-            Bookmarks from your homepage sections, ordered by priority.
+            {t("Bookmarks from your homepage sections, ordered by priority.")}
           </p>
         </div>
       )}
@@ -60,13 +64,13 @@ function HomePage() {
         )
         : null}
 
-      {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
+      {isLoading ? <p className="text-muted-foreground">{t("Loading bookmarks…")}</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
 
       {!isLoading && !hasSections
         ? (
           <p className="text-muted-foreground">
-            Nothing here yet. Build homepage sections in
+            {t("Nothing here yet. Build homepage sections in")}
             {" "}
             <Link
               to="/settings/display/homepage"
@@ -75,10 +79,10 @@ function HomePage() {
                 hover:underline
               "
             >
-              Settings → Display → Homepage
+              {t("Settings → Display → Homepage")}
             </Link>
             {" "}
-            to surface bookmarks here.
+            {t("to surface bookmarks here.")}
           </p>
         )
         : null}

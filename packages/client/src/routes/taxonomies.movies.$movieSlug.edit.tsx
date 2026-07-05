@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useMovieBySlug } from "../hooks/useMovies";
@@ -20,11 +21,18 @@ const editNav = [
 
 function MovieEditLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     movieSlug,
   } = Route.useParams();
   const {
     movie, isLoading,
   } = useMovieBySlug(movieSlug);
+  const nav = editNav.map(item => ({
+    ...item,
+    label: t(item.label),
+  }));
 
   return (
     <TabbedEntityLayout
@@ -40,16 +48,18 @@ function MovieEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "movie" : (movie?.name ?? "movie")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("movie") : (movie?.name ?? t("movie")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit movie</h1>
+          <h1 className="text-2xl font-bold">{t("Edit movie")}</h1>
         </div>
       )}
-      nav={editNav}
+      nav={nav}
       params={{
         movieSlug,
       }}
-      navAriaLabel="Movie edit sections"
+      navAriaLabel={t("Movie edit sections")}
     />
   );
 }

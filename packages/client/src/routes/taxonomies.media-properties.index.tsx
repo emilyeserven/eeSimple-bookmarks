@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddMediaPropertyModal } from "../components/AddMediaPropertyModal";
 import { MediaPropertiesListing } from "../components/MediaPropertyManager";
@@ -16,6 +17,9 @@ export const Route = createFileRoute("/taxonomies/media-properties/")({
 /** Browse view for Media Properties: every media property with search filtering. */
 function MediaPropertiesPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allMediaProperties,
   } = useMediaProperties();
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,14 +27,14 @@ function MediaPropertiesPage() {
   useSetListingPage("media-properties-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New media property",
+    createLabel: t("New media property"),
   });
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Media Properties</h1>
+          <h1 className="text-2xl font-bold">{t("Media Properties")}</h1>
           {allMediaProperties
             ? (
               <Badge variant="secondary">
@@ -40,8 +44,7 @@ function MediaPropertiesPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Franchises and IP groupings (e.g. a book series). Group related books under a media
-          property. Click one to view or edit it.
+          {t("Franchises and IP groupings (e.g. a book series). Group related books under a media property. Click one to view or edit it.")}
         </p>
       </div>
 

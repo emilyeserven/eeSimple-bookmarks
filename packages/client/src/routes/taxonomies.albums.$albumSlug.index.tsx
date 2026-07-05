@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Disc3 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/taxonomies/albums/$albumSlug/")({
 });
 
 function AlbumBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     albumSlug,
   } = Route.useParams();
@@ -40,11 +44,11 @@ function AlbumBookmarksPage() {
   } = useAlbumBySlug(albumSlug);
 
   if (albumLoading) {
-    return <p className="text-muted-foreground">Loading album…</p>;
+    return <p className="text-muted-foreground">{t("Loading album…")}</p>;
   }
 
   if (!album) {
-    return <p className="text-destructive">Album not found.</p>;
+    return <p className="text-destructive">{t("Album not found.")}</p>;
   }
 
   const albumBookmarks = (bookmarks ?? []).filter(b => b.albumId === album.id);
@@ -78,8 +82,8 @@ function AlbumBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks for this album yet."
-      noMatchMessage="No bookmarks for this album match these filters."
+      emptyMessage={t("No bookmarks for this album yet.")}
+      noMatchMessage={t("No bookmarks for this album match these filters.")}
     />
   );
 }

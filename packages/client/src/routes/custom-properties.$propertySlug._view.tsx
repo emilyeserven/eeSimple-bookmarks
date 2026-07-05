@@ -1,4 +1,5 @@
 import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteCustomProperty, usePropertyBySlug } from "../hooks/useCustomProperties";
@@ -25,6 +26,9 @@ type PropertyEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 
 function CustomPropertyViewLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     propertySlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
@@ -41,37 +45,37 @@ function CustomPropertyViewLayout() {
   const viewNav = [
     {
       to: "/custom-properties/$propertySlug/general",
-      label: "General",
+      label: t("General"),
     },
     ...(property && hasPropertyOptions(property)
       ? [{
         to: "/custom-properties/$propertySlug/options",
-        label: "Options",
+        label: t("Options"),
       }] as const
       : []),
     {
       to: "/custom-properties/$propertySlug/categories",
-      label: "Categories",
+      label: t("Categories"),
     },
     {
       to: "/custom-properties/$propertySlug/media-types",
-      label: "Media Types",
+      label: t("Media Types"),
     },
     {
       to: "/custom-properties/$propertySlug/display",
-      label: "Display",
+      label: t("Display"),
     },
     {
       type: "group",
-      label: "Rules",
+      label: t("Rules"),
       items: [
         {
           to: "/custom-properties/$propertySlug/autofill",
-          label: "Autofill Rules",
+          label: t("Autofill Rules"),
         },
         {
           to: "/custom-properties/$propertySlug/display-rules",
-          label: "Display Rules",
+          label: t("Display Rules"),
         },
       ],
     },
@@ -88,7 +92,7 @@ function CustomPropertyViewLayout() {
               hover:text-foreground
             "
           >
-            ← Back to custom properties
+            {t("← Back to custom properties")}
           </Link>
           <div className="flex items-start justify-between gap-4">
             <h1
@@ -96,9 +100,9 @@ function CustomPropertyViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Custom property" : (property?.name ?? "Custom property not found")}
-              {property?.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
-              {property && !property.enabled ? <Badge variant="outline">Disabled</Badge> : null}
+              {isLoading ? t("Custom property") : (property?.name ?? t("Custom property not found"))}
+              {property?.builtIn ? <Badge variant="secondary">{t("Built-in")}</Badge> : null}
+              {property && !property.enabled ? <Badge variant="outline">{t("Disabled")}</Badge> : null}
               {property ? <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge> : null}
             </h1>
             {property
@@ -115,7 +119,7 @@ function CustomPropertyViewLayout() {
                         propertySlug,
                       }}
                     >
-                      Edit
+                      {t("Edit")}
                     </Link>
                   </Button>
                   <Button
@@ -132,7 +136,7 @@ function CustomPropertyViewLayout() {
                       }),
                     })}
                   >
-                    Delete
+                    {t("Delete")}
                   </Button>
                 </div>
               )
@@ -144,7 +148,7 @@ function CustomPropertyViewLayout() {
       params={{
         propertySlug,
       }}
-      navAriaLabel="Custom property sections"
+      navAriaLabel={t("Custom property sections")}
     />
   );
 }

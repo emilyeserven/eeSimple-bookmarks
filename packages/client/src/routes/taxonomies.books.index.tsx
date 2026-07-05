@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddBookModal } from "../components/AddBookModal";
 import { BooksListing } from "../components/BookManager";
@@ -16,6 +17,9 @@ export const Route = createFileRoute("/taxonomies/books/")({
 /** Browse view for Books: every book with search filtering. */
 function BooksPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allBooks,
   } = useBooks();
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,14 +27,14 @@ function BooksPage() {
   useSetListingPage("books-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New book",
+    createLabel: t("New book"),
   });
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Books</h1>
+          <h1 className="text-2xl font-bold">{t("Books")}</h1>
           {allBooks
             ? (
               <Badge variant="secondary">
@@ -40,8 +44,7 @@ function BooksPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Individual books, optionally grouped under a media property and linked to a Kavita series.
-          Bookmarks link to a book here. Click one to view or edit it.
+          {t("Individual books, optionally grouped under a media property and linked to a Kavita series. Bookmarks link to a book here. Click one to view or edit it.")}
         </p>
       </div>
 

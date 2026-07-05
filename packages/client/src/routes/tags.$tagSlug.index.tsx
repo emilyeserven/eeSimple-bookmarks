@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Tag as TagIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -13,6 +14,9 @@ export const Route = createFileRoute("/tags/$tagSlug/")({
 });
 
 function TagBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     tagSlug,
   } = Route.useParams();
@@ -40,11 +44,11 @@ function TagBookmarksPage() {
 
   // Still resolving the tag tree — wait before deciding the tag is missing.
   if (!tagTree && bookmarksLoading) {
-    return <p className="text-muted-foreground">Loading tag…</p>;
+    return <p className="text-muted-foreground">{t("Loading tag…")}</p>;
   }
 
   if (!tag) {
-    return <p className="text-destructive">Tag not found.</p>;
+    return <p className="text-destructive">{t("Tag not found.")}</p>;
   }
 
   // Include bookmarks tagged with this tag or any of its descendants.
@@ -68,7 +72,7 @@ function TagBookmarksPage() {
                 flex flex-wrap items-center gap-2 text-sm text-muted-foreground
               "
             >
-              <span>Sub-tags:</span>
+              <span>{t("Sub-tags:")}</span>
               {tag.children.map(child => (
                 <Link
                   key={child.id}
@@ -111,8 +115,8 @@ function TagBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks with this tag yet."
-      noMatchMessage="No bookmarks with this tag match these filters."
+      emptyMessage={t("No bookmarks with this tag yet.")}
+      noMatchMessage={t("No bookmarks with this tag match these filters.")}
     />
   );
 }

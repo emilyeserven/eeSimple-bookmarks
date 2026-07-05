@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -20,6 +21,9 @@ export const Route = createFileRoute("/taxonomies/newsletters/$newsletterSlug/is
 });
 
 function NewsletterIssueBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     newsletterSlug, issueId,
   } = Route.useParams();
@@ -52,15 +56,15 @@ function NewsletterIssueBookmarksPage() {
   const issue = (issues ?? []).find(i => i.id === issueId);
 
   if (newsletterLoading) {
-    return <p className="text-muted-foreground">Loading newsletter…</p>;
+    return <p className="text-muted-foreground">{t("Loading newsletter…")}</p>;
   }
   if (!newsletter) {
-    return <p className="text-destructive">Newsletter not found.</p>;
+    return <p className="text-destructive">{t("Newsletter not found.")}</p>;
   }
 
   const allBookmarks = bookmarks ?? [];
   const issueBookmarks = allBookmarks.filter(b => b.import?.id === issueId);
-  const issueLabel = issue?.title || (issue ? new Date(issue.createdAt).toLocaleDateString() : "Issue");
+  const issueLabel = issue?.title || (issue ? new Date(issue.createdAt).toLocaleDateString() : t("Issue"));
 
   return (
     <>
@@ -77,7 +81,9 @@ function NewsletterIssueBookmarksPage() {
                 hover:text-foreground
               "
             >
-              ← Back to {newsletter.name}
+              {t("← Back to {{name}}", {
+                name: newsletter.name,
+              })}
             </Link>
             <div className="flex items-start justify-between gap-4">
               <h1 className="flex items-center gap-2 text-2xl font-bold">
@@ -90,7 +96,7 @@ function NewsletterIssueBookmarksPage() {
                 size="sm"
                 onClick={() => setManageOpen(true)}
               >
-                Manage bookmarks
+                {t("Manage bookmarks")}
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">{newsletter.name}</p>
@@ -117,8 +123,8 @@ function NewsletterIssueBookmarksPage() {
         })}
         isLoading={bookmarksLoading}
         error={error}
-        emptyMessage="No bookmarks in this issue yet."
-        noMatchMessage="No bookmarks in this issue match these filters."
+        emptyMessage={t("No bookmarks in this issue yet.")}
+        noMatchMessage={t("No bookmarks in this issue match these filters.")}
       />
 
       <NewsletterIssueBookmarksDialog
@@ -155,6 +161,9 @@ const DISPOSITION_ITEMS: { key: keyof Pick<ImportSummary, "allowedUrls" | "block
 function IssueUrlDisposition({
   issue,
 }: { issue: ImportSummary }) {
+  const {
+    t,
+  } = useTranslation();
   const parts = DISPOSITION_ITEMS
     .map(({
       key, label,
@@ -175,7 +184,7 @@ function IssueUrlDisposition({
           {i > 0 && <span className="mx-1">·</span>}
           <span className="font-medium">{count}</span>
           {" "}
-          {label}
+          {t(label)}
         </span>
       ))}
     </p>

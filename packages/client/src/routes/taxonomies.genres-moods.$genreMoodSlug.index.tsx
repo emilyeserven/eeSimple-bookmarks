@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Drama } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/taxonomies/genres-moods/$genreMoodSlug/")
 });
 
 function GenreMoodBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     genreMoodSlug,
   } = Route.useParams();
@@ -37,11 +41,11 @@ function GenreMoodBookmarksPage() {
   } = useGenreMoodBySlug(genreMoodSlug);
 
   if (genreMoodLoading) {
-    return <p className="text-muted-foreground">Loading entry…</p>;
+    return <p className="text-muted-foreground">{t("Loading entry…")}</p>;
   }
 
   if (!genreMood) {
-    return <p className="text-destructive">Entry not found.</p>;
+    return <p className="text-destructive">{t("Entry not found.")}</p>;
   }
 
   const genreMoodBookmarks = (bookmarks ?? []).filter(b =>
@@ -75,8 +79,8 @@ function GenreMoodBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks with this entry yet."
-      noMatchMessage="No bookmarks with this entry match these filters."
+      emptyMessage={t("No bookmarks with this entry yet.")}
+      noMatchMessage={t("No bookmarks with this entry match these filters.")}
     />
   );
 }

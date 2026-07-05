@@ -1,6 +1,7 @@
 import type { AutofillBackfillEntry, GlobalAutofillBackfillGroup } from "@eesimple/types";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import {
   useApplyAutofillBackfill,
@@ -20,6 +21,9 @@ export const Route = createFileRoute("/autofill/backfill")({
 
 function AutofillBackfillPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data, isLoading, error,
   } = useGlobalAutofillBackfill();
 
@@ -27,7 +31,7 @@ function AutofillBackfillPage() {
     return (
       <section className="space-y-6">
         <PageHeader totalNeedsBackfill={undefined} />
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
       </section>
     );
   }
@@ -36,7 +40,7 @@ function AutofillBackfillPage() {
     return (
       <section className="space-y-6">
         <PageHeader totalNeedsBackfill={undefined} />
-        <p className="text-sm text-destructive">Failed to load backfill data.</p>
+        <p className="text-sm text-destructive">{t("Failed to load backfill data.")}</p>
       </section>
     );
   }
@@ -50,7 +54,7 @@ function AutofillBackfillPage() {
       {groups.length === 0
         ? (
           <p className="text-sm text-muted-foreground">
-            All bookmarks are up to date — nothing needs backfilling.
+            {t("All bookmarks are up to date — nothing needs backfilling.")}
           </p>
         )
         : (
@@ -72,17 +76,24 @@ function PageHeader({
 }: {
   totalNeedsBackfill: number | undefined;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <h2 className="text-xl font-semibold">Backfill Overview</h2>
+        <h2 className="text-xl font-semibold">{t("Backfill Overview")}</h2>
         {totalNeedsBackfill != null
-          ? <Badge variant="secondary">{totalNeedsBackfill} pending</Badge>
+          ? (
+            <Badge variant="secondary">{t("{{count}} pending", {
+              count: totalNeedsBackfill,
+            })}
+            </Badge>
+          )
           : null}
       </div>
       <p className="text-sm text-muted-foreground">
-        Bookmarks that match an autofill rule but haven&apos;t had its prefill values applied yet.
-        You can apply rules in bulk or exempt individual bookmarks.
+        {t("Bookmarks that match an autofill rule but haven't had its prefill values applied yet. You can apply rules in bulk or exempt individual bookmarks.")}
       </p>
     </div>
   );
@@ -93,6 +104,9 @@ function RuleGroup({
 }: {
   group: GlobalAutofillBackfillGroup;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const apply = useApplyAutofillBackfill();
   const needingBackfill = group.entries.filter(e => e.needsBackfill && !e.isExempt);
 
@@ -123,10 +137,16 @@ function RuleGroup({
           </Link>
           <span className="text-sm text-muted-foreground">
             {group.needsBackfillCount > 0
-              ? `${group.needsBackfillCount} need backfill`
+              ? t("{{count}} need backfill", {
+                count: group.needsBackfillCount,
+              })
               : ""}
             {group.needsBackfillCount > 0 && group.exemptCount > 0 ? " · " : ""}
-            {group.exemptCount > 0 ? `${group.exemptCount} exempt` : ""}
+            {group.exemptCount > 0
+              ? t("{{count}} exempt", {
+                count: group.exemptCount,
+              })
+              : ""}
           </span>
         </div>
         {needingBackfill.length > 0
@@ -137,8 +157,12 @@ function RuleGroup({
               onClick={handleApplyAll}
             >
               {apply.isPending
-                ? "Applying…"
-                : `Apply to ${needingBackfill.length} bookmark${needingBackfill.length === 1 ? "" : "s"}`}
+                ? t("Applying…")
+                : needingBackfill.length === 1
+                  ? t("Apply to 1 bookmark")
+                  : t("Apply to {{count}} bookmarks", {
+                    count: needingBackfill.length,
+                  })}
             </Button>
           )
           : null}
@@ -163,6 +187,9 @@ function GlobalBackfillRow({
   entry: AutofillBackfillEntry;
   ruleId: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const setExempt = useSetAutofillExempt();
   const removeExempt = useRemoveAutofillExempt();
   const exemptPending = setExempt.isPending || removeExempt.isPending;
@@ -185,7 +212,7 @@ function GlobalBackfillRow({
             variant="secondary"
             className="shrink-0"
           >
-            Exempt
+            {t("Exempt")}
           </Badge>
         )
         : (
@@ -196,7 +223,7 @@ function GlobalBackfillRow({
               hover:bg-amber-600
             "
           >
-            Needs backfill
+            {t("Needs backfill")}
           </Badge>
         )}
       <Button
@@ -218,7 +245,7 @@ function GlobalBackfillRow({
           }
         }}
       >
-        {entry.isExempt ? "Un-exempt" : "Exempt"}
+        {entry.isExempt ? t("Un-exempt") : t("Exempt")}
       </Button>
     </div>
   );

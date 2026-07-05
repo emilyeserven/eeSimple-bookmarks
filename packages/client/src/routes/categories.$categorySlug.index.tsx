@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Folder } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -11,6 +12,9 @@ export const Route = createFileRoute("/categories/$categorySlug/")({
 });
 
 function CategoryBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     categorySlug,
   } = Route.useParams();
@@ -38,11 +42,11 @@ function CategoryBookmarksPage() {
   const category = (categories ?? []).find(c => c.slug === categorySlug);
 
   if (categoriesLoading || bookmarksLoading) {
-    return <p className="text-muted-foreground">Loading…</p>;
+    return <p className="text-muted-foreground">{t("Loading…")}</p>;
   }
 
   if (!category) {
-    return <p className="text-destructive">Category not found.</p>;
+    return <p className="text-destructive">{t("Category not found.")}</p>;
   }
 
   const categoryBookmarks = (bookmarks ?? []).filter(
@@ -79,8 +83,8 @@ function CategoryBookmarksPage() {
         })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks in this category yet."
-      noMatchMessage="No bookmarks in this category match these filters."
+      emptyMessage={t("No bookmarks in this category yet.")}
+      noMatchMessage={t("No bookmarks in this category match these filters.")}
     />
   );
 }

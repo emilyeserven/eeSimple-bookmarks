@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Library } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useMediaPropertyPageData } from "./-mediaPropertyPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -13,6 +14,9 @@ export const Route = createFileRoute("/taxonomies/media-properties/$mediaPropert
 });
 
 function MediaPropertyBookmarksPage() {
+  const {
+    t,
+  } = useTranslation();
   const {
     mediaPropertySlug,
   } = Route.useParams();
@@ -42,11 +46,11 @@ function MediaPropertyBookmarksPage() {
   } = useMediaPropertyBySlug(mediaPropertySlug);
 
   if (mediaPropertyLoading) {
-    return <p className="text-muted-foreground">Loading media property…</p>;
+    return <p className="text-muted-foreground">{t("Loading media property…")}</p>;
   }
 
   if (!mediaProperty) {
-    return <p className="text-destructive">Media property not found.</p>;
+    return <p className="text-destructive">{t("Media property not found.")}</p>;
   }
 
   const members = memberItemIdsByType(mediaProperty.id, mediaLists);
@@ -81,8 +85,8 @@ function MediaPropertyBookmarksPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks in this media property yet."
-      noMatchMessage="No bookmarks in this media property match these filters."
+      emptyMessage={t("No bookmarks in this media property yet.")}
+      noMatchMessage={t("No bookmarks in this media property match these filters.")}
     />
   );
 }
