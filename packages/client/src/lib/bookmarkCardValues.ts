@@ -10,6 +10,7 @@ import { CARD_BODY_ZONES, CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } 
 
 import { eligibleCustomCardFields, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { formatBoolean, formatBooleanBadge, formatChoices, formatDateTime, formatNumber } from "./bookmarkFormat";
+import i18n from "../i18n";
 
 /**
  * The card-body sub-zone a field lands in by default: the header fields (`title`, `externalLink`,
@@ -385,7 +386,7 @@ function fileValueItem(
   placement: ResolvedFieldPlacement,
 ): BookmarkValueItem {
   const isImage = property.type === "image";
-  const value = isImage ? "" : (entry.originalFilename ?? "file");
+  const value = isImage ? "" : (entry.originalFilename ?? i18n.t("file"));
   const label = isImage
     ? property.name
     : (placement.hideLabel ? value : `${property.name}: ${value}`);

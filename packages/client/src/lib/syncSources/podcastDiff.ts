@@ -1,6 +1,7 @@
 import type { SyncDiff, SyncFieldDiff } from "./syncSourceTypes";
 
 import { fillEmptyDefault, rowDiffers } from "./syncSourceTypes";
+import i18n from "../../i18n";
 
 /** A podcast's current values, for building the current-vs-source diff. */
 export interface PodcastDiffCurrent {
@@ -29,13 +30,13 @@ export type PodcastSyncField = "name" | "description";
 export type PodcastLinkSyncField = "itunesUrl" | "pocketCastsUrl";
 
 const FIELD_LABELS: Record<PodcastSyncField, string> = {
-  name: "Name",
-  description: "Description",
+  name: i18n.t("Name"),
+  description: i18n.t("Description"),
 };
 
 const LINK_LABELS: Record<PodcastLinkSyncField, string> = {
-  itunesUrl: "Apple Podcasts link",
-  pocketCastsUrl: "Pocket Casts link",
+  itunesUrl: i18n.t("Apple Podcasts link"),
+  pocketCastsUrl: i18n.t("Pocket Casts link"),
 };
 
 /**
@@ -95,7 +96,7 @@ export function buildPodcastDiff(
   if (source.imageUrl) {
     rows.push({
       key: "artwork",
-      label: "Artwork",
+      label: i18n.t("Artwork"),
       current: null,
       next: null,
       kind: "image",

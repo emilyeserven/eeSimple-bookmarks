@@ -3,6 +3,8 @@ import type React from "react";
 
 import { Archive, BookMarked, MonitorPlay, Tv } from "lucide-react";
 
+import i18n from "../i18n";
+
 /**
  * A single external link-out to a configured connector, shown in the sidebar's Connectors section and
  * listed (when configured) in the Settings → Display → Sidebar "Connector Links" card. Both surfaces
@@ -24,7 +26,7 @@ export interface ConnectorLink {
 /** Title-case a hosted-metadata provider slug (e.g. `browserless` → `Browserless`), else a fallback. */
 export function providerLabel(provider: string | null): string {
   const trimmed = provider?.trim();
-  if (!trimmed) return "Hosted Metadata";
+  if (!trimmed) return i18n.t("Hosted Metadata");
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }
 
@@ -39,14 +41,14 @@ export const CONNECTOR_LINKS: readonly ConnectorLink[] = [
     // The web UI opens without the plugin key, so gate on the base URL alone (not `kavita.enabled`).
     isConfigured: c => Boolean(c.kavita.baseUrl),
     href: c => c.kavita.baseUrl,
-    label: () => "Kavita",
+    label: () => i18n.t("Kavita"),
   },
   {
     key: "archivebox",
     icon: Archive,
     isConfigured: c => Boolean(c.archiveBox.baseUrl),
     href: c => c.archiveBox.baseUrl,
-    label: () => "ArchiveBox",
+    label: () => i18n.t("ArchiveBox"),
   },
   {
     key: "plex",
@@ -55,7 +57,7 @@ export const CONNECTOR_LINKS: readonly ConnectorLink[] = [
     isConfigured: c => Boolean(c.plex.baseUrl),
     // Land on the Plex web UI (the raw base URL serves the XML API root, not the app).
     href: c => (c.plex.baseUrl ? `${c.plex.baseUrl.replace(/\/$/, "")}/web` : null),
-    label: () => "Plex",
+    label: () => i18n.t("Plex"),
   },
   {
     key: "hosted-metadata",

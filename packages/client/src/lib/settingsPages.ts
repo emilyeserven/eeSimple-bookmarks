@@ -4,6 +4,7 @@ import { BookOpen, Captions, Disc3, Film, MapPinned, Music, Podcast, Puzzle, Sha
 
 import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
+import i18n from "../i18n";
 
 /**
  * Registry of pages that can be favorited as "Settings pages". This is the single source of truth
@@ -33,73 +34,73 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
   {
     // A tab-less /settings leaf (see `settingsNav` in routes/settings.tsx).
     path: "/settings/extension",
-    label: "Extension",
+    label: i18n.t("Extension"),
     icon: Puzzle,
   },
   {
     // Listing page reachable from Locations, not from the sidebar.
     path: "/taxonomies/place-types",
-    label: "Place Types",
+    label: i18n.t("Place Types"),
     icon: MapPinned,
   },
   {
     // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
     path: "/taxonomies/books",
-    label: "Books",
+    label: i18n.t("Books"),
     icon: BookOpen,
   },
   {
     // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
     path: "/taxonomies/podcasts",
-    label: "Podcasts",
+    label: i18n.t("Podcasts"),
     icon: Podcast,
   },
   {
     // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
     path: "/taxonomies/movies",
-    label: "Movies",
+    label: i18n.t("Movies"),
     icon: Film,
   },
   {
     // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
     path: "/taxonomies/tv-shows",
-    label: "TV Shows",
+    label: i18n.t("TV Shows"),
     icon: Tv,
   },
   {
     // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
     path: "/taxonomies/episodes",
-    label: "Episodes",
+    label: i18n.t("Episodes"),
     icon: Tv2,
   },
   {
     // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
     path: "/taxonomies/albums",
-    label: "Albums",
+    label: i18n.t("Albums"),
     icon: Disc3,
   },
   {
     // Listing page reachable from the Media Properties flyout, not directly from the sidebar.
     path: "/taxonomies/tracks",
-    label: "Tracks",
+    label: i18n.t("Tracks"),
     icon: Music,
   },
   {
     // Listing page reachable from the Groups flyout, not directly from the sidebar.
     path: "/taxonomies/group-types",
-    label: "Group Types",
+    label: i18n.t("Group Types"),
     icon: Shapes,
   },
   {
     // Overview reachable from the Languages flyout, not directly from the sidebar.
     path: "/taxonomies/language-usage-levels",
-    label: "Usage Levels",
+    label: i18n.t("Usage Levels"),
     icon: Captions,
   },
   {
     // Grouped-card CRUD reachable from the Usage Levels overview's "Edit levels" button.
     path: "/taxonomies/language-usage-levels/edit",
-    label: "Usage Levels: Edit",
+    label: i18n.t("Usage Levels: Edit"),
     icon: Captions,
   },
 ];
@@ -107,7 +108,7 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
 /** Favorite labels that differ from the sidebar item's title. */
 const SIDEBAR_LABEL_OVERRIDES: Record<string, string> = {
   // The sidebar labels newsletters "Imports"; disambiguate from Automations: Imports.
-  "/taxonomies/newsletters": "Newsletters",
+  "/taxonomies/newsletters": i18n.t("Newsletters"),
 };
 
 const settingsTabPages: SettingsPage[] = SETTINGS_TAB_SECTIONS.flatMap(({

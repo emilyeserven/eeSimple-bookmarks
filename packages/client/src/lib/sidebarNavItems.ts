@@ -24,6 +24,8 @@ import {
   Wand2,
 } from "lucide-react";
 
+import i18n from "../i18n";
+
 /**
  * The app sidebar's nav-item data, extracted so registries can derive from it. The sidebar
  * (`components/app-sidebar.tsx`) renders these; `lib/settingsPages.ts` derives the favoritable
@@ -34,17 +36,17 @@ import {
 
 export const navItems = [
   {
-    title: "Home",
+    title: i18n.t("Home"),
     to: "/",
     icon: Home,
   },
   {
-    title: "Inbox",
+    title: i18n.t("Inbox"),
     to: "/inbox",
     icon: Inbox,
   },
   {
-    title: "Bookmarks",
+    title: i18n.t("Bookmarks"),
     to: "/bookmarks",
     icon: Bookmark,
   },
@@ -53,73 +55,73 @@ export const navItems = [
 export const taxonomyItems = [
   {
     key: "categories",
-    title: "Categories",
+    title: i18n.t("Categories"),
     to: "/categories",
     icon: FolderOpen,
   },
   {
     key: "tags",
-    title: "Tags",
+    title: i18n.t("Tags"),
     to: "/tags",
     icon: Tags,
   },
   {
     key: "websites",
-    title: "Websites",
+    title: i18n.t("Websites"),
     to: "/taxonomies/websites",
     icon: Globe,
   },
   {
     key: "media-types",
-    title: "Media Types",
+    title: i18n.t("Media Types"),
     to: "/taxonomies/media-types",
     icon: Clapperboard,
   },
   {
     key: "genres-moods",
-    title: "Genres & Moods",
+    title: i18n.t("Genres & Moods"),
     to: "/taxonomies/genres-moods",
     icon: Drama,
   },
   {
     key: "languages",
-    title: "Languages",
+    title: i18n.t("Languages"),
     to: "/taxonomies/languages",
     icon: Languages,
   },
   {
     key: "media-properties",
-    title: "Media Properties",
+    title: i18n.t("Media Properties"),
     to: "/taxonomies/media-properties",
     icon: Library,
   },
   {
     key: "locations",
-    title: "Locations",
+    title: i18n.t("Locations"),
     to: "/taxonomies/locations",
     icon: MapPin,
   },
   {
     key: "youtube-channels",
-    title: "YouTube Channels",
+    title: i18n.t("YouTube Channels"),
     to: "/taxonomies/youtube-channels",
     icon: MonitorPlay,
   },
   {
     key: "newsletters",
-    title: "Imports",
+    title: i18n.t("Imports"),
     to: "/taxonomies/newsletters",
     icon: Mail,
   },
   {
     key: "people",
-    title: "People",
+    title: i18n.t("People"),
     to: "/taxonomies/people",
     icon: UserRound,
   },
   {
     key: "groups",
-    title: "Groups",
+    title: i18n.t("Groups"),
     to: "/taxonomies/groups",
     icon: Building2,
   },
@@ -127,7 +129,7 @@ export const taxonomyItems = [
 
 export const actionItems = [
   {
-    title: "AI Summarization",
+    title: i18n.t("AI Summarization"),
     to: "/ai-summarization",
     icon: Sparkles,
   },
@@ -136,43 +138,43 @@ export const actionItems = [
 export const customizationItems = [
   {
     key: "custom-properties",
-    title: "Custom Properties",
+    title: i18n.t("Custom Properties"),
     to: "/custom-properties",
     icon: SlidersHorizontal,
   },
   {
     key: "property-groups",
-    title: "Property Groups",
+    title: i18n.t("Property Groups"),
     to: "/taxonomies/property-groups",
     icon: Layers,
   },
   {
     key: "relationship-types",
-    title: "Relationship Types",
+    title: i18n.t("Relationship Types"),
     to: "/taxonomies/relationship-types",
     icon: Share2,
   },
   {
     key: "autofill",
-    title: "Autofill Rules",
+    title: i18n.t("Autofill Rules"),
     to: "/autofill",
     icon: Wand2,
   },
   {
     key: "card-display-rules",
-    title: "Card Display Rules",
+    title: i18n.t("Card Display Rules"),
     to: "/card-display-rules",
     icon: LayoutGrid,
   },
   {
     key: "import-rules",
-    title: "Import Rules",
+    title: i18n.t("Import Rules"),
     to: "/import-rules",
     icon: FileInput,
   },
   {
     key: "saved-filters",
-    title: "Saved Filters",
+    title: i18n.t("Saved Filters"),
     to: "/saved-filters",
     icon: ListFilter,
   },

@@ -3,22 +3,24 @@ import type { CardFieldZones, CardZoneLayouts } from "@eesimple/types";
 
 import { normalizeCardZoneLayout } from "@eesimple/types";
 
+import i18n from "../i18n";
+
 const IMAGE_VISIBILITY_LABELS: Record<string, string> = {
-  "shown": "Show",
-  "image-only": "Only",
-  "off": "Off",
+  "shown": i18n.t("Show"),
+  "image-only": i18n.t("Only"),
+  "off": i18n.t("Off"),
 };
 
 const IMAGE_LAYOUT_LABELS: Record<string, string> = {
-  above: "Above",
-  side: "Side",
+  above: i18n.t("Above"),
+  side: i18n.t("Side"),
 };
 
 const ZONE_LABELS: Record<string, string> = {
-  "card-single-top": "Top",
-  "card-labels": "Labels",
-  "card-table": "Table",
-  "card-single-bottom": "Bottom",
+  "card-single-top": i18n.t("Top"),
+  "card-labels": i18n.t("Labels"),
+  "card-table": i18n.t("Table"),
+  "card-single-bottom": i18n.t("Bottom"),
 };
 
 /** Display-name lookups the inspector resolves once and threads into each attribute's formatter. */
@@ -41,7 +43,11 @@ function summarizeFieldZones(zones: CardFieldZones, fieldLabel: Map<string, stri
     ...(zones["card-table"] ?? []),
     ...(zones["card-single-bottom"] ?? []),
   ];
-  if (body.length > 0) parts.push(`Card: ${summarize(body)}`);
+  if (body.length > 0) {
+    parts.push(i18n.t("Card: {{fields}}", {
+      fields: summarize(body),
+    }));
+  }
 
   const corners = [
     ...(zones["image-top-left"] ?? []),
@@ -49,9 +55,13 @@ function summarizeFieldZones(zones: CardFieldZones, fieldLabel: Map<string, stri
     ...(zones["image-bottom-left"] ?? []),
     ...(zones["image-bottom-right"] ?? []),
   ];
-  if (corners.length > 0) parts.push(`Corners: ${summarize(corners)}`);
+  if (corners.length > 0) {
+    parts.push(i18n.t("Corners: {{fields}}", {
+      fields: summarize(corners),
+    }));
+  }
 
-  return parts.length > 0 ? parts.join("; ") : "All fields hidden";
+  return parts.length > 0 ? parts.join("; ") : i18n.t("All fields hidden");
 }
 
 /**
@@ -85,7 +95,7 @@ export function formatRuleAttrValue(attr: RuleAttrInspection, labels: RuleAttrLa
     case "imageMode":
       return labels.aspectLabel.get(String(attr.value)) ?? String(attr.value);
     case "hideWebsiteForYouTube":
-      return attr.value ? "On" : "Off";
+      return attr.value ? i18n.t("On") : i18n.t("Off");
     case "fieldZones":
       return isPlainObject(attr.value)
         ? summarizeFieldZones(attr.value as CardFieldZones, labels.fieldLabel)

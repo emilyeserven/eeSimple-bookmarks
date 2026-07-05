@@ -1,5 +1,6 @@
 import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "../stores/uiStore";
 
+import i18n from "../i18n";
 import { useUiStore } from "../stores/uiStore";
 
 /** Default bookmark grid column count for a listing page that has no saved preference. */
@@ -34,11 +35,11 @@ export function useBookmarkImageMode(pageKey: string): string {
 
 /** Human-readable label for a BookmarkImageMode string value. */
 export function bookmarkImageModeLabel(mode: string): string {
-  if (mode === "natural") return "Natural";
-  if (mode === "square") return "Square";
-  if (mode === "opengraph") return "OpenGraph";
-  if (mode === "cropped") return "Cropped";
-  return "Custom";
+  if (mode === "natural") return i18n.t("Natural");
+  if (mode === "square") return i18n.t("Square");
+  if (mode === "opengraph") return i18n.t("OpenGraph");
+  if (mode === "cropped") return i18n.t("Cropped");
+  return i18n.t("Custom");
 }
 
 export type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode };

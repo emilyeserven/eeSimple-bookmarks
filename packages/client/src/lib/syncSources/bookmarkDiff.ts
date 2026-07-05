@@ -2,6 +2,7 @@ import type { SyncDiff, SyncFieldDiff } from "./syncSourceTypes";
 import type { ScanResult } from "@eesimple/types";
 
 import { fillEmptyDefault, rowDiffers } from "./syncSourceTypes";
+import i18n from "../../i18n";
 
 /** The bookmark's current values, for building the current-vs-scan diff. */
 export interface BookmarkDiffCurrent {
@@ -31,7 +32,7 @@ export function buildBookmarkDiff(scan: ScanResult, current: BookmarkDiffCurrent
   if (scan.title && rowDiffers(current.title, scan.title)) {
     rows.push({
       key: "title",
-      label: "Title",
+      label: i18n.t("Title"),
       current: current.title,
       next: scan.title,
       kind: "text",
@@ -47,7 +48,7 @@ export function buildBookmarkDiff(scan: ScanResult, current: BookmarkDiffCurrent
   if (scan.description && rowDiffers(current.description, scan.description)) {
     rows.push({
       key: "description",
-      label: "Description",
+      label: i18n.t("Description"),
       current: current.description,
       next: scan.description,
       kind: "text",
@@ -64,7 +65,7 @@ export function buildBookmarkDiff(scan: ScanResult, current: BookmarkDiffCurrent
   if (nextImage) {
     rows.push({
       key: "image",
-      label: "Page image",
+      label: i18n.t("Page image"),
       current: null,
       next: null,
       kind: "image",
@@ -82,7 +83,7 @@ export function buildBookmarkDiff(scan: ScanResult, current: BookmarkDiffCurrent
   return {
     groups: [
       {
-        source: "Page metadata",
+        source: i18n.t("Page metadata"),
         rows,
       },
     ],

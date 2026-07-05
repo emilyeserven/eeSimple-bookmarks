@@ -1,5 +1,7 @@
 import type { ActiveImport, ActiveReelArchiveJob, AutoFetchJobStatus } from "@eesimple/types";
 
+import i18n from "../i18n";
+
 /**
  * One row in the consolidated header "Background activity" popover: a label, a short progress detail,
  * and an optional 0–1 fraction (null = indeterminate, so no progress bar is drawn).
@@ -13,7 +15,7 @@ export interface ActivityRow {
 
 /** A short human description of one in-flight import's progress. */
 export function importProgressLabel(item: ActiveImport): string {
-  if (item.status === "queued" || item.totalCount === null) return "Queued…";
+  if (item.status === "queued" || item.totalCount === null) return i18n.t("Queued…");
   const done = item.processedCount ?? 0;
   return `${done} / ${item.totalCount}`;
 }
@@ -28,7 +30,7 @@ export function importProgressFraction(item: ActiveImport): number {
 export function importRow(item: ActiveImport): ActivityRow {
   return {
     key: item.id,
-    label: item.sourceLabel ?? "Import",
+    label: item.sourceLabel ?? i18n.t("Import"),
     detail: importProgressLabel(item),
     fraction: importProgressFraction(item),
   };
@@ -39,7 +41,7 @@ export function reelRow(item: ActiveReelArchiveJob): ActivityRow {
   return {
     key: item.id,
     label: item.bookmarkTitle,
-    detail: item.status === "queued" ? "Queued…" : "Archiving…",
+    detail: item.status === "queued" ? i18n.t("Queued…") : i18n.t("Archiving…"),
     fraction: null,
   };
 }

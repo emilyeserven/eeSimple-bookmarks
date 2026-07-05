@@ -19,6 +19,7 @@ import { STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { defaultBodyZone } from "./bookmarkCardValues";
 import { useCardDisplayRules } from "../hooks/useCardDisplayRules";
 import { useTags } from "../hooks/useTags";
+import i18n from "../i18n";
 
 /**
  * Per-card display, fully resolved from the rule set. Every attribute is concrete (the Default rule
@@ -204,27 +205,27 @@ function byPriority(a: CardDisplayRule, b: CardDisplayRule): number {
 export const CARD_DISPLAY_ATTRS = [
   {
     key: "imageVisibility",
-    label: "Images",
+    label: i18n.t("Images"),
   },
   {
     key: "imageMode",
-    label: "Aspect",
+    label: i18n.t("Aspect"),
   },
   {
     key: "imageLayout",
-    label: "Layout",
+    label: i18n.t("Layout"),
   },
   {
     key: "hideWebsiteForYouTube",
-    label: "Hide website for YouTube",
+    label: i18n.t("Hide website for YouTube"),
   },
   {
     key: "fieldZones",
-    label: "Card fields",
+    label: i18n.t("Card fields"),
   },
   {
     key: "cardZoneLayouts",
-    label: "Zone layout",
+    label: i18n.t("Zone layout"),
   },
 ] as const satisfies readonly {
   key: keyof ResolvedCardDisplay["provenance"]["source"];

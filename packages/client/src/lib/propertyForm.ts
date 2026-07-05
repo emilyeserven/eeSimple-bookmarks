@@ -12,6 +12,8 @@ import {
   NUMBER_FORMATS,
 } from "@eesimple/types";
 
+import i18n from "../i18n";
+
 /** True when the property has a "Property options" section/tab (everything but `calculate`). */
 export function hasPropertyOptions(property: CustomProperty): boolean {
   return property.type !== "calculate";
@@ -27,11 +29,11 @@ export const TYPE_OPTIONS = CUSTOM_PROPERTY_TYPES.map(value => ({
 export const RATING_MAX_OPTIONS = [
   {
     value: "3",
-    label: "1 – 3",
+    label: i18n.t("1 – 3"),
   },
   {
     value: "5",
-    label: "1 – 5",
+    label: i18n.t("1 – 5"),
   },
 ];
 
@@ -39,15 +41,15 @@ export const RATING_MAX_OPTIONS = [
 export const BOOLEAN_LABEL_PRESET_OPTIONS = [
   {
     value: "yes-no",
-    label: "Yes / No",
+    label: i18n.t("Yes / No"),
   },
   {
     value: "true-false",
-    label: "True / False",
+    label: i18n.t("True / False"),
   },
   {
     value: "enabled-disabled",
-    label: "Enabled / Disabled",
+    label: i18n.t("Enabled / Disabled"),
   },
   {
     value: "icons",
@@ -59,15 +61,15 @@ export const BOOLEAN_LABEL_PRESET_OPTIONS = [
   },
   {
     value: "custom",
-    label: "Custom",
+    label: i18n.t("Custom"),
   },
 ];
 
 /** Client-facing labels for the `datetime` capture modes (presentation differs from the type docs). */
 const DATE_TIME_FORMAT_LABELS: Record<DateTimeFormat, string> = {
-  date: "Date only",
-  time: "Time only",
-  datetime: "Date & time",
+  date: i18n.t("Date only"),
+  time: i18n.t("Time only"),
+  datetime: i18n.t("Date & time"),
 };
 
 /** What a `datetime` property captures. Derived from the shared `@eesimple/types` variant list. */
@@ -103,16 +105,20 @@ export function summarizeNumberOptions(values: {
   valuePrefix: string;
 }): string {
   const parts: string[] = [];
-  const min = values.disableMin ? "auto" : (values.numberMin.trim() || "auto");
-  const max = values.disableMax ? "auto" : (values.numberMax.trim() || "auto");
-  if (min !== "auto" || max !== "auto") {
+  const isMinAuto = values.disableMin || !values.numberMin.trim();
+  const isMaxAuto = values.disableMax || !values.numberMax.trim();
+  const min = isMinAuto ? i18n.t("auto") : values.numberMin.trim();
+  const max = isMaxAuto ? i18n.t("auto") : values.numberMax.trim();
+  if (!isMinAuto || !isMaxAuto) {
     parts.push(`${min}–${max}${values.unitPlural.trim() ? ` ${values.unitPlural.trim()}` : ""}`);
   }
   else if (values.unitPlural.trim()) {
     parts.push(values.unitPlural.trim());
   }
-  if (values.valuePrefix.trim()) parts.push(`prefix ${values.valuePrefix.trim()}`);
-  return parts.length > 0 ? parts.join(" · ") : "No options set";
+  if (values.valuePrefix.trim()) parts.push(i18n.t("prefix {{prefix}}", {
+    prefix: values.valuePrefix.trim(),
+  }));
+  return parts.length > 0 ? parts.join(" · ") : i18n.t("No options set");
 }
 
 /**
@@ -127,11 +133,11 @@ export function summarizeBooleanOptions(values: {
 }): string {
   const preset = BOOLEAN_LABEL_PRESET_OPTIONS.find(o => o.value === values.booleanLabelPreset);
   if (values.booleanLabelPreset === "custom") {
-    const trueText = values.booleanTrueLabel.trim() || "Yes";
-    const falseText = values.booleanFalseLabel.trim() || "No";
+    const trueText = values.booleanTrueLabel.trim() || i18n.t("Yes");
+    const falseText = values.booleanFalseLabel.trim() || i18n.t("No");
     return `${trueText} / ${falseText}`;
   }
-  return preset?.label ?? "Yes / No";
+  return preset?.label ?? i18n.t("Yes / No");
 }
 
 /** One-line summary of the rating options for a collapsed "Property options" preview. */
@@ -143,9 +149,14 @@ export function summarizeRatingOptions(values: {
   ratingLabel: string;
 }): string {
   const min = values.ratingAllowZero ? 0 : 1;
-  const parts: string[] = [`${min}–${values.ratingMax.trim() || "5"} stars`];
-  if (values.ratingAllowHalf) parts.push("half steps");
-  if (values.ratingShowLabel && values.ratingLabel.trim()) parts.push(`label "${values.ratingLabel.trim()}"`);
+  const parts: string[] = [i18n.t("{{min}}–{{max}} stars", {
+    min,
+    max: values.ratingMax.trim() || "5",
+  })];
+  if (values.ratingAllowHalf) parts.push(i18n.t("half steps"));
+  if (values.ratingShowLabel && values.ratingLabel.trim()) parts.push(i18n.t("label \"{{label}}\"", {
+    label: values.ratingLabel.trim(),
+  }));
   return parts.join(" · ");
 }
 
@@ -156,23 +167,35 @@ export function summarizeItemInItemsOptions(values: {
   itemInItemsAfterText: string;
 }): string {
   const before = values.itemInItemsBeforeText || "";
-  const between = values.itemInItemsBetweenText || " of ";
+  const between = values.itemInItemsBetweenText || ` ${i18n.t("of")} `;
   const after = values.itemInItemsAfterText || "";
   return `${before}10${between}100${after}`;
 }
 
 /** One-line summary of the category selection for a collapsed "Categories" preview. */
 export function summarizeCategories(allCategories: boolean, selectedIds: string[]): string {
-  if (allCategories) return "All categories";
+  if (allCategories) return i18n.t("All categories");
   const count = selectedIds.length;
-  if (count === 0) return "No categories";
-  return `${count} ${count === 1 ? "category" : "categories"}`;
+  if (count === 0) return i18n.t("No categories");
+  return count === 1
+    ? i18n.t("{{count}} category", {
+      count,
+    })
+    : i18n.t("{{count}} categories", {
+      count,
+    });
 }
 
 /** One-line summary of the media-type selection for a collapsed "Media Types" preview. */
 export function summarizeMediaTypes(allMediaTypes: boolean, selectedIds: string[]): string {
-  if (allMediaTypes) return "All media types";
+  if (allMediaTypes) return i18n.t("All media types");
   const count = selectedIds.length;
-  if (count === 0) return "No media types";
-  return `${count} media ${count === 1 ? "type" : "types"}`;
+  if (count === 0) return i18n.t("No media types");
+  return count === 1
+    ? i18n.t("{{count}} media type", {
+      count,
+    })
+    : i18n.t("{{count}} media types", {
+      count,
+    });
 }

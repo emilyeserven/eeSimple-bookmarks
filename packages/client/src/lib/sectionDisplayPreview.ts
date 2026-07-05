@@ -1,5 +1,6 @@
 import type { SectionDisplayValue } from "../components/SectionDisplaySettings";
 
+import i18n from "../i18n";
 import { bookmarkImageModeLabel } from "./bookmarkColumns";
 
 /**
@@ -13,21 +14,24 @@ export function sectionDisplayPreview(
   const parts: string[] = [];
 
   if (value.viewMode === "table") {
-    parts.push("Table");
+    parts.push(i18n.t("Table"));
   }
   else {
-    parts.push(`${value.columns} ${value.columns === 1 ? "column" : "columns"}`);
+    parts.push(i18n.t("{{count}} {{noun}}", {
+      count: value.columns,
+      noun: value.columns === 1 ? i18n.t("column") : i18n.t("columns"),
+    }));
     if (value.imageVisibility === "off") {
-      parts.push("No image");
+      parts.push(i18n.t("No image"));
     }
     else {
-      parts.push(value.imageVisibility === "image-only" ? "Image only" : bookmarkImageModeLabel(value.imageMode));
+      parts.push(value.imageVisibility === "image-only" ? i18n.t("Image only") : bookmarkImageModeLabel(value.imageMode));
       if (value.imageVisibility === "shown" && (value.columns === 1 || value.columns === 2)) {
-        parts.push(value.imageLayout === "side" ? "Side" : "Above");
+        parts.push(value.imageLayout === "side" ? i18n.t("Side") : i18n.t("Above"));
       }
     }
   }
 
-  if (hideIfEmpty) parts.push("Hidden when empty");
+  if (hideIfEmpty) parts.push(i18n.t("Hidden when empty"));
   return parts.join(" · ");
 }

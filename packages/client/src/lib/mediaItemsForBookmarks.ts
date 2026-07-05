@@ -1,5 +1,7 @@
 import type { Bookmark } from "@eesimple/types";
 
+import i18n from "../i18n";
+
 /**
  * The listing pages let you filter a bookmark set in memory. A bookmark links to at most one media
  * taxonomy item via a nullable FK (`movieId`/`bookId`/…). This helper is the inverse join of
@@ -66,43 +68,43 @@ export const MEDIA_KINDS: readonly MediaKindConfig[] = [
     kind: "movie",
     fkField: "movieId",
     listKey: "movies",
-    label: "Movie",
+    label: i18n.t("Movie"),
   },
   {
     kind: "tvShow",
     fkField: "tvShowId",
     listKey: "tvShows",
-    label: "TV Show",
+    label: i18n.t("TV Show"),
   },
   {
     kind: "episode",
     fkField: "episodeId",
     listKey: "episodes",
-    label: "Episode",
+    label: i18n.t("Episode"),
   },
   {
     kind: "album",
     fkField: "albumId",
     listKey: "albums",
-    label: "Album",
+    label: i18n.t("Album"),
   },
   {
     kind: "track",
     fkField: "trackId",
     listKey: "tracks",
-    label: "Track",
+    label: i18n.t("Track"),
   },
   {
     kind: "book",
     fkField: "bookId",
     listKey: "books",
-    label: "Book",
+    label: i18n.t("Book"),
   },
   {
     kind: "podcast",
     fkField: "podcastId",
     listKey: "podcasts",
-    label: "Podcast",
+    label: i18n.t("Podcast"),
   },
 ];
 
