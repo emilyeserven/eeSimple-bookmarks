@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { getReelArchiveJob, listActiveReelArchiveJobs } from "@/services/reelArchive";
+import { NotFoundError } from "@/utils/errors";
 
 /**
  * Reel-archive job status, mounted under `/api`. Mirrors `GET /api/imports/active`: the header
@@ -30,14 +31,12 @@ export async function reelArchiveRoutes(app: FastifyInstance): Promise<void> {
         },
       },
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
     const job = await getReelArchiveJob(id);
-    if (!job) return reply.code(404).send({
-      message: "Reel archive job not found",
-    });
+    if (!job) throw new NotFoundError("Reel archive job");
     return job;
   });
 }

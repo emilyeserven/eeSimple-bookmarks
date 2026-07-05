@@ -4,12 +4,11 @@ import {
   bulkDeletePlaceTypes,
   createPlaceType,
   deletePlaceType,
-  DuplicatePlaceTypeError,
-  InvalidReassignTargetError,
   listPlaceTypes,
   updatePlaceType,
 } from "@/services/placeTypes";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const placeTypeParams = {
   type: "object",
@@ -78,18 +77,8 @@ export async function placeTypeRoutes(app: FastifyInstance): Promise<void> {
       body: createPlaceTypeBody,
     },
   }, async (req, reply) => {
-    try {
-      const placeType = await createPlaceType(req.body as CreatePlaceTypeInput);
-      return reply.code(201).send(placeType);
-    }
-    catch (err) {
-      if (err instanceof DuplicatePlaceTypeError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const placeType = await createPlaceType(req.body as CreatePlaceTypeInput);
+    return reply.code(201).send(placeType);
   });
 
   app.patch("/api/place-types/:id", {
@@ -102,21 +91,9 @@ export async function placeTypeRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const placeType = await updatePlaceType(id, req.body as UpdatePlaceTypeInput);
-      if (!placeType) return reply.code(404).send({
-        message: "Place type not found",
-      });
-      return placeType;
-    }
-    catch (err) {
-      if (err instanceof DuplicatePlaceTypeError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const placeType = await updatePlaceType(id, req.body as UpdatePlaceTypeInput);
+    if (!placeType) throw new NotFoundError("Place type");
+    return placeType;
   });
 
   app.delete("/api/place-types/:id", {
@@ -132,20 +109,8 @@ export async function placeTypeRoutes(app: FastifyInstance): Promise<void> {
     const {
       reassignTo,
     } = req.query as { reassignTo?: string };
-    try {
-      const deleted = await deletePlaceType(id, reassignTo);
-      if (!deleted) return reply.code(404).send({
-        message: "Place type not found",
-      });
-      return reply.code(204).send();
-    }
-    catch (err) {
-      if (err instanceof InvalidReassignTargetError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const deleted = await deletePlaceType(id, reassignTo);
+    if (!deleted) throw new NotFoundError("Place type");
+    return reply.code(204).send();
   });
 }

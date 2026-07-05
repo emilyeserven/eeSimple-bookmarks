@@ -6,22 +6,24 @@ import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { migratePlaceTypeConfig } from "@/services/appSettings";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { locations, placeTypes, type PlaceTypeRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing place type name. */
-export class DuplicatePlaceTypeError extends Error {
+export class DuplicatePlaceTypeError extends AppError {
   constructor(name: string) {
-    super(`A place type named "${name}" already exists`);
-    this.name = "DuplicatePlaceTypeError";
+    super(`A place type named "${name}" already exists`, "duplicateName", 409, {
+      entity: "place type",
+      name,
+    });
   }
 }
 
 /** Thrown when a delete's `reassignTo` target is missing or is the place type being deleted. */
-export class InvalidReassignTargetError extends Error {
+export class InvalidReassignTargetError extends AppError {
   constructor(message = "Invalid reassignment target") {
-    super(message);
-    this.name = "InvalidReassignTargetError";
+    super(message, "invalidReassignTarget", 400);
   }
 }
 

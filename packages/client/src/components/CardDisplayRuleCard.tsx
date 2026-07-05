@@ -74,7 +74,7 @@ export function CardDisplayRuleCard({
           className="min-w-0 flex-1"
         >
           <span className="block truncate text-base font-semibold">
-            {rule.name}
+            {rule.isDefault ? t("Default") : rule.name}
             {rule.isDefault && (
               <span className="ml-2 text-xs font-normal text-muted-foreground">{t("baseline")}</span>
             )}

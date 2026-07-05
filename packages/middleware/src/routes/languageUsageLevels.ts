@@ -1,17 +1,15 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateLanguageUsageLevelInput, LanguageUsageKind, UpdateLanguageUsageLevelInput } from "@eesimple/types";
 import {
-  BuiltInLanguageUsageLevelError,
   bulkDeleteLanguageUsageLevels,
   createLanguageUsageLevel,
   deleteLanguageUsageLevel,
-  DuplicateLanguageUsageLevelError,
-  InvalidUsageLevelReassignError,
   listLanguageUsageLevels,
   updateLanguageUsageLevel,
 } from "@/services/languageUsageLevels";
 import { listLanguageUsageAssociations } from "@/services/languageUsages";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const levelParams = {
   type: "object",
@@ -107,18 +105,8 @@ export async function languageUsageLevelRoutes(app: FastifyInstance): Promise<vo
       body: createBody,
     },
   }, async (req, reply) => {
-    try {
-      const level = await createLanguageUsageLevel(req.body as CreateLanguageUsageLevelInput);
-      return reply.code(201).send(level);
-    }
-    catch (err) {
-      if (err instanceof DuplicateLanguageUsageLevelError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const level = await createLanguageUsageLevel(req.body as CreateLanguageUsageLevelInput);
+    return reply.code(201).send(level);
   });
 
   app.patch("/api/language-usage-levels/:id", {
@@ -131,26 +119,9 @@ export async function languageUsageLevelRoutes(app: FastifyInstance): Promise<vo
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const level = await updateLanguageUsageLevel(id, req.body as UpdateLanguageUsageLevelInput);
-      if (!level) return reply.code(404).send({
-        message: "Usage level not found",
-      });
-      return level;
-    }
-    catch (err) {
-      if (err instanceof DuplicateLanguageUsageLevelError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof BuiltInLanguageUsageLevelError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const level = await updateLanguageUsageLevel(id, req.body as UpdateLanguageUsageLevelInput);
+    if (!level) throw new NotFoundError("Usage level");
+    return level;
   });
 
   app.delete("/api/language-usage-levels/:id", {
@@ -166,25 +137,8 @@ export async function languageUsageLevelRoutes(app: FastifyInstance): Promise<vo
     const {
       reassignTo,
     } = req.query as { reassignTo?: string };
-    try {
-      const deleted = await deleteLanguageUsageLevel(id, reassignTo);
-      if (!deleted) return reply.code(404).send({
-        message: "Usage level not found",
-      });
-      return reply.code(204).send();
-    }
-    catch (err) {
-      if (err instanceof InvalidUsageLevelReassignError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof BuiltInLanguageUsageLevelError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const deleted = await deleteLanguageUsageLevel(id, reassignTo);
+    if (!deleted) throw new NotFoundError("Usage level");
+    return reply.code(204).send();
   });
 }

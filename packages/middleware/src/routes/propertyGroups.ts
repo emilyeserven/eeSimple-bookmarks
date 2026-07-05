@@ -4,11 +4,11 @@ import {
   bulkDeletePropertyGroups,
   createPropertyGroup,
   deletePropertyGroup,
-  DuplicatePropertyGroupError,
   listPropertyGroups,
   updatePropertyGroup,
 } from "@/services/propertyGroups";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const propertyGroupParams = {
   type: "object",
@@ -72,18 +72,8 @@ export async function propertyGroupRoutes(app: FastifyInstance): Promise<void> {
       body: createPropertyGroupBody,
     },
   }, async (req, reply) => {
-    try {
-      const group = await createPropertyGroup(req.body as CreatePropertyGroupInput);
-      return reply.code(201).send(group);
-    }
-    catch (err) {
-      if (err instanceof DuplicatePropertyGroupError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const group = await createPropertyGroup(req.body as CreatePropertyGroupInput);
+    return reply.code(201).send(group);
   });
 
   app.patch("/api/property-groups/:id", {
@@ -96,21 +86,9 @@ export async function propertyGroupRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const group = await updatePropertyGroup(id, req.body as UpdatePropertyGroupInput);
-      if (!group) return reply.code(404).send({
-        message: "Property group not found",
-      });
-      return group;
-    }
-    catch (err) {
-      if (err instanceof DuplicatePropertyGroupError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const group = await updatePropertyGroup(id, req.body as UpdatePropertyGroupInput);
+    if (!group) throw new NotFoundError("Property group");
+    return group;
   });
 
   app.delete("/api/property-groups/:id", {
@@ -123,9 +101,7 @@ export async function propertyGroupRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deletePropertyGroup(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Property group not found",
-    });
+    if (!deleted) throw new NotFoundError("Property group");
     return reply.code(204).send();
   });
 }

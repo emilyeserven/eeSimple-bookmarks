@@ -12,6 +12,7 @@ const meta = {
       slug: "article",
       icon: "Newspaper",
       parentId: null,
+      builtIn: false,
     },
   },
 } satisfies Meta<typeof MediaTypePill>;
@@ -30,6 +31,7 @@ export const NoIcon: Story = {
       slug: "video",
       icon: null,
       parentId: null,
+      builtIn: false,
     },
   },
 };

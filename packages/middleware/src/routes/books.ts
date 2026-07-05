@@ -4,12 +4,12 @@ import {
   bulkDeleteBooks,
   createBook,
   deleteBook,
-  DuplicateBookError,
   listBooks,
   updateBook,
 } from "@/services/books";
 import { importIsbnCoverForBook } from "@/services/isbn";
 import { importKavitaCoverForBook } from "@/services/kavita";
+import { NotFoundError } from "@/utils/errors";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
@@ -91,18 +91,8 @@ export async function bookRoutes(app: FastifyInstance): Promise<void> {
       body: createBookBody,
     },
   }, async (req, reply) => {
-    try {
-      const book = await createBook(req.body as CreateBookInput);
-      return reply.code(201).send(book);
-    }
-    catch (err) {
-      if (err instanceof DuplicateBookError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const book = await createBook(req.body as CreateBookInput);
+    return reply.code(201).send(book);
   });
 
   app.patch("/api/books/:id", {
@@ -115,21 +105,9 @@ export async function bookRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const book = await updateBook(id, req.body as UpdateBookInput);
-      if (!book) return reply.code(404).send({
-        message: "Book not found",
-      });
-      return book;
-    }
-    catch (err) {
-      if (err instanceof DuplicateBookError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const book = await updateBook(id, req.body as UpdateBookInput);
+    if (!book) throw new NotFoundError("Book");
+    return book;
   });
 
   app.delete("/api/books/:id", {
@@ -142,9 +120,7 @@ export async function bookRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteBook(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Book not found",
-    });
+    if (!deleted) throw new NotFoundError("Book");
     return reply.code(204).send();
   });
 

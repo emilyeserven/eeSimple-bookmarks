@@ -12,6 +12,7 @@ import {
   useUpdateLanguageUsageLevel,
 } from "../hooks/useLanguageUsageLevels";
 import { describeError } from "../lib/apiError";
+import { useBuiltInName } from "../lib/builtInName";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Badge } from "@/components/ui/badge";
@@ -170,6 +171,7 @@ function LevelRow({
   const [name, setName] = useState(level.name);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const update = useUpdateLanguageUsageLevel();
+  const builtInName = useBuiltInName();
 
   function saveName() {
     const trimmed = name.trim();
@@ -202,7 +204,7 @@ function LevelRow({
         ? (
           <div className="flex flex-1 items-center gap-2 text-sm">
             <Lock className="size-3.5 text-muted-foreground" />
-            {level.name}
+            {builtInName(level)}
           </div>
         )
         : (
@@ -251,6 +253,7 @@ function DeleteLevelDialog({
   } = useTranslation();
   const [reassignTo, setReassignTo] = useState<string>("");
   const remove = useDeleteLanguageUsageLevel();
+  const builtInName = useBuiltInName();
 
   function confirmDelete() {
     remove.mutate(
@@ -303,7 +306,7 @@ function DeleteLevelDialog({
                   key={s.id}
                   value={s.id}
                 >
-                  {s.name}
+                  {builtInName(s)}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -4,12 +4,12 @@ import {
   bulkDeleteGroupTypes,
   createGroupType,
   deleteGroupType,
-  DuplicateGroupTypeError,
   getGroupTypeBySlug,
   listGroupTypes,
   updateGroupType,
 } from "@/services/groupTypes";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const groupTypeParams = {
   type: "object",
@@ -81,9 +81,7 @@ export async function groupTypeRoutes(app: FastifyInstance): Promise<void> {
       slug,
     } = req.params as { slug: string };
     const groupType = await getGroupTypeBySlug(slug);
-    if (!groupType) return reply.code(404).send({
-      message: "Group type not found",
-    });
+    if (!groupType) throw new NotFoundError("Group type");
     return groupType;
   });
 
@@ -93,18 +91,8 @@ export async function groupTypeRoutes(app: FastifyInstance): Promise<void> {
       body: createGroupTypeBody,
     },
   }, async (req, reply) => {
-    try {
-      const groupType = await createGroupType(req.body as CreateGroupTypeInput);
-      return reply.code(201).send(groupType);
-    }
-    catch (err) {
-      if (err instanceof DuplicateGroupTypeError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const groupType = await createGroupType(req.body as CreateGroupTypeInput);
+    return reply.code(201).send(groupType);
   });
 
   app.patch("/api/group-types/:id", {
@@ -113,25 +101,13 @@ export async function groupTypeRoutes(app: FastifyInstance): Promise<void> {
       params: groupTypeParams,
       body: updateGroupTypeBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const groupType = await updateGroupType(id, req.body as UpdateGroupTypeInput);
-      if (!groupType) return reply.code(404).send({
-        message: "Group type not found",
-      });
-      return groupType;
-    }
-    catch (err) {
-      if (err instanceof DuplicateGroupTypeError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const groupType = await updateGroupType(id, req.body as UpdateGroupTypeInput);
+    if (!groupType) throw new NotFoundError("Group type");
+    return groupType;
   });
 
   app.delete("/api/group-types/:id", {
@@ -144,9 +120,7 @@ export async function groupTypeRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteGroupType(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Group type not found",
-    });
+    if (!deleted) throw new NotFoundError("Group type");
     return reply.code(204).send();
   });
 }

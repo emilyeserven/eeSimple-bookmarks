@@ -7,6 +7,7 @@ import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
+import { useBuiltInName } from "@/lib/builtInName";
 import { CategoryIcon } from "@/lib/icons";
 import { entityLinkTitle } from "@/lib/sidebarModifier";
 
@@ -22,6 +23,7 @@ export function MediaTypePill({
 }: MediaTypePillProps) {
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const builtInName = useBuiltInName();
   const link = (
     <Link
       to="/taxonomies/media-types/$mediaTypeSlug"
@@ -39,7 +41,7 @@ export function MediaTypePill({
           name={mediaType.icon}
           className="size-3 shrink-0"
         />
-        {mediaType.name}
+        {builtInName(mediaType)}
       </Badge>
     </Link>
   );

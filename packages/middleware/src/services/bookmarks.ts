@@ -77,12 +77,14 @@ import { getDescendantIds, listTagNames, matchTagIdsByTitle } from "@/services/t
 import { listLocationNames, matchLocationIdsByTitle } from "@/services/locations";
 import { ensureWebsiteForUrl, getWebsiteByAnyDomain, normalizeDomain } from "@/services/websites";
 import { ensureYouTubeChannel } from "@/services/youtubeChannels";
+import { AppError } from "@/utils/errors";
 
 /** Thrown when a create/update would collide with an existing bookmark's URL. */
-export class DuplicateUrlError extends Error {
+export class DuplicateUrlError extends AppError {
   constructor(url: string) {
-    super(`A bookmark with this URL already exists: ${url}`);
-    this.name = "DuplicateUrlError";
+    super(`A bookmark with this URL already exists: ${url}`, "duplicateUrl", 409, {
+      url,
+    });
   }
 }
 

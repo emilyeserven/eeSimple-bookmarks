@@ -6,6 +6,7 @@ import {
   listCardFieldTemplates,
 } from "@/services/cardFieldTemplates";
 import { fieldZonesSchema } from "@/routes/cardFieldZonesSchema";
+import { NotFoundError } from "@/utils/errors";
 
 const templateParams = {
   type: "object",
@@ -72,11 +73,7 @@ export async function cardFieldTemplatesRoutes(app: FastifyInstance): Promise<vo
     },
     async (request, reply) => {
       const deleted = await deleteCardFieldTemplate(request.params.id);
-      if (!deleted) return reply.status(404).send({
-        error: "Not Found",
-        message: "Card field template not found",
-        statusCode: 404,
-      });
+      if (!deleted) throw new NotFoundError("Card field template");
       return reply.status(204).send();
     },
   );

@@ -4,15 +4,14 @@ import type {
   UpdateLanguageInput,
 } from "@eesimple/types";
 import {
-  BuiltInLanguageError,
   bulkDeleteLanguages,
   createLanguage,
   deleteLanguage,
-  DuplicateLanguageError,
   listLanguages,
   updateLanguage,
 } from "@/services/languages";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const languageParams = {
   type: "object",
@@ -76,18 +75,8 @@ export async function languageRoutes(app: FastifyInstance): Promise<void> {
       body: createLanguageBody,
     },
   }, async (req, reply) => {
-    try {
-      const language = await createLanguage(req.body as CreateLanguageInput);
-      return reply.code(201).send(language);
-    }
-    catch (err) {
-      if (err instanceof DuplicateLanguageError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const language = await createLanguage(req.body as CreateLanguageInput);
+    return reply.code(201).send(language);
   });
 
   app.patch("/api/languages/:id", {
@@ -100,26 +89,9 @@ export async function languageRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const language = await updateLanguage(id, req.body as UpdateLanguageInput);
-      if (!language) return reply.code(404).send({
-        message: "Language not found",
-      });
-      return language;
-    }
-    catch (err) {
-      if (err instanceof DuplicateLanguageError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof BuiltInLanguageError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const language = await updateLanguage(id, req.body as UpdateLanguageInput);
+    if (!language) throw new NotFoundError("Language");
+    return language;
   });
 
   app.delete("/api/languages/:id", {
@@ -131,20 +103,8 @@ export async function languageRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const deleted = await deleteLanguage(id);
-      if (!deleted) return reply.code(404).send({
-        message: "Language not found",
-      });
-      return reply.code(204).send();
-    }
-    catch (err) {
-      if (err instanceof BuiltInLanguageError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const deleted = await deleteLanguage(id);
+    if (!deleted) throw new NotFoundError("Language");
+    return reply.code(204).send();
   });
 }

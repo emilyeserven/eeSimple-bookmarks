@@ -11,14 +11,17 @@ import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner, mainTaxonomyImageUrl } from "@/services/taxonomyImages";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { bookmarks, books, taxonomyImages, type BookRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing book name. */
-export class DuplicateBookError extends Error {
+export class DuplicateBookError extends AppError {
   constructor(name: string) {
-    super(`A book named "${name}" already exists`);
-    this.name = "DuplicateBookError";
+    super(`A book named "${name}" already exists`, "duplicateName", 409, {
+      entity: "book",
+      name,
+    });
   }
 }
 

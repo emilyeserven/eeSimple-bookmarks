@@ -3,6 +3,7 @@ import multipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance } from "fastify";
+import { errorHandler } from "@/utils/errorHandler";
 import { aiSummarizationRoutes } from "@/routes/aiSummarization";
 import { appSettingsRoutes } from "@/routes/appSettings";
 import { personRoutes } from "@/routes/people";
@@ -87,6 +88,12 @@ export async function buildApp(): Promise<FastifyInstance> {
       }),
     },
   });
+
+  // Single error envelope for the whole API. Routes `throw` an `AppError` (or let a Fastify
+  // schema-validation error bubble); the handler serializes it to `{ message, code, statusCode,
+  // params? }` so the client can translate `code` and fall back to the English `message`. The
+  // middleware stays i18n-free — no translation happens here.
+  app.setErrorHandler(errorHandler);
 
   await app.register(cors, {
     origin: true,

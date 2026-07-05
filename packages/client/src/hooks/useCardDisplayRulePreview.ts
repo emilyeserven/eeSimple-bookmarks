@@ -292,6 +292,7 @@ export function useCardDisplayRulePreview({
         slug: "article",
         icon: null,
         parentId: null,
+        builtIn: false,
       },
       language: null,
       languageUsages: [],

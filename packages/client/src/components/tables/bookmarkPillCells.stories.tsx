@@ -33,6 +33,7 @@ const bookmark = makeBookmark({
     slug: "article",
     icon: "FileText",
     parentId: null,
+    builtIn: false,
   },
   tags: [
     {

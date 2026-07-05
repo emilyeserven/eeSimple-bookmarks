@@ -5,14 +5,13 @@ import type {
 } from "@eesimple/types";
 import {
   bulkDeleteRelationshipTypes,
-  BuiltInRelationshipTypeError,
   createRelationshipType,
   deleteRelationshipType,
-  DuplicateRelationshipTypeError,
   listRelationshipTypes,
   updateRelationshipType,
 } from "@/services/relationshipTypes";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const relationshipTypeParams = {
   type: "object",
@@ -81,20 +80,10 @@ export async function relationshipTypeRoutes(app: FastifyInstance): Promise<void
       body: createRelationshipTypeBody,
     },
   }, async (req, reply) => {
-    try {
-      const relationshipType = await createRelationshipType(
-        req.body as CreateRelationshipTypeInput,
-      );
-      return reply.code(201).send(relationshipType);
-    }
-    catch (err) {
-      if (err instanceof DuplicateRelationshipTypeError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const relationshipType = await createRelationshipType(
+      req.body as CreateRelationshipTypeInput,
+    );
+    return reply.code(201).send(relationshipType);
   });
 
   app.patch("/api/relationship-types/:id", {
@@ -107,29 +96,12 @@ export async function relationshipTypeRoutes(app: FastifyInstance): Promise<void
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const relationshipType = await updateRelationshipType(
-        id,
-        req.body as UpdateRelationshipTypeInput,
-      );
-      if (!relationshipType) return reply.code(404).send({
-        message: "Relationship type not found",
-      });
-      return relationshipType;
-    }
-    catch (err) {
-      if (err instanceof DuplicateRelationshipTypeError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof BuiltInRelationshipTypeError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const relationshipType = await updateRelationshipType(
+      id,
+      req.body as UpdateRelationshipTypeInput,
+    );
+    if (!relationshipType) throw new NotFoundError("Relationship type");
+    return relationshipType;
   });
 
   app.delete("/api/relationship-types/:id", {
@@ -141,20 +113,8 @@ export async function relationshipTypeRoutes(app: FastifyInstance): Promise<void
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const deleted = await deleteRelationshipType(id);
-      if (!deleted) return reply.code(404).send({
-        message: "Relationship type not found",
-      });
-      return reply.code(204).send();
-    }
-    catch (err) {
-      if (err instanceof BuiltInRelationshipTypeError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const deleted = await deleteRelationshipType(id);
+    if (!deleted) throw new NotFoundError("Relationship type");
+    return reply.code(204).send();
   });
 }

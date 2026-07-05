@@ -4,12 +4,12 @@ import {
   bulkDeleteTvShows,
   createTvShow,
   deleteTvShow,
-  DuplicateTvShowError,
   listTvShows,
   updateTvShow,
 } from "@/services/tvShows";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 
@@ -97,18 +97,8 @@ export async function tvShowRoutes(app: FastifyInstance): Promise<void> {
       body: createTvShowBody,
     },
   }, async (req, reply) => {
-    try {
-      const show = await createTvShow(req.body as CreateTvShowInput);
-      return reply.code(201).send(show);
-    }
-    catch (err) {
-      if (err instanceof DuplicateTvShowError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const show = await createTvShow(req.body as CreateTvShowInput);
+    return reply.code(201).send(show);
   });
 
   app.patch("/api/tv-shows/:id", {
@@ -121,21 +111,9 @@ export async function tvShowRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const show = await updateTvShow(id, req.body as UpdateTvShowInput);
-      if (!show) return reply.code(404).send({
-        message: "TV show not found",
-      });
-      return show;
-    }
-    catch (err) {
-      if (err instanceof DuplicateTvShowError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const show = await updateTvShow(id, req.body as UpdateTvShowInput);
+    if (!show) throw new NotFoundError("TV show");
+    return show;
   });
 
   app.delete("/api/tv-shows/:id", {
@@ -148,9 +126,7 @@ export async function tvShowRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteTvShow(id);
-    if (!deleted) return reply.code(404).send({
-      message: "TV show not found",
-    });
+    if (!deleted) throw new NotFoundError("TV show");
     return reply.code(204).send();
   });
 

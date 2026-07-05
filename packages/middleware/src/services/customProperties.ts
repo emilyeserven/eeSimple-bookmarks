@@ -18,21 +18,20 @@ import {
 } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a custom-property payload is structurally invalid (e.g. a bad calculate config). */
-export class CustomPropertyValidationError extends Error {
+export class CustomPropertyValidationError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "CustomPropertyValidationError";
+    super(message, "validation", 400);
   }
 }
 
 /** Thrown when an update or delete targets a built-in property in a disallowed way. */
-export class BuiltInPropertyError extends Error {
+export class BuiltInPropertyError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "BuiltInPropertyError";
+    super(message, "builtInImmutable", 403);
   }
 }
 

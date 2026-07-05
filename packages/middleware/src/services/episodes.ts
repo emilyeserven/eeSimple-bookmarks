@@ -6,13 +6,16 @@ import type {
 import { createPlexTaxonomyService } from "@/services/plexTaxonomyService";
 import { mainTaxonomyImageUrl } from "@/services/taxonomyImages";
 import { bookmarks, episodes, type EpisodeRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { slugify } from "@/utils/slug";
 
 /** Thrown when a create/rename collides with an existing episode name. */
-export class DuplicateEpisodeError extends Error {
+export class DuplicateEpisodeError extends AppError {
   constructor(name: string) {
-    super(`An episode named "${name}" already exists`);
-    this.name = "DuplicateEpisodeError";
+    super(`An episode named "${name}" already exists`, "duplicateName", 409, {
+      entity: "episode",
+      name,
+    });
   }
 }
 

@@ -7,19 +7,18 @@ import type {
 } from "@eesimple/types";
 import {
   bulkDeleteCategories,
-  BuiltInCategoryError,
   createCategory,
   deleteCategory,
   getAvailableRootTagsForCategory,
   getCategoryDefaults,
   getCategoryRootTags,
-  InvalidRootTagError,
   listCategories,
   setCategoryDefaults,
   setCategoryRootTags,
   updateCategory,
 } from "@/services/categories";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const categoryParams = {
   type: "object",
@@ -163,21 +162,9 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const category = await updateCategory(id, req.body as UpdateCategoryInput);
-      if (!category) return reply.code(404).send({
-        message: "Category not found",
-      });
-      return category;
-    }
-    catch (err) {
-      if (err instanceof BuiltInCategoryError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const category = await updateCategory(id, req.body as UpdateCategoryInput);
+    if (!category) throw new NotFoundError("Category");
+    return category;
   });
 
   app.delete("/api/categories/:id", {
@@ -189,21 +176,9 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const deleted = await deleteCategory(id);
-      if (!deleted) return reply.code(404).send({
-        message: "Category not found",
-      });
-      return reply.code(204).send();
-    }
-    catch (err) {
-      if (err instanceof BuiltInCategoryError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const deleted = await deleteCategory(id);
+    if (!deleted) throw new NotFoundError("Category");
+    return reply.code(204).send();
   });
 
   app.get("/api/categories/:id/root-tags", {
@@ -247,23 +222,11 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
     const {
       tagIds,
     } = req.body as UpdateCategoryRootTagsInput;
-    try {
-      const result = await setCategoryRootTags(id, tagIds);
-      if (result === null) return reply.code(404).send({
-        message: "Category not found",
-      });
-      return {
-        tagIds: result,
-      };
-    }
-    catch (err) {
-      if (err instanceof InvalidRootTagError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const result = await setCategoryRootTags(id, tagIds);
+    if (result === null) throw new NotFoundError("Category");
+    return {
+      tagIds: result,
+    };
   });
 
   app.get("/api/categories/:id/defaults", {
@@ -289,9 +252,7 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const result = await setCategoryDefaults(id, req.body as UpdateCategoryDefaultsInput);
-    if (result === null) return reply.code(404).send({
-      message: "Category not found",
-    });
+    if (result === null) throw new NotFoundError("Category");
     return result;
   });
 }

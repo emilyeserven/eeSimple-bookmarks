@@ -10,30 +10,31 @@ import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { languageUsageLevels, languageUsages, type LanguageUsageLevelRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing usage-level name in the same kind. */
-export class DuplicateLanguageUsageLevelError extends Error {
+export class DuplicateLanguageUsageLevelError extends AppError {
   constructor(name: string) {
-    super(`A usage level named "${name}" already exists`);
-    this.name = "DuplicateLanguageUsageLevelError";
+    super(`A usage level named "${name}" already exists`, "duplicateName", 409, {
+      entity: "usage level",
+      name,
+    });
   }
 }
 
 /** Thrown when editing/deleting a seeded built-in usage level. */
-export class BuiltInLanguageUsageLevelError extends Error {
+export class BuiltInLanguageUsageLevelError extends AppError {
   constructor() {
-    super("Built-in usage levels can't be modified or deleted");
-    this.name = "BuiltInLanguageUsageLevelError";
+    super("Built-in usage levels can't be modified or deleted", "builtInImmutable", 403);
   }
 }
 
 /** Thrown when a delete's `reassignTo` target is missing or is the level being deleted. */
-export class InvalidUsageLevelReassignError extends Error {
+export class InvalidUsageLevelReassignError extends AppError {
   constructor(message = "Invalid reassignment target") {
-    super(message);
-    this.name = "InvalidUsageLevelReassignError";
+    super(message, "invalidReassignTarget", 400);
   }
 }
 

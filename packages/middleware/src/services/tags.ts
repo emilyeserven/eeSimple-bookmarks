@@ -12,13 +12,13 @@ import {
   collectSubtreeIds as collectParentTreeSubtreeIds,
   computeSubtreeBookmarkCounts,
 } from "@/utils/parentTree";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a reparent would put a tag under itself or one of its descendants. */
-export class TagCycleError extends Error {
+export class TagCycleError extends AppError {
   constructor() {
-    super("Cannot move a tag under itself or one of its descendants");
-    this.name = "TagCycleError";
+    super("Cannot move a tag under itself or one of its descendants", "cycle", 400);
   }
 }
 

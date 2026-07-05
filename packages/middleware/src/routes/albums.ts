@@ -4,11 +4,11 @@ import {
   bulkDeleteAlbums,
   createAlbum,
   deleteAlbum,
-  DuplicateAlbumError,
   listAlbums,
   updateAlbum,
 } from "@/services/albums";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
+import { NotFoundError } from "@/utils/errors";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
@@ -111,18 +111,8 @@ export async function albumRoutes(app: FastifyInstance): Promise<void> {
       body: createAlbumBody,
     },
   }, async (req, reply) => {
-    try {
-      const album = await createAlbum(req.body as CreateAlbumInput);
-      return reply.code(201).send(album);
-    }
-    catch (err) {
-      if (err instanceof DuplicateAlbumError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const album = await createAlbum(req.body as CreateAlbumInput);
+    return reply.code(201).send(album);
   });
 
   app.patch("/api/albums/:id", {
@@ -135,21 +125,9 @@ export async function albumRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const album = await updateAlbum(id, req.body as UpdateAlbumInput);
-      if (!album) return reply.code(404).send({
-        message: "Album not found",
-      });
-      return album;
-    }
-    catch (err) {
-      if (err instanceof DuplicateAlbumError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const album = await updateAlbum(id, req.body as UpdateAlbumInput);
+    if (!album) throw new NotFoundError("Album");
+    return album;
   });
 
   app.delete("/api/albums/:id", {
@@ -162,9 +140,7 @@ export async function albumRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteAlbum(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Album not found",
-    });
+    if (!deleted) throw new NotFoundError("Album");
     return reply.code(204).send();
   });
 

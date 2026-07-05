@@ -4,11 +4,11 @@ import {
   bulkDeleteMovies,
   createMovie,
   deleteMovie,
-  DuplicateMovieError,
   listMovies,
   updateMovie,
 } from "@/services/movies";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
+import { NotFoundError } from "@/utils/errors";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
@@ -97,18 +97,8 @@ export async function movieRoutes(app: FastifyInstance): Promise<void> {
       body: createMovieBody,
     },
   }, async (req, reply) => {
-    try {
-      const movie = await createMovie(req.body as CreateMovieInput);
-      return reply.code(201).send(movie);
-    }
-    catch (err) {
-      if (err instanceof DuplicateMovieError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const movie = await createMovie(req.body as CreateMovieInput);
+    return reply.code(201).send(movie);
   });
 
   app.patch("/api/movies/:id", {
@@ -121,21 +111,9 @@ export async function movieRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const movie = await updateMovie(id, req.body as UpdateMovieInput);
-      if (!movie) return reply.code(404).send({
-        message: "Movie not found",
-      });
-      return movie;
-    }
-    catch (err) {
-      if (err instanceof DuplicateMovieError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const movie = await updateMovie(id, req.body as UpdateMovieInput);
+    if (!movie) throw new NotFoundError("Movie");
+    return movie;
   });
 
   app.delete("/api/movies/:id", {
@@ -148,9 +126,7 @@ export async function movieRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteMovie(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Movie not found",
-    });
+    if (!deleted) throw new NotFoundError("Movie");
     return reply.code(204).send();
   });
 

@@ -590,8 +590,8 @@ export interface MediaTypeNode extends MediaType {
   children: MediaTypeNode[];
 }
 
-/** Lightweight media-type shape carried on a bookmark. */
-export type BookmarkMediaType = Pick<MediaType, "id" | "name" | "slug" | "icon" | "parentId">;
+/** Lightweight media-type shape carried on a bookmark. `builtIn` lets the card translate seeded names. */
+export type BookmarkMediaType = Pick<MediaType, "id" | "name" | "slug" | "icon" | "parentId" | "builtIn">;
 
 /** Payload for creating a custom media type. */
 export interface CreateMediaTypeInput {

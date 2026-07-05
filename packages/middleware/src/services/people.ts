@@ -17,6 +17,7 @@ import {
 } from "@/db/schema";
 import { getPersonImageRow } from "@/services/personImages";
 import { extractSocialProfileLinks, fetchBodyHtmlResult } from "@/services/metadata";
+import { AppError } from "@/utils/errors";
 import { buildStringMap } from "@/utils/mapUtils";
 import { deleteObject } from "@/utils/objectStore";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -25,10 +26,12 @@ import { takenSlugsOf } from "@/utils/taxonomySlugs";
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Thrown when a create/rename collides with an existing person name. */
-export class DuplicatePersonError extends Error {
+export class DuplicatePersonError extends AppError {
   constructor(name: string) {
-    super(`An person named "${name}" already exists`);
-    this.name = "DuplicatePersonError";
+    super(`An person named "${name}" already exists`, "duplicateName", 409, {
+      entity: "person",
+      name,
+    });
   }
 }
 

@@ -4,10 +4,10 @@ import {
   bulkDeleteMediaProperties,
   createMediaProperty,
   deleteMediaProperty,
-  DuplicateMediaPropertyError,
   listMediaProperties,
   updateMediaProperty,
 } from "@/services/mediaProperties";
+import { NotFoundError } from "@/utils/errors";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const mediaPropertyParams = {
@@ -66,18 +66,8 @@ export async function mediaPropertyRoutes(app: FastifyInstance): Promise<void> {
       body: createMediaPropertyBody,
     },
   }, async (req, reply) => {
-    try {
-      const mediaProperty = await createMediaProperty(req.body as CreateMediaPropertyInput);
-      return reply.code(201).send(mediaProperty);
-    }
-    catch (err) {
-      if (err instanceof DuplicateMediaPropertyError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const mediaProperty = await createMediaProperty(req.body as CreateMediaPropertyInput);
+    return reply.code(201).send(mediaProperty);
   });
 
   app.patch("/api/media-properties/:id", {
@@ -90,21 +80,9 @@ export async function mediaPropertyRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const mediaProperty = await updateMediaProperty(id, req.body as UpdateMediaPropertyInput);
-      if (!mediaProperty) return reply.code(404).send({
-        message: "Media property not found",
-      });
-      return mediaProperty;
-    }
-    catch (err) {
-      if (err instanceof DuplicateMediaPropertyError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const mediaProperty = await updateMediaProperty(id, req.body as UpdateMediaPropertyInput);
+    if (!mediaProperty) throw new NotFoundError("Media property");
+    return mediaProperty;
   });
 
   app.delete("/api/media-properties/:id", {
@@ -117,9 +95,7 @@ export async function mediaPropertyRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const deleted = await deleteMediaProperty(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Media property not found",
-    });
+    if (!deleted) throw new NotFoundError("Media property");
     return reply.code(204).send();
   });
 }

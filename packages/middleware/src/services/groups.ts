@@ -23,6 +23,7 @@ import {
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { getGroupImageRow } from "@/services/groupImages";
+import { AppError } from "@/utils/errors";
 import { buildStringMap } from "@/utils/mapUtils";
 import { deleteObject } from "@/utils/objectStore";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -31,10 +32,12 @@ import { takenSlugsOf } from "@/utils/taxonomySlugs";
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Thrown when a create/rename collides with an existing group name. */
-export class DuplicateGroupError extends Error {
+export class DuplicateGroupError extends AppError {
   constructor(name: string) {
-    super(`A group named "${name}" already exists`);
-    this.name = "DuplicateGroupError";
+    super(`A group named "${name}" already exists`, "duplicateName", 409, {
+      entity: "group",
+      name,
+    });
   }
 }
 

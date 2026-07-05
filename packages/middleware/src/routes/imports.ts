@@ -33,6 +33,13 @@ import {
   updateImportItem,
 } from "@/services/imports";
 import { isValidUrl } from "@/utils/url";
+import {
+  AppError,
+  ImageTooLargeError,
+  NoFileUploadedError,
+  NotFoundError,
+  ValidationError,
+} from "@/utils/errors";
 
 const importParams = {
   type: "object",
@@ -196,12 +203,10 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       tags: ["imports"],
       body: urlBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const body = req.body as IngestUrlInput;
     if (!isValidUrl(body.url) || !isPublicHttpUrl(body.url)) {
-      return reply.code(400).send({
-        message: "url must be a valid public http(s) URL",
-      });
+      throw new ValidationError("url must be a valid public http(s) URL");
     }
     return queueImport({
       source: "url",
@@ -224,7 +229,7 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       consumes: ["multipart/form-data"],
       querystring: uploadQuery,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       newsletterId, defaultCategoryId,
     } = req.query as { newsletterId?: string;
@@ -233,25 +238,19 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
     let bytes: Buffer;
     try {
       const file = await req.file();
-      if (!file) return reply.code(400).send({
-        message: "No file uploaded",
-      });
+      if (!file) throw new NoFileUploadedError();
       filename = file.filename;
       bytes = await file.toBuffer();
     }
     catch (err) {
       if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
-        return reply.code(413).send({
-          message: "File is too large",
-        });
+        throw new ImageTooLargeError("File is too large");
       }
       throw err;
     }
     const parsed = contentFromUpload(filename, bytes);
     if (!parsed) {
-      return reply.code(415).send({
-        message: "Unsupported file — upload an .eml, .html, or .txt file",
-      });
+      throw new AppError("Unsupported file — upload an .eml, .html, or .txt file", "validation", 415);
     }
     return queueImport({
       source: "upload",
@@ -294,14 +293,12 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       params: itemParams,
       body: updateItemBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       itemId,
     } = req.params as { itemId: string };
     const updated = await updateImportItem(itemId, req.body as UpdateImportItemInput);
-    if (!updated) return reply.code(404).send({
-      message: "Item not found",
-    });
+    if (!updated) throw new NotFoundError("Item");
     return updated;
   });
 
@@ -430,9 +427,7 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       itemId,
     } = req.params as { itemId: string };
     const ok = await rejectImportItem(itemId);
-    if (!ok) return reply.code(404).send({
-      message: "Item not found",
-    });
+    if (!ok) throw new NotFoundError("Item");
     return reply.code(204).send();
   });
 
@@ -447,9 +442,7 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       itemId,
     } = req.params as { itemId: string };
     const ok = await unrejectImportItem(itemId);
-    if (!ok) return reply.code(404).send({
-      message: "Item not found",
-    });
+    if (!ok) throw new NotFoundError("Item");
     return reply.code(204).send();
   });
 
@@ -460,14 +453,12 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       params: itemParams,
       body: blockItemBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       itemId,
     } = req.params as { itemId: string };
     const updated = await blockImportItem(itemId, req.body as BlockImportItemInput);
-    if (!updated) return reply.code(404).send({
-      message: "Item not found",
-    });
+    if (!updated) throw new NotFoundError("Item");
     return updated;
   });
 
@@ -519,14 +510,12 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       tags: ["imports"],
       params: itemParams,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       itemId,
     } = req.params as { itemId: string };
     const result = await recheckImportItemUrl(itemId);
-    if (result === null) return reply.code(404).send({
-      message: "Item not found",
-    });
+    if (result === null) throw new NotFoundError("Item");
     return result;
   });
 
@@ -554,9 +543,7 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    if (!(await getImport(id))) return reply.code(404).send({
-      message: "Import not found",
-    });
+    if (!(await getImport(id))) throw new NotFoundError("Import");
     await setIssueBookmarks(id, (req.body as IssueBookmarksInput).bookmarkIds, "add");
     return reply.code(204).send();
   });
@@ -582,14 +569,12 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       tags: ["imports"],
       params: importParams,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
     const found = await getImport(id);
-    if (!found) return reply.code(404).send({
-      message: "Import not found",
-    });
+    if (!found) throw new NotFoundError("Import");
     return found;
   });
 
@@ -604,9 +589,7 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const ok = await deleteImport(id);
-    if (!ok) return reply.code(404).send({
-      message: "Import not found",
-    });
+    if (!ok) throw new NotFoundError("Import");
     return reply.code(204).send();
   });
 }

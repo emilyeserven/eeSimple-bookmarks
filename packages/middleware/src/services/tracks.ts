@@ -6,13 +6,16 @@ import type {
 import { createPlexTaxonomyService } from "@/services/plexTaxonomyService";
 import { mainTaxonomyImageUrl } from "@/services/taxonomyImages";
 import { bookmarks, tracks, type TrackRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { slugify } from "@/utils/slug";
 
 /** Thrown when a create/rename collides with an existing track name. */
-export class DuplicateTrackError extends Error {
+export class DuplicateTrackError extends AppError {
   constructor(name: string) {
-    super(`A track named "${name}" already exists`);
-    this.name = "DuplicateTrackError";
+    super(`A track named "${name}" already exists`, "duplicateName", 409, {
+      entity: "track",
+      name,
+    });
   }
 }
 

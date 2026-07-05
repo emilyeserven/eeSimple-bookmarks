@@ -1,5 +1,5 @@
 import type { TaxonomyImageOwnerType } from "@eesimple/types";
-import type { FastifyInstance, FastifyReply } from "fastify";
+import type { FastifyInstance } from "fastify";
 import {
   addTaxonomyImage,
   getTaxonomyImageRow,
@@ -10,6 +10,14 @@ import {
   type AddTaxonomyImageResult,
 } from "@/services/taxonomyImages";
 import { getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
+import {
+  ImageTooLargeError,
+  MaxImagesReachedError,
+  NoFileUploadedError,
+  NotFoundError,
+  StorageUnconfiguredError,
+  UnsupportedImageError,
+} from "@/utils/errors";
 
 const ownerParams = {
   type: "object",
@@ -37,30 +45,11 @@ const ownerImageParams = {
   },
 } as const;
 
-/** Send the common `addTaxonomyImage` outcomes; returns `true` once a reply was sent. */
-function sendCommonAddOutcome(
-  reply: FastifyReply,
-  result: AddTaxonomyImageResult | "not_found",
-): boolean {
-  if (result === "not_found") {
-    reply.code(404).send({
-      message: "Not found",
-    });
-    return true;
-  }
-  if (result === "too_many") {
-    reply.code(409).send({
-      message: "This item already has the maximum number of images",
-    });
-    return true;
-  }
-  if (result === "bad_image") {
-    reply.code(415).send({
-      message: "Unsupported or invalid image",
-    });
-    return true;
-  }
-  return false;
+/** Throw the coded error for a common `addTaxonomyImage` failure outcome; a no-op on success. */
+function assertAddOutcomeOk(result: AddTaxonomyImageResult | "not_found"): void {
+  if (result === "not_found") throw new NotFoundError("Item", "Not found");
+  if (result === "too_many") throw new MaxImagesReachedError();
+  if (result === "bad_image") throw new UnsupportedImageError();
 }
 
 /** One "pull an image from an external source" action registered alongside the CRUD image routes. */
@@ -123,30 +112,24 @@ export function registerTaxonomyImageRoutes(
       main,
     } = req.query as { main?: boolean };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     let bytes: Buffer;
     try {
       const file = await req.file();
-      if (!file) return reply.code(400).send({
-        message: "No file uploaded",
-      });
+      if (!file) throw new NoFileUploadedError();
       bytes = await file.toBuffer();
     }
     catch (err) {
       if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
-        return reply.code(413).send({
-          message: "Image is too large",
-        });
+        throw new ImageTooLargeError();
       }
       throw err;
     }
     const result = await addTaxonomyImage(ownerType, id, bytes, "upload", {
       setMain: main === true,
     });
-    if (sendCommonAddOutcome(reply, result)) return;
+    assertAddOutcomeOk(result);
     return reply.code(201).send(result);
   });
 
@@ -162,9 +145,7 @@ export function registerTaxonomyImageRoutes(
     } = req.params as { id: string;
       imageId: string; };
     const result = await setMainTaxonomyImage(ownerType, id, imageId);
-    if (result === "not_found") return reply.code(404).send({
-      message: "Image not found",
-    });
+    if (result === "not_found") throw new NotFoundError("Image");
     return reply.code(200).send(result);
   });
 
@@ -180,9 +161,7 @@ export function registerTaxonomyImageRoutes(
     } = req.params as { id: string;
       imageId: string; };
     const removed = await removeTaxonomyImage(ownerType, id, imageId);
-    if (!removed) return reply.code(404).send({
-      message: "No image to delete",
-    });
+    if (!removed) throw new NotFoundError("Image", "No image to delete");
     return reply.code(204).send();
   });
 
@@ -197,12 +176,10 @@ export function registerTaxonomyImageRoutes(
         id,
       } = req.params as { id: string };
       if (!isObjectStoreConfigured()) {
-        return reply.code(503).send({
-          message: "Image storage is not configured",
-        });
+        throw new StorageUnconfiguredError();
       }
       const result = await action.run(id);
-      if (sendCommonAddOutcome(reply, result as AddTaxonomyImageResult | "not_found")) return;
+      assertAddOutcomeOk(result as AddTaxonomyImageResult | "not_found");
       if (typeof result === "string") {
         return reply.code(422).send({
           message: action.errorMessages[result] ?? "Could not import the image",
@@ -240,13 +217,9 @@ export function registerTaxonomyImageServingRoute(app: FastifyInstance): void {
       imageId,
     } = req.params as { imageId: string };
     const row = await getTaxonomyImageRow(imageId);
-    if (!row) return reply.code(404).send({
-      message: "No image",
-    });
+    if (!row) throw new NotFoundError("Image", "No image");
     const object = await getObjectStream(row.objectKey);
-    if (!object) return reply.code(404).send({
-      message: "No image",
-    });
+    if (!object) throw new NotFoundError("Image", "No image");
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
     return reply.send(object.body);

@@ -87,6 +87,7 @@ describe("buildCardOverlayItems", () => {
         slug: "article",
         icon: null,
         parentId: null,
+        builtIn: false,
       },
     });
     const placements = new Map([["mediaType", cornerPlacement("bottom-right")]]);

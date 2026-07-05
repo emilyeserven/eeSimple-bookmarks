@@ -4,6 +4,7 @@ import {
   resolvePlexTaxonomyMetadata,
   type PlexTaxonomyOwnerType,
 } from "@/services/plex";
+import { NotFoundError, StorageUnconfiguredError, ValidationError } from "@/utils/errors";
 
 const ownerParams = {
   type: "object",
@@ -39,20 +40,14 @@ export function registerPlexMetadataPreviewRoute(
       id,
     } = req.params as { id: string };
     if (!(await plexEnabledAsync())) {
-      return reply.code(503).send({
-        message: "Plex is not configured",
-      });
+      throw new StorageUnconfiguredError("Plex is not configured");
     }
     const result = await resolvePlexTaxonomyMetadata(ownerType, id);
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Not found",
-      });
+      throw new NotFoundError("Item", "Not found");
     }
     if (result === "not_linked") {
-      return reply.code(400).send({
-        message: "This item is not linked to a Plex item",
-      });
+      throw new ValidationError("This item is not linked to a Plex item");
     }
     return reply.code(200).send(result);
   });

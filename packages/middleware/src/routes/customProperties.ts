@@ -11,14 +11,13 @@ import type {
 } from "@eesimple/types";
 import {
   bulkDeleteCustomProperties,
-  BuiltInPropertyError,
   createCustomProperty,
-  CustomPropertyValidationError,
   deleteCustomProperty,
   listCustomProperties,
   updateCustomProperty,
 } from "@/services/customProperties";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
+import { NotFoundError } from "@/utils/errors";
 
 const propertyParams = {
   type: "object",
@@ -273,18 +272,8 @@ export async function customPropertyRoutes(app: FastifyInstance): Promise<void> 
       body: createPropertyBody,
     },
   }, async (req, reply) => {
-    try {
-      const property = await createCustomProperty(req.body as CreateCustomPropertyInput);
-      return reply.code(201).send(property);
-    }
-    catch (err) {
-      if (err instanceof CustomPropertyValidationError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const property = await createCustomProperty(req.body as CreateCustomPropertyInput);
+    return reply.code(201).send(property);
   });
 
   app.patch("/api/custom-properties/:id", {
@@ -297,26 +286,9 @@ export async function customPropertyRoutes(app: FastifyInstance): Promise<void> 
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const property = await updateCustomProperty(id, req.body as UpdateCustomPropertyInput);
-      if (!property) return reply.code(404).send({
-        message: "Custom property not found",
-      });
-      return property;
-    }
-    catch (err) {
-      if (err instanceof CustomPropertyValidationError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof BuiltInPropertyError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const property = await updateCustomProperty(id, req.body as UpdateCustomPropertyInput);
+    if (!property) throw new NotFoundError("Custom property");
+    return property;
   });
 
   app.delete("/api/custom-properties/:id", {
@@ -328,20 +300,8 @@ export async function customPropertyRoutes(app: FastifyInstance): Promise<void> 
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const deleted = await deleteCustomProperty(id);
-      if (!deleted) return reply.code(404).send({
-        message: "Custom property not found",
-      });
-      return reply.code(204).send();
-    }
-    catch (err) {
-      if (err instanceof BuiltInPropertyError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const deleted = await deleteCustomProperty(id);
+    if (!deleted) throw new NotFoundError("Custom property");
+    return reply.code(204).send();
   });
 }

@@ -16,6 +16,7 @@ import type {
 import { BOOKMARK_ADD_FORM_PLACEMENTS, IMPORT_BLACKLIST_KINDS, INTERFACE_LANGUAGES, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import { getDatabaseTableDetail, getDatabaseUsageReport } from "@/services/databaseUsage";
+import { NotFoundError } from "@/utils/errors";
 import {
   getAdvancedSettings,
   getAiSummarizationSettings,
@@ -739,15 +740,13 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
     schema: {
       tags: ["app-settings"],
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       tableName,
     } = req.params as { tableName: string };
     const detail = await getDatabaseTableDetail(tableName);
     if (!detail) {
-      return reply.code(404).send({
-        message: "Table not found",
-      });
+      throw new NotFoundError("Table");
     }
     return detail;
   });

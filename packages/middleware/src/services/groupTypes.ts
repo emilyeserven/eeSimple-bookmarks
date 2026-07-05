@@ -8,6 +8,7 @@ import type {
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { groups, groupTypes, type GroupTypeRow } from "@/db/schema";
+import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -20,10 +21,12 @@ const DEFAULT_GROUP_TYPES = [
 ] as const;
 
 /** Thrown when a create/rename collides with an existing group type name. */
-export class DuplicateGroupTypeError extends Error {
+export class DuplicateGroupTypeError extends AppError {
   constructor(name: string) {
-    super(`A group type named "${name}" already exists`);
-    this.name = "DuplicateGroupTypeError";
+    super(`A group type named "${name}" already exists`, "duplicateName", 409, {
+      entity: "group type",
+      name,
+    });
   }
 }
 

@@ -81,6 +81,7 @@ describe("bookmarkToConditionInput", () => {
         slug: "video",
         icon: null,
         parentId: null,
+        builtIn: false,
       },
       numberValues: [{
         propertyId: "p-num",

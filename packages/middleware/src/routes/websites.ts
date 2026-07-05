@@ -12,13 +12,10 @@ import {
   bulkDeleteWebsites,
   bulkUpdateWebsites,
   bulkUpdateWebsiteTags,
-  BuiltInWebsiteError,
   createWebsite,
   deleteWebsite,
-  DuplicateDomainError,
   getWebsite,
   getWebsiteTree,
-  InvalidDomainError,
   listRedirectFailureWebsites,
   listWebsites,
   lookupWebsiteByUrl,
@@ -26,6 +23,13 @@ import {
 } from "@/services/websites";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
+import {
+  ImageTooLargeError,
+  NoFileUploadedError,
+  NotFoundError,
+  StorageUnconfiguredError,
+  UnsupportedImageError,
+} from "@/utils/errors";
 
 /** User-facing messages for the typed grab failures shared by the entity-image auto routes. */
 const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
@@ -298,23 +302,8 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       body: createWebsiteBody,
     },
   }, async (req, reply) => {
-    try {
-      const website = await createWebsite(req.body as CreateWebsiteInput);
-      return reply.code(201).send(website);
-    }
-    catch (err) {
-      if (err instanceof DuplicateDomainError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof InvalidDomainError) {
-        return reply.code(400).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const website = await createWebsite(req.body as CreateWebsiteInput);
+    return reply.code(201).send(website);
   });
 
   app.patch("/api/websites/:id", {
@@ -323,30 +312,13 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       params: websiteParams,
       body: updateWebsiteBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      const website = await updateWebsite(id, req.body as UpdateWebsiteInput);
-      if (!website) return reply.code(404).send({
-        message: "Website not found",
-      });
-      return website;
-    }
-    catch (err) {
-      if (err instanceof DuplicateDomainError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      if (err instanceof BuiltInWebsiteError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    const website = await updateWebsite(id, req.body as UpdateWebsiteInput);
+    if (!website) throw new NotFoundError("Website");
+    return website;
   });
 
   app.delete("/api/websites/:id", {
@@ -358,26 +330,14 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    try {
-      // Read the favicon row before deleting: the row cascades away with the website, but its bytes
-      // live under an object-storage prefix the Gallery reconciliation doesn't cover, so capture the
-      // key now and drop the object after a confirmed delete (best-effort) to avoid leaking it.
-      const faviconRow = await getWebsiteFaviconRow(id);
-      const deleted = await deleteWebsite(id);
-      if (!deleted) return reply.code(404).send({
-        message: "Website not found",
-      });
-      if (faviconRow) await deleteObject(faviconRow.objectKey).catch(() => undefined);
-      return reply.code(204).send();
-    }
-    catch (err) {
-      if (err instanceof BuiltInWebsiteError) {
-        return reply.code(403).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    // Read the favicon row before deleting: the row cascades away with the website, but its bytes
+    // live under an object-storage prefix the Gallery reconciliation doesn't cover, so capture the
+    // key now and drop the object after a confirmed delete (best-effort) to avoid leaking it.
+    const faviconRow = await getWebsiteFaviconRow(id);
+    const deleted = await deleteWebsite(id);
+    if (!deleted) throw new NotFoundError("Website");
+    if (faviconRow) await deleteObject(faviconRow.objectKey).catch(() => undefined);
+    return reply.code(204).send();
   });
 
   // Upload a favicon for a website (multipart). Replaces any existing one.
@@ -392,39 +352,29 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     let bytes: Buffer;
     try {
       const file = await req.file();
       if (!file) {
-        return reply.code(400).send({
-          message: "No file uploaded",
-        });
+        throw new NoFileUploadedError();
       }
       bytes = await file.toBuffer();
     }
     catch (err) {
       // @fastify/multipart throws this when the upload exceeds the configured size limit.
       if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
-        return reply.code(413).send({
-          message: "Image is too large",
-        });
+        throw new ImageTooLargeError();
       }
       throw err;
     }
     const result = await setWebsiteFaviconFromBytes(id, bytes);
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Website not found",
-      });
+      throw new NotFoundError("Website");
     }
     if (result === "bad_image") {
-      return reply.code(415).send({
-        message: "Unsupported or invalid image",
-      });
+      throw new UnsupportedImageError();
     }
     return reply.code(201).send(result);
   });
@@ -440,15 +390,11 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     if (!isObjectStoreConfigured()) {
-      return reply.code(503).send({
-        message: "Image storage is not configured",
-      });
+      throw new StorageUnconfiguredError();
     }
     const result = await fetchAndStoreWebsiteFavicon(id);
     if (result === "not_found") {
-      return reply.code(404).send({
-        message: "Website not found",
-      });
+      throw new NotFoundError("Website");
     }
     if (typeof result === "string") {
       return reply.code(502).send({
@@ -466,15 +412,13 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       tags: ["websites"],
       params: websiteParams,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       id,
     } = req.params as { id: string };
     const website = await getWebsite(id);
     if (!website) {
-      return reply.code(404).send({
-        message: "Website not found",
-      });
+      throw new NotFoundError("Website");
     }
     return {
       imageUrl: await resolveWebsiteFaviconUrl(id),
@@ -493,9 +437,7 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
     } = req.params as { id: string };
     const removed = await removeWebsiteFavicon(id);
     if (!removed) {
-      return reply.code(404).send({
-        message: "No favicon to delete",
-      });
+      throw new NotFoundError("Favicon", "No favicon to delete");
     }
     return reply.code(204).send();
   });
@@ -513,15 +455,11 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
     } = req.params as { id: string };
     const row = await getWebsiteFaviconRow(id);
     if (!row) {
-      return reply.code(404).send({
-        message: "No favicon",
-      });
+      throw new NotFoundError("Favicon", "No favicon");
     }
     const object = await getObjectStream(row.objectKey);
     if (!object) {
-      return reply.code(404).send({
-        message: "No favicon",
-      });
+      throw new NotFoundError("Favicon", "No favicon");
     }
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
