@@ -34,7 +34,7 @@ export function AddImportModal() {
         setOpen(next);
       }}
     >
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("Add import")}</DialogTitle>
           <DialogDescription>

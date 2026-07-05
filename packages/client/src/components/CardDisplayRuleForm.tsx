@@ -184,7 +184,7 @@ export function CardDisplayRuleForm({
         onDisplayOpenChange={setDisplayModalOpen}
         ruleModalOpen={ruleModalOpen}
         onRuleOpenChange={setRuleModalOpen}
-        renderDisplay={() => buildDisplayWithPreview("md:max-h-[calc(92vh-8rem)]")}
+        renderDisplay={() => buildDisplayWithPreview("md:max-h-[calc(80vh-8rem)]")}
         generalFields={generalFields}
         whenFields={whenFields}
       />

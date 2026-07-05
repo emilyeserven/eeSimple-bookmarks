@@ -33,7 +33,7 @@ export function AddBookmarkModal({
       open={open}
       onOpenChange={onOpenChange}
     >
-      <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("Add Bookmark")}</DialogTitle>
         </DialogHeader>
