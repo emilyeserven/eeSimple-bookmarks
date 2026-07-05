@@ -1,47 +1,17 @@
-import type { DraftEntityName } from "./entityNames/draftEntityName";
-import type { Book, KavitaSeriesResult } from "@eesimple/types";
+import type { BookFormProps } from "./useBookFormController";
 
-import { useState } from "react";
-
-import { useMutation } from "@tanstack/react-query";
 import { BookOpen, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
-import { entriesFromDrafts } from "./entityNames/draftEntityName";
 import { EntityNamesEditor } from "./entityNames/EntityNamesEditor";
 import { KavitaSeriesLookup } from "./KavitaSeriesLookup";
-import { useCreateBook } from "../hooks/useBooks";
-import { useCreateEntityNames } from "../hooks/useEntityNames";
-import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
-import { useMediaProperties } from "../hooks/useMediaProperties";
-import { describeError } from "../lib/apiError";
-import { notifyError } from "../lib/notifications";
+import { EMPTY_KAVITA, useBookFormController } from "./useBookFormController";
 
 import { Combobox } from "@/components/Combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { booksApi } from "@/lib/api/taxonomies";
-
-/** The Kavita linkage a lookup fills in; held together so the "linked" chip and payload stay in sync. */
-interface KavitaLink {
-  kavitaSeriesId: number | null;
-  kavitaLibraryId: number | null;
-  kavitaSeriesName: string | null;
-  releaseYear: number | null;
-}
-
-const EMPTY_KAVITA: KavitaLink = {
-  kavitaSeriesId: null,
-  kavitaLibraryId: null,
-  kavitaSeriesName: null,
-  releaseYear: null,
-};
-
-interface BookFormProps {
-  /** Called with the created book (e.g. to select it in the opener, or navigate to its edit page). */
-  onCreated?: (book: Book) => void;
-}
 
 /**
  * Create form for a Book. Modeled on the Locations create form: enter a name, or look the book up on
@@ -53,93 +23,35 @@ interface BookFormProps {
  * `useEntityCreateOption`'s registry imports `AddBookModal` for the `"book"` entry, so this form
  * calling the hook would create an import cycle (`AddBookModal` → `BookForm` → `useEntityCreateOption`
  * → `AddBookModal`). Same rationale as `LocationForm`.
+ *
+ * All state and handlers live in `useBookFormController` — this component is just the JSX wiring
+ * (see the `decompose-over-cap` skill: hook-density was this form's complexity driver).
  */
-export function BookForm({
-  onCreated,
-}: BookFormProps) {
-  const createBook = useCreateBook();
-  const createNames = useCreateEntityNames();
+export function BookForm(props: BookFormProps) {
   const {
-    data: mediaProperties,
-  } = useMediaProperties();
-  const isbnFetch = useFetchIsbnMetadata();
-  const importIsbnCover = useMutation({
-    mutationFn: (bookId: string) => booksApi.images.autoFetch(bookId, "isbn-cover"),
-  });
-
-  const [name, setName] = useState("");
-  const [nameDrafts, setNameDrafts] = useState<DraftEntityName[]>([]);
-  const [mediaPropertyId, setMediaPropertyId] = useState<string>("");
-  const [kavita, setKavita] = useState<KavitaLink>(EMPTY_KAVITA);
-  const [addMediaPropertyOpen, setAddMediaPropertyOpen] = useState(false);
-  const [isbnInput, setIsbnInput] = useState("");
-  const [isbn, setIsbn] = useState("");
-  const [isbnReleaseYear, setIsbnReleaseYear] = useState<number | null>(null);
-  const [isbnCoverAvailable, setIsbnCoverAvailable] = useState(false);
-
-  function applyCandidate(series: KavitaSeriesResult) {
-    // Fill the name only when empty, so a deliberate title isn't overwritten by a search pick.
-    setName(current => current.trim() || series.name);
-    setKavita({
-      kavitaSeriesId: series.seriesId,
-      kavitaLibraryId: series.libraryId,
-      kavitaSeriesName: series.name,
-      releaseYear: series.releaseYear,
-    });
-  }
-
-  async function handleIsbnLookup(): Promise<void> {
-    const trimmed = isbnInput.trim();
-    if (!trimmed) return;
-    let result;
-    try {
-      result = await isbnFetch.mutateAsync({
-        isbn: trimmed,
-      });
-    }
-    catch (err) {
-      notifyError(describeError(err, "Could not fetch book metadata"));
-      return;
-    }
-    // Fill the name only when empty, so a deliberate title isn't overwritten by the lookup.
-    const title = result.title;
-    if (title) setName(current => current.trim() || title);
-    if (result.year) {
-      const parsedYear = parseInt(result.year, 10);
-      if (!Number.isNaN(parsedYear)) setIsbnReleaseYear(parsedYear);
-    }
-    setIsbn(trimmed);
-    setIsbnCoverAvailable(Boolean(result.coverUrl));
-  }
-
-  function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    const trimmed = name.trim();
-    if (trimmed.length === 0) return;
-    createBook.mutate(
-      {
-        name: trimmed,
-        mediaPropertyId: mediaPropertyId || null,
-        isbn: isbn.trim() || null,
-        ...kavita,
-        releaseYear: kavita.releaseYear ?? isbnReleaseYear,
-      },
-      {
-        onSuccess: (book) => {
-          if (isbnCoverAvailable) importIsbnCover.mutate(book.id);
-          const entries = entriesFromDrafts(nameDrafts);
-          if (entries.length > 0) {
-            createNames.mutate({
-              ownerType: "book",
-              ownerId: book.id,
-              entries,
-            });
-          }
-          onCreated?.(book);
-        },
-      },
-    );
-  }
+    t,
+  } = useTranslation();
+  const {
+    createBook,
+    mediaProperties,
+    isbnFetch,
+    name,
+    setName,
+    nameDrafts,
+    setNameDrafts,
+    mediaPropertyId,
+    setMediaPropertyId,
+    kavita,
+    setKavita,
+    addMediaPropertyOpen,
+    setAddMediaPropertyOpen,
+    isbnInput,
+    setIsbnInput,
+    isbn,
+    applyCandidate,
+    handleIsbnLookup,
+    handleSubmit,
+  } = useBookFormController(props);
 
   return (
     <form
@@ -149,10 +61,10 @@ export function BookForm({
       <KavitaSeriesLookup onSelect={applyCandidate} />
 
       <div className="space-y-1.5">
-        <Label htmlFor="book-name">Name</Label>
+        <Label htmlFor="book-name">{t("Name")}</Label>
         <Input
           id="book-name"
-          placeholder="e.g. The Fellowship of the Ring"
+          placeholder={t("e.g. The Fellowship of the Ring")}
           value={name}
           onChange={event => setName(event.target.value)}
           autoFocus
@@ -160,7 +72,7 @@ export function BookForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label>Names</Label>
+        <Label>{t("Names")}</Label>
         <EntityNamesEditor
           value={nameDrafts}
           onChange={setNameDrafts}
@@ -168,11 +80,11 @@ export function BookForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="book-isbn">ISBN</Label>
+        <Label htmlFor="book-isbn">{t("ISBN")}</Label>
         <div className="flex gap-2">
           <Input
             id="book-isbn"
-            placeholder="e.g. 9780618640157"
+            placeholder={t("e.g. 9780618640157")}
             value={isbnInput}
             onChange={event => setIsbnInput(event.target.value)}
           />
@@ -182,13 +94,15 @@ export function BookForm({
             disabled={isbnFetch.isPending || isbnInput.trim().length === 0}
             onClick={() => void handleIsbnLookup()}
           >
-            {isbnFetch.isPending ? "Looking up…" : "Look up"}
+            {isbnFetch.isPending ? t("Looking up…") : t("Look up")}
           </Button>
         </div>
         {isbn
           ? (
             <p className="text-xs text-muted-foreground">
-              ISBN {isbn} will be saved with this book.
+              {t("ISBN {{isbn}} will be saved with this book.", {
+                isbn,
+              })}
             </p>
           )
           : null}
@@ -203,7 +117,11 @@ export function BookForm({
           >
             <BookOpen className="size-4 shrink-0 text-muted-foreground" />
             <span className="min-w-0 flex-1 truncate">
-              Linked to Kavita: {kavita.kavitaSeriesName ?? `Series #${kavita.kavitaSeriesId}`}
+              {t("Linked to Kavita: {{name}}", {
+                name: kavita.kavitaSeriesName ?? t("Series #{{id}}", {
+                  id: kavita.kavitaSeriesId,
+                }),
+              })}
               {kavita.releaseYear ? ` (${kavita.releaseYear})` : ""}
             </span>
             <Button
@@ -211,7 +129,7 @@ export function BookForm({
               variant="ghost"
               size="icon"
               className="size-6 shrink-0"
-              aria-label="Clear Kavita link"
+              aria-label={t("Clear Kavita link")}
               onClick={() => setKavita(EMPTY_KAVITA)}
             >
               <X className="size-4" />
@@ -221,20 +139,20 @@ export function BookForm({
         : null}
 
       <div className="space-y-1.5">
-        <Label>Media property</Label>
+        <Label>{t("Media property")}</Label>
         <Combobox
-          aria-label="Media property"
+          aria-label={t("Media property")}
           options={(mediaProperties ?? []).map(prop => ({
             value: prop.id,
             label: prop.name,
           }))}
           value={mediaPropertyId || undefined}
           onValueChange={value => setMediaPropertyId(value ?? "")}
-          placeholder="No media property"
-          searchPlaceholder="Search media properties…"
-          emptyText="No media properties found."
+          placeholder={t("No media property")}
+          searchPlaceholder={t("Search media properties…")}
+          emptyText={t("No media properties found.")}
           createOption={{
-            label: "Create media property",
+            label: t("Create media property"),
             onSelect: () => setAddMediaPropertyOpen(true),
           }}
         />
@@ -253,7 +171,7 @@ export function BookForm({
         type="submit"
         disabled={createBook.isPending || name.trim().length === 0}
       >
-        {createBook.isPending ? "Creating…" : "Create book"}
+        {createBook.isPending ? t("Creating…") : t("Create book")}
       </Button>
     </form>
   );
