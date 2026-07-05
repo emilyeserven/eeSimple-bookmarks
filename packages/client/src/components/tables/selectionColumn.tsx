@@ -1,6 +1,8 @@
 import type { ListSelection } from "../../lib/useListSelection";
 import type { ColumnDef } from "@tanstack/react-table";
 
+import i18n from "../../i18n";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +53,7 @@ export function selectionColumn<T>({
         className={revealClass(anySelected)}
       >
         <Checkbox
-          aria-label="Select all"
+          aria-label={i18n.t("Select all")}
           checked={allSelected}
           onCheckedChange={() => onToggleAll()}
         />
@@ -69,7 +71,7 @@ export function selectionColumn<T>({
           className={revealClass(anySelected || selected)}
         >
           <Checkbox
-            aria-label="Select row"
+            aria-label={i18n.t("Select row")}
             checked={selected}
             onCheckedChange={() => toggle(id)}
           />

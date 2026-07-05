@@ -7,6 +7,7 @@ import { MapPin } from "lucide-react";
 
 import { TreeExpandToggle } from "./cells";
 import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
+import i18n from "../../i18n";
 import { placeTypeLabel } from "../../lib/locationLevels";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 import { RomanizedLabel } from "../RomanizedLabel";
@@ -60,6 +61,6 @@ export function LocationPlaceTypeCell({
   return (
     row.original.placeType
       ? <span className="text-sm">{placeTypeLabel(placeTypeKey(row.original.placeType))}</span>
-      : <span className="text-sm text-muted-foreground">—</span>
+      : <span className="text-sm text-muted-foreground">{i18n.t("—")}</span>
   );
 }

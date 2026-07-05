@@ -8,6 +8,7 @@ import { UserRound } from "lucide-react";
 import { EditActionCell, ImageCell } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import { formatAdded } from "./inboxColumns";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 /** Column definitions for the People listing Table view. */
@@ -17,7 +18,7 @@ export function usePersonColumns(): ColumnDef<Person>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => (
@@ -34,7 +35,7 @@ export function usePersonColumns(): ColumnDef<Person>[] {
       bookmarkCountColumn<Person>(),
       {
         accessorKey: "createdAt",
-        header: "Created",
+        header: i18n.t("Created"),
         cell: ({
           row,
         }) => (
@@ -53,7 +54,9 @@ export function usePersonColumns(): ColumnDef<Person>[] {
             params={{
               personSlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "person", row.original.id)}
           />
         ),

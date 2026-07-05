@@ -6,6 +6,8 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 
+import i18n from "../../i18n";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +30,7 @@ export function TreeExpandToggle<T>({
     <button
       type="button"
       data-no-row-click
-      aria-label={row.getIsExpanded() ? "Collapse" : "Expand"}
+      aria-label={row.getIsExpanded() ? i18n.t("Collapse") : i18n.t("Expand")}
       onClick={row.getToggleExpandedHandler()}
       className="
         flex size-4 items-center justify-center text-muted-foreground

@@ -8,6 +8,7 @@ import { Link } from "@tanstack/react-router";
 import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
+import i18n from "../../i18n";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 import { RomanizedLabel } from "../RomanizedLabel";
 
@@ -21,7 +22,7 @@ export function useGenreMoodColumns(): ColumnDef<GenreMoodNode>[] {
     () => [
       {
         id: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => (

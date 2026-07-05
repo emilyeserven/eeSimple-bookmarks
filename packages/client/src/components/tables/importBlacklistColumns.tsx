@@ -3,6 +3,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { Trash2 } from "lucide-react";
 
+import i18n from "../../i18n";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -19,18 +21,18 @@ export function importBlacklistColumns(
   return [
     {
       id: "kind",
-      header: "Type",
+      header: i18n.t("Type"),
       size: 80,
       cell: ({
         row,
       }) => (
-        <Badge variant="secondary">{KIND_LABEL[row.original.kind]}</Badge>
+        <Badge variant="secondary">{i18n.t(KIND_LABEL[row.original.kind])}</Badge>
       ),
     },
     {
       id: "value",
       accessorKey: "value",
-      header: "Pattern",
+      header: i18n.t("Pattern"),
       meta: {
         fill: true,
       },
@@ -45,7 +47,9 @@ export function importBlacklistColumns(
         <Button
           size="icon"
           variant="ghost"
-          aria-label={`Remove ${row.original.value}`}
+          aria-label={i18n.t("Remove {{value}}", {
+            value: row.original.value,
+          })}
           data-no-row-click
           className="
             opacity-0 transition-opacity

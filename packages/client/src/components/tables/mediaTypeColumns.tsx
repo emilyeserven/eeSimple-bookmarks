@@ -8,6 +8,7 @@ import { Link } from "@tanstack/react-router";
 import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
+import i18n from "../../i18n";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +23,7 @@ export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
     () => [
       {
         id: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => (
@@ -51,7 +52,7 @@ export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
             >
               {row.original.name}
             </Link>
-            {row.original.builtIn ? <Badge variant="outline">Built-in</Badge> : null}
+            {row.original.builtIn ? <Badge variant="outline">{i18n.t("Built-in")}</Badge> : null}
           </div>
         ),
       },

@@ -3,6 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { useMemo } from "react";
 
+import i18n from "../../i18n";
 import { summarizeConditions } from "../../lib/conditionsSummary";
 
 import { Badge } from "@/components/ui/badge";
@@ -13,14 +14,14 @@ export function useAutofillRuleColumns(categories: Category[]): ColumnDef<Autofi
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         id: "conditions",
-        header: "Conditions",
+        header: i18n.t("Conditions"),
         enableSorting: false,
         cell: ({
           row,
@@ -32,7 +33,7 @@ export function useAutofillRuleColumns(categories: Category[]): ColumnDef<Autofi
       },
       {
         id: "category",
-        header: "Sets Category",
+        header: i18n.t("Sets Category"),
         enableSorting: false,
         cell: ({
           row,
@@ -45,7 +46,7 @@ export function useAutofillRuleColumns(categories: Category[]): ColumnDef<Autofi
       },
       {
         accessorKey: "matchCount",
-        header: "Bookmarks",
+        header: i18n.t("Bookmarks"),
         cell: ({
           row,
         }) =>

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Link as LinkIcon } from "lucide-react";
 
 import { ImageCell } from "./cells";
+import i18n from "../../i18n";
 import { RowActions, StatusBadge } from "../InboxRowActions";
 
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +39,7 @@ export function useInboxColumns(
       },
       {
         accessorKey: "title",
-        header: "Title",
+        header: i18n.t("Title"),
         meta: {
           fill: true,
         },
@@ -52,21 +53,25 @@ export function useInboxColumns(
       },
       {
         accessorKey: "sourceLabel",
-        header: "Source",
+        header: i18n.t("Source"),
         cell: ({
           row,
-        }) => <span className="text-sm text-muted-foreground">{row.original.sourceLabel ?? "—"}</span>,
+        }) => (
+          <span className="text-sm text-muted-foreground">
+            {row.original.sourceLabel ?? i18n.t("—")}
+          </span>
+        ),
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: i18n.t("Status"),
         cell: ({
           row,
         }) => <StatusBadge item={row.original} />,
       },
       {
         id: "category",
-        header: "Category",
+        header: i18n.t("Category"),
         enableSorting: false,
         cell: ({
           row,
@@ -79,7 +84,7 @@ export function useInboxColumns(
       },
       {
         accessorKey: "createdAt",
-        header: "Added",
+        header: i18n.t("Added"),
         cell: ({
           row,
         }) => (

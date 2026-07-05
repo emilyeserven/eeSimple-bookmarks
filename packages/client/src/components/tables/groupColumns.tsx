@@ -8,6 +8,7 @@ import { BookOpen } from "lucide-react";
 import { EditActionCell, ImageCell } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import { formatAdded } from "./inboxColumns";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 /** Column definitions for the Groups listing Table view. */
@@ -17,7 +18,7 @@ export function useGroupColumns(): ColumnDef<Group>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => (
@@ -33,7 +34,7 @@ export function useGroupColumns(): ColumnDef<Group>[] {
       },
       {
         id: "website",
-        header: "Website",
+        header: i18n.t("Website"),
         enableSorting: false,
         cell: ({
           row,
@@ -50,7 +51,7 @@ export function useGroupColumns(): ColumnDef<Group>[] {
       bookmarkCountColumn<Group>(),
       {
         accessorKey: "createdAt",
-        header: "Created",
+        header: i18n.t("Created"),
         cell: ({
           row,
         }) => (
@@ -69,7 +70,9 @@ export function useGroupColumns(): ColumnDef<Group>[] {
             params={{
               groupSlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "group", row.original.id)}
           />
         ),

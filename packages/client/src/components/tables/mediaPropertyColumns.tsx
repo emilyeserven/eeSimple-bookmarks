@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { EditActionCell } from "./cells";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -15,21 +16,21 @@ export function useMediaPropertyColumns(): ColumnDef<MediaProperty>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: "sortOrder",
-        header: "Sort order",
+        header: i18n.t("Sort order"),
         cell: ({
           row,
         }) => <span className="text-muted-foreground">{row.original.sortOrder}</span>,
       },
       {
         accessorKey: "bookCount",
-        header: "Books",
+        header: i18n.t("Books"),
         cell: ({
           row,
         }) => (row.original.bookCount !== undefined
@@ -48,7 +49,9 @@ export function useMediaPropertyColumns(): ColumnDef<MediaProperty>[] {
             params={{
               mediaPropertySlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "media-property", row.original.id)}
           />
         ),

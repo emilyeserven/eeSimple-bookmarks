@@ -7,6 +7,7 @@ import { Languages } from "lucide-react";
 
 import { EditActionCell } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,20 +19,20 @@ export function useLanguageColumns(): ColumnDef<Language>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => (
           <div className="flex items-center gap-2 font-medium">
             <Languages className="size-4 shrink-0 text-muted-foreground" />
             {row.original.name}
-            {row.original.builtIn ? <Badge variant="outline">Built-in</Badge> : null}
+            {row.original.builtIn ? <Badge variant="outline">{i18n.t("Built-in")}</Badge> : null}
           </div>
         ),
       },
       {
         accessorKey: "isoCode",
-        header: "ISO code",
+        header: i18n.t("ISO code"),
         cell: ({
           row,
         }) => (
@@ -43,7 +44,7 @@ export function useLanguageColumns(): ColumnDef<Language>[] {
       bookmarkCountColumn<Language>(),
       {
         accessorKey: "createdAt",
-        header: "Created",
+        header: i18n.t("Created"),
         cell: ({
           row,
         }) => (
@@ -64,7 +65,9 @@ export function useLanguageColumns(): ColumnDef<Language>[] {
             params={{
               languageSlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "language", row.original.id)}
           />
         ),

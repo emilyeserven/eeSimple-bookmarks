@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { EditActionCell } from "./cells";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -15,14 +16,14 @@ export function usePodcastColumns(): ColumnDef<Podcast>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         id: "authors",
-        header: "Authors",
+        header: i18n.t("Authors"),
         enableSorting: false,
         cell: ({
           row,
@@ -30,14 +31,18 @@ export function usePodcastColumns(): ColumnDef<Podcast>[] {
           const count = row.original.personIds.length + row.original.groupIds.length;
           return (
             <span className="text-muted-foreground">
-              {count > 0 ? `${count} author${count === 1 ? "" : "s"}` : "—"}
+              {count > 0
+                ? i18n.t(count === 1 ? "{{count}} author" : "{{count}} authors", {
+                  count,
+                })
+                : "—"}
             </span>
           );
         },
       },
       {
         accessorKey: "feedUrl",
-        header: "Feed",
+        header: i18n.t("Feed"),
         enableSorting: false,
         cell: ({
           row,
@@ -53,14 +58,14 @@ export function usePodcastColumns(): ColumnDef<Podcast>[] {
               "
               onClick={event => event.stopPropagation()}
             >
-              Feed
+              {i18n.t("Feed")}
             </a>
           )
           : <span className="text-muted-foreground">—</span>),
       },
       {
         accessorKey: "bookmarkCount",
-        header: "Bookmarks",
+        header: i18n.t("Bookmarks"),
         cell: ({
           row,
         }) => (row.original.bookmarkCount !== undefined
@@ -79,7 +84,9 @@ export function usePodcastColumns(): ColumnDef<Podcast>[] {
             params={{
               podcastSlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "podcast", row.original.id)}
           />
         ),

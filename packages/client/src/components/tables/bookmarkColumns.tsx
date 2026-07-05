@@ -14,6 +14,7 @@ import {
   BookmarkTagsColumnCell,
 } from "./bookmarkPillCells";
 import { BookmarkTitleColumnCell } from "./bookmarkTitleCell";
+import i18n from "../../i18n";
 import { useDefaultFieldZones, useHideWebsiteForYouTube } from "../../lib/bookmarkCardFields";
 import { resolveFieldPlacements } from "../../lib/bookmarkCardValues";
 import { useBookmarkImageMode, useBookmarkImageVisibility } from "../../lib/bookmarkColumns";
@@ -94,7 +95,7 @@ export function useBookmarkTableColumns({
 
     cols.push({
       accessorKey: "title",
-      header: "Title",
+      header: i18n.t("Title"),
       size: 400,
       minSize: 120,
       meta: {
@@ -108,7 +109,7 @@ export function useBookmarkTableColumns({
     if (!fieldHidden("category")) {
       cols.push({
         id: "category",
-        header: "Category",
+        header: i18n.t("Category"),
         size: 120,
         minSize: 80,
         enableSorting: false,
@@ -126,7 +127,7 @@ export function useBookmarkTableColumns({
     if (!fieldHidden("website") || !fieldHidden("youtubeChannel")) {
       cols.push({
         id: "source",
-        header: "Source",
+        header: i18n.t("Source"),
         size: 140,
         minSize: 80,
         enableSorting: false,
@@ -146,7 +147,7 @@ export function useBookmarkTableColumns({
     if (!fieldHidden("mediaType")) {
       cols.push({
         id: "mediaType",
-        header: "Media Type",
+        header: i18n.t("Media Type"),
         size: 120,
         minSize: 80,
         enableSorting: false,
@@ -159,7 +160,7 @@ export function useBookmarkTableColumns({
     if (!fieldHidden("tags")) {
       cols.push({
         id: "tags",
-        header: "Tags",
+        header: i18n.t("Tags"),
         size: 160,
         minSize: 80,
         enableSorting: false,
@@ -197,7 +198,7 @@ export function useBookmarkTableColumns({
 
     cols.push({
       accessorKey: "createdAt",
-      header: "Added",
+      header: i18n.t("Added"),
       size: 100,
       minSize: 80,
       cell: ({

@@ -7,6 +7,7 @@ import { Mail } from "lucide-react";
 
 import { EditActionCell } from "./cells";
 import { bookmarkCountColumn, categoryPillColumn } from "./columnHelpers";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 /** Column definitions for the Newsletters listing Table view. */
@@ -16,7 +17,7 @@ export function useNewsletterColumns(): ColumnDef<Newsletter>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => (
@@ -30,7 +31,7 @@ export function useNewsletterColumns(): ColumnDef<Newsletter>[] {
       bookmarkCountColumn<Newsletter>(),
       {
         accessorKey: "createdAt",
-        header: "Created",
+        header: i18n.t("Created"),
         cell: ({
           row,
         }) => (
@@ -51,7 +52,9 @@ export function useNewsletterColumns(): ColumnDef<Newsletter>[] {
             params={{
               newsletterSlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "newsletter", row.original.id)}
           />
         ),

@@ -2,6 +2,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { Trash2 } from "lucide-react";
 
+import i18n from "../../i18n";
+
 import { Button } from "@/components/ui/button";
 
 export function makeStringListColumns(id: string, header: string, onDelete: (item: string) => void): ColumnDef<string>[] {
@@ -24,7 +26,9 @@ export function makeStringListColumns(id: string, header: string, onDelete: (ite
         <Button
           size="icon"
           variant="ghost"
-          aria-label={`Remove ${row.original}`}
+          aria-label={i18n.t("Remove {{name}}", {
+            name: row.original,
+          })}
           data-no-row-click
           onClick={() => onDelete(row.original)}
         >
@@ -37,5 +41,5 @@ export function makeStringListColumns(id: string, header: string, onDelete: (ite
 
 /** Column definitions for a plain string[] domain list (shortener ignore + redirect ignore). */
 export function domainListColumns(onDelete: (domain: string) => void): ColumnDef<string>[] {
-  return makeStringListColumns("domain", "Domain", onDelete);
+  return makeStringListColumns("domain", i18n.t("Domain"), onDelete);
 }
