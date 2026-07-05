@@ -4,7 +4,7 @@
  * ASIN can be recognized as a real ISBN without ever scraping the product page.
  */
 
-import { isbn10ToIsbn13, isValidIsbn10 } from "./isbn.js";
+import { isbn10ToIsbn13, isValidIsbn10, isValidIsbn13 } from "./isbn.js";
 
 /** Amazon's real storefront TLDs — an explicit allowlist so `amazon.fake.com` doesn't match. */
 const AMAZON_TLDS = [
@@ -74,4 +74,44 @@ export function extractIsbn13FromAmazonUrl(url: string): string | null {
   if (!parsed) return null;
   if (!isValidIsbn10(parsed.asin)) return null;
   return isbn10ToIsbn13(parsed.asin);
+}
+
+/** Strip dashes/spaces from a candidate ISBN digit string. */
+function cleanCandidate(value: string): string {
+  return value.replace(/[\s-]/g, "");
+}
+
+/**
+ * Extract a checksum-valid ISBN-13 from an already-fetched Amazon product page, for the cases where
+ * the ASIN itself isn't a valid ISBN-10 (e.g. a re-issued edition, or a regional listing whose ASIN
+ * has drifted from the print ISBN) but the page still lists a real ISBN in its structured product
+ * details. Checks, in order of reliability:
+ *   1. A `schema.org/Book` JSON-LD block's `isbn` field.
+ *   2. An "ISBN-13" row in the product-details bullets/table.
+ *   3. An "ISBN-10" row, converted to ISBN-13.
+ * Returns `null` when none of these yield a checksum-valid ISBN. No network access — the caller
+ * fetches the page.
+ */
+export function extractAmazonIsbn(html: string): string | null {
+  for (const match of html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    const isbnMatch = /"isbn"\s*:\s*"([\d\sXx-]+)"/.exec(match[1]);
+    if (!isbnMatch) continue;
+    const candidate = cleanCandidate(isbnMatch[1]);
+    if (isValidIsbn13(candidate)) return candidate;
+    if (isValidIsbn10(candidate)) return isbn10ToIsbn13(candidate);
+  }
+
+  const isbn13Match = /ISBN-13[^0-9]*([\d-]{10,17})/i.exec(html);
+  if (isbn13Match) {
+    const candidate = cleanCandidate(isbn13Match[1]);
+    if (isValidIsbn13(candidate)) return candidate;
+  }
+
+  const isbn10Match = /ISBN-10[^0-9]*([\dXx-]{9,13})/i.exec(html);
+  if (isbn10Match) {
+    const candidate = cleanCandidate(isbn10Match[1]);
+    if (isValidIsbn10(candidate)) return isbn10ToIsbn13(candidate);
+  }
+
+  return null;
 }
