@@ -19,14 +19,6 @@ export function useOwnerLocations(
   });
 }
 
-/** The normalized place-type keys of every Location attached to any owner of one `ownerType`, grouped by `ownerId`. */
-export function usePlaceTypeKeysByOwnerType(ownerType: LocationAssignmentOwnerType) {
-  return useQuery({
-    queryKey: ["location-assignments", "by-owner-type", ownerType],
-    queryFn: () => locationAssignmentsApi.listPlaceTypeKeysByOwnerType(ownerType),
-  });
-}
-
 /** Replace the full set of Locations attached to one owner. */
 export function useSetOwnerLocations(
   ownerType: LocationAssignmentOwnerType,
