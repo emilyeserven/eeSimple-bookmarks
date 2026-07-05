@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useTagBySlug } from "../hooks/useTags";
+import i18n from "../i18n";
 
 export const Route = createFileRoute("/tags/$tagSlug/_view")({
   component: TagViewLayout,
@@ -11,33 +13,36 @@ export const Route = createFileRoute("/tags/$tagSlug/_view")({
 const viewNav = [
   {
     to: "/tags/$tagSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/tags/$tagSlug/categories",
-    label: "Categories",
+    label: i18n.t("Categories"),
   },
   {
     to: "/tags/$tagSlug/hierarchy",
-    label: "Hierarchy",
+    label: i18n.t("Hierarchy"),
   },
   {
     type: "group",
-    label: "Rules",
+    label: i18n.t("Rules"),
     items: [
       {
         to: "/tags/$tagSlug/autofill",
-        label: "Autofill Rules",
+        label: i18n.t("Autofill Rules"),
       },
       {
         to: "/tags/$tagSlug/display-rules",
-        label: "Display Rules",
+        label: i18n.t("Display Rules"),
       },
     ],
   },
 ] as const;
 
 function TagViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     tagSlug,
   } = Route.useParams();
@@ -50,7 +55,7 @@ function TagViewLayout() {
       header={(
         <h1 className="text-2xl font-bold">
           {isLoading
-            ? "Tag"
+            ? t("Tag")
             : tag
               ? (
                 <RomanizedLabel
@@ -58,14 +63,14 @@ function TagViewLayout() {
                   romanized={tag.romanizedName}
                 />
               )
-              : "Tag not found"}
+              : t("Tag not found")}
         </h1>
       )}
       nav={viewNav}
       params={{
         tagSlug,
       }}
-      navAriaLabel="Tag sections"
+      navAriaLabel={t("Tag sections")}
     />
   );
 }

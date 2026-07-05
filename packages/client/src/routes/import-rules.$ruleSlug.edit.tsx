@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useImportRuleBySlug } from "../hooks/useImportRules";
@@ -9,6 +10,9 @@ export const Route = createFileRoute("/import-rules/$ruleSlug/edit")({
 
 function ImportRuleEditLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     ruleSlug,
   } = Route.useParams();
   const {
@@ -18,11 +22,11 @@ function ImportRuleEditLayout() {
   const editNav = [
     {
       to: "/import-rules/$ruleSlug/edit/general",
-      label: "General",
+      label: t("General"),
     },
     {
       to: "/import-rules/$ruleSlug/edit/conditions",
-      label: "Conditions",
+      label: t("Conditions"),
     },
   ] as const;
 
@@ -40,13 +44,13 @@ function ImportRuleEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to import rule
+            {t("← Back to import rule")}
           </Link>
           <h1 className="text-2xl font-bold">
-            {isLoading ? "Edit import rule" : (rule?.name ?? "Import rule not found")}
+            {isLoading ? t("Edit import rule") : (rule?.name ?? t("Import rule not found"))}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Edit the general details and conditions for this rule.
+            {t("Edit the general details and conditions for this rule.")}
           </p>
         </div>
       )}
@@ -54,7 +58,7 @@ function ImportRuleEditLayout() {
       params={{
         ruleSlug,
       }}
-      navAriaLabel="Import rule edit sections"
+      navAriaLabel={t("Import rule edit sections")}
     />
   );
 }

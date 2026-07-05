@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useBookmark } from "../hooks/useBookmarks";
+import i18n from "../i18n";
 
 export const Route = createFileRoute("/bookmarks/$bookmarkId/edit")({
   component: BookmarkEditLayout,
@@ -10,27 +12,30 @@ export const Route = createFileRoute("/bookmarks/$bookmarkId/edit")({
 const editNav = [
   {
     to: "/bookmarks/$bookmarkId/edit/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/bookmarks/$bookmarkId/edit/properties",
-    label: "Properties",
+    label: i18n.t("Properties"),
   },
   {
     to: "/bookmarks/$bookmarkId/edit/languages",
-    label: "Languages",
+    label: i18n.t("Languages"),
   },
   {
     to: "/bookmarks/$bookmarkId/edit/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
   {
     to: "/bookmarks/$bookmarkId/edit/video",
-    label: "Video",
+    label: i18n.t("Video"),
   },
 ] as const;
 
 function BookmarkEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     bookmarkId,
   } = Route.useParams();
@@ -42,14 +47,14 @@ function BookmarkEditLayout() {
     <TabbedEntityLayout
       header={(
         <h1 className="text-2xl font-bold">
-          {isLoading ? "Edit bookmark" : (bookmark?.title ?? "Bookmark not found")}
+          {isLoading ? t("Edit bookmark") : (bookmark?.title ?? t("Bookmark not found"))}
         </h1>
       )}
       nav={editNav}
       params={{
         bookmarkId,
       }}
-      navAriaLabel="Bookmark edit sections"
+      navAriaLabel={t("Bookmark edit sections")}
     />
   );
 }

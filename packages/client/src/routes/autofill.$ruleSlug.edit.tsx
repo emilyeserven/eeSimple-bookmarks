@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useAutofillRuleBySlug, useDeleteAutofillRule } from "../hooks/useAutofill";
@@ -11,6 +12,9 @@ export const Route = createFileRoute("/autofill/$ruleSlug/edit")({
 
 function AutofillRuleEditLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     ruleSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
@@ -22,15 +26,15 @@ function AutofillRuleEditLayout() {
   const editNav = [
     {
       to: "/autofill/$ruleSlug/edit/general",
-      label: "General",
+      label: t("General"),
     },
     {
       to: "/autofill/$ruleSlug/edit/conditions",
-      label: "Conditions",
+      label: t("Conditions"),
     },
     {
       to: "/autofill/$ruleSlug/edit/prefill",
-      label: "Prefill",
+      label: t("Prefill"),
     },
   ] as const;
 
@@ -48,11 +52,11 @@ function AutofillRuleEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to autofill rule
+            {t("← Back to autofill rule")}
           </Link>
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl font-bold">
-              {isLoading ? "Edit autofill rule" : (rule?.name ?? "Autofill rule not found")}
+              {isLoading ? t("Edit autofill rule") : (rule?.name ?? t("Autofill rule not found"))}
             </h1>
             {rule
               ? (
@@ -71,13 +75,13 @@ function AutofillRuleEditLayout() {
                     }),
                   })}
                 >
-                  {deleteRule.isPending ? "Deleting…" : "Delete"}
+                  {deleteRule.isPending ? t("Deleting…") : t("Delete")}
                 </Button>
               )
               : null}
           </div>
           <p className="text-sm text-muted-foreground">
-            Edit the general details, activation conditions, and prefill actions for this rule.
+            {t("Edit the general details, activation conditions, and prefill actions for this rule.")}
           </p>
         </div>
       )}
@@ -85,7 +89,7 @@ function AutofillRuleEditLayout() {
       params={{
         ruleSlug,
       }}
-      navAriaLabel="Autofill rule edit sections"
+      navAriaLabel={t("Autofill rule edit sections")}
     />
   );
 }

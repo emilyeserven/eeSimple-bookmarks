@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useYouTubeChannelBySlug } from "../hooks/useYouTubeChannels";
+import i18n from "../i18n";
 
 export const Route = createFileRoute("/taxonomies/youtube-channels/$channelSlug/_view")({
   component: YouTubeChannelViewLayout,
@@ -11,25 +13,28 @@ export const Route = createFileRoute("/taxonomies/youtube-channels/$channelSlug/
 const viewNav = [
   {
     to: "/taxonomies/youtube-channels/$channelSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     type: "group",
-    label: "Rules",
+    label: i18n.t("Rules"),
     items: [
       {
         to: "/taxonomies/youtube-channels/$channelSlug/autofill",
-        label: "Autofill Rules",
+        label: i18n.t("Autofill Rules"),
       },
       {
         to: "/taxonomies/youtube-channels/$channelSlug/display-rules",
-        label: "Display Rules",
+        label: i18n.t("Display Rules"),
       },
     ],
   },
 ] as const;
 
 function YouTubeChannelViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     channelSlug,
   } = Route.useParams();
@@ -45,7 +50,7 @@ function YouTubeChannelViewLayout() {
             kind: "url",
             url: channel?.imageUrl ?? null,
           }}
-          title={isLoading ? "Channel" : (channel?.name ?? "Channel not found")}
+          title={isLoading ? t("Channel") : (channel?.name ?? t("Channel not found"))}
           subtitle={channel?.channelKey}
         />
       )}
@@ -53,7 +58,7 @@ function YouTubeChannelViewLayout() {
       params={{
         channelSlug,
       }}
-      navAriaLabel="Channel sections"
+      navAriaLabel={t("Channel sections")}
     />
   );
 }

@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useWebsiteBySlug } from "../hooks/useWebsites";
+import i18n from "../i18n";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -13,33 +15,36 @@ export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/_view")(
 const viewNav = [
   {
     to: "/taxonomies/websites/$websiteSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/websites/$websiteSlug/shortened-links",
-    label: "Shortened Links",
+    label: i18n.t("Shortened Links"),
   },
   {
     to: "/taxonomies/websites/$websiteSlug/param-rules",
-    label: "Param Rules",
+    label: i18n.t("Param Rules"),
   },
   {
     type: "group",
-    label: "Rules",
+    label: i18n.t("Rules"),
     items: [
       {
         to: "/taxonomies/websites/$websiteSlug/autofill",
-        label: "Autofill Rules",
+        label: i18n.t("Autofill Rules"),
       },
       {
         to: "/taxonomies/websites/$websiteSlug/display-rules",
-        label: "Display Rules",
+        label: i18n.t("Display Rules"),
       },
     ],
   },
 ] as const;
 
 function WebsiteViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     websiteSlug,
   } = Route.useParams();
@@ -57,8 +62,8 @@ function WebsiteViewLayout() {
           }}
           title={(
             <>
-              {isLoading ? "Website" : (website?.siteName ?? "Website not found")}
-              {website?.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
+              {isLoading ? t("Website") : (website?.siteName ?? t("Website not found"))}
+              {website?.builtIn ? <Badge variant="secondary">{t("Built-in")}</Badge> : null}
             </>
           )}
         />
@@ -67,7 +72,7 @@ function WebsiteViewLayout() {
       params={{
         websiteSlug,
       }}
-      navAriaLabel="Website sections"
+      navAriaLabel={t("Website sections")}
     />
   );
 }

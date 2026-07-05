@@ -1,4 +1,5 @@
 import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useCardDisplayRuleBySlug, useDeleteCardDisplayRule } from "../hooks/useCardDisplayRules";
@@ -18,6 +19,9 @@ type CardDisplayRuleEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 
 function CardDisplayRuleViewLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     ruleSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
@@ -35,17 +39,17 @@ function CardDisplayRuleViewLayout() {
   const viewNav = [
     {
       to: "/card-display-rules/$ruleSlug/general",
-      label: "General",
+      label: t("General"),
     },
     ...(rule?.isDefault
       ? []
       : [{
         to: "/card-display-rules/$ruleSlug/conditions",
-        label: "Conditions",
+        label: t("Conditions"),
       } as const]),
     {
       to: "/card-display-rules/$ruleSlug/display",
-      label: "Display",
+      label: t("Display"),
     },
   ] as const;
 
@@ -60,11 +64,11 @@ function CardDisplayRuleViewLayout() {
               hover:text-foreground
             "
           >
-            ← Back to card display rules
+            {t("← Back to card display rules")}
           </Link>
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl font-bold">
-              {isLoading ? "Card display rule" : (rule?.name ?? "Card display rule not found")}
+              {isLoading ? t("Card display rule") : (rule?.name ?? t("Card display rule not found"))}
             </h1>
             {rule
               ? (
@@ -80,7 +84,7 @@ function CardDisplayRuleViewLayout() {
                         ruleSlug,
                       }}
                     >
-                      Edit
+                      {t("Edit")}
                     </Link>
                   </Button>
                   {rule.isDefault
@@ -101,7 +105,7 @@ function CardDisplayRuleViewLayout() {
                           }),
                         })}
                       >
-                        {deleteRule.isPending ? "Deleting…" : "Delete"}
+                        {deleteRule.isPending ? t("Deleting…") : t("Delete")}
                       </Button>
                     )}
                 </div>
@@ -114,7 +118,7 @@ function CardDisplayRuleViewLayout() {
       params={{
         ruleSlug,
       }}
-      navAriaLabel="Card display rule sections"
+      navAriaLabel={t("Card display rule sections")}
     />
   );
 }

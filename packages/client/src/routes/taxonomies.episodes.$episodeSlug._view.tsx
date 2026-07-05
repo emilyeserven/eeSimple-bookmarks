@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useEpisodeBySlug } from "../hooks/useEpisodes";
+import i18n from "../i18n";
 import { episodesApi } from "../lib/api/taxonomies";
 
 export const Route = createFileRoute("/taxonomies/episodes/$episodeSlug/_view")({
@@ -13,15 +15,18 @@ export const Route = createFileRoute("/taxonomies/episodes/$episodeSlug/_view")(
 const viewNav = [
   {
     to: "/taxonomies/episodes/$episodeSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/episodes/$episodeSlug/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
 ] as const;
 
 function EpisodeViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     episodeSlug,
   } = Route.useParams();
@@ -40,7 +45,7 @@ function EpisodeViewLayout() {
             queryKeyPrefix: "episode-images",
           }}
           title={isLoading
-            ? "Episode"
+            ? t("Episode")
             : episode
               ? (
                 <RomanizedLabel
@@ -48,14 +53,14 @@ function EpisodeViewLayout() {
                   romanized={episode.romanizedName}
                 />
               )
-              : "Episode not found"}
+              : t("Episode not found")}
         />
       )}
       nav={viewNav}
       params={{
         episodeSlug,
       }}
-      navAriaLabel="Episode sections"
+      navAriaLabel={t("Episode sections")}
     />
   );
 }

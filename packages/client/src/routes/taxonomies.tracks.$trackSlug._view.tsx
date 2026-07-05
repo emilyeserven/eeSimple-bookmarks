@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useTrackBySlug } from "../hooks/useTracks";
+import i18n from "../i18n";
 import { tracksApi } from "../lib/api/taxonomies";
 
 export const Route = createFileRoute("/taxonomies/tracks/$trackSlug/_view")({
@@ -13,15 +15,18 @@ export const Route = createFileRoute("/taxonomies/tracks/$trackSlug/_view")({
 const viewNav = [
   {
     to: "/taxonomies/tracks/$trackSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/tracks/$trackSlug/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
 ] as const;
 
 function TrackViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     trackSlug,
   } = Route.useParams();
@@ -40,7 +45,7 @@ function TrackViewLayout() {
             queryKeyPrefix: "track-images",
           }}
           title={isLoading
-            ? "Track"
+            ? t("Track")
             : track
               ? (
                 <RomanizedLabel
@@ -48,14 +53,14 @@ function TrackViewLayout() {
                   romanized={track.romanizedName}
                 />
               )
-              : "Track not found"}
+              : t("Track not found")}
         />
       )}
       nav={viewNav}
       params={{
         trackSlug,
       }}
-      navAriaLabel="Track sections"
+      navAriaLabel={t("Track sections")}
     />
   );
 }

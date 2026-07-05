@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useMovieBySlug } from "../hooks/useMovies";
+import i18n from "../i18n";
 import { moviesApi } from "../lib/api/taxonomies";
 
 export const Route = createFileRoute("/taxonomies/movies/$movieSlug/_view")({
@@ -13,15 +15,18 @@ export const Route = createFileRoute("/taxonomies/movies/$movieSlug/_view")({
 const viewNav = [
   {
     to: "/taxonomies/movies/$movieSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/movies/$movieSlug/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
 ] as const;
 
 function MovieViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     movieSlug,
   } = Route.useParams();
@@ -40,7 +45,7 @@ function MovieViewLayout() {
             queryKeyPrefix: "movie-images",
           }}
           title={isLoading
-            ? "Movie"
+            ? t("Movie")
             : movie
               ? (
                 <RomanizedLabel
@@ -48,14 +53,14 @@ function MovieViewLayout() {
                   romanized={movie.romanizedName}
                 />
               )
-              : "Movie not found"}
+              : t("Movie not found")}
         />
       )}
       nav={viewNav}
       params={{
         movieSlug,
       }}
-      navAriaLabel="Movie sections"
+      navAriaLabel={t("Movie sections")}
     />
   );
 }

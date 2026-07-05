@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { usePodcastBySlug } from "../hooks/usePodcasts";
+import i18n from "../i18n";
 import { podcastsApi } from "../lib/api/taxonomies";
 
 export const Route = createFileRoute("/taxonomies/podcasts/$podcastSlug/_view")({
@@ -13,15 +15,18 @@ export const Route = createFileRoute("/taxonomies/podcasts/$podcastSlug/_view")(
 const viewNav = [
   {
     to: "/taxonomies/podcasts/$podcastSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/podcasts/$podcastSlug/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
 ] as const;
 
 function PodcastViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     podcastSlug,
   } = Route.useParams();
@@ -40,7 +45,7 @@ function PodcastViewLayout() {
             queryKeyPrefix: "podcast-images",
           }}
           title={isLoading
-            ? "Podcast"
+            ? t("Podcast")
             : podcast
               ? (
                 <RomanizedLabel
@@ -48,14 +53,14 @@ function PodcastViewLayout() {
                   romanized={podcast.romanizedName}
                 />
               )
-              : "Podcast not found"}
+              : t("Podcast not found")}
         />
       )}
       nav={viewNav}
       params={{
         podcastSlug,
       }}
-      navAriaLabel="Podcast sections"
+      navAriaLabel={t("Podcast sections")}
     />
   );
 }
