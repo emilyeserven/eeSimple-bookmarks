@@ -1,4 +1,5 @@
 import type { BreadcrumbSegment } from "./HeaderBreadcrumbs";
+import type { EntityName } from "@eesimple/types";
 
 import { fireEvent, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
@@ -6,6 +7,22 @@ import { describe, expect, it } from "vitest";
 import { HeaderBreadcrumbs } from "./HeaderBreadcrumbs";
 
 import { renderWithRouter } from "@/test-utils/router";
+
+/** A minimal language-labelled name for breadcrumb fixtures. */
+function nm(value: string): EntityName {
+  return {
+    id: value,
+    language: {
+      id: value,
+      name: value,
+      slug: value,
+      isoCode: null,
+    },
+    value,
+    isPrimary: false,
+    sortOrder: 0,
+  };
+}
 
 describe("HeaderBreadcrumbs", () => {
   it("shows only the current entry on small screens, with a drawer for the full trail", async () => {
@@ -48,7 +65,7 @@ describe("HeaderBreadcrumbs", () => {
     expect(link).toHaveAttribute("href", "/categories");
   });
 
-  it("stacks the romanized form beneath the label", async () => {
+  it("stacks a language-labelled name beneath the label", async () => {
     await renderWithRouter(
       <HeaderBreadcrumbs
         crumbs={[
@@ -58,7 +75,7 @@ describe("HeaderBreadcrumbs", () => {
           },
           {
             label: "東京",
-            romanizedLabel: "Tōkyō",
+            names: [nm("Tōkyō")],
           },
         ]}
       />,
@@ -67,8 +84,8 @@ describe("HeaderBreadcrumbs", () => {
       },
     );
 
-    // With "show romanized by default" off, the real name is primary and the romanized form is the
-    // de-emphasized secondary — both render (twice: once per responsive layout).
+    // The real name is primary and the language-labelled name is the de-emphasized secondary —
+    // both render (twice: once per responsive layout).
     expect(screen.getAllByText("東京").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Tōkyō").length).toBeGreaterThan(0);
   });

@@ -8,7 +8,7 @@ import { buildLocationDiff } from "./locationDiff";
 function candidate(overrides: Partial<LocationLookupCandidate> = {}): LocationLookupCandidate {
   return {
     name: "Tokyo",
-    romanizedName: "Tokyo",
+    englishName: "Tokyo",
     displayName: "Tokyo, Japan",
     latitude: 35.6762,
     longitude: 139.6503,

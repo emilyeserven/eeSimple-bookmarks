@@ -1,11 +1,27 @@
 // @vitest-environment node
-import type { LocationNode } from "@eesimple/types";
+import type { EntityName, LocationNode } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
 import { makeLocation } from "@/test-utils/factories";
 
 import { buildLocationAutoSaveInitial, buildLocationFormDefaults, ROOT } from "./useLocationGeneralForm";
+
+/** A minimal English-labelled name for location fixtures. */
+function enName(value: string): EntityName {
+  return {
+    id: value,
+    language: {
+      id: "en",
+      name: "English",
+      slug: "english",
+      isoCode: "en",
+    },
+    value,
+    isPrimary: false,
+    sortOrder: 0,
+  };
+}
 
 function node(overrides: Partial<LocationNode> = {}): LocationNode {
   return {
@@ -19,7 +35,7 @@ describe("buildLocationAutoSaveInitial", () => {
   it("resolves nullable columns to blank/zero fallbacks", () => {
     const initial = buildLocationAutoSaveInitial(node({
       name: "Tokyo",
-      romanizedName: null,
+      names: [],
       latitude: null,
       longitude: null,
       mapUrl: null,
@@ -28,7 +44,7 @@ describe("buildLocationAutoSaveInitial", () => {
     }));
     expect(initial).toMatchObject({
       name: "Tokyo",
-      romanizedName: "",
+      englishName: "",
       latitude: 0,
       longitude: 0,
       mapUrl: "",
@@ -40,13 +56,13 @@ describe("buildLocationAutoSaveInitial", () => {
 
   it("preserves present values verbatim", () => {
     const initial = buildLocationAutoSaveInitial(node({
-      romanizedName: "Tokyo",
+      names: [enName("Tokyo")],
       latitude: 35.6,
       longitude: 139.7,
       parentId: "parent",
       tagIds: ["t1"],
     }));
-    expect(initial.romanizedName).toBe("Tokyo");
+    expect(initial.englishName).toBe("Tokyo");
     expect(initial.latitude).toBe(35.6);
     expect(initial.parentId).toBe("parent");
     expect(initial.tagIds).toEqual(["t1"]);

@@ -32,7 +32,7 @@ describe("resolveBookmarkAddForm", () => {
         // Deliberately scramble the placements — edit mode must ignore them.
         {
           title: "advanced",
-          romanizedName: "hidden",
+          names: "hidden",
           categoryId: "hidden",
         },
         {
@@ -42,7 +42,7 @@ describe("resolveBookmarkAddForm", () => {
 
       const resolved = resolveBookmarkAddForm(settings, true);
 
-      expect(resolved.mainStandardFields).toEqual(["title", "romanizedName"]);
+      expect(resolved.mainStandardFields).toEqual(["title", "names"]);
       expect(resolved.advancedStandardFields).toEqual([
         "categoryId",
         "mediaTypeId",
@@ -79,11 +79,11 @@ describe("resolveBookmarkAddForm", () => {
 
       const resolved = resolveBookmarkAddForm(settings, false);
 
-      // Tuple order: title, romanizedName, categoryId, mediaTypeId, groupId,
+      // Tuple order: title, names, categoryId, mediaTypeId, groupId,
       // descriptionTags, personIds, image
       expect(resolved.mainStandardFields).toEqual([
         "title",
-        "romanizedName",
+        "names",
         "mediaTypeId",
         "groupId",
         "descriptionTags",

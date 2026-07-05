@@ -12,7 +12,7 @@ describe("STANDARD_CARD_FIELDS / HEADER_CARD_FIELD_KEYS", () => {
   it("lists the title and action header fields among the standard fields", () => {
     const keys = STANDARD_CARD_FIELDS.map(f => f.key);
     expect(keys).toContain("title");
-    expect(keys).toContain("romanizedName");
+    expect(keys).toContain("secondaryName");
     expect(keys).toContain("externalLink");
     expect(keys).toContain("more");
     expect(HEADER_CARD_FIELD_KEYS).toEqual(["title", "externalLink", "more"]);

@@ -5,7 +5,7 @@ import { buildPlexTitleDiff, type PlexTitleDiffCurrent, type PlexTitleDiffSource
 
 const EMPTY_CURRENT: PlexTitleDiffCurrent = {
   name: null,
-  romanizedName: null,
+  englishName: null,
   wikipediaLinkEn: null,
   wikipediaLinkLocal: null,
   imageUrl: null,
@@ -13,7 +13,7 @@ const EMPTY_CURRENT: PlexTitleDiffCurrent = {
 
 const EMPTY_SOURCE: PlexTitleDiffSource = {
   name: null,
-  romanizedName: null,
+  englishName: null,
   wikipediaLinkEn: null,
   wikipediaLinkLocal: null,
   posterUrl: null,
@@ -24,10 +24,10 @@ describe("buildPlexTitleDiff", () => {
     expect(buildPlexTitleDiff(EMPTY_CURRENT, EMPTY_SOURCE, "Plex").groups).toEqual([]);
   });
 
-  it("offers native name + romanized + wiki links (checked, fill-empty) when current is empty", () => {
+  it("offers native name + wiki links (checked, fill-empty) when current is empty; englishName carries no row", () => {
     const source: PlexTitleDiffSource = {
       name: "기생충",
-      romanizedName: "Parasite",
+      englishName: "Parasite",
       wikipediaLinkEn: "https://en.wikipedia.org/wiki/Parasite_(2019_film)",
       wikipediaLinkLocal: "https://ko.wikipedia.org/wiki/기생충_(영화)",
       posterUrl: null,
@@ -35,9 +35,9 @@ describe("buildPlexTitleDiff", () => {
     const diff = buildPlexTitleDiff(EMPTY_CURRENT, source, "Plex");
     const rows = diff.groups[0].rows;
     expect(diff.groups[0].source).toBe("Plex");
+    // englishName has no scalar to stage into for these entities, so it never produces a row.
     expect(rows.map(row => row.key)).toEqual([
       "name",
-      "romanizedName",
       "wikipediaLinkEn",
       "wikipediaLinkLocal",
     ]);
@@ -52,15 +52,15 @@ describe("buildPlexTitleDiff", () => {
     const current: PlexTitleDiffCurrent = {
       ...EMPTY_CURRENT,
       name: "Parasite",
-      romanizedName: "Parasite",
+      englishName: "Parasite",
     };
     const source: PlexTitleDiffSource = {
       ...EMPTY_SOURCE,
       name: "기생충",
-      romanizedName: "Parasite",
+      englishName: "Parasite",
     };
     const rows = buildPlexTitleDiff(current, source, "Plex").groups[0].rows;
-    // romanizedName is unchanged → no row; name differs → one unchecked row.
+    // name differs → one unchecked row (englishName never produces a row at all).
     expect(rows.map(row => row.key)).toEqual(["name"]);
     expect(rows[0].defaultChecked).toBe(false);
   });

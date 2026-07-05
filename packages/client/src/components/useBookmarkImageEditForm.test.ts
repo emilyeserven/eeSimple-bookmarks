@@ -324,8 +324,6 @@ describe("useBookmarkImageEditForm", () => {
       croppedHeight: 9,
       customPropertyTypeIcons: null,
       onDemandFilters: [],
-      showRomanizedByDefault: false,
-      sortByRomanized: true,
       hanScriptLanguage: "ja",
       minAreaPinThresholdKm2: 0,
       bookmarksPerPage: 25,

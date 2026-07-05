@@ -1,4 +1,4 @@
-import type { MediaTypeNode } from "@eesimple/types";
+import type { EntityName, MediaTypeNode } from "@eesimple/types";
 
 import { isValidElement } from "react";
 
@@ -7,6 +7,22 @@ import { describe, expect, it } from "vitest";
 import { mediaTypeNodesToOptions } from "./comboboxOptions";
 
 import { makeMediaType } from "@/test-utils/factories";
+
+/** A minimal language-labelled name for media-type fixtures. */
+function nm(value: string): EntityName {
+  return {
+    id: value,
+    language: {
+      id: value,
+      name: value,
+      slug: value,
+      isoCode: null,
+    },
+    value,
+    isPrimary: false,
+    sortOrder: 0,
+  };
+}
 
 function makeNode(overrides: Partial<MediaTypeNode> = {}): MediaTypeNode {
   return {
@@ -43,20 +59,20 @@ describe("mediaTypeNodesToOptions", () => {
     ]);
   });
 
-  it("carries romanizedName as searchAlias (undefined when absent)", () => {
-    const [withRomanized, withoutRomanized] = mediaTypeNodesToOptions([
+  it("carries language-labelled names as searchAlias (undefined when absent)", () => {
+    const [withNames, withoutNames] = mediaTypeNodesToOptions([
       makeNode({
         id: "a",
         name: "映画",
-        romanizedName: "Eiga",
+        names: [nm("Eiga")],
       }),
       makeNode({
         id: "b",
         name: "Book",
       }),
     ]);
-    expect(withRomanized?.searchAlias).toBe("Eiga");
-    expect(withoutRomanized?.searchAlias).toBeUndefined();
+    expect(withNames?.searchAlias).toBe("Eiga");
+    expect(withoutNames?.searchAlias).toBeUndefined();
   });
 
   it("attaches an icon element to each option", () => {

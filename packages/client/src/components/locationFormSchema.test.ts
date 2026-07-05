@@ -112,13 +112,13 @@ describe("geocodedAncestorsToDrafts", () => {
     expect(drafts[1].existingId).toBe("japan-id");
   });
 
-  it("matches on the romanized name too", () => {
+  it("matches on the English name too", () => {
     const drafts = geocodedAncestorsToDrafts(
       [ancestor("日本", "country")],
       [{
         id: "japan-id",
         name: "日本国",
-        romanizedName: "日本",
+        englishName: "日本",
       }],
     );
 
@@ -147,22 +147,22 @@ describe("geocodedAncestorsToDrafts", () => {
 });
 
 describe("ancestorToInput", () => {
-  it("trims the name and collapses a blank romanized name to null", () => {
+  it("trims the name and collapses a blank English name to null", () => {
     const input = ancestorToInput({
       ...emptyAncestorDraft(),
       name: "  Yamaguchi Prefecture  ",
-      romanizedName: "   ",
+      englishName: "   ",
     });
 
     expect(input.name).toBe("Yamaguchi Prefecture");
-    expect(input.romanizedName).toBeNull();
+    expect(input.englishName).toBeNull();
   });
 
   it("carries the looked-up coordinates and metadata through", () => {
     const input = ancestorToInput({
       ...emptyAncestorDraft(),
       name: "Japan",
-      romanizedName: "Japan",
+      englishName: "Japan",
       latitude: 36,
       longitude: 138,
       placeType: "country",
@@ -171,7 +171,7 @@ describe("ancestorToInput", () => {
 
     expect(input).toMatchObject({
       name: "Japan",
-      romanizedName: "Japan",
+      englishName: "Japan",
       latitude: 36,
       longitude: 138,
       placeType: "country",
