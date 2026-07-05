@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useAlbumBySlug } from "../hooks/useAlbums";
+import i18n from "../i18n";
 import { albumsApi } from "../lib/api/taxonomies";
 
 export const Route = createFileRoute("/taxonomies/albums/$albumSlug/_view")({
@@ -13,15 +15,18 @@ export const Route = createFileRoute("/taxonomies/albums/$albumSlug/_view")({
 const viewNav = [
   {
     to: "/taxonomies/albums/$albumSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/albums/$albumSlug/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
 ] as const;
 
 function AlbumViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     albumSlug,
   } = Route.useParams();
@@ -40,7 +45,7 @@ function AlbumViewLayout() {
             queryKeyPrefix: "album-images",
           }}
           title={isLoading
-            ? "Album"
+            ? t("Album")
             : album
               ? (
                 <RomanizedLabel
@@ -48,14 +53,14 @@ function AlbumViewLayout() {
                   romanized={album.romanizedName}
                 />
               )
-              : "Album not found"}
+              : t("Album not found")}
         />
       )}
       nav={viewNav}
       params={{
         albumSlug,
       }}
-      navAriaLabel="Album sections"
+      navAriaLabel={t("Album sections")}
     />
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AddGenreMoodModal } from "../components/AddGenreMoodModal";
 import { GenreMoodsListing } from "../components/GenreMoodManager";
@@ -16,6 +17,9 @@ export const Route = createFileRoute("/taxonomies/genres-moods/")({
 /** Browse view for the Genres & Moods taxonomy: every entry with search filtering. */
 function GenreMoodsTaxonomyPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allGenreMoods,
   } = useGenreMoods();
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,14 +27,14 @@ function GenreMoodsTaxonomyPage() {
   useSetListingPage("genre-moods-listing", {
     createAction: () => setModalOpen(true),
     addBookmark: {},
-    createLabel: "New entry",
+    createLabel: t("New entry"),
   });
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Genres & Moods</h1>
+          <h1 className="text-2xl font-bold">{t("Genres & Moods")}</h1>
           {allGenreMoods
             ? (
               <Badge variant="secondary">
@@ -40,8 +44,7 @@ function GenreMoodsTaxonomyPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Browse the Genres & Moods taxonomy — a single hierarchical vocabulary you can apply to
-          bookmarks and any other taxonomy. Click an entry to view or edit it.
+          {t("Browse the Genres & Moods taxonomy — a single hierarchical vocabulary you can apply to bookmarks and any other taxonomy. Click an entry to view or edit it.")}
         </p>
       </div>
 

@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useCardDisplayRuleBySlug, useDeleteCardDisplayRule } from "../hooks/useCardDisplayRules";
@@ -10,6 +11,9 @@ export const Route = createFileRoute("/card-display-rules/$ruleSlug/edit")({
 });
 
 function CardDisplayRuleEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     ruleSlug,
   } = Route.useParams();
@@ -23,17 +27,17 @@ function CardDisplayRuleEditLayout() {
   const editNav = [
     {
       to: "/card-display-rules/$ruleSlug/edit/general",
-      label: "General",
+      label: t("General"),
     },
     ...(rule?.isDefault
       ? []
       : [{
         to: "/card-display-rules/$ruleSlug/edit/conditions",
-        label: "Conditions",
+        label: t("Conditions"),
       } as const]),
     {
       to: "/card-display-rules/$ruleSlug/edit/display",
-      label: "Display",
+      label: t("Display"),
     },
   ] as const;
 
@@ -51,11 +55,11 @@ function CardDisplayRuleEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to card display rule
+            {t("← Back to card display rule")}
           </Link>
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl font-bold">
-              {isLoading ? "Edit card display rule" : (rule?.name ?? "Card display rule not found")}
+              {isLoading ? t("Edit card display rule") : (rule?.name ?? t("Card display rule not found"))}
             </h1>
             {rule && !rule.isDefault
               ? (
@@ -74,13 +78,13 @@ function CardDisplayRuleEditLayout() {
                     }),
                   })}
                 >
-                  {deleteRule.isPending ? "Deleting…" : "Delete"}
+                  {deleteRule.isPending ? t("Deleting…") : t("Delete")}
                 </Button>
               )
               : null}
           </div>
           <p className="text-sm text-muted-foreground">
-            Changes save automatically as you edit.
+            {t("Changes save automatically as you edit.")}
           </p>
         </div>
       )}
@@ -88,7 +92,7 @@ function CardDisplayRuleEditLayout() {
       params={{
         ruleSlug,
       }}
-      navAriaLabel="Card display rule edit sections"
+      navAriaLabel={t("Card display rule edit sections")}
     />
   );
 }

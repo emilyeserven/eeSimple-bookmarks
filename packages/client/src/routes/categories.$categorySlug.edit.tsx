@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useCategoryBySlug } from "../hooks/useCategories";
@@ -9,40 +10,42 @@ export const Route = createFileRoute("/categories/$categorySlug/edit")({
   component: CategoryEditLayout,
 });
 
-const editNav = [
-  {
-    to: "/categories/$categorySlug/edit/general",
-    label: "General",
-  },
-  {
-    to: "/categories/$categorySlug/edit/tiered-tags",
-    label: "Tiered Tags",
-  },
-  {
-    to: "/categories/$categorySlug/edit/custom-properties",
-    label: "Custom Properties",
-  },
-  {
-    to: "/categories/$categorySlug/edit/display",
-    label: "Display",
-  },
-  {
-    type: "group",
-    label: "Rules",
-    items: [
-      {
-        to: "/categories/$categorySlug/edit/autofill",
-        label: "Autofill Rules",
-      },
-      {
-        to: "/categories/$categorySlug/edit/display-rules",
-        label: "Display Rules",
-      },
-    ],
-  },
-] as const;
-
 function CategoryEditLayout() {
+  const {
+    t,
+  } = useTranslation();
+  const editNav = [
+    {
+      to: "/categories/$categorySlug/edit/general",
+      label: t("General"),
+    },
+    {
+      to: "/categories/$categorySlug/edit/tiered-tags",
+      label: t("Tiered Tags"),
+    },
+    {
+      to: "/categories/$categorySlug/edit/custom-properties",
+      label: t("Custom Properties"),
+    },
+    {
+      to: "/categories/$categorySlug/edit/display",
+      label: t("Display"),
+    },
+    {
+      type: "group",
+      label: t("Rules"),
+      items: [
+        {
+          to: "/categories/$categorySlug/edit/autofill",
+          label: t("Autofill Rules"),
+        },
+        {
+          to: "/categories/$categorySlug/edit/display-rules",
+          label: t("Display Rules"),
+        },
+      ],
+    },
+  ] as const;
   const {
     categorySlug,
   } = Route.useParams();
@@ -64,17 +67,17 @@ function CategoryEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to category
+            {t("← Back to category")}
           </Link>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <CategoryIcon
               name={category?.icon ?? null}
               className="size-6"
             />
-            {isLoading ? "Edit category" : (category?.name ?? "Category not found")}
+            {isLoading ? t("Edit category") : (category?.name ?? t("Category not found"))}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Edit this category, its tiered tags, custom properties, and autofill rules.
+            {t("Edit this category, its tiered tags, custom properties, and autofill rules.")}
           </p>
         </div>
       )}
@@ -82,7 +85,7 @@ function CategoryEditLayout() {
       params={{
         categorySlug,
       }}
-      navAriaLabel="Category settings sections"
+      navAriaLabel={t("Category settings sections")}
     />
   );
 }

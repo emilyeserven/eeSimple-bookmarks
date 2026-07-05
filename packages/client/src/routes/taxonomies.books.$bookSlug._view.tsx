@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useBookBySlug } from "../hooks/useBooks";
+import i18n from "../i18n";
 import { booksApi } from "../lib/api/taxonomies";
 
 export const Route = createFileRoute("/taxonomies/books/$bookSlug/_view")({
@@ -13,15 +15,18 @@ export const Route = createFileRoute("/taxonomies/books/$bookSlug/_view")({
 const viewNav = [
   {
     to: "/taxonomies/books/$bookSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/books/$bookSlug/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
 ] as const;
 
 function BookViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     bookSlug,
   } = Route.useParams();
@@ -40,7 +45,7 @@ function BookViewLayout() {
             queryKeyPrefix: "book-images",
           }}
           title={isLoading
-            ? "Book"
+            ? t("Book")
             : book
               ? (
                 <RomanizedLabel
@@ -48,14 +53,14 @@ function BookViewLayout() {
                   romanized={book.romanizedName}
                 />
               )
-              : "Book not found"}
+              : t("Book not found")}
         />
       )}
       nav={viewNav}
       params={{
         bookSlug,
       }}
-      navAriaLabel="Book sections"
+      navAriaLabel={t("Book sections")}
     />
   );
 }

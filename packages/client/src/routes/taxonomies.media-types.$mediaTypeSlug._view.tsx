@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useMediaTypeBySlug } from "../hooks/useMediaTypes";
+import i18n from "../i18n";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -13,29 +15,32 @@ export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/_vi
 const viewNav = [
   {
     to: "/taxonomies/media-types/$mediaTypeSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/media-types/$mediaTypeSlug/hierarchy",
-    label: "Hierarchy",
+    label: i18n.t("Hierarchy"),
   },
   {
     type: "group",
-    label: "Rules",
+    label: i18n.t("Rules"),
     items: [
       {
         to: "/taxonomies/media-types/$mediaTypeSlug/autofill",
-        label: "Autofill Rules",
+        label: i18n.t("Autofill Rules"),
       },
       {
         to: "/taxonomies/media-types/$mediaTypeSlug/display-rules",
-        label: "Display Rules",
+        label: i18n.t("Display Rules"),
       },
     ],
   },
 ] as const;
 
 function MediaTypeViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     mediaTypeSlug,
   } = Route.useParams();
@@ -58,15 +63,15 @@ function MediaTypeViewLayout() {
                 romanized={mediaType.romanizedName}
               />
             )
-            : (isLoading ? "Media type" : "Media type not found")}
-          {mediaType?.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
+            : (isLoading ? t("Media type") : t("Media type not found"))}
+          {mediaType?.builtIn ? <Badge variant="secondary">{t("Built-in")}</Badge> : null}
         </h1>
       )}
       nav={viewNav}
       params={{
         mediaTypeSlug,
       }}
-      navAriaLabel="Media type sections"
+      navAriaLabel={t("Media type sections")}
     />
   );
 }

@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useTvShowBySlug } from "../hooks/useTvShows";
+import i18n from "../i18n";
 import { tvShowsApi } from "../lib/api/taxonomies";
 
 export const Route = createFileRoute("/taxonomies/tv-shows/$tvShowSlug/_view")({
@@ -13,15 +15,18 @@ export const Route = createFileRoute("/taxonomies/tv-shows/$tvShowSlug/_view")({
 const viewNav = [
   {
     to: "/taxonomies/tv-shows/$tvShowSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/tv-shows/$tvShowSlug/image",
-    label: "Image",
+    label: i18n.t("Image"),
   },
 ] as const;
 
 function TvShowViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     tvShowSlug,
   } = Route.useParams();
@@ -40,7 +45,7 @@ function TvShowViewLayout() {
             queryKeyPrefix: "tvShow-images",
           }}
           title={isLoading
-            ? "TV show"
+            ? t("TV show")
             : tvShow
               ? (
                 <RomanizedLabel
@@ -48,14 +53,14 @@ function TvShowViewLayout() {
                   romanized={tvShow.romanizedName}
                 />
               )
-              : "TV show not found"}
+              : t("TV show not found")}
         />
       )}
       nav={viewNav}
       params={{
         tvShowSlug,
       }}
-      navAriaLabel="TV show sections"
+      navAriaLabel={t("TV show sections")}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useImportRuleBySlug, useDeleteImportRule } from "../hooks/useImportRules";
@@ -17,6 +18,9 @@ type ImportRuleEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 
 function ImportRuleViewLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     ruleSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
@@ -32,11 +36,11 @@ function ImportRuleViewLayout() {
   const viewNav = [
     {
       to: "/import-rules/$ruleSlug/general",
-      label: "General",
+      label: t("General"),
     },
     {
       to: "/import-rules/$ruleSlug/conditions",
-      label: "Conditions",
+      label: t("Conditions"),
     },
   ] as const;
 
@@ -51,11 +55,11 @@ function ImportRuleViewLayout() {
               hover:text-foreground
             "
           >
-            ← Back to import rules
+            {t("← Back to import rules")}
           </Link>
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl font-bold">
-              {isLoading ? "Import rule" : (rule?.name ?? "Import rule not found")}
+              {isLoading ? t("Import rule") : (rule?.name ?? t("Import rule not found"))}
             </h1>
             {rule
               ? (
@@ -71,7 +75,7 @@ function ImportRuleViewLayout() {
                         ruleSlug,
                       }}
                     >
-                      Edit
+                      {t("Edit")}
                     </Link>
                   </Button>
                   <Button
@@ -89,7 +93,7 @@ function ImportRuleViewLayout() {
                       }),
                     })}
                   >
-                    {deleteRule.isPending ? "Deleting…" : "Delete"}
+                    {deleteRule.isPending ? t("Deleting…") : t("Delete")}
                   </Button>
                 </div>
               )
@@ -101,7 +105,7 @@ function ImportRuleViewLayout() {
       params={{
         ruleSlug,
       }}
-      navAriaLabel="Import rule sections"
+      navAriaLabel={t("Import rule sections")}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useAutofillRuleBySlug, useDeleteAutofillRule } from "../hooks/useAutofill";
@@ -18,6 +19,9 @@ type AutofillEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 
 function AutofillRuleViewLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     ruleSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
@@ -33,23 +37,23 @@ function AutofillRuleViewLayout() {
   const viewNav = [
     {
       to: "/autofill/$ruleSlug/general",
-      label: "General",
+      label: t("General"),
     },
     {
       to: "/autofill/$ruleSlug/conditions",
-      label: "Conditions",
+      label: t("Conditions"),
     },
     {
       to: "/autofill/$ruleSlug/prefill",
-      label: "Prefill",
+      label: t("Prefill"),
     },
     {
       to: "/autofill/$ruleSlug/debug",
-      label: "Debug",
+      label: t("Debug"),
     },
     {
       to: "/autofill/$ruleSlug/backfill",
-      label: "Backfill",
+      label: t("Backfill"),
     },
   ] as const;
 
@@ -64,11 +68,11 @@ function AutofillRuleViewLayout() {
               hover:text-foreground
             "
           >
-            ← Back to autofill rules
+            {t("← Back to autofill rules")}
           </Link>
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl font-bold">
-              {isLoading ? "Autofill rule" : (rule?.name ?? "Autofill rule not found")}
+              {isLoading ? t("Autofill rule") : (rule?.name ?? t("Autofill rule not found"))}
             </h1>
             {rule
               ? (
@@ -84,7 +88,7 @@ function AutofillRuleViewLayout() {
                         ruleSlug,
                       }}
                     >
-                      Edit
+                      {t("Edit")}
                     </Link>
                   </Button>
                   <Button
@@ -102,7 +106,7 @@ function AutofillRuleViewLayout() {
                       }),
                     })}
                   >
-                    {deleteRule.isPending ? "Deleting…" : "Delete"}
+                    {deleteRule.isPending ? t("Deleting…") : t("Delete")}
                   </Button>
                 </div>
               )
@@ -114,7 +118,7 @@ function AutofillRuleViewLayout() {
       params={{
         ruleSlug,
       }}
-      navAriaLabel="Autofill rule sections"
+      navAriaLabel={t("Autofill rule sections")}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { usePropertyBySlug } from "../hooks/useCustomProperties";
@@ -10,6 +11,9 @@ export const Route = createFileRoute("/custom-properties/$propertySlug/edit")({
 
 function CustomPropertyEditLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     propertySlug,
   } = Route.useParams();
   const {
@@ -20,37 +24,37 @@ function CustomPropertyEditLayout() {
   const editNav = [
     {
       to: "/custom-properties/$propertySlug/edit/general",
-      label: "General",
+      label: t("General"),
     },
     ...(property && hasPropertyOptions(property)
       ? [{
         to: "/custom-properties/$propertySlug/edit/options",
-        label: "Options",
+        label: t("Options"),
       }] as const
       : []),
     {
       to: "/custom-properties/$propertySlug/edit/categories",
-      label: "Categories",
+      label: t("Categories"),
     },
     {
       to: "/custom-properties/$propertySlug/edit/media-types",
-      label: "Media Types",
+      label: t("Media Types"),
     },
     {
       to: "/custom-properties/$propertySlug/edit/display",
-      label: "Display",
+      label: t("Display"),
     },
     {
       type: "group",
-      label: "Rules",
+      label: t("Rules"),
       items: [
         {
           to: "/custom-properties/$propertySlug/edit/autofill",
-          label: "Autofill Rules",
+          label: t("Autofill Rules"),
         },
         {
           to: "/custom-properties/$propertySlug/edit/display-rules",
-          label: "Display Rules",
+          label: t("Display Rules"),
         },
       ],
     },
@@ -70,13 +74,13 @@ function CustomPropertyEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to custom property
+            {t("← Back to custom property")}
           </Link>
           <h1 className="text-2xl font-bold">
-            {isLoading ? "Edit custom property" : (property?.name ?? "Custom property not found")}
+            {isLoading ? t("Edit custom property") : (property?.name ?? t("Custom property not found"))}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Edit the general details, options, categories, display, and autofill rules for this property.
+            {t("Edit the general details, options, categories, display, and autofill rules for this property.")}
           </p>
         </div>
       )}
@@ -84,7 +88,7 @@ function CustomPropertyEditLayout() {
       params={{
         propertySlug,
       }}
-      navAriaLabel="Custom property settings sections"
+      navAriaLabel={t("Custom property settings sections")}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteSavedFilter, useSavedFilterBySlug } from "../hooks/useSavedFilters";
@@ -23,6 +24,9 @@ const viewNav = [
 
 function SavedFilterViewLayout() {
   const {
+    t,
+  } = useTranslation();
+  const {
     filterSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
@@ -37,6 +41,10 @@ function SavedFilterViewLayout() {
     savedFilter, isLoading,
   } = useSavedFilterBySlug(filterSlug);
   const deleteFilter = useDeleteSavedFilter();
+  const nav = viewNav.map(item => ({
+    ...item,
+    label: t(item.label),
+  }));
 
   return (
     <TabbedEntityLayout
@@ -49,11 +57,11 @@ function SavedFilterViewLayout() {
               hover:text-foreground
             "
           >
-            ← Back to saved filters
+            {t("← Back to saved filters")}
           </Link>
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl font-bold">
-              {isLoading ? "Saved filter" : (savedFilter?.name ?? "Saved filter not found")}
+              {isLoading ? t("Saved filter") : (savedFilter?.name ?? t("Saved filter not found"))}
             </h1>
             {savedFilter
               ? (
@@ -69,7 +77,7 @@ function SavedFilterViewLayout() {
                         filterSlug,
                       }}
                     >
-                      Edit
+                      {t("Edit")}
                     </Link>
                   </Button>
                   <Button
@@ -87,7 +95,7 @@ function SavedFilterViewLayout() {
                       }),
                     })}
                   >
-                    {deleteFilter.isPending ? "Deleting…" : "Delete"}
+                    {deleteFilter.isPending ? t("Deleting…") : t("Delete")}
                   </Button>
                 </div>
               )
@@ -95,11 +103,11 @@ function SavedFilterViewLayout() {
           </div>
         </div>
       )}
-      nav={viewNav}
+      nav={nav}
       params={{
         filterSlug,
       }}
-      navAriaLabel="Saved filter sections"
+      navAriaLabel={t("Saved filter sections")}
     />
   );
 }

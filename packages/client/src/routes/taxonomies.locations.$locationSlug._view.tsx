@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useLocationBySlug } from "../hooks/useLocations";
+import i18n from "../i18n";
 
 export const Route = createFileRoute("/taxonomies/locations/$locationSlug/_view")({
   component: LocationViewLayout,
@@ -11,29 +13,32 @@ export const Route = createFileRoute("/taxonomies/locations/$locationSlug/_view"
 const viewNav = [
   {
     to: "/taxonomies/locations/$locationSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
   {
     to: "/taxonomies/locations/$locationSlug/hierarchy",
-    label: "Hierarchy",
+    label: i18n.t("Hierarchy"),
   },
   {
     type: "group",
-    label: "Rules",
+    label: i18n.t("Rules"),
     items: [
       {
         to: "/taxonomies/locations/$locationSlug/autofill",
-        label: "Autofill Rules",
+        label: i18n.t("Autofill Rules"),
       },
       {
         to: "/taxonomies/locations/$locationSlug/display-rules",
-        label: "Display Rules",
+        label: i18n.t("Display Rules"),
       },
     ],
   },
 ] as const;
 
 function LocationViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     locationSlug,
   } = Route.useParams();
@@ -50,7 +55,7 @@ function LocationViewLayout() {
           "
         >
           {isLoading
-            ? "Location"
+            ? t("Location")
             : location
               ? (
                 <RomanizedLabel
@@ -59,14 +64,14 @@ function LocationViewLayout() {
                   stacked
                 />
               )
-              : "Location not found"}
+              : t("Location not found")}
         </h1>
       )}
       nav={viewNav}
       params={{
         locationSlug,
       }}
-      navAriaLabel="Location sections"
+      navAriaLabel={t("Location sections")}
     />
   );
 }
