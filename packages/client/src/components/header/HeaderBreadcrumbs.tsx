@@ -3,6 +3,7 @@ import type { BreadcrumbSegment } from "./CrumbLabel";
 import React from "react";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { CrumbLabel } from "./CrumbLabel";
 import { StackedBreadcrumbs } from "./StackedBreadcrumbs";
@@ -77,11 +78,14 @@ function CollapsedCrumbs({
 }: {
   crumbs: BreadcrumbSegment[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <BreadcrumbItem>
       <DropdownMenu>
         <DropdownMenuTrigger
-          aria-label="Show hidden breadcrumbs"
+          aria-label={t("Show hidden breadcrumbs")}
           className="
             flex items-center gap-1 rounded-sm text-muted-foreground
             transition-colors
@@ -91,7 +95,7 @@ function CollapsedCrumbs({
           "
         >
           <BreadcrumbEllipsis className="size-4" />
-          <span className="sr-only">Toggle menu</span>
+          <span className="sr-only">{t("Toggle menu")}</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           {crumbs.map(crumb => (

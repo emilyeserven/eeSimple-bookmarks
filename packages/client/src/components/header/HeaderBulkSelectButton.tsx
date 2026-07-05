@@ -1,4 +1,5 @@
 import { CheckSquare } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
@@ -10,9 +11,12 @@ export function HeaderBulkSelectButton({
 }: {
   pageKey: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const mode = useUiStore(state => state.selectionMode[pageKey]) ?? false;
   const setSelectionMode = useUiStore(state => state.setSelectionMode);
-  const label = mode ? "Done selecting" : "Select";
+  const label = mode ? t("Done selecting") : t("Select");
   return (
     <Button
       type="button"
@@ -34,12 +38,15 @@ export function BulkSelectMenuItem({
 }: {
   pageKey: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const mode = useUiStore(state => state.selectionMode[pageKey]) ?? false;
   const setSelectionMode = useUiStore(state => state.setSelectionMode);
   return (
     <DropdownMenuItem onSelect={() => setSelectionMode(pageKey, !mode)}>
       <CheckSquare className="size-4" />
-      {mode ? "Done selecting" : "Select"}
+      {mode ? t("Done selecting") : t("Select")}
     </DropdownMenuItem>
   );
 }

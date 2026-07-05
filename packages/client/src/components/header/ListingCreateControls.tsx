@@ -1,6 +1,7 @@
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { Bookmark, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +30,9 @@ export interface ListingCreateOptions {
 export function ListingCreateButton({
   addBookmark, createAction, createLabel,
 }: ListingCreateOptions) {
+  const {
+    t,
+  } = useTranslation();
   const openAddBookmarkModal = useUiStore(state => state.openAddBookmarkModal);
   const hasBookmark = addBookmark != null;
   const hasCreate = createAction != null;
@@ -42,7 +46,7 @@ export function ListingCreateButton({
         type="button"
         variant="ghost"
         size="icon"
-        aria-label={hasBookmark ? "Add bookmark" : createLabel ?? "New"}
+        aria-label={hasBookmark ? t("Add bookmark") : createLabel ?? t("New")}
         onClick={hasBookmark ? () => openAddBookmarkModal(addBookmark?.categoryId) : createAction}
       >
         <Plus className="size-4" />
@@ -58,7 +62,7 @@ export function ListingCreateButton({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="New"
+          aria-label={t("New")}
         >
           <Plus className="size-4" />
         </Button>
@@ -66,11 +70,11 @@ export function ListingCreateButton({
       <DropdownMenuContent align="end">
         <DropdownMenuItem onSelect={() => openAddBookmarkModal(addBookmark?.categoryId)}>
           <Bookmark className="size-4" />
-          Add bookmark
+          {t("Add bookmark")}
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => createAction?.()}>
           <Plus className="size-4" />
-          {createLabel ?? "New"}
+          {createLabel ?? t("New")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -84,6 +88,9 @@ export function ListingCreateButton({
 export function ListingCreateMenuItems({
   addBookmark, createAction, createLabel,
 }: ListingCreateOptions) {
+  const {
+    t,
+  } = useTranslation();
   const openAddBookmarkModal = useUiStore(state => state.openAddBookmarkModal);
 
   return (
@@ -92,7 +99,7 @@ export function ListingCreateMenuItems({
         ? (
           <DropdownMenuItem onSelect={() => openAddBookmarkModal(addBookmark.categoryId)}>
             <Bookmark className="size-4" />
-            Add bookmark
+            {t("Add bookmark")}
           </DropdownMenuItem>
         )
         : null}
@@ -100,7 +107,7 @@ export function ListingCreateMenuItems({
         ? (
           <DropdownMenuItem onSelect={() => createAction()}>
             <Plus className="size-4" />
-            {createLabel ?? "New"}
+            {createLabel ?? t("New")}
           </DropdownMenuItem>
         )
         : null}

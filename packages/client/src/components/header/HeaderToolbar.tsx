@@ -3,6 +3,7 @@ import type { ToolbarAction } from "./toolbarActions";
 import React from "react";
 
 import { MoreHorizontal } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -52,6 +53,9 @@ function HeaderMoreMenu({
 }: {
   actions: ToolbarAction[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [activeModal, setActiveModal] = React.useState<string | null>(null);
 
@@ -66,7 +70,7 @@ function HeaderMoreMenu({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label="More"
+            aria-label={t("More")}
           >
             <MoreHorizontal className="size-4" />
           </Button>
