@@ -20,6 +20,7 @@ function scan(overrides: Partial<ScanResult> = {}): ScanResult {
     authorNames: [],
     languageCode: null,
     socialAccount: null,
+    isbn: null,
     faviconUrl: null,
     website: null,
     duplicate: null,

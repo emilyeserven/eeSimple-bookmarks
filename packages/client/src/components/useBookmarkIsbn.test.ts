@@ -4,7 +4,9 @@ import type { FetchIsbnMetadataResult } from "@eesimple/types";
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ISBN_SLUG } from "./bookmarkFormSchema";
 import { useBookmarkIsbn } from "./useBookmarkIsbn";
+import { makeCustomProperty, makeMediaType } from "../test-utils/factories";
 
 const isbnMutateAsync = vi.fn<() => Promise<FetchIsbnMetadataResult>>();
 
@@ -25,6 +27,7 @@ function makeForm(): BookmarkFormApi {
     description: "",
     personIds: [],
     groupId: "",
+    mediaTypeId: "",
   };
   return {
     getFieldValue: (name: string) => values[name],
@@ -77,6 +80,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
     } = renderHook(() => useBookmarkIsbn({
       form: makeForm(),
       customProperties: [],
+      textInputs: {},
       mediaTypes: [],
       people: [],
       groups: [],
@@ -121,6 +125,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
     } = renderHook(() => useBookmarkIsbn({
       form: makeForm(),
       customProperties: [],
+      textInputs: {},
       mediaTypes: [],
       people: [],
       groups: [],
@@ -154,6 +159,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
     } = renderHook(() => useBookmarkIsbn({
       form: makeForm(),
       customProperties: [],
+      textInputs: {},
       mediaTypes: [],
       people: [],
       groups: [],
@@ -192,6 +198,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
     } = renderHook(() => useBookmarkIsbn({
       form: makeForm(),
       customProperties: [],
+      textInputs: {},
       mediaTypes: [],
       people: [],
       groups: [],
@@ -215,5 +222,178 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
     await result.current.handleIsbnFetch("9780345391803");
 
     expect(primaryLanguage.stageDetectedSiteLanguageCode).toHaveBeenCalledWith("ja");
+  });
+});
+
+describe("useBookmarkIsbn handleAmazonIsbnDetected", () => {
+  beforeEach(() => {
+    isbnMutateAsync.mockReset();
+    isbnMutateAsync.mockResolvedValue(BASE_RESULT);
+  });
+
+  const isbnProp = makeCustomProperty({
+    id: "isbn-prop",
+    slug: ISBN_SLUG,
+  });
+  const bookMediaType = makeMediaType({
+    id: "book-mt",
+    name: "Book",
+  });
+
+  it("fills the empty ISBN property, defaults the media type, and fetches metadata", async () => {
+    const handleTextChange = vi.fn();
+    const form = makeForm();
+    const {
+      result,
+    } = renderHook(() => useBookmarkIsbn({
+      form,
+      customProperties: [isbnProp],
+      textInputs: {},
+      mediaTypes: [bookMediaType],
+      people: [],
+      groups: [],
+      languages: [],
+      createPerson: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createGroup: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createLanguage: {
+        mutateAsync: vi.fn(),
+      } as never,
+      handleTextChange,
+      setHideNameField: vi.fn(),
+      setScanned: vi.fn(),
+      setImageCandidates: vi.fn(),
+      primaryLanguage: makePrimaryLanguage(),
+    }));
+
+    await result.current.handleAmazonIsbnDetected("9780131103627");
+
+    expect(handleTextChange).toHaveBeenCalledWith("isbn-prop", "9780131103627");
+    expect(form.getFieldValue("mediaTypeId")).toBe("book-mt");
+    expect(isbnMutateAsync).toHaveBeenCalledWith({
+      isbn: "9780131103627",
+    });
+  });
+
+  it("no-ops when the ISBN property already has a value", async () => {
+    const handleTextChange = vi.fn();
+    const {
+      result,
+    } = renderHook(() => useBookmarkIsbn({
+      form: makeForm(),
+      customProperties: [isbnProp],
+      textInputs: {
+        "isbn-prop": "9780000000002",
+      },
+      mediaTypes: [bookMediaType],
+      people: [],
+      groups: [],
+      languages: [],
+      createPerson: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createGroup: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createLanguage: {
+        mutateAsync: vi.fn(),
+      } as never,
+      handleTextChange,
+      setHideNameField: vi.fn(),
+      setScanned: vi.fn(),
+      setImageCandidates: vi.fn(),
+      primaryLanguage: makePrimaryLanguage(),
+    }));
+
+    await result.current.handleAmazonIsbnDetected("9780131103627");
+
+    expect(handleTextChange).not.toHaveBeenCalled();
+    expect(isbnMutateAsync).not.toHaveBeenCalled();
+  });
+});
+
+describe("useBookmarkIsbn handleIsbnFieldFetch", () => {
+  beforeEach(() => {
+    isbnMutateAsync.mockReset();
+    isbnMutateAsync.mockResolvedValue(BASE_RESULT);
+  });
+
+  it("normalizes a manually-typed ISBN-10 to ISBN-13 before storing and fetching", async () => {
+    const handleTextChange = vi.fn();
+    const isbnProp = makeCustomProperty({
+      id: "isbn-prop",
+      slug: ISBN_SLUG,
+    });
+    const {
+      result,
+    } = renderHook(() => useBookmarkIsbn({
+      form: makeForm(),
+      customProperties: [isbnProp],
+      textInputs: {},
+      mediaTypes: [],
+      people: [],
+      groups: [],
+      languages: [],
+      createPerson: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createGroup: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createLanguage: {
+        mutateAsync: vi.fn(),
+      } as never,
+      handleTextChange,
+      setHideNameField: vi.fn(),
+      setScanned: vi.fn(),
+      setImageCandidates: vi.fn(),
+      primaryLanguage: makePrimaryLanguage(),
+    }));
+
+    await result.current.handleIsbnFieldFetch("0131103628");
+
+    expect(handleTextChange).toHaveBeenCalledWith("isbn-prop", "9780131103627");
+    expect(isbnMutateAsync).toHaveBeenCalledWith({
+      isbn: "9780131103627",
+    });
+  });
+
+  it("leaves an already-ISBN-13 value alone (no redundant write)", async () => {
+    const handleTextChange = vi.fn();
+    const {
+      result,
+    } = renderHook(() => useBookmarkIsbn({
+      form: makeForm(),
+      customProperties: [],
+      textInputs: {},
+      mediaTypes: [],
+      people: [],
+      groups: [],
+      languages: [],
+      createPerson: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createGroup: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createLanguage: {
+        mutateAsync: vi.fn(),
+      } as never,
+      handleTextChange,
+      setHideNameField: vi.fn(),
+      setScanned: vi.fn(),
+      setImageCandidates: vi.fn(),
+      primaryLanguage: makePrimaryLanguage(),
+    }));
+
+    await result.current.handleIsbnFieldFetch("9780131103627");
+
+    expect(handleTextChange).not.toHaveBeenCalled();
+    expect(isbnMutateAsync).toHaveBeenCalledWith({
+      isbn: "9780131103627",
+    });
   });
 });

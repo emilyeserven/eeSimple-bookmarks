@@ -30,6 +30,7 @@ function scan(url: string): ScanResult {
     authorNames: null,
     languageCode: null,
     socialAccount: null,
+    isbn: null,
     faviconUrl: null,
   };
 }

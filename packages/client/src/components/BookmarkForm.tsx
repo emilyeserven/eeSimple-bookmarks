@@ -194,7 +194,7 @@ export function BookmarkForm({
           onFetchDescription={url => void c.runFetchDescription(url, {
             force: true,
           })}
-          onIsbnFetch={isbn => void c.handleIsbnFetch(isbn)}
+          onIsbnFetch={isbn => void c.handleIsbnFieldFetch(isbn)}
           isIsbnFetchPending={c.isbnFetch.isPending}
         />
       )}

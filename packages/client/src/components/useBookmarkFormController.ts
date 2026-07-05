@@ -170,6 +170,7 @@ export function useBookmarkFormController({
   const isbn = useBookmarkIsbn({
     form,
     customProperties,
+    textInputs: prefill.textInputs,
     mediaTypes,
     people,
     groups,
@@ -184,7 +185,7 @@ export function useBookmarkFormController({
     primaryLanguage,
   });
   const {
-    isbnFetch, handleIsbnFetch, handleLookupIsbn,
+    isbnFetch, handleIsbnFetch, handleLookupIsbn, handleIsbnFieldFetch, handleAmazonIsbnDetected,
   } = isbn;
 
   // The create/edit/scan/reset handlers plus the scan-handler composition and the URL input-type
@@ -204,6 +205,7 @@ export function useBookmarkFormController({
     imageState,
     prefill,
     primaryLanguage,
+    handleAmazonIsbnDetected,
   });
   const {
     isOfflineMode,
@@ -300,6 +302,7 @@ export function useBookmarkFormController({
     isbnFetch,
     handleIsbnFetch,
     handleLookupIsbn,
+    handleIsbnFieldFetch,
     // Save mutation (footer state).
     saveBookmark,
     onDone,

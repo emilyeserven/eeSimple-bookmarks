@@ -17,6 +17,7 @@ import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
 export * from "./autofillMerge.js";
 export * from "./albums.js";
+export * from "./amazon.js";
 export * from "./bookmarkAddForm.js";
 export * from "./books.js";
 export * from "./entityNames.js";
@@ -27,6 +28,7 @@ export * from "./customProperties.js";
 export * from "./groupTypes.js";
 export * from "./homepageWidgets.js";
 export * from "./importBlacklist.js";
+export * from "./isbn.js";
 export * from "./languageUsages.js";
 export * from "./locations.js";
 export * from "./mediaProperties.js";
@@ -2850,6 +2852,11 @@ export interface ScanResult {
   languageCode: string | null;
   /** The social-media account `finalUrl` points at (Instagram/X/…), or `null`. Pure of `finalUrl`. */
   socialAccount: SocialAccountRef | null;
+  /**
+   * A checksum-valid ISBN-13 extracted from an Amazon product URL's ASIN, or `null`. Pure of
+   * `finalUrl` (no HTTP call) — the client resolves book metadata via the existing ISBN pipeline.
+   */
+  isbn: string | null;
   /** An instant favicon URL for display (scraped icon or a CDN fallback), or `null`. */
   faviconUrl: string | null;
   /** Human-readable reasons a field could not be resolved (YouTube scrape warnings), when present. */
