@@ -24,7 +24,7 @@ This is **create-mode only** (`!isEdit`) — edit surfaces render as before and 
 
 | Kind | Stored as | Edited via |
 |---|---|---|
-| **Standard fields** — `title`, `romanizedTitle`, `categoryId`, `mediaTypeId`, `languageId`, `groupId`, `descriptionTags`, `personIds`, `image`, plus the taxonomy/media/location relations `groupIds` (creators, plural), `genreMoodIds`, `locationIds`, `mediaLink` (six book/movie/tvShow/episode/album/track FKs), `blacklistedTagIds`, `blacklistedLocationIds` (the last six **default Hidden**) | the server-side `bookmark-add-form` app-settings group — `standardFieldPlacements` **map** keyed by field, resolved `{ ...DEFAULT, ...stored }` | Card 1 of the tab |
+| **Standard fields** — `title`, `names`, `categoryId`, `mediaTypeId`, `languageId`, `groupId`, `descriptionTags`, `personIds`, `image`, plus the taxonomy/media/location relations `groupIds` (creators, plural), `genreMoodIds`, `locationIds`, `mediaLink` (six book/movie/tvShow/episode/album/track FKs), `blacklistedTagIds`, `blacklistedLocationIds` (the last six **default Hidden**) | the server-side `bookmark-add-form` app-settings group — `standardFieldPlacements` **map** keyed by field, resolved `{ ...DEFAULT, ...stored }` | Card 1 of the tab |
 | **Built-in detail properties** (`BOOKMARK_FORM_DETAIL_SLUGS`: runtime, date-posted, content-status, page-progress, page-range, page-sections, chapters, url-sections) | the same group's `builtInPropertyPlacements` map, keyed by slug, resolved `{ ...defaults, ...stored }` | Card 2 of the tab |
 | **User custom properties** | the property's own `showInForm` / `hiddenFromForm` flags | Card 3 of the tab, via `useUpdateCustomProperty` |
 
@@ -40,7 +40,7 @@ locked property still only renders on the create form when a matching category/m
   `hidden`), `BOOKMARK_FORM_DETAIL_SLUGS` + the 8 `*_SLUG` constants (re-exported by
   `components/bookmarkFormSchema.ts` so existing importers are unchanged),
   `BookmarkAddFormSettings` (`standardFieldPlacements` + `builtInPropertyPlacements`, both
-  `Record<key, placement>`), and `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS` (`title`/`romanizedTitle` →
+  `Record<key, placement>`), and `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS` (`title`/`names` →
   `default`, the six original taxonomy fields + `image` → `advanced`, the six newer relations + all
   detail slugs → `hidden`). Shared by middleware and client.
 - **Middleware group** (`bookmark-add-form`) — nullable jsonb columns on `appSettings` in `db/schema.ts`
