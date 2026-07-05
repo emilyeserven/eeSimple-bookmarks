@@ -1317,6 +1317,12 @@ export interface CreateBookmarkInput {
   languageUsages?: UpdateLanguageUsageEntry[];
   /** Multilingual names to attach at create time — set right after the create transaction, mirroring `languageUsages`. */
   names?: UpdateEntityNameEntry[];
+  /**
+   * Site's detected content language (ISO-639-1, from `ScanResult.languageCode`) — the Han-only
+   * tiebreaker used to label the primary `entity_names` row on create, ahead of the global
+   * `hanScriptLanguage` default. Only consulted when `names` is empty; ignored on update.
+   */
+  siteLanguageCode?: string | null;
   /** Ids of locations to assign, drawn from the Locations taxonomy. */
   locationIds?: string[];
   /** Tag IDs to exclude from autofill auto-apply on this bookmark. */

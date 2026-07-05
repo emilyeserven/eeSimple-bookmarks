@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { buildEntityNameRows, planEntityNameBackfillRows } from "@/services/entityNames";
+import { buildEntityNameRows, pickDetectedPrimaryName, planEntityNameBackfillRows } from "@/services/entityNames";
 
 const IDS = {
   en: "en-id",
@@ -110,6 +110,97 @@ test("planEntityNameBackfillRows: detected ja but ja language id missing → no 
   });
   assert.deepEqual(result.rows, []);
   assert.equal(result.undetermined, true);
+});
+
+// --- #985 pickDetectedPrimaryName: create-time primary-name derivation --------------------------
+
+test("pickDetectedPrimaryName: Han-only title + site zh overrides global ja → single zh primary", () => {
+  const result = pickDetectedPrimaryName("三国志", "zh", "ja", IDS);
+  assert.deepEqual(result, [
+    {
+      languageId: "zh-id",
+      value: "三国志",
+      isPrimary: true,
+    },
+  ]);
+});
+
+test("pickDetectedPrimaryName: Han-only title + no site language → global ja fallback", () => {
+  const result = pickDetectedPrimaryName("三国志", null, "ja", IDS);
+  assert.deepEqual(result, [
+    {
+      languageId: "ja-id",
+      value: "三国志",
+      isPrimary: true,
+    },
+  ]);
+});
+
+test("pickDetectedPrimaryName: Han-only title + non-CJK site (ko) → global fallback (only ja/zh override)", () => {
+  const result = pickDetectedPrimaryName("三国志", "ko", "zh", IDS);
+  assert.deepEqual(result, [
+    {
+      languageId: "zh-id",
+      value: "三国志",
+      isPrimary: true,
+    },
+  ]);
+});
+
+test("pickDetectedPrimaryName: kana title beats the site tiebreaker (definitive script wins)", () => {
+  const result = pickDetectedPrimaryName("進撃の巨人", "zh", "ja", IDS);
+  assert.deepEqual(result, [
+    {
+      languageId: "ja-id",
+      value: "進撃の巨人",
+      isPrimary: true,
+    },
+  ]);
+});
+
+test("pickDetectedPrimaryName: Hangul title → ko regardless of site code", () => {
+  const result = pickDetectedPrimaryName("강남", "zh", "ja", IDS);
+  assert.deepEqual(result, [
+    {
+      languageId: "ko-id",
+      value: "강남",
+      isPrimary: true,
+    },
+  ]);
+});
+
+test("pickDetectedPrimaryName: Latin title → en primary", () => {
+  const result = pickDetectedPrimaryName("Attack on Titan", "zh", "ja", IDS);
+  assert.deepEqual(result, [
+    {
+      languageId: "en-id",
+      value: "Attack on Titan",
+      isPrimary: true,
+    },
+  ]);
+});
+
+test("pickDetectedPrimaryName: trims the title value", () => {
+  const result = pickDetectedPrimaryName("  강남  ", null, "ja", IDS);
+  assert.equal(result[0]?.value, "강남");
+});
+
+test("pickDetectedPrimaryName: detected zh but zh id missing → no primary row", () => {
+  const result = pickDetectedPrimaryName("三国志", "zh", "ja", {
+    en: "en-id",
+    ja: "ja-id",
+    ko: "ko-id",
+    zh: null,
+  });
+  assert.deepEqual(result, []);
+});
+
+test("pickDetectedPrimaryName: blank title → no primary row", () => {
+  assert.deepEqual(pickDetectedPrimaryName("   ", "zh", "ja", IDS), []);
+});
+
+test("pickDetectedPrimaryName: undetermined script (digits/punctuation only) → no primary row", () => {
+  assert.deepEqual(pickDetectedPrimaryName("12345 !!!", "zh", "ja", IDS), []);
 });
 
 test("buildEntityNameRows keeps entries, assigns sortOrder in array order, and finds no primary", () => {

@@ -177,6 +177,9 @@ const createBookmarkBody = {
         },
       },
     },
+    siteLanguageCode: {
+      type: ["string", "null"],
+    },
     locationIds: {
       type: "array",
       items: {

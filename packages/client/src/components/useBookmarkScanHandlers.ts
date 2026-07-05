@@ -70,6 +70,12 @@ interface UseBookmarkScanHandlersParams {
   attachPrimaryLanguageUsage?: (languageId: string) => void;
   /** Create-language mutation — when provided, enables creating a new language for an unmatched code. */
   createLanguage?: Actions["createLanguage"];
+  /**
+   * Stage the site's detected language code for the create payload (#985) — labels the primary
+   * `entity_names` row server-side. Called independently of the "Primary Language" usage-level flow
+   * above, so it fires even when no such level exists. Omitted on edit surfaces.
+   */
+  stageDetectedSiteLanguageCode?: (code: string | null) => void;
 }
 
 /**
@@ -106,6 +112,7 @@ export function useBookmarkScanHandlers({
   hasPrimaryLanguageUsage,
   attachPrimaryLanguageUsage,
   createLanguage,
+  stageDetectedSiteLanguageCode,
 }: UseBookmarkScanHandlersParams) {
   const locale = useAppLocale();
   // Fetch the page title for the current URL and write it into the Title field.
@@ -309,6 +316,9 @@ export function useBookmarkScanHandlers({
   // unless the language params are provided, the "Primary Language" level exists, and the owner has no
   // primary-language usage yet (never clobbers a user pick).
   async function applyLanguageFromCode(code: string | null): Promise<void> {
+    // Stage the detected code for the create payload first — the primary entity_names label (#985)
+    // is independent of the "Primary Language" usage level, so it must not be gated on the checks below.
+    if (code) stageDetectedSiteLanguageCode?.(code);
     if (!attachPrimaryLanguageUsage || !primaryLanguageLevelId || !code) return;
     if (hasPrimaryLanguageUsage?.()) return;
     const match = (languages ?? []).find(l => l.isoCode === code);
