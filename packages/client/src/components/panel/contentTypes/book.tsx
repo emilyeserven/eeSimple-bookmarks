@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { BookOpen } from "lucide-react";
 
 import { useBooks } from "../../../hooks/useBooks";
+import i18n from "../../../i18n";
 import { bookWorkbench } from "../../workbench/book";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function BookEdit({
 
 export const bookContentType: PanelContentTypeDef = {
   type: "book",
-  label: "Books",
-  singular: "Book",
+  label: i18n.t("Books"),
+  singular: i18n.t("Book"),
   icon: BookOpen,
   useList: useBookList,
   View: BookView,

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Clapperboard } from "lucide-react";
 
 import { useMediaTypes } from "../../../hooks/useMediaTypes";
+import i18n from "../../../i18n";
 import { mediaTypeWorkbench } from "../../workbench/mediaType";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -17,7 +18,7 @@ function useMediaTypeList() {
     () => (data ?? []).map(mediaType => ({
       id: mediaType.id,
       label: mediaType.name,
-      sublabel: mediaType.builtIn ? "Built-in" : "Custom",
+      sublabel: mediaType.builtIn ? i18n.t("Built-in") : i18n.t("Custom"),
     })),
     [data],
   );
@@ -62,8 +63,8 @@ function MediaTypeEdit({
 
 export const mediaTypeContentType: PanelContentTypeDef = {
   type: "media-type",
-  label: "Media Types",
-  singular: "Media Type",
+  label: i18n.t("Media Types"),
+  singular: i18n.t("Media Type"),
   icon: Clapperboard,
   useList: useMediaTypeList,
   View: MediaTypeView,

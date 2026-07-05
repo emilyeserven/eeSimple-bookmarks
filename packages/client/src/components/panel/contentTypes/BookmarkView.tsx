@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { PanelLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { usePanelControls, usePanelDismissAfterDelete } from "./panelHelpers";
 import { WithPanelItem } from "./status";
@@ -30,12 +31,15 @@ export function BookmarkView({
   const deleteBookmark = useDeleteBookmark();
   const updateBookmark = useUpdateBookmark();
   const navigate = useNavigate();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <WithPanelItem
       queryResult={bookmarksQuery}
       id={id}
-      notFoundMessage="Bookmark not found."
+      notFoundMessage={t("Bookmark not found.")}
     >
       {bookmark => (
         <>
@@ -45,7 +49,7 @@ export function BookmarkView({
               variant="ghost"
               size="icon"
               className="size-7"
-              aria-label="Open in main pane"
+              aria-label={t("Open in main pane")}
               onClick={() => {
                 void navigate({
                   href: `/bookmarks/${id}`,

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { BookUser } from "lucide-react";
 
 import { useGroups } from "../../../hooks/useGroups";
+import i18n from "../../../i18n";
 import { groupWorkbench } from "../../workbench/group";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function GroupEdit({
 
 export const groupContentType: PanelContentTypeDef = {
   type: "group",
-  label: "Groups",
-  singular: "Group",
+  label: i18n.t("Groups"),
+  singular: i18n.t("Group"),
   icon: BookUser,
   useList: useGroupList,
   View: GroupView,

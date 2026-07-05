@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { getContentType } from "./contentTypes";
 import { usePanelItemLabel } from "./panelBreadcrumbData";
 import { PanelBreadcrumbSwitcher } from "./PanelBreadcrumbSwitcher";
@@ -18,6 +20,9 @@ export function PanelBreadcrumbs() {
   const {
     dCT, dCId, open, openType,
   } = usePanelControls();
+  const {
+    t,
+  } = useTranslation();
 
   const specificName = usePanelItemLabel(dCT ?? null, dCId ?? null);
 
@@ -26,10 +31,10 @@ export function PanelBreadcrumbs() {
   // Notifications, Filters, and AI Summarization have no registry entry; render a simple two-level trail.
   if (dCT === "notifications" || dCT === "filters" || dCT === "ai-summarization") {
     const label = dCT === "notifications"
-      ? "Notifications"
+      ? t("Notifications")
       : dCT === "filters"
-        ? "Filters"
-        : "AI Summarization";
+        ? t("Filters")
+        : t("AI Summarization");
     return (
       <div className="flex items-center gap-1 px-4 pb-2">
         <Breadcrumb>
@@ -39,7 +44,7 @@ export function PanelBreadcrumbs() {
                 className="cursor-pointer"
                 onClick={open}
               >
-                Browse
+                {t("Browse")}
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
@@ -55,7 +60,11 @@ export function PanelBreadcrumbs() {
   const def = getContentType(dCT);
 
   const itemLabel = dCId
-    ? (dCId === NEW_SENTINEL ? `New ${def.singular}` : (specificName ?? def.singular))
+    ? (dCId === NEW_SENTINEL
+      ? t("New {{name}}", {
+        name: def.singular,
+      })
+      : (specificName ?? def.singular))
     : null;
 
   const showSwitcher = Boolean(dCId && dCId !== NEW_SENTINEL);
@@ -69,7 +78,7 @@ export function PanelBreadcrumbs() {
               className="cursor-pointer"
               onClick={open}
             >
-              Browse
+              {t("Browse")}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Folder } from "lucide-react";
 
 import { useCategories } from "../../../hooks/useCategories";
+import i18n from "../../../i18n";
 import { categoryWorkbench } from "../../workbench/category";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function CategoryEdit({
 
 export const categoryContentType: PanelContentTypeDef = {
   type: "category",
-  label: "Categories",
-  singular: "Category",
+  label: i18n.t("Categories"),
+  singular: i18n.t("Category"),
   icon: Folder,
   useList: useCategoryList,
   View: CategoryView,

@@ -1,4 +1,5 @@
 import { Pin, PinOff, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { DrawerBreakpointsPopover } from "./DrawerBreakpointsPopover";
 import { usePanelControls } from "./usePanelControls";
@@ -30,6 +31,9 @@ export function PanelChrome({
     data: displayData,
   } = useDisplayPreferenceSettings();
   const update = useUpdateDisplayPreferenceSettings();
+  const {
+    t,
+  } = useTranslation();
 
   function togglePinned() {
     if (!displayData) return;
@@ -39,7 +43,7 @@ export function PanelChrome({
         ...displayData,
         panelPinned: next,
       },
-      successMessage: next ? "Drawer pinned" : "Drawer unpinned",
+      successMessage: next ? t("Drawer pinned") : t("Drawer unpinned"),
     });
   }
 
@@ -55,7 +59,7 @@ export function PanelChrome({
               hidden size-7
               md:inline-flex
             "
-            aria-label={pinned ? "Unpin panel" : "Pin panel"}
+            aria-label={pinned ? t("Unpin panel") : t("Pin panel")}
             aria-pressed={pinned}
             onClick={togglePinned}
           >
@@ -71,7 +75,7 @@ export function PanelChrome({
             variant="ghost"
             size="icon"
             className="size-7"
-            aria-label="Close panel"
+            aria-label={t("Close panel")}
             onClick={close}
           >
             <X className="size-4" />

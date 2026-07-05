@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { Sparkles } from "lucide-react";
 
 import { useAutofillRules } from "../../../hooks/useAutofill";
+import i18n from "../../../i18n";
 import { summarizeConditions } from "../../../lib/conditionsSummary";
 import { autofillWorkbench } from "../../workbench/autofill";
 import { CreateAutofillRule } from "../AutofillRuleForms";
@@ -60,8 +61,8 @@ const AutofillEdit: FC<{ id: string }> = ({
 
 export const autofillContentType: PanelContentTypeDef = {
   type: "autofill",
-  label: "Autofill Rules",
-  singular: "Autofill Rule",
+  label: i18n.t("Autofill Rules"),
+  singular: i18n.t("Autofill Rule"),
   icon: Sparkles,
   useList: useAutofillList,
   View: AutofillView,

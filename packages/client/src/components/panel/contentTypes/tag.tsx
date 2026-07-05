@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { Tags } from "lucide-react";
 
 import { useTagTree } from "../../../hooks/useTags";
+import i18n from "../../../i18n";
 import { flattenTree } from "../../../lib/tagTree";
 import { tagWorkbench } from "../../workbench/tag";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
@@ -27,7 +28,11 @@ function useTagList() {
       // Romanized form renders beside the name via the shared toggle-aware RomanizedLabel; the
       // children count is the de-emphasized sublabel.
       romanized: node.romanizedName,
-      sublabel: node.children.length > 0 ? `${node.children.length} children` : undefined,
+      sublabel: node.children.length > 0
+        ? i18n.t("{{count}} children", {
+          count: node.children.length,
+        })
+        : undefined,
     })),
     [data],
   );
@@ -65,8 +70,8 @@ const TagEdit: FC<{ id: string }> = ({
 
 export const tagContentType: PanelContentTypeDef = {
   type: "tag",
-  label: "Tags",
-  singular: "Tag",
+  label: i18n.t("Tags"),
+  singular: i18n.t("Tag"),
   icon: Tags,
   useList: useTagList,
   View: TagView,

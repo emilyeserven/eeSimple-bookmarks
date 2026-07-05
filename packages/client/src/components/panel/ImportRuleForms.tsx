@@ -1,11 +1,16 @@
 import type { CreateImportRuleInput } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { usePanelControls } from "./usePanelControls";
 import { useCreateImportRule } from "../../hooks/useImportRules";
 import { ImportRuleForm } from "../ImportRuleForm";
 
 /** Inline create form for the right panel: on success, re-targets the panel at the new rule. */
 export function CreateImportRule() {
+  const {
+    t,
+  } = useTranslation();
   const {
     openItem,
   } = usePanelControls();
@@ -19,13 +24,13 @@ export function CreateImportRule() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold">New import rule</h2>
+        <h2 className="text-xl font-semibold">{t("New import rule")}</h2>
         <p className="text-sm text-muted-foreground">
-          Match a candidate URL during inbox ingestion to automatically approve, reject, or block it.
+          {t("Match a candidate URL during inbox ingestion to automatically approve, reject, or block it.")}
         </p>
       </div>
       <ImportRuleForm
-        submitLabel="Add rule"
+        submitLabel={t("Add rule")}
         isError={createRule.isError}
         errorMessage={createRule.error?.message}
         onSubmit={(input) => {

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Sparkles } from "lucide-react";
 
 import { useGenreMoods } from "../../../hooks/useGenreMoods";
+import i18n from "../../../i18n";
 import { genreMoodWorkbench } from "../../workbench/genreMood";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function GenreMoodEdit({
 
 export const genreMoodContentType: PanelContentTypeDef = {
   type: "genre-mood",
-  label: "Genres & Moods",
-  singular: "Genres & Moods entry",
+  label: i18n.t("Genres & Moods"),
+  singular: i18n.t("Genres & Moods entry"),
   icon: Sparkles,
   useList: useGenreMoodList,
   View: GenreMoodView,

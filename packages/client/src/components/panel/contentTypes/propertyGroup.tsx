@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Layers } from "lucide-react";
 
 import { usePropertyGroups } from "../../../hooks/usePropertyGroups";
+import i18n from "../../../i18n";
 import { propertyGroupWorkbench } from "../../workbench/propertyGroup";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -17,7 +18,15 @@ function usePropertyGroupList() {
     () => (data ?? []).map(group => ({
       id: group.id,
       label: group.name,
-      sublabel: group.propertyCount != null ? `${group.propertyCount} properties` : undefined,
+      sublabel: group.propertyCount != null
+        ? (group.propertyCount === 1
+          ? i18n.t("{{count}} property", {
+            count: group.propertyCount,
+          })
+          : i18n.t("{{count}} properties", {
+            count: group.propertyCount,
+          }))
+        : undefined,
     })),
     [data],
   );
@@ -62,8 +71,8 @@ function PropertyGroupEdit({
 
 export const propertyGroupContentType: PanelContentTypeDef = {
   type: "property-group",
-  label: "Property Groups",
-  singular: "Property Group",
+  label: i18n.t("Property Groups"),
+  singular: i18n.t("Property Group"),
   icon: Layers,
   useList: usePropertyGroupList,
   View: PropertyGroupView,

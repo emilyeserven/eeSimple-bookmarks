@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Library } from "lucide-react";
 
 import { useMediaProperties } from "../../../hooks/useMediaProperties";
+import i18n from "../../../i18n";
 import { mediaPropertyWorkbench } from "../../workbench/mediaProperty";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -17,7 +18,11 @@ function useMediaPropertyList() {
     () => (data ?? []).map(mediaProperty => ({
       id: mediaProperty.id,
       label: mediaProperty.name,
-      sublabel: mediaProperty.bookCount != null ? `${mediaProperty.bookCount} books` : undefined,
+      sublabel: mediaProperty.bookCount != null
+        ? i18n.t("{{count}} books", {
+          count: mediaProperty.bookCount,
+        })
+        : undefined,
     })),
     [data],
   );
@@ -62,8 +67,8 @@ function MediaPropertyEdit({
 
 export const mediaPropertyContentType: PanelContentTypeDef = {
   type: "media-property",
-  label: "Media Properties",
-  singular: "Media Property",
+  label: i18n.t("Media Properties"),
+  singular: i18n.t("Media Property"),
   icon: Library,
   useList: useMediaPropertyList,
   View: MediaPropertyView,

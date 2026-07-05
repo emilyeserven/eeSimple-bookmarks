@@ -1,8 +1,13 @@
 import type { ReactNode } from "react";
 
+import { useTranslation } from "react-i18next";
+
 /** Shared loading status line, matching the existing panel bodies. */
 export function Loading() {
-  return <p className="text-muted-foreground">Loading…</p>;
+  const {
+    t,
+  } = useTranslation();
+  return <p className="text-muted-foreground">{t("Loading…")}</p>;
 }
 
 /** Shared error / not-found status line, matching the existing panel bodies. */

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Library } from "lucide-react";
 
 import { useGroupTypes } from "../../../hooks/useGroupTypes";
+import i18n from "../../../i18n";
 import { groupTypeWorkbench } from "../../workbench/groupType";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -17,7 +18,15 @@ function useGroupTypeList() {
     () => (data ?? []).map(groupType => ({
       id: groupType.id,
       label: groupType.name,
-      sublabel: groupType.groupCount != null ? `${groupType.groupCount} groups` : undefined,
+      sublabel: groupType.groupCount != null
+        ? (groupType.groupCount === 1
+          ? i18n.t("{{count}} group", {
+            count: groupType.groupCount,
+          })
+          : i18n.t("{{count}} groups", {
+            count: groupType.groupCount,
+          }))
+        : undefined,
     })),
     [data],
   );
@@ -62,8 +71,8 @@ function GroupTypeEdit({
 
 export const groupTypeContentType: PanelContentTypeDef = {
   type: "group-type",
-  label: "Group Types",
-  singular: "Group Type",
+  label: i18n.t("Group Types"),
+  singular: i18n.t("Group Type"),
   icon: Library,
   useList: useGroupTypeList,
   View: GroupTypeView,

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Film } from "lucide-react";
 
 import { useMovies } from "../../../hooks/useMovies";
+import i18n from "../../../i18n";
 import { movieWorkbench } from "../../workbench/movie";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function MovieEdit({
 
 export const movieContentType: PanelContentTypeDef = {
   type: "movie",
-  label: "Movies",
-  singular: "Movie",
+  label: i18n.t("Movies"),
+  singular: i18n.t("Movie"),
   icon: Film,
   useList: useMovieList,
   View: MovieView,
