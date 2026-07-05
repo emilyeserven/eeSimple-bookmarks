@@ -20,6 +20,10 @@ export function useBookmarkPrimaryLanguage(
   const primaryLanguageLevel = (availabilityLevels ?? [])
     .find(l => l.name.toLowerCase() === PRIMARY_LANGUAGE_LEVEL_NAME);
   const pendingLanguageUsagesRef = useRef<UpdateLanguageUsageEntry[]>([]);
+  // Raw ISO-639-1 code the scan/ISBN detected for the site, staged across the scan→submit gap so the
+  // create payload can label the primary entity_names row with it (#985). Independent of the
+  // "Primary Language" level above — the primary name is derived even when no usage level exists.
+  const siteLanguageCodeRef = useRef<string | null>(null);
   const setLanguageUsages = useSetLanguageUsages("bookmark", bookmark?.id ?? "");
 
   function hasPrimaryLanguageUsage(): boolean {
@@ -49,10 +53,17 @@ export function useBookmarkPrimaryLanguage(
     }];
   }
 
+  /** Stage the site's detected language code for the create payload; last write wins, `null` ignored server-side. */
+  function stageDetectedSiteLanguageCode(code: string | null): void {
+    siteLanguageCodeRef.current = code;
+  }
+
   return {
     primaryLanguageLevelId: primaryLanguageLevel?.id,
     hasPrimaryLanguageUsage,
     attachPrimaryLanguageUsage,
     pendingLanguageUsagesRef,
+    siteLanguageCodeRef,
+    stageDetectedSiteLanguageCode,
   };
 }

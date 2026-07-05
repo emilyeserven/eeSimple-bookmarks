@@ -14,7 +14,7 @@ import type {
   UpdateBookmarkRelationshipsInput,
 } from "@eesimple/types";
 import { db } from "@/db";
-import { loadEntityNames, setEntityNames } from "@/services/entityNames";
+import { deriveDetectedPrimaryNames, loadEntityNames, setEntityNames } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner, setLanguageUsages } from "@/services/languageUsages";
 import {
   bookmarkPeople,
@@ -666,7 +666,13 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   void captureChannelAvatar(youtubeChannelId, "create");
   // Auto-detected language (scan/ISBN), attached as ordinary language_usages rows.
   if (input.languageUsages?.length) await setLanguageUsages("bookmark", id, input.languageUsages);
-  if (input.names?.length) await setEntityNames("bookmark", id, input.names);
+  // Multilingual names: use the caller's explicit set when provided, else derive the primary name
+  // from the title's script — the site's detected language (#985) disambiguates Han-only titles
+  // ahead of the global hanScriptLanguage default.
+  const nameEntries = input.names?.length
+    ? input.names
+    : await deriveDetectedPrimaryNames(input.title, input.siteLanguageCode);
+  if (nameEntries.length) await setEntityNames("bookmark", id, nameEntries);
 
   // A new bookmark changes what homepage sections / autofill previews match.
   invalidateBookmarkCache();

@@ -98,6 +98,9 @@ export function useBookmarkIsbn({
         id => form.setFieldValue("groupId", id),
       );
     }
+    // Stage the detected code for the create payload before the usage-level gate — the primary
+    // entity_names label (#985) is independent of the "Primary Language" usage flow below.
+    if (result.language) primaryLanguage.stageDetectedSiteLanguageCode(result.language);
     if (result.language && !primaryLanguage.hasPrimaryLanguageUsage()) {
       await resolveLanguage(
         result.language,

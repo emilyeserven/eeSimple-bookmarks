@@ -161,6 +161,7 @@ export function useBookmarkFormHandlers({
 
   const {
     primaryLanguageLevelId, hasPrimaryLanguageUsage, attachPrimaryLanguageUsage, pendingLanguageUsagesRef,
+    siteLanguageCodeRef, stageDetectedSiteLanguageCode,
   } = primaryLanguage;
 
   const {
@@ -200,6 +201,7 @@ export function useBookmarkFormHandlers({
     hasPrimaryLanguageUsage,
     attachPrimaryLanguageUsage,
     createLanguage,
+    stageDetectedSiteLanguageCode,
   });
 
   // Persist the form: build the property values + input, then create or update. On create, also
@@ -300,6 +302,9 @@ export function useBookmarkFormHandlers({
       ...(nameEntries.length > 0 && {
         names: nameEntries,
       }),
+      ...(siteLanguageCodeRef.current && {
+        siteLanguageCode: siteLanguageCodeRef.current,
+      }),
     });
     await applyImageIntent(created.id, finalUrl ?? "", imageIntentRef.current, {
       autoImage,
@@ -353,6 +358,10 @@ export function useBookmarkFormHandlers({
     setUrlCleanupMode("none");
     flags.resetFlags();
     ui.resetUiState();
+    // Clear the staged auto-detected language between adds so a prior bookmark's site language
+    // can't leak into the next create when its scan reports no language (#985).
+    siteLanguageCodeRef.current = null;
+    pendingLanguageUsagesRef.current = [];
   }
 
   // The full URL scan: clean the URL, then make a single consolidated `/api/scan` round-trip that

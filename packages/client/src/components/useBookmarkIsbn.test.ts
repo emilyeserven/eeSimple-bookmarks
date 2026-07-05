@@ -43,6 +43,10 @@ function makePrimaryLanguage() {
     pendingLanguageUsagesRef: {
       current: [],
     },
+    siteLanguageCodeRef: {
+      current: null as string | null,
+    },
+    stageDetectedSiteLanguageCode: vi.fn(),
   };
 }
 
@@ -173,5 +177,43 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
     await result.current.handleIsbnFetch("9780345391803");
 
     expect(setImageCandidates).not.toHaveBeenCalled();
+  });
+
+  it("stages the detected language for the create payload even when a primary language usage already exists", async () => {
+    isbnMutateAsync.mockResolvedValue({
+      ...BASE_RESULT,
+      language: "ja",
+    });
+    // hasPrimaryLanguageUsage() returns true in the stub, so the usage-attach path is skipped —
+    // the entity_names label (#985) must still be staged, since it doesn't depend on a usage level.
+    const primaryLanguage = makePrimaryLanguage();
+    const {
+      result,
+    } = renderHook(() => useBookmarkIsbn({
+      form: makeForm(),
+      customProperties: [],
+      mediaTypes: [],
+      people: [],
+      groups: [],
+      languages: [],
+      createPerson: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createGroup: {
+        mutateAsync: vi.fn(),
+      } as never,
+      createLanguage: {
+        mutateAsync: vi.fn(),
+      } as never,
+      handleTextChange: vi.fn(),
+      setHideNameField: vi.fn(),
+      setScanned: vi.fn(),
+      setImageCandidates: vi.fn(),
+      primaryLanguage,
+    }));
+
+    await result.current.handleIsbnFetch("9780345391803");
+
+    expect(primaryLanguage.stageDetectedSiteLanguageCode).toHaveBeenCalledWith("ja");
   });
 });

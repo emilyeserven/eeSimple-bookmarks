@@ -428,7 +428,7 @@ function planPrimaryLanguageUsage(
 }
 
 /** Resolve the en/ja/ko/zh language ids by ISO code (built-ins seeded by boot time). */
-async function resolveBackfillLanguageIds(): Promise<{ en: string | null;
+export async function resolveBackfillLanguageIds(): Promise<{ en: string | null;
   ja: string | null;
   ko: string | null;
   zh: string | null; }> {
@@ -455,6 +455,62 @@ async function resolveBackfillLanguageIds(): Promise<{ en: string | null;
     else if (row.isoCode === "zh") out.zh = row.id;
   }
   return out;
+}
+
+// --- #985 create-time primary-name derivation --------------------------------------------------
+
+/**
+ * Decide the primary `entity_names` entry for a *new* bookmark from its title's script, using the
+ * site's detected language as the Han-only (ambiguous ja/zh) tiebreaker ahead of the global
+ * `hanScriptLanguage` default. Pure, so it is unit-tested directly. Returns a single-element array
+ * (`isPrimary`) when the script resolves to a seeded language, else `[]` (undetermined title, blank
+ * title, or the target language row missing) — matching the backfill's "no unlabelled row" rule.
+ *
+ * Only the Han-only branch consults `siteLanguageCode`; a definitive script (kana → ja, hangul → ko,
+ * Latin → en) wins regardless of the site. `siteLanguageCode` is only honoured when it is itself an
+ * ambiguous CJK code (`ja`/`zh`); any other value (or absent) falls back to `hanScriptLanguage`.
+ */
+export function pickDetectedPrimaryName(
+  title: string,
+  siteLanguageCode: string | null | undefined,
+  hanScriptLanguage: "ja" | "zh",
+  languageIds: BackfillLanguageIds,
+): UpdateEntityNameEntry[] {
+  const hanFallback = siteLanguageCode === "ja" || siteLanguageCode === "zh"
+    ? siteLanguageCode
+    : hanScriptLanguage;
+  const detected = detectNameLanguage(title, hanFallback);
+  const value = title.trim();
+  const languageId = detected ? languageIds[detected] : null;
+  return languageId !== null && value.length > 0
+    ? [{
+      languageId,
+      value,
+      isPrimary: true,
+    }]
+    : [];
+}
+
+/**
+ * Resolve the operator preference + seeded language ids and derive the primary-name entry for a new
+ * bookmark (see {@link pickDetectedPrimaryName}). No-ops to `[]` when the English row is somehow
+ * missing (so `ensure*` boot steps haven't run) — mirrors {@link backfillEntityNames}'s guard.
+ */
+export async function deriveDetectedPrimaryNames(
+  title: string,
+  siteLanguageCode: string | null | undefined,
+): Promise<UpdateEntityNameEntry[]> {
+  const {
+    hanScriptLanguage,
+  } = await getDisplayPreferenceSettings();
+  const resolved = await resolveBackfillLanguageIds();
+  if (resolved.en === null) return [];
+  return pickDetectedPrimaryName(title, siteLanguageCode, hanScriptLanguage, {
+    en: resolved.en,
+    ja: resolved.ja,
+    ko: resolved.ko,
+    zh: resolved.zh,
+  });
 }
 
 /** Resolve the availability-kind "Primary Language" level id (case-insensitive on name), or null. */
