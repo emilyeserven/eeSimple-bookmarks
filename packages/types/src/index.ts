@@ -36,6 +36,7 @@ export * from "./movies.js";
 export * from "./podcasts.js";
 export * from "./tracks.js";
 export * from "./tvShows.js";
+export * from "./translationSources.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";
 export * from "./socialMedia.js";

@@ -27,6 +27,7 @@ import { maintenanceRoutes } from "@/routes/maintenance";
 import { languageRoutes } from "@/routes/languages";
 import { languageUsageLevelRoutes } from "@/routes/languageUsageLevels";
 import { languageUsageRoutes } from "@/routes/languageUsages";
+import { translationSourceRoutes } from "@/routes/translationSources";
 import { entityNameRoutes } from "@/routes/entityNames";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { genreMoodRoutes } from "@/routes/genreMoods";
@@ -282,6 +283,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(languageRoutes);
   await app.register(languageUsageLevelRoutes);
   await app.register(languageUsageRoutes);
+  await app.register(translationSourceRoutes);
   await app.register(entityNameRoutes);
   await app.register(locationRoutes);
   await app.register(placeTypeRoutes);

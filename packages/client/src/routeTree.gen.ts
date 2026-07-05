@@ -35,6 +35,7 @@ import { Route as AutofillIndexRouteImport } from './routes/autofill.index'
 import { Route as TaxonomiesYoutubeChannelsRouteImport } from './routes/taxonomies.youtube-channels'
 import { Route as TaxonomiesWebsitesRouteImport } from './routes/taxonomies.websites'
 import { Route as TaxonomiesTvShowsRouteImport } from './routes/taxonomies.tv-shows'
+import { Route as TaxonomiesTranslationSourcesRouteImport } from './routes/taxonomies.translation-sources'
 import { Route as TaxonomiesTracksRouteImport } from './routes/taxonomies.tracks'
 import { Route as TaxonomiesRelationshipTypesRouteImport } from './routes/taxonomies.relationship-types'
 import { Route as TaxonomiesPropertyGroupsRouteImport } from './routes/taxonomies.property-groups'
@@ -564,6 +565,12 @@ const TaxonomiesTvShowsRoute = TaxonomiesTvShowsRouteImport.update({
   path: '/taxonomies/tv-shows',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaxonomiesTranslationSourcesRoute =
+  TaxonomiesTranslationSourcesRouteImport.update({
+    id: '/taxonomies/translation-sources',
+    path: '/taxonomies/translation-sources',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const TaxonomiesTracksRoute = TaxonomiesTracksRouteImport.update({
   id: '/taxonomies/tracks',
   path: '/taxonomies/tracks',
@@ -2905,6 +2912,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/property-groups': typeof TaxonomiesPropertyGroupsRouteWithChildren
   '/taxonomies/relationship-types': typeof TaxonomiesRelationshipTypesRouteWithChildren
   '/taxonomies/tracks': typeof TaxonomiesTracksRouteWithChildren
+  '/taxonomies/translation-sources': typeof TaxonomiesTranslationSourcesRoute
   '/taxonomies/tv-shows': typeof TaxonomiesTvShowsRouteWithChildren
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsRouteWithChildren
@@ -3260,6 +3268,7 @@ export interface FileRoutesByTo {
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
+  '/taxonomies/translation-sources': typeof TaxonomiesTranslationSourcesRoute
   '/autofill': typeof AutofillIndexRoute
   '/bookmarks': typeof BookmarksIndexRoute
   '/card-display-rules': typeof CardDisplayRulesIndexRoute
@@ -3607,6 +3616,7 @@ export interface FileRoutesById {
   '/taxonomies/property-groups': typeof TaxonomiesPropertyGroupsRouteWithChildren
   '/taxonomies/relationship-types': typeof TaxonomiesRelationshipTypesRouteWithChildren
   '/taxonomies/tracks': typeof TaxonomiesTracksRouteWithChildren
+  '/taxonomies/translation-sources': typeof TaxonomiesTranslationSourcesRoute
   '/taxonomies/tv-shows': typeof TaxonomiesTvShowsRouteWithChildren
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsRouteWithChildren
@@ -4034,6 +4044,7 @@ export interface FileRouteTypes {
     | '/taxonomies/property-groups'
     | '/taxonomies/relationship-types'
     | '/taxonomies/tracks'
+    | '/taxonomies/translation-sources'
     | '/taxonomies/tv-shows'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
@@ -4389,6 +4400,7 @@ export interface FileRouteTypes {
     | '/settings/saved-filters'
     | '/settings/websites'
     | '/settings/youtube-channels'
+    | '/taxonomies/translation-sources'
     | '/autofill'
     | '/bookmarks'
     | '/card-display-rules'
@@ -4735,6 +4747,7 @@ export interface FileRouteTypes {
     | '/taxonomies/property-groups'
     | '/taxonomies/relationship-types'
     | '/taxonomies/tracks'
+    | '/taxonomies/translation-sources'
     | '/taxonomies/tv-shows'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
@@ -5131,6 +5144,7 @@ export interface RootRouteChildren {
   TaxonomiesPropertyGroupsRoute: typeof TaxonomiesPropertyGroupsRouteWithChildren
   TaxonomiesRelationshipTypesRoute: typeof TaxonomiesRelationshipTypesRouteWithChildren
   TaxonomiesTracksRoute: typeof TaxonomiesTracksRouteWithChildren
+  TaxonomiesTranslationSourcesRoute: typeof TaxonomiesTranslationSourcesRoute
   TaxonomiesTvShowsRoute: typeof TaxonomiesTvShowsRouteWithChildren
   TaxonomiesWebsitesRoute: typeof TaxonomiesWebsitesRouteWithChildren
   TaxonomiesYoutubeChannelsRoute: typeof TaxonomiesYoutubeChannelsRouteWithChildren
@@ -5318,6 +5332,13 @@ declare module '@tanstack/react-router' {
       path: '/taxonomies/tv-shows'
       fullPath: '/taxonomies/tv-shows'
       preLoaderRoute: typeof TaxonomiesTvShowsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxonomies/translation-sources': {
+      id: '/taxonomies/translation-sources'
+      path: '/taxonomies/translation-sources'
+      fullPath: '/taxonomies/translation-sources'
+      preLoaderRoute: typeof TaxonomiesTranslationSourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/taxonomies/tracks': {
@@ -10529,6 +10550,7 @@ const rootRouteChildren: RootRouteChildren = {
   TaxonomiesRelationshipTypesRoute:
     TaxonomiesRelationshipTypesRouteWithChildren,
   TaxonomiesTracksRoute: TaxonomiesTracksRouteWithChildren,
+  TaxonomiesTranslationSourcesRoute: TaxonomiesTranslationSourcesRoute,
   TaxonomiesTvShowsRoute: TaxonomiesTvShowsRouteWithChildren,
   TaxonomiesWebsitesRoute: TaxonomiesWebsitesRouteWithChildren,
   TaxonomiesYoutubeChannelsRoute: TaxonomiesYoutubeChannelsRouteWithChildren,

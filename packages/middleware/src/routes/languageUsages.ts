@@ -38,6 +38,10 @@ const putBody = {
             type: "string",
             format: "uuid",
           },
+          translationSourceId: {
+            type: ["string", "null"],
+            format: "uuid",
+          },
           note: {
             type: ["string", "null"],
           },

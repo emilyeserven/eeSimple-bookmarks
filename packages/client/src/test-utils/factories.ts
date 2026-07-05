@@ -9,7 +9,9 @@ import type {
   Group,
   GroupType,
   Location,
+  LanguageUsage,
   LanguageUsageLevel,
+  TranslationSource,
   MediaType,
   Newsletter,
   Tag,
@@ -304,6 +306,42 @@ export function makeLanguageUsageLevel(overrides: Partial<LanguageUsageLevel> = 
     sortOrder: 0,
     createdAt: NOW,
     usageCount: 0,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `TranslationSource`, a built-in by default. */
+export function makeTranslationSource(overrides: Partial<TranslationSource> = {}): TranslationSource {
+  return {
+    id: "source",
+    name: "AI generated",
+    slug: "ai-generated",
+    builtIn: true,
+    sortOrder: 0,
+    createdAt: NOW,
+    usageCount: 0,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `LanguageUsage` association (English — Subtitles, no source/note by default). */
+export function makeLanguageUsage(overrides: Partial<LanguageUsage> = {}): LanguageUsage {
+  return {
+    id: "usage",
+    language: {
+      id: "lang",
+      name: "English",
+      slug: "english",
+      isoCode: "en",
+    },
+    level: {
+      id: "level",
+      name: "Subtitles",
+      slug: "subtitles",
+      kind: "availability",
+    },
+    translationSource: null,
+    note: null,
     ...overrides,
   };
 }

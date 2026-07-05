@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { Captions, ChevronDown, ChevronRight, Languages } from "lucide-react";
+import { Captions, ChevronDown, ChevronRight, Languages, ScrollText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useIsMobile } from "../hooks/use-mobile";
@@ -46,6 +46,30 @@ function UsageLevelsLink({
           </Badge>
         )
         : null}
+    </Link>
+  );
+}
+
+/** The Translation Sources shortcut revealed by the Languages flyout — desktop popover + mobile inline. */
+function TranslationSourcesLink({
+  onNavigate,
+}: {
+  onNavigate: () => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <Link
+      to="/taxonomies/translation-sources"
+      onClick={onNavigate}
+      className="
+        flex items-center gap-2 rounded-md px-2 py-1.5 text-sm
+        hover:bg-accent hover:text-accent-foreground
+      "
+    >
+      <ScrollText className="size-3.5 shrink-0 text-muted-foreground" />
+      <span className="flex-1 truncate">{t("Translation Sources")}</span>
     </Link>
   );
 }
@@ -152,6 +176,7 @@ export function LanguagesSidebarItem({
                 onNavigate={() => setExpanded(false)}
                 usageLevelsCount={usageLevelsCount}
               />
+              <TranslationSourcesLink onNavigate={() => setExpanded(false)} />
             </SidebarMenuItem>
           )
           : null}
@@ -188,6 +213,7 @@ export function LanguagesSidebarItem({
             onNavigate={() => setOpen(false)}
             usageLevelsCount={usageLevelsCount}
           />
+          <TranslationSourcesLink onNavigate={() => setOpen(false)} />
         </PopoverContent>
       </Popover>
     </SidebarMenuItem>

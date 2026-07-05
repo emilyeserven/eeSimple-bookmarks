@@ -424,6 +424,7 @@ const migrations: RuntimeMigration[] = [
         "owner_id" uuid NOT NULL,
         "language_id" uuid NOT NULL,
         "usage_level_id" uuid NOT NULL,
+        "translation_source_id" uuid,
         "note" text,
         "sort_order" integer DEFAULT 0 NOT NULL,
         "created_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -448,6 +449,33 @@ const migrations: RuntimeMigration[] = [
       await db.execute(sql`ALTER TABLE IF EXISTS "language_usages" DROP CONSTRAINT IF EXISTS "language_usages_owner_lang_level_unique"`);
       await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "language_usages_owner_lang_level_unique" ON "language_usages" ("owner_type", "owner_id", "language_id", "usage_level_id")`);
     },
+  },
+  {
+    // New table on a populated DB ⇒ pre-create so push's diff stays additive (else the
+    // `pgSuggestions` truncate prompt crashes the non-TTY deploy and silently skips the rest of the
+    // additive diff). Single-column UNIQUE constraints inline (they converge; no composite here).
+    name: "create translation_sources table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "translation_sources" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "slug" text,
+        "built_in" boolean DEFAULT false NOT NULL,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+        CONSTRAINT "translation_sources_name_unique" UNIQUE("name"),
+        CONSTRAINT "translation_sources_slug_unique" UNIQUE("slug")
+      )
+    `),
+  },
+  {
+    // Companion nullable FK column on the existing `language_usages` table. Pre-add it because a new
+    // table (`translation_sources`) ships in the same release — the lone-nullable-column push fast
+    // path doesn't apply. Plain uuid here (no REFERENCES — push adds the FK constraint afterward).
+    name: "add translation_source_id to language_usages",
+    run: db => db.execute(
+      sql`ALTER TABLE IF EXISTS "language_usages" ADD COLUMN IF NOT EXISTS "translation_source_id" uuid`,
+    ),
   },
   {
     // New table on a populated DB ⇒ pre-create so push's diff stays additive (else the

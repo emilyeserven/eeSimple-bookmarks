@@ -659,6 +659,7 @@ describe("bookmarkMatchesSearch", () => {
             slug: "dub",
             kind: "availability" as const,
           },
+          translationSource: null,
           note: null,
         },
         {
@@ -675,6 +676,7 @@ describe("bookmarkMatchesSearch", () => {
             slug: "subtitles",
             kind: "availability" as const,
           },
+          translationSource: null,
           note: null,
         },
       ],

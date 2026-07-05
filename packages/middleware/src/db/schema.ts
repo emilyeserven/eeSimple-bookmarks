@@ -412,6 +412,29 @@ export const languageUsageLevels = pgTable("language_usage_levels", {
 export type LanguageUsageLevelRow = typeof languageUsageLevels.$inferSelect;
 
 /**
+ * `translation_sources` table — a user-managed vocabulary describing *how* a language's
+ * translation/script on an item was produced (AI generated, Fan-translated, Professionally
+ * translated…), optionally carried by a `language_usages` row. Flat (no `kind` grouping); mirrors
+ * `language_usage_levels` otherwise — nullable slug backfilled at boot plus a seeded `builtIn` flag.
+ * Names and slugs are single-column unique (push-safe; no composite).
+ */
+export const translationSources = pgTable("translation_sources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  builtIn: boolean("built_in").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("translation_sources_name_unique").on(table.name),
+  unique("translation_sources_slug_unique").on(table.slug),
+]);
+
+export type TranslationSourceRow = typeof translationSources.$inferSelect;
+
+/**
  * The owner entities a `language_usages` row can attach to. Polymorphic (`ownerId` carries no FK)
  * because one physical table can't carry a foreign key into six different owner tables — the same
  * trade `taxonomy_images` makes.
@@ -421,9 +444,11 @@ export const LANGUAGE_USAGE_OWNER_TYPES = ["bookmark", "movie", "tvShow", "websi
 /**
  * `language_usages` table — associates a language + a usage level with an owner entity (a bookmark,
  * movie, TV show, website, YouTube channel, or person), optionally annotated with a free-text `note`
- * (e.g. "sparse"). Polymorphic on `(ownerType, ownerId)` like `taxonomy_images`; a surrogate `id` PK
- * plus a unique index on the full tuple like `bookmark_relationships`. `languageId`/`usageLevelId`
- * are real FKs; `ownerId` is not, so each owner's delete service must call
+ * (e.g. "sparse") and a `translationSourceId` (how the translation/script was produced). Polymorphic
+ * on `(ownerType, ownerId)` like `taxonomy_images`; a surrogate `id` PK plus a unique index on the
+ * full tuple like `bookmark_relationships`. `languageId`/`usageLevelId` are real FKs;
+ * `translationSourceId` is a nullable FK (a non-key qualifier, kept out of the unique index like
+ * `note`); `ownerId` is not an FK, so each owner's delete service must call
  * `deleteLanguageUsagesForOwner` to avoid orphans.
  */
 export const languageUsages = pgTable("language_usages", {
@@ -435,6 +460,8 @@ export const languageUsages = pgTable("language_usages", {
   }),
   // No cascade: a usage level's delete is handled by the reassign-or-clear flow in its service.
   usageLevelId: uuid("usage_level_id").notNull().references(() => languageUsageLevels.id),
+  // Nullable, no cascade: a translation source's delete reassigns or clears these to null in its service.
+  translationSourceId: uuid("translation_source_id").references(() => translationSources.id),
   note: text("note"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", {

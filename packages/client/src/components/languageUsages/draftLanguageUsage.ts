@@ -4,6 +4,8 @@ import type { LanguageUsage, UpdateLanguageUsageEntry } from "@eesimple/types";
 export interface DraftLanguageUsage {
   languageId: string;
   usageLevelId: string;
+  /** Optional translation-source id ("" = unspecified). */
+  translationSourceId: string;
   note: string;
 }
 
@@ -12,6 +14,7 @@ export function draftsFromUsages(usages: LanguageUsage[]): DraftLanguageUsage[] 
   return usages.map(u => ({
     languageId: u.language.id,
     usageLevelId: u.level.id,
+    translationSourceId: u.translationSource?.id ?? "",
     note: u.note ?? "",
   }));
 }
@@ -23,6 +26,7 @@ export function entriesFromDrafts(drafts: DraftLanguageUsage[]): UpdateLanguageU
     .map(d => ({
       languageId: d.languageId,
       usageLevelId: d.usageLevelId,
+      translationSourceId: d.translationSourceId.length > 0 ? d.translationSourceId : null,
       note: d.note.trim().length > 0 ? d.note.trim() : null,
     }));
 }
