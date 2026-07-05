@@ -295,7 +295,14 @@ export function BookmarkListPane({
         showGallery={showGallery}
       />
 
-      {activeTab === "gallery" ? <BookmarkImageGallery bookmarks={visibleBookmarks} /> : null}
+      {activeTab === "gallery"
+        ? (
+          <BookmarkImageGallery
+            bookmarks={visibleBookmarks}
+            pageKey={pageKey}
+          />
+        )
+        : null}
       {activeTab === "media" ? <MediaItemsPane bookmarks={visibleBookmarks} /> : null}
       {activeTab === "bookmarks"
         ? (
