@@ -5,6 +5,7 @@ import type { Bookmark, CardFieldZone, CardZoneAlign, CardZoneDirection, CardZon
 import type { ReactNode } from "react";
 
 import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
 import { badgeNode, ratingStars } from "./bookmarkCardFieldRenders";
@@ -121,6 +122,9 @@ export function BookmarkCardDetails({
   bookmark, properties, placements, cardZoneLayouts, bookmarkCategory, hideWebsiteForYouTube,
   hasImageAbove = false, menu = {}, onSaveRating,
 }: BookmarkCardDetailsProps) {
+  const {
+    t,
+  } = useTranslation();
   // `onSaveBoolean` lives in the menu controls but is also used for inline clickable-boolean badges.
   const {
     onSaveBoolean,
@@ -157,7 +161,7 @@ export function BookmarkCardDetails({
         return {
           inline: titleNode,
           block: titleNode,
-          tableName: "Title",
+          tableName: t("Title"),
           tableValue: titleNode,
         };
       }
@@ -170,7 +174,7 @@ export function BookmarkCardDetails({
         return {
           inline: romanizedNameNode,
           block: romanizedNameNode,
-          tableName: "Secondary Title",
+          tableName: t("Secondary Title"),
           tableValue: romanizedNameNode,
         };
       }
@@ -178,7 +182,7 @@ export function BookmarkCardDetails({
         return {
           inline: externalLinkNode,
           block: externalLinkNode,
-          tableName: "Link",
+          tableName: t("Link"),
           tableValue: externalLinkNode,
         };
       }
@@ -188,7 +192,7 @@ export function BookmarkCardDetails({
         return {
           inline: archiveLinkNode,
           block: archiveLinkNode,
-          tableName: "Archive",
+          tableName: t("Archive"),
           tableValue: archiveLinkNode,
         };
       }
@@ -198,7 +202,7 @@ export function BookmarkCardDetails({
         return {
           inline: kavitaLinkNode,
           block: kavitaLinkNode,
-          tableName: "Kavita",
+          tableName: t("Kavita"),
           tableValue: kavitaLinkNode,
         };
       }
@@ -208,7 +212,7 @@ export function BookmarkCardDetails({
         return {
           inline: plexLinkNode,
           block: plexLinkNode,
-          tableName: "Plex",
+          tableName: t("Plex"),
           tableValue: plexLinkNode,
         };
       }
@@ -218,7 +222,7 @@ export function BookmarkCardDetails({
         return {
           inline: podcastLinkNode,
           block: podcastLinkNode,
-          tableName: "Podcast",
+          tableName: t("Podcast"),
           tableValue: podcastLinkNode,
         };
       }
@@ -236,7 +240,7 @@ export function BookmarkCardDetails({
         return {
           inline: null,
           block: <DescriptionOverflowDiv description={bookmark.description} />,
-          tableName: "Description",
+          tableName: t("Description"),
           tableValue: <span className="text-sm">{bookmark.description}</span>,
         };
       }

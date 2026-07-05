@@ -6,12 +6,14 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 import { Clapperboard, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { PlexItemLookup } from "./PlexItemLookup";
 import { TaxonomyGeneralFields } from "./TaxonomyGeneralFields";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { usePlexTitleSyncRegistration } from "../hooks/usePlexTitleSyncRegistration";
+import i18n from "../i18n";
 
 import { notifyFieldSaved, notifyFieldSaveError } from "@/lib/autoSave";
 import { useAppForm } from "@/lib/form";
@@ -51,7 +53,7 @@ export interface PlexTitleUpdateInput {
 }
 
 const plexTitleSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
+  name: z.string().trim().min(1, i18n.t("Name is required")),
   romanizedName: z.string(),
   sortOrder: z.number().int(),
   year: z.number().int(),
@@ -61,17 +63,17 @@ const plexTitleSchema = z.object({
 });
 
 const LABELS: Record<keyof PlexTitleUpdateInput, string> = {
-  name: "Name",
-  romanizedName: "Romanized name",
-  sortOrder: "Sort order",
-  mediaPropertyId: "Media property",
-  year: "Year",
-  plexRatingKey: "Plex item",
-  plexItemType: "Plex item",
-  plexItemTitle: "Plex item",
-  wikidataId: "Wikidata",
-  wikipediaLinkEn: "Wikipedia (English)",
-  wikipediaLinkLocal: "Wikipedia (local)",
+  name: i18n.t("Name"),
+  romanizedName: i18n.t("Romanized name"),
+  sortOrder: i18n.t("Sort order"),
+  mediaPropertyId: i18n.t("Media property"),
+  year: i18n.t("Year"),
+  plexRatingKey: i18n.t("Plex item"),
+  plexItemType: i18n.t("Plex item"),
+  plexItemTitle: i18n.t("Plex item"),
+  wikidataId: i18n.t("Wikidata"),
+  wikipediaLinkEn: i18n.t("Wikipedia (English)"),
+  wikipediaLinkLocal: i18n.t("Wikipedia (local)"),
 };
 
 interface PlexTitleGeneralFormProps<E extends PlexTitle> {
@@ -115,6 +117,9 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
   imagesApi,
   queryKeyPrefix,
 }: PlexTitleGeneralFormProps<E>) {
+  const {
+    t,
+  } = useTranslation();
   const autoSave = useFieldAutoSave<PlexTitleUpdateInput, E>({
     id: entity.id,
     update,
@@ -158,9 +163,9 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Plex item"),
+        onSuccess: () => notifyFieldSaved(t("Plex item")),
         onError: error => notifyFieldSaveError(
-          "Plex item",
+          t("Plex item"),
           error instanceof Error ? error.message : undefined,
         ),
       },
@@ -179,9 +184,9 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
         },
       },
       {
-        onSuccess: () => notifyFieldSaved("Plex item"),
+        onSuccess: () => notifyFieldSaved(t("Plex item")),
         onError: error => notifyFieldSaveError(
-          "Plex item",
+          t("Plex item"),
           error instanceof Error ? error.message : undefined,
         ),
       },
@@ -234,7 +239,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       <form.AppField name="year">
         {field => (
           <field.NumberField
-            label="Year"
+            label={t("Year")}
             onBlur={() => autoSave.saveField(
               "year",
               field.state.value || null,
@@ -249,7 +254,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       <form.AppField name="wikipediaLinkEn">
         {field => (
           <field.TextField
-            label="Wikipedia (English)"
+            label={t("Wikipedia (English)")}
             placeholder="https://en.wikipedia.org/wiki/…"
             onBlur={() => autoSave.saveField("wikipediaLinkEn", field.state.value.trim())}
           />
@@ -259,7 +264,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       <form.AppField name="wikipediaLinkLocal">
         {field => (
           <field.TextField
-            label="Wikipedia (local)"
+            label={t("Wikipedia (local)")}
             placeholder="https://<lang>.wikipedia.org/wiki/…"
             onBlur={() => autoSave.saveField("wikipediaLinkLocal", field.state.value.trim())}
           />
@@ -278,11 +283,14 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
             >
               <Clapperboard className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate">
-                Linked to Plex: {entity.plexItemTitle ?? "Untitled"} (#{entity.plexRatingKey})
+                {t("Linked to Plex: {{title}} (#{{ratingKey}})", {
+                  title: entity.plexItemTitle ?? t("Untitled"),
+                  ratingKey: entity.plexRatingKey,
+                })}
               </span>
               <button
                 type="button"
-                aria-label="Unlink Plex item"
+                aria-label={t("Unlink Plex item")}
                 className="
                   text-muted-foreground
                   hover:text-foreground

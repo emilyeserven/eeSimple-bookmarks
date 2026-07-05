@@ -13,6 +13,8 @@ import type { ReactElement } from "react";
 
 import { useEffect } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { selectVisibleFormProperties } from "./bookmarkFormProperties";
 import { DATE_POSTED_SLUG, ISBN_SLUG, PAGE_SECTIONS_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
 import {
@@ -106,6 +108,9 @@ export function CategoryCustomFields({
   // spread them, rather than threading ~18 individual props through the JSX (a complexity driver).
   ...inputBundle
 }: CategoryCustomFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
   const categoryProps = selectVisibleFormProperties(properties, {
     categoryId,
     mediaTypeId,
@@ -124,7 +129,7 @@ export function CategoryCustomFields({
         ${className ?? ""}
       `}
     >
-      {!hideHeading && <span className="text-sm font-medium">Properties</span>}
+      {!hideHeading && <span className="text-sm font-medium">{t("Properties")}</span>}
       <div
         className={stacked
           ? "flex flex-col gap-5"
@@ -275,10 +280,13 @@ function TextField({
 function CalculatedField({
   property,
 }: CategoryPropertyFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-1">
       <Label>{property.name}</Label>
-      <p className="text-xs text-muted-foreground">Calculated automatically when saved.</p>
+      <p className="text-xs text-muted-foreground">{t("Calculated automatically when saved.")}</p>
     </div>
   );
 }

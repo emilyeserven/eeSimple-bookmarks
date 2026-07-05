@@ -18,6 +18,7 @@ import { RuleLocationsField } from "./RuleLocationsField";
 import { RulePropertyField } from "./RulePropertyField";
 import { RuleTagsField } from "./RuleTagsField";
 import { useAutofillRuleForm } from "./useAutofillRuleForm";
+import i18n from "../i18n";
 import { NO_CATEGORY } from "../lib/autofillScope";
 
 import { Separator } from "@/components/ui/separator";
@@ -99,24 +100,24 @@ export function AutofillRuleForm({
         <form.AppField name="name">
           {field => (
             <field.TextField
-              label="Name"
-              placeholder="e.g. Recipes from 101 Cookbooks"
+              label={i18n.t("Name")}
+              placeholder={i18n.t("e.g. Recipes from 101 Cookbooks")}
             />
           )}
         </form.AppField>
 
         <form.AppField name="description">
           {field => (
-            <field.TextareaField label="Description" />
+            <field.TextareaField label={i18n.t("Description")} />
           )}
         </form.AppField>
 
         <form.AppField name="sortOrder">
           {field => (
             <field.NumberField
-              label="Priority"
+              label={i18n.t("Priority")}
               className="max-w-32"
-              hint="Higher numbers win when rules conflict on the category."
+              hint={i18n.t("Higher numbers win when rules conflict on the category.")}
             />
           )}
         </form.AppField>
@@ -141,8 +142,8 @@ export function AutofillRuleForm({
       <Separator />
 
       <CollapsibleFormSection
-        title="What Gets Prefilled"
-        description="What to prefill on the bookmark when this rule matches."
+        title={i18n.t("What Gets Prefilled")}
+        description={i18n.t("What to prefill on the bookmark when this rule matches.")}
         defaultOpen={!rule}
         preview={(
           <form.Subscribe
@@ -174,11 +175,11 @@ export function AutofillRuleForm({
         <form.AppField name="setCategoryId">
           {field => (
             <field.SelectField
-              label="Set category"
+              label={i18n.t("Set category")}
               options={[
                 {
                   value: NO_CATEGORY,
-                  label: "— Leave unchanged —",
+                  label: i18n.t("— Leave unchanged —"),
                 },
                 ...categories.map(category => ({
                   value: category.id,
@@ -192,11 +193,11 @@ export function AutofillRuleForm({
         <form.AppField name="setMediaTypeId">
           {field => (
             <field.SelectField
-              label="Set media type"
+              label={i18n.t("Set media type")}
               options={[
                 {
                   value: NO_MEDIA_TYPE,
-                  label: "— Leave unchanged —",
+                  label: i18n.t("— Leave unchanged —"),
                 },
                 ...mediaTypes.map(mediaType => ({
                   value: mediaType.id,
@@ -307,7 +308,7 @@ export function RulePropertyFields({
 
   return (
     <div className="space-y-3">
-      <span className="text-sm font-medium">Set properties</span>
+      <span className="text-sm font-medium">{i18n.t("Set properties")}</span>
       <div
         className="
           grid gap-3
@@ -352,17 +353,37 @@ function summarizePrefill({
 
   if (setCategoryId !== NO_CATEGORY) {
     const category = categories.find(item => item.id === setCategoryId);
-    if (category) parts.push(`Category: ${category.name}`);
+    if (category) parts.push(i18n.t("Category: {{name}}", {
+      name: category.name,
+    }));
   }
 
   if (setMediaTypeId !== NO_MEDIA_TYPE) {
     const mediaType = mediaTypes.find(item => item.id === setMediaTypeId);
-    if (mediaType) parts.push(`Media type: ${mediaType.name}`);
+    if (mediaType) parts.push(i18n.t("Media type: {{name}}", {
+      name: mediaType.name,
+    }));
   }
 
-  if (tagIds.length > 0) parts.push(`${tagIds.length} ${tagIds.length === 1 ? "tag" : "tags"}`);
+  if (tagIds.length > 0) {
+    parts.push(tagIds.length === 1
+      ? i18n.t("{{count}} tag", {
+        count: tagIds.length,
+      })
+      : i18n.t("{{count}} tags", {
+        count: tagIds.length,
+      }));
+  }
 
-  if (locationIds.length > 0) parts.push(`${locationIds.length} ${locationIds.length === 1 ? "location" : "locations"}`);
+  if (locationIds.length > 0) {
+    parts.push(locationIds.length === 1
+      ? i18n.t("{{count}} location", {
+        count: locationIds.length,
+      })
+      : i18n.t("{{count}} locations", {
+        count: locationIds.length,
+      }));
+  }
 
   if (setCategoryId !== NO_CATEGORY) {
     const categoryProps = properties.filter(property =>
@@ -373,8 +394,16 @@ function summarizePrefill({
       if (property.type === "datetime") return (dateTimeInputs[property.id] ?? "").trim() !== "";
       return false;
     }).length;
-    if (propertyCount > 0) parts.push(`${propertyCount} ${propertyCount === 1 ? "property" : "properties"}`);
+    if (propertyCount > 0) {
+      parts.push(propertyCount === 1
+        ? i18n.t("{{count}} property", {
+          count: propertyCount,
+        })
+        : i18n.t("{{count}} properties", {
+          count: propertyCount,
+        }));
+    }
   }
 
-  return parts.length > 0 ? parts.join(" · ") : "Nothing set yet";
+  return parts.length > 0 ? parts.join(" · ") : i18n.t("Nothing set yet");
 }

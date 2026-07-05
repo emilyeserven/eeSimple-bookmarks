@@ -3,6 +3,9 @@ import type { Bookmark, MediaObject } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
+import i18n from "../i18n";
 import { GalleryDialogs } from "./GalleryDialogs";
 import { isVideoObject } from "./galleryFormat";
 import { ArchivedReelsGrid, OrphansGrid, RegisteredGrid, StorageSummary } from "./GalleryGrids";
@@ -17,17 +20,7 @@ import { cn } from "@/lib/utils";
 
 type GallerySection = "media" | "archived-reels";
 
-const GALLERY_SECTIONS: { key: GallerySection;
-  label: string; }[] = [
-  {
-    key: "media",
-    label: "Media",
-  },
-  {
-    key: "archived-reels",
-    label: "Archived Reels",
-  },
-];
+const GALLERY_SECTION_KEYS: GallerySection[] = ["media", "archived-reels"];
 
 interface GalleryContentProps {
   view: GalleryView;
@@ -86,6 +79,9 @@ function GalleryContent({
 /** Groups the delete-confirm and attach-dialog state, mutations, and handlers for `GalleryListing`. */
 function useGalleryDialogs() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allBookmarks = [],
   } = useBookmarks();
   const deleteOrphans = useDeleteOrphans();
@@ -106,7 +102,13 @@ function useGalleryDialogs() {
   function requestDeleteAll(orphans: MediaObject[]): void {
     setPending({
       keys: orphans.map(o => o.objectKey),
-      label: `all ${orphans.length} orphan${orphans.length === 1 ? "" : "s"}`,
+      label: orphans.length === 1
+        ? t("all {{count}} orphan", {
+          count: orphans.length,
+        })
+        : t("all {{count}} orphans", {
+          count: orphans.length,
+        }),
     });
   }
 
@@ -200,23 +202,23 @@ export function GalleryListing() {
         )
         : null}
 
-      {isLoading ? <p className="text-sm text-muted-foreground">Loading media…</p> : null}
+      {isLoading ? <p className="text-sm text-muted-foreground">{i18n.t("Loading media…")}</p> : null}
       {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
 
       <TabbedShell
-        nav={GALLERY_SECTIONS.map(item => (
+        nav={GALLERY_SECTION_KEYS.map(key => (
           <button
-            key={item.key}
+            key={key}
             type="button"
-            onClick={() => setSection(item.key)}
-            className={cn(navLinkClass, item.key === section && `
+            onClick={() => setSection(key)}
+            className={cn(navLinkClass, key === section && `
               bg-accent text-accent-foreground
             `)}
           >
-            {item.label}
+            {key === "media" ? i18n.t("Media") : i18n.t("Archived Reels")}
           </button>
         ))}
-        navAriaLabel="Gallery sections"
+        navAriaLabel={i18n.t("Gallery sections")}
       >
         {section === "media"
           ? (
@@ -237,7 +239,7 @@ export function GalleryListing() {
               {catalog && !hasObjects
                 ? (
                   <p className="text-sm text-muted-foreground">
-                    No images in storage yet. Upload an image to a bookmark, then run a scan.
+                    {i18n.t("No images in storage yet. Upload an image to a bookmark, then run a scan.")}
                   </p>
                 )
                 : null}

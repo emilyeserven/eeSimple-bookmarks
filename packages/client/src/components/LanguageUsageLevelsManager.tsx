@@ -3,6 +3,7 @@ import type { LanguageUsageKind, LanguageUsageLevel } from "@eesimple/types";
 import { useState } from "react";
 
 import { Lock, Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   useCreateLanguageUsageLevel,
@@ -51,24 +52,26 @@ const GROUPS: { kind: LanguageUsageKind;
 /** Settings page: manage the user-definable language usage levels, grouped by kind. */
 export function LanguageUsageLevelsManager() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: levels = [],
   } = useLanguageUsageLevels();
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4">
       <div>
-        <h1 className="text-2xl font-bold">Language Usage Levels</h1>
+        <h1 className="text-2xl font-bold">{t("Language Usage Levels")}</h1>
         <p className="text-sm text-muted-foreground">
-          The vocabulary used when associating a language with a bookmark, movie, show, website,
-          channel, or person.
+          {t("The vocabulary used when associating a language with a bookmark, movie, show, website, channel, or person.")}
         </p>
       </div>
       {GROUPS.map(group => (
         <LevelGroupCard
           key={group.kind}
           kind={group.kind}
-          title={group.title}
-          description={group.description}
+          title={t(group.title)}
+          description={t(group.description)}
           levels={levels.filter(l => l.kind === group.kind)}
         />
       ))}
@@ -86,6 +89,9 @@ interface GroupProps {
 function LevelGroupCard({
   kind, title, description, levels,
 }: GroupProps) {
+  const {
+    t,
+  } = useTranslation();
   const [newName, setNewName] = useState("");
   const create = useCreateLanguageUsageLevel();
 
@@ -100,7 +106,9 @@ function LevelGroupCard({
       {
         onSuccess: () => {
           setNewName("");
-          notifySuccess(`Added usage level "${name}"`);
+          notifySuccess(t("Added usage level \"{{name}}\"", {
+            name,
+          }));
         },
         onError: error => notifyError(describeError(error)),
       },
@@ -115,7 +123,7 @@ function LevelGroupCard({
       </CardHeader>
       <CardContent className="space-y-2">
         {levels.length === 0 && (
-          <p className="text-sm text-muted-foreground">No levels yet.</p>
+          <p className="text-sm text-muted-foreground">{t("No levels yet.")}</p>
         )}
         {levels.map(level => (
           <LevelRow
@@ -126,7 +134,7 @@ function LevelGroupCard({
         ))}
         <div className="flex items-center gap-2 pt-2">
           <Input
-            placeholder="New level name…"
+            placeholder={t("New level name…")}
             value={newName}
             onChange={e => setNewName(e.target.value)}
             onKeyDown={(e) => {
@@ -140,7 +148,7 @@ function LevelGroupCard({
             disabled={newName.trim().length === 0 || create.isPending}
           >
             <Plus className="size-4" />
-            Add
+            {t("Add")}
           </Button>
         </div>
       </CardContent>
@@ -156,6 +164,9 @@ interface RowProps {
 function LevelRow({
   level, siblings,
 }: RowProps) {
+  const {
+    t,
+  } = useTranslation();
   const [name, setName] = useState(level.name);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const update = useUpdateLanguageUsageLevel();
@@ -174,7 +185,9 @@ function LevelRow({
         },
       },
       {
-        onSuccess: () => notifySuccess(`Renamed to "${trimmed}"`),
+        onSuccess: () => notifySuccess(t("Renamed to \"{{name}}\"", {
+          name: trimmed,
+        })),
         onError: (error) => {
           setName(level.name);
           notifyError(describeError(error));
@@ -198,7 +211,7 @@ function LevelRow({
             value={name}
             onChange={e => setName(e.target.value)}
             onBlur={saveName}
-            aria-label="Level name"
+            aria-label={t("Level name")}
           />
         )}
       <Badge variant="outline">{level.usageCount}</Badge>
@@ -207,7 +220,7 @@ function LevelRow({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="Delete level"
+          aria-label={t("Delete level")}
           onClick={() => setDeleteOpen(true)}
         >
           <Trash2 className="size-4" />
@@ -233,6 +246,9 @@ interface DeleteProps {
 function DeleteLevelDialog({
   open, onOpenChange, level, siblings,
 }: DeleteProps) {
+  const {
+    t,
+  } = useTranslation();
   const [reassignTo, setReassignTo] = useState<string>("");
   const remove = useDeleteLanguageUsageLevel();
 
@@ -245,7 +261,9 @@ function DeleteLevelDialog({
       {
         onSuccess: () => {
           onOpenChange(false);
-          notifySuccess(`Deleted usage level "${level.name}"`);
+          notifySuccess(t("Deleted usage level \"{{name}}\"", {
+            name: level.name,
+          }));
         },
         onError: error => notifyError(describeError(error)),
       },
@@ -259,11 +277,16 @@ function DeleteLevelDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{`Delete "${level.name}"?`}</DialogTitle>
+          <DialogTitle>{t("Delete \"{{name}}\"?", {
+            name: level.name,
+          })}
+          </DialogTitle>
           <DialogDescription>
             {level.usageCount > 0
-              ? `${level.usageCount} association(s) use this level. Reassign them to another level, or delete anyway to remove them.`
-              : "This level isn't used by any association."}
+              ? t("{{count}} association(s) use this level. Reassign them to another level, or delete anyway to remove them.", {
+                count: level.usageCount,
+              })
+              : t("This level isn't used by any association.")}
           </DialogDescription>
         </DialogHeader>
         {level.usageCount > 0 && siblings.length > 0 && (
@@ -271,8 +294,8 @@ function DeleteLevelDialog({
             value={reassignTo}
             onValueChange={setReassignTo}
           >
-            <SelectTrigger aria-label="Reassign to">
-              <SelectValue placeholder="Reassign to… (optional)" />
+            <SelectTrigger aria-label={t("Reassign to")}>
+              <SelectValue placeholder={t("Reassign to… (optional)")} />
             </SelectTrigger>
             <SelectContent>
               {siblings.map(s => (
@@ -292,7 +315,7 @@ function DeleteLevelDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             type="button"
@@ -300,7 +323,7 @@ function DeleteLevelDialog({
             onClick={confirmDelete}
             disabled={remove.isPending}
           >
-            {reassignTo ? "Reassign & delete" : "Delete"}
+            {reassignTo ? t("Reassign & delete") : t("Delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

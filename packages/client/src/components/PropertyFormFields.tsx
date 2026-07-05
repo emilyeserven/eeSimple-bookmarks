@@ -4,6 +4,8 @@ import type {
   MediaType,
 } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { CategoryIcon } from "@/lib/icons";
@@ -31,10 +33,13 @@ export function CategoryCheckboxList({
   allCategories = false,
   selectAllLabel = "Select all",
 }: CategoryCheckboxListProps) {
+  const {
+    t,
+  } = useTranslation();
   if (categories.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No categories yet. Create some on the Categories page.
+        {t("No categories yet. Create some on the Categories page.")}
       </p>
     );
   }
@@ -53,7 +58,7 @@ export function CategoryCheckboxList({
               htmlFor={`${idPrefix}-select-all`}
               className="text-xs text-muted-foreground"
             >
-              {selectAllLabel}
+              {t(selectAllLabel)}
             </Label>
           </div>
         )
@@ -114,10 +119,13 @@ export function MediaTypeCheckboxList({
   onToggleAll,
   allMediaTypes = false,
 }: MediaTypeCheckboxListProps) {
+  const {
+    t,
+  } = useTranslation();
   if (mediaTypes.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No media types yet. Create some on the Media Types page.
+        {t("No media types yet. Create some on the Media Types page.")}
       </p>
     );
   }
@@ -175,7 +183,7 @@ export function MediaTypeCheckboxList({
               htmlFor={`${idPrefix}-select-all`}
               className="text-xs text-muted-foreground"
             >
-              Select all
+              {t("Select all")}
             </Label>
           </div>
         )
@@ -203,10 +211,13 @@ interface OperandCheckboxListProps {
 export function OperandCheckboxList({
   numberProperties, selectedIds, onToggle,
 }: OperandCheckboxListProps) {
+  const {
+    t,
+  } = useTranslation();
   if (numberProperties.length < 2) {
     return (
       <p className="text-sm text-muted-foreground">
-        Create at least two Number properties first; a Calculate property sums them.
+        {t("Create at least two Number properties first; a Calculate property sums them.")}
       </p>
     );
   }

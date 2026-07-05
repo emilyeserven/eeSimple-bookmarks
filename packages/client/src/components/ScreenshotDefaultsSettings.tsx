@@ -1,5 +1,7 @@
 import type { DisplayPreferenceSettings } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { SCREENSHOT_SIZE_PRESETS } from "./screenshotSizePresets";
 import {
   useDisplayPreferenceSettings,
@@ -87,6 +89,9 @@ const SCREENSHOT_DEFAULTS: Pick<
  */
 export function ScreenshotDefaultsSettings() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: displayData,
   } = useDisplayPreferenceSettings();
   const updateDisplay = useUpdateDisplayPreferenceSettings();
@@ -110,10 +115,11 @@ export function ScreenshotDefaultsSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Screenshot defaults</CardTitle>
+        <CardTitle>{t("Screenshot defaults")}</CardTitle>
         <CardDescription>
-          Defaults pre-filled into a bookmark&apos;s &ldquo;Page screenshot&rdquo; capture controls
-          on its Edit → Image tab. Changing these does not affect screenshots already taken.
+          {t(
+            "Defaults pre-filled into a bookmark’s “Page screenshot” capture controls on its Edit → Image tab. Changing these does not affect screenshots already taken.",
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent
@@ -123,12 +129,12 @@ export function ScreenshotDefaultsSettings() {
         "
       >
         <div className="space-y-1">
-          <Label htmlFor="screenshot-default-delay">Wait</Label>
+          <Label htmlFor="screenshot-default-delay">{t("Wait")}</Label>
           <Select
             value={String(display.screenshotDefaultDelayMs)}
             onValueChange={value => saveDisplay({
               screenshotDefaultDelayMs: Number(value),
-            }, "Screenshot wait default updated")}
+            }, t("Screenshot wait default updated"))}
           >
             <SelectTrigger
               id="screenshot-default-delay"
@@ -142,7 +148,7 @@ export function ScreenshotDefaultsSettings() {
                   key={opt.value}
                   value={String(opt.value)}
                 >
-                  {opt.label}
+                  {t(opt.label)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -150,7 +156,7 @@ export function ScreenshotDefaultsSettings() {
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="screenshot-default-size">Size</Label>
+          <Label htmlFor="screenshot-default-size">{t("Size")}</Label>
           <Select
             value={`${display.screenshotDefaultWidth}x${display.screenshotDefaultHeight}`}
             onValueChange={(value) => {
@@ -159,7 +165,7 @@ export function ScreenshotDefaultsSettings() {
                 saveDisplay({
                   screenshotDefaultWidth: preset.width,
                   screenshotDefaultHeight: preset.height,
-                }, "Screenshot size default updated");
+                }, t("Screenshot size default updated"));
               }
             }}
           >
@@ -183,12 +189,12 @@ export function ScreenshotDefaultsSettings() {
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="screenshot-default-scroll">Scroll</Label>
+          <Label htmlFor="screenshot-default-scroll">{t("Scroll")}</Label>
           <Select
             value={String(display.screenshotDefaultScrollDistance)}
             onValueChange={value => saveDisplay({
               screenshotDefaultScrollDistance: Number(value),
-            }, "Screenshot scroll default updated")}
+            }, t("Screenshot scroll default updated"))}
           >
             <SelectTrigger
               id="screenshot-default-scroll"
@@ -202,7 +208,7 @@ export function ScreenshotDefaultsSettings() {
                   key={opt.value}
                   value={String(opt.value)}
                 >
-                  {opt.label}
+                  {t(opt.label)}
                 </SelectItem>
               ))}
             </SelectContent>

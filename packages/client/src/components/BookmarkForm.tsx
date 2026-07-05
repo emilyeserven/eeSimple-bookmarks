@@ -5,6 +5,7 @@ import type { BookmarkUrlDuplicateResult } from "@eesimple/types";
 import { useEffect, useRef } from "react";
 
 import { Brush, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { bookmarkInputHint } from "./bookmarkFormSchema";
 import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
@@ -27,6 +28,9 @@ export function BookmarkForm({
   autoScan, ...props
 }: BookmarkFormComponentProps = {}) {
   const c = useBookmarkFormController(props);
+  const {
+    t,
+  } = useTranslation();
   const {
     form,
   } = c;
@@ -64,7 +68,7 @@ export function BookmarkForm({
       <form.AppField name="url">
         {field => (
           <field.TextField
-            label="URL, ISBN, or text"
+            label={t("URL, ISBN, or text")}
             type="text"
             onBlur={c.handleUrlBlur}
             action={c.scanned
@@ -73,8 +77,8 @@ export function BookmarkForm({
                   type="button"
                   variant={c.showUrlCleanup ? "secondary" : "ghost"}
                   size="icon"
-                  title="URL cleanup"
-                  aria-label="Toggle URL cleanup"
+                  title={t("URL cleanup")}
+                  aria-label={t("Toggle URL cleanup")}
                   aria-expanded={c.showUrlCleanup}
                   onClick={() => c.setShowUrlCleanup(prev => !prev)}
                 >
@@ -94,7 +98,7 @@ export function BookmarkForm({
             return hint
               ? (
                 <p className="text-xs text-muted-foreground">
-                  Detected:
+                  {t("Detected:")}
                   {" "}
                   {hint}
                 </p>
@@ -261,6 +265,9 @@ function BookmarkFormFooter({
   onLookupIsbn,
   onReset,
 }: BookmarkFormFooterProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div>
       <div className="flex items-center gap-2">
@@ -268,8 +275,8 @@ function BookmarkFormFooter({
           ? (
             <form.AppForm>
               <form.SubmitButton
-                label={previewMode ? "Preview only" : isEdit ? "Save changes" : "Add Bookmark"}
-                pendingLabel="Saving…"
+                label={previewMode ? t("Preview only") : isEdit ? t("Save changes") : t("Add Bookmark")}
+                pendingLabel={t("Saving…")}
                 disabledWhen={previewMode || (!isEdit && Boolean(urlDuplicate?.exactMatch))}
               />
             </form.AppForm>
@@ -293,7 +300,7 @@ function BookmarkFormFooter({
               variant="ghost"
               onClick={onDone}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
           )
           : null}
@@ -305,7 +312,7 @@ function BookmarkFormFooter({
               className="ml-auto"
               onClick={onReset}
             >
-              Reset Form
+              {t("Reset Form")}
             </Button>
           )
           : null}
@@ -337,13 +344,16 @@ function PrescanActions({
   onAddOfflineBookmark,
   onLookupIsbn,
 }: PrescanActionsProps) {
+  const {
+    t,
+  } = useTranslation();
   if (inputType === "text") {
     return (
       <Button
         type="button"
         onClick={onAddOfflineBookmark}
       >
-        Add Offline Bookmark
+        {t("Add Offline Bookmark")}
       </Button>
     );
   }
@@ -353,7 +363,7 @@ function PrescanActions({
         type="button"
         onClick={onLookupIsbn}
       >
-        Look up ISBN
+        {t("Look up ISBN")}
       </Button>
     );
   }
@@ -368,10 +378,10 @@ function PrescanActions({
           ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              Checking…
+              {t("Checking…")}
             </>
           )
-          : "Check URL"}
+          : t("Check URL")}
       </Button>
       <Button
         type="button"
@@ -379,7 +389,7 @@ function PrescanActions({
         disabled={isScanning || saveIsPending || previewMode}
         onClick={onAddNow}
       >
-        Add Now
+        {t("Add Now")}
       </Button>
     </>
   );

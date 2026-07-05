@@ -23,6 +23,7 @@ import { LocationMapDebugModal } from "./LocationMapDebugModal";
 import { LocationMapFootnotes } from "./LocationMapFootnotes";
 import { RomanizedLabel } from "./RomanizedLabel";
 import { useMapPinScale, useMinAreaPinThresholdKm2 } from "../hooks/useAppSettings";
+import i18n from "../i18n";
 import { boundaryContainsPoint } from "../lib/locationGeo";
 import { buildMapDebugInfo } from "../lib/locationMapDebug";
 import { markerIconFor } from "../lib/locationMapMarkers";
@@ -303,7 +304,7 @@ function PinPopup({
         {containing.length > 0
           ? (
             <div className="space-y-0.5">
-              <p className="text-xs font-medium text-muted-foreground">Part of</p>
+              <p className="text-xs font-medium text-muted-foreground">{i18n.t("Part of")}</p>
               <ul className="space-y-0.5">
                 {containing.map(area => (
                   <li key={area.id}>
@@ -360,7 +361,7 @@ function AreaClickPopup({
       {hit.nodes.length > 1
         ? (
           <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Areas here</p>
+            <p className="text-xs font-medium text-muted-foreground">{i18n.t("Areas here")}</p>
             <ul className="space-y-0.5">
               {hit.nodes.map(node => (
                 <li key={node.id}>
@@ -552,8 +553,7 @@ export function LocationMap({
     return (
       <div className="space-y-2">
         <p className="text-muted-foreground">
-          No locations have coordinates yet. Add one via a location’s geocoding lookup to place it on
-          the map.
+          {i18n.t("No locations have coordinates yet. Add one via a location's geocoding lookup to place it on the map.")}
         </p>
         <LocationMapDebugModal debug={debugInfo} />
       </div>

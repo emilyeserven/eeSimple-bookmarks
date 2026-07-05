@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { CardDisplayRuleCard } from "./CardDisplayRuleCard";
 import { useCardDisplayRules, useCreateCardDisplayRule } from "../hooks/useCardDisplayRules";
@@ -22,6 +23,7 @@ import {
 import { propertyValueKind } from "../lib/propertyConditionKind";
 
 import { Button } from "@/components/ui/button";
+import i18n from "@/i18n";
 
 interface CardDisplayRulesListProps {
   /** Scope to rules whose conditions reference this category. */
@@ -41,14 +43,14 @@ interface CardDisplayRulesListProps {
 }
 
 function emptyStateMessage(props: CardDisplayRulesListProps): string {
-  if (props.categoryId) return "No display rules target this category yet. Add one below.";
-  if (props.propertyId) return "No display rules reference this property yet. Add one below.";
-  if (props.websiteId) return "No display rules target this website yet. Add one below.";
-  if (props.tagId) return "No display rules reference this tag yet. Add one below.";
-  if (props.mediaTypeId) return "No display rules reference this media type yet. Add one below.";
-  if (props.locationId) return "No display rules reference this location yet. Add one below.";
-  if (props.channelId) return "No display rules target this channel yet. Add one below.";
-  return "No display rules yet. Add one below.";
+  if (props.categoryId) return i18n.t("No display rules target this category yet. Add one below.");
+  if (props.propertyId) return i18n.t("No display rules reference this property yet. Add one below.");
+  if (props.websiteId) return i18n.t("No display rules target this website yet. Add one below.");
+  if (props.tagId) return i18n.t("No display rules reference this tag yet. Add one below.");
+  if (props.mediaTypeId) return i18n.t("No display rules reference this media type yet. Add one below.");
+  if (props.locationId) return i18n.t("No display rules reference this location yet. Add one below.");
+  if (props.channelId) return i18n.t("No display rules target this channel yet. Add one below.");
+  return i18n.t("No display rules yet. Add one below.");
 }
 
 /**
@@ -60,6 +62,9 @@ function emptyStateMessage(props: CardDisplayRulesListProps): string {
 export function CardDisplayRulesList({
   categoryId, propertyId, websiteId, tagId, mediaTypeId, locationId, channelId,
 }: CardDisplayRulesListProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: rules, isLoading, error,
   } = useCardDisplayRules();
@@ -131,11 +136,10 @@ export function CardDisplayRulesList({
   return (
     <section className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Display rules whose conditions match this item, in priority order. Higher-priority rules (set on
-        the Card Display Rules page) win. Open a rule to edit it — changes apply everywhere.
+        {t("Display rules whose conditions match this item, in priority order. Higher-priority rules (set on the Card Display Rules page) win. Open a rule to edit it — changes apply everywhere.")}
       </p>
 
-      {isLoading ? <p className="text-sm text-muted-foreground">Loading rules…</p> : null}
+      {isLoading ? <p className="text-sm text-muted-foreground">{t("Loading rules…")}</p> : null}
       {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
       {!isLoading && scopedRules.length === 0
         ? (
@@ -172,7 +176,7 @@ export function CardDisplayRulesList({
         onClick={handleAddRule}
       >
         <Plus className="mr-2 size-4" />
-        Add display rule
+        {t("Add display rule")}
       </Button>
     </section>
   );

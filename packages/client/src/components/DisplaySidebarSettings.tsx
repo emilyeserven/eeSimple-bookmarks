@@ -20,6 +20,7 @@ import {
   UserRound,
   Wand2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { PinnedItemsCard } from "./PinnedItemsCard";
 import { SidebarCategoryVisibilityList } from "./SidebarCategoryVisibilityList";
@@ -163,6 +164,9 @@ const SIDEBAR_GROUPS = [
 /** Sidebar visibility — which groups/items appear in the left sidebar, plus the opt-in links. */
 export function DisplaySidebarSettings() {
   const {
+    t,
+  } = useTranslation();
+  const {
     sidebar,
     setCategoryMode,
     setTaxonomyItemMode,
@@ -186,8 +190,8 @@ export function DisplaySidebarSettings() {
   if (!hiddenSidebarGroups.includes("categories")) {
     groupedSections.push(
       <SidebarSettingsSection
-        title="Categories"
-        description="Choose how each category appears in the left sidebar."
+        title={t("Categories")}
+        description={t("Choose how each category appears in the left sidebar.")}
       >
         <SidebarCategoryVisibilityList
           onSetMode={setCategoryMode}
@@ -200,11 +204,14 @@ export function DisplaySidebarSettings() {
   if (!hiddenSidebarGroups.includes("taxonomies")) {
     groupedSections.push(
       <SidebarSettingsSection
-        title="Taxonomies"
-        description="Choose how each taxonomy browser appears in the left sidebar."
+        title={t("Taxonomies")}
+        description={t("Choose how each taxonomy browser appears in the left sidebar.")}
       >
         <SidebarItemsMatrix
-          items={TAXONOMY_ITEMS}
+          items={TAXONOMY_ITEMS.map(item => ({
+            ...item,
+            label: t(item.label),
+          }))}
           hiddenItems={hiddenTaxonomyItems}
           seeMoreItems={seeMoreTaxonomyItems}
           onSetMode={setTaxonomyItemMode}
@@ -215,11 +222,14 @@ export function DisplaySidebarSettings() {
   if (!hiddenSidebarGroups.includes("customization")) {
     groupedSections.push(
       <SidebarSettingsSection
-        title="Customization"
-        description="Choose how each customization tool appears in the left sidebar."
+        title={t("Customization")}
+        description={t("Choose how each customization tool appears in the left sidebar.")}
       >
         <SidebarItemsMatrix
-          items={CUSTOMIZATION_ITEMS}
+          items={CUSTOMIZATION_ITEMS.map(item => ({
+            ...item,
+            label: t(item.label),
+          }))}
           hiddenItems={hiddenCustomizationItems}
           seeMoreItems={seeMoreCustomizationItems}
           onSetMode={setCustomizationItemMode}
@@ -232,9 +242,9 @@ export function DisplaySidebarSettings() {
     <div className="space-y-6">
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold">Sidebar</h3>
+          <h3 className="text-lg font-semibold">{t("Sidebar")}</h3>
           <p className="text-sm text-muted-foreground">
-            Choose which groups and items appear in the left sidebar.
+            {t("Choose which groups and items appear in the left sidebar.")}
           </p>
         </div>
 
@@ -249,7 +259,7 @@ export function DisplaySidebarSettings() {
                 checked={!hiddenSidebarGroups.includes(group.key)}
                 onCheckedChange={() => toggleSidebarGroup(group.key)}
               />
-              <Label htmlFor={`group-${group.key}`}>{group.label}</Label>
+              <Label htmlFor={`group-${group.key}`}>{t(group.label)}</Label>
             </div>
           ))}
         </div>

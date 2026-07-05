@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { OEMBED_PROVIDERS } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import { ArchiveBoxForm, HostedMetadataForm, ImageBlacklistForm, KavitaForm, PlexForm, YoutubeForm } from "./ConnectorMetadataForms";
 import { useConnectors } from "../hooks/useConnectors";
@@ -26,17 +27,23 @@ function AlwaysOnBadge() {
 function StatusBadge({
   enabled,
 }: { enabled: boolean | undefined }) {
+  const {
+    t,
+  } = useTranslation();
   if (enabled === undefined) return <Badge variant="outline">…</Badge>;
-  return enabled ? <Badge>Active</Badge> : <Badge variant="outline">Inactive</Badge>;
+  return enabled ? <Badge>{t("Active")}</Badge> : <Badge variant="outline">{t("Inactive")}</Badge>;
 }
 
 /** A bullet list of the data a connector provides. */
 function Provides({
   items,
 }: { items: string[] }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div>
-      <p className="text-xs font-medium text-muted-foreground">Provides</p>
+      <p className="text-xs font-medium text-muted-foreground">{t("Provides")}</p>
       <ul className="mt-1 list-disc pl-5 text-sm text-muted-foreground">
         {items.map(item => <li key={item}>{item}</li>)}
       </ul>
@@ -70,28 +77,31 @@ function ConnectorFilterBar({
   onChange: (next: ConnectorFilter) => void;
   counts: Record<ConnectorStatus, number>;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const total = counts["always-on"] + counts.active + counts.inactive;
   const options: { value: ConnectorFilter;
     label: string;
     count: number; }[] = [
     {
       value: "all",
-      label: "All",
+      label: t("All"),
       count: total,
     },
     {
       value: "always-on",
-      label: "Always on",
+      label: t("Always on"),
       count: counts["always-on"],
     },
     {
       value: "active",
-      label: "Active",
+      label: t("Active"),
       count: counts.active,
     },
     {
       value: "inactive",
-      label: "Inactive",
+      label: t("Inactive"),
       count: counts.inactive,
     },
   ];
@@ -111,7 +121,9 @@ function ConnectorFilterBar({
         <ToggleGroupItem
           key={option.value}
           value={option.value}
-          aria-label={`Show ${option.label.toLowerCase()} connectors`}
+          aria-label={t("Show {{label}} connectors", {
+            label: option.label.toLowerCase(),
+          })}
         >
           {option.label}
           <Badge
@@ -133,6 +145,9 @@ function ConnectorFilterBar({
  */
 export function ConnectorsSettings() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data,
   } = useConnectors();
   const [filter, setFilter] = useState<ConnectorFilter>("all");
@@ -147,17 +162,15 @@ export function ConnectorsSettings() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
-              <CardTitle>oEmbed providers</CardTitle>
+              <CardTitle>{t("oEmbed providers")}</CardTitle>
               <AlwaysOnBadge />
             </div>
             <CardDescription>
-              Keyless oEmbed lookups return clean, structured metadata for many media URLs — no scraping,
-              no API key. Sites not listed here are still covered when they advertise an oEmbed endpoint
-              (autodiscovery via the page&apos;s
+              {t("Keyless oEmbed lookups return clean, structured metadata for many media URLs — no scraping, no API key. Sites not listed here are still covered when they advertise an oEmbed endpoint (autodiscovery via the page's")}
               {" "}
               <code>&lt;link rel=&quot;oembed&quot;&gt;</code>
               {" "}
-              tag).
+              {t("tag).")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -170,7 +183,7 @@ export function ConnectorsSettings() {
                 </Badge>
               ))}
             </div>
-            <Provides items={["Title", "Person", "Thumbnail image", "Publish date"]} />
+            <Provides items={[t("Title"), t("Person"), t("Thumbnail image"), t("Publish date")]} />
           </CardContent>
         </Card>
       ),
@@ -182,16 +195,15 @@ export function ConnectorsSettings() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
-              <CardTitle>Book metadata (Open Library → Google Books)</CardTitle>
+              <CardTitle>{t("Book metadata (Open Library → Google Books)")}</CardTitle>
               <AlwaysOnBadge />
             </div>
             <CardDescription>
-              ISBN lookups try Open Library first, then fall back to the keyless Google Books API for
-              broader coverage.
+              {t("ISBN lookups try Open Library first, then fall back to the keyless Google Books API for broader coverage.")}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Title", "People", "Publisher", "Publication year", "Cover image"]} />
+            <Provides items={[t("Title"), t("People"), t("Publisher"), t("Publication year"), t("Cover image")]} />
           </CardContent>
         </Card>
       ),
@@ -203,19 +215,15 @@ export function ConnectorsSettings() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
-              <CardTitle>Podcasts (Apple Podcasts, Pocket Casts + RSS)</CardTitle>
+              <CardTitle>{t("Podcasts (Apple Podcasts, Pocket Casts + RSS)")}</CardTitle>
               <AlwaysOnBadge />
             </div>
             <CardDescription>
-              Keyless podcast metadata: search Apple Podcasts (the iTunes Search API) or Pocket Casts, or
-              paste an RSS/XML feed URL, to autofill a podcast&apos;s title, author, artwork, and
-              description — and re-pull them any time with &quot;Sync from source&quot;. Its page link on
-              each service is found by matching the feed across directories; Spotify has no keyless search,
-              so paste its link. No API key, nothing leaves the box beyond the feed/directory lookups.
+              {t("Keyless podcast metadata: search Apple Podcasts (the iTunes Search API) or Pocket Casts, or paste an RSS/XML feed URL, to autofill a podcast's title, author, artwork, and description — and re-pull them any time with \"Sync from source\". Its page link on each service is found by matching the feed across directories; Spotify has no keyless search, so paste its link. No API key, nothing leaves the box beyond the feed/directory lookups.")}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Title", "Author", "Artwork image", "Description", "Service links"]} />
+            <Provides items={[t("Title"), t("Author"), t("Artwork image"), t("Description"), t("Service links")]} />
           </CardContent>
         </Card>
       ),
@@ -227,16 +235,15 @@ export function ConnectorsSettings() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
-              <CardTitle>DuckDuckGo Icons</CardTitle>
+              <CardTitle>{t("DuckDuckGo Icons")}</CardTitle>
               <AlwaysOnBadge />
             </div>
             <CardDescription>
-              An instant site favicon from the DuckDuckGo icon service — shown immediately and used as a
-              fallback when a site declares no icon of its own.
+              {t("An instant site favicon from the DuckDuckGo icon service — shown immediately and used as a fallback when a site declares no icon of its own.")}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Site favicon"]} />
+            <Provides items={[t("Site favicon")]} />
           </CardContent>
         </Card>
       ),
@@ -248,17 +255,16 @@ export function ConnectorsSettings() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
-              <CardTitle>Geocoding (Nominatim)</CardTitle>
+              <CardTitle>{t("Geocoding (Nominatim)")}</CardTitle>
               <AlwaysOnBadge />
             </div>
             <CardDescription>
-              Keyless place lookup for the Locations taxonomy, powered by OpenStreetMap Nominatim.
-              Looking up a place resolves its coordinates, country, and a map link.
+              {t("Keyless place lookup for the Locations taxonomy, powered by OpenStreetMap Nominatim. Looking up a place resolves its coordinates, country, and a map link.")}
               {data?.geocoding.endpoint
                 ? (
                   <>
                     {" "}
-                    Endpoint:
+                    {t("Endpoint:")}
                     {" "}
                     <code>{data.geocoding.endpoint}</code>
                   </>
@@ -267,7 +273,7 @@ export function ConnectorsSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Coordinates", "Country", "Place type", "Area outline", "Map URL"]} />
+            <Provides items={[t("Coordinates"), t("Country"), t("Place type"), t("Area outline"), t("Map URL")]} />
           </CardContent>
         </Card>
       ),
@@ -279,20 +285,16 @@ export function ConnectorsSettings() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
-              <CardTitle>Wikidata (region fallback)</CardTitle>
+              <CardTitle>{t("Wikidata (region fallback)")}</CardTitle>
               <AlwaysOnBadge />
             </div>
             <CardDescription>
-              Keyless fallback for the Locations geocoder. When Nominatim has no entry for a place —
-              typically a traditional or natural region with no administrative boundary, e.g. 中国地方
-              (Chūgoku region) — Wikidata supplies its coordinates, country, and ancestor chain, and
-              fills the area outline (its linked OpenStreetMap relation, or composed from the region&apos;s
-              constituent units).
+              {t("Keyless fallback for the Locations geocoder. When Nominatim has no entry for a place — typically a traditional or natural region with no administrative boundary, e.g. 中国地方 (Chūgoku region) — Wikidata supplies its coordinates, country, and ancestor chain, and fills the area outline (its linked OpenStreetMap relation, or composed from the region's constituent units).")}
               {data?.wikidata.endpoint
                 ? (
                   <>
                     {" "}
-                    Endpoint:
+                    {t("Endpoint:")}
                     {" "}
                     <code>{data.wikidata.endpoint}</code>
                   </>
@@ -301,7 +303,7 @@ export function ConnectorsSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Coordinates", "Country", "Ancestors", "Area outline", "Map URL"]} />
+            <Provides items={[t("Coordinates"), t("Country"), t("Ancestors"), t("Area outline"), t("Map URL")]} />
           </CardContent>
         </Card>
       ),
@@ -317,18 +319,16 @@ export function ConnectorsSettings() {
               <StatusBadge enabled={data?.youtubeDataApi.enabled} />
             </div>
             <CardDescription>
-              Title, thumbnail, and channel always come from YouTube&apos;s keyless oEmbed endpoint. When
-              an API key is configured (below, or the
+              {t("Title, thumbnail, and channel always come from YouTube's keyless oEmbed endpoint. When an API key is configured (below, or the")}
               {" "}
               <code>YOUTUBE_API_KEY</code>
               {" "}
-              env var), duration, publish date, description, and channel avatars come from the YouTube
-              Data API v3 instead of scraping YouTube&apos;s pages; otherwise the scrape is used.
+              {t("env var), duration, publish date, description, and channel avatars come from the YouTube Data API v3 instead of scraping YouTube's pages; otherwise the scrape is used.")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <YoutubeForm />
-            <Provides items={["Title", "Channel", "Thumbnail image", "Duration", "Publish date", "Description", "Channel avatar"]} />
+            <Provides items={[t("Title"), t("Channel"), t("Thumbnail image"), t("Duration"), t("Publish date"), t("Description"), t("Channel avatar")]} />
           </CardContent>
         </Card>
       ),
@@ -344,23 +344,21 @@ export function ConnectorsSettings() {
               <AlwaysOnBadge />
             </div>
             <CardDescription>
-              Post and carousel images, and an person&apos;s avatar from a connected Instagram account,
-              come from Instagram&apos;s keyless public embed. When an
+              {t("Post and carousel images, and an person's avatar from a connected Instagram account, come from Instagram's keyless public embed. When an")}
               {" "}
               <code>INSTAGRAM_API_KEY</code>
               {" "}
-              (with
+              {t("(with")}
               {" "}
               <code>INSTAGRAM_API_ENDPOINT</code>
-              ) is configured, profile data comes from that API instead, with the keyless scrape as a
-              fallback.
+              {t(") is configured, profile data comes from that API instead, with the keyless scrape as a fallback.")}
               {data?.instagram.apiKey
-                ? " Profile API: configured."
-                : " Profile API: not configured (keyless scrape in use)."}
+                ? ` ${t("Profile API: configured.")}`
+                : ` ${t("Profile API: not configured (keyless scrape in use).")}`}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Post images", "Person avatar"]} />
+            <Provides items={[t("Post images"), t("Person avatar")]} />
           </CardContent>
         </Card>
       ),
@@ -372,20 +370,15 @@ export function ConnectorsSettings() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
-              <CardTitle>Instagram reel archive</CardTitle>
+              <CardTitle>{t("Instagram reel archive")}</CardTitle>
               <StatusBadge enabled={data?.instagramReelArchive.enabled} />
             </div>
             <CardDescription>
-              Optional. When object storage is configured, a saved Instagram reel can be archived on
-              demand — the reel&apos;s video is captured into your own object storage so it survives the
-              reel being deleted from Instagram. Self-contained; the video is fetched and stored on the
-              box, not linked out. The video URL is found keylessly via Instagram&apos;s public embed
-              page; a configured Browserless endpoint is used as a fallback for reels it doesn&apos;t
-              expose.
+              {t("Optional. When object storage is configured, a saved Instagram reel can be archived on demand — the reel's video is captured into your own object storage so it survives the reel being deleted from Instagram. Self-contained; the video is fetched and stored on the box, not linked out. The video URL is found keylessly via Instagram's public embed page; a configured Browserless endpoint is used as a fallback for reels it doesn't expose.")}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Reel video capture", "In-app playback", "Download"]} />
+            <Provides items={[t("Reel video capture"), t("In-app playback"), t("Download")]} />
           </CardContent>
         </Card>
       ),
@@ -398,20 +391,18 @@ export function ConnectorsSettings() {
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
               <CardTitle>
-                Hosted metadata provider
+                {t("Hosted metadata provider")}
                 {data?.hostedMetadata.provider ? ` (${data.hostedMetadata.provider})` : ""}
               </CardTitle>
               <StatusBadge enabled={data?.hostedMetadata.enabled} />
             </div>
             <CardDescription>
-              Optional. When configured with a Browserless endpoint, JS-rendered and bot-protected pages
-              are resolved by the hosted browser. Off by default — URLs are only sent to Browserless when
-              an endpoint is configured, and the app falls back to the direct scrape otherwise.
+              {t("Optional. When configured with a Browserless endpoint, JS-rendered and bot-protected pages are resolved by the hosted browser. Off by default — URLs are only sent to Browserless when an endpoint is configured, and the app falls back to the direct scrape otherwise.")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <HostedMetadataForm />
-            <Provides items={["Title", "Description", "Image", "Person", "Publisher", "Publish date"]} />
+            <Provides items={[t("Title"), t("Description"), t("Image"), t("Person"), t("Publisher"), t("Publish date")]} />
           </CardContent>
         </Card>
       ),
@@ -423,13 +414,11 @@ export function ConnectorsSettings() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
-              <CardTitle>Image URL blacklist</CardTitle>
+              <CardTitle>{t("Image URL blacklist")}</CardTitle>
               <AlwaysOnBadge />
             </div>
             <CardDescription>
-              Patterns that exclude matching candidate images from a URL scan, so ad and tracking
-              images aren&apos;t offered in the Add Bookmark picker. Applied to every candidate
-              (Instagram, oEmbed, and article images).
+              {t("Patterns that exclude matching candidate images from a URL scan, so ad and tracking images aren't offered in the Add Bookmark picker. Applied to every candidate (Instagram, oEmbed, and article images).")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -449,14 +438,12 @@ export function ConnectorsSettings() {
               <StatusBadge enabled={data?.archiveBox.enabled} />
             </div>
             <CardDescription>
-              Optional. When a base URL is configured, bookmarks link out to your self-hosted ArchiveBox
-              web archive — viewing the archived snapshot of a page and archiving it on demand. Off by
-              default; link-out only, so no token is sent and nothing leaves the box automatically.
+              {t("Optional. When a base URL is configured, bookmarks link out to your self-hosted ArchiveBox web archive — viewing the archived snapshot of a page and archiving it on demand. Off by default; link-out only, so no token is sent and nothing leaves the box automatically.")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <ArchiveBoxForm />
-            <Provides items={["View archived snapshot", "Archive now (add URL)"]} />
+            <Provides items={[t("View archived snapshot"), t("Archive now (add URL)")]} />
           </CardContent>
         </Card>
       ),
@@ -472,15 +459,12 @@ export function ConnectorsSettings() {
               <StatusBadge enabled={data?.kavita.enabled} />
             </div>
             <CardDescription>
-              Optional. When a base URL and API key are configured, bookmarks can be linked to a
-              series on your self-hosted Kavita ebook/manga server — with a &quot;View on Kavita&quot;
-              link-out and series cover import. Off by default; series searches and cover fetches are
-              proxied by the server, so the API key never reaches the browser.
+              {t("Optional. When a base URL and API key are configured, bookmarks can be linked to a series on your self-hosted Kavita ebook/manga server — with a \"View on Kavita\" link-out and series cover import. Off by default; series searches and cover fetches are proxied by the server, so the API key never reaches the browser.")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <KavitaForm />
-            <Provides items={["Link bookmarks to a Kavita series", "View on Kavita link-out", "Series cover import", "Table of contents import"]} />
+            <Provides items={[t("Link bookmarks to a Kavita series"), t("View on Kavita link-out"), t("Series cover import"), t("Table of contents import")]} />
           </CardContent>
         </Card>
       ),
@@ -496,15 +480,12 @@ export function ConnectorsSettings() {
               <StatusBadge enabled={data?.plex.enabled} />
             </div>
             <CardDescription>
-              Optional. When a base URL and token are configured, bookmarks can be linked to an item
-              on your self-hosted Plex media server (movie, TV show, music, …) — with a &quot;View on
-              Plex&quot; link-out and poster import. Off by default; item searches and poster fetches
-              are proxied by the server, so the token never reaches the browser.
+              {t("Optional. When a base URL and token are configured, bookmarks can be linked to an item on your self-hosted Plex media server (movie, TV show, music, …) — with a \"View on Plex\" link-out and poster import. Off by default; item searches and poster fetches are proxied by the server, so the token never reaches the browser.")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <PlexForm />
-            <Provides items={["Link bookmarks to a Plex item", "View on Plex link-out", "Poster import"]} />
+            <Provides items={[t("Link bookmarks to a Plex item"), t("View on Plex link-out"), t("Poster import")]} />
           </CardContent>
         </Card>
       ),
@@ -527,7 +508,7 @@ export function ConnectorsSettings() {
       />
       {visible.length === 0
         ? (
-          <p className="text-sm text-muted-foreground">No connectors match this filter.</p>
+          <p className="text-sm text-muted-foreground">{t("No connectors match this filter.")}</p>
         )
         : visible.map(card => <div key={card.id}>{card.node}</div>)}
     </div>

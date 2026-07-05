@@ -22,6 +22,7 @@ import {
   UserRound,
   Wand2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCategories } from "../hooks/useCategories";
 import { useLocationTree } from "../hooks/useLocations";
@@ -158,6 +159,9 @@ export const TAXONOMY_LISTING_PINS: TaxonomyListingPin[] = [
  */
 export function usePinManagerData() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: pins = [],
   } = usePinnedSidebarItems();
   const addPin = useAddPinnedSidebarItem();
@@ -197,7 +201,7 @@ export function usePinManagerData() {
       .filter(l => !pinnedKeys.has(pinKey("taxonomy-listing", l.key)))
       .map(l => ({
         value: pinKey("taxonomy-listing", l.key),
-        label: l.label,
+        label: t(l.label),
         icon: <l.Icon className="size-4 shrink-0" />,
       }));
 
@@ -273,39 +277,39 @@ export function usePinManagerData() {
 
     return [
       {
-        heading: "Listing Pages",
+        heading: t("Listing Pages"),
         options: listingOptions,
       },
       {
-        heading: "Categories",
+        heading: t("Categories"),
         options: categoryOptions,
       },
       {
-        heading: "Locations",
+        heading: t("Locations"),
         options: locationOptions,
       },
       {
-        heading: "Tags",
+        heading: t("Tags"),
         options: tagOptions,
       },
       {
-        heading: "Websites",
+        heading: t("Websites"),
         options: websiteOptions,
       },
       {
-        heading: "Media Types",
+        heading: t("Media Types"),
         options: mediaTypeOptions,
       },
       {
-        heading: "YouTube Channels",
+        heading: t("YouTube Channels"),
         options: channelOptions,
       },
       {
-        heading: "Saved Filters",
+        heading: t("Saved Filters"),
         options: savedFilterOptions,
       },
     ].filter(g => g.options.length > 0);
-  }, [pinnedKeys, categories, flatTags, flatLocations, allWebsites, allMediaTypes, allChannels, savedFilters]);
+  }, [pinnedKeys, categories, flatTags, flatLocations, allWebsites, allMediaTypes, allChannels, savedFilters, t]);
 
   function resolvePinLabel(pin: PinnedSidebarItem): string | null {
     if (pin.entityType === "category") return categories.find(c => c.id === pin.entityId)?.name ?? null;
@@ -315,7 +319,10 @@ export function usePinManagerData() {
     if (pin.entityType === "youtube-channel") return allChannels.find(c => c.id === pin.entityId)?.name ?? null;
     if (pin.entityType === "saved-filter") return savedFilters.find(f => f.id === pin.entityId)?.name ?? null;
     if (pin.entityType === "location") return flatLocations.find(fl => fl.node.id === pin.entityId)?.node.name ?? null;
-    if (pin.entityType === "taxonomy-listing") return TAXONOMY_LISTING_PINS.find(l => l.key === pin.entityId)?.label ?? null;
+    if (pin.entityType === "taxonomy-listing") {
+      const label = TAXONOMY_LISTING_PINS.find(l => l.key === pin.entityId)?.label;
+      return label ? t(label) : null;
+    }
     return null;
   }
 
