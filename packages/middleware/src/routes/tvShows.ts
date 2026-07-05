@@ -45,9 +45,6 @@ const tvShowDataFields = {
   year: {
     type: ["integer", "null"],
   },
-  romanizedName: {
-    type: ["string", "null"],
-  },
   wikidataId: {
     type: ["string", "null"],
   },

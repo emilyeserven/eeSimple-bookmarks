@@ -80,9 +80,6 @@ const podcastDataFields = {
   description: {
     type: ["string", "null"],
   },
-  romanizedName: {
-    type: ["string", "null"],
-  },
 } as const;
 
 const createPodcastBody = {

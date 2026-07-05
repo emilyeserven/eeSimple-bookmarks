@@ -38,9 +38,6 @@ const createTagBody = {
       type: "string",
       minLength: 1,
     },
-    romanizedName: {
-      type: ["string", "null"],
-    },
     parentId: {
       type: ["string", "null"],
       format: "uuid",

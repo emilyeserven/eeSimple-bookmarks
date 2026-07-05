@@ -41,9 +41,6 @@ const createCategoryBody = {
       type: "string",
       minLength: 1,
     },
-    romanizedName: {
-      type: ["string", "null"],
-    },
     description: {
       type: ["string", "null"],
     },
