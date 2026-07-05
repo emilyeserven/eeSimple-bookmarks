@@ -215,6 +215,8 @@ export const genreMoodsApi = {
 export const genreMoodAssignmentsApi = {
   list: (ownerType: GenreMoodOwnerType, ownerId: string) =>
     request<BookmarkGenreMood[]>(`/genre-mood-assignments/${ownerType}/${ownerId}`),
+  listByOwnerType: (ownerType: GenreMoodOwnerType) =>
+    request<Record<string, string[]>>(`/genre-mood-assignments/by-owner-type/${ownerType}`),
   set: (ownerType: GenreMoodOwnerType, ownerId: string, genreMoodIds: string[]) =>
     request<BookmarkGenreMood[]>(`/genre-mood-assignments/${ownerType}/${ownerId}`, {
       method: "PUT",
@@ -227,6 +229,8 @@ export const genreMoodAssignmentsApi = {
 export const locationAssignmentsApi = {
   list: (ownerType: LocationAssignmentOwnerType, ownerId: string) =>
     request<OwnerLocation[]>(`/location-assignments/${ownerType}/${ownerId}`),
+  listPlaceTypeKeysByOwnerType: (ownerType: LocationAssignmentOwnerType) =>
+    request<Record<string, string[]>>(`/location-assignments/by-owner-type/${ownerType}`),
   set: (ownerType: LocationAssignmentOwnerType, ownerId: string, locationIds: string[]) =>
     request<OwnerLocation[]>(`/location-assignments/${ownerType}/${ownerId}`, {
       method: "PUT",
@@ -303,6 +307,9 @@ export const languageUsageLevelsApi = {
 export const languageUsagesApi = {
   get: (ownerType: LanguageUsageOwnerType, ownerId: string) =>
     request<LanguageUsage[]>(`/language-usages/${ownerType}/${ownerId}`),
+  listByOwnerType: (ownerType: LanguageUsageOwnerType) =>
+    request<Record<string, { languageId: string;
+      usageLevelId: string; }[]>>(`/language-usages/by-owner-type/${ownerType}`),
   put: (ownerType: LanguageUsageOwnerType, ownerId: string, entries: UpdateLanguageUsageEntry[]) =>
     request<LanguageUsage[]>(`/language-usages/${ownerType}/${ownerId}`, {
       method: "PUT",

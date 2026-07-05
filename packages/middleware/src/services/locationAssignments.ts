@@ -1,5 +1,6 @@
 import { and, asc, eq } from "drizzle-orm";
 import type { LocationAssignmentOwnerType, OwnerLocation } from "@eesimple/types";
+import { placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
 import { locationAssignments, locations } from "@/db/schema";
 import { slugify } from "@/utils/slug";
@@ -29,6 +30,33 @@ export async function getOwnerLocations(
     slug: row.slug ?? slugify(row.name),
     parentId: row.parentId,
   }));
+}
+
+/**
+ * The normalized place-type keys (`placeTypeKey()`) of every Location attached to any owner of one
+ * `ownerType`, grouped by `ownerId`. Powers the bookmark-listing "Media" tab's independent-match
+ * check (see `mediaItemsForBookmarks.ts`) against the sidebar's place-type filter, without an N+1
+ * per media item.
+ */
+export async function listPlaceTypeKeysByOwnerType(
+  ownerType: LocationAssignmentOwnerType,
+): Promise<Record<string, string[]>> {
+  const rows = await db
+    .select({
+      ownerId: locationAssignments.ownerId,
+      placeType: locations.placeType,
+    })
+    .from(locationAssignments)
+    .innerJoin(locations, eq(locationAssignments.locationId, locations.id))
+    .where(eq(locationAssignments.ownerType, ownerType));
+  const byOwner: Record<string, string[]> = {};
+  for (const row of rows) {
+    const key = placeTypeKey(row.placeType);
+    if (key === "") continue;
+    const keys = (byOwner[row.ownerId] ??= []);
+    if (!keys.includes(key)) keys.push(key);
+  }
+  return byOwner;
 }
 
 /**

@@ -279,6 +279,7 @@ export function BookmarkListPane({
   useRegisterBulkSelect(pageKey);
   const [tab, setTab] = useState<ResultsTab>("bookmarks");
   const titleSort = usePageTitleSort(pageKey);
+  const headerSearchQuery = useUiStore(s => s.headerSearchQuery);
   const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const visibleBookmarks = sortBookmarks(filtered, search.sort, properties, titleSort);
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
@@ -303,7 +304,15 @@ export function BookmarkListPane({
           />
         )
         : null}
-      {activeTab === "media" ? <MediaItemsPane bookmarks={visibleBookmarks} /> : null}
+      {activeTab === "media"
+        ? (
+          <MediaItemsPane
+            bookmarks={visibleBookmarks}
+            search={search}
+            textQuery={headerSearchQuery}
+          />
+        )
+        : null}
       {activeTab === "bookmarks"
         ? (
           <BookmarkListBody

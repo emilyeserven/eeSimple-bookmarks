@@ -33,6 +33,28 @@ export async function getOwnerGenreMoods(
 }
 
 /**
+ * The Genres & Moods ids attached to every owner of one `ownerType`, grouped by `ownerId`. Powers
+ * the bookmark-listing "Media" tab's independent-match check (see `mediaItemsForBookmarks.ts`)
+ * without an N+1 per media item.
+ */
+export async function listGenreMoodIdsByOwnerType(
+  ownerType: GenreMoodOwnerType,
+): Promise<Record<string, string[]>> {
+  const rows = await db
+    .select({
+      ownerId: genreMoodAssignments.ownerId,
+      genreMoodId: genreMoodAssignments.genreMoodId,
+    })
+    .from(genreMoodAssignments)
+    .where(eq(genreMoodAssignments.ownerType, ownerType));
+  const byOwner: Record<string, string[]> = {};
+  for (const row of rows) {
+    (byOwner[row.ownerId] ??= []).push(row.genreMoodId);
+  }
+  return byOwner;
+}
+
+/**
  * Replace the full set of Genres & Moods entries attached to one owner (delete-then-insert for that
  * owner only). Bookmark owners refresh the bookmark cache since the attachment is matchable data.
  */
