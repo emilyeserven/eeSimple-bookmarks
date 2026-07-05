@@ -7,6 +7,7 @@ import { Globe } from "lucide-react";
 
 import { EditActionCell, ImageCell } from "./cells";
 import { bookmarkCountColumn, categoryPillColumn } from "./columnHelpers";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 /** Column definitions for the Websites listing Table view. */
@@ -16,7 +17,7 @@ export function useWebsiteColumns(): ColumnDef<Website>[] {
     () => [
       {
         accessorKey: "siteName",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => (
@@ -31,7 +32,7 @@ export function useWebsiteColumns(): ColumnDef<Website>[] {
       },
       {
         accessorKey: "domain",
-        header: "Domain",
+        header: i18n.t("Domain"),
         cell: ({
           row,
         }) => <span className="text-muted-foreground">{row.original.domain}</span>,
@@ -50,7 +51,9 @@ export function useWebsiteColumns(): ColumnDef<Website>[] {
             params={{
               websiteSlug: row.original.slug,
             }}
-            label={`Edit ${row.original.siteName}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.siteName,
+            })}
             onClick={event => editClick(event, "website", row.original.id)}
           />
         ),

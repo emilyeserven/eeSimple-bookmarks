@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { EditActionCell } from "./cells";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -15,33 +16,33 @@ export function useBookColumns(): ColumnDef<Book>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: "kavitaSeriesName",
-        header: "Kavita series",
+        header: i18n.t("Kavita series"),
         enableSorting: false,
         cell: ({
           row,
         }) => (
           <span className="text-muted-foreground">
-            {row.original.kavitaSeriesName ?? "—"}
+            {row.original.kavitaSeriesName ?? i18n.t("—")}
           </span>
         ),
       },
       {
         accessorKey: "releaseYear",
-        header: "Year",
+        header: i18n.t("Year"),
         cell: ({
           row,
-        }) => <span className="text-muted-foreground">{row.original.releaseYear ?? "—"}</span>,
+        }) => <span className="text-muted-foreground">{row.original.releaseYear ?? i18n.t("—")}</span>,
       },
       {
         accessorKey: "bookmarkCount",
-        header: "Bookmarks",
+        header: i18n.t("Bookmarks"),
         cell: ({
           row,
         }) => (row.original.bookmarkCount !== undefined
@@ -60,7 +61,9 @@ export function useBookColumns(): ColumnDef<Book>[] {
             params={{
               bookSlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "book", row.original.id)}
           />
         ),

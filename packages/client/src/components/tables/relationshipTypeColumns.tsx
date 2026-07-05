@@ -7,6 +7,7 @@ import { Link2 } from "lucide-react";
 
 import { EditActionCell } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,32 +19,32 @@ export function useRelationshipTypeColumns(): ColumnDef<RelationshipType>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => (
           <div className="flex items-center gap-2 font-medium">
             <Link2 className="size-4 shrink-0 text-muted-foreground" />
             {row.original.name}
-            {row.original.builtIn ? <Badge variant="outline">Built-in</Badge> : null}
+            {row.original.builtIn ? <Badge variant="outline">{i18n.t("Built-in")}</Badge> : null}
           </div>
         ),
       },
       {
         accessorKey: "directional",
-        header: "Direction",
+        header: i18n.t("Direction"),
         cell: ({
           row,
         }) => (
           <span className="text-muted-foreground">
-            {row.original.directional ? "Directional" : "Symmetric"}
+            {row.original.directional ? i18n.t("Directional") : i18n.t("Symmetric")}
           </span>
         ),
       },
       bookmarkCountColumn<RelationshipType>(),
       {
         accessorKey: "createdAt",
-        header: "Created",
+        header: i18n.t("Created"),
         cell: ({
           row,
         }) => (
@@ -64,7 +65,9 @@ export function useRelationshipTypeColumns(): ColumnDef<RelationshipType>[] {
             params={{
               relationshipTypeSlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "relationship-type", row.original.id)}
           />
         ),

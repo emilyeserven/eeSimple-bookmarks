@@ -5,6 +5,7 @@ import type { MouseEvent } from "react";
 
 import { CategoryPill } from "../CategoryPill";
 import { EditActionCell } from "./cells";
+import i18n from "../../i18n";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -15,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 export function bookmarkCountColumn<T extends { bookmarkCount?: number }>(): ColumnDef<T> {
   return {
     accessorKey: "bookmarkCount",
-    header: "Bookmarks",
+    header: i18n.t("Bookmarks"),
     cell: ({
       row,
     }) => (row.original.bookmarkCount !== undefined
@@ -31,7 +32,7 @@ export function bookmarkCountColumn<T extends { bookmarkCount?: number }>(): Col
 export function categoryPillColumn<T extends { category?: YouTubeChannelCategory | null }>(): ColumnDef<T> {
   return {
     id: "category",
-    header: "Category",
+    header: i18n.t("Category"),
     enableSorting: false,
     cell: ({
       row,
@@ -63,27 +64,27 @@ export function plexMediaColumns<T extends PlexMediaRow>({
   return [
     {
       accessorKey: "name",
-      header: "Name",
+      header: i18n.t("Name"),
       cell: ({
         row,
       }) => <span className="font-medium">{row.original.name}</span>,
     },
     {
       accessorKey: "year",
-      header: "Year",
+      header: i18n.t("Year"),
       cell: ({
         row,
-      }) => <span className="text-muted-foreground">{row.original.year ?? "—"}</span>,
+      }) => <span className="text-muted-foreground">{row.original.year ?? i18n.t("—")}</span>,
     },
     {
       accessorKey: "plexRatingKey",
-      header: "Plex",
+      header: i18n.t("Plex"),
       enableSorting: false,
       cell: ({
         row,
       }) => (
         <span className="text-muted-foreground">
-          {row.original.plexRatingKey ? "Linked" : "—"}
+          {row.original.plexRatingKey ? i18n.t("Linked") : i18n.t("—")}
         </span>
       ),
     },
@@ -100,7 +101,9 @@ export function plexMediaColumns<T extends PlexMediaRow>({
           params={{
             [paramKey]: row.original.slug,
           }}
-          label={`Edit ${row.original.name}`}
+          label={i18n.t("Edit {{name}}", {
+            name: row.original.name,
+          })}
           onClick={event => editClick(event, panelKind, row.original.id)}
         />
       ),

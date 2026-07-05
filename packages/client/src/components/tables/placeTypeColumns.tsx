@@ -8,6 +8,7 @@ import { Shapes } from "lucide-react";
 
 import { EditActionCell } from "./cells";
 import { useLocationLevels } from "../../hooks/useLocationLevels";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,7 @@ export function usePlaceTypeColumns(): ColumnDef<PlaceType>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => {
@@ -52,14 +53,14 @@ export function usePlaceTypeColumns(): ColumnDef<PlaceType>[] {
       },
       {
         accessorKey: "locationCount",
-        header: "Locations",
+        header: i18n.t("Locations"),
         cell: ({
           row,
         }) => <Badge variant="secondary">{row.original.locationCount}</Badge>,
       },
       {
         accessorKey: "createdAt",
-        header: "Created",
+        header: i18n.t("Created"),
         cell: ({
           row,
         }) => (
@@ -80,7 +81,9 @@ export function usePlaceTypeColumns(): ColumnDef<PlaceType>[] {
             params={{
               placeTypeSlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "place-type", row.original.id)}
           />
         ),

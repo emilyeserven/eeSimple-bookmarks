@@ -5,6 +5,7 @@ import { useMemo } from "react";
 
 import { EditActionCell } from "./cells";
 import { useDisplayPreferenceSettings } from "../../hooks/useAppSettings";
+import i18n from "../../i18n";
 import { TYPE_LABELS, resolvePropertyTypeIcon } from "../../lib/propertyFormat";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
@@ -22,7 +23,7 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => (
@@ -32,14 +33,14 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
               className="size-4 shrink-0 text-muted-foreground"
             />
             {row.original.name}
-            {row.original.builtIn ? <Badge variant="outline">Built-in</Badge> : null}
-            {!row.original.enabled ? <Badge variant="outline">Disabled</Badge> : null}
+            {row.original.builtIn ? <Badge variant="outline">{i18n.t("Built-in")}</Badge> : null}
+            {!row.original.enabled ? <Badge variant="outline">{i18n.t("Disabled")}</Badge> : null}
           </div>
         ),
       },
       {
         accessorKey: "type",
-        header: "Type",
+        header: i18n.t("Type"),
         cell: ({
           row,
         }) => (
@@ -57,28 +58,28 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
       },
       {
         id: "categories",
-        header: "Categories",
+        header: i18n.t("Categories"),
         enableSorting: false,
         cell: ({
           row,
         }) => (
           <span className="text-muted-foreground">
             {row.original.allCategories || row.original.categoryIds.length === 0
-              ? "All"
+              ? i18n.t("All")
               : `${row.original.categoryIds.length}`}
           </span>
         ),
       },
       {
         id: "media-types",
-        header: "Media Types",
+        header: i18n.t("Media Types"),
         enableSorting: false,
         cell: ({
           row,
         }) => (
           <span className="text-muted-foreground">
             {row.original.allMediaTypes || row.original.mediaTypeIds.length === 0
-              ? "All"
+              ? i18n.t("All")
               : `${row.original.mediaTypeIds.length}`}
           </span>
         ),
@@ -95,7 +96,9 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
             params={{
               propertySlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "property", row.original.id)}
           />
         ),

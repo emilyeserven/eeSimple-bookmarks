@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 
+import i18n from "../../i18n";
 import { formatSize } from "../galleryFormat";
 
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ export function galleryColumns({
   return [
     {
       id: "preview",
-      header: "Preview",
+      header: i18n.t("Preview"),
       enableSorting: false,
       cell: ({
         row,
@@ -45,7 +46,7 @@ export function galleryColumns({
     },
     {
       accessorKey: "objectKey",
-      header: "Name",
+      header: i18n.t("Name"),
       cell: ({
         row,
       }) => (
@@ -59,14 +60,14 @@ export function galleryColumns({
     },
     {
       id: "bookmark",
-      header: "Bookmark",
+      header: i18n.t("Bookmark"),
       enableSorting: false,
       cell: ({
         row,
       }) => {
         const bookmark = row.original.bookmark;
         if (!bookmark) {
-          return <span className="text-muted-foreground">Orphan</span>;
+          return <span className="text-muted-foreground">{i18n.t("Orphan")}</span>;
         }
         return (
           <Link
@@ -87,7 +88,7 @@ export function galleryColumns({
     },
     {
       id: "size",
-      header: "Size",
+      header: i18n.t("Size"),
       accessorFn: row => row.byteSize ?? 0,
       cell: ({
         row,
@@ -110,7 +111,7 @@ export function galleryColumns({
               size="sm"
               onClick={() => onAttach(key)}
             >
-              Attach
+              {i18n.t("Attach")}
             </Button>
             <Button
               type="button"
@@ -119,7 +120,7 @@ export function galleryColumns({
               onClick={() => onDelete(key)}
             >
               <Trash2 className="size-4" />
-              Delete
+              {i18n.t("Delete")}
             </Button>
           </div>
         );

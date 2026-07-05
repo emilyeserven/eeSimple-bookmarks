@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { EditActionCell } from "./cells";
+import i18n from "../../i18n";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -15,26 +16,28 @@ export function usePropertyGroupColumns(): ColumnDef<PropertyGroup>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: "description",
-        header: "Description",
+        header: i18n.t("Description"),
         enableSorting: false,
         cell: ({
           row,
         }) => (
           <span className="text-muted-foreground">
-            {row.original.description || `Priority ${row.original.priority}`}
+            {row.original.description || i18n.t("Priority {{priority}}", {
+              priority: row.original.priority,
+            })}
           </span>
         ),
       },
       {
         accessorKey: "propertyCount",
-        header: "Properties",
+        header: i18n.t("Properties"),
         cell: ({
           row,
         }) => (row.original.propertyCount !== undefined
@@ -53,7 +56,9 @@ export function usePropertyGroupColumns(): ColumnDef<PropertyGroup>[] {
             params={{
               propertyGroupSlug: row.original.slug,
             }}
-            label={`Edit ${row.original.name}`}
+            label={i18n.t("Edit {{name}}", {
+              name: row.original.name,
+            })}
             onClick={event => editClick(event, "property-group", row.original.id)}
           />
         ),

@@ -3,14 +3,15 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { useMemo } from "react";
 
+import i18n from "../../i18n";
 import { summarizeConditions } from "../../lib/conditionsSummary";
 
 import { Badge } from "@/components/ui/badge";
 
 const ACTION_LABELS: Record<ImportRuleAction, string> = {
-  approve: "Approve",
-  reject: "Reject",
-  block: "Block",
+  approve: i18n.t("Approve"),
+  reject: i18n.t("Reject"),
+  block: i18n.t("Block"),
 };
 
 const ACTION_VARIANTS: Record<ImportRuleAction, "default" | "secondary" | "destructive" | "outline"> = {
@@ -25,14 +26,14 @@ export function useImportRuleColumns(): ColumnDef<ImportRule>[] {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         id: "conditions",
-        header: "Conditions",
+        header: i18n.t("Conditions"),
         enableSorting: false,
         cell: ({
           row,
@@ -44,7 +45,7 @@ export function useImportRuleColumns(): ColumnDef<ImportRule>[] {
       },
       {
         accessorKey: "action",
-        header: "Action",
+        header: i18n.t("Action"),
         cell: ({
           row,
         }) => (
@@ -55,7 +56,7 @@ export function useImportRuleColumns(): ColumnDef<ImportRule>[] {
       },
       {
         accessorKey: "sortOrder",
-        header: "Priority",
+        header: i18n.t("Priority"),
       },
     ],
     [],

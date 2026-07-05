@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 
 import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
+import i18n from "../../i18n";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 import { RomanizedLabel } from "../RomanizedLabel";
 
@@ -17,7 +18,7 @@ export function useTagColumns(): ColumnDef<TagNode>[] {
     () => [
       {
         id: "name",
-        header: "Name",
+        header: i18n.t("Name"),
         cell: ({
           row,
         }) => (
@@ -33,7 +34,9 @@ export function useTagColumns(): ColumnDef<TagNode>[] {
               params={{
                 tagSlug: row.original.slug,
               }}
-              title={`Browse bookmarks tagged ${row.original.name}`}
+              title={i18n.t("Browse bookmarks tagged {{name}}", {
+                name: row.original.name,
+              })}
               onClick={event => viewClick(event, "tag", row.original.id, row.original.slug)}
               className="
                 font-medium
