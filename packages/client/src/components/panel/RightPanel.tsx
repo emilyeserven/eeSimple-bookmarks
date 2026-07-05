@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { PanelBreadcrumbs } from "./PanelBreadcrumbs";
 import { PanelChrome } from "./PanelChrome";
 import { PanelContent } from "./PanelContent";
@@ -24,6 +26,9 @@ import { useUiStore } from "@/stores/uiStore";
  * floating overlay drawer when unpinned — and always floating on mobile.
  */
 export function RightPanel() {
+  const {
+    t,
+  } = useTranslation();
   const {
     isOpen, close,
   } = usePanelControls();
@@ -94,8 +99,8 @@ export function RightPanel() {
         "
       >
         <SheetHeader className="sr-only">
-          <SheetTitle>Panel</SheetTitle>
-          <SheetDescription>Browse, view, and edit your content.</SheetDescription>
+          <SheetTitle>{t("Panel")}</SheetTitle>
+          <SheetDescription>{t("Browse, view, and edit your content.")}</SheetDescription>
         </SheetHeader>
         <PanelChrome
           docked={false}

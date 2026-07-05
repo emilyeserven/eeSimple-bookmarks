@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { MonitorPlay } from "lucide-react";
 
 import { useYouTubeChannels } from "../../../hooks/useYouTubeChannels";
+import i18n from "../../../i18n";
 import { youtubeChannelWorkbench } from "../../workbench/youtubeChannel";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function YouTubeChannelEdit({
 
 export const youtubeChannelContentType: PanelContentTypeDef = {
   type: "youtube-channel",
-  label: "YouTube Channels",
-  singular: "YouTube Channel",
+  label: i18n.t("YouTube Channels"),
+  singular: i18n.t("YouTube Channel"),
   icon: MonitorPlay,
   useList: useYouTubeChannelList,
   View: YouTubeChannelView,

@@ -5,8 +5,10 @@ import type { FC } from "react";
 import { useMemo } from "react";
 
 import { MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useLocationTree } from "../../../hooks/useLocations";
+import i18n from "../../../i18n";
 import { flattenTree } from "../../../lib/tagTree";
 import { LocationForm } from "../../LocationForm";
 import { locationWorkbench } from "../../workbench/location";
@@ -28,7 +30,11 @@ function useLocationList() {
       // Romanized form renders beside the name via the shared toggle-aware RomanizedLabel; the
       // children count is the de-emphasized sublabel.
       romanized: node.romanizedName,
-      sublabel: node.children.length > 0 ? `${node.children.length} children` : undefined,
+      sublabel: node.children.length > 0
+        ? i18n.t("{{count}} children", {
+          count: node.children.length,
+        })
+        : undefined,
     })),
     [data],
   );
@@ -53,11 +59,14 @@ const LocationView: FC<{ id: string }> = ({
 /** Create a new location in the panel, then close it. */
 function LocationCreateForm() {
   const {
+    t,
+  } = useTranslation();
+  const {
     close,
   } = usePanelControls();
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">New location</h2>
+      <h2 className="text-xl font-semibold">{t("New location")}</h2>
       <LocationForm onCreated={close} />
     </div>
   );
@@ -79,8 +88,8 @@ const LocationEdit: FC<{ id: string }> = ({
 
 export const locationContentType: PanelContentTypeDef = {
   type: "location",
-  label: "Locations",
-  singular: "Location",
+  label: i18n.t("Locations"),
+  singular: i18n.t("Location"),
   icon: MapPin,
   useList: useLocationList,
   View: LocationView,

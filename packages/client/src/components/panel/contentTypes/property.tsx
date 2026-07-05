@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { SlidersHorizontal } from "lucide-react";
 
 import { useCustomProperties } from "../../../hooks/useCustomProperties";
+import i18n from "../../../i18n";
 import { propertyWorkbench } from "../../workbench/property";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function PropertyEdit({
 
 export const propertyContentType: PanelContentTypeDef = {
   type: "property",
-  label: "Custom Properties",
-  singular: "Custom Property",
+  label: i18n.t("Custom Properties"),
+  singular: i18n.t("Custom Property"),
   icon: SlidersHorizontal,
   useList: usePropertyList,
   View: PropertyView,

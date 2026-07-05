@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Mail } from "lucide-react";
 
 import { useNewsletters } from "../../../hooks/useNewsletters";
+import i18n from "../../../i18n";
 import { newsletterWorkbench } from "../../workbench/newsletter";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -61,8 +62,8 @@ function NewsletterEdit({
 
 export const newsletterContentType: PanelContentTypeDef = {
   type: "newsletter",
-  label: "Imports",
-  singular: "Import",
+  label: i18n.t("Imports"),
+  singular: i18n.t("Import"),
   icon: Mail,
   useList: useNewsletterList,
   View: NewsletterView,

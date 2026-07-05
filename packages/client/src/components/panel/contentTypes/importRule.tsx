@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { Filter } from "lucide-react";
 
 import { useImportRules } from "../../../hooks/useImportRules";
+import i18n from "../../../i18n";
 import { summarizeConditions } from "../../../lib/conditionsSummary";
 import { importRuleWorkbench } from "../../workbench/importRule";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
@@ -59,8 +60,8 @@ const ImportRuleEdit: FC<{ id: string }> = ({
 
 export const importRuleContentType: PanelContentTypeDef = {
   type: "import-rule",
-  label: "Import Rules",
-  singular: "Import Rule",
+  label: i18n.t("Import Rules"),
+  singular: i18n.t("Import Rule"),
   icon: Filter,
   useList: useImportRuleList,
   View: ImportRuleView,

@@ -1,5 +1,7 @@
 import type { CreateAutofillRuleInput } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { usePanelControls } from "./usePanelControls";
 import {
   useCreateAutofillRule,
@@ -13,6 +15,9 @@ import { AutofillRuleForm } from "../AutofillRuleForm";
 
 /** Create form: on success, re-target the panel at the saved rule so editing continues inline. */
 export function CreateAutofillRule() {
+  const {
+    t,
+  } = useTranslation();
   const {
     openAutofill,
   } = usePanelControls();
@@ -51,9 +56,9 @@ export function CreateAutofillRule() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold">New autofill rule</h2>
+        <h2 className="text-xl font-semibold">{t("New autofill rule")}</h2>
         <p className="text-sm text-muted-foreground">
-          Match a bookmark’s title or website to prefill its category, tags, and custom properties.
+          {t("Match a bookmark’s title or website to prefill its category, tags, and custom properties.")}
         </p>
       </div>
       <AutofillRuleForm
@@ -68,7 +73,7 @@ export function CreateAutofillRule() {
         defaultChannelIds={defaultChannelIds}
         defaultGenreMoodIds={defaultGenreMoodIds}
         defaultOpenCustomProperties={!!defaultPropertyId}
-        submitLabel="Add rule"
+        submitLabel={t("Add rule")}
         isError={createRule.isError}
         errorMessage={createRule.error?.message}
         onSubmit={(input) => {

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { UserRound } from "lucide-react";
 
 import { usePeople } from "../../../hooks/usePeople";
+import i18n from "../../../i18n";
 import { personWorkbench } from "../../workbench/person";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -61,8 +62,8 @@ function PersonEdit({
 
 export const personContentType: PanelContentTypeDef = {
   type: "person",
-  label: "People",
-  singular: "Person",
+  label: i18n.t("People"),
+  singular: i18n.t("Person"),
   icon: UserRound,
   useList: usePersonList,
   View: PersonView,

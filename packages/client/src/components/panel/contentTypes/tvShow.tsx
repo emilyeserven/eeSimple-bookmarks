@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Tv } from "lucide-react";
 
 import { useTvShows } from "../../../hooks/useTvShows";
+import i18n from "../../../i18n";
 import { tvShowWorkbench } from "../../workbench/tvShow";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function TvShowEdit({
 
 export const tvShowContentType: PanelContentTypeDef = {
   type: "tv-show",
-  label: "TV Shows",
-  singular: "TV Show",
+  label: i18n.t("TV Shows"),
+  singular: i18n.t("TV Show"),
   icon: Tv,
   useList: useTvShowList,
   View: TvShowView,

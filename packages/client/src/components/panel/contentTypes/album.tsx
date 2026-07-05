@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Disc3 } from "lucide-react";
 
 import { useAlbums } from "../../../hooks/useAlbums";
+import i18n from "../../../i18n";
 import { albumWorkbench } from "../../workbench/album";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function AlbumEdit({
 
 export const albumContentType: PanelContentTypeDef = {
   type: "album",
-  label: "Albums",
-  singular: "Album",
+  label: i18n.t("Albums"),
+  singular: i18n.t("Album"),
   icon: Disc3,
   useList: useAlbumList,
   View: AlbumView,

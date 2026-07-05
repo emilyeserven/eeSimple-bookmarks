@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Podcast as PodcastIcon } from "lucide-react";
 
 import { usePodcasts } from "../../../hooks/usePodcasts";
+import i18n from "../../../i18n";
 import { podcastWorkbench } from "../../workbench/podcast";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -61,8 +62,8 @@ function PodcastEdit({
 
 export const podcastContentType: PanelContentTypeDef = {
   type: "podcast",
-  label: "Podcasts",
-  singular: "Podcast",
+  label: i18n.t("Podcasts"),
+  singular: i18n.t("Podcast"),
   icon: PodcastIcon,
   useList: usePodcastList,
   View: PodcastView,

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Music } from "lucide-react";
 
 import { useTracks } from "../../../hooks/useTracks";
+import i18n from "../../../i18n";
 import { trackWorkbench } from "../../workbench/track";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function TrackEdit({
 
 export const trackContentType: PanelContentTypeDef = {
   type: "track",
-  label: "Tracks",
-  singular: "Track",
+  label: i18n.t("Tracks"),
+  singular: i18n.t("Track"),
   icon: Music,
   useList: useTrackList,
   View: TrackView,

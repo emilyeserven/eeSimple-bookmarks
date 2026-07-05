@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { FilterSections } from "../FilterSidebarSections";
 import { SavedFiltersSection } from "../SavedFiltersSection";
 
@@ -9,13 +11,16 @@ import { useUiStore } from "@/stores/uiStore";
  * page and renders the filter sections live. Shows a disabled message when not on a listing page.
  */
 export function FiltersPanel() {
+  const {
+    t,
+  } = useTranslation();
   const filterContext = useUiStore(state => state.filterContext);
 
   if (!filterContext) {
     return (
       <div className="space-y-2 py-4 text-center text-sm text-muted-foreground">
-        <p className="font-medium">No listing page active</p>
-        <p>Navigate to Bookmarks or a Category page to use filters here.</p>
+        <p className="font-medium">{t("No listing page active")}</p>
+        <p>{t("Navigate to Bookmarks or a Category page to use filters here.")}</p>
       </div>
     );
   }

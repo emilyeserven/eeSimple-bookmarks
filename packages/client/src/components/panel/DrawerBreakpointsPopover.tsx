@@ -1,4 +1,5 @@
 import { Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,27 +13,28 @@ import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
 } from "@/hooks/useAppSettings";
+import i18n from "@/i18n";
 
 const BREAKPOINT_OPTIONS = [
   {
     px: 640,
-    label: "640 px — Small (sm)",
+    label: i18n.t("640 px — Small (sm)"),
   },
   {
     px: 768,
-    label: "768 px — Medium (md)",
+    label: i18n.t("768 px — Medium (md)"),
   },
   {
     px: 1024,
-    label: "1024 px — Large (lg)",
+    label: i18n.t("1024 px — Large (lg)"),
   },
   {
     px: 1280,
-    label: "1280 px — Extra Large (xl)",
+    label: i18n.t("1280 px — Extra Large (xl)"),
   },
   {
     px: 1536,
-    label: "1536 px — 2× Large (2xl)",
+    label: i18n.t("1536 px — 2× Large (2xl)"),
   },
 ] as const;
 
@@ -45,6 +47,9 @@ export function DrawerBreakpointsPopover() {
     data: displayData,
   } = useDisplayPreferenceSettings();
   const update = useUpdateDisplayPreferenceSettings();
+  const {
+    t,
+  } = useTranslation();
 
   function toggleBreakpoint(px: number) {
     if (!displayData) return;
@@ -56,7 +61,7 @@ export function DrawerBreakpointsPopover() {
         ...displayData,
         drawerUnpinnedBreakpoints: next,
       },
-      successMessage: "Drawer breakpoints updated",
+      successMessage: t("Drawer breakpoints updated"),
     });
   }
 
@@ -71,7 +76,7 @@ export function DrawerBreakpointsPopover() {
             hidden size-7
             md:inline-flex
           "
-          aria-label="Drawer breakpoints"
+          aria-label={t("Drawer breakpoints")}
         >
           <Settings className="size-4" />
         </Button>
@@ -81,10 +86,9 @@ export function DrawerBreakpointsPopover() {
         className="space-y-3"
       >
         <div className="space-y-1">
-          <p className="text-sm leading-none font-medium">Unpin below viewport width</p>
+          <p className="text-sm leading-none font-medium">{t("Unpin below viewport width")}</p>
           <p className="text-xs text-muted-foreground">
-            At these viewport widths the drawer floats as an overlay, even when pinned. Check every
-            size at which you want it to float.
+            {t("At these viewport widths the drawer floats as an overlay, even when pinned. Check every size at which you want it to float.")}
           </p>
         </div>
         <div className="space-y-3">
@@ -102,7 +106,9 @@ export function DrawerBreakpointsPopover() {
                 onCheckedChange={() => toggleBreakpoint(px)}
               />
               <Label htmlFor={`breakpoint-${px}`}>
-                Below {label}
+                {t("Below {{label}}", {
+                  label,
+                })}
               </Label>
             </div>
           ))}

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { MapPinned } from "lucide-react";
 
 import { usePlaceTypes } from "../../../hooks/usePlaceTypes";
+import i18n from "../../../i18n";
 import { placeTypeWorkbench } from "../../workbench/placeType";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -17,9 +18,9 @@ function usePlaceTypeList() {
     () => (data ?? []).map(placeType => ({
       id: placeType.id,
       label: placeType.name,
-      sublabel: placeType.locationCount === 1
-        ? "1 location"
-        : `${placeType.locationCount} locations`,
+      sublabel: i18n.t(placeType.locationCount === 1 ? "{{count}} location" : "{{count}} locations", {
+        count: placeType.locationCount,
+      }),
     })),
     [data],
   );
@@ -64,8 +65,8 @@ function PlaceTypeEdit({
 
 export const placeTypeContentType: PanelContentTypeDef = {
   type: "place-type",
-  label: "Place Types",
-  singular: "Place Type",
+  label: i18n.t("Place Types"),
+  singular: i18n.t("Place Type"),
   icon: MapPinned,
   useList: usePlaceTypeList,
   View: PlaceTypeView,

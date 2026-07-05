@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { usePanelControls } from "./usePanelControls";
 import { useCreateEntityNames } from "../../hooks/useEntityNames";
 import { useCreateTag } from "../../hooks/useTags";
@@ -13,15 +15,18 @@ export function TagCreateForm() {
   } = usePanelControls();
   const createTag = useCreateTag();
   const createNames = useCreateEntityNames();
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">New tag</h2>
+      <h2 className="text-xl font-semibold">{t("New tag")}</h2>
       <TagForm
         allTags={[]}
         showParent={false}
-        submitLabel="Add tag"
-        pendingLabel="Adding…"
+        submitLabel={t("Add tag")}
+        pendingLabel={t("Adding…")}
         isError={createTag.isError}
         errorMessage={createTag.error?.message}
         onSubmit={({

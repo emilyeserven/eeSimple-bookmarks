@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Globe } from "lucide-react";
 
 import { useWebsites } from "../../../hooks/useWebsites";
+import i18n from "../../../i18n";
 import { websiteWorkbench } from "../../workbench/website";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function WebsiteEdit({
 
 export const websiteContentType: PanelContentTypeDef = {
   type: "website",
-  label: "Websites",
-  singular: "Website",
+  label: i18n.t("Websites"),
+  singular: i18n.t("Website"),
   icon: Globe,
   useList: useWebsiteList,
   View: WebsiteView,

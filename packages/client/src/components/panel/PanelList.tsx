@@ -3,6 +3,7 @@ import type { DrawerContentType } from "@/lib/drawerSearch";
 import { useMemo, useState } from "react";
 
 import { Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { getContentType } from "./contentTypes";
 import { usePanelControls } from "./usePanelControls";
@@ -22,6 +23,9 @@ interface PanelListProps {
 export function PanelList({
   type,
 }: PanelListProps) {
+  const {
+    t,
+  } = useTranslation();
   const def = getContentType(type);
   const {
     openItem,
@@ -46,17 +50,23 @@ export function PanelList({
 
       <Input
         type="search"
-        placeholder={`Search ${def.label.toLowerCase()}…`}
+        placeholder={t("Search {{label}}…", {
+          label: def.label.toLowerCase(),
+        })}
         value={query}
         onChange={event => setQuery(event.target.value)}
       />
 
-      {isLoading ? <p className="text-muted-foreground">Loading…</p> : null}
+      {isLoading ? <p className="text-muted-foreground">{t("Loading…")}</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && !error && filtered.length === 0
         ? (
           <p className="text-muted-foreground">
-            {query ? "No matches." : `No ${def.label.toLowerCase()} yet.`}
+            {query
+              ? t("No matches.")
+              : t("No {{label}} yet.", {
+                label: def.label.toLowerCase(),
+              })}
           </p>
         )
         : null}
@@ -105,7 +115,9 @@ export function PanelList({
                 group-hover:opacity-100
                 focus-visible:opacity-100
               "
-              aria-label={`Edit ${item.label}`}
+              aria-label={t("Edit {{name}}", {
+                name: item.label,
+              })}
               onClick={() => openItem(type, item.id, "edit")}
             >
               <Pencil className="size-4" />

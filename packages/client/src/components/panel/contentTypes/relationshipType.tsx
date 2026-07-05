@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Link2 } from "lucide-react";
 
 import { useRelationshipTypes } from "../../../hooks/useRelationshipTypes";
+import i18n from "../../../i18n";
 import { relationshipTypeWorkbench } from "../../workbench/relationshipType";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -17,7 +18,7 @@ function useRelationshipTypeList() {
     () => (data ?? []).map(relationshipType => ({
       id: relationshipType.id,
       label: relationshipType.name,
-      sublabel: relationshipType.directional ? "Directional" : "Symmetric",
+      sublabel: relationshipType.directional ? i18n.t("Directional") : i18n.t("Symmetric"),
     })),
     [data],
   );
@@ -62,8 +63,8 @@ function RelationshipTypeEdit({
 
 export const relationshipTypeContentType: PanelContentTypeDef = {
   type: "relationship-type",
-  label: "Relationship Types",
-  singular: "Relationship Type",
+  label: i18n.t("Relationship Types"),
+  singular: i18n.t("Relationship Type"),
   icon: Link2,
   useList: useRelationshipTypeList,
   View: RelationshipTypeView,

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Languages } from "lucide-react";
 
 import { useLanguages } from "../../../hooks/useLanguages";
+import i18n from "../../../i18n";
 import { languageWorkbench } from "../../workbench/language";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -17,7 +18,7 @@ function useLanguageList() {
     () => (data ?? []).map(language => ({
       id: language.id,
       label: language.name,
-      sublabel: language.builtIn ? "Built-in" : "Custom",
+      sublabel: language.builtIn ? i18n.t("Built-in") : i18n.t("Custom"),
     })),
     [data],
   );
@@ -62,8 +63,8 @@ function LanguageEdit({
 
 export const languageContentType: PanelContentTypeDef = {
   type: "language",
-  label: "Languages",
-  singular: "Language",
+  label: i18n.t("Languages"),
+  singular: i18n.t("Language"),
   icon: Languages,
   useList: useLanguageList,
   View: LanguageView,

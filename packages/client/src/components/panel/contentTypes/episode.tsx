@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Tv2 } from "lucide-react";
 
 import { useEpisodes } from "../../../hooks/useEpisodes";
+import i18n from "../../../i18n";
 import { episodeWorkbench } from "../../workbench/episode";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -62,8 +63,8 @@ function EpisodeEdit({
 
 export const episodeContentType: PanelContentTypeDef = {
   type: "episode",
-  label: "Episodes",
-  singular: "Episode",
+  label: i18n.t("Episodes"),
+  singular: i18n.t("Episode"),
   icon: Tv2,
   useList: useEpisodeList,
   View: EpisodeView,

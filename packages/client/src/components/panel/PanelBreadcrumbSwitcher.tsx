@@ -3,6 +3,7 @@ import type { DrawerContentType } from "@/lib/drawerSearch";
 import { useState } from "react";
 
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { usePanelSwitcherItems } from "./panelBreadcrumbData";
 import { usePanelControls } from "./usePanelControls";
@@ -22,6 +23,9 @@ export function PanelBreadcrumbSwitcher({
   dCT, dCId,
 }: { dCT: DrawerContentType;
   dCId: string; }) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   const {
     openItem, dMode,
@@ -40,7 +44,7 @@ export function PanelBreadcrumbSwitcher({
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label="Switch to a related item"
+          aria-label={t("Switch to a related item")}
           className={cn(`
             ml-0.5 inline-flex items-center rounded-sm p-0.5
             text-muted-foreground opacity-0 transition-opacity
@@ -58,9 +62,9 @@ export function PanelBreadcrumbSwitcher({
         align="start"
       >
         <Command>
-          <CommandInput placeholder="Search…" />
+          <CommandInput placeholder={t("Search…")} />
           <CommandList>
-            <CommandEmpty>{isLoading ? "Loading…" : "No matches."}</CommandEmpty>
+            <CommandEmpty>{isLoading ? t("Loading…") : t("No matches.")}</CommandEmpty>
             <CommandGroup>
               {items.map(item => (
                 <CommandItem

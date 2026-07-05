@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { ListFilter } from "lucide-react";
 
 import { useSavedFilters } from "../../../hooks/useSavedFilters";
+import i18n from "../../../i18n";
 import { savedFilterWorkbench } from "../../workbench/savedFilter";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -60,8 +61,8 @@ function SavedFilterEdit({
 
 export const savedFilterContentType: PanelContentTypeDef = {
   type: "saved-filter",
-  label: "Saved Filters",
-  singular: "Saved Filter",
+  label: i18n.t("Saved Filters"),
+  singular: i18n.t("Saved Filter"),
   icon: ListFilter,
   useList: useSavedFilterList,
   View: SavedFilterView,

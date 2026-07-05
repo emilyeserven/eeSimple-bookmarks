@@ -1,4 +1,5 @@
 import { CheckCircle2, ExternalLink, XCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { useNotificationStore } from "@/stores/notificationStore";
@@ -16,6 +17,9 @@ function formatTimestamp(iso: string): string {
  * `notifySuccess`/`notifyError` helpers), newest first, with the date/time each one fired.
  */
 export function NotificationsPanel() {
+  const {
+    t,
+  } = useTranslation();
   const notifications = useNotificationStore(state => state.notifications);
   const clearNotifications = useNotificationStore(state => state.clearNotifications);
 
@@ -23,8 +27,8 @@ export function NotificationsPanel() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <h2 className="text-xl font-semibold">Notifications</h2>
-          <p className="text-sm text-muted-foreground">A history of recent toasts.</p>
+          <h2 className="text-xl font-semibold">{t("Notifications")}</h2>
+          <p className="text-sm text-muted-foreground">{t("A history of recent toasts.")}</p>
         </div>
         {notifications.length > 0
           ? (
@@ -34,14 +38,14 @@ export function NotificationsPanel() {
               size="sm"
               onClick={clearNotifications}
             >
-              Clear all
+              {t("Clear all")}
             </Button>
           )
           : null}
       </div>
 
       {notifications.length === 0
-        ? <p className="text-sm text-muted-foreground">No notifications yet.</p>
+        ? <p className="text-sm text-muted-foreground">{t("No notifications yet.")}</p>
         : (
           <ul className="space-y-2">
             {notifications.map(record => (

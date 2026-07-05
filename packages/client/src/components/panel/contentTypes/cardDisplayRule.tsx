@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { LayoutGrid } from "lucide-react";
 
 import { useCardDisplayRules } from "../../../hooks/useCardDisplayRules";
+import i18n from "../../../i18n";
 import { conditionsSummaryLabel } from "../../conditions/summarizeConditions";
 import { cardDisplayRuleWorkbench } from "../../workbench/cardDisplayRule";
 import { CreateCardDisplayRule } from "../CardDisplayRuleForms";
@@ -22,7 +23,7 @@ function useCardDisplayRuleList() {
     () => (data ?? []).map(rule => ({
       id: rule.id,
       label: rule.name,
-      sublabel: rule.isDefault ? "Baseline (always applies)" : conditionsSummaryLabel(rule.conditions),
+      sublabel: rule.isDefault ? i18n.t("Baseline (always applies)") : conditionsSummaryLabel(rule.conditions),
     })),
     [data],
   );
@@ -61,8 +62,8 @@ const CardDisplayRuleEdit: FC<{ id: string }> = ({
 
 export const cardDisplayRuleContentType: PanelContentTypeDef = {
   type: "card-display-rule",
-  label: "Card Display Rules",
-  singular: "Card Display Rule",
+  label: i18n.t("Card Display Rules"),
+  singular: i18n.t("Card Display Rule"),
   icon: LayoutGrid,
   useList: useCardDisplayRuleList,
   View: CardDisplayRuleView,

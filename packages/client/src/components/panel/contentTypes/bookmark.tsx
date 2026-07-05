@@ -7,6 +7,7 @@ import { Bookmark } from "lucide-react";
 
 import { BookmarkView } from "./BookmarkView";
 import { useBookmarks } from "../../../hooks/useBookmarks";
+import i18n from "../../../i18n";
 import { bookmarkEditWorkbench } from "../../workbench/bookmark";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
@@ -52,8 +53,8 @@ function BookmarkEdit({
 
 export const bookmarkContentType: PanelContentTypeDef = {
   type: "bookmark",
-  label: "Bookmarks",
-  singular: "Bookmark",
+  label: i18n.t("Bookmarks"),
+  singular: i18n.t("Bookmark"),
   icon: Bookmark,
   useList: useBookmarkList,
   View: BookmarkView,
