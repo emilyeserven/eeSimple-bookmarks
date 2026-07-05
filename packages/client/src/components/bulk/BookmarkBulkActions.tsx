@@ -1,6 +1,8 @@
 import type { ComboboxOption } from "../Combobox";
 import type { Bookmark, CustomProperty, UpdateBookmarkInput } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import {
   useBulkBookmarkTags,
   useBulkDeleteBookmarks,
@@ -71,6 +73,9 @@ export function BookmarkBulkActions({
   onDone,
 }: BookmarkBulkActionsProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: categories = [],
   } = useCategories();
   const {
@@ -93,9 +98,9 @@ export function BookmarkBulkActions({
       <SetComboboxDialog
         ids={selectedIds}
         onDone={onDone}
-        triggerLabel="Set category"
-        title="Set category"
-        placeholder="Select a category"
+        triggerLabel={t("Set category")}
+        title={t("Set category")}
+        placeholder={t("Select a category")}
         options={categories.map(category => ({
           value: category.id,
           label: category.name,
@@ -113,9 +118,9 @@ export function BookmarkBulkActions({
       <SetComboboxDialog
         ids={selectedIds}
         onDone={onDone}
-        triggerLabel="Set media type"
-        title="Set media type"
-        placeholder="Select a media type"
+        triggerLabel={t("Set media type")}
+        title={t("Set media type")}
+        placeholder={t("Select a media type")}
         options={mediaTypes.map(mediaType => ({
           value: mediaType.id,
           label: mediaType.name,
@@ -128,9 +133,9 @@ export function BookmarkBulkActions({
         <SetComboboxDialog
           ids={selectedIds}
           onDone={onDone}
-          triggerLabel="Set reading status"
-          title="Set reading status"
-          placeholder="Select a status"
+          triggerLabel={t("Set reading status")}
+          title={t("Set reading status")}
+          placeholder={t("Select a status")}
           options={contentStatusProperty.choicesItems.map(item => ({
             value: item.value,
             label: item.label,
@@ -147,7 +152,7 @@ export function BookmarkBulkActions({
         ids={selectedIds}
         onDone={onDone}
         noun="bookmark"
-        title="Add or remove tags"
+        title={t("Add or remove tags")}
         isPending={bulkTags.isPending}
         onApply={(tagIds, op, cb) => bulkTags.mutate({
           ids: selectedIds,

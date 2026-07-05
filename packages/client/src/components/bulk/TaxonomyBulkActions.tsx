@@ -3,6 +3,8 @@ import type { UseMutationResult } from "@tanstack/react-query";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -32,6 +34,9 @@ export function TaxonomyBulkActions({
   noun,
   onDone,
 }: TaxonomyBulkActionsProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   const label = ids.length === 1 ? noun[0] : noun[1];
   return (
@@ -44,26 +49,24 @@ export function TaxonomyBulkActions({
           variant="destructive"
           size="sm"
         >
-          Delete
+          {t("Delete")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Delete
-            {" "}
-            {ids.length}
-            {" "}
-            {label}
-            ?
+            {t("Delete {{count}} {{label}}?", {
+              count: ids.length,
+              label,
+            })}
           </DialogTitle>
           <DialogDescription>
-            Built-in items are skipped. This cannot be undone.
+            {t("Built-in items are skipped. This cannot be undone.")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("Cancel")}</Button>
           </DialogClose>
           <Button
             variant="destructive"
@@ -75,7 +78,7 @@ export function TaxonomyBulkActions({
               },
             })}
           >
-            Delete
+            {t("Delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

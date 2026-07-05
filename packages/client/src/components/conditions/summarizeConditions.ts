@@ -1,5 +1,7 @@
 import type { ConditionTree } from "@eesimple/types";
 
+import i18n from "@/i18n";
+
 /** Per-type counts for a condition tree's direct leaves, used to render filter previews. */
 export interface ConditionSummary {
   /** Number of direct child leaves (matches the headline "N filter conditions"). */
@@ -73,8 +75,16 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
 /** One-line headline for a filter, e.g. `"3 filter conditions (AND)"`. */
 export function conditionsSummaryLabel(tree: ConditionTree): string {
   const total = tree.children.length;
-  if (total === 0) return "No filter conditions — shows nothing";
-  return `${total} filter condition${total === 1 ? "" : "s"} (${tree.combinator.toUpperCase()})`;
+  if (total === 0) return i18n.t("No filter conditions — shows nothing");
+  return total === 1
+    ? i18n.t("{{count}} filter condition ({{combinator}})", {
+      count: total,
+      combinator: tree.combinator.toUpperCase(),
+    })
+    : i18n.t("{{count}} filter conditions ({{combinator}})", {
+      count: total,
+      combinator: tree.combinator.toUpperCase(),
+    });
 }
 
 /**
@@ -84,7 +94,7 @@ export function conditionsSummaryLabel(tree: ConditionTree): string {
  */
 export function conditionsDetailedLabel(tree: ConditionTree): string {
   const parts = conditionsBreakdown(tree);
-  return parts.length > 0 ? parts.join(" · ") : "No conditions set";
+  return parts.length > 0 ? parts.join(" · ") : i18n.t("No conditions set");
 }
 
 /** Per-type breakdown rows: the summary count paired with its singular/plural noun. */
@@ -166,5 +176,5 @@ export function conditionsBreakdown(tree: ConditionTree): string[] {
     }) => count > 0)
     .map(({
       count, singular, plural,
-    }) => `${count} ${count === 1 ? singular : plural}`);
+    }) => `${count} ${i18n.t(count === 1 ? singular : plural)}`);
 }

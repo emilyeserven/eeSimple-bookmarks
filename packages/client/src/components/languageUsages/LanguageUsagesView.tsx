@@ -1,5 +1,7 @@
 import type { LanguageUsage } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { Badge } from "../ui/badge";
 
 interface LanguageUsagesViewProps {
@@ -10,10 +12,13 @@ interface LanguageUsagesViewProps {
 
 /** Read-only display of an owner's language usages as `Language — Level (note)` chips. */
 export function LanguageUsagesView({
-  usages, emptyText = "No languages added.",
+  usages, emptyText,
 }: LanguageUsagesViewProps) {
+  const {
+    t,
+  } = useTranslation();
   if (usages.length === 0) {
-    return <p className="text-sm text-muted-foreground">{emptyText}</p>;
+    return <p className="text-sm text-muted-foreground">{emptyText ?? t("No languages added.")}</p>;
   }
   return (
     <ul className="flex flex-wrap gap-2">
