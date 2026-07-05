@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { usePlaceTypeBySlug } from "../hooks/usePlaceTypes";
@@ -7,20 +8,22 @@ export const Route = createFileRoute("/taxonomies/place-types/$placeTypeSlug/edi
   component: PlaceTypeEditLayout,
 });
 
-const editNav = [
-  {
-    to: "/taxonomies/place-types/$placeTypeSlug/edit/general",
-    label: "General",
-  },
-] as const;
-
 function PlaceTypeEditLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     placeTypeSlug,
   } = Route.useParams();
   const {
     placeType, isLoading,
   } = usePlaceTypeBySlug(placeTypeSlug);
+  const editNav = [
+    {
+      to: "/taxonomies/place-types/$placeTypeSlug/edit/general",
+      label: t("General"),
+    },
+  ] as const;
 
   return (
     <TabbedEntityLayout
@@ -36,16 +39,18 @@ function PlaceTypeEditLayout() {
               hover:text-foreground
             "
           >
-            ← Back to {isLoading ? "place type" : (placeType?.name ?? "place type")}
+            {t("← Back to {{name}}", {
+              name: isLoading ? t("place type") : (placeType?.name ?? t("place type")),
+            })}
           </Link>
-          <h1 className="text-2xl font-bold">Edit place type</h1>
+          <h1 className="text-2xl font-bold">{t("Edit place type")}</h1>
         </div>
       )}
       nav={editNav}
       params={{
         placeTypeSlug,
       }}
-      navAriaLabel="Place type edit sections"
+      navAriaLabel={t("Place type edit sections")}
     />
   );
 }

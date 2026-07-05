@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RelationshipTypesListing } from "../components/RelationshipTypeManager";
 import { useRelationshipTypes } from "../hooks/useRelationshipTypes";
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/taxonomies/relationship-types/")({
 /** Manage the "Relationship Types" taxonomy used by bookmark relationships. */
 function RelationshipTypesPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: relationshipTypes,
   } = useRelationshipTypes();
 
@@ -19,7 +23,7 @@ function RelationshipTypesPage() {
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Relationship Types</h1>
+          <h1 className="text-2xl font-bold">{t("Relationship Types")}</h1>
           {relationshipTypes
             ? (
               <Badge variant="secondary">
@@ -29,8 +33,9 @@ function RelationshipTypesPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Classify how bookmarks relate to one another. Apply these types when linking bookmarks in
-          the Relationships editor.
+          {t(
+            "Classify how bookmarks relate to one another. Apply these types when linking bookmarks in the Relationships editor.",
+          )}
         </p>
       </div>
 

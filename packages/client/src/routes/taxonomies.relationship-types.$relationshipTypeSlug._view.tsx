@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useRelationshipTypeBySlug } from "../hooks/useRelationshipTypes";
+
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/taxonomies/relationship-types/$relationshipTypeSlug/_view")({
   component: RelationshipTypeViewLayout,
@@ -10,11 +13,14 @@ export const Route = createFileRoute("/taxonomies/relationship-types/$relationsh
 const viewNav = [
   {
     to: "/taxonomies/relationship-types/$relationshipTypeSlug/general",
-    label: "General",
+    label: i18n.t("General"),
   },
 ] as const;
 
 function RelationshipTypeViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     relationshipTypeSlug,
   } = Route.useParams();
@@ -31,15 +37,15 @@ function RelationshipTypeViewLayout() {
           "
         >
           {isLoading
-            ? "Relationship type"
-            : (relationshipType?.name ?? "Relationship type not found")}
+            ? t("Relationship type")
+            : (relationshipType?.name ?? t("Relationship type not found"))}
         </h1>
       )}
       nav={viewNav}
       params={{
         relationshipTypeSlug,
       }}
-      navAriaLabel="Relationship type sections"
+      navAriaLabel={t("Relationship type sections")}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { PeopleListing } from "../components/PersonManager";
 import { usePeople } from "../hooks/usePeople";
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/taxonomies/people/")({
 /** Browse view for the People taxonomy: every person with search filtering. */
 function PeopleTaxonomyPage() {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: allPeople,
   } = usePeople();
 
@@ -19,7 +23,7 @@ function PeopleTaxonomyPage() {
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">People</h1>
+          <h1 className="text-2xl font-bold">{t("People")}</h1>
           {allPeople
             ? (
               <Badge variant="secondary">
@@ -29,7 +33,7 @@ function PeopleTaxonomyPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Browse the People taxonomy. Create an person, then assign them to bookmarks.
+          {t("Browse the People taxonomy. Create an person, then assign them to bookmarks.")}
         </p>
       </div>
 

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useMediaPropertyBySlug } from "../hooks/useMediaProperties";
@@ -7,20 +8,23 @@ export const Route = createFileRoute("/taxonomies/media-properties/$mediaPropert
   component: MediaPropertyViewLayout,
 });
 
-const viewNav = [
-  {
-    to: "/taxonomies/media-properties/$mediaPropertySlug/general",
-    label: "General",
-  },
-] as const;
-
 function MediaPropertyViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     mediaPropertySlug,
   } = Route.useParams();
   const {
     mediaProperty, isLoading,
   } = useMediaPropertyBySlug(mediaPropertySlug);
+
+  const viewNav = [
+    {
+      to: "/taxonomies/media-properties/$mediaPropertySlug/general",
+      label: t("General"),
+    },
+  ] as const;
 
   return (
     <TabbedEntityLayout
@@ -30,14 +34,14 @@ function MediaPropertyViewLayout() {
             flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
           "
         >
-          {isLoading ? "Media property" : (mediaProperty?.name ?? "Media property not found")}
+          {isLoading ? t("Media property") : (mediaProperty?.name ?? t("Media property not found"))}
         </h1>
       )}
       nav={viewNav}
       params={{
         mediaPropertySlug,
       }}
-      navAriaLabel="Media property sections"
+      navAriaLabel={t("Media property sections")}
     />
   );
 }

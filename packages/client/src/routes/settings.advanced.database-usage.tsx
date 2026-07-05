@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { DatabaseUsageCard } from "../components/DatabaseUsageCard";
 import { ProcessedItemsCard } from "../components/ImportsSettings";
@@ -8,13 +9,15 @@ export const Route = createFileRoute("/settings/advanced/database-usage")({
 });
 
 function DatabaseUsagePage() {
+  const {
+    t,
+  } = useTranslation();
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Database usage</h2>
+        <h2 className="text-xl font-semibold">{t("Database usage")}</h2>
         <p className="text-sm text-muted-foreground">
-          A read-only summary of how much disk space the database is using, plus a sweep of processed
-          inbox items.
+          {t("A read-only summary of how much disk space the database is using, plus a sweep of processed inbox items.")}
         </p>
       </div>
       <DatabaseUsageCard />
