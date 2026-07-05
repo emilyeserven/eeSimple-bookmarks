@@ -68,6 +68,20 @@ export interface EntityListingConfig<E extends { id: string }> {
       onChange: (value: string | null) => void; }) => ReactNode;
     matches: (item: E, value: string | null) => boolean;
   };
+  /**
+   * Optional partition of the rendered list (both card/list and table views) into labeled sections,
+   * e.g. Languages' used vs. "Unused" split. Each filtered item is assigned to the FIRST section
+   * whose `match` returns true (sections should be mutually exclusive & exhaustive); items matching
+   * none are dropped. Empty sections render nothing. A section with no `title` renders its items
+   * bare (no heading) — used for the "default" group. Omit the field entirely to render one flat
+   * list as before.
+   */
+  sections?: {
+    key: string;
+    /** Already-translated heading. Omit for no heading. */
+    title?: string;
+    match: (item: E) => boolean;
+  }[];
   renderListItem: (props: {
     entity: E;
     /** The full unfiltered list, for entities whose card needs cross-item lookups (e.g. a
