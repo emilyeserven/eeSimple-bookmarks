@@ -153,6 +153,16 @@ export function useBookmarkAddFormSettingsPage() {
     );
   }
 
+  function setRevealAutofilledInMain(enabled: boolean): void {
+    persistSettings(
+      {
+        ...config,
+        revealAutofilledInMain: enabled,
+      },
+      tLabel("Reveal auto-filled fields"),
+    );
+  }
+
   function setCustomPropertyPlacement(property: CustomProperty, placement: BookmarkAddFormPlacement): void {
     updateProperty.mutate({
       id: property.id,
@@ -197,6 +207,7 @@ export function useBookmarkAddFormSettingsPage() {
     config,
     setStandardFieldPlacement,
     setBuiltInPropertyPlacement,
+    setRevealAutofilledInMain,
     setCustomPropertyPlacement,
     detailProperties,
     customProperties,

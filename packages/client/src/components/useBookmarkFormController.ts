@@ -8,7 +8,7 @@ import { useBookmarkFormChannel } from "./useBookmarkFormChannel";
 import { useBookmarkFormData } from "./useBookmarkFormData";
 import { useBookmarkFormHandlers } from "./useBookmarkFormHandlers";
 import { useBookmarkFormImageState } from "./useBookmarkFormImageState";
-import { useBookmarkFormUiState, useSourceDefaultFlags } from "./useBookmarkFormState";
+import { useAutofilledFields, useBookmarkFormUiState, useSourceDefaultFlags } from "./useBookmarkFormState";
 import { useBookmarkIsbn } from "./useBookmarkIsbn";
 import { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
@@ -83,6 +83,10 @@ export function useBookmarkFormController({
   const primaryLanguage = useBookmarkPrimaryLanguage(bookmark, availabilityLanguageLevels);
 
   const flags = useSourceDefaultFlags();
+  // Tracks which fields/properties a URL/title automation filled this session, so the placement
+  // resolver can lift them into the main area when the "reveal auto-filled in main" setting is on.
+  // Create-only: edit surfaces never populate this and their resolver branch ignores it.
+  const autofilled = useAutofilledFields();
   const ui = useBookmarkFormUiState({
     initialScanned: isEdit,
     fetchTitlePending: fetchTitle.isPending,
@@ -164,6 +168,8 @@ export function useBookmarkFormController({
     form,
     autofillRules,
     categories,
+    markAutofilledField: autofilled.markAutofilledField,
+    markAutofilledProperty: autofilled.markAutofilledProperty,
   });
 
   // ISBN lookup: fetch + populate + lookup-isbn path.
@@ -206,6 +212,7 @@ export function useBookmarkFormController({
     prefill,
     primaryLanguage,
     handleAmazonIsbnDetected,
+    autofilled,
   });
   const {
     isOfflineMode,
@@ -291,6 +298,9 @@ export function useBookmarkFormController({
     createPersonFromSocialAccount,
     // "Set as default" context for the source-default checkboxes (rendered under their fields).
     sourceDefaults,
+    // Auto-filled tracking (create-only) — lifts automation-filled fields into the main area.
+    autofilledFields: autofilled.autofilledFields,
+    autofilledPropertyIds: autofilled.autofilledPropertyIds,
     // Prefill + scan handlers.
     prefill,
     runFetchTitle,

@@ -31,6 +31,16 @@ export interface SelectFormPropertiesOptions {
    * the property, so an override can never resurrect a `hiddenFromForm` property.
    */
   placementOverrides?: Record<string, BookmarkAddFormPlacement>;
+  /**
+   * Ids of custom properties a URL/title automation (an Autofill Rule) filled this session. When
+   * {@link revealAutofilledInMain} is on, such a property is lifted into the main (`default`) zone
+   * regardless of its configured Advanced/Hidden placement — checked after the scope/`enabled`/
+   * `hiddenFromForm` gates (which still win) and before the `hiddenSlugs`/override/`showInForm`
+   * logic, so an auto-filled Hidden detail slug surfaces too. Create-mode only.
+   */
+  autofilledPropertyIds?: ReadonlySet<string>;
+  /** Whether the "reveal auto-filled fields in main" setting is on (create-mode only). */
+  revealAutofilledInMain?: boolean;
 }
 
 /**
@@ -44,6 +54,7 @@ export function selectVisibleFormProperties(
   properties: CustomProperty[],
   {
     categoryId, mediaTypeId, placement, hiddenSlugs, groupId, placementOverrides,
+    autofilledPropertyIds, revealAutofilledInMain,
   }: SelectFormPropertiesOptions,
 ): CustomProperty[] {
   return properties.filter((property) => {
@@ -55,6 +66,9 @@ export function selectVisibleFormProperties(
     if (!property.enabled) return false;
     // hiddenFromForm drops the field entirely; otherwise showInForm chooses the main area vs. Advanced.
     if (property.hiddenFromForm) return false;
+    // A property the automation just filled is lifted into the main (`default`) zone only, bypassing
+    // its configured Advanced/Hidden placement (but never the scope/hiddenFromForm gates above).
+    if (revealAutofilledInMain && autofilledPropertyIds?.has(property.id)) return placement === "default";
     // Slugs the form fills server-side (e.g. Runtime) are hidden but still persisted.
     if (hiddenSlugs?.includes(property.slug)) return false;
     const override = placementOverrides?.[property.slug];

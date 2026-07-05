@@ -39,6 +39,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 
 /** A distinct lucide icon per standard field. */
@@ -76,6 +78,7 @@ export function DisplayBookmarkAddSettings() {
     config,
     setStandardFieldPlacement,
     setBuiltInPropertyPlacement,
+    setRevealAutofilledInMain,
     setCustomPropertyPlacement,
     detailProperties,
     customProperties,
@@ -117,6 +120,33 @@ export function DisplayBookmarkAddSettings() {
           {t("Preview")}
         </Button>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Automatically-filled fields")}</CardTitle>
+          <CardDescription>
+            {t(
+              "When adding a bookmark, an Autofill Rule or the URL scan can fill in fields (category, description & tags, people, image, locations, properties…). Turn this on to show any field the automation just filled in the main area of the Add Bookmark form — even when it's normally in Advanced or Hidden — so you can see what was applied.",
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="reveal-autofilled-in-main"
+              className="mt-0.5"
+              checked={config.revealAutofilledInMain}
+              onCheckedChange={checked => setRevealAutofilledInMain(checked === true)}
+            />
+            <Label
+              htmlFor="reveal-autofilled-in-main"
+              className="font-normal"
+            >
+              {t("Show automatically-filled fields in the main section")}
+            </Label>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

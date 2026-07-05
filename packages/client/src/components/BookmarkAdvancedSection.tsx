@@ -71,6 +71,10 @@ interface BookmarkAdvancedSectionProps extends StandardFieldRenderProps {
   hiddenSlugs?: string[];
   /** Per-slug placement overrides from the Add Bookmark Form settings (create mode only). */
   placementOverrides?: Record<string, BookmarkAddFormPlacement>;
+  /** Ids of custom properties an automation filled this session (create mode only). */
+  autofilledPropertyIds?: ReadonlySet<string>;
+  /** Whether the "reveal auto-filled fields in main" setting is on (create mode only). */
+  revealAutofilledInMain?: boolean;
   /** Custom-property inputs + change handlers (grouped). */
   customFields: BookmarkCustomFieldControls;
   /** Called when the user clicks "Fetch metadata" on the ISBN field. */
@@ -88,6 +92,8 @@ export function BookmarkAdvancedSection({
   standardFields = DEFAULT_ADVANCED_STANDARD_FIELDS,
   hiddenSlugs,
   placementOverrides,
+  autofilledPropertyIds,
+  revealAutofilledInMain,
   customFields,
   onIsbnFetch,
   isIsbnFetchPending,
@@ -143,6 +149,8 @@ export function BookmarkAdvancedSection({
                 properties={customProperties}
                 hiddenSlugs={hiddenSlugs}
                 placementOverrides={placementOverrides}
+                autofilledPropertyIds={autofilledPropertyIds}
+                revealAutofilledInMain={revealAutofilledInMain}
                 onIsbnFetch={onIsbnFetch}
                 isIsbnFetchPending={isIsbnFetchPending}
               />

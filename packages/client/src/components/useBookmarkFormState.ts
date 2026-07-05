@@ -1,4 +1,4 @@
-import type { BookmarkUrlDuplicateResult, SocialAccountRef } from "@eesimple/types";
+import type { BookmarkAddFormStandardField, BookmarkUrlDuplicateResult, SocialAccountRef } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
@@ -34,6 +34,51 @@ export function useSourceDefaultFlags() {
     setSetChannelCategory,
     setSetChannelTags,
     resetFlags,
+  };
+}
+
+/**
+ * Tracks which create-form fields a URL/title automation filled this session (create-only). Two
+ * sets: standard-field keys (category / description & tags / people / image / locations …) written
+ * by an Autofill Rule or the URL scan, and custom-property ids an Autofill Rule set. When the
+ * Settings → Display → Bookmark Add Form "reveal auto-filled in main" toggle is on, the placement
+ * resolver lifts these into the main area regardless of their configured Advanced/Hidden placement.
+ * A `Set` reference only changes when a genuinely new key is added, so the memoized visibility hook
+ * stays stable between renders. Cleared by the form's Reset (`resetAutofilled`).
+ */
+export function useAutofilledFields() {
+  const [autofilledFields, setAutofilledFields] = useState<Set<BookmarkAddFormStandardField>>(new Set());
+  const [autofilledPropertyIds, setAutofilledPropertyIds] = useState<Set<string>>(new Set());
+
+  function markAutofilledField(field: BookmarkAddFormStandardField): void {
+    setAutofilledFields((current) => {
+      if (current.has(field)) return current;
+      const next = new Set(current);
+      next.add(field);
+      return next;
+    });
+  }
+
+  function markAutofilledProperty(propertyId: string): void {
+    setAutofilledPropertyIds((current) => {
+      if (current.has(propertyId)) return current;
+      const next = new Set(current);
+      next.add(propertyId);
+      return next;
+    });
+  }
+
+  function resetAutofilled(): void {
+    setAutofilledFields(new Set());
+    setAutofilledPropertyIds(new Set());
+  }
+
+  return {
+    autofilledFields,
+    autofilledPropertyIds,
+    markAutofilledField,
+    markAutofilledProperty,
+    resetAutofilled,
   };
 }
 

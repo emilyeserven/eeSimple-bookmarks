@@ -372,3 +372,24 @@ test("bookmark-add-form update round-trip: the stored shape built by the update 
     );
   }
 });
+
+test("resolveBookmarkAddFormSettings: revealAutofilledInMain defaults to false and round-trips a stored value", () => {
+  // Absent column → false (today's behavior, unchanged for existing rows).
+  assert.equal(
+    resolveBookmarkAddFormSettings({
+      bookmarkFormStandardPlacements: null,
+      bookmarkFormBuiltInPlacements: null,
+    }).revealAutofilledInMain,
+    false,
+  );
+  assert.equal(resolveBookmarkAddFormSettings().revealAutofilledInMain, false);
+  // A stored true value round-trips.
+  assert.equal(
+    resolveBookmarkAddFormSettings({
+      bookmarkFormStandardPlacements: null,
+      bookmarkFormBuiltInPlacements: null,
+      bookmarkFormRevealAutofilledInMain: true,
+    }).revealAutofilledInMain,
+    true,
+  );
+});

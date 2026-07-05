@@ -3,7 +3,7 @@ import type { DraftEntityName } from "./entityNames/draftEntityName";
 import type { useBookmarkFormChannel } from "./useBookmarkFormChannel";
 import type { useBookmarkFormData } from "./useBookmarkFormData";
 import type { useBookmarkFormImageState } from "./useBookmarkFormImageState";
-import type { useBookmarkFormUiState, useSourceDefaultFlags } from "./useBookmarkFormState";
+import type { useAutofilledFields, useBookmarkFormUiState, useSourceDefaultFlags } from "./useBookmarkFormState";
 import type { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import type { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
 import type { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
@@ -33,6 +33,7 @@ type Ui = ReturnType<typeof useBookmarkFormUiState>;
 type Flags = ReturnType<typeof useSourceDefaultFlags>;
 type Prefill = ReturnType<typeof useBookmarkPropertyPrefill>;
 type UrlProcessing = ReturnType<typeof useBookmarkUrlProcessing>;
+type Autofilled = ReturnType<typeof useAutofilledFields>;
 
 /** True when `url`'s hostname (minus leading www.) matches any entry in `ignoreList`. */
 function isRedirectIgnored(url: string, ignoreList: string[]): boolean {
@@ -61,6 +62,8 @@ interface UseBookmarkFormHandlersParams {
   primaryLanguage: ReturnType<typeof useBookmarkPrimaryLanguage>;
   /** Amazon-scan ISBN detection (see `useBookmarkIsbn`) — invoked from `performUrlScan`. */
   handleAmazonIsbnDetected: (isbn13: string) => Promise<void>;
+  /** Records which fields/properties a URL/title automation filled (create-only); cleared on reset. */
+  autofilled: Autofilled;
 }
 
 /**
@@ -85,6 +88,7 @@ export function useBookmarkFormHandlers({
   prefill,
   primaryLanguage,
   handleAmazonIsbnDetected,
+  autofilled,
 }: UseBookmarkFormHandlersParams) {
   const navigate = useNavigate();
   const {
@@ -205,6 +209,7 @@ export function useBookmarkFormHandlers({
     attachPrimaryLanguageUsage,
     createLanguage,
     stageDetectedSiteLanguageCode,
+    markAutofilledField: autofilled.markAutofilledField,
   });
 
   // Persist the form: build the property values + input, then create or update. On create, also
@@ -350,6 +355,7 @@ export function useBookmarkFormHandlers({
   function handleReset(): void {
     form.reset();
     prefill.resetPrefill();
+    autofilled.resetAutofilled();
     channel.resetChannel();
     setUrlShortener({
       nudge: false,
@@ -420,6 +426,7 @@ export function useBookmarkFormHandlers({
       });
       if (scan) {
         setImageCandidates(scan.imageCandidates);
+        if (scan.imageCandidates.length > 0) autofilled.markAutofilledField("image");
         if (scan.isbn) {
           await handleAmazonIsbnDetected(scan.isbn);
         }

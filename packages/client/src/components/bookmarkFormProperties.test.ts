@@ -253,4 +253,92 @@ describe("selectVisibleFormProperties", () => {
       })).toEqual([]);
     });
   });
+
+  describe("revealAutofilledInMain", () => {
+    it("lifts an auto-filled property into the default zone and out of advanced, bypassing its placement", () => {
+      const list = [
+        // Configured to Advanced (showInForm: false) — but auto-filled, so it belongs in main.
+        prop({
+          id: "autofilled",
+          slug: "autofilled",
+          showInForm: false,
+        }),
+      ];
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "default",
+        autofilledPropertyIds: new Set(["autofilled"]),
+        revealAutofilledInMain: true,
+      }).map(p => p.id)).toEqual(["autofilled"]);
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "advanced",
+        autofilledPropertyIds: new Set(["autofilled"]),
+        revealAutofilledInMain: true,
+      })).toEqual([]);
+    });
+
+    it("lifts an auto-filled property whose override is \"hidden\" into the default zone", () => {
+      const list = [
+        prop({
+          id: "autofilled",
+          slug: "autofilled",
+          showInForm: false,
+        }),
+      ];
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "default",
+        placementOverrides: {
+          autofilled: "hidden",
+        },
+        autofilledPropertyIds: new Set(["autofilled"]),
+        revealAutofilledInMain: true,
+      }).map(p => p.id)).toEqual(["autofilled"]);
+    });
+
+    it("does nothing when the setting is off", () => {
+      const list = [
+        prop({
+          id: "autofilled",
+          slug: "autofilled",
+          showInForm: false,
+        }),
+      ];
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "default",
+        autofilledPropertyIds: new Set(["autofilled"]),
+        revealAutofilledInMain: false,
+      })).toEqual([]);
+      expect(selectVisibleFormProperties(list, {
+        ...base,
+        placement: "advanced",
+        autofilledPropertyIds: new Set(["autofilled"]),
+        revealAutofilledInMain: false,
+      }).map(p => p.id)).toEqual(["autofilled"]);
+    });
+
+    it("keeps the scope lock and hiddenFromForm as the ultimate gates", () => {
+      const scoped = prop({
+        id: "scoped",
+        slug: "scoped",
+        showInForm: false,
+        allCategories: false,
+        categoryIds: ["other"],
+      });
+      const forcedHidden = prop({
+        id: "forcedHidden",
+        slug: "forcedHidden",
+        showInForm: false,
+        hiddenFromForm: true,
+      });
+      expect(selectVisibleFormProperties([scoped, forcedHidden], {
+        ...base,
+        placement: "default",
+        autofilledPropertyIds: new Set(["scoped", "forcedHidden"]),
+        revealAutofilledInMain: true,
+      })).toEqual([]);
+    });
+  });
 });

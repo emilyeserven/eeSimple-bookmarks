@@ -1,6 +1,6 @@
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
 import type { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
-import type { FetchMetadataResult, Language, Person, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
+import type { BookmarkAddFormStandardField, FetchMetadataResult, Language, Person, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 
 import { sameSocialAccount, socialAccountFromLink } from "@eesimple/types";
@@ -76,6 +76,12 @@ interface UseBookmarkScanHandlersParams {
    * above, so it fires even when no such level exists. Omitted on edit surfaces.
    */
   stageDetectedSiteLanguageCode?: (code: string | null) => void;
+  /**
+   * Record a standard field the scan just filled (create-only): title, description (both the
+   * `descriptionTags` field), or people (`personIds`). Lets the "reveal auto-filled in main" setting
+   * lift them into the main area. Omitted on edit surfaces, so edit is unaffected.
+   */
+  markAutofilledField?: (field: BookmarkAddFormStandardField) => void;
 }
 
 /**
@@ -113,6 +119,7 @@ export function useBookmarkScanHandlers({
   attachPrimaryLanguageUsage,
   createLanguage,
   stageDetectedSiteLanguageCode,
+  markAutofilledField,
 }: UseBookmarkScanHandlersParams) {
   const locale = useAppLocale();
   // Fetch the page title for the current URL and write it into the Title field.
@@ -174,6 +181,7 @@ export function useBookmarkScanHandlers({
       }
       const prevTitle = form.getFieldValue("title");
       form.setFieldValue("title", title);
+      markAutofilledField?.("title");
       if (force && prevTitle.trim() !== "") setTitleFetch({
         previous: prevTitle,
       });
@@ -182,6 +190,7 @@ export function useBookmarkScanHandlers({
     // Fill the Description from the watch-page og:description when the field is still empty.
     if (fillTitle && meta.description && form.getFieldValue("description").trim() === "") {
       form.setFieldValue("description", meta.description);
+      markAutofilledField?.("descriptionTags");
     }
     if (meta.channel?.key) {
       // Merge server selfIds with user-entered ones (union, server IDs first) so the user's
@@ -306,7 +315,10 @@ export function useBookmarkScanHandlers({
         }
       }
     }
-    if (ids.length > 0) setPersonIds(ids);
+    if (ids.length > 0) {
+      setPersonIds(ids);
+      markAutofilledField?.("personIds");
+    }
   }
 
   // Resolve a detected ISO language code to a Language id and attach it as a "Primary Language"
@@ -488,6 +500,7 @@ export function useBookmarkScanHandlers({
     if (fillTitle && meta.title && (force || form.getFieldValue("title").trim() === "")) {
       const prevTitle = form.getFieldValue("title");
       form.setFieldValue("title", meta.title);
+      markAutofilledField?.("title");
       if (force && prevTitle.trim() !== "") setTitleFetch({
         previous: prevTitle,
       });
@@ -495,6 +508,7 @@ export function useBookmarkScanHandlers({
     }
     if (fillTitle && meta.description && form.getFieldValue("description").trim() === "") {
       form.setFieldValue("description", meta.description);
+      markAutofilledField?.("descriptionTags");
     }
     await applyPeopleFromNames(url, meta.authorNames);
     await applyLanguageFromCode(meta.languageCode);

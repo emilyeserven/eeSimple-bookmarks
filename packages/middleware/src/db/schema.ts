@@ -2058,6 +2058,10 @@ export const appSettings = pgTable("app_settings", {
   // replaces the legacy `bookmarkFormAdvancedFields`/`bookmarkFormHiddenFields` arrays above, which
   // are kept only so an existing row's choices can be derived on first read (see the service).
   bookmarkFormStandardPlacements: jsonb("bookmark_form_standard_placements").$type<Record<string, string>>(),
+  // When true, fields a URL/title automation (an Autofill Rule or the URL scan) filled are lifted
+  // into the create form's main area regardless of their configured Advanced/Hidden placement.
+  // Nullable = push-safe additive; the service reads `?? false`.
+  bookmarkFormRevealAutofilledInMain: boolean("bookmark_form_reveal_autofilled_in_main"),
 });
 
 /**
