@@ -1,6 +1,7 @@
 import type { EntityWorkbench, WorkbenchDelete, WorkbenchMode } from "./types";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { TabWrapper } from "../TabWrapper";
 
@@ -24,15 +25,16 @@ function DangerZone({
   entityName: string;
   onDeleted: () => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="rounded-lg border border-destructive/50 p-4">
-      <h3 className="text-sm font-semibold text-destructive">Danger zone</h3>
+      <h3 className="text-sm font-semibold text-destructive">{t("Danger zone")}</h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        Deleting
-        {" "}
-        <span className="font-medium">{entityName}</span>
-        {" "}
-        is permanent and cannot be undone.
+        {t("Deleting {{entityName}} is permanent and cannot be undone.", {
+          entityName,
+        })}
       </p>
       <div className="mt-3">
         <Button
@@ -46,7 +48,7 @@ function DangerZone({
           disabled={del.isPending}
           onClick={() => del.run(entityId, onDeleted)}
         >
-          {del.isPending ? "Deleting…" : "Delete"}
+          {del.isPending ? t("Deleting…") : t("Delete")}
         </Button>
       </div>
       {del.error ? <p className="mt-2 text-sm text-destructive">{del.error}</p> : null}

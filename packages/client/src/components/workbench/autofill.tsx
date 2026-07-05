@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { AutofillRule } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { AutofillBackfillView } from "../AutofillBackfillView";
 import { AutofillRuleConditionsForm } from "../AutofillRuleConditionsForm";
 import { AutofillGeneralFields } from "../AutofillRuleDetail";
@@ -42,23 +43,23 @@ export const autofillWorkbench: EntityWorkbench<AutofillRule> = {
       }),
     };
   },
-  notFound: "Autofill rule not found.",
-  navAriaLabel: "Autofill rule sections",
+  notFound: i18n.t("Autofill rule not found."),
+  navAriaLabel: i18n.t("Autofill rule sections"),
   getSlug: rule => rule.slug,
   tabs: [
     {
       key: "general",
       label: "General",
       view: {
-        title: "General",
-        description: "Name, description, and priority.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, description, and priority."),
         render: ({
           entity,
         }) => <AutofillGeneralFields rule={entity} />,
       },
       edit: {
-        title: "General",
-        description: "Name, description, and priority.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, description, and priority."),
         render: ({
           entity,
         }) => <AutofillRuleGeneralForm rule={entity} />,
@@ -68,13 +69,13 @@ export const autofillWorkbench: EntityWorkbench<AutofillRule> = {
       key: "conditions",
       label: "Activation Conditions",
       view: {
-        title: "Activation Conditions",
-        description: "When this rule fires.",
+        title: i18n.t("Activation Conditions"),
+        description: i18n.t("When this rule fires."),
         render: ConditionsView,
       },
       edit: {
-        title: "Activation Conditions",
-        description: "Configure when this rule should apply.",
+        title: i18n.t("Activation Conditions"),
+        description: i18n.t("Configure when this rule should apply."),
         render: ({
           entity,
         }) => <AutofillRuleConditionsForm rule={entity} />,
@@ -84,13 +85,13 @@ export const autofillWorkbench: EntityWorkbench<AutofillRule> = {
       key: "prefill",
       label: "What Gets Prefilled",
       view: {
-        title: "What Gets Prefilled",
-        description: "Category, tags, and custom-property values set when this rule matches.",
+        title: i18n.t("What Gets Prefilled"),
+        description: i18n.t("Category, tags, and custom-property values set when this rule matches."),
         render: PrefillView,
       },
       edit: {
-        title: "What Gets Prefilled",
-        description: "Configure the category, tags, and property values this rule sets.",
+        title: i18n.t("What Gets Prefilled"),
+        description: i18n.t("Configure the category, tags, and property values this rule sets."),
         render: ({
           entity,
         }) => <AutofillRulePrefillForm rule={entity} />,
@@ -100,8 +101,8 @@ export const autofillWorkbench: EntityWorkbench<AutofillRule> = {
       key: "debug",
       label: "Debug",
       view: {
-        title: "Debug",
-        description: "Rule and bookmark JSON for debugging rule matching with Claude.",
+        title: i18n.t("Debug"),
+        description: i18n.t("Rule and bookmark JSON for debugging rule matching with Claude."),
         render: DebugView,
       },
     },
@@ -109,8 +110,8 @@ export const autofillWorkbench: EntityWorkbench<AutofillRule> = {
       key: "backfill",
       label: "Backfill",
       view: {
-        title: "Backfill",
-        description: "Find matching bookmarks missing this rule's properties and apply them.",
+        title: i18n.t("Backfill"),
+        description: i18n.t("Find matching bookmarks missing this rule's properties and apply them."),
         render: ({
           entity,
         }) => <AutofillBackfillView rule={entity} />,

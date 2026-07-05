@@ -2,6 +2,7 @@ import type { TagNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
+import i18n from "../../i18n";
 import { HierarchyView } from "../HierarchyView";
 import { RomanizedLabel } from "../RomanizedLabel";
 import { TagTreeList } from "../TagTreeList";
@@ -47,7 +48,7 @@ export function TagHierarchyView({
         </Link>
       )}
       hasChildren={node.children.length > 0}
-      childrenEmptyLabel="No child tags."
+      childrenEmptyLabel={i18n.t("No child tags.")}
       childrenList={(
         <TagTreeList
           tree={children}

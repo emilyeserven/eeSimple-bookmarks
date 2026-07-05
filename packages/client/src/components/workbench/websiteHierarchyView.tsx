@@ -1,6 +1,7 @@
 import type { Website } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { HierarchyView } from "../HierarchyView";
 import { WebsiteTreeList } from "../WebsiteTreeList";
@@ -14,6 +15,9 @@ export function WebsiteHierarchyView({
 }: {
   entity: Website;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data,
   } = useWebsiteTree();
@@ -45,7 +49,7 @@ export function WebsiteHierarchyView({
         </Link>
       )}
       hasChildren={children.length > 0}
-      childrenEmptyLabel="No subdomains."
+      childrenEmptyLabel={t("No subdomains.")}
       childrenList={(
         <WebsiteTreeList
           tree={children}

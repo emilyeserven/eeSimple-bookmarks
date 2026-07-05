@@ -1,6 +1,7 @@
 import type { LocationNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { HierarchyView } from "../HierarchyView";
 import { LocationTreeList } from "../LocationTreeList";
@@ -23,6 +24,9 @@ export function LocationHierarchyView({
   } = useExpandedSet(node.children.map(c => c.id));
   const path = findAncestorPath(data ?? [], node.slug);
   const ancestors = path ? path.slice(0, -1) : [];
+  const {
+    t,
+  } = useTranslation();
   return (
     <HierarchyView
       ancestors={ancestors}
@@ -41,7 +45,7 @@ export function LocationHierarchyView({
         </Link>
       )}
       hasChildren={node.children.length > 0}
-      childrenEmptyLabel="No child locations."
+      childrenEmptyLabel={t("No child locations.")}
       childrenList={(
         <LocationTreeList
           tree={node.children}

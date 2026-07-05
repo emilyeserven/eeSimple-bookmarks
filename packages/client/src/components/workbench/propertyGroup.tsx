@@ -2,6 +2,7 @@
 import type { EntityWorkbench } from "./types";
 import type { PropertyGroup } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { PropertyGroupGeneralForm } from "../PropertyGroupGeneralForm";
 
 import { useDeletePropertyGroup, usePropertyGroupBySlug, usePropertyGroups } from "@/hooks/usePropertyGroups";
@@ -17,16 +18,16 @@ function PropertyGroupGeneralView({
         ? <p className="text-sm text-muted-foreground">{group.description}</p>
         : null}
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{i18n.t("Added")}</dt>
         <dd>{new Date(group.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{i18n.t("Slug")}</dt>
         <dd className="font-mono">{group.slug}</dd>
-        <dt className="text-muted-foreground">Priority</dt>
+        <dt className="text-muted-foreground">{i18n.t("Priority")}</dt>
         <dd>{group.priority}</dd>
         {group.propertyCount != null
           ? (
             <>
-              <dt className="text-muted-foreground">Properties</dt>
+              <dt className="text-muted-foreground">{i18n.t("Properties")}</dt>
               <dd>{group.propertyCount}</dd>
             </>
           )
@@ -68,22 +69,22 @@ export const propertyGroupWorkbench: EntityWorkbench<PropertyGroup> = {
       }),
     };
   },
-  notFound: "Property group not found.",
-  navAriaLabel: "Property group sections",
+  notFound: i18n.t("Property group not found."),
+  navAriaLabel: i18n.t("Property group sections"),
   listingPath: "/taxonomies/property-groups",
   getSlug: group => group.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Name, priority, description, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, priority, description, and metadata."),
         render: PropertyGroupGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name, priority, and description.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, priority, and description."),
         render: ({
           entity,
         }) => <PropertyGroupGeneralForm group={entity} />,

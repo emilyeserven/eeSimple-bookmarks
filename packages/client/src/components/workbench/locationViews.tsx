@@ -3,6 +3,8 @@ import type { LocationNode } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
 import { LocationMapSection } from "../LocationMapSection";
 import { RomanizedLabel } from "../RomanizedLabel";
@@ -18,6 +20,9 @@ export function LocationGeneralView({
   entity: LocationNode;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data,
   } = useLocationTree();
   const [onlyDirectRelatives, setOnlyDirectRelatives] = useState(false);
@@ -26,7 +31,7 @@ export function LocationGeneralView({
     : null;
   const coordinates = node.latitude != null && node.longitude != null
     ? `${node.latitude}, ${node.longitude}`
-    : "—";
+    : t("—");
 
   // Ancestor chain (root → parent), stripped of children so only the ancestors themselves plot —
   // otherwise `collectMapped` would re-plot the whole tree under a root ancestor. "Only direct"
@@ -73,7 +78,7 @@ export function LocationGeneralView({
   return (
     <div className="space-y-6">
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Parent</dt>
+        <dt className="text-muted-foreground">{t("Parent")}</dt>
         <dd>{parent
           ? (
             <RomanizedLabel
@@ -81,25 +86,25 @@ export function LocationGeneralView({
               romanized={parent.romanizedName}
             />
           )
-          : "(root)"}
+          : t("(root)")}
         </dd>
-        <dt className="text-muted-foreground">Children</dt>
+        <dt className="text-muted-foreground">{t("Children")}</dt>
         <dd>{node.children.length}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{node.slug}</dd>
-        <dt className="text-muted-foreground">Names</dt>
+        <dt className="text-muted-foreground">{t("Names")}</dt>
         <dd>
           <EntityNamesTabView
             ownerType="location"
             ownerId={node.id}
           />
         </dd>
-        <dt className="text-muted-foreground">Coordinates</dt>
+        <dt className="text-muted-foreground">{t("Coordinates")}</dt>
         <dd>{coordinates}</dd>
         {node.placeType
           ? (
             <>
-              <dt className="text-muted-foreground">Place type</dt>
+              <dt className="text-muted-foreground">{t("Place type")}</dt>
               <dd>{node.placeType}</dd>
             </>
           )
@@ -107,7 +112,7 @@ export function LocationGeneralView({
         {node.countryCode
           ? (
             <>
-              <dt className="text-muted-foreground">Country</dt>
+              <dt className="text-muted-foreground">{t("Country")}</dt>
               <dd>{node.countryCode}</dd>
             </>
           )
@@ -115,7 +120,7 @@ export function LocationGeneralView({
         {node.mapUrl
           ? (
             <>
-              <dt className="text-muted-foreground">Map</dt>
+              <dt className="text-muted-foreground">{t("Map")}</dt>
               <dd>
                 <a
                   href={node.mapUrl}
@@ -123,7 +128,7 @@ export function LocationGeneralView({
                   rel="noreferrer"
                   className="hover:underline"
                 >
-                  Open map
+                  {t("Open map")}
                 </a>
               </dd>
             </>
@@ -132,7 +137,7 @@ export function LocationGeneralView({
         {node.officialLink
           ? (
             <>
-              <dt className="text-muted-foreground">Official link</dt>
+              <dt className="text-muted-foreground">{t("Official link")}</dt>
               <dd>
                 <a
                   href={node.officialLink}
@@ -149,7 +154,7 @@ export function LocationGeneralView({
         {node.wikipediaLinkEn
           ? (
             <>
-              <dt className="text-muted-foreground">Wikipedia (EN)</dt>
+              <dt className="text-muted-foreground">{t("Wikipedia (EN)")}</dt>
               <dd>
                 <a
                   href={node.wikipediaLinkEn}
@@ -166,7 +171,7 @@ export function LocationGeneralView({
         {node.wikipediaLinkLocal
           ? (
             <>
-              <dt className="text-muted-foreground">Wikipedia (Local)</dt>
+              <dt className="text-muted-foreground">{t("Wikipedia (Local)")}</dt>
               <dd>
                 <a
                   href={node.wikipediaLinkLocal}
@@ -180,9 +185,9 @@ export function LocationGeneralView({
             </>
           )
           : null}
-        <dt className="text-muted-foreground">Bookmarks</dt>
+        <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
         <dd>{node.bookmarkCount ?? 0}</dd>
-        <dt className="text-muted-foreground">Created</dt>
+        <dt className="text-muted-foreground">{t("Created")}</dt>
         <dd>{new Date(node.createdAt).toLocaleDateString()}</dd>
       </dl>
       <LocationMapSection

@@ -2,6 +2,9 @@
 import type { EntityWorkbench } from "./types";
 import type { Newsletter } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
+import i18n from "../../i18n";
 import { NewsletterGeneralForm } from "../NewsletterGeneralForm";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
 
@@ -12,17 +15,20 @@ function NewsletterGeneralView({
 }: {
   entity: Newsletter;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-4">
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{t("Added")}</dt>
         <dd>{new Date(newsletter.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{newsletter.slug}</dd>
         {newsletter.bookmarkCount != null
           ? (
             <>
-              <dt className="text-muted-foreground">Bookmarks</dt>
+              <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
               <dd>{newsletter.bookmarkCount}</dd>
             </>
           )
@@ -70,8 +76,8 @@ export const newsletterWorkbench: EntityWorkbench<Newsletter> = {
       }),
     };
   },
-  notFound: "Import not found.",
-  navAriaLabel: "Import sections",
+  notFound: i18n.t("Import not found."),
+  navAriaLabel: i18n.t("Import sections"),
   listingPath: "/taxonomies/newsletters",
   getSlug: newsletter => newsletter.slug,
   tabs: [
@@ -79,13 +85,13 @@ export const newsletterWorkbench: EntityWorkbench<Newsletter> = {
       key: "general",
       label: "General",
       view: {
-        title: "General",
-        description: "Import details and defaults.",
+        title: i18n.t("General"),
+        description: i18n.t("Import details and defaults."),
         render: NewsletterGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Import name and the default category, tags, and media type applied to imported bookmarks.",
+        title: i18n.t("General"),
+        description: i18n.t("Import name and the default category, tags, and media type applied to imported bookmarks."),
         render: ({
           entity,
         }) => <NewsletterGeneralForm newsletter={entity} />,

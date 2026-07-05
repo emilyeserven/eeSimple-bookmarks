@@ -2,6 +2,9 @@
 import type { EntityWorkbench } from "./types";
 import type { GroupType } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
+import i18n from "../../i18n";
 import { GroupTypeGeneralForm } from "../GroupTypeGeneralForm";
 
 import {
@@ -15,19 +18,22 @@ function GroupTypeGeneralView({
 }: {
   entity: GroupType;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-4">
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{t("Added")}</dt>
         <dd>{new Date(groupType.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{groupType.slug}</dd>
-        <dt className="text-muted-foreground">Sort order</dt>
+        <dt className="text-muted-foreground">{t("Sort order")}</dt>
         <dd>{groupType.sortOrder}</dd>
         {groupType.groupCount != null
           ? (
             <>
-              <dt className="text-muted-foreground">Groups</dt>
+              <dt className="text-muted-foreground">{t("Groups")}</dt>
               <dd>{groupType.groupCount}</dd>
             </>
           )
@@ -69,8 +75,8 @@ export const groupTypeWorkbench: EntityWorkbench<GroupType> = {
       }),
     };
   },
-  notFound: "Group type not found.",
-  navAriaLabel: "Group type sections",
+  notFound: i18n.t("Group type not found."),
+  navAriaLabel: i18n.t("Group type sections"),
   listingPath: "/taxonomies/group-types",
   getSlug: groupType => groupType.slug,
   tabs: [
@@ -78,13 +84,13 @@ export const groupTypeWorkbench: EntityWorkbench<GroupType> = {
       key: "general",
       label: "General",
       view: {
-        title: "General",
-        description: "Name, sort order, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, sort order, and metadata."),
         render: GroupTypeGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name and sort order.",
+        title: i18n.t("General"),
+        description: i18n.t("Name and sort order."),
         render: ({
           entity,
         }) => <GroupTypeGeneralForm groupType={entity} />,

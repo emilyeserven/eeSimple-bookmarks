@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Episode } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { EpisodeGeneralForm } from "../EpisodeGeneralForm";
 import { EpisodeTvShowValue } from "../EpisodeTvShowField";
 import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
@@ -41,8 +42,8 @@ export const episodeWorkbench: EntityWorkbench<Episode> = {
       }),
     };
   },
-  notFound: "Episode not found.",
-  navAriaLabel: "Episode sections",
+  notFound: i18n.t("Episode not found."),
+  navAriaLabel: i18n.t("Episode sections"),
   listingPath: "/taxonomies/episodes",
   getSlug: episode => episode.slug,
   tabs: [
@@ -50,8 +51,8 @@ export const episodeWorkbench: EntityWorkbench<Episode> = {
       key: "general",
       label: "General",
       view: {
-        title: "General",
-        description: "Media property, TV show, Plex link, year, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Media property, TV show, Plex link, year, and metadata."),
         render: ({
           entity,
         }) => (
@@ -65,8 +66,8 @@ export const episodeWorkbench: EntityWorkbench<Episode> = {
         ),
       },
       edit: {
-        title: "General",
-        description: "Name, media property, TV show, Plex link, and year.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, media property, TV show, Plex link, and year."),
         render: ({
           entity,
         }) => <EpisodeGeneralForm episode={entity} />,
@@ -76,8 +77,8 @@ export const episodeWorkbench: EntityWorkbench<Episode> = {
       key: "image",
       label: "Image",
       view: {
-        title: "Image",
-        description: "The episode's poster image.",
+        title: i18n.t("Image"),
+        description: i18n.t("The episode's poster image."),
         render: ({
           entity,
         }) => (
@@ -90,8 +91,8 @@ export const episodeWorkbench: EntityWorkbench<Episode> = {
         ),
       },
       edit: {
-        title: "Image",
-        description: "Upload a poster, or pull it from the linked Plex item.",
+        title: i18n.t("Image"),
+        description: i18n.t("Upload a poster, or pull it from the linked Plex item."),
         render: ({
           entity,
         }) => (

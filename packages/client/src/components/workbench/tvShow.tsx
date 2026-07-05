@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { TvShow } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { PlexTaxonomyImageTab } from "../PlexTaxonomyImageTab";
 import { PlexTitleGeneralView } from "../PlexTitleGeneralView";
@@ -41,8 +42,8 @@ export const tvShowWorkbench: EntityWorkbench<TvShow> = {
       }),
     };
   },
-  notFound: "TV show not found.",
-  navAriaLabel: "TV show sections",
+  notFound: i18n.t("TV show not found."),
+  navAriaLabel: i18n.t("TV show sections"),
   listingPath: "/taxonomies/tv-shows",
   getSlug: tvShow => tvShow.slug,
   tabs: [
@@ -50,8 +51,8 @@ export const tvShowWorkbench: EntityWorkbench<TvShow> = {
       key: "general",
       label: "General",
       view: {
-        title: "General",
-        description: "Media property, Plex link, year, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Media property, Plex link, year, and metadata."),
         render: ({
           entity,
         }) => (
@@ -64,8 +65,8 @@ export const tvShowWorkbench: EntityWorkbench<TvShow> = {
         ),
       },
       edit: {
-        title: "General",
-        description: "Name, media property, Plex link, and year.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, media property, Plex link, and year."),
         render: ({
           entity,
         }) => <TvShowGeneralForm tvShow={entity} />,
@@ -75,8 +76,8 @@ export const tvShowWorkbench: EntityWorkbench<TvShow> = {
       key: "image",
       label: "Image",
       view: {
-        title: "Image",
-        description: "The TV show's poster image.",
+        title: i18n.t("Image"),
+        description: i18n.t("The TV show's poster image."),
         render: ({
           entity,
         }) => (
@@ -89,8 +90,8 @@ export const tvShowWorkbench: EntityWorkbench<TvShow> = {
         ),
       },
       edit: {
-        title: "Image",
-        description: "Upload a poster, or pull it from the linked Plex item.",
+        title: i18n.t("Image"),
+        description: i18n.t("Upload a poster, or pull it from the linked Plex item."),
         render: ({
           entity,
         }) => (
@@ -106,8 +107,8 @@ export const tvShowWorkbench: EntityWorkbench<TvShow> = {
       key: "languages",
       label: "Languages",
       view: {
-        title: "Languages",
-        description: "Languages this show is available in and how.",
+        title: i18n.t("Languages"),
+        description: i18n.t("Languages this show is available in and how."),
         render: ({
           entity,
         }) => (
@@ -118,8 +119,8 @@ export const tvShowWorkbench: EntityWorkbench<TvShow> = {
         ),
       },
       edit: {
-        title: "Languages",
-        description: "Record which languages this show offers (dub, subtitles, …).",
+        title: i18n.t("Languages"),
+        description: i18n.t("Record which languages this show offers (dub, subtitles, …)."),
         render: ({
           entity,
         }) => (

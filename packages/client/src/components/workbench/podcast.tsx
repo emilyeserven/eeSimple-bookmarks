@@ -5,7 +5,9 @@ import type { Podcast } from "@eesimple/types";
 import { Fragment } from "react";
 
 import { PODCAST_LINK_PROVIDER_LABELS } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
+import i18n from "../../i18n";
 import {
   availablePodcastLinkProviders,
   podcastLinkUrl,
@@ -33,31 +35,34 @@ function PodcastGeneralView({
 
   const defaultLink = resolvePodcastDefaultLink(podcast);
   const linkProviders = availablePodcastLinkProviders(podcast);
+  const {
+    t,
+  } = useTranslation();
 
   return (
     <div className="space-y-4">
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{t("Added")}</dt>
         <dd>{new Date(podcast.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{podcast.slug}</dd>
-        <dt className="text-muted-foreground">Names</dt>
+        <dt className="text-muted-foreground">{t("Names")}</dt>
         <dd>
           <EntityNamesTabView
             ownerType="podcast"
             ownerId={podcast.id}
           />
         </dd>
-        <dt className="text-muted-foreground">Media property</dt>
-        <dd>{mediaProperty?.name ?? <span className="text-muted-foreground">None</span>}</dd>
-        <dt className="text-muted-foreground">Authors</dt>
+        <dt className="text-muted-foreground">{t("Media property")}</dt>
+        <dd>{mediaProperty?.name ?? <span className="text-muted-foreground">{t("None")}</span>}</dd>
+        <dt className="text-muted-foreground">{t("Authors")}</dt>
         <dd>
           <PodcastAuthorsValue
             personIds={podcast.personIds}
             groupIds={podcast.groupIds}
           />
         </dd>
-        <dt className="text-muted-foreground">Links to</dt>
+        <dt className="text-muted-foreground">{t("Links to")}</dt>
         <dd>
           {defaultLink
             ? (
@@ -70,12 +75,12 @@ function PodcastGeneralView({
                   hover:underline
                 "
               >
-                View on
-                {" "}
-                {defaultLink.label}
+                {t("View on {{label}}", {
+                  label: defaultLink.label,
+                })}
               </a>
             )
-            : <span className="text-muted-foreground">No service link</span>}
+            : <span className="text-muted-foreground">{t("No service link")}</span>}
         </dd>
         {linkProviders.map((provider) => {
           const url = podcastLinkUrl(podcast, provider);
@@ -99,12 +104,12 @@ function PodcastGeneralView({
             </Fragment>
           );
         })}
-        <dt className="text-muted-foreground">Sort order</dt>
+        <dt className="text-muted-foreground">{t("Sort order")}</dt>
         <dd>{podcast.sortOrder}</dd>
         {podcast.bookmarkCount != null
           ? (
             <>
-              <dt className="text-muted-foreground">Bookmarks</dt>
+              <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
               <dd>{podcast.bookmarkCount}</dd>
             </>
           )
@@ -146,22 +151,22 @@ export const podcastWorkbench: EntityWorkbench<Podcast> = {
       }),
     };
   },
-  notFound: "Podcast not found.",
-  navAriaLabel: "Podcast sections",
+  notFound: i18n.t("Podcast not found."),
+  navAriaLabel: i18n.t("Podcast sections"),
   listingPath: "/taxonomies/podcasts",
   getSlug: podcast => podcast.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Media property, feed, authors, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Media property, feed, authors, and metadata."),
         render: PodcastGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Name, media property, feed URL, authors, and description.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, media property, feed URL, authors, and description."),
         render: ({
           entity,
         }) => <PodcastGeneralForm podcast={entity} />,
@@ -169,10 +174,10 @@ export const podcastWorkbench: EntityWorkbench<Podcast> = {
     },
     {
       key: "image",
-      label: "Image",
+      label: i18n.t("Image"),
       view: {
-        title: "Image",
-        description: "The podcast's artwork.",
+        title: i18n.t("Image"),
+        description: i18n.t("The podcast's artwork."),
         render: ({
           entity,
         }) => (
@@ -183,8 +188,8 @@ export const podcastWorkbench: EntityWorkbench<Podcast> = {
         ),
       },
       edit: {
-        title: "Image",
-        description: "Upload artwork, or import it from the podcast's feed.",
+        title: i18n.t("Image"),
+        description: i18n.t("Upload artwork, or import it from the podcast's feed."),
         render: ({
           entity,
         }) => <PodcastImageTab podcast={entity} />,

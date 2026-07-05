@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { ImportRule } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { ImportRuleConditionsForm } from "../ImportRuleConditionsForm";
 import { ImportRuleConditionsFields, ImportRuleGeneralFields } from "../ImportRuleDetail";
 import { ImportRuleGeneralForm } from "../ImportRuleGeneralForm";
@@ -39,23 +40,23 @@ export const importRuleWorkbench: EntityWorkbench<ImportRule> = {
       }),
     };
   },
-  notFound: "Import rule not found.",
-  navAriaLabel: "Import rule sections",
+  notFound: i18n.t("Import rule not found."),
+  navAriaLabel: i18n.t("Import rule sections"),
   getSlug: rule => rule.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Name, description, action, and priority.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, description, action, and priority."),
         render: ({
           entity,
         }) => <ImportRuleGeneralFields rule={entity} />,
       },
       edit: {
-        title: "General",
-        description: "Name, description, action, and priority.",
+        title: i18n.t("General"),
+        description: i18n.t("Name, description, action, and priority."),
         render: ({
           entity,
         }) => <ImportRuleGeneralForm rule={entity} />,
@@ -63,17 +64,17 @@ export const importRuleWorkbench: EntityWorkbench<ImportRule> = {
     },
     {
       key: "conditions",
-      label: "Conditions",
+      label: i18n.t("Conditions"),
       view: {
-        title: "Conditions",
-        description: "When this rule fires.",
+        title: i18n.t("Conditions"),
+        description: i18n.t("When this rule fires."),
         render: ({
           entity,
         }) => <ImportRuleConditionsFields rule={entity} />,
       },
       edit: {
-        title: "Conditions",
-        description: "URL match and website conditions that trigger this rule.",
+        title: i18n.t("Conditions"),
+        description: i18n.t("URL match and website conditions that trigger this rule."),
         render: ({
           entity,
         }) => <ImportRuleConditionsForm rule={entity} />,

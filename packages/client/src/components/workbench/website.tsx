@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Website } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
@@ -50,22 +51,22 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
       }),
     };
   },
-  notFound: "Website not found.",
-  navAriaLabel: "Website sections",
+  notFound: i18n.t("Website not found."),
+  navAriaLabel: i18n.t("Website sections"),
   listingPath: "/taxonomies/websites",
   getSlug: website => website.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Domain, creation date, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Domain, creation date, and metadata."),
         render: WebsiteGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Site name and domain.",
+        title: i18n.t("General"),
+        description: i18n.t("Site name and domain."),
         render: ({
           entity,
         }) => <WebsiteGeneralForm website={entity} />,
@@ -73,17 +74,17 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
     },
     {
       key: "people",
-      label: "People",
+      label: i18n.t("People"),
       view: {
-        title: "People",
-        description: "People associated with this website.",
+        title: i18n.t("People"),
+        description: i18n.t("People associated with this website."),
         render: ({
           entity,
         }) => <WebsitePeopleView website={entity} />,
       },
       edit: {
-        title: "People",
-        description: "Connect people to this website.",
+        title: i18n.t("People"),
+        description: i18n.t("Connect people to this website."),
         render: ({
           entity,
         }) => <WebsitePeopleForm website={entity} />,
@@ -91,22 +92,22 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
     },
     {
       key: "shortened-links",
-      label: "Shortened Links",
+      label: i18n.t("Shortened Links"),
       view: {
-        title: "Shortened Links",
-        description: "Short domains that resolve to this site and how they expand.",
+        title: i18n.t("Shortened Links"),
+        description: i18n.t("Short domains that resolve to this site and how they expand."),
         render: ({
           entity,
         }) => (
           <ShortenedLinksList
             links={entity.shortenedLinks}
-            emptyText="None configured."
+            emptyText={i18n.t("None configured.")}
           />
         ),
       },
       edit: {
-        title: "Shortened Links",
-        description: "Short domains that resolve to this site and how they expand.",
+        title: i18n.t("Shortened Links"),
+        description: i18n.t("Short domains that resolve to this site and how they expand."),
         render: ({
           entity,
         }) => <WebsiteShortenedLinksForm website={entity} />,
@@ -114,22 +115,22 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
     },
     {
       key: "param-rules",
-      label: "Param Rules",
+      label: i18n.t("Param Rules"),
       view: {
-        title: "Param Rules",
-        description: "For matching paths, only these query params are kept; the rest are stripped.",
+        title: i18n.t("Param Rules"),
+        description: i18n.t("For matching paths, only these query params are kept; the rest are stripped."),
         render: ({
           entity,
         }) => (
           <ParamRulesList
             rules={entity.paramRules}
-            emptyText="None configured."
+            emptyText={i18n.t("None configured.")}
           />
         ),
       },
       edit: {
-        title: "Param Rules",
-        description: "Path-scoped query-param whitelist: only listed params are kept, the rest are stripped.",
+        title: i18n.t("Param Rules"),
+        description: i18n.t("Path-scoped query-param whitelist: only listed params are kept, the rest are stripped."),
         render: ({
           entity,
         }) => <WebsiteParamRulesForm website={entity} />,
@@ -137,19 +138,19 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
     },
     {
       key: "hierarchy",
-      label: "Hierarchy",
+      label: i18n.t("Hierarchy"),
       view: {
-        title: "Hierarchy",
-        description: "Parent domain and subdomain children.",
+        title: i18n.t("Hierarchy"),
+        description: i18n.t("Parent domain and subdomain children."),
         render: WebsiteHierarchyView,
       },
     },
     {
       key: "autofill",
-      label: "Autofill Rules",
+      label: i18n.t("Autofill Rules"),
       view: {
-        title: "Autofill Rules",
-        description: "Autofill rules whose conditions target this website.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules whose conditions target this website."),
         render: ({
           entity,
         }) => (
@@ -160,8 +161,8 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
         ),
       },
       edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules whose conditions target this website.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules whose conditions target this website."),
         render: ({
           entity,
         }) => (
@@ -174,17 +175,17 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
     },
     {
       key: "display-rules",
-      label: "Display Rules",
+      label: i18n.t("Display Rules"),
       view: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this website.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this website."),
         render: ({
           entity,
         }) => <CardDisplayRulesList websiteId={entity.id} />,
       },
       edit: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this website.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this website."),
         render: ({
           entity,
         }) => <CardDisplayRulesList websiteId={entity.id} />,
@@ -192,10 +193,10 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
     },
     {
       key: "languages",
-      label: "Languages",
+      label: i18n.t("Languages"),
       view: {
-        title: "Languages",
-        description: "Languages this website's content is available in and how.",
+        title: i18n.t("Languages"),
+        description: i18n.t("Languages this website's content is available in and how."),
         render: ({
           entity,
         }) => (
@@ -206,8 +207,8 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
         ),
       },
       edit: {
-        title: "Languages",
-        description: "Record which languages this website offers (dub, subtitles, …).",
+        title: i18n.t("Languages"),
+        description: i18n.t("Record which languages this website offers (dub, subtitles, …)."),
         render: ({
           entity,
         }) => (

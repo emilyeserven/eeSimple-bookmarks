@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { RelationshipType } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { RelationshipTypeDetail } from "../RelationshipTypeDetail";
 import { RelationshipTypeGeneralForm } from "../RelationshipTypeGeneralForm";
 
@@ -40,24 +41,24 @@ export const relationshipTypeWorkbench: EntityWorkbench<RelationshipType> = {
       }),
     };
   },
-  notFound: "Relationship type not found.",
-  navAriaLabel: "Relationship type sections",
+  notFound: i18n.t("Relationship type not found"),
+  navAriaLabel: i18n.t("Relationship type sections"),
   listingPath: "/taxonomies/relationship-types",
   getSlug: rt => rt.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Direction, usage counts, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("Direction, usage counts, and metadata."),
         render: ({
           entity,
         }) => <RelationshipTypeDetail relationshipType={entity} />,
       },
       edit: {
-        title: "General",
-        description: "Name and direction.",
+        title: i18n.t("General"),
+        description: i18n.t("Name and direction."),
         render: ({
           entity,
         }) => <RelationshipTypeGeneralForm relationshipType={entity} />,

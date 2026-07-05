@@ -1,6 +1,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Language } from "@eesimple/types";
 
+import i18n from "../../i18n";
 import { LanguageDetail } from "../LanguageDetail";
 import { LanguageGeneralForm } from "../LanguageGeneralForm";
 
@@ -40,24 +41,24 @@ export const languageWorkbench: EntityWorkbench<Language> = {
       }),
     };
   },
-  notFound: "Language not found.",
-  navAriaLabel: "Language sections",
+  notFound: i18n.t("Language not found."),
+  navAriaLabel: i18n.t("Language sections"),
   listingPath: "/taxonomies/languages",
   getSlug: language => language.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "ISO code, usage counts, and metadata.",
+        title: i18n.t("General"),
+        description: i18n.t("ISO code, usage counts, and metadata."),
         render: ({
           entity,
         }) => <LanguageDetail language={entity} />,
       },
       edit: {
-        title: "General",
-        description: "Name and ISO code.",
+        title: i18n.t("General"),
+        description: i18n.t("Name and ISO code."),
         render: ({
           entity,
         }) => <LanguageGeneralForm language={entity} />,

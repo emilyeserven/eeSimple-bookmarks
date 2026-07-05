@@ -1,6 +1,7 @@
 import type { GenreMoodNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { GenreMoodTreeList } from "../GenreMoodTreeList";
 import { HierarchyView } from "../HierarchyView";
@@ -16,6 +17,9 @@ export function GenreMoodHierarchyView({
   entity: GenreMoodNode;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data, isLoading,
   } = useGenreMoodTree();
   const tree = data ?? [];
@@ -24,8 +28,8 @@ export function GenreMoodHierarchyView({
     expanded, onToggle,
   } = useExpandedSet(node?.children.map(c => c.id) ?? []);
 
-  if (isLoading && !node) return <p className="text-muted-foreground">Loading…</p>;
-  if (!node) return <p className="text-destructive">Entry not found.</p>;
+  if (isLoading && !node) return <p className="text-muted-foreground">{t("Loading…")}</p>;
+  if (!node) return <p className="text-destructive">{t("Entry not found.")}</p>;
 
   const path = findAncestorPath(tree, gm.slug);
   const ancestors = path ? path.slice(0, -1) : [];
@@ -48,7 +52,7 @@ export function GenreMoodHierarchyView({
         </Link>
       )}
       hasChildren={node.children.length > 0}
-      childrenEmptyLabel="No child entries."
+      childrenEmptyLabel={t("No child entries.")}
       childrenList={(
         <GenreMoodTreeList
           tree={node.children}

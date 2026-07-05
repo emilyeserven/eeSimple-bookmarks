@@ -3,7 +3,9 @@ import type { EntityWorkbench } from "./types";
 import type { YouTubeChannel } from "@eesimple/types";
 
 import { MonitorPlay } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
+import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityImagePreview } from "../EntityImageField";
@@ -20,6 +22,9 @@ function YouTubeChannelGeneralView({
   entity: YouTubeChannel;
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: groups,
   } = useGroups();
   const connectedGroups = (groups ?? []).filter(group => (ch.groupIds ?? []).includes(group.id));
@@ -32,22 +37,22 @@ function YouTubeChannelGeneralView({
         fallback={<MonitorPlay className="size-6" />}
       />
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
+        <dt className="text-muted-foreground">{t("Added")}</dt>
         <dd>{new Date(ch.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Channel key</dt>
+        <dt className="text-muted-foreground">{t("Channel key")}</dt>
         <dd>{ch.channelKey}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
+        <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{ch.slug}</dd>
-        <dt className="text-muted-foreground">Self-identifiers</dt>
+        <dt className="text-muted-foreground">{t("Self-identifiers")}</dt>
         <dd>
           {ch.selfIds.length > 0
             ? ch.selfIds.join(", ")
-            : <span className="text-muted-foreground">None</span>}
+            : <span className="text-muted-foreground">{t("None")}</span>}
         </dd>
         {ch.bookmarkCount != null
           ? (
             <>
-              <dt className="text-muted-foreground">Bookmarks</dt>
+              <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
               <dd>{ch.bookmarkCount}</dd>
             </>
           )
@@ -55,7 +60,7 @@ function YouTubeChannelGeneralView({
         {connectedGroups.length > 0
           ? (
             <>
-              <dt className="text-muted-foreground">Groups</dt>
+              <dt className="text-muted-foreground">{t("Groups")}</dt>
               <dd>{connectedGroups.map(group => group.name).join(", ")}</dd>
             </>
           )
@@ -102,22 +107,22 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
       }),
     };
   },
-  notFound: "Channel not found.",
-  navAriaLabel: "YouTube channel sections",
+  notFound: i18n.t("Channel not found."),
+  navAriaLabel: i18n.t("YouTube channel sections"),
   listingPath: "/taxonomies/youtube-channels",
   getSlug: channel => channel.slug,
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
       view: {
-        title: "General",
-        description: "Channel details.",
+        title: i18n.t("General"),
+        description: i18n.t("Channel details."),
         render: YouTubeChannelGeneralView,
       },
       edit: {
-        title: "General",
-        description: "Channel name.",
+        title: i18n.t("General"),
+        description: i18n.t("Channel name."),
         render: ({
           entity,
         }) => <YouTubeChannelGeneralForm channel={entity} />,
@@ -125,10 +130,10 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
     },
     {
       key: "autofill",
-      label: "Autofill Rules",
+      label: i18n.t("Autofill Rules"),
       view: {
-        title: "Autofill Rules",
-        description: "Autofill rules whose conditions target this channel.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules whose conditions target this channel."),
         render: ({
           entity,
         }) => (
@@ -139,8 +144,8 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
         ),
       },
       edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules whose conditions target this channel.",
+        title: i18n.t("Autofill Rules"),
+        description: i18n.t("Autofill rules whose conditions target this channel."),
         render: ({
           entity,
         }) => (
@@ -153,17 +158,17 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
     },
     {
       key: "display-rules",
-      label: "Display Rules",
+      label: i18n.t("Display Rules"),
       view: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this channel.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this channel."),
         render: ({
           entity,
         }) => <CardDisplayRulesList channelId={entity.id} />,
       },
       edit: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this channel.",
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this channel."),
         render: ({
           entity,
         }) => <CardDisplayRulesList channelId={entity.id} />,
@@ -171,10 +176,10 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
     },
     {
       key: "languages",
-      label: "Languages",
+      label: i18n.t("Languages"),
       view: {
-        title: "Languages",
-        description: "Languages this channel's content is available in and how.",
+        title: i18n.t("Languages"),
+        description: i18n.t("Languages this channel's content is available in and how."),
         render: ({
           entity,
         }) => (
@@ -185,8 +190,8 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
         ),
       },
       edit: {
-        title: "Languages",
-        description: "Record which languages this channel offers (dub, subtitles, …).",
+        title: i18n.t("Languages"),
+        description: i18n.t("Record which languages this channel offers (dub, subtitles, …)."),
         render: ({
           entity,
         }) => (
