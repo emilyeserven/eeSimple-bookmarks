@@ -1,5 +1,7 @@
 import type { LanguageUsageCondition } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { EntityMultiSelectCondition } from "./EntityMultiSelectCondition";
 
 import { useLanguages } from "@/hooks/useLanguages";
@@ -19,6 +21,9 @@ export function LanguageUsageConditionEditor({
   value, onChange,
 }: LanguageUsageConditionEditorProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: languages = [], isLoading: languagesLoading,
   } = useLanguages();
   const {
@@ -28,10 +33,10 @@ export function LanguageUsageConditionEditor({
   return (
     <div className="space-y-2">
       <EntityMultiSelectCondition
-        ariaLabel="Languages"
-        placeholder={languagesLoading ? "Loading…" : "Any language"}
-        searchPlaceholder="Search languages…"
-        emptyText="No languages found."
+        ariaLabel={t("Languages")}
+        placeholder={languagesLoading ? t("Loading…") : t("Any language")}
+        searchPlaceholder={t("Search languages…")}
+        emptyText={t("No languages found.")}
         options={languages.map(l => ({
           value: l.id,
           label: l.name,
@@ -44,10 +49,10 @@ export function LanguageUsageConditionEditor({
           })}
       />
       <EntityMultiSelectCondition
-        ariaLabel="Usage levels"
-        placeholder={levelsLoading ? "Loading…" : "Any usage level"}
-        searchPlaceholder="Search usage levels…"
-        emptyText="No usage levels found."
+        ariaLabel={t("Usage levels")}
+        placeholder={levelsLoading ? t("Loading…") : t("Any usage level")}
+        searchPlaceholder={t("Search usage levels…")}
+        emptyText={t("No usage levels found.")}
         options={levels.map(l => ({
           value: l.id,
           label: l.name,

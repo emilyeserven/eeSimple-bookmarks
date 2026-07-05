@@ -1,5 +1,7 @@
 import type { TagCondition, TagNode } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { TagPickerWithCreate } from "../TagPickerWithCreate";
 
 interface TagConditionEditorProps {
@@ -12,6 +14,9 @@ interface TagConditionEditorProps {
 export function TagConditionEditor({
   value, tagTree, onChange,
 }: TagConditionEditorProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <div className="space-y-2">
       <TagPickerWithCreate
@@ -28,7 +33,7 @@ export function TagConditionEditor({
         }}
       />
       <p className="text-xs text-muted-foreground">
-        Selecting a parent tag also matches bookmarks with its child tags.
+        {t("Selecting a parent tag also matches bookmarks with its child tags.")}
       </p>
     </div>
   );

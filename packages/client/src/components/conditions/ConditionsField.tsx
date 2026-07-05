@@ -19,6 +19,7 @@ import { buildRootChildren, splitRootConditions } from "./conditionsFieldTree";
 
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import i18n from "@/i18n";
 
 interface ConditionsFieldProps {
   value: ConditionTree;
@@ -33,22 +34,29 @@ interface ConditionsFieldProps {
 function CountSection({
   title,
   count,
-  summarySuffix = " selected",
+  bareCount = false,
   forceOpen = false,
   children,
 }: {
   title: string;
   count: number;
-  /** Appended to the count in the summary; pass "" for a bare count. */
-  summarySuffix?: string;
+  /** Pass true for a bare count with no "selected" suffix. */
+  bareCount?: boolean;
   /** Open the section even when nothing is selected yet (e.g. a deep link into properties). */
   forceOpen?: boolean;
   children: ReactNode;
 }) {
+  const summary = count > 0
+    ? bareCount
+      ? `${count}`
+      : i18n.t("{{count}} selected", {
+        count,
+      })
+    : undefined;
   return (
     <Section
       title={title}
-      summary={count > 0 ? `${count}${summarySuffix}` : undefined}
+      summary={summary}
       defaultOpen={forceOpen || count > 0}
     >
       {children}
@@ -75,7 +83,7 @@ function MatchConditionRow({
           size="sm"
           onClick={onRemove}
         >
-          Remove
+          {i18n.t("Remove")}
         </Button>
       </div>
       <MatchConditionEditor
@@ -110,7 +118,7 @@ export function ConditionsField({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">Bookmarks must match</span>
+        <span className="text-sm text-muted-foreground">{i18n.t("Bookmarks must match")}</span>
         <ToggleGroup
           type="single"
           size="sm"
@@ -124,16 +132,16 @@ export function ConditionsField({
             }
           }}
         >
-          <ToggleGroupItem value="and">all (AND)</ToggleGroupItem>
-          <ToggleGroupItem value="or">any (OR)</ToggleGroupItem>
+          <ToggleGroupItem value="and">{i18n.t("all (AND)")}</ToggleGroupItem>
+          <ToggleGroupItem value="or">{i18n.t("any (OR)")}</ToggleGroupItem>
         </ToggleGroup>
-        <span className="text-sm text-muted-foreground">of the following:</span>
+        <span className="text-sm text-muted-foreground">{i18n.t("of the following:")}</span>
       </div>
 
       <CountSection
-        title="Title / Name"
+        title={i18n.t("Title / Name")}
         count={matches.length}
-        summarySuffix=""
+        bareCount
       >
         <div className="space-y-3">
           {matches.map((match, index) => (
@@ -164,13 +172,13 @@ export function ConditionsField({
                 }],
               })}
           >
-            Add title condition
+            {i18n.t("Add title condition")}
           </Button>
         </div>
       </CountSection>
 
       <CountSection
-        title="Category"
+        title={i18n.t("Category")}
         count={counts.category}
       >
         <CategoryConditionEditor
@@ -187,7 +195,7 @@ export function ConditionsField({
       </CountSection>
 
       <CountSection
-        title="Website"
+        title={i18n.t("Website")}
         count={counts.website}
       >
         <WebsiteConditionEditor
@@ -203,7 +211,7 @@ export function ConditionsField({
       </CountSection>
 
       <CountSection
-        title="YouTube Channel"
+        title={i18n.t("YouTube Channel")}
         count={counts.youtubeChannel}
       >
         <YouTubeChannelConditionEditor
@@ -219,7 +227,7 @@ export function ConditionsField({
       </CountSection>
 
       <CountSection
-        title="Media Type"
+        title={i18n.t("Media Type")}
         count={counts.mediaType}
       >
         <MediaTypeConditionEditor
@@ -235,7 +243,7 @@ export function ConditionsField({
       </CountSection>
 
       <CountSection
-        title="Genres & Moods"
+        title={i18n.t("Genres & Moods")}
         count={counts.genreMood}
       >
         <GenreMoodConditionEditor
@@ -251,7 +259,7 @@ export function ConditionsField({
       </CountSection>
 
       <CountSection
-        title="Relationship Type"
+        title={i18n.t("Relationship Type")}
         count={counts.relationshipType}
       >
         <RelationshipTypeConditionEditor
@@ -267,7 +275,7 @@ export function ConditionsField({
       </CountSection>
 
       <CountSection
-        title="Language Usage"
+        title={i18n.t("Language Usage")}
         count={counts.languageUsage}
       >
         <LanguageUsageConditionEditor
@@ -284,7 +292,7 @@ export function ConditionsField({
       </CountSection>
 
       <CountSection
-        title="Tags"
+        title={i18n.t("Tags")}
         count={counts.tag}
       >
         <TagConditionEditor
@@ -301,7 +309,7 @@ export function ConditionsField({
       </CountSection>
 
       <CountSection
-        title="Locations"
+        title={i18n.t("Locations")}
         count={counts.location}
       >
         <LocationConditionEditor
@@ -317,9 +325,9 @@ export function ConditionsField({
       </CountSection>
 
       <CountSection
-        title="Custom properties"
+        title={i18n.t("Custom properties")}
         count={propertyLeaves.length}
-        summarySuffix=""
+        bareCount
         forceOpen={openCustomProperties}
       >
         <PropertyConditionEditor

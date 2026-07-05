@@ -1,5 +1,7 @@
 import type { RelationshipTypeCondition } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { EntityMultiSelectCondition } from "./EntityMultiSelectCondition";
 
 import { useRelationshipTypes } from "@/hooks/useRelationshipTypes";
@@ -14,15 +16,18 @@ export function RelationshipTypeConditionEditor({
   value, onChange,
 }: RelationshipTypeConditionEditorProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: relationshipTypes = [], isLoading,
   } = useRelationshipTypes();
 
   return (
     <EntityMultiSelectCondition
-      ariaLabel="Relationship Types"
-      placeholder={isLoading ? "Loading…" : "Any relationship type"}
-      searchPlaceholder="Search relationship types…"
-      emptyText="No relationship types found."
+      ariaLabel={t("Relationship Types")}
+      placeholder={isLoading ? t("Loading…") : t("Any relationship type")}
+      searchPlaceholder={t("Search relationship types…")}
+      emptyText={t("No relationship types found.")}
       options={relationshipTypes.map(rt => ({
         value: rt.id,
         label: rt.name,

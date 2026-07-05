@@ -2,6 +2,8 @@ import type { MatchCondition } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { OPERATOR_OPTIONS } from "./matchOptions";
 
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,9 @@ interface MatchConditionEditorProps {
 export function MatchConditionEditor({
   value, onChange,
 }: MatchConditionEditorProps) {
+  const {
+    t,
+  } = useTranslation();
   const [localPattern, setLocalPattern] = useState(value.pattern);
 
   useEffect(() => {
@@ -41,7 +46,7 @@ export function MatchConditionEditor({
       "
     >
       <div className="space-y-1">
-        <Label>Match</Label>
+        <Label>{t("Match")}</Label>
         <Select
           value={value.operator}
           onValueChange={operator =>
@@ -60,7 +65,7 @@ export function MatchConditionEditor({
                 key={option.value}
                 value={option.value}
               >
-                {option.label}
+                {t(option.label)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -73,10 +78,10 @@ export function MatchConditionEditor({
           sm:col-span-2
         "
       >
-        <Label>Pattern</Label>
+        <Label>{t("Pattern")}</Label>
         <Input
           value={localPattern}
-          placeholder="e.g. Ponzu"
+          placeholder={t("e.g. Ponzu")}
           onChange={event => setLocalPattern(event.target.value)}
           onBlur={() => {
             if (localPattern !== value.pattern) {

@@ -6,6 +6,7 @@ import type {
 } from "@eesimple/types";
 
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { MatchConditionEditor } from "./MatchConditionEditor";
 import { WebsiteConditionEditor } from "./WebsiteConditionEditor";
@@ -68,6 +69,9 @@ function Section({
 export function ImportConditionsField({
   value, onChange,
 }: ImportConditionsFieldProps) {
+  const {
+    t,
+  } = useTranslation();
   const urlMatches = value.children.filter(
     (child): child is MatchCondition => child.type === "match" && child.field === "url",
   );
@@ -120,7 +124,7 @@ export function ImportConditionsField({
                 size="sm"
                 onClick={() => updateMatches(matches.filter((_, i) => i !== index))}
               >
-                Remove
+                {t("Remove")}
               </Button>
             </div>
             <MatchConditionEditor
@@ -146,7 +150,7 @@ export function ImportConditionsField({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">Bookmark must match</span>
+        <span className="text-sm text-muted-foreground">{t("Bookmark must match")}</span>
         <ToggleGroup
           type="single"
           size="sm"
@@ -160,14 +164,14 @@ export function ImportConditionsField({
             }
           }}
         >
-          <ToggleGroupItem value="and">all (AND)</ToggleGroupItem>
-          <ToggleGroupItem value="or">any (OR)</ToggleGroupItem>
+          <ToggleGroupItem value="and">{t("all (AND)")}</ToggleGroupItem>
+          <ToggleGroupItem value="or">{t("any (OR)")}</ToggleGroupItem>
         </ToggleGroup>
-        <span className="text-sm text-muted-foreground">of the following:</span>
+        <span className="text-sm text-muted-foreground">{t("of the following:")}</span>
       </div>
 
       <Section
-        title="URL"
+        title={t("URL")}
         summary={urlMatches.length > 0 ? `${urlMatches.length}` : undefined}
         defaultOpen={urlMatches.length > 0}
       >
@@ -182,12 +186,12 @@ export function ImportConditionsField({
             operator: "contains",
             pattern: "",
           },
-          "Add URL condition",
+          t("Add URL condition"),
         )}
       </Section>
 
       <Section
-        title="Title"
+        title={t("Title")}
         summary={titleMatches.length > 0 ? `${titleMatches.length}` : undefined}
         defaultOpen={titleMatches.length > 0}
       >
@@ -202,13 +206,17 @@ export function ImportConditionsField({
             operator: "contains",
             pattern: "",
           },
-          "Add Title condition",
+          t("Add Title condition"),
         )}
       </Section>
 
       <Section
-        title="Website"
-        summary={websiteCount > 0 ? `${websiteCount} selected` : undefined}
+        title={t("Website")}
+        summary={websiteCount > 0
+          ? t("{{count}} selected", {
+            count: websiteCount,
+          })
+          : undefined}
         defaultOpen={websiteCount > 0}
       >
         <WebsiteConditionEditor

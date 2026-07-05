@@ -1,6 +1,7 @@
 import type { WebsiteCondition } from "@eesimple/types";
 
 import { Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { MultiCombobox } from "../MultiCombobox";
 import { useEntityCreateOption } from "../useEntityCreateOption";
@@ -19,6 +20,9 @@ interface WebsiteConditionEditorProps {
 export function WebsiteConditionEditor({
   value, onChange,
 }: WebsiteConditionEditorProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: websites = [], isLoading,
   } = useWebsites();
@@ -62,10 +66,10 @@ export function WebsiteConditionEditor({
   return (
     <div className="space-y-2">
       <MultiCombobox
-        aria-label="Websites"
-        placeholder={isLoading ? "Loading…" : "Any website"}
-        searchPlaceholder="Search websites…"
-        emptyText="No websites found."
+        aria-label={t("Websites")}
+        placeholder={isLoading ? t("Loading…") : t("Any website")}
+        searchPlaceholder={t("Search websites…")}
+        emptyText={t("No websites found.")}
         options={options}
         values={value.domains}
         onValuesChange={domains =>
