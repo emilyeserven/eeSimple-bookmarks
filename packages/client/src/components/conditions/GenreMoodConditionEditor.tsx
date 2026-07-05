@@ -1,5 +1,7 @@
 import type { GenreMoodCondition } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { MultiCombobox } from "../MultiCombobox";
 import { useEntityCreateOption } from "../useEntityCreateOption";
 
@@ -16,6 +18,9 @@ export function GenreMoodConditionEditor({
   value, onChange,
 }: GenreMoodConditionEditorProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: tree = [], isLoading,
   } = useGenreMoodTree();
   const create = useEntityCreateOption("genre-mood", genreMood =>
@@ -27,10 +32,10 @@ export function GenreMoodConditionEditor({
   return (
     <>
       <MultiCombobox
-        aria-label="Genres & Moods"
-        placeholder={isLoading ? "Loading…" : "Any Genres & Moods"}
-        searchPlaceholder="Search Genres & Moods…"
-        emptyText="No entries found."
+        aria-label={t("Genres & Moods")}
+        placeholder={isLoading ? t("Loading…") : t("Any Genres & Moods")}
+        searchPlaceholder={t("Search Genres & Moods…")}
+        emptyText={t("No entries found.")}
         options={genreMoodTreeComboboxOptions(tree)}
         values={value.genreMoodIds}
         onValuesChange={genreMoodIds =>

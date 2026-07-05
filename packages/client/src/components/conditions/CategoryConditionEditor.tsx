@@ -2,6 +2,8 @@ import type { Category, CategoryCondition } from "@eesimple/types";
 
 import { createElement } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { MultiCombobox } from "../MultiCombobox";
 import { useEntityCreateOption } from "../useEntityCreateOption";
 
@@ -17,6 +19,9 @@ interface CategoryConditionEditorProps {
 export function CategoryConditionEditor({
   value, categories, onChange,
 }: CategoryConditionEditorProps) {
+  const {
+    t,
+  } = useTranslation();
   const categoryCreate = useEntityCreateOption("category", category =>
     onChange({
       ...value,
@@ -26,8 +31,8 @@ export function CategoryConditionEditor({
   return (
     <>
       <MultiCombobox
-        aria-label="Categories"
-        placeholder="Any category"
+        aria-label={t("Categories")}
+        placeholder={t("Any category")}
         options={categories.map(category => ({
           value: category.id,
           label: category.name,

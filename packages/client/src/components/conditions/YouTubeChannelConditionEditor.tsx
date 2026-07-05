@@ -1,5 +1,7 @@
 import type { YouTubeChannelCondition } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { MultiCombobox } from "../MultiCombobox";
 import { useEntityCreateOption } from "../useEntityCreateOption";
 
@@ -15,6 +17,9 @@ export function YouTubeChannelConditionEditor({
   value, onChange,
 }: YouTubeChannelConditionEditorProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: channels = [], isLoading,
   } = useYouTubeChannels();
   const channelCreate = useEntityCreateOption("youtube-channel", channel =>
@@ -26,10 +31,10 @@ export function YouTubeChannelConditionEditor({
   return (
     <>
       <MultiCombobox
-        aria-label="YouTube Channels"
-        placeholder={isLoading ? "Loading…" : "Any channel"}
-        searchPlaceholder="Search channels…"
-        emptyText="No channels found."
+        aria-label={t("YouTube Channels")}
+        placeholder={isLoading ? t("Loading…") : t("Any channel")}
+        searchPlaceholder={t("Search channels…")}
+        emptyText={t("No channels found.")}
         options={channels.map(channel => ({
           value: channel.id,
           label: channel.name,

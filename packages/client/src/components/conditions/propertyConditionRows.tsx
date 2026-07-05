@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import i18n from "@/i18n";
 
 /** Slider bounds for a number/calculate/rating property, falling back to a sane default span. */
 function numberBounds(property: CustomProperty): [number, number] {
@@ -35,81 +36,89 @@ function numberStep(property: CustomProperty): number {
   return property.type === "ratingScale" && property.ratingAllowHalf ? 0.5 : 1;
 }
 
-const NUMBER_MODES = [
-  {
-    value: "none",
-    label: "Any",
-  },
-  {
-    value: "range",
-    label: "In range",
-  },
-  {
-    value: "has",
-    label: "Has value",
-  },
-  {
-    value: "missing",
-    label: "Missing",
-  },
-];
+function numberModes() {
+  return [
+    {
+      value: "none",
+      label: i18n.t("Any"),
+    },
+    {
+      value: "range",
+      label: i18n.t("In range"),
+    },
+    {
+      value: "has",
+      label: i18n.t("Has value"),
+    },
+    {
+      value: "missing",
+      label: i18n.t("Missing"),
+    },
+  ];
+}
 
-const DATETIME_MODES = [
-  {
-    value: "none",
-    label: "Any",
-  },
-  {
-    value: "range",
-    label: "In range",
-  },
-  {
-    value: "has",
-    label: "Has value",
-  },
-  {
-    value: "missing",
-    label: "Missing",
-  },
-];
+function dateTimeModes() {
+  return [
+    {
+      value: "none",
+      label: i18n.t("Any"),
+    },
+    {
+      value: "range",
+      label: i18n.t("In range"),
+    },
+    {
+      value: "has",
+      label: i18n.t("Has value"),
+    },
+    {
+      value: "missing",
+      label: i18n.t("Missing"),
+    },
+  ];
+}
 
-const FILE_MODES = [
-  {
-    value: "none",
-    label: "Any",
-  },
-  {
-    value: "has",
-    label: "Has value",
-  },
-  {
-    value: "missing",
-    label: "Missing",
-  },
-];
+function fileModes() {
+  return [
+    {
+      value: "none",
+      label: i18n.t("Any"),
+    },
+    {
+      value: "has",
+      label: i18n.t("Has value"),
+    },
+    {
+      value: "missing",
+      label: i18n.t("Missing"),
+    },
+  ];
+}
 
-const BOOLEAN_MODES = [
-  {
-    value: "none",
-    label: "Any",
-  },
-  {
-    value: "yes",
-    label: "Yes",
-  },
-  {
-    value: "no",
-    label: "No",
-  },
-  {
-    value: "has",
-    label: "Has value",
-  },
-  {
-    value: "missing",
-    label: "Missing",
-  },
-];
+function booleanModes() {
+  return [
+    {
+      value: "none",
+      label: i18n.t("Any"),
+    },
+    {
+      value: "yes",
+      label: i18n.t("Yes"),
+    },
+    {
+      value: "no",
+      label: i18n.t("No"),
+    },
+    {
+      value: "has",
+      label: i18n.t("Has value"),
+    },
+    {
+      value: "missing",
+      label: i18n.t("Missing"),
+    },
+  ];
+}
 
 interface RowProps {
   property: CustomProperty;
@@ -132,7 +141,7 @@ function PropertyNameLabel({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                aria-label="Associated categories"
+                aria-label={i18n.t("Associated categories")}
                 className="
                   shrink-0 text-muted-foreground
                   hover:text-foreground
@@ -254,7 +263,7 @@ function NumberConditionRow({
       property={property}
       categories={categories}
       mode={mode}
-      modes={NUMBER_MODES}
+      modes={numberModes()}
       onModeChange={handleMode}
     >
       {mode === "range"
@@ -340,7 +349,7 @@ function DateTimeConditionRow({
       property={property}
       categories={categories}
       mode={mode}
-      modes={DATETIME_MODES}
+      modes={dateTimeModes()}
       onModeChange={handleMode}
     >
       {mode === "range"
@@ -387,7 +396,7 @@ function FileConditionRow({
       property={property}
       categories={categories}
       mode={mode}
-      modes={FILE_MODES}
+      modes={fileModes()}
       onModeChange={handleMode}
     />
   );
@@ -437,30 +446,32 @@ function BooleanConditionRow({
       property={property}
       categories={categories}
       mode={mode}
-      modes={BOOLEAN_MODES}
+      modes={booleanModes()}
       onModeChange={handleMode}
     />
   );
 }
 
-const CHOICES_MODES = [
-  {
-    value: "none",
-    label: "Any",
-  },
-  {
-    value: "has",
-    label: "Has value",
-  },
-  {
-    value: "missing",
-    label: "Missing",
-  },
-  {
-    value: "includes",
-    label: "Includes",
-  },
-];
+function choicesModes() {
+  return [
+    {
+      value: "none",
+      label: i18n.t("Any"),
+    },
+    {
+      value: "has",
+      label: i18n.t("Has value"),
+    },
+    {
+      value: "missing",
+      label: i18n.t("Missing"),
+    },
+    {
+      value: "includes",
+      label: i18n.t("Includes"),
+    },
+  ];
+}
 
 /** Choices: presence modes + an "Includes" multi-select list. */
 function ChoicesConditionRow({
@@ -526,7 +537,7 @@ function ChoicesConditionRow({
       property={property}
       categories={categories}
       mode={mode}
-      modes={CHOICES_MODES}
+      modes={choicesModes()}
       onModeChange={handleMode}
     >
       {mode === "includes" && property.choicesItems.length > 0
@@ -557,28 +568,30 @@ function ChoicesConditionRow({
   );
 }
 
-const SECTIONS_MODES = [
-  {
-    value: "none",
-    label: "Any",
-  },
-  {
-    value: "has",
-    label: "Has sections",
-  },
-  {
-    value: "missing",
-    label: "No sections",
-  },
-  {
-    value: "sectionType",
-    label: "By section type",
-  },
-  {
-    value: "exhaustive",
-    label: "Exhaustive",
-  },
-];
+function sectionsModes() {
+  return [
+    {
+      value: "none",
+      label: i18n.t("Any"),
+    },
+    {
+      value: "has",
+      label: i18n.t("Has sections"),
+    },
+    {
+      value: "missing",
+      label: i18n.t("No sections"),
+    },
+    {
+      value: "sectionType",
+      label: i18n.t("By section type"),
+    },
+    {
+      value: "exhaustive",
+      label: i18n.t("Exhaustive"),
+    },
+  ];
+}
 
 /** Sections: presence, exhaustive toggle, or section-type multi-select. */
 function SectionsConditionRow({
@@ -658,7 +671,7 @@ function SectionsConditionRow({
       property={property}
       categories={categories}
       mode={mode}
-      modes={SECTIONS_MODES}
+      modes={sectionsModes()}
       onModeChange={handleMode}
     >
       {mode === "sectionType"
@@ -708,7 +721,7 @@ function SectionsConditionRow({
                   htmlFor={`sections-cond-${property.id}-exhaustive`}
                   className="text-sm font-normal"
                 >
-                  Is exhaustive
+                  {i18n.t("Is exhaustive")}
                 </Label>
               </div>
             </div>
@@ -718,24 +731,26 @@ function SectionsConditionRow({
   );
 }
 
-const TEXT_MODES = [
-  {
-    value: "none",
-    label: "Any",
-  },
-  {
-    value: "has",
-    label: "Has value",
-  },
-  {
-    value: "missing",
-    label: "Missing",
-  },
-  {
-    value: "contains",
-    label: "Contains",
-  },
-];
+function textModes() {
+  return [
+    {
+      value: "none",
+      label: i18n.t("Any"),
+    },
+    {
+      value: "has",
+      label: i18n.t("Has value"),
+    },
+    {
+      value: "missing",
+      label: i18n.t("Missing"),
+    },
+    {
+      value: "contains",
+      label: i18n.t("Contains"),
+    },
+  ];
+}
 
 /** Text: presence modes plus a free-text "Contains" pattern input. */
 function TextConditionRow({
@@ -782,14 +797,14 @@ function TextConditionRow({
       property={property}
       categories={categories}
       mode={mode}
-      modes={TEXT_MODES}
+      modes={textModes()}
       onModeChange={handleMode}
     >
       {mode === "contains"
         ? (
           <Input
             type="text"
-            placeholder="Pattern…"
+            placeholder={i18n.t("Pattern…")}
             value={pattern}
             onChange={e =>
               onChange({

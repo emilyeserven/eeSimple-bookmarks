@@ -1,5 +1,7 @@
 import type { LocationCondition } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { LocationPickerWithCreate } from "../LocationPickerWithCreate";
 
 import { useLocationTree } from "@/hooks/useLocations";
@@ -13,6 +15,9 @@ interface LocationConditionEditorProps {
 export function LocationConditionEditor({
   value, onChange,
 }: LocationConditionEditorProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: locationTree = [],
   } = useLocationTree();
@@ -33,7 +38,7 @@ export function LocationConditionEditor({
         }}
       />
       <p className="text-xs text-muted-foreground">
-        Selecting a parent location also matches bookmarks in its child locations.
+        {t("Selecting a parent location also matches bookmarks in its child locations.")}
       </p>
     </div>
   );

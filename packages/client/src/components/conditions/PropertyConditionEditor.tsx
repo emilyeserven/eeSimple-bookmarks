@@ -1,6 +1,7 @@
 import type { Category, CustomProperty, PropertyCondition } from "@eesimple/types";
 
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { PropertyConditionRow } from "./propertyConditionRows";
 
@@ -18,6 +19,9 @@ interface PropertyConditionEditorProps {
 export function PropertyConditionEditor({
   value, properties, categories, selectedCategoryIds, onChange,
 }: PropertyConditionEditorProps) {
+  const {
+    t,
+  } = useTranslation();
   const byId = new Map(value.map(condition => [condition.propertyId, condition]));
 
   function setCondition(propertyId: string, condition: PropertyCondition | null) {
@@ -36,7 +40,7 @@ export function PropertyConditionEditor({
   const categoryInactiveProperties = enabledProperties.filter(p => !isPropertyActive(p));
 
   if (enabledProperties.length === 0) {
-    return <p className="text-xs text-muted-foreground">No custom properties yet.</p>;
+    return <p className="text-xs text-muted-foreground">{t("No custom properties yet.")}</p>;
   }
 
   function renderConditionRows(props: typeof activeProperties) {
@@ -74,11 +78,11 @@ export function PropertyConditionEditor({
                   group-data-[state=open]/disabled:rotate-180
                 "
               />
-              Other Properties
+              {t("Other Properties")}
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-3 pt-3">
               <p className="text-xs text-muted-foreground">
-                These properties are not assigned to the selected categories and are unlikely to affect the results.
+                {t("These properties are not assigned to the selected categories and are unlikely to affect the results.")}
               </p>
               {renderConditionRows(categoryInactiveProperties)}
             </CollapsibleContent>

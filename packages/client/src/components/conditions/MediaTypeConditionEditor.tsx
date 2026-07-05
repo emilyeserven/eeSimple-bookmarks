@@ -1,5 +1,7 @@
 import type { MediaTypeCondition } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { TreeMultiCombobox } from "../TreeMultiCombobox";
 import { useEntityCreateOption } from "../useEntityCreateOption";
 
@@ -16,6 +18,9 @@ export function MediaTypeConditionEditor({
   value, onChange,
 }: MediaTypeConditionEditorProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: mediaTypeTree = [], isLoading,
   } = useMediaTypeTree();
   const mediaTypeCreate = useEntityCreateOption("media-type", mediaType =>
@@ -27,10 +32,10 @@ export function MediaTypeConditionEditor({
   return (
     <>
       <TreeMultiCombobox
-        aria-label="Media Types"
-        placeholder={isLoading ? "Loading…" : "Any media type"}
-        searchPlaceholder="Search media types…"
-        emptyText="No media types found."
+        aria-label={t("Media Types")}
+        placeholder={isLoading ? t("Loading…") : t("Any media type")}
+        searchPlaceholder={t("Search media types…")}
+        emptyText={t("No media types found.")}
         options={mediaTypeNodesToOptions(mediaTypeTree)}
         values={value.mediaTypeIds}
         onValuesChange={mediaTypeIds =>
