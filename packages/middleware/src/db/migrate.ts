@@ -82,6 +82,87 @@ function applyBooleanFlagsToRuleZones(
   return changed;
 }
 
+/**
+ * Whether dropping a table's `romanized_name` column would silently lose data (issue #969 Phase A
+ * guard): true only when the table still carries romanized values but the `entity_names` backfill
+ * (issue #966) hasn't populated any rows for that owner type yet.
+ */
+export function shouldBailOnRomanizedDrop(hasRomanized: boolean, hasNames: boolean): boolean {
+  return hasRomanized && !hasNames;
+}
+
+/** Every table with a `romanized_name` column, paired with its `entity_names.owner_type` value. */
+const ROMANIZED_NAME_TABLES: { table: string;
+  ownerType: string; }[] = [
+  {
+    table: "bookmarks",
+    ownerType: "bookmark",
+  },
+  {
+    table: "categories",
+    ownerType: "category",
+  },
+  {
+    table: "tags",
+    ownerType: "tag",
+  },
+  {
+    table: "media_types",
+    ownerType: "mediaType",
+  },
+  {
+    table: "genre_moods",
+    ownerType: "genreMood",
+  },
+  {
+    table: "locations",
+    ownerType: "location",
+  },
+  {
+    table: "people",
+    ownerType: "person",
+  },
+  {
+    table: "groups",
+    ownerType: "group",
+  },
+  {
+    table: "books",
+    ownerType: "book",
+  },
+  {
+    table: "podcasts",
+    ownerType: "podcast",
+  },
+  {
+    table: "movies",
+    ownerType: "movie",
+  },
+  {
+    table: "tv_shows",
+    ownerType: "tvShow",
+  },
+  {
+    table: "episodes",
+    ownerType: "episode",
+  },
+  {
+    table: "albums",
+    ownerType: "album",
+  },
+  {
+    table: "tracks",
+    ownerType: "track",
+  },
+];
+
+/** `to_regclass('public.<name>')` presence check — used to skip tables/columns that don't exist yet. */
+async function regclassExists(db: NodePgDatabase, qualifiedName: string): Promise<boolean> {
+  const result = await db.execute(sql`SELECT to_regclass(${qualifiedName}) IS NOT NULL AS exists`);
+  const rows = result.rows as unknown as { exists: boolean }[];
+  return Boolean(rows[0]?.exists);
+}
+
 // Ordered list of idempotent, destructive/push-incompatible steps.
 const migrations: RuntimeMigration[] = [
   {
@@ -1556,6 +1637,135 @@ const migrations: RuntimeMigration[] = [
       ALTER TABLE IF EXISTS "app_settings"
         ADD COLUMN IF NOT EXISTS "interface_language" text NOT NULL DEFAULT 'en'
     `),
+  },
+  {
+    // Issue #969 Phase A: `romanized_name` is being retired in favor of `entity_names` rows (the
+    // issue #966 backfill). Before the drop steps below run, refuse to boot if any table still
+    // carries romanized values that were never backfilled into `entity_names` — that data would be
+    // silently lost. Guarded with `to_regclass` so a table (or `entity_names` itself) that doesn't
+    // exist yet — a fresh install, or a DB that hasn't reached this schema revision — is skipped
+    // rather than erroring; only a populated, out-of-date database throws.
+    name: "verify entity_names is populated before dropping romanized_name",
+    run: async (db) => {
+      for (const {
+        table, ownerType,
+      } of ROMANIZED_NAME_TABLES) {
+        const tableExists = await regclassExists(db, `public.${table}`);
+        if (!tableExists) continue;
+
+        const namesExists = await regclassExists(db, "public.entity_names");
+        if (!namesExists) {
+          const result = await db.execute(sql`
+            SELECT EXISTS (
+              SELECT 1 FROM ${sql.identifier(table)}
+              WHERE romanized_name IS NOT NULL AND romanized_name <> ''
+            ) AS has_romanized
+          `);
+          const rows = result.rows as unknown as { has_romanized: boolean }[];
+          const hasRomanized = Boolean(rows[0]?.has_romanized);
+          if (shouldBailOnRomanizedDrop(hasRomanized, false)) {
+            throw new Error(
+              `Refusing to drop "${table}"."romanized_name": rows still carry romanized values but `
+              + "the \"entity_names\" table does not exist yet. Run the entity_names backfill (issue "
+              + "#966) against this database before deploying this migration.",
+            );
+          }
+          continue;
+        }
+
+        const result = await db.execute(sql`
+          SELECT
+            EXISTS (
+              SELECT 1 FROM ${sql.identifier(table)}
+              WHERE romanized_name IS NOT NULL AND romanized_name <> ''
+            ) AS has_romanized,
+            EXISTS (
+              SELECT 1 FROM "entity_names" WHERE owner_type = ${ownerType}
+            ) AS has_names
+        `);
+        const rows = result.rows as unknown as { has_romanized: boolean;
+          has_names: boolean; }[];
+        const hasRomanized = Boolean(rows[0]?.has_romanized);
+        const hasNames = Boolean(rows[0]?.has_names);
+        if (shouldBailOnRomanizedDrop(hasRomanized, hasNames)) {
+          throw new Error(
+            `Refusing to drop "${table}"."romanized_name": rows still carry romanized values but `
+            + `"entity_names" has no '${ownerType}' rows yet. Run the entity_names backfill (issue `
+            + "#966) against this database before deploying this migration.",
+          );
+        }
+      }
+    },
+  },
+  {
+    name: "drop bookmarks.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop categories.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "categories" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop tags.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "tags" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop media_types.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "media_types" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop genre_moods.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "genre_moods" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop locations.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "locations" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop people.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "people" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop groups.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "groups" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop books.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "books" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop podcasts.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "podcasts" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop movies.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "movies" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop tv_shows.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "tv_shows" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop episodes.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "episodes" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop albums.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "albums" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    name: "drop tracks.romanized_name column",
+    run: db => db.execute(sql`ALTER TABLE "tracks" DROP COLUMN IF EXISTS "romanized_name"`),
+  },
+  {
+    // `app_settings.show_romanized_by_default` / `sort_by_romanized` drove the now-removed
+    // "show romanized name by default" / "sort by romanized value" preferences. Two separate
+    // `db.execute` calls — one statement each, per this file's rule.
+    name: "drop app_settings romanized display/sort columns",
+    run: async (db) => {
+      await db.execute(sql`ALTER TABLE IF EXISTS "app_settings" DROP COLUMN IF EXISTS "show_romanized_by_default"`);
+      await db.execute(sql`ALTER TABLE IF EXISTS "app_settings" DROP COLUMN IF EXISTS "sort_by_romanized"`);
+    },
   },
 ];
 

@@ -11,8 +11,6 @@ export const bookmarks = pgTable("bookmarks", {
   // Nullable so `drizzle-kit push` applies cleanly to existing rows.
   originalUrl: text("original_url"),
   title: text("title").notNull(),
-  // Optional romanized form of the title. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
   description: text("description"),
   // Owning category. Nullable at the DB level so `drizzle-kit push` applies cleanly to
   // existing rows; the service layer resolves NULL to the built-in "Default" category.
@@ -335,8 +333,6 @@ export const websites = pgTable("websites", {
 export const mediaTypes = pgTable("media_types", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  // Optional romanized form of the name, matched by search and shown de-emphasized. Nullable → push-safe.
-  romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
   // Seeded built-ins (Video, Article, …) can't be renamed or deleted; users may add custom ones.
@@ -530,8 +526,6 @@ export type GroupTypeRow = typeof groupTypes.$inferSelect;
 export const groups = pgTable("groups", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  // Optional romanized form of the name, matched by search and shown de-emphasized. Nullable → push-safe.
-  romanizedName: text("romanized_name"),
   // Nullable so drizzle-kit push applies cleanly to any future rows; backfilled at boot.
   slug: text("slug"),
   // Optional link to an existing website entry. set null when the website is deleted.
@@ -637,8 +631,6 @@ export const books = pgTable("books", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
   sortOrder: integer("sort_order").notNull().default(0),
   // Optional franchise/IP grouping. set null when the media property is deleted.
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
@@ -677,8 +669,6 @@ const plexTaxonomyColumns = <T extends Record<string, PgColumnBuilderBase> = Rec
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
   sortOrder: integer("sort_order").notNull().default(0),
   // Optional franchise/IP grouping. set null when the media property is deleted.
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
@@ -783,8 +773,6 @@ export const podcasts = pgTable("podcasts", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
   sortOrder: integer("sort_order").notNull().default(0),
   mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
     onDelete: "set null",
@@ -1072,8 +1060,6 @@ export const newsletterTags = pgTable("newsletter_tags", {
 export const tags = pgTable("tags", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
   parentId: uuid("parent_id").references((): AnyPgColumn => tags.id, {
@@ -1148,8 +1134,6 @@ export const tagsRelations = relations(tags, ({
 export const genreMoods = pgTable("genre_moods", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
   parentId: uuid("parent_id").references((): AnyPgColumn => genreMoods.id, {
@@ -1214,8 +1198,6 @@ export const genreMoodAssignmentsRelations = relations(genreMoodAssignments, ({
 export const locations = pgTable("locations", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
-  romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
   // Extra names for different romanization styles.
@@ -1787,8 +1769,6 @@ export const calculatePropertyOperands = pgTable("calculate_property_operands", 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  // Optional romanized form of the name, matched by search and shown de-emphasized. Nullable → push-safe.
-  romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable at the DB level so
   // `drizzle-kit push` applies cleanly to existing rows; the service layer
   // backfills it at boot and always returns a slug on the wire type.
@@ -1951,12 +1931,6 @@ export const appSettings = pgTable("app_settings", {
   // Filter facet keys / custom-property ids that are NOT shown by default in the filter rail
   // (added on demand via the "Add filter" control). Null/[] = every filter shows by default.
   onDemandFilters: jsonb("on_demand_filters").$type<string[]>(),
-  // When true, the romanized name/title is shown as the primary label by default.
-  // NOT NULL on an existing table -> pre-applied in migrate.ts to avoid a push prompt.
-  showRomanizedByDefault: boolean("show_romanized_by_default").notNull().default(false),
-  // When true, alphabetical name/title sorting uses the romanized value as the sort key.
-  // NOT NULL on an existing table -> pre-applied in migrate.ts to avoid a push prompt.
-  sortByRomanized: boolean("sort_by_romanized").notNull().default(true),
   // Language to assume for Han-only (no-kana) names, which are ambiguous Japanese vs. Chinese:
   // "ja" | "zh". Nullable so `drizzle-kit push` stays additive; the resolver defaults it to "ja".
   hanScriptLanguage: text("han_script_language"),
@@ -2774,8 +2748,6 @@ export type FavoriteSettingsPageRow = typeof favoriteSettingsPages.$inferSelect;
 export const people = pgTable("people", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  // Optional romanized form of the name, matched by search and shown de-emphasized. Nullable → push-safe.
-  romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
   personWebsiteUrl: text("person_website_url"),
