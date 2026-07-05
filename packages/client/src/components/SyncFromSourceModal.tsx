@@ -48,7 +48,7 @@ export function SyncFromSourceModal({
     >
       <DialogContent
         className="
-          max-h-[85vh] gap-0 overflow-hidden
+          max-h-[80vh] gap-0 overflow-hidden
           sm:max-w-lg
         "
       >

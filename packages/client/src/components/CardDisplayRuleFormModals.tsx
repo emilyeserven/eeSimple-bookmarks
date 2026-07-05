@@ -38,7 +38,7 @@ export function CardDisplayRuleFormModals({
         open={displayModalOpen}
         onOpenChange={onDisplayOpenChange}
       >
-        <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto">
+        <DialogContent className="max-h-[80vh] max-w-6xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("Display settings")}</DialogTitle>
           </DialogHeader>
@@ -53,7 +53,7 @@ export function CardDisplayRuleFormModals({
             open={ruleModalOpen}
             onOpenChange={onRuleOpenChange}
           >
-            <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto">
+            <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{t("Rule settings")}</DialogTitle>
               </DialogHeader>
