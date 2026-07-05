@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { ChevronsUpDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -116,8 +117,12 @@ export function IconPicker({
   value,
   onChange,
   className,
-  "aria-label": ariaLabel = "Icon",
+  "aria-label": ariaLabelProp,
 }: IconPickerProps) {
+  const {
+    t,
+  } = useTranslation();
+  const ariaLabel = ariaLabelProp ?? t("Icon");
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -216,7 +221,7 @@ export function IconPicker({
             <span
               className={cn("truncate", !displayName && "text-muted-foreground")}
             >
-              {displayName ?? "Pick an icon"}
+              {displayName ?? t("Pick an icon")}
             </span>
           </span>
           <ChevronsUpDown className="opacity-50" />
@@ -228,7 +233,7 @@ export function IconPicker({
       >
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Search icons…"
+            placeholder={t("Search icons…")}
             value={query}
             onValueChange={setQuery}
           />
@@ -236,19 +241,19 @@ export function IconPicker({
           {/* Search mode: flat results across all icons */}
           {isSearching && (
             <CommandList className="max-h-[400px]">
-              {noSearchResults && <CommandEmpty>No matching icons.</CommandEmpty>}
+              {noSearchResults && <CommandEmpty>{t("No matching icons.")}</CommandEmpty>}
               {(lucideSearchResults ?? []).length > 0 && (
-                <CommandGroup heading="Lucide Icons">
+                <CommandGroup heading={t("Lucide Icons")}>
                   {renderIconGrid(lucideSearchResults ?? [])}
                 </CommandGroup>
               )}
               {customSearchResults.length > 0 && (
-                <CommandGroup heading="Custom Icons">
+                <CommandGroup heading={t("Custom Icons")}>
                   {renderIconGrid(customSearchResults)}
                 </CommandGroup>
               )}
               {phosphorSearchResults.length > 0 && (
-                <CommandGroup heading="Phosphor Icons">
+                <CommandGroup heading={t("Phosphor Icons")}>
                   {renderIconGrid(phosphorSearchResults)}
                 </CommandGroup>
               )}
@@ -268,14 +273,14 @@ export function IconPicker({
                     ref={register(section.id)}
                     data-section-id={section.id}
                   >
-                    <CommandGroup heading={section.label}>
+                    <CommandGroup heading={t(section.label)}>
                       {renderIconGrid(section.icons)}
                     </CommandGroup>
                   </div>
                 ))}
               </CommandList>
               <nav
-                aria-label="Icon categories"
+                aria-label={t("Icon categories")}
                 className="
                   flex max-h-[400px] w-32 shrink-0 flex-col overflow-y-auto
                   border-l py-1
@@ -293,7 +298,7 @@ export function IconPicker({
                             tracking-wide text-muted-foreground/70 uppercase
                           "
                         >
-                          {section.source === "custom" ? "Custom" : "Phosphor"}
+                          {section.source === "custom" ? t("Custom") : t("Phosphor")}
                         </span>
                       )}
                       <button
@@ -312,7 +317,7 @@ export function IconPicker({
                             `,
                         )}
                       >
-                        {section.label}
+                        {t(section.label)}
                       </button>
                     </React.Fragment>
                   );

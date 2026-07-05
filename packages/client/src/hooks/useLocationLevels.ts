@@ -4,6 +4,7 @@ import type { LocationDisplayMode, LocationMapLevelMode, PlaceTypeColorConfig, P
 import { useMemo } from "react";
 
 import { distributePaletteColors, LOCATION_MAP_PALETTES } from "@eesimple/types";
+import { useTranslation } from "react-i18next";
 
 import {
   useLocationLevelGroups,
@@ -81,6 +82,9 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
   resetPlaceTypeColors: () => void;
 } {
   const shouldNotify = opts.notify ?? true;
+  const {
+    t,
+  } = useTranslation();
 
   const {
     data: locations, isLoading,
@@ -131,13 +135,13 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
   }
 
   function groupLabel(id: string): string {
-    return groups.find(group => group.id === id)?.name || "Level";
+    return groups.find(group => group.id === id)?.name || t("Level");
   }
 
   function addGroupOfMode(displayMode: LocationDisplayMode, afterId?: string): void {
     const newGroup: PlaceTypeLevelGroup = {
       id: randomId(),
-      name: "New level",
+      name: t("New level"),
       placeTypes: [],
       displayMode,
       visible: true,
@@ -157,49 +161,63 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     save(inserted.map((g, i) => ({
       ...g,
       sortOrder: i,
-    })), "Level group");
+    })), t("Level group"));
   }
 
   function renameGroup(id: string, name: string): void {
     patchGroup(id, {
       name,
-    }, `${name || "Level"} name`);
+    }, t("{{name}} name", {
+      name: name || t("Level"),
+    }));
   }
 
   function setGroupShowOnMainMap(id: string, showOnMainMap: boolean): void {
     patchGroup(id, {
       showOnMainMap,
-    }, `${groupLabel(id)} main-map default`);
+    }, t("{{name}} main-map default", {
+      name: groupLabel(id),
+    }));
   }
 
   function setGroupDisplayMode(id: string, displayMode: LocationDisplayMode): void {
     patchGroup(id, {
       displayMode,
-    }, `${groupLabel(id)} display`);
+    }, t("{{name}} display", {
+      name: groupLabel(id),
+    }));
   }
 
   function setGroupLevelMode(id: string, levelMode: LocationMapLevelMode): void {
     patchGroup(id, {
       levelMode,
-    }, `${groupLabel(id)} levels shown`);
+    }, t("{{name}} levels shown", {
+      name: groupLabel(id),
+    }));
   }
 
   function setGroupDefaultHidden(id: string, hiddenIds: string[]): void {
     patchGroup(id, {
       defaultHiddenGroupIds: hiddenIds,
-    }, `${groupLabel(id)} default levels`);
+    }, t("{{name}} default levels", {
+      name: groupLabel(id),
+    }));
   }
 
   function setGroupPlaceTypes(id: string, placeTypes: string[]): void {
     patchGroup(id, {
       placeTypes,
-    }, `${groupLabel(id)} place types`);
+    }, t("{{name}} place types", {
+      name: groupLabel(id),
+    }));
   }
 
   function setGroupColor(id: string, color: string | null): void {
     patchGroup(id, {
       color,
-    }, `${groupLabel(id)} color`);
+    }, t("{{name}} color", {
+      name: groupLabel(id),
+    }));
   }
 
   function applyPalette(
@@ -215,7 +233,9 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
       ...group,
       color: includePins || group.displayMode !== "pin" ? distributed[index] : null,
     }));
-    save(next, `${palette.name} palette`);
+    save(next, t("{{name}} palette", {
+      name: palette.name,
+    }));
   }
 
   function removeGroup(id: string): void {
@@ -230,7 +250,9 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
           defaultHiddenGroupIds: group.defaultHiddenGroupIds.filter(gid => gid !== id),
         }
         : group));
-    save(next, `${label} removed`);
+    save(next, t("{{name}} removed", {
+      name: label,
+    }));
   }
 
   function reorderGroups(orderedIds: string[]): void {
@@ -241,7 +263,7 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     save(result.map((g, i) => ({
       ...g,
       sortOrder: i,
-    })), "Level order");
+    })), t("Level order"));
   }
 
   function reorderGroupsInTab(displayMode: LocationDisplayMode, newTabIds: string[]): void {
@@ -256,11 +278,13 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     save(result.map((g, i) => ({
       ...g,
       sortOrder: i,
-    })), "Level order");
+    })), t("Level order"));
   }
 
   function setPlaceTypeIcon(key: string, iconName: string): void {
-    const label = `${options.find(option => option.key === key)?.label ?? key} icon`;
+    const label = t("{{name}} icon", {
+      name: options.find(option => option.key === key)?.label ?? key,
+    });
     updateIcons.mutate({
       ...placeTypeIcons,
       [key]: iconName,
@@ -272,13 +296,15 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
 
   function resetPlaceTypeIcons(): void {
     updateIcons.mutate({}, {
-      onSuccess: () => notifyFieldSaved("Place type icons"),
-      onError: error => notifyFieldSaveError("Place type icons", error.message),
+      onSuccess: () => notifyFieldSaved(t("Place type icons")),
+      onError: error => notifyFieldSaveError(t("Place type icons"), error.message),
     });
   }
 
   function setPlaceTypeColor(key: string, color: string | null): void {
-    const label = `${options.find(option => option.key === key)?.label ?? key} color`;
+    const label = t("{{name}} color", {
+      name: options.find(option => option.key === key)?.label ?? key,
+    });
     // A null color clears the override — rebuild the map without the key rather than storing a null.
     const next: PlaceTypeColorConfig = color === null
       ? Object.fromEntries(Object.entries(placeTypeColors).filter(([k]) => k !== key))
@@ -294,8 +320,8 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
 
   function resetPlaceTypeColors(): void {
     updateColors.mutate({}, {
-      onSuccess: () => notifyFieldSaved("Place type colors"),
-      onError: error => notifyFieldSaveError("Place type colors", error.message),
+      onSuccess: () => notifyFieldSaved(t("Place type colors")),
+      onError: error => notifyFieldSaveError(t("Place type colors"), error.message),
     });
   }
 

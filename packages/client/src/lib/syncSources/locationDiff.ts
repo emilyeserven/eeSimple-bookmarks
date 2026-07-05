@@ -2,6 +2,7 @@ import type { SyncDiff, SyncFieldDiff } from "./syncSourceTypes";
 import type { LocationLookupCandidate } from "@eesimple/types";
 
 import { fillEmptyDefault, rowDiffers } from "./syncSourceTypes";
+import i18n from "../../i18n";
 
 /**
  * The location's current field values, for building the current-vs-candidate diff. Excludes the
@@ -27,11 +28,11 @@ export const LOCATION_COORD_FIELDS: ReadonlySet<LocationSyncField> = new Set<Loc
 ]);
 
 const FIELD_LABELS: Record<LocationSyncField, string> = {
-  latitude: "Latitude",
-  longitude: "Longitude",
-  mapUrl: "Map URL",
-  placeType: "Place type",
-  countryCode: "Country code",
+  latitude: i18n.t("Latitude"),
+  longitude: i18n.t("Longitude"),
+  mapUrl: i18n.t("Map URL"),
+  placeType: i18n.t("Place type"),
+  countryCode: i18n.t("Country code"),
 };
 
 /**
@@ -72,7 +73,7 @@ export function buildLocationDiff(
   return {
     groups: [
       {
-        source: "Geocoding",
+        source: i18n.t("Geocoding"),
         rows,
       },
     ],
