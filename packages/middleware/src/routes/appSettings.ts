@@ -467,6 +467,9 @@ const displayPreferenceBody = {
       type: "string",
       enum: ["ja", "zh"],
     },
+    secondaryLanguageId: {
+      type: ["string", "null"],
+    },
     minAreaPinThresholdKm2: {
       type: "number",
       minimum: 0,

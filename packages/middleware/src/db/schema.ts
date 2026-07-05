@@ -1990,6 +1990,11 @@ export const appSettings = pgTable("app_settings", {
   // Language to assume for Han-only (no-kana) names, which are ambiguous Japanese vs. Chinese:
   // "ja" | "zh". Nullable so `drizzle-kit push` stays additive; the resolver defaults it to "ja".
   hanScriptLanguage: text("han_script_language"),
+  // The language a multilingual entity's secondary display name is drawn from (breadcrumbs, etc.).
+  // Null = auto (English-tagged name, else the first other name).
+  secondaryLanguageId: uuid("secondary_language_id").references(() => languages.id, {
+    onDelete: "set null",
+  }),
   // Prompt text used to instruct an AI to summarize bookmarks in the AI Summary Queue.
   aiSummarizationPrompt: text("ai_summarization_prompt").notNull().default(""),
   // Hosted metadata provider (Microlink-compatible) configured from Settings → Connectors.

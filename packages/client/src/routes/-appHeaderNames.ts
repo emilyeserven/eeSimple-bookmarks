@@ -160,24 +160,31 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/books": {
       name: book?.name,
+      names: book?.names,
     },
     "/taxonomies/podcasts": {
       name: podcast?.name,
+      names: podcast?.names,
     },
     "/taxonomies/movies": {
       name: movie?.name,
+      names: movie?.names,
     },
     "/taxonomies/tv-shows": {
       name: tvShow?.name,
+      names: tvShow?.names,
     },
     "/taxonomies/episodes": {
       name: episode?.name,
+      names: episode?.names,
     },
     "/taxonomies/albums": {
       name: album?.name,
+      names: album?.names,
     },
     "/taxonomies/tracks": {
       name: track?.name,
+      names: track?.names,
     },
     "/taxonomies/relationship-types": {
       name: relationshipType?.name,

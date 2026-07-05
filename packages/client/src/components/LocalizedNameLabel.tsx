@@ -13,6 +13,8 @@ interface LocalizedNameLabelProps {
   legacyRomanized?: string | null;
   /** Which language to prefer as primary; `null`/omitted until the interface-language setting exists. */
   preferredLanguage?: PreferredLanguage | null;
+  /** Which language to prefer for the secondary name, when no primary override applies. */
+  secondaryLanguage?: PreferredLanguage | null;
   /** Extra classes for the de-emphasized secondary span. */
   secondaryClassName?: string;
   /**
@@ -30,11 +32,11 @@ interface LocalizedNameLabelProps {
  * rows have been backfilled yet. `CrumbLabel` delegates to this internally.
  */
 export function LocalizedNameLabel({
-  names, base, legacyRomanized, preferredLanguage, secondaryClassName, stacked = false,
+  names, base, legacyRomanized, preferredLanguage, secondaryLanguage, secondaryClassName, stacked = false,
 }: LocalizedNameLabelProps) {
   const {
     primary, secondary,
-  } = resolveDisplayNames(namesWithLegacyFallback(names, legacyRomanized), preferredLanguage, base);
+  } = resolveDisplayNames(namesWithLegacyFallback(names, legacyRomanized), preferredLanguage, base, secondaryLanguage);
 
   if (stacked) {
     return (

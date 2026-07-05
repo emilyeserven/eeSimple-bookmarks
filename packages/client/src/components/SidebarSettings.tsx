@@ -37,6 +37,7 @@ const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   bookmarkDetailVideoSize: "standard",
   bookmarkDetailLayout: "single",
   interfaceLanguage: "en",
+  secondaryLanguageId: null,
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,

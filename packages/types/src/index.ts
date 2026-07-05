@@ -540,6 +540,11 @@ export interface DisplayPreferenceSettings {
    */
   hanScriptLanguage: "ja" | "zh";
   /**
+   * The language a multilingual entity's secondary display name (breadcrumbs, etc.) is drawn from.
+   * `null` = auto (an English-tagged name, else the entity's first other name).
+   */
+  secondaryLanguageId: string | null;
+  /**
    * Minimum area (km²) an `"area"`-mode location's boundary must have to still render as a polygon
    * on the map; smaller boundaries render as a pin instead. `0` disables the threshold (legacy
    * behavior — any boundary renders as an area).
