@@ -1,5 +1,7 @@
 import type { EntityName } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { Badge } from "../ui/badge";
 
 interface EntityNamesViewProps {
@@ -10,10 +12,13 @@ interface EntityNamesViewProps {
 
 /** Read-only display of an owner's multilingual names as `Language — value` chips. */
 export function EntityNamesView({
-  names, emptyText = "No additional names added.",
+  names, emptyText,
 }: EntityNamesViewProps) {
+  const {
+    t,
+  } = useTranslation();
   if (names.length === 0) {
-    return <p className="text-sm text-muted-foreground">{emptyText}</p>;
+    return <p className="text-sm text-muted-foreground">{emptyText ?? t("No additional names added.")}</p>;
   }
   return (
     <ul className="flex flex-wrap gap-2">
@@ -26,7 +31,7 @@ export function EntityNamesView({
             <span className="font-medium">{name.language.name}</span>
             <span className="text-muted-foreground">—</span>
             <span>{name.value}</span>
-            {name.isPrimary && <span className="text-muted-foreground">(primary)</span>}
+            {name.isPrimary && <span className="text-muted-foreground">({t("primary")})</span>}
           </Badge>
         </li>
       ))}

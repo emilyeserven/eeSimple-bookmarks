@@ -3,6 +3,7 @@ import type { FC } from "react";
 
 import { CHOICES_DISPLAY_LABELS } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { hasPropertyOptions } from "../lib/propertyForm";
 import { DATE_TIME_FORMAT_LABELS, NUMBER_FORMAT_LABELS } from "../lib/propertyFormat";
@@ -10,6 +11,7 @@ import { DATE_TIME_FORMAT_LABELS, NUMBER_FORMAT_LABELS } from "../lib/propertyFo
 import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
 import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
+import i18n from "@/i18n";
 import { CategoryIcon } from "@/lib/icons";
 import { BOOLEAN_LABEL_PRESET_OPTIONS } from "@/lib/propertyForm";
 
@@ -18,9 +20,9 @@ import { BOOLEAN_LABEL_PRESET_OPTIONS } from "@/lib/propertyForm";
  * centrally in Settings → Display → Bookmark Add Form, not from this page.
  */
 function formPlacement(property: CustomProperty): string {
-  if (property.hiddenFromForm) return "Hidden from the bookmark form";
-  if (property.showInForm) return "Shown in the main bookmark form";
-  return "Shown only in the Advanced area";
+  if (property.hiddenFromForm) return i18n.t("Hidden from the bookmark form");
+  if (property.showInForm) return i18n.t("Shown in the main bookmark form");
+  return i18n.t("Shown only in the Advanced area");
 }
 
 /** The "General" section body: status, description, created date. */
@@ -29,19 +31,22 @@ export function PropertyGeneralFields({
 }: {
   property: CustomProperty;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <dl className="space-y-3">
-      <DetailField label="Status">
-        {property.enabled ? "Enabled" : "Disabled"}
+      <DetailField label={t("Status")}>
+        {property.enabled ? t("Enabled") : t("Disabled")}
       </DetailField>
 
-      <DetailField label="Description">
+      <DetailField label={t("Description")}>
         {property.description
           ? <p className="whitespace-pre-wrap">{property.description}</p>
           : null}
       </DetailField>
 
-      <DetailField label="Created">
+      <DetailField label={t("Created")}>
         <span>{new Date(property.createdAt).toLocaleString()}</span>
       </DetailField>
     </dl>
@@ -57,9 +62,12 @@ interface PropertyOptionsFieldsProps {
 function AllowDefaultField({
   property,
 }: { property: CustomProperty }) {
+  const {
+    t,
+  } = useTranslation();
   return (
-    <DetailField label="Allow default value">
-      {property.allowDefault ? "Allowed" : "Hidden from category defaults"}
+    <DetailField label={t("Allow default value")}>
+      {property.allowDefault ? t("Allowed") : t("Hidden from category defaults")}
     </DetailField>
   );
 }
@@ -68,15 +76,21 @@ function AllowDefaultField({
 function BooleanOptionsFields({
   property,
 }: PropertyOptionsFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
   const preset = BOOLEAN_LABEL_PRESET_OPTIONS.find(o => o.value === (property.booleanLabelPreset ?? "yes-no"));
   const labelsDisplay = property.booleanLabelPreset === "custom"
-    ? `Custom: ${property.booleanTrueLabel || "Yes"} / ${property.booleanFalseLabel || "No"}`
-    : (preset?.label ?? "Yes / No");
+    ? t("Custom: {{trueLabel}} / {{falseLabel}}", {
+      trueLabel: property.booleanTrueLabel || t("Yes"),
+      falseLabel: property.booleanFalseLabel || t("No"),
+    })
+    : (preset?.label ?? t("Yes / No"));
   return (
     <>
-      <DetailField label="How Values Display">{labelsDisplay}</DetailField>
-      <DetailField label="Per-card display">
-        Configured per field under Card Display Rules
+      <DetailField label={t("How Values Display")}>{labelsDisplay}</DetailField>
+      <DetailField label={t("Per-card display")}>
+        {t("Configured per field under Card Display Rules")}
       </DetailField>
     </>
   );
@@ -86,12 +100,19 @@ function BooleanOptionsFields({
 function RatingOptionsFields({
   property,
 }: PropertyOptionsFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
   const min = property.ratingAllowZero ? 0 : 1;
   return (
     <>
-      <DetailField label="Scale">{`${min} – ${property.ratingMax ?? 5} stars`}</DetailField>
-      <DetailField label="Half ratings">{property.ratingAllowHalf ? "Allowed" : "Whole stars only"}</DetailField>
-      <DetailField label="Label">
+      <DetailField label={t("Scale")}>{t("{{min}} – {{max}} stars", {
+        min,
+        max: property.ratingMax ?? 5,
+      })}
+      </DetailField>
+      <DetailField label={t("Half ratings")}>{property.ratingAllowHalf ? t("Allowed") : t("Whole stars only")}</DetailField>
+      <DetailField label={t("Label")}>
         {property.ratingShowLabel && property.ratingLabel ? property.ratingLabel : null}
       </DetailField>
       <AllowDefaultField property={property} />
@@ -121,9 +142,12 @@ function NumericOptionsFields({
 function DateTimeOptionsFields({
   property,
 }: PropertyOptionsFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
-      <DetailField label="Captures">
+      <DetailField label={t("Captures")}>
         {DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}
       </DetailField>
       <AllowDefaultField property={property} />
@@ -142,15 +166,18 @@ function BasicOptionsFields({
 function ItemInItemsOptionsFields({
   property,
 }: PropertyOptionsFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
   const before = property.itemInItemsBeforeText ?? "";
-  const between = property.itemInItemsBetweenText ?? " of ";
+  const between = property.itemInItemsBetweenText ?? t(" of ");
   const after = property.itemInItemsAfterText ?? "";
   return (
     <>
-      <DetailField label="Format preview">{`${before}10${between}100${after}`}</DetailField>
-      {before ? <DetailField label="Text before">{before}</DetailField> : null}
-      <DetailField label="Text between">{between}</DetailField>
-      {after ? <DetailField label="Text after">{after}</DetailField> : null}
+      <DetailField label={t("Format preview")}>{`${before}10${between}100${after}`}</DetailField>
+      {before ? <DetailField label={t("Text before")}>{before}</DetailField> : null}
+      <DetailField label={t("Text between")}>{between}</DetailField>
+      {after ? <DetailField label={t("Text after")}>{after}</DetailField> : null}
       <AllowDefaultField property={property} />
     </>
   );
@@ -160,16 +187,19 @@ function ItemInItemsOptionsFields({
 function ChoicesOptionsFields({
   property,
 }: PropertyOptionsFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
   const tLabel = useTranslatedLabel();
   return (
     <>
-      <DetailField label="Display">
+      <DetailField label={t("Display")}>
         {tLabel(CHOICES_DISPLAY_LABELS[property.choicesDisplay ?? "radio"])}
       </DetailField>
-      <DetailField label="Selection">
-        {property.choicesMultiple ? "Multiple" : "Single"}
+      <DetailField label={t("Selection")}>
+        {property.choicesMultiple ? t("Multiple") : t("Single")}
       </DetailField>
-      <DetailField label="Choices">
+      <DetailField label={t("Choices")}>
         {property.choicesItems.length > 0
           ? (
             <ul className="space-y-1">
@@ -181,7 +211,7 @@ function ChoicesOptionsFields({
                   {item.label}
                   {item.isDefault
                     ? (
-                      <Badge variant="secondary">Default</Badge>
+                      <Badge variant="secondary">{t("Default")}</Badge>
                     )
                     : null}
                 </li>
@@ -237,10 +267,13 @@ export function PropertyCategoriesContent({
   property: CustomProperty;
   categories?: Category[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const assignedCategories = categories.filter(category =>
     property.categoryIds.includes(category.id));
   if (property.allCategories || property.categoryIds.length === 0) {
-    return <Badge variant="secondary">All categories</Badge>;
+    return <Badge variant="secondary">{t("All categories")}</Badge>;
   }
   return (
     <ul className="flex flex-wrap gap-1">
@@ -269,10 +302,13 @@ export function PropertyMediaTypesContent({
   property: CustomProperty;
   mediaTypes?: MediaType[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const assigned = mediaTypes.filter(mt => property.mediaTypeIds.includes(mt.id));
-  if (property.allMediaTypes) return <Badge variant="secondary">All media types</Badge>;
+  if (property.allMediaTypes) return <Badge variant="secondary">{t("All media types")}</Badge>;
   if (assigned.length === 0) {
-    return <span className="text-sm text-muted-foreground">None</span>;
+    return <span className="text-sm text-muted-foreground">{t("None")}</span>;
   }
   return (
     <ul className="flex flex-wrap gap-1">
@@ -292,12 +328,15 @@ export function PropertyDisplayFields({
   property: CustomProperty;
   propertyGroups?: PropertyGroup[];
 }) {
+  const {
+    t,
+  } = useTranslation();
   const group = property.propertyGroupId
     ? propertyGroups.find(candidate => candidate.id === property.propertyGroupId)
     : undefined;
   return (
     <dl className="space-y-3">
-      <DetailField label="Group">
+      <DetailField label={t("Group")}>
         {group
           ? (
             <Link
@@ -313,13 +352,13 @@ export function PropertyDisplayFields({
               {group.name}
             </Link>
           )
-          : <span className="text-muted-foreground">Ungrouped</span>}
+          : <span className="text-muted-foreground">{t("Ungrouped")}</span>}
       </DetailField>
-      <DetailField label="Bookmark form">
+      <DetailField label={t("Bookmark form")}>
         <div className="space-y-1">
           <p>{formPlacement(property)}</p>
           <p className="text-xs text-muted-foreground">
-            Managed in
+            {t("Managed in")}
             {" "}
             <Link
               to="/settings/display/bookmark-add"
@@ -328,34 +367,34 @@ export function PropertyDisplayFields({
                 hover:underline
               "
             >
-              Bookmark Add Form settings
+              {t("Bookmark Add Form settings")}
             </Link>
             .
           </p>
         </div>
       </DetailField>
-      <DetailField label="Listings">
-        {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}
+      <DetailField label={t("Listings")}>
+        {property.showInListings ? t("Shown on bookmark cards") : t("Hidden from bookmark cards")}
       </DetailField>
-      <DetailField label="Details page">
-        {property.showInDetails ? "Shown on bookmark details page" : "Hidden from bookmark details page"}
+      <DetailField label={t("Details page")}>
+        {property.showInDetails ? t("Shown on bookmark details page") : t("Hidden from bookmark details page")}
       </DetailField>
       {property.type === "calculate"
         ? null
         : (
           <>
-            <DetailField label="Card menu">
-              {property.editableOnCard ? "Editable from the card menu" : "Not editable from the card menu"}
+            <DetailField label={t("Card menu")}>
+              {property.editableOnCard ? t("Editable from the card menu") : t("Not editable from the card menu")}
             </DetailField>
-            <DetailField label="CMD+K">
-              {property.editableViaCmdk ? "Editable via CMD+K" : "Not editable via CMD+K"}
+            <DetailField label={t("CMD+K")}>
+              {property.editableViaCmdk ? t("Editable via CMD+K") : t("Not editable via CMD+K")}
             </DetailField>
           </>
         )}
       {!["calculate", "image", "file", "itemInItems", "sections"].includes(property.type)
         ? (
-          <DetailField label="Inbox pre-fill">
-            {property.enabledInInbox ? "Shown in the Inbox pre-fill box" : "Not shown in the Inbox pre-fill box"}
+          <DetailField label={t("Inbox pre-fill")}>
+            {property.enabledInInbox ? t("Shown in the Inbox pre-fill box") : t("Not shown in the Inbox pre-fill box")}
           </DetailField>
         )
         : null}
@@ -372,28 +411,38 @@ interface NumericPropertyFieldsProps {
 function NumericPropertyFields({
   property, operandNames,
 }: NumericPropertyFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
   const units = [property.unitSingular, property.unitPlural].filter(Boolean).join(" / ");
   return (
     <>
-      <DetailField label="Range">
-        {`${property.numberMin ?? "auto"} – ${property.numberMax ?? "auto"}`}
+      <DetailField label={t("Range")}>
+        {t("{{min}} – {{max}}", {
+          min: property.numberMin ?? t("auto"),
+          max: property.numberMax ?? t("auto"),
+        })}
         {property.unitPlural ? ` ${property.unitPlural}` : ""}
       </DetailField>
-      <DetailField label="Units">{units || null}</DetailField>
-      <DetailField label="Value prefix">{property.valuePrefix}</DetailField>
-      <DetailField label="Zero label">{property.zeroLabel}</DetailField>
-      <DetailField label="Maximum label">{property.maxLabel}</DetailField>
+      <DetailField label={t("Units")}>{units || null}</DetailField>
+      <DetailField label={t("Value prefix")}>{property.valuePrefix}</DetailField>
+      <DetailField label={t("Zero label")}>{property.zeroLabel}</DetailField>
+      <DetailField label={t("Maximum label")}>{property.maxLabel}</DetailField>
       {property.type === "number"
         ? (
-          <DetailField label="Number format">
+          <DetailField label={t("Number format")}>
             {NUMBER_FORMAT_LABELS[property.numberFormat ?? "plain"]}
           </DetailField>
         )
         : null}
       {property.type === "calculate"
         ? (
-          <DetailField label="Operands">
-            {operandNames.length > 0 ? `Σ ${operandNames.join(" + ")}` : null}
+          <DetailField label={t("Operands")}>
+            {operandNames.length > 0
+              ? t("Σ {{operands}}", {
+                operands: operandNames.join(" + "),
+              })
+              : null}
           </DetailField>
         )
         : null}

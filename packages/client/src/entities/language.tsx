@@ -10,6 +10,7 @@ import {
   useBulkDeleteLanguages,
   useLanguages,
 } from "../hooks/useLanguages";
+import i18n from "../i18n";
 import { languagesApi } from "../lib/api/taxonomies";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -19,8 +20,8 @@ const LANGUAGE_ROUTE: EntityRoute = {
   kind: "language",
   prefix: "/taxonomies/languages",
   slugIndex: 2,
-  listLabel: "Languages",
-  singular: "Language",
+  listLabel: i18n.t("Languages"),
+  singular: i18n.t("Language"),
   flatCrumbs: true,
 };
 
@@ -42,12 +43,12 @@ export const languageListingConfig: EntityListingConfig<Language> = {
   deletableIds: items => items.filter(l => !l.builtIn).map(l => l.id),
   isSelectable: l => !l.builtIn,
   useBulkDelete: useBulkDeleteLanguages,
-  noun: ["language", "languages"],
-  loadingLabel: "Loading languages…",
-  entityPlural: "languages",
+  noun: [i18n.t("language"), i18n.t("languages")],
+  loadingLabel: i18n.t("Loading languages…"),
+  entityPlural: i18n.t("languages"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No languages yet.
+      {i18n.t("No languages yet.")}
     </p>
   ),
   renderListItem: ({

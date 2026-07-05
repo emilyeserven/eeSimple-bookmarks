@@ -10,6 +10,7 @@ import {
   useBulkDeleteRelationshipTypes,
   useRelationshipTypes,
 } from "../hooks/useRelationshipTypes";
+import i18n from "../i18n";
 import { relationshipTypesApi } from "../lib/api/taxonomies";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -19,8 +20,8 @@ const RELATIONSHIP_TYPE_ROUTE: EntityRoute = {
   kind: "relationship-type",
   prefix: "/taxonomies/relationship-types",
   slugIndex: 2,
-  listLabel: "Relationship Types",
-  singular: "Relationship Type",
+  listLabel: i18n.t("Relationship Types"),
+  singular: i18n.t("Relationship Type"),
   flatCrumbs: true,
 };
 
@@ -34,7 +35,7 @@ const RELATIONSHIP_TYPE_PALETTE: EntityPaletteConfig = {
     {
       type: "boolean",
       key: "directional",
-      label: "Directional",
+      label: i18n.t("Directional"),
       getValue: entity => (entity as RelationshipType).directional,
       isEditable: entity => !(entity as RelationshipType).builtIn,
     },
@@ -49,12 +50,12 @@ export const relationshipTypeListingConfig: EntityListingConfig<RelationshipType
   deletableIds: items => items.filter(rt => !rt.builtIn).map(rt => rt.id),
   isSelectable: rt => !rt.builtIn,
   useBulkDelete: useBulkDeleteRelationshipTypes,
-  noun: ["relationship type", "relationship types"],
-  loadingLabel: "Loading relationship types…",
-  entityPlural: "relationship types",
+  noun: [i18n.t("relationship type"), i18n.t("relationship types")],
+  loadingLabel: i18n.t("Loading relationship types…"),
+  entityPlural: i18n.t("relationship types"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No relationship types yet.
+      {i18n.t("No relationship types yet.")}
     </p>
   ),
   renderListItem: ({

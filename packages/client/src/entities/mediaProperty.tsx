@@ -7,6 +7,7 @@ import { MediaPropertyListItem } from "../components/MediaPropertyListItem";
 import { MediaPropertyTable } from "../components/MediaPropertyTable";
 import { mediaPropertyWorkbench } from "../components/workbench/mediaProperty";
 import { useBulkDeleteMediaProperties, useMediaProperties } from "../hooks/useMediaProperties";
+import i18n from "../i18n";
 import { mediaPropertiesApi } from "../lib/api/taxonomies";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -14,8 +15,8 @@ const MEDIA_PROPERTY_ROUTE: EntityRoute = {
   kind: "media-property",
   prefix: "/taxonomies/media-properties",
   slugIndex: 2,
-  listLabel: "Media Properties",
-  singular: "Media Property",
+  listLabel: i18n.t("Media Properties"),
+  singular: i18n.t("Media Property"),
   flatCrumbs: true,
 };
 
@@ -33,12 +34,12 @@ export const mediaPropertyListingConfig: EntityListingConfig<MediaProperty> = {
   matches: (prop, query) =>
     prop.name.toLowerCase().includes(query) || prop.slug.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteMediaProperties,
-  noun: ["media property", "media properties"],
-  loadingLabel: "Loading media properties…",
-  entityPlural: "media properties",
+  noun: [i18n.t("media property"), i18n.t("media properties")],
+  loadingLabel: i18n.t("Loading media properties…"),
+  entityPlural: i18n.t("media properties"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No media properties yet.
+      {i18n.t("No media properties yet.")}
     </p>
   ),
   renderListItem: ({

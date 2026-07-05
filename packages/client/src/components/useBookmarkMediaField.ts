@@ -2,6 +2,8 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useAlbums } from "../hooks/useAlbums";
 import { useBooks } from "../hooks/useBooks";
 import { useEpisodes } from "../hooks/useEpisodes";
@@ -188,6 +190,9 @@ export function useBookmarkMediaField(
   onSelect: (selection: MediaSelection) => void,
   bookmark?: Bookmark | null,
 ) {
+  const {
+    t,
+  } = useTranslation();
   const lists = useMediaTaxonomyLists();
   const expanded = useExpandedSet(MEDIA_KIND_META.map(meta => meta.kind));
 
@@ -209,7 +214,7 @@ export function useBookmarkMediaField(
       : (isExpanded ? allItems : []);
     return {
       kind: meta.kind,
-      heading: meta.heading,
+      heading: t(meta.heading),
       items,
       totalCount: allItems.length,
       collapsed: !hasQuery && !isExpanded,

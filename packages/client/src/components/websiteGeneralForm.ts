@@ -2,11 +2,12 @@ import type { UpdateWebsiteInput, Website } from "@eesimple/types";
 
 import { z } from "zod";
 
+import i18n from "@/i18n";
 import { socialLinkSchema } from "@/lib/socialLinks";
 
 export const websiteGeneralSchema = z.object({
-  siteName: z.string().trim().min(1, "Site name is required"),
-  domain: z.string().trim().min(1, "Domain is required"),
+  siteName: z.string().trim().min(1, i18n.t("Site name is required")),
+  domain: z.string().trim().min(1, i18n.t("Domain is required")),
   socialLinks: z.array(socialLinkSchema),
 });
 

@@ -2,6 +2,8 @@ import type { ComboboxOption } from "../Combobox";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useTagTree } from "../../hooks/useTags";
 import { Combobox } from "../Combobox";
 import { TagPickerWithCreate } from "../TagPickerWithCreate";
@@ -48,6 +50,9 @@ export function BulkComboboxDialog({
   isPending,
   onApply,
 }: BulkComboboxDialogProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string | undefined>(undefined);
   return (
@@ -66,14 +71,10 @@ export function BulkComboboxDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Applies to
-            {" "}
-            {ids.length}
-            {" "}
-            selected
-            {" "}
-            {ids.length === 1 ? noun : `${noun}s`}
-            .
+            {t("Applies to {{count}} selected {{noun}}.", {
+              count: ids.length,
+              noun: ids.length === 1 ? noun : `${noun}s`,
+            })}
           </DialogDescription>
         </DialogHeader>
         <Combobox
@@ -84,7 +85,7 @@ export function BulkComboboxDialog({
         />
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("Cancel")}</Button>
           </DialogClose>
           <Button
             disabled={value === undefined || isPending}
@@ -99,7 +100,7 @@ export function BulkComboboxDialog({
               });
             }}
           >
-            Apply
+            {t("Apply")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -134,6 +135,9 @@ export function BulkTagsDialog({
   onApply,
   availableRootTagIds,
 }: BulkTagsDialogProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const {
@@ -163,21 +167,17 @@ export function BulkTagsDialog({
         <Button
           variant="outline"
           size="sm"
-        >Tags
+        >{t("Tags")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Choose tags, then add or remove them across
-            {" "}
-            {ids.length}
-            {" "}
-            selected
-            {" "}
-            {ids.length === 1 ? noun : `${noun}s`}
-            .
+            {t("Choose tags, then add or remove them across {{count}} selected {{noun}}.", {
+              count: ids.length,
+              noun: ids.length === 1 ? noun : `${noun}s`,
+            })}
           </DialogDescription>
         </DialogHeader>
         <TagPickerWithCreate
@@ -192,13 +192,13 @@ export function BulkTagsDialog({
             disabled={selectedTagIds.length === 0 || isPending}
             onClick={() => apply("remove")}
           >
-            Remove
+            {t("Remove")}
           </Button>
           <Button
             disabled={selectedTagIds.length === 0 || isPending}
             onClick={() => apply("add")}
           >
-            Add
+            {t("Add")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -223,6 +223,9 @@ export function BulkConfirmDeleteDialog({
   isPending,
   onDelete,
 }: BulkConfirmDeleteDialogProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <Dialog
@@ -233,24 +236,22 @@ export function BulkConfirmDeleteDialog({
         <Button
           variant="destructive"
           size="sm"
-        >Delete
+        >{t("Delete")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Delete
-            {" "}
-            {ids.length}
-            {" "}
-            {ids.length === 1 ? noun : `${noun}s`}
-            ?
+            {t("Delete {{count}} {{noun}}?", {
+              count: ids.length,
+              noun: ids.length === 1 ? noun : `${noun}s`,
+            })}
           </DialogTitle>
-          <DialogDescription>This cannot be undone.</DialogDescription>
+          <DialogDescription>{t("This cannot be undone.")}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("Cancel")}</Button>
           </DialogClose>
           <Button
             variant="destructive"
@@ -262,7 +263,7 @@ export function BulkConfirmDeleteDialog({
               },
             })}
           >
-            Delete
+            {t("Delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

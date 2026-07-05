@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
@@ -8,24 +9,27 @@ export const Route = createFileRoute("/taxonomies/genres-moods/$genreMoodSlug/_v
   component: GenreMoodViewLayout,
 });
 
-const viewNav = [
-  {
-    to: "/taxonomies/genres-moods/$genreMoodSlug/general",
-    label: "General",
-  },
-  {
-    to: "/taxonomies/genres-moods/$genreMoodSlug/hierarchy",
-    label: "Hierarchy",
-  },
-] as const;
-
 function GenreMoodViewLayout() {
+  const {
+    t,
+  } = useTranslation();
   const {
     genreMoodSlug,
   } = Route.useParams();
   const {
     genreMood, isLoading,
   } = useGenreMoodBySlug(genreMoodSlug);
+
+  const viewNav = [
+    {
+      to: "/taxonomies/genres-moods/$genreMoodSlug/general",
+      label: t("General"),
+    },
+    {
+      to: "/taxonomies/genres-moods/$genreMoodSlug/hierarchy",
+      label: t("Hierarchy"),
+    },
+  ] as const;
 
   return (
     <TabbedEntityLayout
@@ -42,14 +46,14 @@ function GenreMoodViewLayout() {
                 romanized={genreMood.romanizedName}
               />
             )
-            : (isLoading ? "Entry" : "Entry not found")}
+            : (isLoading ? t("Entry") : t("Entry not found"))}
         </h1>
       )}
       nav={viewNav}
       params={{
         genreMoodSlug,
       }}
-      navAriaLabel="Genres & Moods sections"
+      navAriaLabel={t("Genres & Moods sections")}
     />
   );
 }

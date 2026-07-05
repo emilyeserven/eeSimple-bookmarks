@@ -7,6 +7,7 @@ import { PlaceTypeListItem } from "../components/PlaceTypeListItem";
 import { PlaceTypeTable } from "../components/PlaceTypeTable";
 import { placeTypeWorkbench } from "../components/workbench/placeType";
 import { useBulkDeletePlaceTypes, usePlaceTypes } from "../hooks/usePlaceTypes";
+import i18n from "../i18n";
 import { placeTypesApi } from "../lib/api/taxonomies";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -14,8 +15,8 @@ const PLACE_TYPE_ROUTE: EntityRoute = {
   kind: "place-type",
   prefix: "/taxonomies/place-types",
   slugIndex: 2,
-  listLabel: "Place Types",
-  singular: "Place Type",
+  listLabel: i18n.t("Place Types"),
+  singular: i18n.t("Place Type"),
   flatCrumbs: true,
 };
 
@@ -44,12 +45,12 @@ export function buildPlaceTypeListingConfig(opts: {
     matches: (placeType, query) =>
       placeType.name.toLowerCase().includes(query) || placeType.slug.toLowerCase().includes(query),
     useBulkDelete: useBulkDeletePlaceTypes,
-    noun: ["place type", "place types"],
-    loadingLabel: "Loading place types…",
-    entityPlural: "place types",
+    noun: [i18n.t("place type"), i18n.t("place types")],
+    loadingLabel: i18n.t("Loading place types…"),
+    entityPlural: i18n.t("place types"),
     emptyMessage: (
       <p className="text-muted-foreground">
-        No place types yet. They are seeded from your locations’ place classifications.
+        {i18n.t("No place types yet. They are seeded from your locations’ place classifications.")}
       </p>
     ),
     renderListItem: ({

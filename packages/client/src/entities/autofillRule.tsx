@@ -7,6 +7,7 @@ import { AutofillListingCard } from "../components/AutofillListingCard";
 import { AutofillRulesTable } from "../components/AutofillRulesTable";
 import { autofillWorkbench } from "../components/workbench/autofill";
 import { useAutofillRules, useBulkDeleteAutofillRules } from "../hooks/useAutofill";
+import i18n from "../i18n";
 import { autofillApi } from "../lib/api/autofill";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
@@ -17,8 +18,8 @@ const AUTOFILL_ROUTE: EntityRoute = {
   kind: "autofill",
   prefix: "/autofill",
   slugIndex: 1,
-  listLabel: "Autofill Rules",
-  singular: "Rule",
+  listLabel: i18n.t("Autofill Rules"),
+  singular: i18n.t("Rule"),
   switcher: "autofill",
   flatCrumbs: true,
 };
@@ -31,11 +32,11 @@ const AUTOFILL_PALETTE: EntityPaletteConfig = {
   extraInvalidateKeys: [BOOKMARKS_KEY],
   extraEditTabs: [
     {
-      label: "Edit Conditions",
+      label: i18n.t("Edit Conditions"),
       tab: "conditions",
     },
     {
-      label: "Edit Prefill",
+      label: i18n.t("Edit Prefill"),
       tab: "prefill",
     },
   ],
@@ -60,12 +61,12 @@ export function buildAutofillListingConfig(opts: {
       rule.name.toLowerCase().includes(query)
       || summarizeConditions(rule.conditions).toLowerCase().includes(query),
     useBulkDelete: useBulkDeleteAutofillRules,
-    noun: ["rule", "rules"],
-    loadingLabel: "Loading rules…",
-    entityPlural: "rules",
+    noun: [i18n.t("rule"), i18n.t("rules")],
+    loadingLabel: i18n.t("Loading rules…"),
+    entityPlural: i18n.t("rules"),
     emptyMessage: (
       <p className="text-muted-foreground">
-        No autofill rules yet. Create one to get started.
+        {i18n.t("No autofill rules yet. Create one to get started.")}
       </p>
     ),
     renderListItem: ({

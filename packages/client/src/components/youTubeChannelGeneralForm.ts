@@ -2,8 +2,10 @@ import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types"
 
 import { z } from "zod";
 
+import i18n from "@/i18n";
+
 export const channelGeneralSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
+  name: z.string().trim().min(1, i18n.t("Name is required")),
 });
 
 export const CHANNEL_LABELS: Partial<Record<keyof UpdateYouTubeChannelInput, string>> = {

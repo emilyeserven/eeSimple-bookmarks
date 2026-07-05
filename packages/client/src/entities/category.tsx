@@ -9,6 +9,7 @@ import { CategoriesTable } from "../components/CategoriesTable";
 import { CategoryPreviewRow } from "../components/CategoryPreviewRow";
 import { categoryWorkbench } from "../components/workbench/category";
 import { useBulkDeleteCategories, useCategories } from "../hooks/useCategories";
+import i18n from "../i18n";
 import { categoriesApi } from "../lib/api/taxonomies";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -18,8 +19,8 @@ const CATEGORY_ROUTE: EntityRoute = {
   kind: "category",
   prefix: "/categories",
   slugIndex: 1,
-  listLabel: "Categories",
-  singular: "Category",
+  listLabel: i18n.t("Categories"),
+  singular: i18n.t("Category"),
   switcher: "category",
   flatCrumbs: true,
 };
@@ -34,7 +35,7 @@ const CATEGORY_PALETTE: EntityPaletteConfig = {
     {
       type: "boolean",
       key: "isHomepage",
-      label: "Homepage Category",
+      label: i18n.t("Homepage Category"),
       getValue: entity => (entity as Category).isHomepage,
     },
   ],
@@ -48,12 +49,12 @@ export const categoryListingConfig: EntityListingConfig<Category> = {
   deletableIds: items => items.filter(c => !c.builtIn).map(c => c.id),
   isSelectable: category => !category.builtIn,
   useBulkDelete: useBulkDeleteCategories,
-  noun: ["category", "categories"],
-  loadingLabel: "Loading categories…",
-  entityPlural: "categories",
+  noun: [i18n.t("category"), i18n.t("categories")],
+  loadingLabel: i18n.t("Loading categories…"),
+  entityPlural: i18n.t("categories"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No categories yet.
+      {i18n.t("No categories yet.")}
     </p>
   ),
   renderListItem: ({

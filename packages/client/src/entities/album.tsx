@@ -7,6 +7,7 @@ import { AlbumListItem } from "../components/AlbumListItem";
 import { AlbumTable } from "../components/AlbumTable";
 import { albumWorkbench } from "../components/workbench/album";
 import { useBulkDeleteAlbums, useAlbums } from "../hooks/useAlbums";
+import i18n from "../i18n";
 import { albumsApi } from "../lib/api/taxonomies";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -14,8 +15,8 @@ const ALBUM_ROUTE: EntityRoute = {
   kind: "album",
   prefix: "/taxonomies/albums",
   slugIndex: 2,
-  listLabel: "Albums",
-  singular: "Album",
+  listLabel: i18n.t("Albums"),
+  singular: i18n.t("Album"),
   flatCrumbs: true,
 };
 
@@ -33,12 +34,12 @@ export const albumListingConfig: EntityListingConfig<Album> = {
   matches: (album, query) =>
     album.name.toLowerCase().includes(query) || album.slug.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteAlbums,
-  noun: ["album", "albums"],
-  loadingLabel: "Loading albums…",
-  entityPlural: "albums",
+  noun: [i18n.t("album"), i18n.t("albums")],
+  loadingLabel: i18n.t("Loading albums…"),
+  entityPlural: i18n.t("albums"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No albums yet.
+      {i18n.t("No albums yet.")}
     </p>
   ),
   renderListItem: ({

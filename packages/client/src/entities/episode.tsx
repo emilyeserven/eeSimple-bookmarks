@@ -7,6 +7,7 @@ import { EpisodeListItem } from "../components/EpisodeListItem";
 import { EpisodeTable } from "../components/EpisodeTable";
 import { episodeWorkbench } from "../components/workbench/episode";
 import { useBulkDeleteEpisodes, useEpisodes } from "../hooks/useEpisodes";
+import i18n from "../i18n";
 import { episodesApi } from "../lib/api/taxonomies";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -14,8 +15,8 @@ const EPISODE_ROUTE: EntityRoute = {
   kind: "episode",
   prefix: "/taxonomies/episodes",
   slugIndex: 2,
-  listLabel: "Episodes",
-  singular: "Episode",
+  listLabel: i18n.t("Episodes"),
+  singular: i18n.t("Episode"),
   flatCrumbs: true,
 };
 
@@ -33,12 +34,12 @@ export const episodeListingConfig: EntityListingConfig<Episode> = {
   matches: (episode, query) =>
     episode.name.toLowerCase().includes(query) || episode.slug.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteEpisodes,
-  noun: ["episode", "episodes"],
-  loadingLabel: "Loading episodes…",
-  entityPlural: "episodes",
+  noun: [i18n.t("episode"), i18n.t("episodes")],
+  loadingLabel: i18n.t("Loading episodes…"),
+  entityPlural: i18n.t("episodes"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No episodes yet.
+      {i18n.t("No episodes yet.")}
     </p>
   ),
   renderListItem: ({

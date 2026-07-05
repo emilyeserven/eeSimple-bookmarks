@@ -1,6 +1,8 @@
 import type { ComboboxOption } from "../Combobox";
 import type { UpdateWebsiteInput } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { BulkComboboxDialog, BulkConfirmDeleteDialog, BulkTagsDialog } from "./BulkActionDialogs";
 import { useCategories } from "../../hooks/useCategories";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
@@ -54,6 +56,9 @@ export function WebsiteBulkActions({
   selectedIds, onDone,
 }: WebsiteBulkActionsProps) {
   const {
+    t,
+  } = useTranslation();
+  const {
     data: categories = [],
   } = useCategories();
   const {
@@ -67,9 +72,9 @@ export function WebsiteBulkActions({
       <SetComboboxDialog
         ids={selectedIds}
         onDone={onDone}
-        triggerLabel="Set category"
-        title="Set category"
-        placeholder="Select a category"
+        triggerLabel={t("Set category")}
+        title={t("Set category")}
+        placeholder={t("Select a category")}
         options={categories.map(category => ({
           value: category.id,
           label: category.name,
@@ -87,9 +92,9 @@ export function WebsiteBulkActions({
       <SetComboboxDialog
         ids={selectedIds}
         onDone={onDone}
-        triggerLabel="Set media type"
-        title="Set media type"
-        placeholder="Select a media type"
+        triggerLabel={t("Set media type")}
+        title={t("Set media type")}
+        placeholder={t("Select a media type")}
         options={mediaTypes.map(mediaType => ({
           value: mediaType.id,
           label: mediaType.name,
@@ -102,7 +107,7 @@ export function WebsiteBulkActions({
         ids={selectedIds}
         onDone={onDone}
         noun="website"
-        title="Add or remove default tags"
+        title={t("Add or remove default tags")}
         isPending={bulkTags.isPending}
         onApply={(tagIds, op, cb) => bulkTags.mutate({
           ids: selectedIds,

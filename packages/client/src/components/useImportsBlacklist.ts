@@ -2,6 +2,8 @@ import type { ImportBlacklistEntry, ImportBlacklistKind } from "@eesimple/types"
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { KIND_LABEL } from "./tables/importBlacklistColumns";
 import { useImportBlacklist, useUpdateImportBlacklist } from "../hooks/useAppSettings";
 import { entryFromInput } from "../lib/importBlacklist";
@@ -12,6 +14,9 @@ import { entryFromInput } from "../lib/importBlacklist";
  * field-named toast). Extracted to keep the card thin.
  */
 export function useImportsBlacklist() {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: entries = [], isLoading,
   } = useImportBlacklist();
@@ -37,8 +42,11 @@ export function useImportsBlacklist() {
     }
     update.mutate({
       input: [...entries, entry],
-      successMessage: `Blocked ${KIND_LABEL[entry.kind]} ${entry.value}`,
-      errorMessage: "Couldn't update the imports blacklist",
+      successMessage: t("Blocked {{kind}} {{value}}", {
+        kind: KIND_LABEL[entry.kind],
+        value: entry.value,
+      }),
+      errorMessage: t("Couldn't update the imports blacklist"),
     });
     setValue("");
   }
@@ -46,8 +54,10 @@ export function useImportsBlacklist() {
   function remove(entry: ImportBlacklistEntry): void {
     update.mutate({
       input: entries.filter(e => !(e.kind === entry.kind && e.value === entry.value)),
-      successMessage: `Unblocked ${entry.value}`,
-      errorMessage: "Couldn't update the imports blacklist",
+      successMessage: t("Unblocked {{value}}", {
+        value: entry.value,
+      }),
+      errorMessage: t("Couldn't update the imports blacklist"),
     });
   }
 

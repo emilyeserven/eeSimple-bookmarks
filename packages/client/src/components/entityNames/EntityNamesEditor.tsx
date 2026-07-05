@@ -3,6 +3,7 @@ import type { DraftEntityName } from "./draftEntityName";
 import { useState } from "react";
 
 import { Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useLanguages } from "../../hooks/useLanguages";
 import { AddLanguageModal } from "../AddLanguageModal";
@@ -31,6 +32,9 @@ interface EntityNamesEditorProps {
 export function EntityNamesEditor({
   value, onChange,
 }: EntityNamesEditorProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: languages = [],
   } = useLanguages();
@@ -72,7 +76,7 @@ export function EntityNamesEditor({
   return (
     <div className="space-y-3">
       {value.length === 0 && (
-        <p className="text-sm text-muted-foreground">No additional names added yet.</p>
+        <p className="text-sm text-muted-foreground">{t("No additional names added yet.")}</p>
       )}
       {value.map((row, index) => (
         <div
@@ -84,17 +88,17 @@ export function EntityNamesEditor({
         >
           <div className="sm:w-1/3">
             <Combobox
-              aria-label="Language"
-              placeholder="Language"
-              searchPlaceholder="Search languages…"
-              emptyText="No languages found."
+              aria-label={t("Language")}
+              placeholder={t("Language")}
+              searchPlaceholder={t("Search languages…")}
+              emptyText={t("No languages found.")}
               options={languageOptions}
               value={row.languageId || undefined}
               onValueChange={v => updateRow(index, {
                 languageId: v ?? "",
               })}
               createOption={{
-                label: "Create language",
+                label: t("Create language"),
                 onSelect: () => {
                   setCreateTarget(index);
                   setAddLanguageOpen(true);
@@ -104,7 +108,7 @@ export function EntityNamesEditor({
           </div>
           <Input
             className="sm:flex-1"
-            placeholder="Name in this language"
+            placeholder={t("Name in this language")}
             value={row.value}
             onChange={e => updateRow(index, {
               value: e.target.value,
@@ -114,15 +118,15 @@ export function EntityNamesEditor({
             <Checkbox
               checked={row.isPrimary}
               onCheckedChange={checked => (checked ? setPrimary(index) : undefined)}
-              aria-label="Primary name"
+              aria-label={t("Primary name")}
             />
-            Primary
+            {t("Primary")}
           </label>
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            aria-label="Remove name"
+            aria-label={t("Remove name")}
             onClick={() => removeRow(index)}
           >
             <Trash2 className="size-4" />
@@ -136,7 +140,7 @@ export function EntityNamesEditor({
         onClick={addRow}
       >
         <Plus className="size-4" />
-        Add name
+        {t("Add name")}
       </Button>
       <AddLanguageModal
         open={addLanguageOpen}

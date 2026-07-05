@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useHeaderBreadcrumbs } from "./-appHeaderCrumbs";
 import { useHeaderToolbarActions } from "./-appHeaderToolbar";
@@ -15,6 +16,9 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 /** Top app bar: sidebar trigger, breadcrumbs derived from the path, and the panel toggle. */
 export function AppHeader() {
+  const {
+    t,
+  } = useTranslation();
   const pathname = useRouterState({
     select: state => state.location.pathname,
   });
@@ -48,7 +52,7 @@ export function AppHeader() {
           variant="ghost"
           size="icon"
           className="md:hidden"
-          aria-label="Settings"
+          aria-label={t("Settings")}
         >
           <Link to="/settings">
             <Settings className="size-4" />

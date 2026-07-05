@@ -5,6 +5,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -162,6 +163,9 @@ function Sidebar({
   collapsible?: "offcanvas" | "icon" | "none";
 }) {
   const {
+    t,
+  } = useTranslation();
+  const {
     isMobile, state, openMobile, setOpenMobile,
   } = useSidebar();
 
@@ -206,8 +210,8 @@ function Sidebar({
           side={side}
         >
           <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
+            <SheetTitle>{t("Sidebar")}</SheetTitle>
+            <SheetDescription>{t("Displays the mobile sidebar.")}</SheetDescription>
           </SheetHeader>
           <div
             className="flex size-full flex-col pb-[env(safe-area-inset-bottom)]"
@@ -302,6 +306,9 @@ function SidebarTrigger({
   ...props
 }: React.ComponentProps<typeof Button>) {
   const {
+    t,
+  } = useTranslation();
+  const {
     toggleSidebar,
   } = useSidebar();
 
@@ -319,7 +326,7 @@ function SidebarTrigger({
       {...props}
     >
       <PanelLeftIcon />
-      <span className="sr-only">Toggle Sidebar</span>
+      <span className="sr-only">{t("Toggle Sidebar")}</span>
     </Button>
   );
 }
@@ -328,6 +335,9 @@ function SidebarRail({
   className, ...props
 }: React.ComponentProps<"button">) {
   const {
+    t,
+  } = useTranslation();
+  const {
     toggleSidebar,
   } = useSidebar();
 
@@ -335,10 +345,10 @@ function SidebarRail({
     <button
       data-sidebar="rail"
       data-slot="sidebar-rail"
-      aria-label="Toggle Sidebar"
+      aria-label={t("Toggle Sidebar")}
       tabIndex={-1}
       onClick={toggleSidebar}
-      title="Toggle Sidebar"
+      title={t("Toggle Sidebar")}
       className={cn(
         `
           absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all

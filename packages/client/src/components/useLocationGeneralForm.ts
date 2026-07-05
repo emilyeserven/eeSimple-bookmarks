@@ -4,6 +4,7 @@ import type { Location, LocationLookupCandidate, LocationNode, UpdateLocationInp
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { locationSchema } from "./locationFormSchema";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -112,6 +113,9 @@ function useLocationEditState(node: LocationNode) {
  * stays a presentational shell.
  */
 export function useLocationGeneralForm(node: LocationNode) {
+  const {
+    t,
+  } = useTranslation();
   const navigate = useNavigate();
   const updateLocation = useUpdateLocation();
   const refreshCoordinatesMutation = useRefreshLocationCoordinates();
@@ -170,7 +174,7 @@ export function useLocationGeneralForm(node: LocationNode) {
   const parentOptions: ComboboxOption[] = [
     {
       value: ROOT,
-      label: "(root)",
+      label: t("(root)"),
     },
     ...existingOptions,
   ];
@@ -252,7 +256,7 @@ export function useLocationGeneralForm(node: LocationNode) {
             notifyFieldSaved("Wikipedia links");
           }
           else {
-            notifyFieldSaveError("Wikipedia links", "No matching Wikipedia article was found");
+            notifyFieldSaveError("Wikipedia links", t("No matching Wikipedia article was found"));
           }
         },
         onError: error => notifyFieldSaveError(

@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 
 import { Fragment } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import {
   PersonFilterSection,
   CategoryFilterSection,
@@ -54,6 +56,9 @@ export function FilterSections({
   hasGenreMoodFilter: boolean;
   sectionFilter?: string;
 }) {
+  const {
+    t,
+  } = useTranslation();
   const filter = (sectionFilter ?? "").toLowerCase().trim();
   const sectionMatch = (label: string) => !filter || label.toLowerCase().includes(filter);
   const sectionShown = (has: boolean, label: string) => has && sectionMatch(label);
@@ -62,7 +67,7 @@ export function FilterSections({
     showProperties, propertyNameFilter,
   } = resolvePropertiesVisibility({
     filter,
-    propertiesLabelMatch: sectionMatch("Properties"),
+    propertiesLabelMatch: sectionMatch(t("Properties")),
     hasProperties,
     enabledProperties,
   });
@@ -72,7 +77,7 @@ export function FilterSections({
       sections={[
         {
           key: "tags",
-          show: sectionShown(hasTags, "Tags"),
+          show: sectionShown(hasTags, t("Tags")),
           node: (
             <TagsFilterSection
               tree={tree}
@@ -83,7 +88,7 @@ export function FilterSections({
         },
         {
           key: "categories",
-          show: sectionShown(hasCategoryFilter, "Category"),
+          show: sectionShown(hasCategoryFilter, t("Category")),
           node: (
             <CategoryFilterSection
               categories={categories}
@@ -94,7 +99,7 @@ export function FilterSections({
         },
         {
           key: "media-types",
-          show: sectionShown(hasMediaTypeFilter, "Media type"),
+          show: sectionShown(hasMediaTypeFilter, t("Media type")),
           node: (
             <MediaTypeFilterSection
               mediaTypes={mediaTypes}
@@ -105,7 +110,7 @@ export function FilterSections({
         },
         {
           key: "channels",
-          show: sectionShown(hasChannelFilter, "YouTube channel"),
+          show: sectionShown(hasChannelFilter, t("YouTube channel")),
           node: (
             <YouTubeChannelFilterSection
               youtubeChannels={youtubeChannels}
@@ -116,7 +121,7 @@ export function FilterSections({
         },
         {
           key: "websites",
-          show: sectionShown(hasWebsiteFilter, "Website"),
+          show: sectionShown(hasWebsiteFilter, t("Website")),
           node: (
             <WebsiteFilterSection
               websites={websites}
@@ -127,7 +132,7 @@ export function FilterSections({
         },
         {
           key: "relationship-types",
-          show: sectionShown(hasRelationshipTypeFilter, "Relationship type"),
+          show: sectionShown(hasRelationshipTypeFilter, t("Relationship type")),
           node: (
             <RelationshipTypeFilterSection
               relationshipTypes={relationshipTypes}
@@ -141,7 +146,7 @@ export function FilterSections({
           // are always-seeded built-ins and the section self-fetches them, so it is shown whenever it
           // has options and returns null otherwise.
           key: "language-usages",
-          show: sectionShown(true, "Language usage"),
+          show: sectionShown(true, t("Language usage")),
           node: (
             <LanguageUsageFilterSection
               search={search}
@@ -151,7 +156,7 @@ export function FilterSections({
         },
         {
           key: "people",
-          show: sectionShown(hasPersonFilter, "Person"),
+          show: sectionShown(hasPersonFilter, t("Person")),
           node: (
             <PersonFilterSection
               people={people}
@@ -162,7 +167,7 @@ export function FilterSections({
         },
         {
           key: "place-types",
-          show: sectionShown(hasPlaceTypeFilter, "Place type"),
+          show: sectionShown(hasPlaceTypeFilter, t("Place type")),
           node: (
             <PlaceTypeFilterSection
               placeTypes={placeTypes}
@@ -173,7 +178,7 @@ export function FilterSections({
         },
         {
           key: "genre-moods",
-          show: sectionShown(hasGenreMoodFilter, "Genres & Moods"),
+          show: sectionShown(hasGenreMoodFilter, t("Genres & Moods")),
           node: (
             <GenreMoodFilterSection
               genreMoods={genreMoods}
@@ -184,7 +189,7 @@ export function FilterSections({
         },
         {
           key: "sections",
-          show: sectionShown(hasSectionsFilter, "Sections"),
+          show: sectionShown(hasSectionsFilter, t("Sections")),
           node: (
             <SectionsFilterSection
               search={search}

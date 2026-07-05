@@ -7,6 +7,7 @@ import { GroupTypeListItem } from "../components/GroupTypeListItem";
 import { GroupTypeTable } from "../components/GroupTypeTable";
 import { groupTypeWorkbench } from "../components/workbench/groupType";
 import { useBulkDeleteGroupTypes, useGroupTypes } from "../hooks/useGroupTypes";
+import i18n from "../i18n";
 import { groupTypesApi } from "../lib/api/taxonomies";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
@@ -14,8 +15,8 @@ const GROUP_TYPE_ROUTE: EntityRoute = {
   kind: "group-type",
   prefix: "/taxonomies/group-types",
   slugIndex: 2,
-  listLabel: "Group Types",
-  singular: "Group Type",
+  listLabel: i18n.t("Group Types"),
+  singular: i18n.t("Group Type"),
   flatCrumbs: true,
 };
 
@@ -33,12 +34,12 @@ export const groupTypeListingConfig: EntityListingConfig<GroupType> = {
   matches: (prop, query) =>
     prop.name.toLowerCase().includes(query) || prop.slug.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteGroupTypes,
-  noun: ["group type", "group types"],
-  loadingLabel: "Loading group types…",
-  entityPlural: "group types",
+  noun: [i18n.t("group type"), i18n.t("group types")],
+  loadingLabel: i18n.t("Loading group types…"),
+  entityPlural: i18n.t("group types"),
   emptyMessage: (
     <p className="text-muted-foreground">
-      No group types yet. Add one above, then assign them to groups.
+      {i18n.t("No group types yet. Add one above, then assign them to groups.")}
     </p>
   ),
   renderListItem: ({

@@ -4,6 +4,7 @@ import type { LanguageUsageKind } from "@eesimple/types";
 import { useState } from "react";
 
 import { Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useLanguages } from "../../hooks/useLanguages";
 import { useLanguageUsageLevels } from "../../hooks/useLanguageUsageLevels";
@@ -28,6 +29,9 @@ interface LanguageUsagesEditorProps {
 export function LanguageUsagesEditor({
   value, onChange, kind,
 }: LanguageUsagesEditorProps) {
+  const {
+    t,
+  } = useTranslation();
   const {
     data: languages = [],
   } = useLanguages();
@@ -75,7 +79,7 @@ export function LanguageUsagesEditor({
   return (
     <div className="space-y-3">
       {value.length === 0 && (
-        <p className="text-sm text-muted-foreground">No languages added yet.</p>
+        <p className="text-sm text-muted-foreground">{t("No languages added yet.")}</p>
       )}
       {value.map((row, index) => (
         <div
@@ -87,10 +91,10 @@ export function LanguageUsagesEditor({
         >
           <div className="sm:w-1/3">
             <Combobox
-              aria-label="Language"
-              placeholder="Language"
-              searchPlaceholder="Search languages…"
-              emptyText="No languages found."
+              aria-label={t("Language")}
+              placeholder={t("Language")}
+              searchPlaceholder={t("Search languages…")}
+              emptyText={t("No languages found.")}
               options={languageOptions}
               value={row.languageId || undefined}
               onValueChange={v => updateRow(index, {
@@ -107,10 +111,10 @@ export function LanguageUsagesEditor({
           </div>
           <div className="sm:w-1/3">
             <Combobox
-              aria-label="Usage level"
-              placeholder="Usage level"
-              searchPlaceholder="Search levels…"
-              emptyText="No usage levels found."
+              aria-label={t("Usage level")}
+              placeholder={t("Usage level")}
+              searchPlaceholder={t("Search levels…")}
+              emptyText={t("No usage levels found.")}
               options={levelOptions}
               value={row.usageLevelId || undefined}
               onValueChange={v => updateRow(index, {
@@ -120,7 +124,7 @@ export function LanguageUsagesEditor({
           </div>
           <Input
             className="sm:flex-1"
-            placeholder="Note (optional)"
+            placeholder={t("Note (optional)")}
             value={row.note}
             onChange={e => updateRow(index, {
               note: e.target.value,
@@ -130,7 +134,7 @@ export function LanguageUsagesEditor({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label="Remove language"
+            aria-label={t("Remove language")}
             onClick={() => removeRow(index)}
           >
             <Trash2 className="size-4" />
@@ -144,7 +148,7 @@ export function LanguageUsagesEditor({
         onClick={addRow}
       >
         <Plus className="size-4" />
-        Add language
+        {t("Add language")}
       </Button>
       {languageCreate.modal}
     </div>

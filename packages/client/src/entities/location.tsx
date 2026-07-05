@@ -10,6 +10,7 @@ import { locationWorkbench } from "../components/workbench/location";
 import { usePlaceTypeDisplayConfig } from "../hooks/useAppSettings";
 import { useBulkDeleteLocations, useLocationTree } from "../hooks/useLocations";
 import { useInterfaceTitleSort } from "../hooks/useTitleSortContext";
+import i18n from "../i18n";
 import { locationsApi } from "../lib/api/taxonomies";
 import { sortLocationTree } from "../lib/locationSort";
 import { flattenTree } from "../lib/tagTree";
@@ -22,8 +23,8 @@ const LOCATION_ROUTE: EntityRoute = {
   kind: "location",
   prefix: "/taxonomies/locations",
   slugIndex: 2,
-  listLabel: "Locations",
-  singular: "Location",
+  listLabel: i18n.t("Locations"),
+  singular: i18n.t("Location"),
   flatCrumbs: false,
 };
 
@@ -71,12 +72,12 @@ export function buildLocationTreeListingConfig(opts: {
       || (node.placeType?.toLowerCase().includes(query) ?? false),
     deletableIds: tree => flattenTree(tree).map(f => f.node.id),
     useBulkDelete: useBulkDeleteLocations,
-    noun: ["location", "locations"],
-    loadingLabel: "Loading locations…",
-    entityPlural: "locations",
+    noun: [i18n.t("location"), i18n.t("locations")],
+    loadingLabel: i18n.t("Loading locations…"),
+    entityPlural: i18n.t("locations"),
     emptyMessage: (
       <p className="text-muted-foreground">
-        No locations yet.
+        {i18n.t("No locations yet.")}
       </p>
     ),
     useSortedTree: useLocationSortedTree,

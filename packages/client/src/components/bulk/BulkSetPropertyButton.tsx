@@ -2,6 +2,8 @@ import type { CustomProperty, UpdateBookmarkInput } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useBulkUpdateBookmarks } from "../../hooks/useBookmarks";
 import { Combobox } from "../Combobox";
 
@@ -69,6 +71,9 @@ export function BulkSetPropertyButton({
   properties,
   onDone,
 }: BulkSetPropertyButtonProps) {
+  const {
+    t,
+  } = useTranslation();
   const [open, setOpen] = useState(false);
   const [propertyId, setPropertyId] = useState<string | undefined>(undefined);
   const [raw, setRaw] = useState("");
@@ -104,21 +109,17 @@ export function BulkSetPropertyButton({
         <Button
           variant="outline"
           size="sm"
-        >Set property
+        >{t("Set property")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Set a property value</DialogTitle>
+          <DialogTitle>{t("Set a property value")}</DialogTitle>
           <DialogDescription>
-            Sets one property on
-            {" "}
-            {ids.length}
-            {" "}
-            selected
-            {" "}
-            {ids.length === 1 ? "bookmark" : "bookmarks"}
-            , keeping their other values.
+            {t("Sets one property on {{count}} selected {{noun}}, keeping their other values.", {
+              count: ids.length,
+              noun: ids.length === 1 ? t("bookmark") : t("bookmarks"),
+            })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -132,7 +133,7 @@ export function BulkSetPropertyButton({
               setPropertyId(next);
               setRaw("");
             }}
-            placeholder="Select a property"
+            placeholder={t("Select a property")}
           />
           {property
             ? (
@@ -149,12 +150,12 @@ export function BulkSetPropertyButton({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("Cancel")}</Button>
           </DialogClose>
           <Button
             disabled={!property || bulkUpdate.isPending}
             onClick={apply}
-          >Apply
+          >{t("Apply")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -172,22 +173,25 @@ function PropertyValueInput({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const {
+    t,
+  } = useTranslation();
   if (property.type === "boolean") {
     return (
       <Combobox
         options={[
           {
             value: "true",
-            label: "Yes",
+            label: t("Yes"),
           },
           {
             value: "false",
-            label: "No",
+            label: t("No"),
           },
         ]}
         value={value || undefined}
         onValueChange={next => onChange(next ?? "")}
-        placeholder="Select a value"
+        placeholder={t("Select a value")}
       />
     );
   }
@@ -205,7 +209,7 @@ function PropertyValueInput({
       type="number"
       value={value}
       onChange={e => onChange(e.target.value)}
-      placeholder="Enter a number"
+      placeholder={t("Enter a number")}
     />
   );
 }
