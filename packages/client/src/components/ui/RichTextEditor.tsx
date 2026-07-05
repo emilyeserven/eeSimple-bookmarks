@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
 import { Bold, Heading2, Heading3, Italic, Link2, List, ListOrdered } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Markdown } from "tiptap-markdown";
 
 import { Toggle } from "@/components/ui/toggle";
@@ -139,9 +140,13 @@ const PROSE_CLASS = `
 function Toolbar({
   editor,
 }: { editor: Editor }) {
+  const {
+    t,
+  } = useTranslation();
+
   function promptForLink() {
     const previous = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("Link URL", previous ?? "https://");
+    const url = window.prompt(t("Link URL"), previous ?? "https://");
     if (url === null) return;
     if (url === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
@@ -158,7 +163,7 @@ function Toolbar({
     >
       <Toggle
         size="sm"
-        aria-label="Bold"
+        aria-label={t("Bold")}
         pressed={editor.isActive("bold")}
         onPressedChange={() => editor.chain().focus().toggleBold().run()}
       >
@@ -166,7 +171,7 @@ function Toolbar({
       </Toggle>
       <Toggle
         size="sm"
-        aria-label="Italic"
+        aria-label={t("Italic")}
         pressed={editor.isActive("italic")}
         onPressedChange={() => editor.chain().focus().toggleItalic().run()}
       >
@@ -174,7 +179,7 @@ function Toolbar({
       </Toggle>
       <Toggle
         size="sm"
-        aria-label="Heading 2"
+        aria-label={t("Heading 2")}
         pressed={editor.isActive("heading", {
           level: 2,
         })}
@@ -186,7 +191,7 @@ function Toolbar({
       </Toggle>
       <Toggle
         size="sm"
-        aria-label="Heading 3"
+        aria-label={t("Heading 3")}
         pressed={editor.isActive("heading", {
           level: 3,
         })}
@@ -198,7 +203,7 @@ function Toolbar({
       </Toggle>
       <Toggle
         size="sm"
-        aria-label="Bullet list"
+        aria-label={t("Bullet list")}
         pressed={editor.isActive("bulletList")}
         onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
       >
@@ -206,7 +211,7 @@ function Toolbar({
       </Toggle>
       <Toggle
         size="sm"
-        aria-label="Ordered list"
+        aria-label={t("Ordered list")}
         pressed={editor.isActive("orderedList")}
         onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
       >
@@ -214,7 +219,7 @@ function Toolbar({
       </Toggle>
       <Toggle
         size="sm"
-        aria-label="Link"
+        aria-label={t("Link")}
         pressed={editor.isActive("link")}
         onPressedChange={promptForLink}
       >
