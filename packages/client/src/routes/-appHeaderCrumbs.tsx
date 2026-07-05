@@ -2,7 +2,7 @@ import type { TaxonomyName } from "./-appHeaderData";
 import type { SwitcherSpec } from "@/components/BreadcrumbSwitcher";
 import type { BreadcrumbSegment } from "@/components/header/HeaderBreadcrumbs";
 import type { EntityRoute } from "@/lib/entityRoutes";
-import type { LocationNode, MediaTypeNode, TagNode } from "@eesimple/types";
+import type { EntityName, LocationNode, MediaTypeNode, TagNode } from "@eesimple/types";
 
 import { slugFor, useTaxonomyCrumbData } from "./-appHeaderData";
 
@@ -93,7 +93,7 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = ENTITY_ROUTES
 /**
  * Breadcrumbs for a slug-routed taxonomy entity: `List(link) → Name` on the detail/view tabs, and
  * `List(link) → Name(link → view) → Section` on edit tabs. `resolved` is the entity's real name +
- * optional romanized form; the descriptor's `singular` is only a brief loading placeholder.
+ * optional multilingual names; the descriptor's `singular` is only a brief loading placeholder.
  */
 function taxonomyCrumbs(
   pathname: string,
@@ -115,13 +115,13 @@ function taxonomyCrumbs(
   };
   const name = resolved?.name;
   const itemLabel = name ?? singular;
-  const romanizedLabel = name ? resolved?.romanized : undefined;
+  const names = name ? resolved?.names : undefined;
   // The bare detail/browse index and every `_view` tab stop at the name. The name crumb gets a
   // sibling switcher (when the descriptor defines one and the real name has resolved).
   if (parts[slugIndex + 1] !== "edit") {
     const nameCrumb: BreadcrumbSegment = {
       label: itemLabel,
-      romanizedLabel,
+      names,
       switcher: name ? descriptor.makeSwitcher?.(slug) : undefined,
     };
     return [listCrumb, nameCrumb];
@@ -130,7 +130,7 @@ function taxonomyCrumbs(
   const tab = parts[slugIndex + 2];
   return [listCrumb, {
     label: itemLabel,
-    romanizedLabel,
+    names,
     href: `${prefix}/${slug}/general`,
     truncatable: true,
   }, {
@@ -233,7 +233,7 @@ function treeTaxonomyCrumbs(
       listCrumb,
       ...ancestors.map((node): BreadcrumbSegment => ({
         label: node.name,
-        romanizedLabel: node.romanizedName,
+        names: node.names,
         href: `${viewPrefix}/${node.slug}/general`,
         truncatable: true,
       })),
@@ -249,14 +249,14 @@ function treeTaxonomyCrumbs(
     listCrumb,
     ...parents.map((node): BreadcrumbSegment => ({
       label: node.name,
-      romanizedLabel: node.romanizedName,
+      names: node.names,
       href: `${viewPrefix}/${node.slug}`,
       switcher: treeSiblingSwitcher(node, tree),
       truncatable: true,
     })),
     {
       label: current.name,
-      romanizedLabel: current.romanizedName,
+      names: current.names,
       switcher: treeSiblingSwitcher(current, tree),
     },
   ];
@@ -313,10 +313,10 @@ function locationCrumbs(
 interface BookmarkCrumbData {
   id: string;
   title: string;
-  romanizedName?: string | null;
+  names?: EntityName[];
   categoryId?: string;
   categoryName?: string;
-  categoryRomanized?: string | null;
+  categoryNames?: EntityName[];
   categorySlug?: string;
 }
 
@@ -335,18 +335,18 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
   const catCrumb: BreadcrumbSegment = data?.categorySlug
     ? {
       label: data.categoryName ?? i18n.t("Category"),
-      romanizedLabel: data.categoryName ? data.categoryRomanized : undefined,
+      names: data.categoryName ? data.categoryNames : undefined,
       href: `/categories/${data.categorySlug}`,
       switcher: catSwitcher,
       truncatable: true,
     }
     : {
       label: data?.categoryName ?? i18n.t("Category"),
-      romanizedLabel: data?.categoryName ? data?.categoryRomanized : undefined,
+      names: data?.categoryName ? data?.categoryNames : undefined,
     };
   const titleCrumb: BreadcrumbSegment = {
     label: data?.title ?? i18n.t("Bookmark"),
-    romanizedLabel: data?.title ? data?.romanizedName : undefined,
+    names: data?.title ? data?.names : undefined,
   };
 
   const isEdit = pathname.includes("/edit");
@@ -380,7 +380,7 @@ interface BreadcrumbContext {
   mediaTypeAncestors?: MediaTypeNode[];
   locationAncestors?: LocationNode[];
   bookmarkData?: BookmarkCrumbData;
-  /** Resolved entity name (+ optional romanized) keyed by `TaxonomyDescriptor.prefix`. */
+  /** Resolved entity name (+ optional multilingual names) keyed by `TaxonomyDescriptor.prefix`. */
   taxonomyNames?: Record<string, TaxonomyName | undefined>;
 }
 
@@ -500,10 +500,10 @@ export function useHeaderBreadcrumbs(pathname: string, pathParts: string[]): Hea
     ? {
       id: bookmarkForCrumb.id,
       title: bookmarkForCrumb.title,
-      romanizedName: bookmarkForCrumb.romanizedName,
+      names: bookmarkForCrumb.names,
       categoryId: bookmarkForCrumb.categoryId,
       categoryName: bookmarkCategory?.name,
-      categoryRomanized: bookmarkCategory?.romanizedName,
+      categoryNames: bookmarkCategory?.names,
       categorySlug: bookmarkCategory?.slug,
     }
     : undefined;

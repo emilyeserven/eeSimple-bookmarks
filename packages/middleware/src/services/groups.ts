@@ -177,7 +177,6 @@ function toGroup(
   return {
     id: row.id,
     name: row.name,
-    romanizedName: row.romanizedName,
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     websiteId: row.websiteId,
@@ -344,7 +343,6 @@ export async function createGroup(input: CreateGroupInput): Promise<Group> {
     .insert(groups)
     .values({
       name: input.name,
-      romanizedName: input.romanizedName ?? null,
       slug,
       websiteId: input.websiteId ?? null,
       groupTypeId: input.groupTypeId ?? null,
@@ -379,7 +377,6 @@ export async function updateGroup(id: string, input: UpdateGroupInput): Promise<
   const updates: Partial<typeof groups.$inferInsert> = {
     ...creatorDataFromInput(input),
   };
-  if ("romanizedName" in input) updates.romanizedName = input.romanizedName ?? null;
   if (input.name !== undefined) {
     updates.name = input.name;
     const takenSlugs = await takenSlugsOf(groups, groups.slug, groups.id, id);

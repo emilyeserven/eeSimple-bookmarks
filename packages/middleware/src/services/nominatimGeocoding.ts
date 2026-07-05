@@ -18,7 +18,17 @@ import type {
   LocationLookupCandidate,
   LocationLookupResult,
 } from "@eesimple/types";
-import { deriveRomanizedName } from "@eesimple/types";
+
+/**
+ * The English form of `name`, when it differs from the native/local form and isn't blank; else
+ * `null`. A local 3-line rule (the `deriveRomanizedName` helper it replaces was deleted as part of
+ * the issue #969 cleanup) — small enough to duplicate rather than add a shared export for.
+ */
+function deriveEnglishName(name: string, english: string | null): string | null {
+  const trimmed = english?.trim() ?? "";
+  if (trimmed.length === 0 || trimmed === name.trim()) return null;
+  return trimmed;
+}
 
 const DEFAULT_ENDPOINT = "https://nominatim.openstreetmap.org";
 const GEOCODE_TIMEOUT_MS = 10000;
@@ -144,22 +154,22 @@ function toBoundary(geojson: unknown): LocationBoundary | null {
 }
 
 /**
- * Resolve a candidate's title + romanized form, preferring the LOCAL/native-script name as the title
- * (`萩市`) and relegating the English/romanized form to `romanizedName` (`Hagi`). The local name comes
- * from the `name` namedetail (the OSM `name` tag), and the English form from `name:en`. When the
- * place's own name is already Latin (no separate English variant, or it equals the title), there is
- * no separate romanization.
+ * Resolve a candidate's title + English form, preferring the LOCAL/native-script name as the title
+ * (`萩市`) and relegating the English form to `englishName` (`Hagi`). The local name comes from the
+ * `name` namedetail (the OSM `name` tag), and the English form from `name:en`. When the place's own
+ * name is already Latin (no separate English variant, or it equals the title), there is no separate
+ * English form.
  */
 function resolveNames(raw: NominatimResult, displayName: string): { name: string;
-  romanizedName: string | null; } {
+  englishName: string | null; } {
   const details = raw.namedetails ?? null;
   const localName = asString(details?.name);
-  const englishName = asString(details?.["name:en"]);
+  const englishNameDetail = asString(details?.["name:en"]);
   const name = localName ?? asString(raw.name) ?? displayName.split(",")[0]?.trim() ?? displayName;
-  const romanizedName = deriveRomanizedName(name, englishName);
+  const englishName = deriveEnglishName(name, englishNameDetail);
   return {
     name,
-    romanizedName,
+    englishName,
   };
 }
 
@@ -173,13 +183,13 @@ function toCandidate(raw: NominatimResult): LocationLookupCandidate | null {
 
   const displayName = asString(raw.display_name) ?? asString(raw.name) ?? "";
   const {
-    name, romanizedName,
+    name, englishName,
   } = resolveNames(raw, displayName);
   const rawCountryCode = asString(raw.address?.country_code);
   const countryCode = rawCountryCode ? rawCountryCode.toUpperCase() : null;
   return {
     name,
-    romanizedName,
+    englishName,
     displayName,
     latitude,
     longitude,
@@ -209,7 +219,7 @@ export async function nominatimGeocode(query: string): Promise<LocationLookupRes
   url.searchParams.set("q", trimmed);
   url.searchParams.set("addressdetails", "1");
   // Per-language name tags so we can prefer the local name as the title and the English name as the
-  // romanized form (e.g. 萩市 / Hagi) instead of whatever single localized name `display_name` carries.
+  // secondary form (e.g. 萩市 / Hagi) instead of whatever single localized name `display_name` carries.
   url.searchParams.set("namedetails", "1");
   // Request the area outline so locations can render as polygons, not just pins. `polygon_threshold`
   // simplifies the geometry (Douglas–Peucker, degrees) to keep payloads modest — tunable.

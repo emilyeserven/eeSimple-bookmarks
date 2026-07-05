@@ -22,8 +22,6 @@ import { useAppForm } from "@/lib/form";
 export interface PlexTitle {
   id: string;
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   slug: string;
   sortOrder: number;
   mediaPropertyId: string | null;
@@ -40,7 +38,6 @@ export interface PlexTitle {
 /** The partial-update payload the shared edit form writes (Movie / TV Show update inputs match this). */
 export interface PlexTitleUpdateInput {
   name?: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   plexRatingKey?: string | null;
@@ -54,7 +51,6 @@ export interface PlexTitleUpdateInput {
 
 const plexTitleSchema = z.object({
   name: z.string().trim().min(1, i18n.t("Name is required")),
-  romanizedName: z.string(),
   sortOrder: z.number().int(),
   year: z.number().int(),
   mediaPropertyId: z.string(),
@@ -64,7 +60,6 @@ const plexTitleSchema = z.object({
 
 const LABELS: Record<keyof PlexTitleUpdateInput, string> = {
   name: i18n.t("Name"),
-  romanizedName: i18n.t("Romanized name"),
   sortOrder: i18n.t("Sort order"),
   mediaPropertyId: i18n.t("Media property"),
   year: i18n.t("Year"),
@@ -126,7 +121,6 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
     labels: LABELS,
     initial: {
       name: entity.name,
-      romanizedName: entity.romanizedName ?? "",
       sortOrder: entity.sortOrder,
       year: entity.year,
       wikipediaLinkEn: entity.wikipediaLinkEn ?? "",
@@ -137,7 +131,6 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
   const form = useAppForm({
     defaultValues: {
       name: entity.name,
-      romanizedName: entity.romanizedName ?? "",
       sortOrder: entity.sortOrder,
       year: entity.year ?? 0,
       mediaPropertyId: entity.mediaPropertyId ?? "",
@@ -210,7 +203,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
   }
 
   // Publish the Plex "Sync from source" provider (header button + review modal) while this edit form
-  // is mounted — reviews native/romanized names + Wikipedia links (staged) and the poster (immediate).
+  // is mounted — reviews native/English names + Wikipedia links (staged) and the poster (immediate).
   usePlexTitleSyncRegistration({
     entity,
     base,
@@ -225,7 +218,6 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
         form={form}
         fields={{
           name: "name",
-          romanizedName: "romanizedName",
           sortOrder: "sortOrder",
           mediaPropertyId: "mediaPropertyId",
         }}

@@ -335,8 +335,6 @@ const displayPreferenceBody = {
     "drawerUnpinnedBreakpoints",
     "croppedWidth",
     "croppedHeight",
-    "showRomanizedByDefault",
-    "sortByRomanized",
     "hanScriptLanguage",
     "minAreaPinThresholdKm2",
     "bookmarksPerPage",
@@ -406,12 +404,6 @@ const displayPreferenceBody = {
       items: {
         type: "string",
       },
-    },
-    showRomanizedByDefault: {
-      type: "boolean",
-    },
-    sortByRomanized: {
-      type: "boolean",
     },
     hanScriptLanguage: {
       type: "string",

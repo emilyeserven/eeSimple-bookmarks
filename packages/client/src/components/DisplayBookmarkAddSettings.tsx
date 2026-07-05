@@ -44,7 +44,7 @@ import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 /** A distinct lucide icon per standard field. */
 const STANDARD_FIELD_ICONS: Record<BookmarkAddFormStandardField, LucideIcon> = {
   title: Type,
-  romanizedName: CaseSensitive,
+  names: CaseSensitive,
   categoryId: FolderOpen,
   mediaTypeId: Clapperboard,
   groupId: Building2,

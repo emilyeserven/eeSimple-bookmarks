@@ -1,12 +1,12 @@
 /**
  * Resolve a media-taxonomy title (Movie / TV Show / Episode / Album / Track) to its Wikidata
- * item, and from there its native-script name, romanized (English) name, and Wikipedia article links.
+ * item, and from there its native-script name, English name, and Wikipedia article links.
  * Powers the "Autofetch from Plex" action: a Plex item's external IDs (IMDb / TMDb / TVDB / MusicBrainz)
  * pin the exact Wikidata item precisely, falling back to a plain title search when no ID matches — the
  * media sibling of the Locations `resolveWikipediaLinks` convenience autofill.
  *
  * Following the Locations convention, the returned `name` is the native-script label (e.g. 기생충) and
- * `romanizedName` is the English label (e.g. Parasite). Best-effort: any failure or no match resolves
+ * `englishName` is the English label (e.g. Parasite). Best-effort: any failure or no match resolves
  * to `null` (the caller leaves the existing fields untouched).
  */
 
@@ -36,7 +36,7 @@ export interface TitleWikidataResolution {
   /** Native-script name (Wikidata's original-language / native label), or `null` when none is found. */
   name: string | null;
   /** English label, when it differs from `name`; else `null`. */
-  romanizedName: string | null;
+  englishName: string | null;
   wikipediaLinkEn: string | null;
   wikipediaLinkLocal: string | null;
 }
@@ -123,7 +123,7 @@ export async function resolveTitleWikidata(input: {
     return {
       wikidataId: qid,
       name: null,
-      romanizedName: null,
+      englishName: null,
       wikipediaLinkEn: null,
       wikipediaLinkLocal: null,
     };
@@ -132,7 +132,7 @@ export async function resolveTitleWikidata(input: {
   const english = asString(entity.labels?.en?.value);
   const native = await resolveNative(entity);
   const name = native.text ?? english;
-  const romanizedName = english !== null && english !== name ? english : null;
+  const englishName = english !== null && english !== name ? english : null;
 
   const sitelinks = cleanSitelinks(entity.sitelinks ?? {});
   const wikipediaLinkEn = sitelinks.enwiki?.url ?? null;
@@ -144,7 +144,7 @@ export async function resolveTitleWikidata(input: {
   return {
     wikidataId: qid,
     name: name ?? null,
-    romanizedName,
+    englishName,
     wikipediaLinkEn,
     wikipediaLinkLocal,
   };

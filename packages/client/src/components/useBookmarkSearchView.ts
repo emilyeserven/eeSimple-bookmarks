@@ -107,7 +107,7 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
   const textFilteredBookmarks = q
     ? bookmarks.filter(b =>
       b.title.toLowerCase().includes(q)
-      || (b.romanizedName?.toLowerCase() ?? "").includes(q)
+      || b.names.some(name => name.value.toLowerCase().includes(q))
       || (b.url?.toLowerCase() ?? "").includes(q)
       || (b.description ?? "").toLowerCase().includes(q))
     : bookmarks;

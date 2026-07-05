@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
 import { badgeNode, ratingStars } from "./bookmarkCardFieldRenders";
 import { describeTaxonomyField } from "./bookmarkCardTaxonomyFields";
-import { BookmarkRomanizedField, BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
+import { BookmarkSecondaryNameField, BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
 import { useBookmarkLinkOutNodes } from "./useBookmarkLinkOutNodes";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
@@ -165,17 +165,17 @@ export function BookmarkCardDetails({
           tableValue: titleNode,
         };
       }
-      case "romanizedName": {
-        // Only hidden when there is no secondary name at all (neither `names` nor the legacy
-        // `romanizedName` scalar); when present, BookmarkRomanizedField renders the resolved
-        // secondary name (via `resolveDisplayNames`) so it matches every other surface.
-        if (bookmark.names.length === 0 && !bookmark.romanizedName) return null;
-        const romanizedNameNode = <BookmarkRomanizedField bookmark={bookmark} />;
+      case "secondaryName": {
+        // Only hidden when there is no secondary name at all; when present,
+        // BookmarkSecondaryNameField renders the resolved secondary name (via `resolveDisplayNames`)
+        // so it matches every other surface.
+        if (bookmark.names.length === 0) return null;
+        const secondaryNameNode = <BookmarkSecondaryNameField bookmark={bookmark} />;
         return {
-          inline: romanizedNameNode,
-          block: romanizedNameNode,
+          inline: secondaryNameNode,
+          block: secondaryNameNode,
           tableName: t("Secondary Title"),
-          tableValue: romanizedNameNode,
+          tableValue: secondaryNameNode,
         };
       }
       case "externalLink": {

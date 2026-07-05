@@ -27,7 +27,6 @@ import type {
   LocationLookupCandidate,
   LocationLookupResult,
 } from "@eesimple/types";
-import { deriveRomanizedName } from "@eesimple/types";
 import { mapUrlFor, nominatimGeocode } from "@/services/nominatimGeocoding";
 import {
   asString,
@@ -47,6 +46,17 @@ import {
 const DEFAULT_MAPS_ENDPOINT = "https://maps.wikimedia.org";
 /** Cap on constituents geocoded when composing a region's area, to stay Nominatim-rate-limit-friendly. */
 const MAX_CONSTITUENTS = 12;
+
+/**
+ * The English form of `name`, when it differs from the native/local form and isn't blank; else
+ * `null`. A local 3-line rule (the `deriveRomanizedName` helper it replaces was deleted as part of
+ * the issue #969 cleanup) — small enough to duplicate rather than add a shared export for.
+ */
+function deriveEnglishName(name: string, english: string | null): string | null {
+  const trimmed = english?.trim() ?? "";
+  if (trimmed.length === 0 || trimmed === name.trim()) return null;
+  return trimmed;
+}
 
 /** Re-exported so the Connectors route can report the Wikidata base URL alongside the other sources. */
 export { wikidataEndpoint };
@@ -242,14 +252,14 @@ function buildCandidate(
     ja, en,
   } = entityLabels(entity);
   const name = ja ?? en ?? "";
-  const romanizedName = deriveRomanizedName(name, en);
+  const englishName = deriveEnglishName(name, en);
   const countryCode = resolveCountryCode(entity, labels);
   const ancestors = buildAncestors(entity, labels, countryCode);
   const placeTypeId = claimEntityIds(entity, "P31")[0];
   const displayName = [name, ...ancestors.map(a => a.name)].join(", ");
   return {
     name,
-    romanizedName,
+    englishName,
     displayName,
     latitude: coordinate.latitude,
     longitude: coordinate.longitude,
@@ -325,7 +335,7 @@ export interface WikipediaLinkResolution {
 /**
  * Resolve English + local Wikipedia links for a location from Wikidata sitelinks. Reuses
  * `existingWikidataId` when present (skipping the search); otherwise searches Wikidata by the regular
- * title first, then the romanized title. The "local" language is the one implied by the regular
+ * title first, then the English title. The "local" language is the one implied by the regular
  * title's script when unambiguous (CJK / Cyrillic / Arabic / …); for a Latin-script title it falls
  * back to {@link COUNTRY_LANGUAGE_FALLBACK}`[countryCode]`. Best-effort — resolves to all-`null` on
  * any failure or no match, since this backs a convenience "try to autofill" action, not a required
@@ -333,7 +343,7 @@ export interface WikipediaLinkResolution {
  */
 export async function resolveWikipediaLinks(
   name: string,
-  romanizedName: string | null,
+  englishName: string | null,
   existingWikidataId: string | null,
   countryCode: string | null,
 ): Promise<WikipediaLinkResolution> {
@@ -345,7 +355,7 @@ export async function resolveWikipediaLinks(
 
   let qid = existingWikidataId;
   if (qid === null) {
-    const candidates = [name, romanizedName].filter((v): v is string => !!v && v.trim() !== "");
+    const candidates = [name, englishName].filter((v): v is string => !!v && v.trim() !== "");
     for (const candidate of candidates) {
       const ids = await searchEntities(candidate, 1);
       if (ids[0]) {

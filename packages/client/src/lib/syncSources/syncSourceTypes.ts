@@ -18,7 +18,7 @@
  * Which fetch strategy + apply dispatch the modal uses for a provider. This keys the *fetch hook*,
  * not the concrete entity type — image-only taxonomies (YouTube channel, website, person avatars)
  * share `"image-taxonomy"`; the Plex-backed media taxonomies use `"plex-title"` because they sync
- * text (native/romanized names + Wikipedia links) *and* the poster image. Each carries its specifics
+ * text (native name + English name + Wikipedia links) *and* the poster image. Each carries its specifics
  * in {@link SyncProvider.refs}.
  */
 export type SyncDescriptorKind = "bookmark" | "location" | "image-taxonomy" | "plex-title" | "podcast-feed";

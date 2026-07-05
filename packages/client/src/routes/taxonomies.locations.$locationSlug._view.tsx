@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useLocationBySlug } from "../hooks/useLocations";
 import i18n from "../i18n";
@@ -58,9 +58,9 @@ function LocationViewLayout() {
             ? t("Location")
             : location
               ? (
-                <RomanizedLabel
-                  name={location.name}
-                  romanized={location.romanizedName}
+                <LocalizedNameLabel
+                  names={location.names ?? []}
+                  base={location.name}
                   stacked
                 />
               )

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { EntityNamesEditor } from "./entityNames/EntityNamesEditor";
 import { Label } from "./ui/label";
 
-interface BookmarkRomanizedNameFieldProps {
+interface BookmarkNamesFieldProps {
   form: BookmarkFormApi;
 }
 
@@ -14,9 +14,9 @@ interface BookmarkRomanizedNameFieldProps {
  * it can be placed independently of the Name field. Create-only — the entries are submitted with
  * the bookmark create payload; edit mode manages names via its own `EntityNamesTabEditor`.
  */
-export function BookmarkRomanizedNameField({
+export function BookmarkNamesField({
   form,
-}: BookmarkRomanizedNameFieldProps) {
+}: BookmarkNamesFieldProps) {
   const {
     t,
   } = useTranslation();

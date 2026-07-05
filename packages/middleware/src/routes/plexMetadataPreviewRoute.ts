@@ -19,7 +19,7 @@ const ownerParams = {
 /**
  * Register the shared `GET ${basePath}/:id/plex-metadata-preview` action for one Plex-backed media
  * taxonomy — the source side of the "Sync from source" review. It resolves the linked item's Wikidata
- * metadata (native name, romanized name, Wikipedia links) via the Plex item's external IDs (title-search
+ * metadata (native name, English name, Wikipedia links) via the Plex item's external IDs (title-search
  * fallback) **without applying**; the client's edit form persists the rows the user picks. Gated on the
  * Plex connector being configured.
  */

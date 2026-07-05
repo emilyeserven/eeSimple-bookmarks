@@ -26,8 +26,8 @@ import { BookmarkGroupsField } from "./BookmarkGroupsField";
 import { BookmarkImageField } from "./BookmarkImageField";
 import { BookmarkLocationsField } from "./BookmarkLocationsField";
 import { BookmarkMediaLinkField } from "./BookmarkMediaLinkField";
+import { BookmarkNamesField } from "./BookmarkNamesField";
 import { BookmarkPeopleField } from "./BookmarkPeopleField";
-import { BookmarkRomanizedNameField } from "./BookmarkRomanizedNameField";
 import { BookmarkTitleField } from "./BookmarkTitleField";
 
 /**
@@ -35,7 +35,7 @@ import { BookmarkTitleField } from "./BookmarkTitleField";
  * render-props can be threaded into any zone (the banner grid's Name cluster, the main-area zone,
  * and the Advanced section). The title-fetch handlers are optional (see {@link BookmarkTitleField}).
  */
-export interface StandardFieldRenderProps extends Omit<BookmarkTitleFieldProps, "romanizedSlot"> {
+export interface StandardFieldRenderProps extends Omit<BookmarkTitleFieldProps, "namesSlot"> {
   /** Hide the Name (title) field — set for plain-text entries, where the typed text is the name. */
   hideNameField?: boolean;
   lockedCategoryId?: string;
@@ -66,7 +66,7 @@ const FIELD_RENDERERS: Record<
   (props: StandardFieldRenderProps) => ReactNode
 > = {
   title: props => (props.hideNameField ? null : <BookmarkTitleField {...props} />),
-  romanizedName: props => <BookmarkRomanizedNameField form={props.form} />,
+  names: props => <BookmarkNamesField form={props.form} />,
   categoryId: props => (
     <BookmarkAdvancedCategoryField
       form={props.form}

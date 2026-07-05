@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "./RomanizedLabel";
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 
 import {
   CommandGroup,
@@ -244,7 +244,7 @@ export function TagsSubPalette({
     return (
       <CommandItem
         key={tag.id}
-        value={`${tag.name} ${tag.romanizedName ?? ""}`.trim()}
+        value={`${tag.name} ${(tag.names ?? []).map(n => n.value).join(" ")}`.trim()}
         onSelect={() => onToggleTag(tag.id)}
       >
         <span
@@ -252,9 +252,9 @@ export function TagsSubPalette({
             paddingLeft: depth > 0 ? `${depth}rem` : undefined,
           }}
         >
-          <RomanizedLabel
-            name={tag.name}
-            romanized={tag.romanizedName}
+          <LocalizedNameLabel
+            names={tag.names ?? []}
+            base={tag.name}
           />
         </span>
         {selected && (
@@ -347,7 +347,7 @@ export function LocationsSubPalette({
     return (
       <CommandItem
         key={location.id}
-        value={`${location.name} ${location.romanizedName ?? ""}`.trim()}
+        value={`${location.name} ${(location.names ?? []).map(n => n.value).join(" ")}`.trim()}
         onSelect={() => onToggleLocation(location.id)}
       >
         <span
@@ -355,9 +355,9 @@ export function LocationsSubPalette({
             paddingLeft: depth > 0 ? `${depth}rem` : undefined,
           }}
         >
-          <RomanizedLabel
-            name={location.name}
-            romanized={location.romanizedName}
+          <LocalizedNameLabel
+            names={location.names ?? []}
+            base={location.name}
           />
         </span>
         {selected && (

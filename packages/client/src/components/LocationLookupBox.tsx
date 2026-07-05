@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ChevronDown, Globe, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "./RomanizedLabel";
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { useLocationLookup } from "../hooks/useLocations";
 
 import { Button } from "@/components/ui/button";
@@ -115,13 +115,26 @@ export function LocationLookupBox({
                     w-full rounded-sm px-2 py-1 text-left text-sm
                     hover:bg-accent hover:text-accent-foreground
                   "
-                  title={`${candidate.name}${candidate.romanizedName ? ` (${candidate.romanizedName})` : ""} — ${candidate.displayName}`}
+                  title={`${candidate.name}${candidate.englishName ? ` (${candidate.englishName})` : ""} — ${candidate.displayName}`}
                   onClick={() => onSelect(candidate)}
                 >
                   <span className="flex flex-col font-medium">
-                    <RomanizedLabel
-                      name={candidate.name}
-                      romanized={candidate.romanizedName}
+                    <LocalizedNameLabel
+                      names={candidate.englishName
+                        ? [{
+                          id: "candidate-english",
+                          value: candidate.englishName,
+                          isPrimary: false,
+                          sortOrder: 0,
+                          language: {
+                            id: "candidate-english-lang",
+                            name: "English",
+                            slug: "english",
+                            isoCode: "en",
+                          },
+                        }]
+                        : []}
+                      base={candidate.name}
                       stacked
                     />
                     <span className="text-xs font-normal text-muted-foreground">

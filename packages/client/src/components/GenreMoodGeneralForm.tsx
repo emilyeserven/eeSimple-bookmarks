@@ -21,7 +21,6 @@ const ROOT = "__root__";
 
 const LABELS: Record<keyof UpdateGenreMoodInput, string> = {
   name: "Name",
-  romanizedName: "Romanized name",
   parentId: "Parent",
 };
 
@@ -52,7 +51,6 @@ export function GenreMoodGeneralForm({
     labels: LABELS,
     initial: {
       name: node.name,
-      romanizedName: node.romanizedName ?? "",
       parentId: node.parentId,
     },
   });
@@ -68,7 +66,7 @@ export function GenreMoodGeneralForm({
         value: item.node.id,
         label: item.node.name,
         depth: item.depth,
-        romanized: item.node.romanizedName,
+        names: item.node.names,
       })),
   ];
 

@@ -9,8 +9,8 @@ import { TreeExpandToggle } from "./cells";
 import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 import i18n from "../../i18n";
 import { placeTypeLabel } from "../../lib/locationLevels";
+import { LocalizedNameLabel } from "../LocalizedNameLabel";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
-import { RomanizedLabel } from "../RomanizedLabel";
 
 import { entityLinkTitle } from "@/lib/sidebarModifier";
 
@@ -43,9 +43,9 @@ export function LocationNameCell({
           hover:underline
         "
       >
-        <RomanizedLabel
-          name={row.original.name}
-          romanized={row.original.romanizedName}
+        <LocalizedNameLabel
+          names={row.original.names ?? []}
+          base={row.original.name}
         />
       </Link>
     </div>

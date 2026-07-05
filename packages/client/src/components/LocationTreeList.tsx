@@ -4,8 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
-import { RomanizedLabel } from "./RomanizedLabel";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { expandableIds } from "../lib/tagTree";
@@ -70,9 +70,9 @@ export function LocationTreeList({
             hover:underline
           "
         >
-          <RomanizedLabel
-            name={node.name}
-            romanized={(node as unknown as LocationNode).romanizedName}
+          <LocalizedNameLabel
+            names={(node as unknown as LocationNode).names ?? []}
+            base={node.name}
             stacked
           />
         </Link>

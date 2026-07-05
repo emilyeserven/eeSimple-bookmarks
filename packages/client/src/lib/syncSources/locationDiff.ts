@@ -6,7 +6,7 @@ import i18n from "../../i18n";
 
 /**
  * The location's current field values, for building the current-vs-candidate diff. Excludes the
- * name/romanized name on purpose — those are user-set identity fields that also drive the slug, so
+ * name/English name on purpose — those are user-set identity fields that also drive the slug, so
  * a geocoder shouldn't be offered as a source to overwrite them.
  */
 export interface LocationDiffCurrent {

@@ -8,7 +8,7 @@ import type {
   TaxonomyImageOwnerType,
 } from "@eesimple/types";
 import { db } from "@/db";
-import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
+import { deleteEntityNamesForOwner, loadEntityNames, mergeEnglishEntityName } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyImagesForOwner } from "@/services/taxonomyImages";
@@ -56,7 +56,8 @@ export interface PlexTaxonomyCreateInput {
   plexItemType?: string | null;
   plexItemTitle?: string | null;
   year?: number | null;
-  romanizedName?: string | null;
+  /** English name candidate (e.g. resolved from Wikidata); merged into the row's `entity_names`. */
+  englishName?: string | null;
   wikidataId?: string | null;
   wikipediaLinkEn?: string | null;
   wikipediaLinkLocal?: string | null;
@@ -79,7 +80,6 @@ export function buildPlexTaxonomyData(
   if (input.plexItemType !== undefined) patch.plexItemType = input.plexItemType ?? null;
   if (input.plexItemTitle !== undefined) patch.plexItemTitle = input.plexItemTitle ?? null;
   if (input.year !== undefined) patch.year = input.year ?? null;
-  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   if (input.wikidataId !== undefined) patch.wikidataId = input.wikidataId ?? null;
   if (input.wikipediaLinkEn !== undefined) patch.wikipediaLinkEn = input.wikipediaLinkEn ?? null;
   if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal ?? null;
@@ -206,6 +206,9 @@ export function createPlexTaxonomyService<
       ...dataFromInput(input),
     };
     const [row] = await db.insert(table).values(values).returning();
+    if (entityNameOwnerType && input.englishName) {
+      await mergeEnglishEntityName(entityNameOwnerType, row.id, input.englishName);
+    }
     return toWire(row);
   }
 
@@ -226,6 +229,13 @@ export function createPlexTaxonomyService<
       patch.slug = uniqueSlug(name, await takenSlugs(id), slugFallback);
     }
     if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
+
+    // `entity_names` is a separate table (merge, not a patch column) — apply it regardless of
+    // whether the shared `patch` object ends up empty.
+    if (entityNameOwnerType && input.englishName) {
+      await mergeEnglishEntityName(entityNameOwnerType, id, input.englishName);
+    }
+
     if (Object.keys(patch).length === 0) return toWire(existing);
 
     const [row] = await db.update(table).set(patch).where(eq(table.id, id)).returning();

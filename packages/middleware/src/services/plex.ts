@@ -442,8 +442,8 @@ function buildExternalIds(ownerType: PlexTaxonomyOwnerType, guids: PlexGuids): W
 export interface PlexTaxonomyMetadataPreview {
   /** Native-script name resolved from Wikidata, or null. */
   name: string | null;
-  /** English/romanized name, or null. */
-  romanizedName: string | null;
+  /** English name, or null. */
+  englishName: string | null;
   wikipediaLinkEn: string | null;
   wikipediaLinkLocal: string | null;
 }
@@ -454,7 +454,7 @@ export type PlexMetadataPreviewResult = PlexTaxonomyMetadataPreview | "not_found
 /**
  * Resolve a Plex-backed taxonomy row's Wikidata metadata **without applying it** — the source side of
  * the "Sync from source" review. Reads the linked Plex item's external IDs (IMDb/TMDb/TVDB/MusicBrainz,
- * falling back to a title search) and returns the candidate native name, romanized name, and Wikipedia
+ * falling back to a title search) and returns the candidate native name, English name, and Wikipedia
  * links for the modal to diff against the current values. The picked rows are persisted by the client's
  * edit form (per-field auto-save); this never writes, so it never touches the bookmark cache.
  */
@@ -483,7 +483,7 @@ export async function resolvePlexTaxonomyMetadata(
   });
   return {
     name: resolution?.name ?? null,
-    romanizedName: resolution?.romanizedName ?? null,
+    englishName: resolution?.englishName ?? null,
     wikipediaLinkEn: resolution?.wikipediaLinkEn ?? null,
     wikipediaLinkLocal: resolution?.wikipediaLinkLocal ?? null,
   };

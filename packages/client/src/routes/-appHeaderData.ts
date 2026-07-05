@@ -1,4 +1,5 @@
 import type { PinContext } from "@/components/HeaderPinButton";
+import type { EntityName } from "@eesimple/types";
 
 import { useTaxonomyNameMap } from "./-appHeaderNames";
 
@@ -17,10 +18,10 @@ export function slugFor(
   return pathname === prefix || pathname.startsWith(`${prefix}/`) ? (pathParts[index] ?? "") : "";
 }
 
-/** A resolved entity's real name plus its optional romanized form, for its `List → Name` crumb. */
+/** A resolved entity's real name plus its multilingual names, for its `List → Name` crumb. */
 export interface TaxonomyName {
   name?: string;
-  romanized?: string | null;
+  names?: EntityName[];
 }
 
 /** The entities the header may resolve from a taxonomy detail route, plus their crumb-name map. */
@@ -86,7 +87,7 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
     taxonomyNames: {
       "/categories": {
         name: category?.name,
-        romanized: category?.romanizedName,
+        names: category?.names,
       },
       "/taxonomies/websites": {
         name: website?.siteName,

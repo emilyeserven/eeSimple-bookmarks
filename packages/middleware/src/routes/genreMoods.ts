@@ -32,10 +32,6 @@ const createGenreMoodBody = {
       type: "string",
       minLength: 1,
     },
-    romanizedName: {
-      type: "string",
-      nullable: true,
-    },
     parentId: {
       type: "string",
       format: "uuid",
@@ -51,10 +47,6 @@ const updateGenreMoodBody = {
     name: {
       type: "string",
       minLength: 1,
-    },
-    romanizedName: {
-      type: "string",
-      nullable: true,
     },
     parentId: {
       type: "string",

@@ -4,14 +4,13 @@ import { Link } from "@tanstack/react-router";
 
 import i18n from "../../i18n";
 import { HierarchyView } from "../HierarchyView";
-import { RomanizedLabel } from "../RomanizedLabel";
+import { LocalizedNameLabel } from "../LocalizedNameLabel";
 import { TagTreeList } from "../TagTreeList";
 
-import { useSortByRomanized } from "@/hooks/useAppSettings";
 import { useExpandedSet } from "@/hooks/useExpandedSet";
 import { useTagTree } from "@/hooks/useTags";
 import { useInterfaceTitleSort } from "@/hooks/useTitleSortContext";
-import { findAncestorPath, sortTagTreeByRomanized } from "@/lib/tagTree";
+import { findAncestorPath, sortTagTree } from "@/lib/tagTree";
 
 export function TagHierarchyView({
   entity: node,
@@ -25,9 +24,8 @@ export function TagHierarchyView({
     expanded, onToggle,
   } = useExpandedSet(node.children.map(c => c.id));
   // TagTreeList no longer sorts internally (the listing scaffold owns that); sort here instead.
-  const sortByRomanized = useSortByRomanized();
   const titleSort = useInterfaceTitleSort();
-  const children = sortTagTreeByRomanized(node.children, sortByRomanized, titleSort);
+  const children = sortTagTree(node.children, titleSort);
   const path = findAncestorPath(data ?? [], node.slug);
   const ancestors = path ? path.slice(0, -1) : [];
   return (
@@ -41,9 +39,9 @@ export function TagHierarchyView({
           }}
           className="hover:underline"
         >
-          <RomanizedLabel
-            name={ancestor.name}
-            romanized={ancestor.romanizedName}
+          <LocalizedNameLabel
+            names={ancestor.names ?? []}
+            base={ancestor.name}
           />
         </Link>
       )}

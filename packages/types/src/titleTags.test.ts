@@ -58,17 +58,16 @@ test("titleMatchesTerm ignores empty/whitespace terms", () => {
 const busan: TitleTagCandidate = {
   id: "t-busan",
   name: "부산",
-  romanizedName: "Busan",
+  names: [nm("Busan")],
 };
 const kyushu: TitleTagCandidate = {
   id: "t-kyushu",
   name: "九州",
-  romanizedName: "Kyushu",
+  names: [nm("Kyushu")],
 };
 const react: TitleTagCandidate = {
   id: "t-react",
   name: "React",
-  romanizedName: null,
 };
 
 test("matchTagIdsByTitle matches a native name inside a non-spaced compound title", () => {
@@ -94,7 +93,6 @@ test("matchTagIdsByTitle matches a tag's language-labelled names against the boo
   const eva: TitleTagCandidate = {
     id: "t-eva",
     name: "エヴァンゲリオン",
-    romanizedName: null,
     names: [nm("エヴァンゲリオン"), nm("Evangelion")],
   };
   // A bookmark titled in kana matches the tag whose English `names` value appears in the bookmark's

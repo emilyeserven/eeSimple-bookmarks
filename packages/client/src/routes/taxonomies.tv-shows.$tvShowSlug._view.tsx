@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useTvShowBySlug } from "../hooks/useTvShows";
@@ -48,9 +48,9 @@ function TvShowViewLayout() {
             ? t("TV show")
             : tvShow
               ? (
-                <RomanizedLabel
-                  name={tvShow.name}
-                  romanized={tvShow.romanizedName}
+                <LocalizedNameLabel
+                  names={tvShow.names ?? []}
+                  base={tvShow.name}
                 />
               )
               : t("TV show not found")}

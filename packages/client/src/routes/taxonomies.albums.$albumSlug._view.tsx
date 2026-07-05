@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useAlbumBySlug } from "../hooks/useAlbums";
@@ -48,9 +48,9 @@ function AlbumViewLayout() {
             ? t("Album")
             : album
               ? (
-                <RomanizedLabel
-                  name={album.name}
-                  romanized={album.romanizedName}
+                <LocalizedNameLabel
+                  names={album.names ?? []}
+                  base={album.name}
                 />
               )
               : t("Album not found")}

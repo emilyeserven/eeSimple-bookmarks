@@ -25,7 +25,7 @@ export const ROOT = "__root__";
 
 const LABELS: Record<keyof UpdateLocationInput, string> = {
   name: "Name",
-  romanizedName: "Romanized name",
+  englishName: "English name",
   alternateNames: "Alternate names",
   latitude: "Latitude",
   longitude: "Longitude",
@@ -54,7 +54,7 @@ const LABELS: Record<keyof UpdateLocationInput, string> = {
 function locationEditableDefaults(node: LocationNode) {
   return {
     name: node.name,
-    romanizedName: node.romanizedName ?? "",
+    englishName: node.names?.find(n => n.language.isoCode?.toLowerCase() === "en")?.value ?? "",
     latitude: node.latitude ?? 0,
     longitude: node.longitude ?? 0,
     mapUrl: node.mapUrl ?? "",
@@ -146,7 +146,7 @@ export function useLocationGeneralForm(node: LocationNode) {
     autoSave.saveField("usesWikidataCoordinates", next);
   }
 
-  // The slug derives from the name/romanized name; when a save moves it, follow it so the edit
+  // The slug derives from the name/English name; when a save moves it, follow it so the edit
   // page keeps resolving.
   const followSlug = (updated: Location) => {
     if (updated.slug !== node.slug) {
@@ -169,7 +169,7 @@ export function useLocationGeneralForm(node: LocationNode) {
       value: item.node.id,
       label: item.node.name,
       depth: item.depth,
-      romanized: item.node.romanizedName,
+      names: item.node.names,
     }));
   const parentOptions: ComboboxOption[] = [
     {

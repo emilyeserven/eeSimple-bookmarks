@@ -128,7 +128,6 @@ function toMediaType(
   return {
     id: row.id,
     name: row.name,
-    romanizedName: row.romanizedName,
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     icon: row.icon ?? null,
@@ -290,7 +289,6 @@ export async function createMediaType(input: CreateMediaTypeInput): Promise<Medi
   const slug = uniqueSlug(name, await takenSlugs(), "media-type");
   const [row] = await db.insert(mediaTypes).values({
     name,
-    romanizedName: input.romanizedName ?? null,
     slug,
     icon: input.icon ?? null,
     parentId,
@@ -310,8 +308,7 @@ export async function updateMediaType(
     throw new BuiltInMediaTypeError("A built-in media type cannot be renamed");
   }
 
-  const patch: Partial<Pick<MediaTypeRow, "name" | "romanizedName" | "slug" | "sortOrder" | "icon" | "parentId">> = {};
-  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
+  const patch: Partial<Pick<MediaTypeRow, "name" | "slug" | "sortOrder" | "icon" | "parentId">> = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({

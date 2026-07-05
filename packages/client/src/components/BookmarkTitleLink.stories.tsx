@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { BookmarkRomanizedField, BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
+import { BookmarkSecondaryNameField, BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
 import { makeBookmark } from "../test-utils/factories";
 import { apiHandlers, sampleBookmark } from "../test-utils/story-mocks";
 
@@ -24,36 +24,32 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 /**
- * The title link now renders only the **primary** of the title / romanized pair (per the global
- * "Show Romanized by default" toggle); the romanized form is the separately placeable
- * `romanizedName` card field ({@link BookmarkRomanizedField}). With the toggle off (default), the
- * primary is the native title.
+ * The title link renders only the **primary** name (via `resolveDisplayNames` against
+ * `bookmark.names`); the secondary form is the separately placeable `secondaryName` card field
+ * ({@link BookmarkSecondaryNameField}).
  */
-export const Romanized: Story = {
+export const WithSecondaryName: Story = {
   args: {
     bookmark: makeBookmark({
       title: "東京タワー",
-      romanizedName: "Tōkyō Tawā",
     }),
   },
 };
 
 /**
- * The placeable `romanizedName` card field: the de-emphasized **secondary** of the pair (the
- * romanized form when "Show Romanized by default" is off). Rendered as its own card field so it can
- * be shown/hidden/repositioned independently of the title.
+ * The placeable `secondaryName` card field: the de-emphasized **secondary** name. Rendered as its
+ * own card field so it can be shown/hidden/repositioned independently of the title.
  */
-export const RomanizedField: StoryObj<typeof BookmarkRomanizedField> = {
+export const SecondaryNameField: StoryObj<typeof BookmarkSecondaryNameField> = {
   parameters: {
     msw: {
       handlers: apiHandlers,
     },
   },
   render: () => (
-    <BookmarkRomanizedField
+    <BookmarkSecondaryNameField
       bookmark={makeBookmark({
         title: "東京タワー",
-        romanizedName: "Tōkyō Tawā",
       })}
     />
   ),

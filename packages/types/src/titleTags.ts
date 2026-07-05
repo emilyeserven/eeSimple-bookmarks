@@ -1,10 +1,10 @@
 /**
- * Shared "auto-tag from title" matcher — decides which tags a bookmark's title (and its romanized
- * form) implies. Pure, dependency-free, so it runs unchanged in the Fastify API
+ * Shared "auto-tag from title" matcher — decides which tags a bookmark's title (and its
+ * language-labelled name values) implies. Pure, dependency-free, so it runs unchanged in the Fastify API
  * (`@eesimple/middleware`, at create / backfill time) and in the browser (`@eesimple/client`, for
  * the Inbox prefill preview) — one implementation, no parallel re-translation.
  *
- * A tag matches when any of its name forms (`name`, `romanizedName`, and every language-labelled
+ * A tag matches when any of its name forms (`name` and every language-labelled
  * `names` value) is found in any of the bookmark's title/name forms. Latin terms match on
  * whole-word boundaries (so a tag named "art" does not match "Martin"); terms in scripts that
  * aren't space-delimited (Han / Hiragana / Katakana / Hangul) match as substrings (so "부산" matches
@@ -17,8 +17,7 @@ import type { EntityName } from "./entityNames.js";
 export interface TitleTagCandidate {
   id: string;
   name: string;
-  romanizedName?: string | null;
-  /** The tag's language-labelled names, matched (by value) alongside `name`/`romanizedName`. */
+  /** The tag's language-labelled names, matched (by value) alongside `name`. */
   names?: EntityName[];
 }
 
@@ -53,9 +52,9 @@ export function titleMatchesTerm(haystack: string, term: string): boolean {
 }
 
 /**
- * The ids of tags implied by a bookmark's title/name forms. Each tag's `name`, `romanizedName`, and
+ * The ids of tags implied by a bookmark's title/name forms. Each tag's `name` and
  * every language-labelled `names` value are tested against each of the bookmark's `titles` (its
- * title + romanized title + every language-labelled name value) via {@link titleMatchesTerm}.
+ * title + every language-labelled name value) via {@link titleMatchesTerm}.
  * Empty/whitespace haystacks and terms are ignored. Pure helper.
  */
 export function matchTagIdsByTitle(
@@ -66,7 +65,7 @@ export function matchTagIdsByTitle(
   if (haystacks.length === 0) return [];
   return tags
     .filter((tag) => {
-      const terms = [tag.name, tag.romanizedName ?? "", ...(tag.names ?? []).map(name => name.value)]
+      const terms = [tag.name, ...(tag.names ?? []).map(name => name.value)]
         .filter(text => text.trim() !== "");
       return terms.some(term => haystacks.some(haystack => titleMatchesTerm(haystack, term)));
     })

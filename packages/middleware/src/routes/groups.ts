@@ -66,9 +66,6 @@ const createGroupBody = {
       type: "string",
       minLength: 1,
     },
-    romanizedName: {
-      type: ["string", "null"],
-    },
     websiteId: {
       type: ["string", "null"],
       format: "uuid",

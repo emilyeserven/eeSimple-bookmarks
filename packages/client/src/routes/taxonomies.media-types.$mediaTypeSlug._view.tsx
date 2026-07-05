@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useMediaTypeBySlug } from "../hooks/useMediaTypes";
 import i18n from "../i18n";
@@ -58,9 +58,9 @@ function MediaTypeViewLayout() {
         >
           {mediaType
             ? (
-              <RomanizedLabel
-                name={mediaType.name}
-                romanized={mediaType.romanizedName}
+              <LocalizedNameLabel
+                names={mediaType.names ?? []}
+                base={mediaType.name}
               />
             )
             : (isLoading ? t("Media type") : t("Media type not found"))}

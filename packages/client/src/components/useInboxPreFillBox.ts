@@ -10,6 +10,7 @@ import { usePeople } from "../hooks/usePeople";
 import { useTagTree } from "../hooks/useTags";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 import { INBOX_PREFILLABLE_TYPES } from "../lib/inboxPreFill";
+import { buildSearchAlias } from "../lib/searchAlias";
 import { flattenTree } from "../lib/tagTree";
 
 /**
@@ -50,12 +51,12 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
   const personOptions = people.map(a => ({
     value: a.id,
     label: a.name,
-    searchAlias: a.romanizedName ?? undefined,
+    searchAlias: buildSearchAlias(a.names),
   }));
   const groupOptions = groups.map(p => ({
     value: p.id,
     label: p.name,
-    searchAlias: p.romanizedName ?? undefined,
+    searchAlias: buildSearchAlias(p.names),
   }));
 
   const selectedTagIds = preFill.tagIds ?? [];

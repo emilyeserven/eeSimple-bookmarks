@@ -12,7 +12,6 @@ import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 /** Field-name labels for the General tab's per-field auto-save toasts ("Updated <label>"). */
 const BOOKMARK_GENERAL_LABELS: Partial<Record<keyof UpdateBookmarkInput, string>> = {
   title: "Name",
-  romanizedName: "Romanized name",
   description: "Description",
   categoryId: "Category",
   mediaTypeId: "Media type",
@@ -50,7 +49,6 @@ export function useBookmarkGeneralAutoSave({
     labels: BOOKMARK_GENERAL_LABELS,
     initial: {
       title: bookmark.title,
-      romanizedName: bookmark.romanizedName ?? null,
       description: bookmark.description ?? null,
       categoryId: bookmark.categoryId ?? "",
       mediaTypeId: bookmark.mediaType?.id ?? null,

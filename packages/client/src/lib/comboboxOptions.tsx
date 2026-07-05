@@ -19,20 +19,19 @@ export interface IconComboboxOption {
 /**
  * Build `{ value, label, icon }` combobox options for an icon-bearing taxonomy row (Category,
  * MediaType, …). Shared by the auto-save general forms so the default category / media-type pickers
- * don't re-list the same `.map()` + `<CategoryIcon>` block. Every name variant (romanized + each
- * language-labelled name) is carried as `searchAlias` so the picker search matches any of them.
+ * don't re-list the same `.map()` + `<CategoryIcon>` block. Every language-labelled name variant is
+ * carried as `searchAlias` so the picker search matches any of them.
  */
 export function iconComboboxOptions(
   items: { id: string;
     name: string;
     icon: string | null;
-    romanizedName?: string | null;
     names?: EntityName[]; }[],
 ): IconComboboxOption[] {
   return items.map(item => ({
     value: item.id,
     label: item.name,
-    searchAlias: buildSearchAlias(item.romanizedName, item.names),
+    searchAlias: buildSearchAlias(item.names),
     icon: (
       <CategoryIcon
         name={item.icon}
@@ -46,8 +45,8 @@ export function iconComboboxOptions(
  * Convert a `MediaTypeNode` tree into `TreeComboboxOption[]` for the tree comboboxes
  * (`TreeCombobox` / `TreeMultiCombobox`), preserving nested `children` so the picker renders real
  * collapsible hierarchy. Mirrors `tagNodesToOptions`/`locationNodesToOptions` but carries the
- * media-type icon (which is why it lives here, in a `.tsx`, rather than in `tagTree.ts`). A
- * romanized name (when present) is carried as `searchAlias` so the picker search matches it too.
+ * media-type icon (which is why it lives here, in a `.tsx`, rather than in `tagTree.ts`). Its
+ * multilingual names (when present) are carried as `searchAlias` so the picker search matches them too.
  */
 /**
  * Build depth-aware (icon-less) combobox options from a Genres & Moods tree for a multi-select
@@ -68,7 +67,7 @@ export function genreMoodTreeComboboxOptions(
       value: node.id,
       label: node.name,
       depth,
-      romanized: node.romanizedName,
+      names: node.names,
     }));
 }
 
@@ -76,7 +75,7 @@ export function mediaTypeNodesToOptions(nodes: MediaTypeNode[]): TreeComboboxOpt
   return nodes.map(node => ({
     value: node.id,
     label: node.name,
-    searchAlias: buildSearchAlias(node.romanizedName, node.names),
+    searchAlias: buildSearchAlias(node.names),
     icon: (
       <CategoryIcon
         name={node.icon}

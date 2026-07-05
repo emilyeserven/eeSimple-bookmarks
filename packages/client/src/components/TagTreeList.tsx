@@ -5,8 +5,8 @@ import { Link } from "@tanstack/react-router";
 import { Folder, Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
-import { RomanizedLabel } from "./RomanizedLabel";
 import { TagCategoriesPopover } from "./TagCategoriesPopover";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
@@ -26,7 +26,7 @@ interface TagTreeListProps {
 
 /**
  * Read-only, collapsible tag tree. Each root node is its own card; cards flow in a responsive grid.
- * Callers own the sort order (the tree scaffold's `useSortedTree` applies the romanized re-sort).
+ * Callers own the sort order (the tree scaffold's `useSortedTree` applies the multilingual-name re-sort).
  */
 export function TagTreeList({
   tree, expanded, onToggle, columns,
@@ -70,9 +70,9 @@ export function TagTreeList({
             hover:underline
           "
         >
-          <RomanizedLabel
-            name={node.name}
-            romanized={(node as unknown as TagNode).romanizedName}
+          <LocalizedNameLabel
+            names={(node as unknown as TagNode).names ?? []}
+            base={node.name}
           />
         </Link>
       )}

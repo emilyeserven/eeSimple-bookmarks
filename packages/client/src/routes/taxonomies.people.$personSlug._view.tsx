@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { usePersonBySlug } from "../hooks/usePeople";
@@ -37,9 +37,9 @@ function PersonViewLayout() {
           }}
           title={person
             ? (
-              <RomanizedLabel
-                name={person.name}
-                romanized={person.romanizedName}
+              <LocalizedNameLabel
+                names={person.names ?? []}
+                base={person.name}
               />
             )
             : (isLoading ? t("Person") : t("Person not found"))}

@@ -18,8 +18,6 @@ const displayPreferences = {
   croppedHeight: 9,
   customPropertyTypeIcons: null,
   onDemandFilters: [],
-  showRomanizedByDefault: false,
-  sortByRomanized: true,
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,
   mapPinScale: 1,

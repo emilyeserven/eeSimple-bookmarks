@@ -37,8 +37,6 @@ export interface Podcast {
   id: string;
   /** Display name — the show title. Unique. */
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this podcast, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
@@ -78,7 +76,6 @@ export interface Podcast {
 /** Payload for creating a podcast. */
 export interface CreatePodcastInput {
   name: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   feedUrl?: string | null;
@@ -98,7 +95,6 @@ export interface CreatePodcastInput {
 /** Payload for updating a podcast (rename, reorder, re-link feed/iTunes/media property). */
 export interface UpdatePodcastInput {
   name?: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   feedUrl?: string | null;

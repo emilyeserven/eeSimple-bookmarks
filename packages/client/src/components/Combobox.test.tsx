@@ -1,4 +1,5 @@
 import type { ComboboxOption } from "./Combobox";
+import type { EntityName } from "@eesimple/types";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
@@ -6,6 +7,22 @@ import { describe, expect, it, vi } from "vitest";
 import { Combobox } from "./Combobox";
 
 import { renderWithRouter } from "@/test-utils/router";
+
+/** A minimal language-labelled name for combobox option fixtures. */
+function nm(value: string): EntityName {
+  return {
+    id: value,
+    language: {
+      id: value,
+      name: value,
+      slug: value,
+      isoCode: null,
+    },
+    value,
+    isPrimary: false,
+    sortOrder: 0,
+  };
+}
 
 const options: ComboboxOption[] = [
   {
@@ -82,24 +99,24 @@ describe("Combobox", () => {
     expect(screen.getAllByTestId("web-icon").length).toBeGreaterThan(1);
   });
 
-  it("shows an option's romanized name after its label, in the list and the trigger", async () => {
-    const romanizedOptions: ComboboxOption[] = [
+  it("shows an option's secondary name after its label, in the list and the trigger", async () => {
+    const secondaryNameOptions: ComboboxOption[] = [
       {
         value: "fukuoka",
         label: "福岡県",
-        romanized: "Fukuoka Prefecture",
+        names: [nm("Fukuoka Prefecture")],
       },
     ];
     await renderWithRouter(
       <Combobox
-        options={romanizedOptions}
+        options={secondaryNameOptions}
         value="fukuoka"
         onValueChange={vi.fn()}
         aria-label="Parent"
       />,
     );
 
-    // The trigger renders both the real name and its de-emphasized romanized form.
+    // The trigger renders both the real name and its de-emphasized secondary form.
     const trigger = screen.getByRole("combobox", {
       name: "Parent",
     });
@@ -113,22 +130,22 @@ describe("Combobox", () => {
     expect(option).toHaveTextContent("Fukuoka Prefecture");
   });
 
-  it("filters options by their romanized form", async () => {
-    const romanizedOptions: ComboboxOption[] = [
+  it("filters options by their secondary form", async () => {
+    const secondaryNameOptions: ComboboxOption[] = [
       {
         value: "fukuoka",
         label: "福岡県",
-        romanized: "Fukuoka Prefecture",
+        names: [nm("Fukuoka Prefecture")],
       },
       {
         value: "tokyo",
         label: "東京都",
-        romanized: "Tokyo",
+        names: [nm("Tokyo")],
       },
     ];
     await renderWithRouter(
       <Combobox
-        options={romanizedOptions}
+        options={secondaryNameOptions}
         onValueChange={vi.fn()}
         aria-label="Parent"
       />,

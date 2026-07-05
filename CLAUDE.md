@@ -115,7 +115,7 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   `SegmentedToggleRow` (`components/SegmentedToggleRow.tsx`, the shared segmented control also used by
   the sidebar show/hide settings). **See the `bookmark-add-form` skill for the change recipes.** In short:
   - **Standard fields** — the `BOOKMARK_ADD_FORM_STANDARD_FIELDS` tuple in
-    `packages/types/src/bookmarkAddForm.ts`: `title`/`romanizedTitle` (Default), the taxonomy fields
+    `packages/types/src/bookmarkAddForm.ts`: `title`/`names` (Default), the taxonomy fields
     `categoryId`/`mediaTypeId`/`languageId`/`groupId`/`descriptionTags`/`personIds`/`image` (Advanced),
     and the taxonomy/media/location relations `groupIds` (creators, plural), `genreMoodIds`,
     `locationIds`, `mediaLink` (the six book/movie/tvShow/episode/album/track FKs, via the
@@ -649,8 +649,9 @@ configuration are explicitly opt-in (Tier 2, below).
   **`add-connector`** skill's Case D.
 - **Plex-backed media taxonomies pull names + Wikipedia links from Wikidata.** For the five Plex
   taxonomies (Movies/TV Shows/Episodes/Albums/Tracks), `services/wikidataTitle.ts`'s
-  `resolveTitleWikidata` resolves the native-script name (→ `name`), the English/romanized name (→
-  `romanizedName`), and English + local Wikipedia links — pinned by the Plex item's external IDs
+  `resolveTitleWikidata` resolves the native-script name (→ `name`), the English name (→
+  `englishName`, persisted as an English `entity_names` row via `mergeEnglishEntityName`), and
+  English + local Wikipedia links — pinned by the Plex item's external IDs
   (IMDb/TMDb/TVDB/MusicBrainz via `haswbstatement`, title-search fallback). It shares the keyless
   Wikidata Action-API client **`services/wikidata.ts`** with the Locations geocoder
   (`wikidataGeocoding.ts`) — the low-level `fetchJson`/`searchEntities`/`getEntities`/`fetchSitelinks`
@@ -715,7 +716,7 @@ new source, see the `sync-from-source` skill** — don't re-implement the modal 
   Keep providers referentially stable (memoize the provider, stabilize `applyStaged` via a `useRef` of
   the latest deps) or the register-effect thrashes the store.
 - **Locations** get a **default-off re-geocode toggle** (`supportsRegeocode`): off = fill empty fields;
-  on = force-overwrite coordinates + boundary via `repullCoordinates` (never sync the name/romanized
+  on = force-overwrite coordinates + boundary via `repullCoordinates` (never sync the name/English
   name — they drive the slug). Respect the `locations-map` skill + `lib/locationLevels.ts` doc block.
 - **Image-only taxonomy previews.** Since image sources store-and-apply with no preview, each source
   exposes a **resolve-URL GET** so the modal can show the incoming image: public-URL sources return

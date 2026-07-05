@@ -48,9 +48,6 @@ const bookDataFields = {
   releaseYear: {
     type: ["integer", "null"],
   },
-  romanizedName: {
-    type: ["string", "null"],
-  },
 } as const;
 
 const createBookBody = {

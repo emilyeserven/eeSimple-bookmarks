@@ -6,8 +6,8 @@ import { Link } from "@tanstack/react-router";
 import { ChevronRight, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { LocationMapSection } from "./LocationMapSection";
-import { RomanizedLabel } from "./RomanizedLabel";
 import { findAncestorPath, flattenTree } from "../lib/tagTree";
 
 import { LabeledSection } from "@/components/LabeledSection";
@@ -167,9 +167,9 @@ export function BookmarkLocationsTabContent({
                         {i === path.length - 1 && (
                           <MapPin className="size-3.5 shrink-0" />
                         )}
-                        <RomanizedLabel
-                          name={ancestor.name}
-                          romanized={ancestor.romanizedName}
+                        <LocalizedNameLabel
+                          names={ancestor.names ?? []}
+                          base={ancestor.name}
                         />
                       </Link>
                     </span>

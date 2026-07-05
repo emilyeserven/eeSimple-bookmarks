@@ -223,7 +223,7 @@ export function usePinManagerData() {
       .map(fl => ({
         value: pinKey("location", fl.node.id),
         label: fl.node.name,
-        romanized: fl.node.romanizedName,
+        names: fl.node.names,
         depth: fl.depth,
         icon: <MapPin className="size-4 shrink-0" />,
       }));
@@ -233,7 +233,7 @@ export function usePinManagerData() {
       .map(ft => ({
         value: pinKey("tag", ft.node.id),
         label: ft.node.name,
-        romanized: ft.node.romanizedName,
+        names: ft.node.names,
         depth: ft.depth,
         icon: <Tags className="size-4 shrink-0" />,
       }));

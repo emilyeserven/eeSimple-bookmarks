@@ -9,8 +9,6 @@ export interface Album {
   id: string;
   /** Display name. Unique. */
   name: string;
-  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
-  romanizedName?: string | null;
   /** Multilingual names for this album, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
@@ -48,7 +46,6 @@ export interface Album {
 /** Payload for creating an album. */
 export interface CreateAlbumInput {
   name: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   personIds?: string[];
@@ -65,7 +62,6 @@ export interface CreateAlbumInput {
 /** Payload for updating an album (rename, reorder, re-link Plex/media property, set credits). */
 export interface UpdateAlbumInput {
   name?: string;
-  romanizedName?: string | null;
   sortOrder?: number;
   mediaPropertyId?: string | null;
   personIds?: string[];

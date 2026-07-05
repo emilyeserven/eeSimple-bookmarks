@@ -11,7 +11,7 @@ export interface AncestorDraft {
    */
   existingId: string | null;
   name: string;
-  romanizedName: string | null;
+  englishName: string | null;
   latitude: number | null;
   longitude: number | null;
   mapUrl: string | null;
@@ -25,7 +25,7 @@ export interface AncestorDraft {
 export function ancestorToInput(draft: AncestorDraft): CreateLocationInput {
   return {
     name: draft.name.trim(),
-    romanizedName: draft.romanizedName?.trim() || null,
+    englishName: draft.englishName?.trim() || null,
     latitude: draft.latitude,
     longitude: draft.longitude,
     mapUrl: draft.mapUrl,
@@ -41,7 +41,7 @@ export function emptyAncestorDraft(): AncestorDraft {
   return {
     existingId: null,
     name: "",
-    romanizedName: null,
+    englishName: null,
     latitude: null,
     longitude: null,
     mapUrl: null,
@@ -76,13 +76,13 @@ export function splitAncestorChain(ancestors: AncestorDraft[]): AncestorChainSpl
 export interface ExistingLocationMatch {
   id: string;
   name: string;
-  romanizedName?: string | null;
+  englishName?: string | null;
 }
 
 /**
  * Turn the geocoded ancestors of a looked-up place into editor rows (immediate-parent-first),
  * pre-matching each level against the already-saved locations so existing places are reused rather
- * than recreated. For each ancestor we look for an existing location whose `name` or `romanizedName`
+ * than recreated. For each ancestor we look for an existing location whose `name` or `englishName`
  * equals the ancestor's name (case-insensitive). The **first** ancestor with exactly one such match
  * caps the chain: that row reuses the existing location (its own ancestry takes over) and no rows are
  * emitted above it. Ancestors below the cap — and any with zero or multiple matches — become new
@@ -96,7 +96,7 @@ export function geocodedAncestorsToDrafts(
     const needle = name.trim().toLowerCase();
     if (needle === "") return null;
     const matches = existing.filter((loc) => {
-      const names = [loc.name, loc.romanizedName ?? ""];
+      const names = [loc.name, loc.englishName ?? ""];
       return names.some(n => n.trim().toLowerCase() === needle);
     });
     return matches.length === 1 ? matches[0].id : null;
@@ -136,7 +136,7 @@ export function geocodedAncestorsToDrafts(
  */
 export const locationSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
-  romanizedName: z.string(),
+  englishName: z.string(),
   latitude: z.number(),
   longitude: z.number(),
   mapUrl: z.string(),

@@ -18,7 +18,6 @@ import { useAppForm } from "@/lib/form";
 
 const bookGeneralSchema = z.object({
   name: z.string().trim().min(1, i18n.t("Name is required")),
-  romanizedName: z.string(),
   sortOrder: z.number().int(),
   releaseYear: z.number().int(),
   mediaPropertyId: z.string(),
@@ -40,7 +39,6 @@ export function BookGeneralForm({
   const updateBook = useUpdateBook();
   const LABELS: Record<keyof UpdateBookInput, string> = {
     name: t("Name"),
-    romanizedName: t("Romanized name"),
     sortOrder: t("Sort order"),
     mediaPropertyId: t("Media property"),
     releaseYear: t("Release year"),
@@ -55,7 +53,6 @@ export function BookGeneralForm({
     labels: LABELS,
     initial: {
       name: book.name,
-      romanizedName: book.romanizedName ?? "",
       sortOrder: book.sortOrder,
       releaseYear: book.releaseYear,
       isbn: book.isbn ?? "",
@@ -69,7 +66,6 @@ export function BookGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: book.name,
-      romanizedName: book.romanizedName ?? "",
       sortOrder: book.sortOrder,
       releaseYear: book.releaseYear ?? 0,
       mediaPropertyId: book.mediaPropertyId ?? "",
@@ -129,7 +125,6 @@ export function BookGeneralForm({
         form={form}
         fields={{
           name: "name",
-          romanizedName: "romanizedName",
           sortOrder: "sortOrder",
           mediaPropertyId: "mediaPropertyId",
         }}

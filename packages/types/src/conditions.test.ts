@@ -94,10 +94,10 @@ test("match: contains / starts_with are case-insensitive and field-scoped", () =
   );
 });
 
-test("match: the title field also matches the romanized title", () => {
+test("match: the title field also matches a language-labelled name", () => {
   const input = makeInput({
     title: "東京タワー",
-    romanizedName: "Tokyo Tower",
+    names: ["Tokyo Tower"],
   });
   assert.equal(
     evaluateConditions({
@@ -140,10 +140,9 @@ test("match: the title field also matches the romanized title", () => {
 });
 
 test("match: the title field matches a non-primary language-labelled name", () => {
-  // Neither the base title nor the romanized title contains the pattern — only a `names` entry does.
+  // The base title doesn't contain the pattern — only a `names` entry does.
   const input = makeInput({
     title: "新世紀エヴァンゲリオン",
-    romanizedName: null,
     names: ["新世紀エヴァンゲリオン", "Neon Genesis Evangelion"],
   });
   assert.equal(

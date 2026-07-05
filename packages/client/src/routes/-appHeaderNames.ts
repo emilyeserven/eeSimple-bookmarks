@@ -133,18 +133,18 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/people": {
       name: person?.name,
-      romanized: person?.romanizedName,
+      names: person?.names,
     },
     "/taxonomies/groups": {
       name: group?.name,
-      romanized: group?.romanizedName,
+      names: group?.names,
     },
     "/taxonomies/group-types": {
       name: groupType?.name,
     },
     "/taxonomies/genres-moods": {
       name: genreMood?.name,
-      romanized: genreMood?.romanizedName,
+      names: genreMood?.names,
     },
     "/taxonomies/languages": {
       name: language?.name,

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useMovieBySlug } from "../hooks/useMovies";
@@ -48,9 +48,9 @@ function MovieViewLayout() {
             ? t("Movie")
             : movie
               ? (
-                <RomanizedLabel
-                  name={movie.name}
-                  romanized={movie.romanizedName}
+                <LocalizedNameLabel
+                  names={movie.names ?? []}
+                  base={movie.name}
                 />
               )
               : t("Movie not found")}

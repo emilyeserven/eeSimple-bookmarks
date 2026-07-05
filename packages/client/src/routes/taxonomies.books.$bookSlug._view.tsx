@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { RomanizedLabel } from "../components/RomanizedLabel";
+import { LocalizedNameLabel } from "../components/LocalizedNameLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { TaxonomyViewHeader } from "../components/TaxonomyViewHeader";
 import { useBookBySlug } from "../hooks/useBooks";
@@ -48,9 +48,9 @@ function BookViewLayout() {
             ? t("Book")
             : book
               ? (
-                <RomanizedLabel
-                  name={book.name}
-                  romanized={book.romanizedName}
+                <LocalizedNameLabel
+                  names={book.names ?? []}
+                  base={book.name}
                 />
               )
               : t("Book not found")}

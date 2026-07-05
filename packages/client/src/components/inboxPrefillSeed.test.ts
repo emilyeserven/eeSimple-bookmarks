@@ -1,10 +1,26 @@
 // @vitest-environment node
-import type { AutofillRule, ConditionTree, InboxItem, Website } from "@eesimple/types";
+import type { AutofillRule, ConditionTree, EntityName, InboxItem, Website } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
 import { computeInboxPrefillSeed } from "./inboxPrefillSeed";
 import { makeWebsite } from "../test-utils/factories";
+
+/** A minimal language-labelled name for tag fixtures. */
+function nm(value: string): EntityName {
+  return {
+    id: value,
+    language: {
+      id: value,
+      name: value,
+      slug: value,
+      isoCode: null,
+    },
+    value,
+    isPrimary: false,
+    sortOrder: 0,
+  };
+}
 
 /** A single-match AND tree on the URL/title. */
 function match(pattern: string, field: "url" | "title" = "title"): ConditionTree {
@@ -140,7 +156,7 @@ describe("computeInboxPrefillSeed", () => {
     expect(seed.tagIds).toEqual([]);
   });
 
-  it("unions title-matched tags (name and romanized) with rule/website tags", () => {
+  it("unions title-matched tags (name and language-labelled name) with rule/website tags", () => {
     const seed = computeInboxPrefillSeed(item({
       url: "https://namu.wiki/w/부산광역시",
       title: "부산광역시",
@@ -151,12 +167,12 @@ describe("computeInboxPrefillSeed", () => {
         {
           id: "t-busan",
           name: "부산",
-          romanizedName: "Busan",
+          names: [nm("Busan")],
         },
         {
           id: "t-seoul",
           name: "서울",
-          romanizedName: "Seoul",
+          names: [nm("Seoul")],
         },
       ],
       locations: [],
@@ -165,7 +181,7 @@ describe("computeInboxPrefillSeed", () => {
     expect(seed.tagIds).toEqual(["t-busan"]);
   });
 
-  it("matches a romanized tag name against a Latin title", () => {
+  it("matches a language-labelled tag name against a Latin title", () => {
     const seed = computeInboxPrefillSeed(item({
       url: "https://lawsoftravel.com/taking-the-ferry-from-busan-to-fukuoka/",
       title: "Taking the Ferry from Busan to Fukuoka",
@@ -175,7 +191,7 @@ describe("computeInboxPrefillSeed", () => {
       tags: [{
         id: "t-busan",
         name: "부산",
-        romanizedName: "Busan",
+        names: [nm("Busan")],
       }],
       locations: [],
     });

@@ -50,11 +50,11 @@ fetching stays in the modal (gated on open) and applying has the form state.
 | `bookmark` | `useBookmarkSyncSource` (`/api/scan`) | `lib/syncSources/bookmarkDiff.ts` | `useBookmarkSyncRegistration` (in `BookmarkGeneralForm`) | title/description → `form.setFieldValue` (Save persists); image → `useAutoBookmarkImage` (immediate) |
 | `location` | `useLocationSyncSource` (`/api/locations/lookup`) | `lib/syncSources/locationDiff.ts` | `useLocationSyncRegistration` (in `LocationGeneralForm`) | per-field `setFieldValue`+`saveField`; re-geocode on → force `repullCoordinates` for coord/boundary rows |
 | `image-taxonomy` | `useImageOnlyTaxonomySyncSource` (`…/image/source-preview` or the Plex poster proxy) | `lib/syncSources/imageTaxonomyDiff.ts` | `useImageTaxonomySyncRegistration` (in each general form + `PlexTaxonomyImageTab`) | the row → the caller's existing auto-fetch/import mutation (immediate) |
-| `plex-title` | `usePlexTitleSyncSource` (`…/:id/plex-metadata-preview` for the resolved Wikidata names/links + the Plex poster proxy) | `lib/syncSources/plexTitleDiff.ts` | `usePlexTitleSyncRegistration` (in `PlexTitleGeneralForm`) | text rows (native/romanized names + Wikipedia links) → `form.setFieldValue`+`saveField` (name follows the slug); poster row → the image gallery's `plex-poster` auto-fetch (immediate) |
+| `plex-title` | `usePlexTitleSyncSource` (`…/:id/plex-metadata-preview` for the resolved Wikidata names/links + the Plex poster proxy) | `lib/syncSources/plexTitleDiff.ts` | `usePlexTitleSyncRegistration` (in `PlexTitleGeneralForm`) | text rows (native name + an English `entity_names` row via `englishName`/`mergeEnglishEntityName`, plus Wikipedia links) → `form.setFieldValue`+`saveField` (name follows the slug); poster row → the image gallery's `plex-poster` auto-fetch (immediate) |
 | `podcast-feed` | `usePodcastSyncSource` (`…/:id/feed-preview`, resolve-only RSS/iTunes metadata via `podcastsApi.feedPreview`) | `lib/syncSources/podcastDiff.ts` | `usePodcastSyncRegistration` (in `PodcastGeneralForm`) | text rows (name/author/description) → `form.setFieldValue`+`saveField` (name follows the slug); artwork row → the image gallery's `artwork` auto-fetch (immediate). **Keyless** — registers whenever the podcast has a `feedUrl` or `itunesId`, not gated on a connector |
 
 **Why Plex titles aren't `image-taxonomy`:** the five Plex media taxonomies (Movies/TV Shows/Episodes/
-Albums/Tracks) sync **text *and* image** — native/romanized names + Wikipedia links resolved
+Albums/Tracks) sync **text *and* image** — the native name + an English `entity_names` row + Wikipedia links resolved
 from Wikidata (via the Plex item's external IDs, title-search fallback; the middleware's
 `resolvePlexTaxonomyMetadata` reuses the shared `services/wikidata.ts` Action-API client) **plus** the
 poster. So they carry their own `plex-title` kind, registered from `PlexTitleGeneralForm` (the poster
@@ -107,7 +107,7 @@ Then point the fetch hook's `previewPath` / plex branch at it.
   no linked item, built-in website, read-only surface) so nothing registers.
 - **The button lives on the edit surface**, not the read-only view (the provider registers from the edit
   form). The CMD+K item navigates there implicitly by only showing while a provider is registered.
-- **Locations:** never sync name/romanized name (they drive the slug); the re-geocode toggle is
+- **Locations:** never sync name/English name (they drive the slug); the re-geocode toggle is
   **default off** (fill-empty), on = force overwrite coordinates + boundary via `repullCoordinates`.
   Respect the `locations-map` skill + the `lib/locationLevels.ts` doc block.
 

@@ -1,6 +1,6 @@
 import type { LocationNode, PlaceTypeDisplayConfig, PreferredLanguage } from "@eesimple/types";
 
-import { namesWithLegacyFallback, placeTypeOrder, resolveNameSortKey } from "@eesimple/types";
+import { placeTypeOrder, resolveNameSortKey } from "@eesimple/types";
 
 /** How the Locations list/tree is ordered: the server order, or grouped by place-type level. */
 export type LocationSortMode = "default" | "place-type";
@@ -16,7 +16,7 @@ export interface LocationSortContext {
 /** A location node's tie-break key: its preferred-language name, else primary, else name. */
 function locationNodeSortKey(node: LocationNode, ctx: LocationSortContext): string {
   return resolveNameSortKey(
-    namesWithLegacyFallback(node.names, node.romanizedName),
+    node.names ?? [],
     node.name,
     {
       preferredLanguage: ctx.preferredLanguage,

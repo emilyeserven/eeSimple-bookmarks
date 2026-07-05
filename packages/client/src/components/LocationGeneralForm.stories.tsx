@@ -11,7 +11,6 @@ const node: LocationNode = {
   ...makeLocation({
     id: "loc-hagi",
     name: "Hagi",
-    romanizedName: "Hagi",
     slug: "hagi",
     latitude: 34.4081,
     longitude: 131.3989,

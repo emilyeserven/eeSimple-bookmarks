@@ -153,7 +153,7 @@ export interface ConditionInputGroups {
   relTypesByBid: Map<string, Set<string>>;
   languageUsagesByBid: Map<string, { languageId: string;
     usageLevelId: string; }[]>;
-  /** Per-bookmark language-labelled name values (values only), matched alongside title/romanized. */
+  /** Per-bookmark language-labelled name values (values only), matched alongside title. */
   namesByBid: Map<string, string[]>;
 }
 
@@ -170,7 +170,6 @@ export function assembleConditionInput(
   return {
     url: row.url ?? "",
     title: row.title,
-    romanizedName: row.romanizedName ?? null,
     categoryId: row.categoryId ?? defaultCategoryId,
     tagIds: groups.tagsByBid.get(row.id) ?? new Set(),
     genreMoodIds: groups.genreMoodsByBid.get(row.id) ?? new Set(),

@@ -50,7 +50,7 @@ function CrumbItem({
             <Link to={crumb.href}>
               <CrumbLabel
                 label={crumb.label}
-                romanizedLabel={crumb.romanizedLabel}
+                names={crumb.names}
               />
             </Link>
           </BreadcrumbLink>
@@ -59,7 +59,7 @@ function CrumbItem({
           <BreadcrumbPage>
             <CrumbLabel
               label={crumb.label}
-              romanizedLabel={crumb.romanizedLabel}
+              names={crumb.names}
             />
           </BreadcrumbPage>
         )}
@@ -71,7 +71,7 @@ function CrumbItem({
 /**
  * The collapsed middle of a long trail: an ellipsis that opens a dropdown listing the hidden
  * crumbs (shadcn's canonical collapsed-breadcrumb pattern). Each hidden crumb stays a working link
- * (or a plain row when it has no href), keeping its romanized subtitle via `CrumbLabel`.
+ * (or a plain row when it has no href), keeping its secondary-name subtitle via `CrumbLabel`.
  */
 function CollapsedCrumbs({
   crumbs,
@@ -108,14 +108,14 @@ function CollapsedCrumbs({
                   <Link to={crumb.href}>
                     <CrumbLabel
                       label={crumb.label}
-                      romanizedLabel={crumb.romanizedLabel}
+                      names={crumb.names}
                     />
                   </Link>
                 )
                 : (
                   <CrumbLabel
                     label={crumb.label}
-                    romanizedLabel={crumb.romanizedLabel}
+                    names={crumb.names}
                   />
                 )}
             </DropdownMenuItem>

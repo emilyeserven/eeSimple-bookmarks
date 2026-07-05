@@ -10,7 +10,6 @@ function node(name: string, placeType: string | null, children: LocationNode[] =
   return {
     id: name,
     name,
-    romanizedName: null,
     slug: name.toLowerCase(),
     alternateNames: [],
     latitude: null,

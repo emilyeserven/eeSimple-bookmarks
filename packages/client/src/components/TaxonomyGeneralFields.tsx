@@ -10,10 +10,9 @@ import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useMediaProperties } from "@/hooks/useMediaProperties";
 import { withFieldGroup } from "@/lib/form";
 
-/** The four form fields this shared block reads (matched 1:1 in every taxonomy general form). */
+/** The form fields this shared block reads (matched 1:1 in every taxonomy general form). */
 interface TaxonomyGeneralFieldGroup {
   name: string;
-  romanizedName: string;
   sortOrder: number;
   mediaPropertyId: string;
 }
@@ -21,7 +20,6 @@ interface TaxonomyGeneralFieldGroup {
 /** The update-input subset this block persists via the parent form's `saveField`. */
 interface TaxonomyGeneralUpdateInput {
   name: string;
-  romanizedName: string;
   sortOrder: number;
   mediaPropertyId: string | null;
 }
@@ -45,8 +43,9 @@ export type SaveTaxonomyGeneralField = <K extends keyof TaxonomyGeneralUpdateInp
 ) => void;
 
 /**
- * The shared name / sort-order / romanized-name / media-property edit block that the Book, Podcast,
- * and Plex-backed (Movie / TV Show / Episode / Album / Track) taxonomy general forms all render. Each
+ * The shared name / sort-order / media-property edit block (plus the multilingual Names editor) that
+ * the Book, Podcast, and Plex-backed (Movie / TV Show / Episode / Album / Track) taxonomy general
+ * forms all render. Each
  * wrapper owns its own `useAppForm` instance and auto-save engine and passes them in: the block is a
  * `withFieldGroup` lens over the four shared fields, so it binds to the parent form without the parent
  * re-listing the fields. It also owns the media-property options query and the inline "Create media
@@ -56,7 +55,6 @@ export type SaveTaxonomyGeneralField = <K extends keyof TaxonomyGeneralUpdateInp
 export const TaxonomyGeneralFields = withFieldGroup({
   defaultValues: {
     name: "",
-    romanizedName: "",
     sortOrder: 0,
     mediaPropertyId: "",
   } satisfies TaxonomyGeneralFieldGroup,

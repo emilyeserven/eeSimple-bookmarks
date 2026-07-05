@@ -18,8 +18,6 @@ const displayPreferences: DisplayPreferenceSettings = {
   croppedHeight: 9,
   customPropertyTypeIcons: null,
   onDemandFilters: [],
-  showRomanizedByDefault: false,
-  sortByRomanized: false,
   hanScriptLanguage: "ja",
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: 25,

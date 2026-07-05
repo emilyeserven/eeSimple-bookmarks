@@ -19,7 +19,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** The full create form: name, romanized name, and a parent select. */
+/** The full create form: name, other names, and a parent select. */
 export const Default: Story = {};
 
 /** Name-only mode (e.g. the header's "New sub-tag" quick-add) hides the parent select. */

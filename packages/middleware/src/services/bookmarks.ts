@@ -353,7 +353,6 @@ export async function backfillTitleTags(): Promise<TitleTagBackfillResult> {
     .select({
       id: bookmarks.id,
       title: bookmarks.title,
-      romanizedName: bookmarks.romanizedName,
     })
     .from(bookmarks);
   const namesByBid = await loadEntityNames("bookmark", rows.map(row => row.id));
@@ -361,7 +360,7 @@ export async function backfillTitleTags(): Promise<TitleTagBackfillResult> {
   const links: { bookmarkId: string;
     tagId: string; }[] = [];
   for (const row of rows) {
-    const titles = [row.title, row.romanizedName ?? "", ...(namesByBid.get(row.id) ?? []).map(n => n.value)];
+    const titles = [row.title, ...(namesByBid.get(row.id) ?? []).map(n => n.value)];
     for (const tagId of matchTagIdsByTitle(titles, allTags)) {
       links.push({
         bookmarkId: row.id,
@@ -395,8 +394,8 @@ export async function backfillTitleTags(): Promise<TitleTagBackfillResult> {
 
 /**
  * Apply the "auto-tag from title" automation for Locations to every existing bookmark, additively.
- * Mirrors {@link backfillTitleTags}: each bookmark's title (and romanized title) is matched against
- * every location's name + romanized + alternate names, and the matches are inserted idempotently.
+ * Mirrors {@link backfillTitleTags}: each bookmark's title is matched against every location's
+ * name + names[] (multi-language names) + alternate names, and the matches are inserted idempotently.
  */
 export async function backfillTitleLocations(): Promise<TitleTagBackfillResult> {
   const allLocations = await listLocationNames();
@@ -404,7 +403,6 @@ export async function backfillTitleLocations(): Promise<TitleTagBackfillResult> 
     .select({
       id: bookmarks.id,
       title: bookmarks.title,
-      romanizedName: bookmarks.romanizedName,
     })
     .from(bookmarks);
   const namesByBid = await loadEntityNames("bookmark", rows.map(row => row.id));
@@ -412,7 +410,7 @@ export async function backfillTitleLocations(): Promise<TitleTagBackfillResult> 
   const links: { bookmarkId: string;
     locationId: string; }[] = [];
   for (const row of rows) {
-    const titles = [row.title, row.romanizedName ?? "", ...(namesByBid.get(row.id) ?? []).map(n => n.value)];
+    const titles = [row.title, ...(namesByBid.get(row.id) ?? []).map(n => n.value)];
     for (const locationId of matchLocationIdsByTitle(titles, allLocations)) {
       links.push({
         bookmarkId: row.id,
@@ -466,15 +464,15 @@ async function resolveCreateCategoryId(
   return categoryId;
 }
 
-/** Tag ids matched from the bookmark title, when the "auto-tag from title" automation is enabled. */
-async function titleMatchTagIds(title: string, romanizedName: string | null): Promise<string[]> {
-  if (!title.trim() && !(romanizedName ?? "").trim()) return [];
+/** Tag ids matched from the bookmark title (+ any other supplied names), when the "auto-tag from title" automation is enabled. */
+async function titleMatchTagIds(title: string, extraTitles: string[]): Promise<string[]> {
+  if (!title.trim() && !extraTitles.some(value => value.trim())) return [];
   const {
     autoApplyTitleTags,
   } = await getAutomationSettings();
   if (!autoApplyTitleTags) return [];
   const allTags = await listTagNames();
-  return matchTagIdsByTitle([title, romanizedName ?? ""], allTags);
+  return matchTagIdsByTitle([title, ...extraTitles], allTags);
 }
 
 /** Tags: union of user-provided + website defaults + channel defaults + title matches (deduped). */
@@ -488,24 +486,24 @@ async function mergeCreateTagIds(
     const channelTagIds = await getChannelTagIds(channelHint.key);
     defaultTagIds.push(...channelTagIds);
   }
-  const titleTagIds = await titleMatchTagIds(input.title, input.romanizedName ?? null);
+  const titleTagIds = await titleMatchTagIds(input.title, (input.names ?? []).map(entry => entry.value));
   return [...new Set([...(input.tagIds ?? []), ...defaultTagIds, ...titleTagIds])];
 }
 
-/** Location ids matched from the bookmark title, when the "auto-tag from title" automation is on. */
-async function titleMatchLocationIds(title: string, romanizedName: string | null): Promise<string[]> {
-  if (!title.trim() && !(romanizedName ?? "").trim()) return [];
+/** Location ids matched from the bookmark title (+ any other supplied names), when the "auto-tag from title" automation is on. */
+async function titleMatchLocationIds(title: string, extraTitles: string[]): Promise<string[]> {
+  if (!title.trim() && !extraTitles.some(value => value.trim())) return [];
   const {
     autoApplyTitleLocations,
   } = await getAutomationSettings();
   if (!autoApplyTitleLocations) return [];
   const allLocations = await listLocationNames();
-  return matchLocationIdsByTitle([title, romanizedName ?? ""], allLocations);
+  return matchLocationIdsByTitle([title, ...extraTitles], allLocations);
 }
 
 /** Locations: union of user-provided + title matches (deduped). */
 async function mergeCreateLocationIds(input: CreateBookmarkInput): Promise<string[]> {
-  const titleLocationIds = await titleMatchLocationIds(input.title, input.romanizedName ?? null);
+  const titleLocationIds = await titleMatchLocationIds(input.title, (input.names ?? []).map(entry => entry.value));
   return [...new Set([...(input.locationIds ?? []), ...titleLocationIds])];
 }
 
@@ -546,7 +544,6 @@ function newBookmarkScalarColumns(input: CreateBookmarkInput) {
     url: input.url ?? null,
     originalUrl: input.originalUrl ?? null,
     title: input.title,
-    romanizedName: input.romanizedName ?? null,
     description: input.description ?? null,
     newsletterId: input.newsletterId ?? null,
     importId: input.importId ?? null,
@@ -678,7 +675,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedName" | "description" | "categoryId" | "mediaTypeId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "podcastId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
+  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "podcastId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
 >;
 
 /**
@@ -686,7 +683,7 @@ type ScalarBookmarkPatch = Partial<
  * explicit `null`/`undefined` value to `null` (an omitted key leaves the column untouched).
  */
 const NULLABLE_SCALAR_FIELDS = [
-  "originalUrl", "romanizedName", "description", "mediaTypeId", "groupId", "bookId", "movieId",
+  "originalUrl", "description", "mediaTypeId", "groupId", "bookId", "movieId",
   "tvShowId", "episodeId", "albumId", "trackId", "podcastId", "kavitaSeriesId", "kavitaLibraryId",
   "kavitaSeriesName", "plexRatingKey", "plexItemType", "plexItemTitle", "imageDisplayPreference",
 ] as const satisfies readonly (keyof ScalarBookmarkPatch)[];

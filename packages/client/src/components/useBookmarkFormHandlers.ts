@@ -208,7 +208,6 @@ export function useBookmarkFormHandlers({
   async function submitForm(value: {
     url: string;
     title: string;
-    romanizedName: string;
     names: DraftEntityName[];
     categoryId: string;
     mediaTypeId: string;
@@ -242,7 +241,6 @@ export function useBookmarkFormHandlers({
       url: finalUrl,
       originalUrl,
       title: value.title,
-      romanizedName: value.romanizedName.trim() || null,
       categoryId: value.categoryId,
       mediaTypeId: value.mediaTypeId || null,
       description: value.description || null,

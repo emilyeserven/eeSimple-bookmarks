@@ -27,7 +27,6 @@ import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 export const bookmarkSchema = z.object({
   url: z.string(),
   title: z.string().min(1, i18n.t("Title is required")),
-  romanizedName: z.string(),
   // Staged multilingual names for the create form (create-only — edit uses its own EntityNamesTabEditor).
   names: z.array(z.object({
     languageId: z.string(),
@@ -155,7 +154,6 @@ export function openGitHubIssue(title: string, body: string): void {
 const SAMPLE_DEFAULT_VALUES: {
   url: string;
   title: string;
-  romanizedName: string;
   names: DraftEntityName[];
   categoryId: string;
   mediaTypeId: string;
@@ -178,7 +176,6 @@ const SAMPLE_DEFAULT_VALUES: {
 } = {
   url: "",
   title: "",
-  romanizedName: "",
   names: [],
   categoryId: "",
   mediaTypeId: "",
@@ -225,7 +222,6 @@ export type BookmarkFormApi = ReturnType<typeof _bookmarkFormApiSample>;
 export interface BookmarkInitialValues {
   url?: string;
   title?: string;
-  romanizedName?: string;
 }
 
 /**
@@ -243,7 +239,6 @@ function scalarBookmarkDefaults(
   return {
     url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
     title: bookmark?.title ?? initial.title ?? "",
-    romanizedName: bookmark?.romanizedName ?? initial.romanizedName ?? "",
     // Create-only staged names; edit mode manages names via its own EntityNamesTabEditor.
     names: [] as DraftEntityName[],
     categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",

@@ -36,7 +36,7 @@ test("geocoding is keyless and reports its endpoint", () => {
   assert.ok(geocodingEndpoint().startsWith("http"));
 });
 
-test("geocodeLocation prefers the local name as title and the English name as romanized", async () => {
+test("geocodeLocation prefers the local name as title and the English name as englishName", async () => {
   const restore = stubFetch(() => new Response(NOMINATIM_HIT, {
     status: 200,
   }));
@@ -46,7 +46,7 @@ test("geocodeLocation prefers the local name as title and the English name as ro
     const [hit] = result.results;
     // Native-script name is the title; English is relegated to the romanized form.
     assert.equal(hit.name, "萩市");
-    assert.equal(hit.romanizedName, "Hagi");
+    assert.equal(hit.englishName, "Hagi");
     assert.equal(hit.displayName, "萩市, 山口県, 日本");
     assert.equal(hit.latitude, 34.4083);
     assert.equal(hit.longitude, 131.399);
@@ -104,7 +104,7 @@ test("geocodeLocation returns no ancestors when the address has no admin levels 
   }
 });
 
-test("geocodeLocation leaves romanizedName null when the name is already Latin", async () => {
+test("geocodeLocation leaves englishName null when the name is already Latin", async () => {
   const latinHit = JSON.stringify([
     {
       display_name: "Springfield, Illinois, United States",
@@ -127,7 +127,7 @@ test("geocodeLocation leaves romanizedName null when the name is already Latin",
   try {
     const [hit] = (await geocodeLocation("Springfield")).results;
     assert.equal(hit.name, "Springfield");
-    assert.equal(hit.romanizedName, null);
+    assert.equal(hit.englishName, null);
   }
   finally {
     restore();

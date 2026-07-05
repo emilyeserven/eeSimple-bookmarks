@@ -46,7 +46,6 @@ export function MediaTypeGeneralForm({
   } = useMediaTypes();
   const labels: Record<keyof UpdateMediaTypeInput, string> = {
     name: t("Name"),
-    romanizedName: t("Romanized name"),
     sortOrder: t("Sort order"),
     icon: t("Icon"),
     parentId: t("Parent"),
@@ -57,7 +56,6 @@ export function MediaTypeGeneralForm({
     labels,
     initial: {
       name: mediaType.name,
-      romanizedName: mediaType.romanizedName ?? "",
       sortOrder: mediaType.sortOrder,
       icon: mediaType.icon,
       parentId: mediaType.parentId,
@@ -77,7 +75,7 @@ export function MediaTypeGeneralForm({
       .map(m => ({
         value: m.id,
         label: m.name,
-        romanized: m.romanizedName,
+        names: m.names,
       })),
   ];
 

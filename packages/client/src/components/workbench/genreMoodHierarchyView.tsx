@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { GenreMoodTreeList } from "../GenreMoodTreeList";
 import { HierarchyView } from "../HierarchyView";
-import { RomanizedLabel } from "../RomanizedLabel";
+import { LocalizedNameLabel } from "../LocalizedNameLabel";
 
 import { useExpandedSet } from "@/hooks/useExpandedSet";
 import { useGenreMoodTree } from "@/hooks/useGenreMoods";
@@ -45,9 +45,9 @@ export function GenreMoodHierarchyView({
           }}
           className="hover:underline"
         >
-          <RomanizedLabel
-            name={ancestor.name}
-            romanized={ancestor.romanizedName}
+          <LocalizedNameLabel
+            names={ancestor.names ?? []}
+            base={ancestor.name}
           />
         </Link>
       )}

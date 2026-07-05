@@ -33,7 +33,7 @@ function parseCoord(value: string): number | null {
  */
 function usePlaceFields() {
   const [name, setName] = useState("");
-  const [romanizedName, setRomanizedName] = useState("");
+  const [englishName, setEnglishName] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [mapUrl, setMapUrl] = useState("");
@@ -51,8 +51,8 @@ function usePlaceFields() {
   return {
     name,
     setName,
-    romanizedName,
-    setRomanizedName,
+    englishName,
+    setEnglishName,
     latitude,
     setLatitude,
     longitude,
@@ -111,7 +111,7 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
   } = usePlaceTypes();
 
   const {
-    name, setName, romanizedName, setRomanizedName, latitude, setLatitude, longitude, setLongitude,
+    name, setName, englishName, setEnglishName, latitude, setLatitude, longitude, setLongitude,
     mapUrl, setMapUrl, plusCode, setPlusCode, placeType, setPlaceType, countryCode, setCountryCode,
     boundary, setBoundary, wikidataId, setWikidataId, usesWikidataCoordinates, setUsesWikidataCoordinates,
   } = usePlaceFields();
@@ -127,7 +127,7 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
     value: item.node.id,
     label: item.node.name,
     depth: item.depth,
-    romanized: item.node.romanizedName,
+    names: item.node.names,
   }));
   const parentOptions: ComboboxOption[] = [
     {
@@ -152,7 +152,7 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
   function baseInput(): CreateLocationInput {
     return {
       name: name.trim(),
-      romanizedName: romanizedName.trim() || null,
+      englishName: englishName.trim() || null,
       alternateNames: alternateNames.filter(a => a.value.trim().length > 0),
       latitude: parseCoord(latitude),
       longitude: parseCoord(longitude),
@@ -209,9 +209,9 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
 
   /** Apply a geocoding candidate's fields to the form. */
   function applyCandidate(candidate: LocationLookupCandidate): void {
-    // Prefer the local/native name as the title; the English form goes to romanized name.
+    // Prefer the local/native name as the title; the English form goes to englishName.
     setName(candidate.name);
-    setRomanizedName(candidate.romanizedName ?? "");
+    setEnglishName(candidate.englishName ?? "");
     if (candidate.latitude != null) setLatitude(String(candidate.latitude));
     if (candidate.longitude != null) setLongitude(String(candidate.longitude));
     if (candidate.mapUrl) setMapUrl(candidate.mapUrl);
@@ -229,15 +229,15 @@ export function useLocationForm(onCreated?: (location: Location) => void) {
     setAncestors(geocodedAncestorsToDrafts(candidate.ancestors, locationOptions.map(option => ({
       id: option.value,
       name: option.label,
-      romanizedName: option.romanized,
+      englishName: option.names?.find(n => n.language.isoCode?.toLowerCase() === "en")?.value,
     }))));
   }
 
   return {
     name,
     setName,
-    romanizedName,
-    setRomanizedName,
+    englishName,
+    setEnglishName,
     latitude,
     setLatitude,
     longitude,

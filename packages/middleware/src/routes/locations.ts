@@ -73,7 +73,7 @@ const boundarySchema = {
 
 /** The editable location columns shared by create and update bodies. */
 const locationFields = {
-  romanizedName: {
+  englishName: {
     type: "string",
     nullable: true,
   },

@@ -11,7 +11,7 @@ import type {
   SortDirection,
 } from "@eesimple/types";
 
-import { namesWithLegacyFallback, resolveNameSortKey } from "@eesimple/types";
+import { resolveNameSortKey } from "@eesimple/types";
 
 import i18n from "../i18n";
 
@@ -138,7 +138,7 @@ export interface TitleSortContext {
 /** The string a bookmark's title sorts by — its preferred-language name, else primary, else title. */
 function bookmarkTitleSortKey(bookmark: Bookmark, ctx: TitleSortContext): string {
   return resolveNameSortKey(
-    namesWithLegacyFallback(bookmark.names, bookmark.romanizedName),
+    bookmark.names,
     bookmark.title,
     {
       preferredLanguage: ctx.preferredLanguage,

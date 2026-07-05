@@ -141,27 +141,26 @@ test("titleMatchesTerm is re-exported and keeps Latin whole-word semantics", () 
   assert.equal(titleMatchesTerm("Martin's blog", "art"), false);
 });
 
-test("matchTagIdsByTitle matches name and romanizedName across title and romanizedName", () => {
+test("matchTagIdsByTitle matches name and a tag's language-labelled names across title", () => {
   const tagList = [
     {
       id: "t-react",
       name: "react",
-      romanizedName: null,
     },
     {
       id: "t-busan",
       name: "부산",
-      romanizedName: "Busan",
+      names: [nm("Busan")],
     },
   ];
   // Native name inside a Korean compound title.
   assert.deepEqual(matchTagIdsByTitle(["부산광역시"], tagList), ["t-busan"]);
-  // Romanized name against a Latin title.
+  // English name (via `names`) against a Latin title.
   assert.deepEqual(
     matchTagIdsByTitle(["Ferry from Busan to Fukuoka"], tagList),
     ["t-busan"],
   );
-  // Latin whole-word plus a romanizedName haystack.
+  // Latin whole-word plus a `names` haystack.
   assert.deepEqual(matchTagIdsByTitle(["Styling React with CSS"], tagList), ["t-react"]);
   assert.deepEqual(matchTagIdsByTitle(["旅行", "Busan trip"], tagList), ["t-busan"]);
   assert.deepEqual(matchTagIdsByTitle([""], tagList), []);
@@ -172,7 +171,6 @@ test("matchTagIdsByTitle matches a tag's language-labelled names against the boo
     {
       id: "t-eva",
       name: "エヴァンゲリオン",
-      romanizedName: null,
       names: [nm("エヴァンゲリオン"), nm("Evangelion")],
     },
   ];

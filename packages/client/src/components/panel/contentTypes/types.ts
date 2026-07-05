@@ -1,4 +1,5 @@
 import type { DrawerContentType } from "@/lib/drawerSearch";
+import type { EntityName } from "@eesimple/types";
 import type { LucideIcon } from "lucide-react";
 import type { FC } from "react";
 
@@ -8,11 +9,11 @@ export interface PanelListItem {
   label: string;
   sublabel?: string;
   /**
-   * Optional romanized form of `label`. When present it renders through the shared, toggle-aware
-   * `RomanizedLabel` beside the primary label (respecting "Show Romanized by default"), rather than
-   * as a raw sublabel. Still included in the search haystack.
+   * Optional multilingual names for `label`. When present it renders through the shared
+   * `LocalizedNameLabel` beside the primary label, rather than as a raw sublabel. Still included in
+   * the search haystack (each name's value).
    */
-  romanized?: string | null;
+  names?: EntityName[];
 }
 
 /** Describes one browsable content type: its list adapter and its view/edit bodies. */

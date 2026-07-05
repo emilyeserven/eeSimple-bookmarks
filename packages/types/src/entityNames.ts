@@ -2,9 +2,9 @@
  * Shared "Entity Name" types + display/sort/slug helpers.
  *
  * An entity (a bookmark or taxonomy term) may carry MULTIPLE names, each labelled by a language —
- * e.g. a Japanese primary title alongside an English title. This generalizes the current single
- * `name`/`title` + optional `romanizedName` model (see `romanized.ts`, which these helpers will
- * eventually replace — it stays untouched until the cleanup issue). One row per owner is flagged
+ * e.g. a Japanese primary title alongside an English title. This generalizes the former single
+ * `name`/`title` + optional `romanizedName` model (`romanized.ts` was deleted as part of the
+ * issue #969 cleanup). One row per owner is flagged
  * `isPrimary` and mirrors the owner's denormalized base `name`/`title` column; the English-language
  * row is preferred as the slug source so slugs stay ASCII/readable even for a non-Latin primary.
  *

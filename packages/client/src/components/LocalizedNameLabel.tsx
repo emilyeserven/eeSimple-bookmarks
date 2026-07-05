@@ -27,7 +27,7 @@ interface LocalizedNameLabelProps {
  * Render an entity's resolved primary/secondary display name via the shared multilingual
  * `resolveDisplayNames` helper (`@eesimple/types`). Falls back to a synthesized row from
  * `legacyRomanized` when `names` is empty, so display stays stable whether or not `entity_names`
- * rows have been backfilled yet. `RomanizedLabel`/`CrumbLabel` delegate to this internally.
+ * rows have been backfilled yet. `CrumbLabel` delegates to this internally.
  */
 export function LocalizedNameLabel({
   names, base, legacyRomanized, preferredLanguage, secondaryClassName, stacked = false,
