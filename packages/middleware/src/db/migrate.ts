@@ -163,6 +163,18 @@ async function regclassExists(db: NodePgDatabase, qualifiedName: string): Promis
   return Boolean(rows[0]?.exists);
 }
 
+/** `information_schema.columns` presence check — used to skip a column that doesn't exist (yet, or anymore). */
+async function columnExists(db: NodePgDatabase, table: string, column: string): Promise<boolean> {
+  const result = await db.execute(sql`
+    SELECT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = ${table} AND column_name = ${column}
+    ) AS exists
+  `);
+  const rows = result.rows as unknown as { exists: boolean }[];
+  return Boolean(rows[0]?.exists);
+}
+
 // Ordered list of idempotent, destructive/push-incompatible steps.
 const migrations: RuntimeMigration[] = [
   {
@@ -1652,6 +1664,12 @@ const migrations: RuntimeMigration[] = [
       } of ROMANIZED_NAME_TABLES) {
         const tableExists = await regclassExists(db, `public.${table}`);
         if (!tableExists) continue;
+
+        // The drop steps below run every boot too, so on a re-run (or a retry after a later boot
+        // failure) the column is already gone even though the table remains. Skip a table whose
+        // `romanized_name` column no longer exists — there is nothing left to lose or verify.
+        const hasColumn = await columnExists(db, table, "romanized_name");
+        if (!hasColumn) continue;
 
         const namesExists = await regclassExists(db, "public.entity_names");
         if (!namesExists) {
