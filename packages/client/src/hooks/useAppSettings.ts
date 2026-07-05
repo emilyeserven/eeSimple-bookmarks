@@ -17,6 +17,7 @@ import type {
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
+  UpdateBookmarkGraphInput,
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
@@ -43,6 +44,7 @@ const ADVANCED_KEY = ["app-settings", "advanced"] as const;
 const DATABASE_USAGE_KEY = ["app-settings", "database-usage"] as const;
 const SIDEBAR_CUSTOMIZATION_KEY = ["app-settings", "sidebar-customization"] as const;
 const AUTOMATION_KEY = ["app-settings", "automation"] as const;
+const BOOKMARK_GRAPH_KEY = ["app-settings", "bookmark-graph"] as const;
 const LOCATION_DISPLAY_KEY = ["app-settings", "location-display"] as const;
 const LOCATION_LEVEL_GROUPS_KEY = ["app-settings", "location-level-groups"] as const;
 /** Stable empty fallback so `useLocationLevelGroups()` keeps a constant reference while loading. */
@@ -292,6 +294,27 @@ export function useUpdateAutomationSettings() {
       appSettingsApi.updateAutomation(vars.input),
     onSuccess: (saved, vars) => {
       queryClient.setQueryData(AUTOMATION_KEY, saved);
+      notifySuccess(vars.successMessage);
+    },
+    onError: (error, vars) => notifyError(vars.errorMessage ?? error.message),
+  });
+}
+
+/** Bookmark Graph settings: per-dimension relatedness weights + how many related cards to show. */
+export function useBookmarkGraphSettings() {
+  return useQuery({
+    queryKey: BOOKMARK_GRAPH_KEY,
+    queryFn: appSettingsApi.getBookmarkGraph,
+  });
+}
+
+export function useUpdateBookmarkGraphSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: ToastedMutationVars<UpdateBookmarkGraphInput>) =>
+      appSettingsApi.updateBookmarkGraph(vars.input),
+    onSuccess: (saved, vars) => {
+      queryClient.setQueryData(BOOKMARK_GRAPH_KEY, saved);
       notifySuccess(vars.successMessage);
     },
     onError: (error, vars) => notifyError(vars.errorMessage ?? error.message),

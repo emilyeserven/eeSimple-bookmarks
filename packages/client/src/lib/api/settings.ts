@@ -4,6 +4,7 @@ import type {
   AiSummaryQueueItem,
   AutomationSettings,
   BookmarkAddFormSettings,
+  BookmarkGraphSettings,
   CardDisplayRule,
   CardFieldTemplate,
   ConnectorsAppSettings,
@@ -34,6 +35,7 @@ import type {
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
+  UpdateBookmarkGraphInput,
   UpdateCardDisplayRuleInput,
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
@@ -105,6 +107,12 @@ export const appSettingsApi = {
   getAutomation: () => request<AutomationSettings>("/app-settings/automation"),
   updateAutomation: (input: UpdateAutomationInput) =>
     request<AutomationSettings>("/app-settings/automation", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getBookmarkGraph: () => request<BookmarkGraphSettings>("/app-settings/bookmark-graph"),
+  updateBookmarkGraph: (input: UpdateBookmarkGraphInput) =>
+    request<BookmarkGraphSettings>("/app-settings/bookmark-graph", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

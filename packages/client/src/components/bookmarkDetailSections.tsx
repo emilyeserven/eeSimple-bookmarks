@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { Link } from "@tanstack/react-router";
 
+import { BookmarkCardGrid } from "./BookmarkCardGrid";
 import { BookmarkCategoryLink } from "./BookmarkCategoryLink";
 import { BookmarkDetailDebug } from "./BookmarkDetailDebug";
 import { BookmarkGallery } from "./BookmarkGallery";
@@ -27,6 +28,7 @@ export type BookmarkDetailSectionId
     | "gallery"
     | "video"
     | "relationships"
+    | "related"
     | "hierarchy"
     | "locations"
     | "metadata"
@@ -51,6 +53,8 @@ interface BuildArgs {
   propertyGroups: PropertyGroup[];
   /** Flattened parent/child hierarchy around this bookmark (empty when it has no such relationships). */
   flatHierarchy: FlatNode<BookmarkHierarchyNode>[];
+  /** Bookmarks related to this one (scored by the Bookmark Graph weights); empty = omit the section. */
+  relatedBookmarks: Bookmark[];
   /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
   /** The Default card display rule's field zones, resolving the per-card boolean display knobs. */
@@ -293,6 +297,26 @@ function relationshipsSection(bookmark: Bookmark): BookmarkDetailSection | null 
   };
 }
 
+function relatedSection(args: BuildArgs): BookmarkDetailSection | null {
+  if (args.relatedBookmarks.length === 0) return null;
+  return {
+    id: "related",
+    label: i18n.t("Related"),
+    content: (
+      <LabeledSection
+        title={i18n.t("Related bookmarks")}
+        description={i18n.t("Other bookmarks scored by the weights in Settings → Display → Bookmark Graph.")}
+      >
+        <BookmarkCardGrid
+          bookmarks={args.relatedBookmarks}
+          properties={args.properties}
+          columns={2}
+        />
+      </LabeledSection>
+    ),
+  };
+}
+
 function hierarchySection(
   flatHierarchy: FlatNode<BookmarkHierarchyNode>[],
 ): BookmarkDetailSection | null {
@@ -407,6 +431,7 @@ export function buildBookmarkDetailSections(args: BuildArgs): BookmarkDetailSect
     gallerySection(args.bookmark),
     videoSection(args.bookmark),
     relationshipsSection(args.bookmark),
+    relatedSection(args),
     hierarchySection(args.flatHierarchy),
     locationsSection(args.bookmark, args.locationTree),
     metadataSection(args.bookmark),

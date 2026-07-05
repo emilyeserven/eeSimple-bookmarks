@@ -1,7 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, type PgColumnBuilderBase, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { TAXONOMY_IMAGE_OWNER_TYPES } from "@eesimple/types";
-import type { BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -1912,6 +1912,9 @@ export const appSettings = pgTable("app_settings", {
   autoApplyTitleLocations: boolean("auto_apply_title_locations"),
   // Modifier held while clicking Edit to open the item in the drawer: "alt" | "ctrl" | "shift" | "meta".
   sidebarOpenModifier: text("sidebar_open_modifier").notNull().default("alt"),
+  // Bookmark Graph "Related bookmarks" config: per-dimension weights + max count. Null = defaults.
+  // Nullable jsonb = push-safe additive; the resolver merges it over DEFAULT_BOOKMARK_GRAPH_SETTINGS.
+  bookmarkGraph: jsonb("bookmark_graph").$type<BookmarkGraphSettings>(),
   // --- Display & detail preferences (group C). ---
   // Bookmark detail image size: "small" | "medium" | "large".
   bookmarkDetailImageSize: text("bookmark_detail_image_size").notNull().default("medium"),

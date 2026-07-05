@@ -8,6 +8,7 @@ import type {
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
+  UpdateBookmarkGraphInput,
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
@@ -22,6 +23,7 @@ import {
   getAiSummarizationSettings,
   getAutomationSettings,
   getBookmarkAddFormSettings,
+  getBookmarkGraphSettings,
   getConnectorsSettings,
   getCustomStripParams,
   getDisplayPreferenceSettings,
@@ -38,6 +40,7 @@ import {
   updateAiSummarizationSettings,
   updateAutomationSettings,
   updateBookmarkAddFormSettings,
+  updateBookmarkGraphSettings,
   updateConnectorsSettings,
   updateCustomStripParams,
   updateDisplayPreferenceSettings,
@@ -260,6 +263,40 @@ const automationBody = {
     sidebarOpenModifier: {
       type: "string",
       enum: ["alt", "ctrl", "shift", "meta"],
+    },
+  },
+} as const;
+
+// A single relatedness dimension's weight: Off / Low / Medium / High (0–3).
+const graphWeight = {
+  type: "integer",
+  enum: [0, 1, 2, 3],
+} as const;
+
+const bookmarkGraphBody = {
+  type: "object",
+  required: ["weights", "maxRelated"],
+  additionalProperties: false,
+  properties: {
+    weights: {
+      type: "object",
+      required: ["tags", "category", "mediaType", "genreMoods", "people", "groups", "website", "youtubeChannel"],
+      additionalProperties: false,
+      properties: {
+        tags: graphWeight,
+        category: graphWeight,
+        mediaType: graphWeight,
+        genreMoods: graphWeight,
+        people: graphWeight,
+        groups: graphWeight,
+        website: graphWeight,
+        youtubeChannel: graphWeight,
+      },
+    },
+    maxRelated: {
+      type: "integer",
+      minimum: 1,
+      maximum: 100,
     },
   },
 } as const;
@@ -681,6 +718,19 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       body: automationBody,
     },
   }, async req => updateAutomationSettings(req.body as UpdateAutomationInput));
+
+  app.get("/api/app-settings/bookmark-graph", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getBookmarkGraphSettings());
+
+  app.put("/api/app-settings/bookmark-graph", {
+    schema: {
+      tags: ["app-settings"],
+      body: bookmarkGraphBody,
+    },
+  }, async req => updateBookmarkGraphSettings(req.body as UpdateBookmarkGraphInput));
 
   app.get("/api/app-settings/location-display", {
     schema: {
