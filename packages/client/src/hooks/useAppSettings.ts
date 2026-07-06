@@ -5,6 +5,7 @@ import type {
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
   ConnectorsAppSettings,
+  FilterLocation,
   ImportBlacklistEntry,
   InterfaceLanguage,
   PlaceTypeColorConfig,
@@ -238,6 +239,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   bookmarkDetailLayout: "single" as BookmarkDetailLayout,
   interfaceLanguage: "en" as InterfaceLanguage,
   onDemandFilters: [] as string[],
+  filterLocation: "sidebar" as FilterLocation,
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,
@@ -545,20 +547,15 @@ export function useBookmarksPerPage(): number {
   return data?.bookmarksPerPage ?? DISPLAY_PREFERENCE_DEFAULTS.bookmarksPerPage;
 }
 
-/** Whether listing pages open filters in the right-hand drawer by default (default false). */
-export function useFiltersInDrawer(): boolean {
+/**
+ * Where the listing-page filters render (default "sidebar"). The server resolves the concrete enum
+ * (applying the legacy-boolean fallback for pre-enum rows), so `??` here only covers the loading state.
+ */
+export function useFilterLocation(): FilterLocation {
   const {
     data,
   } = useDisplayPreferenceSettings();
-  return data?.filtersInDrawer ?? DISPLAY_PREFERENCE_DEFAULTS.filtersInDrawer;
-}
-
-/** Whether the left filter rail is hidden on listing pages (default false). */
-export function useFiltersHidden(): boolean {
-  const {
-    data,
-  } = useDisplayPreferenceSettings();
-  return data?.filtersHidden ?? DISPLAY_PREFERENCE_DEFAULTS.filtersHidden;
+  return data?.filterLocation ?? DISPLAY_PREFERENCE_DEFAULTS.filterLocation;
 }
 
 /** Filter facet keys / custom-property ids hidden from the rail until added on demand (default []). */

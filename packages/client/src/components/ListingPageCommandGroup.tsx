@@ -155,6 +155,11 @@ export function ListingPageCommandGroup({
               onSelect={pick(() => listingCtx.setFilterLocation("drawer"))}
             />
             <CheckedCommandItem
+              value={t("Filters as Pills")}
+              checked={listingCtx.filterLocation === "pills"}
+              onSelect={pick(() => listingCtx.setFilterLocation("pills"))}
+            />
+            <CheckedCommandItem
               value={t("Hide Filters")}
               checked={listingCtx.filterLocation === "hide"}
               onSelect={pick(() => listingCtx.setFilterLocation("hide"))}

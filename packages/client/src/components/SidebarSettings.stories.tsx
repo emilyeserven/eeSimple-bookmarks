@@ -10,6 +10,7 @@ const displayPreferences = {
   bookmarkDetailVideoSize: "standard",
   bookmarkDetailLayout: "single",
   interfaceLanguage: "en",
+  filterLocation: "sidebar",
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,

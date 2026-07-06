@@ -4,7 +4,7 @@ import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, 
 import { useEffect } from "react";
 
 import { usePanelControls } from "./panel/usePanelControls";
-import { useFiltersHidden, useFiltersInDrawer } from "../hooks/useAppSettings";
+import { useFilterLocation } from "../hooks/useAppSettings";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useBookmarkColumns } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
@@ -33,8 +33,10 @@ export interface BookmarkSearchViewData {
 export interface BookmarkSearchViewState {
   /** Per-page column count for the listing grid. */
   columns: number;
-  /** True when the left filter rail should be hidden (filters live in the drawer or are off). */
+  /** True when the left filter rail should be hidden (filters live in the drawer, pills, or are off). */
   hideSidebar: boolean;
+  /** True when filters render as a pill row under the search bar. */
+  showPills: boolean;
   /** Bookmarks after applying the header quick-search text filter. */
   textFilteredBookmarks: Bookmark[];
   /** True when the header quick-search has a non-empty query. */
@@ -63,15 +65,16 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     },
   });
   const columns = useBookmarkColumns(pageKey);
-  const filtersInDrawer = useFiltersInDrawer();
-  const filtersHidden = useFiltersHidden();
+  const filterLocation = useFilterLocation();
   const setFilterContext = useUiStore(state => state.setFilterContext);
   const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
   const {
     isOpen, dCT, openType,
   } = usePanelControls();
   const filtersActiveInDrawer = isOpen && dCT === "filters";
-  const hideSidebar = filtersActiveInDrawer || filtersHidden;
+  // The left rail shows only in sidebar mode (and not while the drawer is actively showing filters).
+  const hideSidebar = filtersActiveInDrawer || filterLocation !== "sidebar";
+  const showPills = filterLocation === "pills";
 
   useEffect(() => {
     setFilterContext({
@@ -94,9 +97,9 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
   }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange, setFilterContext]);
 
-  // Only on mount — intentionally omit filtersInDrawer/isOpen/openType to avoid re-running.
+  // Only on mount — intentionally omit filterLocation/isOpen/openType to avoid re-running.
   useEffect(() => {
-    if (filtersInDrawer && !isOpen) {
+    if (filterLocation === "drawer" && !isOpen) {
       openType("filters");
     }
   }, []);
@@ -113,6 +116,7 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
   return {
     columns,
     hideSidebar,
+    showPills,
     textFilteredBookmarks,
     textSearchActive: Boolean(q),
   };

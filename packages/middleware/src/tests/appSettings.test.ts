@@ -15,6 +15,7 @@ import {
   normalizePlaceTypeIcons,
   normalizePlaceTypeLevelGroups,
   resolveBookmarkAddFormSettings,
+  resolveFilterLocation,
 } from "@/services/appSettings";
 
 test("asCropped: rounds to a positive integer and falls back on junk", () => {
@@ -26,6 +27,30 @@ test("asCropped: rounds to a positive integer and falls back on junk", () => {
   assert.equal(asCropped(undefined, 9), 9);
   assert.equal(asCropped(Number.NaN, 9), 9);
   assert.equal(asCropped(Number.POSITIVE_INFINITY, 9), 9);
+});
+
+test("resolveFilterLocation: a valid stored enum wins over the legacy booleans", () => {
+  // Each valid stored value is honored regardless of the booleans.
+  assert.equal(resolveFilterLocation("sidebar", true, true), "sidebar");
+  assert.equal(resolveFilterLocation("drawer", true, false), "drawer");
+  assert.equal(resolveFilterLocation("pills", false, true), "pills");
+  assert.equal(resolveFilterLocation("hide", false, false), "hide");
+});
+
+test("resolveFilterLocation: legacy rows (no stored enum) resolve to the same placement as before", () => {
+  // The four boolean combinations, matching the pre-enum derivation (hidden beats inDrawer).
+  assert.equal(resolveFilterLocation(null, false, false), "sidebar");
+  assert.equal(resolveFilterLocation(null, false, true), "drawer");
+  assert.equal(resolveFilterLocation(null, true, false), "hide");
+  assert.equal(resolveFilterLocation(null, true, true), "hide");
+  assert.equal(resolveFilterLocation(undefined, false, true), "drawer");
+});
+
+test("resolveFilterLocation: junk stored values fall back to the boolean derivation", () => {
+  assert.equal(resolveFilterLocation("", false, true), "drawer");
+  assert.equal(resolveFilterLocation("xyz", true, false), "hide");
+  assert.equal(resolveFilterLocation("SIDEBAR", false, false), "sidebar");
+  assert.equal(resolveFilterLocation(123 as unknown as string, false, false), "sidebar");
 });
 
 test("asHanScriptLanguage: only 'zh' maps to Chinese, everything else defaults to Japanese", () => {
