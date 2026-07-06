@@ -11,6 +11,7 @@ interface BookmarkFormHostValues {
   names: DraftEntityName[];
   categoryId: string;
   mediaTypeId: string;
+  youtubeChannelId: string;
   description: string;
   tagIds: string[];
   genreMoodIds: string[];
@@ -53,6 +54,7 @@ export function BookmarkFormHost({
       names: [],
       categoryId: "",
       mediaTypeId: "",
+      youtubeChannelId: "",
       description: "",
       tagIds: [],
       genreMoodIds: [],
