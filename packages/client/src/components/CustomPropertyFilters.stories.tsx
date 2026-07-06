@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { CustomPropertyFilters } from "./CustomPropertyFilters";
+import { CustomPropertyFilters, PropertyFilterBody } from "./CustomPropertyFilters";
 import {
   apiHandlers,
   sampleBookmark,
@@ -52,5 +52,24 @@ export const CategoryFilterActive: Story = {
   args: {
     categories: sampleCategories,
     selectedCategoryIds: ["cat-workflow"],
+  },
+};
+
+/** A single property's layout-agnostic filter body — the range-slider control plus Reset. */
+export const PropertyBody: StoryObj<typeof PropertyFilterBody> = {
+  render: args => <PropertyFilterBody {...args} />,
+  args: {
+    property: sampleProperties[0],
+    bookmarks: [sampleBookmark],
+    numberValue: undefined,
+    booleanValue: undefined,
+    dateTimeValue: undefined,
+    presenceValue: undefined,
+    choicesValue: undefined,
+    onNumberFilterChange: () => {},
+    onBooleanFilterChange: () => {},
+    onDateTimeFilterChange: () => {},
+    onChoicesFilterChange: () => {},
+    onPropertyReset: () => {},
   },
 };
