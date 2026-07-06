@@ -1,11 +1,27 @@
-import type { PodcastResolvedLink } from "../lib/podcastLinks";
-import type { Bookmark, CreatePodcastInput, PodcastSearchProvider, UpdatePodcastInput } from "@eesimple/types";
+import type { PodcastLinkFields, PodcastResolvedLink } from "../lib/podcastLinks";
+import type { Bookmark, CreatePodcastInput, PodcastLinkProvider, PodcastSearchProvider, UpdatePodcastInput } from "@eesimple/types";
 
+import { PODCAST_LINK_PROVIDERS } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { podcastsApi } from "../lib/api/taxonomies";
 import { resolvePodcastDefaultLink } from "../lib/podcastLinks";
+
+/** A bookmark's own promoted podcast link fields (see #1070), as {@link PodcastLinkFields}. */
+function bookmarkPodcastLinkFields(bookmark: Bookmark): PodcastLinkFields {
+  const provider = bookmark.defaultLinkProvider;
+  const defaultLinkProvider = (PODCAST_LINK_PROVIDERS as readonly string[]).includes(provider ?? "")
+    ? provider as PodcastLinkProvider
+    : null;
+  return {
+    feedUrl: bookmark.feedUrl,
+    itunesUrl: bookmark.itunesUrl,
+    spotifyUrl: bookmark.spotifyUrl,
+    pocketCastsUrl: bookmark.pocketCastsUrl,
+    defaultLinkProvider,
+  };
+}
 
 const PODCASTS_KEY = ["podcasts"] as const;
 const MEDIA_PROPERTIES_KEY = ["media-properties"] as const;
@@ -28,17 +44,21 @@ export function usePodcastBySlug(slug: string) {
 }
 
 /**
- * The external link a bookmark's linked podcast points at — its `defaultLinkProvider`'s URL, else the
- * first available service. Resolved client-side from the cached podcasts list (podcast links are public
- * URLs, no connector gating). `null` when the bookmark isn't linked to a podcast or none has a URL.
+ * The external link a bookmark's podcast identity points at — the linked Podcast row's
+ * `defaultLinkProvider`'s URL (else its first available service), falling back to the bookmark's own
+ * promoted podcast link fields (see #1070) when there's no linked Podcast row. Resolved client-side
+ * from the cached podcasts list (podcast links are public URLs, no connector gating). `null` when
+ * neither the linked podcast nor the bookmark's own fields have a URL.
  */
 export function useBookmarkPodcastLink(bookmark: Bookmark): PodcastResolvedLink | null {
   const {
     data: podcasts,
   } = usePodcasts();
-  if (bookmark.podcastId == null) return null;
-  const podcast = (podcasts ?? []).find(item => item.id === bookmark.podcastId);
-  return podcast ? resolvePodcastDefaultLink(podcast) : null;
+  const podcast = bookmark.podcastId != null
+    ? (podcasts ?? []).find(item => item.id === bookmark.podcastId)
+    : undefined;
+  if (podcast) return resolvePodcastDefaultLink(podcast);
+  return resolvePodcastDefaultLink(bookmarkPodcastLinkFields(bookmark));
 }
 
 /**

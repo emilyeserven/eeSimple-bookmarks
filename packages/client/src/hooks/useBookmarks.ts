@@ -345,6 +345,24 @@ export function useIsbnCoverImage() {
   });
 }
 
+/** Import the bookmark's own promoted podcast identity's artwork as its main image. */
+export function usePodcastArtworkImage() {
+  const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
+  return useMutation({
+    mutationFn: (id: string) => bookmarksApi.podcastArtwork(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      notifySuccess(t("Podcast artwork added"));
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not fetch artwork for that podcast")),
+  });
+}
+
 /** Remove a bookmark's image. */
 export function useDeleteBookmarkImage() {
   const queryClient = useQueryClient();
