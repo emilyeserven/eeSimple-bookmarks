@@ -1,7 +1,7 @@
 import type { TagNode } from "@eesimple/types";
 
 import { EntityAutofillSources } from "../EntityAutofillSources";
-import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
+import { EntityNamesTabView, PrimaryLanguageTabView } from "../entityNames/EntityNamesTab";
 import { LocalizedNameLabel } from "../LocalizedNameLabel";
 import { TagGeneralForm } from "../TagGeneralForm";
 import { TaxonomyNodeStats } from "./TaxonomyNodeStats";
@@ -34,6 +34,10 @@ export function TagGeneralView({
           />
         )}
         autofillClassName="pt-2"
+      />
+      <PrimaryLanguageTabView
+        ownerType="tag"
+        ownerId={node.id}
       />
       <EntityNamesTabView
         ownerType="tag"

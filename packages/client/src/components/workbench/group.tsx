@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import i18n from "../../i18n";
 import { EntityImagePreview } from "../EntityImageField";
-import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
+import { EntityNamesTabView, PrimaryLanguageDlRow } from "../entityNames/EntityNamesTab";
 import { GroupGeneralForm } from "../GroupGeneralForm";
 import { GroupPeopleForm, GroupPeopleView } from "../GroupPeopleForm";
 import { GroupWebsitesForm, GroupWebsitesView } from "../GroupWebsitesForm";
@@ -46,6 +46,10 @@ function GroupGeneralView({
         <dd>{new Date(group.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{group.slug}</dd>
+        <PrimaryLanguageDlRow
+          ownerType="group"
+          ownerId={group.id}
+        />
         <dt className="text-muted-foreground">{t("Names")}</dt>
         <dd>
           <EntityNamesTabView

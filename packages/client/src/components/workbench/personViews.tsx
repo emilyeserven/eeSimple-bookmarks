@@ -4,7 +4,7 @@ import { UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { EntityImagePreview } from "../EntityImageField";
-import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
+import { EntityNamesTabView, PrimaryLanguageDlRow } from "../entityNames/EntityNamesTab";
 
 import { useAlbums } from "@/hooks/useAlbums";
 import { useGroups } from "@/hooks/useGroups";
@@ -50,6 +50,10 @@ export function PersonGeneralView({
         <dd>{new Date(person.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{person.slug}</dd>
+        <PrimaryLanguageDlRow
+          ownerType="person"
+          ownerId={person.id}
+        />
         <dt className="text-muted-foreground">{t("Names")}</dt>
         <dd>
           <EntityNamesTabView

@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
-import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
+import { EntityNamesTabView, PrimaryLanguageDlRow } from "../entityNames/EntityNamesTab";
 import { LocalizedNameLabel } from "../LocalizedNameLabel";
 import { LocationMapSection } from "../LocationMapSection";
 
@@ -92,6 +92,10 @@ export function LocationGeneralView({
         <dd>{node.children.length}</dd>
         <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{node.slug}</dd>
+        <PrimaryLanguageDlRow
+          ownerType="location"
+          ownerId={node.id}
+        />
         <dt className="text-muted-foreground">{t("Names")}</dt>
         <dd>
           <EntityNamesTabView

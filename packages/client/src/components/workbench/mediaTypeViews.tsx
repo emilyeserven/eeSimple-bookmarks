@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { EntityAutofillSources } from "../EntityAutofillSources";
-import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
+import { EntityNamesTabView, PrimaryLanguageTabView } from "../entityNames/EntityNamesTab";
 import { HierarchyView } from "../HierarchyView";
 import { MediaTypeTreeList } from "../MediaTypeTreeList";
 
@@ -63,6 +63,10 @@ export function MediaTypeGeneralView({
           )
           : null}
       </dl>
+      <PrimaryLanguageTabView
+        ownerType="mediaType"
+        ownerId={mt.id}
+      />
       <EntityNamesTabView
         ownerType="mediaType"
         ownerId={mt.id}
