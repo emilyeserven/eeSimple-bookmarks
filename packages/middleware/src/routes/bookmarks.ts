@@ -43,7 +43,8 @@ import {
 import { quickSaveToInbox } from "@/services/imports";
 import { importIsbnCover } from "@/services/isbn";
 import { importKavitaSeriesCover, kavitaEnabledAsync } from "@/services/kavita";
-import { importPlexPoster, plexEnabledAsync } from "@/services/plex";
+import { importBookmarkPodcastArtwork, resolveBookmarkPodcastFeedPreview } from "@/services/podcastFeed";
+import { importPlexPoster, plexEnabledAsync, resolveBookmarkPlexMetadata } from "@/services/plex";
 import { getObjectRange, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { isValidUrl } from "@/utils/url";
 import { AppError, ImageTooLargeError, MaxImagesReachedError, NoFileUploadedError, NotFoundError, StorageUnconfiguredError, ValidationError } from "@/utils/errors";
@@ -979,6 +980,88 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
     }
     if (result === "not_found") {
       throw new NotFoundError("Bookmark");
+    }
+    if (result === "too_many") {
+      throw new MaxImagesReachedError();
+    }
+    if (result === "bad_image") {
+      throw new AppError("Unsupported or invalid image", "unsupportedImage", 415);
+    }
+    return reply.code(201).send(result);
+  });
+
+  // Resolve the bookmark's own promoted Plex identity's current Wikidata metadata (native/English
+  // name, Wikipedia links) for the "Sync from source" review — never writes. See
+  // `resolveBookmarkPlexMetadata` for the bookmark counterpart of the taxonomy `plex-metadata-preview`
+  // route.
+  app.get("/api/bookmarks/:id/plex-metadata-preview", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!(await plexEnabledAsync())) {
+      throw new StorageUnconfiguredError("Plex is not configured");
+    }
+    const result = await resolveBookmarkPlexMetadata(id);
+    if (result === "not_found") {
+      throw new NotFoundError("Bookmark");
+    }
+    if (result === "not_linked") {
+      throw new ValidationError("Bookmark is not linked to a Plex item");
+    }
+    return reply.code(200).send(result);
+  });
+
+  // Resolve the bookmark's own promoted podcast feed identity's current metadata (name/author/
+  // description/artwork/provider links) for the "Sync from source" review — never writes. See
+  // `resolveBookmarkPodcastFeedPreview` for the bookmark counterpart of the Podcasts taxonomy's
+  // `feed-preview` route.
+  app.get("/api/bookmarks/:id/feed-preview", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const result = await resolveBookmarkPodcastFeedPreview(id);
+    if (result === "not_found") {
+      throw new NotFoundError("Bookmark");
+    }
+    if (result === null) {
+      throw new ValidationError("Bookmark has no usable podcast feed source");
+    }
+    return reply.code(200).send(result);
+  });
+
+  // Import the bookmark's own promoted podcast identity's artwork as its main image (keeps other
+  // images). The bookmark counterpart of the Podcasts taxonomy's artwork import.
+  app.post("/api/bookmarks/:id/podcast-artwork", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!isObjectStoreConfigured()) {
+      throw new StorageUnconfiguredError();
+    }
+    const result = await importBookmarkPodcastArtwork(id);
+    if (result === "not_found") {
+      throw new NotFoundError("Bookmark");
+    }
+    if (result === "no_source") {
+      throw new ValidationError("Bookmark has no podcast feed or iTunes id set");
+    }
+    if (result === "artwork_unavailable") {
+      throw new AppError("Could not fetch artwork for that podcast", "internal", 502);
     }
     if (result === "too_many") {
       throw new MaxImagesReachedError();

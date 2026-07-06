@@ -9,6 +9,7 @@ import type {
   BulkUrlUpdate,
   BulkUrlUpdateResult,
   CreateBookmarkInput,
+  PodcastFeedResult,
   ReelArchiveJob,
   TitleTagBackfillResult,
   UpdateBookmarkInput,
@@ -16,6 +17,14 @@ import type {
 } from "@eesimple/types";
 
 import { request, uploadImageFile } from "./client";
+
+/** The resolved Wikidata metadata returned by `GET /bookmarks/:id/plex-metadata-preview`. */
+export interface PlexMetadataPreview {
+  name: string | null;
+  englishName: string | null;
+  wikipediaLinkEn: string | null;
+  wikipediaLinkLocal: string | null;
+}
 
 /** The bookmark array fields the server always hydrates to `[]` (see `bookmarkHydration.ts`). */
 type BookmarkArrayField
@@ -162,6 +171,14 @@ export const bookmarksApi = {
     request<BookmarkImage>(`/bookmarks/${id}/isbn-cover`, {
       method: "POST",
     }),
+  podcastArtwork: (id: string) =>
+    request<BookmarkImage>(`/bookmarks/${id}/podcast-artwork`, {
+      method: "POST",
+    }),
+  plexMetadataPreview: (id: string) =>
+    request<PlexMetadataPreview>(`/bookmarks/${id}/plex-metadata-preview`),
+  feedPreview: (id: string) =>
+    request<PodcastFeedResult>(`/bookmarks/${id}/feed-preview`),
   deleteImage: (id: string) =>
     request<undefined>(`/bookmarks/${id}/image`, {
       method: "DELETE",

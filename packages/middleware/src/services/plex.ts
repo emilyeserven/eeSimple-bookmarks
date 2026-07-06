@@ -20,7 +20,7 @@ import { db } from "@/db";
 import { albums, bookmarks, episodes, movies, tracks, tvShows } from "@/db/schema";
 import { getActivePlexEndpoint, getDecryptedPlexToken } from "@/services/appSettings";
 import { addBookmarkImage } from "@/services/bookmarkImages";
-import { resolveBookmarkPlexRatingKey } from "@/services/movies";
+import { resolveBookmarkPlexRatingKey, type BookmarkPlexLinks } from "@/services/movies";
 import { addTaxonomyImage, type AddTaxonomyImageResult } from "@/services/taxonomyImages";
 import { resolveTitleWikidata, type WikidataExternalId } from "@/services/wikidataTitle";
 
@@ -480,6 +480,59 @@ export async function resolvePlexTaxonomyMetadata(
     name: row.name,
     wikidataId: row.wikidataId,
     externalIds: buildExternalIds(ownerType, meta?.guids ?? EMPTY_GUIDS),
+  });
+  return {
+    name: resolution?.name ?? null,
+    englishName: resolution?.englishName ?? null,
+    wikipediaLinkEn: resolution?.wikipediaLinkEn ?? null,
+    wikipediaLinkLocal: resolution?.wikipediaLinkLocal ?? null,
+  };
+}
+
+/** Which of the five Plex-backed taxonomy FKs a bookmark links, for {@link buildExternalIds}. */
+function bookmarkPlexOwnerType(links: BookmarkPlexLinks): PlexTaxonomyOwnerType | null {
+  if (links.movieId) return "movie";
+  if (links.tvShowId) return "tvShow";
+  if (links.episodeId) return "episode";
+  if (links.albumId) return "album";
+  if (links.trackId) return "track";
+  return null;
+}
+
+/**
+ * Resolve a bookmark's own promoted Plex identity's Wikidata metadata **without applying it** — the
+ * bookmark counterpart to {@link resolvePlexTaxonomyMetadata}, for a media-item bookmark that carries
+ * its own `plexRatingKey`/`wikidataId` (see #1070) rather than linking a Plex taxonomy row. Resolves the
+ * effective rating key the same way `importPlexPoster` does (linked taxonomy row's key, else the
+ * bookmark's own legacy key), and derives the external-ID mapping from whichever Plex taxonomy FK is
+ * linked (falling back to a title search when none is linked). Never writes.
+ */
+export async function resolveBookmarkPlexMetadata(bookmarkId: string): Promise<PlexMetadataPreviewResult> {
+  const [row] = await db
+    .select({
+      title: bookmarks.title,
+      wikidataId: bookmarks.wikidataId,
+      plexRatingKey: bookmarks.plexRatingKey,
+      movieId: bookmarks.movieId,
+      tvShowId: bookmarks.tvShowId,
+      episodeId: bookmarks.episodeId,
+      albumId: bookmarks.albumId,
+      trackId: bookmarks.trackId,
+    })
+    .from(bookmarks)
+    .where(eq(bookmarks.id, bookmarkId));
+  if (!row) return "not_found";
+
+  const ratingKey = await resolveBookmarkPlexRatingKey(row, row.plexRatingKey);
+  if (ratingKey === null) return "not_linked";
+
+  const ownerType = bookmarkPlexOwnerType(row);
+  const config = await resolveConfig();
+  const meta = config ? await fetchPlexItemMeta(ratingKey) : null;
+  const resolution = await resolveTitleWikidata({
+    name: row.title,
+    wikidataId: row.wikidataId,
+    externalIds: ownerType ? buildExternalIds(ownerType, meta?.guids ?? EMPTY_GUIDS) : [],
   });
   return {
     name: resolution?.name ?? null,
