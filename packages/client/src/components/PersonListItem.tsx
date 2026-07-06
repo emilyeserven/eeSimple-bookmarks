@@ -101,7 +101,7 @@ export function PersonListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/people/$personSlug/general"
+            to="/taxonomies/people/$personSlug/info"
             params={{
               personSlug: person.slug,
             }}

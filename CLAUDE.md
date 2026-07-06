@@ -226,9 +226,10 @@ navigates by `onClick` from a `Browse` root rather than by `<Link>`/pathname. Do
 
 - **Shape:** `List → [ancestors…] → Name → [Section]`. Every crumb except the last is a `<Link>`
   (`BreadcrumbLink asChild`); the last is the current page (`BreadcrumbPage`, non-link).
-- **Listing page** → one non-link crumb (`Categories`, `Bookmarks`, …). **Detail / `_view` tab** →
-  `List(link) → Name`. **Edit tab** → `List(link) → Name(link → that entity's `…/general` view) →
-  Section`. No bare `Edit` leaf when the entity has tabs — end on the tab's label.
+- **Listing page** → one non-link crumb (`Categories`, `Bookmarks`, …). **Detail / `info` page** →
+  `List(link) → Name` (the info page's inner tabs are a `?tab=` param and stay out of the trail).
+  **Edit tab** → `List(link) → Name(link → that entity's `…/info` view) → Section`. No bare `Edit`
+  leaf when the entity has tabs — end on the tab's label.
 - **Name resolves the real entity name** via the entity's `use*BySlug` hook — never a generic
   singular. The descriptor's `singular` is only a brief loading placeholder.
 - **Most slug-routed entities share one builder.** Categories, Websites, Media Types, YouTube
@@ -262,32 +263,38 @@ that matches the surface — don't invent a new structure for a one-off page.
   expanding to its full fields. Reach for it **only** when a section is long or optional and
   benefits from collapsing (e.g. autofill activation conditions, property options). Refs:
   `AutofillRuleForm`, `PropertyForm`, `HomepageSectionForm`.
+- **Info page = vertical `?tab=` rail** (`packages/client/src/components/workbench/EntityInfoView.tsx`) —
+  a slug-routed entity's read-only **Info** page (`…/$slug/info`, e.g. `/categories/dev/info`) is a
+  **vertical** tab rail beside the active tab's body, and the active tab is a **`?tab=<key>` search
+  param** (`/categories/dev/info?tab=tiered-tags`), *not* a path segment. The rail is **derived from the
+  entity's `EntityWorkbench` descriptor** — `workbench.tabs.filter(t => t.view && showIf)` — and each
+  tab body is rendered by the shared `workbench/WorkbenchRouteTab.tsx` (`mode="view"`), so it is the same
+  body the old per-segment `_view.*` routes rendered. The `?tab=` param is validated by
+  `validateInfoTabSearch` (`lib/infoTabSearch.ts`). A single-tab entity drops the rail. **There are no
+  more `_view` layout routes or per-tab `_view.*` route files** — one `…$slug.info.tsx` (or
+  `…$slug._hub.info.tsx` for listing entities) route per entity replaces the whole `_view` subtree.
 - **Horizontal-tabbed strip + `<Outlet/>`** (`packages/client/src/components/TabbedEntityLayout.tsx`,
   over the shared **`TabbedShell.tsx`** + `navLinkClass` + `navStripClass`) — a `header` over a
-  horizontal tab `nav` strip and a `min-w-0` content pane holding `<Outlet/>`. The strip
-  (`navStripClass`: `flex items-center gap-1 overflow-x-auto border-b pb-1`) scrolls horizontally
-  when the tabs overflow, so the same component serves the page, mobile, and the panel — **entity**
-  pages have no vertical-sidebar mode. (`VerticalTabbedLayout` is the sanctioned **settings-section**
-  pattern — the tabbed Display/Automations/Locations/Advanced sections render through it; never use
-  it for a slug-routed entity.) A `group` nav entry collapses into a trailing **"More" dropdown**
-  (active state resolved via `useMatchRoute`, so it works for both `$slug` and static routes); this
-  is also what the **Settings** page (`routes/settings.tsx`) renders through. The shell for
-  slug-routed entities: Categories, Custom
-  Properties, Websites, Media Types, YouTube Channels, Tags, Property Groups, Autofill, Import
-  Rules, Card Display Rules, Saved Filters, and the taxonomy entities. Each tab's
-  body comes from the entity's **`EntityWorkbench` descriptor** (see the right-panel bullet under
-  **Content hierarchies → URL-driven right panel**): the route renders one tab via
-  `workbench/WorkbenchRouteTab.tsx`, and the right panel renders all tabs via
-  `workbench/EntityWorkbenchView.tsx` — one source for both surfaces. Each tab body is itself a flat
+  horizontal tab `nav` strip and a `min-w-0` content pane holding `<Outlet/>`, where each tab is a real
+  path segment. This is the shell for every entity's **Edit** tabs (`…/$slug/edit/<tab>`) and the
+  **Settings** page (`routes/settings.tsx`) — **not** the read-only Info page (that is the vertical
+  `EntityInfoView` above). The strip (`navStripClass`: `flex items-center gap-1 overflow-x-auto border-b
+  pb-1`) scrolls horizontally when the tabs overflow, so the same component serves the page, mobile, and
+  the panel. (`VerticalTabbedLayout` is the sanctioned **settings-section** pattern — the tabbed
+  Display/Automations/Locations/Advanced sections render through it; never use it for a slug-routed
+  entity's edit tabs.) A `group` nav entry collapses into a trailing **"More" dropdown** (active state
+  resolved via `useMatchRoute`, so it works for both `$slug` and static routes). Each edit tab's body
+  comes from the entity's **`EntityWorkbench` descriptor** via `workbench/WorkbenchRouteTab.tsx`
+  (`mode="edit"`); the right panel renders all tabs (view or edit) via `workbench/EntityWorkbenchView.tsx`
+  (horizontal, controlled by `dTab`) — one descriptor for every surface. Each tab body is itself a flat
   `LabeledSection` stack.
   - **Hierarchy tab rule:** every taxonomy whose schema row has a `parentId` tree — currently
-    **Tags**, **Media Types**, **Locations**, and **Genres & Moods** — gets a view-only **"Hierarchy"** tab (a "Parents"
-    ancestor chain + a "Children" subtree), modeled on `routes/tags.$tagSlug._view.hierarchy.tsx`.
-    It is added to
-    `viewNav` only (omit it from `VIEW_TO_EDIT` so Edit falls back to General), resolves the node
-    *with children* from the `use*Tree()` query (not the flat `use*BySlug`), reuses the generic
-    `findAncestorPath`/`flattenTree` from `lib/tagTree.ts`, and renders the entity's `*TreeList`. The
-    shared **`HierarchyView`** component (`components/HierarchyView.tsx`) renders the "Parents" +
+    **Tags**, **Media Types**, **Locations**, and **Genres & Moods** — gets a view-only **"Hierarchy"**
+    workbench tab (a "Parents" ancestor chain + a "Children" subtree). It is a `view`-only
+    `WorkbenchTab` in the entity's `*Workbench` descriptor (so it shows on the Info rail but not on Edit),
+    resolves the node *with children* from the `use*Tree()` query (not the flat `use*BySlug`), reuses the
+    generic `findAncestorPath`/`flattenTree` from `lib/tagTree.ts`, and renders the entity's `*TreeList`.
+    The shared **`HierarchyView`** component (`components/HierarchyView.tsx`) renders the "Parents" +
     "Children" body, and the **`useExpandedSet`** hook (`hooks/useExpandedSet.ts`) tracks expanded
     nodes — a new tree taxonomy passes its `ancestors`, a `renderAncestorLink`, and its `*TreeList`
     rather than re-implementing the markup. **Websites are the sanctioned derived-tree exception**:
@@ -295,23 +302,28 @@ that matches the surface — don't invent a new structure for a one-off page.
     `useWebsiteTree` (`websiteHierarchyView.tsx`) — a *derived* tree is legitimate for a view-only
     Hierarchy tab when a real containment relation exists in the data. Genuinely flat taxonomies
     (Categories, YouTube Channels, Property Groups) do **not** get one.
-- **Entity-scoped bookmarks page** — the `$entitySlug/index` route for entities whose bookmarks can
-  be meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels, Genres & Moods,
-  Languages, People, Groups) renders a full
-  `BookmarkSearchView` scoped to that entity's bookmarks. **Do not redirect to `/bookmarks?<filter>=…`
-  from these routes** — that loses the entity context in the URL and breaks deep-linking. The pattern:
-  fetch data via `useCategoryPageData(search.tags)` (or the equivalent hooks), resolve the entity by
-  slug from the cached list, filter `bookmarks` by the entity's id/relation, and pass the result to
-  `BookmarkSearchView` with a `pageKey` like `"category:<slug>"`, an `<h1>` header, and
-  `onSearchChange` navigating with `replace: true`. The `routes/-categoryPageData.ts` bundle hook
-  already surfaces all the props `BookmarkSearchView` needs; a new entity can either add its list
-  there or call `use<Entity>s()` inline. Reference: `routes/categories.$categorySlug.index.tsx` and
-  `routes/tags.$tagSlug.index.tsx`. **The "Info" / view-details link belongs in the app-header strip,
-  not inline in the page** — don't add a `<Button>`/`<Link>` to the `header` prop. The header's
-  `viewDetailsAction` (`components/header/toolbarActions.tsx`) renders it for free once the entity is
-  added to `taxonomyViewLink` (the per-entity `pathParts` → `…/general` switch); a new entity-scoped
-  page just needs a branch there. The page `header` is only the `<h1>` title (plus any
-  entity-specific chrome like the sub-items chip row).
+- **Entity-scoped bookmarks page + the `_hub` listing strip** — an entity whose bookmarks can be
+  meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels, Genres & Moods,
+  Languages, Locations, Media Properties, the seven media taxonomies, People, Groups) gets a **pathless
+  `_hub` layout** (`…$slug._hub.tsx` → `components/ListingHubLayout.tsx`) that renders the entity `<h1>`
+  header over a **horizontal outer strip of real URL path segments**: **Bookmarks** (`…/$slug`, exact
+  match), **Gallery** (`…/$slug/gallery`), **Media** (`…/$slug/media`), and **Info** (`…/$slug/info`).
+  The first three are `BookmarkSearchView` panes sharing the filter sidebar — selected by the
+  `activeView` prop passed from each `_hub.{index,gallery,media}.tsx` route — and **Info** navigates to
+  the vertical `EntityInfoView`. `edit` sits **outside** `_hub` (a sibling of the pathless layout) so
+  the strip never shows while editing. Each entity's listing body is a shared `routes/-<entity>Listing.tsx`
+  component the three pane routes render with their own `activeView`; it resolves the entity by slug,
+  filters bookmarks by its id/relation, and passes `pageKey`/filter props to `BookmarkSearchView` with
+  **no `header`** (the `<h1>` lives in `_hub`). **Do not redirect to `/bookmarks?<filter>=…`** — that
+  loses the entity context and breaks deep-linking. Reference: `routes/categories.$categorySlug._hub.tsx`
+  + `._hub.index.tsx` + `-categoryListing.tsx`. **The header shows an Edit (pencil) icon, not an Info
+  icon** — Info is now a listing tab, so `viewDetailsAction`/`taxonomyViewLink` were removed;
+  `taxonomyEditLink` (`components/header/toolbarActionTypes.tsx`) now renders the Edit button on the bare
+  listing + its gallery/media/info tabs (a new entity gets it from the length-based guard, no per-entity
+  branch). The `_hub` header is the `<h1>` title plus any entity-specific chrome (the tree entities'
+  sub-items chip row: Tags' "Sub-tags:", Locations' "Sub-locations:", and Languages' clearable
+  `?usageLevel=` badge). **Newsletters** are the bespoke listing entity — their `_hub` strip is
+  `Issues | Info` (the "listing" is the import-group issues list, not bookmarks).
 - **Card boxes** — two distinct uses of the card token, never for detail/edit page content:
   - **List/row cards**: use `<RowCard>` from `@/components/ui/card` (renders `rounded-lg border
     bg-card`). Pass padding (`p-4`) or layout utilities (`group relative`) via `className`. Used in

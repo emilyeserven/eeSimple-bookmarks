@@ -28,8 +28,9 @@ matches the entity's role:
 The condition tree is shared by autofill rules **and** the Homepage filter (same `ConditionsField` +
 `evaluateConditions`), so a new condition leaf appears in both surfaces automatically.
 
-This skill focuses on the autofill/condition plumbing. For the surrounding tabbed layout
-(`_view` / `edit` route shells, nav arrays, tab wrappers) see the **`tabbed-pages`** skill, §6.
+This skill focuses on the autofill/condition plumbing. For the surrounding tabbed layout (the
+workbench descriptor, the `edit` route shell + nav array, and the vertical Info rail) see the
+**`tabbed-pages`** skill.
 
 ## A. Action-based scoping (rule sets the entity)
 
@@ -63,16 +64,17 @@ Condition-based scoping has two halves:
 ## Route files (both A and B)
 
 The Autofill Rules tab is an **inline** tab driven by the entity's `EntityWorkbench` descriptor (same
-source for the main pane and the right panel) — see `tabbed-pages` §6:
+source for the Info page, the edit page, and the right panel) — see `tabbed-pages`:
 - **Workbench tab** — add a `{ key: "autofill", label: "Autofill Rules" }` tab to the entity's
   `components/workbench/<entity>.tsx`, both `view` and `edit` panes rendering
-  `<AutofillRulesList <scope>={entity.id} query="" />`.
-- **Route tabs** — `<entity>.$<slug>._view.autofill.tsx` and `<entity>.$<slug>.edit.autofill.tsx`, each
-  a thin `WorkbenchRouteTab` delegation (`tabKey="autofill"`, `mode="view"|"edit"`) — mirror the
-  entity's `…general` route pair.
-- **Nav** — add an `{ to: ".../autofill", label: "Autofill Rules" }` entry to the `"Rules"` group in the
-  `viewNav` / `editNav` arrays in the entity's `_view.tsx` / `edit.tsx` layouts, plus an `"autofill"`
-  entry in the View file's `VIEW_TO_EDIT` map.
+  `<AutofillRulesList <scope>={entity.id} query="" />`. This is the whole **view** side — the tab
+  appears in the vertical Info rail (`EntityInfoView`) automatically; **no `_view.autofill.tsx` route
+  file exists.**
+- **Edit route** — add `<entity>.$<slug>.edit.autofill.tsx`, a thin `WorkbenchRouteTab` delegation
+  (`tabKey="autofill"`, `mode="edit"`) — mirror the entity's `…edit.general` route.
+- **Edit nav** — add an `{ to: ".../edit/autofill", label: "Autofill Rules" }` entry to the `"Rules"`
+  group in the entity's `editNav` array (`edit.tsx` layout), plus an `"autofill"` entry in the Info
+  route's `VIEW_TO_EDIT` map (so the Info page's Edit link lands on this tab).
 - Regenerate the route tree: `pnpm --filter=@eesimple/client routeTree` (never hand-edit
   `routeTree.gen.ts`).
 

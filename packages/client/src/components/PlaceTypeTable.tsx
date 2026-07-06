@@ -32,7 +32,7 @@ export function PlaceTypeTable({
       onRowClick={(placeType, event) =>
         rowNav(event, "place-type", placeType.id, () => {
           void navigate({
-            to: "/taxonomies/place-types/$placeTypeSlug/general",
+            to: "/taxonomies/place-types/$placeTypeSlug/info",
             params: {
               placeTypeSlug: placeType.slug,
             },

@@ -39,7 +39,7 @@ export function GenreMoodHierarchyView({
       ancestors={ancestors}
       renderAncestorLink={ancestor => (
         <Link
-          to="/taxonomies/genres-moods/$genreMoodSlug/general"
+          to="/taxonomies/genres-moods/$genreMoodSlug/info"
           params={{
             genreMoodSlug: ancestor.slug,
           }}

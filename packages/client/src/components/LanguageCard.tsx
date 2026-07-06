@@ -84,7 +84,7 @@ export function LanguageCard({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/languages/$languageSlug/general"
+            to="/taxonomies/languages/$languageSlug/info"
             params={{
               languageSlug: language.slug,
             }}

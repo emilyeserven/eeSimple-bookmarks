@@ -34,7 +34,7 @@ const editTrail: BreadcrumbSegment[] = [
   },
   {
     label: "Reading List",
-    href: "/categories/reading-list/general",
+    href: "/categories/reading-list/info",
   },
   {
     label: "Edit",

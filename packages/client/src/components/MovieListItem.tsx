@@ -103,7 +103,7 @@ export function MovieListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/movies/$movieSlug/general"
+            to="/taxonomies/movies/$movieSlug/info"
             params={{
               movieSlug: movie.slug,
             }}

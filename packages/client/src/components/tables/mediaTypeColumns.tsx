@@ -40,7 +40,7 @@ export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
               className="size-4 shrink-0 text-muted-foreground"
             />
             <Link
-              to="/taxonomies/media-types/$mediaTypeSlug/general"
+              to="/taxonomies/media-types/$mediaTypeSlug/info"
               params={{
                 mediaTypeSlug: row.original.slug,
               }}

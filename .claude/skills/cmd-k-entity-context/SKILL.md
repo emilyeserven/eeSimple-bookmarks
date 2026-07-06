@@ -23,9 +23,9 @@ per entity would fetch every list on every page).
    derived as `Object.values(ENTITY_DESCRIPTORS).map(d => d.route)`. Each `route` is
    `{ kind, prefix, slugIndex, listLabel, singular, switcher?, flatCrumbs }`. This is the same data
    the breadcrumb `TAXONOMY_DESCRIPTORS` derive from (`routes/-appHeaderCrumbs.tsx`), so an entity
-   registered here gets breadcrumbs *and* palette matching. View/edit paths derive as
-   `<prefix>/<slug>/general` / `<prefix>/<slug>/edit/general` — every entity's route quartet follows
-   that shape.
+   registered here gets breadcrumbs *and* palette matching. The palette's `viewPath` / `editPath`
+   derive as `<prefix>/<slug>/info` / `<prefix>/<slug>/edit/general` (`useEntityCommandContext.ts`) —
+   the View quick-action opens the entity's **Info** page, Edit opens its General edit tab.
 2. **Data layer** — `ENTITY_PALETTE_CONFIGS` in `lib/entityPaletteRegistry.ts`, derived from each
    descriptor's `palette`. The `satisfies Record<EntityRouteKind, …>` on `ENTITY_DESCRIPTORS` is
    **exhaustive**, so registering a new kind without its `palette` fails `tsc`. Each `palette` supplies

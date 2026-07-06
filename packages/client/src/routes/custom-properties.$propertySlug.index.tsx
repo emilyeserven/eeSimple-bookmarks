@@ -6,7 +6,7 @@ export const Route = createFileRoute("/custom-properties/$propertySlug/")({
     params,
   }) => {
     throw redirect({
-      to: "/custom-properties/$propertySlug/general",
+      to: "/custom-properties/$propertySlug/info",
       params,
     });
   },

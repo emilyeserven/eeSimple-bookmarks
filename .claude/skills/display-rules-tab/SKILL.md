@@ -52,10 +52,12 @@ A rule "applies to" an entity iff its `conditions` tree contains a leaf referenc
   label: "Display Rules" }` tab whose `view` **and** `edit` panes render
   `<CardDisplayRulesList <scope>={entity.id} />`. This single source drives both the main-pane route and
   the right panel.
-- **Route tabs** — each `<entity>.$<slug>.{_view,edit}.display-rules.tsx` is a thin `WorkbenchRouteTab`
-  delegation (`tabKey="display-rules"`, `mode="view"|"edit"`), mirroring the entity's `…general` route.
-- **Nav** — the `viewNav`/`editNav` arrays in the entity's `_view.tsx`/`edit.tsx` layouts carry a
-  `"Rules"` group with `{ to: ".../display-rules", label: "Display Rules" }`, and the `VIEW_TO_EDIT` map
+- **View side** — the workbench tab's `view` pane appears in the vertical Info rail (`EntityInfoView`)
+  automatically; there is **no `_view.display-rules.tsx` route file**.
+- **Edit route** — each `<entity>.$<slug>.edit.display-rules.tsx` is a thin `WorkbenchRouteTab`
+  delegation (`tabKey="display-rules"`, `mode="edit"`), mirroring the entity's `…edit.general` route.
+- **Edit nav** — the `editNav` array in the entity's `edit.tsx` layout carries a `"Rules"` group with
+  `{ to: ".../edit/display-rules", label: "Display Rules" }`, and the Info route's `VIEW_TO_EDIT` map
   has a `"display-rules"` entry.
 - **List component** — `components/CardDisplayRulesList.tsx`: takes the entity scope prop, filters
   non-Default rules through the predicate, shows a scoped empty message, and an "Add display rule"
@@ -79,11 +81,11 @@ A rule "applies to" an entity iff its `conditions` tree contains a leaf referenc
 3. **Workbench tab** — add a `{ key: "display-rules", label: "Display Rules" }` tab to the entity's
    `components/workbench/<entity>.tsx`, both `view` and `edit` panes rendering
    `<CardDisplayRulesList <scope>={entity.id} />`.
-4. **Route tabs + nav** — add `<entity>.$<slug>._view.display-rules.tsx` and `.edit.display-rules.tsx`
-   as `WorkbenchRouteTab` delegations (copy the entity's `…general` pair, change `tabKey` to
-   `"display-rules"`), add a `{ to: ".../display-rules", label: "Display Rules" }` entry to the `"Rules"`
-   group in **both** `viewNav`/`editNav`, and a `"display-rules": ".../edit/display-rules"` entry to the
-   View file's `VIEW_TO_EDIT` map.
+4. **Edit route + nav** — the `view` pane appears in the Info rail for free (no route file). Add the
+   `<entity>.$<slug>.edit.display-rules.tsx` `WorkbenchRouteTab` delegation (copy the entity's
+   `…edit.general`, change `tabKey` to `"display-rules"`, `mode="edit"`), add a
+   `{ to: ".../edit/display-rules", label: "Display Rules" }` entry to the `"Rules"` group in `editNav`,
+   and a `"display-rules": ".../edit/display-rules"` entry to the Info route's `VIEW_TO_EDIT` map.
 5. **Regenerate the route tree** — `pnpm --filter=@eesimple/client routeTree` (never hand-edit
    `routeTree.gen.ts`).
 

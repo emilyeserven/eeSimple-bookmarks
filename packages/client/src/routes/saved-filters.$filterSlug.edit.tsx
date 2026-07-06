@@ -34,7 +34,7 @@ function SavedFilterEditLayout() {
       header={(
         <div className="space-y-1">
           <Link
-            to="/saved-filters/$filterSlug/general"
+            to="/saved-filters/$filterSlug/info"
             params={{
               filterSlug,
             }}

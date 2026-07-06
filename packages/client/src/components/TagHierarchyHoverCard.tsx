@@ -32,7 +32,7 @@ export function TagHierarchyHoverCard({
       path={path}
       renderLink={node => (
         <Link
-          to="/tags/$tagSlug/general"
+          to="/tags/$tagSlug/info"
           params={{
             tagSlug: node.slug,
           }}

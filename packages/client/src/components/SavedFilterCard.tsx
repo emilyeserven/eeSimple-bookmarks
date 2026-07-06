@@ -63,7 +63,7 @@ export function SavedFilterCard({
       renderPrimaryLink={(className, children) => (slug
         ? (
           <Link
-            to="/saved-filters/$filterSlug/general"
+            to="/saved-filters/$filterSlug/info"
             params={{
               filterSlug: slug,
             }}
@@ -102,7 +102,7 @@ export function SavedFilterCard({
         ? (
           <HoverIconButton>
             <Link
-              to="/saved-filters/$filterSlug/general"
+              to="/saved-filters/$filterSlug/info"
               params={{
                 filterSlug: slug,
               }}

@@ -64,25 +64,28 @@ The shared list component must already accept **entity-scope filter props** (e.g
    that clears `scope`+`scopeSlug` but keeps the other filters), a URL-bound search `<Input>`, and the
    shared list spread with `{...listProps}` + the controlled filter props.
 
-4. **Redirect the per-entity tab routes.** Rewrite each `…<slug>._view.<tab>.tsx` /
-   `…<slug>.edit.<tab>.tsx` as a `beforeLoad` redirect carrying the slug:
+4. **Redirect the per-entity edit-tab route.** The **view** side has no route file (the tab is
+   workbench-driven — removing it from the descriptor in step 5 is the whole view-side change). Only
+   the `…<slug>.edit.<tab>.tsx` route file exists; rewrite it as a `beforeLoad` redirect carrying the
+   slug:
    ```ts
-   export const Route = createFileRoute("/categories/$categorySlug/_view/autofill")({
+   export const Route = createFileRoute("/categories/$categorySlug/edit/autofill")({
      beforeLoad: ({ params }) => {
        throw redirect({ to: "/settings/autofill",
          search: { scope: "category", scopeSlug: params.categorySlug } });
      },
    });
    ```
-   **Leave the `viewNav`/`editNav` "…" entries and `VIEW_TO_EDIT` maps untouched** — the tab link
-   still points at these routes; it now redirects. Route **paths are unchanged**, so
-   `routeTree.gen.ts` doesn't change (regenerate anyway: `pnpm --filter=@eesimple/client routeTree`).
+   **Leave the `editNav` "…" entry and the Info route's `VIEW_TO_EDIT` map untouched** — the edit-tab
+   link still points at this route; it now redirects. The path is unchanged, so `routeTree.gen.ts`
+   doesn't change (regenerate anyway: `pnpm --filter=@eesimple/client routeTree`).
 
 5. **Remove the tab from the workbench descriptors** (`components/workbench/<entity>.tsx`): delete the
    `{ key: "<tab>", … }` object + the inline `*…View` helper + the now-unused list import. This drops
-   the inline scoped view from the **right panel** too (intended — there's no per-entity page
-   anymore). **Keep** any auxiliary panel that also lives in the **General** view (e.g.
-   `EntityAutofillSources` / `SourceAutofillDefaults`) — only the scoped *list* goes away.
+   the scoped tab from the **Info page's vertical rail** (it derives its tabs from the descriptor)
+   **and** from the **right panel** (intended — there's no per-entity page anymore). **Keep** any
+   auxiliary panel that also lives in the **General** view (e.g. `EntityAutofillSources` /
+   `SourceAutofillDefaults`) — only the scoped *list* goes away.
 
 6. **Preserve "create pre-filled for this entity."** If a create flow derived its scope from the
    route path (`useParams({ strict: false })`), teach that hook to **also** read the search params
@@ -97,8 +100,9 @@ The shared list component must already accept **entity-scope filter props** (e.g
 - Use `navigate({ …, replace: true })` for filter writes so typing search doesn't spam history.
 - A `scope` present but its entity still resolving leaves the list prop `undefined` (briefly shows
   all) — fine since the lists are usually warm; show `label ?? scopeSlug` in the chip meanwhile.
-- The main-pane keeps the tab (as a redirecting link) while the panel loses it; that asymmetry is
-  intentional and does not violate workbench parity (parity is about *view/edit bodies*, not nav).
+- The edit page keeps the tab (as a redirecting link in `editNav`) while the Info page's rail and the
+  panel lose it (the view tab is removed from the descriptor); that asymmetry is intentional and does
+  not violate workbench parity (parity is about *view/edit bodies*, not nav).
 
 ## Reference implementation (Autofill → Settings → Autofill)
 
@@ -118,10 +122,10 @@ The shared list component must already accept **entity-scope filter props** (e.g
 - `hooks/useAutofillScope.ts` — per-facet slugs → combined list props (`useAutofillFacets`).
 - `routes/settings.autofill.tsx` — `validateSearch`, filter bar, URL-bound facets, resolved list.
 - `hooks/useAutofillScopeDefaults.ts` — also reads the per-facet search slugs (create prefill).
-- The 12 redirect routes: `categories.$categorySlug.{_view,edit}.autofill.tsx`,
-  `tags.$tagSlug.{_view,edit}.autofill.tsx`,
-  `taxonomies.{websites.$websiteSlug,media-types.$mediaTypeSlug,youtube-channels.$channelSlug}.{_view,edit}.autofill.tsx`,
-  `custom-properties.$propertySlug.{_view,edit}.autofill.tsx`.
+- The 6 redirect routes (edit-only — the `_view.*` files no longer exist post-routing-refactor):
+  `categories.$categorySlug.edit.autofill.tsx`, `tags.$tagSlug.edit.autofill.tsx`,
+  `taxonomies.{websites.$websiteSlug,media-types.$mediaTypeSlug,youtube-channels.$channelSlug}.edit.autofill.tsx`,
+  `custom-properties.$propertySlug.edit.autofill.tsx`.
 - The 6 workbench descriptors: `components/workbench/{category,tag,website,mediaType,youtubeChannel,property}.tsx`.
 
 ## Reference implementation (Card Display Rules → Settings → Card Display Rules)
@@ -139,10 +143,10 @@ and step 6 (create-prefill hook) is unneeded (the list seeds from its own props)
   `{ active, label, listProps }`, `CARD_DISPLAY_SCOPE_LABELS`.
 - `routes/settings.card-display-rules.tsx` — `validateSearch`; unscoped → the drag-sortable
   `CardDisplayRulesSettings`; scoped → clearable chip + `CardDisplayRulesList {...listProps}`.
-- The 12 redirect routes: `categories.$categorySlug.{_view,edit}.display-rules.tsx`,
-  `tags.$tagSlug.{_view,edit}.display-rules.tsx`,
-  `taxonomies.{websites.$websiteSlug,media-types.$mediaTypeSlug,youtube-channels.$channelSlug}.{_view,edit}.display-rules.tsx`,
-  `custom-properties.$propertySlug.{_view,edit}.display-rules.tsx`.
+- The 6 redirect routes (edit-only — the `_view.*` files no longer exist post-routing-refactor):
+  `categories.$categorySlug.edit.display-rules.tsx`, `tags.$tagSlug.edit.display-rules.tsx`,
+  `taxonomies.{websites.$websiteSlug,media-types.$mediaTypeSlug,youtube-channels.$channelSlug}.edit.display-rules.tsx`,
+  `custom-properties.$propertySlug.edit.display-rules.tsx`.
 - The 6 workbench descriptors: `components/workbench/{category,tag,website,mediaType,youtubeChannel,property}.tsx`.
 
 ## Verify

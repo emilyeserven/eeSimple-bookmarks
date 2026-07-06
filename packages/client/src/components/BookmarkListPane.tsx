@@ -118,6 +118,12 @@ interface BookmarkListPaneProps {
   afterAddForm?: ReactNode;
   /** When true (default), offer a Bookmarks | Gallery tab strip above the list. */
   showGallery?: boolean;
+  /**
+   * When set, the pane is **controlled**: it renders only this results view and drops its own
+   * `Bookmarks | Gallery | Media` strip (an outer `_hub` strip owns tab selection via the URL). When
+   * omitted the pane stays uncontrolled with its internal `useState` strip (the main `/bookmarks` page).
+   */
+  activeView?: ResultsTab;
 }
 
 interface BookmarkListBodyProps {
@@ -275,6 +281,7 @@ export function BookmarkListPane({
   addFormCategoryId,
   afterAddForm,
   showGallery = true,
+  activeView,
 }: BookmarkListPaneProps) {
   useRegisterBulkSelect(pageKey);
   const [tab, setTab] = useState<ResultsTab>("bookmarks");
@@ -283,18 +290,25 @@ export function BookmarkListPane({
   const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const visibleBookmarks = sortBookmarks(filtered, search.sort, properties, titleSort);
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
+  // Controlled (outer `_hub` URL strip) vs. uncontrolled (own `useState` strip on `/bookmarks`).
+  const controlled = activeView != null;
+  const rawTab = controlled ? activeView : tab;
   // Guard against a stale "gallery" selection if a page opts out of the gallery.
-  const activeTab = tab === "gallery" && !showGallery ? "bookmarks" : tab;
+  const activeTab = rawTab === "gallery" && !showGallery ? "bookmarks" : rawTab;
 
   return (
     <div className="min-w-0 space-y-6">
       {afterAddForm}
 
-      <ResultsTabNav
-        tab={activeTab}
-        onChange={setTab}
-        showGallery={showGallery}
-      />
+      {controlled
+        ? null
+        : (
+          <ResultsTabNav
+            tab={activeTab}
+            onChange={setTab}
+            showGallery={showGallery}
+          />
+        )}
 
       {activeTab === "gallery"
         ? (

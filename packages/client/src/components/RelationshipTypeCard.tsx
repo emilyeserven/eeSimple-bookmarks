@@ -47,7 +47,7 @@ export function RelationshipTypeCard({
       count={relationshipType.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/relationship-types/$relationshipTypeSlug/general"
+          to="/taxonomies/relationship-types/$relationshipTypeSlug/info"
           params={{
             relationshipTypeSlug: relationshipType.slug,
           }}
@@ -81,7 +81,7 @@ export function RelationshipTypeCard({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/relationship-types/$relationshipTypeSlug/general"
+            to="/taxonomies/relationship-types/$relationshipTypeSlug/info"
             params={{
               relationshipTypeSlug: relationshipType.slug,
             }}

@@ -32,7 +32,7 @@ export function LocationHierarchyView({
       ancestors={ancestors}
       renderAncestorLink={ancestor => (
         <Link
-          to="/taxonomies/locations/$locationSlug/general"
+          to="/taxonomies/locations/$locationSlug/info"
           params={{
             locationSlug: ancestor.slug,
           }}

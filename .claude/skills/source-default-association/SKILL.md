@@ -64,15 +64,15 @@ stored directly on the source. (For rule conditions/actions see `add-condition-t
    in the `update*.mutate` input, and add an `xIdDirty` term to `disabledWhen`.
 7. **`SourceAutofillDefaults`** — add an `xId?: string | null` prop, resolve it via `useXs()` (like
    `tagIds` → `useTags()`), push a clause (e.g. a `<XPill>`) into the `clauses` array, and include it
-   in the empty-guard. Pass `xId={website.xId}` / `{channel.xId}` / `{ch.xId}` from the **six** source
-   route files that render the component (3 website + 3 channel: `_view.general`, `_view.autofill`,
-   `edit.autofill`).
+   in the empty-guard. Pass `xId={website.xId}` / `{channel.xId}` / `{ch.xId}` from the source
+   entities' workbench **view** pane bodies (`components/workbench/websiteViews.tsx`,
+   `workbench/youtubeChannel.tsx`), which render the component on the Info page + the right panel.
 8. **`EntityAutofillSources`** — add `{ kind: "x"; xId: string }` to the `match` union and a branch
    to both `sourceMatches` (`source.xId === match.xId`) and `noteFor`.
-9. **Surface on X's page** — in X's `_view.autofill` / `edit.autofill` (and `_view.general` for
-   parity), wrap the body in `space-y-6` and render
+9. **Surface on X's page** — in X's General/Autofill workbench view **and** edit pane bodies
+   (`components/workbench/<x>.tsx`), wrap the body in `space-y-6` and render
    `<EntityAutofillSources match={{ kind: "x", xId: x.id }} />` above the existing list — mirror the
-   Media Type tabs.
+   Media Type panes.
 
 ## Verify
 

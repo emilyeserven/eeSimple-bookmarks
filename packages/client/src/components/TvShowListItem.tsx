@@ -104,7 +104,7 @@ export function TvShowListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/tv-shows/$tvShowSlug/general"
+            to="/taxonomies/tv-shows/$tvShowSlug/info"
             params={{
               tvShowSlug: tvShow.slug,
             }}

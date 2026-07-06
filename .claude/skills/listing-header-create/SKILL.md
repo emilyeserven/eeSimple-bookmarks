@@ -288,9 +288,9 @@ For each entity after implementing:
 7. Custom Properties: type selector shows all four types.
 8. YouTube Channels: Channel URL and Name fields both appear.
 9. Autofill Rules: navigates to `edit/conditions` (not `edit/general`).
-10. Tags / Media Types detail pages (e.g. `/tags/<slug>/general`): a Plus button appears left of the
-    PanelRight toggle, opens a name-only modal, and the created entity is a child of the current one
-    (not duplicated on the listing pages, absent on non-hierarchy detail pages).
+10. Tags / Media Types pages (e.g. `/tags/<slug>` or `/tags/<slug>/info`): a Plus button appears left
+    of the PanelRight toggle, opens a name-only modal, and the created entity is a child of the current
+    one (not duplicated on the listing pages, absent on non-hierarchy pages).
 
 ```
 pnpm typecheck

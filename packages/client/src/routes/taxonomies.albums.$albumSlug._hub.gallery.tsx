@@ -1,0 +1,30 @@
+import { createFileRoute } from "@tanstack/react-router";
+
+import { AlbumListing } from "./-albumListing";
+import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+
+export const Route = createFileRoute("/taxonomies/albums/$albumSlug/_hub/gallery")({
+  validateSearch: validateBookmarkSearch,
+  component: AlbumGalleryTab,
+});
+
+function AlbumGalleryTab() {
+  const {
+    albumSlug,
+  } = Route.useParams();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  return (
+    <AlbumListing
+      albumSlug={albumSlug}
+      activeView="gallery"
+      search={search}
+      onSearchChange={next =>
+        navigate({
+          search: next,
+          replace: true,
+          resetScroll: false,
+        })}
+    />
+  );
+}

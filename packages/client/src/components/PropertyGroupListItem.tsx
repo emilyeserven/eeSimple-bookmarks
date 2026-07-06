@@ -49,7 +49,7 @@ export function PropertyGroupListItem({
       count={group.propertyCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/property-groups/$propertyGroupSlug/general"
+          to="/taxonomies/property-groups/$propertyGroupSlug/info"
           params={{
             propertyGroupSlug: group.slug,
           }}
@@ -84,7 +84,7 @@ export function PropertyGroupListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/property-groups/$propertyGroupSlug/general"
+            to="/taxonomies/property-groups/$propertyGroupSlug/info"
             params={{
               propertyGroupSlug: group.slug,
             }}

@@ -103,7 +103,7 @@ export function EpisodeListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/episodes/$episodeSlug/general"
+            to="/taxonomies/episodes/$episodeSlug/info"
             params={{
               episodeSlug: episode.slug,
             }}

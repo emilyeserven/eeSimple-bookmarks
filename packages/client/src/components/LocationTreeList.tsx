@@ -96,7 +96,7 @@ export function LocationTreeList({
       )}
       renderInfoLink={node => (
         <Link
-          to="/taxonomies/locations/$locationSlug/general"
+          to="/taxonomies/locations/$locationSlug/info"
           params={{
             locationSlug: node.slug,
           }}

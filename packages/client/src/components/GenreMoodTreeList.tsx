@@ -78,7 +78,7 @@ export function GenreMoodTreeList({
       )}
       renderInfoLink={node => (
         <Link
-          to="/taxonomies/genres-moods/$genreMoodSlug/general"
+          to="/taxonomies/genres-moods/$genreMoodSlug/info"
           params={{
             genreMoodSlug: node.slug,
           }}

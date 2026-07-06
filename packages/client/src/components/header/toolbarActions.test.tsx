@@ -120,24 +120,28 @@ describe("buildToolbarActions", () => {
     }))).not.toContain("homepage-settings");
   });
 
-  it("adds the view-details link on a taxonomy item path", () => {
+  it("never adds the removed view-details link (Info is now a listing tab)", () => {
     expect(keys(ctx({
       pathParts: ["categories", "reading"],
-    }))).toContain("view-details");
+    }))).not.toContain("view-details");
   });
 
-  it("adds the edit link on a taxonomy view/detail tab", () => {
-    expect(keys(ctx({
-      pathParts: ["categories", "reading", "general"],
-    }))).toContain("edit-taxonomy");
-    expect(keys(ctx({
-      pathParts: ["taxonomies", "podcasts", "syntax", "general"],
-    }))).toContain("edit-taxonomy");
-  });
-
-  it("omits the edit link on the bare entity-scoped bookmarks index", () => {
+  it("adds the edit link on the bare listing, its gallery/media/info tabs, and taxonomy items", () => {
+    // Edit now shows on the entity-scoped bookmarks index (it replaced the old Info button there).
     expect(keys(ctx({
       pathParts: ["categories", "reading"],
+    }))).toContain("edit-taxonomy");
+    expect(keys(ctx({
+      pathParts: ["categories", "reading", "info"],
+    }))).toContain("edit-taxonomy");
+    expect(keys(ctx({
+      pathParts: ["taxonomies", "podcasts", "syntax"],
+    }))).toContain("edit-taxonomy");
+  });
+
+  it("omits the edit link on the listing-of-all index (no slug)", () => {
+    expect(keys(ctx({
+      pathParts: ["categories"],
     }))).not.toContain("edit-taxonomy");
   });
 
@@ -167,7 +171,7 @@ describe("buildToolbarActions", () => {
     expect(keys(all)).toEqual([
       "filter-location",
       "display-options",
-      "view-details",
+      "edit-taxonomy",
       "create",
       "settings-favorite",
       "pin",
