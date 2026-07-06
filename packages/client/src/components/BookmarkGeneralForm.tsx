@@ -9,6 +9,7 @@ import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
 import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSection";
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
 import { BookmarkMediaField } from "./BookmarkMediaField";
+import { BookmarkMediaIdentitySection } from "./BookmarkMediaIdentitySection";
 import { BookmarkNameField } from "./BookmarkNameField";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
@@ -203,6 +204,19 @@ export function BookmarkGeneralForm({
           stacked
         />
       </div>
+
+      <CollapsibleFormSection
+        title={t("Media identity")}
+        description={t("Link this bookmark to a Kavita series or Plex item, and record media identity like ISBN, year, Wikidata/Wikipedia, and podcast feed details.")}
+        defaultOpen={
+          bookmark.plexRatingKey !== null
+          || bookmark.kavitaSeriesId !== null
+          || bookmark.isbn !== null
+        }
+        preview={t("ISBN, year, Kavita / Plex link, podcast feed…")}
+      >
+        <BookmarkMediaIdentitySection bookmark={bookmark} />
+      </CollapsibleFormSection>
 
       <CollapsibleFormSection
         title={t("Advanced")}

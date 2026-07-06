@@ -317,6 +317,18 @@ export function useCardDisplayRulePreview({
       plexRatingKey: null,
       plexItemType: null,
       plexItemTitle: null,
+      isbn: null,
+      year: null,
+      wikidataId: null,
+      wikipediaLinkEn: null,
+      wikipediaLinkLocal: null,
+      feedUrl: null,
+      itunesId: null,
+      itunesUrl: null,
+      spotifyUrl: null,
+      pocketCastsUuid: null,
+      pocketCastsUrl: null,
+      defaultLinkProvider: null,
       import: null,
       tags: [
         {

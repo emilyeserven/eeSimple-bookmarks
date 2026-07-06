@@ -1330,6 +1330,30 @@ export interface Bookmark {
   plexItemType: string | null;
   /** Display title of the linked Plex item, denormalized at link time. */
   plexItemTitle: string | null;
+  /** ISBN/ASIN of this item (books), or `null` when unset. */
+  isbn: string | null;
+  /** Publication/release year of this item, or `null` when unset. */
+  year: number | null;
+  /** Wikidata QID resolved for this item, or `null` when unset. */
+  wikidataId: string | null;
+  /** English Wikipedia article link for this item, or `null`. */
+  wikipediaLinkEn: string | null;
+  /** Local-language Wikipedia article link for this item, or `null`. */
+  wikipediaLinkLocal: string | null;
+  /** Podcast RSS/XML feed URL (canonical sync source), or `null`. */
+  feedUrl: string | null;
+  /** Apple Podcasts (iTunes) numeric id, or `null`. */
+  itunesId: number | null;
+  /** Apple Podcasts (iTunes) page URL, or `null`. */
+  itunesUrl: string | null;
+  /** Spotify page URL for this item, or `null`. */
+  spotifyUrl: string | null;
+  /** Pocket Casts podcast UUID, or `null`. */
+  pocketCastsUuid: string | null;
+  /** Pocket Casts page URL, or `null`. */
+  pocketCastsUrl: string | null;
+  /** Which listening-service link this item links out to by default, or `null`. */
+  defaultLinkProvider: string | null;
   /** The import event this bookmark was created from, or `null`. */
   import: BookmarkImport | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
@@ -1475,6 +1499,30 @@ export interface CreateBookmarkInput {
   plexItemType?: string | null;
   /** Display title of the linked Plex item, or `null` to clear. Omit to leave unchanged. */
   plexItemTitle?: string | null;
+  /** ISBN/ASIN of this item, or `null` to clear. Omit to leave unchanged. */
+  isbn?: string | null;
+  /** Publication/release year, or `null` to clear. Omit to leave unchanged. */
+  year?: number | null;
+  /** Wikidata QID, or `null` to clear. Omit to leave unchanged. */
+  wikidataId?: string | null;
+  /** English Wikipedia article link, or `null` to clear. Omit to leave unchanged. */
+  wikipediaLinkEn?: string | null;
+  /** Local-language Wikipedia article link, or `null` to clear. Omit to leave unchanged. */
+  wikipediaLinkLocal?: string | null;
+  /** Podcast RSS/XML feed URL, or `null` to clear. Omit to leave unchanged. */
+  feedUrl?: string | null;
+  /** Apple Podcasts (iTunes) numeric id, or `null` to clear. Omit to leave unchanged. */
+  itunesId?: number | null;
+  /** Apple Podcasts (iTunes) page URL, or `null` to clear. Omit to leave unchanged. */
+  itunesUrl?: string | null;
+  /** Spotify page URL, or `null` to clear. Omit to leave unchanged. */
+  spotifyUrl?: string | null;
+  /** Pocket Casts podcast UUID, or `null` to clear. Omit to leave unchanged. */
+  pocketCastsUuid?: string | null;
+  /** Pocket Casts page URL, or `null` to clear. Omit to leave unchanged. */
+  pocketCastsUrl?: string | null;
+  /** Default listening-service link provider, or `null` to clear. Omit to leave unchanged. */
+  defaultLinkProvider?: string | null;
   /** Which of `image`/`screenshot` the cover should display. Omit to leave unchanged. */
   imageDisplayPreference?: ImageDisplayPreference;
 }
