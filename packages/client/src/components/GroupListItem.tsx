@@ -59,7 +59,7 @@ export function GroupListItem({
       count={group.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/groups/$groupSlug/general"
+          to="/taxonomies/groups/$groupSlug"
           params={{
             groupSlug: group.slug,
           }}

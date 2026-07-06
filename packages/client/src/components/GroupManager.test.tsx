@@ -27,7 +27,7 @@ vi.mock("../hooks/useGroups", () => ({
   }),
 }));
 
-const paths = ["/bookmarks", "/taxonomies/groups/$groupSlug/general"];
+const paths = ["/bookmarks", "/taxonomies/groups/$groupSlug", "/taxonomies/groups/$groupSlug/general"];
 
 describe("GroupsListing bulk delete", () => {
   beforeEach(() => {

@@ -34,7 +34,7 @@ export function LanguageTable({
       onRowClick={(language, event) =>
         rowNav(event, "language", language.id, () => {
           void navigate({
-            to: "/taxonomies/languages/$languageSlug/general",
+            to: "/taxonomies/languages/$languageSlug",
             params: {
               languageSlug: language.slug,
             },

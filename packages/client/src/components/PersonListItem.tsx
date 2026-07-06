@@ -66,7 +66,7 @@ export function PersonListItem({
       count={person.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/people/$personSlug/general"
+          to="/taxonomies/people/$personSlug"
           params={{
             personSlug: person.slug,
           }}
