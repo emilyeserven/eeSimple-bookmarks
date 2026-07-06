@@ -19,6 +19,7 @@ export * from "./autofillMerge.js";
 export * from "./albums.js";
 export * from "./amazon.js";
 export * from "./bookmarkAddForm.js";
+export * from "./honto.js";
 export * from "./books.js";
 export * from "./entityNames.js";
 export * from "./episodes.js";

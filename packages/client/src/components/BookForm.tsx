@@ -4,7 +4,7 @@ import { BookOpen, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
-import { AmazonIsbnLookup } from "./AmazonIsbnLookup";
+import { BookUrlIsbnLookup } from "./BookUrlIsbnLookup";
 import { EntityNamesEditor } from "./entityNames/EntityNamesEditor";
 import { KavitaSeriesLookup } from "./KavitaSeriesLookup";
 import { EMPTY_KAVITA, useBookFormController } from "./useBookFormController";
@@ -61,13 +61,13 @@ export function BookForm(props: BookFormProps) {
     >
       <div className="space-y-1.5 rounded-md border bg-muted/40 p-3">
         <Label
-          htmlFor="book-amazon-url"
+          htmlFor="book-url-isbn-lookup"
           className="text-sm font-medium"
         >
-          {t("Have an Amazon link? Paste it to autofill this book")}
+          {t("Have an Amazon or honto.jp link? Paste it to autofill this book")}
         </Label>
-        <AmazonIsbnLookup
-          id="book-amazon-url"
+        <BookUrlIsbnLookup
+          id="book-url-isbn-lookup"
           autoFocus
           onResolved={isbn => void handleIsbnLookup(isbn)}
         />

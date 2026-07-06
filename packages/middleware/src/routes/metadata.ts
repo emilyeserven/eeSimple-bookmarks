@@ -1,9 +1,10 @@
 import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanResult, WebsiteLookup } from "@eesimple/types";
-import { extractIsbn13FromAmazonUrl, isAmazonProductUrl, socialAccountFromUrl } from "@eesimple/types";
+import { extractIsbn13FromAmazonUrl, isAmazonProductUrl, isHontoProductUrl, socialAccountFromUrl } from "@eesimple/types";
 import { fetchAmazonIsbnFromPage } from "@/services/amazon";
 import { getImageUrlBlacklist } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
+import { fetchHontoIsbnFromPage } from "@/services/honto";
 import { buildImageCandidates, filterCandidates } from "@/services/imageCandidates";
 import {
   checkUrl,
@@ -465,10 +466,11 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     }) as unknown as FetchIsbnMetadataResult;
   });
 
-  // Resolve an Amazon product URL to an ISBN-13: the ASIN itself is usually a valid ISBN-10 (pure,
-  // no fetch); when it isn't, fall back to reading the ISBN out of the product page's own structured
+  // Resolve a book-site product URL (Amazon or honto.jp) to an ISBN-13. For Amazon, the ASIN itself
+  // is usually a valid ISBN-10 (pure, no fetch); when it isn't, or for honto.jp (which has no
+  // ASIN-equivalent), fall back to reading the ISBN out of the product page's own structured
   // details. Best-effort like /api/scan — a page with no discoverable ISBN returns { isbn: null }.
-  app.get("/api/isbn/from-amazon-url", {
+  app.get("/api/isbn/from-book-url", {
     schema: {
       tags: ["metadata"],
       querystring: {
@@ -489,14 +491,19 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     if (!isValidUrl(url)) {
       throw new ValidationError("url must be a valid http(s) URL");
     }
-    if (!isAmazonProductUrl(url)) {
-      throw new ValidationError("url must be an Amazon product URL");
+    if (isAmazonProductUrl(url)) {
+      const isbnFromAsin = extractIsbn13FromAmazonUrl(url);
+      const isbn = isbnFromAsin ?? await fetchAmazonIsbnFromPage(url);
+      return {
+        isbn,
+      };
     }
-    const isbnFromAsin = extractIsbn13FromAmazonUrl(url);
-    const isbn = isbnFromAsin ?? await fetchAmazonIsbnFromPage(url);
-    return {
-      isbn,
-    };
+    if (isHontoProductUrl(url)) {
+      return {
+        isbn: await fetchHontoIsbnFromPage(url),
+      };
+    }
+    throw new ValidationError("url must be an Amazon or honto.jp product URL");
   });
 
   // Richer metadata lookup: title for any URL, plus channel/duration/thumbnail for YouTube videos.
@@ -555,9 +562,10 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     const finalUrl = redirect.finalUrl;
 
     // The ASIN itself is usually a valid ISBN-10 (pure, no fetch); when it isn't, fall back to
-    // reading the ISBN straight out of the product page's own structured details.
+    // reading the ISBN straight out of the product page's own structured details. honto.jp has no
+    // ASIN-equivalent, so it always needs the page fetch.
     const isbnFromAsin = extractIsbn13FromAmazonUrl(finalUrl);
-    const [websiteRaw, duplicate, metadata, isbnFromPage] = await Promise.all([
+    const [websiteRaw, duplicate, metadata, isbnFromAmazonPage, isbnFromHontoPage] = await Promise.all([
       lookupWebsiteByUrl(finalUrl),
       checkBookmarkUrlDuplicate(finalUrl),
       isYouTubeVideoUrl(finalUrl)
@@ -565,6 +573,9 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         : buildGenericMetadataResult(finalUrl, siteNameHint),
       isbnFromAsin === null && isAmazonProductUrl(finalUrl)
         ? fetchAmazonIsbnFromPage(finalUrl)
+        : Promise.resolve(null),
+      isHontoProductUrl(finalUrl)
+        ? fetchHontoIsbnFromPage(finalUrl)
         : Promise.resolve(null),
     ]);
 
@@ -590,8 +601,9 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       // The social account `finalUrl` points at, if any (pure of `finalUrl`, so cache-safe).
       socialAccount: socialAccountFromUrl(finalUrl),
       // A checksum-valid ISBN-13 from an Amazon product URL's ASIN, or (when the ASIN itself isn't
-      // one) scraped from the product page's own structured details.
-      isbn: isbnFromAsin ?? isbnFromPage,
+      // one, or the URL is a honto.jp product page) scraped from the product page's own structured
+      // details.
+      isbn: isbnFromAsin ?? isbnFromAmazonPage ?? isbnFromHontoPage,
       // An instant icon for display via the DuckDuckGo icon service (no scrape, no object storage).
       faviconUrl: website.domain ? duckDuckGoIconUrl(website.domain) : null,
       ...(metadata.diagnostics !== undefined && {

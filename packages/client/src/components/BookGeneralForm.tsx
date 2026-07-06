@@ -5,7 +5,7 @@ import { BookOpen, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
-import { AmazonIsbnLookup } from "./AmazonIsbnLookup";
+import { BookUrlIsbnLookup } from "./BookUrlIsbnLookup";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { renderKavitaFieldSyncHint } from "./KavitaFieldSyncHint";
 import { KavitaSeriesLookup } from "./KavitaSeriesLookup";
@@ -162,9 +162,9 @@ export function BookGeneralForm({
       </form.AppField>
 
       <div className="space-y-1.5">
-        <Label htmlFor="book-amazon-url">{t("Have an Amazon link? Paste it to autofill the ISBN")}</Label>
-        <AmazonIsbnLookup
-          id="book-amazon-url"
+        <Label htmlFor="book-url-isbn-lookup">{t("Have an Amazon or honto.jp link? Paste it to autofill the ISBN")}</Label>
+        <BookUrlIsbnLookup
+          id="book-url-isbn-lookup"
           onResolved={(resolvedIsbn) => {
             form.setFieldValue("isbn", resolvedIsbn);
             autoSave.saveField("isbn", resolvedIsbn || null);
