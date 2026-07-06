@@ -15,7 +15,6 @@ const BOOKMARK_GENERAL_LABELS: Partial<Record<keyof UpdateBookmarkInput, string>
   description: "Description",
   categoryId: "Category",
   mediaTypeId: "Media type",
-  groupId: "Group",
 };
 
 /** The slice of the bookmark form the URL/Name/Description auto-save helpers read from. */
@@ -52,7 +51,6 @@ export function useBookmarkGeneralAutoSave({
       description: bookmark.description ?? null,
       categoryId: bookmark.categoryId ?? "",
       mediaTypeId: bookmark.mediaType?.id ?? null,
-      groupId: bookmark.group?.id ?? null,
     },
   });
 

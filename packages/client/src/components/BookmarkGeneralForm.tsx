@@ -2,14 +2,15 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
-import { BookmarkAdvancedGroupField } from "./BookmarkAdvancedGroupField";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
+import { BookmarkBlacklistSection } from "./BookmarkBlacklistSection";
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
 import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
 import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSection";
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
 import { BookmarkMediaField } from "./BookmarkMediaField";
 import { BookmarkNameField } from "./BookmarkNameField";
+import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
@@ -40,7 +41,6 @@ export function BookmarkGeneralForm({
     categories,
     fetchTitle,
     fetchMetadata,
-    groups,
     websiteLookup,
     channelHintRef,
     youtubeChannel,
@@ -162,11 +162,18 @@ export function BookmarkGeneralForm({
         onBlur={saveDescription}
       />
 
-      <BookmarkCategoryField
-        form={form}
-        categories={categories ?? []}
-        onValueChange={id => saveField("categoryId", id)}
-      />
+      <div
+        className="
+          grid gap-4
+          md:grid-cols-2
+        "
+      >
+        <BookmarkCategoryField
+          form={form}
+          categories={categories ?? []}
+          onValueChange={id => saveField("categoryId", id)}
+        />
+      </div>
 
       <PersonSocialAccountOffer
         account={socialAccountOffer}
@@ -176,24 +183,52 @@ export function BookmarkGeneralForm({
         onDismiss={() => setSocialAccountOffer(null)}
       />
 
-      <BookmarkGeneralRelationsSection ctrl={ctrl} />
+      <div
+        className="
+          grid gap-4
+          md:grid-cols-2
+        "
+      >
+        <BookmarkGeneralRelationsSection ctrl={ctrl} />
 
-      <BookmarkAdvancedGroupField
-        form={form}
-        groups={groups ?? []}
-        onValueChange={id => saveField("groupId", id || null)}
-      />
+        <BookmarkMediaField
+          value={mediaSelectionFromBookmark(bookmark)}
+          bookmark={bookmark}
+          onSelect={ctrl.saveMedia}
+        />
 
-      <BookmarkMediaField
-        value={mediaSelectionFromBookmark(bookmark)}
-        bookmark={bookmark}
-        onSelect={ctrl.saveMedia}
-      />
+        <GenreMoodAssignmentSection
+          ownerType="bookmark"
+          ownerId={bookmark.id}
+          stacked
+        />
+      </div>
 
-      <GenreMoodAssignmentSection
-        ownerType="bookmark"
-        ownerId={bookmark.id}
-      />
+      <CollapsibleFormSection
+        title={t("Advanced")}
+        description={t("Tags and locations excluded here will never be auto-applied by autofill rules.")}
+        defaultOpen={
+          form.state.values.blacklistedTagIds.length > 0
+          || form.state.values.blacklistedLocationIds.length > 0
+        }
+        preview={(
+          <form.Subscribe
+            selector={state => [
+              state.values.blacklistedTagIds.length,
+              state.values.blacklistedLocationIds.length,
+            ] as const}
+          >
+            {([tagCount, locationCount]) => (tagCount === 0 && locationCount === 0
+              ? t("No exclusions")
+              : t("{{tagCount}} tags, {{locationCount}} locations excluded", {
+                tagCount,
+                locationCount,
+              }))}
+          </form.Subscribe>
+        )}
+      >
+        <BookmarkBlacklistSection ctrl={ctrl} />
+      </CollapsibleFormSection>
     </div>
   );
 }

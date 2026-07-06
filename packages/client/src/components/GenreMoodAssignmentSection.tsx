@@ -10,6 +10,8 @@ import { useGenreMoodTree } from "../hooks/useGenreMoods";
 import { genreMoodTreeComboboxOptions } from "../lib/comboboxOptions";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
+import { Label } from "@/components/ui/label";
+
 interface GenreMoodAssignmentSectionProps {
   /** Which kind of owner these entries attach to (`bookmark`, `category`, `website`, …). */
   ownerType: GenreMoodOwnerType;
@@ -19,6 +21,12 @@ interface GenreMoodAssignmentSectionProps {
   excludeId?: string;
   title?: string;
   description?: string;
+  /**
+   * Render as a plain stacked Label-then-combobox block (matching the bookmark edit form's other
+   * fields) instead of the default two-column `LabeledSection` layout, and drop the default
+   * description text. An explicit `description` still renders even when `stacked` is set.
+   */
+  stacked?: boolean;
 }
 
 /**
@@ -31,12 +39,13 @@ export function GenreMoodAssignmentSection({
   excludeId,
   title: titleProp,
   description: descriptionProp,
+  stacked,
 }: GenreMoodAssignmentSectionProps) {
   const {
     t,
   } = useTranslation();
   const title = titleProp ?? t("Genres & Moods");
-  const description = descriptionProp ?? t("Genres & Moods associated with this item.");
+  const description = descriptionProp ?? (stacked ? undefined : t("Genres & Moods associated with this item."));
   const {
     data: tree = [],
   } = useGenreMoodTree();
@@ -63,11 +72,8 @@ export function GenreMoodAssignmentSection({
     excludeId ? new Set([excludeId]) : undefined,
   );
 
-  return (
-    <LabeledSection
-      title={title}
-      description={description}
-    >
+  const body = (
+    <>
       <MultiCombobox
         aria-label={title}
         placeholder={t("Add Genres & Moods…")}
@@ -79,6 +85,25 @@ export function GenreMoodAssignmentSection({
         createOption={create.createOption}
       />
       {create.modal}
+    </>
+  );
+
+  if (stacked) {
+    return (
+      <div className="space-y-1">
+        <Label>{title}</Label>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <LabeledSection
+      title={title}
+      description={description}
+    >
+      {body}
     </LabeledSection>
   );
 }
