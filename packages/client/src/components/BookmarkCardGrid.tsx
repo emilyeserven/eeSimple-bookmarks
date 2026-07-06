@@ -1,4 +1,5 @@
 import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +21,8 @@ interface BookmarkCardGridProps {
   selectionMode?: boolean;
   isSelected?: (id: string) => boolean;
   onToggleSelect?: (id: string) => void;
+  /** Optional badge rendered top-left of a card (e.g. a pinned relationship badge); null/undefined = no badge. */
+  badgeFor?: (bookmark: Bookmark) => ReactNode;
 }
 
 /**
@@ -34,6 +37,7 @@ export function BookmarkCardGrid({
   selectionMode = false,
   isSelected,
   onToggleSelect,
+  badgeFor,
 }: BookmarkCardGridProps) {
   const {
     t,
@@ -54,6 +58,7 @@ export function BookmarkCardGrid({
       {bookmarks.map((bookmark) => {
         const display = resolveDisplay(bookmark);
         const selected = isSelected?.(bookmark.id) ?? false;
+        const badge = badgeFor?.(bookmark);
         return (
           <div
             key={bookmark.id}
@@ -61,6 +66,18 @@ export function BookmarkCardGrid({
             onMouseEnter={() => setHoveredBookmarkId(bookmark.id)}
             onMouseLeave={() => setHoveredBookmarkId(null)}
           >
+            {badge
+              ? (
+                <div
+                  className="
+                    absolute top-2 left-2 z-20 flex flex-wrap items-center gap-1
+                    rounded-sm border bg-background/90 px-1.5 py-0.5 shadow-sm
+                  "
+                >
+                  {badge}
+                </div>
+              )
+              : null}
             <RowCard
               className={cn("flex h-full flex-col p-4", selected && `
                 ring-2 ring-primary

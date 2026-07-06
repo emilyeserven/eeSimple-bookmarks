@@ -70,7 +70,7 @@ describe("computeRelatedBookmarks", () => {
       tags: [tag("x")],
     });
     const result = computeRelatedBookmarks(target, [target, other], only("tags"));
-    expect(result.map(b => b.id)).toEqual(["b"]);
+    expect(result.map(e => e.bookmark.id)).toEqual(["b"]);
   });
 
   it("ranks more shared tags above fewer", () => {
@@ -87,7 +87,7 @@ describe("computeRelatedBookmarks", () => {
       tags: [tag("x"), tag("y")],
     });
     const result = computeRelatedBookmarks(target, [target, oneShared, twoShared], only("tags"));
-    expect(result.map(b => b.id)).toEqual(["two", "one"]);
+    expect(result.map(e => e.bookmark.id)).toEqual(["two", "one"]);
   });
 
   it("weights dimensions: a higher-weighted single match outranks a lower-weighted one", () => {
@@ -113,7 +113,7 @@ describe("computeRelatedBookmarks", () => {
       maxRelated: 12,
     };
     const result = computeRelatedBookmarks(target, [target, sameCategory, sameTag], settings);
-    expect(result.map(b => b.id)).toEqual(["tag", "cat"]);
+    expect(result.map(e => e.bookmark.id)).toEqual(["tag", "cat"]);
   });
 
   it("scores scalar dimensions on exact match only (shared null is not a match)", () => {
@@ -148,6 +148,102 @@ describe("computeRelatedBookmarks", () => {
     expect(result).toHaveLength(2);
   });
 
+  it("pins an explicit relationship partner first regardless of graph score", () => {
+    const partner = makeBookmark({
+      id: "partner",
+    });
+    const target = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+      relationships: [
+        {
+          relationshipTypeId: "rt1",
+          relationshipTypeName: "Analysis of",
+          directional: false,
+          role: "related",
+          label: null,
+          bookmark: {
+            id: "partner",
+            title: partner.title,
+            url: partner.url,
+          },
+        },
+      ],
+    });
+    const scoredMatch = makeBookmark({
+      id: "scored",
+      tags: [tag("x")],
+    });
+    const result = computeRelatedBookmarks(target, [target, partner, scoredMatch], only("tags"));
+    expect(result.map(e => e.bookmark.id)).toEqual(["partner", "scored"]);
+    expect(result[0].relationship?.relationshipTypeName).toBe("Analysis of");
+    expect(result[1].relationship).toBeUndefined();
+  });
+
+  it("dedupes a pinned partner out of the scored tail", () => {
+    const partner = makeBookmark({
+      id: "partner",
+      tags: [tag("x")],
+    });
+    const target = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+      relationships: [
+        {
+          relationshipTypeId: "rt1",
+          relationshipTypeName: "Similar",
+          directional: false,
+          role: "related",
+          label: null,
+          bookmark: {
+            id: "partner",
+            title: partner.title,
+            url: partner.url,
+          },
+        },
+      ],
+    });
+    const result = computeRelatedBookmarks(target, [target, partner], only("tags"));
+    expect(result.map(e => e.bookmark.id)).toEqual(["partner"]);
+  });
+
+  it("truncates only the scored tail once pinned partners are counted against maxRelated", () => {
+    const partner = makeBookmark({
+      id: "partner",
+    });
+    const target = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+      relationships: [
+        {
+          relationshipTypeId: "rt1",
+          relationshipTypeName: "Similar",
+          directional: false,
+          role: "related",
+          label: null,
+          bookmark: {
+            id: "partner",
+            title: partner.title,
+            url: partner.url,
+          },
+        },
+      ],
+    });
+    const others = Array.from({
+      length: 5,
+    }, (_, i) =>
+      makeBookmark({
+        id: `b${i}`,
+        tags: [tag("x")],
+      }));
+    const settings: BookmarkGraphSettings = {
+      weights: only("tags").weights,
+      maxRelated: 2,
+    };
+    const result = computeRelatedBookmarks(target, [target, partner, ...others], settings);
+    expect(result.map(e => e.bookmark.id)).toEqual(["partner", "b0"]);
+  });
+
   it("combines multiple dimensions with the default weights", () => {
     const target = makeBookmark({
       id: "a",
@@ -170,6 +266,6 @@ describe("computeRelatedBookmarks", () => {
       [target, weak, strong],
       DEFAULT_BOOKMARK_GRAPH_SETTINGS,
     );
-    expect(result.map(b => b.id)).toEqual(["strong", "weak"]);
+    expect(result.map(e => e.bookmark.id)).toEqual(["strong", "weak"]);
   });
 });
