@@ -42,10 +42,10 @@ export const metadataApi = {
     isbn,
   }: { isbn: string }) =>
     request<FetchIsbnMetadataResult>(`/fetch-isbn-metadata?isbn=${encodeURIComponent(isbn)}`),
-  isbnFromAmazonUrl: ({
+  isbnFromBookUrl: ({
     url,
   }: { url: string }) =>
-    request<{ isbn: string | null }>(`/isbn/from-amazon-url?url=${encodeURIComponent(url)}`),
+    request<{ isbn: string | null }>(`/isbn/from-book-url?url=${encodeURIComponent(url)}`),
   // Consolidated single-fetch scan: redirect + website + duplicate + metadata + favicon in one call.
   // `resolveRedirect: false` (for redirect-ignore-listed domains) tells the server to skip redirects.
   scan: ({
