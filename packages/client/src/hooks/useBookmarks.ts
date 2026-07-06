@@ -1,4 +1,4 @@
-import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
+import type { BookmarkIdentityCheckInput, BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
 import type { QueryClient } from "@tanstack/react-query";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -552,7 +552,12 @@ export function useDeleteBookmarkPropertyFile() {
 /** Check if a URL (or its path) already exists as a bookmark. */
 export function useBookmarkUrlDuplicateCheck() {
   return useMutation({
-    mutationFn: (url: string) => bookmarksApi.urlCheck(url),
+    mutationFn: ({
+      url, identity,
+    }: {
+      url?: string;
+      identity?: BookmarkIdentityCheckInput;
+    }) => bookmarksApi.urlCheck(url, identity),
   });
 }
 

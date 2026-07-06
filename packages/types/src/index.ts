@@ -1594,6 +1594,16 @@ export interface UpdateBookmarkRelationshipsInput {
 export interface BookmarkUrlDuplicateResult {
   exactMatch: BookmarkUrlSummary | null;
   pathMatch: BookmarkUrlSummary | null;
+  /** Other bookmarks sharing the same Plex/Kavita/ISBN/podcast-feed identity, if any was checked. */
+  identityMatches: BookmarkUrlSummary[];
+}
+
+/** Identity fields to check for existing bookmarks sharing the same Plex/Kavita/ISBN/feed item. */
+export interface BookmarkIdentityCheckInput {
+  isbn?: string;
+  plexRatingKey?: string;
+  kavitaSeriesId?: number;
+  feedUrl?: string;
 }
 
 /** One bookmark URL rewrite in a bulk apply. */

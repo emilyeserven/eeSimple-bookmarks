@@ -1,8 +1,11 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
 import type { FilterFacetKey } from "./filterFacets";
-import type { Person, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, Person, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { FILTER_FACETS, facetHasActiveSelection, propertyHasActiveSelection } from "./filterFacets";
+
+/** The bookmark fields the media-source facet's data-presence check reads. */
+export type MediaSourceBookmark = Pick<Bookmark, "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl">;
 
 /** The facet source data the filter rail derives its visibility from. */
 export interface FilterFacetInputs {
@@ -16,6 +19,8 @@ export interface FilterFacetInputs {
   people?: Person[];
   placeTypes?: PlaceType[];
   genreMoods?: GenreMood[];
+  /** Bookmarks in view, used to check whether any carries a Plex/Kavita/ISBN/feed identity. */
+  bookmarks?: MediaSourceBookmark[];
 }
 
 /** The derived visibility state the filter rail renders from. */
@@ -47,6 +52,8 @@ export function computeFacetData(inputs: FilterFacetInputs): Record<FilterFacetK
     "place-types": has(inputs.placeTypes),
     "genre-moods": has(inputs.genreMoods),
     "sections": enabledProperties.some(p => p.type === "sections"),
+    "media-source": (inputs.bookmarks ?? []).some(b =>
+      b.plexRatingKey != null || b.kavitaSeriesId != null || b.isbn != null || b.feedUrl != null),
   };
 }
 

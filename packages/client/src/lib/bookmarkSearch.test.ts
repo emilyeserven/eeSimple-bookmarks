@@ -12,6 +12,8 @@ import {
   validateBookmarkSearch,
   withBooleanFilter,
   withCategories,
+  withMediaSourceMatch,
+  withMediaSourcePresence,
   withMediaTypes,
   withNumberFilter,
   withSort,
@@ -456,6 +458,10 @@ describe("bookmarkMatchesSearch", () => {
     relationships: [],
     languageUsages: [],
     genreMoods: [],
+    isbn: null,
+    plexRatingKey: null,
+    kavitaSeriesId: null,
+    feedUrl: null,
   };
 
   it("passes when no filters are active", () => {
@@ -772,6 +778,59 @@ describe("bookmarkMatchesSearch", () => {
       },
     })).toBe(false);
   });
+
+  const withIdentity = {
+    ...bookmark,
+    isbn: "9780134685991",
+    plexRatingKey: null,
+    kavitaSeriesId: null,
+    feedUrl: null,
+  };
+
+  it("passes the presence filter based on whether any identity field is set", () => {
+    expect(bookmarkMatchesSearch(withIdentity, {
+      mediaSourcePresence: "has",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withIdentity, {
+      mediaSourcePresence: "missing",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(bookmark, {
+      mediaSourcePresence: "has",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(bookmark, {
+      mediaSourcePresence: "missing",
+    })).toBe(true);
+  });
+
+  it("passes the exact-match filter only when the field's value matches", () => {
+    expect(bookmarkMatchesSearch(withIdentity, {
+      isbn: "9780134685991",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withIdentity, {
+      isbn: "0000000000000",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(bookmark, {
+      isbn: "9780134685991",
+    })).toBe(false);
+  });
+
+  it("withMediaSourceMatch builds a search with only the given field set", () => {
+    expect(withMediaSourceMatch("isbn", "9780134685991")).toEqual({
+      isbn: "9780134685991",
+    });
+    expect(withMediaSourceMatch("kavitaSeriesId", 12)).toEqual({
+      kavitaSeriesId: 12,
+    });
+  });
+
+  it("withMediaSourcePresence sets or clears the presence filter", () => {
+    expect(withMediaSourcePresence({}, "has")).toEqual({
+      mediaSourcePresence: "has",
+    });
+    expect(withMediaSourcePresence({
+      mediaSourcePresence: "has",
+    }, undefined)).toEqual({});
+  });
 });
 
 describe("bookmarkSearchEquals", () => {
@@ -1017,6 +1076,10 @@ describe("bookmarkMatchesSearch — exclude mode", () => {
     relationships: [],
     languageUsages: [],
     genreMoods: [],
+    isbn: null,
+    plexRatingKey: null,
+    kavitaSeriesId: null,
+    feedUrl: null,
   };
 
   describe("tag exclusion", () => {

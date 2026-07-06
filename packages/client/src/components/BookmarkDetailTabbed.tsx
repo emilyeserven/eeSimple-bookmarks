@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
 import { navLinkClass, navStripClass } from "./TabbedShell";
 import { useBookmarks } from "../hooks/useBookmarks";
+import { useBookmarksSharingMediaSource } from "../hooks/useBookmarksSharingMediaSource";
 import { useLocationTree } from "../hooks/useLocations";
 import { useRelatedBookmarks } from "../hooks/useRelatedBookmarks";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
@@ -45,6 +46,7 @@ export function BookmarkDetailTabbed({
   const flatHierarchy = flattenTree(buildBookmarkHierarchy(bookmark.id, allBookmarks ?? []));
   const defaultFieldZones = useDefaultFieldZones();
   const relatedBookmarks = useRelatedBookmarks(bookmark);
+  const mediaSourceMatches = useBookmarksSharingMediaSource(bookmark);
 
   const sections = buildBookmarkDetailSections({
     bookmark,
@@ -53,6 +55,7 @@ export function BookmarkDetailTabbed({
     propertyGroups,
     flatHierarchy,
     relatedBookmarks,
+    mediaSourceMatches,
     onSaveBoolean,
     defaultFieldZones,
     locationTree,

@@ -518,6 +518,31 @@ const onHostQuery = {
   },
 } as const;
 
+const urlCheckQuery = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    url: {
+      type: "string",
+    },
+    isbn: {
+      type: "string",
+      minLength: 1,
+    },
+    plexRatingKey: {
+      type: "string",
+      minLength: 1,
+    },
+    kavitaSeriesId: {
+      type: "number",
+    },
+    feedUrl: {
+      type: "string",
+      minLength: 1,
+    },
+  },
+} as const;
+
 const bulkUrlBody = {
   type: "object",
   required: ["items"],
@@ -622,13 +647,28 @@ function registerBookmarkQueryRoutes(app: FastifyInstance): void {
   app.get("/api/bookmarks/url-check", {
     schema: {
       tags: ["bookmarks"],
+      querystring: urlCheckQuery,
     },
   }, async (req) => {
     const {
-      url,
-    } = req.query as { url?: string };
-    if (!url) throw new ValidationError("url is required");
-    return checkBookmarkUrlDuplicate(url);
+      url, isbn, plexRatingKey, kavitaSeriesId, feedUrl,
+    } = req.query as {
+      url?: string;
+      isbn?: string;
+      plexRatingKey?: string;
+      kavitaSeriesId?: number;
+      feedUrl?: string;
+    };
+    const identity = {
+      isbn,
+      plexRatingKey,
+      kavitaSeriesId,
+      feedUrl,
+    };
+    if (!url && Object.values(identity).every(v => v == null)) {
+      throw new ValidationError("url or an identity field is required");
+    }
+    return checkBookmarkUrlDuplicate(url, identity);
   });
 }
 

@@ -421,7 +421,9 @@ export function useBookmarkFormHandlers({
 
       prefill.runAutofill();
       runWebsiteLookup(finalUrl);
-      urlDuplicateCheck.mutate(finalUrl, {
+      urlDuplicateCheck.mutate({
+        url: finalUrl,
+      }, {
         onSuccess: setUrlDuplicate,
       });
       if (scan) {

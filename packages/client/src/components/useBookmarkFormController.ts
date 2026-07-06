@@ -189,6 +189,7 @@ export function useBookmarkFormController({
     setScanned,
     setImageCandidates,
     primaryLanguage,
+    setUrlDuplicate: ui.setUrlDuplicate,
   });
   const {
     isbnFetch, handleIsbnFetch, handleLookupIsbn, handleIsbnFieldFetch, handleAmazonIsbnDetected,

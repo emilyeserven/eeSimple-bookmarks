@@ -28,6 +28,7 @@ import {
   withChoicesFilter,
   withDateTimeFilter,
   withGenreMoodPresence,
+  withMediaSourcePresence,
   withNumberFilter,
   withPlaceTypePresence,
   withPresenceFilter,
@@ -647,5 +648,33 @@ export function SectionsFilterSection({
         />
       </CollapsibleContent>
     </Collapsible>
+  );
+}
+
+/**
+ * Presence-only toggle for bookmarks carrying a Plex/Kavita/ISBN/podcast-feed identity (see #1072).
+ * No combobox — the identity values aren't a pickable taxonomy, so this is just the header row.
+ */
+export function MediaSourceFilterSection({
+  search, onSearchChange,
+}: {
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm font-semibold">{t("Media source")}</span>
+      <FacetPresenceToggle
+        value={search.mediaSourcePresence}
+        onChange={mode => onSearchChange(withMediaSourcePresence(search, mode === "exclude" ? undefined : mode))}
+        hasLabel={t("Linked to a media source")}
+        missingLabel={t("Not linked")}
+        hideExclude
+      />
+    </div>
   );
 }

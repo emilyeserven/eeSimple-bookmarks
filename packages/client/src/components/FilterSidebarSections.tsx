@@ -11,6 +11,7 @@ import {
   CategoryFilterSection,
   LanguageUsageFilterSection,
   GenreMoodFilterSection,
+  MediaSourceFilterSection,
   MediaTypeFilterSection,
   PlaceTypeFilterSection,
   PropertiesFilterSection,
@@ -26,7 +27,7 @@ import { Separator } from "./ui/separator";
 /** The filter sections themselves, with separators between adjacent groups. */
 export function FilterSections({
   tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange,
-  hasTags, hasProperties, hasSectionsFilter, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasPersonFilter, hasPlaceTypeFilter, hasGenreMoodFilter,
+  hasTags, hasProperties, hasSectionsFilter, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasPersonFilter, hasPlaceTypeFilter, hasGenreMoodFilter, hasMediaSourceFilter,
   sectionFilter,
 }: {
   tree: TagNode[];
@@ -54,6 +55,7 @@ export function FilterSections({
   hasPersonFilter: boolean;
   hasPlaceTypeFilter: boolean;
   hasGenreMoodFilter: boolean;
+  hasMediaSourceFilter: boolean;
   sectionFilter?: string;
 }) {
   const {
@@ -192,6 +194,16 @@ export function FilterSections({
           show: sectionShown(hasSectionsFilter, t("Sections")),
           node: (
             <SectionsFilterSection
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "media-source",
+          show: sectionShown(hasMediaSourceFilter, t("Media source")),
+          node: (
+            <MediaSourceFilterSection
               search={search}
               onSearchChange={onSearchChange}
             />

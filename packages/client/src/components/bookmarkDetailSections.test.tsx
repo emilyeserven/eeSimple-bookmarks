@@ -20,6 +20,7 @@ function build(
     propertyGroups: [],
     flatHierarchy,
     relatedBookmarks,
+    mediaSourceMatches: [],
   }).map(s => s.id);
 }
 

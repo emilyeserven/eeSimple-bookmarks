@@ -50,6 +50,10 @@ export const FILTER_FACETS = [
     key: "sections",
     label: i18n.t("Sections"),
   },
+  {
+    key: "media-source",
+    label: i18n.t("Media source"),
+  },
 ] as const;
 
 export type FilterFacetKey = (typeof FILTER_FACETS)[number]["key"];
@@ -83,6 +87,12 @@ export function facetHasActiveSelection(key: FilterFacetKey, search: BookmarkSea
       return has(search.genreMoods) || search.genreMoodPresence !== undefined;
     case "sections":
       return search.sectionsPresence !== undefined || has(search.sectionTypes);
+    case "media-source":
+      return search.mediaSourcePresence !== undefined
+        || search.plexRatingKey !== undefined
+        || search.kavitaSeriesId !== undefined
+        || search.isbn !== undefined
+        || search.feedUrl !== undefined;
   }
 }
 
@@ -148,6 +158,11 @@ export function facetSelectionSummary(key: FilterFacetKey, search: BookmarkSearc
       return {
         count: count(search.sectionTypes),
         presence: search.sectionsPresence,
+      };
+    case "media-source":
+      return {
+        count: 0,
+        presence: search.mediaSourcePresence,
       };
   }
 }
