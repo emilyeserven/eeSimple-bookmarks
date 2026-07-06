@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { AddMediaTitleModal } from "./AddMediaTitleModal";
 import { BookmarkKavitaDetailLink } from "./BookmarkKavitaField";
 import { BookmarkPlexDetailLink } from "./BookmarkPlexField";
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { useBookmarkMediaField } from "./useBookmarkMediaField";
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
 interface BookmarkMediaFieldProps {
@@ -47,6 +49,7 @@ export function BookmarkMediaField({
   const {
     t,
   } = useTranslation();
+  const secondaryLanguage = useSecondaryDisplayLanguageValue();
   const ctrl = useBookmarkMediaField(value, onSelect, bookmark);
   const noMatches = ctrl.query.trim().length > 0 && ctrl.sections.every(section => section.items.length === 0);
 
@@ -72,7 +75,15 @@ export function BookmarkMediaField({
                 text-muted-foreground
               `)}
             >
-              {ctrl.selectedLabel ?? t("No media")}
+              {ctrl.selectedRow
+                ? (
+                  <LocalizedNameLabel
+                    names={ctrl.selectedRow.names ?? []}
+                    base={ctrl.selectedRow.name}
+                    secondaryLanguage={secondaryLanguage}
+                  />
+                )
+                : t("No media")}
             </span>
             <ChevronsUpDown className="opacity-50" />
           </Button>
@@ -127,7 +138,11 @@ export function BookmarkMediaField({
                           "
                           onClick={() => ctrl.selectItem(section.kind, item.id)}
                         >
-                          {item.name}
+                          <LocalizedNameLabel
+                            names={item.names ?? []}
+                            base={item.name}
+                            secondaryLanguage={secondaryLanguage}
+                          />
                         </button>
                       </li>
                     ))}

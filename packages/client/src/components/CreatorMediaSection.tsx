@@ -145,6 +145,7 @@ export function CreatorMediaSection({
           options={(albums ?? []).map(a => ({
             value: a.id,
             label: a.name,
+            names: a.names,
           }))}
           values={albumIds}
           onValuesChange={ids => save({

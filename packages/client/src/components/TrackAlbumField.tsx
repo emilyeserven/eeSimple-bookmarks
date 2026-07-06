@@ -53,6 +53,7 @@ export function TrackAlbumField({
         options={(albums ?? []).map(album => ({
           value: album.id,
           label: album.name,
+          names: album.names,
         }))}
         value={track.albumId ?? undefined}
         onValueChange={value => save(value ?? null)}

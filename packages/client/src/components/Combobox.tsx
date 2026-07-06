@@ -1,4 +1,4 @@
-import type { EntityName } from "@eesimple/types";
+import type { EntityName, PreferredLanguage } from "@eesimple/types";
 
 import * as React from "react";
 
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
 /** A selectable option, optionally indented by `depth` to convey hierarchy. */
@@ -76,6 +77,7 @@ function renderComboOption(
   value: string | undefined,
   onValueChange: (value: string | undefined) => void,
   setOpen: (open: boolean) => void,
+  secondaryLanguage: PreferredLanguage | null,
 ) {
   return (
     <CommandItem
@@ -97,6 +99,7 @@ function renderComboOption(
       <LocalizedNameLabel
         names={option.names ?? []}
         base={option.label}
+        secondaryLanguage={secondaryLanguage}
       />
       <Check
         className={cn(
@@ -128,6 +131,7 @@ export function Combobox({
   const {
     t,
   } = useTranslation();
+  const secondaryLanguage = useSecondaryDisplayLanguageValue();
   const [open, setOpen] = React.useState(false);
   const allOptions = groups ? groups.flatMap(g => g.options) : (options ?? []);
   const selected = allOptions.find(option => option.value === value);
@@ -163,6 +167,7 @@ export function Combobox({
                   <LocalizedNameLabel
                     names={selected.names ?? []}
                     base={selected.label}
+                    secondaryLanguage={secondaryLanguage}
                   />
                 )
                 : resolvedPlaceholder}
@@ -185,12 +190,14 @@ export function Combobox({
                   key={group.heading}
                   heading={group.heading}
                 >
-                  {group.options.map(option => renderComboOption(option, value, onValueChange, setOpen))}
+                  {group.options.map(option =>
+                    renderComboOption(option, value, onValueChange, setOpen, secondaryLanguage))}
                 </CommandGroup>
               ))
               : (
                 <CommandGroup>
-                  {(options ?? []).map(option => renderComboOption(option, value, onValueChange, setOpen))}
+                  {(options ?? []).map(option =>
+                    renderComboOption(option, value, onValueChange, setOpen, secondaryLanguage))}
                 </CommandGroup>
               )}
           </CommandList>

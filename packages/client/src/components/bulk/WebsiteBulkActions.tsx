@@ -78,6 +78,7 @@ export function WebsiteBulkActions({
         options={categories.map(category => ({
           value: category.id,
           label: category.name,
+          names: category.names,
           icon: (
             <CategoryIcon
               name={category.icon}

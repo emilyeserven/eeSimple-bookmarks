@@ -1,4 +1,4 @@
-import type { Bookmark } from "@eesimple/types";
+import type { Bookmark, EntityName } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -74,6 +74,8 @@ export interface CreatedMediaTitle {
 interface TaxoRow {
   id: string;
   name: string;
+  /** Multilingual names, so the secondary-display-language name shows de-emphasized + is searchable. */
+  names?: EntityName[];
 }
 
 /** Ordered FK columns + section headings for the seven media taxonomies. */
@@ -210,7 +212,9 @@ export function useBookmarkMediaField(
     const allItems = lists[meta.kind];
     const isExpanded = expanded.expanded.has(meta.kind);
     const items = hasQuery
-      ? allItems.filter(row => row.name.toLowerCase().includes(term))
+      ? allItems.filter(row =>
+        row.name.toLowerCase().includes(term)
+        || (row.names ?? []).some(name => name.value.toLowerCase().includes(term)))
       : (isExpanded ? allItems : []);
     return {
       kind: meta.kind,
@@ -225,6 +229,7 @@ export function useBookmarkMediaField(
   const linked = linkedMeta(value);
   const linkedRow = linked ? lists[linked.kind].find(row => row.id === value[linked.fkKey]) : undefined;
   const selectedLabel = linkedRow?.name ?? null;
+  const selectedRow = linkedRow ?? null;
 
   function closeAndReset(): void {
     setOpen(false);
@@ -261,6 +266,7 @@ export function useBookmarkMediaField(
     setQuery,
     sections,
     selectedLabel,
+    selectedRow,
     isLinked: selectedLabel !== null,
     selectItem,
     handleCreated,

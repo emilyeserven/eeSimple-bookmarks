@@ -79,6 +79,7 @@ export function AddTrackModal({
                 options={(albums ?? []).map(album => ({
                   value: album.id,
                   label: album.name,
+                  names: album.names,
                 }))}
                 value={albumId || undefined}
                 onValueChange={value => setAlbumId(value ?? "")}

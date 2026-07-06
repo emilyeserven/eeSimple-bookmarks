@@ -52,11 +52,13 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     value: a.id,
     label: a.name,
     searchAlias: buildSearchAlias(a.names),
+    names: a.names,
   }));
   const groupOptions = groups.map(p => ({
     value: p.id,
     label: p.name,
     searchAlias: buildSearchAlias(p.names),
+    names: p.names,
   }));
 
   const selectedTagIds = preFill.tagIds ?? [];

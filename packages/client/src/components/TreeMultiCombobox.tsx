@@ -1,3 +1,5 @@
+import type { EntityName } from "@eesimple/types";
+
 import * as React from "react";
 
 import { ChevronsUpDown, Plus } from "lucide-react";
@@ -15,6 +17,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
 export interface TreeComboboxOption {
@@ -22,6 +25,13 @@ export interface TreeComboboxOption {
   label: string;
   /** Optional secondary text (e.g. a secondary/English name) — matched by search and shown de-emphasized. */
   searchAlias?: string;
+  /**
+   * Optional multilingual names for {@link label}, used to resolve a secondary display form shown
+   * de-emphasized after it (via `LocalizedNameLabel`, honoring the Secondary display language). Use
+   * this — rather than {@link searchAlias} — when the secondary text should reflect the configured
+   * secondary language, not just be a flat searchable string.
+   */
+  names?: EntityName[];
   icon?: React.ReactNode;
   children?: TreeComboboxOption[];
 }
@@ -70,6 +80,7 @@ export function TreeMultiCombobox({
   const {
     t,
   } = useTranslation();
+  const secondaryLanguage = useSecondaryDisplayLanguageValue();
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
@@ -170,6 +181,7 @@ export function TreeMultiCombobox({
                     isSelected: value => selectedSet.has(value),
                     onSelect: toggle,
                     onToggleExpand: toggleExpand,
+                    secondaryLanguage,
                   })}
                 </CommandGroup>
               )}

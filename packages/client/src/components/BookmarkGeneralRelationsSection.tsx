@@ -171,6 +171,7 @@ export function BookmarkGeneralRelationsSection({
               options={(people ?? []).map(a => ({
                 value: a.id,
                 label: a.name,
+                names: a.names,
               }))}
               values={field.state.value}
               onValuesChange={(ids) => {
@@ -209,6 +210,7 @@ export function BookmarkGeneralRelationsSection({
               options={(groups ?? []).map(g => ({
                 value: g.id,
                 label: g.name,
+                names: g.names,
               }))}
               values={field.state.value}
               onValuesChange={(ids) => {

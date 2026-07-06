@@ -97,6 +97,7 @@ export function CategoryFilterBody({
   const categoryOptions = (categories ?? []).map(category => ({
     value: category.id,
     label: category.name,
+    names: category.names,
   }));
   const selectedCategories = search.categories ?? [];
   const allSelected = categoryOptions.length > 0 && selectedCategories.length === categoryOptions.length;
@@ -330,6 +331,7 @@ export function GenreMoodFilterBody({
   const options = (genreMoods ?? []).map(genreMood => ({
     value: genreMood.id,
     label: genreMood.name,
+    names: genreMood.names,
     icon: <Drama className="size-4 shrink-0 text-muted-foreground" />,
   }));
   const selected = search.genreMoods ?? [];
@@ -575,6 +577,7 @@ export function PersonFilterBody({
   const options = (people ?? []).map(person => ({
     value: person.id,
     label: person.name,
+    names: person.names,
   }));
   const selected = search.people ?? [];
 

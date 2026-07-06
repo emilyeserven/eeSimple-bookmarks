@@ -93,6 +93,8 @@ export function tagNodesToOptions(nodes: TagNode[], excludeIds?: Set<string>): T
       label: n.name,
       // Carry every language-labelled name variant so the search matches any of them.
       searchAlias: buildSearchAlias(n.names),
+      // Carry the structured names so the secondary-display-language name shows de-emphasized.
+      names: n.names,
       children: tagNodesToOptions(n.children, excludeIds),
     }));
 }
@@ -104,6 +106,8 @@ export function locationNodesToOptions(nodes: LocationNode[]): TreeComboboxOptio
     label: n.name,
     // Carry every language-labelled name variant so the search matches any of them.
     searchAlias: buildSearchAlias(n.names),
+    // Carry the structured names so the secondary-display-language name shows de-emphasized.
+    names: n.names,
     children: locationNodesToOptions(n.children),
   }));
 }

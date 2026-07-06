@@ -83,6 +83,7 @@ export function AlbumCreditsSection({
             options={(people ?? []).map(p => ({
               value: p.id,
               label: p.name,
+              names: p.names,
             }))}
             values={album.personIds}
             onValuesChange={savePeople}
@@ -99,6 +100,7 @@ export function AlbumCreditsSection({
             options={(groups ?? []).map(p => ({
               value: p.id,
               label: p.name,
+              names: p.names,
             }))}
             values={album.groupIds}
             onValuesChange={saveGroups}
