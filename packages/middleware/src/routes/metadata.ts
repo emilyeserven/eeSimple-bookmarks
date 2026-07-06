@@ -1,6 +1,7 @@
 import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanResult, WebsiteLookup } from "@eesimple/types";
-import { extractIsbn13FromAmazonUrl, socialAccountFromUrl } from "@eesimple/types";
+import { extractIsbn13FromAmazonUrl, isAmazonProductUrl, socialAccountFromUrl } from "@eesimple/types";
+import { fetchAmazonIsbnFromPage } from "@/services/amazon";
 import { getImageUrlBlacklist } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
 import { buildImageCandidates, filterCandidates } from "@/services/imageCandidates";
@@ -519,12 +520,18 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       };
     const finalUrl = redirect.finalUrl;
 
-    const [websiteRaw, duplicate, metadata] = await Promise.all([
+    // The ASIN itself is usually a valid ISBN-10 (pure, no fetch); when it isn't, fall back to
+    // reading the ISBN straight out of the product page's own structured details.
+    const isbnFromAsin = extractIsbn13FromAmazonUrl(finalUrl);
+    const [websiteRaw, duplicate, metadata, isbnFromPage] = await Promise.all([
       lookupWebsiteByUrl(finalUrl),
       checkBookmarkUrlDuplicate(finalUrl),
       isYouTubeVideoUrl(finalUrl)
         ? buildYouTubeMetadataResult(finalUrl, req.log)
         : buildGenericMetadataResult(finalUrl, siteNameHint),
+      isbnFromAsin === null && isAmazonProductUrl(finalUrl)
+        ? fetchAmazonIsbnFromPage(finalUrl)
+        : Promise.resolve(null),
     ]);
 
     const website = toWebsiteLookup(websiteRaw);
@@ -548,8 +555,9 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       languageCode: metadata.languageCode,
       // The social account `finalUrl` points at, if any (pure of `finalUrl`, so cache-safe).
       socialAccount: socialAccountFromUrl(finalUrl),
-      // A checksum-valid ISBN-13 from an Amazon product URL's ASIN, if any (pure of `finalUrl`).
-      isbn: extractIsbn13FromAmazonUrl(finalUrl),
+      // A checksum-valid ISBN-13 from an Amazon product URL's ASIN, or (when the ASIN itself isn't
+      // one) scraped from the product page's own structured details.
+      isbn: isbnFromAsin ?? isbnFromPage,
       // An instant icon for display via the DuckDuckGo icon service (no scrape, no object storage).
       faviconUrl: website.domain ? duckDuckGoIconUrl(website.domain) : null,
       ...(metadata.diagnostics !== undefined && {

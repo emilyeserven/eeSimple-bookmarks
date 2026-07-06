@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  extractAmazonIsbn,
   extractIsbn13FromAmazonUrl,
   isAmazonProductUrl,
   parseAmazonProduct,
@@ -71,4 +72,33 @@ test("extractIsbn13FromAmazonUrl returns null for a non-ISBN (Kindle-style) ASIN
 
 test("extractIsbn13FromAmazonUrl returns null for a non-Amazon URL", () => {
   assert.equal(extractIsbn13FromAmazonUrl(`https://example.com/dp/${ISBN10_ASIN}`), null);
+});
+
+test("extractAmazonIsbn finds an ISBN in a schema.org/Book JSON-LD block", () => {
+  const html = "<script type=\"application/ld+json\">{\"@type\":\"Book\",\"isbn\":\"9780131103627\"}</script>";
+  assert.equal(extractAmazonIsbn(html), "9780131103627");
+});
+
+test("extractAmazonIsbn converts an ISBN-10 found in JSON-LD to ISBN-13", () => {
+  const html = `<script type="application/ld+json">{"@type":"Book","isbn":"${ISBN10_ASIN}"}</script>`;
+  assert.equal(extractAmazonIsbn(html), "9780131103627");
+});
+
+test("extractAmazonIsbn falls back to an 'ISBN-13' product-details bullet", () => {
+  const html = "<li><span>ISBN-13</span><span>‏ : ‎978-0131103627</span></li>";
+  assert.equal(extractAmazonIsbn(html), "9780131103627");
+});
+
+test("extractAmazonIsbn falls back to an 'ISBN-10' product-details bullet, converted to ISBN-13", () => {
+  const html = `<li><span>ISBN-10</span><span>‏ : ‎${ISBN10_ASIN}</span></li>`;
+  assert.equal(extractAmazonIsbn(html), "9780131103627");
+});
+
+test("extractAmazonIsbn returns null when no ISBN is present", () => {
+  assert.equal(extractAmazonIsbn("<html><body>no isbn here</body></html>"), null);
+});
+
+test("extractAmazonIsbn ignores a checksum-invalid ISBN-13 bullet", () => {
+  const html = "<li><span>ISBN-13</span><span>‏ : ‎978-0000000000</span></li>";
+  assert.equal(extractAmazonIsbn(html), null);
 });
