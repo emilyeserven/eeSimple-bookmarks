@@ -114,7 +114,7 @@ export function DisplayFiltersSettings() {
       <div>
         <h3 className="text-lg font-semibold">{t("Filters")}</h3>
         <p className="text-sm text-muted-foreground">
-          {t("Choose which filters show by default in the filter sidebar. Filters set to “On demand” are hidden until you add them from the “Add filter” control.")}
+          {t("Choose which filters show by default. Filters set to “On demand” are hidden until you add them from the “Add filter” control.")}
         </p>
       </div>
 

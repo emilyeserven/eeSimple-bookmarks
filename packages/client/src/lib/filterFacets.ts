@@ -1,4 +1,5 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
+import type { CustomProperty } from "@eesimple/types";
 
 import i18n from "../i18n";
 
@@ -159,5 +160,32 @@ export function propertyHasActiveSelection(propertyId: string, search: BookmarkS
     || search.date?.[propertyId] !== undefined
     || search.presence?.[propertyId] !== undefined
     || (search.choices?.[propertyId]?.length ?? 0) > 0
+  );
+}
+
+/**
+ * A compact summary of a custom property's current selection, for the pill placement's active-state
+ * label. Mirrors {@link facetSelectionSummary}'s shape so `FilterPill` can render it unmodified: only
+ * `choices`-type properties have a meaningful id count; number/date/boolean properties with an active
+ * value just show the pill's active state with no summary text.
+ */
+export function propertySelectionSummary(
+  property: CustomProperty,
+  search: BookmarkSearch,
+): FacetSelectionSummary {
+  return {
+    count: property.type === "choices" ? count(search.choices?.[property.id]) : 0,
+    presence: search.presence?.[property.id],
+  };
+}
+
+/**
+ * Whether the language-usage filter (two multi-selects, not a {@link FilterFacetKey}) currently has
+ * any applied selection in `search`.
+ */
+export function languageUsageHasActiveSelection(search: BookmarkSearch): boolean {
+  return (
+    (search.languageUsageLanguages?.length ?? 0) > 0
+    || (search.languageUsageLevels?.length ?? 0) > 0
   );
 }

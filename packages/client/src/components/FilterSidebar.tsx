@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { FilterSections } from "./FilterSidebarSections";
 import { SavedFiltersSection } from "./SavedFiltersSection";
 import { useOnDemandFilters } from "../hooks/useAppSettings";
-import { computeFilterSidebarVisibility } from "../lib/filterSidebarVisibility";
+import { computeFilterVisibility } from "../lib/filterVisibility";
 
 import {
   Collapsible,
@@ -70,7 +70,7 @@ export function FilterSidebar({
 
   const {
     hasFilters, facetVisible, visibleProperties, addableFilters,
-  } = computeFilterSidebarVisibility({
+  } = computeFilterVisibility({
     tree,
     properties,
     categories,

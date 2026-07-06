@@ -19,7 +19,7 @@ export interface FilterFacetInputs {
 }
 
 /** The derived visibility state the filter rail renders from. */
-export interface FilterSidebarVisibility {
+export interface FilterVisibility {
   /** Whether any facet has data at all — drives the rail's "No filters available" fallback. */
   hasFilters: boolean;
   /** Per-facet: present in data AND currently revealed (not on-demand, added, or actively filtering). */
@@ -56,12 +56,12 @@ export function computeFacetData(inputs: FilterFacetInputs): Record<FilterFacetK
  * (`added` tracks the ones revealed this session) — but a facet with an active value is always shown
  * so deep-linked / saved filters never silently disappear.
  */
-export function computeFilterSidebarVisibility(
+export function computeFilterVisibility(
   inputs: FilterFacetInputs,
   search: BookmarkSearch,
   onDemand: string[],
   added: Set<string>,
-): FilterSidebarVisibility {
+): FilterVisibility {
   const enabledProperties = inputs.properties.filter(p => p.enabled);
   const facetData = computeFacetData(inputs);
 

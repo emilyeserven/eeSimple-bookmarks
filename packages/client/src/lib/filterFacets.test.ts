@@ -3,7 +3,14 @@ import type { BookmarkSearch } from "./bookmarkSearch";
 
 import { describe, expect, it } from "vitest";
 
-import { facetHasActiveSelection, facetSelectionSummary, propertyHasActiveSelection } from "./filterFacets";
+import {
+  facetHasActiveSelection,
+  facetSelectionSummary,
+  languageUsageHasActiveSelection,
+  propertyHasActiveSelection,
+  propertySelectionSummary,
+} from "./filterFacets";
+import { makeCustomProperty } from "../test-utils/factories";
 
 describe("facetHasActiveSelection", () => {
   it("is false for an empty search", () => {
@@ -155,6 +162,75 @@ describe("propertyHasActiveSelection", () => {
       choices: {
         p1: [],
       },
+    })).toBe(false);
+  });
+});
+
+describe("propertySelectionSummary", () => {
+  it("counts selected choices for a choices-type property", () => {
+    const property = makeCustomProperty({
+      id: "p1",
+      type: "choices",
+    });
+    expect(propertySelectionSummary(property, {
+      choices: {
+        p1: ["a", "b"],
+      },
+    })).toEqual({
+      count: 2,
+      presence: undefined,
+    });
+  });
+
+  it("reports a zero count for a non-choices property with an active range value", () => {
+    const property = makeCustomProperty({
+      id: "p1",
+      type: "number",
+    });
+    expect(propertySelectionSummary(property, {
+      num: {
+        p1: [0, 5],
+      },
+    })).toEqual({
+      count: 0,
+      presence: undefined,
+    });
+  });
+
+  it("carries the presence mode regardless of property type", () => {
+    const property = makeCustomProperty({
+      id: "p1",
+      type: "boolean",
+    });
+    expect(propertySelectionSummary(property, {
+      presence: {
+        p1: "missing",
+      },
+    })).toEqual({
+      count: 0,
+      presence: "missing",
+    });
+  });
+});
+
+describe("languageUsageHasActiveSelection", () => {
+  it("is false for an empty search", () => {
+    expect(languageUsageHasActiveSelection({})).toBe(false);
+  });
+
+  it("is true when either vocabulary has a selection", () => {
+    expect(languageUsageHasActiveSelection({
+      languageUsageLanguages: ["lang-1"],
+    })).toBe(true);
+    expect(languageUsageHasActiveSelection({
+      languageUsageLevels: ["level-1"],
+    })).toBe(true);
+  });
+
+  it("ignores empty arrays", () => {
+    expect(languageUsageHasActiveSelection({
+      languageUsageLanguages: [],
+      languageUsageLevels: [],
     })).toBe(false);
   });
 });

@@ -17,20 +17,27 @@ import { useCreateSavedFilter, useSavedFilters } from "../hooks/useSavedFilters"
 import { bookmarkSearchEquals, hasAnyActiveFilter, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface SavedFiltersSectionProps {
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
+  /**
+   * Renders the "Clear Filters" button and the saved-filters dropdown at their natural width in a
+   * `flex` row (for the pill placement) instead of the sidebar's stacked full-width buttons.
+   */
+  compact?: boolean;
 }
 
 /**
- * "Saved Filters" controls for the filter sidebar and panel. A "Clear Filters" button (disabled
- * when nothing is applied) sits above a dropdown of saved filters; selecting one applies it. The
- * dropdown trigger reflects the currently-selected saved filter when the applied filters match it.
- * Saving the current filter state lives in the dropdown's "Save current filters…" item.
+ * "Saved Filters" controls for the filter sidebar, pill row, and panel. A "Clear Filters" button
+ * (disabled when nothing is applied) sits beside/above a dropdown of saved filters; selecting one
+ * applies it. The dropdown trigger reflects the currently-selected saved filter when the applied
+ * filters match it. Saving the current filter state lives in the dropdown's "Save current filters…"
+ * item.
  */
 export function SavedFiltersSection({
-  search, onSearchChange,
+  search, onSearchChange, compact = false,
 }: SavedFiltersSectionProps) {
   const {
     t,
@@ -54,12 +61,12 @@ export function SavedFiltersSection({
 
   return (
     <>
-      <div className="space-y-2">
+      <div className={cn(compact ? "flex items-center gap-2" : "space-y-2")}>
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className="w-full gap-1.5"
+          className={cn("gap-1.5", !compact && "w-full")}
           disabled={!hasActive}
           onClick={() => onSearchChange({})}
         >
@@ -73,7 +80,7 @@ export function SavedFiltersSection({
               type="button"
               variant="outline"
               size="sm"
-              className="w-full justify-between font-normal"
+              className={cn("justify-between font-normal", !compact && "w-full")}
             >
               <span className="truncate">{activeFilter?.name ?? t("Saved Filters")}</span>
               <ChevronDown className="size-3.5 shrink-0 opacity-70" />
@@ -82,7 +89,9 @@ export function SavedFiltersSection({
 
           <DropdownMenuContent
             align="start"
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-48"
+            className={compact
+              ? "min-w-48"
+              : "w-(--radix-dropdown-menu-trigger-width) min-w-48"}
           >
             {isLoading
               ? <p className="px-2 py-1.5 text-xs text-muted-foreground">{t("Loading…")}</p>

@@ -56,3 +56,10 @@ export const MatchesSavedFilter: Story = {
     },
   },
 };
+
+/** The pill-row placement's layout: both controls at their natural width in a `flex` row. */
+export const Compact: Story = {
+  args: {
+    compact: true,
+  },
+};
