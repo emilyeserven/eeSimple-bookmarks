@@ -79,6 +79,7 @@ export function AddEpisodeModal({
                 options={(tvShows ?? []).map(show => ({
                   value: show.id,
                   label: show.name,
+                  names: show.names,
                 }))}
                 value={tvShowId || undefined}
                 onValueChange={value => setTvShowId(value ?? "")}

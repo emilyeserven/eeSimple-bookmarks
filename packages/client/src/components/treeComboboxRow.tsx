@@ -1,8 +1,11 @@
 import type { TreeComboboxOption } from "./TreeMultiCombobox";
+import type { PreferredLanguage } from "@eesimple/types";
 
 import * as React from "react";
 
 import { Check, ChevronRight } from "lucide-react";
+
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 
 import { CommandItem } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
@@ -20,6 +23,11 @@ export interface TreeComboboxRowConfig {
   isSelected: (value: string) => boolean;
   onSelect: (value: string) => void;
   onToggleExpand: (value: string) => void;
+  /**
+   * The configured Secondary display language, forwarded to `LocalizedNameLabel` for nodes carrying
+   * structured `names` so the secondary form matches the user's setting. `null`/omitted = auto.
+   */
+  secondaryLanguage?: PreferredLanguage | null;
 }
 
 /**
@@ -77,10 +85,22 @@ export function renderTreeComboboxRows(
             : <span className="size-4 shrink-0" />}
           {node.icon != null && <span className="shrink-0">{node.icon}</span>}
           <span className="flex-1 truncate">
-            {node.label}
-            {node.searchAlias
-              ? <span className="ml-1.5 text-muted-foreground">{node.searchAlias}</span>
-              : null}
+            {node.names && node.names.length > 0
+              ? (
+                <LocalizedNameLabel
+                  names={node.names}
+                  base={node.label}
+                  secondaryLanguage={config.secondaryLanguage}
+                />
+              )
+              : (
+                <>
+                  {node.label}
+                  {node.searchAlias
+                    ? <span className="ml-1.5 text-muted-foreground">{node.searchAlias}</span>
+                    : null}
+                </>
+              )}
           </span>
           <Check
             className={cn(

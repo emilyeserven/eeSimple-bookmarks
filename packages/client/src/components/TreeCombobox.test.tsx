@@ -1,9 +1,26 @@
 import type { TreeComboboxOption } from "./TreeMultiCombobox";
+import type { EntityName } from "@eesimple/types";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { TreeCombobox } from "./TreeCombobox";
+
+/** A minimal language-labelled name for tree-option fixtures. */
+function nm(value: string): EntityName {
+  return {
+    id: value,
+    language: {
+      id: value,
+      name: value,
+      slug: value,
+      isoCode: null,
+    },
+    value,
+    isPrimary: false,
+    sortOrder: 0,
+  };
+}
 
 /** Places > { Japan > Kyushu > Fukuoka, Korea > Busan }. */
 const tree: TreeComboboxOption[] = [
@@ -140,5 +157,27 @@ describe("TreeCombobox", () => {
     open();
     fireEvent.click(screen.getByText("Create media type"));
     expect(onSelect).toHaveBeenCalled();
+  });
+
+  it("shows a node's secondary name after its label when the node carries structured names", () => {
+    const namedTree: TreeComboboxOption[] = [
+      {
+        value: "parasite",
+        label: "기생충",
+        names: [nm("Parasite")],
+      },
+    ];
+    render(
+      <TreeCombobox
+        options={namedTree}
+        onValueChange={vi.fn()}
+        aria-label="Media type"
+      />,
+    );
+
+    open();
+    const option = screen.getByRole("option");
+    expect(option).toHaveTextContent("기생충");
+    expect(option).toHaveTextContent("Parasite");
   });
 });

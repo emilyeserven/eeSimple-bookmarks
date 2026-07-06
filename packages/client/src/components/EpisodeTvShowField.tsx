@@ -53,6 +53,7 @@ export function EpisodeTvShowField({
         options={(tvShows ?? []).map(show => ({
           value: show.id,
           label: show.name,
+          names: show.names,
         }))}
         value={episode.tvShowId ?? undefined}
         onValueChange={value => save(value ?? null)}

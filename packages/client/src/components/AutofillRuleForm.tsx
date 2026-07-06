@@ -184,6 +184,7 @@ export function AutofillRuleForm({
                 ...categories.map(category => ({
                   value: category.id,
                   label: category.name,
+                  names: category.names,
                 })),
               ]}
             />

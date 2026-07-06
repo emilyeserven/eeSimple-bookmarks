@@ -13,6 +13,7 @@ export interface IconComboboxOption {
   label: string;
   depth?: number;
   searchAlias?: string;
+  names?: EntityName[];
   icon: ReactNode;
 }
 
@@ -32,6 +33,7 @@ export function iconComboboxOptions(
     value: item.id,
     label: item.name,
     searchAlias: buildSearchAlias(item.names),
+    names: item.names,
     icon: (
       <CategoryIcon
         name={item.icon}
@@ -76,6 +78,7 @@ export function mediaTypeNodesToOptions(nodes: MediaTypeNode[]): TreeComboboxOpt
     value: node.id,
     label: node.name,
     searchAlias: buildSearchAlias(node.names),
+    names: node.names,
     icon: (
       <CategoryIcon
         name={node.icon}

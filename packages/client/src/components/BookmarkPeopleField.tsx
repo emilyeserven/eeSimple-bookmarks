@@ -38,6 +38,7 @@ export function BookmarkPeopleField({
               options={people.map(a => ({
                 value: a.id,
                 label: a.name,
+                names: a.names,
               }))}
               values={field.state.value}
               onValuesChange={field.handleChange}

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
 interface TreeComboboxProps {
@@ -73,6 +74,7 @@ export function TreeCombobox({
   const {
     t,
   } = useTranslation();
+  const secondaryLanguage = useSecondaryDisplayLanguageValue();
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
@@ -184,6 +186,7 @@ export function TreeCombobox({
                     isSelected: nodeValue => nodeValue === value,
                     onSelect: select,
                     onToggleExpand: toggleExpand,
+                    secondaryLanguage,
                   })}
                 </CommandGroup>
               )}

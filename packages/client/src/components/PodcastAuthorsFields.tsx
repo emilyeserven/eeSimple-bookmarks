@@ -59,6 +59,7 @@ export function PodcastAuthorsFields({
           options={(people ?? []).map(person => ({
             value: person.id,
             label: person.name,
+            names: person.names,
           }))}
           values={personIds}
           onValuesChange={onPersonIdsChange}
@@ -74,6 +75,7 @@ export function PodcastAuthorsFields({
           options={(groups ?? []).map(group => ({
             value: group.id,
             label: group.name,
+            names: group.names,
           }))}
           values={groupIds}
           onValuesChange={onGroupIdsChange}

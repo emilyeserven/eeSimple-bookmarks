@@ -39,6 +39,7 @@ export function BookmarkGroupsField({
               options={groups.map(g => ({
                 value: g.id,
                 label: g.name,
+                names: g.names,
               }))}
               values={field.state.value}
               onValuesChange={field.handleChange}

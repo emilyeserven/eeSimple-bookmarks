@@ -5,6 +5,8 @@ import * as React from "react";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
+
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -16,6 +18,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
 interface MultiComboboxProps {
@@ -59,6 +62,7 @@ export function MultiCombobox({
   const {
     t,
   } = useTranslation();
+  const secondaryLanguage = useSecondaryDisplayLanguageValue();
   const [open, setOpen] = React.useState(false);
   const selectedSet = new Set(values);
   const selectedOptions = options.filter(option => selectedSet.has(option.value));
@@ -116,7 +120,10 @@ export function MultiCombobox({
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  keywords={option.searchAlias ? [option.searchAlias] : undefined}
+                  keywords={[
+                    option.searchAlias,
+                    ...(option.names?.map(name => name.value) ?? []),
+                  ].filter((keyword): keyword is string => Boolean(keyword))}
                   disabled={option.disabled}
                   onSelect={() => toggle(option.value, option.disabled)}
                   style={{
@@ -127,7 +134,11 @@ export function MultiCombobox({
                   `)}
                 >
                   {option.icon}
-                  {option.label}
+                  <LocalizedNameLabel
+                    names={option.names ?? []}
+                    base={option.label}
+                    secondaryLanguage={secondaryLanguage}
+                  />
                   <Check
                     className={cn(
                       "ml-auto",

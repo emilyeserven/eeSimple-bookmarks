@@ -30,6 +30,7 @@ export function ChannelGroupsField({
   const options = groups.map(group => ({
     value: group.id,
     label: group.name,
+    names: group.names,
   }));
 
   return (
