@@ -130,6 +130,7 @@ export function BookmarkSearchView({
           people={people}
           placeTypes={placeTypes}
           genreMoods={genreMoods}
+          bookmarks={bookmarks}
           search={search}
           onSearchChange={onSearchChange}
         />

@@ -98,7 +98,12 @@ interface PresenceControlProps {
   supportsExclude?: boolean;
 }
 
-function PresenceFilterControl({
+/**
+ * The has/missing/exclude presence toggle for a single custom property. Exported (alongside
+ * `PropertyFilterBody`) so a per-property pill can reuse it directly rather than duplicating the
+ * `ToggleGroup` markup.
+ */
+export function PresenceFilterControl({
   propertyId, value, onChange, supportsExclude = false,
 }: PresenceControlProps) {
   const {

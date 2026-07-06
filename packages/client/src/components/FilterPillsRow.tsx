@@ -1,10 +1,11 @@
+import type { FacetBodyContext } from "./useFilterPillsRow";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { FilterFacetKey } from "../lib/filterFacets";
-import type { FilterFacetInputs } from "../lib/filterSidebarVisibility";
-import type { TFunction } from "i18next";
+import type { FilterFacetInputs } from "../lib/filterVisibility";
+import type { Bookmark } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { useTranslation } from "react-i18next";
+import { Plus } from "lucide-react";
 
 import { FacetPresenceToggle } from "./FilterFacetControls";
 import { FilterPill } from "./FilterPill";
@@ -20,7 +21,17 @@ import {
   WebsiteFilterBody,
   YouTubeChannelFilterBody,
 } from "./FilterSidebarSectionBodies";
-import { useOnDemandFilters } from "../hooks/useAppSettings";
+import { LanguageUsageFilterPill } from "./LanguageUsageFilterPill";
+import { PropertyFilterPill } from "./PropertyFilterPill";
+import { SavedFiltersSection } from "./SavedFiltersSection";
+import { Badge } from "./ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { useFilterPillsRow } from "./useFilterPillsRow";
 import {
   withGenreMoodPresence,
   withPlaceTypePresence,
@@ -29,23 +40,14 @@ import {
   withWebsitePresence,
   withYouTubeChannelPresence,
 } from "../lib/bookmarkSearch";
-import { FILTER_FACETS, facetHasActiveSelection, facetSelectionSummary } from "../lib/filterFacets";
-import { computeFilterSidebarVisibility } from "../lib/filterSidebarVisibility";
+import { facetHasActiveSelection, facetSelectionSummary } from "../lib/filterFacets";
 
 export interface FilterPillsRowProps extends FilterFacetInputs {
+  /** Bookmarks in view, used to derive custom-property slider bounds when a property has no min/max. */
+  bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }
-
-/** The facet data + search wiring threaded into each pill's popover body. */
-interface FacetBodyContext {
-  data: FilterPillsRowProps;
-  search: BookmarkSearch;
-  onSearchChange: (next: BookmarkSearch) => void;
-  t: TFunction;
-}
-
-const EMPTY_ADDED = new Set<string>();
 
 /**
  * The popover body for a facet's pill: the same presence toggle + control + chips + Reset the sidebar
@@ -188,35 +190,37 @@ function renderFacetBody(key: FilterFacetKey, ctx: FacetBodyContext): ReactNode 
 }
 
 /**
- * The "pills" filter placement: a row of pills under the search bar, one per visible registry facet.
- * Visibility reuses the sidebar's on-demand gating (`computeFilterSidebarVisibility`) — an on-demand
- * facet gets no pill until it has an active selection (the "Add filter" pill is a later wave). Custom
- * properties and language usage are intentionally out of scope here.
+ * The "pills" filter placement: a row of pills under the search bar, one per visible registry facet,
+ * plus the sidebar's remaining sections in pill form. Visibility reuses the sidebar's on-demand gating
+ * (`computeFilterVisibility`) — an on-demand facet/property gets no pill until it has an active
+ * selection or the trailing "Add filter" pill reveals it for the session. Saved filters lead the row
+ * (its own self-managed trigger, not wrapped in a popover); custom-property pills and the
+ * self-gated language-usage pill follow the standard facets.
  */
 export function FilterPillsRow(props: FilterPillsRowProps) {
   const {
-    search, onSearchChange,
+    bookmarks, search, onSearchChange,
   } = props;
   const {
-    t,
-  } = useTranslation();
-  const onDemand = useOnDemandFilters();
-  const {
-    facetVisible,
-  } = computeFilterSidebarVisibility(props, search, onDemand, EMPTY_ADDED);
+    visibleFacets, visibleProperties, addableFilters, revealFilter, ctx, t,
+  } = useFilterPillsRow(props);
 
-  const visibleFacets = FILTER_FACETS.filter(facet => facetVisible[facet.key]);
-  if (visibleFacets.length === 0) return null;
-
-  const ctx: FacetBodyContext = {
-    data: props,
-    search,
-    onSearchChange,
-    t,
-  };
+  if (
+    visibleFacets.length === 0
+    && visibleProperties.length === 0
+    && addableFilters.length === 0
+  ) {
+    return null;
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <SavedFiltersSection
+        search={search}
+        onSearchChange={onSearchChange}
+        compact
+      />
+
       {visibleFacets.map(facet => (
         <FilterPill
           key={facet.key}
@@ -227,6 +231,50 @@ export function FilterPillsRow(props: FilterPillsRowProps) {
           {renderFacetBody(facet.key, ctx)}
         </FilterPill>
       ))}
+
+      {visibleProperties.map(property => (
+        <PropertyFilterPill
+          key={property.id}
+          property={property}
+          bookmarks={bookmarks}
+          search={search}
+          onSearchChange={onSearchChange}
+        />
+      ))}
+
+      <LanguageUsageFilterPill
+        search={search}
+        onSearchChange={onSearchChange}
+      />
+
+      {addableFilters.length > 0
+        ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Badge
+                asChild
+                variant="outline"
+                className="cursor-pointer gap-1 text-muted-foreground"
+              >
+                <button type="button">
+                  <Plus className="size-3.5" />
+                  {t("Add filter")}
+                </button>
+              </Badge>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {addableFilters.map(item => (
+                <DropdownMenuItem
+                  key={item.key}
+                  onSelect={() => revealFilter(item.key)}
+                >
+                  {item.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+        : null}
     </div>
   );
 }

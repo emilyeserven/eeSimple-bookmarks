@@ -3,7 +3,7 @@ import type { TagNode } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { computeFacetData, computeFilterSidebarVisibility } from "./filterSidebarVisibility";
+import { computeFacetData, computeFilterVisibility } from "./filterVisibility";
 import { makeCategory, makeCustomProperty, makeTag } from "../test-utils/factories";
 
 const tagNode: TagNode = {
@@ -61,9 +61,9 @@ describe("computeFacetData", () => {
   });
 });
 
-describe("computeFilterSidebarVisibility", () => {
+describe("computeFilterVisibility", () => {
   it("shows facets with data when nothing is on-demand", () => {
-    const result = computeFilterSidebarVisibility(
+    const result = computeFilterVisibility(
       {
         tree: [tagNode],
         properties: [],
@@ -82,7 +82,7 @@ describe("computeFilterSidebarVisibility", () => {
   });
 
   it("hides an on-demand facet and offers it in the Add-filter menu", () => {
-    const result = computeFilterSidebarVisibility(
+    const result = computeFilterVisibility(
       {
         tree: [tagNode],
         properties: [],
@@ -99,7 +99,7 @@ describe("computeFilterSidebarVisibility", () => {
   });
 
   it("reveals an on-demand facet once added this session", () => {
-    const result = computeFilterSidebarVisibility(
+    const result = computeFilterVisibility(
       {
         tree: [tagNode],
         properties: [],
@@ -113,7 +113,7 @@ describe("computeFilterSidebarVisibility", () => {
   });
 
   it("always shows an on-demand facet with an active selection (deep links never disappear)", () => {
-    const result = computeFilterSidebarVisibility(
+    const result = computeFilterVisibility(
       {
         tree: [tagNode],
         properties: [],
@@ -143,7 +143,7 @@ describe("computeFilterSidebarVisibility", () => {
       id: "p3",
       enabled: false,
     });
-    const result = computeFilterSidebarVisibility(
+    const result = computeFilterVisibility(
       {
         tree: [],
         properties: [shown, onDemandProp, disabled],
@@ -162,7 +162,7 @@ describe("computeFilterSidebarVisibility", () => {
   });
 
   it("reports no filters when there is no data at all", () => {
-    const result = computeFilterSidebarVisibility(
+    const result = computeFilterVisibility(
       {
         tree: [],
         properties: [],
