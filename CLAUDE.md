@@ -781,6 +781,35 @@ even though a bookmark can no longer link an Artist row). Groups has its **own a
   steps copy the rows + bookmark/album links, then drop the artists table). Group bands can't be
   auto-classified, so they land in People — re-credit them to Groups by hand.
 
+## Franchise hub bookmarks
+
+A **franchise / IP grouping** (e.g. "The Lord of the Rings") is modeled as an ordinary **hub bookmark**,
+not a taxonomy. This is the replacement for the retired `media_properties` grouping (part of the #1057
+Media Property → Media Type reconciliation) — the data migration materializes each old `media_properties`
+row into this shape. The convention rides entirely on existing bookmark/relationship infrastructure; the
+**only** dedicated piece is the built-in **"Franchise"** media type.
+
+- **Hub shape** — a hub is a plain (usually **URL-less**) bookmark carrying `mediaTypeId = Franchise`
+  (the built-in seeded by `ensureBuiltInMediaTypes()` in `services/mediaTypes.ts`). The Franchise media
+  type is what makes hubs identifiable and gives a one-click **"show all franchises"** via the ordinary
+  Media Type filter facet — don't add a parallel franchise vocabulary. URL-less hubs render via the
+  #1070 nullable-`url` support.
+- **Member edges** — a hub links each member via the built-in **directional Parent/child** relationship
+  type, **hub = parent, member = child** (in the `BookmarkRelationshipsEditor`, tick "Selected bookmark
+  is the parent" on the member so the hub becomes the parent). Storage/direction and rendering are the
+  standard relationship stack: `bookmark_relationships` (parent = `bookmark_a_id`), `lib/bookmarkHierarchy.ts`,
+  and the "Hierarchy" detail section (`components/bookmarkDetailSections.tsx`).
+- **Franchise page = the hub bookmark's own detail view** (its Hierarchy/Related sections list the
+  members) — this replaces `/taxonomies/media-properties/$slug`. Don't build a dedicated franchise page.
+- **Discoverability is intentionally minimal.** Per-franchise browsing is the hub page; global discovery
+  is the **Media Type = Franchise** facet plus the coarse **relationship-type** facet/condition leaf
+  ("has a Parent/child edge"). The relationship-type facet/leaf are **role-blind** — they can't express
+  "only members of franchise Y" — which is an **accepted, documented limitation**, not a gap to close
+  here. A role/hub-aware franchise filter is a possible future follow-up.
+- **`people.mediaPropertyId`** (vestige of the retired Artists taxonomy) is slated to be **dropped at
+  `media_properties` retirement** — a person↔franchise link is expressible post-migration by crediting
+  the person on the hub bookmark (`bookmark_people`).
+
 ## Generated files (do not edit)
 
 - `packages/client/src/routeTree.gen.ts` — regenerate with `pnpm --filter=@eesimple/client routeTree`

@@ -1089,6 +1089,7 @@
   "For matching paths, only these query params are kept; the rest are stripped.": "For matching paths, only these query params are kept; the rest are stripped.",
   "Format preview": "Format preview",
   "Found in tree": "Found in tree",
+  "Franchise": "Franchise",
   "Franchises and IP groupings (e.g. a book series). Group related books under a media property. Click one to view or edit it.": "Franchises and IP groupings (e.g. a book series). Group related books under a media property. Click one to view or edit it.",
   "From": "From",
   "From {{source}}": "From {{source}}",
