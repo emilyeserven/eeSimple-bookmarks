@@ -19,6 +19,7 @@ export * from "./autofillMerge.js";
 export * from "./albums.js";
 export * from "./amazon.js";
 export * from "./bookmarkAddForm.js";
+export * from "./honto.js";
 export * from "./books.js";
 export * from "./entityNames.js";
 export * from "./episodes.js";
@@ -1436,6 +1437,12 @@ export interface CreateBookmarkInput {
    * recognized YouTube URL, the server resolves it from the video's metadata.
    */
   youtubeChannel?: YouTubeChannelHint | null;
+  /**
+   * Id of an existing YouTube channel to manually associate with this bookmark, or `null` to
+   * clear it. Omit to leave unchanged. Takes precedence over an auto-detected `youtubeChannel`
+   * hint when both are given.
+   */
+  youtubeChannelId?: string | null;
   /** Id of the newsletter (publication) this bookmark belongs to, or `null`. */
   newsletterId?: string | null;
   /** Id of the import event this bookmark was created from, or `null`. */

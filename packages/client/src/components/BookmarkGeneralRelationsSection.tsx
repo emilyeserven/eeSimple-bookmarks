@@ -28,6 +28,7 @@ export function BookmarkGeneralRelationsSection({
     mediaTypes,
     people,
     groups,
+    youtubeChannels,
     addTagOpen,
     setAddTagOpen,
     addPersonOpen,
@@ -42,6 +43,10 @@ export function BookmarkGeneralRelationsSection({
   const mediaTypeCreate = useEntityCreateOption("media-type", (mediaType) => {
     form.setFieldValue("mediaTypeId", mediaType.id);
     saveField("mediaTypeId", mediaType.id);
+  });
+  const youtubeChannelCreate = useEntityCreateOption("youtube-channel", (channel) => {
+    form.setFieldValue("youtubeChannelId", channel.id);
+    saveField("youtubeChannelId", channel.id);
   });
   const groupCreate = useEntityCreateOption("group", (group) => {
     const current = form.getFieldValue("groupIds");
@@ -76,6 +81,24 @@ export function BookmarkGeneralRelationsSection({
         )}
       </form.AppField>
       {mediaTypeCreate.modal}
+
+      <form.AppField name="youtubeChannelId">
+        {field => (
+          <field.ComboboxField
+            label={t("YouTube channel")}
+            placeholder={t("No channel")}
+            searchPlaceholder={t("Search channels…")}
+            emptyText={t("No channels found.")}
+            onValueChange={value => saveField("youtubeChannelId", value || null)}
+            createOption={youtubeChannelCreate.createOption}
+            options={(youtubeChannels ?? []).map(channel => ({
+              value: channel.id,
+              label: channel.name,
+            }))}
+          />
+        )}
+      </form.AppField>
+      {youtubeChannelCreate.modal}
 
       <form.Subscribe selector={state => state.values.categoryId}>
         {categoryId => (

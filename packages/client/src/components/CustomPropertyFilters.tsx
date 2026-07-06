@@ -179,6 +179,111 @@ function PresenceFilterControl({
   );
 }
 
+interface PropertyFilterBodyProps {
+  property: CustomProperty;
+  bookmarks: Pick<Bookmark, "numberValues">[];
+  numberValue: [number, number] | undefined;
+  booleanValue: boolean | undefined;
+  dateTimeValue: [string | null, string | null] | undefined;
+  presenceValue: "has" | "missing" | "exclude" | undefined;
+  choicesValue: string[] | undefined;
+  onNumberFilterChange: (propertyId: string, range: [number, number] | undefined) => void;
+  onBooleanFilterChange: (propertyId: string, value: boolean | undefined) => void;
+  onDateTimeFilterChange: (propertyId: string, range: [string | null, string | null] | undefined) => void;
+  onChoicesFilterChange: (propertyId: string, values: string[]) => void;
+  onPropertyReset: (propertyId: string) => void;
+}
+
+/**
+ * One property's filter body: the type-specific control (number range / date-time / boolean /
+ * choices, chosen by `property.type` and gated on `presenceValue`) plus a Reset button. Extracted
+ * from the property's `Collapsible` so a future per-property popover can reuse it directly.
+ */
+export function PropertyFilterBody({
+  property,
+  bookmarks,
+  numberValue,
+  booleanValue,
+  dateTimeValue,
+  presenceValue,
+  choicesValue,
+  onNumberFilterChange,
+  onBooleanFilterChange,
+  onDateTimeFilterChange,
+  onChoicesFilterChange,
+  onPropertyReset,
+}: PropertyFilterBodyProps) {
+  const {
+    t,
+  } = useTranslation();
+  const isFilterActive
+    = numberValue !== undefined
+      || booleanValue !== undefined
+      || dateTimeValue !== undefined
+      || presenceValue !== undefined
+      || (choicesValue?.length ?? 0) > 0;
+
+  return (
+    <>
+      {presenceValue !== "missing" && presenceValue !== "exclude" && isRangeProperty(property)
+        ? (
+          <NumberFilterControl
+            property={property}
+            bounds={effectiveBounds(property, bookmarks)}
+            value={numberValue}
+            onChange={onNumberFilterChange}
+          />
+        )
+        : null}
+
+      {presenceValue !== "missing" && presenceValue !== "exclude" && property.type === "datetime"
+        ? (
+          <DateTimeFilterControl
+            property={property}
+            value={dateTimeValue}
+            onChange={onDateTimeFilterChange}
+          />
+        )
+        : null}
+
+      {presenceValue !== "missing" && presenceValue !== "exclude" && property.type === "boolean"
+        ? (
+          <BooleanFilterControl
+            property={property}
+            value={booleanValue}
+            onChange={onBooleanFilterChange}
+          />
+        )
+        : null}
+
+      {presenceValue !== "missing" && property.type === "choices"
+        ? (
+          <ChoicesFilterControl
+            property={property}
+            value={choicesValue}
+            onChange={onChoicesFilterChange}
+          />
+        )
+        : null}
+
+      {isFilterActive
+        ? (
+          <button
+            type="button"
+            onClick={() => onPropertyReset(property.id)}
+            className="
+              text-xs text-primary
+              hover:underline
+            "
+          >
+            {t("Reset")}
+          </button>
+        )
+        : null}
+    </>
+  );
+}
+
 /** Renders one dynamic filter control per custom property in the filter sidebar. */
 export function CustomPropertyFilters({
   properties,
@@ -238,16 +343,6 @@ export function CustomPropertyFilters({
   function renderProperty(property: CustomProperty) {
     const isActive = isPropertyActive(property);
     const presenceValue = presenceValues[property.id];
-    const isFilterActive
-      = numberValues[property.id] !== undefined
-        || booleanValues[property.id] !== undefined
-        || dateTimeValues[property.id] !== undefined
-        || presenceValue !== undefined
-        || (choicesValues[property.id]?.length ?? 0) > 0;
-
-    function handleReset() {
-      onPropertyReset(property.id);
-    }
 
     return (
       <Collapsible
@@ -310,61 +405,20 @@ export function CustomPropertyFilters({
         <CollapsibleContent
           className={cn("space-y-3", !isActive && "pointer-events-none")}
         >
-          {presenceValue !== "missing" && presenceValue !== "exclude" && isRangeProperty(property)
-            ? (
-              <NumberFilterControl
-                property={property}
-                bounds={effectiveBounds(property, bookmarks)}
-                value={numberValues[property.id]}
-                onChange={onNumberFilterChange}
-              />
-            )
-            : null}
-
-          {presenceValue !== "missing" && presenceValue !== "exclude" && property.type === "datetime"
-            ? (
-              <DateTimeFilterControl
-                property={property}
-                value={dateTimeValues[property.id]}
-                onChange={onDateTimeFilterChange}
-              />
-            )
-            : null}
-
-          {presenceValue !== "missing" && presenceValue !== "exclude" && property.type === "boolean"
-            ? (
-              <BooleanFilterControl
-                property={property}
-                value={booleanValues[property.id]}
-                onChange={onBooleanFilterChange}
-              />
-            )
-            : null}
-
-          {presenceValue !== "missing" && property.type === "choices"
-            ? (
-              <ChoicesFilterControl
-                property={property}
-                value={choicesValues[property.id]}
-                onChange={onChoicesFilterChange}
-              />
-            )
-            : null}
-
-          {isFilterActive
-            ? (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="
-                  text-xs text-primary
-                  hover:underline
-                "
-              >
-                {t("Reset")}
-              </button>
-            )
-            : null}
+          <PropertyFilterBody
+            property={property}
+            bookmarks={bookmarks}
+            numberValue={numberValues[property.id]}
+            booleanValue={booleanValues[property.id]}
+            dateTimeValue={dateTimeValues[property.id]}
+            presenceValue={presenceValue}
+            choicesValue={choicesValues[property.id]}
+            onNumberFilterChange={onNumberFilterChange}
+            onBooleanFilterChange={onBooleanFilterChange}
+            onDateTimeFilterChange={onDateTimeFilterChange}
+            onChoicesFilterChange={onChoicesFilterChange}
+            onPropertyReset={onPropertyReset}
+          />
         </CollapsibleContent>
       </Collapsible>
     );
