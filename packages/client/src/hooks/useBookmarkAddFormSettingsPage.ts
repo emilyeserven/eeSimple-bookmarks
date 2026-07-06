@@ -23,7 +23,6 @@ export const BOOKMARK_ADD_FORM_STANDARD_LABELS: Record<BookmarkAddFormStandardFi
   names: "Other titles",
   categoryId: "Category",
   mediaTypeId: "Media Type",
-  groupId: "Group",
   descriptionTags: "Description & Tags",
   personIds: "People",
   image: "Image",

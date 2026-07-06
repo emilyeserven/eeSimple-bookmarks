@@ -14,7 +14,7 @@ import { mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 type Ctrl = ReturnType<typeof useBookmarkGeneralForm>;
 
-/** The relationship fields: media type, tags + tag blacklist, locations + location blacklist, and people (each with its inline-create modal). */
+/** The relationship fields: media type, tags, locations, people, and groups (each with its inline-create modal). Tag/location blacklists live in {@link BookmarkBlacklistSection}. */
 export function BookmarkGeneralRelationsSection({
   ctrl,
 }: { ctrl: Ctrl }) {
@@ -35,8 +35,6 @@ export function BookmarkGeneralRelationsSection({
     saveField,
     saveTags,
     saveLocations,
-    saveBlacklistedTagIds,
-    saveBlacklistedLocationIds,
     savePeople,
     saveGroups,
     touchedRef,
@@ -81,49 +79,28 @@ export function BookmarkGeneralRelationsSection({
 
       <form.Subscribe selector={state => state.values.categoryId}>
         {categoryId => (
-          <>
-            <form.Field name="tagIds">
-              {field => (
-                <GatedTagPicker
-                  categoryId={categoryId}
-                  tree={tagTree ?? []}
-                  selectedIds={field.state.value}
-                  onToggle={(id) => {
-                    touchedRef.current.add("tags");
-                    const current = field.state.value;
-                    const newTagIds = current.includes(id)
-                      ? current.filter(tagId => tagId !== id)
-                      : [...current, id];
-                    field.handleChange(newTagIds);
-                    saveTags(newTagIds);
-                  }}
-                  createOption={{
-                    label: t("Create tag"),
-                    onSelect: () => setAddTagOpen(true),
-                  }}
-                />
-              )}
-            </form.Field>
-            <form.Field name="blacklistedTagIds">
-              {field => (
-                <GatedTagPicker
-                  categoryId={categoryId}
-                  tree={tagTree ?? []}
-                  selectedIds={field.state.value}
-                  onToggle={(id) => {
-                    const current = field.state.value;
-                    const next = current.includes(id)
-                      ? current.filter(tagId => tagId !== id)
-                      : [...current, id];
-                    field.handleChange(next);
-                    saveBlacklistedTagIds(next);
-                  }}
-                  label={t("Tag blacklist")}
-                  description={t("Tags toggled here will never be auto-applied by autofill rules.")}
-                />
-              )}
-            </form.Field>
-          </>
+          <form.Field name="tagIds">
+            {field => (
+              <GatedTagPicker
+                categoryId={categoryId}
+                tree={tagTree ?? []}
+                selectedIds={field.state.value}
+                onToggle={(id) => {
+                  touchedRef.current.add("tags");
+                  const current = field.state.value;
+                  const newTagIds = current.includes(id)
+                    ? current.filter(tagId => tagId !== id)
+                    : [...current, id];
+                  field.handleChange(newTagIds);
+                  saveTags(newTagIds);
+                }}
+                createOption={{
+                  label: t("Create tag"),
+                  onSelect: () => setAddTagOpen(true),
+                }}
+              />
+            )}
+          </form.Field>
         )}
       </form.Subscribe>
       <AddTagModal
@@ -162,29 +139,6 @@ export function BookmarkGeneralRelationsSection({
         )}
       </form.Field>
       {locationCreate.modal}
-
-      <form.Field name="blacklistedLocationIds">
-        {field => (
-          <div className="space-y-1">
-            <Label>{t("Location blacklist")}</Label>
-            <p className="text-xs text-muted-foreground">
-              {t("Locations toggled here will never be auto-applied by autofill rules.")}
-            </p>
-            <LocationPicker
-              tree={locationTree ?? []}
-              selectedIds={field.state.value}
-              onToggle={(id) => {
-                const current = field.state.value;
-                const next = current.includes(id)
-                  ? current.filter(locationId => locationId !== id)
-                  : [...current, id];
-                field.handleChange(next);
-                saveBlacklistedLocationIds(next);
-              }}
-            />
-          </div>
-        )}
-      </form.Field>
 
       <form.Field name="personIds">
         {field => (

@@ -6,7 +6,6 @@ import { useState } from "react";
 import { BOOKMARK_ADD_FORM_PLACEMENTS, BOOKMARK_ADD_FORM_STANDARD_FIELDS } from "@eesimple/types";
 import {
   Ban,
-  Building2,
   CaseSensitive,
   Clapperboard,
   Drama,
@@ -49,7 +48,6 @@ const STANDARD_FIELD_ICONS: Record<BookmarkAddFormStandardField, LucideIcon> = {
   names: CaseSensitive,
   categoryId: FolderOpen,
   mediaTypeId: Clapperboard,
-  groupId: Building2,
   descriptionTags: Tags,
   personIds: UserRound,
   image: Image,

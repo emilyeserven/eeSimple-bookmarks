@@ -17,7 +17,6 @@ import { Fragment } from "react";
 
 import { BookmarkAdvancedCategoryField } from "./BookmarkAdvancedCategoryField";
 import { BookmarkAdvancedDescriptionTagsField } from "./BookmarkAdvancedDescriptionTagsField";
-import { BookmarkAdvancedGroupField } from "./BookmarkAdvancedGroupField";
 import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
 import { BookmarkExcludedLocationsField } from "./BookmarkExcludedLocationsField";
 import { BookmarkExcludedTagsField } from "./BookmarkExcludedTagsField";
@@ -80,12 +79,6 @@ const FIELD_RENDERERS: Record<
       form={props.form}
       mediaTypes={props.mediaTypes}
       sourceDefaults={props.sourceDefaults}
-    />
-  ),
-  groupId: props => (
-    <BookmarkAdvancedGroupField
-      form={props.form}
-      groups={props.groups ?? []}
     />
   ),
   descriptionTags: props => (

@@ -55,7 +55,6 @@ export const BOOKMARK_ADD_FORM_STANDARD_FIELDS = [
   "names",
   "categoryId",
   "mediaTypeId",
-  "groupId",
   "descriptionTags",
   "personIds",
   "image",
@@ -112,7 +111,7 @@ export type UpdateBookmarkAddFormInput = BookmarkAddFormSettings;
 
 /**
  * Default placement for every standard Add Bookmark form field: `title`/`names` show in
- * the main area, today's taxonomy fields (category/media type/group/description & tags/
+ * the main area, today's taxonomy fields (category/media type/description & tags/
  * people/image) sit in Advanced, and the newer taxonomy/media/location relations
  * (groups/genres & moods/locations/media link/blacklists) default to hidden so the create form is
  * unchanged until the user opts them in.
@@ -122,7 +121,6 @@ const DEFAULT_STANDARD_FIELD_PLACEMENTS: Record<BookmarkAddFormStandardField, Bo
   names: "default",
   categoryId: "advanced",
   mediaTypeId: "advanced",
-  groupId: "advanced",
   descriptionTags: "advanced",
   personIds: "advanced",
   image: "advanced",
