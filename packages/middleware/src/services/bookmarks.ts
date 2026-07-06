@@ -1,6 +1,7 @@
 import { and, count, desc, eq, ilike, inArray, isNull, like, ne, or } from "drizzle-orm";
 import type {
   Bookmark,
+  BookmarkIdentityCheckInput,
   BookmarkUrlDuplicateResult,
   BookmarkUrlSummary,
   BulkBookmarkResult,
@@ -1099,8 +1100,42 @@ export async function updateBookmarkRelationships(
   invalidateBookmarkCache();
 }
 
-/** Check if a URL exactly matches an existing bookmark, or shares the same origin+pathname. */
-export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUrlDuplicateResult> {
+/** Bookmarks sharing any of the given Plex/Kavita/ISBN/feed identity fields. */
+async function findIdentityMatches(identity: BookmarkIdentityCheckInput): Promise<BookmarkUrlSummary[]> {
+  const conditions = [];
+  if (identity.isbn) conditions.push(eq(bookmarks.isbn, identity.isbn));
+  if (identity.plexRatingKey) conditions.push(eq(bookmarks.plexRatingKey, identity.plexRatingKey));
+  if (identity.kavitaSeriesId != null) conditions.push(eq(bookmarks.kavitaSeriesId, identity.kavitaSeriesId));
+  if (identity.feedUrl) conditions.push(eq(bookmarks.feedUrl, identity.feedUrl));
+  if (conditions.length === 0) return [];
+
+  return db
+    .select({
+      id: bookmarks.id,
+      url: bookmarks.url,
+      title: bookmarks.title,
+    })
+    .from(bookmarks)
+    .where(or(...conditions));
+}
+
+/**
+ * Check if a URL exactly matches an existing bookmark, shares the same origin+pathname, or shares a
+ * Plex/Kavita/ISBN/podcast-feed identity with an existing bookmark (see #1072).
+ */
+export async function checkBookmarkUrlDuplicate(
+  url?: string,
+  identity?: BookmarkIdentityCheckInput,
+): Promise<BookmarkUrlDuplicateResult> {
+  const identityMatches = identity ? await findIdentityMatches(identity) : [];
+  const withoutId = (id: string) => identityMatches.filter(m => m.id !== id);
+
+  if (!url) return {
+    exactMatch: null,
+    pathMatch: null,
+    identityMatches,
+  };
+
   const exact = await db
     .select({
       id: bookmarks.id,
@@ -1113,6 +1148,7 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
   if (exact.length > 0) return {
     exactMatch: exact[0]!,
     pathMatch: null,
+    identityMatches: withoutId(exact[0]!.id),
   };
 
   let parsed: URL;
@@ -1123,6 +1159,7 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
     return {
       exactMatch: null,
       pathMatch: null,
+      identityMatches,
     };
   }
   const basePath = parsed.origin + parsed.pathname;
@@ -1148,6 +1185,7 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
   if (pathCandidates.length === 0) return {
     exactMatch: null,
     pathMatch: null,
+    identityMatches,
   };
 
   // Look up paramRules for this domain so identity-bearing params (e.g. YouTube's ?v= on /watch)
@@ -1163,9 +1201,11 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
     : null;
 
   if (!matchingRule) {
+    const pathMatch = pathCandidates[0] ?? null;
     return {
       exactMatch: null,
-      pathMatch: pathCandidates[0] ?? null,
+      pathMatch,
+      identityMatches: pathMatch ? withoutId(pathMatch.id) : identityMatches,
     };
   }
 
@@ -1183,5 +1223,6 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
   return {
     exactMatch: null,
     pathMatch,
+    identityMatches: pathMatch ? withoutId(pathMatch.id) : identityMatches,
   };
 }

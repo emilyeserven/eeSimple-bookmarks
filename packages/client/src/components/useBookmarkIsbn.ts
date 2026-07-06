@@ -1,13 +1,14 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
 import type { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
-import type { CustomProperty, ImageCandidate, Language, MediaType, Person, Group } from "@eesimple/types";
+import type { BookmarkUrlDuplicateResult, CustomProperty, ImageCandidate, Language, MediaType, Person, Group } from "@eesimple/types";
 
 import { normalizeIsbnTo13 } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { ISBN_SLUG, normalizeIsbn } from "./bookmarkFormSchema";
 import { useAppLocale } from "../hooks/useAppLocale";
+import { useBookmarkUrlDuplicateCheck } from "../hooks/useBookmarks";
 import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
 import { ApiError, describeError } from "../lib/apiError";
 import { languageDisplayName } from "../lib/languageDisplay";
@@ -34,6 +35,8 @@ interface UseBookmarkIsbnParams {
   setImageCandidates: (candidates: ImageCandidate[]) => void;
   /** Attach a detected primary language as a "Primary Language" usage row (see the hook's docs). */
   primaryLanguage: ReturnType<typeof useBookmarkPrimaryLanguage>;
+  /** Surfaces a bookmark that already carries this ISBN (see #1072's identity-duplicate check). */
+  setUrlDuplicate: (result: BookmarkUrlDuplicateResult | null) => void;
 }
 
 /**
@@ -58,11 +61,13 @@ export function useBookmarkIsbn({
   setScanned,
   setImageCandidates,
   primaryLanguage,
+  setUrlDuplicate,
 }: UseBookmarkIsbnParams) {
   const {
     t,
   } = useTranslation();
   const isbnFetch = useFetchIsbnMetadata();
+  const urlDuplicateCheck = useBookmarkUrlDuplicateCheck();
   const locale = useAppLocale();
 
   async function handleIsbnFetch(isbn: string): Promise<void> {
@@ -80,6 +85,13 @@ export function useBookmarkIsbn({
       notifyError(`${message}${detail}`);
       return;
     }
+    urlDuplicateCheck.mutate({
+      identity: {
+        isbn,
+      },
+    }, {
+      onSuccess: setUrlDuplicate,
+    });
     if (result.title && !form.getFieldValue("title").trim()) {
       form.setFieldValue("title", result.title);
     }

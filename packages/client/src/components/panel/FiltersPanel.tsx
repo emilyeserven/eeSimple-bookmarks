@@ -54,6 +54,8 @@ export function FiltersPanel() {
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
   const hasSectionsFilter = enabledProperties.some(p => p.type === "sections");
+  const hasMediaSourceFilter = bookmarks.some(b =>
+    b.plexRatingKey != null || b.kavitaSeriesId != null || b.isbn != null || b.feedUrl != null);
 
   return (
     <div className="space-y-8">
@@ -92,6 +94,7 @@ export function FiltersPanel() {
         hasPlaceTypeFilter={hasPlaceTypeFilter}
         hasGenreMoodFilter={hasGenreMoodFilter}
         hasSectionsFilter={hasSectionsFilter}
+        hasMediaSourceFilter={hasMediaSourceFilter}
       />
     </div>
   );

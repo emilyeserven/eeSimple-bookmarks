@@ -70,6 +70,20 @@ export interface BookmarkSearch {
   sectionsPresence?: "has" | "missing" | "exclude";
   /** Filter bookmarks to those with at least one section entry of one of these types (OR semantics). In "exclude" sectionsPresence mode, bookmarks must have none of these types. */
   sectionTypes?: SectionEntryType[];
+  /**
+   * Filter bookmarks by whether they carry any Plex/Kavita/ISBN/podcast-feed identity (see #1072):
+   * "has" = at least one identity field is set, "missing" = none are.
+   */
+  mediaSourcePresence?: "has" | "missing";
+  /**
+   * Exact-match media-source identity filters — not surfaced as sidebar pickers (there's no
+   * taxonomy of values to choose from), only set via the "N bookmarks share this item" deep link
+   * on the bookmark detail page. At most one is meaningfully set at a time.
+   */
+  plexRatingKey?: string;
+  kavitaSeriesId?: number;
+  isbn?: string;
+  feedUrl?: string;
   /** Active sort order (primary + optional secondary dimension, or a random shuffle). Absent = server's default `createdAt DESC` order. */
   sort?: BookmarkSort;
 }
@@ -142,6 +156,21 @@ function validStringList(value: unknown): string[] | undefined {
 /** Narrow a presence value to the `"has" | "missing" | "exclude"` enum, or `undefined` if malformed. */
 function validPresence(value: unknown): "has" | "missing" | "exclude" | undefined {
   return value === "has" || value === "missing" || value === "exclude" ? value : undefined;
+}
+
+/** Narrow a presence value to the `"has" | "missing"` enum (no "exclude"), or `undefined` if malformed. */
+function validHasMissingPresence(value: unknown): "has" | "missing" | undefined {
+  return value === "has" || value === "missing" ? value : undefined;
+}
+
+/** Keep a value only if it is a non-empty string. */
+function validString(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+/** Keep a value only if it is a number. */
+function validNumber(value: unknown): number | undefined {
+  return typeof value === "number" ? value : undefined;
 }
 
 /** Keep a parsed record only if it has at least one entry (an empty record is not an active filter). */
@@ -227,6 +256,11 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     choices: nonEmptyRecord(parseChoicesRecord(search.choices)),
     sectionsPresence: validPresence(search.sectionsPresence),
     sectionTypes: validSectionTypes(search.sectionTypes),
+    mediaSourcePresence: validHasMissingPresence(search.mediaSourcePresence),
+    plexRatingKey: validString(search.plexRatingKey),
+    kavitaSeriesId: validNumber(search.kavitaSeriesId),
+    isbn: validString(search.isbn),
+    feedUrl: validString(search.feedUrl),
     sort: validSort(search.sort),
   };
 
@@ -257,6 +291,10 @@ type SearchableBookmark = Pick<
   | "sectionsValues"
   | "relationships"
   | "languageUsages"
+  | "plexRatingKey"
+  | "kavitaSeriesId"
+  | "isbn"
+  | "feedUrl"
 >;
 
 /** A multi-select relationship-type filter passes when empty or the bookmark has a matching edge. */
@@ -408,6 +446,22 @@ function passesChoicesFilters(bookmark: SearchableBookmark, search: BookmarkSear
   return true;
 }
 
+/** Whether a bookmark carries any Plex/Kavita/ISBN/podcast-feed identity (see #1072). */
+function hasMediaSourceIdentity(bookmark: SearchableBookmark): boolean {
+  return bookmark.plexRatingKey != null
+    || bookmark.kavitaSeriesId != null
+    || bookmark.isbn != null
+    || bookmark.feedUrl != null;
+}
+
+/** Whether a bookmark matches every set exact-value media-source identity filter in `search`. */
+function passesMediaSourceMatch(bookmark: SearchableBookmark, search: BookmarkSearch): boolean {
+  return (search.plexRatingKey === undefined || bookmark.plexRatingKey === search.plexRatingKey)
+    && (search.kavitaSeriesId === undefined || bookmark.kavitaSeriesId === search.kavitaSeriesId)
+    && (search.isbn === undefined || bookmark.isbn === search.isbn)
+    && (search.feedUrl === undefined || bookmark.feedUrl === search.feedUrl);
+}
+
 /** Whether a bookmark satisfies the number/boolean/date-time property-value ranges in `search`. */
 function passesValueFilters(bookmark: SearchableBookmark, search: BookmarkSearch): boolean {
   const numberFilters = Object.entries(search.num ?? {}).map(([propertyId, [lo, hi]]) => ({
@@ -474,6 +528,8 @@ export function bookmarkMatchesSearch(
             && passesChoicesFilters(bookmark, search)
             && passesSectionsPresence(bookmark, search.sectionsPresence)
             && passesSectionTypes(bookmark, search.sectionTypes, search.sectionsPresence)
+            && passesPresence(search.mediaSourcePresence, hasMediaSourceIdentity(bookmark))
+            && passesMediaSourceMatch(bookmark, search)
   );
 }
 
@@ -513,6 +569,11 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     || hasEntries(search.choices)
     || search.sectionsPresence !== undefined
     || hasItems(search.sectionTypes)
+    || search.mediaSourcePresence !== undefined
+    || search.plexRatingKey !== undefined
+    || search.kavitaSeriesId !== undefined
+    || search.isbn !== undefined
+    || search.feedUrl !== undefined
   );
 }
 
@@ -781,6 +842,36 @@ export function withWebsitePresence(
   return next;
 }
 
+/** Return a copy of `search` with the media-source-presence filter set or cleared. */
+export function withMediaSourcePresence(
+  search: BookmarkSearch,
+  mode: "has" | "missing" | undefined,
+): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (mode === undefined) delete next.mediaSourcePresence;
+  else next.mediaSourcePresence = mode;
+  return next;
+}
+
+/** The exact-match media-source identity fields a deep link can target (see {@link withMediaSourceMatch}). */
+export type MediaSourceMatchField = "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl";
+
+/**
+ * Return a fresh search with only the given media-source identity field set to `value` — clears
+ * the other three exact-match fields (and any other active filter) so the "N bookmarks share this
+ * item" deep link from the bookmark detail page lands on exactly the matching set.
+ */
+export function withMediaSourceMatch(
+  field: MediaSourceMatchField,
+  value: string | number,
+): BookmarkSearch {
+  return {
+    [field]: value,
+  } as BookmarkSearch;
+}
+
 /** Return a copy of `search` with a choices filter set, or cleared when `values` is empty. */
 export function withChoicesFilter(
   search: BookmarkSearch,
@@ -944,6 +1035,7 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     countPart(propCount, "property", "properties"),
     sectionPresencePart(search.sectionsPresence),
     search.sectionTypes && search.sectionTypes.length > 0 ? `section types: ${search.sectionTypes.join(", ")}` : null,
+    search.mediaSourcePresence !== undefined ? `media source: ${search.mediaSourcePresence}` : null,
     sortSummaryPart(search.sort),
   ];
   return parts.filter((part): part is string => part !== null).join(" · ") || i18n.t("No filters");

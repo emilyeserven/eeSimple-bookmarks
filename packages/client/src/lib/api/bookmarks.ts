@@ -1,6 +1,7 @@
 import type {
   Bookmark,
   BookmarkFileValue,
+  BookmarkIdentityCheckInput,
   BookmarkImage,
   BookmarkUrlDuplicateResult,
   BookmarkUrlSummary,
@@ -149,10 +150,15 @@ export const bookmarksApi = {
     request<TitleTagBackfillResult>("/bookmarks/backfill-title-locations", {
       method: "POST",
     }),
-  urlCheck: (url: string) =>
-    request<BookmarkUrlDuplicateResult>(
-      `/bookmarks/url-check?url=${encodeURIComponent(url)}`,
-    ),
+  urlCheck: (url?: string, identity?: BookmarkIdentityCheckInput) => {
+    const params = new URLSearchParams();
+    if (url) params.set("url", url);
+    if (identity?.isbn) params.set("isbn", identity.isbn);
+    if (identity?.plexRatingKey) params.set("plexRatingKey", identity.plexRatingKey);
+    if (identity?.kavitaSeriesId != null) params.set("kavitaSeriesId", String(identity.kavitaSeriesId));
+    if (identity?.feedUrl) params.set("feedUrl", identity.feedUrl);
+    return request<BookmarkUrlDuplicateResult>(`/bookmarks/url-check?${params.toString()}`);
+  },
   uploadImage: (id: string, file: File) =>
     uploadImageFile<BookmarkImage>(`/bookmarks/${id}/image`, file),
   autoImage: (id: string) =>

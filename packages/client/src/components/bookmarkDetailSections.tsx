@@ -1,3 +1,4 @@
+import type { MediaSourceMatchGroup } from "../hooks/useBookmarksSharingMediaSource";
 import type { BookmarkHierarchyNode } from "../lib/bookmarkHierarchy";
 import type { RelatedBookmarkEntry } from "../lib/relatedBookmarks";
 import type { FlatNode } from "../lib/tagTree";
@@ -17,6 +18,7 @@ import { BookmarkPlexDetailRow } from "./BookmarkPlexField";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
 import { BookmarkReelArchivePlayer } from "./BookmarkReelArchive";
 import { hasBookmarkPropertyRows } from "../lib/bookmarkProperties";
+import { withMediaSourceMatch } from "../lib/bookmarkSearch";
 
 import { DetailField } from "@/components/DetailField";
 import { LabeledSection } from "@/components/LabeledSection";
@@ -30,6 +32,7 @@ export type BookmarkDetailSectionId
     | "video"
     | "relationships"
     | "related"
+    | "media-source"
     | "hierarchy"
     | "locations"
     | "metadata"
@@ -59,6 +62,8 @@ interface BuildArgs {
    * rest scored by the Bookmark Graph weights; empty = omit the section.
    */
   relatedBookmarks: RelatedBookmarkEntry[];
+  /** Other bookmarks sharing a Plex/Kavita/ISBN/feed identity with this one (see #1072); empty = omit the section. */
+  mediaSourceMatches: MediaSourceMatchGroup[];
   /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
   /** The Default card display rule's field zones, resolving the per-card boolean display knobs. */
@@ -305,6 +310,53 @@ function relatedSection(args: BuildArgs): BookmarkDetailSection | null {
   };
 }
 
+/** The bookmark-detail label for each shareable media-source identity field. */
+const MEDIA_SOURCE_FIELD_LABELS: Record<MediaSourceMatchGroup["field"], () => string> = {
+  plexRatingKey: () => i18n.t("Plex item"),
+  kavitaSeriesId: () => i18n.t("Kavita series"),
+  isbn: () => i18n.t("ISBN"),
+  feedUrl: () => i18n.t("podcast feed"),
+};
+
+function mediaSourceSection(args: BuildArgs): BookmarkDetailSection | null {
+  if (args.mediaSourceMatches.length === 0) return null;
+  return {
+    id: "media-source",
+    label: i18n.t("Media source"),
+    content: (
+      <LabeledSection
+        title={i18n.t("Shared media source")}
+        description={i18n.t("Other bookmarks that carry the same Plex, Kavita, ISBN, or podcast-feed identity.")}
+      >
+        <ul className="space-y-1 text-sm">
+          {args.mediaSourceMatches.map((group) => {
+            const count = group.bookmarks.length;
+            const label = MEDIA_SOURCE_FIELD_LABELS[group.field]();
+            return (
+              <li key={group.field}>
+                <Link
+                  to="/bookmarks"
+                  search={withMediaSourceMatch(group.field, group.value)}
+                  className="hover:underline"
+                >
+                  {count === 1
+                    ? i18n.t("1 other bookmark shares this {{label}}", {
+                      label,
+                    })
+                    : i18n.t("{{count}} other bookmarks share this {{label}}", {
+                      count,
+                      label,
+                    })}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </LabeledSection>
+    ),
+  };
+}
+
 function hierarchySection(
   flatHierarchy: FlatNode<BookmarkHierarchyNode>[],
 ): BookmarkDetailSection | null {
@@ -419,6 +471,7 @@ export function buildBookmarkDetailSections(args: BuildArgs): BookmarkDetailSect
     gallerySection(args.bookmark),
     videoSection(args.bookmark),
     relatedSection(args),
+    mediaSourceSection(args),
     hierarchySection(args.flatHierarchy),
     locationsSection(args.bookmark, args.locationTree),
     metadataSection(args.bookmark),

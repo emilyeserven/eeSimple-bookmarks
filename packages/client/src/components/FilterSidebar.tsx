@@ -48,8 +48,11 @@ interface FilterSidebarProps {
   placeTypes?: PlaceType[];
   /** Genres & Moods offered as a multi-select filter; rendered only when non-empty. */
   genreMoods?: GenreMood[];
-  /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
-  bookmarks: Pick<Bookmark, "numberValues">[];
+  /**
+   * Bookmarks in view, used to derive slider bounds when a property has no min/max, and to check
+   * whether any carries a Plex/Kavita/ISBN/feed identity (the "Media source" facet).
+   */
+  bookmarks: Pick<Bookmark, "numberValues" | "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }
@@ -81,6 +84,7 @@ export function FilterSidebar({
     people,
     placeTypes,
     genreMoods,
+    bookmarks,
   }, search, onDemand, added);
   const hasProperties = visibleProperties.length > 0;
 
@@ -211,6 +215,7 @@ export function FilterSidebar({
                     hasPlaceTypeFilter={facetVisible["place-types"]}
                     hasGenreMoodFilter={facetVisible["genre-moods"]}
                     hasSectionsFilter={facetVisible.sections}
+                    hasMediaSourceFilter={facetVisible["media-source"]}
                     sectionFilter={sectionFilter}
                   />
                 </>

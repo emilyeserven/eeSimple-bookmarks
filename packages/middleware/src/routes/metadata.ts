@@ -62,6 +62,22 @@ const scanQuery = {
       type: "boolean",
       default: true,
     },
+    // Optional identity fields (see #1072) so a rescan can also surface Plex/Kavita/ISBN/feed dupes.
+    isbn: {
+      type: "string",
+      minLength: 1,
+    },
+    plexRatingKey: {
+      type: "string",
+      minLength: 1,
+    },
+    kavitaSeriesId: {
+      type: "number",
+    },
+    feedUrl: {
+      type: "string",
+      minLength: 1,
+    },
   },
 } as const;
 
@@ -540,16 +556,31 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
   }, async (req): Promise<ScanResult> => {
     const {
       url, siteName: siteNameHint, resolveRedirect = true,
+      isbn, plexRatingKey, kavitaSeriesId, feedUrl,
     } = req.query as { url: string;
       siteName?: string;
-      resolveRedirect?: boolean; };
+      resolveRedirect?: boolean;
+      isbn?: string;
+      plexRatingKey?: string;
+      kavitaSeriesId?: number;
+      feedUrl?: string; };
     if (!isValidUrl(url)) {
       throw new ValidationError("url must be a valid http(s) URL");
     }
 
+    const identity = {
+      isbn,
+      plexRatingKey,
+      kavitaSeriesId,
+      feedUrl,
+    };
+    const hasIdentity = Object.values(identity).some(v => v != null);
+
     // Serve a recent identical scan from the short-TTL cache so re-scans / duplicate adds are instant.
+    // Skipped when identity fields are supplied so a stale cached `duplicate` never masks a fresh
+    // identity-based match.
     const cacheKey = scanCacheKey(url, siteNameHint, resolveRedirect);
-    const cached = getCachedScan(cacheKey);
+    const cached = hasIdentity ? null : getCachedScan(cacheKey);
     if (cached) return cached;
 
     // The client gates redirect resolution on its redirect-ignore list, mirroring the old flow.
@@ -567,7 +598,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     const isbnFromAsin = extractIsbn13FromAmazonUrl(finalUrl);
     const [websiteRaw, duplicate, metadata, isbnFromAmazonPage, isbnFromHontoPage] = await Promise.all([
       lookupWebsiteByUrl(finalUrl),
-      checkBookmarkUrlDuplicate(finalUrl),
+      checkBookmarkUrlDuplicate(finalUrl, identity),
       isYouTubeVideoUrl(finalUrl)
         ? buildYouTubeMetadataResult(finalUrl, req.log)
         : buildGenericMetadataResult(finalUrl, siteNameHint),
@@ -610,7 +641,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         diagnostics: metadata.diagnostics,
       }),
     };
-    setCachedScan(cacheKey, result);
+    if (!hasIdentity) setCachedScan(cacheKey, result);
     return result;
   });
 }

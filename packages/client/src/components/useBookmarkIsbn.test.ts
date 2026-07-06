@@ -20,6 +20,12 @@ vi.mock("../lib/notifications", () => ({
   notifyError: vi.fn(),
 }));
 
+vi.mock("../hooks/useBookmarks", () => ({
+  useBookmarkUrlDuplicateCheck: () => ({
+    mutate: vi.fn(),
+  }),
+}));
+
 /** A minimal `form` stub covering only the fields `useBookmarkIsbn` reads/writes. */
 function makeForm(): BookmarkFormApi {
   const values: Record<string, unknown> = {
@@ -99,6 +105,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       setScanned: vi.fn(),
       setImageCandidates,
       primaryLanguage: makePrimaryLanguage(),
+      setUrlDuplicate: vi.fn(),
     }));
 
     await result.current.handleIsbnFetch("9780345391803");
@@ -144,6 +151,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       setScanned: vi.fn(),
       setImageCandidates,
       primaryLanguage: makePrimaryLanguage(),
+      setUrlDuplicate: vi.fn(),
     }));
 
     await result.current.handleIsbnFetch("9780345391803");
@@ -178,6 +186,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       setScanned: vi.fn(),
       setImageCandidates,
       primaryLanguage: makePrimaryLanguage(),
+      setUrlDuplicate: vi.fn(),
     }));
 
     await result.current.handleIsbnFetch("9780345391803");
@@ -217,6 +226,7 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       setScanned: vi.fn(),
       setImageCandidates: vi.fn(),
       primaryLanguage,
+      setUrlDuplicate: vi.fn(),
     }));
 
     await result.current.handleIsbnFetch("9780345391803");
@@ -267,6 +277,7 @@ describe("useBookmarkIsbn handleAmazonIsbnDetected", () => {
       setScanned: vi.fn(),
       setImageCandidates: vi.fn(),
       primaryLanguage: makePrimaryLanguage(),
+      setUrlDuplicate: vi.fn(),
     }));
 
     await result.current.handleAmazonIsbnDetected("9780131103627");
@@ -306,6 +317,7 @@ describe("useBookmarkIsbn handleAmazonIsbnDetected", () => {
       setScanned: vi.fn(),
       setImageCandidates: vi.fn(),
       primaryLanguage: makePrimaryLanguage(),
+      setUrlDuplicate: vi.fn(),
     }));
 
     await result.current.handleAmazonIsbnDetected("9780131103627");
@@ -351,6 +363,7 @@ describe("useBookmarkIsbn handleIsbnFieldFetch", () => {
       setScanned: vi.fn(),
       setImageCandidates: vi.fn(),
       primaryLanguage: makePrimaryLanguage(),
+      setUrlDuplicate: vi.fn(),
     }));
 
     await result.current.handleIsbnFieldFetch("0131103628");
@@ -387,6 +400,7 @@ describe("useBookmarkIsbn handleIsbnFieldFetch", () => {
       setScanned: vi.fn(),
       setImageCandidates: vi.fn(),
       primaryLanguage: makePrimaryLanguage(),
+      setUrlDuplicate: vi.fn(),
     }));
 
     await result.current.handleIsbnFieldFetch("9780131103627");

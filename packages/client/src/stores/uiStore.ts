@@ -58,7 +58,7 @@ export interface FilterContextData {
   people?: Person[];
   placeTypes?: PlaceType[];
   genreMoods?: GenreMood[];
-  bookmarks: Pick<Bookmark, "numberValues">[];
+  bookmarks: Pick<Bookmark, "numberValues" | "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }

@@ -13,6 +13,7 @@ const meta = {
         title: "An Example Article",
       },
       pathMatch: null,
+      identityMatches: [],
     },
   },
 } satisfies Meta<typeof BookmarkUrlDuplicateWarnings>;
@@ -32,6 +33,21 @@ export const PathMatch: Story = {
         url: "https://example.com/article?ref=twitter",
         title: "An Example Article (tracked)",
       },
+      identityMatches: [],
+    },
+  },
+};
+
+export const IdentityMatch: Story = {
+  args: {
+    urlDuplicate: {
+      exactMatch: null,
+      pathMatch: null,
+      identityMatches: [{
+        id: "bk-3",
+        url: "https://libgen.example/book/123",
+        title: "The Hitchhiker's Guide to the Galaxy",
+      }],
     },
   },
 };

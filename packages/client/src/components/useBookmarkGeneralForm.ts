@@ -364,7 +364,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     const url = form.getFieldValue("url");
     runAutofill();
     runWebsiteLookup(url);
-    urlDuplicateCheck.mutate(url, {
+    urlDuplicateCheck.mutate({
+      url,
+    }, {
       onSuccess: setUrlDuplicate,
     });
     const yt = looksLikeYouTube(url);

@@ -34,6 +34,7 @@ import {
 import { useFilterPillsRow } from "./useFilterPillsRow";
 import {
   withGenreMoodPresence,
+  withMediaSourcePresence,
   withPlaceTypePresence,
   withSectionsPresence,
   withTagPresence,
@@ -43,8 +44,11 @@ import {
 import { facetHasActiveSelection, facetSelectionSummary } from "../lib/filterFacets";
 
 export interface FilterPillsRowProps extends FilterFacetInputs {
-  /** Bookmarks in view, used to derive custom-property slider bounds when a property has no min/max. */
-  bookmarks: Pick<Bookmark, "numberValues">[];
+  /**
+   * Bookmarks in view, used to derive custom-property slider bounds when a property has no min/max,
+   * and to check whether any carries a Plex/Kavita/ISBN/feed identity (the "Media source" facet).
+   */
+  bookmarks: Pick<Bookmark, "numberValues" | "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }
@@ -185,6 +189,16 @@ function renderFacetBody(key: FilterFacetKey, ctx: FacetBodyContext): ReactNode 
             onSearchChange={onSearchChange}
           />
         </div>
+      );
+    case "media-source":
+      return (
+        <FacetPresenceToggle
+          value={search.mediaSourcePresence}
+          onChange={mode => onSearchChange(withMediaSourcePresence(search, mode === "exclude" ? undefined : mode))}
+          hasLabel={t("Linked to a media source")}
+          missingLabel={t("Not linked")}
+          hideExclude
+        />
       );
   }
 }

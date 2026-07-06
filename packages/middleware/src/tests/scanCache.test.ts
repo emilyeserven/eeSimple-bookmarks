@@ -18,6 +18,7 @@ function scan(url: string): ScanResult {
     duplicate: {
       exactMatch: null,
       pathMatch: null,
+      identityMatches: [],
     },
     title: null,
     description: null,

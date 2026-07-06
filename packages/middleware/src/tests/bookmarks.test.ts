@@ -41,6 +41,27 @@ test("POST /api/bookmarks rejects a textValue with a non-uuid propertyId", async
   await app.close();
 });
 
+test("GET /api/bookmarks/url-check accepts an identity-only query with no url (see #1072)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "GET",
+    url: "/api/bookmarks/url-check?isbn=9780134685991",
+  });
+  // No schema-validation 400 for an identity-only check; the handler may still fail on the DB here.
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("GET /api/bookmarks/url-check rejects a query with neither url nor an identity field", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "GET",
+    url: "/api/bookmarks/url-check",
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("isValidUrl accepts http(s) URLs and rejects everything else", () => {
   assert.equal(isValidUrl("https://example.com"), true);
   assert.equal(isValidUrl("http://example.com/path?q=1"), true);

@@ -39,6 +39,7 @@ const meta = {
     hasPersonFilter: false,
     hasPlaceTypeFilter: false,
     hasGenreMoodFilter: false,
+    hasMediaSourceFilter: false,
   },
 } satisfies Meta<typeof FilterSections>;
 
