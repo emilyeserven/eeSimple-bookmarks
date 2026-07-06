@@ -6,7 +6,7 @@ export const Route = createFileRoute("/taxonomies/property-groups/$propertyGroup
     params,
   }) => {
     throw redirect({
-      to: "/taxonomies/property-groups/$propertyGroupSlug/general",
+      to: "/taxonomies/property-groups/$propertyGroupSlug/info",
       params,
     });
   },

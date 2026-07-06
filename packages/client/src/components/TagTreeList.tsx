@@ -95,7 +95,7 @@ export function TagTreeList({
       )}
       renderInfoLink={node => (
         <Link
-          to="/tags/$tagSlug/general"
+          to="/tags/$tagSlug/info"
           params={{
             tagSlug: node.slug,
           }}

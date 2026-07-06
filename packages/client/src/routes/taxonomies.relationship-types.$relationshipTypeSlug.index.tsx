@@ -6,7 +6,7 @@ export const Route = createFileRoute("/taxonomies/relationship-types/$relationsh
     params,
   }) => {
     throw redirect({
-      to: "/taxonomies/relationship-types/$relationshipTypeSlug/general",
+      to: "/taxonomies/relationship-types/$relationshipTypeSlug/info",
       params,
     });
   },

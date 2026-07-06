@@ -35,7 +35,7 @@ export function GenreMoodHierarchyHoverCard({
       path={path}
       renderLink={node => (
         <Link
-          to="/taxonomies/genres-moods/$genreMoodSlug/general"
+          to="/taxonomies/genres-moods/$genreMoodSlug/info"
           params={{
             genreMoodSlug: node.slug,
           }}

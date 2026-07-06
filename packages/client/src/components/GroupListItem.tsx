@@ -94,7 +94,7 @@ export function GroupListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/groups/$groupSlug/general"
+            to="/taxonomies/groups/$groupSlug/info"
             params={{
               groupSlug: group.slug,
             }}

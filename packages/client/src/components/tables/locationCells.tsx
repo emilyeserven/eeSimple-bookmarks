@@ -32,7 +32,7 @@ export function LocationNameCell({
       <TreeExpandToggle row={row} />
       <MapPin className="size-4 shrink-0 text-muted-foreground" />
       <Link
-        to="/taxonomies/locations/$locationSlug/general"
+        to="/taxonomies/locations/$locationSlug/info"
         params={{
           locationSlug: row.original.slug,
         }}

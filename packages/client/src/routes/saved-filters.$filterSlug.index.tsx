@@ -6,7 +6,7 @@ export const Route = createFileRoute("/saved-filters/$filterSlug/")({
     params,
   }) => {
     throw redirect({
-      to: "/saved-filters/$filterSlug/general",
+      to: "/saved-filters/$filterSlug/info",
       params,
     });
   },

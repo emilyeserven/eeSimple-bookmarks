@@ -88,7 +88,7 @@ export function NewsletterListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/newsletters/$newsletterSlug/general"
+            to="/taxonomies/newsletters/$newsletterSlug/info"
             params={{
               newsletterSlug: newsletter.slug,
             }}

@@ -90,7 +90,8 @@ and `onUpload`/`onAuto`/`onRemove` mutations + a `busy` flag.
 
 Add a `DetailField` row (`components/DetailField.tsx`; label + children, auto-hides when empty) inside
 the detail body, or a `<dt>/<dd>` pair for the General tabs that use a raw `<dl>` grid (Media Types /
-Websites / YouTube Channels view routes). For enums, add a labels map in `lib/propertyFormat.ts`
+Websites / YouTube Channels General **view panes** in `components/workbench/<entity>*.tsx`, rendered
+on the `…/$slug/info` page). For enums, add a labels map in `lib/propertyFormat.ts`
 (mirror `DATE_TIME_FORMAT_LABELS` / `NUMBER_FORMAT_LABELS`). For icons use `CategoryIcon` from
 `@/lib/icons`. For images use `EntityImagePreview` (read-only, fallback icon). Resolve foreign-key ids
 to names from the relevant list hook (e.g. `useMediaTypes()` to name `setMediaTypeId`) and pass them

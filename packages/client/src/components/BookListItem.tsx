@@ -103,7 +103,7 @@ export function BookListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/books/$bookSlug/general"
+            to="/taxonomies/books/$bookSlug/info"
             params={{
               bookSlug: book.slug,
             }}

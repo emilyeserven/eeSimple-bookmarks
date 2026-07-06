@@ -103,7 +103,7 @@ export function PodcastListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/podcasts/$podcastSlug/general"
+            to="/taxonomies/podcasts/$podcastSlug/info"
             params={{
               podcastSlug: podcast.slug,
             }}

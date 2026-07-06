@@ -6,7 +6,7 @@ export const Route = createFileRoute("/autofill/$ruleSlug/")({
     params,
   }) => {
     throw redirect({
-      to: "/autofill/$ruleSlug/general",
+      to: "/autofill/$ruleSlug/info",
       params,
     });
   },

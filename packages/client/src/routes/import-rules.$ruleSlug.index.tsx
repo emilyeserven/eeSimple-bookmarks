@@ -6,7 +6,7 @@ export const Route = createFileRoute("/import-rules/$ruleSlug/")({
     params,
   }) => {
     throw redirect({
-      to: "/import-rules/$ruleSlug/general",
+      to: "/import-rules/$ruleSlug/info",
       params,
     });
   },

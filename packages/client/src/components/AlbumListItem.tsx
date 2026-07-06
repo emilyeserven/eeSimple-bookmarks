@@ -103,7 +103,7 @@ export function AlbumListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/albums/$albumSlug/general"
+            to="/taxonomies/albums/$albumSlug/info"
             params={{
               albumSlug: album.slug,
             }}

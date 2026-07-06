@@ -6,7 +6,7 @@ export const Route = createFileRoute("/taxonomies/group-types/$groupTypeSlug/")(
     params,
   }) => {
     throw redirect({
-      to: "/taxonomies/group-types/$groupTypeSlug/general",
+      to: "/taxonomies/group-types/$groupTypeSlug/info",
       params,
     });
   },

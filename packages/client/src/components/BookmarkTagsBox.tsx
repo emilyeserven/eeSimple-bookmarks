@@ -30,7 +30,7 @@ export function BookmarkTagsBox({
       {tags.map((tag) => {
         const link = (
           <Link
-            to="/tags/$tagSlug/general"
+            to="/tags/$tagSlug/info"
             params={{
               tagSlug: tag.slug,
             }}
@@ -71,7 +71,7 @@ export function BookmarkTagLinks({
       {tags.map((tag, index) => {
         const link = (
           <Link
-            to="/tags/$tagSlug/general"
+            to="/tags/$tagSlug/info"
             params={{
               tagSlug: tag.slug,
             }}

@@ -46,7 +46,7 @@ export function GroupTypeListItem({
       count={groupType.groupCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/group-types/$groupTypeSlug/general"
+          to="/taxonomies/group-types/$groupTypeSlug/info"
           params={{
             groupTypeSlug: groupType.slug,
           }}
@@ -81,7 +81,7 @@ export function GroupTypeListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/group-types/$groupTypeSlug/general"
+            to="/taxonomies/group-types/$groupTypeSlug/info"
             params={{
               groupTypeSlug: groupType.slug,
             }}

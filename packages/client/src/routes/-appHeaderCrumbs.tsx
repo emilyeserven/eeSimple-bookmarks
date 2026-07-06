@@ -131,7 +131,7 @@ function taxonomyCrumbs(
   return [listCrumb, {
     label: itemLabel,
     names,
-    href: `${prefix}/${slug}/general`,
+    href: `${prefix}/${slug}/info`,
     truncatable: true,
   }, {
     label: tab ? crumbLabel(tab) : i18n.t("Edit"),
@@ -189,7 +189,7 @@ function treeSiblingSwitcher(node: TagNode | MediaTypeNode | LocationNode, tree:
 /**
  * Breadcrumbs for a tree (hierarchical) taxonomy with an ancestor chain. On the view chain each
  * ancestor links to its own page AND carries a same-parent sibling switcher; the leaf is the current
- * page with a switcher. On the edit chain ancestors link to their `…/general` views and the trail
+ * page with a switcher. On the edit chain ancestors link to their `…/info` views and the trail
  * ends on `Edit` (no switchers). Shared by Tags and Media Types.
  */
 function treeTaxonomyCrumbs(
@@ -216,7 +216,7 @@ function treeTaxonomyCrumbs(
     const fallback: BreadcrumbSegment = isEdit
       ? {
         label: singular,
-        href: `${viewPrefix}/${slug}/general`,
+        href: `${viewPrefix}/${slug}/info`,
       }
       : {
         label: singular,
@@ -227,14 +227,14 @@ function treeTaxonomyCrumbs(
       }]
       : [listCrumb, fallback];
   }
-  // Edit chain: ancestors (incl. current) link to their `/general` view; end on `Edit`. No switchers.
+  // Edit chain: ancestors (incl. current) link to their `/info` view; end on `Edit`. No switchers.
   if (isEdit) {
     return [
       listCrumb,
       ...ancestors.map((node): BreadcrumbSegment => ({
         label: node.name,
         names: node.names,
-        href: `${viewPrefix}/${node.slug}/general`,
+        href: `${viewPrefix}/${node.slug}/info`,
         truncatable: true,
       })),
       {

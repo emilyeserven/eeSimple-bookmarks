@@ -34,7 +34,7 @@ export function RelationshipTypeTable({
       onRowClick={(relationshipType, event) =>
         rowNav(event, "relationship-type", relationshipType.id, () => {
           void navigate({
-            to: "/taxonomies/relationship-types/$relationshipTypeSlug/general",
+            to: "/taxonomies/relationship-types/$relationshipTypeSlug/info",
             params: {
               relationshipTypeSlug: relationshipType.slug,
             },

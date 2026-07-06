@@ -38,7 +38,7 @@ export function MediaTypeHierarchyHoverCard({
       path={path}
       renderLink={node => (
         <Link
-          to="/taxonomies/media-types/$mediaTypeSlug/general"
+          to="/taxonomies/media-types/$mediaTypeSlug/info"
           params={{
             mediaTypeSlug: node.slug,
           }}

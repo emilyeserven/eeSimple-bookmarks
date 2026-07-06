@@ -129,7 +129,8 @@ Then seed it in `AutofillRuleForm` (`packages/client/src/components/AutofillRule
   exist — see **`add-condition-type`**.
 
 ### 2. Add the button to the entity's view page
-On the entity's `_view/general` tab, add a "New Autofill Rule" button:
+In the entity's General **view** pane body (in `components/workbench/<entity>.tsx` — it renders on the
+`…/$slug/info` page and the right panel), add a "New Autofill Rule" button:
 - `const { openAutofill } = usePanelControls();` then
   `onClick={() => openAutofill(NEW_SENTINEL)}` (`NEW_SENTINEL` from `@/lib/drawerSearch`).
 - Place it in a `LabeledSection` (title "Autofill"). Because the entity slug is already in the URL

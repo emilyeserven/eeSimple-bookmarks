@@ -6,7 +6,7 @@ export const Route = createFileRoute("/card-display-rules/$ruleSlug/")({
     params,
   }) => {
     throw redirect({
-      to: "/card-display-rules/$ruleSlug/general",
+      to: "/card-display-rules/$ruleSlug/info",
       params,
     });
   },

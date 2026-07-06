@@ -36,7 +36,7 @@ const tree: TagNode[] = [
   },
 ];
 
-const paths = ["/bookmarks", "/tags/$tagSlug", "/tags/$tagSlug/general", "/tags/$tagSlug/edit/general"];
+const paths = ["/bookmarks", "/tags/$tagSlug", "/tags/$tagSlug/info", "/tags/$tagSlug/edit/general"];
 
 describe("TagTreeList", () => {
   it("keeps children hidden when the parent is collapsed", async () => {

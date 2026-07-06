@@ -88,7 +88,7 @@ export function CategoryPreviewRow({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/categories/$categorySlug/general"
+            to="/categories/$categorySlug/info"
             params={{
               categorySlug: category.slug,
             }}

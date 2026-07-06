@@ -109,7 +109,7 @@ export function MediaTypeHierarchyView({
       ancestors={ancestors}
       renderAncestorLink={ancestor => (
         <Link
-          to="/taxonomies/media-types/$mediaTypeSlug/general"
+          to="/taxonomies/media-types/$mediaTypeSlug/info"
           params={{
             mediaTypeSlug: ancestor.slug,
           }}

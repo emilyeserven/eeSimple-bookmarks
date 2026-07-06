@@ -34,7 +34,7 @@ export function useGenreMoodColumns(): ColumnDef<GenreMoodNode>[] {
           >
             <TreeExpandToggle row={row} />
             <Link
-              to="/taxonomies/genres-moods/$genreMoodSlug/general"
+              to="/taxonomies/genres-moods/$genreMoodSlug/info"
               params={{
                 genreMoodSlug: row.original.slug,
               }}

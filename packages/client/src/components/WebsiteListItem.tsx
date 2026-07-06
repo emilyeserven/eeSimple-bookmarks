@@ -105,7 +105,7 @@ export function WebsiteListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/websites/$websiteSlug/general"
+            to="/taxonomies/websites/$websiteSlug/info"
             params={{
               websiteSlug: website.slug,
             }}

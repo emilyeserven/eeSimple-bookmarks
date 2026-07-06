@@ -6,7 +6,7 @@ export const Route = createFileRoute("/taxonomies/place-types/$placeTypeSlug/")(
     params,
   }) => {
     throw redirect({
-      to: "/taxonomies/place-types/$placeTypeSlug/general",
+      to: "/taxonomies/place-types/$placeTypeSlug/info",
       params,
     });
   },

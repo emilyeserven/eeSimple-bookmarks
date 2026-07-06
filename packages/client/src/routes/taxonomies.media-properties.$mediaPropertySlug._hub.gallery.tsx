@@ -1,0 +1,30 @@
+import { createFileRoute } from "@tanstack/react-router";
+
+import { MediaPropertyListing } from "./-mediaPropertyListing";
+import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+
+export const Route = createFileRoute("/taxonomies/media-properties/$mediaPropertySlug/_hub/gallery")({
+  validateSearch: validateBookmarkSearch,
+  component: MediaPropertyGalleryTab,
+});
+
+function MediaPropertyGalleryTab() {
+  const {
+    mediaPropertySlug,
+  } = Route.useParams();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  return (
+    <MediaPropertyListing
+      mediaPropertySlug={mediaPropertySlug}
+      activeView="gallery"
+      search={search}
+      onSearchChange={next =>
+        navigate({
+          search: next,
+          replace: true,
+          resetScroll: false,
+        })}
+    />
+  );
+}

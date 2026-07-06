@@ -58,7 +58,7 @@ function CategoryEditLayout() {
       header={(
         <div className="space-y-1">
           <Link
-            to="/categories/$categorySlug/general"
+            to="/categories/$categorySlug/info"
             params={{
               categorySlug,
             }}

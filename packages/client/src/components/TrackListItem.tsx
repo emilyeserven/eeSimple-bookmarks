@@ -103,7 +103,7 @@ export function TrackListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/tracks/$trackSlug/general"
+            to="/taxonomies/tracks/$trackSlug/info"
             params={{
               trackSlug: track.slug,
             }}

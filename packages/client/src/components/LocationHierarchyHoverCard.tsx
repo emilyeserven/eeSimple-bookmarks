@@ -35,7 +35,7 @@ export function LocationHierarchyHoverCard({
       path={path}
       renderLink={node => (
         <Link
-          to="/taxonomies/locations/$locationSlug/general"
+          to="/taxonomies/locations/$locationSlug/info"
           params={{
             locationSlug: node.slug,
           }}

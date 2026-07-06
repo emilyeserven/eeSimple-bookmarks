@@ -1,9 +1,9 @@
 import type { ToolbarAction, ToolbarContext } from "./toolbarActionTypes";
 
 import { Link } from "@tanstack/react-router";
-import { Columns2, Info, Pencil } from "lucide-react";
+import { Columns2, Pencil } from "lucide-react";
 
-import { taxonomyEditLink, taxonomyViewLink } from "./toolbarActionTypes";
+import { taxonomyEditLink } from "./toolbarActionTypes";
 
 import { BookmarkDetailLayoutControls } from "@/components/BookmarkDetailLayoutControls";
 import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPopover";
@@ -29,46 +29,6 @@ export function bookmarkLayoutAction(ctx: ToolbarContext): ToolbarAction | null 
         >
           <BookmarkDetailLayoutControls />
         </ResponsivePopover>
-      ),
-    },
-  };
-}
-
-export function viewDetailsAction(ctx: ToolbarContext): ToolbarAction | null {
-  const viewDesktopLink = taxonomyViewLink(
-    ctx.pathParts,
-    <Info
-      className="size-4"
-    />,
-  );
-  if (!viewDesktopLink) return null;
-  return {
-    key: "view-details",
-    desktop: (
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={i18n.t("View details")}
-        title={i18n.t("View details")}
-        asChild
-      >
-        {viewDesktopLink}
-      </Button>
-    ),
-    mobile: {
-      kind: "menuItem",
-      node: (
-        <DropdownMenuItem asChild>
-          {taxonomyViewLink(
-            ctx.pathParts, (
-              <>
-                <Info className="size-4" />
-                {i18n.t("View details")}
-              </>
-            ),
-          )}
-        </DropdownMenuItem>
       ),
     },
   };

@@ -88,7 +88,7 @@ export function WebsiteTreeList({
       )}
       renderInfoLink={node => (
         <Link
-          to="/taxonomies/websites/$websiteSlug/general"
+          to="/taxonomies/websites/$websiteSlug/info"
           params={{
             websiteSlug: node.slug,
           }}

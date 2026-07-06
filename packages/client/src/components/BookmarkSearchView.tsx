@@ -8,8 +8,8 @@ import { ListingSearchBar } from "./ListingSearchBar";
 import { useBookmarkSearchView } from "./useBookmarkSearchView";
 
 interface BookmarkSearchViewProps {
-  /** Page heading area rendered above the two-column body. */
-  header: ReactNode;
+  /** Page heading area rendered above the two-column body. Omitted when an outer `_hub` owns the header. */
+  header?: ReactNode;
   /** Stable key identifying the page, so each listing remembers its own column count. */
   pageKey: string;
   tree: TagNode[];
@@ -52,6 +52,11 @@ interface BookmarkSearchViewProps {
   afterAddForm?: ReactNode;
   /** When true (default), the list pane offers a Bookmarks | Gallery tab strip. */
   showGallery?: boolean;
+  /**
+   * When set, the results view is **controlled** by the URL (an outer `_hub` strip) — the list pane
+   * renders only this view and drops its own strip. Omitted on the main `/bookmarks` page.
+   */
+  activeView?: "bookmarks" | "gallery" | "media";
 }
 
 /**
@@ -83,6 +88,7 @@ export function BookmarkSearchView({
   addFormCategoryId,
   afterAddForm,
   showGallery,
+  activeView,
 }: BookmarkSearchViewProps) {
   const {
     columns, hideSidebar, textFilteredBookmarks, textSearchActive,
@@ -152,6 +158,7 @@ export function BookmarkSearchView({
           addFormCategoryId={addFormCategoryId}
           afterAddForm={afterAddForm}
           showGallery={showGallery}
+          activeView={activeView}
         />
       </div>
     </section>

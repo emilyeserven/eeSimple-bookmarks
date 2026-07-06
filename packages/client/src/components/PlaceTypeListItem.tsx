@@ -109,7 +109,7 @@ export function PlaceTypeListItem({
         : undefined}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/place-types/$placeTypeSlug/general"
+          to="/taxonomies/place-types/$placeTypeSlug/info"
           params={{
             placeTypeSlug: placeType.slug,
           }}
@@ -144,7 +144,7 @@ export function PlaceTypeListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/place-types/$placeTypeSlug/general"
+            to="/taxonomies/place-types/$placeTypeSlug/info"
             params={{
               placeTypeSlug: placeType.slug,
             }}

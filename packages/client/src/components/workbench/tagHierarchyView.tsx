@@ -33,7 +33,7 @@ export function TagHierarchyView({
       ancestors={ancestors}
       renderAncestorLink={ancestor => (
         <Link
-          to="/tags/$tagSlug/general"
+          to="/tags/$tagSlug/info"
           params={{
             tagSlug: ancestor.slug,
           }}

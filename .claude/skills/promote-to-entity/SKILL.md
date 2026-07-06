@@ -285,19 +285,24 @@ export type DrawerContentType = … | "my-entity" | …;
 export const DRAWER_CONTENT_TYPES: DrawerContentType[] = […, "my-entity", …];
 ```
 
-### 12. Route quartet (`packages/client/src/routes/`)
+### 12. Route files (`packages/client/src/routes/`)
 
-Seven files — copy from any existing entity's quartet (e.g. `autofill.*` or `import-rules.*`):
+An info-only entity's set — copy from any existing info-only entity (e.g. `autofill.*` or
+`import-rules.*`):
 
 | File | Purpose |
 |---|---|
 | `<area>.tsx` | Root layout — `<Outlet/>` |
 | `<area>.index.tsx` | Listing — renders the manager/listing component |
 | `<area>.$entitySlug.tsx` | Entity layout — `<Outlet/>` |
-| `<area>.$entitySlug.index.tsx` | Redirect → `…/general` |
-| `<area>.$entitySlug._view.general.tsx` | `WorkbenchRouteTab` view mode |
+| `<area>.$entitySlug.index.tsx` | Redirect → `…/info` |
+| `<area>.$entitySlug.info.tsx` | `EntityInfoView` (vertical `?tab=` rail, header prop) |
 | `<area>.$entitySlug.edit.general.tsx` | `WorkbenchRouteTab` edit mode |
 | `<area>.$entitySlug.edit.index.tsx` | Redirect → `…/edit/general` |
+
+There is **no** `_view.*` route file — the read-only view tabs derive from the workbench descriptor,
+rendered by `EntityInfoView`. (A **listing** entity instead uses the `_hub` route set — see the
+`tabbed-pages` / `add-entity` skills.)
 
 After creating/modifying route files, regenerate:
 ```
@@ -373,7 +378,7 @@ capture site.
 1. `pnpm push:dev` — confirms migration adds the slug column + unique constraint without prompts
 2. Restart dev server — `backfill*Slugs()` runs and assigns slugs to existing rows
 3. `/my-entities` listing — renders; each item name links to its detail page
-4. `/my-entities/my-slug` → view tab shows entity fields, slug, dates
+4. `/my-entities/my-slug` → redirects to `…/info`; the Info page shows entity fields, slug, dates
 5. Edit tab: change name, blur → toast "Name saved"; URL updates to new slug
 6. Toggles on edit tab → toast fires immediately
 7. Right panel → browse My Entities → view/edit opens identically to the main page

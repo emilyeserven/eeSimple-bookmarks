@@ -30,17 +30,18 @@ model. New listing pages adopt it from the start; existing ones must not drift b
      `/taxonomies/websites/$slug`, etc. — which renders that term's bookmarks under a term-specific
      header. A **plain `<Link>`** (no `viewClick`): there's no panel content type for a bookmark list.
    - **Non-listable entities** (Property Groups, Relationship Types, Groups, Group Types, People, Autofill,
-     Custom Properties) have no per-term bookmarks page, so the body links to the entity's **General
-     detail tab** (`<Link to="/<entity>/$slug/general">`) and **is** panel-aware (`viewClick`).
+     Custom Properties) have no per-term bookmarks page, so the body links to the entity's **Info
+     page** (`<Link to="/<entity>/$slug/info">`) and **is** panel-aware (`viewClick`).
    Don't reintroduce a `<Link to="/bookmarks" search={withX(...)}>` body link — `withX` now backs only
    the filter sidebar facets, not listing cards.
 4. **Hover reveals Edit (pencil) + Info buttons** on every item. Edit → the entity's edit page,
-   Info → its **General view tab** (`<Link to="/<entity>/$slug/general">`). Both are panel-aware
-   (modifier-click opens the right panel). **The Info link must point at `…/$slug/general`, never the
+   Info → its **Info page** (`<Link to="/<entity>/$slug/info">`). Both are panel-aware
+   (modifier-click opens the right panel). **The Info link must point at `…/$slug/info`, never the
    bare index `…/$slug`** — for Tags, Websites, YouTube Channels, and Media Types the bare index route
-   renders a *bookmarks* `BookmarkSearchView` (the listable body destination), not the detail page; and
-   even where the index `redirect`s to `/general` (Property Groups, Relationship Types, Groups,
-   Group Types, People) you should link directly to `/general`.
+   renders a *bookmarks* `BookmarkSearchView` (the listable body destination), not the Info page; and
+   even where the index `redirect`s to `/info` (Property Groups, Relationship Types, Groups,
+   Group Types, People) you should link directly to `/info`. (The old header "Info" (view-details)
+   button was removed — the hover Info button on the card is unrelated and stays.)
 5. **Always-visible count badge** = bookmarks where the item is applied.
 6. **Zero-count items are de-emphasized** (`opacity-60`) but stay clickable.
 
@@ -75,7 +76,7 @@ interface StandardListingCardProps {
 
 Two body click models (by entity, per invariant 3): a **listable** entity's body is a plain `<Link
 to="/<entity>/$slug">` to its own bookmarks page (no `viewClick`); a **non-listable** entity's body
-is a panel-aware `<Link to="/<entity>/$slug/general">` with `onClick={e => viewClick(e, ct, id,
+is a panel-aware `<Link to="/<entity>/$slug/info">` with `onClick={e => viewClick(e, ct, id,
 slug)}`. The **Edit/Info** hover links are always `HoverIconButton`-wrapped typed `<Link>`s with
 `onClick={e => editClick(e, ct, id)}` / `viewClick`. The body builds the icon + title via the
 `renderPrimaryLink` children; the cluster (`renderEdit()`, `renderInfo?.()`, count badge) is a sibling
@@ -109,7 +110,7 @@ card.
   )}
   renderInfo={() => (
     <HoverIconButton>
-      <Link to="/categories/$categorySlug/general" params={{ categorySlug: category.slug }}
+      <Link to="/categories/$categorySlug/info" params={{ categorySlug: category.slug }}
         title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
         onClick={e => viewClick(e, "category", category.id)}>
         <Info className="size-4" /><span className="sr-only">View {category.name}</span>
@@ -126,13 +127,13 @@ card.
 | YouTube Channels | `YouTubeChannelListItem.tsx` | avatar `imageUrl`→`MonitorPlay` | own page `/taxonomies/youtube-channels/$slug` (plain) | `bookmarkCount` |
 | Tags (tree) | `TagTreeList.tsx` | `CategoryIcon` (none → Tag glyph) | own page `/tags/$slug` (plain) | `bookmarkCount` |
 | Media Types (tree) | `MediaTypeTreeList.tsx` | `CategoryIcon name={node.icon}` | own page `/taxonomies/media-types/$slug` (plain) | `bookmarkCount` |
-| Property Groups *(detail)* | `PropertyGroupListItem.tsx` | `Layers` | detail `…/$slug/general` (`viewClick`) | `propertyCount` |
-| Relationship Types *(detail)* | `RelationshipTypeManager.tsx` | `Link2` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
-| Groups *(detail)* | `GroupListItem.tsx` | `BookOpen` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
-| Group Types *(detail)* | `GroupTypeListItem.tsx` | `Library` | detail `…/$slug/general` (`viewClick`) | `groupCount` |
-| People *(detail)* | `PersonManager.tsx` | `UserRound` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
+| Property Groups *(detail)* | `PropertyGroupListItem.tsx` | `Layers` | detail `…/$slug/info` (`viewClick`) | `propertyCount` |
+| Relationship Types *(detail)* | `RelationshipTypeManager.tsx` | `Link2` | detail `…/$slug/info` (`viewClick`) | `bookmarkCount` |
+| Groups *(detail)* | `GroupListItem.tsx` | `BookOpen` | detail `…/$slug/info` (`viewClick`) | `bookmarkCount` |
+| Group Types *(detail)* | `GroupTypeListItem.tsx` | `Library` | detail `…/$slug/info` (`viewClick`) | `groupCount` |
+| People *(detail)* | `PersonManager.tsx` | `UserRound` | detail `…/$slug/info` (`viewClick`) | `bookmarkCount` |
 | Autofill *(detail, no Info)* | `AutofillRuleListItem.tsx` | `Wand2` | info `/autofill/$slug` (`viewClick`), no Info button | `matchCount` |
-| Saved Filters *(detail, no count)* | `SavedFilterCard.tsx` | `ListFilter` | detail `…/$slug/general` (`viewClick`) | — (footer keeps the viewable-online checkbox) |
+| Saved Filters *(detail, no count)* | `SavedFilterCard.tsx` | `ListFilter` | detail `…/$slug/info` (`viewClick`) | — (footer keeps the viewable-online checkbox) |
 
 ## Tree taxonomies (Tags, Media Types)
 
@@ -143,17 +144,17 @@ chevron/spacer, the name link, the hover Edit + Info ghost buttons, and the coun
 mutes independently (`node.bookmarkCount === 0 → opacity-60`). The wrappers supply three render
 props: `renderNameLink` (the plain link to the term's **own bookmarks page** — `/tags/$slug`,
 `/taxonomies/media-types/$slug`), `renderEditLink`, and `renderInfoLink`
-(the **General view tab** `…/$slug/general`, `viewClick` — never the bare index). `TaxonomyTreeNode`
+(the **Info page** `…/$slug/info`, `viewClick` — never the bare index). `TaxonomyTreeNode`
 carries an optional `icon?: string | null` (Media
 Types thread `node.icon`; flat Tags get the Tag-glyph fallback).
 
 ## Non-listable entities + other notes
 
 - **Property Groups / Groups / Group Types / People** — no per-term bookmarks page exists, so the body
-  links to the entity's **General detail tab** (`…/$slug/general`, panel-aware `viewClick`). Property
+  links to the entity's **Info page** (`…/$slug/info`, panel-aware `viewClick`). Property
   Groups' badge counts member **properties** (`propertyCount`), Group Types' counts member **groups**
   (`groupCount`); the others use `bookmarkCount`. Edit +
-  Info are still shown (Info also → `…/general`).
+  Info are still shown (Info also → `…/info`).
 - **Autofill** — the body links to the rule's **info page** (`/autofill/$slug`, `viewClick`); there is
   **no Info button** (`renderInfo` omitted). The badge is `matchCount` (bookmarks the rule matches).
 - **Tree "No Child" sub-row** — the parent-only `ownBookmarkCount` bucket keeps its `Badge
@@ -183,12 +184,12 @@ Reuse the `listing-page-controls` keys (`categories-listing`, `websites-listing`
 
 ## When a listing entity has no detail/edit pages
 
-Relationship Types had none — the hover Edit/Info buttons need them. Scaffold the slug-routed View +
-Edit pages first with the **`tabbed-pages`** and **`add-entity`** skills (route quintet +
-`createTabWrapper` + a `RelationshipTypeDetail` view body + a `RelationshipTypeGeneralForm` auto-save
-edit form per **`toast-notifications`**), register a panel content type
-(`lib/drawerSearch.ts` union + `panel/contentTypes.tsx`), and add the breadcrumb descriptor in
-`routes/-appHeader.tsx`. Then convert the inline manager row to `StandardListingCard`.
+Relationship Types had none — the hover Edit/Info buttons need them. Scaffold the slug-routed Info +
+Edit pages first with the **`tabbed-pages`** and **`add-entity`** skills (a `*Workbench` descriptor
+with view/edit panes, the `…$slug.info.tsx` + `edit.<tab>.tsx` route files + a
+`RelationshipTypeGeneralForm` auto-save edit form per **`toast-notifications`**), register a panel
+content type (`lib/drawerSearch.ts` union + `panel/contentTypes.tsx`), and add the breadcrumb
+descriptor. Then convert the inline manager row to `StandardListingCard`.
 
 ## Cross-links
 
@@ -214,10 +215,10 @@ pnpm dev                                   # then check each listing page
 ```
 
 Per page: body click → **the term's own page** — its own bookmarks page for listable entities
-(Categories, Tags, Websites, YouTube Channels, Media Types), or its General detail tab for
+(Categories, Tags, Websites, YouTube Channels, Media Types), or its Info page for
 non-listable ones (Property Groups, Relationship Types, Groups, Group Types, People, Autofill) — and **never**
 the global `/bookmarks?…=id` list; icon far-left; a tall/wrapping card centers the icon + buttons;
-hover shows Edit (+ Info except Autofill); the **Info icon lands on the entity's General detail tab
-(`…/$slug/general`), not a bookmarks list**; modifier-click on Edit/Info opens the right panel; for a
+hover shows Edit (+ Info except Autofill); the **Info icon lands on the entity's Info page
+(`…/$slug/info`), not a bookmarks list**; modifier-click on Edit/Info opens the right panel; for a
 listable entity the plain body link does not open the panel, while a non-listable entity's body link
 does (it's `viewClick`); the count badge is always visible; a zero-count item is muted but clickable.

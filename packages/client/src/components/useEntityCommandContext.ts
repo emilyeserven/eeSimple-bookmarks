@@ -129,7 +129,7 @@ export function useEntityCommandContext(open: boolean): {
       slug: match.slug,
       entity,
       name,
-      viewPath: `${match.route.prefix}/${match.slug}/general`,
+      viewPath: `${match.route.prefix}/${match.slug}/info`,
       editPath: `${match.route.prefix}/${match.slug}/edit/general`,
       fields,
       saveField: (label, patch) => {

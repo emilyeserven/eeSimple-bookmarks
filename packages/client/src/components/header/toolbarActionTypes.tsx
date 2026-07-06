@@ -53,197 +53,19 @@ export interface ToolbarContext {
 }
 
 /**
- * Per-entity renderers for a `/taxonomies/<entity>/<slug>` read-only view `<Link>`. Each entry is its
- * own closure so TanStack Router keeps type-checking the literal `to`/`params` per route. Adding a
- * taxonomy = one entry here.
- */
-const TAXONOMY_VIEW_LINK_RENDERERS: Record<
-  string,
-  (slug: string, children: React.ReactNode) => React.ReactNode
-> = {
-  "websites": (slug, children) => (
-    <Link
-      to="/taxonomies/websites/$websiteSlug/general"
-      params={{
-        websiteSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "media-types": (slug, children) => (
-    <Link
-      to="/taxonomies/media-types/$mediaTypeSlug/general"
-      params={{
-        mediaTypeSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "youtube-channels": (slug, children) => (
-    <Link
-      to="/taxonomies/youtube-channels/$channelSlug/general"
-      params={{
-        channelSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "locations": (slug, children) => (
-    <Link
-      to="/taxonomies/locations/$locationSlug/general"
-      params={{
-        locationSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "media-properties": (slug, children) => (
-    <Link
-      to="/taxonomies/media-properties/$mediaPropertySlug/general"
-      params={{
-        mediaPropertySlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "movies": (slug, children) => (
-    <Link
-      to="/taxonomies/movies/$movieSlug/general"
-      params={{
-        movieSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "tv-shows": (slug, children) => (
-    <Link
-      to="/taxonomies/tv-shows/$tvShowSlug/general"
-      params={{
-        tvShowSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "episodes": (slug, children) => (
-    <Link
-      to="/taxonomies/episodes/$episodeSlug/general"
-      params={{
-        episodeSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "albums": (slug, children) => (
-    <Link
-      to="/taxonomies/albums/$albumSlug/general"
-      params={{
-        albumSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "tracks": (slug, children) => (
-    <Link
-      to="/taxonomies/tracks/$trackSlug/general"
-      params={{
-        trackSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "books": (slug, children) => (
-    <Link
-      to="/taxonomies/books/$bookSlug/general"
-      params={{
-        bookSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "podcasts": (slug, children) => (
-    <Link
-      to="/taxonomies/podcasts/$podcastSlug/general"
-      params={{
-        podcastSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "languages": (slug, children) => (
-    <Link
-      to="/taxonomies/languages/$languageSlug/general"
-      params={{
-        languageSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "people": (slug, children) => (
-    <Link
-      to="/taxonomies/people/$personSlug/general"
-      params={{
-        personSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-  "groups": (slug, children) => (
-    <Link
-      to="/taxonomies/groups/$groupSlug/general"
-      params={{
-        groupSlug: slug,
-      }}
-    >{children}
-    </Link>
-  ),
-};
-
-/**
- * A typed `<Link>` to a taxonomy item's read-only view page on its listing index page
- * (`/<entity>/<slug>`, not a `_view`/`edit` tab), or `null` elsewhere. `children` lets the same target
- * back both the desktop Info icon and the mobile menu row.
- */
-export function taxonomyViewLink(pathParts: string[], children: React.ReactNode): React.ReactNode {
-  if (pathParts[0] === "categories" && pathParts.length === 2) {
-    return (
-      <Link
-        to="/categories/$categorySlug/general"
-        params={{
-          categorySlug: pathParts[1],
-        }}
-      >{children}
-      </Link>
-    );
-  }
-  if (pathParts[0] === "tags" && pathParts.length === 2) {
-    return (
-      <Link
-        to="/tags/$tagSlug/general"
-        params={{
-          tagSlug: pathParts[1],
-        }}
-      >{children}
-      </Link>
-    );
-  }
-  if (pathParts[0] === "taxonomies" && pathParts.length === 3) {
-    return TAXONOMY_VIEW_LINK_RENDERERS[pathParts[1]]?.(pathParts[2], children) ?? null;
-  }
-  return null;
-}
-
-/**
- * A typed `<Link>` to a taxonomy entity's General **edit** tab, but only when the current path is one
- * of that entity's read-only view/detail tabs (`…/<slug>/<tab>`) — never on the bare entity-scoped
- * bookmarks index (`/categories/<slug>`) nor on any `…/edit/…` page. Returns `null` elsewhere.
- * `children` backs both the desktop icon button and the mobile menu row. Mirrors {@link taxonomyViewLink}.
+ * A typed `<Link>` to a taxonomy entity's General **edit** tab, shown on every one of that entity's
+ * non-edit pages — the bare listing (`/categories/<slug>`), the `gallery`/`media` listing tabs, and the
+ * `info` page — but never on the listing-of-all index (`/categories`) nor on any `…/edit/…` page.
+ * Returns `null` elsewhere. Replaced the old header "Info" (view-details) button, now a listing tab.
+ * `children` backs both the desktop icon button and the mobile menu row.
  */
 export function taxonomyEditLink(pathParts: string[], children: React.ReactNode): React.ReactNode {
-  // Show only on a view/detail tab — never while already editing.
+  // Show only outside the edit surface — never while already editing.
   if (pathParts.includes("edit")) return null;
 
-  // Top-level taxonomies. `length >= 3` excludes the bare bookmarks index at `/<entity>/<slug>`.
-  if (pathParts[0] === "categories" && pathParts.length >= 3) {
+  // Top-level taxonomies. `length >= 2` includes the bare listing `/<entity>/<slug>`; the listing-of-all
+  // (`length === 1`, e.g. `/categories`) is excluded.
+  if (pathParts[0] === "categories" && pathParts.length >= 2) {
     return (
       <Link
         to="/categories/$categorySlug/edit/general"
@@ -255,7 +77,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       </Link>
     );
   }
-  if (pathParts[0] === "tags" && pathParts.length >= 3) {
+  if (pathParts[0] === "tags" && pathParts.length >= 2) {
     return (
       <Link
         to="/tags/$tagSlug/edit/general"
@@ -268,8 +90,9 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
     );
   }
 
-  // `/taxonomies/<entity>/<slug>/<tab>`. `length >= 4` excludes the bare `/taxonomies/<entity>/<slug>`.
-  if (pathParts[0] === "taxonomies" && pathParts.length >= 4) {
+  // `/taxonomies/<entity>/<slug>[/<tab>]`. `length >= 3` includes the bare listing at
+  // `/taxonomies/<entity>/<slug>`; the listing-of-all (`length === 2`) is excluded.
+  if (pathParts[0] === "taxonomies" && pathParts.length >= 3) {
     const slug = pathParts[2];
     switch (pathParts[1]) {
       case "websites":

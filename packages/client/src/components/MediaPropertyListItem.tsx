@@ -82,7 +82,7 @@ export function MediaPropertyListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/media-properties/$mediaPropertySlug/general"
+            to="/taxonomies/media-properties/$mediaPropertySlug/info"
             params={{
               mediaPropertySlug: mediaProperty.slug,
             }}

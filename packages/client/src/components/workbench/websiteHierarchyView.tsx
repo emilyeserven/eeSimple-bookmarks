@@ -39,7 +39,7 @@ export function WebsiteHierarchyView({
       ancestors={ancestorItems}
       renderAncestorLink={ancestor => (
         <Link
-          to="/taxonomies/websites/$websiteSlug/general"
+          to="/taxonomies/websites/$websiteSlug/info"
           params={{
             websiteSlug: ancestor.slug,
           }}
