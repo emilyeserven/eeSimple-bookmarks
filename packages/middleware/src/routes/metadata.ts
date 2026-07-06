@@ -465,6 +465,40 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     }) as unknown as FetchIsbnMetadataResult;
   });
 
+  // Resolve an Amazon product URL to an ISBN-13: the ASIN itself is usually a valid ISBN-10 (pure,
+  // no fetch); when it isn't, fall back to reading the ISBN out of the product page's own structured
+  // details. Best-effort like /api/scan — a page with no discoverable ISBN returns { isbn: null }.
+  app.get("/api/isbn/from-amazon-url", {
+    schema: {
+      tags: ["metadata"],
+      querystring: {
+        type: "object",
+        required: ["url"],
+        additionalProperties: false,
+        properties: {
+          url: {
+            type: "string",
+          },
+        },
+      },
+    },
+  }, async (req): Promise<{ isbn: string | null }> => {
+    const {
+      url,
+    } = req.query as { url: string };
+    if (!isValidUrl(url)) {
+      throw new ValidationError("url must be a valid http(s) URL");
+    }
+    if (!isAmazonProductUrl(url)) {
+      throw new ValidationError("url must be an Amazon product URL");
+    }
+    const isbnFromAsin = extractIsbn13FromAmazonUrl(url);
+    const isbn = isbnFromAsin ?? await fetchAmazonIsbnFromPage(url);
+    return {
+      isbn,
+    };
+  });
+
   // Richer metadata lookup: title for any URL, plus channel/duration/thumbnail for YouTube videos.
   // Unlike /api/fetch-title this never 502s — a partial result (e.g. title-only) is still useful.
   app.get("/api/fetch-metadata", {

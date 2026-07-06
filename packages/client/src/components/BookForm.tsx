@@ -4,6 +4,7 @@ import { BookOpen, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
+import { AmazonIsbnLookup } from "./AmazonIsbnLookup";
 import { EntityNamesEditor } from "./entityNames/EntityNamesEditor";
 import { KavitaSeriesLookup } from "./KavitaSeriesLookup";
 import { EMPTY_KAVITA, useBookFormController } from "./useBookFormController";
@@ -58,6 +59,24 @@ export function BookForm(props: BookFormProps) {
       onSubmit={handleSubmit}
       className="space-y-4"
     >
+      <div className="space-y-1.5 rounded-md border bg-muted/40 p-3">
+        <Label
+          htmlFor="book-amazon-url"
+          className="text-sm font-medium"
+        >
+          {t("Have an Amazon link? Paste it to autofill this book")}
+        </Label>
+        <AmazonIsbnLookup
+          id="book-amazon-url"
+          autoFocus
+          onResolved={isbn => void handleIsbnLookup(isbn)}
+        />
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        {t("Or enter details manually:")}
+      </p>
+
       <KavitaSeriesLookup onSelect={applyCandidate} />
 
       <div className="space-y-1.5">
@@ -67,7 +86,6 @@ export function BookForm(props: BookFormProps) {
           placeholder={t("e.g. The Fellowship of the Ring")}
           value={name}
           onChange={event => setName(event.target.value)}
-          autoFocus
         />
       </div>
 

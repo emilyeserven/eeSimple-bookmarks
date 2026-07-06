@@ -5,6 +5,7 @@ import { BookOpen, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
+import { AmazonIsbnLookup } from "./AmazonIsbnLookup";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { renderKavitaFieldSyncHint } from "./KavitaFieldSyncHint";
 import { KavitaSeriesLookup } from "./KavitaSeriesLookup";
@@ -12,6 +13,7 @@ import { LocationAssignmentSection } from "./LocationAssignmentSection";
 import { TaxonomyGeneralFields } from "./TaxonomyGeneralFields";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
+import { Label } from "@/components/ui/label";
 import { useUpdateBook } from "@/hooks/useBooks";
 import { useKavitaSeriesDetail } from "@/hooks/useKavitaSeriesDetail";
 import i18n from "@/i18n";
@@ -158,6 +160,17 @@ export function BookGeneralForm({
           />
         )}
       </form.AppField>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="book-amazon-url">{t("Have an Amazon link? Paste it to autofill the ISBN")}</Label>
+        <AmazonIsbnLookup
+          id="book-amazon-url"
+          onResolved={(resolvedIsbn) => {
+            form.setFieldValue("isbn", resolvedIsbn);
+            autoSave.saveField("isbn", resolvedIsbn || null);
+          }}
+        />
+      </div>
 
       <form.AppField name="isbn">
         {field => (
