@@ -76,9 +76,10 @@ export function useBookFormController({
     });
   }
 
-  async function handleIsbnLookup(): Promise<void> {
-    const trimmed = isbnInput.trim();
+  async function handleIsbnLookup(explicitIsbn?: string): Promise<void> {
+    const trimmed = (explicitIsbn ?? isbnInput).trim();
     if (!trimmed) return;
+    if (explicitIsbn) setIsbnInput(explicitIsbn);
     let result;
     try {
       result = await isbnFetch.mutateAsync({
