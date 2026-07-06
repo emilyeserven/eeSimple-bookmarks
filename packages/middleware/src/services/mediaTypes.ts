@@ -115,6 +115,13 @@ const BUILT_IN_MEDIA_TYPES: BuiltInMediaType[] = [
     icon: "Share2",
   },
   {
+    // A franchise / IP grouping expressed as a hub bookmark (see the "Franchise hub bookmarks"
+    // convention in CLAUDE.md): a hub bookmark carries this type and links its members via
+    // directional Parent/child relationship edges. Replaces the retired media_properties grouping.
+    name: "Franchise",
+    icon: "Boxes",
+  },
+  {
     name: "Other",
     icon: "Shapes",
   },

@@ -31,6 +31,7 @@ export function registerBuiltInNameKeys(t: TFunction): void {
     t("Book"),
     t("Website/App"),
     t("Social Media Post"),
+    t("Franchise"),
     t("Other"),
     // Language usage levels (availability)
     t("Dub"),
