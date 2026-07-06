@@ -1,6 +1,7 @@
 import type { BookmarkHierarchyNode } from "../lib/bookmarkHierarchy";
+import type { RelatedBookmarkEntry } from "../lib/relatedBookmarks";
 import type { FlatNode } from "../lib/tagTree";
-import type { Bookmark, CardFieldZones, Category, CustomProperty, LocationNode, PropertyGroup } from "@eesimple/types";
+import type { Bookmark, BookmarkRelationship, CardFieldZones, Category, CustomProperty, LocationNode, PropertyGroup } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { Link } from "@tanstack/react-router";
@@ -53,8 +54,11 @@ interface BuildArgs {
   propertyGroups: PropertyGroup[];
   /** Flattened parent/child hierarchy around this bookmark (empty when it has no such relationships). */
   flatHierarchy: FlatNode<BookmarkHierarchyNode>[];
-  /** Bookmarks related to this one (scored by the Bookmark Graph weights); empty = omit the section. */
-  relatedBookmarks: Bookmark[];
+  /**
+   * Bookmarks related to this one — explicit relationship partners pinned first (badged), then the
+   * rest scored by the Bookmark Graph weights; empty = omit the section.
+   */
+  relatedBookmarks: RelatedBookmarkEntry[];
   /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
   /** The Default card display rule's field zones, resolving the per-card boolean display knobs. */
@@ -253,64 +257,48 @@ function videoSection(bookmark: Bookmark): BookmarkDetailSection | null {
   };
 }
 
-function relationshipsSection(bookmark: Bookmark): BookmarkDetailSection | null {
-  if (bookmark.relationships.length === 0) return null;
-  return {
-    id: "relationships",
-    label: i18n.t("Relationships"),
-    content: (
-      <LabeledSection title={i18n.t("Relationships")}>
-        <ul className="space-y-2">
-          {bookmark.relationships.map(rel => (
-            <li key={`${rel.relationshipTypeId}:${rel.bookmark.id}`}>
-              <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  to="/bookmarks/$bookmarkId"
-                  params={{
-                    bookmarkId: rel.bookmark.id,
-                  }}
-                  className="
-                    text-sm font-medium
-                    hover:underline
-                  "
-                >
-                  {rel.bookmark.title}
-                </Link>
-                <Badge variant="secondary">{rel.relationshipTypeName}</Badge>
-                {rel.directional
-                  ? (
-                    <Badge variant="outline">
-                      {rel.role === "child" ? i18n.t("child") : i18n.t("parent")}
-                    </Badge>
-                  )
-                  : null}
-                {rel.label
-                  ? <span className="text-xs text-muted-foreground">“{rel.label}”</span>
-                  : null}
-              </div>
-              <p className="truncate text-xs text-muted-foreground">{rel.bookmark.url}</p>
-            </li>
-          ))}
-        </ul>
-      </LabeledSection>
-    ),
-  };
+/** The relationship-type + directional-role + label badges for one explicit relationship edge. */
+function relationshipBadges(relationship: BookmarkRelationship): ReactNode {
+  return (
+    <>
+      <Badge variant="secondary">{relationship.relationshipTypeName}</Badge>
+      {relationship.directional
+        ? (
+          <Badge variant="outline">
+            {relationship.role === "child" ? i18n.t("child") : i18n.t("parent")}
+          </Badge>
+        )
+        : null}
+      {relationship.label
+        ? <span className="text-xs text-muted-foreground">“{relationship.label}”</span>
+        : null}
+    </>
+  );
 }
 
 function relatedSection(args: BuildArgs): BookmarkDetailSection | null {
   if (args.relatedBookmarks.length === 0) return null;
+  const relationshipByBookmarkId = new Map(
+    args.relatedBookmarks
+      .filter(entry => entry.relationship !== undefined)
+      .map(entry => [entry.bookmark.id, entry.relationship as BookmarkRelationship]),
+  );
   return {
     id: "related",
     label: i18n.t("Related"),
     content: (
       <LabeledSection
         title={i18n.t("Related bookmarks")}
-        description={i18n.t("Other bookmarks scored by the weights in Settings → Display → Bookmark Graph.")}
+        description={i18n.t("Explicitly related bookmarks are pinned first; the rest are scored by the weights in Settings → Display → Bookmark Graph.")}
       >
         <BookmarkCardGrid
-          bookmarks={args.relatedBookmarks}
+          bookmarks={args.relatedBookmarks.map(entry => entry.bookmark)}
           properties={args.properties}
           columns={2}
+          badgeFor={(bookmark) => {
+            const relationship = relationshipByBookmarkId.get(bookmark.id);
+            return relationship ? relationshipBadges(relationship) : null;
+          }}
         />
       </LabeledSection>
     ),
@@ -430,7 +418,6 @@ export function buildBookmarkDetailSections(args: BuildArgs): BookmarkDetailSect
     generalSection(args, category),
     gallerySection(args.bookmark),
     videoSection(args.bookmark),
-    relationshipsSection(args.bookmark),
     relatedSection(args),
     hierarchySection(args.flatHierarchy),
     locationsSection(args.bookmark, args.locationTree),

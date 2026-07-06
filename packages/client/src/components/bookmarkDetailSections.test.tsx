@@ -1,4 +1,5 @@
 import type { BookmarkHierarchyNode } from "../lib/bookmarkHierarchy";
+import type { RelatedBookmarkEntry } from "../lib/relatedBookmarks";
 import type { FlatNode } from "../lib/tagTree";
 import type { Bookmark } from "@eesimple/types";
 
@@ -10,7 +11,7 @@ import { makeBookmark } from "../test-utils/factories";
 function build(
   bookmark: Bookmark,
   flatHierarchy: FlatNode<BookmarkHierarchyNode>[] = [],
-  relatedBookmarks: Bookmark[] = [],
+  relatedBookmarks: RelatedBookmarkEntry[] = [],
 ) {
   return buildBookmarkDetailSections({
     bookmark,
@@ -90,9 +91,12 @@ describe("buildBookmarkDetailSections", () => {
   });
 
   it("adds the Related section when related bookmarks are supplied, omitting it otherwise", () => {
-    const related = [makeBookmark({
-      id: "rel-1",
-    })];
+    const related: RelatedBookmarkEntry[] = [{
+      bookmark: makeBookmark({
+        id: "rel-1",
+      }),
+      relationship: undefined,
+    }];
     expect(build(makeBookmark(), [], related)).toContain("related");
     expect(build(makeBookmark())).not.toContain("related");
   });
@@ -121,21 +125,24 @@ describe("buildBookmarkDetailSections", () => {
         slug: "dev",
         parentId: null,
       }],
-      relationships: [
-        {
-          relationshipTypeId: "r1",
-          relationshipTypeName: "Related",
-          directional: false,
-          role: "parent",
-          label: null,
-          bookmark: {
-            id: "o1",
-            title: "Other",
-            url: "https://o.com",
-          },
-        },
-      ],
     });
-    expect(build(bookmark)).toEqual(["general", "relationships", "metadata", "debug"]);
+    const related: RelatedBookmarkEntry[] = [{
+      bookmark: makeBookmark({
+        id: "o1",
+      }),
+      relationship: {
+        relationshipTypeId: "r1",
+        relationshipTypeName: "Related",
+        directional: false,
+        role: "parent",
+        label: null,
+        bookmark: {
+          id: "o1",
+          title: "Other",
+          url: "https://o.com",
+        },
+      },
+    }];
+    expect(build(bookmark, [], related)).toEqual(["general", "related", "metadata", "debug"]);
   });
 });
