@@ -3,7 +3,7 @@ import type { BookmarkSearch } from "./bookmarkSearch";
 
 import { describe, expect, it } from "vitest";
 
-import { facetHasActiveSelection, propertyHasActiveSelection } from "./filterFacets";
+import { facetHasActiveSelection, facetSelectionSummary, propertyHasActiveSelection } from "./filterFacets";
 
 describe("facetHasActiveSelection", () => {
   it("is false for an empty search", () => {
@@ -67,6 +67,48 @@ describe("facetHasActiveSelection", () => {
     };
     expect(facetHasActiveSelection("tags", search)).toBe(false);
     expect(facetHasActiveSelection("categories", search)).toBe(false);
+  });
+});
+
+describe("facetSelectionSummary", () => {
+  it("reports a zero count and no presence for an empty search", () => {
+    expect(facetSelectionSummary("categories", {})).toEqual({
+      count: 0,
+    });
+    expect(facetSelectionSummary("tags", {})).toEqual({
+      count: 0,
+      presence: undefined,
+    });
+  });
+
+  it("counts selected ids per facet", () => {
+    expect(facetSelectionSummary("categories", {
+      categories: ["a", "b"],
+    })).toEqual({
+      count: 2,
+    });
+    expect(facetSelectionSummary("sections", {
+      sectionTypes: ["url"],
+    })).toEqual({
+      count: 1,
+      presence: undefined,
+    });
+  });
+
+  it("carries the presence mode for presence-capable facets", () => {
+    expect(facetSelectionSummary("tags", {
+      tagPresence: "missing",
+    })).toEqual({
+      count: 0,
+      presence: "missing",
+    });
+    expect(facetSelectionSummary("websites", {
+      websites: ["w"],
+      websitePresence: "has",
+    })).toEqual({
+      count: 1,
+      presence: "has",
+    });
   });
 });
 

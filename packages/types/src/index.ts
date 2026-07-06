@@ -517,6 +517,10 @@ export const DEFAULT_BOOKMARK_GRAPH_SETTINGS: BookmarkGraphSettings = {
   maxRelated: 12,
 };
 
+/** Where the listing-page filters render: the left rail, the right drawer, pills under the search bar, or hidden. */
+export const FILTER_LOCATIONS = ["sidebar", "drawer", "pills", "hide"] as const;
+export type FilterLocation = typeof FILTER_LOCATIONS[number];
+
 /**
  * The subset of {@link AppSettings} that drives display/detail preferences: bookmark detail media
  * sizing + layout, filter placement, right-panel pin behavior, and the built-in "Cropped" aspect
@@ -526,6 +530,12 @@ export interface DisplayPreferenceSettings {
   bookmarkDetailImageSize: BookmarkDetailImageSize;
   bookmarkDetailVideoSize: BookmarkDetailVideoSize;
   bookmarkDetailLayout: BookmarkDetailLayout;
+  /**
+   * Where the listing-page filters render. The source of truth for filter placement; `filtersInDrawer`
+   * / `filtersHidden` are kept in sync from it and act as a legacy fallback for rows saved before this
+   * field existed (see `resolveFilterLocation`).
+   */
+  filterLocation: FilterLocation;
   filtersInDrawer: boolean;
   filtersHidden: boolean;
   panelPinned: boolean;

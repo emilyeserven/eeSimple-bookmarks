@@ -1974,6 +1974,10 @@ export const appSettings = pgTable("app_settings", {
   bookmarkDetailLayout: text("bookmark_detail_layout").notNull().default("single"),
   // Interface language: "en" | "ja".
   interfaceLanguage: text("interface_language").notNull().default("en"),
+  // Where listing-page filters render: "sidebar" | "drawer" | "pills" | "hide". Source of truth for
+  // filter placement; nullable so `drizzle-kit push` stays additive. Null = derive from the two
+  // booleans below (resolveFilterLocation), which are also kept in sync from this on every write.
+  filterLocation: text("filter_location"),
   // When true, listing pages open filters in the right-hand drawer by default.
   filtersInDrawer: boolean("filters_in_drawer").notNull().default(false),
   // When true, the left filter rail is hidden on listing pages.

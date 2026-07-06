@@ -13,6 +13,7 @@ import type {
   BookmarkDetailVideoSize,
   ConnectorsAppSettings,
   DisplayPreferenceSettings,
+  FilterLocation,
   HomepageContentSettings,
   HomepageContentWidth,
   ImportBlacklistEntry,
@@ -155,6 +156,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   interfaceLanguage: "en",
   customPropertyTypeIcons: null,
   onDemandFilters: [],
+  filterLocation: "sidebar",
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,
@@ -190,6 +192,22 @@ function asModifier(value: string | null | undefined): SidebarOpenModifier {
 /** Coerce a stored detail-image-size string to the typed union, defaulting to "medium". */
 function asImageSize(value: string | null | undefined): BookmarkDetailImageSize {
   return value === "small" || value === "large" ? value : "medium";
+}
+
+/**
+ * Resolve the filter placement. The explicit `stored` enum wins when valid; otherwise fall back to the
+ * two legacy booleans (matching the pre-enum derivation exactly, `hidden` beating `inDrawer`), so rows
+ * saved before the `filter_location` column existed keep their placement.
+ */
+export function resolveFilterLocation(
+  stored: string | null | undefined,
+  filtersHidden: boolean,
+  filtersInDrawer: boolean,
+): FilterLocation {
+  if (stored === "sidebar" || stored === "drawer" || stored === "pills" || stored === "hide") {
+    return stored;
+  }
+  return filtersHidden ? "hide" : filtersInDrawer ? "drawer" : "sidebar";
 }
 
 /** Coerce a stored detail-video-size string to the typed union, defaulting to "standard". */
@@ -1148,6 +1166,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       bookmarkDetailVideoSize: appSettings.bookmarkDetailVideoSize,
       bookmarkDetailLayout: appSettings.bookmarkDetailLayout,
       interfaceLanguage: appSettings.interfaceLanguage,
+      filterLocation: appSettings.filterLocation,
       filtersInDrawer: appSettings.filtersInDrawer,
       filtersHidden: appSettings.filtersHidden,
       panelPinned: appSettings.panelPinned,
@@ -1174,6 +1193,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     bookmarkDetailVideoSize: asVideoSize(row.bookmarkDetailVideoSize),
     bookmarkDetailLayout: asDetailLayout(row.bookmarkDetailLayout),
     interfaceLanguage: asInterfaceLanguage(row.interfaceLanguage),
+    filterLocation: resolveFilterLocation(row.filterLocation, row.filtersHidden, row.filtersInDrawer),
     filtersInDrawer: row.filtersInDrawer,
     filtersHidden: row.filtersHidden,
     panelPinned: row.panelPinned,
@@ -1491,13 +1511,17 @@ export async function updateConnectorsSettings(
 export async function updateDisplayPreferenceSettings(
   input: UpdateDisplayPreferenceInput,
 ): Promise<DisplayPreferenceSettings> {
+  // The enum is authoritative; the two legacy booleans are derived from it so any reader still on the
+  // booleans stays coherent (and pre-enum rows keep resolving correctly via resolveFilterLocation).
+  const filterLocation = resolveFilterLocation(input.filterLocation, input.filtersHidden, input.filtersInDrawer);
   const next: DisplayPreferenceSettings = {
     bookmarkDetailImageSize: asImageSize(input.bookmarkDetailImageSize),
     bookmarkDetailVideoSize: asVideoSize(input.bookmarkDetailVideoSize),
     bookmarkDetailLayout: asDetailLayout(input.bookmarkDetailLayout),
     interfaceLanguage: asInterfaceLanguage(input.interfaceLanguage),
-    filtersInDrawer: input.filtersInDrawer,
-    filtersHidden: input.filtersHidden,
+    filterLocation,
+    filtersInDrawer: filterLocation === "drawer",
+    filtersHidden: filterLocation === "hide",
     panelPinned: input.panelPinned,
     drawerUnpinnedBreakpoints: asBreakpoints(input.drawerUnpinnedBreakpoints),
     croppedWidth: asCropped(input.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),

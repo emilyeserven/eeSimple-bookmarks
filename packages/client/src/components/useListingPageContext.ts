@@ -1,12 +1,12 @@
 import type { BookmarkSort } from "../lib/bookmarkSort";
 import type { ViewMode } from "../stores/uiStore";
+import type { FilterLocation } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
 import {
   useDisplayPreferenceSettings,
-  useFiltersHidden,
-  useFiltersInDrawer,
+  useFilterLocation,
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
 import { DEFAULT_BOOKMARK_COLUMNS, DEFAULT_VIEW_MODE } from "../lib/bookmarkColumns";
@@ -14,33 +14,16 @@ import { withSort } from "../lib/bookmarkSearch";
 import { clampColumns, useUiStore } from "../stores/uiStore";
 import { usePanelControls } from "./panel/usePanelControls";
 
-export type FilterLocation = "sidebar" | "drawer" | "hide";
-
 /** Listing-page display state (view mode, columns, filter location, bulk select) for the CMD+K palette. */
 export function useListingPageContext() {
   const {
     t,
   } = useTranslation();
-  const FILTER_LOCATION_PATCH: Record<FilterLocation, {
-    filtersHidden: boolean;
-    filtersInDrawer: boolean;
-    message: string;
-  }> = {
-    sidebar: {
-      filtersHidden: false,
-      filtersInDrawer: false,
-      message: t("Filters in sidebar"),
-    },
-    drawer: {
-      filtersHidden: false,
-      filtersInDrawer: true,
-      message: t("Filters in drawer"),
-    },
-    hide: {
-      filtersHidden: true,
-      filtersInDrawer: false,
-      message: t("Filters hidden"),
-    },
+  const FILTER_LOCATION_MESSAGES: Record<FilterLocation, string> = {
+    sidebar: t("Filters in sidebar"),
+    drawer: t("Filters in drawer"),
+    pills: t("Filters as pills"),
+    hide: t("Filters hidden"),
   };
 
   const listingPage = useUiStore(s => s.listingPage);
@@ -58,8 +41,7 @@ export function useListingPageContext() {
     bulkSelectPageKey ? (s.selectionMode[bulkSelectPageKey] ?? false) : false);
   const setSelectionModeFn = useUiStore(s => s.setSelectionMode);
 
-  const filtersHidden = useFiltersHidden();
-  const filtersInDrawer = useFiltersInDrawer();
+  const filterLocation = useFilterLocation();
   const {
     data: displayData,
   } = useDisplayPreferenceSettings();
@@ -68,23 +50,18 @@ export function useListingPageContext() {
     openType, close, dCT,
   } = usePanelControls();
 
-  const filterLocation: FilterLocation = filtersHidden ? "hide" : filtersInDrawer ? "drawer" : "sidebar";
-
   function setFilterLocation(next: FilterLocation) {
     if (!displayData) return;
-    const {
-      filtersHidden: h, filtersInDrawer: d, message,
-    } = FILTER_LOCATION_PATCH[next];
     update.mutate({
       input: {
         ...displayData,
-        filtersHidden: h,
-        filtersInDrawer: d,
+        filterLocation: next,
       },
-      successMessage: message,
+      successMessage: FILTER_LOCATION_MESSAGES[next],
     });
-    if (next === "sidebar" && dCT === "filters") close();
-    else if (next === "drawer") openType("filters");
+    // Pills and sidebar both live outside the drawer, so close it when leaving the drawer placement.
+    if (next === "drawer") openType("filters");
+    else if (dCT === "filters") close();
   }
 
   return {

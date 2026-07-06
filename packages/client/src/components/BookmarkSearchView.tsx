@@ -3,6 +3,7 @@ import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, 
 import type { ReactNode } from "react";
 
 import { BookmarkListPane } from "./BookmarkListPane";
+import { FilterPillsRow } from "./FilterPillsRow";
 import { FilterSidebar } from "./FilterSidebar";
 import { ListingSearchBar } from "./ListingSearchBar";
 import { useBookmarkSearchView } from "./useBookmarkSearchView";
@@ -91,7 +92,7 @@ export function BookmarkSearchView({
   activeView,
 }: BookmarkSearchViewProps) {
   const {
-    columns, hideSidebar, textFilteredBookmarks, textSearchActive,
+    columns, hideSidebar, showPills, textFilteredBookmarks, textSearchActive,
   } = useBookmarkSearchView({
     pageKey,
     tree,
@@ -116,6 +117,23 @@ export function BookmarkSearchView({
       {header}
 
       <ListingSearchBar />
+
+      {showPills && (
+        <FilterPillsRow
+          tree={tree}
+          properties={properties}
+          categories={categories}
+          mediaTypes={mediaTypes}
+          youtubeChannels={youtubeChannels}
+          websites={websites}
+          relationshipTypes={relationshipTypes}
+          people={people}
+          placeTypes={placeTypes}
+          genreMoods={genreMoods}
+          search={search}
+          onSearchChange={onSearchChange}
+        />
+      )}
 
       <div
         className={hideSidebar

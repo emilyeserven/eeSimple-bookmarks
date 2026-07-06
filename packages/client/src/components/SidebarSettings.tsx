@@ -38,6 +38,7 @@ const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   bookmarkDetailLayout: "single",
   interfaceLanguage: "en",
   secondaryLanguageId: null,
+  filterLocation: "sidebar",
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,

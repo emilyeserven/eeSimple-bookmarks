@@ -1,24 +1,23 @@
+import type { FilterLocation } from "@eesimple/types";
+
 import { useTranslation } from "react-i18next";
 
 import {
   useDisplayPreferenceSettings,
-  useFiltersHidden,
-  useFiltersInDrawer,
+  useFilterLocation,
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
 import { usePanelControls } from "./panel/usePanelControls";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-type FilterLocation = "sidebar" | "drawer" | "hide";
-
 /**
- * The filter-location chooser body (sidebar / drawer / hide). Shared by `FilterLocationPopover`
- * (desktop popover) and the header More menu's mobile modal — the single source of truth.
+ * The filter-location chooser body (sidebar / drawer / pills / hide). Shared by `FilterLocationPopover`
+ * (desktop popover) and the header More menu's mobile modal — the single source of truth. The enum is
+ * persisted directly; the legacy booleans are derived from it server-side (see `resolveFilterLocation`).
  */
 export function FilterLocationControls() {
-  const filtersHidden = useFiltersHidden();
-  const filtersInDrawer = useFiltersInDrawer();
+  const current = useFilterLocation();
   const {
     data: displayData,
   } = useDisplayPreferenceSettings();
@@ -30,48 +29,30 @@ export function FilterLocationControls() {
     t,
   } = useTranslation();
 
-  const current: FilterLocation = filtersHidden ? "hide" : filtersInDrawer ? "drawer" : "sidebar";
-
-  const locationPatch: Record<FilterLocation, { filtersHidden: boolean;
-    filtersInDrawer: boolean;
-    message: string; }> = {
-    sidebar: {
-      filtersHidden: false,
-      filtersInDrawer: false,
-      message: t("Filters in sidebar"),
-    },
-    drawer: {
-      filtersHidden: false,
-      filtersInDrawer: true,
-      message: t("Filters in drawer"),
-    },
-    hide: {
-      filtersHidden: true,
-      filtersInDrawer: false,
-      message: t("Filters hidden"),
-    },
+  const messages: Record<FilterLocation, string> = {
+    sidebar: t("Filters in sidebar"),
+    drawer: t("Filters in drawer"),
+    pills: t("Filters as pills"),
+    hide: t("Filters hidden"),
   };
 
   function handleChange(value: string) {
     if (!value || !displayData) return;
     const next = value as FilterLocation;
-    const {
-      filtersHidden: hidden, filtersInDrawer: inDrawer, message,
-    } = locationPatch[next];
     update.mutate({
       input: {
         ...displayData,
-        filtersHidden: hidden,
-        filtersInDrawer: inDrawer,
+        filterLocation: next,
       },
-      successMessage: message,
+      successMessage: messages[next],
     });
     // Drawer open/close is local UI — apply it immediately regardless of the save round-trip.
-    if (next === "sidebar") {
-      if (dCT === "filters") close();
-    }
-    else if (next === "drawer") {
+    // Pills and sidebar both live outside the drawer, so close it when leaving the drawer placement.
+    if (next === "drawer") {
       openType("filters");
+    }
+    else if (dCT === "filters") {
+      close();
     }
   }
 
@@ -97,6 +78,12 @@ export function FilterLocationControls() {
         className="rounded-none border-r border-input"
       >
         {t("Drawer")}
+      </ToggleGroupItem>
+      <ToggleGroupItem
+        value="pills"
+        className="rounded-none border-r border-input"
+      >
+        {t("Pills")}
       </ToggleGroupItem>
       <ToggleGroupItem
         value="hide"

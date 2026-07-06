@@ -85,6 +85,72 @@ export function facetHasActiveSelection(key: FilterFacetKey, search: BookmarkSea
   }
 }
 
+/** A compact summary of a facet's current selection, for the pill placement's active-state label. */
+export interface FacetSelectionSummary {
+  /** How many ids are selected for the facet (0 when only a presence mode is set). */
+  count: number;
+  /** The facet's presence mode, when it has one and it's set. */
+  presence?: "has" | "missing" | "exclude";
+}
+
+const count = (value: unknown[] | undefined): number => value?.length ?? 0;
+
+/**
+ * The selected-id count plus presence mode for a facet, keyed off the same slice mapping the
+ * {@link facetHasActiveSelection} switch encodes. Used by the pill row to render a compact summary
+ * next to the facet name; a pill is "active" (per `facetHasActiveSelection`) when either is set.
+ */
+export function facetSelectionSummary(key: FilterFacetKey, search: BookmarkSearch): FacetSelectionSummary {
+  switch (key) {
+    case "tags":
+      return {
+        count: count(search.tags),
+        presence: search.tagPresence,
+      };
+    case "categories":
+      return {
+        count: count(search.categories),
+      };
+    case "media-types":
+      return {
+        count: count(search.mediaTypes),
+      };
+    case "channels":
+      return {
+        count: count(search.youtubeChannels),
+        presence: search.youtubeChannelPresence,
+      };
+    case "websites":
+      return {
+        count: count(search.websites),
+        presence: search.websitePresence,
+      };
+    case "relationship-types":
+      return {
+        count: count(search.relationshipTypes),
+      };
+    case "people":
+      return {
+        count: count(search.people),
+      };
+    case "place-types":
+      return {
+        count: count(search.placeTypes),
+        presence: search.placeTypePresence,
+      };
+    case "genre-moods":
+      return {
+        count: count(search.genreMoods),
+        presence: search.genreMoodPresence,
+      };
+    case "sections":
+      return {
+        count: count(search.sectionTypes),
+        presence: search.sectionsPresence,
+      };
+  }
+}
+
 /** Whether a custom property (by id) currently has any applied filter value in `search`. */
 export function propertyHasActiveSelection(propertyId: string, search: BookmarkSearch): boolean {
   return (
