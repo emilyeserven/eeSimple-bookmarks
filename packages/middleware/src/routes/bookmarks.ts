@@ -434,6 +434,10 @@ const createBookmarkBody = {
       type: ["string", "null"],
       format: "uuid",
     },
+    podcastId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
     kavitaSeriesId: {
       type: ["integer", "null"],
     },
@@ -450,6 +454,42 @@ const createBookmarkBody = {
       type: ["string", "null"],
     },
     plexItemTitle: {
+      type: ["string", "null"],
+    },
+    isbn: {
+      type: ["string", "null"],
+    },
+    year: {
+      type: ["integer", "null"],
+    },
+    wikidataId: {
+      type: ["string", "null"],
+    },
+    wikipediaLinkEn: {
+      type: ["string", "null"],
+    },
+    wikipediaLinkLocal: {
+      type: ["string", "null"],
+    },
+    feedUrl: {
+      type: ["string", "null"],
+    },
+    itunesId: {
+      type: ["integer", "null"],
+    },
+    itunesUrl: {
+      type: ["string", "null"],
+    },
+    spotifyUrl: {
+      type: ["string", "null"],
+    },
+    pocketCastsUuid: {
+      type: ["string", "null"],
+    },
+    pocketCastsUrl: {
+      type: ["string", "null"],
+    },
+    defaultLinkProvider: {
       type: ["string", "null"],
     },
     imageDisplayPreference: {

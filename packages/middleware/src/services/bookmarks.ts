@@ -571,6 +571,18 @@ function newBookmarkMediaColumns(input: CreateBookmarkInput) {
     plexRatingKey: input.plexRatingKey ?? null,
     plexItemType: input.plexItemType ?? null,
     plexItemTitle: input.plexItemTitle ?? null,
+    isbn: input.isbn ?? null,
+    year: input.year ?? null,
+    wikidataId: input.wikidataId ?? null,
+    wikipediaLinkEn: input.wikipediaLinkEn ?? null,
+    wikipediaLinkLocal: input.wikipediaLinkLocal ?? null,
+    feedUrl: input.feedUrl ?? null,
+    itunesId: input.itunesId ?? null,
+    itunesUrl: input.itunesUrl ?? null,
+    spotifyUrl: input.spotifyUrl ?? null,
+    pocketCastsUuid: input.pocketCastsUuid ?? null,
+    pocketCastsUrl: input.pocketCastsUrl ?? null,
+    defaultLinkProvider: input.defaultLinkProvider ?? null,
   };
 }
 
@@ -685,7 +697,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "youtubeChannelId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "podcastId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
+  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "youtubeChannelId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "podcastId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "isbn" | "year" | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid" | "pocketCastsUrl" | "defaultLinkProvider" | "priority" | "imageDisplayPreference">
 >;
 
 /**
@@ -695,7 +707,9 @@ type ScalarBookmarkPatch = Partial<
 const NULLABLE_SCALAR_FIELDS = [
   "originalUrl", "description", "mediaTypeId", "youtubeChannelId", "groupId", "bookId", "movieId",
   "tvShowId", "episodeId", "albumId", "trackId", "podcastId", "kavitaSeriesId", "kavitaLibraryId",
-  "kavitaSeriesName", "plexRatingKey", "plexItemType", "plexItemTitle", "imageDisplayPreference",
+  "kavitaSeriesName", "plexRatingKey", "plexItemType", "plexItemTitle", "isbn", "year", "wikidataId",
+  "wikipediaLinkEn", "wikipediaLinkLocal", "feedUrl", "itunesId", "itunesUrl", "spotifyUrl",
+  "pocketCastsUuid", "pocketCastsUrl", "defaultLinkProvider", "imageDisplayPreference",
 ] as const satisfies readonly (keyof ScalarBookmarkPatch)[];
 
 /** Scalar columns copied through exactly as given (no null-coalescing) when the caller set them. */

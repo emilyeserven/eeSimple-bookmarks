@@ -95,6 +95,27 @@ export const bookmarks = pgTable("bookmarks", {
   plexRatingKey: text("plex_rating_key"),
   plexItemType: text("plex_item_type"),
   plexItemTitle: text("plex_item_title"),
+  // Media-item identity/metadata promoted onto the bookmark so a Book/Movie/Podcast/… can be a
+  // first-class bookmark without a backing media-taxonomy row (see #1070). These mirror the columns
+  // the taxonomy tables carry (`books.isbn`/`release_year`, `plexTaxonomyColumns()`'s
+  // `year`/`wikidata_id`/`wikipedia_link_*`, and the `podcasts` source set). All nullable →
+  // push-safe additive (lone nullable columns, no new table). Matchable data → writes must call
+  // `invalidateBookmarkCache()` (the normal scalar update path already does).
+  isbn: text("isbn"),
+  year: integer("year"),
+  wikidataId: text("wikidata_id"),
+  wikipediaLinkEn: text("wikipedia_link_en"),
+  wikipediaLinkLocal: text("wikipedia_link_local"),
+  // Podcast source linkage (mirrors the `podcasts` table): the RSS/XML feed URL is the canonical
+  // sync source; iTunes id/url link the Apple Podcasts entry; Spotify/Pocket Casts are page links;
+  // `defaultLinkProvider` picks which one the bookmark links out to.
+  feedUrl: text("feed_url"),
+  itunesId: integer("itunes_id"),
+  itunesUrl: text("itunes_url"),
+  spotifyUrl: text("spotify_url"),
+  pocketCastsUuid: text("pocket_casts_uuid"),
+  pocketCastsUrl: text("pocket_casts_url"),
+  defaultLinkProvider: text("default_link_provider"),
   priority: integer("priority").notNull().default(0),
   // Specific reason the last image auto-grab attempt failed. Nullable so `drizzle-kit push`
   // applies cleanly to existing rows (push-safe additive change). NULL means never attempted or
