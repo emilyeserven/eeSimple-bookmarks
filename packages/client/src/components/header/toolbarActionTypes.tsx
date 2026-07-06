@@ -169,6 +169,33 @@ const TAXONOMY_VIEW_LINK_RENDERERS: Record<
     >{children}
     </Link>
   ),
+  "languages": (slug, children) => (
+    <Link
+      to="/taxonomies/languages/$languageSlug/general"
+      params={{
+        languageSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "people": (slug, children) => (
+    <Link
+      to="/taxonomies/people/$personSlug/general"
+      params={{
+        personSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
+  "groups": (slug, children) => (
+    <Link
+      to="/taxonomies/groups/$groupSlug/general"
+      params={{
+        groupSlug: slug,
+      }}
+    >{children}
+    </Link>
+  ),
 };
 
 /**

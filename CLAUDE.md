@@ -297,7 +297,7 @@ that matches the surface — don't invent a new structure for a one-off page.
     (Categories, YouTube Channels, Property Groups) do **not** get one.
 - **Entity-scoped bookmarks page** — the `$entitySlug/index` route for entities whose bookmarks can
   be meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels, Genres & Moods,
-  Languages) renders a full
+  Languages, People, Groups) renders a full
   `BookmarkSearchView` scoped to that entity's bookmarks. **Do not redirect to `/bookmarks?<filter>=…`
   from these routes** — that loses the entity context in the URL and breaks deep-linking. The pattern:
   fetch data via `useCategoryPageData(search.tags)` (or the equivalent hooks), resolve the entity by

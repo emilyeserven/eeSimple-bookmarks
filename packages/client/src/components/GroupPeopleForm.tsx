@@ -1,5 +1,6 @@
 import type { Group } from "@eesimple/types";
 
+import { Link } from "@tanstack/react-router";
 import { UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -114,7 +115,15 @@ export function GroupPeopleView({
               />
             )
             : <UserCircle className="size-4 shrink-0 text-muted-foreground" />}
-          {person.name}
+          <Link
+            to="/taxonomies/people/$personSlug"
+            params={{
+              personSlug: person.slug,
+            }}
+            className="hover:underline"
+          >
+            {person.name}
+          </Link>
         </li>
       ))}
     </ul>

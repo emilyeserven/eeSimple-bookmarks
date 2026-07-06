@@ -130,7 +130,7 @@ export function PodcastAuthorsValue({
       {creditedPeople.map(person => (
         <Link
           key={person.id}
-          to="/taxonomies/people/$personSlug/general"
+          to="/taxonomies/people/$personSlug"
           params={{
             personSlug: person.slug,
           }}
@@ -145,7 +145,7 @@ export function PodcastAuthorsValue({
       {creditedGroups.map(group => (
         <Link
           key={group.id}
-          to="/taxonomies/groups/$groupSlug/general"
+          to="/taxonomies/groups/$groupSlug"
           params={{
             groupSlug: group.slug,
           }}

@@ -2,6 +2,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Group } from "@eesimple/types";
 
+import { Link } from "@tanstack/react-router";
 import { Building2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -95,7 +96,23 @@ function GroupGeneralView({
           ? (
             <>
               <dt className="text-muted-foreground">{t("Albums")}</dt>
-              <dd>{creditedAlbums.map(album => album.name).join(", ")}</dd>
+              <dd className="flex flex-wrap gap-2">
+                {creditedAlbums.map(album => (
+                  <Link
+                    key={album.id}
+                    to="/taxonomies/albums/$albumSlug"
+                    params={{
+                      albumSlug: album.slug,
+                    }}
+                    className="
+                      text-primary
+                      hover:underline
+                    "
+                  >
+                    {album.name}
+                  </Link>
+                ))}
+              </dd>
             </>
           )
           : null}
@@ -103,7 +120,23 @@ function GroupGeneralView({
           ? (
             <>
               <dt className="text-muted-foreground">{t("YouTube channels")}</dt>
-              <dd>{connectedChannels.map(ch => ch.name).join(", ")}</dd>
+              <dd className="flex flex-wrap gap-2">
+                {connectedChannels.map(ch => (
+                  <Link
+                    key={ch.id}
+                    to="/taxonomies/youtube-channels/$channelSlug"
+                    params={{
+                      channelSlug: ch.slug,
+                    }}
+                    className="
+                      text-primary
+                      hover:underline
+                    "
+                  >
+                    {ch.name}
+                  </Link>
+                ))}
+              </dd>
             </>
           )
           : null}

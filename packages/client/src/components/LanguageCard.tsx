@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useLanguageName } from "@/lib/builtInName";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
-/** A single language listing card: body → its detail page, with hover Edit / Info. */
+/** A single language listing card: body → its bookmarks page, with hover Edit / Info. */
 export function LanguageCard({
   language,
   selectable,
@@ -49,12 +49,13 @@ export function LanguageCard({
       count={language.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/languages/$languageSlug/general"
+          to="/taxonomies/languages/$languageSlug"
           params={{
             languageSlug: language.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "language", language.id, language.slug)}
+          title={t("View {{name}}", {
+            name: languageName(language),
+          })}
           className={className}
         >
           {children}
