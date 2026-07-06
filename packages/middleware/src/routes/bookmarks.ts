@@ -377,6 +377,10 @@ const createBookmarkBody = {
       type: ["string", "null"],
       format: "uuid",
     },
+    youtubeChannelId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
     youtubeChannel: {
       type: ["object", "null"],
       required: ["key", "name"],

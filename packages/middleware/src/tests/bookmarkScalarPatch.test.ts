@@ -76,6 +76,19 @@ test("scalarBookmarkPatch coalesces the Plex link fields, mixing set and cleared
   });
 });
 
+test("scalarBookmarkPatch copies an explicit youtubeChannelId, coalescing null to unlink", () => {
+  assert.deepEqual(scalarBookmarkPatch({
+    youtubeChannelId: "chan-1",
+  } as UpdateBookmarkInput, undefined), {
+    youtubeChannelId: "chan-1",
+  });
+  assert.deepEqual(scalarBookmarkPatch({
+    youtubeChannelId: null,
+  } as UpdateBookmarkInput, undefined), {
+    youtubeChannelId: null,
+  });
+});
+
 test("scalarBookmarkPatch applies the media-type default only when the caller set none", () => {
   assert.deepEqual(scalarBookmarkPatch({}, "mt-video"), {
     mediaTypeId: "mt-video",

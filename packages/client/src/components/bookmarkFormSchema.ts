@@ -36,6 +36,7 @@ export const bookmarkSchema = z.object({
   })),
   categoryId: z.string().min(1, i18n.t("Category is required")),
   mediaTypeId: z.string(),
+  youtubeChannelId: z.string(),
   description: z.string(),
   tagIds: z.array(z.string()),
   genreMoodIds: z.array(z.string()),
@@ -158,6 +159,7 @@ const SAMPLE_DEFAULT_VALUES: {
   names: DraftEntityName[];
   categoryId: string;
   mediaTypeId: string;
+  youtubeChannelId: string;
   description: string;
   tagIds: string[];
   genreMoodIds: string[];
@@ -180,6 +182,7 @@ const SAMPLE_DEFAULT_VALUES: {
   names: [],
   categoryId: "",
   mediaTypeId: "",
+  youtubeChannelId: "",
   description: "",
   tagIds: [],
   genreMoodIds: [],
@@ -244,6 +247,7 @@ function scalarBookmarkDefaults(
     names: [] as DraftEntityName[],
     categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
     mediaTypeId: bookmark?.mediaType?.id ?? "",
+    youtubeChannelId: bookmark?.youtubeChannel?.id ?? "",
     description: bookmark?.description ?? "",
     groupId: bookmark?.group?.id ?? "",
   };

@@ -618,7 +618,9 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     id, websiteId, youtubeChannelId,
   } = await db.transaction(async (tx) => {
     const websiteId = input.url ? await ensureWebsiteForUrl(tx, input.url, input.websiteSiteName) : null;
-    const youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
+    const youtubeChannelId = input.youtubeChannelId !== undefined
+      ? input.youtubeChannelId
+      : (channelHint ? await ensureYouTubeChannel(tx, channelHint) : null);
     const [row] = await tx
       .insert(bookmarks)
       .values(buildBookmarkInsertValues(input, {
@@ -683,7 +685,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "podcastId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
+  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "youtubeChannelId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "podcastId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "priority" | "imageDisplayPreference">
 >;
 
 /**
@@ -691,7 +693,7 @@ type ScalarBookmarkPatch = Partial<
  * explicit `null`/`undefined` value to `null` (an omitted key leaves the column untouched).
  */
 const NULLABLE_SCALAR_FIELDS = [
-  "originalUrl", "description", "mediaTypeId", "groupId", "bookId", "movieId",
+  "originalUrl", "description", "mediaTypeId", "youtubeChannelId", "groupId", "bookId", "movieId",
   "tvShowId", "episodeId", "albumId", "trackId", "podcastId", "kavitaSeriesId", "kavitaLibraryId",
   "kavitaSeriesName", "plexRatingKey", "plexItemType", "plexItemTitle", "imageDisplayPreference",
 ] as const satisfies readonly (keyof ScalarBookmarkPatch)[];

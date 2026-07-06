@@ -57,6 +57,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     autoFetchTitle,
     people,
     groups,
+    youtubeChannels,
   } = useBookmarkFormData();
 
   const {
@@ -105,6 +106,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       names: [] as DraftEntityName[],
       categoryId: bookmark.categoryId ?? "",
       mediaTypeId: bookmark.mediaType?.id ?? "",
+      youtubeChannelId: bookmark.youtubeChannel?.id ?? "",
       description: bookmark.description ?? "",
       tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
       genreMoodIds: (bookmark.genreMoods.map(entry => entry.id)) as string[],
@@ -431,6 +433,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     languages,
     people,
     groups,
+    youtubeChannels,
     updateBookmark,
     ...modals,
     saveField,
