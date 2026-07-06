@@ -3,7 +3,7 @@ import type { EntityNameOwnerType } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
-import { EntityNamesTabView } from "./entityNames/EntityNamesTab";
+import { EntityNamesTabView, PrimaryLanguageDlRow } from "./entityNames/EntityNamesTab";
 
 import { useConnectors } from "@/hooks/useConnectors";
 import { useMediaProperties } from "@/hooks/useMediaProperties";
@@ -131,6 +131,10 @@ export function PlexTitleGeneralView({
             </>
           )
           : null}
+        <PrimaryLanguageDlRow
+          ownerType={ownerType}
+          ownerId={entity.id}
+        />
         <dt className="text-muted-foreground">{t("Names")}</dt>
         <dd>
           <EntityNamesTabView

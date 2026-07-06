@@ -3,6 +3,8 @@ import type { EntityName, EntityNameOwnerType, UpdateEntityNameEntry } from "@ee
 
 import { useEffect, useRef, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { draftsFromNames, entriesFromDrafts } from "./draftEntityName";
 import { EntityNamesEditor } from "./EntityNamesEditor";
 import { EntityNamesView } from "./EntityNamesView";
@@ -18,6 +20,65 @@ interface TabProps {
 /** The non-primary names — the primary row is edited via `PrimaryLanguageField`, not this list. */
 function otherNames(names: EntityName[]): EntityName[] {
   return names.filter(name => !name.isPrimary);
+}
+
+function primaryName(names: EntityName[]): EntityName | undefined {
+  return names.find(name => name.isPrimary);
+}
+
+/**
+ * Read-only "Primary language" value for a `dt`/`dd` grid (the field-grid pattern used by
+ * PlexTitleGeneralView, Group/Location/Person, Book, Podcast) — spread as a fragment inside the
+ * caller's `<dl>`.
+ */
+export function PrimaryLanguageDlRow({
+  ownerType, ownerId,
+}: TabProps) {
+  const {
+    data: names = [],
+  } = useEntityNames(ownerType, ownerId);
+  const {
+    t,
+  } = useTranslation();
+  const primary = primaryName(names);
+  return (
+    <>
+      <dt className="text-muted-foreground">{t("Primary language")}</dt>
+      <dd>{primary
+        ? primary.language.name
+        : (
+          <span
+            className="text-muted-foreground"
+          >{t("None")}
+          </span>
+        )}
+      </dd>
+    </>
+  );
+}
+
+/**
+ * Read-only "Primary language" block for views that render `EntityNamesTabView` as a standalone
+ * section rather than inside a `dt`/`dd` grid (Category, Tag, Genre & Mood, Media Type).
+ */
+export function PrimaryLanguageTabView({
+  ownerType, ownerId,
+}: TabProps) {
+  const {
+    data: names = [],
+  } = useEntityNames(ownerType, ownerId);
+  const {
+    t,
+  } = useTranslation();
+  const primary = primaryName(names);
+  return (
+    <div className="space-y-1 text-sm">
+      <p className="font-medium">{t("Primary language")}</p>
+      <p className={primary ? undefined : "text-muted-foreground"}>
+        {primary ? primary.language.name : t("None")}
+      </p>
+    </div>
+  );
 }
 
 /** The current primary row, if any, reshaped for a replace-all PUT entry. */

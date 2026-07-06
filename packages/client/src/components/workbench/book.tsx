@@ -5,7 +5,7 @@ import type { Book } from "@eesimple/types";
 import i18n from "../../i18n";
 import { BookGeneralForm } from "../BookGeneralForm";
 import { BookImageTab } from "../BookImageTab";
-import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
+import { EntityNamesTabView, PrimaryLanguageDlRow } from "../entityNames/EntityNamesTab";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 
 import { useBookBySlug, useBooks, useDeleteBook } from "@/hooks/useBooks";
@@ -64,6 +64,10 @@ function BookGeneralView({
         <dd>{new Date(book.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">{i18n.t("Slug")}</dt>
         <dd className="font-mono">{book.slug}</dd>
+        <PrimaryLanguageDlRow
+          ownerType="book"
+          ownerId={book.id}
+        />
         <dt className="text-muted-foreground">{i18n.t("Names")}</dt>
         <dd>
           <EntityNamesTabView

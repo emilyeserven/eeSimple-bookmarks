@@ -21,16 +21,16 @@ export function EntityNamesView({
     return <p className="text-sm text-muted-foreground">{emptyText ?? t("No additional names added.")}</p>;
   }
   return (
-    <ul className="flex flex-wrap gap-2">
+    <ul className="flex flex-col gap-2">
       {names.map(name => (
         <li key={name.id}>
           <Badge
             variant="secondary"
             className="gap-1"
           >
-            <span className="font-medium">{name.language.name}</span>
-            <span className="text-muted-foreground">—</span>
-            <span>{name.value}</span>
+            <span className="font-medium">{name.value}</span>
+            <span className="text-muted-foreground">-</span>
+            <span>{name.language.name}</span>
           </Badge>
         </li>
       ))}

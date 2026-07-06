@@ -13,7 +13,7 @@ import {
   podcastLinkUrl,
   resolvePodcastDefaultLink,
 } from "../../lib/podcastLinks";
-import { EntityNamesTabView } from "../entityNames/EntityNamesTab";
+import { EntityNamesTabView, PrimaryLanguageDlRow } from "../entityNames/EntityNamesTab";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { PodcastAuthorsValue } from "../PodcastAuthorsFields";
 import { PodcastGeneralForm } from "../PodcastGeneralForm";
@@ -47,6 +47,10 @@ function PodcastGeneralView({
         <dd>{new Date(podcast.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{podcast.slug}</dd>
+        <PrimaryLanguageDlRow
+          ownerType="podcast"
+          ownerId={podcast.id}
+        />
         <dt className="text-muted-foreground">{t("Names")}</dt>
         <dd>
           <EntityNamesTabView
