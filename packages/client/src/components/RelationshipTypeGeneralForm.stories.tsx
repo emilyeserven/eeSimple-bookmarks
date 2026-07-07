@@ -7,6 +7,7 @@ const baseType: RelationshipType = {
   id: "rt-sequel",
   name: "Sequel of",
   slug: "sequel-of",
+  description: null,
   directional: true,
   builtIn: false,
   sortOrder: 5,

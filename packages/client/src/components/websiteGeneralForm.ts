@@ -8,12 +8,14 @@ import { socialLinkSchema } from "@/lib/socialLinks";
 export const websiteGeneralSchema = z.object({
   siteName: z.string().trim().min(1, i18n.t("Site name is required")),
   domain: z.string().trim().min(1, i18n.t("Domain is required")),
+  description: z.string(),
   socialLinks: z.array(socialLinkSchema),
 });
 
 export const WEBSITE_LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
   siteName: "Site name",
   domain: "Domain",
+  description: "Description",
   categoryId: "Category",
   mediaTypeId: "Media type",
   tagIds: "Default tags",
@@ -28,6 +30,7 @@ export function websiteAutoSaveInitial(website: Website): UpdateWebsiteInput {
   return {
     siteName: website.siteName,
     domain: website.domain,
+    description: website.description ?? null,
     categoryId: website.category?.id ?? null,
     mediaTypeId: website.mediaTypeId ?? null,
     tagIds: website.tagIds ?? [],

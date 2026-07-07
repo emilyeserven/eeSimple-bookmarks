@@ -44,6 +44,9 @@ const createPlaceTypeBody = {
     sortOrder: {
       type: "integer",
     },
+    description: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -57,6 +60,9 @@ const updatePlaceTypeBody = {
     },
     sortOrder: {
       type: "integer",
+    },
+    description: {
+      type: ["string", "null"],
     },
   },
 } as const;

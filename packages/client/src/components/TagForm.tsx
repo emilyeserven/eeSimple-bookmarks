@@ -80,6 +80,7 @@ export function TagForm({
     defaultValues: {
       name: defaultName,
       parent: defaultParentId ?? "",
+      description: "",
     },
     validators: {
       onChange: tagSchema,

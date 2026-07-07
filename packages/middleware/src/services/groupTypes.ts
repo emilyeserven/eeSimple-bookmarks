@@ -38,6 +38,7 @@ function toGroupType(
     id: row.id,
     name: row.name,
     slug: row.slug ?? slugify(row.name),
+    description: row.description,
     sortOrder: row.sortOrder,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -56,6 +57,7 @@ export async function listGroupTypes(): Promise<GroupType[]> {
       id: groupTypes.id,
       name: groupTypes.name,
       slug: groupTypes.slug,
+      description: groupTypes.description,
       sortOrder: groupTypes.sortOrder,
       createdAt: groupTypes.createdAt,
       groupCount: db.$count(groups, eq(groups.groupTypeId, groupTypes.id)),
@@ -71,6 +73,7 @@ export async function getGroupTypeBySlug(slug: string): Promise<GroupType | null
       id: groupTypes.id,
       name: groupTypes.name,
       slug: groupTypes.slug,
+      description: groupTypes.description,
       sortOrder: groupTypes.sortOrder,
       createdAt: groupTypes.createdAt,
       groupCount: db.$count(groups, eq(groups.groupTypeId, groupTypes.id)),
@@ -95,6 +98,7 @@ export async function createGroupType(input: CreateGroupTypeInput): Promise<Grou
   const [row] = await db.insert(groupTypes).values({
     name,
     slug,
+    description: input.description ?? null,
     sortOrder: input.sortOrder ?? 0,
   }).returning();
   return toGroupType(row);
@@ -108,7 +112,7 @@ export async function updateGroupType(
   const [existing] = await db.select().from(groupTypes).where(eq(groupTypes.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<GroupTypeRow, "name" | "slug" | "sortOrder">> = {};
+  const patch: Partial<Pick<GroupTypeRow, "name" | "slug" | "description" | "sortOrder">> = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -118,6 +122,7 @@ export async function updateGroupType(
     patch.name = name;
     patch.slug = uniqueSlug(slugify(name), await takenSlugs(id), "group-type");
   }
+  if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (Object.keys(patch).length === 0) return toGroupType(existing);
 

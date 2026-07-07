@@ -47,6 +47,7 @@ function toLevel(row: LanguageUsageLevelRow, usageCount = 0): LanguageUsageLevel
     kind: row.kind as LanguageUsageKind,
     builtIn: row.builtIn,
     sortOrder: row.sortOrder,
+    description: row.description ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     usageCount,
@@ -105,6 +106,7 @@ export async function createLanguageUsageLevel(
       slug,
       kind: input.kind,
       sortOrder: input.sortOrder ?? 0,
+      description: input.description ?? null,
     })
     .returning();
   return toLevel(row);
@@ -118,7 +120,7 @@ export async function updateLanguageUsageLevel(
   const [existing] = await db.select().from(languageUsageLevels).where(eq(languageUsageLevels.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<LanguageUsageLevelRow, "name" | "slug" | "sortOrder">> = {};
+  const patch: Partial<Pick<LanguageUsageLevelRow, "name" | "slug" | "sortOrder" | "description">> = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     if (existing.builtIn) throw new BuiltInLanguageUsageLevelError();
     const name = input.name.trim();
@@ -133,6 +135,7 @@ export async function updateLanguageUsageLevel(
     patch.slug = uniqueSlug(name, await takenSlugs(id), "language-usage-level");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
+  if (input.description !== undefined) patch.description = input.description ?? null;
   if (Object.keys(patch).length === 0) return toLevel(existing);
 
   const [row] = await db

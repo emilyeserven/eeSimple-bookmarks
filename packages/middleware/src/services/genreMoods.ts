@@ -47,6 +47,7 @@ function toGenreMood(row: GenreMoodRow, counts?: SubtreeBookmarkCounts, names?: 
     names: names ?? [],
     // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
     slug: row.slug ?? slugify(row.name),
+    description: row.description,
     parentId: row.parentId,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -134,6 +135,7 @@ export async function createGenreMood(input: CreateGenreMoodInput): Promise<Genr
     .values({
       name,
       slug,
+      description: input.description ?? null,
       parentId: input.parentId ?? null,
     })
     .returning();
@@ -151,11 +153,12 @@ export async function updateGenreMood(
     if (wouldCreateCycle(all, id, input.parentId)) throw new GenreMoodCycleError();
   }
 
-  const patch: Partial<Pick<GenreMoodRow, "name" | "slug" | "parentId">> = {};
+  const patch: Partial<Pick<GenreMoodRow, "name" | "slug" | "description" | "parentId">> = {};
   if (input.name !== undefined) {
     patch.name = input.name.trim();
     patch.slug = uniqueSlug(input.name, await takenSlugs(id), "genre-mood");
   }
+  if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
   if (Object.keys(patch).length === 0) {
     const [existing] = await db.select().from(genreMoods).where(eq(genreMoods.id, id));

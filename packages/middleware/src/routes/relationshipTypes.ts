@@ -33,6 +33,9 @@ const createRelationshipTypeBody = {
       type: "string",
       minLength: 1,
     },
+    description: {
+      type: ["string", "null"],
+    },
     directional: {
       type: "boolean",
     },
@@ -49,6 +52,9 @@ const updateRelationshipTypeBody = {
     name: {
       type: "string",
       minLength: 1,
+    },
+    description: {
+      type: ["string", "null"],
     },
     directional: {
       type: "boolean",

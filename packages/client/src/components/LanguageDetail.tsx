@@ -18,6 +18,8 @@ export function LanguageDetail({
       <dd className="font-mono">{language.slug}</dd>
       <dt className="text-muted-foreground">{t("ISO code")}</dt>
       <dd className="font-mono">{language.isoCode ?? "—"}</dd>
+      <dt className="text-muted-foreground">{t("Description")}</dt>
+      <dd>{language.description ?? "—"}</dd>
       <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
       <dd>{language.bookmarkCount ?? 0}</dd>
       <dt className="text-muted-foreground">{t("Built-in")}</dt>

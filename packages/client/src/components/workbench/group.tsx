@@ -47,6 +47,14 @@ function GroupGeneralView({
         <dd>{new Date(group.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{group.slug}</dd>
+        {group.description
+          ? (
+            <>
+              <dt className="text-muted-foreground">{t("Description")}</dt>
+              <dd>{group.description}</dd>
+            </>
+          )
+          : null}
         <PrimaryLanguageDlRow
           ownerType="group"
           ownerId={group.id}

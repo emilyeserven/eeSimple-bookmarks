@@ -3,6 +3,7 @@ import type { ShortenedLink, SocialLink, UpdateWebsiteInput, WebsiteParamRule } 
 /** The website columns an update can set without touching the slug/domain (which need a DB lookup). */
 export interface WebsiteScalarPatch {
   siteName?: string;
+  description?: string | null;
   shortenedLinks?: ShortenedLink[];
   paramRules?: WebsiteParamRule[];
   categoryId?: string | null;
@@ -39,6 +40,7 @@ export function builtInWebsiteRenamedOrMoved(
 export function buildWebsiteScalarPatch(input: UpdateWebsiteInput): WebsiteScalarPatch {
   const patch: WebsiteScalarPatch = {};
   if (input.siteName !== undefined) patch.siteName = input.siteName;
+  if (input.description !== undefined) patch.description = input.description ?? null;
   // Rule fields stay editable even on built-ins (only rename/move/delete are blocked).
   if (input.shortenedLinks !== undefined) patch.shortenedLinks = input.shortenedLinks;
   if (input.paramRules !== undefined) patch.paramRules = input.paramRules;

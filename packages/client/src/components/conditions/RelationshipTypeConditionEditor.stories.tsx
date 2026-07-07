@@ -14,6 +14,7 @@ function relType(id: string, name: string, slug: string, sortOrder: number): Rel
     id,
     name,
     slug,
+    description: null,
     directional: false,
     builtIn: false,
     sortOrder,

@@ -26,6 +26,7 @@ export const ROOT = "__root__";
 const LABELS: Record<keyof UpdateLocationInput, string> = {
   name: "Name",
   englishName: "English name",
+  description: "Description",
   alternateNames: "Alternate names",
   latitude: "Latitude",
   longitude: "Longitude",
@@ -55,6 +56,7 @@ function locationEditableDefaults(node: LocationNode) {
   return {
     name: node.name,
     englishName: node.names?.find(n => n.language.isoCode?.toLowerCase() === "en")?.value ?? "",
+    description: node.description ?? "",
     latitude: node.latitude ?? 0,
     longitude: node.longitude ?? 0,
     mapUrl: node.mapUrl ?? "",

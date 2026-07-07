@@ -12,6 +12,7 @@ import { useAppForm } from "../lib/form";
 const languageGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   isoCode: z.string(),
+  description: z.string(),
 });
 
 interface Props {
@@ -31,6 +32,7 @@ export function LanguageGeneralForm({
   const LABELS: Partial<Record<keyof UpdateLanguageInput, string>> = {
     name: t("Name"),
     isoCode: t("ISO code"),
+    description: t("Description"),
   };
   const navigate = useNavigate();
   const update = useUpdateLanguage();
@@ -41,6 +43,7 @@ export function LanguageGeneralForm({
     initial: {
       name: language.name,
       isoCode: language.isoCode ?? "",
+      description: language.description ?? null,
     },
   });
 
@@ -48,6 +51,7 @@ export function LanguageGeneralForm({
     defaultValues: {
       name: language.name,
       isoCode: language.isoCode ?? "",
+      description: language.description ?? "",
     },
     validators: {
       onChange: languageGeneralSchema,
@@ -98,6 +102,21 @@ export function LanguageGeneralForm({
       <p className="text-xs text-muted-foreground">
         {t("ISO 639-1 code, used to match autofetched languages from scans and ISBN lookups.")}
       </p>
+
+      <form.AppField name="description">
+        {field => (
+          <field.TextareaField
+            label={t("Description")}
+            onBlur={() => autoSave.saveField(
+              "description",
+              field.state.value.trim() || null,
+              {
+                valid: field.state.meta.errors.length === 0,
+              },
+            )}
+          />
+        )}
+      </form.AppField>
 
       <GenreMoodAssignmentSection
         ownerType="language"

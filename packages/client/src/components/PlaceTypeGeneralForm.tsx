@@ -11,11 +11,13 @@ import { useAppForm } from "../lib/form";
 const placeTypeSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   sortOrder: z.number(),
+  description: z.string(),
 });
 
 const LABELS: Partial<Record<keyof UpdatePlaceTypeInput, string>> = {
   name: "Name",
   sortOrder: "Sort order",
+  description: "Description",
 };
 
 interface PlaceTypeGeneralFormProps {
@@ -38,6 +40,7 @@ export function PlaceTypeGeneralForm({
     initial: {
       name: placeType.name,
       sortOrder: placeType.sortOrder,
+      description: placeType.description ?? null,
     },
   });
 
@@ -45,6 +48,7 @@ export function PlaceTypeGeneralForm({
     defaultValues: {
       name: placeType.name,
       sortOrder: placeType.sortOrder,
+      description: placeType.description ?? "",
     },
     validators: {
       onChange: placeTypeSchema,
@@ -92,6 +96,20 @@ export function PlaceTypeGeneralForm({
               onBlur={() => autoSave.saveField(
                 "sortOrder",
                 field.state.value,
+                {
+                  valid: field.state.meta.errors.length === 0,
+                },
+              )}
+            />
+          )}
+        </form.AppField>
+        <form.AppField name="description">
+          {field => (
+            <field.TextareaField
+              label={t("Description")}
+              onBlur={() => autoSave.saveField(
+                "description",
+                field.state.value.trim() || null,
                 {
                   valid: field.state.meta.errors.length === 0,
                 },

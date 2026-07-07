@@ -31,6 +31,9 @@ const createGenreMoodBody = {
       type: "string",
       minLength: 1,
     },
+    description: {
+      type: ["string", "null"],
+    },
     parentId: {
       type: "string",
       format: "uuid",
@@ -46,6 +49,9 @@ const updateGenreMoodBody = {
     name: {
       type: "string",
       minLength: 1,
+    },
+    description: {
+      type: ["string", "null"],
     },
     parentId: {
       type: "string",

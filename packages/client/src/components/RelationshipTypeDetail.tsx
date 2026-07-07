@@ -16,6 +16,8 @@ export function RelationshipTypeDetail({
     <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
       <dt className="text-muted-foreground">{t("Slug")}</dt>
       <dd className="font-mono">{relationshipType.slug}</dd>
+      <dt className="text-muted-foreground">{t("Description")}</dt>
+      <dd>{relationshipType.description ?? "—"}</dd>
       <dt className="text-muted-foreground">{t("Direction")}</dt>
       <dd>{relationshipType.directional ? t("Directional (parent → child)") : t("Symmetric")}</dd>
       <dt className="text-muted-foreground">{t("Bookmarks")}</dt>

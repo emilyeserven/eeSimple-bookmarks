@@ -56,6 +56,8 @@ export interface Tag {
   names?: EntityName[];
   /** URL-friendly identifier derived from the name; unique across all tags. */
   slug: string;
+  /** Free-text description surfaced on the tag's detail page. */
+  description: string | null;
   /** Parent tag id, or `null` for a root-level tag. */
   parentId: string | null;
   /** ISO-8601 timestamp of when the tag was created. */
@@ -94,6 +96,7 @@ export interface CreateTagInput {
   name: string;
   /** Parent tag id, or `null`/omitted for a root tag. */
   parentId?: string | null;
+  description?: string | null;
 }
 
 /** Payload for renaming and/or reparenting a tag. `parentId === null` moves it to root. */
@@ -102,6 +105,7 @@ export interface UpdateTagInput {
   parentId?: string | null;
   editableOnCard?: boolean;
   excludeFromBackfill?: boolean;
+  description?: string | null;
 }
 
 /**
@@ -144,6 +148,8 @@ export interface Website {
   siteName: string;
   /** URL-friendly identifier derived from the domain (e.g. `"github"` from `"github.com"`). Unique. */
   slug: string;
+  /** Free-text description surfaced on the website's detail page. */
+  description: string | null;
   /** Whether this is a seeded built-in (e.g. youtube.com); protected from rename/delete. */
   builtIn: boolean;
   /** Verified shortened-link domains that resolve to this site (e.g. `youtu.be`). */
@@ -198,6 +204,7 @@ export interface CreateWebsiteInput {
   shortenedLinks?: ShortenedLink[];
   /** Optional path-scoped query-param whitelist. */
   paramRules?: WebsiteParamRule[];
+  description?: string | null;
 }
 
 /** Payload for updating a website (rename its site name and/or change its domain). */
@@ -206,6 +213,7 @@ export interface UpdateWebsiteInput {
   domain?: string;
   shortenedLinks?: ShortenedLink[];
   paramRules?: WebsiteParamRule[];
+  description?: string | null;
   /** Category to associate with this website. `null` clears the association; omit to leave unchanged. */
   categoryId?: string | null;
   /** Full replacement list of default tag ids. Omit to leave unchanged. */
@@ -655,6 +663,8 @@ export interface MediaType {
   names?: EntityName[];
   /** URL-friendly identifier derived from the name (e.g. `"video"`). Unique. */
   slug: string;
+  /** Free-text description surfaced on the media type's detail page. */
+  description: string | null;
   /** Optional Lucide icon name shown in the MediaTypePill on bookmark cards. */
   icon: string | null;
   /** Whether this is a seeded built-in (protected from rename/delete). */
@@ -686,6 +696,7 @@ export interface CreateMediaTypeInput {
   icon?: string | null;
   /** Parent media type id; omit/null for a root type. */
   parentId?: string | null;
+  description?: string | null;
 }
 
 /** Payload for updating a media type (rename, reorder, and/or reparent). */
@@ -695,6 +706,7 @@ export interface UpdateMediaTypeInput {
   icon?: string | null;
   /** Parent media type id; `null` to make it a root. */
   parentId?: string | null;
+  description?: string | null;
 }
 
 /**
@@ -710,6 +722,8 @@ export interface Language {
   isoCode: string | null;
   /** URL-friendly identifier derived from the name (e.g. `"english"`). Unique. */
   slug: string;
+  /** Free-text description surfaced on the language's detail page. */
+  description: string | null;
   /** Whether this is a seeded built-in (protected from rename/delete). */
   builtIn: boolean;
   /** Display ordering weight; lower sorts first. */
@@ -727,6 +741,7 @@ export interface CreateLanguageInput {
   name: string;
   isoCode?: string | null;
   sortOrder?: number;
+  description?: string | null;
 }
 
 /** Payload for updating a language (rename and/or reorder). */
@@ -735,6 +750,7 @@ export interface UpdateLanguageInput {
   isoCode?: string | null;
   sortOrder?: number;
   isFavorite?: boolean;
+  description?: string | null;
 }
 
 /**
@@ -750,6 +766,8 @@ export interface Group {
   names?: EntityName[];
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
+  /** Free-text description surfaced on the group's detail page. */
+  description: string | null;
   /** Id of the website this group is associated with, or null when unset. */
   websiteId: string | null;
   /** The associated website, populated by list/get endpoints. */
@@ -798,6 +816,7 @@ export interface CreateGroupInput {
   websiteId?: string | null;
   /** Id of the group type to classify this group under; null to leave unset. */
   groupTypeId?: string | null;
+  description?: string | null;
 }
 
 /** Payload for updating a group. */
@@ -807,6 +826,7 @@ export interface UpdateGroupInput {
   websiteId?: string | null;
   /** Id of the group type to classify this group under; null to clear it. */
   groupTypeId?: string | null;
+  description?: string | null;
   /** Social media links for this group. Replaces the full list; omit to leave unchanged. */
   socialLinks?: SocialLink[];
   sortOrder?: number;
@@ -870,6 +890,8 @@ export interface RelationshipType {
   name: string;
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
+  /** Free-text description surfaced on the relationship type's detail page. */
+  description: string | null;
   /** Whether the relationship has a direction (parent→child) rather than being symmetric. */
   directional: boolean;
   /** Whether this is a seeded built-in (protected from rename/delete). */
@@ -889,6 +911,7 @@ export interface CreateRelationshipTypeInput {
   name: string;
   directional?: boolean;
   sortOrder?: number;
+  description?: string | null;
 }
 
 /** Payload for updating a relationship type (rename, toggle direction, and/or reorder). */
@@ -896,6 +919,7 @@ export interface UpdateRelationshipTypeInput {
   name?: string;
   directional?: boolean;
   sortOrder?: number;
+  description?: string | null;
 }
 
 /**
@@ -911,6 +935,8 @@ export interface YouTubeChannel {
   name: string;
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
+  /** Free-text description surfaced on the channel's detail page. */
+  description: string | null;
   /** ISO-8601 timestamp of when the channel was first seen. */
   createdAt: string;
   /** Number of bookmarks associated with this channel (populated by list endpoints). */
@@ -956,11 +982,13 @@ export interface CreateYouTubeChannelInput {
   channelUrl: string;
   /** Display name for the channel. */
   name: string;
+  description?: string | null;
 }
 
 /** Payload for updating a YouTube channel (rename and/or self-identifier list). */
 export interface UpdateYouTubeChannelInput {
   name?: string;
+  description?: string | null;
   /** Full replacement list of self-identifiers. Omit to leave unchanged. */
   selfIds?: string[];
   /** Category to associate with this channel. `null` clears the association; omit to leave unchanged. */
@@ -984,6 +1012,8 @@ export interface Newsletter {
   name: string;
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
+  /** Free-text description surfaced on the newsletter's detail page. */
+  description: string | null;
   /** ISO-8601 timestamp of when the newsletter was created. */
   createdAt: string;
   /** Number of bookmarks associated with this newsletter (populated by list endpoints). */
@@ -1011,6 +1041,8 @@ export interface Person {
   slug: string;
   createdAt: string;
   bookmarkCount?: number;
+  /** Free-text description surfaced on the person's detail page. */
+  description: string | null;
   personWebsiteUrl: string | null;
   biographyUrl: string | null;
   imageUrl: string | null;
@@ -1046,11 +1078,13 @@ export type BookmarkPerson = Pick<Person, "id" | "name" | "slug">;
 /** Payload for creating a new person. */
 export interface CreatePersonInput {
   name: string;
+  description?: string | null;
 }
 
 /** Payload for partially updating an person. */
 export interface UpdatePersonInput {
   name?: string;
+  description?: string | null;
   personWebsiteUrl?: string | null;
   biographyUrl?: string | null;
   /** Social media links for this person. Replaces the full list; omit to leave unchanged. */
@@ -1083,11 +1117,13 @@ export interface BookmarkImport {
 /** Payload for creating a newsletter (name only). */
 export interface CreateNewsletterInput {
   name: string;
+  description?: string | null;
 }
 
 /** Payload for updating a newsletter (rename and/or default category / tags / media type). */
 export interface UpdateNewsletterInput {
   name?: string;
+  description?: string | null;
   /** Default category. `null` clears the association; omit to leave unchanged. */
   categoryId?: string | null;
   /** Full replacement list of default tag ids. Omit to leave unchanged. */

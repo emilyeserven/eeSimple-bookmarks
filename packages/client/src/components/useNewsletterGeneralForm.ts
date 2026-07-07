@@ -17,6 +17,7 @@ import { useAppForm } from "@/lib/form";
 
 const LABELS: Partial<Record<keyof UpdateNewsletterInput, string>> = {
   name: "Name",
+  description: "Description",
   categoryId: "Category",
   mediaTypeId: "Media type",
   tagIds: "Default tags",
@@ -33,6 +34,7 @@ export function useNewsletterGeneralForm(newsletter: Newsletter) {
   } = useTranslation();
   const newsletterGeneralSchema = z.object({
     name: z.string().trim().min(1, t("Name is required")),
+    description: z.string(),
   });
   const navigate = useNavigate();
   const updateNewsletter = useUpdateNewsletter();
@@ -53,6 +55,7 @@ export function useNewsletterGeneralForm(newsletter: Newsletter) {
     labels: LABELS,
     initial: {
       name: newsletter.name,
+      description: newsletter.description ?? null,
       categoryId: newsletter.category?.id ?? null,
       mediaTypeId: newsletter.mediaTypeId ?? null,
       tagIds: newsletter.tagIds ?? [],
@@ -62,6 +65,7 @@ export function useNewsletterGeneralForm(newsletter: Newsletter) {
   const form = useAppForm({
     defaultValues: {
       name: newsletter.name,
+      description: newsletter.description ?? "",
     },
     validators: {
       onChange: newsletterGeneralSchema,
@@ -85,6 +89,12 @@ export function useNewsletterGeneralForm(newsletter: Newsletter) {
     });
   }
 
+  function saveDescription(value: string, valid: boolean): void {
+    autoSave.saveField("description", value.trim() || null, {
+      valid,
+    });
+  }
+
   function saveTagIds(next: string[]): void {
     setTagIds(next);
     autoSave.saveField("tagIds", next);
@@ -98,6 +108,7 @@ export function useNewsletterGeneralForm(newsletter: Newsletter) {
     form,
     tagIds,
     saveName,
+    saveDescription,
     toggleTag,
     saveCategoryId: (id: string | null) => autoSave.saveField("categoryId", id),
     saveMediaTypeId: (id: string | null) => autoSave.saveField("mediaTypeId", id),

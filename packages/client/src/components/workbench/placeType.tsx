@@ -41,6 +41,12 @@ function PlaceTypeGeneralView({
         <dd>{placeType.sortOrder}</dd>
         <dt className="text-muted-foreground">{i18n.t("Locations")}</dt>
         <dd>{placeType.locationCount}</dd>
+        {placeType.description && (
+          <>
+            <dt className="text-muted-foreground">{i18n.t("Description")}</dt>
+            <dd>{placeType.description}</dd>
+          </>
+        )}
       </dl>
       {nodes.length > 0
         ? (

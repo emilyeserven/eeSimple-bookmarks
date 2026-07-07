@@ -9,4 +9,5 @@ import { z } from "zod";
 export const tagSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   parent: z.string(),
+  description: z.string(),
 });

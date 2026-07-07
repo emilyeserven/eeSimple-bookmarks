@@ -27,6 +27,8 @@ export interface LanguageUsageLevel {
   id: string;
   name: string;
   slug: string;
+  /** Free-text description surfaced alongside the level. */
+  description: string | null;
   kind: LanguageUsageKind;
   /** Seeded built-ins can't be renamed or deleted; users may add custom ones. */
   builtIn: boolean;
@@ -40,12 +42,14 @@ export interface CreateLanguageUsageLevelInput {
   name: string;
   kind: LanguageUsageKind;
   sortOrder?: number;
+  description?: string | null;
 }
 
 /** `kind` is immutable after creation (like a place type's identity), so it isn't patchable. */
 export interface UpdateLanguageUsageLevelInput {
   name?: string;
   sortOrder?: number;
+  description?: string | null;
 }
 
 /** A language + usage-level association, denormalized for display. */

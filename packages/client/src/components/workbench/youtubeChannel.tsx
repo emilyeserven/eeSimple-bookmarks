@@ -43,6 +43,14 @@ function YouTubeChannelGeneralView({
         <dd>{ch.channelKey}</dd>
         <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{ch.slug}</dd>
+        {ch.description
+          ? (
+            <>
+              <dt className="text-muted-foreground">{t("Description")}</dt>
+              <dd>{ch.description}</dd>
+            </>
+          )
+          : null}
         <dt className="text-muted-foreground">{t("Self-identifiers")}</dt>
         <dd>
           {ch.selfIds.length > 0

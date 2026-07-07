@@ -31,6 +31,7 @@ function nm(value: string): EntityName {
 function makeLocation(partial: Partial<Location> & Pick<Location, "id" | "name" | "parentId">): Location {
   return {
     slug: partial.id,
+    description: null,
     alternateNames: [],
     latitude: null,
     longitude: null,

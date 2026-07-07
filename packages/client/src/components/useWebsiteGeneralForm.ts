@@ -49,6 +49,7 @@ export function useWebsiteGeneralForm(website: Website) {
     defaultValues: {
       siteName: website.siteName,
       domain: website.domain,
+      description: website.description ?? "",
     },
     validators: {
       onChange: websiteGeneralSchema,

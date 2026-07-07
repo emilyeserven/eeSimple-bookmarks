@@ -81,6 +81,7 @@ function toRelationshipType(
     id: row.id,
     name: row.name,
     slug: row.slug ?? slugify(row.name),
+    description: row.description,
     directional: row.directional,
     builtIn: row.builtIn,
     sortOrder: row.sortOrder,
@@ -117,6 +118,7 @@ export async function listRelationshipTypes(): Promise<RelationshipType[]> {
         id: relationshipTypes.id,
         name: relationshipTypes.name,
         slug: relationshipTypes.slug,
+        description: relationshipTypes.description,
         directional: relationshipTypes.directional,
         builtIn: relationshipTypes.builtIn,
         sortOrder: relationshipTypes.sortOrder,
@@ -153,6 +155,7 @@ export async function createRelationshipType(
   const [row] = await db.insert(relationshipTypes).values({
     name,
     slug,
+    description: input.description ?? null,
     directional: input.directional ?? false,
     sortOrder: input.sortOrder ?? BUILT_IN_RELATIONSHIP_TYPES.length,
   }).returning();
@@ -170,7 +173,9 @@ export async function updateRelationshipType(
     throw new BuiltInRelationshipTypeError("A built-in relationship type cannot be renamed");
   }
 
-  const patch: Partial<Pick<RelationshipTypeRow, "name" | "slug" | "directional" | "sortOrder">> = {};
+  const patch: Partial<
+    Pick<RelationshipTypeRow, "name" | "slug" | "description" | "directional" | "sortOrder">
+  > = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -180,6 +185,7 @@ export async function updateRelationshipType(
     patch.name = name;
     patch.slug = uniqueSlug(name, await takenSlugs(id), "relationship-type");
   }
+  if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.directional !== undefined) patch.directional = input.directional;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (Object.keys(patch).length === 0) return toRelationshipType(existing);

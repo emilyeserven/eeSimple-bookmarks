@@ -20,6 +20,7 @@ const ROOT = "__root__";
 
 const mediaTypeGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  description: z.string(),
   sortOrder: z.number().int(),
   icon: z.string().nullable(),
   parent: z.string(),
@@ -49,6 +50,7 @@ export function MediaTypeGeneralForm({
   } = useMediaTypes();
   const labels: Record<keyof UpdateMediaTypeInput, string> = {
     name: t("Name"),
+    description: t("Description"),
     sortOrder: t("Sort order"),
     icon: t("Icon"),
     parentId: t("Parent"),
@@ -59,6 +61,7 @@ export function MediaTypeGeneralForm({
     labels,
     initial: {
       name: mediaType.name,
+      description: mediaType.description ?? null,
       sortOrder: mediaType.sortOrder,
       icon: mediaType.icon,
       parentId: mediaType.parentId,
@@ -85,6 +88,7 @@ export function MediaTypeGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: mediaType.name,
+      description: mediaType.description ?? "",
       sortOrder: mediaType.sortOrder,
       icon: mediaType.icon,
       parent: mediaType.parentId ?? ROOT,
@@ -156,6 +160,21 @@ export function MediaTypeGeneralForm({
           )}
         </form.AppField>
       </div>
+
+      <form.AppField name="description">
+        {field => (
+          <field.TextareaField
+            label={t("Description")}
+            onBlur={() => autoSave.saveField(
+              "description",
+              field.state.value.trim() || null,
+              {
+                valid: field.state.meta.errors.length === 0,
+              },
+            )}
+          />
+        )}
+      </form.AppField>
 
       <PrimaryLanguageField
         value={primaryLanguage.primaryLanguageId}

@@ -77,6 +77,9 @@ const locationFields = {
     type: "string",
     nullable: true,
   },
+  description: {
+    type: ["string", "null"],
+  },
   alternateNames: alternateNamesSchema,
   latitude: {
     type: "number",

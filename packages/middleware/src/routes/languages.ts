@@ -36,6 +36,9 @@ const createLanguageBody = {
     isoCode: {
       type: ["string", "null"],
     },
+    description: {
+      type: ["string", "null"],
+    },
     sortOrder: {
       type: "integer",
     },
@@ -51,6 +54,9 @@ const updateLanguageBody = {
       minLength: 1,
     },
     isoCode: {
+      type: ["string", "null"],
+    },
+    description: {
       type: ["string", "null"],
     },
     sortOrder: {

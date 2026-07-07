@@ -16,6 +16,8 @@ export interface GenreMood {
   names?: EntityName[];
   /** URL-friendly identifier derived from the name; unique across all entries. */
   slug: string;
+  /** Free-text description surfaced on the entry's detail page. */
+  description: string | null;
   /** Parent entry id, or `null` for a root-level entry. */
   parentId: string | null;
   /** ISO-8601 timestamp of when the entry was created. */
@@ -39,12 +41,14 @@ export interface CreateGenreMoodInput {
   name: string;
   /** Parent entry id, or `null`/omitted for a root entry. */
   parentId?: string | null;
+  description?: string | null;
 }
 
 /** Payload for renaming and/or reparenting a Genres & Moods entry. `parentId === null` moves it to root. */
 export interface UpdateGenreMoodInput {
   name?: string;
   parentId?: string | null;
+  description?: string | null;
 }
 
 /**

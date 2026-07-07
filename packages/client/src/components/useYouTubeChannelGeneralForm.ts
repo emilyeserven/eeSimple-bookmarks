@@ -48,6 +48,7 @@ export function useYouTubeChannelGeneralForm(channel: YouTubeChannel) {
   const form = useAppForm({
     defaultValues: {
       name: channel.name,
+      description: channel.description ?? "",
     },
     validators: {
       onChange: channelGeneralSchema,

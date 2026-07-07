@@ -16,6 +16,7 @@ import { socialLinkSchema } from "../lib/socialLinks";
 
 const groupGeneralSchema = z.object({
   name: z.string().trim().min(1, i18n.t("Name is required")),
+  description: z.string(),
   websiteId: z.string().nullable(),
   groupTypeId: z.string().nullable(),
   socialLinks: z.array(socialLinkSchema),
@@ -23,6 +24,7 @@ const groupGeneralSchema = z.object({
 
 const LABELS: Partial<Record<keyof UpdateGroupInput, string>> = {
   name: i18n.t("Name"),
+  description: i18n.t("Description"),
   websiteId: i18n.t("Website"),
   groupTypeId: i18n.t("Group type"),
   socialLinks: i18n.t("Social media links"),
@@ -53,6 +55,7 @@ export function useGroupGeneralForm(group: Group) {
     labels: LABELS,
     initial: {
       name: group.name,
+      description: group.description ?? null,
       websiteId: group.websiteId ?? null,
       groupTypeId: group.groupTypeId ?? null,
       socialLinks: group.socialLinks,
@@ -79,6 +82,7 @@ export function useGroupGeneralForm(group: Group) {
   const form = useAppForm({
     defaultValues: {
       name: group.name,
+      description: group.description ?? "",
       websiteId: group.websiteId ?? null,
       groupTypeId: group.groupTypeId ?? null,
     },

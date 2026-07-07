@@ -11,11 +11,13 @@ import { useAppForm } from "@/lib/form";
 
 const groupTypeGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  description: z.string(),
   sortOrder: z.number().int(),
 });
 
 const LABELS: Record<keyof UpdateGroupTypeInput, string> = {
   name: "Name",
+  description: "Description",
   sortOrder: "Sort order",
 };
 
@@ -38,6 +40,7 @@ export function GroupTypeGeneralForm({
     labels: LABELS,
     initial: {
       name: groupType.name,
+      description: groupType.description ?? null,
       sortOrder: groupType.sortOrder,
     },
   });
@@ -45,6 +48,7 @@ export function GroupTypeGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: groupType.name,
+      description: groupType.description ?? "",
       sortOrder: groupType.sortOrder,
     },
     validators: {
@@ -101,6 +105,20 @@ export function GroupTypeGeneralForm({
           )}
         </form.AppField>
       </div>
+      <form.AppField name="description">
+        {field => (
+          <field.TextareaField
+            label={t("Description")}
+            onBlur={() => autoSave.saveField(
+              "description",
+              field.state.value.trim() || null,
+              {
+                valid: field.state.meta.errors.length === 0,
+              },
+            )}
+          />
+        )}
+      </form.AppField>
     </div>
   );
 }

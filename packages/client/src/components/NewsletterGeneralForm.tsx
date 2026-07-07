@@ -21,7 +21,7 @@ export function NewsletterGeneralForm({
     t,
   } = useTranslation();
   const {
-    form, tagIds, saveName, toggleTag, saveCategoryId, saveMediaTypeId,
+    form, tagIds, saveName, saveDescription, toggleTag, saveCategoryId, saveMediaTypeId,
     categoryOptions, mediaTypeOptions, tagTree,
   } = useNewsletterGeneralForm(newsletter);
 
@@ -32,6 +32,15 @@ export function NewsletterGeneralForm({
           <field.TextField
             label={t("Newsletter name")}
             onBlur={() => saveName(field.state.value, field.state.meta.errors.length === 0)}
+          />
+        )}
+      </form.AppField>
+
+      <form.AppField name="description">
+        {field => (
+          <field.TextareaField
+            label={t("Description")}
+            onBlur={() => saveDescription(field.state.value, field.state.meta.errors.length === 0)}
           />
         )}
       </form.AppField>

@@ -53,6 +53,7 @@ function toLocation(
     name: row.name,
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
+    description: row.description,
     alternateNames: row.alternateNames ?? [],
     latitude: row.latitude,
     longitude: row.longitude,
@@ -219,6 +220,7 @@ export async function createLocation(input: CreateLocationInput): Promise<Locati
       .values({
         name: input.name,
         slug,
+        description: input.description ?? null,
         alternateNames: input.alternateNames ?? [],
         latitude: input.latitude ?? null,
         longitude: input.longitude ?? null,
@@ -338,6 +340,7 @@ export async function setLocationAncestors(
 export function locationInputToPatch(input: UpdateLocationInput): Partial<LocationRow> {
   const patch: Partial<LocationRow> = {};
   if (input.name !== undefined) patch.name = input.name;
+  if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.alternateNames !== undefined) patch.alternateNames = input.alternateNames;
   if (input.latitude !== undefined) patch.latitude = input.latitude;
   if (input.longitude !== undefined) patch.longitude = input.longitude;

@@ -30,6 +30,14 @@ function GroupTypeGeneralView({
         <dd className="font-mono">{groupType.slug}</dd>
         <dt className="text-muted-foreground">{t("Sort order")}</dt>
         <dd>{groupType.sortOrder}</dd>
+        {groupType.description
+          ? (
+            <>
+              <dt className="text-muted-foreground">{t("Description")}</dt>
+              <dd>{groupType.description}</dd>
+            </>
+          )
+          : null}
         {groupType.groupCount != null
           ? (
             <>
