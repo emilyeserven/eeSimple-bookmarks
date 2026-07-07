@@ -5,12 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { request } from "../lib/api/client";
 import { buildImageTaxonomyDiff } from "../lib/syncSources/imageTaxonomyDiff";
-
-/** Reads a string ref, treating missing/blank/non-string as null. */
-function strRef(refs: SyncProvider["refs"], key: string): string | null {
-  const value = refs?.[key];
-  return typeof value === "string" && value !== "" ? value : null;
-}
+import { resolveSyncSourceFetch, strRef } from "../lib/syncSources/syncSourceQuery";
 
 /** The preview endpoint (returns `{ imageUrl }`) for a JSON-preview source, or null when not resolvable. */
 function previewPath(kind: string | null, entityId: string, refs: SyncProvider["refs"]): string | null {
@@ -44,42 +39,33 @@ export function useImageOnlyTaxonomySyncSource(provider: SyncProvider, enabled: 
   const currentImageUrl = strRef(provider.refs, "currentImageUrl");
   const label = strRef(provider.refs, "sourceLabel") ?? t("Source");
   const path = previewPath(kind, provider.entityId, provider.refs);
+  const isPlex = kind === "plex";
 
   const query = useQuery({
     queryKey: ["image-taxonomy-preview", provider.entityId, path],
     queryFn: () => request<{ imageUrl: string | null }>(path ?? ""),
-    enabled: enabled && kind !== "plex" && path !== null,
+    enabled: enabled && !isPlex && path !== null,
     staleTime: 60_000,
   });
 
-  if (kind === "plex") {
-    const ratingKey = strRef(provider.refs, "plexRatingKey");
-    const nextImageUrl = ratingKey ? `/api/plex/poster?ratingKey=${encodeURIComponent(ratingKey)}` : null;
-    return {
-      diff: buildImageTaxonomyDiff(currentImageUrl, nextImageUrl, label),
-      isLoading: false,
-      error: null,
-    };
-  }
+  const plexRatingKey = strRef(provider.refs, "plexRatingKey");
+  const plexImageUrl = plexRatingKey ? `/api/plex/poster?ratingKey=${encodeURIComponent(plexRatingKey)}` : null;
 
-  if (query.isPending && enabled && path !== null) {
-    return {
-      diff: null,
-      isLoading: true,
-      error: null,
-    };
-  }
-  if (query.isError) {
-    return {
-      diff: null,
-      isLoading: false,
-      error: t("Couldn't reach the source. Try again in a moment."),
-    };
-  }
-
-  return {
-    diff: buildImageTaxonomyDiff(currentImageUrl, query.data?.imageUrl ?? null, label),
-    isLoading: false,
-    error: null,
-  };
+  return resolveSyncSourceFetch([
+    {
+      active: enabled && isPlex,
+      isPending: false,
+      isError: false,
+      data: plexImageUrl,
+      buildGroups: nextImageUrl => buildImageTaxonomyDiff(currentImageUrl, nextImageUrl, label).groups,
+    },
+    {
+      active: enabled && !isPlex && path !== null,
+      isPending: query.isPending,
+      isError: query.isError,
+      data: query.data ? query.data.imageUrl : undefined,
+      errorMessage: t("Couldn't reach the source. Try again in a moment."),
+      buildGroups: nextImageUrl => buildImageTaxonomyDiff(currentImageUrl, nextImageUrl, label).groups,
+    },
+  ]);
 }

@@ -717,6 +717,9 @@ new source, see the `sync-from-source` skill** — don't re-implement the modal 
   builds `applyStaged` closing over the live form. Diff-building is a **pure, unit-tested** helper in
   `lib/syncSources/{bookmark,location,imageTaxonomy}Diff.ts` (`fillEmptyDefault` for the checkbox
   default, `rowDiffers` to skip in-sync fields). Types live in `lib/syncSources/syncSourceTypes.ts`.
+  Each fetch hook's own pending/error/group-assembly logic is a thin `SyncQuerySlot[]` description
+  handed to the shared pure `resolveSyncSourceFetch` (`lib/syncSources/syncSourceQuery.ts`, also
+  home to the `strRef`/`numRef` ref-readers) rather than a hand-rolled conditional chain per source.
 - **Stage vs immediate.** Text/data rows **stage** into the form and persist through its own save —
   per-field auto-save everywhere now, including bookmarks (the bookmark sync registration threads an
   `onFieldStaged` callback that re-runs the General tab's title/description auto-save after staging).

@@ -1,23 +1,13 @@
 import type { LocationDiffCurrent } from "../lib/syncSources/locationDiff";
 import type { SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourceTypes";
+import type { LocationLookupResult } from "@eesimple/types";
 
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { locationsApi } from "../lib/api/taxonomies";
 import { buildLocationDiff } from "../lib/syncSources/locationDiff";
-
-/** Reads a string ref, treating missing/blank/non-string as null. */
-function strRef(refs: SyncProvider["refs"], key: string): string | null {
-  const value = refs?.[key];
-  return typeof value === "string" && value !== "" ? value : null;
-}
-
-/** Reads a numeric ref, treating missing/non-number as null. */
-function numRef(refs: SyncProvider["refs"], key: string): number | null {
-  const value = refs?.[key];
-  return typeof value === "number" ? value : null;
-}
+import { numRef, resolveSyncSourceFetch, strRef } from "../lib/syncSources/syncSourceQuery";
 
 /**
  * Re-geocodes a location by its name (Nominatim, or Wikidata when it's pinned to Wikidata
@@ -38,32 +28,6 @@ export function useLocationSyncSource(provider: SyncProvider, enabled: boolean):
     staleTime: 60_000,
   });
 
-  if (query.isPending && enabled && name !== null) {
-    return {
-      diff: null,
-      isLoading: true,
-      error: null,
-    };
-  }
-  if (query.isError) {
-    return {
-      diff: null,
-      isLoading: false,
-      error: t("Couldn't reach the geocoder. Try again in a moment."),
-    };
-  }
-
-  const candidate = query.data?.results[0];
-  if (!candidate) {
-    return {
-      diff: {
-        groups: [],
-      },
-      isLoading: false,
-      error: null,
-    };
-  }
-
   const current: LocationDiffCurrent = {
     latitude: numRef(provider.refs, "currentLatitude"),
     longitude: numRef(provider.refs, "currentLongitude"),
@@ -72,9 +36,18 @@ export function useLocationSyncSource(provider: SyncProvider, enabled: boolean):
     countryCode: strRef(provider.refs, "currentCountryCode"),
   };
 
-  return {
-    diff: buildLocationDiff(candidate, current),
-    isLoading: false,
-    error: null,
-  };
+  return resolveSyncSourceFetch([
+    {
+      active: enabled && name !== null,
+      isPending: query.isPending,
+      isError: query.isError,
+      data: query.data,
+      errorMessage: t("Couldn't reach the geocoder. Try again in a moment."),
+      buildGroups: (data: LocationLookupResult) => {
+        const candidate = data.results[0];
+        if (!candidate) return [];
+        return buildLocationDiff(candidate, current).groups;
+      },
+    },
+  ]);
 }
