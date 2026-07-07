@@ -1,22 +1,23 @@
 import type { Group } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
-import { UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { EntityRelationForm, EntityRelationView } from "./EntityRelationSection";
 import { usePeople, useUpdatePerson } from "../hooks/usePeople";
 import { describeError } from "../lib/apiError";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
-import { toggleId } from "../lib/tag-utils";
-
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { diffIds } from "../lib/tag-utils";
 
 interface Props {
   group: Group;
 }
 
-/** Association tab: pick which people are connected to this group. Auto-saves on toggle. */
+/**
+ * Association tab: pick which people are connected to this group. The relation is stored on each
+ * person (`person.groupIds`), so a selection change is applied as a per-person patch for every
+ * person that was added or removed. Auto-saves on change.
+ */
 export function GroupPeopleForm({
   group,
 }: Props) {
@@ -24,62 +25,44 @@ export function GroupPeopleForm({
     t,
   } = useTranslation();
   const {
-    data: people,
+    data: people = [],
   } = usePeople();
   const update = useUpdatePerson();
+  const selectedIds = people.filter(person => person.groupIds.includes(group.id)).map(person => person.id);
+
+  const onChange = (nextIds: string[]) => {
+    const {
+      added, removed,
+    } = diffIds(selectedIds, nextIds);
+    const notify = {
+      onSuccess: () => notifyFieldSaved("People"),
+      onError: (error: Error) => notifyFieldSaveError("People", describeError(error)),
+    };
+    for (const id of [...added, ...removed]) {
+      const person = people.find(p => p.id === id);
+      if (!person) continue;
+      const groupIds = added.includes(id)
+        ? [...person.groupIds, group.id]
+        : person.groupIds.filter(gId => gId !== group.id);
+      update.mutate({
+        id,
+        input: {
+          groupIds,
+        },
+      }, notify);
+    }
+  };
 
   return (
-    <div className="space-y-3">
-      {(people ?? []).length === 0
-        ? <p className="text-sm text-muted-foreground">{t("No people exist yet.")}</p>
-        : (
-          <ul className="space-y-2">
-            {(people ?? []).map(person => (
-              <li
-                key={person.id}
-                className="flex items-center gap-2"
-              >
-                <Checkbox
-                  id={`person-${person.id}`}
-                  checked={person.groupIds.includes(group.id)}
-                  onCheckedChange={() =>
-                    update.mutate(
-                      {
-                        id: person.id,
-                        input: {
-                          groupIds: toggleId(person.groupIds, group.id),
-                        },
-                      },
-                      {
-                        onSuccess: () => notifyFieldSaved("People"),
-                        onError: error => notifyFieldSaveError("People", describeError(error)),
-                      },
-                    )}
-                />
-                {person.imageUrl
-                  ? (
-                    <img
-                      src={person.imageUrl}
-                      alt=""
-                      className="size-5 rounded-full object-cover"
-                    />
-                  )
-                  : (
-                    <UserCircle
-                      className="size-4 shrink-0 text-muted-foreground"
-                    />
-                  )}
-                <Label
-                  htmlFor={`person-${person.id}`}
-                  className="cursor-pointer font-normal"
-                >
-                  {person.name}
-                </Label>
-              </li>
-            ))}
-          </ul>
-        )}
-    </div>
+    <EntityRelationForm
+      items={people}
+      selectedIds={selectedIds}
+      onChange={onChange}
+      createEntity="person"
+      placeholder={t("No people selected")}
+      searchPlaceholder={t("Search people…")}
+      emptyText={t("No people found.")}
+    />
   );
 }
 
@@ -91,41 +74,26 @@ export function GroupPeopleView({
     t,
   } = useTranslation();
   const {
-    data: people,
+    data: people = [],
   } = usePeople();
-  const connected = (people ?? []).filter(a => a.groupIds.includes(group.id));
-
-  if (connected.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("No people connected.")}</p>;
-  }
+  const selectedIds = people.filter(person => person.groupIds.includes(group.id)).map(person => person.id);
 
   return (
-    <ul className="space-y-2">
-      {connected.map(person => (
-        <li
-          key={person.id}
-          className="flex items-center gap-2 text-sm"
+    <EntityRelationView
+      items={people}
+      selectedIds={selectedIds}
+      emptyText={t("No people connected.")}
+      renderItem={person => (
+        <Link
+          to="/taxonomies/people/$personSlug"
+          params={{
+            personSlug: person.slug,
+          }}
+          className="hover:underline"
         >
-          {person.imageUrl
-            ? (
-              <img
-                src={person.imageUrl}
-                alt=""
-                className="size-5 rounded-full object-cover"
-              />
-            )
-            : <UserCircle className="size-4 shrink-0 text-muted-foreground" />}
-          <Link
-            to="/taxonomies/people/$personSlug"
-            params={{
-              personSlug: person.slug,
-            }}
-            className="hover:underline"
-          >
-            {person.name}
-          </Link>
-        </li>
-      ))}
-    </ul>
+          {person.name}
+        </Link>
+      )}
+    />
   );
 }
