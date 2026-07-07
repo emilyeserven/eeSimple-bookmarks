@@ -2,21 +2,13 @@ import type { EntityName } from "@eesimple/types";
 
 import * as React from "react";
 
-import { ChevronsUpDown, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { MultiComboboxShell } from "./MultiComboboxShell";
 import { renderTreeComboboxRows } from "./treeComboboxRow";
 import { ancestorIdsForSelected, filterTreeByTerm, flattenOptions } from "./treeExpansion";
 
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
+import { CommandGroup } from "@/components/ui/command";
 import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
@@ -134,81 +126,37 @@ export function TreeMultiCombobox({
   const isEmpty = isSearching && visibleNodes.length === 0;
 
   return (
-    <Popover
+    <MultiComboboxShell
       open={open}
       onOpenChange={handleOpenChange}
+      dataSlot="tree-multi-combobox"
+      triggerClassName={cn("w-full justify-between font-normal", className)}
+      labelWrapperClassName="flex min-w-0 items-center gap-2"
+      chevronClassName="opacity-50"
+      id={id}
+      aria-label={ariaLabel}
+      isEmpty={selectedOptions.length === 0}
+      triggerLabel={<span className="truncate">{summary}</span>}
+      shouldFilter={false}
+      searchPlaceholder={searchPlaceholder}
+      searchValue={searchTerm}
+      onSearchValueChange={setSearchTerm}
+      createOption={createOption}
     >
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          role="combobox"
-          id={id}
-          aria-expanded={open}
-          aria-label={ariaLabel}
-          data-slot="tree-multi-combobox"
-          className={cn("w-full justify-between font-normal", className)}
-        >
-          <span
-            className={cn(
-              "flex min-w-0 items-center gap-2",
-              selectedOptions.length === 0 && "text-muted-foreground",
-            )}
-          >
-            <span className="truncate">{summary}</span>
-          </span>
-          <ChevronsUpDown className="opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-(--radix-popover-trigger-width) p-0"
-        align="start"
-      >
-        <Command shouldFilter={false}>
-          <CommandInput
-            placeholder={searchPlaceholder ?? t("Search…")}
-            value={searchTerm}
-            onValueChange={setSearchTerm}
-          />
-          <CommandList>
-            {isEmpty
-              ? <p className="py-6 text-center text-sm">{emptyText ?? t("No matches.")}</p>
-              : (
-                <CommandGroup>
-                  {renderTreeComboboxRows(visibleNodes, {
-                    isSearching,
-                    isExpanded: value => expandedIds.has(value),
-                    isSelected: value => selectedSet.has(value),
-                    onSelect: toggle,
-                    onToggleExpand: toggleExpand,
-                    secondaryLanguage,
-                  })}
-                </CommandGroup>
-              )}
-          </CommandList>
-          {createOption
-            ? (
-              <>
-                <Separator />
-                <button
-                  type="button"
-                  className="
-                    flex w-full items-center gap-2 p-2 text-sm font-medium
-                    hover:bg-accent hover:text-accent-foreground
-                  "
-                  onClick={() => {
-                    setOpen(false);
-                    createOption.onSelect();
-                  }}
-                >
-                  <Plus className="size-4 shrink-0" />
-                  {createOption.label}
-                </button>
-              </>
-            )
-            : null}
-        </Command>
-      </PopoverContent>
-    </Popover>
+      {isEmpty
+        ? <p className="py-6 text-center text-sm">{emptyText ?? t("No matches.")}</p>
+        : (
+          <CommandGroup>
+            {renderTreeComboboxRows(visibleNodes, {
+              isSearching,
+              isExpanded: value => expandedIds.has(value),
+              isSelected: value => selectedSet.has(value),
+              onSelect: toggle,
+              onToggleExpand: toggleExpand,
+              secondaryLanguage,
+            })}
+          </CommandGroup>
+        )}
+    </MultiComboboxShell>
   );
 }

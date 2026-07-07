@@ -2,22 +2,13 @@ import type { ComboboxOption } from "./Combobox";
 
 import * as React from "react";
 
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
+import { MultiComboboxShell } from "./MultiComboboxShell";
 
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
+import { CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
@@ -79,101 +70,56 @@ export function MultiCombobox({
   }
 
   return (
-    <Popover
+    <MultiComboboxShell
       open={open}
       onOpenChange={setOpen}
+      dataSlot="multi-combobox"
+      triggerClassName={cn(`
+        h-auto min-h-9 w-full justify-between py-1.5 font-normal
+      `, className)}
+      labelWrapperClassName="min-w-0 text-left"
+      chevronClassName="ml-2 shrink-0 opacity-50"
+      id={id}
+      aria-label={ariaLabel}
+      isEmpty={selectedOptions.length === 0}
+      triggerLabel={summary}
+      searchPlaceholder={searchPlaceholder}
+      createOption={createOption}
     >
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          role="combobox"
-          id={id}
-          aria-expanded={open}
-          aria-label={ariaLabel}
-          data-slot="multi-combobox"
-          className={cn(`
-            h-auto min-h-9 w-full justify-between py-1.5 font-normal
-          `, className)}
-        >
-          <span
-            className={cn(
-              "min-w-0 text-left",
-              selectedOptions.length === 0 && "text-muted-foreground",
-            )}
+      <CommandEmpty>{emptyText ?? t("No matches.")}</CommandEmpty>
+      <CommandGroup>
+        {options.map(option => (
+          <CommandItem
+            key={option.value}
+            value={option.label}
+            keywords={[
+              option.searchAlias,
+              ...(option.names?.map(name => name.value) ?? []),
+            ].filter((keyword): keyword is string => Boolean(keyword))}
+            disabled={option.disabled}
+            onSelect={() => toggle(option.value, option.disabled)}
+            style={{
+              paddingLeft: `${0.5 + (option.depth ?? 0) * 1}rem`,
+            }}
+            className={cn(option.disabled && "cursor-not-allowed opacity-40")}
           >
-            {summary}
-          </span>
-          <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-(--radix-popover-trigger-width) p-0"
-        align="start"
-      >
-        <Command>
-          <CommandInput placeholder={searchPlaceholder ?? t("Search…")} />
-          <CommandList>
-            <CommandEmpty>{emptyText ?? t("No matches.")}</CommandEmpty>
-            <CommandGroup>
-              {options.map(option => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  keywords={[
-                    option.searchAlias,
-                    ...(option.names?.map(name => name.value) ?? []),
-                  ].filter((keyword): keyword is string => Boolean(keyword))}
-                  disabled={option.disabled}
-                  onSelect={() => toggle(option.value, option.disabled)}
-                  style={{
-                    paddingLeft: `${0.5 + (option.depth ?? 0) * 1}rem`,
-                  }}
-                  className={cn(option.disabled && `
-                    cursor-not-allowed opacity-40
-                  `)}
-                >
-                  {option.icon}
-                  <LocalizedNameLabel
-                    names={option.names ?? []}
-                    base={option.label}
-                    secondaryLanguage={secondaryLanguage}
-                  />
-                  <Check
-                    className={cn(
-                      "ml-auto",
-                      selectedSet.has(option.value)
-                        ? "opacity-100"
-                        : "opacity-0",
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-          {createOption
-            ? (
-              <>
-                <Separator />
-                <button
-                  type="button"
-                  className="
-                    flex w-full items-center gap-2 p-2 text-sm font-medium
-                    hover:bg-accent hover:text-accent-foreground
-                  "
-                  onClick={() => {
-                    setOpen(false);
-                    createOption.onSelect();
-                  }}
-                >
-                  <Plus className="size-4 shrink-0" />
-                  {createOption.label}
-                </button>
-              </>
-            )
-            : null}
-        </Command>
-      </PopoverContent>
-    </Popover>
+            {option.icon}
+            <LocalizedNameLabel
+              names={option.names ?? []}
+              base={option.label}
+              secondaryLanguage={secondaryLanguage}
+            />
+            <Check
+              className={cn(
+                "ml-auto",
+                selectedSet.has(option.value)
+                  ? "opacity-100"
+                  : "opacity-0",
+              )}
+            />
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    </MultiComboboxShell>
   );
 }
