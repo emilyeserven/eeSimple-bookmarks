@@ -5,6 +5,7 @@ import * as React from "react";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { renderTreeComboboxRows } from "./treeComboboxRow";
 import { ancestorIdsForSelected, filterTreeByTerm, flattenOptions } from "./treeExpansion";
 
@@ -117,7 +118,16 @@ export function TreeCombobox({
 
   const triggerLabel = isLeadingSelected
     ? leadingOption.label
-    : (selectedNode?.label ?? placeholder ?? t("Select…"));
+    : selectedNode
+      ? (
+        <LocalizedNameLabel
+          names={selectedNode.names ?? []}
+          base={selectedNode.label}
+          secondaryLanguage={secondaryLanguage}
+          fallbackLanguage={fallbackLanguage}
+        />
+      )
+      : (placeholder ?? t("Select…"));
 
   return (
     <Popover

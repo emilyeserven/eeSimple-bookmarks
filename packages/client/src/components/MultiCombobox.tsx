@@ -5,7 +5,7 @@ import * as React from "react";
 import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { LocalizedNameLabel } from "./LocalizedNameLabel";
+import { LocalizedNameLabel, LocalizedNameSummary } from "./LocalizedNameLabel";
 import { MultiComboboxShell } from "./MultiComboboxShell";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
@@ -62,7 +62,13 @@ export function MultiCombobox({
   const summary
     = selectedOptions.length === 0
       ? (placeholder ?? t("Select…"))
-      : selectedOptions.map(option => option.label).join(", ");
+      : (
+        <LocalizedNameSummary
+          options={selectedOptions}
+          secondaryLanguage={secondaryLanguage}
+          fallbackLanguage={fallbackLanguage}
+        />
+      );
 
   function toggle(value: string, disabled?: boolean) {
     if (disabled) return;

@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { LocalizedNameSummary } from "./LocalizedNameLabel";
 import { MultiComboboxShell } from "./MultiComboboxShell";
 import { renderTreeComboboxRows } from "./treeComboboxRow";
 import { ancestorIdsForSelected, filterTreeByTerm, flattenOptions } from "./treeExpansion";
@@ -97,7 +98,13 @@ export function TreeMultiCombobox({
     = selectedOptions.length === 0
       ? (placeholder ?? t("Select…"))
       : selectedOptions.length <= 2
-        ? selectedOptions.map(o => o.label).join(", ")
+        ? (
+          <LocalizedNameSummary
+            options={selectedOptions}
+            secondaryLanguage={secondaryLanguage}
+            fallbackLanguage={fallbackLanguage}
+          />
+        )
         : t("{{count}} selected", {
           count: selectedOptions.length,
         });
