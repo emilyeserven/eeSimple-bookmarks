@@ -4,6 +4,7 @@ import type { CardDisplayRule, ConditionTree } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import {
+  ruleReferencesAnyProperty,
   ruleReferencesCategory,
   ruleReferencesMediaType,
   ruleReferencesProperty,
@@ -95,6 +96,39 @@ describe("ruleReferences* predicates", () => {
     const empty = makeRule(group());
     expect(ruleReferencesCategory(empty, "cat-1")).toBe(false);
     expect(ruleReferencesProperty(empty, "p1")).toBe(false);
+  });
+});
+
+describe("ruleReferencesAnyProperty", () => {
+  function propertyLeaf(propertyId: string): ConditionTree["children"][number] {
+    return {
+      type: "property",
+      propertyId,
+      predicate: {
+        valueKind: "boolean",
+        predicate: {
+          kind: "presence",
+          mode: "has",
+        },
+      },
+    };
+  }
+
+  it("matches when any member property leaf is present, including nested", () => {
+    const direct = makeRule(group(propertyLeaf("p2")));
+    const nested = makeRule(group(group(propertyLeaf("p3"))));
+    expect(ruleReferencesAnyProperty(direct, new Set(["p1", "p2"]))).toBe(true);
+    expect(ruleReferencesAnyProperty(nested, new Set(["p3"]))).toBe(true);
+  });
+
+  it("does not match when no member property is referenced", () => {
+    const rule = makeRule(group(propertyLeaf("p9")));
+    expect(ruleReferencesAnyProperty(rule, new Set(["p1", "p2"]))).toBe(false);
+  });
+
+  it("does not match for an empty id set", () => {
+    const rule = makeRule(group(propertyLeaf("p1")));
+    expect(ruleReferencesAnyProperty(rule, new Set())).toBe(false);
   });
 });
 

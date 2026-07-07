@@ -11,6 +11,7 @@ import { useCardDisplayRules, useCreateCardDisplayRule } from "../hooks/useCardD
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
 import {
+  ruleReferencesAnyProperty,
   ruleReferencesCategory,
   ruleReferencesLocation,
   ruleReferencesMediaType,
@@ -30,6 +31,8 @@ interface CardDisplayRulesListProps {
   categoryId?: string;
   /** Scope to rules whose conditions reference this custom property. */
   propertyId?: string;
+  /** Scope to rules whose conditions reference any custom property belonging to this property group. */
+  propertyGroupId?: string;
   /** Scope to rules whose conditions reference this website (resolved to its domain). */
   websiteId?: string;
   /** Scope to rules whose conditions reference this tag. */
@@ -45,6 +48,7 @@ interface CardDisplayRulesListProps {
 function emptyStateMessage(props: CardDisplayRulesListProps): string {
   if (props.categoryId) return i18n.t("No display rules target this category yet. Add one below.");
   if (props.propertyId) return i18n.t("No display rules reference this property yet. Add one below.");
+  if (props.propertyGroupId) return i18n.t("No display rules reference this property group's properties yet. Add one below.");
   if (props.websiteId) return i18n.t("No display rules target this website yet. Add one below.");
   if (props.tagId) return i18n.t("No display rules reference this tag yet. Add one below.");
   if (props.mediaTypeId) return i18n.t("No display rules reference this media type yet. Add one below.");
@@ -60,7 +64,7 @@ function emptyStateMessage(props: CardDisplayRulesListProps): string {
  * not drag-sortable — rule priority (`sortOrder`) is global, set on the Card Display Rules page.
  */
 export function CardDisplayRulesList({
-  categoryId, propertyId, websiteId, tagId, mediaTypeId, locationId, channelId,
+  categoryId, propertyId, propertyGroupId, websiteId, tagId, mediaTypeId, locationId, channelId,
 }: CardDisplayRulesListProps) {
   const {
     t,
@@ -89,17 +93,25 @@ export function CardDisplayRulesList({
       : undefined;
   }, [properties, propertyId]);
 
+  // A property group has no condition leaf of its own; a rule scopes to it when it references any of
+  // the group's member custom properties.
+  const groupPropertyIds = useMemo(() => {
+    if (!propertyGroupId) return undefined;
+    return new Set((properties ?? []).filter(p => p.propertyGroupId === propertyGroupId).map(p => p.id));
+  }, [properties, propertyGroupId]);
+
   const scopedRules = useMemo(() => {
     const rest = (rules ?? []).filter(rule => !rule.isDefault);
     if (categoryId) return rest.filter(rule => ruleReferencesCategory(rule, categoryId));
     if (propertyId) return rest.filter(rule => ruleReferencesProperty(rule, propertyId));
+    if (propertyGroupId) return groupPropertyIds ? rest.filter(rule => ruleReferencesAnyProperty(rule, groupPropertyIds)) : [];
     if (websiteId) return websiteDomain ? rest.filter(rule => ruleReferencesWebsite(rule, websiteDomain)) : [];
     if (tagId) return rest.filter(rule => ruleReferencesTag(rule, tagId));
     if (mediaTypeId) return rest.filter(rule => ruleReferencesMediaType(rule, mediaTypeId));
     if (locationId) return rest.filter(rule => ruleReferencesLocation(rule, locationId));
     if (channelId) return rest.filter(rule => ruleReferencesYoutubeChannel(rule, channelId));
     return [];
-  }, [rules, categoryId, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, locationId, channelId]);
+  }, [rules, categoryId, propertyId, propertyGroupId, groupPropertyIds, websiteId, websiteDomain, tagId, mediaTypeId, locationId, channelId]);
 
   const scope: CardDisplayRuleScope = {
     categoryId,
@@ -146,6 +158,7 @@ export function CardDisplayRulesList({
           <p className="text-sm text-muted-foreground">{emptyStateMessage({
             categoryId,
             propertyId,
+            propertyGroupId,
             websiteId,
             tagId,
             mediaTypeId,
