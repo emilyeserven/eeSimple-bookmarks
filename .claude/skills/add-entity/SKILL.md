@@ -52,6 +52,14 @@ Copy `services/mediaTypes.ts`. It provides the canonical shape:
   the fallow duplication budget (already near its ceiling) and caused a CI failure when a fourth
   service duplicated it.
 - A `backfill*Slugs()` / `ensure*()` boot helper for existing rows.
+  - **Seeded built-ins that support hiding** (media types, relationship types, group types, language
+    usage levels — see CLAUDE.md → **Hiding seeded built-in vocabularies**) carry a nullable `hidden`
+    flag. The `ensure*` seeder **must respect a stored `hidden` flag — no resurrect-on-boot**: insert
+    missing rows with `onConflictDoNothing` (or a presence check) and **never write `hidden` on an
+    existing row**, so a user's hide choice survives every reboot. Because built-ins are hidden, never
+    deleted, a removed built-in is never re-seeded over. (Group types learned this the hard way — their
+    old name-keyed seeder resurrected deleted defaults on every boot until they were folded into the
+    built-in-and-hideable model.)
 - **If the entity is matchable data** — i.e. it appears in the bookmark cache's `ConditionInput`
   (a bookmark column like `categoryId`/`mediaTypeId`/`youtubeChannelId`, a join table like
   `bookmark_relationships`, tags, or custom-property values) — every write that changes that data
