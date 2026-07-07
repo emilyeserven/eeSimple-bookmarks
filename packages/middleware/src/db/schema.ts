@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -1744,6 +1744,10 @@ export const appSettings = pgTable("app_settings", {
   // Bookmark Graph "Related bookmarks" config: per-dimension weights + max count. Null = defaults.
   // Nullable jsonb = push-safe additive; the resolver merges it over DEFAULT_BOOKMARK_GRAPH_SETTINGS.
   bookmarkGraph: jsonb("bookmark_graph").$type<BookmarkGraphSettings>(),
+  // Person `labeledWebsites` label-matching config: which label counts as "website" / "biography"
+  // for avatar auto-fetch + social-link detection. Null = defaults ("website" / "biography").
+  // Nullable jsonb = push-safe additive; the resolver merges it over DEFAULT_PERSON_SOURCE_LABEL_SETTINGS.
+  personSourceLabels: jsonb("person_source_labels").$type<PersonSourceLabelSettings>(),
   // --- Display & detail preferences (group C). ---
   // Bookmark detail image size: "small" | "medium" | "large".
   bookmarkDetailImageSize: text("bookmark_detail_image_size").notNull().default("medium"),

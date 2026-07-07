@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
+
 import { useTranslation } from "react-i18next";
 
-import { useAutomationSettingsForm } from "../hooks/useAppSettings";
+import { useAutomationSettingsForm, usePersonSourceLabelSettingsForm } from "../hooks/useAppSettings";
 
 import {
   Card,
@@ -10,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 /**
@@ -24,6 +27,18 @@ export function AutomationsSettings() {
   const {
     settings, save,
   } = useAutomationSettingsForm();
+  const {
+    settings: personSourceLabels, save: savePersonSourceLabels,
+  } = usePersonSourceLabelSettingsForm();
+  const [websiteLabel, setWebsiteLabel] = useState(personSourceLabels.websiteLabel);
+  const [biographyLabel, setBiographyLabel] = useState(personSourceLabels.biographyLabel);
+
+  useEffect(() => {
+    setWebsiteLabel(personSourceLabels.websiteLabel);
+  }, [personSourceLabels.websiteLabel]);
+  useEffect(() => {
+    setBiographyLabel(personSourceLabels.biographyLabel);
+  }, [personSourceLabels.biographyLabel]);
 
   return (
     <>
@@ -77,6 +92,55 @@ export function AutomationsSettings() {
               }}
             />
             <Label htmlFor="auto-fetch-image">{t("Fetch the image when a bookmark is saved")}</Label>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Person source-link matching")}</CardTitle>
+          <CardDescription>
+            {t("Which label on a Person’s linked websites is treated as their primary website / biography link — used when auto-fetching an avatar or detecting social links. Matching is case-insensitive.")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="person-website-label">{t("Website label")}</Label>
+            <Input
+              id="person-website-label"
+              value={websiteLabel}
+              onChange={e => setWebsiteLabel(e.target.value)}
+              onBlur={() => {
+                const trimmed = websiteLabel.trim() || personSourceLabels.websiteLabel;
+                setWebsiteLabel(trimmed);
+                if (trimmed === personSourceLabels.websiteLabel) return;
+                savePersonSourceLabels(
+                  {
+                    websiteLabel: trimmed,
+                  },
+                  t("Person website label"),
+                );
+              }}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="person-biography-label">{t("Biography label")}</Label>
+            <Input
+              id="person-biography-label"
+              value={biographyLabel}
+              onChange={e => setBiographyLabel(e.target.value)}
+              onBlur={() => {
+                const trimmed = biographyLabel.trim() || personSourceLabels.biographyLabel;
+                setBiographyLabel(trimmed);
+                if (trimmed === personSourceLabels.biographyLabel) return;
+                savePersonSourceLabels(
+                  {
+                    biographyLabel: trimmed,
+                  },
+                  t("Person biography label"),
+                );
+              }}
+            />
           </div>
         </CardContent>
       </Card>

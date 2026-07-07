@@ -16,6 +16,7 @@ import {
   normalizePlaceTypeIcons,
   normalizePlaceTypeLevelGroups,
   resolveBookmarkAddFormSettings,
+  resolvePersonSourceLabels,
 } from "@/services/appSettings";
 
 test("asCropped: rounds to a positive integer and falls back on junk", () => {
@@ -36,6 +37,49 @@ test("asHanScriptLanguage: only 'zh' maps to Chinese, everything else defaults t
   assert.equal(asHanScriptLanguage(undefined), "ja");
   assert.equal(asHanScriptLanguage("en"), "ja");
   assert.equal(asHanScriptLanguage("chinese"), "ja");
+});
+
+test("resolvePersonSourceLabels: defaults to website/biography when the row is absent", () => {
+  assert.deepEqual(resolvePersonSourceLabels(null), {
+    websiteLabel: "website",
+    biographyLabel: "biography",
+  });
+  assert.deepEqual(resolvePersonSourceLabels(undefined), {
+    websiteLabel: "website",
+    biographyLabel: "biography",
+  });
+});
+
+test("resolvePersonSourceLabels: merges a partial stored value over the defaults", () => {
+  assert.deepEqual(resolvePersonSourceLabels({
+    websiteLabel: "Homepage",
+  }), {
+    websiteLabel: "Homepage",
+    biographyLabel: "biography",
+  });
+  assert.deepEqual(resolvePersonSourceLabels({
+    biographyLabel: "Bio",
+  }), {
+    websiteLabel: "website",
+    biographyLabel: "Bio",
+  });
+});
+
+test("resolvePersonSourceLabels: falls back to the default for blank or non-string values", () => {
+  assert.deepEqual(resolvePersonSourceLabels({
+    websiteLabel: "   ",
+    biographyLabel: "",
+  }), {
+    websiteLabel: "website",
+    biographyLabel: "biography",
+  });
+  assert.deepEqual(resolvePersonSourceLabels({
+    websiteLabel: 42,
+    biographyLabel: [],
+  }), {
+    websiteLabel: "website",
+    biographyLabel: "biography",
+  });
 });
 
 test("asMinAreaThreshold: clamps to non-negative, defaults to 0", () => {

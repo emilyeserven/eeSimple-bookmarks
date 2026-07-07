@@ -12,6 +12,7 @@ import type {
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
+  UpdatePersonSourceLabelInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
 import { BOOKMARK_ADD_FORM_PLACEMENTS, HOMEPAGE_WIDGETS, IMPORT_BLACKLIST_KINDS, INTERFACE_LANGUAGES, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
@@ -29,6 +30,7 @@ import {
   getDisplayPreferenceSettings,
   getHomepageContentSettings,
   getImportBlacklist,
+  getPersonSourceLabelSettings,
   getPlaceTypeColors,
   getPlaceTypeDisplay,
   getPlaceTypeIcons,
@@ -46,6 +48,7 @@ import {
   updateDisplayPreferenceSettings,
   updateHomepageContentSettings,
   updateImportBlacklist,
+  updatePersonSourceLabelSettings,
   updatePlaceTypeColors,
   updatePlaceTypeDisplay,
   updatePlaceTypeIcons,
@@ -328,6 +331,22 @@ const bookmarkGraphBody = {
       type: "integer",
       minimum: 1,
       maximum: 100,
+    },
+  },
+} as const;
+
+const personSourceLabelBody = {
+  type: "object",
+  required: ["websiteLabel", "biographyLabel"],
+  additionalProperties: false,
+  properties: {
+    websiteLabel: {
+      type: "string",
+      minLength: 1,
+    },
+    biographyLabel: {
+      type: "string",
+      minLength: 1,
     },
   },
 } as const;
@@ -824,6 +843,19 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       body: bookmarkGraphBody,
     },
   }, async req => updateBookmarkGraphSettings(req.body as UpdateBookmarkGraphInput));
+
+  app.get("/api/app-settings/person-source-labels", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getPersonSourceLabelSettings());
+
+  app.put("/api/app-settings/person-source-labels", {
+    schema: {
+      tags: ["app-settings"],
+      body: personSourceLabelBody,
+    },
+  }, async req => updatePersonSourceLabelSettings(req.body as UpdatePersonSourceLabelInput));
 
   app.get("/api/app-settings/location-display", {
     schema: {

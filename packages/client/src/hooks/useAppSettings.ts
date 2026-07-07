@@ -10,6 +10,7 @@ import type {
   ConnectorsAppSettings,
   ImportBlacklistEntry,
   InterfaceLanguage,
+  PersonSourceLabelSettings,
   PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
   PlaceTypeIconConfig,
@@ -25,10 +26,11 @@ import type {
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
+  UpdatePersonSourceLabelInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
 
-import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, expandLevelGroupsToDisplayConfig, MAP_PIN_SCALE_DEFAULT } from "@eesimple/types";
+import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, DEFAULT_PERSON_SOURCE_LABEL_SETTINGS, expandLevelGroupsToDisplayConfig, MAP_PIN_SCALE_DEFAULT } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
@@ -50,6 +52,7 @@ const DATABASE_USAGE_KEY = ["app-settings", "database-usage"] as const;
 const SIDEBAR_CUSTOMIZATION_KEY = ["app-settings", "sidebar-customization"] as const;
 const AUTOMATION_KEY = ["app-settings", "automation"] as const;
 const BOOKMARK_GRAPH_KEY = ["app-settings", "bookmark-graph"] as const;
+const PERSON_SOURCE_LABELS_KEY = ["app-settings", "person-source-labels"] as const;
 const LOCATION_DISPLAY_KEY = ["app-settings", "location-display"] as const;
 const LOCATION_LEVEL_GROUPS_KEY = ["app-settings", "location-level-groups"] as const;
 /** Stable empty fallback so `useLocationLevelGroups()` keeps a constant reference while loading. */
@@ -352,6 +355,55 @@ export function useUpdateBookmarkGraphSettings() {
     },
     onError: (error, vars) => notifyError(vars.errorMessage ?? error.message),
   });
+}
+
+/**
+ * The resolved Person source-label settings — which `labeledWebsites` label counts as "website" /
+ * "biography" for avatar auto-fetch + social-link detection — falling back to the defaults
+ * ("website" / "biography") while loading.
+ */
+export function usePersonSourceLabelSettings(): PersonSourceLabelSettings {
+  const {
+    data,
+  } = useQuery({
+    queryKey: PERSON_SOURCE_LABELS_KEY,
+    queryFn: appSettingsApi.getPersonSourceLabels,
+  });
+  return data ?? DEFAULT_PERSON_SOURCE_LABEL_SETTINGS;
+}
+
+export function useUpdatePersonSourceLabelSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: ToastedMutationVars<UpdatePersonSourceLabelInput>) =>
+      appSettingsApi.updatePersonSourceLabels(vars.input),
+    onSuccess: (saved, vars) => {
+      queryClient.setQueryData(PERSON_SOURCE_LABELS_KEY, saved);
+      notifySuccess(vars.successMessage);
+    },
+    onError: (error, vars) => notifyError(vars.errorMessage ?? error.message),
+  });
+}
+
+/** Shared by both Person source-label fields: current settings + a save(patch, message) that persists one field with a named toast. */
+export function usePersonSourceLabelSettingsForm() {
+  const settings = usePersonSourceLabelSettings();
+  const update = useUpdatePersonSourceLabelSettings();
+
+  function save(patch: Partial<PersonSourceLabelSettings>, message: string): void {
+    update.mutate({
+      input: {
+        ...settings,
+        ...patch,
+      },
+      successMessage: message,
+    });
+  }
+
+  return {
+    settings,
+    save,
+  };
 }
 
 /**

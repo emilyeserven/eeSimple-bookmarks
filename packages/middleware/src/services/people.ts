@@ -1,6 +1,7 @@
 import { asc, count, eq, inArray, isNull } from "drizzle-orm";
 import type { Person, BulkDeleteResult, CreatePersonInput, EntityName, LabeledWebsite, SocialLink, UpdatePersonInput } from "@eesimple/types";
 import { db } from "@/db";
+import { getPersonSourceLabelSettings } from "@/services/appSettings";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
@@ -343,17 +344,23 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
 export async function detectPersonSocialLinksFromWebsite(
   id: string,
 ): Promise<SocialLink[] | "not_found" | "no_url" | "fetch_error"> {
-  const [row] = await db
-    .select({
-      labeledWebsites: people.labeledWebsites,
-    })
-    .from(people)
-    .where(eq(people.id, id));
+  const [[row], {
+    websiteLabel,
+  }] = await Promise.all([
+    db
+      .select({
+        labeledWebsites: people.labeledWebsites,
+      })
+      .from(people)
+      .where(eq(people.id, id)),
+    getPersonSourceLabelSettings(),
+  ]);
 
   if (!row) return "not_found";
-  // Prefer a row explicitly labeled "Website", else fall back to the first listed URL.
+  // Prefer the row labeled with the configured website label, else fall back to the first listed URL.
   const list = (row.labeledWebsites as LabeledWebsite[] | null) ?? [];
-  const sourceUrl = list.find(w => w.label.trim().toLowerCase() === "website")?.url ?? list[0]?.url;
+  const wanted = websiteLabel.trim().toLowerCase();
+  const sourceUrl = list.find(w => w.label.trim().toLowerCase() === wanted)?.url ?? list[0]?.url;
   if (!sourceUrl) return "no_url";
 
   const result = await fetchBodyHtmlResult(sourceUrl, /<\/body>/i);
