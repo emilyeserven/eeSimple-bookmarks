@@ -547,6 +547,9 @@ const displayPreferenceBody = {
     secondaryLanguageId: {
       type: ["string", "null"],
     },
+    fallbackLanguageId: {
+      type: ["string", "null"],
+    },
     minAreaPinThresholdKm2: {
       type: "number",
       minimum: 0,

@@ -4,7 +4,7 @@ import type { EntityName } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { LocalizedNameLabel } from "@/components/LocalizedNameLabel";
-import { useSecondaryDisplayLanguage } from "@/hooks/useAppSettings";
+import { useFallbackDisplayLanguage, useSecondaryDisplayLanguage } from "@/hooks/useAppSettings";
 
 export interface BreadcrumbSegment {
   label: string;
@@ -34,6 +34,7 @@ export function CrumbLabel({
     t,
   } = useTranslation();
   const secondaryLanguage = useSecondaryDisplayLanguage();
+  const fallbackLanguage = useFallbackDisplayLanguage();
   // Translate the static label before it's resolved against the (never-translated) entity names —
   // an untranslated label (e.g. a real entity name) simply falls through to itself.
   const translatedLabel = t(label);
@@ -42,6 +43,7 @@ export function CrumbLabel({
       names={names ?? []}
       base={translatedLabel}
       secondaryLanguage={secondaryLanguage}
+      fallbackLanguage={fallbackLanguage}
       secondaryClassName="text-xs/tight"
       stacked
     />

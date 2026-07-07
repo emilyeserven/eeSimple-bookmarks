@@ -9,6 +9,7 @@ import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { MultiComboboxShell } from "./MultiComboboxShell";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { useFallbackDisplayLanguageValue } from "@/hooks/fallbackDisplayLanguage";
 import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
@@ -54,6 +55,7 @@ export function MultiCombobox({
     t,
   } = useTranslation();
   const secondaryLanguage = useSecondaryDisplayLanguageValue();
+  const fallbackLanguage = useFallbackDisplayLanguageValue();
   const [open, setOpen] = React.useState(false);
   const selectedSet = new Set(values);
   const selectedOptions = options.filter(option => selectedSet.has(option.value));
@@ -108,6 +110,7 @@ export function MultiCombobox({
               names={option.names ?? []}
               base={option.label}
               secondaryLanguage={secondaryLanguage}
+              fallbackLanguage={fallbackLanguage}
             />
             <Check
               className={cn(

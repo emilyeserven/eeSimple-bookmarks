@@ -250,6 +250,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   croppedHeight: 9,
   hanScriptLanguage: "ja" as "ja" | "zh",
   secondaryLanguageId: null as string | null,
+  fallbackLanguageId: null as string | null,
   minAreaPinThresholdKm2: 0,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
   mapPinScale: MAP_PIN_SCALE_DEFAULT,
@@ -565,6 +566,51 @@ export function useSecondaryDisplayLanguage(): PreferredLanguage | null {
       isoCode: language.isoCode,
     }
     : null;
+}
+
+/**
+ * Resolve a stored `fallbackLanguageId` (nullable) against the known languages into a
+ * {@link PreferredLanguage}. Unlike the secondary-language resolution this never yields `null`:
+ * an unset id — or an id that no longer resolves to a language — falls back to English
+ * (`{ isoCode: "en" }`), the historical hardcoded behavior, so the default is byte-identical. Pure
+ * so it can be unit-tested without react-query.
+ */
+export function resolveFallbackDisplayLanguage(
+  id: string | null | undefined,
+  languages: { id: string;
+    isoCode: string | null; }[] | undefined,
+): PreferredLanguage {
+  if (!id) return {
+    isoCode: "en",
+  };
+  const language = languages?.find(l => l.id === id);
+  return language
+    ? {
+      id: language.id,
+      isoCode: language.isoCode,
+    }
+    : {
+      isoCode: "en",
+    };
+}
+
+/**
+ * The language used as the de-emphasized fallback secondary display name / sort fallback when no
+ * preferred/secondary-language name matches. Unlike {@link useSecondaryDisplayLanguage} this never
+ * returns `null`: when unset it resolves to English (`{ isoCode: "en" }`), the historical hardcoded
+ * behavior, so the default is byte-identical.
+ */
+export function useFallbackDisplayLanguage(): PreferredLanguage {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  const {
+    data: languages,
+  } = useLanguages();
+  return resolveFallbackDisplayLanguage(
+    data?.fallbackLanguageId ?? DISPLAY_PREFERENCE_DEFAULTS.fallbackLanguageId,
+    languages,
+  );
 }
 
 /** How many bookmarks to show per listing page (default 25). */

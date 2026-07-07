@@ -1787,6 +1787,11 @@ export const appSettings = pgTable("app_settings", {
   secondaryLanguageId: uuid("secondary_language_id").references(() => languages.id, {
     onDelete: "set null",
   }),
+  // The language used as the de-emphasized fallback secondary display name / sort fallback when no
+  // preferred/secondary-language name matches. Null = English (the historical hardcoded behavior).
+  fallbackLanguageId: uuid("fallback_language_id").references(() => languages.id, {
+    onDelete: "set null",
+  }),
   // Prompt text used to instruct an AI to summarize bookmarks in the AI Summary Queue.
   aiSummarizationPrompt: text("ai_summarization_prompt").notNull().default(""),
   // Hosted metadata provider (Microlink-compatible) configured from Settings → Connectors.

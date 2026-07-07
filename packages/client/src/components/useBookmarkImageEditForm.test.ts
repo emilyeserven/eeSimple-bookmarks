@@ -315,6 +315,7 @@ describe("useBookmarkImageEditForm", () => {
       bookmarkCardThumbnailSize: "medium",
       interfaceLanguage: "en",
       secondaryLanguageId: null,
+      fallbackLanguageId: null,
       searchBoxPinned: false,
       panelPinned: false,
       drawerUnpinnedBreakpoints: [768],

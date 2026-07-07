@@ -132,6 +132,8 @@ const localeCmp = (a: string, b: string, locale?: string): number =>
  */
 export interface TitleSortContext {
   preferredLanguage?: PreferredLanguage | null;
+  /** Fallback language for the `preferRomanized` sort branch; defaults to English when unset. */
+  fallbackLanguage?: PreferredLanguage | null;
   locale?: string;
 }
 
@@ -142,6 +144,7 @@ function bookmarkTitleSortKey(bookmark: Bookmark, ctx: TitleSortContext): string
     bookmark.title,
     {
       preferredLanguage: ctx.preferredLanguage,
+      fallbackLanguage: ctx.fallbackLanguage,
     },
   );
 }

@@ -45,7 +45,7 @@ const THEME_LABELS: Record<Theme, string> = {
 
 const DISPLAY_DEFAULTS: Pick<
   DisplayPreferenceSettings,
-  "customPropertyTypeIcons" | "bookmarksPerPage" | "defaultBookmarkSort" | "interfaceLanguage" | "hanScriptLanguage" | "secondaryLanguageId"
+  "customPropertyTypeIcons" | "bookmarksPerPage" | "defaultBookmarkSort" | "interfaceLanguage" | "hanScriptLanguage" | "secondaryLanguageId" | "fallbackLanguageId"
 > = {
   customPropertyTypeIcons: null,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
@@ -53,6 +53,7 @@ const DISPLAY_DEFAULTS: Pick<
   interfaceLanguage: "en",
   hanScriptLanguage: "ja",
   secondaryLanguageId: null,
+  fallbackLanguageId: null,
 };
 
 const LANGUAGE_OPTIONS = [
@@ -141,6 +142,10 @@ export function DisplayGeneralSettings() {
     saveDisplay({
       secondaryLanguageId: value ?? null,
     }, "Secondary display language updated");
+  const setFallbackLanguageId = (value: string | undefined) =>
+    saveDisplay({
+      fallbackLanguageId: value ?? null,
+    }, "Fallback display language updated");
 
   const languageOptions = languages.map(l => ({
     value: l.id,
@@ -304,6 +309,26 @@ export function DisplayGeneralSettings() {
               options={languageOptions}
               value={display.secondaryLanguageId ?? undefined}
               onValueChange={setSecondaryLanguageId}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="fallback-display-language-combobox">{t("Fallback display language")}</Label>
+            <p className="text-sm text-muted-foreground">
+              {t("The language used as the secondary name when there's no preferred or secondary-language match — and as the romanized sort fallback. Leave unset to use English (the default).")}
+            </p>
+            <Combobox
+              id="fallback-display-language-combobox"
+              className="
+                w-full
+                sm:w-60
+              "
+              placeholder={t("English (default)")}
+              searchPlaceholder={t("Search languages…")}
+              emptyText={t("No languages found.")}
+              options={languageOptions}
+              value={display.fallbackLanguageId ?? undefined}
+              onValueChange={setFallbackLanguageId}
             />
           </div>
         </CardContent>

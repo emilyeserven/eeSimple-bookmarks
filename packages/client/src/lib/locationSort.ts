@@ -23,6 +23,8 @@ function locationRelationRank(node: LocationNode): number {
 export interface LocationSortContext {
   /** The language whose name to sort by when a location has one (interface language / override). */
   preferredLanguage?: PreferredLanguage | null;
+  /** Fallback language for the `preferRomanized` sort branch; defaults to English when unset. */
+  fallbackLanguage?: PreferredLanguage | null;
   /** BCP-47 collation locale for the name comparison, or undefined for the default locale. */
   locale?: string;
 }
@@ -34,6 +36,7 @@ function locationNodeSortKey(node: LocationNode, ctx: LocationSortContext): stri
     node.name,
     {
       preferredLanguage: ctx.preferredLanguage,
+      fallbackLanguage: ctx.fallbackLanguage,
     },
   );
 }

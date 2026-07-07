@@ -26,6 +26,16 @@ unchanged.
 - **Active locale:** `useAppLocale()` (`hooks/useAppLocale.ts`) returns the live BCP-47 tag
   (`"en"` / `"ja"`), read from i18next. Consumed by locale-aware formatting.
 
+> **Interface language ≠ data display languages — don't conflate them.** This skill is about the
+> **interface** language (`interfaceLanguage`, react-i18next — the UI chrome). Separately, an entity's
+> multilingual **content names** (`entity_names`) are surfaced through two *data* display settings that
+> have **nothing to do with react-i18next**: the **secondary display language** (`secondaryLanguageId`)
+> and the **fallback display language** (`fallbackLanguageId`, default English) that decides the
+> last-resort secondary/romanized name when nothing else matches. Those are threaded through the pure
+> `resolveDisplayNames`/`resolveNameSortKey` helpers, not through `t()`. See CLAUDE.md → **Multilingual
+> display names**. Never `t()`-wrap an entity's stored name, and don't route a data-name choice through
+> the interface locale.
+
 ## Adding a new user-facing string
 
 Wrap it in `t()` at write time — this is expected of every new string, not a later sweep:

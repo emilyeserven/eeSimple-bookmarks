@@ -514,6 +514,31 @@ bookmark row, its tags, or its custom-property values) — or the tag tree — m
 `services/customProperties.ts`). This keeps one source of truth for the predicate while moving the
 work off the client. SQL-level filtering is the last resort, reserved for genuinely large datasets.
 
+## Multilingual display names
+
+An entity (bookmark or taxonomy term) can carry multiple language-labelled names (`entity_names`,
+`packages/types/src/entityNames.ts` — a pure module shared by API + browser). Three languages drive
+how those names surface, and they are **distinct — do not conflate them**:
+
+- **Interface language** (`interfaceLanguage`, react-i18next / `Intl`) — the UI chrome locale.
+- **Secondary display language** (`secondaryLanguageId`, `null` = auto) — which language's name shows
+  as the de-emphasized secondary label (breadcrumbs, comboboxes) when there's no primary override.
+- **Fallback display language** (`fallbackLanguageId`, **`null` = English**) — the last-resort
+  language for the secondary label (and the `preferRomanized` sort fallback) when **no**
+  preferred/secondary-language name matches. This is the configurable replacement for the formerly
+  hardcoded English. All three live in the **display-preferences** app-settings group (Settings →
+  Display → Names) and are mirrored end-to-end (type → `app_settings` column → service → route →
+  `useAppSettings` hooks → UI). Read it via `useFallbackDisplayLanguage()` (never returns `null` —
+  unset resolves to `{ isoCode: "en" }`) / the app-root `FallbackDisplayLanguageProvider` context
+  (`useFallbackDisplayLanguageValue()`, `null` outside the provider), and thread it as the last arg
+  of `resolveDisplayNames` / into `resolveNameSortKey`'s opts. **Default deploy is byte-identical** —
+  omitting/`null` reduces to the old English fallback inside the pure helpers.
+
+**Only display/sort follow this setting.** Slug derivation (`slugSourceFromNames`, the Locations
+`englishName` slug source), Wikidata/Wikipedia link resolution, and the source-derived English
+`entity_names` persistence (`mergeEnglishEntityName`) **stay English-anchored** — a source's English
+name is stored as English regardless of the display fallback, and slugs stay stable.
+
 ## Language usage levels & associations
 
 A **language** can be tagged with a **usage level** on many owner entities — e.g. "English dub",
@@ -670,7 +695,12 @@ configuration are explicitly opt-in (Tier 2, below).
   `resolveTitleWikidata` resolves the native-script name (→ `name`), the English name (→
   `englishName`, persisted as an English `entity_names` row via `mergeEnglishEntityName`), and
   English + local Wikipedia links — pinned by the Plex item's external IDs
-  (IMDb/TMDb/TVDB/MusicBrainz via `haswbstatement`, title-search fallback). It shares the keyless
+  (IMDb/TMDb/TVDB/MusicBrainz via `haswbstatement`, title-search fallback). **The persisted English
+  row stays English regardless of the "Fallback display language" setting (see **Multilingual display
+  names** below)** — the value
+  literally *is* the English name from Wikidata (`name:en`), the slug source is English for stability,
+  and English-Wikipedia resolution sends the English name on purpose; the fallback setting only
+  changes which stored row is *shown/sorted*, never what a source-derived name is stored as. It shares the keyless
   Wikidata Action-API client **`services/wikidata.ts`** with the Locations geocoder
   (`wikidataGeocoding.ts`) — the low-level `fetchJson`/`searchEntities`/`getEntities`/`fetchSitelinks`
   plumbing lives there, not in either caller. This is **resolve-only** (`GET

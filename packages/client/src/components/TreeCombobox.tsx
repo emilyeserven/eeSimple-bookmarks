@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useFallbackDisplayLanguageValue } from "@/hooks/fallbackDisplayLanguage";
 import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
@@ -75,6 +76,7 @@ export function TreeCombobox({
     t,
   } = useTranslation();
   const secondaryLanguage = useSecondaryDisplayLanguageValue();
+  const fallbackLanguage = useFallbackDisplayLanguageValue();
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
@@ -187,6 +189,7 @@ export function TreeCombobox({
                     onSelect: select,
                     onToggleExpand: toggleExpand,
                     secondaryLanguage,
+                    fallbackLanguage,
                   })}
                 </CommandGroup>
               )}
