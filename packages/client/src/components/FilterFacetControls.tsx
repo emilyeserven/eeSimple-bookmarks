@@ -19,17 +19,21 @@ const collapseWhenInactive = `
  * Any / Has value / No value / Excludes selected toggle for a facet. Inactive options stay
  * collapsed until the group is hovered. `hasLabel` / `missingLabel` / `excludeLabel` name the
  * entity-specific states. Set `hideExclude` for a facet with no entity list to exclude against
- * (e.g. a plain presence-only facet).
+ * (e.g. a plain presence-only facet). Set `onlyExclude` for a facet whose entity is never absent
+ * (e.g. Category, which always resolves to at least the built-in "Default") — "Has"/"No value"
+ * would always evaluate to true/false and never actually filter anything, so only "Any" and
+ * "Exclude" are shown.
  */
 export function FacetPresenceToggle({
-  value, onChange, hasLabel, missingLabel, excludeLabel, hideExclude,
+  value, onChange, hasLabel, missingLabel, excludeLabel, hideExclude, onlyExclude,
 }: {
   value: "has" | "missing" | "exclude" | undefined;
   onChange: (mode: "has" | "missing" | "exclude" | undefined) => void;
-  hasLabel: string;
-  missingLabel: string;
+  hasLabel?: string;
+  missingLabel?: string;
   excludeLabel?: string;
   hideExclude?: boolean;
+  onlyExclude?: boolean;
 }) {
   const {
     t,
@@ -42,16 +46,17 @@ export function FacetPresenceToggle({
       label: t("Any"),
       Icon: Circle,
     },
-    {
-      value: "has",
-      label: hasLabel,
-      Icon: CircleDot,
-    },
-    {
-      value: "missing",
-      label: missingLabel,
-      Icon: Ban,
-    },
+    ...(onlyExclude
+      ? []
+      : [{
+        value: "has",
+        label: hasLabel ?? t("Has value"),
+        Icon: CircleDot,
+      }, {
+        value: "missing",
+        label: missingLabel ?? t("No value"),
+        Icon: Ban,
+      }]),
     ...(hideExclude
       ? []
       : [{

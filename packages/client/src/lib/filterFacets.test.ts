@@ -53,6 +53,9 @@ describe("facetHasActiveSelection", () => {
     expect(facetHasActiveSelection("tags", {
       tagPresence: "missing",
     })).toBe(true);
+    expect(facetHasActiveSelection("categories", {
+      categoryPresence: "has",
+    })).toBe(true);
     expect(facetHasActiveSelection("channels", {
       youtubeChannelPresence: "has",
     })).toBe(true);
@@ -115,6 +118,12 @@ describe("facetSelectionSummary", () => {
     })).toEqual({
       count: 1,
       presence: "has",
+    });
+    expect(facetSelectionSummary("categories", {
+      categoryPresence: "missing",
+    })).toEqual({
+      count: 0,
+      presence: "missing",
     });
   });
 });

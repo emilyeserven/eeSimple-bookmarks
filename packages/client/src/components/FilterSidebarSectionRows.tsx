@@ -25,6 +25,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collap
 import { Separator } from "./ui/separator";
 import {
   withBooleanFilter,
+  withCategoryPresence,
   withChoicesFilter,
   withDateTimeFilter,
   withGenreMoodPresence,
@@ -106,20 +107,28 @@ export function CategoryFilterSection({
       defaultOpen
       className="group/category space-y-3"
     >
-      <CollapsibleTrigger
-        className="
-          flex items-center gap-1.5 text-sm font-semibold
-          hover:text-foreground
-        "
-      >
-        <ChevronDown
+      <div className="flex items-center justify-between">
+        <CollapsibleTrigger
           className="
-            size-3.5 shrink-0 transition-transform
-            group-data-[state=open]/category:rotate-180
+            flex items-center gap-1.5 text-sm font-semibold
+            hover:text-foreground
           "
+        >
+          <ChevronDown
+            className="
+              size-3.5 shrink-0 transition-transform
+              group-data-[state=open]/category:rotate-180
+            "
+          />
+          {t("Category")}
+        </CollapsibleTrigger>
+        <FacetPresenceToggle
+          value={search.categoryPresence}
+          onChange={mode => onSearchChange(withCategoryPresence(search, mode))}
+          excludeLabel={t("Excludes selected categories")}
+          onlyExclude
         />
-        {t("Category")}
-      </CollapsibleTrigger>
+      </div>
       <CollapsibleContent className="space-y-3">
         <CategoryFilterBody
           categories={categories}

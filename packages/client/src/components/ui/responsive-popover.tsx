@@ -20,6 +20,8 @@ export interface ResponsivePopoverProps {
   trigger?: React.ReactNode;
   /** Heading shown above the body on desktop, and the `DialogTitle` (required for a11y) on mobile. */
   title: string;
+  /** Optional control rendered inline with the title, same row, `justify-between` (e.g. a presence toggle). */
+  titleEnd?: React.ReactNode;
   /** Optional supporting line, shown as `DialogDescription` on mobile. */
   description?: string;
   /** The shared inner content — the single source of truth rendered by both breakpoints. */
@@ -41,6 +43,7 @@ export interface ResponsivePopoverProps {
 export function ResponsivePopover({
   trigger,
   title,
+  titleEnd,
   description,
   children,
   open,
@@ -59,7 +62,10 @@ export function ResponsivePopover({
         {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
         <DialogContent className={cn("max-w-sm", contentClassName)}>
           <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
+            <div className="flex items-center justify-between gap-2">
+              <DialogTitle>{title}</DialogTitle>
+              {titleEnd}
+            </div>
             {description ? <DialogDescription>{description}</DialogDescription> : null}
           </DialogHeader>
           {children}
@@ -78,7 +84,10 @@ export function ResponsivePopover({
         align={align}
         className={cn("w-auto min-w-56", contentClassName)}
       >
-        <p className="mb-3 text-sm font-medium">{title}</p>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <p className="text-sm font-medium">{title}</p>
+          {titleEnd}
+        </div>
         {children}
       </PopoverContent>
     </Popover>

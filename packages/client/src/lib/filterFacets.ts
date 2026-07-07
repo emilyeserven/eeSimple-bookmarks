@@ -70,7 +70,7 @@ export function facetHasActiveSelection(key: FilterFacetKey, search: BookmarkSea
     case "tags":
       return has(search.tags) || search.tagPresence !== undefined;
     case "categories":
-      return has(search.categories);
+      return has(search.categories) || search.categoryPresence !== undefined;
     case "media-types":
       return has(search.mediaTypes);
     case "channels":
@@ -121,6 +121,7 @@ export function facetSelectionSummary(key: FilterFacetKey, search: BookmarkSearc
     case "categories":
       return {
         count: count(search.categories),
+        presence: search.categoryPresence,
       };
     case "media-types":
       return {
