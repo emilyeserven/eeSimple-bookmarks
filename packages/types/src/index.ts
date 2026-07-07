@@ -328,6 +328,8 @@ export interface AppSettings {
   bookmarkDetailVideoSize: BookmarkDetailVideoSize;
   /** Layout of the bookmark detail page/panel: single stacked column or vertical tabs. */
   bookmarkDetailLayout: BookmarkDetailLayout;
+  /** Width of a bookmark card's thumbnail in the image-left (row) card layout. */
+  bookmarkCardThumbnailSize: BookmarkCardThumbnailSize;
   /** When true, the listing search/filters/sort box floats (sticks to the top while the list scrolls). */
   searchBoxPinned: boolean;
   /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
@@ -532,6 +534,8 @@ export interface DisplayPreferenceSettings {
   bookmarkDetailImageSize: BookmarkDetailImageSize;
   bookmarkDetailVideoSize: BookmarkDetailVideoSize;
   bookmarkDetailLayout: BookmarkDetailLayout;
+  /** Width of a bookmark card's thumbnail in the image-left (row) card layout. */
+  bookmarkCardThumbnailSize: BookmarkCardThumbnailSize;
   /**
    * Whether the listing-page search/filters/sort box floats — sticking to the top of the viewport
    * while the list scrolls. Toggled from the box's pin button on every listing page.
@@ -2741,6 +2745,9 @@ export type SidebarOpenModifier = "alt" | "ctrl" | "shift" | "meta";
 
 /** Bookmark detail page image size preference. */
 export type BookmarkDetailImageSize = "small" | "medium" | "large";
+
+/** Bookmark card thumbnail size preference (image-left/row card layout). */
+export type BookmarkCardThumbnailSize = "small" | "medium" | "large";
 
 /** Bookmark detail page video size: constrained side-by-side, half/two-thirds stacked, or full-width stacked. */
 export type BookmarkDetailVideoSize = "standard" | "half" | "twoThirds" | "fullwidth";

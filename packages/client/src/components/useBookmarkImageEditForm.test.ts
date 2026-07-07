@@ -312,6 +312,7 @@ describe("useBookmarkImageEditForm", () => {
       bookmarkDetailImageSize: "medium",
       bookmarkDetailVideoSize: "standard",
       bookmarkDetailLayout: "single",
+      bookmarkCardThumbnailSize: "medium",
       interfaceLanguage: "en",
       secondaryLanguageId: null,
       searchBoxPinned: false,

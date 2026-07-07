@@ -1751,6 +1751,8 @@ export const appSettings = pgTable("app_settings", {
   bookmarkDetailVideoSize: text("bookmark_detail_video_size").notNull().default("standard"),
   // Bookmark detail layout: "single" | "tabbed".
   bookmarkDetailLayout: text("bookmark_detail_layout").notNull().default("single"),
+  // Bookmark card thumbnail size (image-left/row card layout): "small" | "medium" | "large".
+  bookmarkCardThumbnailSize: text("bookmark_card_thumbnail_size").notNull().default("medium"),
   // Interface language: "en" | "ja".
   interfaceLanguage: text("interface_language").notNull().default("en"),
   // Retired (filters now live in the always-on listing search box). Columns kept — declared but

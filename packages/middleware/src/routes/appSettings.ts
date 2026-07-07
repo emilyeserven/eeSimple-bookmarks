@@ -418,6 +418,7 @@ const displayPreferenceBody = {
     "bookmarkDetailImageSize",
     "bookmarkDetailVideoSize",
     "bookmarkDetailLayout",
+    "bookmarkCardThumbnailSize",
     "interfaceLanguage",
     "searchBoxPinned",
     "panelPinned",
@@ -448,6 +449,10 @@ const displayPreferenceBody = {
     bookmarkDetailLayout: {
       type: "string",
       enum: ["single", "tabbed"],
+    },
+    bookmarkCardThumbnailSize: {
+      type: "string",
+      enum: ["small", "medium", "large"],
     },
     interfaceLanguage: {
       type: "string",

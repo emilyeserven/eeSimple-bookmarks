@@ -1,4 +1,5 @@
 import type {
+  BookmarkCardThumbnailSize,
   BookmarkDetailImageSize,
   BookmarkDetailVideoSize,
   DisplayPreferenceSettings,
@@ -42,12 +43,19 @@ const VIDEO_SIZE_LABELS: Record<BookmarkDetailVideoSize, string> = {
   fullwidth: "Full width",
 };
 
+const CARD_THUMBNAIL_SIZE_LABELS: Record<BookmarkCardThumbnailSize, string> = {
+  small: "Small",
+  medium: "Medium",
+  large: "Large",
+};
+
 const MEDIA_DEFAULTS: Pick<
   DisplayPreferenceSettings,
-  "bookmarkDetailImageSize" | "bookmarkDetailVideoSize"
+  "bookmarkDetailImageSize" | "bookmarkDetailVideoSize" | "bookmarkCardThumbnailSize"
 > = {
   bookmarkDetailImageSize: "medium",
   bookmarkDetailVideoSize: "standard",
+  bookmarkCardThumbnailSize: "medium",
 };
 
 /** Media display preferences — bookmark-detail image/video sizing and image aspect ratios. */
@@ -84,6 +92,10 @@ export function DisplayMediaSettings() {
     saveDisplay({
       bookmarkDetailVideoSize: size,
     }, t("Detail video size updated"));
+  const setBookmarkCardThumbnailSize = (size: BookmarkCardThumbnailSize) =>
+    saveDisplay({
+      bookmarkCardThumbnailSize: size,
+    }, t("Card thumbnail size updated"));
 
   return (
     <div className="space-y-6">
@@ -149,6 +161,42 @@ export function DisplayMediaSettings() {
               </SelectContent>
             </Select>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Card thumbnails")}</CardTitle>
+          <CardDescription>
+            {t("Control the width of bookmark card thumbnails on listing pages, when the image is placed to the left of the card content.")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          <Label htmlFor="bookmark-card-thumbnail-size">{t("Thumbnail size")}</Label>
+          <Select
+            value={display.bookmarkCardThumbnailSize}
+            onValueChange={value => setBookmarkCardThumbnailSize(value as BookmarkCardThumbnailSize)}
+          >
+            <SelectTrigger
+              id="bookmark-card-thumbnail-size"
+              className="
+                w-full
+                sm:w-60
+              "
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(CARD_THUMBNAIL_SIZE_LABELS) as BookmarkCardThumbnailSize[]).map(value => (
+                <SelectItem
+                  key={value}
+                  value={value}
+                >
+                  {t(CARD_THUMBNAIL_SIZE_LABELS[value])}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
 
