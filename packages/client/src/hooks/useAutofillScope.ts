@@ -173,7 +173,7 @@ export function useAutofillFilterData(): AutofillFilterData {
     },
     mediaTypes: {
       loading: mediaTypesLoading,
-      options: mediaTypes.map(mediaType => ({
+      options: mediaTypes.filter(mediaType => !mediaType.hidden).map(mediaType => ({
         value: mediaType.slug,
         label: mediaType.name,
       })),

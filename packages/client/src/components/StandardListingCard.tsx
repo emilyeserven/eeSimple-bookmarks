@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,44 @@ export function HoverIconButton({
     >
       {children}
     </Button>
+  );
+}
+
+/**
+ * The hover Eye / EyeOff control that hides or unhides a (usually built-in) taxonomy value from
+ * pickers/facets. Pass the row's current `hidden` state, its `name` (for the accessible label), and
+ * an `onToggle` that flips the flag via the entity's update mutation. Rendered in the card's
+ * `renderExtra` slot so it sits alongside Edit / Info.
+ */
+export function HideToggleButton({
+  hidden, name, onToggle,
+}: {
+  hidden: boolean;
+  name: string;
+  onToggle: () => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <HoverIconButton>
+      <button
+        type="button"
+        onClick={onToggle}
+        title={hidden ? t("Show in pickers") : t("Hide from pickers")}
+      >
+        {hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        <span className="sr-only">
+          {hidden
+            ? t("Show {{name}}", {
+              name,
+            })
+            : t("Hide {{name}}", {
+              name,
+            })}
+        </span>
+      </button>
+    </HoverIconButton>
   );
 }
 

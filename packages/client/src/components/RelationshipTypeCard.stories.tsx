@@ -10,6 +10,7 @@ const baseType: RelationshipType = {
   description: null,
   directional: true,
   builtIn: true,
+  hidden: false,
   sortOrder: 0,
   createdAt: "2026-06-01T00:00:00.000Z",
   bookmarkCount: 42,

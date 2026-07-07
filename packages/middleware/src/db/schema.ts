@@ -340,6 +340,9 @@ export const mediaTypes = pgTable("media_types", {
   description: text("description"),
   // Seeded built-ins (Video, Article, …) can't be renamed or deleted; users may add custom ones.
   builtIn: boolean("built_in").notNull().default(false),
+  // Hide a built-in (or any) media type from pickers/facets while keeping it resolvable by existing
+  // data and identity-lookup code. Nullable (null = false) so it stays a push-safe additive column.
+  hidden: boolean("hidden"),
   // Display ordering; lower sorts first. Seeded built-ins get a stable order.
   sortOrder: integer("sort_order").notNull().default(0),
   // Optional Lucide icon name shown in the MediaTypePill on bookmark cards.
@@ -406,6 +409,9 @@ export const languageUsageLevels = pgTable("language_usage_levels", {
   // "availability" | "proficiency"
   kind: text("kind").notNull(),
   builtIn: boolean("built_in").notNull().default(false),
+  // Hide a level from pickers/facets while keeping it resolvable by existing usages and identity code
+  // (e.g. the "primary language" auto-detect). Nullable (null = false) — push-safe additive column.
+  hidden: boolean("hidden"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -547,6 +553,13 @@ export const groupTypes = pgTable("group_types", {
   slug: text("slug"),
   // Free-text description surfaced on the group type's detail page.
   description: text("description"),
+  // Seeded defaults (Company, Doujin Circle, …) are built-ins: non-deletable/non-renameable but
+  // hideable. Nullable (null = false) so it stays a push-safe additive column; marked true on the
+  // seeds at boot (insert + backfill-by-name in ensureDefaultGroupTypes). Coalesced `?? false`.
+  builtIn: boolean("built_in"),
+  // Hide a built-in (or any) group type from the picker while keeping it resolvable by existing
+  // groups. Nullable (null = false) — push-safe additive column.
+  hidden: boolean("hidden"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -664,6 +677,9 @@ export const relationshipTypes = pgTable("relationship_types", {
   directional: boolean("directional").notNull().default(false),
   // Seeded built-ins (Similar, Parent/child, Opposite) can't be renamed or deleted.
   builtIn: boolean("built_in").notNull().default(false),
+  // Hide a built-in (or any) relationship type from pickers/facets while keeping it resolvable by
+  // existing edges and identity code (e.g. the "About" default). Nullable (null = false) — push-safe.
+  hidden: boolean("hidden"),
   // Display ordering; lower sorts first.
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", {

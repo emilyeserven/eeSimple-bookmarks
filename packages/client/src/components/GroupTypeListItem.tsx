@@ -4,7 +4,11 @@ import { Link } from "@tanstack/react-router";
 import { Info, Library, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { HideToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useUpdateGroupType } from "../hooks/useGroupTypes";
+
+import { Badge } from "@/components/ui/badge";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 
 /**
  * A single row in the group-type listing. A group type has no "filtered bookmarks" page, so
@@ -27,6 +31,29 @@ export function GroupTypeListItem({
   const {
     t,
   } = useTranslation();
+  const update = useUpdateGroupType();
+
+  const toggleHidden = () => {
+    const nextHidden = !groupType.hidden;
+    update.mutate({
+      id: groupType.id,
+      input: {
+        hidden: nextHidden,
+      },
+    }, {
+      onSuccess: () =>
+        notifySuccess(nextHidden
+          ? t("Hid \"{{name}}\" from pickers", {
+            name: groupType.name,
+          })
+          : t("Showing \"{{name}}\" in pickers", {
+            name: groupType.name,
+          })),
+      onError: () => notifyError(t("Couldn't update \"{{name}}\"", {
+        name: groupType.name,
+      })),
+    });
+  };
 
   return (
     <StandardListingCard
@@ -36,7 +63,20 @@ export function GroupTypeListItem({
       inSelectionMode={inSelectionMode}
       icon={<Library className="size-5 shrink-0 text-muted-foreground" />}
       title={groupType.name}
+      titleAdornment={
+        <>
+          {groupType.builtIn ? <Badge variant="secondary">{t("Built-in")}</Badge> : null}
+          {groupType.hidden ? <Badge variant="outline">{t("Hidden")}</Badge> : null}
+        </>
+      }
       count={groupType.groupCount}
+      renderExtra={() => (
+        <HideToggleButton
+          hidden={groupType.hidden}
+          name={groupType.name}
+          onToggle={toggleHidden}
+        />
+      )}
       renderPrimaryLink={(className, children) => (
         <Link
           to="/taxonomies/group-types/$groupTypeSlug/info"

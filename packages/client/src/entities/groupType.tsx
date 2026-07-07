@@ -33,6 +33,8 @@ export const groupTypeListingConfig: EntityListingConfig<GroupType> = {
   useItems: useGroupTypes,
   matches: (prop, query) =>
     prop.name.toLowerCase().includes(query) || prop.slug.toLowerCase().includes(query),
+  deletableIds: items => items.filter(gt => !gt.builtIn).map(gt => gt.id),
+  isSelectable: gt => !gt.builtIn,
   useBulkDelete: useBulkDeleteGroupTypes,
   noun: [i18n.t("group type"), i18n.t("group types")],
   loadingLabel: i18n.t("Loading group types…"),

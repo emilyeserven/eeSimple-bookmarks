@@ -660,6 +660,8 @@ export interface MediaType {
   icon: string | null;
   /** Whether this is a seeded built-in (protected from rename/delete). */
   builtIn: boolean;
+  /** Hidden from pickers/facets while still resolvable by existing data and identity code. */
+  hidden: boolean;
   /** Display ordering weight; lower sorts first. */
   sortOrder: number;
   /** Id of the parent media type, or `null` for a top-level (root) type. One level of nesting only. */
@@ -690,7 +692,7 @@ export interface CreateMediaTypeInput {
   description?: string | null;
 }
 
-/** Payload for updating a media type (rename, reorder, and/or reparent). */
+/** Payload for updating a media type (rename, reorder, reparent, and/or hide). */
 export interface UpdateMediaTypeInput {
   name?: string;
   sortOrder?: number;
@@ -698,6 +700,8 @@ export interface UpdateMediaTypeInput {
   /** Parent media type id; `null` to make it a root. */
   parentId?: string | null;
   description?: string | null;
+  /** Hide/show from pickers/facets. Allowed on built-ins (unlike rename/delete). */
+  hidden?: boolean;
 }
 
 /**
@@ -897,6 +901,8 @@ export interface RelationshipType {
   directional: boolean;
   /** Whether this is a seeded built-in (protected from rename/delete). */
   builtIn: boolean;
+  /** Hidden from pickers/facets while still resolvable by existing edges and identity code. */
+  hidden: boolean;
   /** Display ordering weight; lower sorts first. */
   sortOrder: number;
   /** ISO-8601 timestamp of when the relationship type was created. */
@@ -915,12 +921,14 @@ export interface CreateRelationshipTypeInput {
   description?: string | null;
 }
 
-/** Payload for updating a relationship type (rename, toggle direction, and/or reorder). */
+/** Payload for updating a relationship type (rename, toggle direction, reorder, and/or hide). */
 export interface UpdateRelationshipTypeInput {
   name?: string;
   directional?: boolean;
   sortOrder?: number;
   description?: string | null;
+  /** Hide/show from pickers/facets. Allowed on built-ins (unlike rename/delete). */
+  hidden?: boolean;
 }
 
 /**

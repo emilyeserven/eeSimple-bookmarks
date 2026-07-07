@@ -200,7 +200,7 @@ export function AutofillRuleForm({
                   value: NO_MEDIA_TYPE,
                   label: i18n.t("— Leave unchanged —"),
                 },
-                ...mediaTypes.map(mediaType => ({
+                ...mediaTypes.filter(mediaType => !mediaType.hidden).map(mediaType => ({
                   value: mediaType.id,
                   label: mediaType.name,
                 })),

@@ -462,7 +462,7 @@ export function RelationshipTypeFilterBody({
   const {
     t,
   } = useTranslation();
-  const options = (relationshipTypes ?? []).map(rt => ({
+  const options = (relationshipTypes ?? []).filter(rt => !rt.hidden).map(rt => ({
     value: rt.id,
     label: rt.name,
     icon: <Share2 className="size-4 shrink-0 text-muted-foreground" />,
@@ -541,7 +541,7 @@ export function LanguageUsageFilterBody({
         aria-label={t("Filter by language")}
       />
       <MultiCombobox
-        options={levels.map(l => ({
+        options={levels.filter(l => !l.hidden).map(l => ({
           value: l.id,
           label: l.name,
           icon: <Captions className="size-4 shrink-0 text-muted-foreground" />,

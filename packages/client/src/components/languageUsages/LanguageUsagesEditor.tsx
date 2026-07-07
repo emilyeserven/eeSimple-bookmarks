@@ -75,7 +75,7 @@ export function LanguageUsagesEditor({
   }
 
   const languageGroups = languageComboboxGroups(languages, t);
-  const levelOptions = levels.map(l => ({
+  const levelOptions = levels.filter(l => !l.hidden).map(l => ({
     value: l.id,
     label: l.name,
   }));

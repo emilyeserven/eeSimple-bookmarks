@@ -54,7 +54,7 @@ export function LanguageUsageConditionEditor({
         placeholder={levelsLoading ? t("Loading…") : t("Any usage level")}
         searchPlaceholder={t("Search usage levels…")}
         emptyText={t("No usage levels found.")}
-        options={levels.map(l => ({
+        options={levels.filter(l => !l.hidden).map(l => ({
           value: l.id,
           label: l.name,
         }))}

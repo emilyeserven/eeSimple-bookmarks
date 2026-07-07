@@ -17,6 +17,7 @@ function relType(id: string, name: string, slug: string, sortOrder: number): Rel
     description: null,
     directional: false,
     builtIn: false,
+    hidden: false,
     sortOrder,
     createdAt: NOW,
   };

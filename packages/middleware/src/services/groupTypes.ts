@@ -30,6 +30,13 @@ export class DuplicateGroupTypeError extends AppError {
   }
 }
 
+/** Thrown when an update or delete targets a built-in group type in a disallowed way. */
+export class BuiltInGroupTypeError extends AppError {
+  constructor(message: string) {
+    super(message, "builtInImmutable", 403);
+  }
+}
+
 /** Map a DB row to the shared `GroupType` wire type. */
 function toGroupType(
   row: GroupTypeRow & { groupCount?: number },
@@ -39,6 +46,8 @@ function toGroupType(
     name: row.name,
     slug: row.slug ?? slugify(row.name),
     description: row.description,
+    builtIn: row.builtIn ?? false,
+    hidden: row.hidden ?? false,
     sortOrder: row.sortOrder,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -58,6 +67,8 @@ export async function listGroupTypes(): Promise<GroupType[]> {
       name: groupTypes.name,
       slug: groupTypes.slug,
       description: groupTypes.description,
+      builtIn: groupTypes.builtIn,
+      hidden: groupTypes.hidden,
       sortOrder: groupTypes.sortOrder,
       createdAt: groupTypes.createdAt,
       groupCount: db.$count(groups, eq(groups.groupTypeId, groupTypes.id)),
@@ -74,6 +85,8 @@ export async function getGroupTypeBySlug(slug: string): Promise<GroupType | null
       name: groupTypes.name,
       slug: groupTypes.slug,
       description: groupTypes.description,
+      builtIn: groupTypes.builtIn,
+      hidden: groupTypes.hidden,
       sortOrder: groupTypes.sortOrder,
       createdAt: groupTypes.createdAt,
       groupCount: db.$count(groups, eq(groups.groupTypeId, groupTypes.id)),
@@ -111,8 +124,13 @@ export async function updateGroupType(
 ): Promise<GroupType | null> {
   const [existing] = await db.select().from(groupTypes).where(eq(groupTypes.id, id));
   if (!existing) return null;
+  if (existing.builtIn && input.name !== undefined && input.name.trim() !== existing.name) {
+    throw new BuiltInGroupTypeError("A built-in group type cannot be renamed");
+  }
 
-  const patch: Partial<Pick<GroupTypeRow, "name" | "slug" | "description" | "sortOrder">> = {};
+  const patch: Partial<
+    Pick<GroupTypeRow, "name" | "slug" | "description" | "sortOrder" | "hidden">
+  > = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -124,23 +142,30 @@ export async function updateGroupType(
   }
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
+  // Hiding is allowed even on built-ins (unlike rename/delete).
+  if (input.hidden !== undefined) patch.hidden = input.hidden;
   if (Object.keys(patch).length === 0) return toGroupType(existing);
 
   const [row] = await db.update(groupTypes).set(patch).where(eq(groupTypes.id, id)).returning();
   return row ? toGroupType(row) : null;
 }
 
-/** Delete a group type. The `set null` FK un-classifies any member groups. */
+/** Delete a group type. Built-ins can't be deleted. The `set null` FK un-classifies member groups. */
 export async function deleteGroupType(id: string): Promise<boolean> {
+  const [existing] = await db.select({
+    builtIn: groupTypes.builtIn,
+  }).from(groupTypes).where(eq(groupTypes.id, id));
+  if (!existing) return false;
+  if (existing.builtIn) throw new BuiltInGroupTypeError("A built-in group type cannot be deleted");
   const rows = await db.delete(groupTypes).where(eq(groupTypes.id, id)).returning({
     id: groupTypes.id,
   });
   return rows.length > 0;
 }
 
-/** Delete many group types, reporting per-item outcomes. */
+/** Delete many group types, reporting per-item outcomes (built-ins are skipped). */
 export function bulkDeleteGroupTypes(ids: string[]): Promise<BulkDeleteResult[]> {
-  return bulkDeleteEntities(ids, deleteGroupType);
+  return bulkDeleteEntities(ids, deleteGroupType, err => err instanceof BuiltInGroupTypeError);
 }
 
 /** Fill in slugs for any group types missing one. */
@@ -164,19 +189,34 @@ export async function backfillGroupTypeSlugs(): Promise<void> {
   }
 }
 
-/** Seed the default group types on first boot. Idempotent — each name inserted only if absent. */
+/**
+ * Seed the default group types on first boot. Idempotent — each name inserted only if absent, and
+ * marked `builtIn: true`. Pre-existing installs (rows created before the built-in column existed)
+ * get their seeded rows backfilled to `builtIn: true` by name. Built-ins are non-deletable, so a
+ * removed default can no longer be resurrected on the next boot — it's hidden, never deleted. The
+ * `hidden` flag on an existing row is never touched, so a user's hide choice survives every reboot.
+ */
 export async function ensureDefaultGroupTypes(): Promise<void> {
   const taken = await takenSlugs();
   for (const [index, name] of DEFAULT_GROUP_TYPES.entries()) {
     const [existing] = await db.select({
       id: groupTypes.id,
+      builtIn: groupTypes.builtIn,
     }).from(groupTypes).where(eq(groupTypes.name, name));
-    if (existing) continue;
+    if (existing) {
+      if (existing.builtIn !== true) {
+        await db.update(groupTypes).set({
+          builtIn: true,
+        }).where(eq(groupTypes.id, existing.id));
+      }
+      continue;
+    }
     const slug = uniqueSlug(slugify(name), taken, "group-type");
     taken.push(slug);
     await db.insert(groupTypes).values({
       name,
       slug,
+      builtIn: true,
       sortOrder: index,
     }).onConflictDoNothing();
   }

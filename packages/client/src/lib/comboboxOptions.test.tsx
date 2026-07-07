@@ -82,4 +82,45 @@ describe("mediaTypeNodesToOptions", () => {
     })]);
     expect(isValidElement(option?.icon)).toBe(true);
   });
+
+  it("excludes hidden nodes from the option list", () => {
+    const options = mediaTypeNodesToOptions([
+      makeNode({
+        id: "visible",
+        name: "Visible",
+      }),
+      makeNode({
+        id: "hidden",
+        name: "Hidden",
+        hidden: true,
+      }),
+    ]);
+    expect(options.map(o => o.value)).toEqual(["visible"]);
+  });
+
+  it("hoists the visible children of a hidden parent up to its level", () => {
+    const options = mediaTypeNodesToOptions([
+      makeNode({
+        id: "audio",
+        name: "Audio",
+        hidden: true,
+        children: [
+          makeNode({
+            id: "podcast",
+            name: "Podcast",
+            parentId: "audio",
+          }),
+          makeNode({
+            id: "album",
+            name: "Album",
+            parentId: "audio",
+            hidden: true,
+          }),
+        ],
+      }),
+    ]);
+    // Audio (hidden) is spliced out; its visible child Podcast is lifted to the top level, and the
+    // hidden grandchild Album is dropped.
+    expect(options.map(o => o.value)).toEqual(["podcast"]);
+  });
 });

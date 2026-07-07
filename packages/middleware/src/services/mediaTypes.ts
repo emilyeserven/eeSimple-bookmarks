@@ -168,6 +168,7 @@ function toMediaType(
     description: row.description,
     icon: row.icon ?? null,
     builtIn: row.builtIn,
+    hidden: row.hidden ?? false,
     sortOrder: row.sortOrder,
     parentId: row.parentId,
     createdAt:
@@ -346,7 +347,7 @@ export async function updateMediaType(
   }
 
   const patch: Partial<
-    Pick<MediaTypeRow, "name" | "slug" | "description" | "sortOrder" | "icon" | "parentId">
+    Pick<MediaTypeRow, "name" | "slug" | "description" | "sortOrder" | "icon" | "parentId" | "hidden">
   > = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
@@ -375,6 +376,8 @@ export async function updateMediaType(
     }
     patch.parentId = parentId;
   }
+  // Hiding is allowed even on built-ins (unlike rename/delete above).
+  if (input.hidden !== undefined) patch.hidden = input.hidden;
   if (Object.keys(patch).length === 0) return toMediaType(existing);
 
   const [row] = await db.update(mediaTypes).set(patch).where(eq(mediaTypes.id, id)).returning();

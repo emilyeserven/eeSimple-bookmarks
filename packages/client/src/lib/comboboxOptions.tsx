@@ -73,18 +73,32 @@ export function genreMoodTreeComboboxOptions(
     }));
 }
 
+/**
+ * Convert a `MediaTypeNode` tree into `TreeComboboxOption[]`, excluding any node the user has
+ * **hidden** from pickers. Hidden nodes are pruned *and hoisted*: a hidden parent (e.g. Audio) is
+ * spliced out but its still-visible children (Podcast, Music) are lifted up to its level, so hiding
+ * a parent never vanishes a visible child. Hidden values stay resolvable everywhere else — they're
+ * only kept out of the option list here. Do NOT route the reparent/parent picker through this
+ * builder; that one must still see every type.
+ */
 export function mediaTypeNodesToOptions(nodes: MediaTypeNode[]): TreeComboboxOption[] {
-  return nodes.map(node => ({
-    value: node.id,
-    label: node.name,
-    searchAlias: buildSearchAlias(node.names),
-    names: node.names,
-    icon: (
-      <CategoryIcon
-        name={node.icon}
-        className="size-4 shrink-0"
-      />
-    ),
-    children: mediaTypeNodesToOptions(node.children),
-  }));
+  return nodes.flatMap((node) => {
+    const children = mediaTypeNodesToOptions(node.children);
+    if (node.hidden) return children;
+    return [
+      {
+        value: node.id,
+        label: node.name,
+        searchAlias: buildSearchAlias(node.names),
+        names: node.names,
+        icon: (
+          <CategoryIcon
+            name={node.icon}
+            className="size-4 shrink-0"
+          />
+        ),
+        children,
+      },
+    ];
+  });
 }
