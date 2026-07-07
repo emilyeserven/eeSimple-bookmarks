@@ -18,6 +18,7 @@ const connectorsSettings: ConnectorsAppSettings = {
   plexTokenSet: false,
   youtubeApiKeySet: false,
   imageUrlBlacklist: [],
+  useNoCookieYoutubeEmbeds: true,
 };
 
 const handlers = [

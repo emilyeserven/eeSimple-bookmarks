@@ -15,6 +15,9 @@ const connectorsStatus: ConnectorsStatus = {
   youtubeDataApi: {
     enabled: false,
   },
+  youtubeEmbed: {
+    useNoCookie: true,
+  },
   instagram: {
     apiKey: false,
   },
@@ -59,6 +62,7 @@ const connectorsSettings: ConnectorsAppSettings = {
   plexTokenSet: false,
   youtubeApiKeySet: false,
   imageUrlBlacklist: [],
+  useNoCookieYoutubeEmbeds: true,
 };
 
 const meta = {

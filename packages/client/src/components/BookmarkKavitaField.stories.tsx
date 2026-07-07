@@ -16,6 +16,9 @@ const connectorsStatus: ConnectorsStatus = {
   youtubeDataApi: {
     enabled: false,
   },
+  youtubeEmbed: {
+    useNoCookie: true,
+  },
   instagram: {
     apiKey: false,
   },

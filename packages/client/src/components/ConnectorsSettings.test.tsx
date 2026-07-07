@@ -15,6 +15,9 @@ vi.mock("../hooks/useConnectors", () => ({
       youtubeDataApi: {
         enabled: true,
       },
+      youtubeEmbed: {
+        useNoCookie: true,
+      },
       instagram: {
         apiKey: false,
       },

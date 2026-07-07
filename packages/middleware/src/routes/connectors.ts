@@ -7,7 +7,7 @@ import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/servi
 import { instagramApiEnabled } from "@/services/socialImages";
 import { kavitaEnabledAsync } from "@/services/kavita";
 import { getPlexMachineIdentifier, plexEnabledAsync } from "@/services/plex";
-import { getActiveHostedEndpoint, getActiveKavitaEndpoint, getActivePlexEndpoint } from "@/services/appSettings";
+import { getActiveHostedEndpoint, getActiveKavitaEndpoint, getActivePlexEndpoint, getYoutubeEmbedUsesNoCookie } from "@/services/appSettings";
 import { youtubeApiEnabledAsync } from "@/services/youtube";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 
@@ -34,6 +34,9 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
       },
       youtubeDataApi: {
         enabled: await youtubeApiEnabledAsync(),
+      },
+      youtubeEmbed: {
+        useNoCookie: await getYoutubeEmbedUsesNoCookie(),
       },
       instagram: {
         apiKey: instagramApiEnabled(),

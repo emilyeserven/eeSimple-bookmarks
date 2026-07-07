@@ -55,12 +55,15 @@ export function isYouTubeVideoUrl(url: string): boolean {
 }
 
 /**
- * Build a privacy-friendly `youtube-nocookie.com` embed URL for a YouTube video URL, or `null` when
- * `url` isn't a recognizable YouTube video.
+ * Build an embed URL for a YouTube video URL, or `null` when `url` isn't a recognizable YouTube
+ * video. `useNoCookie` (default `true`) selects the privacy-enhanced `youtube-nocookie.com` host
+ * over plain `youtube.com` — a per-deploy preference, not a protocol fact.
  */
-export function youtubeEmbedUrl(url: string): string | null {
+export function youtubeEmbedUrl(url: string, useNoCookie = true): string | null {
   const video = parseYouTubeVideo(url);
-  return video ? `https://www.youtube-nocookie.com/embed/${video.videoId}` : null;
+  if (!video) return null;
+  const host = useNoCookie ? "www.youtube-nocookie.com" : "www.youtube.com";
+  return `https://${host}/embed/${video.videoId}`;
 }
 
 /**
