@@ -3,6 +3,7 @@ import type { EntityWorkbench } from "./types";
 import type { LocationRelation } from "@eesimple/types";
 
 import i18n from "../../i18n";
+import { LocationRelationCardsView } from "../LocationRelationCardsView";
 import { LocationRelationGeneralForm } from "../LocationRelationGeneralForm";
 
 import {
@@ -88,6 +89,17 @@ export const locationRelationWorkbench: EntityWorkbench<LocationRelation> = {
   listingPath: "/taxonomies/location-relations",
   getSlug: relation => relation.slug,
   tabs: [
+    {
+      key: "bookmarks",
+      label: i18n.t("Bookmarks"),
+      view: {
+        title: i18n.t("Bookmarks"),
+        description: i18n.t("Bookmarks and the locations they relate to under this relation."),
+        render: ({
+          entity,
+        }) => <LocationRelationCardsView locationRelation={entity} />,
+      },
+    },
     {
       key: "general",
       label: "General",
