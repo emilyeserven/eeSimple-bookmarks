@@ -27,6 +27,8 @@ function InboxNewRedirect() {
       to: "/inbox",
       replace: true,
     });
+  // One-shot redirect that navigates away immediately; it must run exactly once on mount, so the
+  // dep array stays empty.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

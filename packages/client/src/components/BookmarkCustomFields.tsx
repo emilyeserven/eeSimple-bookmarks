@@ -353,7 +353,9 @@ export function CategoryDefaultsApplier({
   useEffect(() => {
     if (!categoryId || !defaults) return;
     onApply(defaults.numberValues, defaults.booleanValues, defaults.dateTimeValues);
-    // Re-apply only when the category or its loaded defaults change; `onApply` is stable enough.
+    // `onApply` (`applyCategoryDefaults`) is recreated each render but is idempotent and internally
+    // skips user-touched/rule-set fields; re-applying should track only `categoryId`/`defaults`, so
+    // `onApply` is deliberately omitted from deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId, defaults]);
 

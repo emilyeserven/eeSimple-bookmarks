@@ -66,6 +66,8 @@ function BulkExpandShortened({
   useEffect(() => {
     setSelected(new Set(items.map(item => item.id)));
     setResults(null);
+    // `items` is a fresh array every render (depending on it would loop); `bookmarks` (the query
+    // result) is the sole real input and `website` is stable, so re-running only on `bookmarks` is correct.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookmarks]);
 
