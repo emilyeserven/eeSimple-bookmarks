@@ -24,6 +24,7 @@ import type {
   HomepageSection,
   HomepageSectionBookmarks,
   ImportBlacklistEntry,
+  PersonSourceLabelSettings,
   PinnedSidebarItem,
   PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
@@ -41,6 +42,7 @@ import type {
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateHomepageSectionInput,
+  UpdatePersonSourceLabelInput,
   UpdateSavedFilterInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
@@ -113,6 +115,13 @@ export const appSettingsApi = {
   getBookmarkGraph: () => request<BookmarkGraphSettings>("/app-settings/bookmark-graph"),
   updateBookmarkGraph: (input: UpdateBookmarkGraphInput) =>
     request<BookmarkGraphSettings>("/app-settings/bookmark-graph", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getPersonSourceLabels: () =>
+    request<PersonSourceLabelSettings>("/app-settings/person-source-labels"),
+  updatePersonSourceLabels: (input: UpdatePersonSourceLabelInput) =>
+    request<PersonSourceLabelSettings>("/app-settings/person-source-labels", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

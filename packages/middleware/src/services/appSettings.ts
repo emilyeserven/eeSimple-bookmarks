@@ -22,6 +22,7 @@ import type {
   PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
   PlaceTypeIconConfig,
+  PersonSourceLabelSettings,
   PlaceTypeLevelGroup,
   PlaceTypeLevelGroupConfig,
   QuickAddDisplay,
@@ -35,9 +36,10 @@ import type {
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
+  UpdatePersonSourceLabelInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { BOOKMARK_ADD_FORM_PLACEMENTS, CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARK_GRAPH_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, DEFAULT_HOMEPAGE_WIDGET_ORDER, emptyConditionTree, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, normalizeLevelMode, placeTypeKey, resolveHomepageWidgetOrder } from "@eesimple/types";
+import { BOOKMARK_ADD_FORM_PLACEMENTS, CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARK_GRAPH_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, DEFAULT_HOMEPAGE_WIDGET_ORDER, DEFAULT_PERSON_SOURCE_LABEL_SETTINGS, emptyConditionTree, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, normalizeLevelMode, placeTypeKey, resolveHomepageWidgetOrder } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
@@ -142,6 +144,29 @@ function resolveBookmarkGraph(raw: unknown): BookmarkGraphSettings {
   return {
     weights,
     maxRelated: Math.min(100, Math.max(1, rawMax)),
+  };
+}
+
+/** Default person source-label settings ("website" / "biography"), used when seeding / when row absent. */
+const DEFAULT_PERSON_SOURCE_LABELS: PersonSourceLabelSettings = DEFAULT_PERSON_SOURCE_LABEL_SETTINGS;
+
+/**
+ * Coerce an arbitrary stored jsonb blob into valid {@link PersonSourceLabelSettings}: fall back to
+ * the default for each field when the stored value is missing, not a string, or blank after trim
+ * (an empty label would match nothing, which is never useful), merging over the defaults so a
+ * partial/legacy row is safe.
+ */
+export function resolvePersonSourceLabels(raw: unknown): PersonSourceLabelSettings {
+  const stored = (raw ?? {}) as Partial<PersonSourceLabelSettings>;
+  const websiteLabel = typeof stored.websiteLabel === "string" && stored.websiteLabel.trim()
+    ? stored.websiteLabel
+    : DEFAULT_PERSON_SOURCE_LABELS.websiteLabel;
+  const biographyLabel = typeof stored.biographyLabel === "string" && stored.biographyLabel.trim()
+    ? stored.biographyLabel
+    : DEFAULT_PERSON_SOURCE_LABELS.biographyLabel;
+  return {
+    websiteLabel,
+    biographyLabel,
   };
 }
 
@@ -277,6 +302,7 @@ export async function ensureAppSettings(): Promise<void> {
       ...DEFAULT_DISPLAY_PREFERENCES,
       ...DEFAULT_AI_SUMMARIZATION,
       bookmarkGraph: DEFAULT_BOOKMARK_GRAPH,
+      personSourceLabels: DEFAULT_PERSON_SOURCE_LABELS,
     })
     .onConflictDoNothing({
       target: appSettings.id,
@@ -725,6 +751,39 @@ export async function updateBookmarkGraphSettings(
       target: appSettings.id,
       set: {
         bookmarkGraph: next,
+      },
+    });
+  return next;
+}
+
+/** Read the Person source-label settings (which `labeledWebsites` label counts as "website" / "biography"). */
+export async function getPersonSourceLabelSettings(): Promise<PersonSourceLabelSettings> {
+  const [row] = await db
+    .select({
+      personSourceLabels: appSettings.personSourceLabels,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_PERSON_SOURCE_LABELS;
+  return resolvePersonSourceLabels(row.personSourceLabels);
+}
+
+/** Replace the Person source-label settings, upserting the singleton. Returns the stored (coerced) values. */
+export async function updatePersonSourceLabelSettings(
+  input: UpdatePersonSourceLabelInput,
+): Promise<PersonSourceLabelSettings> {
+  const next = resolvePersonSourceLabels(input);
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      personSourceLabels: next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: {
+        personSourceLabels: next,
       },
     });
   return next;

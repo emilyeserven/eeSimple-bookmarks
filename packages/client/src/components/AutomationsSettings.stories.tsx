@@ -13,6 +13,11 @@ const automationSettings = {
   sidebarOpenModifier: "alt",
 };
 
+const personSourceLabelSettings = {
+  websiteLabel: "website",
+  biographyLabel: "biography",
+};
+
 const meta = {
   title: "Settings/AutomationsSettings",
   component: AutomationsSettings,
@@ -20,6 +25,7 @@ const meta = {
     msw: {
       handlers: [
         http.get("/api/app-settings/automation", () => HttpResponse.json(automationSettings)),
+        http.get("/api/app-settings/person-source-labels", () => HttpResponse.json(personSourceLabelSettings)),
         ...apiHandlers,
       ],
     },
@@ -41,6 +47,7 @@ export const AllEnabled: Story = {
           autoApplyTitleTags: true,
           autoApplyTitleLocations: true,
         })),
+        http.get("/api/app-settings/person-source-labels", () => HttpResponse.json(personSourceLabelSettings)),
         ...apiHandlers,
       ],
     },

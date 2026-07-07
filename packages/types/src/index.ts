@@ -526,6 +526,28 @@ export const DEFAULT_BOOKMARK_GRAPH_SETTINGS: BookmarkGraphSettings = {
 };
 
 /**
+ * The subset of {@link AppSettings} that decides which `labeledWebsites` label (case-insensitive,
+ * trimmed) is treated as a Person's canonical "website" / "biography" source link — used by avatar
+ * auto-fetch and the social-links detector. Persisted server-side so the match follows across
+ * devices. Defaults ("website" / "biography") reproduce the previous hardcoded behavior.
+ */
+export interface PersonSourceLabelSettings {
+  /** `labeledWebsites` label (case-insensitive) treated as the person's primary website/source link. */
+  websiteLabel: string;
+  /** `labeledWebsites` label (case-insensitive) treated as the person's biography link. */
+  biographyLabel: string;
+}
+
+/** Payload for replacing the person source-label settings. */
+export type UpdatePersonSourceLabelInput = PersonSourceLabelSettings;
+
+/** Default person source labels ("website" / "biography"), used when seeding / when row absent. */
+export const DEFAULT_PERSON_SOURCE_LABEL_SETTINGS: PersonSourceLabelSettings = {
+  websiteLabel: "website",
+  biographyLabel: "biography",
+};
+
+/**
  * The subset of {@link AppSettings} that drives display/detail preferences: bookmark detail media
  * sizing + layout, the pinnable listing search box, right-panel pin behavior, and the built-in
  * "Cropped" aspect ratio. Persisted server-side so the display choices follow the user across devices.

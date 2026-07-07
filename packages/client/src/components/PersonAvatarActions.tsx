@@ -5,6 +5,7 @@ import { AtSign, Globe, MonitorPlay, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { usePersonSourceLabelSettings } from "@/hooks/useAppSettings";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
 type Controller = ReturnType<typeof usePersonGeneralForm>;
@@ -32,14 +33,20 @@ export function PersonAvatarActions({
   const {
     t,
   } = useTranslation();
-  // Mirror the middleware's `sourceUrlFromLabeled`: "website" prefers a "Website"-labeled row (else
-  // the first URL); "biography" matches only a "Biography"-labeled row. `sourceUrl` is used just for
-  // the client error toast — the server re-derives the actual URL from the person's list.
+  const {
+    websiteLabel, biographyLabel,
+  } = usePersonSourceLabelSettings();
+  // Mirror the middleware's `sourceUrlFromLabeled`: "website" prefers the row matching the
+  // configured `websiteLabel` (else the first URL); "biography" matches only `biographyLabel`.
+  // Configurable via Settings → Automations → Global. `sourceUrl` is used just for the client error
+  // toast — the server re-derives the actual URL from the person's list.
+  const wantedWebsiteLabel = websiteLabel.trim().toLowerCase();
+  const wantedBiographyLabel = biographyLabel.trim().toLowerCase();
   const websiteSourceUrl = person.labeledWebsites.find(
-    w => w.label.trim().toLowerCase() === "website",
+    w => w.label.trim().toLowerCase() === wantedWebsiteLabel,
   )?.url ?? person.labeledWebsites[0]?.url;
   const biographySourceUrl = person.labeledWebsites.find(
-    w => w.label.trim().toLowerCase() === "biography",
+    w => w.label.trim().toLowerCase() === wantedBiographyLabel,
   )?.url;
   return (
     <div className="flex flex-col gap-2">

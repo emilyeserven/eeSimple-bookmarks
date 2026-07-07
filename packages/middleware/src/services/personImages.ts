@@ -3,17 +3,18 @@
  * (`utils/objectStore`), and the `person_images` table together so the routes stay thin.
  * Mirrors `youtubeChannelImages`. Avatars live under the `person-images/` object-storage prefix.
  *
- * Auto-fetch reads the person's stored labeled-websites list (the "Website" / "Biography" row) and
+ * Auto-fetch reads the person's stored labeled-websites list (the row labeled with the configured
+ * website/biography label — see `PersonSourceLabelSettings`, defaults "Website" / "Biography") and
  * pulls the page's `og:image` — no client-supplied URL, so there is no SSRF amplifier.
  */
 
-import type { LabeledWebsite, SocialLink, SocialMediaPlatform } from "@eesimple/types";
+import type { LabeledWebsite, PersonSourceLabelSettings, SocialLink, SocialMediaPlatform } from "@eesimple/types";
 
 import { eq } from "drizzle-orm";
 import { socialAccountFromLink } from "@eesimple/types";
 import { db } from "@/db";
 import { personImages, people, type PersonImageRow, websiteFavicons, youtubeChannelImages } from "@/db/schema";
-import { getImageProcessingOptions } from "@/services/appSettings";
+import { getImageProcessingOptions, getPersonSourceLabelSettings } from "@/services/appSettings";
 import { downloadImage, type EntityImageResult, extractImageUrl, fetchHeadOrImageError, fetchOgImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
 import { fetchSocialProfileImageUrl } from "@/services/socialImages";
 import { processImage } from "@/utils/image";
@@ -25,15 +26,18 @@ function objectKeyFor(personId: string): string {
 
 /**
  * Resolve the avatar source URL from a person's labeled-websites list. `"website"` prefers the row
- * labeled "Website" (else the first listed URL); `"biography"` matches the "Biography" row only, so
- * it never mistakes an unrelated link for the biography source.
+ * matching `labels.websiteLabel` (case-insensitive, else the first listed URL); `"biography"` matches
+ * only `labels.biographyLabel`, so it never mistakes an unrelated link for the biography source.
+ * Pure/testable — callers resolve the configured labels via `getPersonSourceLabelSettings()` and
+ * pass them in.
  */
 function sourceUrlFromLabeled(
   labeledWebsites: LabeledWebsite[] | null,
   source: "website" | "biography",
+  labels: PersonSourceLabelSettings,
 ): string | null {
   const list = labeledWebsites ?? [];
-  const wanted = source === "website" ? "website" : "biography";
+  const wanted = (source === "website" ? labels.websiteLabel : labels.biographyLabel).trim().toLowerCase();
   const labeled = list.find(w => w.label.trim().toLowerCase() === wanted)?.url;
   if (labeled) return labeled;
   return source === "website" ? list[0]?.url ?? null : null;
@@ -117,15 +121,18 @@ export async function fetchAndStorePersonImage(
   personId: string,
   source: "website" | "biography",
 ): Promise<EntityImageResult | "no_url"> {
-  const [person] = await db
-    .select({
-      labeledWebsites: people.labeledWebsites,
-    })
-    .from(people)
-    .where(eq(people.id, personId));
+  const [[person], labels] = await Promise.all([
+    db
+      .select({
+        labeledWebsites: people.labeledWebsites,
+      })
+      .from(people)
+      .where(eq(people.id, personId)),
+    getPersonSourceLabelSettings(),
+  ]);
   if (!person) return "not_found";
 
-  const url = sourceUrlFromLabeled(person.labeledWebsites as LabeledWebsite[] | null, source);
+  const url = sourceUrlFromLabeled(person.labeledWebsites as LabeledWebsite[] | null, source, labels);
   if (!url) return "no_url";
 
   const result = await withTransientRetry(() => fetchOgImage(url));
@@ -197,15 +204,18 @@ export async function resolvePersonImageUrl(
     return imageUrl && isPublicHttpUrl(imageUrl) ? imageUrl : null;
   }
 
-  const [person] = await db
-    .select({
-      labeledWebsites: people.labeledWebsites,
-    })
-    .from(people)
-    .where(eq(people.id, personId));
+  const [[person], labels] = await Promise.all([
+    db
+      .select({
+        labeledWebsites: people.labeledWebsites,
+      })
+      .from(people)
+      .where(eq(people.id, personId)),
+    getPersonSourceLabelSettings(),
+  ]);
   if (!person) return null;
 
-  const url = sourceUrlFromLabeled(person.labeledWebsites as LabeledWebsite[] | null, source);
+  const url = sourceUrlFromLabeled(person.labeledWebsites as LabeledWebsite[] | null, source, labels);
   if (!url) return null;
 
   const html = await fetchHeadOrImageError(url);
