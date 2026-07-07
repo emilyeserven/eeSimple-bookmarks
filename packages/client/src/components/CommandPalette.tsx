@@ -1,28 +1,24 @@
 import type { CreateKind } from "./commandPaletteModals";
 import type { TaxonomyMode } from "./commandPaletteSubPalettes";
-import type { SettingsPage } from "@/lib/settingsPages";
 
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { PlusIcon, RefreshCw, StarIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { AddChildModal } from "./AddChildModal";
-import { BookmarkViewPageCommandGroup } from "./BookmarkViewPageCommandGroup";
+import { CommandPaletteDefaultView } from "./CommandPaletteDefaultView";
 import { CommandPaletteModals } from "./commandPaletteModals";
-import { CommandPaletteNavGroups } from "./CommandPaletteNavGroups";
 import {
   BookmarkTaxonomiesGroup,
   CardDisplayRulesGroup,
 } from "./commandPaletteSubPalettes";
 import { CommandPaletteTaxonomyModes } from "./CommandPaletteTaxonomyModes";
-import { EntityCommandGroup } from "./EntityCommandGroup";
-import { ListingPageCommandGroup } from "./ListingPageCommandGroup";
 import { useCommandPaletteData } from "./useCommandPaletteData";
 import {
   paletteInputPlaceholder,
   useAddBookmarkDraft,
+  useAddChildModalState,
   useCommandPaletteShell,
   useCommandPaletteTaxonomyState,
   useCreateModalState,
@@ -31,84 +27,15 @@ import {
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useSettingsFavorite } from "@/hooks/useSettingsFavorite";
 import { useUiStore } from "@/stores/uiStore";
-
-/**
- * Favorite/unfavorite the current settings page — the palette twin of the header star button
- * (`settingsFavoriteAction`). Mounted only when a settings page matches, so `useSettingsFavorite`'s
- * non-null `page` requirement holds.
- */
-function SettingsFavoriteCommandItem({
-  page,
-  onDone,
-}: {
-  page: SettingsPage;
-  onDone: () => void;
-}) {
-  const {
-    t,
-  } = useTranslation();
-  const {
-    isFavorited, toggle,
-  } = useSettingsFavorite(page);
-  const label = isFavorited ? t("Unfavorite This Page") : t("Favorite This Page");
-  return (
-    <CommandItem
-      value={label}
-      onSelect={() => {
-        toggle();
-        onDone();
-      }}
-    >
-      <StarIcon className={isFavorited ? "fill-current" : undefined} />
-      {label}
-    </CommandItem>
-  );
-}
-
-/**
- * Palette mirror of the header "Sync from source" button (CLAUDE.md: the palette must mirror every
- * header toolbar action). Opens the one store-driven Sync modal; gated at the call site on a
- * registered `syncProvider`, so it only appears on an entity's edit surface.
- */
-function SyncFromSourceCommandItem({
-  entityLabel,
-  onDone,
-}: {
-  entityLabel: string;
-  onDone: () => void;
-}) {
-  const {
-    t,
-  } = useTranslation();
-  const setSyncModalOpen = useUiStore(state => state.setSyncModalOpen);
-  return (
-    <CommandItem
-      value="Sync from source"
-      onSelect={() => {
-        setSyncModalOpen(true);
-        onDone();
-      }}
-    >
-      <RefreshCw />
-      {t("Sync {{entity}} from source", {
-        entity: entityLabel,
-      })}
-    </CommandItem>
-  );
-}
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
@@ -141,9 +68,9 @@ export function CommandPalette() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // The header add-child modal, opened from the matched entity's "New sub-tag/sub-type" item.
-  const [addChild, setAddChild] = useState<{ kind: "tag" | "mediaType";
-    parentId: string; } | null>(null);
+  const {
+    addChild, setAddChild,
+  } = useAddChildModalState();
 
   const {
     bookmarks,
@@ -324,102 +251,36 @@ export function CommandPalette() {
 
               {/* Default palette view */}
               {taxonomy.taxonomyMode === null && (
-                <>
-                  {/* Hovered card's quick-edit commands float to the top of the palette. */}
-                  {bookmarkFromHover && bookmarkTaxonomiesGroup}
-                  {bookmarkFromHover && cardDisplayRulesGroup}
-
-                  {looksLikeUrl && (
-                    <>
-                      <CommandGroup heading={t("Quick Add")}>
-                        <CommandItem
-                          value={inputValue}
-                          onSelect={() => handleAddBookmark(inputValue)}
-                        >
-                          <PlusIcon />
-                          <span>
-                            {t("Add bookmark:")}
-                            {" "}
-                            <span className="text-muted-foreground">{inputValue}</span>
-                          </span>
-                        </CommandItem>
-                      </CommandGroup>
-                      <CommandSeparator />
-                    </>
-                  )}
-
-                  <ListingPageCommandGroup
-                    listingCtx={listingCtx}
-                    onClose={handleClose}
-                  />
-
-                  {syncProvider && (
-                    <>
-                      <CommandGroup heading={t("Current Page")}>
-                        <SyncFromSourceCommandItem
-                          entityLabel={syncProvider.entityLabel}
-                          onDone={handleClose}
-                        />
-                      </CommandGroup>
-                      <CommandSeparator />
-                    </>
-                  )}
-
-                  {isBookmarkViewPage && bookmarkId && bookmark && (
-                    <BookmarkViewPageCommandGroup
-                      bookmarkId={bookmarkId}
-                      detailLayout={detailLayout}
-                      setDetailLayout={setDetailLayout}
-                      onClose={handleClose}
-                    />
-                  )}
-
-                  {/* On a bookmark detail page the same group keeps its in-page position. */}
-                  {!bookmarkFromHover && bookmarkTaxonomiesGroup}
-                  {!bookmarkFromHover && cardDisplayRulesGroup}
-
-                  {settingsPage && (
-                    <>
-                      <CommandGroup heading={t("Current Page")}>
-                        <SettingsFavoriteCommandItem
-                          page={settingsPage}
-                          onDone={handleClose}
-                        />
-                      </CommandGroup>
-                      <CommandSeparator />
-                    </>
-                  )}
-
-                  {entityCtx.matched && (
-                    <>
-                      <EntityCommandGroup
-                        matched={entityCtx.matched}
-                        onNavigate={handleSelect}
-                        onEnterChoiceField={(field) => {
-                          taxonomy.enterEntityChoiceMode(field);
-                          setInputValue("");
-                        }}
-                        onAddChild={(kind, parentId) => {
-                          handleClose();
-                          setAddChild({
-                            kind,
-                            parentId,
-                          });
-                        }}
-                        onClose={handleClose}
-                      />
-                      <CommandSeparator />
-                    </>
-                  )}
-
-                  <CommandPaletteNavGroups
-                    inputValue={inputValue}
-                    bookmarks={bookmarks}
-                    onSelect={handleSelect}
-                    onAddBookmark={() => handleAddBookmark()}
-                    onCreate={handleCreate}
-                  />
-                </>
+                <CommandPaletteDefaultView
+                  bookmarkFromHover={bookmarkFromHover}
+                  bookmarkTaxonomiesGroup={bookmarkTaxonomiesGroup}
+                  cardDisplayRulesGroup={cardDisplayRulesGroup}
+                  looksLikeUrl={looksLikeUrl}
+                  inputValue={inputValue}
+                  onAddBookmark={handleAddBookmark}
+                  listingCtx={listingCtx}
+                  onClose={handleClose}
+                  syncProvider={syncProvider}
+                  isBookmarkViewPage={isBookmarkViewPage}
+                  bookmarkId={bookmarkId}
+                  bookmark={bookmark}
+                  detailLayout={detailLayout}
+                  setDetailLayout={setDetailLayout}
+                  settingsPage={settingsPage}
+                  entityCtx={entityCtx}
+                  taxonomy={taxonomy}
+                  setInputValue={setInputValue}
+                  onSelect={handleSelect}
+                  onAddChild={(kind, parentId) => {
+                    handleClose();
+                    setAddChild({
+                      kind,
+                      parentId,
+                    });
+                  }}
+                  bookmarks={bookmarks}
+                  onCreate={handleCreate}
+                />
               )}
             </CommandList>
           </Command>

@@ -382,7 +382,16 @@ branching. Don't reintroduce a `// fallow-ignore-next-line complexity` to dodge 
 `useCommandPaletteState.ts` and each command group is its own component
 (`CommandPaletteNavGroups` / `ListingPageCommandGroup` / `CommandPaletteTaxonomyModes` / …), leaving
 `CommandPalette.tsx` as handlers + composition — split a new over-cap coordinator along the same
-group seams rather than growing it inline.
+group seams rather than growing it inline. This nests when the extracted view is itself over cap:
+`CommandPaletteTaxonomyModes`' flat chain of `mode === "…" && bookmarkId && (<SubPalette .../>)`
+guards became one small named component per mode (each doing its own guard, scored independently);
+`CommandPalette`'s "default view" fragment became `CommandPaletteDefaultView`, whose own guard-chain
+group render was further split into one component per conditional group
+(`BookmarkQuickEditGroups` / `QuickAddGroup` / `SyncFromSourceGroup` / …). See the
+**`decompose-over-cap`** skill for the full pattern table (hook-density → sub-hook, `??`/ternary →
+pure helper or reuse an existing one, switch-shaped dispatch → per-branch components, repeated
+non-JSX blocks like `useBookmarkGeneralForm`'s 7 near-identical `save<Field>` mutators → one
+parametrized helper).
 
 ## Edit-tab auto-save standard
 
