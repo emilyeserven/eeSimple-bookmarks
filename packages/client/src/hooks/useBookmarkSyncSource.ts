@@ -1,6 +1,6 @@
 import type { PlexMetadataPreview } from "../lib/api/bookmarks";
 import type { BookmarkDiffCurrent } from "../lib/syncSources/bookmarkDiff";
-import type { SyncDiff, SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourceTypes";
+import type { SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourceTypes";
 import type { FetchIsbnMetadataResult, KavitaSeriesDetail, PodcastFeedResult } from "@eesimple/types";
 
 import { useQuery } from "@tanstack/react-query";
@@ -16,18 +16,7 @@ import {
   buildBookmarkPlexDiff,
   buildBookmarkPodcastDiff,
 } from "../lib/syncSources/bookmarkDiff";
-
-/** Reads a string ref, treating missing/blank/non-string as null. */
-function strRef(refs: SyncProvider["refs"], key: string): string | null {
-  const value = refs?.[key];
-  return typeof value === "string" && value !== "" ? value : null;
-}
-
-/** Reads a number ref, treating missing/non-number as null. */
-function numRef(refs: SyncProvider["refs"], key: string): number | null {
-  const value = refs?.[key];
-  return typeof value === "number" ? value : null;
-}
+import { numRef, resolveSyncSourceFetch, strRef } from "../lib/syncSources/syncSourceQuery";
 
 /**
  * Re-scans a bookmark's URL via the consolidated `GET /api/scan` and diffs the result (title,
@@ -40,6 +29,10 @@ function numRef(refs: SyncProvider["refs"], key: string): number | null {
  * the matching identity ref being present, so a plain URL bookmark shows only "Page metadata" while a
  * migrated media-item bookmark shows every source it actually carries. Bookmarks register a single
  * `SyncProvider`, so this is a combined multi-group diff rather than separate `descriptorKind`s.
+ *
+ * Only the primary URL scan's failure surfaces a user-facing error (`errorMessage` below) — the
+ * secondary Plex/podcast/Kavita/ISBN sources silently contribute nothing when they error, matching
+ * the previous behavior.
  */
 export function useBookmarkSyncSource(provider: SyncProvider, enabled: boolean): SyncSourceFetch {
   const {
@@ -91,101 +84,90 @@ export function useBookmarkSyncSource(provider: SyncProvider, enabled: boolean):
     staleTime: 60_000,
   });
 
-  const anyPending = (scanQuery.isPending && enabled && url !== null)
-    || (plexQuery.isPending && enabled && plexRatingKey !== null)
-    || (podcastQuery.isPending && enabled && (feedUrl !== null || itunesId !== null))
-    || (kavitaQuery.isPending && enabled && kavitaSeriesId !== null)
-    || (isbnQuery.isPending && enabled && isbn !== null);
-  if (anyPending) {
-    return {
-      diff: null,
-      isLoading: true,
-      error: null,
-    };
-  }
-
   const current: BookmarkDiffCurrent = {
     title: strRef(provider.refs, "currentTitle"),
     description: strRef(provider.refs, "currentDescription"),
     imageUrl: strRef(provider.refs, "currentImageUrl"),
   };
 
-  const groups: SyncDiff["groups"] = [];
-
-  if (scanQuery.isError) {
-    return {
-      diff: null,
-      isLoading: false,
-      error: t("Couldn't scan the URL. Check the link and try again."),
-    };
-  }
-  if (scanQuery.data) {
-    groups.push(...buildBookmarkDiff(scanQuery.data, current).groups);
-  }
-
-  if (plexQuery.data) {
-    const source = plexQuery.data as PlexMetadataPreview;
-    const posterUrl = plexRatingKey ? `/api/plex/poster?ratingKey=${encodeURIComponent(plexRatingKey)}` : null;
-    groups.push(...buildBookmarkPlexDiff({
-      title: current.title,
-      wikipediaLinkEn: strRef(provider.refs, "currentWikipediaLinkEn"),
-      wikipediaLinkLocal: strRef(provider.refs, "currentWikipediaLinkLocal"),
-      imageUrl: current.imageUrl,
-    }, {
-      name: source.name,
-      wikipediaLinkEn: source.wikipediaLinkEn,
-      wikipediaLinkLocal: source.wikipediaLinkLocal,
-      posterUrl,
-    }, t("Plex")).groups);
-  }
-
-  if (podcastQuery.data) {
-    const source = podcastQuery.data as PodcastFeedResult;
-    groups.push(...buildBookmarkPodcastDiff({
-      title: current.title,
-      description: current.description,
-      itunesUrl: strRef(provider.refs, "currentItunesUrl"),
-      pocketCastsUrl: strRef(provider.refs, "currentPocketCastsUrl"),
-      imageUrl: current.imageUrl,
-    }, {
-      title: source.title,
-      description: source.description,
-      itunesUrl: source.providerLinks?.itunesUrl ?? source.itunesUrl,
-      pocketCastsUrl: source.providerLinks?.pocketCastsUrl ?? null,
-      imageUrl: source.imageUrl,
-    }, t("Podcast feed")).groups);
-  }
-
-  if (kavitaQuery.data) {
-    const source = kavitaQuery.data as KavitaSeriesDetail;
-    const coverUrl = kavitaSeriesId !== null ? `/api/kavita/series/${kavitaSeriesId}/cover` : null;
-    groups.push(...buildBookmarkKavitaDiff({
-      kavitaSeriesName: strRef(provider.refs, "currentKavitaSeriesName"),
-      imageUrl: current.imageUrl,
-    }, {
-      name: source.name,
-      coverUrl,
-    }, t("Kavita")).groups);
-  }
-
-  if (isbnQuery.data) {
-    const source = isbnQuery.data as FetchIsbnMetadataResult;
-    groups.push(...buildBookmarkIsbnDiff({
-      title: current.title,
-      description: current.description,
-      imageUrl: current.imageUrl,
-    }, {
-      title: source.title,
-      description: source.description,
-      coverUrl: source.coverUrl,
-    }, t("ISBN metadata")).groups);
-  }
-
-  return {
-    diff: {
-      groups,
+  return resolveSyncSourceFetch([
+    {
+      active: enabled && url !== null,
+      isPending: scanQuery.isPending,
+      isError: scanQuery.isError,
+      data: scanQuery.data,
+      errorMessage: t("Couldn't scan the URL. Check the link and try again."),
+      buildGroups: data => buildBookmarkDiff(data, current).groups,
     },
-    isLoading: false,
-    error: null,
-  };
+    {
+      active: enabled && plexRatingKey !== null,
+      isPending: plexQuery.isPending,
+      isError: plexQuery.isError,
+      data: plexQuery.data,
+      buildGroups: (data: PlexMetadataPreview) => {
+        const posterUrl = plexRatingKey ? `/api/plex/poster?ratingKey=${encodeURIComponent(plexRatingKey)}` : null;
+        return buildBookmarkPlexDiff({
+          title: current.title,
+          wikipediaLinkEn: strRef(provider.refs, "currentWikipediaLinkEn"),
+          wikipediaLinkLocal: strRef(provider.refs, "currentWikipediaLinkLocal"),
+          imageUrl: current.imageUrl,
+        }, {
+          name: data.name,
+          wikipediaLinkEn: data.wikipediaLinkEn,
+          wikipediaLinkLocal: data.wikipediaLinkLocal,
+          posterUrl,
+        }, t("Plex")).groups;
+      },
+    },
+    {
+      active: enabled && (feedUrl !== null || itunesId !== null),
+      isPending: podcastQuery.isPending,
+      isError: podcastQuery.isError,
+      data: podcastQuery.data,
+      buildGroups: (data: PodcastFeedResult) => buildBookmarkPodcastDiff({
+        title: current.title,
+        description: current.description,
+        itunesUrl: strRef(provider.refs, "currentItunesUrl"),
+        pocketCastsUrl: strRef(provider.refs, "currentPocketCastsUrl"),
+        imageUrl: current.imageUrl,
+      }, {
+        title: data.title,
+        description: data.description,
+        itunesUrl: data.providerLinks?.itunesUrl ?? data.itunesUrl,
+        pocketCastsUrl: data.providerLinks?.pocketCastsUrl ?? null,
+        imageUrl: data.imageUrl,
+      }, t("Podcast feed")).groups,
+    },
+    {
+      active: enabled && kavitaSeriesId !== null,
+      isPending: kavitaQuery.isPending,
+      isError: kavitaQuery.isError,
+      data: kavitaQuery.data,
+      buildGroups: (data: KavitaSeriesDetail) => {
+        const coverUrl = kavitaSeriesId !== null ? `/api/kavita/series/${kavitaSeriesId}/cover` : null;
+        return buildBookmarkKavitaDiff({
+          kavitaSeriesName: strRef(provider.refs, "currentKavitaSeriesName"),
+          imageUrl: current.imageUrl,
+        }, {
+          name: data.name,
+          coverUrl,
+        }, t("Kavita")).groups;
+      },
+    },
+    {
+      active: enabled && isbn !== null,
+      isPending: isbnQuery.isPending,
+      isError: isbnQuery.isError,
+      data: isbnQuery.data,
+      buildGroups: (data: FetchIsbnMetadataResult) => buildBookmarkIsbnDiff({
+        title: current.title,
+        description: current.description,
+        imageUrl: current.imageUrl,
+      }, {
+        title: data.title,
+        description: data.description,
+        coverUrl: data.coverUrl,
+      }, t("ISBN metadata")).groups,
+    },
+  ]);
 }

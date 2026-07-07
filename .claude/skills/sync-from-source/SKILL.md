@@ -79,7 +79,12 @@ fields stage; images set `applyImmediately: true`.
    the union in `syncSourceTypes.ts` and a new branch in `useSyncFromSourceModal.ts`).
 2. Write a **pure diff builder** in `lib/syncSources/` (+ `.test.ts`) — `fillEmptyDefault` for the
    checkbox default, `rowDiffers` to skip in-sync/absent fields.
-3. Write a **fetch hook** returning `SyncSourceFetch` (`useQuery` gated on `enabled`).
+3. Write a **fetch hook** returning `SyncSourceFetch` (`useQuery` gated on `enabled`). Describe each
+   source as a `SyncQuerySlot` (`active`/`isPending`/`isError`/`data`/`errorMessage`/`buildGroups`)
+   and hand the list to `lib/syncSources/syncSourceQuery.ts`'s `resolveSyncSourceFetch` — don't
+   hand-roll the pending/error/group-assembly chain per source (that's what made
+   `useBookmarkSyncSource` a complexity/duplication hotspot before it was refactored onto this
+   helper). Reuse its `strRef`/`numRef` ref-readers too.
 4. Write a **registration hook** that builds a stable `SyncProvider` (memoize the provider; keep
    `applyStaged` referentially stable via a `useRef` of the latest deps so the register-effect doesn't
    thrash) and calls `useRegisterSyncProvider`. Call it from the entity's **edit** form.
