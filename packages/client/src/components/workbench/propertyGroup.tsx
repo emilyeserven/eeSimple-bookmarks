@@ -3,6 +3,7 @@ import type { EntityWorkbench } from "./types";
 import type { PropertyGroup } from "@eesimple/types";
 
 import i18n from "../../i18n";
+import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { PropertyGroupGeneralForm } from "../PropertyGroupGeneralForm";
 
 import { useDeletePropertyGroup, usePropertyGroupBySlug, usePropertyGroups } from "@/hooks/usePropertyGroups";
@@ -88,6 +89,24 @@ export const propertyGroupWorkbench: EntityWorkbench<PropertyGroup> = {
         render: ({
           entity,
         }) => <PropertyGroupGeneralForm group={entity} />,
+      },
+    },
+    {
+      key: "display-rules",
+      label: i18n.t("Display Rules"),
+      view: {
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this group's properties."),
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList propertyGroupId={entity.id} />,
+      },
+      edit: {
+        title: i18n.t("Display Rules"),
+        description: i18n.t("Card display rules whose conditions reference this group's properties."),
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList propertyGroupId={entity.id} />,
       },
     },
   ],

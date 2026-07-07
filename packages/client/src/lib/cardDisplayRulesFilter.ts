@@ -32,6 +32,16 @@ export function ruleReferencesProperty(rule: CardDisplayRule, propertyId: string
   return anyLeaf(rule, node => node.type === "property" && node.propertyId === propertyId);
 }
 
+/**
+ * True when any Property condition in the rule's tree references one of `propertyIds`. Used to scope
+ * the Display Rules tab to a property *group*: a group has no condition leaf of its own, so a rule
+ * "applies to" the group when it references any custom property belonging to it.
+ */
+export function ruleReferencesAnyProperty(rule: CardDisplayRule, propertyIds: ReadonlySet<string>): boolean {
+  if (propertyIds.size === 0) return false;
+  return anyLeaf(rule, node => node.type === "property" && propertyIds.has(node.propertyId));
+}
+
 /** True when a Website condition in the rule's tree references `domain` (already normalized). */
 export function ruleReferencesWebsite(rule: CardDisplayRule, domain: string): boolean {
   return anyLeaf(rule, node => node.type === "website" && node.domains.some(d => normalizeDomain(d) === domain));

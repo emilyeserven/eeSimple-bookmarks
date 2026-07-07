@@ -23,6 +23,10 @@ function PropertyGroupEditLayout() {
       to: "/taxonomies/property-groups/$propertyGroupSlug/edit/general",
       label: t("General"),
     },
+    {
+      to: "/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules",
+      label: t("Display Rules"),
+    },
   ] as const;
 
   return (
