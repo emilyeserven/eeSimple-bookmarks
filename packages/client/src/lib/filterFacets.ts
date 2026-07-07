@@ -72,7 +72,7 @@ export function facetHasActiveSelection(key: FilterFacetKey, search: BookmarkSea
     case "categories":
       return has(search.categories) || search.categoryPresence !== undefined;
     case "media-types":
-      return has(search.mediaTypes);
+      return has(search.mediaTypes) || search.mediaTypePresence !== undefined;
     case "channels":
       return has(search.youtubeChannels) || search.youtubeChannelPresence !== undefined;
     case "websites":
@@ -80,7 +80,7 @@ export function facetHasActiveSelection(key: FilterFacetKey, search: BookmarkSea
     case "relationship-types":
       return has(search.relationshipTypes);
     case "people":
-      return has(search.people);
+      return has(search.people) || search.peoplePresence !== undefined;
     case "place-types":
       return has(search.placeTypes) || search.placeTypePresence !== undefined;
     case "genre-moods":
@@ -126,6 +126,7 @@ export function facetSelectionSummary(key: FilterFacetKey, search: BookmarkSearc
     case "media-types":
       return {
         count: count(search.mediaTypes),
+        presence: search.mediaTypePresence,
       };
     case "channels":
       return {
@@ -144,6 +145,7 @@ export function facetSelectionSummary(key: FilterFacetKey, search: BookmarkSearc
     case "people":
       return {
         count: count(search.people),
+        presence: search.peoplePresence,
       };
     case "place-types":
       return {

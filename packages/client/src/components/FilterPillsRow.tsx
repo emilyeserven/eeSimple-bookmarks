@@ -36,6 +36,8 @@ import {
   withCategoryPresence,
   withGenreMoodPresence,
   withMediaSourcePresence,
+  withMediaTypePresence,
+  withPeoplePresence,
   withPlaceTypePresence,
   withSectionsPresence,
   withTagPresence,
@@ -110,6 +112,14 @@ function renderFacetBody(key: FilterFacetKey, ctx: FacetBodyContext): FacetRende
       };
     case "media-types":
       return {
+        presenceControl: (
+          <FacetPresenceToggle
+            value={search.mediaTypePresence}
+            onChange={mode => onSearchChange(withMediaTypePresence(search, mode))}
+            excludeLabel={t("Excludes selected media types")}
+            onlyExclude
+          />
+        ),
         body: (
           <MediaTypeFilterBody
             mediaTypes={data.mediaTypes}
@@ -166,6 +176,14 @@ function renderFacetBody(key: FilterFacetKey, ctx: FacetBodyContext): FacetRende
       };
     case "people":
       return {
+        presenceControl: (
+          <FacetPresenceToggle
+            value={search.peoplePresence}
+            onChange={mode => onSearchChange(withPeoplePresence(search, mode))}
+            hasLabel={t("Has any")}
+            missingLabel={t("Has none")}
+          />
+        ),
         body: (
           <PersonFilterBody
             people={data.people}
