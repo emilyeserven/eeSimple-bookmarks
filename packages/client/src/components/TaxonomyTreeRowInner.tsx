@@ -31,6 +31,129 @@ function HoverGhostButton({
   );
 }
 
+/** Expand/collapse chevron button when the node has children, else an inline spacer. */
+function TaxonomyTreeRowExpander({
+  node, hasChildren, isOpen, onToggle,
+}: {
+  node: TaxonomyTreeNode;
+  hasChildren: boolean;
+  isOpen: boolean;
+  onToggle: (id: string) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  if (!hasChildren) {
+    return (
+      <span
+        className="inline-block size-4"
+        aria-hidden="true"
+      />
+    );
+  }
+  const label = isOpen
+    ? t("Collapse {{name}}", {
+      name: node.name,
+    })
+    : t("Expand {{name}}", {
+      name: node.name,
+    });
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-expanded={isOpen}
+      onClick={() => onToggle(node.id)}
+      className="
+        flex size-4 items-center justify-center text-muted-foreground
+        hover:text-foreground
+      "
+    >
+      {isOpen
+        ? <ChevronDown className="size-4" />
+        : <ChevronRight className="size-4" />}
+    </button>
+  );
+}
+
+/** "Expand all under this node" hover button, shown only when a handler and children exist. */
+function TaxonomyTreeRowExpandAllButton({
+  node, hasChildren, onExpandSubtree,
+}: {
+  node: TaxonomyTreeNode;
+  hasChildren: boolean;
+  onExpandSubtree?: (node: TaxonomyTreeNode) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  if (!onExpandSubtree || !hasChildren) return null;
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      aria-label={t("Expand all under {{name}}", {
+        name: node.name,
+      })}
+      title={t("Expand all")}
+      onClick={() => onExpandSubtree(node)}
+      className="
+        opacity-0 transition-opacity
+        group-hover:opacity-100
+        focus-visible:opacity-100
+      "
+    >
+      <ChevronsUpDown className="size-4" />
+    </Button>
+  );
+}
+
+/** Map-filter toggle button, shown only when a handler is provided. */
+function TaxonomyTreeRowFilterButton({
+  node, filtered, onToggleFilter,
+}: {
+  node: TaxonomyTreeNode;
+  filtered: boolean;
+  onToggleFilter?: (node: TaxonomyTreeNode) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  if (!onToggleFilter) return null;
+  const label = filtered
+    ? t("Remove {{name}} from map filter", {
+      name: node.name,
+    })
+    : t("Filter map to {{name}}", {
+      name: node.name,
+    });
+  const title = filtered ? t("Filtering map (click to clear)") : t("Filter on map");
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      aria-label={label}
+      aria-pressed={filtered}
+      title={title}
+      onClick={() => onToggleFilter(node)}
+      className={cn(
+        "transition-opacity",
+        filtered
+          ? "text-primary opacity-100"
+          : `
+            opacity-0
+            group-hover:opacity-100
+            focus-visible:opacity-100
+          `,
+      )}
+    >
+      <MapPin className="size-4" />
+    </Button>
+  );
+}
+
 interface TaxonomyTreeRowInnerProps {
   node: TaxonomyTreeNode;
   hasChildren: boolean;
@@ -64,35 +187,12 @@ export function TaxonomyTreeRowInner({
             className="size-4 shrink-0 text-muted-foreground"
           />
         )}
-      {hasChildren
-        ? (
-          <button
-            type="button"
-            aria-label={isOpen
-              ? t("Collapse {{name}}", {
-                name: node.name,
-              })
-              : t("Expand {{name}}", {
-                name: node.name,
-              })}
-            aria-expanded={isOpen}
-            onClick={() => onToggle(node.id)}
-            className="
-              flex size-4 items-center justify-center text-muted-foreground
-              hover:text-foreground
-            "
-          >
-            {isOpen
-              ? <ChevronDown className="size-4" />
-              : <ChevronRight className="size-4" />}
-          </button>
-        )
-        : (
-          <span
-            className="inline-block size-4"
-            aria-hidden="true"
-          />
-        )}
+      <TaxonomyTreeRowExpander
+        node={node}
+        hasChildren={hasChildren}
+        isOpen={isOpen}
+        onToggle={onToggle}
+      />
 
       {renderNameLink(node)}
 
@@ -101,59 +201,17 @@ export function TaxonomyTreeRowInner({
       <HoverGhostButton>{renderEditLink(node)}</HoverGhostButton>
       <HoverGhostButton>{renderInfoLink(node)}</HoverGhostButton>
 
-      {onExpandSubtree && hasChildren
-        ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            aria-label={t("Expand all under {{name}}", {
-              name: node.name,
-            })}
-            title={t("Expand all")}
-            onClick={() => onExpandSubtree(node)}
-            className="
-              opacity-0 transition-opacity
-              group-hover:opacity-100
-              focus-visible:opacity-100
-            "
-          >
-            <ChevronsUpDown className="size-4" />
-          </Button>
-        )
-        : null}
+      <TaxonomyTreeRowExpandAllButton
+        node={node}
+        hasChildren={hasChildren}
+        onExpandSubtree={onExpandSubtree}
+      />
 
-      {onToggleFilter
-        ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            aria-label={filtered
-              ? t("Remove {{name}} from map filter", {
-                name: node.name,
-              })
-              : t("Filter map to {{name}}", {
-                name: node.name,
-              })}
-            aria-pressed={filtered}
-            title={filtered ? t("Filtering map (click to clear)") : t("Filter on map")}
-            onClick={() => onToggleFilter(node)}
-            className={cn(
-              "transition-opacity",
-              filtered
-                ? "text-primary opacity-100"
-                : `
-                  opacity-0
-                  group-hover:opacity-100
-                  focus-visible:opacity-100
-                `,
-            )}
-          >
-            <MapPin className="size-4" />
-          </Button>
-        )
-        : null}
+      <TaxonomyTreeRowFilterButton
+        node={node}
+        filtered={filtered}
+        onToggleFilter={onToggleFilter}
+      />
 
       {node.bookmarkCount != null
         ? <Badge variant="secondary">{node.bookmarkCount}</Badge>

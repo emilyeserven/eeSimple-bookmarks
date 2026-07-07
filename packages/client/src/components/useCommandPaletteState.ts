@@ -154,6 +154,16 @@ export function useCreateModalState() {
   };
 }
 
+/** The header add-child modal, opened from the matched entity's "New sub-tag/sub-type" item. */
+export function useAddChildModalState() {
+  const [addChild, setAddChild] = useState<{ kind: "tag" | "mediaType";
+    parentId: string; } | null>(null);
+  return {
+    addChild,
+    setAddChild,
+  };
+}
+
 /** The search input's placeholder for the active sub-palette mode (default: the global prompt). */
 export function paletteInputPlaceholder(
   taxonomy: CommandPaletteTaxonomyState,

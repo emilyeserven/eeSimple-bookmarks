@@ -1,18 +1,16 @@
-import type { MediaLinkTarget } from "./bookmarkFormSchema";
-import type { DraftEntityName } from "./entityNames/draftEntityName";
-import type { Bookmark, BookmarkUrlDuplicateResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
-
-import { useRef, useState } from "react";
+import type { Bookmark, ScanResult, UpdateBookmarkInput } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
 import {
   bookmarkSchema,
+  buildBookmarkDefaultValues,
   computeAutofill,
   looksLikeYouTube,
 } from "./bookmarkFormSchema";
 import { useBookmarkFormData } from "./useBookmarkFormData";
 import { useBookmarkGeneralAutoSave } from "./useBookmarkGeneralAutoSave";
+import { useBookmarkGeneralUiState } from "./useBookmarkGeneralUiState";
 import { useBookmarkInlineCreateModals } from "./useBookmarkInlineCreateModals";
 import { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
@@ -87,44 +85,35 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
   const {
     t,
   } = useTranslation();
-  const [isReportingTitle, setIsReportingTitle] = useState(false);
-  const [expectedTitle, setExpectedTitle] = useState("");
-  const [websiteSiteName, setWebsiteSiteName] = useState("");
-  const channelHintRef = useRef<YouTubeChannelHint | null>(null);
-  const [youtubeChannel, setYoutubeChannel] = useState<YouTubeChannelHint | null>(null);
-  const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
-  const [urlDuplicate, setUrlDuplicate] = useState<BookmarkUrlDuplicateResult | null>(null);
-  const [autofillOfferDismissed, setAutofillOfferDismissed] = useState(false);
-  const [socialAccountOffer, setSocialAccountOffer] = useState<SocialAccountRef | null>(null);
-  const [isRescanning, setIsRescanning] = useState(false);
-  const touchedRef = useRef<Set<string>>(new Set());
+  const {
+    isReportingTitle,
+    setIsReportingTitle,
+    expectedTitle,
+    setExpectedTitle,
+    websiteSiteName,
+    setWebsiteSiteName,
+    channelHintRef,
+    youtubeChannel,
+    setYoutubeChannel,
+    titleFetch,
+    setTitleFetch,
+    urlDuplicate,
+    setUrlDuplicate,
+    autofillOfferDismissed,
+    setAutofillOfferDismissed,
+    socialAccountOffer,
+    setSocialAccountOffer,
+    isRescanning,
+    setIsRescanning,
+    touchedRef,
+  } = useBookmarkGeneralUiState();
 
+  // This edit-tab form never renders BookmarkMediaLinkField (media links are edited via the
+  // Relationships page instead), and it manages names via its own EntityNamesTabEditor — both stay
+  // at `buildBookmarkDefaultValues`'s defaults. No locked category / initial seed: this is edit-mode
+  // only, so the bookmark's own values always win.
   const form = useAppForm({
-    defaultValues: {
-      url: bookmark.originalUrl ?? bookmark.url ?? "",
-      title: bookmark.title,
-      names: [] as DraftEntityName[],
-      categoryId: bookmark.categoryId ?? "",
-      mediaTypeId: bookmark.mediaType?.id ?? "",
-      youtubeChannelId: bookmark.youtubeChannel?.id ?? "",
-      description: bookmark.description ?? "",
-      tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
-      genreMoodIds: (bookmark.genreMoods.map(entry => entry.id)) as string[],
-      locationIds: (bookmark.locations.map(location => location.id)) as string[],
-      locationRelationByLocationId: Object.fromEntries(
-        bookmark.locations
-          .filter(location => location.locationRelation)
-          .map(location => [location.id, location.locationRelation?.id ?? null]),
-      ) as Record<string, string | null>,
-      blacklistedTagIds: bookmark.blacklistedTagIds as string[],
-      blacklistedLocationIds: bookmark.blacklistedLocationIds as string[],
-      personIds: (bookmark.people.map(a => a.id)) as string[],
-      groupIds: (bookmark.groups.map(g => g.id)) as string[],
-      groupId: bookmark.group?.id ?? "",
-      // This edit-tab form never renders BookmarkMediaLinkField (media links are edited via the
-      // Relationships page instead), so this is always unset.
-      mediaLinkTarget: null as MediaLinkTarget | null,
-    },
+    defaultValues: buildBookmarkDefaultValues(bookmark, undefined),
     validators: {
       onChange: bookmarkSchema,
     },
@@ -142,111 +131,66 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     channelHintRef,
   });
 
-  function saveTags(tagIds: string[]): void {
+  /**
+   * The 7 `save<Field>` array-relation setters below all share one shape (mutate, toast on
+   * success/error) — collapsed into this one parametrized helper rather than repeating the
+   * mutate/notify boilerplate per field.
+   */
+  function saveBookmarkArrayField(label: string, input: UpdateBookmarkInput): void {
     updateBookmark.mutate(
       {
         id: bookmark.id,
-        input: {
-          tagIds,
-        },
+        input,
       },
       {
-        onSuccess: () => notifyFieldSaved("Tags"),
-        onError: e => notifyFieldSaveError("Tags", describeError(e)),
+        onSuccess: () => notifyFieldSaved(label),
+        onError: e => notifyFieldSaveError(label, describeError(e)),
       },
     );
+  }
+
+  function saveTags(tagIds: string[]): void {
+    saveBookmarkArrayField("Tags", {
+      tagIds,
+    });
   }
 
   function saveLocations(locationIds: string[]): void {
-    updateBookmark.mutate(
-      {
-        id: bookmark.id,
-        input: {
-          locationIds,
-          locationRelationByLocationId: form.getFieldValue("locationRelationByLocationId"),
-        },
-      },
-      {
-        onSuccess: () => notifyFieldSaved("Locations"),
-        onError: e => notifyFieldSaveError("Locations", describeError(e)),
-      },
-    );
+    saveBookmarkArrayField("Locations", {
+      locationIds,
+      locationRelationByLocationId: form.getFieldValue("locationRelationByLocationId"),
+    });
   }
 
   function saveLocationRelations(relationByLocationId: Record<string, string | null>): void {
-    updateBookmark.mutate(
-      {
-        id: bookmark.id,
-        input: {
-          locationIds: form.getFieldValue("locationIds"),
-          locationRelationByLocationId: relationByLocationId,
-        },
-      },
-      {
-        onSuccess: () => notifyFieldSaved("Location relations"),
-        onError: e => notifyFieldSaveError("Location relations", describeError(e)),
-      },
-    );
+    saveBookmarkArrayField("Location relations", {
+      locationIds: form.getFieldValue("locationIds"),
+      locationRelationByLocationId: relationByLocationId,
+    });
   }
 
   function saveBlacklistedTagIds(blacklistedTagIds: string[]): void {
-    updateBookmark.mutate(
-      {
-        id: bookmark.id,
-        input: {
-          blacklistedTagIds,
-        },
-      },
-      {
-        onSuccess: () => notifyFieldSaved("Tag blacklist"),
-        onError: e => notifyFieldSaveError("Tag blacklist", describeError(e)),
-      },
-    );
+    saveBookmarkArrayField("Tag blacklist", {
+      blacklistedTagIds,
+    });
   }
 
   function saveBlacklistedLocationIds(blacklistedLocationIds: string[]): void {
-    updateBookmark.mutate(
-      {
-        id: bookmark.id,
-        input: {
-          blacklistedLocationIds,
-        },
-      },
-      {
-        onSuccess: () => notifyFieldSaved("Location blacklist"),
-        onError: e => notifyFieldSaveError("Location blacklist", describeError(e)),
-      },
-    );
+    saveBookmarkArrayField("Location blacklist", {
+      blacklistedLocationIds,
+    });
   }
 
   function savePeople(personIds: string[]): void {
-    updateBookmark.mutate(
-      {
-        id: bookmark.id,
-        input: {
-          personIds,
-        },
-      },
-      {
-        onSuccess: () => notifyFieldSaved("People"),
-        onError: e => notifyFieldSaveError("People", describeError(e)),
-      },
-    );
+    saveBookmarkArrayField("People", {
+      personIds,
+    });
   }
 
   function saveGroups(groupIds: string[]): void {
-    updateBookmark.mutate(
-      {
-        id: bookmark.id,
-        input: {
-          groupIds,
-        },
-      },
-      {
-        onSuccess: () => notifyFieldSaved("Groups"),
-        onError: e => notifyFieldSaveError("Groups", describeError(e)),
-      },
-    );
+    saveBookmarkArrayField("Groups", {
+      groupIds,
+    });
   }
 
   function runAutofill(): void {
