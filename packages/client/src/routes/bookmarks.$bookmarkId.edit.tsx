@@ -15,6 +15,10 @@ const editNav = [
     label: i18n.t("General"),
   },
   {
+    to: "/bookmarks/$bookmarkId/edit/related",
+    label: i18n.t("Related"),
+  },
+  {
     to: "/bookmarks/$bookmarkId/edit/properties",
     label: i18n.t("Properties"),
   },

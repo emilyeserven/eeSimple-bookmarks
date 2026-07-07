@@ -5,6 +5,7 @@ import i18n from "../../i18n";
 import { BookmarkGeneralForm } from "../BookmarkGeneralForm";
 import { BookmarkImageEditForm } from "../BookmarkImageEditForm";
 import { BookmarkPropertiesForm } from "../BookmarkPropertiesForm";
+import { BookmarkRelatedForm } from "../BookmarkRelatedForm";
 import { BookmarkVideoEditForm } from "../BookmarkVideoEditForm";
 
 import { useBookmark, useDeleteBookmark } from "@/hooks/useBookmarks";
@@ -59,6 +60,17 @@ export const bookmarkEditWorkbench: EntityWorkbench<Bookmark> = {
         render: ({
           entity,
         }) => <BookmarkGeneralForm bookmark={entity} />,
+      },
+    },
+    {
+      key: "related",
+      label: i18n.t("Related"),
+      edit: {
+        title: i18n.t("Related"),
+        description: i18n.t("Relationships, creators, locations, genres, and media identity."),
+        render: ({
+          entity,
+        }) => <BookmarkRelatedForm bookmark={entity} />,
       },
     },
     {

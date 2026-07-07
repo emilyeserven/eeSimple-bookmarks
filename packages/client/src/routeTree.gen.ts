@@ -227,6 +227,7 @@ import { Route as CardDisplayRulesRuleSlugEditDisplayRouteImport } from './route
 import { Route as CardDisplayRulesRuleSlugEditConditionsRouteImport } from './routes/card-display-rules.$ruleSlug.edit.conditions'
 import { Route as BookmarksBookmarkIdEditVideoRouteImport } from './routes/bookmarks.$bookmarkId.edit.video'
 import { Route as BookmarksBookmarkIdEditRelationshipsRouteImport } from './routes/bookmarks.$bookmarkId.edit.relationships'
+import { Route as BookmarksBookmarkIdEditRelatedRouteImport } from './routes/bookmarks.$bookmarkId.edit.related'
 import { Route as BookmarksBookmarkIdEditPropertiesRouteImport } from './routes/bookmarks.$bookmarkId.edit.properties'
 import { Route as BookmarksBookmarkIdEditLanguagesRouteImport } from './routes/bookmarks.$bookmarkId.edit.languages'
 import { Route as BookmarksBookmarkIdEditImageRouteImport } from './routes/bookmarks.$bookmarkId.edit.image'
@@ -1514,6 +1515,12 @@ const BookmarksBookmarkIdEditRelationshipsRoute =
     path: '/relationships',
     getParentRoute: () => BookmarksBookmarkIdEditRoute,
   } as any)
+const BookmarksBookmarkIdEditRelatedRoute =
+  BookmarksBookmarkIdEditRelatedRouteImport.update({
+    id: '/related',
+    path: '/related',
+    getParentRoute: () => BookmarksBookmarkIdEditRoute,
+  } as any)
 const BookmarksBookmarkIdEditPropertiesRoute =
   BookmarksBookmarkIdEditPropertiesRouteImport.update({
     id: '/properties',
@@ -2146,6 +2153,7 @@ export interface FileRoutesByFullPath {
   '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
   '/bookmarks/$bookmarkId/edit/languages': typeof BookmarksBookmarkIdEditLanguagesRoute
   '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
+  '/bookmarks/$bookmarkId/edit/related': typeof BookmarksBookmarkIdEditRelatedRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
   '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
   '/card-display-rules/$ruleSlug/edit/conditions': typeof CardDisplayRulesRuleSlugEditConditionsRoute
@@ -2387,6 +2395,7 @@ export interface FileRoutesByTo {
   '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
   '/bookmarks/$bookmarkId/edit/languages': typeof BookmarksBookmarkIdEditLanguagesRoute
   '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
+  '/bookmarks/$bookmarkId/edit/related': typeof BookmarksBookmarkIdEditRelatedRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
   '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
   '/card-display-rules/$ruleSlug/edit/conditions': typeof CardDisplayRulesRuleSlugEditConditionsRoute
@@ -2656,6 +2665,7 @@ export interface FileRoutesById {
   '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
   '/bookmarks/$bookmarkId/edit/languages': typeof BookmarksBookmarkIdEditLanguagesRoute
   '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
+  '/bookmarks/$bookmarkId/edit/related': typeof BookmarksBookmarkIdEditRelatedRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
   '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
   '/card-display-rules/$ruleSlug/edit/conditions': typeof CardDisplayRulesRuleSlugEditConditionsRoute
@@ -2955,6 +2965,7 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit/image'
     | '/bookmarks/$bookmarkId/edit/languages'
     | '/bookmarks/$bookmarkId/edit/properties'
+    | '/bookmarks/$bookmarkId/edit/related'
     | '/bookmarks/$bookmarkId/edit/relationships'
     | '/bookmarks/$bookmarkId/edit/video'
     | '/card-display-rules/$ruleSlug/edit/conditions'
@@ -3196,6 +3207,7 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit/image'
     | '/bookmarks/$bookmarkId/edit/languages'
     | '/bookmarks/$bookmarkId/edit/properties'
+    | '/bookmarks/$bookmarkId/edit/related'
     | '/bookmarks/$bookmarkId/edit/relationships'
     | '/bookmarks/$bookmarkId/edit/video'
     | '/card-display-rules/$ruleSlug/edit/conditions'
@@ -3464,6 +3476,7 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit/image'
     | '/bookmarks/$bookmarkId/edit/languages'
     | '/bookmarks/$bookmarkId/edit/properties'
+    | '/bookmarks/$bookmarkId/edit/related'
     | '/bookmarks/$bookmarkId/edit/relationships'
     | '/bookmarks/$bookmarkId/edit/video'
     | '/card-display-rules/$ruleSlug/edit/conditions'
@@ -5166,6 +5179,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookmarksBookmarkIdEditRelationshipsRouteImport
       parentRoute: typeof BookmarksBookmarkIdEditRoute
     }
+    '/bookmarks/$bookmarkId/edit/related': {
+      id: '/bookmarks/$bookmarkId/edit/related'
+      path: '/related'
+      fullPath: '/bookmarks/$bookmarkId/edit/related'
+      preLoaderRoute: typeof BookmarksBookmarkIdEditRelatedRouteImport
+      parentRoute: typeof BookmarksBookmarkIdEditRoute
+    }
     '/bookmarks/$bookmarkId/edit/properties': {
       id: '/bookmarks/$bookmarkId/edit/properties'
       path: '/properties'
@@ -5775,6 +5795,7 @@ interface BookmarksBookmarkIdEditRouteChildren {
   BookmarksBookmarkIdEditImageRoute: typeof BookmarksBookmarkIdEditImageRoute
   BookmarksBookmarkIdEditLanguagesRoute: typeof BookmarksBookmarkIdEditLanguagesRoute
   BookmarksBookmarkIdEditPropertiesRoute: typeof BookmarksBookmarkIdEditPropertiesRoute
+  BookmarksBookmarkIdEditRelatedRoute: typeof BookmarksBookmarkIdEditRelatedRoute
   BookmarksBookmarkIdEditRelationshipsRoute: typeof BookmarksBookmarkIdEditRelationshipsRoute
   BookmarksBookmarkIdEditVideoRoute: typeof BookmarksBookmarkIdEditVideoRoute
   BookmarksBookmarkIdEditIndexRoute: typeof BookmarksBookmarkIdEditIndexRoute
@@ -5788,6 +5809,7 @@ const BookmarksBookmarkIdEditRouteChildren: BookmarksBookmarkIdEditRouteChildren
       BookmarksBookmarkIdEditLanguagesRoute,
     BookmarksBookmarkIdEditPropertiesRoute:
       BookmarksBookmarkIdEditPropertiesRoute,
+    BookmarksBookmarkIdEditRelatedRoute: BookmarksBookmarkIdEditRelatedRoute,
     BookmarksBookmarkIdEditRelationshipsRoute:
       BookmarksBookmarkIdEditRelationshipsRoute,
     BookmarksBookmarkIdEditVideoRoute: BookmarksBookmarkIdEditVideoRoute,
