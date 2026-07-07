@@ -28,13 +28,11 @@ export function PanelBreadcrumbs() {
 
   if (!dCT) return null;
 
-  // Notifications, Filters, and AI Summarization have no registry entry; render a simple two-level trail.
-  if (dCT === "notifications" || dCT === "filters" || dCT === "ai-summarization") {
+  // Notifications and AI Summarization have no registry entry; render a simple two-level trail.
+  if (dCT === "notifications" || dCT === "ai-summarization") {
     const label = dCT === "notifications"
       ? t("Notifications")
-      : dCT === "filters"
-        ? t("Filters")
-        : t("AI Summarization");
+      : t("AI Summarization");
     return (
       <div className="flex items-center gap-1 px-4 pb-2">
         <Breadcrumb>

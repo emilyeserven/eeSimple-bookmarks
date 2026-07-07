@@ -2030,14 +2030,14 @@ export const appSettings = pgTable("app_settings", {
   bookmarkDetailLayout: text("bookmark_detail_layout").notNull().default("single"),
   // Interface language: "en" | "ja".
   interfaceLanguage: text("interface_language").notNull().default("en"),
-  // Where listing-page filters render: "sidebar" | "drawer" | "pills" | "hide". Source of truth for
-  // filter placement; nullable so `drizzle-kit push` stays additive. Null = derive from the two
-  // booleans below (resolveFilterLocation), which are also kept in sync from this on every write.
+  // Retired (filters now live in the always-on listing search box). Columns kept — declared but
+  // unread — so `drizzle-kit push` never proposes a destructive DROP; safe to remove in a later
+  // migrate.ts drop step. Superseded by `searchBoxPinned`.
   filterLocation: text("filter_location"),
-  // When true, listing pages open filters in the right-hand drawer by default.
   filtersInDrawer: boolean("filters_in_drawer").notNull().default(false),
-  // When true, the left filter rail is hidden on listing pages.
   filtersHidden: boolean("filters_hidden").notNull().default(false),
+  // When true, the listing search/filters/sort box floats (sticks to the top while the list scrolls).
+  searchBoxPinned: boolean("search_box_pinned").notNull().default(false),
   // When true, the right-hand panel docks as a persistent column by default.
   panelPinned: boolean("panel_pinned").notNull().default(false),
   // Viewport widths (px) below which the drawer floats even when pinned. Default [768].

@@ -16,8 +16,6 @@ import {
 import {
   bulkSelectAction,
   displayOptionsAction,
-  filterLocationAction,
-  sortAction,
 } from "./toolbarListingActions";
 import { syncFromSourceAction } from "./toolbarSyncAction";
 
@@ -30,9 +28,7 @@ export type { ToolbarAction, ToolbarContext, ToolbarMobile } from "./toolbarActi
  */
 export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
   return [
-    filterLocationAction(ctx),
     displayOptionsAction(ctx),
-    sortAction(ctx),
     bulkSelectAction(ctx),
     bookmarkLayoutAction(ctx),
     editTaxonomyAction(ctx),

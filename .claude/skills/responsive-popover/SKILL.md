@@ -5,7 +5,7 @@ description: >-
   on small screens, backed by the shared `ResponsivePopover` primitive with extracted shared content,
   and register it in the header More menu. Use when asked to "add a header control/popover", "add a
   toolbar button to the app header", "make a popover work on mobile", "add a control to the More
-  menu", or "turn a popover into a modal on small screens". Mirrors FilterLocationPopover /
+  menu", or "turn a popover into a modal on small screens". Mirrors
   DisplayOptionsPopover / BookmarkDetailLayoutPopover / HeaderPinButton.
 ---
 
@@ -38,7 +38,7 @@ The pieces (all under `packages/client/src/`):
 ## Add / convert a popover control
 
 1. **Extract the body into a `*Controls.tsx` content component** (the single source of truth) — e.g.
-   `FilterLocationControls`, `BookmarkDetailLayoutControls`. It owns its own settings/mutation hooks.
+   `ListingDisplayControls`, `BookmarkDetailLayoutControls`. It owns its own settings/mutation hooks.
    Don't inline body markup into a popover that also needs a mobile modal.
 2. **Wrap it with `ResponsivePopover`** in the desktop control component, passing `trigger` (the icon
    `Button`), `title`, and the `*Controls` as children. Add optional `open`/`onOpenChange`

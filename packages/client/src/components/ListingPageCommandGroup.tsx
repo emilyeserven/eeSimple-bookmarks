@@ -142,25 +142,6 @@ export function ListingPageCommandGroup({
             onSelect={pick(() => listingCtx.setColumns(n))}
           />
         ))}
-        {listingCtx.listingPage.hasFilters && (
-          <>
-            <CheckedCommandItem
-              value={t("Filters in Drawer")}
-              checked={listingCtx.filterLocation === "drawer"}
-              onSelect={pick(() => listingCtx.setFilterLocation("drawer"))}
-            />
-            <CheckedCommandItem
-              value={t("Filters as Pills")}
-              checked={listingCtx.filterLocation === "pills"}
-              onSelect={pick(() => listingCtx.setFilterLocation("pills"))}
-            />
-            <CheckedCommandItem
-              value={t("Hide Filters")}
-              checked={listingCtx.filterLocation === "hide"}
-              onSelect={pick(() => listingCtx.setFilterLocation("hide"))}
-            />
-          </>
-        )}
         {listingCtx.listingPage.hasSort && (
           <>
             {SORT_ITEMS.map(item => (

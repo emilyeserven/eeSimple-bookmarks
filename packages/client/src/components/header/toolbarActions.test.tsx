@@ -38,7 +38,7 @@ describe("buildToolbarActions", () => {
     expect(keys(ctx())).toEqual(["open-panel"]);
   });
 
-  it("adds filter + display + create for a listing page with filters and a create action", () => {
+  it("adds display + create for a listing page with a create action (filters/sort now live in the on-page box)", () => {
     const createAction = vi.fn();
     expect(
       keys(ctx({
@@ -48,19 +48,7 @@ describe("buildToolbarActions", () => {
           createAction,
         },
       })),
-    ).toEqual(["filter-location", "display-options", "create", "open-panel"]);
-  });
-
-  it("omits filter-location when the listing page has no filters", () => {
-    expect(keys(ctx({
-      listingPage: {
-        key: "categories-listing",
-        hasFilters: false,
-      },
-    }))).toEqual([
-      "display-options",
-      "open-panel",
-    ]);
+    ).toEqual(["display-options", "create", "open-panel"]);
   });
 
   it("adds the bulk-select toggle when a bulk-selectable listing is mounted", () => {
@@ -169,7 +157,6 @@ describe("buildToolbarActions", () => {
       } as unknown as ToolbarContext["pinContext"],
     });
     expect(keys(all)).toEqual([
-      "filter-location",
       "display-options",
       "edit-taxonomy",
       "create",

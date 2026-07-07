@@ -45,7 +45,10 @@ export function clampPanelWidth(w: number): number {
   return Math.min(40, Math.max(18, w));
 }
 
-/** Live filter data and change handler shared from the active listing page to the FiltersPanel. */
+/**
+ * Live search state + change handler shared from the active listing page to the sort control
+ * (`BookmarkSortPopover`) and the CMD+K palette, which read `search.sort` / call `onSearchChange`.
+ */
 export interface FilterContextData {
   tree: TagNode[];
   properties: CustomProperty[];

@@ -44,7 +44,6 @@ export type DrawerContentType
     | "import-rule"
     | "saved-filter"
     | "notifications"
-    | "filters"
     | "ai-summarization";
 
 /** Whether an opened item is shown read-only (`view`) or in its editor (`edit`). */
@@ -85,7 +84,6 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "import-rule",
   "saved-filter",
   "notifications",
-  "filters",
   "ai-summarization",
 ];
 

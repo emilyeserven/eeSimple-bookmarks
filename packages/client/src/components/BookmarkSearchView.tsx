@@ -3,8 +3,9 @@ import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, 
 import type { ReactNode } from "react";
 
 import { BookmarkListPane } from "./BookmarkListPane";
+import { BookmarkSortPopover } from "./BookmarkSortPopover";
 import { FilterPillsRow } from "./FilterPillsRow";
-import { ListingSearchBar } from "./ListingSearchBar";
+import { ListingSearchBox } from "./ListingSearchBox";
 import { useBookmarkSearchView } from "./useBookmarkSearchView";
 
 interface BookmarkSearchViewProps {
@@ -60,8 +61,8 @@ interface BookmarkSearchViewProps {
 }
 
 /**
- * Shared layout for the search pages (Bookmarks and each category): the filters (as pills, in the
- * drawer, or hidden, per the user's `filterLocation` setting) above the add form and matching
+ * Shared layout for the search pages (Bookmarks and each category): the pinnable search box
+ * (search + sort + filter pills, via {@link ListingSearchBox}) above the add form and matching
  * bookmark list. Tag filtering is applied upstream (server-side); this view applies the
  * custom-property filters.
  */
@@ -92,7 +93,7 @@ export function BookmarkSearchView({
   activeView,
 }: BookmarkSearchViewProps) {
   const {
-    columns, showPills, textFilteredBookmarks, textSearchActive,
+    columns, textFilteredBookmarks, textSearchActive,
   } = useBookmarkSearchView({
     pageKey,
     tree,
@@ -116,25 +117,26 @@ export function BookmarkSearchView({
     <section className="space-y-8">
       {header}
 
-      <ListingSearchBar />
-
-      {showPills && (
-        <FilterPillsRow
-          tree={tree}
-          properties={properties}
-          categories={categories}
-          mediaTypes={mediaTypes}
-          youtubeChannels={youtubeChannels}
-          websites={websites}
-          relationshipTypes={relationshipTypes}
-          people={people}
-          placeTypes={placeTypes}
-          genreMoods={genreMoods}
-          bookmarks={bookmarks}
-          search={search}
-          onSearchChange={onSearchChange}
-        />
-      )}
+      <ListingSearchBox
+        sort={<BookmarkSortPopover label />}
+        filters={(
+          <FilterPillsRow
+            tree={tree}
+            properties={properties}
+            categories={categories}
+            mediaTypes={mediaTypes}
+            youtubeChannels={youtubeChannels}
+            websites={websites}
+            relationshipTypes={relationshipTypes}
+            people={people}
+            placeTypes={placeTypes}
+            genreMoods={genreMoods}
+            bookmarks={bookmarks}
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        )}
+      />
 
       <div className="grid gap-8">
         <BookmarkListPane

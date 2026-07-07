@@ -5,7 +5,7 @@ import { Fragment } from "react";
 
 import { BulkActionBar } from "./bulk/BulkActionBar";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
-import { ListingSearchBar } from "./ListingSearchBar";
+import { ListingSearchBox } from "./ListingSearchBox";
 import { ListingStatusMessages } from "./ListingStatusMessages";
 
 import { COLUMN_CLASS } from "@/lib/bookmarkColumns";
@@ -37,7 +37,7 @@ export function ListingScaffold<E extends { id: string }>({
 
   return (
     <div className="space-y-4">
-      <ListingSearchBar />
+      <ListingSearchBox />
 
       {config.secondaryFilter
         ? config.secondaryFilter.render({

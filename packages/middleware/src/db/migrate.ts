@@ -702,6 +702,16 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // The pinnable listing search box (search + filters + sort moved into one on-page box, replacing
+    // the header filter-location/sort controls). NOT NULL with a default matching schema.ts; pre-apply
+    // so push's diff stays additive-only (a NOT NULL ADD COLUMN otherwise prompts in a non-TTY deploy).
+    name: "add app_settings.search_box_pinned column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "search_box_pinned" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
     // Display Presets were removed in favor of Card Display Rules; drop the `saved_display_presets`
     // table so it doesn't linger. Destructive, so it lives here (push never drops tables). Idempotent
     // via DROP TABLE IF EXISTS.
