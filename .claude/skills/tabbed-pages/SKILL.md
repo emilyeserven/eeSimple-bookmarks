@@ -24,6 +24,15 @@ description: >-
 >   are gone. A view-only tab (e.g. Hierarchy) is just a `view`-only `WorkbenchTab` in the descriptor.
 > - **Edit pages** — the horizontal `TabbedEntityLayout` + real path-segment
 >   `…/$slug/edit/<tab>` route files, each a one-line `WorkbenchRouteTab` (`mode="edit"`).
+>   **Interim (#1155):** the edit side is migrating to the same single-route `?tab=` shape as Info —
+>   `components/workbench/EntityEditView.tsx` (horizontal strip, driven by `?tab=`, old `…/edit/<tab>`
+>   paths redirect via an `…edit.$.tsx` splat). **Categories** and **newsletters** are the first two
+>   pilots (their per-tab `edit.<tab>.tsx` files are gone; the entity edit route is a single
+>   `…$slug.edit.tsx` rendering `EntityEditView`, validated by `validateEditTabSearch`). The rest still
+>   use `TabbedEntityLayout`; the full migration + this doc's rewrite lands in a later sub-issue. Nav
+>   grouping (a "Rules" group collapsing into the trailing "More" dropdown) now lives on
+>   `WorkbenchTab.group` (consecutive same-`group` edit tabs collapse), **not** a hand-written `editNav`
+>   array — `EntityInfoView` ignores `group`.
 >
 > The per-entity `createTabWrapper` / `<Entity>TabWrapper` pattern below is **superseded** for new
 > tabbed entities — only `BookmarkEditTabWrapper` still uses it. Prefer a descriptor; the wrapper

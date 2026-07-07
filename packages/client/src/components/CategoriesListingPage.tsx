@@ -49,7 +49,7 @@ export function CategoriesListingPage() {
         onOpenChange={setModalOpen}
         onCreated={(category) => {
           void navigate({
-            to: "/categories/$categorySlug/edit/general",
+            to: "/categories/$categorySlug/edit",
             params: {
               categorySlug: category.slug,
             },

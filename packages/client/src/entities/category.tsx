@@ -83,7 +83,7 @@ export const categoryListingConfig: EntityListingConfig<Category> = {
         }}
         onEdit={(slug) => {
           void navigate({
-            to: "/categories/$categorySlug/edit/general",
+            to: "/categories/$categorySlug/edit",
             params: {
               categorySlug: slug,
             },

@@ -49,7 +49,7 @@ export function useCategoryColumns(): ColumnDef<Category>[] {
           row,
         }) => (
           <EditActionCell
-            to="/categories/$categorySlug/edit/general"
+            to="/categories/$categorySlug/edit"
             params={{
               categorySlug: row.original.slug,
             }}

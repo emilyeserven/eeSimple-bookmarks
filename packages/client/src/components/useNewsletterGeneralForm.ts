@@ -80,7 +80,7 @@ export function useNewsletterGeneralForm(newsletter: Newsletter) {
       onSuccess: (updated) => {
         if (updated.slug && updated.slug !== newsletter.slug) {
           void navigate({
-            to: "/taxonomies/newsletters/$newsletterSlug/edit/general",
+            to: "/taxonomies/newsletters/$newsletterSlug/edit",
             params: {
               newsletterSlug: updated.slug,
             },

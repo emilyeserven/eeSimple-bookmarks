@@ -87,7 +87,7 @@ export function CategoryGeneralForm({
                     onSuccess: (updated) => {
                       if (updated.slug !== category.slug) {
                         void navigate({
-                          to: "/categories/$categorySlug/edit/general",
+                          to: "/categories/$categorySlug/edit",
                           params: {
                             categorySlug: updated.slug,
                           },

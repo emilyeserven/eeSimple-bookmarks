@@ -44,7 +44,7 @@ export function CategoryCard({
             size="sm"
           >
             <Link
-              to="/categories/$categorySlug/edit/general"
+              to="/categories/$categorySlug/edit"
               params={{
                 categorySlug: category.slug,
               }}

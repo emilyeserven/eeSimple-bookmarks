@@ -67,7 +67,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
   if (pathParts[0] === "categories" && pathParts.length >= 2) {
     return (
       <Link
-        to="/categories/$categorySlug/edit/general"
+        to="/categories/$categorySlug/edit"
         params={{
           categorySlug: pathParts[1],
         }}
@@ -157,7 +157,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "newsletters":
         return (
           <Link
-            to="/taxonomies/newsletters/$newsletterSlug/edit/general"
+            to="/taxonomies/newsletters/$newsletterSlug/edit"
             params={{
               newsletterSlug: slug,
             }}

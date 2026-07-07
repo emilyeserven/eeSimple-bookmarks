@@ -23,6 +23,11 @@ export interface WorkbenchTab<E> {
   edit?: WorkbenchPane<E>;
   /** Hide the tab unless this returns true (e.g. a property's "Options" tab only when it has options). */
   showIf?: (entity: E) => boolean;
+  /**
+   * Edit-strip only: consecutive edit tabs sharing this label collapse into one trailing "More"-style
+   * dropdown in `EntityEditView` (e.g. a category's "Rules" group). Ignored by the Info rail.
+   */
+  group?: string;
 }
 
 /** A delete control surfaced in the panel header; `run` fires the mutation and dismisses on success. */
