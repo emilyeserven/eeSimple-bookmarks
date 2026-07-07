@@ -274,14 +274,10 @@ export function FilterPillsRow(props: FilterPillsRowProps) {
     bookmarks, search, onSearchChange,
   } = props;
   const {
-    visibleFacets, visibleProperties, addableFilters, revealFilter, ctx, t,
+    orderedItems, addableFilters, revealFilter, ctx, t,
   } = useFilterPillsRow(props);
 
-  if (
-    visibleFacets.length === 0
-    && visibleProperties.length === 0
-    && addableFilters.length === 0
-  ) {
+  if (orderedItems.length === 0 && addableFilters.length === 0) {
     return null;
   }
 
@@ -293,32 +289,33 @@ export function FilterPillsRow(props: FilterPillsRowProps) {
         compact
       />
 
-      {visibleFacets.map((facet) => {
+      {orderedItems.map((item) => {
+        if (item.kind === "property") {
+          return (
+            <PropertyFilterPill
+              key={item.key}
+              property={item.property}
+              bookmarks={bookmarks}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          );
+        }
         const {
           presenceControl, body,
-        } = renderFacetBody(facet.key, ctx);
+        } = renderFacetBody(item.facet.key, ctx);
         return (
           <FilterPill
-            key={facet.key}
-            label={facet.label}
-            active={facetHasActiveSelection(facet.key, search)}
-            summary={facetSelectionSummary(facet.key, search)}
+            key={item.key}
+            label={item.facet.label}
+            active={facetHasActiveSelection(item.facet.key, search)}
+            summary={facetSelectionSummary(item.facet.key, search)}
             presenceControl={presenceControl}
           >
             {body}
           </FilterPill>
         );
       })}
-
-      {visibleProperties.map(property => (
-        <PropertyFilterPill
-          key={property.id}
-          property={property}
-          bookmarks={bookmarks}
-          search={search}
-          onSearchChange={onSearchChange}
-        />
-      ))}
 
       <LanguageUsageFilterPill
         search={search}

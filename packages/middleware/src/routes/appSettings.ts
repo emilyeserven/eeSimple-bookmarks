@@ -520,6 +520,18 @@ const displayPreferenceBody = {
         type: "string",
       },
     },
+    filterOrder: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
+    mobileHiddenFilters: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
     defaultBookmarkSort: {
       oneOf: [
         {

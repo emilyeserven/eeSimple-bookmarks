@@ -1787,6 +1787,12 @@ export const appSettings = pgTable("app_settings", {
   // Filter facet keys / custom-property ids that are NOT shown by default in the filter rail
   // (added on demand via the "Add filter" control). Null/[] = every filter shows by default.
   onDemandFilters: jsonb("on_demand_filters").$type<string[]>(),
+  // User-defined order of filter keys (facet keys + custom-property ids) in the filter rail.
+  // Null/[] = default order.
+  filterOrder: jsonb("filter_order").$type<string[]>(),
+  // Filter keys hidden by default on small (mobile) screens (behave as on-demand there).
+  // Null/[] = nothing extra hidden on mobile.
+  mobileHiddenFilters: jsonb("mobile_hidden_filters").$type<string[]>(),
   // Default sort (field + direction) applied to bookmark listings when no explicit URL sort param.
   // Null = today's createdAt DESC fallback.
   defaultBookmarkSort: jsonb("default_bookmark_sort").$type<BookmarkFieldSort>(),

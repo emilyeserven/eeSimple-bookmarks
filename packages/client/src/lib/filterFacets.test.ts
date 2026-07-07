@@ -4,6 +4,7 @@ import type { BookmarkSearch } from "./bookmarkSearch";
 import { describe, expect, it } from "vitest";
 
 import {
+  applyFilterOrder,
   facetHasActiveSelection,
   facetSelectionSummary,
   languageUsageHasActiveSelection,
@@ -238,6 +239,36 @@ describe("propertySelectionSummary", () => {
       count: 0,
       presence: "missing",
     });
+  });
+});
+
+describe("applyFilterOrder", () => {
+  const items = [
+    {
+      key: "a",
+    },
+    {
+      key: "b",
+    },
+    {
+      key: "c",
+    },
+  ];
+
+  it("returns items in their incoming order when order is empty", () => {
+    expect(applyFilterOrder(items, []).map(i => i.key)).toEqual(["a", "b", "c"]);
+  });
+
+  it("orders items by their position in the order list", () => {
+    expect(applyFilterOrder(items, ["c", "a", "b"]).map(i => i.key)).toEqual(["c", "a", "b"]);
+  });
+
+  it("appends keys absent from the order list after the ordered ones, keeping their relative order", () => {
+    expect(applyFilterOrder(items, ["b"]).map(i => i.key)).toEqual(["b", "a", "c"]);
+  });
+
+  it("ignores order keys that are not present in the items", () => {
+    expect(applyFilterOrder(items, ["z", "c", "b", "a"]).map(i => i.key)).toEqual(["c", "b", "a"]);
   });
 });
 

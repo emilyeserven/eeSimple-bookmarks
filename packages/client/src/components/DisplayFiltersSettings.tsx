@@ -1,78 +1,47 @@
+import type { FilterConfigRow, FilterMode } from "./SortableFilterRow";
+import type { DragEndEvent } from "@dnd-kit/core";
+import type { DisplayPreferenceSettings } from "@eesimple/types";
+
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { useTranslation } from "react-i18next";
 
+import { DisplayFiltersPreview } from "./DisplayFiltersPreview";
+import { SortableFilterRow } from "./SortableFilterRow";
 import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
 import { useCustomProperties } from "../hooks/useCustomProperties";
-import { FILTER_FACETS } from "../lib/filterFacets";
+import {
+  applyFilterOrder,
+  FILTER_FACETS,
+  facetVisibilityHint,
+  propertyVisibilityHint,
+} from "../lib/filterFacets";
 
 import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-
-type FilterMode = "default" | "on-demand";
-
-interface FilterRow {
-  key: string;
-  label: string;
-}
-
-/** A titled list of filter rows, each toggled between shown-by-default and added-on-demand. */
-function FilterRows({
-  title, description, rows, onDemand, onSetMode,
-}: {
-  title: string;
-  description: string;
-  rows: readonly FilterRow[];
-  onDemand: string[];
-  onSetMode: (key: string, mode: FilterMode) => void;
-}) {
-  const {
-    t,
-  } = useTranslation();
-  return (
-    <section className="space-y-3">
-      <div>
-        <h4 className="font-medium">{title}</h4>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-      {rows.length > 0
-        ? (
-          <div className="space-y-2">
-            {rows.map(row => (
-              <div
-                key={row.key}
-                className="flex items-center justify-between gap-2"
-              >
-                <span className="truncate text-sm">{row.label}</span>
-                <ToggleGroup
-                  type="single"
-                  size="sm"
-                  value={onDemand.includes(row.key) ? "on-demand" : "default"}
-                  onValueChange={value => value && onSetMode(row.key, value as FilterMode)}
-                >
-                  <ToggleGroupItem value="default">{t("Default")}</ToggleGroupItem>
-                  <ToggleGroupItem value="on-demand">{t("On demand")}</ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            ))}
-          </div>
-        )
-        : (
-          <p className="text-sm text-muted-foreground">{t("None available yet.")}</p>
-        )}
-    </section>
-  );
-}
 
 /**
- * Display → Filters: choose which filter facets and custom properties appear in the filter rail by
- * default, versus being added on demand from the rail's "Add filter" control. Persisted server-side
- * via the display-preferences `onDemandFilters` list.
+ * Display → Filters: a live preview of the filter rail above a single drag-sortable list of every
+ * configurable filter (standard facets + enabled custom properties). Each row toggles between shown
+ * by default and added on demand, and can be hidden by default on mobile. Order, on-demand set, and
+ * mobile-hidden set are all persisted server-side in the display-preferences group.
  */
 export function DisplayFiltersSettings() {
   const {
@@ -85,27 +54,70 @@ export function DisplayFiltersSettings() {
   const {
     data: properties,
   } = useCustomProperties();
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   const onDemand = prefs?.onDemandFilters ?? [];
-  const propertyRows: FilterRow[] = (properties ?? [])
+  const filterOrder = prefs?.filterOrder ?? [];
+  const mobileHidden = prefs?.mobileHiddenFilters ?? [];
+
+  const facetRows: FilterConfigRow[] = FILTER_FACETS.map(facet => ({
+    key: facet.key,
+    label: facet.label,
+    hint: facetVisibilityHint(facet.key, t),
+  }));
+  const propertyRows: FilterConfigRow[] = (properties ?? [])
     .filter(property => property.enabled)
     .map(property => ({
       key: property.id,
       label: property.name,
+      hint: propertyVisibilityHint(t),
     }));
+  const rows = applyFilterOrder([...facetRows, ...propertyRows], filterOrder);
+  const rowKeys = rows.map(row => row.key);
 
-  /** Add/remove a filter key from the on-demand list and persist the whole display-preferences object. */
-  function setFilterMode(key: string, mode: FilterMode): void {
+  /** Persist a patch onto the whole display-preferences object with the standard toast. */
+  function setPrefs(patch: Partial<DisplayPreferenceSettings>): void {
     if (!prefs) return;
-    const next = mode === "on-demand"
-      ? [...onDemand.filter(x => x !== key), key]
-      : onDemand.filter(x => x !== key);
     update.mutate({
       input: {
         ...prefs,
-        onDemandFilters: next,
+        ...patch,
       },
       successMessage: t("Filters updated"),
+    });
+  }
+
+  function setFilterMode(key: string, mode: FilterMode): void {
+    setPrefs({
+      onDemandFilters: mode === "on-demand"
+        ? [...onDemand.filter(x => x !== key), key]
+        : onDemand.filter(x => x !== key),
+    });
+  }
+
+  function setMobileHidden(key: string, hidden: boolean): void {
+    setPrefs({
+      mobileHiddenFilters: hidden
+        ? [...mobileHidden.filter(x => x !== key), key]
+        : mobileHidden.filter(x => x !== key),
+    });
+  }
+
+  function handleDragEnd(event: DragEndEvent): void {
+    const {
+      active, over,
+    } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = rowKeys.indexOf(active.id as string);
+    const newIndex = rowKeys.indexOf(over.id as string);
+    if (oldIndex === -1 || newIndex === -1) return;
+    setPrefs({
+      filterOrder: arrayMove(rowKeys, oldIndex, newIndex),
     });
   }
 
@@ -114,27 +126,43 @@ export function DisplayFiltersSettings() {
       <div>
         <h3 className="text-lg font-semibold">{t("Filters")}</h3>
         <p className="text-sm text-muted-foreground">
-          {t("Choose which filters show by default. Filters set to “On demand” are hidden until you add them from the “Add filter” control.")}
+          {t("Drag to reorder filters. Choose which show by default versus added on demand from the “Add filter” control, and hide any by default on mobile.")}
         </p>
       </div>
 
+      <DisplayFiltersPreview />
+
       <Card>
-        <CardContent className="space-y-6 pt-6">
-          <FilterRows
-            title={t("Standard filters")}
-            description={t("Built-in facets such as tags, category, and media type.")}
-            rows={FILTER_FACETS}
-            onDemand={onDemand}
-            onSetMode={setFilterMode}
-          />
-          <Separator />
-          <FilterRows
-            title={t("Custom properties")}
-            description={t("Each enabled custom property can be shown by default or added on demand.")}
-            rows={propertyRows}
-            onDemand={onDemand}
-            onSetMode={setFilterMode}
-          />
+        <CardContent className="pt-6">
+          {rows.length > 0
+            ? (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={rowKeys}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {rows.map(row => (
+                      <SortableFilterRow
+                        key={row.key}
+                        row={row}
+                        onDemand={onDemand.includes(row.key)}
+                        onSetMode={setFilterMode}
+                        mobileHidden={mobileHidden.includes(row.key)}
+                        onToggleMobile={setMobileHidden}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            )
+            : (
+              <p className="text-sm text-muted-foreground">{t("None available yet.")}</p>
+            )}
         </CardContent>
       </Card>
     </div>

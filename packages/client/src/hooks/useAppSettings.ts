@@ -246,6 +246,8 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   bookmarkCardThumbnailSize: "medium" as BookmarkCardThumbnailSize,
   interfaceLanguage: "en" as InterfaceLanguage,
   onDemandFilters: [] as string[],
+  filterOrder: [] as string[],
+  mobileHiddenFilters: [] as string[],
   defaultBookmarkSort: null as BookmarkFieldSort | null,
   searchBoxPinned: false,
   panelPinned: false,
@@ -691,6 +693,22 @@ export function useOnDemandFilters(): string[] {
     data,
   } = useDisplayPreferenceSettings();
   return data?.onDemandFilters ?? DISPLAY_PREFERENCE_DEFAULTS.onDemandFilters;
+}
+
+/** User-defined order of filter keys in the filter rail (empty = default order). */
+export function useFilterOrder(): string[] {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.filterOrder ?? DISPLAY_PREFERENCE_DEFAULTS.filterOrder;
+}
+
+/** Filter keys hidden by default on small (mobile) screens (behave as on-demand there). */
+export function useMobileHiddenFilters(): string[] {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.mobileHiddenFilters ?? DISPLAY_PREFERENCE_DEFAULTS.mobileHiddenFilters;
 }
 
 /**
