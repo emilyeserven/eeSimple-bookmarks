@@ -5,7 +5,6 @@ import type {
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
   ConnectorsAppSettings,
-  FilterLocation,
   ImportBlacklistEntry,
   InterfaceLanguage,
   PlaceTypeColorConfig,
@@ -239,9 +238,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   bookmarkDetailLayout: "single" as BookmarkDetailLayout,
   interfaceLanguage: "en" as InterfaceLanguage,
   onDemandFilters: [] as string[],
-  filterLocation: "pills" as FilterLocation,
-  filtersInDrawer: false,
-  filtersHidden: false,
+  searchBoxPinned: false,
   panelPinned: false,
   drawerUnpinnedBreakpoints: [768],
   croppedWidth: 16,
@@ -548,14 +545,14 @@ export function useBookmarksPerPage(): number {
 }
 
 /**
- * Where the listing-page filters render (default "sidebar"). The server resolves the concrete enum
- * (applying the legacy-boolean fallback for pre-enum rows), so `??` here only covers the loading state.
+ * Whether the listing-page search box floats (sticks to the top of the viewport while the list
+ * scrolls). Toggled from the box's pin button; `??` only covers the loading state.
  */
-export function useFilterLocation(): FilterLocation {
+export function useSearchBoxPinned(): boolean {
   const {
     data,
   } = useDisplayPreferenceSettings();
-  return data?.filterLocation ?? DISPLAY_PREFERENCE_DEFAULTS.filterLocation;
+  return data?.searchBoxPinned ?? DISPLAY_PREFERENCE_DEFAULTS.searchBoxPinned;
 }
 
 /** Filter facet keys / custom-property ids hidden from the rail until added on demand (default []). */

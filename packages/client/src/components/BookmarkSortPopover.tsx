@@ -22,37 +22,56 @@ import {
 interface BookmarkSortPopoverProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Render a labeled "Sort" button (for the on-page listing box) instead of the icon-only trigger. */
+  label?: boolean;
 }
 
 export function BookmarkSortPopover({
   open,
   onOpenChange,
+  label = false,
 }: BookmarkSortPopoverProps) {
+  const {
+    t,
+  } = useTranslation();
   const isActive = useUiStore(s => s.filterContext?.search.sort != null);
   return (
     <ResponsivePopover
       title="Sort"
       open={open}
       onOpenChange={onOpenChange}
-      trigger={(
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="Sort bookmarks"
-        >
-          <span className="relative">
+      trigger={label
+        ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-label={t("Sort bookmarks")}
+          >
             <ArrowUpDown className={cn("size-4", isActive && "text-primary")} />
-            {isActive && (
-              <span
-                className="
-                  absolute -top-1 -right-1 size-1.5 rounded-full bg-primary
-                "
-              />
-            )}
-          </span>
-        </Button>
-      )}
+            {t("Sort")}
+            {isActive && <span className="size-1.5 rounded-full bg-primary" />}
+          </Button>
+        )
+        : (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("Sort bookmarks")}
+          >
+            <span className="relative">
+              <ArrowUpDown className={cn("size-4", isActive && "text-primary")} />
+              {isActive && (
+                <span
+                  className="
+                    absolute -top-1 -right-1 size-1.5 rounded-full bg-primary
+                  "
+                />
+              )}
+            </span>
+          </Button>
+        )}
     >
       <BookmarkSortControls />
     </ResponsivePopover>

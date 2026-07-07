@@ -438,11 +438,11 @@ skill — consult it before building or changing an edit tab. In short:
   persists server-side it **does** fire a specific, recorded toast on save like any other persisted
   setting. The **Display / Sidebar (Drawer) / Automations** settings pages were migrated this way
   (issue #410, mirroring the **Advanced** Coolify/docs/Storybook fix): the sidebar-visibility lists,
-  auto-fetch + open-in-drawer modifier, bookmark-detail media sizing/layout, filter placement,
-  drawer pin/breakpoints, and the built-in Cropped W/H are server-backed groups
+  auto-fetch + open-in-drawer modifier, bookmark-detail media sizing/layout, the listing search-box
+  pin (`searchBoxPinned`), drawer pin/breakpoints, and the built-in Cropped W/H are server-backed groups
   (`/api/app-settings/{sidebar-customization,automation,display-preferences}`), read via convenience
   hooks (`useSidebarOpenModifier`, `useCroppedWidth`, …) and written with a `notifySuccess` toast —
-  **including the inline popovers** that set the same prefs (filters-location, panel-pin,
+  **including the inline popovers** that set the same prefs (panel-pin,
   detail-layout) and the on-blur Cropped W/H inputs. Don't misclassify a should-persist setting as a
   local pref: that's exactly what shipped those pages toast-less (and non-syncing) before the move.
 

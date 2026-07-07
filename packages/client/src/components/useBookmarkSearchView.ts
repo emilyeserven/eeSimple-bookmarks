@@ -3,13 +3,11 @@ import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, 
 
 import { useEffect } from "react";
 
-import { usePanelControls } from "./panel/usePanelControls";
-import { useFilterLocation } from "../hooks/useAppSettings";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useBookmarkColumns } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
-/** The filter-context payload shared with the drawer's FiltersPanel via the UI store. */
+/** The filter-context payload shared with the sort control + CMD+K palette via the UI store. */
 export interface BookmarkSearchViewData {
   pageKey: string;
   tree: TagNode[];
@@ -33,8 +31,6 @@ export interface BookmarkSearchViewData {
 export interface BookmarkSearchViewState {
   /** Per-page column count for the listing grid. */
   columns: number;
-  /** True when filters render as a pill row under the search bar. */
-  showPills: boolean;
   /** Bookmarks after applying the header quick-search text filter. */
   textFilteredBookmarks: Bookmark[];
   /** True when the header quick-search has a non-empty query. */
@@ -43,8 +39,8 @@ export interface BookmarkSearchViewState {
 
 /**
  * Owns the hook-dense state orchestration for {@link BookmarkSearchView}: the listing-page
- * registration, header search wiring, settings reads, the drawer filter-context publish/cleanup
- * effect, and the header text filter — leaving the view component a thin render shell.
+ * registration, header search wiring, the sort filter-context publish/cleanup effect, and the header
+ * text filter — leaving the view component a thin render shell.
  */
 export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSearchViewState {
   const {
@@ -63,13 +59,8 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     },
   });
   const columns = useBookmarkColumns(pageKey);
-  const filterLocation = useFilterLocation();
   const setFilterContext = useUiStore(state => state.setFilterContext);
   const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
-  const {
-    isOpen, openType,
-  } = usePanelControls();
-  const showPills = filterLocation === "pills";
 
   useEffect(() => {
     setFilterContext({
@@ -92,13 +83,6 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
   }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange, setFilterContext]);
 
-  // Only on mount — intentionally omit filterLocation/isOpen/openType to avoid re-running.
-  useEffect(() => {
-    if (filterLocation === "drawer" && !isOpen) {
-      openType("filters");
-    }
-  }, []);
-
   const q = headerSearchQuery.trim().toLowerCase();
   const textFilteredBookmarks = q
     ? bookmarks.filter(b =>
@@ -110,7 +94,6 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
 
   return {
     columns,
-    showPills,
     textFilteredBookmarks,
     textSearchActive: Boolean(q),
   };

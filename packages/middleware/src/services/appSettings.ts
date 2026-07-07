@@ -13,7 +13,6 @@ import type {
   BookmarkDetailVideoSize,
   ConnectorsAppSettings,
   DisplayPreferenceSettings,
-  FilterLocation,
   HomepageContentSettings,
   HomepageContentWidth,
   ImportBlacklistEntry,
@@ -156,9 +155,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   interfaceLanguage: "en",
   customPropertyTypeIcons: null,
   onDemandFilters: [],
-  filterLocation: "pills",
-  filtersInDrawer: false,
-  filtersHidden: false,
+  searchBoxPinned: false,
   panelPinned: false,
   drawerUnpinnedBreakpoints: [768],
   croppedWidth: 16,
@@ -192,24 +189,6 @@ function asModifier(value: string | null | undefined): SidebarOpenModifier {
 /** Coerce a stored detail-image-size string to the typed union, defaulting to "medium". */
 function asImageSize(value: string | null | undefined): BookmarkDetailImageSize {
   return value === "small" || value === "large" ? value : "medium";
-}
-
-/**
- * Resolve the filter placement. A valid stored `drawer`/`pills`/`hide` enum wins; anything else
- * (unset, junk, or a legacy `sidebar` value from before the sidebar placement was retired) falls
- * back to the two legacy booleans (`hidden` beating `inDrawer`), now defaulting to `pills` instead
- * of the retired `sidebar` — so a pre-migration row that explicitly chose "sidebar" (which always
- * had both booleans `false`) lands on `pills`, matching the new default.
- */
-export function resolveFilterLocation(
-  stored: string | null | undefined,
-  filtersHidden: boolean,
-  filtersInDrawer: boolean,
-): FilterLocation {
-  if (stored === "drawer" || stored === "pills" || stored === "hide") {
-    return stored;
-  }
-  return filtersHidden ? "hide" : filtersInDrawer ? "drawer" : "pills";
 }
 
 /** Coerce a stored detail-video-size string to the typed union, defaulting to "standard". */
@@ -1168,9 +1147,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       bookmarkDetailVideoSize: appSettings.bookmarkDetailVideoSize,
       bookmarkDetailLayout: appSettings.bookmarkDetailLayout,
       interfaceLanguage: appSettings.interfaceLanguage,
-      filterLocation: appSettings.filterLocation,
-      filtersInDrawer: appSettings.filtersInDrawer,
-      filtersHidden: appSettings.filtersHidden,
+      searchBoxPinned: appSettings.searchBoxPinned,
       panelPinned: appSettings.panelPinned,
       drawerUnpinnedBreakpoints: appSettings.drawerUnpinnedBreakpoints,
       croppedWidth: appSettings.croppedWidth,
@@ -1195,9 +1172,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     bookmarkDetailVideoSize: asVideoSize(row.bookmarkDetailVideoSize),
     bookmarkDetailLayout: asDetailLayout(row.bookmarkDetailLayout),
     interfaceLanguage: asInterfaceLanguage(row.interfaceLanguage),
-    filterLocation: resolveFilterLocation(row.filterLocation, row.filtersHidden, row.filtersInDrawer),
-    filtersInDrawer: row.filtersInDrawer,
-    filtersHidden: row.filtersHidden,
+    searchBoxPinned: row.searchBoxPinned,
     panelPinned: row.panelPinned,
     drawerUnpinnedBreakpoints: asBreakpoints(row.drawerUnpinnedBreakpoints),
     croppedWidth: asCropped(row.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
@@ -1513,17 +1488,12 @@ export async function updateConnectorsSettings(
 export async function updateDisplayPreferenceSettings(
   input: UpdateDisplayPreferenceInput,
 ): Promise<DisplayPreferenceSettings> {
-  // The enum is authoritative; the two legacy booleans are derived from it so any reader still on the
-  // booleans stays coherent (and pre-enum rows keep resolving correctly via resolveFilterLocation).
-  const filterLocation = resolveFilterLocation(input.filterLocation, input.filtersHidden, input.filtersInDrawer);
   const next: DisplayPreferenceSettings = {
     bookmarkDetailImageSize: asImageSize(input.bookmarkDetailImageSize),
     bookmarkDetailVideoSize: asVideoSize(input.bookmarkDetailVideoSize),
     bookmarkDetailLayout: asDetailLayout(input.bookmarkDetailLayout),
     interfaceLanguage: asInterfaceLanguage(input.interfaceLanguage),
-    filterLocation,
-    filtersInDrawer: filterLocation === "drawer",
-    filtersHidden: filterLocation === "hide",
+    searchBoxPinned: input.searchBoxPinned,
     panelPinned: input.panelPinned,
     drawerUnpinnedBreakpoints: asBreakpoints(input.drawerUnpinnedBreakpoints),
     croppedWidth: asCropped(input.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),

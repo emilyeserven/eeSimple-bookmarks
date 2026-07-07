@@ -1,30 +1,12 @@
 import type { BookmarkSort } from "../lib/bookmarkSort";
 import type { ViewMode } from "../stores/uiStore";
-import type { FilterLocation } from "@eesimple/types";
 
-import { useTranslation } from "react-i18next";
-
-import {
-  useDisplayPreferenceSettings,
-  useFilterLocation,
-  useUpdateDisplayPreferenceSettings,
-} from "../hooks/useAppSettings";
 import { DEFAULT_BOOKMARK_COLUMNS, DEFAULT_VIEW_MODE } from "../lib/bookmarkColumns";
 import { withSort } from "../lib/bookmarkSearch";
 import { clampColumns, useUiStore } from "../stores/uiStore";
-import { usePanelControls } from "./panel/usePanelControls";
 
-/** Listing-page display state (view mode, columns, filter location, bulk select) for the CMD+K palette. */
+/** Listing-page display state (view mode, columns, sort, bulk select) for the CMD+K palette. */
 export function useListingPageContext() {
-  const {
-    t,
-  } = useTranslation();
-  const FILTER_LOCATION_MESSAGES: Record<FilterLocation, string> = {
-    drawer: t("Filters in drawer"),
-    pills: t("Filters as pills"),
-    hide: t("Filters hidden"),
-  };
-
   const listingPage = useUiStore(s => s.listingPage);
   const pageKey = listingPage?.key ?? "";
 
@@ -40,37 +22,12 @@ export function useListingPageContext() {
     bulkSelectPageKey ? (s.selectionMode[bulkSelectPageKey] ?? false) : false);
   const setSelectionModeFn = useUiStore(s => s.setSelectionMode);
 
-  const filterLocation = useFilterLocation();
-  const {
-    data: displayData,
-  } = useDisplayPreferenceSettings();
-  const update = useUpdateDisplayPreferenceSettings();
-  const {
-    openType, close, dCT,
-  } = usePanelControls();
-
-  function setFilterLocation(next: FilterLocation) {
-    if (!displayData) return;
-    update.mutate({
-      input: {
-        ...displayData,
-        filterLocation: next,
-      },
-      successMessage: FILTER_LOCATION_MESSAGES[next],
-    });
-    // Pills and hide both live outside the drawer, so close it when leaving the drawer placement.
-    if (next === "drawer") openType("filters");
-    else if (dCT === "filters") close();
-  }
-
   return {
     listingPage,
     currentViewMode,
     currentColumns,
     setViewMode: (m: ViewMode) => setViewModeFn(pageKey, m),
     setColumns: (n: number) => setColumnsFn(pageKey, clampColumns(n)),
-    filterLocation,
-    setFilterLocation,
     currentSort,
     setSort: (s: BookmarkSort) => {
       if (filterContext) filterContext.onSearchChange(withSort(filterContext.search, s));

@@ -14,7 +14,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { BOOKMARK_ADD_FORM_PLACEMENTS, FILTER_LOCATIONS, HOMEPAGE_WIDGETS, IMPORT_BLACKLIST_KINDS, INTERFACE_LANGUAGES, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
+import { BOOKMARK_ADD_FORM_PLACEMENTS, HOMEPAGE_WIDGETS, IMPORT_BLACKLIST_KINDS, INTERFACE_LANGUAGES, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import { getDatabaseTableDetail, getDatabaseUsageReport } from "@/services/databaseUsage";
 import { NotFoundError } from "@/utils/errors";
@@ -387,9 +387,7 @@ const displayPreferenceBody = {
     "bookmarkDetailVideoSize",
     "bookmarkDetailLayout",
     "interfaceLanguage",
-    "filterLocation",
-    "filtersInDrawer",
-    "filtersHidden",
+    "searchBoxPinned",
     "panelPinned",
     "drawerUnpinnedBreakpoints",
     "croppedWidth",
@@ -421,14 +419,7 @@ const displayPreferenceBody = {
       type: "string",
       enum: [...INTERFACE_LANGUAGES],
     },
-    filterLocation: {
-      type: "string",
-      enum: [...FILTER_LOCATIONS],
-    },
-    filtersInDrawer: {
-      type: "boolean",
-    },
-    filtersHidden: {
+    searchBoxPinned: {
       type: "boolean",
     },
     panelPinned: {

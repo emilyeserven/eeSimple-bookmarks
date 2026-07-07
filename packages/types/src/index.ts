@@ -328,10 +328,8 @@ export interface AppSettings {
   bookmarkDetailVideoSize: BookmarkDetailVideoSize;
   /** Layout of the bookmark detail page/panel: single stacked column or vertical tabs. */
   bookmarkDetailLayout: BookmarkDetailLayout;
-  /** When true, listing pages auto-open filters in the right-hand drawer instead of the left column. */
-  filtersInDrawer: boolean;
-  /** When true, the left filter rail is hidden on listing pages; a Show-filters toggle appears in the header. */
-  filtersHidden: boolean;
+  /** When true, the listing search/filters/sort box floats (sticks to the top while the list scrolls). */
+  searchBoxPinned: boolean;
   /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
   panelPinned: boolean;
   /** Viewport widths (px) below which the drawer is unpinned (floats) even when panelPinned is true. */
@@ -525,27 +523,20 @@ export const DEFAULT_BOOKMARK_GRAPH_SETTINGS: BookmarkGraphSettings = {
   maxRelated: 12,
 };
 
-/** Where the listing-page filters render: the right drawer, pills under the search bar, or hidden. */
-export const FILTER_LOCATIONS = ["drawer", "pills", "hide"] as const;
-export type FilterLocation = typeof FILTER_LOCATIONS[number];
-
 /**
  * The subset of {@link AppSettings} that drives display/detail preferences: bookmark detail media
- * sizing + layout, filter placement, right-panel pin behavior, and the built-in "Cropped" aspect
- * ratio. Persisted server-side so the display choices follow the user across devices.
+ * sizing + layout, the pinnable listing search box, right-panel pin behavior, and the built-in
+ * "Cropped" aspect ratio. Persisted server-side so the display choices follow the user across devices.
  */
 export interface DisplayPreferenceSettings {
   bookmarkDetailImageSize: BookmarkDetailImageSize;
   bookmarkDetailVideoSize: BookmarkDetailVideoSize;
   bookmarkDetailLayout: BookmarkDetailLayout;
   /**
-   * Where the listing-page filters render. The source of truth for filter placement; `filtersInDrawer`
-   * / `filtersHidden` are kept in sync from it and act as a legacy fallback for rows saved before this
-   * field existed (see `resolveFilterLocation`).
+   * Whether the listing-page search/filters/sort box floats — sticking to the top of the viewport
+   * while the list scrolls. Toggled from the box's pin button on every listing page.
    */
-  filterLocation: FilterLocation;
-  filtersInDrawer: boolean;
-  filtersHidden: boolean;
+  searchBoxPinned: boolean;
   panelPinned: boolean;
   drawerUnpinnedBreakpoints: number[];
   croppedWidth: number;
