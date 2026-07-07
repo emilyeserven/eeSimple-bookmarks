@@ -46,7 +46,7 @@ export function BookmarkDetail({
   } = useConnectors();
 
   // For YouTube bookmarks, show a playable embed in place of the static thumbnail.
-  const embedUrl = youtubeEmbedUrl(bookmark.url ?? "");
+  const embedUrl = youtubeEmbedUrl(bookmark.url ?? "", connectors?.youtubeEmbed.useNoCookie ?? true);
 
   const isSingle = layout !== "tabbed";
 

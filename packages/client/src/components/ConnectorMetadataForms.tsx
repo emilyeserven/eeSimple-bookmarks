@@ -13,6 +13,7 @@ import { notifyFieldSaveError } from "../lib/autoSave";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -136,6 +137,7 @@ export function HostedMetadataForm() {
           plexToken: null,
           youtubeApiKey: null,
           imageUrlBlacklist: data.imageUrlBlacklist,
+          useNoCookieYoutubeEmbeds: data.useNoCookieYoutubeEmbeds,
         },
         successMessage: label,
       },
@@ -304,6 +306,7 @@ export function ArchiveBoxForm() {
         plexToken: null,
         youtubeApiKey: null,
         imageUrlBlacklist: data.imageUrlBlacklist,
+        useNoCookieYoutubeEmbeds: data.useNoCookieYoutubeEmbeds,
       },
       successMessage: "ArchiveBox URL",
     });
@@ -436,6 +439,7 @@ export function KavitaForm() {
           plexToken: null,
           youtubeApiKey: null,
           imageUrlBlacklist: data.imageUrlBlacklist,
+          useNoCookieYoutubeEmbeds: data.useNoCookieYoutubeEmbeds,
         },
         successMessage: label,
       },
@@ -592,6 +596,7 @@ export function PlexForm() {
           plexToken: field === "token" ? token : null,
           youtubeApiKey: null,
           imageUrlBlacklist: data.imageUrlBlacklist,
+          useNoCookieYoutubeEmbeds: data.useNoCookieYoutubeEmbeds,
         },
         successMessage: label,
       },
@@ -743,6 +748,7 @@ export function YoutubeForm() {
           plexToken: null,
           youtubeApiKey: apiKey,
           imageUrlBlacklist: data.imageUrlBlacklist,
+          useNoCookieYoutubeEmbeds: data.useNoCookieYoutubeEmbeds,
         },
         successMessage: "YouTube API key",
       },
@@ -753,6 +759,27 @@ export function YoutubeForm() {
         },
       },
     );
+  }
+
+  function saveNoCookieEmbeds(enabled: boolean): void {
+    if (!data) return;
+    update.mutate({
+      input: {
+        // Echo the other connectors' fields unchanged (null preserves the stored API keys).
+        hostedMetadataEndpoint: data.hostedMetadataEndpoint,
+        hostedMetadataProvider: data.hostedMetadataProvider,
+        hostedMetadataApiKey: null,
+        archiveBoxEndpoint: data.archiveBoxEndpoint,
+        kavitaEndpoint: data.kavitaEndpoint,
+        kavitaApiKey: null,
+        plexEndpoint: data.plexEndpoint,
+        plexToken: null,
+        youtubeApiKey: null,
+        imageUrlBlacklist: data.imageUrlBlacklist,
+        useNoCookieYoutubeEmbeds: enabled,
+      },
+      successMessage: "YouTube privacy embeds",
+    });
   }
 
   return (
@@ -804,6 +831,18 @@ export function YoutubeForm() {
           )}
         />
       </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="yt-nocookie-embeds"
+          checked={data?.useNoCookieYoutubeEmbeds ?? true}
+          onCheckedChange={(checked) => {
+            saveNoCookieEmbeds(checked === true);
+          }}
+        />
+        <Label htmlFor="yt-nocookie-embeds">
+          {t("Use privacy-enhanced YouTube embeds (youtube-nocookie.com)")}
+        </Label>
+      </div>
     </div>
   );
 }
@@ -839,6 +878,7 @@ export function ImageBlacklistForm() {
         plexToken: null,
         youtubeApiKey: null,
         imageUrlBlacklist: patterns,
+        useNoCookieYoutubeEmbeds: data.useNoCookieYoutubeEmbeds,
       },
       successMessage: "Image blacklist",
     });

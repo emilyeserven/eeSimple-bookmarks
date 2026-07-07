@@ -3058,6 +3058,12 @@ export interface ConnectorsStatus {
   /** YouTube Data API v3 — active only when `YOUTUBE_API_KEY` is set (else the watch-page scrape runs). */
   youtubeDataApi: { enabled: boolean };
   /**
+   * YouTube embed host preference (Settings → Connectors). `useNoCookie: true` (the default) embeds
+   * via the privacy-enhanced `youtube-nocookie.com` host; `false` uses plain `youtube.com`. Not a
+   * secret — needed by the unauthenticated bookmark detail view to build embed URLs.
+   */
+  youtubeEmbed: { useNoCookie: boolean };
+  /**
    * Instagram — post/carousel images and person avatars always come from the keyless public embed.
    * `apiKey` reports whether `INSTAGRAM_API_KEY` is set (the API path is preferred when configured,
    * with the keyless scrape as fallback).
@@ -3139,6 +3145,11 @@ export interface ConnectorsAppSettings {
    * (Instagram, oEmbed, article scrape) before it reaches the Add Bookmark picker.
    */
   imageUrlBlacklist: string[];
+  /**
+   * Whether YouTube embeds use the privacy-enhanced `youtube-nocookie.com` host (`true`, the
+   * default) or plain `youtube.com` (`false`).
+   */
+  useNoCookieYoutubeEmbeds: boolean;
 }
 
 /** Body for `PUT /api/app-settings/connectors`. */
@@ -3181,6 +3192,8 @@ export interface UpdateConnectorsSettingsInput {
   youtubeApiKey: string | null;
   /** Image-URL blacklist patterns; replaces the stored list wholesale. */
   imageUrlBlacklist: string[];
+  /** Whether YouTube embeds use the privacy-enhanced `youtube-nocookie.com` host. */
+  useNoCookieYoutubeEmbeds: boolean;
 }
 
 /** One Kavita series matched by a search (`GET /api/kavita/series?q=`). */

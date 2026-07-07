@@ -1211,6 +1211,7 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
       plexToken: appSettings.plexToken,
       youtubeApiKey: appSettings.youtubeApiKey,
       imageUrlBlacklist: appSettings.imageUrlBlacklist,
+      useNoCookieYoutubeEmbeds: appSettings.useNoCookieYoutubeEmbeds,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -1230,7 +1231,25 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
     plexTokenSet: Boolean(row?.plexToken) || Boolean(process.env.PLEX_TOKEN),
     youtubeApiKeySet: Boolean(row?.youtubeApiKey) || Boolean(process.env.YOUTUBE_API_KEY),
     imageUrlBlacklist: row?.imageUrlBlacklist ?? [],
+    useNoCookieYoutubeEmbeds: row?.useNoCookieYoutubeEmbeds ?? true,
   };
+}
+
+/** Whether YouTube embeds should use the privacy-enhanced `youtube-nocookie.com` host. Defaults to `true`. */
+export async function getYoutubeEmbedUsesNoCookie(): Promise<boolean> {
+  try {
+    const [row] = await db
+      .select({
+        useNoCookieYoutubeEmbeds: appSettings.useNoCookieYoutubeEmbeds,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    return row?.useNoCookieYoutubeEmbeds ?? true;
+  }
+  catch {
+    // DB unavailable (e.g. test environment) — default to the privacy-enhanced host.
+    return true;
+  }
 }
 
 /** Read just the image-URL blacklist patterns (Settings → Connectors), or `[]` when unset/unavailable. */
@@ -1451,6 +1470,7 @@ export async function updateConnectorsSettings(
     plexEndpoint: input.plexEndpoint.trim(),
     // Normalize the blacklist: trim entries, drop blanks, dedupe — store a clean list.
     imageUrlBlacklist: [...new Set(input.imageUrlBlacklist.map(p => p.trim()).filter(Boolean))],
+    useNoCookieYoutubeEmbeds: input.useNoCookieYoutubeEmbeds,
   };
   if (input.hostedMetadataApiKey !== null) {
     set.hostedMetadataApiKey = input.hostedMetadataApiKey.trim()

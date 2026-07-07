@@ -361,7 +361,7 @@ const placeTypeDisplayBody = {
 
 const connectorsBody = {
   type: "object",
-  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaApiKey", "plexEndpoint", "plexToken", "youtubeApiKey", "imageUrlBlacklist"],
+  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaApiKey", "plexEndpoint", "plexToken", "youtubeApiKey", "imageUrlBlacklist", "useNoCookieYoutubeEmbeds"],
   additionalProperties: false,
   properties: {
     hostedMetadataEndpoint: {
@@ -404,6 +404,10 @@ const connectorsBody = {
       items: {
         type: "string",
       },
+    },
+    useNoCookieYoutubeEmbeds: {
+      // true = embed via the privacy-enhanced youtube-nocookie.com host; false = plain youtube.com.
+      type: "boolean",
     },
   },
 } as const;
