@@ -10,7 +10,7 @@ const displayPreferences = {
   bookmarkDetailVideoSize: "standard",
   bookmarkDetailLayout: "single",
   interfaceLanguage: "en",
-  filterLocation: "sidebar",
+  filterLocation: "pills",
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,

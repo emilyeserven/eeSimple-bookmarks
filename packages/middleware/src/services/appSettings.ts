@@ -156,7 +156,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   interfaceLanguage: "en",
   customPropertyTypeIcons: null,
   onDemandFilters: [],
-  filterLocation: "sidebar",
+  filterLocation: "pills",
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,
@@ -195,19 +195,21 @@ function asImageSize(value: string | null | undefined): BookmarkDetailImageSize 
 }
 
 /**
- * Resolve the filter placement. The explicit `stored` enum wins when valid; otherwise fall back to the
- * two legacy booleans (matching the pre-enum derivation exactly, `hidden` beating `inDrawer`), so rows
- * saved before the `filter_location` column existed keep their placement.
+ * Resolve the filter placement. A valid stored `drawer`/`pills`/`hide` enum wins; anything else
+ * (unset, junk, or a legacy `sidebar` value from before the sidebar placement was retired) falls
+ * back to the two legacy booleans (`hidden` beating `inDrawer`), now defaulting to `pills` instead
+ * of the retired `sidebar` — so a pre-migration row that explicitly chose "sidebar" (which always
+ * had both booleans `false`) lands on `pills`, matching the new default.
  */
 export function resolveFilterLocation(
   stored: string | null | undefined,
   filtersHidden: boolean,
   filtersInDrawer: boolean,
 ): FilterLocation {
-  if (stored === "sidebar" || stored === "drawer" || stored === "pills" || stored === "hide") {
+  if (stored === "drawer" || stored === "pills" || stored === "hide") {
     return stored;
   }
-  return filtersHidden ? "hide" : filtersInDrawer ? "drawer" : "sidebar";
+  return filtersHidden ? "hide" : filtersInDrawer ? "drawer" : "pills";
 }
 
 /** Coerce a stored detail-video-size string to the typed union, defaulting to "standard". */

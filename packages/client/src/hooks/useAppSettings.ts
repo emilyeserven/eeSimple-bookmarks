@@ -239,7 +239,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   bookmarkDetailLayout: "single" as BookmarkDetailLayout,
   interfaceLanguage: "en" as InterfaceLanguage,
   onDemandFilters: [] as string[],
-  filterLocation: "sidebar" as FilterLocation,
+  filterLocation: "pills" as FilterLocation,
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,

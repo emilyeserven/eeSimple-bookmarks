@@ -4,12 +4,11 @@ import type { ReactNode } from "react";
 
 import { BookmarkListPane } from "./BookmarkListPane";
 import { FilterPillsRow } from "./FilterPillsRow";
-import { FilterSidebar } from "./FilterSidebar";
 import { ListingSearchBar } from "./ListingSearchBar";
 import { useBookmarkSearchView } from "./useBookmarkSearchView";
 
 interface BookmarkSearchViewProps {
-  /** Page heading area rendered above the two-column body. Omitted when an outer `_hub` owns the header. */
+  /** Page heading area rendered above the body. Omitted when an outer `_hub` owns the header. */
   header?: ReactNode;
   /** Stable key identifying the page, so each listing remembers its own column count. */
   pageKey: string;
@@ -61,9 +60,10 @@ interface BookmarkSearchViewProps {
 }
 
 /**
- * Shared layout for the search pages (Bookmarks and each category): a left filter rail
- * and a right column with the add form and the matching bookmark list. Tag filtering is
- * applied upstream (server-side); this view applies the custom-property filters.
+ * Shared layout for the search pages (Bookmarks and each category): the filters (as pills, in the
+ * drawer, or hidden, per the user's `filterLocation` setting) above the add form and matching
+ * bookmark list. Tag filtering is applied upstream (server-side); this view applies the
+ * custom-property filters.
  */
 export function BookmarkSearchView({
   header,
@@ -92,7 +92,7 @@ export function BookmarkSearchView({
   activeView,
 }: BookmarkSearchViewProps) {
   const {
-    columns, hideSidebar, showPills, textFilteredBookmarks, textSearchActive,
+    columns, showPills, textFilteredBookmarks, textSearchActive,
   } = useBookmarkSearchView({
     pageKey,
     tree,
@@ -136,33 +136,7 @@ export function BookmarkSearchView({
         />
       )}
 
-      <div
-        className={hideSidebar
-          ? "grid gap-8"
-          : `
-            grid gap-8
-            lg:grid-cols-[16rem_1fr] lg:gap-x-12
-          `}
-      >
-        {!hideSidebar && (
-          <FilterSidebar
-            tree={tree}
-            properties={properties}
-            propertyGroups={propertyGroups}
-            categories={categories}
-            mediaTypes={mediaTypes}
-            youtubeChannels={youtubeChannels}
-            websites={websites}
-            relationshipTypes={relationshipTypes}
-            people={people}
-            placeTypes={placeTypes}
-            genreMoods={genreMoods}
-            bookmarks={bookmarks}
-            search={search}
-            onSearchChange={onSearchChange}
-          />
-        )}
-
+      <div className="grid gap-8">
         <BookmarkListPane
           pageKey={pageKey}
           columns={columns}
