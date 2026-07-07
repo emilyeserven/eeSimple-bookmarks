@@ -25,14 +25,6 @@ export type DrawerContentType
     | "language"
     | "location"
     | "place-type"
-    | "media-property"
-    | "book"
-    | "podcast"
-    | "movie"
-    | "tv-show"
-    | "episode"
-    | "album"
-    | "track"
     | "youtube-channel"
     | "newsletter"
     | "person"
@@ -65,14 +57,6 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "language",
   "location",
   "place-type",
-  "media-property",
-  "book",
-  "podcast",
-  "movie",
-  "tv-show",
-  "episode",
-  "album",
-  "track",
   "youtube-channel",
   "newsletter",
   "person",

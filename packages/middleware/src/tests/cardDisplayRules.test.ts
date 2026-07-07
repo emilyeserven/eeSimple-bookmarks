@@ -4,9 +4,9 @@ import { Column, is, Param, SQL } from "drizzle-orm";
 
 /**
  * `backfillCardDisplayRuleSecondaryNameField` (services/cardDisplayRules.ts) is exercised against a
- * tiny in-memory fake `db`, mirroring the mocking approach in `taxonomyImages.test.ts` (this suite
- * has no live-Postgres harness). `mock.module` swaps `@/db` before the service module is first
- * imported (ES module imports are cached process-wide), so the mocks must be installed up front.
+ * tiny in-memory fake `db` (this suite has no live-Postgres harness). `mock.module` swaps `@/db`
+ * before the service module is first imported (ES module imports are cached process-wide), so the
+ * mocks must be installed up front.
  */
 
 interface FakeRow {

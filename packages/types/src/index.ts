@@ -18,14 +18,11 @@ import type { BookmarkLocation } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 
 export * from "./autofillMerge.js";
-export * from "./albums.js";
 export * from "./amazon.js";
 export * from "./bookmarkAddForm.js";
 export * from "./bookmarkContentKind.js";
 export * from "./honto.js";
-export * from "./books.js";
 export * from "./entityNames.js";
-export * from "./episodes.js";
 export * from "./conditions.js";
 export * from "./genreMoods.js";
 export * from "./customProperties.js";
@@ -35,18 +32,12 @@ export * from "./importBlacklist.js";
 export * from "./isbn.js";
 export * from "./labeledWebsites.js";
 export * from "./languageUsages.js";
-export * from "./locationAssignments.js";
 export * from "./locations.js";
-export * from "./mediaProperties.js";
-export * from "./movies.js";
 export * from "./podcasts.js";
-export * from "./tracks.js";
-export * from "./tvShows.js";
 export * from "./translationSources.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";
 export * from "./socialMedia.js";
-export * from "./taxonomyImages.js";
 export * from "./titleTags.js";
 export * from "./urlCleanup.js";
 export * from "./youtube.js";
@@ -793,8 +784,6 @@ export interface Group {
   plexItemTitle: string | null;
   /** Poster/avatar image URL, or null when none is set. */
   imageUrl: string | null;
-  /** Ids of the albums this publisher is credited on (many-to-many). */
-  albumIds: string[];
   /** IDs of YouTube channels associated with this group. */
   youtubeChannelIds: string[];
   /** IDs of websites associated with this group. */
@@ -827,8 +816,6 @@ export interface UpdateGroupInput {
   plexRatingKey?: string | null;
   plexItemType?: string | null;
   plexItemTitle?: string | null;
-  /** Ids of the albums to credit this publisher on; replaces the full set. Omit to leave unchanged. */
-  albumIds?: string[];
   /** IDs of YouTube channels to associate; replaces the full set. Omit to leave unchanged. */
   youtubeChannelIds?: string[];
   /** IDs of websites to associate; replaces the full set. Omit to leave unchanged. */
@@ -1055,8 +1042,6 @@ export interface Person {
   languageUsages?: LanguageUsage[];
   /** Display ordering weight; lower sorts first (absorbed from the former Artists taxonomy). */
   sortOrder: number;
-  /** Optional franchise/IP grouping this person belongs to, or null. */
-  mediaPropertyId: string | null;
   /** Optional release year surfaced by the Plex search, or null. */
   year: number | null;
   /** Plex rating key (Settings → Connectors) this person maps to, or null if not linked. */
@@ -1065,8 +1050,6 @@ export interface Person {
   plexItemType: string | null;
   /** Display title of the linked Plex item, denormalized at link time. */
   plexItemTitle: string | null;
-  /** Ids of the albums this person is credited on (many-to-many). */
-  albumIds: string[];
 }
 
 /** Lightweight person shape carried on a bookmark. */
@@ -1093,13 +1076,10 @@ export interface UpdatePersonInput {
   /** IDs of groups to associate; replaces the full set. Omit to leave unchanged. */
   groupIds?: string[];
   sortOrder?: number;
-  mediaPropertyId?: string | null;
   year?: number | null;
   plexRatingKey?: string | null;
   plexItemType?: string | null;
   plexItemTitle?: string | null;
-  /** Ids of the albums to credit this person on; replaces the full set. Omit to leave unchanged. */
-  albumIds?: string[];
 }
 
 /** Lightweight import shape carried on a bookmark (the import event it was created from). */
@@ -1347,20 +1327,6 @@ export interface Bookmark {
   newsletter: BookmarkNewsletter | null;
   /** The group (e.g. publisher) of this bookmarked item, or null when unset. */
   group: BookmarkGroup | null;
-  /** Id of the linked Book (Books taxonomy), or `null` when unset. */
-  bookId: string | null;
-  /** Id of the linked Movie (Movies taxonomy), or `null` when unset. */
-  movieId: string | null;
-  /** Id of the linked TV Show (TV Shows taxonomy), or `null` when unset. */
-  tvShowId: string | null;
-  /** Id of the linked Episode (Episodes taxonomy), or `null` when unset. */
-  episodeId: string | null;
-  /** Id of the linked Album (Albums taxonomy), or `null` when unset. */
-  albumId: string | null;
-  /** Id of the linked Track (Tracks taxonomy), or `null` when unset. */
-  trackId: string | null;
-  /** Id of the linked Podcast (Podcasts taxonomy), or `null` when unset. */
-  podcastId: string | null;
   /** Id of the linked series on the connected Kavita server, or `null` when not linked. */
   kavitaSeriesId: number | null;
   /** Id of the Kavita library containing the linked series (needed for the web UI deep link). */

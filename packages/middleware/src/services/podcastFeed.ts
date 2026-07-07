@@ -15,10 +15,9 @@ import { XMLParser } from "fast-xml-parser";
 import type { PodcastFeedResult, PodcastProviderLinks, PodcastSearchResult } from "@eesimple/types";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { bookmarks, podcasts } from "@/db/schema";
+import { bookmarks } from "@/db/schema";
 import { addBookmarkImage } from "@/services/bookmarkImages";
 import { downloadImage, extractImageUrl, extractTitle, fetchHeadHtml, isPublicHttpUrl } from "@/services/metadata";
-import { addTaxonomyImage, type AddTaxonomyImageResult } from "@/services/taxonomyImages";
 import { normalizeLanguageCode } from "@/utils/languageCodes";
 
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
@@ -501,27 +500,9 @@ async function resolvePodcastFeedIdentityPreview(identity: PodcastFeedIdentity):
 }
 
 /**
- * Resolve the current metadata for a stored podcast, for the "Sync from source" preview. Returns
- * `null` when the podcast has no usable source or the source can't be read.
- */
-export async function resolvePodcastFeedPreview(podcastId: string): Promise<PodcastFeedResult | null> {
-  const [row] = await db.select({
-    feedUrl: podcasts.feedUrl,
-    itunesId: podcasts.itunesId,
-    itunesUrl: podcasts.itunesUrl,
-  }).from(podcasts).where(eq(podcasts.id, podcastId));
-  if (!row) return null;
-  return resolvePodcastFeedIdentityPreview(row);
-}
-
-/**
  * Resolve the current metadata for a bookmark's own promoted podcast identity (see #1070), for the
- * "Sync from source" preview. The bookmark counterpart to {@link resolvePodcastFeedPreview}, preferring
- * the bookmark's own `feedUrl`/`itunesId`/`itunesUrl` columns, falling back to the linked Podcast row's
- * (when `podcastId` is set and the bookmark carries none of its own) — mirroring how
- * `resolveBookmarkPlexRatingKey` prefers the linked taxonomy row while still honoring the bookmark's own
- * legacy value. Returns `"not_found"` when the bookmark doesn't exist, `null` when there's no usable
- * podcast source either way.
+ * "Sync from source" preview. Prefers the bookmark's own `feedUrl`/`itunesId`/`itunesUrl` columns.
+ * Returns `"not_found"` when the bookmark doesn't exist, `null` when there's no usable podcast source.
  */
 export async function resolveBookmarkPodcastFeedPreview(
   bookmarkId: string,
@@ -530,64 +511,15 @@ export async function resolveBookmarkPodcastFeedPreview(
     feedUrl: bookmarks.feedUrl,
     itunesId: bookmarks.itunesId,
     itunesUrl: bookmarks.itunesUrl,
-    podcastId: bookmarks.podcastId,
   }).from(bookmarks).where(eq(bookmarks.id, bookmarkId));
   if (!row) return "not_found";
-
-  let identity: PodcastFeedIdentity = row;
-  if (!identity.feedUrl && identity.itunesId == null && row.podcastId) {
-    const [linked] = await db.select({
-      feedUrl: podcasts.feedUrl,
-      itunesId: podcasts.itunesId,
-      itunesUrl: podcasts.itunesUrl,
-    }).from(podcasts).where(eq(podcasts.id, row.podcastId));
-    if (linked) identity = linked;
-  }
-  return resolvePodcastFeedIdentityPreview(identity);
-}
-
-/** Why a podcast artwork import failed, beyond `addTaxonomyImage`'s own outcomes. */
-export type PodcastArtworkImportResult
-  = | AddTaxonomyImageResult
-    | "not_found"
-    | "no_source"
-    | "artwork_unavailable";
-
-/**
- * Resolve the podcast's artwork URL (feed `itunes:image`, else the iTunes lookup artwork), download it,
- * and store it as the podcast's main image. Mirrors `importIsbnCoverForBook`.
- */
-export async function importPodcastArtwork(podcastId: string): Promise<PodcastArtworkImportResult> {
-  const [row] = await db.select({
-    feedUrl: podcasts.feedUrl,
-    itunesId: podcasts.itunesId,
-  }).from(podcasts).where(eq(podcasts.id, podcastId));
-  if (!row) return "not_found";
-
-  let artworkUrl: string | null = null;
-  if (row.feedUrl) {
-    const resolved = await resolvePodcastFeed(row.feedUrl);
-    artworkUrl = resolved?.imageUrl ?? null;
-  }
-  if (!artworkUrl && row.itunesId != null) {
-    const looked = await lookupPodcastByItunesId(row.itunesId);
-    artworkUrl = looked?.artworkUrl ?? null;
-  }
-  if (!artworkUrl && !row.feedUrl && row.itunesId == null) return "no_source";
-  if (!artworkUrl || !isPublicHttpUrl(artworkUrl)) return "artwork_unavailable";
-
-  const bytes = await downloadImage(artworkUrl);
-  if (!bytes) return "artwork_unavailable";
-  return addTaxonomyImage("podcast", podcastId, bytes, "podcast", {
-    setMain: true,
-  });
+  return resolvePodcastFeedIdentityPreview(row);
 }
 
 /**
- * Resolve a bookmark's own promoted podcast identity's artwork URL (own `feedUrl`/`itunesId`, falling
- * back to a linked Podcast row's — via {@link resolveBookmarkPodcastFeedPreview}), download it, and
- * store it as the bookmark's main image (keeping its other images). The bookmark counterpart of
- * {@link importPodcastArtwork}.
+ * Resolve a bookmark's own promoted podcast identity's artwork URL (via
+ * {@link resolveBookmarkPodcastFeedPreview}), download it, and store it as the bookmark's main image
+ * (keeping its other images).
  */
 export async function importBookmarkPodcastArtwork(bookmarkId: string): Promise<
   Awaited<ReturnType<typeof addBookmarkImage>> | "not_found" | "no_source" | "artwork_unavailable"

@@ -123,13 +123,6 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   inboxCount: number | undefined;
   aiSummarizationCount: number | undefined;
   placeTypesCount: number | undefined;
-  booksCount: number | undefined;
-  podcastsCount: number | undefined;
-  moviesCount: number | undefined;
-  tvShowsCount: number | undefined;
-  episodesCount: number | undefined;
-  albumsCount: number | undefined;
-  tracksCount: number | undefined;
   groupsCount: number | undefined;
   groupTypesCount: number | undefined;
   currentBookmarkCategories: string[];
@@ -196,7 +189,6 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     "tags": data.allTags?.length,
     "websites": data.allWebsites?.length,
     "media-types": data.allMediaTypes?.length,
-    "media-properties": data.allMediaProperties?.length,
     "locations": data.allLocations?.length,
     "youtube-channels": data.allChannels?.length,
     "newsletters": data.allNewsletters?.length,
@@ -266,13 +258,6 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     inboxCount: data.inboxItems?.filter(item => item.status === "pending").length,
     aiSummarizationCount: data.aiSummaryQueue?.length,
     placeTypesCount: data.allPlaceTypes?.length,
-    booksCount: data.allBooks?.length,
-    podcastsCount: data.allPodcasts?.length,
-    moviesCount: data.allMovies?.length,
-    tvShowsCount: data.allTvShows?.length,
-    episodesCount: data.allEpisodes?.length,
-    albumsCount: data.allAlbums?.length,
-    tracksCount: data.allTracks?.length,
     groupsCount: data.allGroups?.length,
     groupTypesCount: data.allGroupTypes?.length,
     currentBookmarkCategories,

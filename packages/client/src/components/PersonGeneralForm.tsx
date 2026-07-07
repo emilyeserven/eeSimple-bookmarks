@@ -155,7 +155,6 @@ export function PersonGeneralForm({
         year={person.year}
         plexRatingKey={person.plexRatingKey}
         plexItemTitle={person.plexItemTitle}
-        albumIds={person.albumIds}
         save={(input, label) => updatePerson.mutate(
           {
             id: person.id,

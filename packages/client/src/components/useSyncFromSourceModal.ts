@@ -5,8 +5,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useBookmarkSyncSource } from "@/hooks/useBookmarkSyncSource";
 import { useImageOnlyTaxonomySyncSource } from "@/hooks/useImageOnlyTaxonomySyncSource";
 import { useLocationSyncSource } from "@/hooks/useLocationSyncSource";
-import { usePlexTitleSyncSource } from "@/hooks/usePlexTitleSyncSource";
-import { usePodcastSyncSource } from "@/hooks/usePodcastSyncSource";
 
 /**
  * State + orchestration for {@link SyncFromSourceModal}. Dispatches to the per-kind fetch hook
@@ -20,8 +18,6 @@ export function useSyncFromSourceModal(provider: SyncProvider, open: boolean, on
   const bookmark = useBookmarkSyncSource(provider, open && kind === "bookmark");
   const location = useLocationSyncSource(provider, open && kind === "location");
   const image = useImageOnlyTaxonomySyncSource(provider, open && kind === "image-taxonomy");
-  const plexTitle = usePlexTitleSyncSource(provider, open && kind === "plex-title");
-  const podcast = usePodcastSyncSource(provider, open && kind === "podcast-feed");
 
   // Exhaustive over SyncDescriptorKind — only the gated hook for `kind` actually fetched; the rest
   // are idle. A keyed lookup keeps this a single expression (no nested-ternary cognitive load).
@@ -29,8 +25,6 @@ export function useSyncFromSourceModal(provider: SyncProvider, open: boolean, on
     "bookmark": bookmark,
     "location": location,
     "image-taxonomy": image,
-    "plex-title": plexTitle,
-    "podcast-feed": podcast,
   }[kind];
   const diff = active.diff;
 

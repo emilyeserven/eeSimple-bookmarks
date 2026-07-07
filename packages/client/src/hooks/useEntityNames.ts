@@ -19,13 +19,6 @@ const OWNER_QUERY_KEYS: Record<EntityNameOwnerType, string> = {
   location: "locations",
   person: "people",
   group: "groups",
-  book: "books",
-  podcast: "podcasts",
-  movie: "movies",
-  tvShow: "tv-shows",
-  episode: "episodes",
-  album: "albums",
-  track: "tracks",
 };
 
 /** An owner's multilingual names. */

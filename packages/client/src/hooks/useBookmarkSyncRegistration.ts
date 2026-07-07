@@ -7,11 +7,10 @@ import { useCallback, useMemo, useRef } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { useBookmarkKavitaLink, useBookmarkPlexRatingKey } from "./useBookmarkMediaLinks";
 import {
   useAutoBookmarkImage, useIsbnCoverImage, useKavitaCoverImage, usePlexPosterImage, usePodcastArtworkImage, useUpdateBookmark,
 } from "./useBookmarks";
-import { useBookmarkKavitaLink } from "./useBooks";
-import { useBookmarkPlexRatingKey } from "./useMovies";
 import { useRegisterSyncProvider } from "./useRegisterSyncProvider";
 import { notifyFieldSaveError, notifyFieldSaved } from "../lib/autoSave";
 import { resolveBookmarkDisplayImage } from "../lib/bookmarkImage";

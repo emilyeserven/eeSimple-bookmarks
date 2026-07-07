@@ -4,9 +4,6 @@
  * — the service its detail page and the `podcastLink` bookmark-card field link out to. Add a provider
  * in exactly one place: this tuple + its label below.
  */
-import type { EntityName } from "./entityNames.js";
-import type { LabeledWebsite } from "./labeledWebsites.js";
-
 export const PODCAST_LINK_PROVIDERS = ["feed", "itunes", "spotify", "pocketCasts"] as const;
 export type PodcastLinkProvider = typeof PODCAST_LINK_PROVIDERS[number];
 
@@ -24,97 +21,6 @@ export const PODCAST_LINK_PROVIDER_LABELS: Record<PodcastLinkProvider, string> =
  */
 export const PODCAST_SEARCH_PROVIDERS = ["itunes", "pocketCasts"] as const;
 export type PodcastSearchProvider = typeof PODCAST_SEARCH_PROVIDERS[number];
-
-/**
- * A Podcast in the "Podcasts" taxonomy — the eighth Media Property a bookmark can link to (via
- * `bookmark.podcastId`). Unlike the Plex-backed siblings, a Podcast is sourced keylessly from its
- * public RSS/XML feed and/or Apple Podcasts (iTunes) so its title/author/artwork/description can be
- * autofilled and re-synced. It also stores its page URL on other listening services (Spotify,
- * Pocket Casts) — cross-resolved from the feed where possible, pasted for Spotify — and a
- * `defaultLinkProvider` picking which one it links out to. A Podcast may optionally belong to a Media
- * Property (franchise/IP grouping).
- */
-export interface Podcast {
-  id: string;
-  /** Display name — the show title. Unique. */
-  name: string;
-  /** Multilingual names for this podcast, each labelled by language; the `isPrimary` row mirrors `name`. */
-  names?: EntityName[];
-  /** URL-friendly identifier derived from the name. Unique. */
-  slug: string;
-  /** Display ordering weight; lower sorts first. */
-  sortOrder: number;
-  /** Optional franchise/IP grouping this podcast belongs to. */
-  mediaPropertyId: string | null;
-  /** Canonical RSS/XML feed URL — the source of truth for "Sync from source", or null when unset. */
-  feedUrl: string | null;
-  /** Apple Podcasts collection id (from the iTunes search picker), or null when not linked. */
-  itunesId: number | null;
-  /** Apple Podcasts page URL (for a "View on Apple Podcasts" link-out), or null. */
-  itunesUrl: string | null;
-  /** Spotify show page URL (manual paste — Spotify has no keyless search), or null. */
-  spotifyUrl: string | null;
-  /** Pocket Casts podcast uuid (from the Pocket Casts search/cross-resolve), or null. */
-  pocketCastsUuid: string | null;
-  /** Pocket Casts share page URL (`https://pca.st/podcast/<uuid>`), or null. */
-  pocketCastsUrl: string | null;
-  /** Which service this podcast links out to by default, or null to fall back to the first available. */
-  defaultLinkProvider: PodcastLinkProvider | null;
-  /** People (individuals) credited as authors/hosts of this podcast. */
-  personIds: string[];
-  /** Groups (organizations/networks) credited as authors/hosts of this podcast. */
-  groupIds: string[];
-  /** Podcast description scraped from the feed, or null. */
-  description: string | null;
-  /** ISO-8601 timestamp of when the podcast was created. */
-  createdAt: string;
-  /** Number of bookmarks linked to this podcast (populated by list endpoints). */
-  bookmarkCount?: number;
-  /** Main artwork image URL (from the taxonomy-image gallery), or null when none is set. */
-  imageUrl: string | null;
-  /** Labeled websites/links for this podcast (freeform label + URL, optionally a Websites-taxonomy ref). */
-  labeledWebsites: LabeledWebsite[];
-}
-
-/** Payload for creating a podcast. */
-export interface CreatePodcastInput {
-  name: string;
-  sortOrder?: number;
-  mediaPropertyId?: string | null;
-  feedUrl?: string | null;
-  itunesId?: number | null;
-  itunesUrl?: string | null;
-  spotifyUrl?: string | null;
-  pocketCastsUuid?: string | null;
-  pocketCastsUrl?: string | null;
-  defaultLinkProvider?: PodcastLinkProvider | null;
-  /** People (individuals) credited as authors/hosts. Replaces the full set when present. */
-  personIds?: string[];
-  /** Groups (organizations/networks) credited as authors/hosts. Replaces the full set when present. */
-  groupIds?: string[];
-  description?: string | null;
-}
-
-/** Payload for updating a podcast (rename, reorder, re-link feed/iTunes/media property). */
-export interface UpdatePodcastInput {
-  name?: string;
-  sortOrder?: number;
-  mediaPropertyId?: string | null;
-  feedUrl?: string | null;
-  itunesId?: number | null;
-  itunesUrl?: string | null;
-  spotifyUrl?: string | null;
-  pocketCastsUuid?: string | null;
-  pocketCastsUrl?: string | null;
-  defaultLinkProvider?: PodcastLinkProvider | null;
-  /** People (individuals) credited as authors/hosts. Replaces the full set when present. */
-  personIds?: string[];
-  /** Groups (organizations/networks) credited as authors/hosts. Replaces the full set when present. */
-  groupIds?: string[];
-  description?: string | null;
-  /** Labeled websites/links. Replaces the full list; omit to leave unchanged. */
-  labeledWebsites?: LabeledWebsite[];
-}
 
 /**
  * A single podcast returned by a keyless search provider (Apple Podcasts / Pocket Casts) or resolved

@@ -6,7 +6,7 @@
  * Explanations…) qualify content, `proficiency` levels (Native, Fluent, Learning…) qualify people.
  *
  * A {@link LanguageUsage} associates a language + a usage level (+ optional note) with an owner
- * entity (a bookmark, movie, TV show, website, YouTube channel, or person). The association is
+ * entity (a bookmark, website, YouTube channel, or person). The association is
  * denormalized for display (it carries the language's and level's names/slugs).
  *
  * This module is pure so it runs unchanged in the Fastify API and the browser.
@@ -19,7 +19,7 @@ export type LanguageUsageKind = "availability" | "proficiency";
  * The owner entities a {@link LanguageUsage} can attach to. Mirrors the middleware's
  * `LANGUAGE_USAGE_OWNER_TYPES`; the polymorphic association is keyed by `(ownerType, ownerId)`.
  */
-export const LANGUAGE_USAGE_OWNER_TYPES = ["bookmark", "movie", "tvShow", "episode", "album", "track", "book", "podcast", "website", "youtubeChannel", "person"] as const;
+export const LANGUAGE_USAGE_OWNER_TYPES = ["bookmark", "website", "youtubeChannel", "person"] as const;
 export type LanguageUsageOwnerType = typeof LANGUAGE_USAGE_OWNER_TYPES[number];
 
 /** A user-managed usage-level vocabulary entry. */

@@ -13,16 +13,14 @@
  * from the item's own metadata — never a client value.
  */
 
-import type { PlexItemResult, TaxonomyImageOwnerType } from "@eesimple/types";
+import type { PlexItemResult } from "@eesimple/types";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { albums, bookmarks, episodes, movies, tracks, tvShows } from "@/db/schema";
+import { bookmarks } from "@/db/schema";
 import { getActivePlexEndpoint, getDecryptedPlexToken } from "@/services/appSettings";
 import { addBookmarkImage } from "@/services/bookmarkImages";
-import { resolveBookmarkPlexRatingKey, type BookmarkPlexLinks } from "@/services/movies";
-import { addTaxonomyImage, type AddTaxonomyImageResult } from "@/services/taxonomyImages";
-import { resolveTitleWikidata, type WikidataExternalId } from "@/services/wikidataTitle";
+import { resolveTitleWikidata } from "@/services/wikidataTitle";
 
 const PLEX_TIMEOUT_MS = 10000;
 // /identity is polled indirectly by the frequently-called /api/connectors endpoint; keep it snappy
@@ -343,102 +341,20 @@ export type PlexPosterImportResult
 export async function importPlexPoster(bookmarkId: string): Promise<PlexPosterImportResult> {
   const [row] = await db
     .select({
-      movieId: bookmarks.movieId,
-      tvShowId: bookmarks.tvShowId,
-      episodeId: bookmarks.episodeId,
-      albumId: bookmarks.albumId,
-      trackId: bookmarks.trackId,
       plexRatingKey: bookmarks.plexRatingKey,
     })
     .from(bookmarks)
     .where(eq(bookmarks.id, bookmarkId));
   if (!row) return "not_found";
-  // Prefer the linked taxonomy row's Plex rating key, falling back to the bookmark's legacy key.
-  const ratingKey = await resolveBookmarkPlexRatingKey(row, row.plexRatingKey);
-  if (ratingKey === null) return "not_linked";
-  const bytes = await fetchPlexPoster(ratingKey);
+  if (row.plexRatingKey === null) return "not_linked";
+  const bytes = await fetchPlexPoster(row.plexRatingKey);
   if (!bytes) return "poster_unavailable";
   return addBookmarkImage(bookmarkId, bytes, "og", {
     setMain: true,
   });
 }
 
-/** The Plex-backed taxonomy tables, keyed by their `TaxonomyImageOwnerType`. */
-const PLEX_TAXONOMY_TABLES = {
-  movie: movies,
-  tvShow: tvShows,
-  episode: episodes,
-  album: albums,
-  track: tracks,
-} as const;
-
-/** A Plex-backed taxonomy's own kind, narrowing `TaxonomyImageOwnerType` (excludes Books/Kavita). */
-export type PlexTaxonomyOwnerType = keyof typeof PLEX_TAXONOMY_TABLES;
-
-/** Why a taxonomy Plex-poster import failed, beyond `addTaxonomyImage`'s own outcomes. */
-export type PlexTaxonomyPosterImportResult
-  = | AddTaxonomyImageResult
-    | "not_found"
-    | "not_linked"
-    | "poster_unavailable";
-
-/**
- * Import a Plex-backed taxonomy entity's own linked poster from Plex into its image gallery, keeping
- * its other images. Reads the entity's own `plexRatingKey` column directly (no bookmark indirection
- * needed — unlike bookmarks, these taxonomy rows carry the Plex link themselves).
- */
-export async function importPlexPosterForTaxonomy(
-  ownerType: PlexTaxonomyOwnerType,
-  ownerId: string,
-): Promise<PlexTaxonomyPosterImportResult> {
-  const table = PLEX_TAXONOMY_TABLES[ownerType];
-  const [row] = await db.select({
-    plexRatingKey: table.plexRatingKey,
-  }).from(table).where(eq(table.id, ownerId));
-  if (!row) return "not_found";
-  if (!row.plexRatingKey) return "not_linked";
-  const bytes = await fetchPlexPoster(row.plexRatingKey);
-  if (!bytes) return "poster_unavailable";
-  return addTaxonomyImage(ownerType as TaxonomyImageOwnerType, ownerId, bytes, "plex", {
-    setMain: true,
-  });
-}
-
-/**
- * Map a taxonomy's Plex guids to the Wikidata external-ID properties worth matching on, most-precise
- * first. IMDb (`P345`) covers films/shows/episodes; TMDb splits by film (`P4947`) vs TV (`P4983`);
- * music maps to the MusicBrainz release-group/recording IDs.
- */
-function buildExternalIds(ownerType: PlexTaxonomyOwnerType, guids: PlexGuids): WikidataExternalId[] {
-  const ids: WikidataExternalId[] = [];
-  const push = (property: string, value: string | null): void => {
-    if (value) ids.push({
-      property,
-      value,
-    });
-  };
-  switch (ownerType) {
-    case "movie":
-      push("P345", guids.imdb);
-      push("P4947", guids.tmdb);
-      break;
-    case "tvShow":
-    case "episode":
-      push("P345", guids.imdb);
-      push("P4983", guids.tmdb);
-      push("P4835", guids.tvdb);
-      break;
-    case "album":
-      push("P436", guids.musicBrainz);
-      break;
-    case "track":
-      push("P4404", guids.musicBrainz);
-      break;
-  }
-  return ids;
-}
-
-/** The candidate metadata the "Sync from source" modal reviews for a Plex-backed taxonomy row. */
+/** The candidate metadata the "Sync from source" modal reviews for a bookmark's Plex identity. */
 export interface PlexTaxonomyMetadataPreview {
   /** Native-script name resolved from Wikidata, or null. */
   name: string | null;
@@ -448,64 +364,13 @@ export interface PlexTaxonomyMetadataPreview {
   wikipediaLinkLocal: string | null;
 }
 
-/** Outcome of {@link resolvePlexTaxonomyMetadata}. */
+/** Outcome of {@link resolveBookmarkPlexMetadata}. */
 export type PlexMetadataPreviewResult = PlexTaxonomyMetadataPreview | "not_found" | "not_linked";
 
 /**
- * Resolve a Plex-backed taxonomy row's Wikidata metadata **without applying it** — the source side of
- * the "Sync from source" review. Reads the linked Plex item's external IDs (IMDb/TMDb/TVDB/MusicBrainz,
- * falling back to a title search) and returns the candidate native name, English name, and Wikipedia
- * links for the modal to diff against the current values. The picked rows are persisted by the client's
- * edit form (per-field auto-save); this never writes, so it never touches the bookmark cache.
- */
-export async function resolvePlexTaxonomyMetadata(
-  ownerType: PlexTaxonomyOwnerType,
-  ownerId: string,
-): Promise<PlexMetadataPreviewResult> {
-  const table = PLEX_TAXONOMY_TABLES[ownerType];
-  const [row] = await db
-    .select({
-      name: table.name,
-      plexRatingKey: table.plexRatingKey,
-      wikidataId: table.wikidataId,
-    })
-    .from(table)
-    .where(eq(table.id, ownerId));
-  if (!row) return "not_found";
-  if (!row.plexRatingKey) return "not_linked";
-
-  const config = await resolveConfig();
-  const meta = config ? await fetchPlexItemMeta(row.plexRatingKey) : null;
-  const resolution = await resolveTitleWikidata({
-    name: row.name,
-    wikidataId: row.wikidataId,
-    externalIds: buildExternalIds(ownerType, meta?.guids ?? EMPTY_GUIDS),
-  });
-  return {
-    name: resolution?.name ?? null,
-    englishName: resolution?.englishName ?? null,
-    wikipediaLinkEn: resolution?.wikipediaLinkEn ?? null,
-    wikipediaLinkLocal: resolution?.wikipediaLinkLocal ?? null,
-  };
-}
-
-/** Which of the five Plex-backed taxonomy FKs a bookmark links, for {@link buildExternalIds}. */
-function bookmarkPlexOwnerType(links: BookmarkPlexLinks): PlexTaxonomyOwnerType | null {
-  if (links.movieId) return "movie";
-  if (links.tvShowId) return "tvShow";
-  if (links.episodeId) return "episode";
-  if (links.albumId) return "album";
-  if (links.trackId) return "track";
-  return null;
-}
-
-/**
  * Resolve a bookmark's own promoted Plex identity's Wikidata metadata **without applying it** — the
- * bookmark counterpart to {@link resolvePlexTaxonomyMetadata}, for a media-item bookmark that carries
- * its own `plexRatingKey`/`wikidataId` (see #1070) rather than linking a Plex taxonomy row. Resolves the
- * effective rating key the same way `importPlexPoster` does (linked taxonomy row's key, else the
- * bookmark's own legacy key), and derives the external-ID mapping from whichever Plex taxonomy FK is
- * linked (falling back to a title search when none is linked). Never writes.
+ * source side of the "Sync from source" review. Reads the bookmark's own `plexRatingKey`/`wikidataId`
+ * (see #1070), falls back to a title search when unlinked. Never writes.
  */
 export async function resolveBookmarkPlexMetadata(bookmarkId: string): Promise<PlexMetadataPreviewResult> {
   const [row] = await db
@@ -513,26 +378,16 @@ export async function resolveBookmarkPlexMetadata(bookmarkId: string): Promise<P
       title: bookmarks.title,
       wikidataId: bookmarks.wikidataId,
       plexRatingKey: bookmarks.plexRatingKey,
-      movieId: bookmarks.movieId,
-      tvShowId: bookmarks.tvShowId,
-      episodeId: bookmarks.episodeId,
-      albumId: bookmarks.albumId,
-      trackId: bookmarks.trackId,
     })
     .from(bookmarks)
     .where(eq(bookmarks.id, bookmarkId));
   if (!row) return "not_found";
+  if (row.plexRatingKey === null) return "not_linked";
 
-  const ratingKey = await resolveBookmarkPlexRatingKey(row, row.plexRatingKey);
-  if (ratingKey === null) return "not_linked";
-
-  const ownerType = bookmarkPlexOwnerType(row);
-  const config = await resolveConfig();
-  const meta = config ? await fetchPlexItemMeta(ratingKey) : null;
   const resolution = await resolveTitleWikidata({
     name: row.title,
     wikidataId: row.wikidataId,
-    externalIds: ownerType ? buildExternalIds(ownerType, meta?.guids ?? EMPTY_GUIDS) : [],
+    externalIds: [],
   });
   return {
     name: resolution?.name ?? null,

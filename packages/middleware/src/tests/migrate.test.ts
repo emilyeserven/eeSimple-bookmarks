@@ -5,7 +5,7 @@ import { mock, test } from "node:test";
  * `src/db/migrate.ts` is the runtime-migrations CLI script: importing it (for its exported
  * `shouldBailOnRomanizedDrop` pure helper) also runs its top-level `main()`, which opens a real
  * `pg` connection and would otherwise `process.exit(1)` against this suite's no-live-Postgres
- * harness (see `taxonomyImages.test.ts`/`cardDisplayRules.test.ts` for the same constraint on
+ * harness (see `cardDisplayRules.test.ts` for the same constraint on
  * service modules). `mock.module` swaps `pg` and `drizzle-orm/node-postgres` with no-op stands-in
  * before the first import, so `main()` runs its idempotent no-op-execute path to completion
  * instead of touching a database.

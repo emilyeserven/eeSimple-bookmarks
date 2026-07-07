@@ -12,7 +12,6 @@ import {
   Languages,
   LayoutGrid,
   Layers,
-  Library,
   ListFilter,
   Mail,
   MapPin,
@@ -89,11 +88,6 @@ const TAXONOMY_ITEMS = [
     key: "languages",
     label: "Languages",
     icon: Languages,
-  },
-  {
-    key: "media-properties",
-    label: "Media Properties",
-    icon: Library,
   },
   {
     key: "locations",

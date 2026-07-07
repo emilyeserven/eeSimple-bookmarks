@@ -411,34 +411,6 @@ const createBookmarkBody = {
       type: ["string", "null"],
       format: "uuid",
     },
-    bookId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
-    movieId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
-    tvShowId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
-    episodeId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
-    albumId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
-    trackId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
-    podcastId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
     kavitaSeriesId: {
       type: ["integer", "null"],
     },

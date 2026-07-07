@@ -10,10 +10,9 @@ import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { applyImageIntent } from "./bookmarkSubmit";
 import { useBookmarkImageMutations } from "./useBookmarkImageMutations";
 import { useScreenshotSettingsState } from "./useScreenshotSettingsState";
-import { useBookmarkKavitaSeriesId } from "../hooks/useBooks";
+import { useBookmarkKavitaSeriesId, useBookmarkPlexRatingKey } from "../hooks/useBookmarkMediaLinks";
 import { useConnectors } from "../hooks/useConnectors";
 import { usePropertyBySlug } from "../hooks/useCustomProperties";
-import { useBookmarkPlexRatingKey } from "../hooks/useMovies";
 import { metadataApi } from "../lib/api/metadata";
 import { notifySuccess } from "../lib/notifications";
 

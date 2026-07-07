@@ -7,12 +7,9 @@ import { db } from "@/db";
 // `deleteEntityNamesForOwner` — doesn't form a circular import.
 import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import {
-  albums,
-  books,
   bookmarks,
   categories,
   entityNames,
-  episodes,
   genreMoods,
   groups,
   languages,
@@ -20,12 +17,8 @@ import {
   languageUsages,
   locations,
   mediaTypes,
-  movies,
   people,
-  podcasts,
   tags,
-  tracks,
-  tvShows,
 } from "@/db/schema";
 import { getDisplayPreferenceSettings } from "@/services/appSettings";
 import { detectNameLanguage } from "@/utils/scriptDetection";
@@ -69,34 +62,6 @@ const OWNER_TABLES: Record<EntityNameOwnerType, { table: PgTable;
   },
   group: {
     table: groups,
-    nameColumn: "name",
-  },
-  book: {
-    table: books,
-    nameColumn: "name",
-  },
-  podcast: {
-    table: podcasts,
-    nameColumn: "name",
-  },
-  movie: {
-    table: movies,
-    nameColumn: "name",
-  },
-  tvShow: {
-    table: tvShows,
-    nameColumn: "name",
-  },
-  episode: {
-    table: episodes,
-    nameColumn: "name",
-  },
-  album: {
-    table: albums,
-    nameColumn: "name",
-  },
-  track: {
-    table: tracks,
     nameColumn: "name",
   },
 };

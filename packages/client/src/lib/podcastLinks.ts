@@ -1,12 +1,15 @@
-import type { Podcast, PodcastLinkProvider } from "@eesimple/types";
+import type { PodcastLinkProvider } from "@eesimple/types";
 
 import { PODCAST_LINK_PROVIDER_LABELS, PODCAST_LINK_PROVIDERS } from "@eesimple/types";
 
-/** The subset of a {@link Podcast} that carries its per-service link fields. */
-export type PodcastLinkFields = Pick<
-  Podcast,
-  "feedUrl" | "itunesUrl" | "spotifyUrl" | "pocketCastsUrl" | "defaultLinkProvider"
->;
+/** The per-service link fields carried on a bookmark's own promoted podcast identity (see #1070). */
+export interface PodcastLinkFields {
+  feedUrl: string | null;
+  itunesUrl: string | null;
+  spotifyUrl: string | null;
+  pocketCastsUrl: string | null;
+  defaultLinkProvider: PodcastLinkProvider | null;
+}
 
 /** The stored page URL for a given provider on a podcast, or null when unset. */
 export function podcastLinkUrl(podcast: PodcastLinkFields, provider: PodcastLinkProvider): string | null {
@@ -16,20 +19,6 @@ export function podcastLinkUrl(podcast: PodcastLinkFields, provider: PodcastLink
     case "spotify": return podcast.spotifyUrl;
     case "pocketCasts": return podcast.pocketCastsUrl;
   }
-}
-
-/** The providers this podcast has a URL for, in canonical order. */
-export function availablePodcastLinkProviders(podcast: PodcastLinkFields): PodcastLinkProvider[] {
-  return PODCAST_LINK_PROVIDERS.filter(provider => podcastLinkUrl(podcast, provider) != null);
-}
-
-/** Select options (value/label) for the default-link picker — only providers with a URL. */
-export function podcastLinkOptions(podcast: PodcastLinkFields): { value: string;
-  label: string; }[] {
-  return availablePodcastLinkProviders(podcast).map(provider => ({
-    value: provider,
-    label: PODCAST_LINK_PROVIDER_LABELS[provider],
-  }));
 }
 
 /** A resolved external link for a podcast. */

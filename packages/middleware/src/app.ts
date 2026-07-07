@@ -32,7 +32,6 @@ import { entityNameRoutes } from "@/routes/entityNames";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { genreMoodRoutes } from "@/routes/genreMoods";
 import { genreMoodAssignmentRoutes } from "@/routes/genreMoodAssignments";
-import { locationAssignmentRoutes } from "@/routes/locationAssignments";
 import { locationRoutes } from "@/routes/locations";
 import { placeTypeRoutes } from "@/routes/placeTypes";
 import { connectorsRoutes } from "@/routes/connectors";
@@ -44,16 +43,7 @@ import { groupRoutes } from "@/routes/groups";
 import { groupTypeRoutes } from "@/routes/groupTypes";
 import { reelArchiveRoutes } from "@/routes/reelArchive";
 import { propertyGroupRoutes } from "@/routes/propertyGroups";
-import { mediaPropertyRoutes } from "@/routes/mediaProperties";
-import { bookRoutes } from "@/routes/books";
-import { movieRoutes } from "@/routes/movies";
-import { tvShowRoutes } from "@/routes/tvShows";
-import { episodeRoutes } from "@/routes/episodes";
-import { albumRoutes } from "@/routes/albums";
-import { trackRoutes } from "@/routes/tracks";
-import { podcastRoutes } from "@/routes/podcasts";
 import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
-import { registerTaxonomyImageServingRoute } from "@/routes/taxonomyImageRoutes";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
 import { youtubeChannelRoutes } from "@/routes/youtubeChannels";
@@ -208,34 +198,6 @@ export async function buildApp(): Promise<FastifyInstance> {
             name: "group-types",
             description: "User-managed group type vocabulary for classifying groups",
           },
-          {
-            name: "media-properties",
-            description: "Media Properties taxonomy (franchise/IP groupings): CRUD",
-          },
-          {
-            name: "books",
-            description: "Books taxonomy: CRUD; bookmarks link to a Book instead of a live Kavita series",
-          },
-          {
-            name: "movies",
-            description: "Movies taxonomy: CRUD; bookmarks link to a Movie instead of a live Plex item",
-          },
-          {
-            name: "tv-shows",
-            description: "TV Shows taxonomy: CRUD; bookmarks link to a TV Show instead of a live Plex item",
-          },
-          {
-            name: "episodes",
-            description: "Episodes taxonomy: CRUD; child of a TV Show, Plex-backed",
-          },
-          {
-            name: "albums",
-            description: "Albums taxonomy: CRUD; credited to People/Publishers, Plex-backed",
-          },
-          {
-            name: "tracks",
-            description: "Tracks taxonomy: CRUD; child of an Album, Plex-backed",
-          },
         ],
       },
     });
@@ -281,7 +243,6 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(mediaTypeRoutes);
   await app.register(genreMoodRoutes);
   await app.register(genreMoodAssignmentRoutes);
-  await app.register(locationAssignmentRoutes);
   await app.register(languageRoutes);
   await app.register(languageUsageLevelRoutes);
   await app.register(languageUsageRoutes);
@@ -292,15 +253,6 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(youtubeChannelRoutes);
   await app.register(customPropertyRoutes);
   await app.register(propertyGroupRoutes);
-  await app.register(mediaPropertyRoutes);
-  registerTaxonomyImageServingRoute(app);
-  await app.register(bookRoutes);
-  await app.register(movieRoutes);
-  await app.register(tvShowRoutes);
-  await app.register(episodeRoutes);
-  await app.register(albumRoutes);
-  await app.register(trackRoutes);
-  await app.register(podcastRoutes);
   await app.register(relationshipTypeRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);

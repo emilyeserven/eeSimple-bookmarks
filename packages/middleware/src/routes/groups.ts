@@ -125,7 +125,6 @@ const updateGroupBody = {
     plexItemTitle: {
       type: ["string", "null"],
     },
-    albumIds: uuidArraySchema,
     youtubeChannelIds: uuidArraySchema,
     websiteIds: uuidArraySchema,
   },

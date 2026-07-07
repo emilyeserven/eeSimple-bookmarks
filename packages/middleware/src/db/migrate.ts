@@ -2010,6 +2010,105 @@ const migrations: RuntimeMigration[] = [
     name: "drop groups.website_id column",
     run: db => db.execute(sql`ALTER TABLE IF EXISTS "groups" DROP COLUMN IF EXISTS "website_id"`),
   },
+  // ---------------------------------------------------------------------------------------------
+  // Retire the media taxonomies (#1077): the 7 media tables + `media_properties`, the credit join
+  // tables, the 7 `bookmarks.*_id` FK columns, and `people.media_property_id` are all dead weight
+  // now that #1075 materialized every row into a bookmark. Guarded on a row-count assertion that the
+  // backfill actually ran for each source table — never drop a table with rows the backfill hasn't
+  // accounted for. A table already dropped (by a prior boot) has a row count of 0 and matches
+  // trivially, so this converges to a no-op.
+  // ---------------------------------------------------------------------------------------------
+  {
+    name: "drop retired media-taxonomy tables/columns (#1077)",
+    run: async (db) => {
+      const sourceTables: { table: string;
+        marker: string; }[] = [
+        {
+          table: "books",
+          marker: "book",
+        },
+        {
+          table: "movies",
+          marker: "movie",
+        },
+        {
+          table: "tv_shows",
+          marker: "tvShow",
+        },
+        {
+          table: "episodes",
+          marker: "episode",
+        },
+        {
+          table: "albums",
+          marker: "album",
+        },
+        {
+          table: "tracks",
+          marker: "track",
+        },
+        {
+          table: "podcasts",
+          marker: "podcast",
+        },
+        {
+          table: "media_properties",
+          marker: "mediaProperty",
+        },
+      ];
+
+      for (const {
+        table, marker,
+      } of sourceTables) {
+        if (!(await regclassExists(db, `"${table}"`))) continue;
+        const rowCountResult = await db.execute(
+          sql.raw(`SELECT count(*)::int AS count FROM "${table}"`),
+        );
+        const rowCount = (rowCountResult.rows as unknown as { count: number }[])[0]?.count ?? 0;
+        if (rowCount === 0) continue;
+        const migratedCountResult = await db.execute(sql`
+          SELECT count(*)::int AS count FROM "bookmarks"
+          WHERE "migration_source" LIKE ${`${marker}:%`}
+        `);
+        const migratedCount = (migratedCountResult.rows as unknown as { count: number }[])[0]?.count ?? 0;
+        if (migratedCount < rowCount) {
+          console.warn(
+            `[migrate] skipping drop of "${table}": ${rowCount} rows but only ${migratedCount} `
+            + "migrated to bookmarks — the #1075 backfill hasn't completed for this table",
+          );
+          return;
+        }
+      }
+
+      // Every source table is either empty, absent, or fully migrated — safe to drop.
+      await db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "book_id"`);
+      await db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "movie_id"`);
+      await db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "tv_show_id"`);
+      await db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "episode_id"`);
+      await db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "album_id"`);
+      await db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "track_id"`);
+      await db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "podcast_id"`);
+      await db.execute(sql`ALTER TABLE "people" DROP COLUMN IF EXISTS "media_property_id"`);
+      // Child tables (episodes → tv_shows, tracks → albums) and the credit/image join tables drop
+      // first, then the remaining leaf tables, then `media_properties` last (referenced by all seven).
+      await db.execute(sql`DROP TABLE IF EXISTS "album_people"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "album_groups"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "podcast_people"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "podcast_groups"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "taxonomy_images"`);
+      // `location_assignments` only ever attached Locations to these seven media-taxonomy owner
+      // types (see LOCATION_ASSIGNMENT_OWNER_TYPES) — dead weight once they're gone.
+      await db.execute(sql`DROP TABLE IF EXISTS "location_assignments"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "episodes"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "tracks"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "movies"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "tv_shows"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "albums"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "books"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "podcasts"`);
+      await db.execute(sql`DROP TABLE IF EXISTS "media_properties"`);
+    },
+  },
 ];
 
 async function main(): Promise<void> {

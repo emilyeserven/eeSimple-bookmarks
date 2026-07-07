@@ -9,7 +9,7 @@
 import type { FetchIsbnMetadataResult } from "@eesimple/types";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { bookmarkTextValues, books, customProperties } from "@/db/schema";
+import { bookmarkTextValues, customProperties } from "@/db/schema";
 import { addBookmarkImage, type SetImageResult } from "@/services/bookmarkImages";
 import { ISBN_SLUG } from "@/services/customProperties";
 import {
@@ -19,7 +19,6 @@ import {
   searchKavitaByIsbn,
 } from "@/services/kavita";
 import { downloadImage, isPublicHttpUrl } from "@/services/metadata";
-import { addTaxonomyImage, type AddTaxonomyImageResult } from "@/services/taxonomyImages";
 import { normalizeLanguageCode } from "@/utils/languageCodes";
 
 const ISBN_TIMEOUT_MS = 10_000;
@@ -280,46 +279,6 @@ export async function importIsbnCover(bookmarkId: string): Promise<IsbnCoverImpo
       : null;
   if (!bytes) return "cover_unavailable";
   return addBookmarkImage(bookmarkId, bytes, "og", {
-    setMain: true,
-  });
-}
-
-/** Why a Book's ISBN-cover import failed, beyond `addTaxonomyImage`'s own outcomes. */
-export type BookIsbnCoverImportResult
-  = | AddTaxonomyImageResult
-    | "not_found"
-    | "no_isbn"
-    | "isbn_not_found"
-    | "cover_unavailable";
-
-/**
- * Look up a Book's own stored ISBN and import the resulting cover (if any) into its image gallery,
- * keeping its other images. Same Kavita-fallback-bytes special case as {@link importIsbnCover}: a
- * Kavita-fallback result's `coverUrl` is a middleware-relative proxy path requiring the authenticated
- * Kavita API, so that case fetches bytes directly via `fetchKavitaSeriesCover`.
- */
-export async function importIsbnCoverForBook(bookId: string): Promise<BookIsbnCoverImportResult> {
-  const [row] = await db.select({
-    isbn: books.isbn,
-  }).from(books).where(eq(books.id, bookId));
-  if (!row) return "not_found";
-  const isbn = row.isbn?.trim();
-  if (!isbn) return "no_isbn";
-
-  const outcome = await fetchIsbnMetadata(isbn);
-  if (outcome.kind !== "ok") {
-    return outcome.kind === "not_found" ? "isbn_not_found" : "cover_unavailable";
-  }
-  const {
-    coverUrl, kavitaSeriesId,
-  } = outcome.result;
-  const bytes = kavitaSeriesId != null
-    ? await fetchKavitaSeriesCover(kavitaSeriesId)
-    : coverUrl && isPublicHttpUrl(coverUrl)
-      ? await downloadImage(coverUrl)
-      : null;
-  if (!bytes) return "cover_unavailable";
-  return addTaxonomyImage("book", bookId, bytes, "isbn", {
     setMain: true,
   });
 }

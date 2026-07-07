@@ -1,20 +1,12 @@
 // Sub-barrel: the core taxonomy / entity content types, grouped so the registry stays within the
 // dependency cap.
-export { albumContentType } from "./album";
-export { bookContentType } from "./book";
 export { bookmarkContentType } from "./bookmark";
 export { categoryContentType } from "./category";
-export { episodeContentType } from "./episode";
 export { genreMoodContentType } from "./genreMood";
 export { groupTypeContentType } from "./groupType";
 export { languageContentType } from "./language";
 export { locationContentType } from "./location";
-export { mediaPropertyContentType } from "./mediaProperty";
 export { mediaTypeContentType } from "./mediaType";
-export { movieContentType } from "./movie";
-export { podcastContentType } from "./podcast";
-export { trackContentType } from "./track";
-export { tvShowContentType } from "./tvShow";
 export { placeTypeContentType } from "./placeType";
 export { propertyContentType } from "./property";
 export { propertyGroupContentType } from "./propertyGroup";

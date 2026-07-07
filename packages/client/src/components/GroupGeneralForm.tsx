@@ -144,7 +144,6 @@ export function GroupGeneralForm({
         year={group.year}
         plexRatingKey={group.plexRatingKey}
         plexItemTitle={group.plexItemTitle}
-        albumIds={group.albumIds}
         save={(input, label) => updateGroup.mutate(
           {
             id: group.id,

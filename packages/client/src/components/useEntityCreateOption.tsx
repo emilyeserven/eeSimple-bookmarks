@@ -1,6 +1,6 @@
 import type {
-  Album, Book, Category, CustomProperty, Episode, GenreMood, Group, GroupType, Language, Location,
-  MediaProperty, MediaType, Movie, Newsletter, Person, PlaceType, PropertyGroup, Tag, Track, TvShow,
+  Category, CustomProperty, GenreMood, Group, GroupType, Language, Location,
+  MediaType, Newsletter, Person, PlaceType, PropertyGroup, Tag,
   Website, YouTubeChannel,
 } from "@eesimple/types";
 import type { ComponentType, ReactNode } from "react";
@@ -9,26 +9,19 @@ import { useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
-import { AddAlbumModal } from "./AddAlbumModal";
-import { AddBookModal } from "./AddBookModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
-import { AddEpisodeModal } from "./AddEpisodeModal";
 import { AddGenreMoodModal } from "./AddGenreMoodModal";
 import { AddGroupModal } from "./AddGroupModal";
 import { AddGroupTypeModal } from "./AddGroupTypeModal";
 import { AddLanguageModal } from "./AddLanguageModal";
 import { AddLocationModal } from "./AddLocationModal";
-import { AddMediaPropertyModal } from "./AddMediaPropertyModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
-import { AddMovieModal } from "./AddMovieModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
 import { AddPersonModal } from "./AddPersonModal";
 import { AddPlaceTypeModal } from "./AddPlaceTypeModal";
 import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { AddTagModal } from "./AddTagModal";
-import { AddTrackModal } from "./AddTrackModal";
-import { AddTvShowModal } from "./AddTvShowModal";
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
 
@@ -49,13 +42,6 @@ interface CreatedByEntity {
   "property-group": PropertyGroup;
   "location": Location;
   "custom-property": CustomProperty;
-  "media-property": MediaProperty;
-  "book": Book;
-  "movie": Movie;
-  "tv-show": TvShow;
-  "episode": Episode;
-  "album": Album;
-  "track": Track;
 }
 
 export type CreatableEntityKind = keyof CreatedByEntity;
@@ -136,34 +122,6 @@ const CREATABLE_ENTITY_PICKERS: {
   "custom-property": {
     createLabel: "Create property",
     Modal: AddCustomPropertyModal,
-  },
-  "media-property": {
-    createLabel: "Create media property",
-    Modal: AddMediaPropertyModal,
-  },
-  "book": {
-    createLabel: "Create book",
-    Modal: AddBookModal,
-  },
-  "movie": {
-    createLabel: "Create movie",
-    Modal: AddMovieModal,
-  },
-  "tv-show": {
-    createLabel: "Create TV show",
-    Modal: AddTvShowModal,
-  },
-  "episode": {
-    createLabel: "Create episode",
-    Modal: AddEpisodeModal,
-  },
-  "album": {
-    createLabel: "Create album",
-    Modal: AddAlbumModal,
-  },
-  "track": {
-    createLabel: "Create track",
-    Modal: AddTrackModal,
   },
 };
 

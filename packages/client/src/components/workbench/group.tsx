@@ -14,7 +14,6 @@ import { GroupPeopleForm, GroupPeopleView } from "../GroupPeopleForm";
 import { GroupWebsitesForm, GroupWebsitesView } from "../GroupWebsitesForm";
 import { GroupYouTubeChannelsForm, GroupYouTubeChannelsView } from "../GroupYouTubeChannelsForm";
 
-import { useAlbums } from "@/hooks/useAlbums";
 import { useDeleteGroup, useGroupBySlug, useGroups } from "@/hooks/useGroups";
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
@@ -24,10 +23,6 @@ function GroupGeneralView({
 }: {
   entity: Group;
 }) {
-  const {
-    data: albums,
-  } = useAlbums();
-  const creditedAlbums = (albums ?? []).filter(album => group.albumIds.includes(album.id));
   const {
     data: youtubeChannels,
   } = useYouTubeChannels();
@@ -113,30 +108,6 @@ function GroupGeneralView({
             <>
               <dt className="text-muted-foreground">{t("Plex")}</dt>
               <dd>{group.plexItemTitle}</dd>
-            </>
-          )
-          : null}
-        {creditedAlbums.length > 0
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Albums")}</dt>
-              <dd className="flex flex-wrap gap-2">
-                {creditedAlbums.map(album => (
-                  <Link
-                    key={album.id}
-                    to="/taxonomies/albums/$albumSlug"
-                    params={{
-                      albumSlug: album.slug,
-                    }}
-                    className="
-                      text-primary
-                      hover:underline
-                    "
-                  >
-                    {album.name}
-                  </Link>
-                ))}
-              </dd>
             </>
           )
           : null}
@@ -231,12 +202,12 @@ export const groupWorkbench: EntityWorkbench<Group> = {
       label: i18n.t("General"),
       view: {
         title: i18n.t("General"),
-        description: i18n.t("Name, website, group type, image, Plex link, year, and album credits."),
+        description: i18n.t("Name, website, group type, image, Plex link, and year."),
         render: GroupGeneralView,
       },
       edit: {
         title: i18n.t("General"),
-        description: i18n.t("Edit the group's name, website, group type, image, Plex link, year, and album credits."),
+        description: i18n.t("Edit the group's name, website, group type, image, Plex link, and year."),
         render: ({
           entity,
         }) => <GroupGeneralForm group={entity} />,

@@ -195,26 +195,6 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
           >{children}
           </Link>
         );
-      case "media-properties":
-        return (
-          <Link
-            to="/taxonomies/media-properties/$mediaPropertySlug/edit/general"
-            params={{
-              mediaPropertySlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "books":
-        return (
-          <Link
-            to="/taxonomies/books/$bookSlug/edit/general"
-            params={{
-              bookSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
       case "genres-moods":
         return (
           <Link
@@ -241,66 +221,6 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
             to="/taxonomies/locations/$locationSlug/edit/general"
             params={{
               locationSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "movies":
-        return (
-          <Link
-            to="/taxonomies/movies/$movieSlug/edit/general"
-            params={{
-              movieSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "tv-shows":
-        return (
-          <Link
-            to="/taxonomies/tv-shows/$tvShowSlug/edit/general"
-            params={{
-              tvShowSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "episodes":
-        return (
-          <Link
-            to="/taxonomies/episodes/$episodeSlug/edit/general"
-            params={{
-              episodeSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "albums":
-        return (
-          <Link
-            to="/taxonomies/albums/$albumSlug/edit/general"
-            params={{
-              albumSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "tracks":
-        return (
-          <Link
-            to="/taxonomies/tracks/$trackSlug/edit/general"
-            params={{
-              trackSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "podcasts":
-        return (
-          <Link
-            to="/taxonomies/podcasts/$podcastSlug/edit/general"
-            params={{
-              podcastSlug: slug,
             }}
           >{children}
           </Link>
