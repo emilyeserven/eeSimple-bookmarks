@@ -72,7 +72,7 @@ import { loadEntityNames } from "@/services/entityNames";
 import { bookmarkImageFromRow, bookmarkScreenshotFromRow, bookmarkScreenshotSettingsFromRow } from "@/services/bookmarkImages";
 import { reelArchiveFromRow } from "@/services/reelArchive";
 import { bookmarkFileValueFromRow } from "@/services/bookmarkPropertyFiles";
-import { ensureDefaultCategory } from "@/services/categories";
+import { resolveDefaultCategoryId } from "@/services/categories";
 import { slugify } from "@/utils/slug";
 
 /** The hydrated relations that acgroup a bookmark row. */
@@ -999,7 +999,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
 /** Hydrate a list of bookmark rows into wire types (shared by list/get/homepage/sections). */
 export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark[]> {
   if (rows.length === 0) return [];
-  const defaultCategoryId = await ensureDefaultCategory();
+  const defaultCategoryId = await resolveDefaultCategoryId();
   const websiteIds = [...new Set(rows.map(row => row.websiteId).filter((id): id is string => id !== null))];
   const mediaTypeIds = [...new Set(rows.map(row => row.mediaTypeId).filter((id): id is string => id !== null))];
   const channelIds = [...new Set(rows.map(row => row.youtubeChannelId).filter((id): id is string => id !== null))];

@@ -22,7 +22,7 @@ import {
   tags,
 } from "@/db/schema";
 import { bookmarkCacheVersion } from "@/services/bookmarkCacheVersion";
-import { ensureDefaultCategory } from "@/services/categories";
+import { resolveDefaultCategoryId } from "@/services/categories";
 import { loadEntityNames } from "@/services/entityNames";
 
 // Re-exported so writers keep one import site; the counter lives in a leaf module purely to let
@@ -76,7 +76,7 @@ export async function getBookmarkEvaluationData(): Promise<BookmarkEvaluationDat
 }
 
 async function loadEvaluationData(): Promise<BookmarkEvaluationData> {
-  const defaultCategoryId = await ensureDefaultCategory();
+  const defaultCategoryId = await resolveDefaultCategoryId();
 
   // Only id/parentId are needed for descendant resolution — avoid the expensive count query in
   // `listTags` (and the circular import it would create).

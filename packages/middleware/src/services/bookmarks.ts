@@ -73,7 +73,7 @@ import {
   type Tx,
 } from "@/services/bookmarkWrites";
 import { getAutomationSettings } from "@/services/appSettings";
-import { ensureDefaultCategory } from "@/services/categories";
+import { resolveDefaultCategoryId } from "@/services/categories";
 import { getDescendantIds, listTagNames, matchTagIdsByTitle } from "@/services/tags";
 import { listLocationNames, matchLocationIdsByTitle } from "@/services/locations";
 import { ensureWebsiteForUrl, getWebsiteByAnyDomain, normalizeDomain } from "@/services/websites";
@@ -603,7 +603,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     if (existing.length > 0) throw new DuplicateUrlError(input.url);
   }
 
-  const defaultId = await ensureDefaultCategory();
+  const defaultId = await resolveDefaultCategoryId();
 
   // Resolve YouTube metadata once (network) before opening the transaction, then reuse it for the
   // channel, the "Video" media-type default, and the Video Length backfill below.

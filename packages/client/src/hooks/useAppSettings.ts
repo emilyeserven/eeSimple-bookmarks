@@ -236,6 +236,7 @@ const AUTOMATION_DEFAULTS = {
   autoApplyTitleTags: false,
   autoApplyTitleLocations: false,
   sidebarOpenModifier: "alt" as SidebarOpenModifier,
+  defaultCategoryId: null as string | null,
 };
 
 const DISPLAY_PREFERENCE_DEFAULTS = {

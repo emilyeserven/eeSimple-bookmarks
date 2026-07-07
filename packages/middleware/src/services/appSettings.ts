@@ -110,6 +110,7 @@ const DEFAULT_AUTOMATION: AutomationSettings = {
   autoApplyTitleTags: false,
   autoApplyTitleLocations: false,
   sidebarOpenModifier: "alt",
+  defaultCategoryId: null,
 };
 
 /** Default Bookmark Graph relatedness settings, used when seeding / when row absent. */
@@ -685,6 +686,7 @@ export async function getAutomationSettings(): Promise<AutomationSettings> {
       autoApplyTitleTags: appSettings.autoApplyTitleTags,
       autoApplyTitleLocations: appSettings.autoApplyTitleLocations,
       sidebarOpenModifier: appSettings.sidebarOpenModifier,
+      defaultCategoryId: appSettings.defaultCategoryId,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -695,6 +697,7 @@ export async function getAutomationSettings(): Promise<AutomationSettings> {
     autoApplyTitleTags: row.autoApplyTitleTags,
     autoApplyTitleLocations: row.autoApplyTitleLocations ?? false,
     sidebarOpenModifier: asModifier(row.sidebarOpenModifier),
+    defaultCategoryId: row.defaultCategoryId,
   };
 }
 
@@ -708,6 +711,7 @@ export async function updateAutomationSettings(
     autoApplyTitleTags: input.autoApplyTitleTags,
     autoApplyTitleLocations: input.autoApplyTitleLocations,
     sidebarOpenModifier: asModifier(input.sidebarOpenModifier),
+    defaultCategoryId: input.defaultCategoryId,
   };
   await db
     .insert(appSettings)

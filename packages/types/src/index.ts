@@ -468,6 +468,8 @@ export interface AutomationSettings {
   /** When on, saving a bookmark whose title contains a location's name auto-applies that location. */
   autoApplyTitleLocations: boolean;
   sidebarOpenModifier: SidebarOpenModifier;
+  /** App-configured fallback category for new/uncategorized bookmarks; null = use the seeded built-in. */
+  defaultCategoryId: string | null;
 }
 
 /** Payload for replacing the automation settings. */

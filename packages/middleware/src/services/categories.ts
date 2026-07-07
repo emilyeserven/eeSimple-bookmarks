@@ -9,6 +9,7 @@ import type {
   UpdateCategoryInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { getAutomationSettings } from "@/services/appSettings";
 // From the version leaf module (not bookmarkCache) — the cache loads `ensureDefaultCategory` from
 // this file, so importing the cache back would be circular.
 import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
@@ -75,6 +76,7 @@ async function takenSlugs(excludeId?: string): Promise<string[]> {
 }
 
 export async function listCategories(): Promise<Category[]> {
+  const defaultId = await resolveDefaultCategoryId();
   const rows = await db
     .select({
       id: categories.id,
@@ -88,15 +90,14 @@ export async function listCategories(): Promise<Category[]> {
       // A correlated subquery built with the query builder so the column
       // references stay table-qualified — a bare `sql` template renders them
       // unqualified, which silently resolves them against the inner `bookmarks`
-      // table and counts zero. Built-in categories also absorb uncategorized
-      // (null) bookmarks.
+      // table and counts zero. The app-configured default category also absorbs
+      // uncategorized (null) bookmarks.
       bookmarkCount: db.$count(
         bookmarks,
         or(
           eq(bookmarks.categoryId, categories.id),
           and(
-            eq(categories.builtIn, true),
-            eq(categories.name, DEFAULT_CATEGORY_NAME),
+            eq(categories.id, defaultId),
             isNull(bookmarks.categoryId),
           ),
         ),
@@ -161,8 +162,11 @@ export async function deleteCategory(id: string): Promise<boolean> {
     throw new BuiltInCategoryError("The built-in category cannot be deleted");
   }
   // FK cascade removes this category's property_categories and root-tag links; bookmarks
-  // in it have their category_id set to NULL. Re-assign them to Default immediately so the
-  // count subquery never has to handle orphaned NULLs mid-session.
+  // in it have their category_id set to NULL. Re-assign them to the effective default
+  // immediately so the count subquery never has to handle orphaned NULLs mid-session. If this
+  // category was itself the app-configured default, the app_settings FK's `onDelete: "set null"`
+  // has already cleared that setting, so resolveDefaultCategoryId() falls back to the seeded
+  // built-in category.
   const rows = await db.delete(categories).where(eq(categories.id, id)).returning({
     id: categories.id,
   });
@@ -170,7 +174,7 @@ export async function deleteCategory(id: string): Promise<boolean> {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("category", id);
     await deleteEntityNamesForOwner("category", id);
-    const defaultId = await ensureDefaultCategory();
+    const defaultId = await resolveDefaultCategoryId();
     await db.update(bookmarks).set({
       categoryId: defaultId,
     }).where(isNull(bookmarks.categoryId));
@@ -224,6 +228,15 @@ export async function ensureDefaultCategory(): Promise<string> {
     .where(isNull(bookmarks.categoryId));
   await backfillSlugs();
   return row.id;
+}
+
+/**
+ * The effective fallback category id for new/uncategorized bookmarks: the app-configured
+ * `defaultCategoryId` setting, or the seeded built-in category if unset.
+ */
+export async function resolveDefaultCategoryId(): Promise<string> {
+  const settings = await getAutomationSettings();
+  return settings.defaultCategoryId ?? ensureDefaultCategory();
 }
 
 /** Fill in slugs for any categories missing one (e.g. rows that predate the `slug` column). */

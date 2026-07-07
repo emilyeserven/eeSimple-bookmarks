@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { Combobox } from "./Combobox";
+import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useAutomationSettingsForm, usePersonSourceLabelSettingsForm } from "../hooks/useAppSettings";
+import { useCategories } from "../hooks/useCategories";
+import { CategoryIcon } from "../lib/icons";
 
 import {
   Card,
@@ -28,6 +32,13 @@ export function AutomationsSettings() {
     settings, save,
   } = useAutomationSettingsForm();
   const {
+    data: categories = [],
+  } = useCategories();
+  const defaultCategoryCreate = useEntityCreateOption("category", category =>
+    save({
+      defaultCategoryId: category.id,
+    }, t("Default category updated")));
+  const {
     settings: personSourceLabels, save: savePersonSourceLabels,
   } = usePersonSourceLabelSettingsForm();
   const [websiteLabel, setWebsiteLabel] = useState(personSourceLabels.websiteLabel);
@@ -42,6 +53,44 @@ export function AutomationsSettings() {
 
   return (
     <>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Default category")}</CardTitle>
+          <CardDescription>
+            {t("The category new bookmarks land in when none is chosen. Leave unset to use the built-in \"Default\" category.")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Combobox
+            aria-label={t("Default category")}
+            options={categories.map(category => ({
+              value: category.id,
+              label: category.name,
+              names: category.names,
+              icon: (
+                <CategoryIcon
+                  name={category.icon}
+                  className="size-4 shrink-0"
+                />
+              ),
+            }))}
+            value={settings.defaultCategoryId || undefined}
+            placeholder={t("Built-in Default category")}
+            searchPlaceholder={t("Search categories…")}
+            emptyText={t("No categories found.")}
+            createOption={defaultCategoryCreate.createOption}
+            onValueChange={(value) => {
+              save(
+                {
+                  defaultCategoryId: value || null,
+                },
+                t("Default category updated"),
+              );
+            }}
+          />
+        </CardContent>
+      </Card>
+      {defaultCategoryCreate.modal}
       <Card>
         <CardHeader>
           <CardTitle>{t("Auto-fetch title")}</CardTitle>
