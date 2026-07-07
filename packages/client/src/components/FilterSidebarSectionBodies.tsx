@@ -16,7 +16,9 @@ import {
   withCategoryPresence,
   withGenreMoodPresence,
   withGenreMoods,
+  withMediaTypePresence,
   withMediaTypes,
+  withPeoplePresence,
   withLanguageUsageLanguages,
   withLanguageUsageLevels,
   withPlaceTypePresence,
@@ -168,6 +170,7 @@ export function MediaTypeFilterBody({
   } = useTranslation();
   const options = mediaTypeNodesToOptions(buildMediaTypeTree(mediaTypes ?? []));
   const selected = search.mediaTypes ?? [];
+  const filterActive = selected.length > 0 || search.mediaTypePresence !== undefined;
 
   return (
     <>
@@ -180,7 +183,7 @@ export function MediaTypeFilterBody({
         emptyText={t("No media types found.")}
         aria-label={t("Filter by media type")}
       />
-      {selected.length > 0
+      {filterActive
         ? (
           <button
             type="button"
@@ -188,7 +191,7 @@ export function MediaTypeFilterBody({
               text-xs text-primary
               hover:underline
             "
-            onClick={() => onSearchChange(withMediaTypes(search, []))}
+            onClick={() => onSearchChange(withMediaTypePresence(withMediaTypes(search, []), undefined))}
           >
             {t("Reset")}
           </button>
@@ -586,19 +589,31 @@ export function PersonFilterBody({
     names: person.names,
   }));
   const selected = search.people ?? [];
+  const filterActive = selected.length > 0 || search.peoplePresence !== undefined;
 
   return (
     <>
-      <MultiCombobox
-        options={options}
-        values={selected}
-        onValuesChange={ids => onSearchChange(withPeople(search, ids))}
-        placeholder={t("All people")}
-        searchPlaceholder={t("Search people…")}
-        emptyText={t("No people found.")}
-        aria-label={t("Filter by person")}
-      />
-      {selected.length > 0
+      {search.peoplePresence !== "missing"
+        ? (
+          <>
+            <MultiCombobox
+              options={options}
+              values={selected}
+              onValuesChange={ids => onSearchChange(withPeople(search, ids))}
+              placeholder={t("All people")}
+              searchPlaceholder={t("Search people…")}
+              emptyText={t("No people found.")}
+              aria-label={t("Filter by person")}
+            />
+            <FacetChips
+              options={options}
+              values={selected}
+              onValuesChange={ids => onSearchChange(withPeople(search, ids))}
+            />
+          </>
+        )
+        : null}
+      {filterActive
         ? (
           <button
             type="button"
@@ -606,7 +621,7 @@ export function PersonFilterBody({
               text-xs text-primary
               hover:underline
             "
-            onClick={() => onSearchChange(withPeople(search, []))}
+            onClick={() => onSearchChange(withPeoplePresence(withPeople(search, []), undefined))}
           >
             {t("Reset")}
           </button>

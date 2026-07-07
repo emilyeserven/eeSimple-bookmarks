@@ -30,7 +30,9 @@ import {
   withDateTimeFilter,
   withGenreMoodPresence,
   withMediaSourcePresence,
+  withMediaTypePresence,
   withNumberFilter,
+  withPeoplePresence,
   withPlaceTypePresence,
   withPresenceFilter,
   withSectionsPresence,
@@ -157,20 +159,28 @@ export function MediaTypeFilterSection({
       defaultOpen
       className="group/media-type space-y-3"
     >
-      <CollapsibleTrigger
-        className="
-          flex items-center gap-1.5 text-sm font-semibold
-          hover:text-foreground
-        "
-      >
-        <ChevronDown
+      <div className="flex items-center justify-between">
+        <CollapsibleTrigger
           className="
-            size-3.5 shrink-0 transition-transform
-            group-data-[state=open]/media-type:rotate-180
+            flex items-center gap-1.5 text-sm font-semibold
+            hover:text-foreground
           "
+        >
+          <ChevronDown
+            className="
+              size-3.5 shrink-0 transition-transform
+              group-data-[state=open]/media-type:rotate-180
+            "
+          />
+          {t("Media type")}
+        </CollapsibleTrigger>
+        <FacetPresenceToggle
+          value={search.mediaTypePresence}
+          onChange={mode => onSearchChange(withMediaTypePresence(search, mode))}
+          excludeLabel={t("Excludes selected media types")}
+          onlyExclude
         />
-        {t("Media type")}
-      </CollapsibleTrigger>
+      </div>
       <CollapsibleContent className="space-y-3">
         <MediaTypeFilterBody
           mediaTypes={mediaTypes}
@@ -498,20 +508,28 @@ export function PersonFilterSection({
       defaultOpen
       className="group/person space-y-3"
     >
-      <CollapsibleTrigger
-        className="
-          flex items-center gap-1.5 text-sm font-semibold
-          hover:text-foreground
-        "
-      >
-        <ChevronDown
+      <div className="flex items-center justify-between">
+        <CollapsibleTrigger
           className="
-            size-3.5 shrink-0 transition-transform
-            group-data-[state=open]/person:rotate-180
+            flex items-center gap-1.5 text-sm font-semibold
+            hover:text-foreground
           "
+        >
+          <ChevronDown
+            className="
+              size-3.5 shrink-0 transition-transform
+              group-data-[state=open]/person:rotate-180
+            "
+          />
+          {t("Person")}
+        </CollapsibleTrigger>
+        <FacetPresenceToggle
+          value={search.peoplePresence}
+          onChange={mode => onSearchChange(withPeoplePresence(search, mode))}
+          hasLabel={t("Has any")}
+          missingLabel={t("Has none")}
         />
-        {t("Person")}
-      </CollapsibleTrigger>
+      </div>
       <CollapsibleContent className="space-y-3">
         <PersonFilterBody
           people={people}

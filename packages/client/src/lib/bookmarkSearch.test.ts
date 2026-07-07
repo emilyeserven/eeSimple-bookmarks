@@ -15,8 +15,10 @@ import {
   withCategoryPresence,
   withMediaSourceMatch,
   withMediaSourcePresence,
+  withMediaTypePresence,
   withMediaTypes,
   withNumberFilter,
+  withPeoplePresence,
   withSort,
   withTags,
   withWebsitePresence,
@@ -144,12 +146,16 @@ describe("validateBookmarkSearch", () => {
       websitePresence: "exclude",
       sectionsPresence: "exclude",
       categoryPresence: "exclude",
+      mediaTypePresence: "exclude",
+      peoplePresence: "exclude",
     })).toEqual({
       tagPresence: "exclude",
       youtubeChannelPresence: "exclude",
       websitePresence: "exclude",
       sectionsPresence: "exclude",
       categoryPresence: "exclude",
+      mediaTypePresence: "exclude",
+      peoplePresence: "exclude",
     });
     expect(validateBookmarkSearch({
       presence: {
@@ -383,6 +389,46 @@ describe("with* helpers", () => {
     }, undefined)).toEqual({});
   });
 
+  it("sets and clears media-type presence, dropping the selection on 'missing'", () => {
+    expect(withMediaTypePresence({}, "has")).toEqual({
+      mediaTypePresence: "has",
+    });
+    expect(withMediaTypePresence({
+      mediaTypes: ["mt-1"],
+    }, "missing")).toEqual({
+      mediaTypePresence: "missing",
+    });
+    expect(withMediaTypePresence({
+      mediaTypes: ["mt-1"],
+    }, "exclude")).toEqual({
+      mediaTypes: ["mt-1"],
+      mediaTypePresence: "exclude",
+    });
+    expect(withMediaTypePresence({
+      mediaTypePresence: "has",
+    }, undefined)).toEqual({});
+  });
+
+  it("sets and clears people presence, dropping the selection on 'missing'", () => {
+    expect(withPeoplePresence({}, "has")).toEqual({
+      peoplePresence: "has",
+    });
+    expect(withPeoplePresence({
+      people: ["p-1"],
+    }, "missing")).toEqual({
+      peoplePresence: "missing",
+    });
+    expect(withPeoplePresence({
+      people: ["p-1"],
+    }, "exclude")).toEqual({
+      people: ["p-1"],
+      peoplePresence: "exclude",
+    });
+    expect(withPeoplePresence({
+      peoplePresence: "has",
+    }, undefined)).toEqual({});
+  });
+
   it("sets and clears tags immutably", () => {
     const base = {
       tags: ["a"],
@@ -522,6 +568,32 @@ describe("bookmarkMatchesSearch", () => {
     })).toBe(false);
   });
 
+  it("applies media-type presence and exclude filters", () => {
+    expect(bookmarkMatchesSearch(bookmark, {
+      mediaTypePresence: "has",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch({
+      ...bookmark,
+      mediaType: null,
+    }, {
+      mediaTypePresence: "has",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch({
+      ...bookmark,
+      mediaType: null,
+    }, {
+      mediaTypePresence: "missing",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      mediaTypes: ["mt-1"],
+      mediaTypePresence: "exclude",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(bookmark, {
+      mediaTypes: ["mt-2"],
+      mediaTypePresence: "exclude",
+    })).toBe(true);
+  });
+
   it("applies the YouTube-channel filter", () => {
     expect(bookmarkMatchesSearch(bookmark, {
       youtubeChannels: ["ch-1"],
@@ -640,6 +712,43 @@ describe("bookmarkMatchesSearch", () => {
     expect(bookmarkMatchesSearch(withGenreMoods, {
       genreMoods: ["gm-2"],
       genreMoodPresence: "exclude",
+    })).toBe(true);
+  });
+
+  it("applies the people include, presence, and exclude filters", () => {
+    const withPeople = {
+      ...bookmark,
+      people: [{
+        id: "person-1",
+        name: "Ada Lovelace",
+        slug: "ada-lovelace",
+      }],
+    };
+    // include (any-of)
+    expect(bookmarkMatchesSearch(withPeople, {
+      people: ["person-1"],
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withPeople, {
+      people: ["person-2"],
+    })).toBe(false);
+    // presence
+    expect(bookmarkMatchesSearch(withPeople, {
+      peoplePresence: "has",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      peoplePresence: "has",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(bookmark, {
+      peoplePresence: "missing",
+    })).toBe(true);
+    // exclude
+    expect(bookmarkMatchesSearch(withPeople, {
+      people: ["person-1"],
+      peoplePresence: "exclude",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(withPeople, {
+      people: ["person-2"],
+      peoplePresence: "exclude",
     })).toBe(true);
   });
 
@@ -980,6 +1089,9 @@ describe("hasAnyActiveFilter", () => {
     ["mediaTypes", {
       mediaTypes: ["m1"],
     }],
+    ["mediaTypePresence", {
+      mediaTypePresence: "exclude",
+    }],
     ["youtubeChannels", {
       youtubeChannels: ["y1"],
     }],
@@ -997,6 +1109,9 @@ describe("hasAnyActiveFilter", () => {
     }],
     ["people", {
       people: ["a1"],
+    }],
+    ["peoplePresence", {
+      peoplePresence: "exclude",
     }],
     ["num", {
       num: {
@@ -1301,6 +1416,17 @@ describe("summarizeBookmarkSearch", () => {
     })).toBe("2 media types");
   });
 
+  it("handles media types with 'exclude' presence", () => {
+    expect(summarizeBookmarkSearch({
+      mediaTypes: ["book"],
+      mediaTypePresence: "exclude",
+    })).toBe("1 excluded media type");
+    expect(summarizeBookmarkSearch({
+      mediaTypes: ["book", "film"],
+      mediaTypePresence: "exclude",
+    })).toBe("2 excluded media types");
+  });
+
   it("handles people", () => {
     expect(summarizeBookmarkSearch({
       people: ["Person A"],
@@ -1308,6 +1434,17 @@ describe("summarizeBookmarkSearch", () => {
     expect(summarizeBookmarkSearch({
       people: ["A", "B"],
     })).toBe("2 people");
+  });
+
+  it("handles people with 'exclude' presence", () => {
+    expect(summarizeBookmarkSearch({
+      people: ["Person A"],
+      peoplePresence: "exclude",
+    })).toBe("1 excluded person");
+    expect(summarizeBookmarkSearch({
+      people: ["A", "B"],
+      peoplePresence: "exclude",
+    })).toBe("2 excluded people");
   });
 
   it("handles tags (default presence)", () => {

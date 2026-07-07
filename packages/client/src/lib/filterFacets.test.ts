@@ -56,6 +56,12 @@ describe("facetHasActiveSelection", () => {
     expect(facetHasActiveSelection("categories", {
       categoryPresence: "has",
     })).toBe(true);
+    expect(facetHasActiveSelection("media-types", {
+      mediaTypePresence: "exclude",
+    })).toBe(true);
+    expect(facetHasActiveSelection("people", {
+      peoplePresence: "exclude",
+    })).toBe(true);
     expect(facetHasActiveSelection("channels", {
       youtubeChannelPresence: "has",
     })).toBe(true);
@@ -121,6 +127,19 @@ describe("facetSelectionSummary", () => {
     });
     expect(facetSelectionSummary("categories", {
       categoryPresence: "missing",
+    })).toEqual({
+      count: 0,
+      presence: "missing",
+    });
+    expect(facetSelectionSummary("media-types", {
+      mediaTypes: ["m"],
+      mediaTypePresence: "exclude",
+    })).toEqual({
+      count: 1,
+      presence: "exclude",
+    });
+    expect(facetSelectionSummary("people", {
+      peoplePresence: "missing",
     })).toEqual({
       count: 0,
       presence: "missing",
