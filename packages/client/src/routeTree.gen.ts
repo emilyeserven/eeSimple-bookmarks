@@ -206,7 +206,6 @@ import { Route as TaxonomiesGenresMoodsGenreMoodSlugEditRouteImport } from './ro
 import { Route as TaxonomiesGenresMoodsGenreMoodSlugHubRouteImport } from './routes/taxonomies.genres-moods.$genreMoodSlug._hub'
 import { Route as TagsTagSlugEditGeneralRouteImport } from './routes/tags.$tagSlug.edit.general'
 import { Route as TagsTagSlugEditDisplayRulesRouteImport } from './routes/tags.$tagSlug.edit.display-rules'
-import { Route as TagsTagSlugEditCategoriesRouteImport } from './routes/tags.$tagSlug.edit.categories'
 import { Route as TagsTagSlugEditAutofillRouteImport } from './routes/tags.$tagSlug.edit.autofill'
 import { Route as TagsTagSlugHubInfoRouteImport } from './routes/tags.$tagSlug._hub.info'
 import { Route as TagsTagSlugHubGalleryRouteImport } from './routes/tags.$tagSlug._hub.gallery'
@@ -220,7 +219,6 @@ import { Route as CustomPropertiesPropertySlugEditDisplayRulesRouteImport } from
 import { Route as CustomPropertiesPropertySlugEditDisplayRouteImport } from './routes/custom-properties.$propertySlug.edit.display'
 import { Route as CustomPropertiesPropertySlugEditCategoriesRouteImport } from './routes/custom-properties.$propertySlug.edit.categories'
 import { Route as CustomPropertiesPropertySlugEditAutofillRouteImport } from './routes/custom-properties.$propertySlug.edit.autofill'
-import { Route as CategoriesCategorySlugEditTieredTagsRouteImport } from './routes/categories.$categorySlug.edit.tiered-tags'
 import { Route as CategoriesCategorySlugEditGeneralRouteImport } from './routes/categories.$categorySlug.edit.general'
 import { Route as CategoriesCategorySlugEditDisplayRulesRouteImport } from './routes/categories.$categorySlug.edit.display-rules'
 import { Route as CategoriesCategorySlugEditDisplayRouteImport } from './routes/categories.$categorySlug.edit.display'
@@ -1401,12 +1399,6 @@ const TagsTagSlugEditDisplayRulesRoute =
     path: '/display-rules',
     getParentRoute: () => TagsTagSlugEditRoute,
   } as any)
-const TagsTagSlugEditCategoriesRoute =
-  TagsTagSlugEditCategoriesRouteImport.update({
-    id: '/categories',
-    path: '/categories',
-    getParentRoute: () => TagsTagSlugEditRoute,
-  } as any)
 const TagsTagSlugEditAutofillRoute = TagsTagSlugEditAutofillRouteImport.update({
   id: '/autofill',
   path: '/autofill',
@@ -1481,12 +1473,6 @@ const CustomPropertiesPropertySlugEditAutofillRoute =
     id: '/autofill',
     path: '/autofill',
     getParentRoute: () => CustomPropertiesPropertySlugEditRoute,
-  } as any)
-const CategoriesCategorySlugEditTieredTagsRoute =
-  CategoriesCategorySlugEditTieredTagsRouteImport.update({
-    id: '/tiered-tags',
-    path: '/tiered-tags',
-    getParentRoute: () => CategoriesCategorySlugEditRoute,
   } as any)
 const CategoriesCategorySlugEditGeneralRoute =
   CategoriesCategorySlugEditGeneralRouteImport.update({
@@ -2228,7 +2214,6 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug/edit/display': typeof CategoriesCategorySlugEditDisplayRoute
   '/categories/$categorySlug/edit/display-rules': typeof CategoriesCategorySlugEditDisplayRulesRoute
   '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
-  '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
   '/custom-properties/$propertySlug/edit/autofill': typeof CustomPropertiesPropertySlugEditAutofillRoute
   '/custom-properties/$propertySlug/edit/categories': typeof CustomPropertiesPropertySlugEditCategoriesRoute
   '/custom-properties/$propertySlug/edit/display': typeof CustomPropertiesPropertySlugEditDisplayRoute
@@ -2242,7 +2227,6 @@ export interface FileRoutesByFullPath {
   '/tags/$tagSlug/gallery': typeof TagsTagSlugHubGalleryRoute
   '/tags/$tagSlug/info': typeof TagsTagSlugHubInfoRoute
   '/tags/$tagSlug/edit/autofill': typeof TagsTagSlugEditAutofillRoute
-  '/tags/$tagSlug/edit/categories': typeof TagsTagSlugEditCategoriesRoute
   '/tags/$tagSlug/edit/display-rules': typeof TagsTagSlugEditDisplayRulesRoute
   '/tags/$tagSlug/edit/general': typeof TagsTagSlugEditGeneralRoute
   '/taxonomies/genres-moods/$genreMoodSlug/edit': typeof TaxonomiesGenresMoodsGenreMoodSlugEditRouteWithChildren
@@ -2476,7 +2460,6 @@ export interface FileRoutesByTo {
   '/categories/$categorySlug/edit/display': typeof CategoriesCategorySlugEditDisplayRoute
   '/categories/$categorySlug/edit/display-rules': typeof CategoriesCategorySlugEditDisplayRulesRoute
   '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
-  '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
   '/custom-properties/$propertySlug/edit/autofill': typeof CustomPropertiesPropertySlugEditAutofillRoute
   '/custom-properties/$propertySlug/edit/categories': typeof CustomPropertiesPropertySlugEditCategoriesRoute
   '/custom-properties/$propertySlug/edit/display': typeof CustomPropertiesPropertySlugEditDisplayRoute
@@ -2490,7 +2473,6 @@ export interface FileRoutesByTo {
   '/tags/$tagSlug/gallery': typeof TagsTagSlugHubGalleryRoute
   '/tags/$tagSlug/info': typeof TagsTagSlugHubInfoRoute
   '/tags/$tagSlug/edit/autofill': typeof TagsTagSlugEditAutofillRoute
-  '/tags/$tagSlug/edit/categories': typeof TagsTagSlugEditCategoriesRoute
   '/tags/$tagSlug/edit/display-rules': typeof TagsTagSlugEditDisplayRulesRoute
   '/tags/$tagSlug/edit/general': typeof TagsTagSlugEditGeneralRoute
   '/taxonomies/group-types/$groupTypeSlug/info': typeof TaxonomiesGroupTypesGroupTypeSlugInfoRoute
@@ -2753,7 +2735,6 @@ export interface FileRoutesById {
   '/categories/$categorySlug/edit/display': typeof CategoriesCategorySlugEditDisplayRoute
   '/categories/$categorySlug/edit/display-rules': typeof CategoriesCategorySlugEditDisplayRulesRoute
   '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
-  '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
   '/custom-properties/$propertySlug/edit/autofill': typeof CustomPropertiesPropertySlugEditAutofillRoute
   '/custom-properties/$propertySlug/edit/categories': typeof CustomPropertiesPropertySlugEditCategoriesRoute
   '/custom-properties/$propertySlug/edit/display': typeof CustomPropertiesPropertySlugEditDisplayRoute
@@ -2767,7 +2748,6 @@ export interface FileRoutesById {
   '/tags/$tagSlug/_hub/gallery': typeof TagsTagSlugHubGalleryRoute
   '/tags/$tagSlug/_hub/info': typeof TagsTagSlugHubInfoRoute
   '/tags/$tagSlug/edit/autofill': typeof TagsTagSlugEditAutofillRoute
-  '/tags/$tagSlug/edit/categories': typeof TagsTagSlugEditCategoriesRoute
   '/tags/$tagSlug/edit/display-rules': typeof TagsTagSlugEditDisplayRulesRoute
   '/tags/$tagSlug/edit/general': typeof TagsTagSlugEditGeneralRoute
   '/taxonomies/genres-moods/$genreMoodSlug/_hub': typeof TaxonomiesGenresMoodsGenreMoodSlugHubRouteWithChildren
@@ -3061,7 +3041,6 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/edit/display'
     | '/categories/$categorySlug/edit/display-rules'
     | '/categories/$categorySlug/edit/general'
-    | '/categories/$categorySlug/edit/tiered-tags'
     | '/custom-properties/$propertySlug/edit/autofill'
     | '/custom-properties/$propertySlug/edit/categories'
     | '/custom-properties/$propertySlug/edit/display'
@@ -3075,7 +3054,6 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/gallery'
     | '/tags/$tagSlug/info'
     | '/tags/$tagSlug/edit/autofill'
-    | '/tags/$tagSlug/edit/categories'
     | '/tags/$tagSlug/edit/display-rules'
     | '/tags/$tagSlug/edit/general'
     | '/taxonomies/genres-moods/$genreMoodSlug/edit'
@@ -3309,7 +3287,6 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/edit/display'
     | '/categories/$categorySlug/edit/display-rules'
     | '/categories/$categorySlug/edit/general'
-    | '/categories/$categorySlug/edit/tiered-tags'
     | '/custom-properties/$propertySlug/edit/autofill'
     | '/custom-properties/$propertySlug/edit/categories'
     | '/custom-properties/$propertySlug/edit/display'
@@ -3323,7 +3300,6 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/gallery'
     | '/tags/$tagSlug/info'
     | '/tags/$tagSlug/edit/autofill'
-    | '/tags/$tagSlug/edit/categories'
     | '/tags/$tagSlug/edit/display-rules'
     | '/tags/$tagSlug/edit/general'
     | '/taxonomies/group-types/$groupTypeSlug/info'
@@ -3585,7 +3561,6 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/edit/display'
     | '/categories/$categorySlug/edit/display-rules'
     | '/categories/$categorySlug/edit/general'
-    | '/categories/$categorySlug/edit/tiered-tags'
     | '/custom-properties/$propertySlug/edit/autofill'
     | '/custom-properties/$propertySlug/edit/categories'
     | '/custom-properties/$propertySlug/edit/display'
@@ -3599,7 +3574,6 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/_hub/gallery'
     | '/tags/$tagSlug/_hub/info'
     | '/tags/$tagSlug/edit/autofill'
-    | '/tags/$tagSlug/edit/categories'
     | '/tags/$tagSlug/edit/display-rules'
     | '/tags/$tagSlug/edit/general'
     | '/taxonomies/genres-moods/$genreMoodSlug/_hub'
@@ -5134,13 +5108,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TagsTagSlugEditDisplayRulesRouteImport
       parentRoute: typeof TagsTagSlugEditRoute
     }
-    '/tags/$tagSlug/edit/categories': {
-      id: '/tags/$tagSlug/edit/categories'
-      path: '/categories'
-      fullPath: '/tags/$tagSlug/edit/categories'
-      preLoaderRoute: typeof TagsTagSlugEditCategoriesRouteImport
-      parentRoute: typeof TagsTagSlugEditRoute
-    }
     '/tags/$tagSlug/edit/autofill': {
       id: '/tags/$tagSlug/edit/autofill'
       path: '/autofill'
@@ -5231,13 +5198,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/custom-properties/$propertySlug/edit/autofill'
       preLoaderRoute: typeof CustomPropertiesPropertySlugEditAutofillRouteImport
       parentRoute: typeof CustomPropertiesPropertySlugEditRoute
-    }
-    '/categories/$categorySlug/edit/tiered-tags': {
-      id: '/categories/$categorySlug/edit/tiered-tags'
-      path: '/tiered-tags'
-      fullPath: '/categories/$categorySlug/edit/tiered-tags'
-      preLoaderRoute: typeof CategoriesCategorySlugEditTieredTagsRouteImport
-      parentRoute: typeof CategoriesCategorySlugEditRoute
     }
     '/categories/$categorySlug/edit/general': {
       id: '/categories/$categorySlug/edit/general'
@@ -6087,7 +6047,6 @@ interface CategoriesCategorySlugEditRouteChildren {
   CategoriesCategorySlugEditDisplayRoute: typeof CategoriesCategorySlugEditDisplayRoute
   CategoriesCategorySlugEditDisplayRulesRoute: typeof CategoriesCategorySlugEditDisplayRulesRoute
   CategoriesCategorySlugEditGeneralRoute: typeof CategoriesCategorySlugEditGeneralRoute
-  CategoriesCategorySlugEditTieredTagsRoute: typeof CategoriesCategorySlugEditTieredTagsRoute
   CategoriesCategorySlugEditIndexRoute: typeof CategoriesCategorySlugEditIndexRoute
 }
 
@@ -6103,8 +6062,6 @@ const CategoriesCategorySlugEditRouteChildren: CategoriesCategorySlugEditRouteCh
       CategoriesCategorySlugEditDisplayRulesRoute,
     CategoriesCategorySlugEditGeneralRoute:
       CategoriesCategorySlugEditGeneralRoute,
-    CategoriesCategorySlugEditTieredTagsRoute:
-      CategoriesCategorySlugEditTieredTagsRoute,
     CategoriesCategorySlugEditIndexRoute: CategoriesCategorySlugEditIndexRoute,
   }
 
@@ -6506,7 +6463,6 @@ const TagsTagSlugHubRouteWithChildren = TagsTagSlugHubRoute._addFileChildren(
 
 interface TagsTagSlugEditRouteChildren {
   TagsTagSlugEditAutofillRoute: typeof TagsTagSlugEditAutofillRoute
-  TagsTagSlugEditCategoriesRoute: typeof TagsTagSlugEditCategoriesRoute
   TagsTagSlugEditDisplayRulesRoute: typeof TagsTagSlugEditDisplayRulesRoute
   TagsTagSlugEditGeneralRoute: typeof TagsTagSlugEditGeneralRoute
   TagsTagSlugEditIndexRoute: typeof TagsTagSlugEditIndexRoute
@@ -6514,7 +6470,6 @@ interface TagsTagSlugEditRouteChildren {
 
 const TagsTagSlugEditRouteChildren: TagsTagSlugEditRouteChildren = {
   TagsTagSlugEditAutofillRoute: TagsTagSlugEditAutofillRoute,
-  TagsTagSlugEditCategoriesRoute: TagsTagSlugEditCategoriesRoute,
   TagsTagSlugEditDisplayRulesRoute: TagsTagSlugEditDisplayRulesRoute,
   TagsTagSlugEditGeneralRoute: TagsTagSlugEditGeneralRoute,
   TagsTagSlugEditIndexRoute: TagsTagSlugEditIndexRoute,

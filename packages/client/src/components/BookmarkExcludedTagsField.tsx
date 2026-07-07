@@ -3,7 +3,7 @@ import type { TagNode } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
-import { GatedTagPicker } from "./BookmarkTagsField";
+import { BookmarkTagsField } from "./BookmarkTagsField";
 
 interface BookmarkExcludedTagsFieldProps {
   form: BookmarkFormApi;
@@ -11,9 +11,8 @@ interface BookmarkExcludedTagsFieldProps {
 }
 
 /**
- * The autofill tag-blacklist picker, writing the `blacklistedTagIds` form field. Gated by the live
- * category selection like the edit surface. Submit-driven on the create form. Placed independently
- * via the standard-field zone.
+ * The autofill tag-blacklist picker, writing the `blacklistedTagIds` form field. Submit-driven on
+ * the create form. Placed independently via the standard-field zone.
  */
 export function BookmarkExcludedTagsField({
   form, tagTree,
@@ -22,28 +21,23 @@ export function BookmarkExcludedTagsField({
     t,
   } = useTranslation();
   return (
-    <form.Subscribe selector={state => state.values.categoryId}>
-      {categoryId => (
-        <form.Field name="blacklistedTagIds">
-          {field => (
-            <GatedTagPicker
-              categoryId={categoryId}
-              tree={tagTree}
-              selectedIds={field.state.value}
-              onToggle={(id) => {
-                const current = field.state.value;
-                field.handleChange(
-                  current.includes(id)
-                    ? current.filter(tagId => tagId !== id)
-                    : [...current, id],
-                );
-              }}
-              label={t("Excluded Tags")}
-              description={t("Tags toggled here will never be auto-applied by autofill rules.")}
-            />
-          )}
-        </form.Field>
+    <form.Field name="blacklistedTagIds">
+      {field => (
+        <BookmarkTagsField
+          tree={tagTree}
+          selectedIds={field.state.value}
+          onToggle={(id) => {
+            const current = field.state.value;
+            field.handleChange(
+              current.includes(id)
+                ? current.filter(tagId => tagId !== id)
+                : [...current, id],
+            );
+          }}
+          label={t("Excluded Tags")}
+          description={t("Tags toggled here will never be auto-applied by autofill rules.")}
+        />
       )}
-    </form.Subscribe>
+    </form.Field>
   );
 }

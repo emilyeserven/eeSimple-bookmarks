@@ -127,15 +127,6 @@ export const peopleApi = {
 export const tagsApi = {
   ...createCrudApi<Tag, CreateTagInput, UpdateTagInput>("tags"),
   tree: () => request<TagNode[]>("/tags/tree"),
-  categories: (id: string) =>
-    request<{ categoryIds: string[] }>(`/tags/${id}/categories`),
-  setCategories: (id: string, categoryIds: string[]) =>
-    request<{ categoryIds: string[] }>(`/tags/${id}/categories`, {
-      method: "PUT",
-      body: JSON.stringify({
-        categoryIds,
-      }),
-    }),
 };
 
 export const websitesApi = {
@@ -381,17 +372,6 @@ export const groupTypesApi = createCrudApi<GroupType, CreateGroupTypeInput, Upda
 
 export const categoriesApi = {
   ...createCrudApi<Category, CreateCategoryInput, UpdateCategoryInput>("categories"),
-  rootTags: (id: string) =>
-    request<{ tagIds: string[] }>(`/categories/${id}/root-tags`),
-  availableTags: (id: string) =>
-    request<{ tagIds: string[] }>(`/categories/${id}/available-tags`),
-  setRootTags: (id: string, tagIds: string[]) =>
-    request<{ tagIds: string[] }>(`/categories/${id}/root-tags`, {
-      method: "PUT",
-      body: JSON.stringify({
-        tagIds,
-      }),
-    }),
   defaults: (id: string) =>
     request<CategoryPropertyDefaults>(`/categories/${id}/defaults`),
   setDefaults: (id: string, input: UpdateCategoryDefaultsInput) =>

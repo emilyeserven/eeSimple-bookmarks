@@ -263,7 +263,7 @@ that matches the surface — don't invent a new structure for a one-off page.
 - **Info page = vertical `?tab=` rail** (`packages/client/src/components/workbench/EntityInfoView.tsx`) —
   a slug-routed entity's read-only **Info** page (`…/$slug/info`, e.g. `/categories/dev/info`) is a
   **vertical** tab rail beside the active tab's body, and the active tab is a **`?tab=<key>` search
-  param** (`/categories/dev/info?tab=tiered-tags`), *not* a path segment. The rail is **derived from the
+  param** (`/categories/dev/info?tab=custom-properties`), *not* a path segment. The rail is **derived from the
   entity's `EntityWorkbench` descriptor** — `workbench.tabs.filter(t => t.view && showIf)` — and each
   tab body is rendered by the shared `workbench/WorkbenchRouteTab.tsx` (`mode="view"`), so it is the same
   body the old per-segment `_view.*` routes rendered. The `?tab=` param is validated by
@@ -416,7 +416,7 @@ skill — consult it before building or changing an edit tab. In short:
   when it changes (the on-blur trigger keeps this from firing mid-typing).
 - **Multi-key sections** (e.g. `categoryIds` + `allCategories`) call `update.mutate({ … both … })`
   directly with one `notifyFieldSaved("Categories")` so the user sees a single section toast;
-  association/toggle tabs (`CategoryTieredTags`) just add the `notify*` callbacks to their existing
+  association/toggle tabs (`CategoryCustomProperties`) just add the `notify*` callbacks to their existing
   mutation.
 - **Exceptions:** **create** flows (create pages, right-panel create, inline-create modals) keep an
   explicit submit button — `PropertyForm` (full) and `TagForm` stay submit-driven for create while

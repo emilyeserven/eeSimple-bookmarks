@@ -147,7 +147,6 @@ export function AutofillRulePrefillForm({
         onToggleTag={handleToggleTag}
         locationIds={locationIds}
         onToggleLocation={handleToggleLocation}
-        appliedCategoryId={resolvedCategoryId(setCategoryId)}
       />
 
       <RulePropertyFields

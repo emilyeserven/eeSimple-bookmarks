@@ -20,10 +20,6 @@ function CategoryEditLayout() {
       label: t("General"),
     },
     {
-      to: "/categories/$categorySlug/edit/tiered-tags",
-      label: t("Tiered Tags"),
-    },
-    {
       to: "/categories/$categorySlug/edit/custom-properties",
       label: t("Custom Properties"),
     },
@@ -77,7 +73,7 @@ function CategoryEditLayout() {
             {isLoading ? t("Edit category") : (category?.name ?? t("Category not found"))}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {t("Edit this category, its tiered tags, custom properties, and autofill rules.")}
+            {t("Edit this category, its custom properties, and autofill rules.")}
           </p>
         </div>
       )}

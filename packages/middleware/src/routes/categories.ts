@@ -3,18 +3,14 @@ import type {
   CreateCategoryInput,
   UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
-  UpdateCategoryRootTagsInput,
 } from "@eesimple/types";
 import {
   bulkDeleteCategories,
   createCategory,
   deleteCategory,
-  getAvailableRootTagsForCategory,
   getCategoryDefaults,
-  getCategoryRootTags,
   listCategories,
   setCategoryDefaults,
-  setCategoryRootTags,
   updateCategory,
 } from "@/services/categories";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
@@ -56,21 +52,6 @@ const updateCategoryBody = {
   type: "object",
   additionalProperties: false,
   properties: createCategoryBody.properties,
-} as const;
-
-const tagIdsBody = {
-  type: "object",
-  required: ["tagIds"],
-  additionalProperties: false,
-  properties: {
-    tagIds: {
-      type: "array",
-      items: {
-        type: "string",
-        format: "uuid",
-      },
-    },
-  },
 } as const;
 
 const defaultsBody = {
@@ -132,7 +113,7 @@ const defaultsBody = {
   },
 } as const;
 
-/** CRUD routes for categories plus homepage/root-tag config, under `/api`. */
+/** CRUD routes for categories plus their default property values, under `/api`. */
 export async function categoryRoutes(app: FastifyInstance): Promise<void> {
   registerBulkDelete(app, "/api/categories", "categories", bulkDeleteCategories);
 
@@ -179,54 +160,6 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
     const deleted = await deleteCategory(id);
     if (!deleted) throw new NotFoundError("Category");
     return reply.code(204).send();
-  });
-
-  app.get("/api/categories/:id/root-tags", {
-    schema: {
-      tags: ["categories"],
-      params: categoryParams,
-    },
-  }, async (req) => {
-    const {
-      id,
-    } = req.params as { id: string };
-    return {
-      tagIds: await getCategoryRootTags(id),
-    };
-  });
-
-  app.get("/api/categories/:id/available-tags", {
-    schema: {
-      tags: ["categories"],
-      params: categoryParams,
-    },
-  }, async (req) => {
-    const {
-      id,
-    } = req.params as { id: string };
-    return {
-      tagIds: await getAvailableRootTagsForCategory(id),
-    };
-  });
-
-  app.put("/api/categories/:id/root-tags", {
-    schema: {
-      tags: ["categories"],
-      params: categoryParams,
-      body: tagIdsBody,
-    },
-  }, async (req, reply) => {
-    const {
-      id,
-    } = req.params as { id: string };
-    const {
-      tagIds,
-    } = req.body as UpdateCategoryRootTagsInput;
-    const result = await setCategoryRootTags(id, tagIds);
-    if (result === null) throw new NotFoundError("Category");
-    return {
-      tagIds: result,
-    };
   });
 
   app.get("/api/categories/:id/defaults", {

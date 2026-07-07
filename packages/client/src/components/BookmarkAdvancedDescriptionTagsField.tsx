@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 
 import { AddTagModal } from "./AddTagModal";
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
-import { GatedTagPicker } from "./BookmarkTagsField";
+import { BookmarkTagsField } from "./BookmarkTagsField";
 
 import { Button } from "@/components/ui/button";
 import { isFetchableUrl } from "@/lib/url";
@@ -81,57 +81,52 @@ export function BookmarkAdvancedDescriptionTagsField({
         )}
       </form.Subscribe>
 
-      <form.Subscribe selector={state => state.values.categoryId}>
-        {categoryId => (
-          <form.Field name="tagIds">
-            {field => (
-              <>
-                <GatedTagPicker
-                  categoryId={categoryId}
-                  tree={tagTree}
-                  selectedIds={field.state.value}
-                  onToggle={(id) => {
-                    onTagToggle(id);
-                    const current = field.state.value;
-                    field.handleChange(
-                      current.includes(id)
-                        ? current.filter(tagId => tagId !== id)
-                        : [...current, id],
-                    );
-                  }}
-                  createOption={{
-                    label: t("Create tag"),
-                    onSelect: () => setAddTagOpen(true),
-                  }}
-                  below={sourceDefaults.showSourceDefault && field.state.value.length > 0
-                    ? (
-                      <SourceDefaultCheckbox
-                        checked={sourceDefaults.setTags}
-                        onCheckedChange={sourceDefaults.onSetTags}
-                      >
-                        {t("Apply selected tags as defaults for {{label}}", {
-                          label: sourceDefaults.label,
-                        })}
-                      </SourceDefaultCheckbox>
-                    )
-                    : null}
-                />
-                <AddTagModal
-                  open={addTagOpen}
-                  onOpenChange={setAddTagOpen}
-                  onCreated={(tag) => {
-                    const current = field.state.value;
-                    if (!current.includes(tag.id)) {
-                      onTagToggle(tag.id);
-                      field.handleChange([...current, tag.id]);
-                    }
-                  }}
-                />
-              </>
-            )}
-          </form.Field>
+      <form.Field name="tagIds">
+        {field => (
+          <>
+            <BookmarkTagsField
+              tree={tagTree}
+              selectedIds={field.state.value}
+              onToggle={(id) => {
+                onTagToggle(id);
+                const current = field.state.value;
+                field.handleChange(
+                  current.includes(id)
+                    ? current.filter(tagId => tagId !== id)
+                    : [...current, id],
+                );
+              }}
+              createOption={{
+                label: t("Create tag"),
+                onSelect: () => setAddTagOpen(true),
+              }}
+              below={sourceDefaults.showSourceDefault && field.state.value.length > 0
+                ? (
+                  <SourceDefaultCheckbox
+                    checked={sourceDefaults.setTags}
+                    onCheckedChange={sourceDefaults.onSetTags}
+                  >
+                    {t("Apply selected tags as defaults for {{label}}", {
+                      label: sourceDefaults.label,
+                    })}
+                  </SourceDefaultCheckbox>
+                )
+                : null}
+            />
+            <AddTagModal
+              open={addTagOpen}
+              onOpenChange={setAddTagOpen}
+              onCreated={(tag) => {
+                const current = field.state.value;
+                if (!current.includes(tag.id)) {
+                  onTagToggle(tag.id);
+                  field.handleChange([...current, tag.id]);
+                }
+              }}
+            />
+          </>
         )}
-      </form.Subscribe>
+      </form.Field>
     </div>
   );
 }

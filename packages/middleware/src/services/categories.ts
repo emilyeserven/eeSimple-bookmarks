@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull, ne, or } from "drizzle-orm";
+import { and, asc, eq, isNull, ne, or } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   Category,
@@ -23,8 +23,6 @@ import {
   categoryDateTimeDefaults,
   categoryNumberDefaults,
   type CategoryRow,
-  categoryRootTags,
-  tags,
 } from "@/db/schema";
 import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -33,13 +31,6 @@ import { slugify, uniqueSlug } from "@/utils/slug";
 export class BuiltInCategoryError extends AppError {
   constructor(message: string) {
     super(message, "builtInImmutable", 403);
-  }
-}
-
-/** Thrown when a root-tag allowlist references an unknown or non-root tag. */
-export class InvalidRootTagError extends AppError {
-  constructor(message: string) {
-    super(message, "validation", 400);
   }
 }
 
@@ -258,85 +249,6 @@ async function backfillSlugs(): Promise<void> {
       slug,
     }).where(eq(categories.id, category.id));
   }
-}
-
-/** The enabled root-tag ids for a category (empty = all root tags enabled). */
-export async function getCategoryRootTags(categoryId: string): Promise<string[]> {
-  const rows = await db
-    .select({
-      tagId: categoryRootTags.tagId,
-    })
-    .from(categoryRootTags)
-    .where(eq(categoryRootTags.categoryId, categoryId));
-  return rows.map(row => row.tagId);
-}
-
-/**
- * A category's available root tags for tagging bookmarks: root tags explicitly assigned to this
- * category, plus root tags with no category assignment at all (absent from every category's
- * allowlist). Distinct from `getCategoryRootTags`, which returns only the explicit assignment
- * (used to drive the admin allowlist editor's checkbox state).
- */
-export async function getAvailableRootTagsForCategory(categoryId: string): Promise<string[]> {
-  const explicitRows = await db
-    .select({
-      tagId: categoryRootTags.tagId,
-    })
-    .from(categoryRootTags)
-    .where(eq(categoryRootTags.categoryId, categoryId));
-
-  const unassignedRows = await db
-    .select({
-      id: tags.id,
-    })
-    .from(tags)
-    .leftJoin(categoryRootTags, eq(categoryRootTags.tagId, tags.id))
-    .where(and(isNull(tags.parentId), isNull(categoryRootTags.tagId)));
-
-  const ids = new Set<string>();
-  for (const row of explicitRows) ids.add(row.tagId);
-  for (const row of unassignedRows) ids.add(row.id);
-  return [...ids];
-}
-
-/** Validate that every id refers to an existing root tag (`parentId === null`). */
-async function assertRootTags(tagIds: string[]): Promise<void> {
-  if (tagIds.length === 0) return;
-  const rows = await db
-    .select({
-      id: tags.id,
-      parentId: tags.parentId,
-    })
-    .from(tags)
-    .where(inArray(tags.id, tagIds));
-  const byId = new Map(rows.map(row => [row.id, row.parentId]));
-  for (const id of tagIds) {
-    if (!byId.has(id)) throw new InvalidRootTagError(`Unknown tag: ${id}`);
-    if (byId.get(id) !== null) throw new InvalidRootTagError(`Tag ${id} is not a root tag`);
-  }
-}
-
-/** Replace a category's enabled root-tag allowlist. Returns null if the category is missing. */
-export async function setCategoryRootTags(
-  categoryId: string,
-  tagIds: string[],
-): Promise<string[] | null> {
-  const [category] = await db.select({
-    id: categories.id,
-  }).from(categories).where(eq(categories.id, categoryId));
-  if (!category) return null;
-  await assertRootTags(tagIds);
-
-  await db.transaction(async (tx) => {
-    await tx.delete(categoryRootTags).where(eq(categoryRootTags.categoryId, categoryId));
-    if (tagIds.length > 0) {
-      await tx.insert(categoryRootTags).values(tagIds.map(tagId => ({
-        categoryId,
-        tagId,
-      })));
-    }
-  });
-  return tagIds;
 }
 
 /** A category's default custom-property values, applied to new bookmarks added to it. */

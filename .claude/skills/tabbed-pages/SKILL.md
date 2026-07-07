@@ -18,7 +18,7 @@ description: >-
 >
 > - **View / Info page** — a **single** `…/$slug/info` route rendering `components/workbench/EntityInfoView.tsx`,
 >   a **vertical** tab rail whose active tab is a **`?tab=<key>` search param** (e.g.
->   `/categories/dev/info?tab=tiered-tags`). The rail is *derived* from `workbench.tabs` (those with a
+>   `/categories/dev/info?tab=custom-properties`). The rail is *derived* from `workbench.tabs` (those with a
 >   `view` pane, honoring `showIf`); each body is a `WorkbenchRouteTab` (`mode="view"`). **There are no
 >   `_view.tsx` / `_view.<tab>.tsx` route files** — that whole pathless subtree and the `viewNav` array
 >   are gone. A view-only tab (e.g. Hierarchy) is just a `view`-only `WorkbenchTab` in the descriptor.

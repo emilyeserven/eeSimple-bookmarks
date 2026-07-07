@@ -2,7 +2,7 @@ import type { ImportItemAdvancedEditState } from "./useImportItemAdvancedEdit";
 
 import { useTranslation } from "react-i18next";
 
-import { GatedTagPicker } from "./BookmarkTagsField";
+import { BookmarkTagsField } from "./BookmarkTagsField";
 import { Combobox } from "./Combobox";
 import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
@@ -92,8 +92,7 @@ export function ImportItemAdvancedEditFields({
         />
       </div>
 
-      <GatedTagPicker
-        categoryId={categoryId ?? ""}
+      <BookmarkTagsField
         tree={tagTree}
         selectedIds={tagIds}
         onToggle={handleTagToggle}

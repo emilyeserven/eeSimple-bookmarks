@@ -21,6 +21,7 @@
  *
  * Run via `migrate:prod` (compiled) or `migrate:dev` (tsx); the gateway runs it on boot.
  */
+import { sql } from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import pg from "pg";
 
@@ -36,8 +37,15 @@ interface RuntimeMigration {
   run: (db: NodePgDatabase) => Promise<unknown>;
 }
 
-// Ordered list of idempotent, destructive/push-incompatible steps. Empty until the next one is added.
-const migrations: RuntimeMigration[] = [];
+// Ordered list of idempotent, destructive/push-incompatible steps.
+const migrations: RuntimeMigration[] = [
+  {
+    // The per-category "Tiered Tags" root-tag allowlist was removed — all tags are available for
+    // every category now. Drop the table so push's diff stays additive.
+    name: "drop legacy category_root_tags",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "category_root_tags"`),
+  },
+];
 
 async function main(): Promise<void> {
   if (migrations.length === 0) {

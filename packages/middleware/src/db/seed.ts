@@ -7,7 +7,6 @@ import {
   bookmarkTags,
   calculatePropertyOperands,
   categories,
-  categoryRootTags,
   customProperties,
   homepageTags,
   propertyCategories,
@@ -191,13 +190,7 @@ export async function maybeSeed(): Promise<void> {
     },
   ]);
 
-  // The Workflow category only offers the `dev` root tag; the homepage also surfaces `dev` bookmarks.
-  await db.insert(categoryRootTags).values([
-    {
-      categoryId: workflow.id,
-      tagId: dev.id,
-    },
-  ]);
+  // The homepage surfaces `dev` bookmarks.
   await db.insert(homepageTags).values([
     {
       tagId: dev.id,

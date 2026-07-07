@@ -151,13 +151,7 @@ vi.mock("../hooks/useCategories", () => ({
     isError: false,
     error: null,
   }),
-  useCategoryRootTags: () => ({
-    data: [],
-  }),
   useCategoryDefaults: () => ({
-    data: undefined,
-  }),
-  useCategoryAvailableTags: () => ({
     data: undefined,
   }),
 }));

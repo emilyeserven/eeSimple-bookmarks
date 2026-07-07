@@ -4,7 +4,6 @@ import type { TagNode } from "@eesimple/types";
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
-import { TagCategories } from "../TagCategories";
 import { TagGeneralEdit, TagGeneralView, TagHierarchyView } from "./tagViews";
 
 import { useDeleteTag, useTagBySlug, useTagTree } from "@/hooks/useTags";
@@ -59,24 +58,6 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
         title: i18n.t("General"),
         description: i18n.t("Name and parent tag."),
         render: TagGeneralEdit,
-      },
-    },
-    {
-      key: "categories",
-      label: i18n.t("Categories"),
-      view: {
-        title: i18n.t("Categories"),
-        description: i18n.t("Categories that offer this tag when tagging bookmarks."),
-        render: ({
-          entity,
-        }) => <TagCategories tag={entity} />,
-      },
-      edit: {
-        title: i18n.t("Categories"),
-        description: i18n.t("Categories that offer this tag when tagging bookmarks."),
-        render: ({
-          entity,
-        }) => <TagCategories tag={entity} />,
       },
     },
     {

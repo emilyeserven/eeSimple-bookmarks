@@ -64,7 +64,6 @@ export function NewsletterGeneralForm({
         selectedIds={tagIds}
         onToggle={toggleTag}
         description={t("Tags applied automatically to bookmarks imported from this newsletter.")}
-        categoryId={newsletter.category?.id ?? null}
       />
 
       <Separator />

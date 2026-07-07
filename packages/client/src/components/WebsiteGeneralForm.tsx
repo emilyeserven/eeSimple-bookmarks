@@ -145,7 +145,6 @@ export function WebsiteGeneralForm({
         selectedIds={tagIds}
         onToggle={toggleTag}
         description={t("Tags applied automatically to bookmarks saved from this site.")}
-        categoryId={website.category?.id ?? null}
       />
 
       <Separator />

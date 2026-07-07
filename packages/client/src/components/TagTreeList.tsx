@@ -1,4 +1,3 @@
-import type { TaxonomyTreeNode } from "./TaxonomyTreeRow";
 import type { TagNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
@@ -6,7 +5,6 @@ import { Folder, Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
-import { TagCategoriesPopover } from "./TagCategoriesPopover";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 
 interface TagTreeListProps {
@@ -37,18 +35,11 @@ export function TagTreeList({
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
-      renderIcon={(node: TaxonomyTreeNode) => {
-        const tagNode = node as unknown as TagNode;
-        if (tagNode.parentId !== null) {
-          return <Folder className="size-4 shrink-0 text-muted-foreground" />;
-        }
-        return (
-          <TagCategoriesPopover
-            tagId={tagNode.id}
-            tagName={tagNode.name}
-          />
-        );
-      }}
+      renderIcon={() => (
+        <Folder
+          className="size-4 shrink-0 text-muted-foreground"
+        />
+      )}
       renderNameLink={node => (
         <Link
           to="/tags/$tagSlug"
