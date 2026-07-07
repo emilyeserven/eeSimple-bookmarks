@@ -2,6 +2,7 @@ import type { EntityWorkbench } from "./types";
 import type { RelationshipType } from "@eesimple/types";
 
 import i18n from "../../i18n";
+import { RelationshipTypeCardsView } from "../RelationshipTypeCardsView";
 import { RelationshipTypeDetail } from "../RelationshipTypeDetail";
 import { RelationshipTypeGeneralForm } from "../RelationshipTypeGeneralForm";
 
@@ -46,6 +47,17 @@ export const relationshipTypeWorkbench: EntityWorkbench<RelationshipType> = {
   listingPath: "/taxonomies/relationship-types",
   getSlug: rt => rt.slug,
   tabs: [
+    {
+      key: "relationships",
+      label: i18n.t("Relationships"),
+      view: {
+        title: i18n.t("Relationships"),
+        description: i18n.t("Parent and child bookmarks linked by this relationship type."),
+        render: ({
+          entity,
+        }) => <RelationshipTypeCardsView relationshipType={entity} />,
+      },
+    },
     {
       key: "general",
       label: i18n.t("General"),
