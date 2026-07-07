@@ -5,6 +5,7 @@ import type {
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
+  BookmarkFieldSort,
   ConnectorsAppSettings,
   ImportBlacklistEntry,
   InterfaceLanguage,
@@ -239,6 +240,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   bookmarkDetailLayout: "single" as BookmarkDetailLayout,
   interfaceLanguage: "en" as InterfaceLanguage,
   onDemandFilters: [] as string[],
+  defaultBookmarkSort: null as BookmarkFieldSort | null,
   searchBoxPinned: false,
   panelPinned: false,
   drawerUnpinnedBreakpoints: [768],
@@ -580,6 +582,17 @@ export function useOnDemandFilters(): string[] {
     data,
   } = useDisplayPreferenceSettings();
   return data?.onDemandFilters ?? DISPLAY_PREFERENCE_DEFAULTS.onDemandFilters;
+}
+
+/**
+ * The user's configured default bookmark-listing sort — applied when a listing has no explicit
+ * `sort` in the URL (null = today's `createdAt DESC` fallback).
+ */
+export function useDefaultBookmarkSort(): BookmarkFieldSort | null {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.defaultBookmarkSort ?? DISPLAY_PREFERENCE_DEFAULTS.defaultBookmarkSort;
 }
 
 /** Minimum boundary area (km²) for an "area"-mode location to still render as a polygon (default 0 = off). */

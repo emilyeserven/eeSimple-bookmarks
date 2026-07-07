@@ -582,6 +582,12 @@ export interface DisplayPreferenceSettings {
   imageQuality: number;
   /** The interface language driving i18next + `Intl` formatting. */
   interfaceLanguage: InterfaceLanguage;
+  /**
+   * Default sort applied to bookmark listings when no explicit `sort` is in the URL. Null =
+   * today's `createdAt DESC` fallback. Random shuffle is intentionally excluded (it re-rolls its
+   * seed on every use, so it doesn't make sense as a static default).
+   */
+  defaultBookmarkSort: BookmarkFieldSort | null;
 }
 
 /** The interface locales the app can render in. */

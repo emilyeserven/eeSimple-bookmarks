@@ -2,6 +2,7 @@ import { ArrowUpDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkSortEditor } from "./BookmarkSortFields";
+import { useDefaultBookmarkSort } from "../hooks/useAppSettings";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useLanguages } from "../hooks/useLanguages";
 import { useTitleSortLanguage } from "../hooks/useTitleSortContext";
@@ -81,7 +82,8 @@ export function BookmarkSortPopover({
 function BookmarkSortControls() {
   const filterContext = useUiStore(s => s.filterContext);
   const pageKey = useUiStore(s => s.listingPage?.key);
-  const sort = filterContext?.search.sort;
+  const defaultSort = useDefaultBookmarkSort();
+  const sort = filterContext?.search.sort ?? defaultSort ?? undefined;
   const {
     data: allProperties = [],
   } = useCustomProperties();

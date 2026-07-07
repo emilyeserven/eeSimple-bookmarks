@@ -1,5 +1,6 @@
 import type { Theme } from "../stores/uiStore";
 import type {
+  BookmarkSort,
   CustomPropertyType,
   DisplayPreferenceSettings,
   InterfaceLanguage,
@@ -8,6 +9,7 @@ import type {
 import { BOOKMARKS_PER_PAGE_OPTIONS, DEFAULT_BOOKMARKS_PER_PAGE } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
+import { BookmarkSortEditor } from "./BookmarkSortFields";
 import { Combobox } from "./Combobox";
 import { PropertyTypeIconsCard } from "./PropertyTypeIconsCard";
 import { SegmentedToggleRow } from "./SegmentedToggleRow";
@@ -15,6 +17,7 @@ import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
+import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useLanguages } from "../hooks/useLanguages";
 import { useUiStore } from "../stores/uiStore";
 
@@ -42,10 +45,11 @@ const THEME_LABELS: Record<Theme, string> = {
 
 const DISPLAY_DEFAULTS: Pick<
   DisplayPreferenceSettings,
-  "customPropertyTypeIcons" | "bookmarksPerPage" | "interfaceLanguage" | "hanScriptLanguage" | "secondaryLanguageId"
+  "customPropertyTypeIcons" | "bookmarksPerPage" | "defaultBookmarkSort" | "interfaceLanguage" | "hanScriptLanguage" | "secondaryLanguageId"
 > = {
   customPropertyTypeIcons: null,
   bookmarksPerPage: DEFAULT_BOOKMARKS_PER_PAGE,
+  defaultBookmarkSort: null,
   interfaceLanguage: "en",
   hanScriptLanguage: "ja",
   secondaryLanguageId: null,
@@ -79,6 +83,9 @@ export function DisplayGeneralSettings() {
   const {
     data: languages = [],
   } = useLanguages();
+  const {
+    data: properties = [],
+  } = useCustomProperties();
   const display = {
     ...DISPLAY_DEFAULTS,
     ...displayData,
@@ -120,6 +127,12 @@ export function DisplayGeneralSettings() {
     saveDisplay({
       bookmarksPerPage: value,
     }, "Bookmarks per page updated");
+  // allowRandom is omitted below, so the editor never actually offers a random sort here — narrow
+  // defensively since BookmarkSortEditor's onChange is typed over the wider BookmarkSort union.
+  const setDefaultBookmarkSort = (sort: BookmarkSort | undefined) =>
+    saveDisplay({
+      defaultBookmarkSort: sort && !("random" in sort) ? sort : null,
+    }, "Default sort order updated");
   const setInterfaceLanguage = (value: InterfaceLanguage) =>
     saveDisplay({
       interfaceLanguage: value,
@@ -222,6 +235,22 @@ export function DisplayGeneralSettings() {
               ))}
             </SelectContent>
           </Select>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Default sort order")}</CardTitle>
+          <CardDescription>
+            {t("The order bookmark listings open in when no sort is chosen for that visit. Explicitly picking a sort on a listing page still overrides this.")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BookmarkSortEditor
+            value={display.defaultBookmarkSort ?? undefined}
+            onChange={setDefaultBookmarkSort}
+            properties={properties}
+          />
         </CardContent>
       </Card>
 
