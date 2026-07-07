@@ -14,6 +14,7 @@ import type {
   TranslationSource,
   MediaType,
   Newsletter,
+  PropertyGroup,
   Tag,
   Website,
   YouTubeChannel,
@@ -208,6 +209,24 @@ export function makeCategory(overrides: Partial<Category> = {}): Category {
     builtIn: false,
     isHomepage: false,
     createdAt: NOW,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `PropertyGroup` (unscoped — shows for every bookmark — by default). */
+export function makePropertyGroup(overrides: Partial<PropertyGroup> = {}): PropertyGroup {
+  return {
+    id: "group",
+    name: "Group",
+    slug: "group",
+    description: null,
+    priority: 0,
+    categoryIds: [],
+    allCategories: false,
+    mediaTypeIds: [],
+    allMediaTypes: false,
+    createdAt: NOW,
+    propertyCount: 0,
     ...overrides,
   };
 }

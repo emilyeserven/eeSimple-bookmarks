@@ -6,6 +6,7 @@ import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { StarRating } from "./StarRating";
 import i18n from "../i18n";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
+import { groupAppliesToBookmark } from "../lib/bookmarkPropertyGroups";
 import { buildBookmarkPropertyRows } from "../lib/bookmarkPropertyRows";
 import { formatSectionEntry } from "../lib/propertyFormat";
 
@@ -75,7 +76,11 @@ export function BookmarkPropertySections({
     target === null
       ? groupId === null || !knownGroupIds.has(groupId)
       : groupId === target;
+  // Only groups whose category/media-type scope matches this bookmark render (an unscoped group
+  // matches everything). `knownGroupIds` stays the full set so a scoped-out group's rows don't leak
+  // into the ungrouped "Properties" section — they simply don't render, matching the edit form.
   const sortedGroups = [...propertyGroups]
+    .filter(group => groupAppliesToBookmark(group, bookmark))
     .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name));
   const propertySections = [
     ...sortedGroups.map(group => ({

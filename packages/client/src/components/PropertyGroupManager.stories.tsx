@@ -1,32 +1,28 @@
-import type { PropertyGroup } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HttpResponse, http } from "msw";
 
 import { PropertyGroupsListing } from "./PropertyGroupManager";
+import { makePropertyGroup } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const groups: PropertyGroup[] = [
-  {
+const groups = [
+  makePropertyGroup({
     id: "group-reading",
     name: "Reading",
     slug: "reading",
     description: "Progress-tracking properties.",
     priority: 0,
-    createdAt: NOW,
     propertyCount: 3,
-  },
-  {
+  }),
+  makePropertyGroup({
     id: "group-ratings",
     name: "Ratings",
     slug: "ratings",
     description: null,
     priority: 1,
-    createdAt: NOW,
     propertyCount: 1,
-  },
+  }),
 ];
 
 const meta = {

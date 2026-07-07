@@ -2109,6 +2109,46 @@ const migrations: RuntimeMigration[] = [
       await db.execute(sql`DROP TABLE IF EXISTS "media_properties"`);
     },
   },
+  {
+    // `property_groups` gained category/media-type scope: two NOT NULL boolean columns
+    // (`all_categories`/`all_media_types`) and two join tables. Adding NOT NULL columns to the
+    // populated table makes drizzle-kit push prompt — the same non-TTY crash as the cases above — so
+    // pre-apply them here. One `ALTER TABLE` with two `ADD COLUMN` clauses is a single statement, safe
+    // over the extended protocol. Defaults must match schema.ts (both false).
+    name: "add property_groups all_categories + all_media_types columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "property_groups"
+        ADD COLUMN IF NOT EXISTS "all_categories" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "all_media_types" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
+    // New join table on a populated DB ⇒ pre-create so push's diff stays additive (else the
+    // `pgSuggestions` truncate prompt crashes the non-TTY deploy and silently skips the rest of the
+    // additive diff). `property_groups`/`categories` both pre-exist, so real REFERENCES are safe here.
+    name: "create property_group_categories table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "property_group_categories" (
+        "property_group_id" uuid NOT NULL REFERENCES "property_groups"("id") ON DELETE CASCADE,
+        "category_id" uuid NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE,
+        CONSTRAINT "property_group_categories_property_group_id_category_id_pk"
+          PRIMARY KEY ("property_group_id", "category_id")
+      )
+    `),
+  },
+  {
+    // New join table on a populated DB ⇒ pre-create (same rationale as above). `property_groups`/
+    // `media_types` both pre-exist, so real REFERENCES are safe here.
+    name: "create property_group_media_types table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "property_group_media_types" (
+        "property_group_id" uuid NOT NULL REFERENCES "property_groups"("id") ON DELETE CASCADE,
+        "media_type_id" uuid NOT NULL REFERENCES "media_types"("id") ON DELETE CASCADE,
+        CONSTRAINT "property_group_media_types_property_group_id_media_type_id_pk"
+          PRIMARY KEY ("property_group_id", "media_type_id")
+      )
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

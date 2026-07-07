@@ -15,7 +15,7 @@ const propertyGroupGeneralSchema = z.object({
   description: z.string(),
 });
 
-const LABELS: Record<keyof UpdatePropertyGroupInput, string> = {
+const LABELS: Partial<Record<keyof UpdatePropertyGroupInput, string>> = {
   name: "Name",
   priority: "Priority",
   description: "Description",

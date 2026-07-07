@@ -1,29 +1,24 @@
-import type { PropertyGroup } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { PropertyDisplayEditForm } from "./PropertyDisplayEditForm";
-import { makeCustomProperty } from "../test-utils/factories";
+import { makeCustomProperty, makePropertyGroup } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const propertyGroups: PropertyGroup[] = [
-  {
+const propertyGroups = [
+  makePropertyGroup({
     id: "group-1",
     name: "Reading",
     slug: "reading",
     description: null,
     priority: 0,
-    createdAt: NOW,
-  },
-  {
+  }),
+  makePropertyGroup({
     id: "group-2",
     name: "Metadata",
     slug: "metadata",
     description: null,
     priority: 1,
-    createdAt: NOW,
-  },
+  }),
 ];
 
 const meta = {

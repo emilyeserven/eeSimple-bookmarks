@@ -7,6 +7,7 @@ import { CategoryCustomFields } from "./BookmarkCustomFields";
 import { BookmarkYouTubeMetadataFields } from "./BookmarkYouTubeMetadataFields";
 import { useBookmarkPropertiesForm } from "./useBookmarkPropertiesForm";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
+import { groupAppliesToBookmark } from "../lib/bookmarkPropertyGroups";
 
 import { RowCard } from "@/components/ui/card";
 
@@ -71,8 +72,11 @@ export function BookmarkPropertiesForm({
   const sortedGroups = [...(propertyGroups ?? [])].sort(
     (a, b) => a.priority - b.priority || a.name.localeCompare(b.name),
   );
+  // A group's card shows only when its category/media-type scope matches this bookmark (an unscoped
+  // group matches everything) and it has at least one applicable property.
   const groupsWithProperties = sortedGroups.filter(g =>
-    applicableProperties.some(p => p.propertyGroupId === g.id));
+    groupAppliesToBookmark(g, bookmark)
+    && applicableProperties.some(p => p.propertyGroupId === g.id));
   const hasUngrouped = applicableProperties.some(
     p => p.propertyGroupId === null || !knownGroupIds.has(p.propertyGroupId),
   );
