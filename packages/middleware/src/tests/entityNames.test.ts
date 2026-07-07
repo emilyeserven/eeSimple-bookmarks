@@ -27,10 +27,10 @@ test("planEntityNameBackfillRows: Korean title → single primary ko row", () =>
 });
 
 test("planEntityNameBackfillRows: Japanese title + romanized → ja primary + en romanized row", () => {
-  const result = planEntityNameBackfillRows("movie", "m1", "進撃の巨人", "Shingeki no Kyojin", "ja", IDS);
+  const result = planEntityNameBackfillRows("person", "m1", "進撃の巨人", "Shingeki no Kyojin", "ja", IDS);
   assert.deepEqual(result.rows, [
     {
-      ownerType: "movie",
+      ownerType: "person",
       ownerId: "m1",
       languageId: "ja-id",
       value: "進撃の巨人",
@@ -38,7 +38,7 @@ test("planEntityNameBackfillRows: Japanese title + romanized → ja primary + en
       sortOrder: 0,
     },
     {
-      ownerType: "movie",
+      ownerType: "person",
       ownerId: "m1",
       languageId: "en-id",
       value: "Shingeki no Kyojin",

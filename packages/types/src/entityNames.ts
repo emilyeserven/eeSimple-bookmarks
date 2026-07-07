@@ -26,13 +26,6 @@ export const ENTITY_NAME_OWNER_TYPES = [
   "location",
   "person",
   "group",
-  "book",
-  "podcast",
-  "movie",
-  "tvShow",
-  "episode",
-  "album",
-  "track",
 ] as const;
 export type EntityNameOwnerType = typeof ENTITY_NAME_OWNER_TYPES[number];
 

@@ -2,10 +2,8 @@ import type { Bookmark } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { BookmarkArchiveLinkButton, BookmarkKavitaLinkButton, BookmarkPlexLinkButton, BookmarkPodcastLinkButton } from "./BookmarkCardActions";
-import { useBookmarkKavitaLink } from "../hooks/useBooks";
+import { useBookmarkKavitaLink, useBookmarkPlexLink, useBookmarkPodcastLink } from "../hooks/useBookmarkMediaLinks";
 import { useConnectors } from "../hooks/useConnectors";
-import { useBookmarkPlexLink } from "../hooks/useMovies";
-import { useBookmarkPodcastLink } from "../hooks/usePodcasts";
 
 /** The four connector deep-link buttons a bookmark card may show; each is `null` when not applicable. */
 export interface BookmarkLinkOutNodes {

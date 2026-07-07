@@ -1,22 +1,14 @@
 import type {
   Person,
   AutoFetchJobStatus,
-  Book,
   BulkBookmarkResult,
   BulkDeleteResult,
   Category,
   CategoryPropertyDefaults,
   CreatePersonInput,
   SocialLink,
-  CreateBookInput,
   CreateCategoryInput,
   CreateCustomPropertyInput,
-  CreateMediaPropertyInput,
-  CreateMovieInput,
-  CreateTvShowInput,
-  CreateEpisodeInput,
-  CreateAlbumInput,
-  CreateTrackInput,
   CreateMediaTypeInput,
   CreateLanguageInput,
   CreateLanguageUsageLevelInput,
@@ -51,36 +43,14 @@ import type {
   GenreMoodNode,
   GenreMoodOwnerType,
   BookmarkGenreMood,
-  LocationAssignmentOwnerType,
-  OwnerLocation,
   Location,
   LocationLookupResult,
   LocationNode,
   Language,
-  MediaProperty,
   MediaType,
   MediaTypeNode,
-  Movie,
-  TvShow,
-  Episode,
-  Album,
-  Track,
   PlaceType,
-  Podcast,
-  CreatePodcastInput,
-  UpdatePodcastInput,
-  PodcastSearchResult,
-  PodcastFeedResult,
-  PodcastProviderLinks,
-  PodcastSearchProvider,
-  UpdateBookInput,
   UpdateLocationInput,
-  UpdateMediaPropertyInput,
-  UpdateMovieInput,
-  UpdateTvShowInput,
-  UpdateEpisodeInput,
-  UpdateAlbumInput,
-  UpdateTrackInput,
   UpdatePlaceTypeInput,
   PropertyGroup,
   Group,
@@ -110,7 +80,6 @@ import type {
 } from "@eesimple/types";
 
 import { createCrudApi, request, uploadImageFile } from "./client";
-import { createTaxonomyImageApi } from "./taxonomyImages";
 
 export const peopleApi = {
   ...createCrudApi<Person, CreatePersonInput, UpdatePersonInput>("people"),
@@ -226,20 +195,6 @@ export const genreMoodAssignmentsApi = {
     }),
 };
 
-export const locationAssignmentsApi = {
-  list: (ownerType: LocationAssignmentOwnerType, ownerId: string) =>
-    request<OwnerLocation[]>(`/location-assignments/${ownerType}/${ownerId}`),
-  listPlaceTypeKeysByOwnerType: (ownerType: LocationAssignmentOwnerType) =>
-    request<Record<string, string[]>>(`/location-assignments/by-owner-type/${ownerType}`),
-  set: (ownerType: LocationAssignmentOwnerType, ownerId: string, locationIds: string[]) =>
-    request<OwnerLocation[]>(`/location-assignments/${ownerType}/${ownerId}`, {
-      method: "PUT",
-      body: JSON.stringify({
-        locationIds,
-      }),
-    }),
-};
-
 export const languagesApi = createCrudApi<Language, CreateLanguageInput, UpdateLanguageInput>("languages");
 
 export const locationsApi = {
@@ -344,53 +299,6 @@ export const entityNamesApi = {
 };
 
 export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");
-
-export const mediaPropertiesApi = createCrudApi<MediaProperty, CreateMediaPropertyInput, UpdateMediaPropertyInput>("media-properties");
-
-export const booksApi = {
-  ...createCrudApi<Book, CreateBookInput, UpdateBookInput>("books"),
-  images: createTaxonomyImageApi("/books"),
-};
-
-export const podcastsApi = {
-  ...createCrudApi<Podcast, CreatePodcastInput, UpdatePodcastInput>("podcasts"),
-  images: createTaxonomyImageApi("/podcasts"),
-  search: (q: string, provider?: PodcastSearchProvider) =>
-    request<PodcastSearchResult[]>(
-      `/podcasts/search?q=${encodeURIComponent(q)}${provider ? `&provider=${provider}` : ""}`,
-    ),
-  resolveUrl: (url: string) =>
-    request<PodcastSearchResult>(`/podcasts/resolve-url?url=${encodeURIComponent(url)}`),
-  feedPreview: (id: string) =>
-    request<PodcastFeedResult>(`/podcasts/${id}/feed-preview`),
-  resolveLinks: (id: string) =>
-    request<PodcastProviderLinks>(`/podcasts/${id}/resolve-links`),
-};
-
-export const moviesApi = {
-  ...createCrudApi<Movie, CreateMovieInput, UpdateMovieInput>("movies"),
-  images: createTaxonomyImageApi("/movies"),
-};
-
-export const tvShowsApi = {
-  ...createCrudApi<TvShow, CreateTvShowInput, UpdateTvShowInput>("tv-shows"),
-  images: createTaxonomyImageApi("/tv-shows"),
-};
-
-export const episodesApi = {
-  ...createCrudApi<Episode, CreateEpisodeInput, UpdateEpisodeInput>("episodes"),
-  images: createTaxonomyImageApi("/episodes"),
-};
-
-export const albumsApi = {
-  ...createCrudApi<Album, CreateAlbumInput, UpdateAlbumInput>("albums"),
-  images: createTaxonomyImageApi("/albums"),
-};
-
-export const tracksApi = {
-  ...createCrudApi<Track, CreateTrackInput, UpdateTrackInput>("tracks"),
-  images: createTaxonomyImageApi("/tracks"),
-};
 
 export const relationshipTypesApi = createCrudApi<RelationshipType, CreateRelationshipTypeInput, UpdateRelationshipTypeInput>("relationship-types");
 

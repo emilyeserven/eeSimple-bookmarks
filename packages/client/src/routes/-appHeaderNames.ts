@@ -1,27 +1,19 @@
 import type { TaxonomyName } from "./-appHeaderData";
 
-import { useAlbumBySlug } from "@/hooks/useAlbums";
 import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
-import { useBookBySlug } from "@/hooks/useBooks";
 import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
-import { useEpisodeBySlug } from "@/hooks/useEpisodes";
 import { useGenreMoodBySlug } from "@/hooks/useGenreMoods";
 import { useGroupBySlug } from "@/hooks/useGroups";
 import { useGroupTypeBySlug } from "@/hooks/useGroupTypes";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
 import { useLanguageBySlug } from "@/hooks/useLanguages";
-import { useMediaPropertyBySlug } from "@/hooks/useMediaProperties";
-import { useMovieBySlug } from "@/hooks/useMovies";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePersonBySlug } from "@/hooks/usePeople";
 import { usePlaceTypeBySlug } from "@/hooks/usePlaceTypes";
-import { usePodcastBySlug } from "@/hooks/usePodcasts";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useSavedFilterBySlug } from "@/hooks/useSavedFilters";
-import { useTrackBySlug } from "@/hooks/useTracks";
-import { useTvShowBySlug } from "@/hooks/useTvShows";
 
 /** The per-prefix slugs the named-entity hooks resolve. The caller computes these (it already owns
  * `slugFor`), so this module stays free of that dependency. An empty slug short-circuits its hook. */
@@ -34,14 +26,6 @@ export interface TaxonomyNameSlugs {
   language: string;
   placeType: string;
   propertyGroup: string;
-  mediaProperty: string;
-  book: string;
-  podcast: string;
-  movie: string;
-  tvShow: string;
-  episode: string;
-  album: string;
-  track: string;
   relationshipType: string;
   property: string;
   autofill: string;
@@ -84,30 +68,6 @@ export function useTaxonomyNameMap(
   const {
     propertyGroup,
   } = usePropertyGroupBySlug(slugs.propertyGroup);
-  const {
-    mediaProperty,
-  } = useMediaPropertyBySlug(slugs.mediaProperty);
-  const {
-    book,
-  } = useBookBySlug(slugs.book);
-  const {
-    podcast,
-  } = usePodcastBySlug(slugs.podcast);
-  const {
-    movie,
-  } = useMovieBySlug(slugs.movie);
-  const {
-    tvShow,
-  } = useTvShowBySlug(slugs.tvShow);
-  const {
-    episode,
-  } = useEpisodeBySlug(slugs.episode);
-  const {
-    album,
-  } = useAlbumBySlug(slugs.album);
-  const {
-    track,
-  } = useTrackBySlug(slugs.track);
   const {
     relationshipType,
   } = useRelationshipTypeBySlug(slugs.relationshipType);
@@ -154,37 +114,6 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/property-groups": {
       name: propertyGroup?.name,
-    },
-    "/taxonomies/media-properties": {
-      name: mediaProperty?.name,
-    },
-    "/taxonomies/books": {
-      name: book?.name,
-      names: book?.names,
-    },
-    "/taxonomies/podcasts": {
-      name: podcast?.name,
-      names: podcast?.names,
-    },
-    "/taxonomies/movies": {
-      name: movie?.name,
-      names: movie?.names,
-    },
-    "/taxonomies/tv-shows": {
-      name: tvShow?.name,
-      names: tvShow?.names,
-    },
-    "/taxonomies/episodes": {
-      name: episode?.name,
-      names: episode?.names,
-    },
-    "/taxonomies/albums": {
-      name: album?.name,
-      names: album?.names,
-    },
-    "/taxonomies/tracks": {
-      name: track?.name,
-      names: track?.names,
     },
     "/taxonomies/relationship-types": {
       name: relationshipType?.name,

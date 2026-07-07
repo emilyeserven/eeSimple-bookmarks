@@ -465,7 +465,6 @@ function SubmitButton({
 
 export const {
   useAppForm,
-  withFieldGroup,
 } = createFormHook({
   fieldContext,
   formContext,

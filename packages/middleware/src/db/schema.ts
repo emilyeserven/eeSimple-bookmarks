@@ -1,6 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, type PgColumnBuilderBase, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import { TAXONOMY_IMAGE_OWNER_TYPES } from "@eesimple/types";
+import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import type { BookmarkAddFormAdvancedRule, BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
@@ -49,66 +48,33 @@ export const bookmarks = pgTable("bookmarks", {
   groupId: uuid("group_id").references((): AnyPgColumn => groups.id, {
     onDelete: "set null",
   }),
-  // The Book (Books taxonomy) this bookmark is linked to. Nullable = push-safe additive; set null
-  // when the book is deleted. Book selection now flows through this FK instead of the legacy Kavita
-  // columns below (which are retained for pre-existing links). Cover/ToC/deep-link resolve the Kavita
-  // series id from the linked Book, falling back to the legacy `kavita_series_id` when unset.
-  bookId: uuid("book_id").references((): AnyPgColumn => books.id, {
-    onDelete: "set null",
-  }),
-  // Legacy: direct link to a series on the connected Kavita server (Settings → Connectors). All
+  // Direct link to a series on the connected Kavita server (Settings → Connectors). All
   // nullable = push-safe additive; the library id is kept alongside the series id to build the web UI
   // deep link, and the series name is denormalized at link time for display without a Kavita
-  // round-trip. Retained for bookmarks linked before the Books taxonomy existed.
+  // round-trip.
   kavitaSeriesId: integer("kavita_series_id"),
   kavitaLibraryId: integer("kavita_library_id"),
   kavitaSeriesName: text("kavita_series_name"),
-  // The Plex-backed taxonomy (Movie / TV Show / Episode / Album / Track) this bookmark is
-  // linked to. At most one is set. Nullable = push-safe additive; set null when the linked row is
-  // deleted. Plex-item selection flows through these FKs instead of the legacy Plex columns below;
-  // poster/deep-link resolve the Plex rating key from whichever is linked, falling back to the legacy
-  // `plex_rating_key` when none is set. (The former `artist_id` was folded into the People/Groups
-  // creator credits — see `bookmark_people` / `bookmark_groups` — and dropped in migrate.ts.)
-  movieId: uuid("movie_id").references((): AnyPgColumn => movies.id, {
-    onDelete: "set null",
-  }),
-  tvShowId: uuid("tv_show_id").references((): AnyPgColumn => tvShows.id, {
-    onDelete: "set null",
-  }),
-  episodeId: uuid("episode_id").references((): AnyPgColumn => episodes.id, {
-    onDelete: "set null",
-  }),
-  albumId: uuid("album_id").references((): AnyPgColumn => albums.id, {
-    onDelete: "set null",
-  }),
-  trackId: uuid("track_id").references((): AnyPgColumn => tracks.id, {
-    onDelete: "set null",
-  }),
-  podcastId: uuid("podcast_id").references((): AnyPgColumn => podcasts.id, {
-    onDelete: "set null",
-  }),
-  // Legacy: direct link to an item on the connected Plex server (Settings → Connectors). All nullable =
+  // Direct link to an item on the connected Plex server (Settings → Connectors). All nullable =
   // push-safe additive; the item type and title are denormalized at link time so the deep link and
   // detail display need no Plex round-trip. The web-UI deep link also needs the server's
   // machineIdentifier, resolved (and cached) server-side from Plex's /identity and returned via
-  // /api/connectors. Retained for bookmarks linked before the Movies/TV Shows taxonomies existed.
+  // /api/connectors.
   plexRatingKey: text("plex_rating_key"),
   plexItemType: text("plex_item_type"),
   plexItemTitle: text("plex_item_title"),
-  // Media-item identity/metadata promoted onto the bookmark so a Book/Movie/Podcast/… can be a
-  // first-class bookmark without a backing media-taxonomy row (see #1070). These mirror the columns
-  // the taxonomy tables carry (`books.isbn`/`release_year`, `plexTaxonomyColumns()`'s
-  // `year`/`wikidata_id`/`wikipedia_link_*`, and the `podcasts` source set). All nullable →
-  // push-safe additive (lone nullable columns, no new table). Matchable data → writes must call
-  // `invalidateBookmarkCache()` (the normal scalar update path already does).
+  // Media-item identity/metadata (Kavita/Plex/ISBN/podcast-feed/…) so a Book/Movie/Podcast/… can be a
+  // first-class bookmark (see #1070). All nullable → push-safe additive (lone nullable columns, no
+  // new table). Matchable data → writes must call `invalidateBookmarkCache()` (the normal scalar
+  // update path already does).
   isbn: text("isbn"),
   year: integer("year"),
   wikidataId: text("wikidata_id"),
   wikipediaLinkEn: text("wikipedia_link_en"),
   wikipediaLinkLocal: text("wikipedia_link_local"),
-  // Podcast source linkage (mirrors the `podcasts` table): the RSS/XML feed URL is the canonical
-  // sync source; iTunes id/url link the Apple Podcasts entry; Spotify/Pocket Casts are page links;
-  // `defaultLinkProvider` picks which one the bookmark links out to.
+  // Podcast source linkage: the RSS/XML feed URL is the canonical sync source; iTunes id/url link
+  // the Apple Podcasts entry; Spotify/Pocket Casts are page links; `defaultLinkProvider` picks which
+  // one the bookmark links out to.
   feedUrl: text("feed_url"),
   itunesId: integer("itunes_id"),
   itunesUrl: text("itunes_url"),
@@ -676,296 +642,6 @@ export const propertyGroups = pgTable("property_groups", {
 ]);
 
 /**
- * `media_properties` table — a taxonomy of franchises / IP groupings (e.g. "The Lord of the Rings").
- * A Book (below) may belong to one media property. Flat, user-managed vocabulary. Nullable slug for
- * push-safe addition; backfilled at boot.
- */
-export const mediaProperties = pgTable("media_properties", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
-  slug: text("slug"),
-  // Display ordering; lower sorts first.
-  sortOrder: integer("sort_order").notNull().default(0),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  unique("media_properties_name_unique").on(table.name),
-  unique("media_properties_slug_unique").on(table.slug),
-]);
-
-/**
- * `books` table — a taxonomy of individual books, optionally grouped under a media property. A book
- * carries the Kavita linkage (series/library ids + denormalized series name) so bookmarks reference a
- * Book (via `bookmarks.book_id`) rather than a live Kavita series, and cover/ToC/deep-link features
- * resolve the series id from the linked Book. All Kavita columns + `mediaPropertyId` are nullable →
- * push-safe additive. Nullable slug for clean `push`; backfilled at boot.
- */
-export const books = pgTable("books", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  // Optional franchise/IP grouping. set null when the media property is deleted.
-  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
-    onDelete: "set null",
-  }),
-  // Kavita series linkage (mirrors what the bookmark used to store): series id + library id build the
-  // web-UI deep link; the series name is denormalized for display without a Kavita round-trip.
-  kavitaSeriesId: integer("kavita_series_id"),
-  kavitaLibraryId: integer("kavita_library_id"),
-  kavitaSeriesName: text("kavita_series_name"),
-  // ISBN/ASIN captured from the Add form's ISBN lookup (or entered/edited by hand). Nullable so
-  // `drizzle-kit push` applies cleanly; also powers a later "pull cover from ISBN" re-fetch.
-  isbn: text("isbn"),
-  // Optional release year surfaced by the Kavita search.
-  releaseYear: integer("release_year"),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  unique("books_name_unique").on(table.name),
-  unique("books_slug_unique").on(table.slug),
-]);
-
-/**
- * Shared column block for the five Plex-backed media taxonomies (`movies` / `tv_shows` / `episodes` /
- * `albums` / `tracks`), which otherwise repeat an identical set of columns. It is a **factory** — not
- * a shared object literal — so every `pgTable` receives fresh column-builder instances; Drizzle column
- * builders are stateful configs and must not be shared across tables. The optional `parentFk` argument
- * is spread in immediately after `mediaPropertyId` so `episodes` (`tv_show_id`) and `tracks`
- * (`album_id`) keep their historical column ordering, which the generated DDL depends on.
- *
- * All Plex columns + `mediaPropertyId` are nullable → push-safe additive. Nullable slug for clean
- * `push`; backfilled at boot.
- */
-const plexTaxonomyColumns = <T extends Record<string, PgColumnBuilderBase> = Record<never, never>>(parentFk?: T) => ({
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  // Optional franchise/IP grouping. set null when the media property is deleted.
-  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
-    onDelete: "set null",
-  }),
-  // A parent FK (episodes → tv_show_id, tracks → album_id) is spread here to preserve column order.
-  ...((parentFk ?? {}) as T),
-  // Plex linkage (mirrors what the bookmark used to store): rating key builds the web-UI deep link;
-  // the item type is denormalized for the deep-link label without a Plex round-trip. The title is
-  // also denormalized at link time (from the Plex search result) so the "Linked to Plex" display can
-  // show the actual item name without a Plex round-trip.
-  plexRatingKey: text("plex_rating_key"),
-  plexItemType: text("plex_item_type"),
-  plexItemTitle: text("plex_item_title"),
-  // Optional release year surfaced by the Plex search.
-  year: integer("year"),
-  // Wikidata QID + Wikipedia article links resolved by "Autofetch from Plex" (mirrors `locations`).
-  // All nullable → push-safe additive.
-  wikidataId: text("wikidata_id"),
-  wikipediaLinkEn: text("wikipedia_link_en"),
-  wikipediaLinkLocal: text("wikipedia_link_local"),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-  // Labeled websites/links (freeform label + URL, optionally a Websites-taxonomy ref). NOT NULL;
-  // pre-applied per Plex table in migrate.ts.
-  labeledWebsites: jsonb("labeled_websites").$type<LabeledWebsite[]>().notNull().default(sql`'[]'::jsonb`),
-});
-
-/**
- * The `name` + `slug` unique constraints shared by every Plex taxonomy table. Parameterized by the
- * table's constraint-name prefix so the generated constraint names stay byte-identical to the
- * hand-written ones (`<prefix>_name_unique` / `<prefix>_slug_unique`).
- */
-const plexTaxonomyUniques = (table: { name: AnyPgColumn;
-  slug: AnyPgColumn; }, prefix: string) => [
-  unique(`${prefix}_name_unique`).on(table.name),
-  unique(`${prefix}_slug_unique`).on(table.slug),
-];
-
-/**
- * `movies` table — a taxonomy of individual movies, optionally grouped under a media property. A movie
- * carries the Plex linkage (rating key + item type) so bookmarks reference a Movie (via
- * `bookmarks.movie_id`) rather than a live Plex item, and poster/deep-link features resolve the Plex
- * rating key from the linked Movie.
- */
-export const movies = pgTable("movies", {
-  ...plexTaxonomyColumns(),
-}, table => plexTaxonomyUniques(table, "movies"));
-
-/**
- * `tv_shows` table — a taxonomy of TV shows, optionally grouped under a media property. Same shape as
- * `movies`: Plex linkage (rating key + item type) so bookmarks reference a TV Show (via
- * `bookmarks.tv_show_id`) rather than a live Plex item. All Plex columns + `mediaPropertyId` nullable →
- * push-safe additive. Nullable slug for clean `push`; backfilled at boot.
- */
-export const tvShows = pgTable("tv_shows", {
-  ...plexTaxonomyColumns(),
-}, table => plexTaxonomyUniques(table, "tv_shows"));
-
-/**
- * `episodes` table — a taxonomy of TV episodes. Same Plex-backed shape as `movies`, plus a nullable
- * `tv_show_id` parent FK (set null when the show is deleted): an episode belongs to a TV Show, and the
- * parent is auto-linked from Plex's grandparent metadata when it already exists.
- */
-export const episodes = pgTable("episodes", {
-  ...plexTaxonomyColumns({
-    // Parent TV Show. set null when the show is deleted.
-    tvShowId: uuid("tv_show_id").references((): AnyPgColumn => tvShows.id, {
-      onDelete: "set null",
-    }),
-  }),
-}, table => plexTaxonomyUniques(table, "episodes"));
-
-/**
- * `albums` table — a taxonomy of music albums. Plex-backed like `movies`. Credited to People
- * (individuals) and Groups (groups) many-to-many via `album_people` / `album_groups`.
- */
-export const albums = pgTable("albums", {
-  ...plexTaxonomyColumns(),
-}, table => plexTaxonomyUniques(table, "albums"));
-
-/**
- * `tracks` table — a taxonomy of music tracks. Same Plex-backed shape as `movies`, plus a nullable
- * `album_id` parent FK (set null when the album is deleted): a track belongs to an Album, and the
- * parent is auto-linked from Plex's parent metadata when it already exists.
- */
-export const tracks = pgTable("tracks", {
-  ...plexTaxonomyColumns({
-    // Parent Album. set null when the album is deleted.
-    albumId: uuid("album_id").references((): AnyPgColumn => albums.id, {
-      onDelete: "set null",
-    }),
-  }),
-}, table => plexTaxonomyUniques(table, "tracks"));
-
-/**
- * `podcasts` table — a taxonomy of podcasts, optionally grouped under a media property. Unlike the
- * Plex-backed siblings, a Podcast is sourced keylessly from its public RSS/XML feed and/or Apple
- * Podcasts (iTunes): `feed_url` is the sync source of truth, `itunes_id`/`itunes_url` link the Apple
- * Podcasts entry, and `author`/`description` are denormalized from the feed. All source columns +
- * `mediaPropertyId` nullable → push-safe additive. Nullable slug for clean `push`; backfilled at boot.
- */
-export const podcasts = pgTable("podcasts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
-    onDelete: "set null",
-  }),
-  // Podcast source linkage: the RSS/XML feed URL is the canonical sync source; the iTunes id/url link
-  // the Apple Podcasts entry (from the keyless search picker) for a deep link + re-resolution.
-  feedUrl: text("feed_url"),
-  itunesId: integer("itunes_id"),
-  itunesUrl: text("itunes_url"),
-  // Other listening-service page links: Spotify is manual-paste (no keyless search); Pocket Casts is
-  // cross-resolved from the feed. `defaultLinkProvider` picks which one the podcast links out to.
-  spotifyUrl: text("spotify_url"),
-  pocketCastsUuid: text("pocket_casts_uuid"),
-  pocketCastsUrl: text("pocket_casts_url"),
-  defaultLinkProvider: text("default_link_provider"),
-  description: text("description"),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-  // Labeled websites/links (freeform label + URL, optionally a Websites-taxonomy ref). NOT NULL;
-  // pre-applied in migrate.ts.
-  labeledWebsites: jsonb("labeled_websites").$type<LabeledWebsite[]>().notNull().default(sql`'[]'::jsonb`),
-}, table => [
-  unique("podcasts_name_unique").on(table.name),
-  unique("podcasts_slug_unique").on(table.slug),
-]);
-
-/**
- * `taxonomy_images` — a shared, polymorphic multi-image gallery for the Plex/Kavita-backed media
- * taxonomies (Movies, TV Shows, Episodes, Albums, Tracks, Books, Podcasts). Mirrors `bookmark_images`
- * (up to {@link MAX_TAXONOMY_IMAGES} per owner, one flagged `isMain`) but keyed by
- * `(ownerType, ownerId)` instead of a single `bookmarkId` FK, since one physical table can't carry a
- * foreign key into seven different owner tables. `ownerType` is one of the shared
- * `TAXONOMY_IMAGE_OWNER_TYPES` (`@eesimple/types`) — re-exported here so schema consumers don't need
- * a second import for it.
- */
-export { TAXONOMY_IMAGE_OWNER_TYPES };
-
-export const taxonomyImages = pgTable("taxonomy_images", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  ownerType: text("owner_type").notNull(),
-  ownerId: uuid("owner_id").notNull(),
-  objectKey: text("object_key").notNull(),
-  contentType: text("content_type").notNull(),
-  width: integer("width"),
-  height: integer("height"),
-  byteSize: integer("byte_size").notNull(),
-  // "upload" | "plex" | "kavita" | "isbn" — text so a new source can be added without a migration.
-  source: text("source").notNull(),
-  isMain: boolean("is_main").notNull().default(false),
-  sortOrder: integer("sort_order").notNull().default(0),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  index("taxonomy_images_owner_idx").on(table.ownerType, table.ownerId),
-]);
-
-/** `album_people` join — M:M crediting an album to People (individual creators). */
-export const albumPeople = pgTable("album_people", {
-  albumId: uuid("album_id").notNull().references(() => albums.id, {
-    onDelete: "cascade",
-  }),
-  personId: uuid("person_id").notNull().references((): AnyPgColumn => people.id, {
-    onDelete: "cascade",
-  }),
-}, table => [
-  primaryKey({
-    columns: [table.albumId, table.personId],
-  }),
-]);
-
-/** `album_groups` join — M:M crediting an album to Groups (group creators). */
-export const albumGroups = pgTable("album_groups", {
-  albumId: uuid("album_id").notNull().references(() => albums.id, {
-    onDelete: "cascade",
-  }),
-  groupId: uuid("group_id").notNull().references((): AnyPgColumn => groups.id, {
-    onDelete: "cascade",
-  }),
-}, table => [
-  primaryKey({
-    columns: [table.albumId, table.groupId],
-  }),
-]);
-
-/** `podcast_people` join — M:M crediting a podcast to People (individual authors/hosts). */
-export const podcastPeople = pgTable("podcast_people", {
-  podcastId: uuid("podcast_id").notNull().references((): AnyPgColumn => podcasts.id, {
-    onDelete: "cascade",
-  }),
-  personId: uuid("person_id").notNull().references((): AnyPgColumn => people.id, {
-    onDelete: "cascade",
-  }),
-}, table => [
-  primaryKey({
-    columns: [table.podcastId, table.personId],
-  }),
-]);
-
-/** `podcast_groups` join — M:M crediting a podcast to Groups (organizations/networks). */
-export const podcastGroups = pgTable("podcast_groups", {
-  podcastId: uuid("podcast_id").notNull().references((): AnyPgColumn => podcasts.id, {
-    onDelete: "cascade",
-  }),
-  groupId: uuid("group_id").notNull().references((): AnyPgColumn => groups.id, {
-    onDelete: "cascade",
-  }),
-}, table => [
-  primaryKey({
-    columns: [table.podcastId, table.groupId],
-  }),
-]);
-
-/**
  * `relationship_types` table — the "Relationship Types" taxonomy (Similar, Parent/child, Opposite, …)
  * classifying how two bookmarks relate. `directional` types encode a parent→child direction;
  * symmetric types read the same from either side. Seeded built-ins can't be renamed/deleted; users
@@ -1274,25 +950,6 @@ export const genreMoodsRelations = relations(genreMoods, ({
   }),
   assignments: many(genreMoodAssignments),
 }));
-
-/**
- * `location_assignments` — the polymorphic layer attaching a Location term to any owner in
- * `LOCATION_ASSIGNMENT_OWNER_TYPES` (currently the media taxonomies). A real FK on the value side
- * (cascade), but `ownerId` carries no FK since one table can't reference a dozen owner tables — so
- * owner deletes must clean up their rows in the service layer (mirrors `genre_mood_assignments`).
- */
-export const locationAssignments = pgTable("location_assignments", {
-  locationId: uuid("location_id").notNull().references(() => locations.id, {
-    onDelete: "cascade",
-  }),
-  ownerType: text("owner_type").notNull(),
-  ownerId: uuid("owner_id").notNull(),
-}, table => [
-  primaryKey({
-    columns: [table.locationId, table.ownerType, table.ownerId],
-  }),
-  index("location_assignments_owner_idx").on(table.ownerType, table.ownerId),
-]);
 
 export const genreMoodAssignmentsRelations = relations(genreMoodAssignments, ({
   one,
@@ -2775,22 +2432,6 @@ export type LanguageRow = typeof languages.$inferSelect;
 export type NewLanguageRow = typeof languages.$inferInsert;
 export type PropertyGroupRow = typeof propertyGroups.$inferSelect;
 export type NewPropertyGroupRow = typeof propertyGroups.$inferInsert;
-export type MediaPropertyRow = typeof mediaProperties.$inferSelect;
-export type NewMediaPropertyRow = typeof mediaProperties.$inferInsert;
-export type BookRow = typeof books.$inferSelect;
-export type MovieRow = typeof movies.$inferSelect;
-export type TvShowRow = typeof tvShows.$inferSelect;
-export type EpisodeRow = typeof episodes.$inferSelect;
-export type AlbumRow = typeof albums.$inferSelect;
-export type TrackRow = typeof tracks.$inferSelect;
-export type AlbumPersonRow = typeof albumPeople.$inferSelect;
-export type AlbumGroupRow = typeof albumGroups.$inferSelect;
-export type PodcastRow = typeof podcasts.$inferSelect;
-export type NewBookRow = typeof books.$inferInsert;
-export type NewPodcastRow = typeof podcasts.$inferInsert;
-export type TaxonomyImageRow = typeof taxonomyImages.$inferSelect;
-export type NewTaxonomyImageRow = typeof taxonomyImages.$inferInsert;
-export type TaxonomyImageOwnerType = typeof TAXONOMY_IMAGE_OWNER_TYPES[number];
 export type RelationshipTypeRow = typeof relationshipTypes.$inferSelect;
 export type NewRelationshipTypeRow = typeof relationshipTypes.$inferInsert;
 export type YouTubeChannelRow = typeof youtubeChannels.$inferSelect;
@@ -2908,9 +2549,6 @@ export const people = pgTable("people", {
   // Fields absorbed from the former Artists taxonomy (a solo artist is a Person). `sort_order` is
   // NOT NULL default 0 → pre-applied in migrate.ts (push would prompt); the rest are nullable → push-safe.
   sortOrder: integer("sort_order").notNull().default(0),
-  mediaPropertyId: uuid("media_property_id").references((): AnyPgColumn => mediaProperties.id, {
-    onDelete: "set null",
-  }),
   plexRatingKey: text("plex_rating_key"),
   plexItemType: text("plex_item_type"),
   plexItemTitle: text("plex_item_title"),
@@ -3081,7 +2719,6 @@ export const peopleRelations = relations(people, ({
   personYoutubeChannels: many(personYoutubeChannels),
   personWebsites: many(personWebsites),
   personGroups: many(personGroups),
-  albumPeople: many(albumPeople),
 }));
 
 export const bookmarkPeopleRelations = relations(bookmarkPeople, ({
@@ -3106,58 +2743,6 @@ export const bookmarkGroupsRelations = relations(bookmarkGroups, ({
   }),
   group: one(groups, {
     fields: [bookmarkGroups.groupId],
-    references: [groups.id],
-  }),
-}));
-
-export const albumPeopleRelations = relations(albumPeople, ({
-  one,
-}) => ({
-  album: one(albums, {
-    fields: [albumPeople.albumId],
-    references: [albums.id],
-  }),
-  person: one(people, {
-    fields: [albumPeople.personId],
-    references: [people.id],
-  }),
-}));
-
-export const albumGroupsRelations = relations(albumGroups, ({
-  one,
-}) => ({
-  album: one(albums, {
-    fields: [albumGroups.albumId],
-    references: [albums.id],
-  }),
-  group: one(groups, {
-    fields: [albumGroups.groupId],
-    references: [groups.id],
-  }),
-}));
-
-export const podcastPeopleRelations = relations(podcastPeople, ({
-  one,
-}) => ({
-  podcast: one(podcasts, {
-    fields: [podcastPeople.podcastId],
-    references: [podcasts.id],
-  }),
-  person: one(people, {
-    fields: [podcastPeople.personId],
-    references: [people.id],
-  }),
-}));
-
-export const podcastGroupsRelations = relations(podcastGroups, ({
-  one,
-}) => ({
-  podcast: one(podcasts, {
-    fields: [podcastGroups.podcastId],
-    references: [podcasts.id],
-  }),
-  group: one(groups, {
-    fields: [podcastGroups.groupId],
     references: [groups.id],
   }),
 }));

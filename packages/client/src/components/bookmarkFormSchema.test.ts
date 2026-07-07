@@ -45,9 +45,7 @@ describe("buildBookmarkDefaultValues", () => {
   });
 
   it("keeps mediaLinkTarget null in edit mode too, regardless of the bookmark", () => {
-    const bookmark = makeBookmark({
-      movieId: "movie-1",
-    });
+    const bookmark = makeBookmark();
     const values = buildBookmarkDefaultValues(bookmark, undefined);
     expect(values.mediaLinkTarget).toBeNull();
   });

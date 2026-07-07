@@ -1,32 +1,24 @@
 import type { AnyEntityDescriptor } from "./types";
 import type { EntityRouteKind } from "../lib/entityRoutes";
 
-import { albumDescriptor } from "./album";
 import { autofillDescriptor } from "./autofillRule";
-import { bookDescriptor } from "./book";
 import { cardDisplayRuleDescriptor } from "./cardDisplayRule";
 import { categoryDescriptor } from "./category";
-import { episodeDescriptor } from "./episode";
 import { genreMoodDescriptor } from "./genreMood";
 import { groupDescriptor } from "./group";
 import { groupTypeDescriptor } from "./groupType";
 import { importRuleDescriptor } from "./importRule";
 import { languageDescriptor } from "./language";
 import { locationDescriptor } from "./location";
-import { mediaPropertyDescriptor } from "./mediaProperty";
 import { mediaTypeDescriptor } from "./mediaType";
-import { movieDescriptor } from "./movie";
 import { newsletterDescriptor } from "./newsletter";
 import { personDescriptor } from "./person";
 import { placeTypeDescriptor } from "./placeType";
-import { podcastDescriptor } from "./podcast";
 import { customPropertyDescriptor } from "./property";
 import { propertyGroupDescriptor } from "./propertyGroup";
 import { relationshipTypeDescriptor } from "./relationshipType";
 import { savedFilterDescriptor } from "./savedFilter";
 import { tagDescriptor } from "./tag";
-import { trackDescriptor } from "./track";
-import { tvShowDescriptor } from "./tvShow";
 import { websiteDescriptor } from "./website";
 import { youtubeChannelDescriptor } from "./youtubeChannel";
 
@@ -56,14 +48,6 @@ export const ENTITY_DESCRIPTORS = {
   "group": groupDescriptor,
   "group-type": groupTypeDescriptor,
   "property-group": propertyGroupDescriptor,
-  "media-property": mediaPropertyDescriptor,
-  "book": bookDescriptor,
-  "podcast": podcastDescriptor,
-  "movie": movieDescriptor,
-  "tv-show": tvShowDescriptor,
-  "episode": episodeDescriptor,
-  "album": albumDescriptor,
-  "track": trackDescriptor,
   "relationship-type": relationshipTypeDescriptor,
   "custom-property": customPropertyDescriptor,
   "autofill": autofillDescriptor,

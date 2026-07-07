@@ -5,16 +5,12 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { MultiCombobox } from "./MultiCombobox";
 import { PlexItemLookup } from "./PlexItemLookup";
-import { useEntityCreateOption } from "./useEntityCreateOption";
-import { useAlbums } from "../hooks/useAlbums";
 import { useConnectors } from "../hooks/useConnectors";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 
 /** The creator/media fields a Person or Group absorbed from the former Artists taxonomy. */
 export interface CreatorMediaInput {
@@ -22,48 +18,34 @@ export interface CreatorMediaInput {
   plexRatingKey?: string | null;
   plexItemType?: string | null;
   plexItemTitle?: string | null;
-  albumIds?: string[];
 }
 
 interface CreatorMediaSectionProps {
   year: number | null;
   plexRatingKey: string | null;
   plexItemTitle: string | null;
-  albumIds: string[];
   /** Persist a partial patch and fire a field-named toast (the caller wires its update mutation). */
   save: (input: CreatorMediaInput, fieldLabel: string) => void;
 }
 
 /**
- * The shared "media / creator" section for a Person or Group: a release year, a Plex `artist`
- * link (a person/band maps to a Plex artist — search, link, unlink), and the albums this creator is
- * credited on. Each control saves immediately via the caller-supplied `save` (no Save button),
- * matching the edit-tab auto-save standard.
+ * The shared "media / creator" section for a Person or Group: a release year and a Plex `artist`
+ * link (a person/band maps to a Plex artist — search, link, unlink). Each control saves immediately
+ * via the caller-supplied `save` (no Save button), matching the edit-tab auto-save standard.
  */
 export function CreatorMediaSection({
   year,
   plexRatingKey,
   plexItemTitle,
-  albumIds,
   save,
 }: CreatorMediaSectionProps) {
   const {
     t,
   } = useTranslation();
   const {
-    data: albums,
-  } = useAlbums();
-  const {
     data: connectors,
   } = useConnectors();
   const [yearDraft, setYearDraft] = useState(year?.toString() ?? "");
-
-  const albumCreate = useEntityCreateOption("album", (album) => {
-    if (albumIds.includes(album.id)) return;
-    save({
-      albumIds: [...albumIds, album.id],
-    }, t("Albums"));
-  });
 
   function saveYear(): void {
     const trimmed = yearDraft.trim();
@@ -136,28 +118,6 @@ export function CreatorMediaSection({
             )}
         </div>
       )}
-
-      <Separator />
-
-      <div className="space-y-1">
-        <Label>{t("Albums")}</Label>
-        <MultiCombobox
-          options={(albums ?? []).map(a => ({
-            value: a.id,
-            label: a.name,
-            names: a.names,
-          }))}
-          values={albumIds}
-          onValuesChange={ids => save({
-            albumIds: ids,
-          }, t("Albums"))}
-          placeholder={t("Select albums…")}
-          searchPlaceholder={t("Search albums…")}
-          emptyText={t("No albums found.")}
-          createOption={albumCreate.createOption}
-        />
-        {albumCreate.modal}
-      </div>
     </div>
   );
 }

@@ -557,10 +557,8 @@ function newBookmarkScalarColumns(input: CreateBookmarkInput) {
 }
 
 /**
- * The media-identity columns of a new bookmark row (Kavita/Plex/ISBN/podcast-feed/…). The legacy
- * bookId/movieId/tvShowId/episodeId/albumId/trackId/podcastId FK columns are intentionally NOT set
- * here — #1076 stopped writing them client-side (media links are now `About` relationship edges);
- * the columns themselves stay for reads until the retirement ticket.
+ * The media-identity columns of a new bookmark row (Kavita/Plex/ISBN/podcast-feed/…). Media links
+ * are `About` relationship edges (see #1076), not FKs.
  */
 function newBookmarkMediaColumns(input: CreateBookmarkInput) {
   return {
@@ -696,16 +694,13 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "youtubeChannelId" | "groupId" | "bookId" | "movieId" | "tvShowId" | "episodeId" | "albumId" | "trackId" | "podcastId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "isbn" | "year" | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid" | "pocketCastsUrl" | "defaultLinkProvider" | "priority" | "imageDisplayPreference">
+  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "youtubeChannelId" | "groupId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "isbn" | "year" | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid" | "pocketCastsUrl" | "defaultLinkProvider" | "priority" | "imageDisplayPreference">
 >;
 
 /**
  * Nullable scalar columns copied through verbatim when the caller provided the field, coalescing an
  * explicit `null`/`undefined` value to `null` (an omitted key leaves the column untouched).
  */
-// The legacy bookId/movieId/tvShowId/episodeId/albumId/trackId/podcastId FK columns are
-// intentionally excluded — #1076 stopped writing them (create + update); the columns stay on
-// `BookmarkRow`/`ScalarBookmarkPatch` for reads until the retirement ticket.
 const NULLABLE_SCALAR_FIELDS = [
   "originalUrl", "description", "mediaTypeId", "youtubeChannelId", "groupId", "kavitaSeriesId",
   "kavitaLibraryId", "kavitaSeriesName", "plexRatingKey", "plexItemType", "plexItemTitle", "isbn",
@@ -889,13 +884,6 @@ export async function updateBookmark(
         | "mediaTypeId"
         | "youtubeChannelId"
         | "groupId"
-        | "bookId"
-        | "movieId"
-        | "tvShowId"
-        | "episodeId"
-        | "albumId"
-        | "trackId"
-        | "podcastId"
         | "kavitaSeriesId"
         | "kavitaLibraryId"
         | "kavitaSeriesName"

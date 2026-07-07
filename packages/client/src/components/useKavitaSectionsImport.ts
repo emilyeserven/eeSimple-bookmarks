@@ -3,7 +3,7 @@ import type { Bookmark, SectionEntry } from "@eesimple/types";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import { useBookmarkKavitaSeriesId } from "../hooks/useBooks";
+import { useBookmarkKavitaSeriesId } from "../hooks/useBookmarkMediaLinks";
 import { useConnectors } from "../hooks/useConnectors";
 import { kavitaApi } from "../lib/api/kavita";
 import { describeError } from "../lib/apiError";

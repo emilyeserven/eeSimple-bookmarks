@@ -3,7 +3,7 @@ import type { Bookmark, KavitaSeriesResult } from "@eesimple/types";
 import { BookOpen, ExternalLink, Loader2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useBookmarkKavitaLink } from "../hooks/useBooks";
+import { useBookmarkKavitaLink } from "../hooks/useBookmarkMediaLinks";
 import { useConnectors } from "../hooks/useConnectors";
 import { useKavitaSeriesSearch } from "../hooks/useKavitaSeriesSearch";
 import { kavitaSeriesUrl } from "../lib/kavita";
@@ -15,10 +15,9 @@ import { Label } from "@/components/ui/label";
 
 /**
  * The linked Kavita series as a detail-view value: the series name, deep-linked into Kavita's web
- * UI when the connector is enabled. Resolves through the linked Book (`bookmark.bookId`) when one
- * carries the Kavita linkage, else the bookmark's legacy columns — see `useBookmarkKavitaLink`.
- * Returns `null` when the bookmark isn't linked either way. Owns its `useConnectors()` call so the
- * pure detail-section builders can render it directly.
+ * UI when the connector is enabled. Resolves from the bookmark's own Kavita columns — see
+ * `useBookmarkKavitaLink`. Returns `null` when the bookmark isn't linked. Owns its `useConnectors()`
+ * call so the pure detail-section builders can render it directly.
  */
 export function BookmarkKavitaDetailLink({
   bookmark,

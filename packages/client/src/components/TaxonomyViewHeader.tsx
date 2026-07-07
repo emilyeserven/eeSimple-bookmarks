@@ -1,69 +1,24 @@
-import type { createTaxonomyImageApi } from "../lib/api/taxonomyImages";
 import type { ReactNode } from "react";
 
-import { useTaxonomyImages } from "../hooks/useTaxonomyImages";
-
-/** How the header resolves the entity's image: from the taxonomy-image gallery, or a plain URL field. */
-export type TaxonomyHeaderImage
-  = | {
-    kind: "taxonomyImages";
-    /** The entity id once loaded; the image is fetched only when it's known. */
-    ownerId: string | undefined;
-    imagesApi: ReturnType<typeof createTaxonomyImageApi>;
-    queryKeyPrefix: string;
-  }
-  | {
-    kind: "url";
-    url: string | null | undefined;
-  };
+/** How the header resolves the entity's image: currently always a plain URL field. */
+export interface TaxonomyHeaderImage {
+  kind: "url";
+  url: string | null | undefined;
+}
 
 const imageClass = "max-h-72 w-full rounded-md border object-contain @2xl:w-72 @2xl:shrink-0";
-
-/** The entity's main taxonomy-gallery image (à la the bookmark detail), laid out beside the title. */
-function TaxonomyImagesPoster({
-  ownerId,
-  imagesApi,
-  queryKeyPrefix,
-}: {
-  ownerId: string;
-  imagesApi: ReturnType<typeof createTaxonomyImageApi>;
-  queryKeyPrefix: string;
-}) {
-  const {
-    images,
-  } = useTaxonomyImages(imagesApi, ownerId, [queryKeyPrefix, ownerId]);
-  const poster = images.find(image => image.isMain) ?? images[0];
-  if (!poster) return null;
-  return (
-    <img
-      src={poster.url}
-      alt=""
-      className={imageClass}
-    />
-  );
-}
 
 function HeaderImage({
   image,
 }: {
   image: TaxonomyHeaderImage;
 }) {
-  if (image.kind === "url") {
-    if (!image.url) return null;
-    return (
-      <img
-        src={image.url}
-        alt=""
-        className={imageClass}
-      />
-    );
-  }
-  if (!image.ownerId) return null;
+  if (!image.url) return null;
   return (
-    <TaxonomyImagesPoster
-      ownerId={image.ownerId}
-      imagesApi={image.imagesApi}
-      queryKeyPrefix={image.queryKeyPrefix}
+    <img
+      src={image.url}
+      alt=""
+      className={imageClass}
     />
   );
 }
@@ -71,11 +26,10 @@ function HeaderImage({
 /**
  * Shared header for a taxonomy entity's tabbed view/edit pages: the entity title (with an optional
  * muted subtitle) on the left, vertically centered against the entity's main image on the right at the
- * `@2xl` container breakpoint — mirroring the bookmark detail header. The image comes either from the
- * taxonomy-image gallery (`kind: "taxonomyImages"`, e.g. Plex posters / book covers) or a plain URL
- * field (`kind: "url"`, e.g. website favicon / channel-person-group avatar). Edit/Delete live in the
- * app-header toolbar strip and the edit tab's danger zone, not here; navigation back to the listing is
- * handled by the breadcrumbs.
+ * `@2xl` container breakpoint — mirroring the bookmark detail header. The image comes from a plain URL
+ * field (e.g. website favicon / channel-person-group avatar). Edit/Delete live in the app-header
+ * toolbar strip and the edit tab's danger zone, not here; navigation back to the listing is handled by
+ * the breadcrumbs.
  */
 export function TaxonomyViewHeader({
   image,

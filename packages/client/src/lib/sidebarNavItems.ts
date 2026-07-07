@@ -11,7 +11,6 @@ import {
   Languages,
   Layers,
   LayoutGrid,
-  Library,
   ListFilter,
   Mail,
   MapPin,
@@ -88,12 +87,6 @@ export const taxonomyItems = [
     title: i18n.t("Languages"),
     to: "/taxonomies/languages",
     icon: Languages,
-  },
-  {
-    key: "media-properties",
-    title: i18n.t("Media Properties"),
-    to: "/taxonomies/media-properties",
-    icon: Library,
   },
   {
     key: "locations",

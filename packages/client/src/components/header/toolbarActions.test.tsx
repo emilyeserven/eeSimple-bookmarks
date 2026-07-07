@@ -123,7 +123,7 @@ describe("buildToolbarActions", () => {
       pathParts: ["categories", "reading", "info"],
     }))).toContain("edit-taxonomy");
     expect(keys(ctx({
-      pathParts: ["taxonomies", "podcasts", "syntax"],
+      pathParts: ["taxonomies", "websites", "syntax"],
     }))).toContain("edit-taxonomy");
   });
 

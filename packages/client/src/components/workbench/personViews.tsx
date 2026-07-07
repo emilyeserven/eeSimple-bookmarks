@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import { EntityImagePreview } from "../EntityImageField";
 import { EntityNamesTabView, PrimaryLanguageDlRow } from "../entityNames/EntityNamesTab";
 
-import { useAlbums } from "@/hooks/useAlbums";
 import { useGroups } from "@/hooks/useGroups";
 import { useWebsites } from "@/hooks/useWebsites";
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
@@ -29,14 +28,10 @@ export function PersonGeneralView({
   const {
     data: groups,
   } = useGroups();
-  const {
-    data: albums,
-  } = useAlbums();
 
   const connectedChannels = (channels ?? []).filter(ch => person.youtubeChannelIds.includes(ch.id));
   const connectedWebsites = (websites ?? []).filter(site => person.websiteIds.includes(site.id));
   const connectedGroups = (groups ?? []).filter(pub => person.groupIds.includes(pub.id));
-  const creditedAlbums = (albums ?? []).filter(album => person.albumIds.includes(album.id));
 
   return (
     <div className="space-y-3">
@@ -77,6 +72,22 @@ export function PersonGeneralView({
             </>
           )
           : null}
+        {person.year != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">{t("Year")}</dt>
+              <dd>{person.year}</dd>
+            </>
+          )
+          : null}
+        {person.plexItemTitle != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">{t("Plex")}</dt>
+              <dd>{person.plexItemTitle}</dd>
+            </>
+          )
+          : null}
         {person.labeledWebsites.map((site, index) => (
           <>
             <dt
@@ -101,30 +112,6 @@ export function PersonGeneralView({
             </dd>
           </>
         ))}
-        {person.year != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Year")}</dt>
-              <dd>{person.year}</dd>
-            </>
-          )
-          : null}
-        {person.plexItemTitle != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Plex")}</dt>
-              <dd>{person.plexItemTitle}</dd>
-            </>
-          )
-          : null}
-        {creditedAlbums.length > 0
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Albums")}</dt>
-              <dd>{creditedAlbums.map(album => album.name).join(", ")}</dd>
-            </>
-          )
-          : null}
         {connectedChannels.map(ch => (
           <>
             <dt

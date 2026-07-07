@@ -70,13 +70,6 @@ export const GENRE_MOOD_OWNER_TYPES = [
   "location",
   "language",
   "genreMood",
-  "movie",
-  "tvShow",
-  "episode",
-  "album",
-  "track",
-  "book",
-  "podcast",
 ] as const;
 
 /** One of {@link GENRE_MOOD_OWNER_TYPES}. */

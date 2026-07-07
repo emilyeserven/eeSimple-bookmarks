@@ -13,7 +13,6 @@ import {
 import { GroupsSidebarItem } from "./GroupsSidebarItem";
 import { LanguagesSidebarItem } from "./LanguagesSidebarItem";
 import { LocationsSidebarItem } from "./LocationsSidebarItem";
-import { MediaPropertiesSidebarItem } from "./MediaPropertiesSidebarItem";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
 import { SidebarCategoriesSection } from "./SidebarCategoriesSection";
 import { SidebarCountBadge } from "./SidebarCountBadge";
@@ -64,13 +63,6 @@ function ExpandableLinkSection({
   sidebarState,
   seeMoreTooltip,
   placeTypesCount,
-  booksCount,
-  podcastsCount,
-  moviesCount,
-  tvShowsCount,
-  episodesCount,
-  albumsCount,
-  tracksCount,
   groupTypesCount,
 }: {
   sectionKey: string;
@@ -83,13 +75,6 @@ function ExpandableLinkSection({
   sidebarState: string;
   seeMoreTooltip: string;
   placeTypesCount?: number;
-  booksCount?: number;
-  podcastsCount?: number;
-  moviesCount?: number;
-  tvShowsCount?: number;
-  episodesCount?: number;
-  albumsCount?: number;
-  tracksCount?: number;
   groupTypesCount?: number;
 }) {
   const {
@@ -104,24 +89,6 @@ function ExpandableLinkSection({
           pathname={pathname}
           locationsCount={item.count}
           placeTypesCount={placeTypesCount}
-          sidebarState={sidebarState}
-        />
-      );
-    }
-    // Media Properties gets a hover flyout surfacing its Books / Movies / TV Shows taxonomies.
-    if (item.key === "media-properties") {
-      return (
-        <MediaPropertiesSidebarItem
-          key={item.key}
-          pathname={pathname}
-          mediaPropertiesCount={item.count}
-          booksCount={booksCount}
-          podcastsCount={podcastsCount}
-          moviesCount={moviesCount}
-          tvShowsCount={tvShowsCount}
-          episodesCount={episodesCount}
-          albumsCount={albumsCount}
-          tracksCount={tracksCount}
           sidebarState={sidebarState}
         />
       );
@@ -244,13 +211,6 @@ export function AppSidebar({
     inboxCount,
     aiSummarizationCount,
     placeTypesCount,
-    booksCount,
-    podcastsCount,
-    moviesCount,
-    tvShowsCount,
-    episodesCount,
-    albumsCount,
-    tracksCount,
     groupTypesCount,
     modifier,
     viewClick,
@@ -344,13 +304,6 @@ export function AppSidebar({
               sidebarState={state}
               seeMoreTooltip={t("Show more taxonomy links")}
               placeTypesCount={placeTypesCount}
-              booksCount={booksCount}
-              podcastsCount={podcastsCount}
-              moviesCount={moviesCount}
-              tvShowsCount={tvShowsCount}
-              episodesCount={episodesCount}
-              albumsCount={albumsCount}
-              tracksCount={tracksCount}
               groupTypesCount={groupTypesCount}
             />
           )
