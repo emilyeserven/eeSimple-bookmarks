@@ -59,33 +59,33 @@ export function PropertyFilterPill({
       label={property.name}
       active={propertyHasActiveSelection(property.id, search)}
       summary={propertySelectionSummary(property, search)}
-    >
-      <div className="space-y-3">
+      presenceControl={(
         <PresenceFilterControl
           propertyId={property.id}
           value={presenceValue}
           onChange={(propertyId, mode) => onSearchChange(withPresenceFilter(search, propertyId, mode))}
           supportsExclude={property.type === "choices"}
         />
-        <PropertyFilterBody
-          property={property}
-          bookmarks={bookmarks}
-          numberValue={search.num?.[property.id]}
-          booleanValue={search.bool?.[property.id]}
-          dateTimeValue={search.date?.[property.id]}
-          presenceValue={presenceValue}
-          choicesValue={search.choices?.[property.id]}
-          onNumberFilterChange={(propertyId, range) =>
-            onSearchChange(withNumberFilter(search, propertyId, range))}
-          onBooleanFilterChange={(propertyId, value) =>
-            onSearchChange(withBooleanFilter(search, propertyId, value))}
-          onDateTimeFilterChange={(propertyId, range) =>
-            onSearchChange(withDateTimeFilter(search, propertyId, range))}
-          onChoicesFilterChange={(propertyId, values) =>
-            onSearchChange(withChoicesFilter(search, propertyId, values))}
-          onPropertyReset={onPropertyReset}
-        />
-      </div>
+      )}
+    >
+      <PropertyFilterBody
+        property={property}
+        bookmarks={bookmarks}
+        numberValue={search.num?.[property.id]}
+        booleanValue={search.bool?.[property.id]}
+        dateTimeValue={search.date?.[property.id]}
+        presenceValue={presenceValue}
+        choicesValue={search.choices?.[property.id]}
+        onNumberFilterChange={(propertyId, range) =>
+          onSearchChange(withNumberFilter(search, propertyId, range))}
+        onBooleanFilterChange={(propertyId, value) =>
+          onSearchChange(withBooleanFilter(search, propertyId, value))}
+        onDateTimeFilterChange={(propertyId, range) =>
+          onSearchChange(withDateTimeFilter(search, propertyId, range))}
+        onChoicesFilterChange={(propertyId, values) =>
+          onSearchChange(withChoicesFilter(search, propertyId, values))}
+        onPropertyReset={onPropertyReset}
+      />
     </FilterPill>
   );
 }

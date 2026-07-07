@@ -23,6 +23,8 @@ export interface BookmarkSearch {
   tagPresence?: "has" | "missing" | "exclude";
   /** Restrict to bookmarks whose category is one of these ids (empty/absent = all categories). */
   categories?: string[];
+  /** Filter bookmarks by category: "has" = has a category, "missing" = none, "exclude" = does not have the selected categories. */
+  categoryPresence?: "has" | "missing" | "exclude";
   /** Restrict to bookmarks whose media type is one of these ids (empty/absent = all media types). */
   mediaTypes?: string[];
   /** Restrict to bookmarks whose YouTube channel is one of these ids (empty/absent = all channels). */
@@ -236,6 +238,7 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     tags: validStringList(search.tags),
     tagPresence: validPresence(search.tagPresence),
     categories: validStringList(search.categories),
+    categoryPresence: validPresence(search.categoryPresence),
     mediaTypes: validStringList(search.mediaTypes),
     youtubeChannels: validStringList(search.youtubeChannels),
     youtubeChannelPresence: validPresence(search.youtubeChannelPresence),
@@ -487,49 +490,53 @@ export function bookmarkMatchesSearch(
   search: BookmarkSearch,
 ): boolean {
   return (
-    passesIdFilter(search.categories, bookmark.categoryId)
-    && passesIdFilter(search.mediaTypes, bookmark.mediaType?.id)
+    // Categories: same single-valued pattern as Websites/YouTube channels below.
+    (search.categoryPresence === "exclude"
+      ? passesIdFilterExclude(search.categories, bookmark.categoryId)
+      : passesIdFilter(search.categories, bookmark.categoryId)
+        && passesPresence(search.categoryPresence, Boolean(bookmark.categoryId)))
+      && passesIdFilter(search.mediaTypes, bookmark.mediaType?.id)
     // YouTube channels: exclude mode uses passesIdFilterExclude; include/presence modes use the pair.
-    && (search.youtubeChannelPresence === "exclude"
-      ? passesIdFilterExclude(search.youtubeChannels, bookmark.youtubeChannel?.id)
-      : passesIdFilter(search.youtubeChannels, bookmark.youtubeChannel?.id)
-        && passesPresence(search.youtubeChannelPresence, Boolean(bookmark.youtubeChannel)))
+      && (search.youtubeChannelPresence === "exclude"
+        ? passesIdFilterExclude(search.youtubeChannels, bookmark.youtubeChannel?.id)
+        : passesIdFilter(search.youtubeChannels, bookmark.youtubeChannel?.id)
+          && passesPresence(search.youtubeChannelPresence, Boolean(bookmark.youtubeChannel)))
     // Websites: same pattern as YouTube channels.
-      && (search.websitePresence === "exclude"
-        ? passesIdFilterExclude(search.websites, bookmark.website?.id)
-        : passesIdFilter(search.websites, bookmark.website?.id)
-          && passesPresence(search.websitePresence, Boolean(bookmark.website)))
-        && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
-        && passesLanguageUsagesFilter(
-          search.languageUsageLanguages,
-          search.languageUsageLevels,
-          bookmark.languageUsages.map(usage => ({
-            languageId: usage.language.id,
-            usageLevelId: usage.level.id,
-          })),
-        )
-        && passesPeopleFilter(search.people, bookmark.people)
+        && (search.websitePresence === "exclude"
+          ? passesIdFilterExclude(search.websites, bookmark.website?.id)
+          : passesIdFilter(search.websites, bookmark.website?.id)
+            && passesPresence(search.websitePresence, Boolean(bookmark.website)))
+          && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
+          && passesLanguageUsagesFilter(
+            search.languageUsageLanguages,
+            search.languageUsageLevels,
+            bookmark.languageUsages.map(usage => ({
+              languageId: usage.language.id,
+              usageLevelId: usage.level.id,
+            })),
+          )
+          && passesPeopleFilter(search.people, bookmark.people)
     // Place types: multi-valued (a bookmark can carry several locations), so "any match" like tags.
-        && (search.placeTypePresence === "exclude"
-          ? passesPlaceTypesExclusion(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
-          : passesPlaceTypesFilter(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
-            && passesPresence(search.placeTypePresence, bookmarkPlaceTypeKeys(bookmark.locations).length > 0))
+          && (search.placeTypePresence === "exclude"
+            ? passesPlaceTypesExclusion(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
+            : passesPlaceTypesFilter(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
+              && passesPresence(search.placeTypePresence, bookmarkPlaceTypeKeys(bookmark.locations).length > 0))
     // Genres & Moods: multi-valued (a bookmark can carry several), so "any match" like place types.
-          && (search.genreMoodPresence === "exclude"
-            ? passesGenreMoodsExclusion(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
-            : passesGenreMoodsFilter(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
-              && passesPresence(search.genreMoodPresence, bookmark.genreMoods.length > 0))
+            && (search.genreMoodPresence === "exclude"
+              ? passesGenreMoodsExclusion(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
+              : passesGenreMoodsFilter(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
+                && passesPresence(search.genreMoodPresence, bookmark.genreMoods.length > 0))
     // Tags: server handles inclusion (tagsForServerQuery gates the query); client handles presence and exclude.
-            && (search.tagPresence === "exclude"
-              ? passesTagsExclusion(search.tags, bookmark.tags)
-              : passesPresence(search.tagPresence, bookmark.tags.length > 0))
-            && passesPropertyPresence(bookmark, search)
-            && passesValueFilters(bookmark, search)
-            && passesChoicesFilters(bookmark, search)
-            && passesSectionsPresence(bookmark, search.sectionsPresence)
-            && passesSectionTypes(bookmark, search.sectionTypes, search.sectionsPresence)
-            && passesPresence(search.mediaSourcePresence, hasMediaSourceIdentity(bookmark))
-            && passesMediaSourceMatch(bookmark, search)
+              && (search.tagPresence === "exclude"
+                ? passesTagsExclusion(search.tags, bookmark.tags)
+                : passesPresence(search.tagPresence, bookmark.tags.length > 0))
+              && passesPropertyPresence(bookmark, search)
+              && passesValueFilters(bookmark, search)
+              && passesChoicesFilters(bookmark, search)
+              && passesSectionsPresence(bookmark, search.sectionsPresence)
+              && passesSectionTypes(bookmark, search.sectionTypes, search.sectionsPresence)
+              && passesPresence(search.mediaSourcePresence, hasMediaSourceIdentity(bookmark))
+              && passesMediaSourceMatch(bookmark, search)
   );
 }
 
@@ -549,6 +556,7 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     hasItems(search.tags)
     || search.tagPresence !== undefined
     || hasItems(search.categories)
+    || search.categoryPresence !== undefined
     || hasItems(search.mediaTypes)
     || hasItems(search.youtubeChannels)
     || search.youtubeChannelPresence !== undefined
@@ -661,6 +669,28 @@ export function withCategories(search: BookmarkSearch, ids: string[]): BookmarkS
   };
   if (ids.length === 0) delete next.categories;
   else next.categories = ids;
+  return next;
+}
+
+/**
+ * Return a copy of `search` with the category-presence filter set or cleared.
+ * Setting `"missing"` also clears any specific category selection (selecting one contradicts "none").
+ * Setting `"exclude"` keeps the existing selection — those IDs become the exclusion list.
+ */
+export function withCategoryPresence(
+  search: BookmarkSearch,
+  mode: "has" | "missing" | "exclude" | undefined,
+): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (mode === undefined) {
+    delete next.categoryPresence;
+  }
+  else {
+    next.categoryPresence = mode;
+    if (mode === "missing") delete next.categories;
+  }
   return next;
 }
 
@@ -1022,7 +1052,7 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
       + Object.keys(search.presence ?? {}).length
       + Object.keys(search.choices ?? {}).length;
   const parts: (string | null)[] = [
-    countPart(search.categories?.length ?? 0, "category", "categories"),
+    ...entityPresenceParts(search.categories, search.categoryPresence, "category", "categories", "category"),
     countPart(search.mediaTypes?.length ?? 0, "media type", "media types"),
     ...entityPresenceParts(search.youtubeChannels, search.youtubeChannelPresence, "channel", "channels", "channel"),
     ...entityPresenceParts(search.websites, search.websitePresence, "website", "websites", "website"),

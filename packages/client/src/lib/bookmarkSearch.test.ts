@@ -12,6 +12,7 @@ import {
   validateBookmarkSearch,
   withBooleanFilter,
   withCategories,
+  withCategoryPresence,
   withMediaSourceMatch,
   withMediaSourcePresence,
   withMediaTypes,
@@ -129,6 +130,7 @@ describe("validateBookmarkSearch", () => {
       tagPresence: "has",
       youtubeChannelPresence: "missing",
       websitePresence: "nonsense",
+      categoryPresence: "bogus",
     })).toEqual({
       tagPresence: "has",
       youtubeChannelPresence: "missing",
@@ -141,11 +143,13 @@ describe("validateBookmarkSearch", () => {
       youtubeChannelPresence: "exclude",
       websitePresence: "exclude",
       sectionsPresence: "exclude",
+      categoryPresence: "exclude",
     })).toEqual({
       tagPresence: "exclude",
       youtubeChannelPresence: "exclude",
       websitePresence: "exclude",
       sectionsPresence: "exclude",
+      categoryPresence: "exclude",
     });
     expect(validateBookmarkSearch({
       presence: {
@@ -356,6 +360,26 @@ describe("with* helpers", () => {
     });
     expect(withWebsitePresence({
       websitePresence: "has",
+    }, undefined)).toEqual({});
+  });
+
+  it("sets and clears category presence, dropping the selection on 'missing'", () => {
+    expect(withCategoryPresence({}, "has")).toEqual({
+      categoryPresence: "has",
+    });
+    expect(withCategoryPresence({
+      categories: ["cat-1"],
+    }, "missing")).toEqual({
+      categoryPresence: "missing",
+    });
+    expect(withCategoryPresence({
+      categories: ["cat-1"],
+    }, "exclude")).toEqual({
+      categories: ["cat-1"],
+      categoryPresence: "exclude",
+    });
+    expect(withCategoryPresence({
+      categoryPresence: "has",
     }, undefined)).toEqual({});
   });
 
@@ -756,6 +780,15 @@ describe("bookmarkMatchesSearch", () => {
     })).toBe(true);
   });
 
+  it("category presence 'has'/'missing' degrade safely (unreachable via the UI — a bookmark's category is never null, it always resolves to at least the built-in Default)", () => {
+    expect(bookmarkMatchesSearch(bookmark, {
+      categoryPresence: "has",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      categoryPresence: "missing",
+    })).toBe(false);
+  });
+
   it("applies number-range and boolean filters", () => {
     expect(bookmarkMatchesSearch(bookmark, {
       num: {
@@ -940,6 +973,9 @@ describe("hasAnyActiveFilter", () => {
     }],
     ["categories", {
       categories: ["c1"],
+    }],
+    ["categoryPresence", {
+      categoryPresence: "has",
     }],
     ["mediaTypes", {
       mediaTypes: ["m1"],
@@ -1182,6 +1218,24 @@ describe("bookmarkMatchesSearch — exclude mode", () => {
     });
   });
 
+  describe("category exclusion", () => {
+    it("excludes bookmark whose category is in the excluded set", () => {
+      expect(bookmarkMatchesSearch(base, {
+        categories: ["cat-1"],
+        categoryPresence: "exclude",
+      })).toBe(false);
+    });
+
+    it("passes bookmark whose category is not in the excluded set", () => {
+      expect(bookmarkMatchesSearch(base, {
+        categories: ["cat-2"],
+        categoryPresence: "exclude",
+      })).toBe(true);
+    });
+    // No "passes bookmark with no category" case here (unlike website/channel exclusion) — a
+    // bookmark's category is never null, it always resolves to at least the built-in Default.
+  });
+
   describe("choices property exclusion", () => {
     it("excludes bookmark that has any of the excluded choice values", () => {
       expect(bookmarkMatchesSearch(base, {
@@ -1310,6 +1364,19 @@ describe("summarizeBookmarkSearch", () => {
     expect(summarizeBookmarkSearch({
       youtubeChannelPresence: "has",
     })).toBe("channel: has");
+  });
+
+  it("handles categories with 'exclude' presence", () => {
+    expect(summarizeBookmarkSearch({
+      categories: ["cat-1"],
+      categoryPresence: "exclude",
+    })).toBe("1 excluded category");
+  });
+
+  it("handles categoryPresence other than 'exclude'", () => {
+    expect(summarizeBookmarkSearch({
+      categoryPresence: "has",
+    })).toBe("category: has");
   });
 
   it("counts property filters across types", () => {

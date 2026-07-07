@@ -33,6 +33,7 @@ import {
 } from "./ui/dropdown-menu";
 import { useFilterPillsRow } from "./useFilterPillsRow";
 import {
+  withCategoryPresence,
   withGenreMoodPresence,
   withMediaSourcePresence,
   withPlaceTypePresence,
@@ -53,153 +54,192 @@ export interface FilterPillsRowProps extends FilterFacetInputs {
   onSearchChange: (next: BookmarkSearch) => void;
 }
 
+/** A facet's split popover content: the header-row toggle (if any) and the body control below it. */
+interface FacetRenderResult {
+  presenceControl?: ReactNode;
+  body: ReactNode;
+}
+
 /**
- * The popover body for a facet's pill: the same presence toggle + control + chips + Reset the sidebar
- * section renders, minus the collapsible chrome. Module-level (not a hook-calling component) so
- * `FilterPillsRow` stays well under fallow's cognitive cap — it just maps facets and delegates here.
+ * The popover content for a facet's pill: the same control + chips + Reset the sidebar section
+ * renders, minus the collapsible chrome. `presenceControl` (when the facet has one) renders in the
+ * popover's title row rather than stacked above `body`. Module-level (not a hook-calling component)
+ * so `FilterPillsRow` stays well under fallow's cognitive cap — it just maps facets and delegates
+ * here.
  */
-function renderFacetBody(key: FilterFacetKey, ctx: FacetBodyContext): ReactNode {
+function renderFacetBody(key: FilterFacetKey, ctx: FacetBodyContext): FacetRenderResult {
   const {
     data, search, onSearchChange, t,
   } = ctx;
   switch (key) {
     case "tags":
-      return (
-        <div className="space-y-3">
+      return {
+        presenceControl: (
           <FacetPresenceToggle
             value={search.tagPresence}
             onChange={mode => onSearchChange(withTagPresence(search, mode))}
             hasLabel={t("Has tags")}
             missingLabel={t("No tags")}
           />
+        ),
+        body: (
           <TagsFilterBody
             tree={data.tree}
             search={search}
             onSearchChange={onSearchChange}
           />
-        </div>
-      );
+        ),
+      };
     case "categories":
-      return (
-        <CategoryFilterBody
-          categories={data.categories}
-          search={search}
-          onSearchChange={onSearchChange}
-        />
-      );
+      return {
+        presenceControl: (
+          <FacetPresenceToggle
+            value={search.categoryPresence}
+            onChange={mode => onSearchChange(withCategoryPresence(search, mode))}
+            excludeLabel={t("Excludes selected categories")}
+            onlyExclude
+          />
+        ),
+        body: (
+          <CategoryFilterBody
+            categories={data.categories}
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        ),
+      };
     case "media-types":
-      return (
-        <MediaTypeFilterBody
-          mediaTypes={data.mediaTypes}
-          search={search}
-          onSearchChange={onSearchChange}
-        />
-      );
+      return {
+        body: (
+          <MediaTypeFilterBody
+            mediaTypes={data.mediaTypes}
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        ),
+      };
     case "channels":
-      return (
-        <div className="space-y-3">
+      return {
+        presenceControl: (
           <FacetPresenceToggle
             value={search.youtubeChannelPresence}
             onChange={mode => onSearchChange(withYouTubeChannelPresence(search, mode))}
             hasLabel={t("Has value")}
             missingLabel={t("No value")}
           />
+        ),
+        body: (
           <YouTubeChannelFilterBody
             youtubeChannels={data.youtubeChannels}
             search={search}
             onSearchChange={onSearchChange}
           />
-        </div>
-      );
+        ),
+      };
     case "websites":
-      return (
-        <div className="space-y-3">
+      return {
+        presenceControl: (
           <FacetPresenceToggle
             value={search.websitePresence}
             onChange={mode => onSearchChange(withWebsitePresence(search, mode))}
             hasLabel={t("Has value")}
             missingLabel={t("No value")}
           />
+        ),
+        body: (
           <WebsiteFilterBody
             websites={data.websites}
             search={search}
             onSearchChange={onSearchChange}
           />
-        </div>
-      );
+        ),
+      };
     case "relationship-types":
-      return (
-        <RelationshipTypeFilterBody
-          relationshipTypes={data.relationshipTypes}
-          search={search}
-          onSearchChange={onSearchChange}
-        />
-      );
+      return {
+        body: (
+          <RelationshipTypeFilterBody
+            relationshipTypes={data.relationshipTypes}
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        ),
+      };
     case "people":
-      return (
-        <PersonFilterBody
-          people={data.people}
-          search={search}
-          onSearchChange={onSearchChange}
-        />
-      );
+      return {
+        body: (
+          <PersonFilterBody
+            people={data.people}
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        ),
+      };
     case "place-types":
-      return (
-        <div className="space-y-3">
+      return {
+        presenceControl: (
           <FacetPresenceToggle
             value={search.placeTypePresence}
             onChange={mode => onSearchChange(withPlaceTypePresence(search, mode))}
             hasLabel={t("Has place type")}
             missingLabel={t("No place type")}
           />
+        ),
+        body: (
           <PlaceTypeFilterBody
             placeTypes={data.placeTypes}
             search={search}
             onSearchChange={onSearchChange}
           />
-        </div>
-      );
+        ),
+      };
     case "genre-moods":
-      return (
-        <div className="space-y-3">
+      return {
+        presenceControl: (
           <FacetPresenceToggle
             value={search.genreMoodPresence}
             onChange={mode => onSearchChange(withGenreMoodPresence(search, mode))}
             hasLabel={t("Has any")}
             missingLabel={t("Has none")}
           />
+        ),
+        body: (
           <GenreMoodFilterBody
             genreMoods={data.genreMoods}
             search={search}
             onSearchChange={onSearchChange}
           />
-        </div>
-      );
+        ),
+      };
     case "sections":
-      return (
-        <div className="space-y-2">
+      return {
+        presenceControl: (
           <FacetPresenceToggle
             value={search.sectionsPresence}
             onChange={mode => onSearchChange(withSectionsPresence(search, mode))}
             hasLabel={t("Has sections")}
             missingLabel={t("No sections")}
           />
+        ),
+        body: (
           <SectionsFilterBody
             search={search}
             onSearchChange={onSearchChange}
           />
-        </div>
-      );
+        ),
+      };
     case "media-source":
-      return (
-        <FacetPresenceToggle
-          value={search.mediaSourcePresence}
-          onChange={mode => onSearchChange(withMediaSourcePresence(search, mode === "exclude" ? undefined : mode))}
-          hasLabel={t("Linked to a media source")}
-          missingLabel={t("Not linked")}
-          hideExclude
-        />
-      );
+      return {
+        presenceControl: (
+          <FacetPresenceToggle
+            value={search.mediaSourcePresence}
+            onChange={mode => onSearchChange(withMediaSourcePresence(search, mode === "exclude" ? undefined : mode))}
+            hasLabel={t("Linked to a media source")}
+            missingLabel={t("Not linked")}
+            hideExclude
+          />
+        ),
+        body: null,
+      };
   }
 }
 
@@ -235,16 +275,22 @@ export function FilterPillsRow(props: FilterPillsRowProps) {
         compact
       />
 
-      {visibleFacets.map(facet => (
-        <FilterPill
-          key={facet.key}
-          label={facet.label}
-          active={facetHasActiveSelection(facet.key, search)}
-          summary={facetSelectionSummary(facet.key, search)}
-        >
-          {renderFacetBody(facet.key, ctx)}
-        </FilterPill>
-      ))}
+      {visibleFacets.map((facet) => {
+        const {
+          presenceControl, body,
+        } = renderFacetBody(facet.key, ctx);
+        return (
+          <FilterPill
+            key={facet.key}
+            label={facet.label}
+            active={facetHasActiveSelection(facet.key, search)}
+            summary={facetSelectionSummary(facet.key, search)}
+            presenceControl={presenceControl}
+          >
+            {body}
+          </FilterPill>
+        );
+      })}
 
       {visibleProperties.map(property => (
         <PropertyFilterPill

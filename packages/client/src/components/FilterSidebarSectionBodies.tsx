@@ -13,6 +13,7 @@ import { useLanguageUsageLevels } from "../hooks/useLanguageUsageLevels";
 import {
   withPeople,
   withCategories,
+  withCategoryPresence,
   withGenreMoodPresence,
   withGenreMoods,
   withMediaTypes,
@@ -101,20 +102,25 @@ export function CategoryFilterBody({
   }));
   const selectedCategories = search.categories ?? [];
   const allSelected = categoryOptions.length > 0 && selectedCategories.length === categoryOptions.length;
+  const filterActive = selectedCategories.length > 0 || search.categoryPresence !== undefined;
 
   return (
     <>
-      <MultiCombobox
-        options={categoryOptions}
-        values={selectedCategories}
-        onValuesChange={ids => onSearchChange(withCategories(search, ids))}
-        placeholder={t("All categories")}
-        aria-label={t("Filter by category")}
-      />
-      {categoryOptions.length > 0 || selectedCategories.length > 0
+      {search.categoryPresence !== "missing"
+        ? (
+          <MultiCombobox
+            options={categoryOptions}
+            values={selectedCategories}
+            onValuesChange={ids => onSearchChange(withCategories(search, ids))}
+            placeholder={t("All categories")}
+            aria-label={t("Filter by category")}
+          />
+        )
+        : null}
+      {categoryOptions.length > 0 || filterActive
         ? (
           <div className="flex items-center gap-3">
-            {!allSelected
+            {search.categoryPresence !== "missing" && !allSelected
               ? (
                 <button
                   type="button"
@@ -128,7 +134,7 @@ export function CategoryFilterBody({
                 </button>
               )
               : null}
-            {selectedCategories.length > 0
+            {filterActive
               ? (
                 <button
                   type="button"
@@ -136,7 +142,7 @@ export function CategoryFilterBody({
                     text-xs text-primary
                     hover:underline
                   "
-                  onClick={() => onSearchChange(withCategories(search, []))}
+                  onClick={() => onSearchChange(withCategoryPresence(withCategories(search, []), undefined))}
                 >
                   {t("Reset")}
                 </button>

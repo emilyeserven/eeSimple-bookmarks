@@ -28,6 +28,14 @@ export const PresenceHasValue: Story = {
   },
 };
 
+/** Any / Exclude only — for a facet whose entity is never absent (e.g. Category). */
+export const PresenceOnlyExclude: Story = {
+  args: {
+    onlyExclude: true,
+    excludeLabel: "Excludes selected categories",
+  },
+};
+
 const chipOptions: ComboboxOption[] = [
   {
     value: "site-github",

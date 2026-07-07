@@ -12,14 +12,17 @@ import { cn } from "@/lib/utils";
  * One filter facet rendered as a pill under the search bar. Empty pills show just the facet name in
  * subtle text; an active pill fills and appends a compact selection summary (a count, else the
  * presence mode). Clicking opens a {@link ResponsivePopover} (popover ≥md, modal <md) holding the
- * facet's controls (`children`) — the same presence toggle + control + chips + Reset the sidebar uses.
+ * facet's controls (`children`) — the same control + chips + Reset the sidebar uses. `presenceControl`
+ * (when the facet has one) renders in the same row as the popover title, `justify-between`, rather
+ * than stacked above `children`.
  */
 export function FilterPill({
-  label, active, summary, children,
+  label, active, summary, presenceControl, children,
 }: {
   label: string;
   active: boolean;
   summary: FacetSelectionSummary;
+  presenceControl?: ReactNode;
   children: ReactNode;
 }) {
   const {
@@ -40,6 +43,7 @@ export function FilterPill({
   return (
     <ResponsivePopover
       title={label}
+      titleEnd={presenceControl}
       align="start"
       contentClassName="w-72"
       trigger={(
