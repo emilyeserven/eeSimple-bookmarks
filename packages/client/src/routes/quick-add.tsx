@@ -90,6 +90,8 @@ function QuickAddPage() {
       u: url,
       t: title || url,
     });
+  // Fire the inbox-queue mutation exactly once on mount (guarded by `firedRef`); `url`/`title` are
+  // immutable route search params, so the empty dep array is intentional.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
