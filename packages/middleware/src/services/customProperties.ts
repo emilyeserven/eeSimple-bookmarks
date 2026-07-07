@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
+import { asc, eq, inArray, ne } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   ChoicesItem,
@@ -837,33 +837,6 @@ export async function ensureContentStatusProperty(): Promise<string> {
 }
 
 /**
- * Append any missing Content Status choices (e.g. "AI Summary Queue", "Summarized by AI") to an
- * existing installation. Idempotent: each value is only added when absent, preserving user edits.
- */
-export async function backfillContentStatusOptions(): Promise<void> {
-  const [row] = await db
-    .select({
-      id: customProperties.id,
-      choicesItems: customProperties.choicesItems,
-    })
-    .from(customProperties)
-    .where(eq(customProperties.slug, CONTENT_STATUS_SLUG));
-  if (!row) return;
-
-  const existing = (row.choicesItems ?? []) as ChoicesItem[];
-  const existingValues = new Set(existing.map(item => item.value));
-  const missing = CONTENT_STATUS_DEFAULT_ITEMS.filter(item => !existingValues.has(item.value));
-  if (missing.length === 0) return;
-
-  await db
-    .update(customProperties)
-    .set({
-      choicesItems: [...existing, ...missing],
-    })
-    .where(eq(customProperties.id, row.id));
-}
-
-/**
  * Ensure the built-in "Page Progress" itemInItems property exists. Idempotent and safe to call at
  * boot in every environment. Pre-configured as `{current} of {total} pages`.
  */
@@ -1157,27 +1130,6 @@ export async function getContentStatusPropertyId(): Promise<string | null> {
     .from(customProperties)
     .where(eq(customProperties.slug, CONTENT_STATUS_SLUG));
   return row?.id ?? null;
-}
-
-/** Fill in slugs for any properties missing one (e.g. rows that predate the `slug` column). */
-export async function backfillCustomPropertySlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: customProperties.id,
-      name: customProperties.name,
-    })
-    .from(customProperties)
-    .where(isNull(customProperties.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const property of missing) {
-    const slug = uniqueSlug(property.name, taken, "property");
-    taken.push(slug);
-    await db.update(customProperties).set({
-      slug,
-    }).where(eq(customProperties.id, property.id));
-  }
 }
 
 /**

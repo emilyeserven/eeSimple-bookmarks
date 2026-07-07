@@ -32,7 +32,6 @@ mock.module("@/db", {
 const {
   applyImportRules,
   deleteImportRule,
-  ensureImportRuleSlugs,
 } = await import("@/services/importRules");
 
 test.beforeEach(() => {
@@ -59,35 +58,6 @@ test("deleteImportRule: removes the row", async () => {
   const deleted = await deleteImportRule("rule-1");
   assert.equal(deleted, true);
   assert.equal(importRuleRows.some(row => row.id === "rule-1"), false);
-});
-
-test("ensureImportRuleSlugs: fills in slugs for rules missing one, falling back to \"rule\" for an unslugifiable name", async () => {
-  resetRows([
-    {
-      id: "rule-no-slug",
-      name: "Manga Auto-tag",
-      slug: null,
-    },
-    {
-      id: "rule-empty-name",
-      name: "!!!",
-      slug: null,
-    },
-    {
-      id: "rule-has-slug",
-      name: "Auto-tag YouTube",
-      slug: "auto-tag-youtube",
-    },
-  ]);
-
-  await ensureImportRuleSlugs();
-
-  const noSlugRow = importRuleRows.find(r => r.id === "rule-no-slug");
-  assert.equal(noSlugRow?.slug, "manga-auto-tag");
-  const emptyNameRow = importRuleRows.find(r => r.id === "rule-empty-name");
-  assert.equal(emptyNameRow?.slug, "rule");
-  const hasSlugRow = importRuleRows.find(r => r.id === "rule-has-slug");
-  assert.equal(hasSlugRow?.slug, "auto-tag-youtube");
 });
 
 function urlOnlyConditions(pattern: string) {

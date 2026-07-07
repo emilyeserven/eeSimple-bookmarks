@@ -78,7 +78,6 @@ mock.module("@/utils/objectStore", {
 });
 
 const {
-  backfillGroupSlugs,
   deleteGroup,
 } = await import("@/services/groups");
 const {
@@ -162,28 +161,4 @@ test("deleteGroup: never invalidates the bookmark cache — groups aren't matcha
   const versionBefore = bookmarkCacheVersion();
   await deleteGroup("group-3");
   assert.equal(bookmarkCacheVersion(), versionBefore);
-});
-
-test("backfillGroupSlugs: fills in slugs for groups missing one, leaves existing slugs untouched", async () => {
-  resetRows({
-    groups: [
-      {
-        id: "group-no-slug",
-        name: "Creator Collaborative Alpha",
-        slug: null,
-      },
-      {
-        id: "group-has-slug",
-        name: "Company Y",
-        slug: "company-y",
-      },
-    ],
-  });
-
-  await backfillGroupSlugs();
-
-  const noSlugRow = groupRows.find(r => r.id === "group-no-slug");
-  assert.equal(noSlugRow?.slug, "creator-collaborative-alpha");
-  const hasSlugRow = groupRows.find(r => r.id === "group-has-slug");
-  assert.equal(hasSlugRow?.slug, "company-y");
 });

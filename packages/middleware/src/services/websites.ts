@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, LabeledWebsite, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteNode, WebsiteParamRule } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
@@ -775,25 +775,4 @@ export async function listRedirectFailureWebsites(): Promise<RedirectFailureWebs
     imageUrl: faviconUrlFrom(site.id, site.faviconCreatedAt ?? null),
     bookmarks: bookmarksByWebsite.get(site.id) ?? [],
   }));
-}
-
-/** Fill in slugs for any websites missing one (e.g. rows that predate the `slug` column). */
-export async function backfillWebsiteSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: websites.id,
-      domain: websites.domain,
-    })
-    .from(websites)
-    .where(isNull(websites.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenWebsiteSlugs();
-  for (const site of missing) {
-    const slug = uniqueWebsiteSlug(slugFromDomain(site.domain), taken);
-    taken.add(slug);
-    await db.update(websites).set({
-      slug,
-    }).where(eq(websites.id, site.id));
-  }
 }

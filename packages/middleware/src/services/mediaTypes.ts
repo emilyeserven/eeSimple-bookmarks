@@ -1,4 +1,4 @@
-import { asc, eq, isNotNull, isNull } from "drizzle-orm";
+import { asc, eq, isNotNull } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateMediaTypeInput,
@@ -479,26 +479,5 @@ export async function ensureBuiltInMediaTypes(): Promise<void> {
         })
         .where(eq(mediaTypes.id, childId));
     }
-  }
-}
-
-/** Fill in slugs for any media types missing one (e.g. rows that predate the `slug` column). */
-export async function backfillMediaTypeSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: mediaTypes.id,
-      name: mediaTypes.name,
-    })
-    .from(mediaTypes)
-    .where(isNull(mediaTypes.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const mt of missing) {
-    const slug = uniqueSlug(mt.name, taken, "media-type");
-    taken.push(slug);
-    await db.update(mediaTypes).set({
-      slug,
-    }).where(eq(mediaTypes.id, mt.id));
   }
 }

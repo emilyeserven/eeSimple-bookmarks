@@ -580,29 +580,6 @@ export async function autofillLocationWikipediaLinks(id: string): Promise<Locati
   return toLocation(updated, undefined, tagMap.get(id) ?? []);
 }
 
-/** Fill in slugs for any locations missing one (e.g. rows that predate the `slug` column). */
-export async function backfillLocationSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: locations.id,
-      name: locations.name,
-    })
-    .from(locations)
-    .where(isNull(locations.slug));
-  if (missing.length === 0) return;
-
-  const namesMap = await loadEntityNames("location", missing.map(loc => loc.id));
-  const taken = await takenLocationSlugs();
-  for (const loc of missing) {
-    const slugSource = slugSourceFromNames(namesMap.get(loc.id) ?? [], loc.name);
-    const slug = uniqueSlug(slugSource, taken, "location");
-    taken.push(slug);
-    await db.update(locations).set({
-      slug,
-    }).where(eq(locations.id, loc.id));
-  }
-}
-
 export async function deleteLocation(id: string): Promise<boolean> {
   // FK cascade removes descendant locations, bookmark_locations and location_tags link rows.
   const rows = await db.delete(locations).where(eq(locations.id, id)).returning({

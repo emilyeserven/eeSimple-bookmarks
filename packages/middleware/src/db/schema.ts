@@ -1082,7 +1082,8 @@ export const locationTags = pgTable("location_tags", {
 /**
  * `place_types` table — a user-managed vocabulary of place classifications (city, region, country…).
  * The slug is the stored value in `locations.placeType` (no FK). Nullable slug for push-safe
- * addition; backfilled at boot via `seedPlaceTypesFromLocations()`.
+ * addition; every create path writes the slug (the one-time seed/backfill boot steps were retired in
+ * issue #862).
  */
 export const placeTypes = pgTable("place_types", {
   id: uuid("id").primaryKey().defaultRandom(),

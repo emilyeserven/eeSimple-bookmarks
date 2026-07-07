@@ -1,4 +1,4 @@
-import { asc, eq, isNull, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateTranslationSourceInput,
@@ -215,26 +215,5 @@ export async function ensureBuiltInTranslationSources(): Promise<void> {
         target: translationSources.slug,
       });
     order += 1;
-  }
-}
-
-/** Fill in slugs for any translation sources missing one (e.g. rows that predate the `slug` column). */
-export async function backfillTranslationSourceSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: translationSources.id,
-      name: translationSources.name,
-    })
-    .from(translationSources)
-    .where(isNull(translationSources.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const source of missing) {
-    const slug = uniqueSlug(source.name, taken, "translation-source");
-    taken.push(slug);
-    await db.update(translationSources).set({
-      slug,
-    }).where(eq(translationSources.id, source.id));
   }
 }

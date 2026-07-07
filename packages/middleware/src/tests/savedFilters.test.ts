@@ -29,7 +29,6 @@ mock.module("@/db", {
 });
 
 const {
-  backfillSavedFilterSlugs,
   deleteSavedFilter,
 } = await import("@/services/savedFilters");
 
@@ -51,26 +50,4 @@ test("deleteSavedFilter: removes the row", async () => {
   const deleted = await deleteSavedFilter("sf-1");
   assert.equal(deleted, true);
   assert.equal(savedFilterRows.some(row => row.id === "sf-1"), false);
-});
-
-test("backfillSavedFilterSlugs: fills in slugs for saved filters missing one, leaves existing slugs untouched", async () => {
-  resetRows([
-    {
-      id: "sf-no-slug",
-      name: "Unread Manga",
-      slug: null,
-    },
-    {
-      id: "sf-has-slug",
-      name: "Recent anime",
-      slug: "recent-anime",
-    },
-  ]);
-
-  await backfillSavedFilterSlugs();
-
-  const noSlugRow = savedFilterRows.find(r => r.id === "sf-no-slug");
-  assert.equal(noSlugRow?.slug, "unread-manga");
-  const hasSlugRow = savedFilterRows.find(r => r.id === "sf-has-slug");
-  assert.equal(hasSlugRow?.slug, "recent-anime");
 });

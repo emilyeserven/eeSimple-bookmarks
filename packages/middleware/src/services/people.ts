@@ -1,4 +1,4 @@
-import { asc, count, eq, inArray, isNull } from "drizzle-orm";
+import { asc, count, eq, inArray } from "drizzle-orm";
 import type { Person, BulkDeleteResult, CreatePersonInput, EntityName, LabeledWebsite, SocialLink, UpdatePersonInput } from "@eesimple/types";
 import { db } from "@/db";
 import { getPersonSourceLabelSettings } from "@/services/appSettings";
@@ -395,25 +395,4 @@ export async function bulkDeletePeople(ids: string[]): Promise<BulkDeleteResult[
     if (deleted && imageRow) await deleteObject(imageRow.objectKey).catch(() => undefined);
     return deleted;
   });
-}
-
-/** Fill in slugs for any people missing one (e.g. rows that predate the `slug` column). */
-export async function backfillPersonSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: people.id,
-      name: people.name,
-    })
-    .from(people)
-    .where(isNull(people.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const person of missing) {
-    const slug = uniqueSlug(person.name, taken, "person");
-    taken.push(slug);
-    await db.update(people).set({
-      slug,
-    }).where(eq(people.id, person.id));
-  }
 }

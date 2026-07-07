@@ -1,4 +1,4 @@
-import { count, eq, inArray, isNull } from "drizzle-orm";
+import { count, eq, inArray } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   Group,
@@ -379,23 +379,4 @@ export async function deleteGroup(id: string): Promise<boolean> {
 
 export async function bulkDeleteGroups(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deleteGroup);
-}
-
-export async function backfillGroupSlugs(): Promise<void> {
-  const rows = await db
-    .select({
-      id: groups.id,
-      name: groups.name,
-    })
-    .from(groups)
-    .where(isNull(groups.slug));
-  if (rows.length === 0) return;
-  const takenSlugs = await takenSlugsOf(groups, groups.slug, groups.id);
-  for (const row of rows) {
-    const slug = uniqueSlug(slugify(row.name), takenSlugs, "group");
-    takenSlugs.push(slug);
-    await db.update(groups).set({
-      slug,
-    }).where(eq(groups.id, row.id));
-  }
 }

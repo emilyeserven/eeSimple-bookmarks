@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateGenreMoodInput,
@@ -188,25 +188,4 @@ export async function deleteGenreMood(id: string): Promise<boolean> {
 /** Delete many entries, reporting per-item outcomes (a cascaded descendant may report not-found). */
 export function bulkDeleteGenreMoods(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deleteGenreMood);
-}
-
-/** Fill in slugs for any entries missing one (e.g. rows that predate the `slug` column). */
-export async function backfillGenreMoodSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: genreMoods.id,
-      name: genreMoods.name,
-    })
-    .from(genreMoods)
-    .where(isNull(genreMoods.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const node of missing) {
-    const slug = uniqueSlug(node.name, taken, "genre-mood");
-    taken.push(slug);
-    await db.update(genreMoods).set({
-      slug,
-    }).where(eq(genreMoods.id, node.id));
-  }
 }

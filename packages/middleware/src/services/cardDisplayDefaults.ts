@@ -44,8 +44,8 @@ export function defaultBodyZone(key: string): "card-single-top" | "card-labels" 
 
 /**
  * The baseline {@link CardFieldZones} for the seeded Default rule: each standard field placed in its
- * {@link defaultBodyZone}, all image corners empty. Custom-property placements are filled in by the
- * boot backfill (`backfillCardDisplayRuleFieldZones`) from legacy data, or default to `card-labels`.
+ * {@link defaultBodyZone}, all image corners empty. Custom-property placements a user adds default to
+ * `card-labels` via {@link defaultBodyZone}.
  */
 export function defaultFieldZones(): CardFieldZones {
   const zones = emptyCardFieldZones();

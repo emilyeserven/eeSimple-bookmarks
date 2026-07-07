@@ -43,7 +43,11 @@ recreates it and re-runs as a no-op.
 
 ## Writing a `migrate.ts` pre-step
 
-Add an entry to the `migrations` array in `packages/middleware/src/db/migrate.ts`:
+The `migrations` array in `packages/middleware/src/db/migrate.ts` is **intentionally empty** between
+destructive changes: on the single production deployment every historical step had already applied,
+so they were pruned (issue #862) — a fresh database gets its whole schema from `drizzle-kit push`.
+The **mechanism stays**; add your step, let it deploy, then it can be pruned again once it has run in
+prod (see "Pruning spent steps" below). Add an entry:
 
 ```ts
 {
@@ -67,9 +71,18 @@ Rules (each has bitten before):
 ## Seeds and backfills — boot steps, not migrations
 
 Data that depends on application logic (built-in rows, derived slugs, jsonb reshapes) lives in
-`packages/middleware/src/index.ts` as `ensure*` / `backfill*` calls (see the long import list there:
-`ensureDefaultCategory`, `ensureBuiltInMediaTypes`, `backfillTagSlugs`,
-`backfillCardDisplayRuleSubZones`, …). Rules:
+`packages/middleware/src/index.ts`. Two shapes:
+
+- **`ensure*` seeds** — a fresh install needs them (default category, built-in media types /
+  websites / relationship types / languages, the built-in properties, the homepage filter/sections,
+  the Default card display rule, the default place-type level groups). These **stay permanently**.
+- **`backfill*` (one-time transforms)** — derive a slug for legacy rows, reshape a jsonb column,
+  synthesize a condition tree from legacy columns. These are **temporary**: they exist only to fix up
+  rows that predate a field, and every create path now writes the field. Once applied on the single
+  production deployment they are **pruned** (issue #862 removed all of them, plus the whole
+  `migrate.ts` array). So `index.ts` now holds only `ensure*` seeds + operational resets.
+
+Rules:
 
 - **Idempotent and cheap to re-run** — they execute on every boot.
 - **They run *after* `app.listen()`** so `/healthz` and `/api/*` stay reachable while a slow
@@ -78,6 +91,17 @@ Data that depends on application logic (built-in rows, derived slugs, jsonb resh
   vs. an explicit empty value the user set — see `ensureDefaultPlaceTypeLevelGroups()`.
 - A backfill that changes a bookmark's **matchable** data (row, tags, property values) or the tag
   tree must call `invalidateBookmarkCache()`.
+
+## Pruning spent steps
+
+Once a `migrate.ts` entry or a boot `backfill*` has deployed to the (single) production database, it
+is spent — a fresh DB gets the schema from push and writes every field on create. Delete it: remove
+the `migrate.ts` array entry, or drop the `backfill*` call from `index.ts` **and** its service
+function body + now-dead imports/tests. Keep the `?? slugify(row.name)` null-guards in the `to*`
+mappers (slug columns stay nullable). **This is safe only because there is exactly one deployment.**
+If the app is ever distributed to external self-hosters, an upgrade that skips a pruned step would
+break — so before pruning, tag the last release that still carries the full set and note in the
+README that upgrades must pass through that version.
 
 ## Verify
 

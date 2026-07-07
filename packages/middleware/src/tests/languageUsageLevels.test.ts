@@ -68,7 +68,6 @@ mock.module("@/db", {
 const {
   BuiltInLanguageUsageLevelError,
   InvalidUsageLevelReassignError,
-  backfillLanguageUsageLevelSlugs,
   deleteLanguageUsageLevel,
   ensureBuiltInLanguageUsageLevels,
 } = await import("@/services/languageUsageLevels");
@@ -283,34 +282,6 @@ test("deleteLanguageUsageLevel: invalidates the bookmark cache unconditionally o
   const versionBefore2 = bookmarkCacheVersion();
   await deleteLanguageUsageLevel("level-2", "level-3");
   assert.equal(bookmarkCacheVersion(), versionBefore2 + 1);
-});
-
-test("backfillLanguageUsageLevelSlugs: fills in slugs for levels missing one, leaves existing slugs untouched", async () => {
-  resetRows({
-    levels: [
-      {
-        id: "level-no-slug",
-        name: "Fan Subtitles",
-        kind: "availability",
-        builtIn: false,
-        slug: null,
-      },
-      {
-        id: "level-has-slug",
-        name: "Dub",
-        kind: "availability",
-        builtIn: true,
-        slug: "dub",
-      },
-    ],
-  });
-
-  await backfillLanguageUsageLevelSlugs();
-
-  const noSlugRow = levelRows.find(r => r.id === "level-no-slug");
-  assert.equal(noSlugRow?.slug, "fan-subtitles");
-  const hasSlugRow = levelRows.find(r => r.id === "level-has-slug");
-  assert.equal(hasSlugRow?.slug, "dub");
 });
 
 test("ensureBuiltInLanguageUsageLevels: idempotent — seeds the 8 built-ins once, skips them on a repeat call", async () => {

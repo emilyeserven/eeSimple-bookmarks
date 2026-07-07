@@ -13,8 +13,6 @@ import {
   genreMoods,
   groups,
   languages,
-  languageUsageLevels,
-  languageUsages,
   locations,
   mediaTypes,
   people,
@@ -272,31 +270,12 @@ export async function mergeEnglishEntityName(
 
 // --- #966 backfill: seed entity_names from existing name/title + romanized_name -----------------
 
-/** Rows inserted per batch. Keeps each INSERT within Postgres' bind-parameter limit. */
-const ENTITY_NAME_BACKFILL_CHUNK = 500;
-
 /** The resolved language ids the backfill labels rows with. English is guaranteed; ja/ko/zh may be absent. */
 interface BackfillLanguageIds {
   en: string;
   ja: string | null;
   ko: string | null;
   zh: string | null;
-}
-
-/** One `language_usages` row staged for the Primary Language attach (bookmarks only). */
-interface PrimaryLanguageUsageRow {
-  ownerType: "bookmark";
-  ownerId: string;
-  languageId: string;
-  usageLevelId: string;
-  sortOrder: number;
-}
-
-interface BackfillCounts {
-  primary: number;
-  english: number;
-  skippedPrimary: number;
-  skippedDuplicateEnglish: number;
 }
 
 /**
@@ -362,33 +341,6 @@ export function planEntityNameBackfillRows(
     rows,
     undetermined,
     duplicateEnglish,
-  };
-}
-
-/**
- * Stage a Primary Language `language_usages` row for a bookmark whose title is Korean, Japanese, or
- * Chinese (Han-only titles resolve to ja/zh via the operator's preference). English/Latin bookmarks
- * are intentionally excluded — attaching `en` to (nearly) the whole library would flood it with
- * noise; English-primary stays implicit via the names table. Returns `null` when the owner isn't a
- * bookmark, the level is missing, the script isn't ko/ja/zh, or the language is absent.
- */
-function planPrimaryLanguageUsage(
-  ownerType: EntityNameOwnerType,
-  ownerId: string,
-  detected: "ko" | "ja" | "en" | "zh" | null,
-  languageIds: BackfillLanguageIds,
-  primaryLevelId: string | null,
-): PrimaryLanguageUsageRow | null {
-  if (ownerType !== "bookmark" || primaryLevelId === null) return null;
-  if (detected !== "ko" && detected !== "ja" && detected !== "zh") return null;
-  const languageId = languageIds[detected];
-  if (languageId === null) return null;
-  return {
-    ownerType: "bookmark",
-    ownerId,
-    languageId,
-    usageLevelId: primaryLevelId,
-    sortOrder: 0,
   };
 }
 
@@ -459,7 +411,7 @@ export function pickDetectedPrimaryName(
 /**
  * Resolve the operator preference + seeded language ids and derive the primary-name entry for a new
  * bookmark (see {@link pickDetectedPrimaryName}). No-ops to `[]` when the English row is somehow
- * missing (so `ensure*` boot steps haven't run) — mirrors {@link backfillEntityNames}'s guard.
+ * missing (so `ensure*` boot steps haven't run).
  */
 export async function deriveDetectedPrimaryNames(
   title: string,
@@ -476,182 +428,4 @@ export async function deriveDetectedPrimaryNames(
     ko: resolved.ko,
     zh: resolved.zh,
   });
-}
-
-/** Resolve the availability-kind "Primary Language" level id (case-insensitive on name), or null. */
-async function resolvePrimaryLanguageLevelId(): Promise<string | null> {
-  const rows = await db
-    .select({
-      id: languageUsageLevels.id,
-    })
-    .from(languageUsageLevels)
-    .where(and(
-      eq(languageUsageLevels.kind, "availability"),
-      sql`lower(${languageUsageLevels.name}) = 'primary language'`,
-    ));
-  return rows[0]?.id ?? null;
-}
-
-/**
- * Owners of the given type that have no `entity_names` row yet (the idempotency guard).
- *
- * `romanized_name` was dropped from every owner table by the #969 cleanup migration (guarded on
- * `entity_names` already being populated for that owner type — see `migrate.ts`'s
- * `shouldBailOnRomanizedDrop`), so this no longer reads that column; a row reaching this query with
- * no `entity_names` row yet is backfilled from its base name only.
- */
-async function selectOwnersWithoutNames(
-  owner: { table: PgTable;
-    nameColumn: string; },
-  ownerType: EntityNameOwnerType,
-): Promise<{ id: string;
-  name: string | null;
-  romanized: string | null; }[]> {
-  const result = (await db.execute<{ id: string;
-    name: string | null; }>(sql`
-    SELECT o.id AS id, o.${sql.identifier(owner.nameColumn)} AS name
-    FROM ${owner.table} o
-    WHERE NOT EXISTS (
-      SELECT 1 FROM ${entityNames} e
-      WHERE e.owner_type = ${ownerType} AND e.owner_id = o.id
-    )
-  `)) as unknown as { rows: { id: string;
-    name: string | null; }[]; };
-  return result.rows.map(row => ({
-    ...row,
-    romanized: null,
-  }));
-}
-
-/** Drop bookmarks that already carry a Primary Language usage (belt-and-braces idempotency). */
-async function filterBookmarksWithoutPrimaryLanguage(
-  rows: PrimaryLanguageUsageRow[],
-  primaryLevelId: string,
-): Promise<PrimaryLanguageUsageRow[]> {
-  const ownerIds = rows.map(row => row.ownerId);
-  const existing = await db
-    .select({
-      ownerId: languageUsages.ownerId,
-    })
-    .from(languageUsages)
-    .where(and(
-      eq(languageUsages.ownerType, "bookmark"),
-      eq(languageUsages.usageLevelId, primaryLevelId),
-      inArray(languageUsages.ownerId, ownerIds),
-    ));
-  const has = new Set(existing.map(row => row.ownerId));
-  return rows.filter(row => !has.has(row.ownerId));
-}
-
-/** Accumulate the name + usage rows to insert for one owner type, plus the per-owner counts. */
-function collectOwnerBackfill(
-  ownerType: EntityNameOwnerType,
-  sourceRows: { id: string;
-    name: string | null;
-    romanized: string | null; }[],
-  languageIds: BackfillLanguageIds,
-  primaryLevelId: string | null,
-  hanFallback: "ja" | "zh" | null,
-): { nameRows: EntityNameInsertRow[];
-  usageRows: PrimaryLanguageUsageRow[];
-  counts: BackfillCounts; } {
-  const nameRows: EntityNameInsertRow[] = [];
-  const usageRows: PrimaryLanguageUsageRow[] = [];
-  const counts: BackfillCounts = {
-    primary: 0,
-    english: 0,
-    skippedPrimary: 0,
-    skippedDuplicateEnglish: 0,
-  };
-  for (const row of sourceRows) {
-    const value = row.name ?? "";
-    const detected = detectNameLanguage(value, hanFallback);
-    const plan = planEntityNameBackfillRows(ownerType, row.id, value, row.romanized, detected, languageIds);
-    for (const nameRow of plan.rows) {
-      nameRows.push(nameRow);
-      if (nameRow.isPrimary) counts.primary += 1;
-      else counts.english += 1;
-    }
-    if (plan.undetermined) counts.skippedPrimary += 1;
-    if (plan.duplicateEnglish) counts.skippedDuplicateEnglish += 1;
-    const usage = planPrimaryLanguageUsage(ownerType, row.id, detected, languageIds, primaryLevelId);
-    if (usage !== null) usageRows.push(usage);
-  }
-  return {
-    nameRows,
-    usageRows,
-    counts,
-  };
-}
-
-/** Insert `rows` in bounded batches, running `insert` once per chunk. */
-async function insertInChunks<T>(rows: T[], insert: (chunk: T[]) => Promise<unknown>): Promise<void> {
-  for (let i = 0; i < rows.length; i += ENTITY_NAME_BACKFILL_CHUNK) {
-    await insert(rows.slice(i, i + ENTITY_NAME_BACKFILL_CHUNK));
-  }
-}
-
-/**
- * Idempotent boot backfill, originally #966: seed `entity_names` from every owner's existing
- * name/title, labelling each by its detected script's language, and attach a "Primary Language"
- * `language_usages` row to Korean/Japanese bookmarks. `romanized_name` was dropped by the #969
- * cleanup (guarded on `entity_names` already being populated everywhere it had data), so this now
- * only backstops an owner row that somehow still has no `entity_names` row. Re-runs insert
- * nothing — an owner that already has any `entity_names` row is skipped, so a second boot logs
- * all-zero counts.
- */
-export async function backfillEntityNames(): Promise<void> {
-  const resolved = await resolveBackfillLanguageIds();
-  if (resolved.en === null) {
-    console.warn("[backfillEntityNames] English language row missing; skipping backfill.");
-    return;
-  }
-  const languageIds: BackfillLanguageIds = {
-    en: resolved.en,
-    ja: resolved.ja,
-    ko: resolved.ko,
-    zh: resolved.zh,
-  };
-  const primaryLevelId = await resolvePrimaryLanguageLevelId();
-  // Han-only (no-kana) names are ambiguous Japanese vs. Chinese; resolve them to the operator's
-  // configured preference (default Japanese). ensureAppSettings() runs earlier in the boot chain.
-  const {
-    hanScriptLanguage,
-  } = await getDisplayPreferenceSettings();
-
-  const totals: BackfillCounts = {
-    primary: 0,
-    english: 0,
-    skippedPrimary: 0,
-    skippedDuplicateEnglish: 0,
-  };
-  let attachedPrimaryLanguage = 0;
-
-  for (const [type, owner] of Object.entries(OWNER_TABLES)) {
-    const ownerType = type as EntityNameOwnerType;
-    const sourceRows = await selectOwnersWithoutNames(owner, ownerType);
-    if (sourceRows.length === 0) continue;
-
-    const {
-      nameRows, usageRows, counts,
-    } = collectOwnerBackfill(ownerType, sourceRows, languageIds, primaryLevelId, hanScriptLanguage);
-    await insertInChunks(nameRows, chunk => db.insert(entityNames).values(chunk));
-    if (usageRows.length > 0 && primaryLevelId !== null) {
-      const fresh = await filterBookmarksWithoutPrimaryLanguage(usageRows, primaryLevelId);
-      await insertInChunks(fresh, chunk => db.insert(languageUsages).values(chunk).onConflictDoNothing());
-      attachedPrimaryLanguage += fresh.length;
-    }
-    totals.primary += counts.primary;
-    totals.english += counts.english;
-    totals.skippedPrimary += counts.skippedPrimary;
-    totals.skippedDuplicateEnglish += counts.skippedDuplicateEnglish;
-  }
-
-  // Bookmark language usages are matchable data; bust the cache once if any were written.
-  if (attachedPrimaryLanguage > 0) invalidateBookmarkCache();
-  console.info(
-    `[backfillEntityNames] primaryNames=${totals.primary} englishNames=${totals.english} `
-    + `skippedPrimary=${totals.skippedPrimary} skippedDuplicateEnglish=${totals.skippedDuplicateEnglish} `
-    + `primaryLanguageUsages=${attachedPrimaryLanguage}`,
-  );
 }
