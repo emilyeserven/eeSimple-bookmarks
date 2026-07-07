@@ -76,6 +76,7 @@ export function BookmarkRelationshipsEditor({
     .map(b => ({
       value: b.id,
       label: b.title,
+      names: b.names,
     }));
 
   // Hidden types are kept out of the picker, but the directional Set below stays unfiltered so an

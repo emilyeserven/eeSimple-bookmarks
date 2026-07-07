@@ -79,6 +79,30 @@ describe("MultiCombobox", () => {
     expect(option).toHaveTextContent("Parasite");
   });
 
+  it("shows a selected option's secondary name in the collapsed trigger", () => {
+    const secondaryNameOptions: ComboboxOption[] = [
+      {
+        value: "parasite",
+        label: "기생충",
+        names: [nm("Parasite")],
+      },
+    ];
+    render(
+      <MultiCombobox
+        options={secondaryNameOptions}
+        values={["parasite"]}
+        onValuesChange={vi.fn()}
+        aria-label="Movie"
+      />,
+    );
+
+    const trigger = screen.getByRole("combobox", {
+      name: "Movie",
+    });
+    expect(trigger).toHaveTextContent("기생충");
+    expect(trigger).toHaveTextContent("Parasite");
+  });
+
   it("filters options by their secondary name value", () => {
     const secondaryNameOptions: ComboboxOption[] = [
       {

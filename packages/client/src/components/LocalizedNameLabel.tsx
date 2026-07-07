@@ -70,3 +70,41 @@ export function LocalizedNameLabel({
     </>
   );
 }
+
+interface LocalizedNameSummaryOption {
+  value: string;
+  label: string;
+  names?: EntityName[];
+}
+
+interface LocalizedNameSummaryProps {
+  /** The selected options to summarize, each rendered via {@link LocalizedNameLabel}. */
+  options: LocalizedNameSummaryOption[];
+  secondaryLanguage?: PreferredLanguage | null;
+  fallbackLanguage?: PreferredLanguage | null;
+}
+
+/**
+ * Render a comma-separated summary of selected options for a multi-select combobox trigger, each
+ * option resolved through {@link LocalizedNameLabel} so the collapsed trigger shows the same
+ * primary + de-emphasized secondary display name as the open dropdown rows.
+ */
+export function LocalizedNameSummary({
+  options, secondaryLanguage, fallbackLanguage,
+}: LocalizedNameSummaryProps) {
+  return (
+    <>
+      {options.map((option, index) => (
+        <span key={option.value}>
+          {index > 0 ? ", " : null}
+          <LocalizedNameLabel
+            names={option.names ?? []}
+            base={option.label}
+            secondaryLanguage={secondaryLanguage}
+            fallbackLanguage={fallbackLanguage}
+          />
+        </span>
+      ))}
+    </>
+  );
+}

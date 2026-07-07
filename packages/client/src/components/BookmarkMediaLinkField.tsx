@@ -51,6 +51,7 @@ export function BookmarkMediaLinkField({
   const bookmarkOptions: ComboboxOption[] = (allBookmarks ?? []).map(b => ({
     value: b.id,
     label: b.title,
+    names: b.names,
   }));
   // `aboutTypeId`/`directionalTypeIds` above stay unfiltered (identity default + direction resolution);
   // only the visible option list drops hidden types.
