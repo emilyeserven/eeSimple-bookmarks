@@ -1,7 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
+import { AddLocationRelationModal } from "../components/AddLocationRelationModal";
 import { LocationRelationsListing } from "../components/LocationRelationManager";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { useLocationRelations } from "../hooks/useLocationRelations";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +22,13 @@ function LocationRelationsPage() {
   const {
     data: allRelations,
   } = useLocationRelations();
+  const [modalOpen, setModalOpen] = useState(false);
+  const navigate = useNavigate();
+  useSetListingPage("location-relations-listing", {
+    createAction: () => setModalOpen(true),
+    addBookmark: {},
+    createLabel: t("New location relation"),
+  });
 
   return (
     <section className="space-y-6">
@@ -40,6 +51,19 @@ function LocationRelationsPage() {
       </div>
 
       <LocationRelationsListing />
+
+      <AddLocationRelationModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onCreated={(relation) => {
+          void navigate({
+            to: "/taxonomies/location-relations/$locationRelationSlug/edit/general",
+            params: {
+              locationRelationSlug: relation.slug,
+            },
+          });
+        }}
+      />
     </section>
   );
 }
