@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { BookmarkAddFormAdvancedRule, BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -1776,6 +1776,9 @@ export const appSettings = pgTable("app_settings", {
   // Filter facet keys / custom-property ids that are NOT shown by default in the filter rail
   // (added on demand via the "Add filter" control). Null/[] = every filter shows by default.
   onDemandFilters: jsonb("on_demand_filters").$type<string[]>(),
+  // Default sort (field + direction) applied to bookmark listings when no explicit URL sort param.
+  // Null = today's createdAt DESC fallback.
+  defaultBookmarkSort: jsonb("default_bookmark_sort").$type<BookmarkFieldSort>(),
   // Language to assume for Han-only (no-kana) names, which are ambiguous Japanese vs. Chinese:
   // "ja" | "zh". Nullable so `drizzle-kit push` stays additive; the resolver defaults it to "ja".
   hanScriptLanguage: text("han_script_language"),

@@ -498,6 +498,48 @@ const displayPreferenceBody = {
         type: "string",
       },
     },
+    defaultBookmarkSort: {
+      oneOf: [
+        {
+          type: "null",
+        },
+        {
+          type: "object",
+          required: ["primary"],
+          additionalProperties: false,
+          properties: {
+            primary: {
+              type: "object",
+              required: ["field", "direction"],
+              additionalProperties: false,
+              properties: {
+                field: {
+                  type: "string",
+                },
+                direction: {
+                  type: "string",
+                  enum: ["asc", "desc"],
+                },
+              },
+            },
+            secondary: {
+              type: "object",
+              required: ["field", "direction"],
+              additionalProperties: false,
+              properties: {
+                field: {
+                  type: "string",
+                },
+                direction: {
+                  type: "string",
+                  enum: ["asc", "desc"],
+                },
+              },
+            },
+          },
+        },
+      ],
+    },
     hanScriptLanguage: {
       type: "string",
       enum: ["ja", "zh"],

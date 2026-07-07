@@ -13,7 +13,7 @@ import { BookmarkTableView } from "./BookmarkTableView";
 import { BookmarkBulkActions } from "./bulk/BookmarkBulkActions";
 import { BulkActionBar } from "./bulk/BulkActionBar";
 import { navLinkClass, navStripClass } from "./TabbedShell";
-import { useBookmarksPerPage } from "../hooks/useAppSettings";
+import { useBookmarksPerPage, useDefaultBookmarkSort } from "../hooks/useAppSettings";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { usePageTitleSort } from "../hooks/useTitleSortContext";
 import { useViewMode } from "../lib/bookmarkColumns";
@@ -280,8 +280,9 @@ export function BookmarkListPane({
   useRegisterBulkSelect(pageKey);
   const [tab, setTab] = useState<ResultsTab>("bookmarks");
   const titleSort = usePageTitleSort(pageKey);
+  const defaultSort = useDefaultBookmarkSort();
   const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
-  const visibleBookmarks = sortBookmarks(filtered, search.sort, properties, titleSort);
+  const visibleBookmarks = sortBookmarks(filtered, search.sort ?? defaultSort ?? undefined, properties, titleSort);
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
   // Controlled (outer `_hub` URL strip) vs. uncontrolled (own `useState` strip on `/bookmarks`).
   const controlled = activeView != null;
