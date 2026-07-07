@@ -32,7 +32,7 @@ describe("taxonomyEditLink", () => {
       },
     });
     expect(linkProps(taxonomyEditLink(["tags", "fun", "gallery"], "x"))).toEqual({
-      to: "/tags/$tagSlug/edit/general",
+      to: "/tags/$tagSlug/edit",
       params: {
         tagSlug: "fun",
       },
@@ -41,13 +41,13 @@ describe("taxonomyEditLink", () => {
 
   it("links a /taxonomies/<entity>/<slug> item (incl. its bare listing) to its General edit tab", () => {
     expect(linkProps(taxonomyEditLink(["taxonomies", "websites", "example-com"], "x"))).toEqual({
-      to: "/taxonomies/websites/$websiteSlug/edit/general",
+      to: "/taxonomies/websites/$websiteSlug/edit",
       params: {
         websiteSlug: "example-com",
       },
     });
     expect(linkProps(taxonomyEditLink(["taxonomies", "youtube-channels", "abc", "info"], "x"))).toEqual({
-      to: "/taxonomies/youtube-channels/$channelSlug/edit/general",
+      to: "/taxonomies/youtube-channels/$channelSlug/edit",
       params: {
         channelSlug: "abc",
       },

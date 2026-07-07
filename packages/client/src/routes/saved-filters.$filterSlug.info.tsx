@@ -13,11 +13,6 @@ export const Route = createFileRoute("/saved-filters/$filterSlug/info")({
   component: SavedFilterInfoTab,
 });
 
-const VIEW_TO_EDIT = {
-  general: "/saved-filters/$filterSlug/edit/general",
-} as const;
-type SavedFilterEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
-
 function SavedFilterInfoTab() {
   const {
     t,
@@ -29,10 +24,6 @@ function SavedFilterInfoTab() {
     tab,
   } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const editRoute: SavedFilterEditRoute = (
-    VIEW_TO_EDIT[(tab ?? "general") as keyof typeof VIEW_TO_EDIT]
-    ?? VIEW_TO_EDIT.general
-  ) as SavedFilterEditRoute;
   const {
     savedFilter, isLoading,
   } = useSavedFilterBySlug(filterSlug);
@@ -71,9 +62,12 @@ function SavedFilterInfoTab() {
                     size="sm"
                   >
                     <Link
-                      to={editRoute}
+                      to="/saved-filters/$filterSlug/edit"
                       params={{
                         filterSlug,
+                      }}
+                      search={{
+                        tab,
                       }}
                     >
                       {t("Edit")}

@@ -59,9 +59,12 @@ function ImportRulesListPage() {
         onOpenChange={setModalOpen}
         onCreated={(rule) => {
           void navigate({
-            to: "/import-rules/$ruleSlug/edit/conditions",
+            to: "/import-rules/$ruleSlug/edit",
             params: {
               ruleSlug: rule.slug,
+            },
+            search: {
+              tab: "conditions",
             },
           });
         }}

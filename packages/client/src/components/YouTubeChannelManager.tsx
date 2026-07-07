@@ -36,7 +36,7 @@ export function YouTubeChannelsListing() {
         onOpenChange={setModalOpen}
         onCreated={(channel) => {
           void navigate({
-            to: "/taxonomies/youtube-channels/$channelSlug/edit/general",
+            to: "/taxonomies/youtube-channels/$channelSlug/edit",
             params: {
               channelSlug: channel.slug,
             },

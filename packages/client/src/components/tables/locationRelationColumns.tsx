@@ -55,7 +55,7 @@ export function useLocationRelationColumns(): ColumnDef<LocationRelation>[] {
           row,
         }) => (
           <EditActionCell
-            to="/taxonomies/location-relations/$locationRelationSlug/edit/general"
+            to="/taxonomies/location-relations/$locationRelationSlug/edit"
             params={{
               locationRelationSlug: row.original.slug,
             }}

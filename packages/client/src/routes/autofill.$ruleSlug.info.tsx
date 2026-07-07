@@ -13,13 +13,6 @@ export const Route = createFileRoute("/autofill/$ruleSlug/info")({
   component: AutofillRuleInfoTab,
 });
 
-const VIEW_TO_EDIT = {
-  general: "/autofill/$ruleSlug/edit/general",
-  conditions: "/autofill/$ruleSlug/edit/conditions",
-  prefill: "/autofill/$ruleSlug/edit/prefill",
-} as const;
-type AutofillEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
-
 function AutofillRuleInfoTab() {
   const {
     t,
@@ -31,8 +24,6 @@ function AutofillRuleInfoTab() {
     tab,
   } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const editRoute: AutofillEditRoute
-    = (VIEW_TO_EDIT[(tab ?? "general") as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as AutofillEditRoute;
   const {
     rule, isLoading,
   } = useAutofillRuleBySlug(ruleSlug);
@@ -71,9 +62,12 @@ function AutofillRuleInfoTab() {
                     size="sm"
                   >
                     <Link
-                      to={editRoute}
+                      to="/autofill/$ruleSlug/edit"
                       params={{
                         ruleSlug,
+                      }}
+                      search={{
+                        tab,
                       }}
                     >
                       {t("Edit")}

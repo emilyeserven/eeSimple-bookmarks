@@ -134,7 +134,7 @@ export function CardDisplayRulesList({
         onSuccess: (rule) => {
           if (rule.slug) {
             void navigate({
-              to: "/card-display-rules/$ruleSlug/edit/general",
+              to: "/card-display-rules/$ruleSlug/edit",
               params: {
                 ruleSlug: rule.slug,
               },

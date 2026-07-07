@@ -36,7 +36,7 @@ export function CustomPropertyManager() {
         onOpenChange={setModalOpen}
         onCreated={(property) => {
           void navigate({
-            to: "/custom-properties/$propertySlug/edit/general",
+            to: "/custom-properties/$propertySlug/edit",
             params: {
               propertySlug: property.slug,
             },

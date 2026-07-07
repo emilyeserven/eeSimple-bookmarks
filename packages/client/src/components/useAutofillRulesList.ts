@@ -71,7 +71,7 @@ export function useAutofillRulesList(filters: AutofillRulesFilters) {
       });
     }, () => {
       void navigate({
-        to: "/autofill/$ruleSlug/edit/general",
+        to: "/autofill/$ruleSlug/edit",
         params: {
           ruleSlug: rule.slug,
         },

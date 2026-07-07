@@ -81,7 +81,7 @@ export function PropertyGeneralEditForm({
                   onSuccess: (updated) => {
                     if (updated.slug !== property.slug) {
                       void navigate({
-                        to: "/custom-properties/$propertySlug/edit/general",
+                        to: "/custom-properties/$propertySlug/edit",
                         params: {
                           propertySlug: updated.slug,
                         },

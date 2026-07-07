@@ -36,7 +36,7 @@ export function PeopleListing() {
         onOpenChange={setModalOpen}
         onCreated={(person) => {
           void navigate({
-            to: "/taxonomies/people/$personSlug/edit/general",
+            to: "/taxonomies/people/$personSlug/edit",
             params: {
               personSlug: person.slug,
             },

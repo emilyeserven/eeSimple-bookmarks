@@ -41,7 +41,7 @@ export function RelationshipTypeTable({
           });
         }, () => {
           void navigate({
-            to: "/taxonomies/relationship-types/$relationshipTypeSlug/edit/general",
+            to: "/taxonomies/relationship-types/$relationshipTypeSlug/edit",
             params: {
               relationshipTypeSlug: relationshipType.slug,
             },

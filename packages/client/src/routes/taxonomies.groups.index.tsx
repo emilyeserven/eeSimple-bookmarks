@@ -55,7 +55,7 @@ function GroupsTaxonomyPage() {
         onOpenChange={setModalOpen}
         onCreated={(group) => {
           void navigate({
-            to: "/taxonomies/groups/$groupSlug/edit/general",
+            to: "/taxonomies/groups/$groupSlug/edit",
             params: {
               groupSlug: group.slug,
             },

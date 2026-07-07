@@ -39,7 +39,7 @@ export function CustomPropertyTable({
           });
         }, () => {
           void navigate({
-            to: "/custom-properties/$propertySlug/edit/general",
+            to: "/custom-properties/$propertySlug/edit",
             params: {
               propertySlug: property.slug,
             },

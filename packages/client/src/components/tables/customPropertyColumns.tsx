@@ -90,7 +90,7 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
           row,
         }) => (
           <EditActionCell
-            to="/custom-properties/$propertySlug/edit/general"
+            to="/custom-properties/$propertySlug/edit"
             params={{
               propertySlug: row.original.slug,
             }}

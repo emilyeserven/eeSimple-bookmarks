@@ -22,29 +22,32 @@ description: >-
 >   `view` pane, honoring `showIf`); each body is a `WorkbenchRouteTab` (`mode="view"`). **There are no
 >   `_view.tsx` / `_view.<tab>.tsx` route files** — that whole pathless subtree and the `viewNav` array
 >   are gone. A view-only tab (e.g. Hierarchy) is just a `view`-only `WorkbenchTab` in the descriptor.
-> - **Edit pages** — the horizontal `TabbedEntityLayout` + real path-segment
->   `…/$slug/edit/<tab>` route files, each a one-line `WorkbenchRouteTab` (`mode="edit"`).
->   **Interim (#1155):** the edit side is migrating to the same single-route `?tab=` shape as Info —
->   `components/workbench/EntityEditView.tsx` (horizontal strip, driven by `?tab=`, old `…/edit/<tab>`
->   paths redirect via an `…edit.$.tsx` splat). **Categories** and **newsletters** are the first two
->   pilots (their per-tab `edit.<tab>.tsx` files are gone; the entity edit route is a single
->   `…$slug.edit.tsx` rendering `EntityEditView`, validated by `validateEditTabSearch`). The rest still
->   use `TabbedEntityLayout`; the full migration + this doc's rewrite lands in a later sub-issue. Nav
->   grouping (a "Rules" group collapsing into the trailing "More" dropdown) now lives on
->   `WorkbenchTab.group` (consecutive same-`group` edit tabs collapse), **not** a hand-written `editNav`
->   array — `EntityInfoView` ignores `group`.
+> - **Edit pages** — the same single-route `?tab=` shape as Info: a **single** `…/$slug/edit` route
+>   rendering `components/workbench/EntityEditView.tsx`, a **horizontal** tab strip whose active tab is
+>   the `?tab=<key>` search param (`validateEditTabSearch`, aliased to `validateInfoTabSearch` in
+>   `lib/infoTabSearch.ts`). The strip is *derived* from `workbench.tabs` (those with an `edit` pane,
+>   honoring `showIf`); each body is a `WorkbenchRouteTab` (`mode="edit"`). **There are no
+>   `edit.<tab>.tsx` per-tab route files** — every entity migrated off that quartet in #1155/#1156.
+>   Old per-segment paths (`…/edit/general`, `…/edit/autofill`, …) redirect to `…/edit?tab=<tab>` via
+>   an `…edit.$.tsx` splat route (`beforeLoad` → `redirect()`). Nav grouping (a "Rules" group
+>   collapsing into a trailing "More" dropdown) lives on `WorkbenchTab.group` (consecutive same-`group`
+>   edit tabs collapse) — `EntityInfoView` ignores `group`, it's edit-strip-only. **Bookmarks** and
+>   **Settings** are the sole remaining exceptions still on the old `TabbedEntityLayout` shell
+>   (Bookmarks has no `EntityWorkbench` descriptor at all — see CLAUDE.md's "Bookmarks are asymmetric"
+>   note; Settings isn't a slug-routed entity) — don't use them as a template for a new entity.
 >
 > The per-entity `createTabWrapper` / `<Entity>TabWrapper` pattern below is **superseded** for new
 > tabbed entities — only `BookmarkEditTabWrapper` still uses it. Prefer a descriptor; the wrapper
 > approach is documented for historical context.
 
-Settings and the entity **edit** pages render a **horizontal scrolling tab strip** above an
-`<Outlet/>`; each edit tab is its own file-based route. The **View/Info** page instead renders a
-**vertical** rail beside the active tab body, selected by `?tab=`. This skill restructures an entity
-that currently has one long detail page and one long edit form into that shape. The edit shell is
-`TabbedShell` — a horizontal, horizontally-scrollable tab strip (`navStripClass`) on **every** surface
-(full-width edit page and phone); the old wide-screen vertical-sidebar mode was
-removed in #578. Copy whichever entity is closest:
+Settings and the entity **edit** pages render a **horizontal scrolling tab strip** above the active
+tab body; the entity edit strip is `?tab=`-driven (a single route, no per-tab route files) while
+Settings still uses real path-segment tabs. The **View/Info** page instead renders a **vertical** rail
+beside the active tab body, also selected by `?tab=`. This skill restructures an entity that currently
+has one long detail page and one long edit form into that shape. The edit shell is `TabbedShell` — a
+horizontal, horizontally-scrollable tab strip (`navStripClass`) on **every** surface (full-width edit
+page and phone); the old wide-screen vertical-sidebar mode was removed in #578. Copy whichever entity
+is closest:
 
 - **Custom Properties** — the most complete (read-only View *and* Edit, a **conditional** tab, plus a
   scoped Autofill tab).
@@ -73,17 +76,24 @@ In `packages/client/src/components/`:
     header={(/* back link + title/badges + Edit link + Delete */)}
   />
   ```
-- **`TabbedEntityLayout`** (+ exported `navLinkClass`) — the **edit** layout shell (`edit.tsx`).
-  It renders the `header`, a horizontal scrolling tab `<nav>` strip (`navStripClass`), and the
-  `<Outlet/>`. You give it the nav **declaratively**, not as JSX:
+- **`workbench/EntityEditView`** — the **Edit** page shell, the edit-mode mirror of `EntityInfoView`.
+  Renders a **horizontal** tab strip (derived from `workbench.tabs` with an `edit` pane, honoring
+  `showIf`; consecutive same-`group` tabs collapse into a trailing "More" dropdown) beside the active
+  tab's `WorkbenchRouteTab` body (`mode="edit"`). Driven by the `?tab=` search param; falls back to the
+  first tab when absent/invalid; drops the strip for a single-tab entity. You give it the `workbench`,
+  the `slug`, the `editTo` template, `params`, the `activeTab` (`?tab=`), and an optional `header`:
   ```tsx
-  <TabbedEntityLayout
-    header={(/* back-to-view link + description */)}
-    nav={editNav}                       // readonly TabNavItem[] = { to, label }[]
-    params={{ websiteSlug }}            // route params shared by every nav link
-    navAriaLabel="Website sections"
+  <EntityEditView
+    workbench={propertyWorkbench}
+    slug={propertySlug}
+    editTo="/custom-properties/$propertySlug/edit"
+    params={{ propertySlug }}
+    activeTab={tab}                     // from Route.useSearch()
+    header={(/* back link + title + description */)}
   />
   ```
+  `TabbedEntityLayout` (+ exported `navLinkClass`) still exists as the shell for **Bookmarks** and
+  **Settings** (see the note above) — don't reach for it on a new entity.
 - **`ListingHubLayout`** — only for **listing entities** (those whose bare `$slug` renders
   `BookmarkSearchView`). The pathless `_hub` layout that renders the entity `<h1>` header over a
   horizontal strip of real path segments — `Bookmarks | Gallery | Media | Info` — and the active child
@@ -162,47 +172,51 @@ descriptor by `EntityInfoView`, so **adding/renaming/removing a view tab is a ch
   header={…} />`. The `header` carries the back link, name + badges, an **Edit** link, and (usually) a
   Delete button — see `routes/custom-properties.$propertySlug.info.tsx` as the reference.
 
-  The **Edit** link should navigate to the edit tab matching the current `?tab=`. Keep a module-scope
-  `VIEW_TO_EDIT` map keyed by tab key → edit route, and resolve it from `?tab=` (`Route.useSearch()`),
-  falling back to `general` for a view-only tab with no edit counterpart (e.g. Tags' `hierarchy`):
+  The **Edit** link should navigate to the edit route carrying the same tab key as the current Info
+  `?tab=` (Info and Edit tab keys are the same `workbench.tabs[].key`, so no per-entity mapping table
+  is needed anymore — just forward the search param):
 
   ```tsx
-  // module scope — quote ALL keys when any key contains a hyphen (quote-props rule):
-  const VIEW_TO_EDIT = {
-    "general": "/custom-properties/$propertySlug/edit/general",
-    "options": "/custom-properties/$propertySlug/edit/options",
-    "display-rules": "/custom-properties/$propertySlug/edit/display-rules",
-  } as const;
-  type PropertyEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
-
-  // inside the component:
   const { tab } = Route.useSearch();
-  const editRoute: PropertyEditRoute =
-    (VIEW_TO_EDIT[(tab ?? "general") as keyof typeof VIEW_TO_EDIT]
-      ?? VIEW_TO_EDIT.general) as PropertyEditRoute;
 
   <Button asChild variant="outline" size="sm">
-    <Link to={editRoute} params={{ propertySlug }}>Edit</Link>
+    <Link to="/custom-properties/$propertySlug/edit" params={{ propertySlug }} search={{ tab }}>
+      Edit
+    </Link>
   </Button>
   ```
 
-  **Styling gotcha:** `@stylistic/quote-props` enforces *consistent* quoting within an object.
-  If any key requires quotes (hyphen in the name), *all* keys must be quoted. Always run
-  `pnpm lint:fix` from the repo root after adding the map.
+  Omitting `search` (or passing `tab: undefined`) is also fine — `EntityEditView` falls back to the
+  first edit tab itself. Passing `tab` through only matters when you want to land on the *same* tab
+  the user was viewing (e.g. clicking Edit from Info's "Options" tab should open Edit's "Options" tab,
+  not jump back to General) — that only works if a view-only tab (e.g. Hierarchy) isn't the source,
+  since it has no edit counterpart; `EntityEditView` silently falls back to the first edit tab when the
+  `?tab=` value doesn't match any edit-tab key, so no special-casing is required there either.
 
   **Hierarchy tab** (view-only): a taxonomy with a `parentId` tree (Tags, Media Types, Locations,
   Genres & Moods) gets a `view`-only `WorkbenchTab` (see CLAUDE.md → Content hierarchies → Hierarchy
-  tab rule) — it appears in the vertical Info rail automatically and is simply absent from
-  `VIEW_TO_EDIT` so Edit falls back to General. **Websites are the sanctioned derived-tree
-  exception** — no `parentId` column, but their Hierarchy tab renders the domain/subdomain tree
-  derived by `useWebsiteTree` (`websiteHierarchyView.tsx`). Don't add a Hierarchy tab to a genuinely
-  flat taxonomy.
+  tab rule) — it appears in the vertical Info rail automatically and has no `edit` pane, so it's
+  simply invisible to `EntityEditView`. **Websites are the sanctioned derived-tree exception** — no
+  `parentId` column, but their Hierarchy tab renders the domain/subdomain tree derived by
+  `useWebsiteTree` (`websiteHierarchyView.tsx`). Don't add a Hierarchy tab to a genuinely flat taxonomy.
 
-**Edit side — unchanged** (real path-segment routes, mirror the tabs):
-- `<entity>.$<slug>.edit.tsx` — edit layout (back-to-view link + description, `editNav`,
-  `TabbedEntityLayout`).
-- `<entity>.$<slug>.edit.index.tsx` — redirect to `…/edit/general`.
-- `<entity>.$<slug>.edit.<tab>.tsx` — one per tab; a one-line `WorkbenchRouteTab` (`mode="edit"`).
+**Edit side — the same single-route `?tab=` shape as View, three files:**
+- `<entity>.$<slug>.edit.tsx` — a pathless `Outlet` layout (no header, no nav — those live in the
+  `index` child and `EntityEditView` respectively).
+- `<entity>.$<slug>.edit.index.tsx` — validates `?tab=` with `validateEditTabSearch` and renders
+  `<EntityEditView workbench={…} slug={slug} editTo="…/$slug/edit" params={{ <slug> }} activeTab={tab}
+  header={…} />`. The `header` carries the back link + title + description (mirror the Info page's
+  header shape, minus the Edit/Delete buttons — those live on Info, or as a `WorkbenchRouteTab`
+  General-tab "Danger zone" when the descriptor sets `listingPath`).
+- `<entity>.$<slug>.edit.$.tsx` — a splat route whose `beforeLoad` redirects any old per-segment path
+  (`…/edit/general`, `…/edit/autofill`, …) to `…/edit?tab=<tab>`, extracting the first `_splat`
+  segment. Copy verbatim from an existing entity (e.g. `routes/categories.$categorySlug.edit.$.tsx`)
+  and retarget the path/param name — the body never varies per entity.
+
+There is **no per-tab route file and no hand-written `editNav` array** — adding/renaming/removing an
+**edit** tab is a change to the `*Workbench` descriptor only (add/remove the tab's `edit` pane; add
+`group: i18n.t("Rules")` — or whatever label — to consecutive tabs that should collapse into a "More"
+dropdown).
 
 **Listing entities** (those whose bare `$slug` renders `BookmarkSearchView` — Categories, Tags,
 Websites, Media Types, YouTube Channels, Genres & Moods, Languages, Locations, People, Groups, and the
@@ -247,21 +261,24 @@ Then run `pnpm dev` and check that the entity:
   search param and conditional tabs appear/disappear by type,
 - has an **Edit** link on the Info page that preserves the active `?tab=` (e.g. clicking Edit from the
   "Options" tab lands on the edit "Options" tab, not "General"); tabs without an edit counterpart fall
-  back to "General"; each edit tab saves independently and the tab reloads correctly, and
+  back to the first edit tab; each edit tab saves independently; an old `…/edit/<tab>` deep link
+  redirects to `…/edit?tab=<tab>`, and
 - (if added) shows only the autofill rules scoped to the entity on its Autofill tab.
 ```
 
 ## Maintaining an existing tabbed entity
 
 - **Add / rename / remove a tab in one place**: the entity's `EntityWorkbench` descriptor
-  (`components/workbench/<entity>.tsx`) — the Info rail (`EntityInfoView`) and the edit routes
-  (`WorkbenchRouteTab`) both derive from it. Adding a
-  **view** tab is descriptor-only (it appears in the vertical Info rail automatically — no route
-  file). Adding an **edit** tab also needs its `edit.<tab>.tsx` route + `editNav`/`VIEW_TO_EDIT`
-  entries. A rename needs no breadcrumb work (`crumbLabel()` title-cases the slug; only oddities go in
-  `LABEL_OVERRIDES`).
-- **Removing a tab**: for a view tab, just drop it from the descriptor; for an edit tab, also delete
-  its `edit.<tab>.tsx` route file and its `editNav`/`VIEW_TO_EDIT` entries. A view-only tab (e.g.
-  Hierarchy) must never appear in `VIEW_TO_EDIT`.
-- **Tab drift** ("the Info rail and edit tabs show a different tab set") means someone bypassed the
-  descriptor — fold the stray tab back into it rather than patching one surface.
+  (`components/workbench/<entity>.tsx`) — both the Info rail (`EntityInfoView`) and the edit strip
+  (`EntityEditView`) derive from it, and **neither needs a route file per tab**. Adding a **view** tab
+  is descriptor-only (a `view` pane; appears in the vertical Info rail automatically). Adding an
+  **edit** tab is likewise descriptor-only (an `edit` pane on the same or a new `WorkbenchTab`; appears
+  in the horizontal Edit strip automatically) — add `group: i18n.t("Rules")` (or whatever label) if it
+  should collapse into a "More" dropdown alongside a sibling tab. A rename needs no breadcrumb work
+  (`crumbLabel()` title-cases the slug; only oddities go in `LABEL_OVERRIDES`).
+- **Removing a tab**: just drop the `view`/`edit` pane (or the whole `WorkbenchTab`) from the
+  descriptor — both surfaces update themselves.
+- **Tab drift** ("the Info rail and edit strip show a different tab set") means someone bypassed the
+  descriptor — fold the stray tab back into it rather than patching one surface. This can no longer
+  happen via a hand-written `editNav` array (there isn't one), but double-check a `showIf` predicate
+  isn't accidentally scoped to only one mode.

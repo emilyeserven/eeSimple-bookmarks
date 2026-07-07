@@ -76,6 +76,7 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
     {
       key: "autofill",
       label: "Autofill Rules",
+      group: i18n.t("Rules"),
       view: {
         title: i18n.t("Autofill Rules"),
         description: i18n.t("Autofill rules that apply this location."),
@@ -104,6 +105,7 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
     {
       key: "display-rules",
       label: "Display Rules",
+      group: i18n.t("Rules"),
       view: {
         title: i18n.t("Display Rules"),
         description: i18n.t("Card display rules whose conditions reference this location."),

@@ -13,12 +13,6 @@ export const Route = createFileRoute("/import-rules/$ruleSlug/info")({
   component: ImportRuleInfoTab,
 });
 
-const VIEW_TO_EDIT = {
-  general: "/import-rules/$ruleSlug/edit/general",
-  conditions: "/import-rules/$ruleSlug/edit/conditions",
-} as const;
-type ImportRuleEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
-
 function ImportRuleInfoTab() {
   const {
     t,
@@ -30,8 +24,6 @@ function ImportRuleInfoTab() {
     tab,
   } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const editRoute: ImportRuleEditRoute
-    = (VIEW_TO_EDIT[(tab ?? "general") as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as ImportRuleEditRoute;
   const {
     rule, isLoading,
   } = useImportRuleBySlug(ruleSlug);
@@ -70,9 +62,12 @@ function ImportRuleInfoTab() {
                     size="sm"
                   >
                     <Link
-                      to={editRoute}
+                      to="/import-rules/$ruleSlug/edit"
                       params={{
                         ruleSlug,
+                      }}
+                      search={{
+                        tab,
                       }}
                     >
                       {t("Edit")}

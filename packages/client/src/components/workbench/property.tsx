@@ -213,6 +213,7 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
     {
       key: "autofill",
       label: "Autofill Rules",
+      group: i18n.t("Rules"),
       view: {
         title: i18n.t("Autofill Rules"),
         description: i18n.t("Autofill rules that set a value for this property."),
@@ -241,6 +242,7 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
     {
       key: "display-rules",
       label: "Display Rules",
+      group: i18n.t("Rules"),
       view: {
         title: i18n.t("Display Rules"),
         description: i18n.t("Card display rules whose conditions reference this property."),

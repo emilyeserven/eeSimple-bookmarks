@@ -139,6 +139,7 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
+      group: i18n.t("Rules"),
       view: {
         title: i18n.t("Autofill Rules"),
         description: i18n.t("Autofill rules whose conditions target this channel."),
@@ -167,6 +168,7 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
     {
       key: "display-rules",
       label: i18n.t("Display Rules"),
+      group: i18n.t("Rules"),
       view: {
         title: i18n.t("Display Rules"),
         description: i18n.t("Card display rules whose conditions reference this channel."),

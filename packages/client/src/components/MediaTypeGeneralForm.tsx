@@ -142,7 +142,7 @@ export function MediaTypeGeneralForm({
                     onSuccess: (updated) => {
                       if (updated.slug !== mediaType.slug) {
                         void navigate({
-                          to: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
+                          to: "/taxonomies/media-types/$mediaTypeSlug/edit",
                           params: {
                             mediaTypeSlug: updated.slug,
                           },

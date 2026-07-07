@@ -79,7 +79,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
   if (pathParts[0] === "tags" && pathParts.length >= 2) {
     return (
       <Link
-        to="/tags/$tagSlug/edit/general"
+        to="/tags/$tagSlug/edit"
         params={{
           tagSlug: pathParts[1],
         }}
@@ -97,7 +97,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "websites":
         return (
           <Link
-            to="/taxonomies/websites/$websiteSlug/edit/general"
+            to="/taxonomies/websites/$websiteSlug/edit"
             params={{
               websiteSlug: slug,
             }}
@@ -107,7 +107,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "media-types":
         return (
           <Link
-            to="/taxonomies/media-types/$mediaTypeSlug/edit/general"
+            to="/taxonomies/media-types/$mediaTypeSlug/edit"
             params={{
               mediaTypeSlug: slug,
             }}
@@ -117,7 +117,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "youtube-channels":
         return (
           <Link
-            to="/taxonomies/youtube-channels/$channelSlug/edit/general"
+            to="/taxonomies/youtube-channels/$channelSlug/edit"
             params={{
               channelSlug: slug,
             }}
@@ -127,7 +127,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "people":
         return (
           <Link
-            to="/taxonomies/people/$personSlug/edit/general"
+            to="/taxonomies/people/$personSlug/edit"
             params={{
               personSlug: slug,
             }}
@@ -137,7 +137,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "groups":
         return (
           <Link
-            to="/taxonomies/groups/$groupSlug/edit/general"
+            to="/taxonomies/groups/$groupSlug/edit"
             params={{
               groupSlug: slug,
             }}
@@ -147,7 +147,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "group-types":
         return (
           <Link
-            to="/taxonomies/group-types/$groupTypeSlug/edit/general"
+            to="/taxonomies/group-types/$groupTypeSlug/edit"
             params={{
               groupTypeSlug: slug,
             }}
@@ -167,7 +167,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "property-groups":
         return (
           <Link
-            to="/taxonomies/property-groups/$propertyGroupSlug/edit/general"
+            to="/taxonomies/property-groups/$propertyGroupSlug/edit"
             params={{
               propertyGroupSlug: slug,
             }}
@@ -177,7 +177,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "relationship-types":
         return (
           <Link
-            to="/taxonomies/relationship-types/$relationshipTypeSlug/edit/general"
+            to="/taxonomies/relationship-types/$relationshipTypeSlug/edit"
             params={{
               relationshipTypeSlug: slug,
             }}
@@ -187,7 +187,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "place-types":
         return (
           <Link
-            to="/taxonomies/place-types/$placeTypeSlug/edit/general"
+            to="/taxonomies/place-types/$placeTypeSlug/edit"
             params={{
               placeTypeSlug: slug,
             }}
@@ -197,7 +197,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "genres-moods":
         return (
           <Link
-            to="/taxonomies/genres-moods/$genreMoodSlug/edit/general"
+            to="/taxonomies/genres-moods/$genreMoodSlug/edit"
             params={{
               genreMoodSlug: slug,
             }}
@@ -207,7 +207,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "languages":
         return (
           <Link
-            to="/taxonomies/languages/$languageSlug/edit/general"
+            to="/taxonomies/languages/$languageSlug/edit"
             params={{
               languageSlug: slug,
             }}
@@ -217,7 +217,7 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
       case "locations":
         return (
           <Link
-            to="/taxonomies/locations/$locationSlug/edit/general"
+            to="/taxonomies/locations/$locationSlug/edit"
             params={{
               locationSlug: slug,
             }}

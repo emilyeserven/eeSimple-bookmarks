@@ -94,7 +94,7 @@ export function ImportRuleGeneralForm({
                 onSuccess: (updated) => {
                   if (updated.slug !== rule.slug) {
                     void navigate({
-                      to: "/import-rules/$ruleSlug/edit/general",
+                      to: "/import-rules/$ruleSlug/edit",
                       params: {
                         ruleSlug: updated.slug,
                       },

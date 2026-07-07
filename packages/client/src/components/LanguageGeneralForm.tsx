@@ -74,7 +74,7 @@ export function LanguageGeneralForm({
                 onSuccess: (updated) => {
                   if (updated.slug !== language.slug) {
                     void navigate({
-                      to: "/taxonomies/languages/$languageSlug/edit/general",
+                      to: "/taxonomies/languages/$languageSlug/edit",
                       params: {
                         languageSlug: updated.slug,
                       },

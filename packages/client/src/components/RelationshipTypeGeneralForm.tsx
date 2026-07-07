@@ -75,7 +75,7 @@ export function RelationshipTypeGeneralForm({
                 onSuccess: (updated) => {
                   if (updated.slug !== relationshipType.slug) {
                     void navigate({
-                      to: "/taxonomies/relationship-types/$relationshipTypeSlug/edit/general",
+                      to: "/taxonomies/relationship-types/$relationshipTypeSlug/edit",
                       params: {
                         relationshipTypeSlug: updated.slug,
                       },

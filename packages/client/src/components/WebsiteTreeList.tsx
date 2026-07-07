@@ -64,7 +64,7 @@ export function WebsiteTreeList({
       )}
       renderEditLink={node => (
         <Link
-          to="/taxonomies/websites/$websiteSlug/edit/general"
+          to="/taxonomies/websites/$websiteSlug/edit"
           params={{
             websiteSlug: node.slug,
           }}

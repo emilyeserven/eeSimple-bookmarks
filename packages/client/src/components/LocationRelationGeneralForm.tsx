@@ -84,7 +84,7 @@ export function LocationRelationGeneralForm({
                   onSuccess: (updated) => {
                     if (updated.slug !== locationRelation.slug) {
                       void navigate({
-                        to: "/taxonomies/location-relations/$locationRelationSlug/edit/general",
+                        to: "/taxonomies/location-relations/$locationRelationSlug/edit",
                         params: {
                           locationRelationSlug: updated.slug,
                         },

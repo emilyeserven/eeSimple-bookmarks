@@ -92,7 +92,7 @@ export function TagGeneralForm({
                   onSuccess: (updated) => {
                     if (updated.slug !== node.slug) {
                       void navigate({
-                        to: "/tags/$tagSlug/edit/general",
+                        to: "/tags/$tagSlug/edit",
                         params: {
                           tagSlug: updated.slug,
                         },

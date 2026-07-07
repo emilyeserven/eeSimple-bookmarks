@@ -34,9 +34,12 @@ export function useNewAutofillRule(): {
       prefill={buildAutofillRulePrefill(defaults)}
       onCreated={(rule) => {
         void navigate({
-          to: "/autofill/$ruleSlug/edit/conditions",
+          to: "/autofill/$ruleSlug/edit",
           params: {
             ruleSlug: rule.slug,
+          },
+          search: {
+            tab: "conditions",
           },
         });
       }}

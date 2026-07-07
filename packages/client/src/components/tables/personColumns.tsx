@@ -48,7 +48,7 @@ export function usePersonColumns(): ColumnDef<Person>[] {
           row,
         }) => (
           <EditActionCell
-            to="/taxonomies/people/$personSlug/edit/general"
+            to="/taxonomies/people/$personSlug/edit"
             params={{
               personSlug: row.original.slug,
             }}

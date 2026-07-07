@@ -69,7 +69,7 @@ export function useWebsiteGeneralForm(website: Website) {
       onSuccess: (updated) => {
         if (updated.slug && updated.slug !== website.slug) {
           void navigate({
-            to: "/taxonomies/websites/$websiteSlug/edit/general",
+            to: "/taxonomies/websites/$websiteSlug/edit",
             params: {
               websiteSlug: updated.slug,
             },

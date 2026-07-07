@@ -62,7 +62,7 @@ export function TagTreeList({
       )}
       renderEditLink={node => (
         <Link
-          to="/tags/$tagSlug/edit/general"
+          to="/tags/$tagSlug/edit"
           params={{
             tagSlug: node.slug,
           }}

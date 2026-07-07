@@ -57,7 +57,7 @@ function LocationRelationsPage() {
         onOpenChange={setModalOpen}
         onCreated={(relation) => {
           void navigate({
-            to: "/taxonomies/location-relations/$locationRelationSlug/edit/general",
+            to: "/taxonomies/location-relations/$locationRelationSlug/edit",
             params: {
               locationRelationSlug: relation.slug,
             },

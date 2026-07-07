@@ -104,7 +104,7 @@ export function GenreMoodGeneralForm({
                   onSuccess: (updated) => {
                     if (updated.slug !== node.slug) {
                       void navigate({
-                        to: "/taxonomies/genres-moods/$genreMoodSlug/edit/general",
+                        to: "/taxonomies/genres-moods/$genreMoodSlug/edit",
                         params: {
                           genreMoodSlug: updated.slug,
                         },

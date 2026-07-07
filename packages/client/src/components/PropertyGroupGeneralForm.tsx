@@ -77,7 +77,7 @@ export function PropertyGroupGeneralForm({
                   onSuccess: (updated) => {
                     if (updated.slug !== group.slug) {
                       void navigate({
-                        to: "/taxonomies/property-groups/$propertyGroupSlug/edit/general",
+                        to: "/taxonomies/property-groups/$propertyGroupSlug/edit",
                         params: {
                           propertyGroupSlug: updated.slug,
                         },

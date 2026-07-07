@@ -64,7 +64,7 @@ export function useGroupColumns(): ColumnDef<Group>[] {
           row,
         }) => (
           <EditActionCell
-            to="/taxonomies/groups/$groupSlug/edit/general"
+            to="/taxonomies/groups/$groupSlug/edit"
             params={{
               groupSlug: row.original.slug,
             }}

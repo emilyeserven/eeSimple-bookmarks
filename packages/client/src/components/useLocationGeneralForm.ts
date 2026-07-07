@@ -155,7 +155,7 @@ export function useLocationGeneralForm(node: LocationNode) {
   const followSlug = (updated: Location) => {
     if (updated.slug !== node.slug) {
       void navigate({
-        to: "/taxonomies/locations/$locationSlug/edit/general",
+        to: "/taxonomies/locations/$locationSlug/edit",
         params: {
           locationSlug: updated.slug,
         },

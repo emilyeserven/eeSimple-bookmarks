@@ -76,6 +76,7 @@ export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
+      group: i18n.t("Rules"),
       view: {
         title: i18n.t("Autofill Rules"),
         description: i18n.t("Autofill rules that set this media type."),
@@ -104,6 +105,7 @@ export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
     {
       key: "display-rules",
       label: i18n.t("Display Rules"),
+      group: i18n.t("Rules"),
       view: {
         title: i18n.t("Display Rules"),
         description: i18n.t("Card display rules whose conditions reference this media type."),

@@ -74,7 +74,7 @@ export function AutofillRuleGeneralForm({
                 onSuccess: (updated) => {
                   if (updated.slug !== rule.slug) {
                     void navigate({
-                      to: "/autofill/$ruleSlug/edit/general",
+                      to: "/autofill/$ruleSlug/edit",
                       params: {
                         ruleSlug: updated.slug,
                       },

@@ -62,7 +62,7 @@ function SiteGroup({
           </CardDescription>
         </div>
         <Link
-          to="/taxonomies/websites/$websiteSlug/edit/general"
+          to="/taxonomies/websites/$websiteSlug/edit"
           params={{
             websiteSlug: site.slug,
           }}

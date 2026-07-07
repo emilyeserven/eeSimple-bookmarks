@@ -62,7 +62,7 @@ export function useYouTubeChannelGeneralForm(channel: YouTubeChannel) {
       onSuccess: (updated) => {
         if (updated.slug && updated.slug !== channel.slug) {
           void navigate({
-            to: "/taxonomies/youtube-channels/$channelSlug/edit/general",
+            to: "/taxonomies/youtube-channels/$channelSlug/edit",
             params: {
               channelSlug: updated.slug,
             },

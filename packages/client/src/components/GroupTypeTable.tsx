@@ -39,7 +39,7 @@ export function GroupTypeTable({
           });
         }, () => {
           void navigate({
-            to: "/taxonomies/group-types/$groupTypeSlug/edit/general",
+            to: "/taxonomies/group-types/$groupTypeSlug/edit",
             params: {
               groupTypeSlug: groupType.slug,
             },

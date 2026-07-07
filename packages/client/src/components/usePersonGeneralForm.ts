@@ -103,7 +103,7 @@ export function usePersonGeneralForm(person: Person) {
       onSuccess: (updated) => {
         if (updated.slug !== person.slug) {
           void navigate({
-            to: "/taxonomies/people/$personSlug/edit/general",
+            to: "/taxonomies/people/$personSlug/edit",
             params: {
               personSlug: updated.slug,
             },

@@ -39,7 +39,7 @@ export function WebsiteTable({
           });
         }, () => {
           void navigate({
-            to: "/taxonomies/websites/$websiteSlug/edit/general",
+            to: "/taxonomies/websites/$websiteSlug/edit",
             params: {
               websiteSlug: website.slug,
             },

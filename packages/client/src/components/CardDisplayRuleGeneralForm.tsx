@@ -83,7 +83,7 @@ export function CardDisplayRuleGeneralForm({
                     onSuccess: (updated) => {
                       if (updated.slug && updated.slug !== rule.slug) {
                         void navigate({
-                          to: "/card-display-rules/$ruleSlug/edit/general",
+                          to: "/card-display-rules/$ruleSlug/edit",
                           params: {
                             ruleSlug: updated.slug,
                           },

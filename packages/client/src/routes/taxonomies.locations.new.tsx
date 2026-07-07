@@ -37,7 +37,7 @@ function NewLocationPage() {
       <div className="rounded-lg border bg-card p-4">
         <LocationForm
           onCreated={location => void navigate({
-            to: "/taxonomies/locations/$locationSlug/edit/general",
+            to: "/taxonomies/locations/$locationSlug/edit",
             params: {
               locationSlug: location.slug,
             },

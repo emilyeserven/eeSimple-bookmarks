@@ -62,7 +62,7 @@ function TagsListingPage() {
         onOpenChange={setModalOpen}
         onCreated={(tag) => {
           void navigate({
-            to: "/tags/$tagSlug/edit/general",
+            to: "/tags/$tagSlug/edit",
             params: {
               tagSlug: tag.slug,
             },

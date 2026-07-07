@@ -39,7 +39,7 @@ export function PropertyGroupTable({
           });
         }, () => {
           void navigate({
-            to: "/taxonomies/property-groups/$propertyGroupSlug/edit/general",
+            to: "/taxonomies/property-groups/$propertyGroupSlug/edit",
             params: {
               propertyGroupSlug: group.slug,
             },

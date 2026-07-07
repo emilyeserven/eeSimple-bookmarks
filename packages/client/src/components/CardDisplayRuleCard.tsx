@@ -92,7 +92,7 @@ export function CardDisplayRuleCard({
             className="size-8"
           >
             <Link
-              to="/card-display-rules/$ruleSlug/edit/general"
+              to="/card-display-rules/$ruleSlug/edit"
               params={{
                 ruleSlug,
               }}
