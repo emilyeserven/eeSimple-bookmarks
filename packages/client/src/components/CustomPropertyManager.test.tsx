@@ -1,17 +1,9 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { CustomPropertyManager } from "./CustomPropertyManager";
 import { makeCustomProperty } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
-
-const openItem = vi.fn();
-
-vi.mock("./panel/usePanelControls", () => ({
-  usePanelControls: () => ({
-    openItem,
-  }),
-}));
 
 const property = makeCustomProperty({
   id: "prop-stars",
@@ -41,23 +33,13 @@ vi.mock("../hooks/useCustomProperties", () => ({
 const paths = ["/custom-properties/$propertySlug", "/custom-properties/new"];
 
 describe("CustomPropertyManager", () => {
-  it("does not open the panel on a plain preview click (the link navigates to the view page)", async () => {
-    openItem.mockClear();
+  it("renders the property preview linking to its view page", async () => {
     await renderWithRouter(<CustomPropertyManager />, {
       paths,
     });
-    screen.getByText("Stars").click();
-    expect(openItem).not.toHaveBeenCalled();
-  });
-
-  it("opens the panel in view mode when a property preview is alt-clicked", async () => {
-    openItem.mockClear();
-    await renderWithRouter(<CustomPropertyManager />, {
-      paths,
+    const link = screen.getByRole("link", {
+      name: /Stars/,
     });
-    fireEvent.click(screen.getByText("Stars"), {
-      altKey: true,
-    });
-    expect(openItem).toHaveBeenCalledWith("property", property.id, "view");
+    expect(link).toHaveAttribute("href", "/custom-properties/stars");
   });
 });

@@ -1,7 +1,7 @@
 import type { ToolbarAction, ToolbarContext } from "./toolbarActionTypes";
 
 import { Link } from "@tanstack/react-router";
-import { PanelRight, Plus, Settings } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 
 import { AddChildButton } from "@/components/AddChildButton";
 import { AddChildModal } from "@/components/AddChildModal";
@@ -99,9 +99,8 @@ export function pinAction(ctx: ToolbarContext): ToolbarAction | null {
 }
 
 /**
- * The homepage's quick link to its settings. Rendered only on the homepage (`/`), sitting just to the
- * left of the panel toggle so it reads as "next to the Right Drawer". Was previously an inline gear
- * link in the homepage body.
+ * The homepage's quick link to its settings. Rendered only on the homepage (`/`). Was previously an
+ * inline gear link in the homepage body.
  */
 export function homepageSettingsAction(ctx: ToolbarContext): ToolbarAction | null {
   if (ctx.pathParts.length > 0) return null;
@@ -132,26 +131,6 @@ export function homepageSettingsAction(ctx: ToolbarContext): ToolbarAction | nul
           </Link>
         </DropdownMenuItem>
       ),
-    },
-  };
-}
-
-export function openPanelAction(ctx: ToolbarContext): ToolbarAction {
-  return {
-    key: "open-panel",
-    desktop: (
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={i18n.t("Open panel")}
-        onClick={ctx.openPanel}
-      >
-        <PanelRight className="size-4" />
-      </Button>
-    ),
-    mobile: {
-      kind: "standalone",
     },
   };
 }

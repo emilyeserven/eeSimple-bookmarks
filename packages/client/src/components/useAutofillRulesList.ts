@@ -62,7 +62,7 @@ export function useAutofillRulesList(filters: AutofillRulesFilters) {
   const bulkDelete = useBulkDeleteAutofillRules();
 
   function openRule(rule: AutofillRule, event: React.MouseEvent): void {
-    rowNav(event, "autofill", rule.id, () => {
+    rowNav(event, () => {
       void navigate({
         to: "/autofill/$ruleSlug",
         params: {

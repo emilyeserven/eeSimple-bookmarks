@@ -34,9 +34,8 @@ export interface WorkbenchDelete {
 
 /**
  * A surface-agnostic description of an entity's tabbed view/edit UI — the **single source of truth**
- * for its tabs + bodies. It is rendered identically by the main pane (`WorkbenchRouteTab`, one tab
- * per route) and the right panel (`EntityWorkbenchView`, all tabs with a controlled active tab), so
- * the two surfaces share the same components and the same responsive `TabbedShell`.
+ * for its tabs + bodies. It is rendered by the main pane via `WorkbenchRouteTab` (one tab per route),
+ * so every surface shares the same components and the same responsive `TabbedShell`.
  */
 export interface EntityWorkbench<E extends { id: string }> {
   /** Resolve the entity by slug (main pane routes). */

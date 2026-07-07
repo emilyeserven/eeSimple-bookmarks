@@ -32,7 +32,7 @@ export function RelationshipTypeTable({
       data={data}
       sortable
       onRowClick={(relationshipType, event) =>
-        rowNav(event, "relationship-type", relationshipType.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/taxonomies/relationship-types/$relationshipTypeSlug/info",
             params: {

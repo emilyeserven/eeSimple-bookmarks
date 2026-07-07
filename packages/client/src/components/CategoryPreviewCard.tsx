@@ -5,14 +5,11 @@ import { useTranslation } from "react-i18next";
 
 import { CategoryPreviewRow } from "./CategoryPreviewRow";
 import { LabeledSection } from "./LabeledSection";
-import { useEditPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 
 /**
  * Hover-revealed Edit / See All button group with an always-visible bookmark count to its right.
@@ -23,8 +20,6 @@ function CategoryControls({
 }: {
   category: Category;
 }) {
-  const editClick = useEditPanelClick();
-  const modifier = useSidebarOpenModifier();
   const {
     t,
   } = useTranslation();
@@ -47,10 +42,9 @@ function CategoryControls({
             params={{
               categorySlug: category.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: category.name,
             })}
-            onClick={event => editClick(event, "category", category.id)}
           >
             {t("Edit")}
           </Link>

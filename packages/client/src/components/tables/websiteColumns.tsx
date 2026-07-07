@@ -8,11 +8,9 @@ import { Globe } from "lucide-react";
 import { EditActionCell, ImageCell } from "./cells";
 import { bookmarkCountColumn, categoryPillColumn } from "./columnHelpers";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 /** Column definitions for the Websites listing Table view. */
 export function useWebsiteColumns(): ColumnDef<Website>[] {
-  const editClick = useEditPanelClick();
   return useMemo(
     () => [
       {
@@ -54,11 +52,10 @@ export function useWebsiteColumns(): ColumnDef<Website>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.siteName,
             })}
-            onClick={event => editClick(event, "website", row.original.id)}
           />
         ),
       },
     ],
-    [editClick],
+    [],
   );
 }

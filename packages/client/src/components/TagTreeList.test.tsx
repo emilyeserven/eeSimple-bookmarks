@@ -1,19 +1,11 @@
 import type { TagNode } from "@eesimple/types";
 
-import { fireEvent, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { TagTreeList } from "./TagTreeList";
 import { makeTag } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
-
-const openItem = vi.fn();
-
-vi.mock("./panel/usePanelControls", () => ({
-  usePanelControls: () => ({
-    openItem,
-  }),
-}));
 
 const tree: TagNode[] = [
   {
@@ -108,8 +100,7 @@ describe("TagTreeList", () => {
     expect(screen.queryByLabelText("Collapse tools")).not.toBeInTheDocument();
   });
 
-  it("does not open the panel on a plain edit click (the link navigates to the edit page)", async () => {
-    openItem.mockClear();
+  it("links the tag name to its filtered bookmarks and the Info button to its info page", async () => {
     await renderWithRouter(
       <TagTreeList
         tree={tree}
@@ -121,64 +112,9 @@ describe("TagTreeList", () => {
         paths,
       },
     );
-    screen.getByLabelText("Edit dev").click();
-    expect(openItem).not.toHaveBeenCalled();
-  });
-
-  it("opens the panel in edit mode when the edit link is alt-clicked", async () => {
-    openItem.mockClear();
-    await renderWithRouter(
-      <TagTreeList
-        tree={tree}
-        expanded={new Set()}
-        onToggle={vi.fn()}
-        columns={1}
-      />,
-      {
-        paths,
-      },
-    );
-    fireEvent.click(screen.getByLabelText("Edit dev"), {
-      altKey: true,
-    });
-    expect(openItem).toHaveBeenCalledWith("tag", "dev", "edit");
-  });
-
-  it("does not open the panel on a plain name click (the link navigates to the filtered bookmarks)", async () => {
-    openItem.mockClear();
-    await renderWithRouter(
-      <TagTreeList
-        tree={tree}
-        expanded={new Set()}
-        onToggle={vi.fn()}
-        columns={1}
-      />,
-      {
-        paths,
-      },
-    );
-    screen.getByRole("link", {
+    expect(screen.getByRole("link", {
       name: "dev",
-    }).click();
-    expect(openItem).not.toHaveBeenCalled();
-  });
-
-  it("opens the panel in view mode when the Info button is alt-clicked", async () => {
-    openItem.mockClear();
-    await renderWithRouter(
-      <TagTreeList
-        tree={tree}
-        expanded={new Set()}
-        onToggle={vi.fn()}
-        columns={1}
-      />,
-      {
-        paths,
-      },
-    );
-    fireEvent.click(screen.getByLabelText("View dev"), {
-      altKey: true,
-    });
-    expect(openItem).toHaveBeenCalledWith("tag", "dev", "view");
+    })).toBeInTheDocument();
+    expect(screen.getByLabelText("View dev")).toHaveAttribute("href", "/tags/dev/info");
   });
 });

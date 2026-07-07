@@ -6,14 +6,12 @@ import { useMemo } from "react";
 import { EditActionCell } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
 
 /** Column definitions for the Categories listing Table view. */
 export function useCategoryColumns(): ColumnDef<Category>[] {
-  const editClick = useEditPanelClick();
   return useMemo(
     () => [
       {
@@ -58,11 +56,10 @@ export function useCategoryColumns(): ColumnDef<Category>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "category", row.original.id)}
           />
         ),
       },
     ],
-    [editClick],
+    [],
   );
 }

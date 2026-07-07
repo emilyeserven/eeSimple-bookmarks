@@ -5,13 +5,11 @@ import { useMemo } from "react";
 
 import { EditActionCell } from "./cells";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 
 /** Column definitions for the Group Types listing Table view. */
 export function useGroupTypeColumns(): ColumnDef<GroupType>[] {
-  const editClick = useEditPanelClick();
   return useMemo(
     () => [
       {
@@ -52,11 +50,10 @@ export function useGroupTypeColumns(): ColumnDef<GroupType>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "group-type", row.original.id)}
           />
         ),
       },
     ],
-    [editClick],
+    [],
   );
 }

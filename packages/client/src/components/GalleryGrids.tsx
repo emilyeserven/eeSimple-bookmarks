@@ -6,13 +6,10 @@ import { Download, Loader2, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { formatSize, isVideoObject, layoutContainerClass, layoutItemClass } from "./galleryFormat";
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useDeleteBookmarkReelArchive } from "../hooks/useBookmarks";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** The storage-used (and optional quota) summary line shown above the grids. */
 export function StorageSummary({
@@ -99,8 +96,6 @@ export function RegisteredGrid({
   const {
     t,
   } = useTranslation();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-2">
@@ -118,11 +113,7 @@ export function RegisteredGrid({
               params={{
                 bookmarkId: object.bookmark?.id ?? "",
               }}
-              title={object.bookmark ? entityLinkTitle(modifier) : undefined}
-              onClick={(event) => {
-                const id = object.bookmark?.id;
-                if (id) viewClick(event, "bookmark", id, id);
-              }}
+              title={object.bookmark?.title}
               className="block"
             >
               <Thumb
@@ -238,8 +229,6 @@ export function ArchivedReelsGrid({
   const {
     t,
   } = useTranslation();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const remove = useDeleteBookmarkReelArchive();
   const reels = bookmarks.filter(
     (bookmark): bookmark is Bookmark & { reelArchive: InstagramReelArchive } => bookmark.reelArchive !== null,
@@ -284,8 +273,7 @@ export function ArchivedReelsGrid({
                 params={{
                   bookmarkId: bookmark.id,
                 }}
-                title={entityLinkTitle(modifier)}
-                onClick={event => viewClick(event, "bookmark", bookmark.id, bookmark.id)}
+                title={bookmark.title}
                 className="
                   block truncate text-sm font-medium
                   hover:underline

@@ -25,11 +25,10 @@ interface Props<E extends { id: string }> {
 
 /**
  * The main-pane **Info** page: a **vertical** tab rail (driven by the `?tab=` search param) beside the
- * active view tab's body. It is the vertical, URL-driven sibling of the right panel's controlled
- * {@link import("./EntityWorkbenchView").EntityWorkbenchView} — both derive their tabs from the same
- * surface-agnostic {@link EntityWorkbench} descriptor, so the Info page shows the exact same view bodies
- * (via {@link WorkbenchRouteTab}) the old per-segment `_view.*` routes did. On narrow screens the rail
- * collapses to a horizontal scrolling strip. A single-tab entity drops the rail entirely.
+ * active view tab's body. It derives its tabs from the surface-agnostic {@link EntityWorkbench}
+ * descriptor and shows the exact same view bodies (via {@link WorkbenchRouteTab}) the old per-segment
+ * `_view.*` routes did. On narrow screens the rail collapses to a horizontal scrolling strip. A
+ * single-tab entity drops the rail entirely.
  */
 export function EntityInfoView<E extends { id: string }>({
   workbench, slug, infoTo, params, activeTab, header,
@@ -39,7 +38,7 @@ export function EntityInfoView<E extends { id: string }>({
   } = workbench.useBySlug(slug);
 
   // View tabs only; honor `showIf` once the entity is loaded (optimistically include showIf tabs while
-  // it loads — they re-filter on the next render, matching EntityWorkbenchView's rule).
+  // it loads — they re-filter on the next render).
   const tabs = workbench.tabs.filter(
     tab => tab.view != null && (!tab.showIf || !entity || tab.showIf(entity)),
   );

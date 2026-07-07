@@ -30,7 +30,7 @@ export function YouTubeChannelTable({
       data={channels}
       sortable
       onRowClick={(channel, event) =>
-        rowNav(event, "youtube-channel", channel.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/taxonomies/youtube-channels/$channelSlug",
             params: {

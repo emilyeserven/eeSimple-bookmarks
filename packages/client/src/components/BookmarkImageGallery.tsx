@@ -9,7 +9,6 @@ import { Crop, Images } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { layoutContainerClass, layoutItemClass } from "./galleryFormat";
-import { useViewPanelClick } from "./panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,12 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useCroppedHeight, useCroppedWidth, useSidebarOpenModifier } from "@/hooks/useAppSettings";
+import { useCroppedHeight, useCroppedWidth } from "@/hooks/useAppSettings";
 import { useCustomAspectRatios } from "@/hooks/useCustomAspectRatios";
 import { buildAspectOptions } from "@/lib/aspectOptions";
 import { useGalleryImageMode } from "@/lib/bookmarkColumns";
 import { bookmarkImageAspectStyle } from "@/lib/bookmarkImage";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
 interface Tile {
@@ -179,8 +177,6 @@ export function BookmarkImageGallery({
   const {
     t,
   } = useTranslation();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const mode = useGalleryImageMode(pageKey);
   const croppedWidth = useCroppedWidth();
   const croppedHeight = useCroppedHeight();
@@ -224,8 +220,7 @@ export function BookmarkImageGallery({
                   params={{
                     bookmarkId: tile.bookmarkId,
                   }}
-                  title={entityLinkTitle(modifier)}
-                  onClick={event => viewClick(event, "bookmark", tile.bookmarkId, tile.bookmarkId)}
+                  title={tile.bookmarkTitle}
                   className="block"
                 >
                   <GalleryTileImage

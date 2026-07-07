@@ -30,7 +30,7 @@ export function PlaceTypeTable({
       data={placeTypes}
       sortable
       onRowClick={(placeType, event) =>
-        rowNav(event, "place-type", placeType.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/taxonomies/place-types/$placeTypeSlug/info",
             params: {

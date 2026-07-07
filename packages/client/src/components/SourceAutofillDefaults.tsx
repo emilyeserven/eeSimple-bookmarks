@@ -8,13 +8,10 @@ import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTags } from "../hooks/useTags";
 
 import { Badge } from "@/components/ui/badge";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface SourceAutofillDefaultsProps {
   /** Wording differs for a website ("this site") vs a YouTube channel ("this channel") vs a newsletter. */
@@ -27,20 +24,17 @@ interface SourceAutofillDefaultsProps {
   tagIds?: string[];
 }
 
-/** A clickable pill showing a tag's name; navigates to the tag page (or opens it in the sidebar). */
+/** A clickable pill showing a tag's name; navigates to the tag page. */
 function TagPill({
   tag,
 }: { tag: Tag }) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <Link
       to="/tags/$tagSlug"
       params={{
         tagSlug: tag.slug,
       }}
-      title={entityLinkTitle(modifier)}
-      onClick={event => viewClick(event, "tag", tag.id, tag.slug)}
+      title={tag.name}
     >
       <Badge variant="secondary">{tag.name}</Badge>
     </Link>

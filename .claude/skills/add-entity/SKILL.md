@@ -3,9 +3,9 @@ name: add-entity
 description: >-
   Scaffold a new slug-routed entity end to end in eeSimple Bookmarks — add a new table / taxonomy /
   content type with detail and edit pages, a service with slug generation, CRUD routes, shared
-  types, the client route quartet, a manager component, and right-panel registration. Use when
+  types, the client route quartet, and a manager component. Use when
   asked to "add a new entity/table/taxonomy/content type", "give X detail and edit pages",
-  "make X slug-routed", or "register a panel content type". Mirrors how categories, websites,
+  or "make X slug-routed". Mirrors how categories, websites,
   custom-properties, autofill, media-types, youtube-channels, tags, property-groups, and genres-moods
   (the cross-taxonomy polymorphic-assignment case) were each built.
   Also the map for maintaining an entity — renaming it, adding fields, or removing it (each step below is a sync point; see the sibling skills it links for field-level changes).
@@ -16,7 +16,7 @@ description: >-
 Every browsable entity in this repo touches the same surface in the same order. Build them by
 copying an existing, complete entity rather than from scratch. **Reference entity:
 `media-types`** (or `youtube-channels`) — the most recent, fully-formed examples of the whole
-pattern, including the route quartet and panel registration.
+pattern, including the route quartet.
 
 Work back-to-front: middleware → types → client. Build order is types → middleware → client, so
 keep the shared types compiling first.
@@ -129,29 +129,20 @@ workbench descriptor by `EntityInfoView` (vertical rail, `?tab=` search param). 
 ### 8. Client — manager component (`packages/client/src/components/<Entity>Manager.tsx`)
 Copy `MediaTypeManager.tsx`. The **edit** UI is the auto-save **`<Entity>GeneralForm`** you build for
 the edit tab (see the `tabbed-pages` / `toast-notifications` skills), and the read-only **view body**
-is a small **`<Entity>GeneralView`** (or the inline `<dl>` you lift into the workbench). Both surfaces
-render these — do **not** create a panel-only `<Entity>Row` inline editor, a panel-only view card, or
-reuse the submit create form for edit (right-panel parity invariant in CLAUDE.md).
+is a small **`<Entity>GeneralView`** (or the inline `<dl>` you lift into the workbench). These render
+via the workbench descriptor — do **not** reuse the submit create form for edit.
 
-### 9. Workbench descriptor + panel registration
+### 9. Workbench descriptor
 - **Workbench descriptor** (`packages/client/src/components/workbench/<entity>.tsx`): copy
   `workbench/mediaType.tsx`. Export an `EntityWorkbench<Entity>` (typed by `workbench/types.ts`):
-  `useBySlug`/`useById` loaders, `name`/`isBuiltIn`/`canDelete`, a `useDelete` control, and a `tabs`
+  `useBySlug` loader, `name`/`isBuiltIn`/`canDelete`, a `useDelete` control, and a `tabs`
   array where each tab has a `view` and/or `edit` `WorkbenchPane` (title + description + a body
-  component). This is the **single source** both the main pane and the panel render.
+  component). This is the **single source** the main-app pages render.
 - **Main-pane surfaces**: the **Info** page (`…$slug.info.tsx` / `…$slug._hub.info.tsx`) renders
   `<EntityInfoView workbench={<entity>Workbench} …>` — the vertical rail derives its view tabs from the
   descriptor, so there's no route file per view tab. Each **edit** tab route (`edit.<tab>.tsx`) is a
   one-line `WorkbenchRouteTab` (`workbench={<entity>Workbench}` + `tabKey` + `mode="edit"` + `slug`) —
   see `routes/taxonomies.media-types.*`.
-- **Panel registration** (`packages/client/src/components/panel/contentTypes.ts`):
-  - Add the type string to the `DrawerContentType` union **and** `DRAWER_CONTENT_TYPES` array in
-    `packages/client/src/lib/drawerSearch.ts`.
-  - Add a `use<Entity>List` adapter and `View`/`Edit` that each render
-    `<EntityWorkbenchPanel workbench={<entity>Workbench} id={id} mode="view"|"edit" />` — **never** a
-    `<Entity>Row`, a panel-only view card, or the submit create form. Then append an entry to
-    `PANEL_CONTENT_TYPES` with `type`, `label`, `singular`, a `lucide-react` `icon`, `useList`,
-    `View`, `Edit`. Create flows (the `NEW_SENTINEL` path) keep their submit form.
 
 ### 10. Registries that derive from the sidebar entry
 
@@ -296,11 +287,9 @@ the updated JSON. This is what the Genres & Moods entity (#916) did. Don't blank
 real dead code — only the `<entity>Descriptor` is the accepted-unused case.
 
 Then check manually that the entity:
-- has working list / detail / edit pages at its slug routes, and
-- appears in the right panel's type tiles and is browsable there — the panel's `View`/`Edit` render
-  the **same** tabbed bodies + responsive shell as the main pane via `EntityWorkbenchView` (from the
-  `<entity>Workbench` descriptor), not a panel-only editor or view card. Drag the docked drawer narrow
-  to confirm the tab nav collapses to the horizontal strip.
+- has working list / detail / edit pages at its slug routes — the Info page and edit tabs render
+  from the `<entity>Workbench` descriptor via `EntityInfoView` / `WorkbenchRouteTab`. Narrow the
+  window to confirm the edit tab nav collapses to the horizontal scrolling strip.
 
 ## Maintaining an existing entity
 
@@ -339,6 +328,6 @@ change kind rather than re-running the whole scaffold:
      surface any missed spot. Keep bookmark-*metadata* field names (`authorNames`, oEmbed `authorName`,
      ISBN `authors[]`) unchanged: only the taxonomy is renamed.
 - **Remove an entity**: reverse the checklist. The exhaustive registries
-  (`ENTITY_PALETTE_CONFIGS`, workbench descriptors, panel content types) fail `tsc` on leftovers —
+  (`ENTITY_PALETTE_CONFIGS`, workbench descriptors) fail `tsc` on leftovers —
   chase compile errors, then drop the table via an idempotent `migrate.ts` step (never a bare
   schema edit; push must stay additive).

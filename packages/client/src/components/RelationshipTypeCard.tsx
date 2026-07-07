@@ -4,12 +4,9 @@ import { Link } from "@tanstack/react-router";
 import { Info, Link2, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A single relationship-type listing card: body → its detail page, with hover Edit / Info. */
 export function RelationshipTypeCard({
@@ -28,9 +25,6 @@ export function RelationshipTypeCard({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
 
   return (
     <StandardListingCard
@@ -51,8 +45,9 @@ export function RelationshipTypeCard({
           params={{
             relationshipTypeSlug: relationshipType.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "relationship-type", relationshipType.id, relationshipType.slug)}
+          title={t("View {{name}}", {
+            name: relationshipType.name,
+          })}
           className={className}
         >
           {children}
@@ -65,10 +60,9 @@ export function RelationshipTypeCard({
             params={{
               relationshipTypeSlug: relationshipType.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: relationshipType.name,
             })}
-            onClick={event => editClick(event, "relationship-type", relationshipType.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">{t("Edit {{name}}", {
@@ -85,8 +79,9 @@ export function RelationshipTypeCard({
             params={{
               relationshipTypeSlug: relationshipType.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "relationship-type", relationshipType.id, relationshipType.slug)}
+            title={t("View {{name}}", {
+              name: relationshipType.name,
+            })}
           >
             <Info className="size-4" />
             <span className="sr-only">{t("View {{name}}", {

@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
 import { useDeleteCardDisplayRule } from "../hooks/useCardDisplayRules";
 
-import { usePanelControls } from "@/components/panel/usePanelControls";
 import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -21,7 +20,7 @@ interface CardDisplayRuleCardProps {
 /**
  * A single rule row in the settings/scoped lists: drag handle, name (links to the rule's View page),
  * a condition summary, and hover-light Edit / Info / Delete controls. Editing happens on the rule's
- * own View/Edit pages (or the right panel via Info) — the row no longer expands an inline editor.
+ * own View/Edit pages — the row no longer expands an inline editor.
  */
 export function CardDisplayRuleCard({
   rule, dragHandleProps, isDragging,
@@ -30,9 +29,6 @@ export function CardDisplayRuleCard({
     t,
   } = useTranslation();
   const remove = useDeleteCardDisplayRule();
-  const {
-    openItem,
-  } = usePanelControls();
   const ruleSlug = rule.slug ?? "";
 
   return (
@@ -108,16 +104,22 @@ export function CardDisplayRuleCard({
             </Link>
           </Button>
           <Button
-            type="button"
+            asChild
             variant="ghost"
             size="icon"
             className="size-8"
-            aria-label={t("Info about {{name}}", {
-              name: rule.name,
-            })}
-            onClick={() => openItem("card-display-rule", rule.id, "view")}
           >
-            <Info className="size-4" />
+            <Link
+              to="/card-display-rules/$ruleSlug"
+              params={{
+                ruleSlug,
+              }}
+              aria-label={t("Info about {{name}}", {
+                name: rule.name,
+              })}
+            >
+              <Info className="size-4" />
+            </Link>
           </Button>
           {rule.isDefault
             ? null

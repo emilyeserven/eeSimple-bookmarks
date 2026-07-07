@@ -30,7 +30,7 @@ export function LocationRelationTable({
       data={locationRelations}
       sortable
       onRowClick={(relation, event) =>
-        rowNav(event, "location-relation", relation.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/taxonomies/location-relations/$locationRelationSlug/info",
             params: {

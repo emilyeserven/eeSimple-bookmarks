@@ -4,12 +4,10 @@ import * as React from "react";
 
 import { useRouterState } from "@tanstack/react-router";
 
-import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarEntityData } from "./useSidebarEntityData";
 import { useResolvedPins, useViewableFilters } from "./useSidebarPins";
 import {
   useAdvancedSettings,
-  useSidebarOpenModifier,
   useSidebarVisibility,
 } from "../hooks/useAppSettings";
 import { useBookmarks } from "../hooks/useBookmarks";
@@ -127,8 +125,6 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   groupsCount: number | undefined;
   groupTypesCount: number | undefined;
   currentBookmarkCategories: string[];
-  modifier: ReturnType<typeof useSidebarOpenModifier>;
-  viewClick: ReturnType<typeof useViewPanelClick>;
   hiddenSidebarGroups: string[];
   advanced: SidebarAdvanced;
 }
@@ -171,9 +167,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     seeMoreCustomizationItems,
     hiddenSidebarGroups,
   } = useSidebarVisibility();
-  const modifier = useSidebarOpenModifier();
   const advanced = useSidebarAdvanced();
-  const viewClick = useViewPanelClick();
   const [taxonomiesExpanded, setTaxonomiesExpanded] = React.useState(false);
   const [customizationExpanded, setCustomizationExpanded] = React.useState(false);
 
@@ -263,8 +257,6 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     groupsCount: data.allGroups?.length,
     groupTypesCount: data.allGroupTypes?.length,
     currentBookmarkCategories,
-    modifier,
-    viewClick,
     hiddenSidebarGroups,
     advanced,
   };

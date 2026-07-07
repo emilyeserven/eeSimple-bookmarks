@@ -9,11 +9,9 @@ import { EditActionCell, ImageCell } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import { formatAdded } from "./inboxColumns";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 /** Column definitions for the People listing Table view. */
 export function usePersonColumns(): ColumnDef<Person>[] {
-  const editClick = useEditPanelClick();
   return useMemo(
     () => [
       {
@@ -57,11 +55,10 @@ export function usePersonColumns(): ColumnDef<Person>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "person", row.original.id)}
           />
         ),
       },
     ],
-    [editClick],
+    [],
   );
 }

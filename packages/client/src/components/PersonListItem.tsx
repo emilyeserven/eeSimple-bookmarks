@@ -4,11 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { Info, Pencil, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useEntityImage } from "../hooks/useEntityImage";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "../lib/sidebarModifier";
 
 interface PersonListItemProps {
   person: Person;
@@ -29,9 +26,6 @@ export function PersonListItem({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const {
     showImage,
     onError,
@@ -85,10 +79,9 @@ export function PersonListItem({
             params={{
               personSlug: person.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: person.name,
             })}
-            onClick={event => editClick(event, "person", person.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">{t("Edit {{name}}", {
@@ -105,8 +98,9 @@ export function PersonListItem({
             params={{
               personSlug: person.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "person", person.id, person.slug)}
+            title={t("View {{name}}", {
+              name: person.name,
+            })}
           >
             <Info className="size-4" />
             <span className="sr-only">{t("View {{name}}", {

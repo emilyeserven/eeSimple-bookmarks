@@ -8,13 +8,11 @@ import { Link2 } from "lucide-react";
 import { EditActionCell } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 
 /** Column definitions for the Relationship Types listing Table view. */
 export function useRelationshipTypeColumns(): ColumnDef<RelationshipType>[] {
-  const editClick = useEditPanelClick();
   return useMemo(
     () => [
       {
@@ -68,11 +66,10 @@ export function useRelationshipTypeColumns(): ColumnDef<RelationshipType>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "relationship-type", row.original.id)}
           />
         ),
       },
     ],
-    [editClick],
+    [],
   );
 }

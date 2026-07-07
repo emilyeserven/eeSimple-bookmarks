@@ -34,7 +34,7 @@ export function AutofillRulesTable({
       data={rules}
       sortable
       onRowClick={(rule, event) =>
-        rowNav(event, "autofill", rule.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/autofill/$ruleSlug",
             params: {

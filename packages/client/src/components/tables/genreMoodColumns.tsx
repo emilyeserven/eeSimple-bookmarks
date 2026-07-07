@@ -7,17 +7,11 @@ import { Link } from "@tanstack/react-router";
 
 import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
-import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 import i18n from "../../i18n";
 import { LocalizedNameLabel } from "../LocalizedNameLabel";
-import { useViewPanelClick } from "../panel/useEditPanelClick";
-
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** Column definitions for the Genres & Moods listing Table view (a flattened, expandable tree). */
 export function useGenreMoodColumns(): ColumnDef<GenreMoodNode>[] {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return useMemo(
     () => [
       {
@@ -38,8 +32,7 @@ export function useGenreMoodColumns(): ColumnDef<GenreMoodNode>[] {
               params={{
                 genreMoodSlug: row.original.slug,
               }}
-              title={entityLinkTitle(modifier)}
-              onClick={event => viewClick(event, "genre-mood", row.original.id, row.original.slug)}
+              title={row.original.name}
               className="
                 font-medium
                 hover:underline
@@ -55,6 +48,6 @@ export function useGenreMoodColumns(): ColumnDef<GenreMoodNode>[] {
       },
       bookmarkCountColumn<GenreMoodNode>(),
     ],
-    [viewClick, modifier],
+    [],
   );
 }

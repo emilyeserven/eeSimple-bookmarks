@@ -9,14 +9,12 @@ import { Shapes } from "lucide-react";
 import { EditActionCell } from "./cells";
 import { useLocationLevels } from "../../hooks/useLocationLevels";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
 
 /** Column definitions for the Place Types listing Table view. */
 export function usePlaceTypeColumns(): ColumnDef<PlaceType>[] {
-  const editClick = useEditPanelClick();
   const {
     groups, placeTypeIcons,
   } = useLocationLevels({
@@ -84,11 +82,10 @@ export function usePlaceTypeColumns(): ColumnDef<PlaceType>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "place-type", row.original.id)}
           />
         ),
       },
     ],
-    [editClick, groups, placeTypeIcons],
+    [groups, placeTypeIcons],
   );
 }

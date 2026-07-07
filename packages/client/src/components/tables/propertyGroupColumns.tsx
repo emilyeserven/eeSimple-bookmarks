@@ -5,13 +5,11 @@ import { useMemo } from "react";
 
 import { EditActionCell } from "./cells";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 
 /** Column definitions for the Property Groups listing Table view. */
 export function usePropertyGroupColumns(): ColumnDef<PropertyGroup>[] {
-  const editClick = useEditPanelClick();
   return useMemo(
     () => [
       {
@@ -59,11 +57,10 @@ export function usePropertyGroupColumns(): ColumnDef<PropertyGroup>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "property-group", row.original.id)}
           />
         ),
       },
     ],
-    [editClick],
+    [],
   );
 }

@@ -5,14 +5,11 @@ import { Link } from "@tanstack/react-router";
 import { Info, Map, Pencil, Shapes } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
 import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/lib/icons";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 import { cn } from "@/lib/utils";
 
 /**
@@ -44,9 +41,6 @@ export function PlaceTypeListItem({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const {
     groups, placeTypeIcons,
   } = useLocationLevels({
@@ -113,8 +107,9 @@ export function PlaceTypeListItem({
           params={{
             placeTypeSlug: placeType.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "place-type", placeType.id, placeType.slug)}
+          title={t("View {{name}}", {
+            name: placeType.name,
+          })}
           className={className}
         >
           {children}
@@ -127,10 +122,9 @@ export function PlaceTypeListItem({
             params={{
               placeTypeSlug: placeType.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: placeType.name,
             })}
-            onClick={event => editClick(event, "place-type", placeType.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">
@@ -148,8 +142,9 @@ export function PlaceTypeListItem({
             params={{
               placeTypeSlug: placeType.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "place-type", placeType.id, placeType.slug)}
+            title={t("View {{name}}", {
+              name: placeType.name,
+            })}
           >
             <Info className="size-4" />
             <span className="sr-only">
