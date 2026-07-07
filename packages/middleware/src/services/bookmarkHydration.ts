@@ -59,6 +59,7 @@ import {
   newsletters,
   groups,
   locations,
+  locationRelations,
   relationshipTypes,
   tags,
   websiteFavicons,
@@ -540,9 +541,13 @@ async function locationsByBookmarkId(bookmarkIds: string[]): Promise<Map<string,
       slug: locations.slug,
       parentId: locations.parentId,
       placeType: locations.placeType,
+      relationId: locationRelations.id,
+      relationName: locationRelations.name,
+      relationSlug: locationRelations.slug,
     })
     .from(bookmarkLocations)
     .innerJoin(locations, eq(bookmarkLocations.locationId, locations.id))
+    .leftJoin(locationRelations, eq(bookmarkLocations.locationRelationId, locationRelations.id))
     .where(inArray(bookmarkLocations.bookmarkId, bookmarkIds));
 
   for (const row of rows) {
@@ -553,6 +558,13 @@ async function locationsByBookmarkId(bookmarkIds: string[]): Promise<Map<string,
       slug: row.slug ?? slugify(row.name),
       parentId: row.parentId,
       placeType: row.placeType,
+      locationRelation: row.relationId
+        ? {
+          id: row.relationId,
+          name: row.relationName ?? "",
+          slug: row.relationSlug ?? slugify(row.relationName ?? ""),
+        }
+        : null,
     });
     grouped.set(row.bookmarkId, list);
   }

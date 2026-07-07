@@ -2,6 +2,7 @@ import type { BookmarkFormApi } from "./bookmarkFormSchema";
 
 import { useTranslation } from "react-i18next";
 
+import { BookmarkLocationRelationsField } from "./BookmarkLocationRelationsField";
 import { LocationPicker } from "./LocationPicker";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useLocationTree } from "../hooks/useLocations";
@@ -54,6 +55,21 @@ export function BookmarkLocationsField({
         )}
       </form.Field>
       {locationCreate.modal}
+
+      <form.Subscribe selector={state => state.values.locationIds}>
+        {locationIds => (
+          <form.Field name="locationRelationByLocationId">
+            {relationField => (
+              <BookmarkLocationRelationsField
+                locationIds={locationIds}
+                locationTree={tree}
+                value={relationField.state.value}
+                onChange={relationField.handleChange}
+              />
+            )}
+          </form.Field>
+        )}
+      </form.Subscribe>
     </>
   );
 }

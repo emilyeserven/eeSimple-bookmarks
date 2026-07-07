@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { Captions, Languages, MapPinned, Puzzle, Shapes } from "lucide-react";
+import { Captions, Languages, MapPinned, Puzzle, Shapes, Waypoints } from "lucide-react";
 
 import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
@@ -42,6 +42,12 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
     path: "/taxonomies/place-types",
     label: i18n.t("Place Types"),
     icon: MapPinned,
+  },
+  {
+    // Listing page reachable from the Locations flyout, not directly from the sidebar.
+    path: "/taxonomies/location-relations",
+    label: i18n.t("Location Relations"),
+    icon: Waypoints,
   },
   {
     // Listing page reachable from the Groups flyout, not directly from the sidebar.

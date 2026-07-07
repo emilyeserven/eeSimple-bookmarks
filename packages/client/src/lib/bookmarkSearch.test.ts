@@ -619,6 +619,7 @@ describe("bookmarkMatchesSearch", () => {
           slug: "tokyo",
           parentId: null,
           placeType: "City",
+          locationRelation: null,
         },
         {
           id: "loc-2",
@@ -626,6 +627,7 @@ describe("bookmarkMatchesSearch", () => {
           slug: "japan",
           parentId: null,
           placeType: "Country",
+          locationRelation: null,
         },
       ],
     };
@@ -653,6 +655,7 @@ describe("bookmarkMatchesSearch", () => {
         slug: "tokyo",
         parentId: null,
         placeType: "City",
+        locationRelation: null,
       }],
     };
     expect(bookmarkMatchesSearch(withLocations, {

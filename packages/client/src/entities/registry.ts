@@ -10,6 +10,7 @@ import { groupTypeDescriptor } from "./groupType";
 import { importRuleDescriptor } from "./importRule";
 import { languageDescriptor } from "./language";
 import { locationDescriptor } from "./location";
+import { locationRelationDescriptor } from "./locationRelation";
 import { mediaTypeDescriptor } from "./mediaType";
 import { newsletterDescriptor } from "./newsletter";
 import { personDescriptor } from "./person";
@@ -42,6 +43,7 @@ export const ENTITY_DESCRIPTORS = {
   "language": languageDescriptor,
   "location": locationDescriptor,
   "place-type": placeTypeDescriptor,
+  "location-relation": locationRelationDescriptor,
   "youtube-channel": youtubeChannelDescriptor,
   "newsletter": newsletterDescriptor,
   "person": personDescriptor,

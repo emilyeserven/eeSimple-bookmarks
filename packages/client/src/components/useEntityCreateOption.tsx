@@ -1,6 +1,6 @@
 import type {
   Category, CustomProperty, GenreMood, Group, GroupType, Language, Location,
-  MediaType, Newsletter, Person, PlaceType, PropertyGroup, Tag,
+  LocationRelation, MediaType, Newsletter, Person, PlaceType, PropertyGroup, Tag,
   Website, YouTubeChannel,
 } from "@eesimple/types";
 import type { ComponentType, ReactNode } from "react";
@@ -16,6 +16,7 @@ import { AddGroupModal } from "./AddGroupModal";
 import { AddGroupTypeModal } from "./AddGroupTypeModal";
 import { AddLanguageModal } from "./AddLanguageModal";
 import { AddLocationModal } from "./AddLocationModal";
+import { AddLocationRelationModal } from "./AddLocationRelationModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
 import { AddPersonModal } from "./AddPersonModal";
@@ -30,6 +31,7 @@ interface CreatedByEntity {
   "tag": Tag;
   "person": Person;
   "place-type": PlaceType;
+  "location-relation": LocationRelation;
   "category": Category;
   "media-type": MediaType;
   "genre-mood": GenreMood;
@@ -74,6 +76,10 @@ const CREATABLE_ENTITY_PICKERS: {
   "place-type": {
     createLabel: "Create place type",
     Modal: AddPlaceTypeModal,
+  },
+  "location-relation": {
+    createLabel: "Create location relation",
+    Modal: AddLocationRelationModal,
   },
   "category": {
     createLabel: "Create category",

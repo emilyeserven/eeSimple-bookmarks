@@ -137,6 +137,12 @@ export interface EntityTreeListingConfig<N extends { id: string;
   useSortedTree?: (tree: N[]) => N[];
   /** Extra controls rendered left of the ExpandAllToggle (e.g. Locations' sort ToggleGroup). */
   renderToolbar?: () => ReactNode;
+  /**
+   * A sort control rendered in the `ListingSearchBox`'s right-hand `sort` slot — like the normal
+   * (bookmark) listing pages. Locations uses this for its Default / Place Type / Location Relation
+   * sort dropdown, so the control sits in the search bar rather than the toolbar.
+   */
+  renderSearchSort?: () => ReactNode;
   renderTree: (props: {
     sortedTree: N[];
     expanded: Set<string>;

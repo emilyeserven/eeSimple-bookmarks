@@ -24,6 +24,7 @@ import { backfillSavedFilterSlugs } from "@/services/savedFilters";
 import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
 import { backfillTagSlugs } from "@/services/tags";
 import { backfillGenreMoodSlugs } from "@/services/genreMoods";
+import { backfillLocationRelationSlugs, ensureDefaultLocationRelations } from "@/services/locationRelations";
 import { backfillLocationSlugs } from "@/services/locations";
 import { backfillPlaceTypeSlugs, seedPlaceTypesFromLocations } from "@/services/placeTypes";
 import { backfillWebsiteSlugs, ensureBuiltInWebsites } from "@/services/websites";
@@ -91,6 +92,8 @@ try {
   await backfillLocationSlugs();
   await seedPlaceTypesFromLocations();
   await backfillPlaceTypeSlugs();
+  await ensureDefaultLocationRelations();
+  await backfillLocationRelationSlugs();
   await ensureDefaultPlaceTypeLevelGroups();
   await backfillPersonSlugs();
   await maybeSeed();

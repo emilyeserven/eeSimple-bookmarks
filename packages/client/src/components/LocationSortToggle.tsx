@@ -1,13 +1,16 @@
+import type { LocationSortMode } from "../lib/locationSort";
+
 import { useTranslation } from "react-i18next";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Combobox } from "./Combobox";
+
 import { useUiStore } from "@/stores/uiStore";
 
 /**
- * The Locations listing's sort-mode control: server/default order vs grouped by place-type level.
- * Reads/writes the per-device `locationSortMode` uiStore pref consumed by `useLocationSortedTree`
- * (`entities/location.tsx`). Rendered via the tree scaffold's `renderToolbar` slot, left of the
- * ExpandAllToggle.
+ * The Locations listing's sort-mode control, rendered in the search box's `sort` slot (like the normal
+ * listing pages). Offers Default (server/tree order), Place Type, and Location Relation — the last two
+ * regroup every level by that attribute's rank. Reads/writes the per-device `locationSortMode` uiStore
+ * pref consumed by `useLocationSortedTree` (`entities/location.tsx`).
  */
 export function LocationSortToggle() {
   const {
@@ -16,22 +19,42 @@ export function LocationSortToggle() {
   const sortMode = useUiStore(state => state.locationSortMode);
   const setSortMode = useUiStore(state => state.setLocationSortMode);
 
+  const options = [
+    {
+      value: "default",
+      label: t("Default"),
+    },
+    {
+      value: "place-type",
+      label: t("Place type"),
+    },
+    {
+      value: "location-relation",
+      label: t("Location relation"),
+    },
+  ];
+
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">{t("Sort")}</span>
-      <ToggleGroup
-        type="single"
-        size="sm"
-        variant="outline"
-        value={sortMode}
-        onValueChange={(value) => {
-          if (value === "default" || value === "place-type") setSortMode(value);
-        }}
-        aria-label={t("Sort locations")}
-      >
-        <ToggleGroupItem value="default">{t("Default")}</ToggleGroupItem>
-        <ToggleGroupItem value="place-type">{t("Place type")}</ToggleGroupItem>
-      </ToggleGroup>
+      <span
+        className="
+          hidden text-sm text-muted-foreground
+          sm:inline
+        "
+      >{t("Sort")}
+      </span>
+      <div className="w-44">
+        <Combobox
+          options={options}
+          value={sortMode}
+          onValueChange={(value) => {
+            if (value === "default" || value === "place-type" || value === "location-relation") {
+              setSortMode(value as LocationSortMode);
+            }
+          }}
+          aria-label={t("Sort locations")}
+        />
+      </div>
     </div>
   );
 }

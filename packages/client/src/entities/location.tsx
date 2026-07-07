@@ -69,7 +69,8 @@ export function buildLocationTreeListingConfig(opts: {
     matches: (node, query) =>
       node.name.toLowerCase().includes(query)
       || node.slug.toLowerCase().includes(query)
-      || (node.placeType?.toLowerCase().includes(query) ?? false),
+      || (node.placeType?.toLowerCase().includes(query) ?? false)
+      || (node.locationRelations ?? []).some(relation => relation.name.toLowerCase().includes(query)),
     deletableIds: tree => flattenTree(tree).map(f => f.node.id),
     useBulkDelete: useBulkDeleteLocations,
     noun: [i18n.t("location"), i18n.t("locations")],
@@ -81,7 +82,7 @@ export function buildLocationTreeListingConfig(opts: {
       </p>
     ),
     useSortedTree: useLocationSortedTree,
-    renderToolbar: () => <LocationSortToggle />,
+    renderSearchSort: () => <LocationSortToggle />,
     renderTree: ({
       sortedTree, expanded, onToggle, onExpandMany, columns,
     }) => (

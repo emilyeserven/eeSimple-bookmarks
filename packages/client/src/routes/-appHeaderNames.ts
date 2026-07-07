@@ -8,6 +8,7 @@ import { useGroupBySlug } from "@/hooks/useGroups";
 import { useGroupTypeBySlug } from "@/hooks/useGroupTypes";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
 import { useLanguageBySlug } from "@/hooks/useLanguages";
+import { useLocationRelationBySlug } from "@/hooks/useLocationRelations";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePersonBySlug } from "@/hooks/usePeople";
 import { usePlaceTypeBySlug } from "@/hooks/usePlaceTypes";
@@ -25,6 +26,7 @@ export interface TaxonomyNameSlugs {
   genreMood: string;
   language: string;
   placeType: string;
+  locationRelation: string;
   propertyGroup: string;
   relationshipType: string;
   property: string;
@@ -65,6 +67,9 @@ export function useTaxonomyNameMap(
   const {
     placeType,
   } = usePlaceTypeBySlug(slugs.placeType);
+  const {
+    locationRelation,
+  } = useLocationRelationBySlug(slugs.locationRelation);
   const {
     propertyGroup,
   } = usePropertyGroupBySlug(slugs.propertyGroup);
@@ -111,6 +116,9 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/place-types": {
       name: placeType?.name,
+    },
+    "/taxonomies/location-relations": {
+      name: locationRelation?.name,
     },
     "/taxonomies/property-groups": {
       name: propertyGroup?.name,

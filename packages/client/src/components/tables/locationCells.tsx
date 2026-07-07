@@ -64,3 +64,20 @@ export function LocationPlaceTypeCell({
       : <span className="text-sm text-muted-foreground">{i18n.t("—")}</span>
   );
 }
+
+/**
+ * Location-relation cell for the Locations table: the distinct relations this location's bookmarks
+ * express toward it (derived server-side), or an em dash when none.
+ */
+export function LocationRelationCell({
+  row,
+}: {
+  row: Row<LocationNode>;
+}) {
+  const relations = row.original.locationRelations ?? [];
+  return (
+    relations.length > 0
+      ? <span className="text-sm">{relations.map(relation => relation.name).join(", ")}</span>
+      : <span className="text-sm text-muted-foreground">{i18n.t("—")}</span>
+  );
+}

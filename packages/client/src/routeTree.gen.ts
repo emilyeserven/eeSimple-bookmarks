@@ -42,6 +42,7 @@ import { Route as TaxonomiesPeopleRouteImport } from './routes/taxonomies.people
 import { Route as TaxonomiesNewslettersRouteImport } from './routes/taxonomies.newsletters'
 import { Route as TaxonomiesMediaTypesRouteImport } from './routes/taxonomies.media-types'
 import { Route as TaxonomiesLocationsRouteImport } from './routes/taxonomies.locations'
+import { Route as TaxonomiesLocationRelationsRouteImport } from './routes/taxonomies.location-relations'
 import { Route as TaxonomiesLanguagesRouteImport } from './routes/taxonomies.languages'
 import { Route as TaxonomiesLanguageUsageLevelsRouteImport } from './routes/taxonomies.language-usage-levels'
 import { Route as TaxonomiesGroupsRouteImport } from './routes/taxonomies.groups'
@@ -86,6 +87,7 @@ import { Route as TaxonomiesPeopleIndexRouteImport } from './routes/taxonomies.p
 import { Route as TaxonomiesNewslettersIndexRouteImport } from './routes/taxonomies.newsletters.index'
 import { Route as TaxonomiesMediaTypesIndexRouteImport } from './routes/taxonomies.media-types.index'
 import { Route as TaxonomiesLocationsIndexRouteImport } from './routes/taxonomies.locations.index'
+import { Route as TaxonomiesLocationRelationsIndexRouteImport } from './routes/taxonomies.location-relations.index'
 import { Route as TaxonomiesLanguagesIndexRouteImport } from './routes/taxonomies.languages.index'
 import { Route as TaxonomiesLanguageUsageLevelsIndexRouteImport } from './routes/taxonomies.language-usage-levels.index'
 import { Route as TaxonomiesGroupsIndexRouteImport } from './routes/taxonomies.groups.index'
@@ -112,6 +114,7 @@ import { Route as TaxonomiesNewslettersNewsletterSlugRouteImport } from './route
 import { Route as TaxonomiesMediaTypesMediaTypeSlugRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug'
 import { Route as TaxonomiesLocationsNewRouteImport } from './routes/taxonomies.locations.new'
 import { Route as TaxonomiesLocationsLocationSlugRouteImport } from './routes/taxonomies.locations.$locationSlug'
+import { Route as TaxonomiesLocationRelationsLocationRelationSlugRouteImport } from './routes/taxonomies.location-relations.$locationRelationSlug'
 import { Route as TaxonomiesLanguagesLanguageSlugRouteImport } from './routes/taxonomies.languages.$languageSlug'
 import { Route as TaxonomiesLanguageUsageLevelsEditRouteImport } from './routes/taxonomies.language-usage-levels.edit'
 import { Route as TaxonomiesGroupsGroupSlugRouteImport } from './routes/taxonomies.groups.$groupSlug'
@@ -124,6 +127,7 @@ import { Route as SettingsMediaManageRouteImport } from './routes/settings.media
 import { Route as SettingsMediaDisplayRouteImport } from './routes/settings.media.display'
 import { Route as SettingsLocationsPlaceTypesRouteImport } from './routes/settings.locations.place-types'
 import { Route as SettingsLocationsPinStyleRouteImport } from './routes/settings.locations.pin-style'
+import { Route as SettingsLocationsLocationRelationsRouteImport } from './routes/settings.locations.location-relations'
 import { Route as SettingsLocationsLevelGroupsRouteImport } from './routes/settings.locations.level-groups'
 import { Route as SettingsDisplaySidebarRouteImport } from './routes/settings.display.sidebar'
 import { Route as SettingsDisplayMediaRouteImport } from './routes/settings.display.media'
@@ -161,6 +165,7 @@ import { Route as AutofillRuleSlugEditRouteImport } from './routes/autofill.$rul
 import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugIndexRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug.index'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugIndexRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.index'
 import { Route as TaxonomiesPlaceTypesPlaceTypeSlugIndexRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug.index'
+import { Route as TaxonomiesLocationRelationsLocationRelationSlugIndexRouteImport } from './routes/taxonomies.location-relations.$locationRelationSlug.index'
 import { Route as TaxonomiesGroupTypesGroupTypeSlugIndexRouteImport } from './routes/taxonomies.group-types.$groupTypeSlug.index'
 import { Route as TagsTagSlugEditIndexRouteImport } from './routes/tags.$tagSlug.edit.index'
 import { Route as TagsTagSlugHubIndexRouteImport } from './routes/tags.$tagSlug._hub.index'
@@ -190,6 +195,8 @@ import { Route as TaxonomiesMediaTypesMediaTypeSlugEditRouteImport } from './rou
 import { Route as TaxonomiesMediaTypesMediaTypeSlugHubRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug._hub'
 import { Route as TaxonomiesLocationsLocationSlugEditRouteImport } from './routes/taxonomies.locations.$locationSlug.edit'
 import { Route as TaxonomiesLocationsLocationSlugHubRouteImport } from './routes/taxonomies.locations.$locationSlug._hub'
+import { Route as TaxonomiesLocationRelationsLocationRelationSlugInfoRouteImport } from './routes/taxonomies.location-relations.$locationRelationSlug.info'
+import { Route as TaxonomiesLocationRelationsLocationRelationSlugEditRouteImport } from './routes/taxonomies.location-relations.$locationRelationSlug.edit'
 import { Route as TaxonomiesLanguagesLanguageSlugEditRouteImport } from './routes/taxonomies.languages.$languageSlug.edit'
 import { Route as TaxonomiesLanguagesLanguageSlugHubRouteImport } from './routes/taxonomies.languages.$languageSlug._hub'
 import { Route as TaxonomiesGroupsGroupSlugEditRouteImport } from './routes/taxonomies.groups.$groupSlug.edit'
@@ -249,6 +256,7 @@ import { Route as TaxonomiesMediaTypesMediaTypeSlugEditIndexRouteImport } from '
 import { Route as TaxonomiesMediaTypesMediaTypeSlugHubIndexRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug._hub.index'
 import { Route as TaxonomiesLocationsLocationSlugEditIndexRouteImport } from './routes/taxonomies.locations.$locationSlug.edit.index'
 import { Route as TaxonomiesLocationsLocationSlugHubIndexRouteImport } from './routes/taxonomies.locations.$locationSlug._hub.index'
+import { Route as TaxonomiesLocationRelationsLocationRelationSlugEditIndexRouteImport } from './routes/taxonomies.location-relations.$locationRelationSlug.edit.index'
 import { Route as TaxonomiesLanguagesLanguageSlugEditIndexRouteImport } from './routes/taxonomies.languages.$languageSlug.edit.index'
 import { Route as TaxonomiesLanguagesLanguageSlugHubIndexRouteImport } from './routes/taxonomies.languages.$languageSlug._hub.index'
 import { Route as TaxonomiesGroupsGroupSlugHubIndexRouteImport } from './routes/taxonomies.groups.$groupSlug._hub.index'
@@ -296,6 +304,7 @@ import { Route as TaxonomiesLocationsLocationSlugEditDisplayRulesRouteImport } f
 import { Route as TaxonomiesLocationsLocationSlugEditAutofillRouteImport } from './routes/taxonomies.locations.$locationSlug.edit.autofill'
 import { Route as TaxonomiesLocationsLocationSlugHubInfoRouteImport } from './routes/taxonomies.locations.$locationSlug._hub.info'
 import { Route as TaxonomiesLocationsLocationSlugHubGalleryRouteImport } from './routes/taxonomies.locations.$locationSlug._hub.gallery'
+import { Route as TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRouteImport } from './routes/taxonomies.location-relations.$locationRelationSlug.edit.general'
 import { Route as TaxonomiesLanguagesLanguageSlugEditGeneralRouteImport } from './routes/taxonomies.languages.$languageSlug.edit.general'
 import { Route as TaxonomiesLanguagesLanguageSlugHubInfoRouteImport } from './routes/taxonomies.languages.$languageSlug._hub.info'
 import { Route as TaxonomiesLanguagesLanguageSlugHubGalleryRouteImport } from './routes/taxonomies.languages.$languageSlug._hub.gallery'
@@ -477,6 +486,12 @@ const TaxonomiesLocationsRoute = TaxonomiesLocationsRouteImport.update({
   path: '/taxonomies/locations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaxonomiesLocationRelationsRoute =
+  TaxonomiesLocationRelationsRouteImport.update({
+    id: '/taxonomies/location-relations',
+    path: '/taxonomies/location-relations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const TaxonomiesLanguagesRoute = TaxonomiesLanguagesRouteImport.update({
   id: '/taxonomies/languages',
   path: '/taxonomies/languages',
@@ -709,6 +724,12 @@ const TaxonomiesLocationsIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesLocationsRoute,
   } as any)
+const TaxonomiesLocationRelationsIndexRoute =
+  TaxonomiesLocationRelationsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesLocationRelationsRoute,
+  } as any)
 const TaxonomiesLanguagesIndexRoute =
   TaxonomiesLanguagesIndexRouteImport.update({
     id: '/',
@@ -858,6 +879,12 @@ const TaxonomiesLocationsLocationSlugRoute =
     path: '/$locationSlug',
     getParentRoute: () => TaxonomiesLocationsRoute,
   } as any)
+const TaxonomiesLocationRelationsLocationRelationSlugRoute =
+  TaxonomiesLocationRelationsLocationRelationSlugRouteImport.update({
+    id: '/$locationRelationSlug',
+    path: '/$locationRelationSlug',
+    getParentRoute: () => TaxonomiesLocationRelationsRoute,
+  } as any)
 const TaxonomiesLanguagesLanguageSlugRoute =
   TaxonomiesLanguagesLanguageSlugRouteImport.update({
     id: '/$languageSlug',
@@ -923,6 +950,12 @@ const SettingsLocationsPinStyleRoute =
   SettingsLocationsPinStyleRouteImport.update({
     id: '/pin-style',
     path: '/pin-style',
+    getParentRoute: () => SettingsLocationsRoute,
+  } as any)
+const SettingsLocationsLocationRelationsRoute =
+  SettingsLocationsLocationRelationsRouteImport.update({
+    id: '/location-relations',
+    path: '/location-relations',
     getParentRoute: () => SettingsLocationsRoute,
   } as any)
 const SettingsLocationsLevelGroupsRoute =
@@ -1134,6 +1167,12 @@ const TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesPlaceTypesPlaceTypeSlugRoute,
   } as any)
+const TaxonomiesLocationRelationsLocationRelationSlugIndexRoute =
+  TaxonomiesLocationRelationsLocationRelationSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesLocationRelationsLocationRelationSlugRoute,
+  } as any)
 const TaxonomiesGroupTypesGroupTypeSlugIndexRoute =
   TaxonomiesGroupTypesGroupTypeSlugIndexRouteImport.update({
     id: '/',
@@ -1299,6 +1338,18 @@ const TaxonomiesLocationsLocationSlugHubRoute =
   TaxonomiesLocationsLocationSlugHubRouteImport.update({
     id: '/_hub',
     getParentRoute: () => TaxonomiesLocationsLocationSlugRoute,
+  } as any)
+const TaxonomiesLocationRelationsLocationRelationSlugInfoRoute =
+  TaxonomiesLocationRelationsLocationRelationSlugInfoRouteImport.update({
+    id: '/info',
+    path: '/info',
+    getParentRoute: () => TaxonomiesLocationRelationsLocationRelationSlugRoute,
+  } as any)
+const TaxonomiesLocationRelationsLocationRelationSlugEditRoute =
+  TaxonomiesLocationRelationsLocationRelationSlugEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => TaxonomiesLocationRelationsLocationRelationSlugRoute,
   } as any)
 const TaxonomiesLanguagesLanguageSlugEditRoute =
   TaxonomiesLanguagesLanguageSlugEditRouteImport.update({
@@ -1648,6 +1699,13 @@ const TaxonomiesLocationsLocationSlugHubIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesLocationsLocationSlugHubRoute,
   } as any)
+const TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute =
+  TaxonomiesLocationRelationsLocationRelationSlugEditIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () =>
+      TaxonomiesLocationRelationsLocationRelationSlugEditRoute,
+  } as any)
 const TaxonomiesLanguagesLanguageSlugEditIndexRoute =
   TaxonomiesLanguagesLanguageSlugEditIndexRouteImport.update({
     id: '/',
@@ -1931,6 +1989,13 @@ const TaxonomiesLocationsLocationSlugHubGalleryRoute =
     path: '/gallery',
     getParentRoute: () => TaxonomiesLocationsLocationSlugHubRoute,
   } as any)
+const TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute =
+  TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () =>
+      TaxonomiesLocationRelationsLocationRelationSlugEditRoute,
+  } as any)
 const TaxonomiesLanguagesLanguageSlugEditGeneralRoute =
   TaxonomiesLanguagesLanguageSlugEditGeneralRouteImport.update({
     id: '/general',
@@ -2047,6 +2112,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/groups': typeof TaxonomiesGroupsRouteWithChildren
   '/taxonomies/language-usage-levels': typeof TaxonomiesLanguageUsageLevelsRouteWithChildren
   '/taxonomies/languages': typeof TaxonomiesLanguagesRouteWithChildren
+  '/taxonomies/location-relations': typeof TaxonomiesLocationRelationsRouteWithChildren
   '/taxonomies/locations': typeof TaxonomiesLocationsRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
   '/taxonomies/newsletters': typeof TaxonomiesNewslettersRouteWithChildren
@@ -2100,6 +2166,7 @@ export interface FileRoutesByFullPath {
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
+  '/settings/locations/location-relations': typeof SettingsLocationsLocationRelationsRoute
   '/settings/locations/pin-style': typeof SettingsLocationsPinStyleRoute
   '/settings/locations/place-types': typeof SettingsLocationsPlaceTypesRoute
   '/settings/media/display': typeof SettingsMediaDisplayRoute
@@ -2111,6 +2178,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugHubRouteWithChildren
   '/taxonomies/language-usage-levels/edit': typeof TaxonomiesLanguageUsageLevelsEditRoute
   '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugHubRouteWithChildren
+  '/taxonomies/location-relations/$locationRelationSlug': typeof TaxonomiesLocationRelationsLocationRelationSlugRouteWithChildren
   '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugHubRouteWithChildren
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugHubRouteWithChildren
@@ -2137,6 +2205,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/groups/': typeof TaxonomiesGroupsIndexRoute
   '/taxonomies/language-usage-levels/': typeof TaxonomiesLanguageUsageLevelsIndexRoute
   '/taxonomies/languages/': typeof TaxonomiesLanguagesIndexRoute
+  '/taxonomies/location-relations/': typeof TaxonomiesLocationRelationsIndexRoute
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/newsletters/': typeof TaxonomiesNewslettersIndexRoute
@@ -2188,6 +2257,8 @@ export interface FileRoutesByFullPath {
   '/taxonomies/group-types/$groupTypeSlug/info': typeof TaxonomiesGroupTypesGroupTypeSlugInfoRoute
   '/taxonomies/groups/$groupSlug/edit': typeof TaxonomiesGroupsGroupSlugEditRouteWithChildren
   '/taxonomies/languages/$languageSlug/edit': typeof TaxonomiesLanguagesLanguageSlugEditRouteWithChildren
+  '/taxonomies/location-relations/$locationRelationSlug/edit': typeof TaxonomiesLocationRelationsLocationRelationSlugEditRouteWithChildren
+  '/taxonomies/location-relations/$locationRelationSlug/info': typeof TaxonomiesLocationRelationsLocationRelationSlugInfoRoute
   '/taxonomies/locations/$locationSlug/edit': typeof TaxonomiesLocationsLocationSlugEditRouteWithChildren
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditRouteWithChildren
   '/taxonomies/newsletters/$newsletterSlug/edit': typeof TaxonomiesNewslettersNewsletterSlugEditRouteWithChildren
@@ -2211,6 +2282,7 @@ export interface FileRoutesByFullPath {
   '/tags/$tagSlug/': typeof TagsTagSlugHubIndexRoute
   '/tags/$tagSlug/edit/': typeof TagsTagSlugEditIndexRoute
   '/taxonomies/group-types/$groupTypeSlug/': typeof TaxonomiesGroupTypesGroupTypeSlugIndexRoute
+  '/taxonomies/location-relations/$locationRelationSlug/': typeof TaxonomiesLocationRelationsLocationRelationSlugIndexRoute
   '/taxonomies/place-types/$placeTypeSlug/': typeof TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/': typeof TaxonomiesPropertyGroupsPropertyGroupSlugIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugIndexRoute
@@ -2225,6 +2297,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/languages/$languageSlug/gallery': typeof TaxonomiesLanguagesLanguageSlugHubGalleryRoute
   '/taxonomies/languages/$languageSlug/info': typeof TaxonomiesLanguagesLanguageSlugHubInfoRoute
   '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
+  '/taxonomies/location-relations/$locationRelationSlug/edit/general': typeof TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/gallery': typeof TaxonomiesLocationsLocationSlugHubGalleryRoute
   '/taxonomies/locations/$locationSlug/info': typeof TaxonomiesLocationsLocationSlugHubInfoRoute
   '/taxonomies/locations/$locationSlug/edit/autofill': typeof TaxonomiesLocationsLocationSlugEditAutofillRoute
@@ -2272,6 +2345,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/groups/$groupSlug/': typeof TaxonomiesGroupsGroupSlugHubIndexRoute
   '/taxonomies/languages/$languageSlug/': typeof TaxonomiesLanguagesLanguageSlugHubIndexRoute
   '/taxonomies/languages/$languageSlug/edit/': typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
+  '/taxonomies/location-relations/$locationRelationSlug/edit/': typeof TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute
   '/taxonomies/locations/$locationSlug/': typeof TaxonomiesLocationsLocationSlugHubIndexRoute
   '/taxonomies/locations/$locationSlug/edit/': typeof TaxonomiesLocationsLocationSlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/': typeof TaxonomiesMediaTypesMediaTypeSlugHubIndexRoute
@@ -2347,6 +2421,7 @@ export interface FileRoutesByTo {
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
+  '/settings/locations/location-relations': typeof SettingsLocationsLocationRelationsRoute
   '/settings/locations/pin-style': typeof SettingsLocationsPinStyleRoute
   '/settings/locations/place-types': typeof SettingsLocationsPlaceTypesRoute
   '/settings/media/display': typeof SettingsMediaDisplayRoute
@@ -2379,6 +2454,7 @@ export interface FileRoutesByTo {
   '/taxonomies/groups': typeof TaxonomiesGroupsIndexRoute
   '/taxonomies/language-usage-levels': typeof TaxonomiesLanguageUsageLevelsIndexRoute
   '/taxonomies/languages': typeof TaxonomiesLanguagesIndexRoute
+  '/taxonomies/location-relations': typeof TaxonomiesLocationRelationsIndexRoute
   '/taxonomies/locations': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/newsletters': typeof TaxonomiesNewslettersIndexRoute
@@ -2427,6 +2503,7 @@ export interface FileRoutesByTo {
   '/tags/$tagSlug/edit/general': typeof TagsTagSlugEditGeneralRoute
   '/taxonomies/group-types/$groupTypeSlug/info': typeof TaxonomiesGroupTypesGroupTypeSlugInfoRoute
   '/taxonomies/groups/$groupSlug/edit': typeof TaxonomiesGroupsGroupSlugEditRouteWithChildren
+  '/taxonomies/location-relations/$locationRelationSlug/info': typeof TaxonomiesLocationRelationsLocationRelationSlugInfoRoute
   '/taxonomies/people/$personSlug/edit': typeof TaxonomiesPeoplePersonSlugEditRouteWithChildren
   '/taxonomies/place-types/$placeTypeSlug/info': typeof TaxonomiesPlaceTypesPlaceTypeSlugInfoRoute
   '/taxonomies/property-groups/$propertyGroupSlug/info': typeof TaxonomiesPropertyGroupsPropertyGroupSlugInfoRoute
@@ -2440,6 +2517,7 @@ export interface FileRoutesByTo {
   '/saved-filters/$filterSlug/edit': typeof SavedFiltersFilterSlugEditIndexRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditIndexRoute
   '/taxonomies/group-types/$groupTypeSlug': typeof TaxonomiesGroupTypesGroupTypeSlugIndexRoute
+  '/taxonomies/location-relations/$locationRelationSlug': typeof TaxonomiesLocationRelationsLocationRelationSlugIndexRoute
   '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugIndexRoute
@@ -2454,6 +2532,7 @@ export interface FileRoutesByTo {
   '/taxonomies/languages/$languageSlug/gallery': typeof TaxonomiesLanguagesLanguageSlugHubGalleryRoute
   '/taxonomies/languages/$languageSlug/info': typeof TaxonomiesLanguagesLanguageSlugHubInfoRoute
   '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
+  '/taxonomies/location-relations/$locationRelationSlug/edit/general': typeof TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/gallery': typeof TaxonomiesLocationsLocationSlugHubGalleryRoute
   '/taxonomies/locations/$locationSlug/info': typeof TaxonomiesLocationsLocationSlugHubInfoRoute
   '/taxonomies/locations/$locationSlug/edit/autofill': typeof TaxonomiesLocationsLocationSlugEditAutofillRoute
@@ -2498,6 +2577,7 @@ export interface FileRoutesByTo {
   '/taxonomies/genres-moods/$genreMoodSlug/edit': typeof TaxonomiesGenresMoodsGenreMoodSlugEditIndexRoute
   '/taxonomies/group-types/$groupTypeSlug/edit': typeof TaxonomiesGroupTypesGroupTypeSlugEditIndexRoute
   '/taxonomies/languages/$languageSlug/edit': typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
+  '/taxonomies/location-relations/$locationRelationSlug/edit': typeof TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute
   '/taxonomies/locations/$locationSlug/edit': typeof TaxonomiesLocationsLocationSlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
   '/taxonomies/newsletters/$newsletterSlug/edit': typeof TaxonomiesNewslettersNewsletterSlugEditIndexRoute
@@ -2557,6 +2637,7 @@ export interface FileRoutesById {
   '/taxonomies/groups': typeof TaxonomiesGroupsRouteWithChildren
   '/taxonomies/language-usage-levels': typeof TaxonomiesLanguageUsageLevelsRouteWithChildren
   '/taxonomies/languages': typeof TaxonomiesLanguagesRouteWithChildren
+  '/taxonomies/location-relations': typeof TaxonomiesLocationRelationsRouteWithChildren
   '/taxonomies/locations': typeof TaxonomiesLocationsRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
   '/taxonomies/newsletters': typeof TaxonomiesNewslettersRouteWithChildren
@@ -2611,6 +2692,7 @@ export interface FileRoutesById {
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
+  '/settings/locations/location-relations': typeof SettingsLocationsLocationRelationsRoute
   '/settings/locations/pin-style': typeof SettingsLocationsPinStyleRoute
   '/settings/locations/place-types': typeof SettingsLocationsPlaceTypesRoute
   '/settings/media/display': typeof SettingsMediaDisplayRoute
@@ -2623,6 +2705,7 @@ export interface FileRoutesById {
   '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugRouteWithChildren
   '/taxonomies/language-usage-levels/edit': typeof TaxonomiesLanguageUsageLevelsEditRoute
   '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugRouteWithChildren
+  '/taxonomies/location-relations/$locationRelationSlug': typeof TaxonomiesLocationRelationsLocationRelationSlugRouteWithChildren
   '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugRouteWithChildren
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
@@ -2649,6 +2732,7 @@ export interface FileRoutesById {
   '/taxonomies/groups/': typeof TaxonomiesGroupsIndexRoute
   '/taxonomies/language-usage-levels/': typeof TaxonomiesLanguageUsageLevelsIndexRoute
   '/taxonomies/languages/': typeof TaxonomiesLanguagesIndexRoute
+  '/taxonomies/location-relations/': typeof TaxonomiesLocationRelationsIndexRoute
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/newsletters/': typeof TaxonomiesNewslettersIndexRoute
@@ -2703,6 +2787,8 @@ export interface FileRoutesById {
   '/taxonomies/groups/$groupSlug/edit': typeof TaxonomiesGroupsGroupSlugEditRouteWithChildren
   '/taxonomies/languages/$languageSlug/_hub': typeof TaxonomiesLanguagesLanguageSlugHubRouteWithChildren
   '/taxonomies/languages/$languageSlug/edit': typeof TaxonomiesLanguagesLanguageSlugEditRouteWithChildren
+  '/taxonomies/location-relations/$locationRelationSlug/edit': typeof TaxonomiesLocationRelationsLocationRelationSlugEditRouteWithChildren
+  '/taxonomies/location-relations/$locationRelationSlug/info': typeof TaxonomiesLocationRelationsLocationRelationSlugInfoRoute
   '/taxonomies/locations/$locationSlug/_hub': typeof TaxonomiesLocationsLocationSlugHubRouteWithChildren
   '/taxonomies/locations/$locationSlug/edit': typeof TaxonomiesLocationsLocationSlugEditRouteWithChildren
   '/taxonomies/media-types/$mediaTypeSlug/_hub': typeof TaxonomiesMediaTypesMediaTypeSlugHubRouteWithChildren
@@ -2732,6 +2818,7 @@ export interface FileRoutesById {
   '/tags/$tagSlug/_hub/': typeof TagsTagSlugHubIndexRoute
   '/tags/$tagSlug/edit/': typeof TagsTagSlugEditIndexRoute
   '/taxonomies/group-types/$groupTypeSlug/': typeof TaxonomiesGroupTypesGroupTypeSlugIndexRoute
+  '/taxonomies/location-relations/$locationRelationSlug/': typeof TaxonomiesLocationRelationsLocationRelationSlugIndexRoute
   '/taxonomies/place-types/$placeTypeSlug/': typeof TaxonomiesPlaceTypesPlaceTypeSlugIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/': typeof TaxonomiesPropertyGroupsPropertyGroupSlugIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugIndexRoute
@@ -2746,6 +2833,7 @@ export interface FileRoutesById {
   '/taxonomies/languages/$languageSlug/_hub/gallery': typeof TaxonomiesLanguagesLanguageSlugHubGalleryRoute
   '/taxonomies/languages/$languageSlug/_hub/info': typeof TaxonomiesLanguagesLanguageSlugHubInfoRoute
   '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
+  '/taxonomies/location-relations/$locationRelationSlug/edit/general': typeof TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute
   '/taxonomies/locations/$locationSlug/_hub/gallery': typeof TaxonomiesLocationsLocationSlugHubGalleryRoute
   '/taxonomies/locations/$locationSlug/_hub/info': typeof TaxonomiesLocationsLocationSlugHubInfoRoute
   '/taxonomies/locations/$locationSlug/edit/autofill': typeof TaxonomiesLocationsLocationSlugEditAutofillRoute
@@ -2793,6 +2881,7 @@ export interface FileRoutesById {
   '/taxonomies/groups/$groupSlug/_hub/': typeof TaxonomiesGroupsGroupSlugHubIndexRoute
   '/taxonomies/languages/$languageSlug/_hub/': typeof TaxonomiesLanguagesLanguageSlugHubIndexRoute
   '/taxonomies/languages/$languageSlug/edit/': typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
+  '/taxonomies/location-relations/$locationRelationSlug/edit/': typeof TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute
   '/taxonomies/locations/$locationSlug/_hub/': typeof TaxonomiesLocationsLocationSlugHubIndexRoute
   '/taxonomies/locations/$locationSlug/edit/': typeof TaxonomiesLocationsLocationSlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/_hub/': typeof TaxonomiesMediaTypesMediaTypeSlugHubIndexRoute
@@ -2859,6 +2948,7 @@ export interface FileRouteTypes {
     | '/taxonomies/groups'
     | '/taxonomies/language-usage-levels'
     | '/taxonomies/languages'
+    | '/taxonomies/location-relations'
     | '/taxonomies/locations'
     | '/taxonomies/media-types'
     | '/taxonomies/newsletters'
@@ -2912,6 +3002,7 @@ export interface FileRouteTypes {
     | '/settings/display/media'
     | '/settings/display/sidebar'
     | '/settings/locations/level-groups'
+    | '/settings/locations/location-relations'
     | '/settings/locations/pin-style'
     | '/settings/locations/place-types'
     | '/settings/media/display'
@@ -2923,6 +3014,7 @@ export interface FileRouteTypes {
     | '/taxonomies/groups/$groupSlug'
     | '/taxonomies/language-usage-levels/edit'
     | '/taxonomies/languages/$languageSlug'
+    | '/taxonomies/location-relations/$locationRelationSlug'
     | '/taxonomies/locations/$locationSlug'
     | '/taxonomies/locations/new'
     | '/taxonomies/media-types/$mediaTypeSlug'
@@ -2949,6 +3041,7 @@ export interface FileRouteTypes {
     | '/taxonomies/groups/'
     | '/taxonomies/language-usage-levels/'
     | '/taxonomies/languages/'
+    | '/taxonomies/location-relations/'
     | '/taxonomies/locations/'
     | '/taxonomies/media-types/'
     | '/taxonomies/newsletters/'
@@ -3000,6 +3093,8 @@ export interface FileRouteTypes {
     | '/taxonomies/group-types/$groupTypeSlug/info'
     | '/taxonomies/groups/$groupSlug/edit'
     | '/taxonomies/languages/$languageSlug/edit'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit'
+    | '/taxonomies/location-relations/$locationRelationSlug/info'
     | '/taxonomies/locations/$locationSlug/edit'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
     | '/taxonomies/newsletters/$newsletterSlug/edit'
@@ -3023,6 +3118,7 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/'
     | '/tags/$tagSlug/edit/'
     | '/taxonomies/group-types/$groupTypeSlug/'
+    | '/taxonomies/location-relations/$locationRelationSlug/'
     | '/taxonomies/place-types/$placeTypeSlug/'
     | '/taxonomies/property-groups/$propertyGroupSlug/'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/'
@@ -3037,6 +3133,7 @@ export interface FileRouteTypes {
     | '/taxonomies/languages/$languageSlug/gallery'
     | '/taxonomies/languages/$languageSlug/info'
     | '/taxonomies/languages/$languageSlug/edit/general'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/gallery'
     | '/taxonomies/locations/$locationSlug/info'
     | '/taxonomies/locations/$locationSlug/edit/autofill'
@@ -3084,6 +3181,7 @@ export interface FileRouteTypes {
     | '/taxonomies/groups/$groupSlug/'
     | '/taxonomies/languages/$languageSlug/'
     | '/taxonomies/languages/$languageSlug/edit/'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit/'
     | '/taxonomies/locations/$locationSlug/'
     | '/taxonomies/locations/$locationSlug/edit/'
     | '/taxonomies/media-types/$mediaTypeSlug/'
@@ -3159,6 +3257,7 @@ export interface FileRouteTypes {
     | '/settings/display/media'
     | '/settings/display/sidebar'
     | '/settings/locations/level-groups'
+    | '/settings/locations/location-relations'
     | '/settings/locations/pin-style'
     | '/settings/locations/place-types'
     | '/settings/media/display'
@@ -3191,6 +3290,7 @@ export interface FileRouteTypes {
     | '/taxonomies/groups'
     | '/taxonomies/language-usage-levels'
     | '/taxonomies/languages'
+    | '/taxonomies/location-relations'
     | '/taxonomies/locations'
     | '/taxonomies/media-types'
     | '/taxonomies/newsletters'
@@ -3239,6 +3339,7 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/edit/general'
     | '/taxonomies/group-types/$groupTypeSlug/info'
     | '/taxonomies/groups/$groupSlug/edit'
+    | '/taxonomies/location-relations/$locationRelationSlug/info'
     | '/taxonomies/people/$personSlug/edit'
     | '/taxonomies/place-types/$placeTypeSlug/info'
     | '/taxonomies/property-groups/$propertyGroupSlug/info'
@@ -3252,6 +3353,7 @@ export interface FileRouteTypes {
     | '/saved-filters/$filterSlug/edit'
     | '/tags/$tagSlug/edit'
     | '/taxonomies/group-types/$groupTypeSlug'
+    | '/taxonomies/location-relations/$locationRelationSlug'
     | '/taxonomies/place-types/$placeTypeSlug'
     | '/taxonomies/property-groups/$propertyGroupSlug'
     | '/taxonomies/relationship-types/$relationshipTypeSlug'
@@ -3266,6 +3368,7 @@ export interface FileRouteTypes {
     | '/taxonomies/languages/$languageSlug/gallery'
     | '/taxonomies/languages/$languageSlug/info'
     | '/taxonomies/languages/$languageSlug/edit/general'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/gallery'
     | '/taxonomies/locations/$locationSlug/info'
     | '/taxonomies/locations/$locationSlug/edit/autofill'
@@ -3310,6 +3413,7 @@ export interface FileRouteTypes {
     | '/taxonomies/genres-moods/$genreMoodSlug/edit'
     | '/taxonomies/group-types/$groupTypeSlug/edit'
     | '/taxonomies/languages/$languageSlug/edit'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit'
     | '/taxonomies/locations/$locationSlug/edit'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
     | '/taxonomies/newsletters/$newsletterSlug/edit'
@@ -3368,6 +3472,7 @@ export interface FileRouteTypes {
     | '/taxonomies/groups'
     | '/taxonomies/language-usage-levels'
     | '/taxonomies/languages'
+    | '/taxonomies/location-relations'
     | '/taxonomies/locations'
     | '/taxonomies/media-types'
     | '/taxonomies/newsletters'
@@ -3422,6 +3527,7 @@ export interface FileRouteTypes {
     | '/settings/display/media'
     | '/settings/display/sidebar'
     | '/settings/locations/level-groups'
+    | '/settings/locations/location-relations'
     | '/settings/locations/pin-style'
     | '/settings/locations/place-types'
     | '/settings/media/display'
@@ -3434,6 +3540,7 @@ export interface FileRouteTypes {
     | '/taxonomies/groups/$groupSlug'
     | '/taxonomies/language-usage-levels/edit'
     | '/taxonomies/languages/$languageSlug'
+    | '/taxonomies/location-relations/$locationRelationSlug'
     | '/taxonomies/locations/$locationSlug'
     | '/taxonomies/locations/new'
     | '/taxonomies/media-types/$mediaTypeSlug'
@@ -3460,6 +3567,7 @@ export interface FileRouteTypes {
     | '/taxonomies/groups/'
     | '/taxonomies/language-usage-levels/'
     | '/taxonomies/languages/'
+    | '/taxonomies/location-relations/'
     | '/taxonomies/locations/'
     | '/taxonomies/media-types/'
     | '/taxonomies/newsletters/'
@@ -3514,6 +3622,8 @@ export interface FileRouteTypes {
     | '/taxonomies/groups/$groupSlug/edit'
     | '/taxonomies/languages/$languageSlug/_hub'
     | '/taxonomies/languages/$languageSlug/edit'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit'
+    | '/taxonomies/location-relations/$locationRelationSlug/info'
     | '/taxonomies/locations/$locationSlug/_hub'
     | '/taxonomies/locations/$locationSlug/edit'
     | '/taxonomies/media-types/$mediaTypeSlug/_hub'
@@ -3543,6 +3653,7 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/_hub/'
     | '/tags/$tagSlug/edit/'
     | '/taxonomies/group-types/$groupTypeSlug/'
+    | '/taxonomies/location-relations/$locationRelationSlug/'
     | '/taxonomies/place-types/$placeTypeSlug/'
     | '/taxonomies/property-groups/$propertyGroupSlug/'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/'
@@ -3557,6 +3668,7 @@ export interface FileRouteTypes {
     | '/taxonomies/languages/$languageSlug/_hub/gallery'
     | '/taxonomies/languages/$languageSlug/_hub/info'
     | '/taxonomies/languages/$languageSlug/edit/general'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit/general'
     | '/taxonomies/locations/$locationSlug/_hub/gallery'
     | '/taxonomies/locations/$locationSlug/_hub/info'
     | '/taxonomies/locations/$locationSlug/edit/autofill'
@@ -3604,6 +3716,7 @@ export interface FileRouteTypes {
     | '/taxonomies/groups/$groupSlug/_hub/'
     | '/taxonomies/languages/$languageSlug/_hub/'
     | '/taxonomies/languages/$languageSlug/edit/'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit/'
     | '/taxonomies/locations/$locationSlug/_hub/'
     | '/taxonomies/locations/$locationSlug/edit/'
     | '/taxonomies/media-types/$mediaTypeSlug/_hub/'
@@ -3639,6 +3752,7 @@ export interface RootRouteChildren {
   TaxonomiesGroupsRoute: typeof TaxonomiesGroupsRouteWithChildren
   TaxonomiesLanguageUsageLevelsRoute: typeof TaxonomiesLanguageUsageLevelsRouteWithChildren
   TaxonomiesLanguagesRoute: typeof TaxonomiesLanguagesRouteWithChildren
+  TaxonomiesLocationRelationsRoute: typeof TaxonomiesLocationRelationsRouteWithChildren
   TaxonomiesLocationsRoute: typeof TaxonomiesLocationsRouteWithChildren
   TaxonomiesMediaTypesRoute: typeof TaxonomiesMediaTypesRouteWithChildren
   TaxonomiesNewslettersRoute: typeof TaxonomiesNewslettersRouteWithChildren
@@ -3882,6 +3996,13 @@ declare module '@tanstack/react-router' {
       path: '/taxonomies/locations'
       fullPath: '/taxonomies/locations'
       preLoaderRoute: typeof TaxonomiesLocationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxonomies/location-relations': {
+      id: '/taxonomies/location-relations'
+      path: '/taxonomies/location-relations'
+      fullPath: '/taxonomies/location-relations'
+      preLoaderRoute: typeof TaxonomiesLocationRelationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/taxonomies/languages': {
@@ -4192,6 +4313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLocationsIndexRouteImport
       parentRoute: typeof TaxonomiesLocationsRoute
     }
+    '/taxonomies/location-relations/': {
+      id: '/taxonomies/location-relations/'
+      path: '/'
+      fullPath: '/taxonomies/location-relations/'
+      preLoaderRoute: typeof TaxonomiesLocationRelationsIndexRouteImport
+      parentRoute: typeof TaxonomiesLocationRelationsRoute
+    }
     '/taxonomies/languages/': {
       id: '/taxonomies/languages/'
       path: '/'
@@ -4374,6 +4502,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugRouteImport
       parentRoute: typeof TaxonomiesLocationsRoute
     }
+    '/taxonomies/location-relations/$locationRelationSlug': {
+      id: '/taxonomies/location-relations/$locationRelationSlug'
+      path: '/$locationRelationSlug'
+      fullPath: '/taxonomies/location-relations/$locationRelationSlug'
+      preLoaderRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugRouteImport
+      parentRoute: typeof TaxonomiesLocationRelationsRoute
+    }
     '/taxonomies/languages/$languageSlug': {
       id: '/taxonomies/languages/$languageSlug'
       path: '/$languageSlug'
@@ -4456,6 +4591,13 @@ declare module '@tanstack/react-router' {
       path: '/pin-style'
       fullPath: '/settings/locations/pin-style'
       preLoaderRoute: typeof SettingsLocationsPinStyleRouteImport
+      parentRoute: typeof SettingsLocationsRoute
+    }
+    '/settings/locations/location-relations': {
+      id: '/settings/locations/location-relations'
+      path: '/location-relations'
+      fullPath: '/settings/locations/location-relations'
+      preLoaderRoute: typeof SettingsLocationsLocationRelationsRouteImport
       parentRoute: typeof SettingsLocationsRoute
     }
     '/settings/locations/level-groups': {
@@ -4717,6 +4859,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugIndexRouteImport
       parentRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugRoute
     }
+    '/taxonomies/location-relations/$locationRelationSlug/': {
+      id: '/taxonomies/location-relations/$locationRelationSlug/'
+      path: '/'
+      fullPath: '/taxonomies/location-relations/$locationRelationSlug/'
+      preLoaderRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugIndexRouteImport
+      parentRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugRoute
+    }
     '/taxonomies/group-types/$groupTypeSlug/': {
       id: '/taxonomies/group-types/$groupTypeSlug/'
       path: '/'
@@ -4919,6 +5068,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/locations/$locationSlug'
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugHubRouteImport
       parentRoute: typeof TaxonomiesLocationsLocationSlugRoute
+    }
+    '/taxonomies/location-relations/$locationRelationSlug/info': {
+      id: '/taxonomies/location-relations/$locationRelationSlug/info'
+      path: '/info'
+      fullPath: '/taxonomies/location-relations/$locationRelationSlug/info'
+      preLoaderRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugInfoRouteImport
+      parentRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugRoute
+    }
+    '/taxonomies/location-relations/$locationRelationSlug/edit': {
+      id: '/taxonomies/location-relations/$locationRelationSlug/edit'
+      path: '/edit'
+      fullPath: '/taxonomies/location-relations/$locationRelationSlug/edit'
+      preLoaderRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditRouteImport
+      parentRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugRoute
     }
     '/taxonomies/languages/$languageSlug/edit': {
       id: '/taxonomies/languages/$languageSlug/edit'
@@ -5333,6 +5496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugHubIndexRouteImport
       parentRoute: typeof TaxonomiesLocationsLocationSlugHubRoute
     }
+    '/taxonomies/location-relations/$locationRelationSlug/edit/': {
+      id: '/taxonomies/location-relations/$locationRelationSlug/edit/'
+      path: '/'
+      fullPath: '/taxonomies/location-relations/$locationRelationSlug/edit/'
+      preLoaderRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditIndexRouteImport
+      parentRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditRoute
+    }
     '/taxonomies/languages/$languageSlug/edit/': {
       id: '/taxonomies/languages/$languageSlug/edit/'
       path: '/'
@@ -5661,6 +5831,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/locations/$locationSlug/gallery'
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugHubGalleryRouteImport
       parentRoute: typeof TaxonomiesLocationsLocationSlugHubRoute
+    }
+    '/taxonomies/location-relations/$locationRelationSlug/edit/general': {
+      id: '/taxonomies/location-relations/$locationRelationSlug/edit/general'
+      path: '/general'
+      fullPath: '/taxonomies/location-relations/$locationRelationSlug/edit/general'
+      preLoaderRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRouteImport
+      parentRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditRoute
     }
     '/taxonomies/languages/$languageSlug/edit/general': {
       id: '/taxonomies/languages/$languageSlug/edit/general'
@@ -6246,6 +6423,7 @@ const SettingsDisplayRouteWithChildren = SettingsDisplayRoute._addFileChildren(
 
 interface SettingsLocationsRouteChildren {
   SettingsLocationsLevelGroupsRoute: typeof SettingsLocationsLevelGroupsRoute
+  SettingsLocationsLocationRelationsRoute: typeof SettingsLocationsLocationRelationsRoute
   SettingsLocationsPinStyleRoute: typeof SettingsLocationsPinStyleRoute
   SettingsLocationsPlaceTypesRoute: typeof SettingsLocationsPlaceTypesRoute
   SettingsLocationsIndexRoute: typeof SettingsLocationsIndexRoute
@@ -6253,6 +6431,8 @@ interface SettingsLocationsRouteChildren {
 
 const SettingsLocationsRouteChildren: SettingsLocationsRouteChildren = {
   SettingsLocationsLevelGroupsRoute: SettingsLocationsLevelGroupsRoute,
+  SettingsLocationsLocationRelationsRoute:
+    SettingsLocationsLocationRelationsRoute,
   SettingsLocationsPinStyleRoute: SettingsLocationsPinStyleRoute,
   SettingsLocationsPlaceTypesRoute: SettingsLocationsPlaceTypesRoute,
   SettingsLocationsIndexRoute: SettingsLocationsIndexRoute,
@@ -6675,6 +6855,63 @@ const TaxonomiesLanguagesRouteChildren: TaxonomiesLanguagesRouteChildren = {
 
 const TaxonomiesLanguagesRouteWithChildren =
   TaxonomiesLanguagesRoute._addFileChildren(TaxonomiesLanguagesRouteChildren)
+
+interface TaxonomiesLocationRelationsLocationRelationSlugEditRouteChildren {
+  TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute
+  TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute
+}
+
+const TaxonomiesLocationRelationsLocationRelationSlugEditRouteChildren: TaxonomiesLocationRelationsLocationRelationSlugEditRouteChildren =
+  {
+    TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute:
+      TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute,
+    TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute:
+      TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute,
+  }
+
+const TaxonomiesLocationRelationsLocationRelationSlugEditRouteWithChildren =
+  TaxonomiesLocationRelationsLocationRelationSlugEditRoute._addFileChildren(
+    TaxonomiesLocationRelationsLocationRelationSlugEditRouteChildren,
+  )
+
+interface TaxonomiesLocationRelationsLocationRelationSlugRouteChildren {
+  TaxonomiesLocationRelationsLocationRelationSlugEditRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditRouteWithChildren
+  TaxonomiesLocationRelationsLocationRelationSlugInfoRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugInfoRoute
+  TaxonomiesLocationRelationsLocationRelationSlugIndexRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugIndexRoute
+}
+
+const TaxonomiesLocationRelationsLocationRelationSlugRouteChildren: TaxonomiesLocationRelationsLocationRelationSlugRouteChildren =
+  {
+    TaxonomiesLocationRelationsLocationRelationSlugEditRoute:
+      TaxonomiesLocationRelationsLocationRelationSlugEditRouteWithChildren,
+    TaxonomiesLocationRelationsLocationRelationSlugInfoRoute:
+      TaxonomiesLocationRelationsLocationRelationSlugInfoRoute,
+    TaxonomiesLocationRelationsLocationRelationSlugIndexRoute:
+      TaxonomiesLocationRelationsLocationRelationSlugIndexRoute,
+  }
+
+const TaxonomiesLocationRelationsLocationRelationSlugRouteWithChildren =
+  TaxonomiesLocationRelationsLocationRelationSlugRoute._addFileChildren(
+    TaxonomiesLocationRelationsLocationRelationSlugRouteChildren,
+  )
+
+interface TaxonomiesLocationRelationsRouteChildren {
+  TaxonomiesLocationRelationsLocationRelationSlugRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugRouteWithChildren
+  TaxonomiesLocationRelationsIndexRoute: typeof TaxonomiesLocationRelationsIndexRoute
+}
+
+const TaxonomiesLocationRelationsRouteChildren: TaxonomiesLocationRelationsRouteChildren =
+  {
+    TaxonomiesLocationRelationsLocationRelationSlugRoute:
+      TaxonomiesLocationRelationsLocationRelationSlugRouteWithChildren,
+    TaxonomiesLocationRelationsIndexRoute:
+      TaxonomiesLocationRelationsIndexRoute,
+  }
+
+const TaxonomiesLocationRelationsRouteWithChildren =
+  TaxonomiesLocationRelationsRoute._addFileChildren(
+    TaxonomiesLocationRelationsRouteChildren,
+  )
 
 interface TaxonomiesLocationsLocationSlugHubRouteChildren {
   TaxonomiesLocationsLocationSlugHubGalleryRoute: typeof TaxonomiesLocationsLocationSlugHubGalleryRoute
@@ -7351,6 +7588,8 @@ const rootRouteChildren: RootRouteChildren = {
   TaxonomiesLanguageUsageLevelsRoute:
     TaxonomiesLanguageUsageLevelsRouteWithChildren,
   TaxonomiesLanguagesRoute: TaxonomiesLanguagesRouteWithChildren,
+  TaxonomiesLocationRelationsRoute:
+    TaxonomiesLocationRelationsRouteWithChildren,
   TaxonomiesLocationsRoute: TaxonomiesLocationsRouteWithChildren,
   TaxonomiesMediaTypesRoute: TaxonomiesMediaTypesRouteWithChildren,
   TaxonomiesNewslettersRoute: TaxonomiesNewslettersRouteWithChildren,

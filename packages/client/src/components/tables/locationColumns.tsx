@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { bookmarkCountColumn } from "./columnHelpers";
-import { LocationNameCell, LocationPlaceTypeCell } from "./locationCells";
+import { LocationNameCell, LocationPlaceTypeCell, LocationRelationCell } from "./locationCells";
 import i18n from "../../i18n";
 
 /** Column definitions for the Locations listing Table view (a flattened, expandable tree). */
@@ -24,6 +24,13 @@ export function useLocationColumns(): ColumnDef<LocationNode>[] {
         cell: ({
           row,
         }) => <LocationPlaceTypeCell row={row} />,
+      },
+      {
+        id: "locationRelation",
+        header: i18n.t("Location relation"),
+        cell: ({
+          row,
+        }) => <LocationRelationCell row={row} />,
       },
       bookmarkCountColumn<LocationNode>(),
     ],

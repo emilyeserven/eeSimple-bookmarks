@@ -2,8 +2,22 @@ import type { LocationNode, PlaceTypeDisplayConfig, PreferredLanguage } from "@e
 
 import { placeTypeOrder, resolveNameSortKey } from "@eesimple/types";
 
-/** How the Locations list/tree is ordered: the server order, or grouped by place-type level. */
-export type LocationSortMode = "default" | "place-type";
+/**
+ * How the Locations list/tree is ordered: the server order, grouped by place-type level, or grouped by
+ * the Location Relation the location's bookmarks express (derived server-side onto `locationRelations`).
+ */
+export type LocationSortMode = "default" | "place-type" | "location-relation";
+
+/**
+ * A location's representative relation rank for `"location-relation"` sort: the lowest `sortOrder`
+ * among the relations its bookmarks express (so a place sharing a relation clusters), or `Infinity`
+ * when no bookmark of this location carries a relation (unassigned sorts last).
+ */
+function locationRelationRank(node: LocationNode): number {
+  const usages = node.locationRelations ?? [];
+  if (usages.length === 0) return Number.POSITIVE_INFINITY;
+  return Math.min(...usages.map(usage => usage.sortOrder));
+}
 
 /** Locale + language preference for the name tie-break (both optional; default = today's behavior). */
 export interface LocationSortContext {
@@ -38,6 +52,10 @@ export function sortLocationTree(
   ctx: LocationSortContext = {},
 ): LocationNode[] {
   if (mode === "default") return tree;
+  const rankFor = (node: LocationNode): number =>
+    mode === "location-relation"
+      ? locationRelationRank(node)
+      : placeTypeOrder(node.placeType, config);
   const sortNodes = (nodes: LocationNode[]): LocationNode[] =>
     nodes
       .map(node => ({
@@ -45,7 +63,10 @@ export function sortLocationTree(
         children: sortNodes(node.children),
       }))
       .sort((a, b) => {
-        const byOrder = placeTypeOrder(a.placeType, config) - placeTypeOrder(b.placeType, config);
+        const rankA = rankFor(a);
+        const rankB = rankFor(b);
+        // Explicit compare (not subtraction) so two unassigned Infinity ranks tie at 0 rather than NaN.
+        const byOrder = rankA === rankB ? 0 : rankA < rankB ? -1 : 1;
         return byOrder !== 0
           ? byOrder
           : locationNodeSortKey(a, ctx).localeCompare(locationNodeSortKey(b, ctx), ctx.locale);

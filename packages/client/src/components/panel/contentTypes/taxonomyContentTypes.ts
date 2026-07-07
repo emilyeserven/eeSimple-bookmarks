@@ -6,6 +6,7 @@ export { genreMoodContentType } from "./genreMood";
 export { groupTypeContentType } from "./groupType";
 export { languageContentType } from "./language";
 export { locationContentType } from "./location";
+export { locationRelationContentType } from "./locationRelation";
 export { mediaTypeContentType } from "./mediaType";
 export { placeTypeContentType } from "./placeType";
 export { propertyContentType } from "./property";

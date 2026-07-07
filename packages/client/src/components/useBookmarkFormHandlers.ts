@@ -231,6 +231,7 @@ export function useBookmarkFormHandlers({
     personIds: string[];
     groupId: string;
   }): Promise<void> {
+    const locationRelationByLocationId = form.getFieldValue("locationRelationByLocationId");
     const {
       numberValues, booleanValues, dateTimeValues, progressValues,
       choicesValues, sectionsValues, textValues,
@@ -260,6 +261,7 @@ export function useBookmarkFormHandlers({
       tagIds: value.tagIds,
       genreMoodIds: value.genreMoodIds,
       locationIds: value.locationIds,
+      locationRelationByLocationId,
       blacklistedTagIds: form.getFieldValue("blacklistedTagIds"),
       blacklistedLocationIds: form.getFieldValue("blacklistedLocationIds"),
       personIds: value.personIds,

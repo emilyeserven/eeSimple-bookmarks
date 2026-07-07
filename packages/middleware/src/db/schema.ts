@@ -1023,6 +1023,12 @@ export const bookmarkLocations = pgTable("bookmark_locations", {
   locationId: uuid("location_id").notNull().references(() => locations.id, {
     onDelete: "cascade",
   }),
+  // How this bookmark relates to this specific location (Physical Place / Created In / …), or null.
+  // Value-carrying payload on the edge; FK set-nulls when the relation is deleted. Nullable →
+  // push-safe additive (pre-added in migrate.ts alongside the new location_relations table).
+  locationRelationId: uuid("location_relation_id").references(() => locationRelations.id, {
+    onDelete: "set null",
+  }),
 }, table => [
   primaryKey({
     columns: [table.bookmarkId, table.locationId],
@@ -1078,6 +1084,30 @@ export const placeTypes = pgTable("place_types", {
 ]);
 
 export type PlaceTypeRow = typeof placeTypes.$inferSelect;
+
+/**
+ * `location_relations` table — a user-managed vocabulary describing how a bookmark relates to one of
+ * its locations (Physical Place, Culture and Tradition, Created In, Inspired By…). Attached per
+ * `(bookmark, location)` edge via `bookmark_locations.location_relation_id` (not a field on the
+ * location row). Nullable slug for push-safe addition; backfilled at boot. Built-ins are seeded and
+ * non-deletable.
+ */
+export const locationRelations = pgTable("location_relations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  description: text("description"),
+  builtIn: boolean("built_in").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("location_relations_name_unique").on(table.name),
+  unique("location_relations_slug_unique").on(table.slug),
+]);
+
+export type LocationRelationRow = typeof locationRelations.$inferSelect;
 
 export const locationsRelations = relations(locations, ({
   one, many,
