@@ -62,10 +62,6 @@ function CategoryHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/categories/$categorySlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/categories/$categorySlug/info",
           label: t("Info"),
         },

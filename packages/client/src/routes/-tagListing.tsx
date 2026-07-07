@@ -10,7 +10,7 @@ import { findAncestorPath, subtreeIds } from "../lib/tagTree";
 interface Props {
   tagSlug: string;
   /** Which results view the outer `_hub` strip selected (bookmarks/gallery/media). */
-  activeView: "bookmarks" | "gallery" | "media";
+  activeView: "bookmarks" | "gallery";
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }

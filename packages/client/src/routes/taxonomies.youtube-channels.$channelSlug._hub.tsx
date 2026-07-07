@@ -48,10 +48,6 @@ function YouTubeChannelHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/youtube-channels/$channelSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/youtube-channels/$channelSlug/info",
           label: t("Info"),
         },

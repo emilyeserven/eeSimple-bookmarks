@@ -55,10 +55,6 @@ function GroupHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/groups/$groupSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/groups/$groupSlug/info",
           label: t("Info"),
         },

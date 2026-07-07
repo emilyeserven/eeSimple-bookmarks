@@ -60,10 +60,6 @@ function AlbumHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/albums/$albumSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/albums/$albumSlug/info",
           label: t("Info"),
         },

@@ -41,10 +41,6 @@ function MediaPropertyHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/media-properties/$mediaPropertySlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/media-properties/$mediaPropertySlug/info",
           label: t("Info"),
         },

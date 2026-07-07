@@ -30,7 +30,7 @@ export function validateLanguageSearch(search: Record<string, unknown>): Languag
 interface Props {
   languageSlug: string;
   /** Which results view the outer `_hub` strip selected (bookmarks/gallery/media). */
-  activeView: "bookmarks" | "gallery" | "media";
+  activeView: "bookmarks" | "gallery";
   search: LanguageBookmarkSearch;
   onSearchChange: (next: LanguageBookmarkSearch) => void;
 }

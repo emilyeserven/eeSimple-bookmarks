@@ -148,8 +148,13 @@ Only these are exempt. Anything else missing `createOption` is a defect, not a j
   here.
 - **Filter facet comboboxes** (`FilterSidebarSections`, `FilterFacetControls`,
   `CustomPropertyFilters`) — read-only filtering, never entity creation.
-- **`BookmarkRelationshipsEditor`** — the bookmark and relationship-type comboboxes select from
-  existing records; creating a bookmark from the relationships editor is out of scope.
+- **`BookmarkRelationshipsEditor`** (the Settings → Relationships page) — the bookmark and
+  relationship-type comboboxes select from existing records; creating a bookmark from this editor
+  is out of scope. The **create-form** media-link field (`BookmarkMediaLinkField`) is a distinct
+  exception: its target-bookmark combobox does get inline-create, via a purpose-built
+  `AddMediaBookmarkModal` wired in by hand rather than through `useEntityCreateOption` (that
+  registry mints taxonomy rows via a matching CRUD service; this mints an ordinary bookmark via
+  `useCreateBookmark`, a different shape). `BookmarkRelationshipsEditor` itself is unchanged.
 - **`PinManager`** — pins existing entities to the sidebar; doesn't create.
 - **`CardDisplayRuleInspector`** — debug/inspect selector for bookmarks; read-only.
 - **CMD+K quick-create** (`commandPaletteModals.tsx`, `useCommandPaletteState`) — a separate

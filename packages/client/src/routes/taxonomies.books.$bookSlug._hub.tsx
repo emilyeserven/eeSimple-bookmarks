@@ -60,10 +60,6 @@ function BookHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/books/$bookSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/books/$bookSlug/info",
           label: t("Info"),
         },

@@ -1,5 +1,5 @@
+import type { MediaLinkTarget } from "./bookmarkFormSchema";
 import type { DraftEntityName } from "./entityNames/draftEntityName";
-import type { MediaSelection } from "./useBookmarkMediaField";
 import type { Bookmark, BookmarkUrlDuplicateResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 
 import { useRef, useState } from "react";
@@ -116,13 +116,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       personIds: (bookmark.people.map(a => a.id)) as string[],
       groupIds: (bookmark.groups.map(g => g.id)) as string[],
       groupId: bookmark.group?.id ?? "",
-      bookId: bookmark.bookId ?? "",
-      movieId: bookmark.movieId ?? "",
-      tvShowId: bookmark.tvShowId ?? "",
-      episodeId: bookmark.episodeId ?? "",
-      albumId: bookmark.albumId ?? "",
-      trackId: bookmark.trackId ?? "",
-      podcastId: bookmark.podcastId ?? "",
+      // This edit-tab form never renders BookmarkMediaLinkField (media links are edited via the
+      // Relationships page instead), so this is always unset.
+      mediaLinkTarget: null as MediaLinkTarget | null,
     },
     validators: {
       onChange: bookmarkSchema,
@@ -227,26 +223,6 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       {
         onSuccess: () => notifyFieldSaved("Groups"),
         onError: e => notifyFieldSaveError("Groups", describeError(e)),
-      },
-    );
-  }
-
-  // The Media link lives outside the zod form state (immediate-save, like tags/people), so the
-  // tab's Save-changes submit never touches it. Selection flows through one of the six Media
-  // Properties taxonomy FKs (Book/Movie/TV Show/Episode/Album/Track) rather than a raw
-  // Kavita/Plex item; exactly one is ever set — selecting one clears the rest (the selection carries
-  // all-null baselines). Cover/ToC/deep-link features resolve through the linked taxonomy row.
-  function saveMedia(selection: MediaSelection): void {
-    updateBookmark.mutate(
-      {
-        id: bookmark.id,
-        input: {
-          ...selection,
-        },
-      },
-      {
-        onSuccess: () => notifyFieldSaved("Media"),
-        onError: e => notifyFieldSaveError("Media", describeError(e)),
       },
     );
   }
@@ -447,7 +423,6 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveBlacklistedLocationIds,
     savePeople,
     saveGroups,
-    saveMedia,
     fetchTitle,
     fetchMetadata,
     websiteLookup,

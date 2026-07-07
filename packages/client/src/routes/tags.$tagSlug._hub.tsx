@@ -84,10 +84,6 @@ function TagHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/tags/$tagSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/tags/$tagSlug/info",
           label: t("Info"),
         },

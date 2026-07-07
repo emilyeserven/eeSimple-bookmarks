@@ -46,14 +46,13 @@ export const bookmarkSchema = z.object({
   personIds: z.array(z.string()),
   groupIds: z.array(z.string()),
   groupId: z.string(),
-  // Media-link FKs — at most one is set (empty string = unset); the media picker enforces exclusivity.
-  bookId: z.string(),
-  movieId: z.string(),
-  tvShowId: z.string(),
-  episodeId: z.string(),
-  albumId: z.string(),
-  trackId: z.string(),
-  podcastId: z.string(),
+  // A staged relationship edge to a media bookmark (About/Parent-child/…), created alongside this
+  // bookmark on submit — see BookmarkMediaLinkField. Create-only; null = no media link staged.
+  mediaLinkTarget: z.object({
+    bookmarkId: z.string(),
+    relationshipTypeId: z.string(),
+    direction: z.enum(["parent", "child"]),
+  }).nullable(),
 });
 
 /**
@@ -152,6 +151,13 @@ export function openGitHubIssue(title: string, body: string): void {
   window.open(url.toString(), "_blank", "noopener,noreferrer");
 }
 
+/** A staged relationship edge to a media bookmark, created alongside the bookmark on submit. */
+export interface MediaLinkTarget {
+  bookmarkId: string;
+  relationshipTypeId: string;
+  direction: "parent" | "child";
+}
+
 /** The defaultValues shape for the bookmark form (drives `BookmarkFormApi`'s inferred field types). */
 const SAMPLE_DEFAULT_VALUES: {
   url: string;
@@ -169,13 +175,7 @@ const SAMPLE_DEFAULT_VALUES: {
   personIds: string[];
   groupIds: string[];
   groupId: string;
-  bookId: string;
-  movieId: string;
-  tvShowId: string;
-  episodeId: string;
-  albumId: string;
-  trackId: string;
-  podcastId: string;
+  mediaLinkTarget: MediaLinkTarget | null;
 } = {
   url: "",
   title: "",
@@ -192,13 +192,7 @@ const SAMPLE_DEFAULT_VALUES: {
   personIds: [],
   groupIds: [],
   groupId: "",
-  bookId: "",
-  movieId: "",
-  tvShowId: "",
-  episodeId: "",
-  albumId: "",
-  trackId: "",
-  podcastId: "",
+  mediaLinkTarget: null,
 };
 
 /**
@@ -253,19 +247,6 @@ function scalarBookmarkDefaults(
   };
 }
 
-/** The six media-link FK fields, defaulting to "" when the bookmark isn't linked to that media item. */
-function mediaLinkDefaults(bookmark: Bookmark | undefined) {
-  return {
-    bookId: bookmark?.bookId ?? "",
-    movieId: bookmark?.movieId ?? "",
-    tvShowId: bookmark?.tvShowId ?? "",
-    episodeId: bookmark?.episodeId ?? "",
-    albumId: bookmark?.albumId ?? "",
-    trackId: bookmark?.trackId ?? "",
-    podcastId: bookmark?.podcastId ?? "",
-  };
-}
-
 /** The multi-select relation id arrays, defaulting to [] when the bookmark has no such relations. */
 function relationDefaults(bookmark: Bookmark | undefined) {
   return {
@@ -286,7 +267,9 @@ export function buildBookmarkDefaultValues(
 ) {
   return {
     ...scalarBookmarkDefaults(bookmark, lockedCategoryId, initial),
-    ...mediaLinkDefaults(bookmark),
+    // Create-only: editing a media link goes through the Relationships page instead, so this is
+    // always unset regardless of the bookmark being edited.
+    mediaLinkTarget: null as MediaLinkTarget | null,
     ...relationDefaults(bookmark),
   };
 }

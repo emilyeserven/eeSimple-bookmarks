@@ -1483,20 +1483,6 @@ export interface CreateBookmarkInput {
   importId?: string | null;
   /** Id of the group to assign; null to clear. Omit to leave unchanged. */
   groupId?: string | null;
-  /** Id of the Book (Books taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
-  bookId?: string | null;
-  /** Id of the Movie (Movies taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
-  movieId?: string | null;
-  /** Id of the TV Show (TV Shows taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
-  tvShowId?: string | null;
-  /** Id of the Episode (Episodes taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
-  episodeId?: string | null;
-  /** Id of the Album (Albums taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
-  albumId?: string | null;
-  /** Id of the Track (Tracks taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
-  trackId?: string | null;
-  /** Id of the Podcast (Podcasts taxonomy) to link, or `null` to unlink. Omit to leave unchanged. */
-  podcastId?: string | null;
   /** Id of the Kavita series to link, or `null` to unlink. Omit to leave unchanged. */
   kavitaSeriesId?: number | null;
   /** Id of the Kavita library containing the linked series, or `null` to clear. Omit to leave unchanged. */

@@ -60,10 +60,6 @@ function EpisodeHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/episodes/$episodeSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/episodes/$episodeSlug/info",
           label: t("Info"),
         },
