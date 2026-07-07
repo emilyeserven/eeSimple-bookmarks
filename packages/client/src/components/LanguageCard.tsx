@@ -4,13 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { Info, Languages, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
 import { useLanguageName } from "@/lib/builtInName";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A single language listing card: body → its bookmarks page, with hover Edit / Info. */
 export function LanguageCard({
@@ -29,9 +26,6 @@ export function LanguageCard({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const languageName = useLanguageName();
 
   return (
@@ -68,10 +62,9 @@ export function LanguageCard({
             params={{
               languageSlug: language.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: language.name,
             })}
-            onClick={event => editClick(event, "language", language.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">{t("Edit {{name}}", {
@@ -88,8 +81,9 @@ export function LanguageCard({
             params={{
               languageSlug: language.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "language", language.id, language.slug)}
+            title={t("View {{name}}", {
+              name: language.name,
+            })}
           >
             <Info className="size-4" />
             <span className="sr-only">{t("View {{name}}", {

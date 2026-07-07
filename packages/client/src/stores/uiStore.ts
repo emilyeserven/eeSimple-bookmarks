@@ -40,11 +40,6 @@ export function clampSidebarWidth(w: number): number {
   return Math.min(28, Math.max(10, w));
 }
 
-/** Clamp the right panel width to the supported 18–40 rem range. */
-export function clampPanelWidth(w: number): number {
-  return Math.min(40, Math.max(18, w));
-}
-
 /**
  * Live search state + change handler shared from the active listing page to the sort control
  * (`BookmarkSortPopover`) and the CMD+K palette, which read `search.sort` / call `onSearchChange`.
@@ -110,9 +105,6 @@ interface UiState {
   /** Left sidebar width in rem (10–28). Persisted so the user's drag preference survives reloads. */
   sidebarWidth: number;
   setSidebarWidth: (value: number) => void;
-  /** Docked right panel width in rem (18–40). Only applies when the panel is pinned. */
-  panelWidth: number;
-  setPanelWidth: (value: number) => void;
   /** Section keys currently collapsed in the left sidebar ("categories" | "taxonomies" | "customization" | "management"). */
   collapsedSidebarSections: string[];
   toggleSidebarSection: (section: string) => void;
@@ -285,10 +277,6 @@ export const useUiStore = create<UiState>()(
       setSidebarWidth: value => set({
         sidebarWidth: clampSidebarWidth(value),
       }),
-      panelWidth: 28,
-      setPanelWidth: value => set({
-        panelWidth: clampPanelWidth(value),
-      }),
       collapsedSidebarSections: [],
       toggleSidebarSection: section => set(state => ({
         collapsedSidebarSections: state.collapsedSidebarSections.includes(section)
@@ -435,7 +423,6 @@ export const useUiStore = create<UiState>()(
         hiddenCardFields: state.hiddenCardFields,
         selectedDisplayPreset: state.selectedDisplayPreset,
         sidebarWidth: state.sidebarWidth,
-        panelWidth: state.panelWidth,
         collapsedSidebarSections: state.collapsedSidebarSections,
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,

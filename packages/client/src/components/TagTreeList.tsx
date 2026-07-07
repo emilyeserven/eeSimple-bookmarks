@@ -6,12 +6,8 @@ import { Folder, Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { TagCategoriesPopover } from "./TagCategoriesPopover";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface TagTreeListProps {
   /** The root tags to render. */
@@ -34,9 +30,6 @@ export function TagTreeList({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
 
   return (
     <TaxonomyTreeList
@@ -85,10 +78,9 @@ export function TagTreeList({
           aria-label={t("Edit {{name}}", {
             name: node.name,
           })}
-          title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-            modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+          title={t("Edit {{name}}", {
+            name: node.name,
           })}
-          onClick={event => editClick(event, "tag", node.id)}
         >
           <Pencil className="size-4" />
         </Link>
@@ -102,8 +94,9 @@ export function TagTreeList({
           aria-label={t("View {{name}}", {
             name: node.name,
           })}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "tag", node.id, node.slug)}
+          title={t("View {{name}}", {
+            name: node.name,
+          })}
         >
           <Info className="size-4" />
         </Link>

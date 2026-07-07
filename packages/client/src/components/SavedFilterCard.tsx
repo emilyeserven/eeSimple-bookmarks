@@ -4,13 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { Globe, Info, ListFilter, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useUpdateSavedFilter } from "../hooks/useSavedFilters";
 import { summarizeBookmarkSearch } from "../lib/bookmarkSearch";
 import { notifySuccess } from "../lib/notifications";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "../lib/sidebarModifier";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -34,9 +31,6 @@ export function SavedFilterCard({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const updateMutation = useUpdateSavedFilter();
 
   const checkboxId = `viewable-online-${filter.id}`;
@@ -67,8 +61,9 @@ export function SavedFilterCard({
             params={{
               filterSlug: slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "saved-filter", filter.id, slug)}
+            title={t("View {{name}}", {
+              name: filter.name,
+            })}
             className={className}
           >
             {children}
@@ -83,10 +78,9 @@ export function SavedFilterCard({
               params={{
                 filterSlug: slug,
               }}
-              title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-                modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+              title={t("Edit {{name}}", {
+                name: filter.name,
               })}
-              onClick={event => editClick(event, "saved-filter", filter.id)}
             >
               <Pencil className="size-4" />
               <span className="sr-only">
@@ -106,8 +100,9 @@ export function SavedFilterCard({
               params={{
                 filterSlug: slug,
               }}
-              title={entityLinkTitle(modifier)}
-              onClick={event => viewClick(event, "saved-filter", filter.id, slug)}
+              title={t("View {{name}}", {
+                name: filter.name,
+              })}
             >
               <Info className="size-4" />
               <span className="sr-only">

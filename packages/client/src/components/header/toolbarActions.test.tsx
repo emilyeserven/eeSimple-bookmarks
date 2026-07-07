@@ -17,7 +17,6 @@ function ctx(overrides: Partial<ToolbarContext> = {}): ToolbarContext {
     addChild: null,
     settingsPage: null,
     pinContext: null,
-    openPanel: vi.fn(),
     syncProvider: null,
     ...overrides,
   };
@@ -34,8 +33,8 @@ const SAMPLE_SYNC_PROVIDER: ToolbarContext["syncProvider"] = {
 const keys = (c: ToolbarContext) => buildToolbarActions(c).map(a => a.key);
 
 describe("buildToolbarActions", () => {
-  it("always includes the panel toggle last, even with an otherwise-empty context", () => {
-    expect(keys(ctx())).toEqual(["open-panel"]);
+  it("returns an empty list for an otherwise-empty context", () => {
+    expect(keys(ctx())).toEqual([]);
   });
 
   it("adds display + create for a listing page with a create action (filters/sort now live in the on-page box)", () => {
@@ -48,13 +47,13 @@ describe("buildToolbarActions", () => {
           createAction,
         },
       })),
-    ).toEqual(["display-options", "create", "open-panel"]);
+    ).toEqual(["display-options", "create"]);
   });
 
   it("adds the bulk-select toggle when a bulk-selectable listing is mounted", () => {
     expect(keys(ctx({
       bulkSelectPageKey: "websites-listing",
-    }))).toEqual(["bulk-select", "open-panel"]);
+    }))).toEqual(["bulk-select"]);
   });
 
   it("places the bulk-select toggle right after display-options", () => {
@@ -64,7 +63,7 @@ describe("buildToolbarActions", () => {
         hasFilters: false,
       },
       bulkSelectPageKey: "categories-listing",
-    }))).toEqual(["display-options", "bulk-select", "open-panel"]);
+    }))).toEqual(["display-options", "bulk-select"]);
   });
 
   it("adds layout + edit for a bookmark detail", () => {
@@ -73,7 +72,6 @@ describe("buildToolbarActions", () => {
     }))).toEqual([
       "bookmark-layout",
       "edit-bookmark",
-      "open-panel",
     ]);
   });
 
@@ -92,14 +90,13 @@ describe("buildToolbarActions", () => {
       "bookmark-layout",
       "edit-bookmark",
       "sync-from-source",
-      "open-panel",
     ]);
   });
 
-  it("adds homepage-settings on the homepage, just before the panel toggle", () => {
+  it("adds homepage-settings on the homepage", () => {
     expect(keys(ctx({
       pathParts: [],
-    }))).toEqual(["homepage-settings", "open-panel"]);
+    }))).toEqual(["homepage-settings"]);
   });
 
   it("omits homepage-settings off the homepage", () => {
@@ -162,7 +159,6 @@ describe("buildToolbarActions", () => {
       "create",
       "settings-favorite",
       "pin",
-      "open-panel",
     ]);
   });
 });

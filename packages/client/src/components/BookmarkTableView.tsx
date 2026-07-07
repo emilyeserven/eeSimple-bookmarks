@@ -76,7 +76,7 @@ export function BookmarkTableView({
       data={bookmarks}
       sortable
       onRowClick={(bookmark, event) =>
-        rowNav(event, "bookmark", bookmark.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/bookmarks/$bookmarkId",
             params: {

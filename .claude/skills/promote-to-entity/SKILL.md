@@ -2,7 +2,7 @@
 name: promote-to-entity
 description: >-
   Promote an existing settings-only CRUD entity to a full slug-routed entity with view/edit pages,
-  sidebar entry, panel parity, and breadcrumbs. Use when asked to "promote X to an entity", "give X
+  sidebar entry, and breadcrumbs. Use when asked to "promote X to an entity", "give X
   its own pages", "promote settings feature to full entity", or "add detail/edit pages to existing
   X". The entity already has a DB table, routes, service, shared types, and client hooks — this
   skill documents only what is NEW compared to a greenfield entity (see add-entity for the baseline).
@@ -11,8 +11,8 @@ description: >-
 # Promote a settings-only entity to a full entity
 
 Use this skill when the entity **already exists** in the middleware (DB table, routes, service) and
-client (types, hooks, manager component, settings page) but has no slug, no detail/edit pages, no
-sidebar entry, and no right-panel registration.
+client (types, hooks, manager component, settings page) but has no slug, no detail/edit pages, and no
+sidebar entry.
 
 **Reference implementation: Saved Filters** (`saved_filters` table → `/saved-filters` routes).
 Compare against **Autofill Rules** and **Property Groups** for the full client pattern.
@@ -212,10 +212,6 @@ export const entityWorkbench: EntityWorkbench<MyEntity> = {
     const { entity, isLoading } = useEntityBySlug(slug);
     return { entity, isLoading };
   },
-  useById: (id) => {
-    const { data, isLoading } = useEntities();
-    return { entity: data?.find(e => e.id === id), isLoading };
-  },
   name: (e) => e.name,
   useDelete: () => {
     const mut = useDeleteEntity();
@@ -240,52 +236,7 @@ export const entityWorkbench: EntityWorkbench<MyEntity> = {
 };
 ```
 
-### 11. Panel content type (`packages/client/src/components/panel/contentTypes/<entity>.tsx`)
-
-Mirror `contentTypes/propertyGroup.tsx`:
-
-```ts
-function useEntityList(): PanelListItem[] {
-  const { data = [] } = useEntities();
-  return data.map(e => ({ id: e.id, label: e.name, slug: e.slug ?? "" }));
-}
-
-function EntityView({ slug }: { slug: string }) {
-  return <EntityWorkbenchPanel workbench={entityWorkbench} slug={slug} mode="view" />;
-}
-
-function EntityEdit({ slug }: { slug: string }) {
-  return <EntityWorkbenchPanel workbench={entityWorkbench} slug={slug} mode="edit" />;
-}
-
-export const entityContentType: PanelContentTypeDef = {
-  type: "my-entity",
-  label: "My Entities",
-  singular: "My Entity",
-  icon: SomeIcon,
-  useList: useEntityList,
-  View: EntityView,
-  Edit: EntityEdit,
-  routePrefix: "/my-entities",
-};
-```
-
-Register in `contentTypes.tsx`:
-```ts
-import { entityContentType } from "./contentTypes/myEntity";
-export const PANEL_CONTENT_TYPES = [
-  // …existing…
-  entityContentType,
-];
-```
-
-Register in `lib/drawerSearch.ts`:
-```ts
-export type DrawerContentType = … | "my-entity" | …;
-export const DRAWER_CONTENT_TYPES: DrawerContentType[] = […, "my-entity", …];
-```
-
-### 12. Route files (`packages/client/src/routes/`)
+### 11. Route files (`packages/client/src/routes/`)
 
 An info-only entity's set — copy from any existing info-only entity (e.g. `autofill.*` or
 `import-rules.*`):
@@ -309,14 +260,14 @@ After creating/modifying route files, regenerate:
 pnpm --filter=@eesimple/client routeTree
 ```
 
-### 13. Upgrade the existing manager/listing component
+### 12. Upgrade the existing manager/listing component
 
 The existing manager (e.g. `SavedFiltersManager.tsx`) stays the same component — the settings page
 continues to import it. Add navigation: wrap each item's name in a `<Link>` when `entity.slug`
 exists. Keep all existing controls (toggles, delete button). Don't move the component; keep the
 settings page import intact.
 
-### 14. Sidebar entry (`packages/client/src/components/app-sidebar.tsx`)
+### 13. Sidebar entry (`packages/client/src/components/app-sidebar.tsx`)
 
 Add to `customizationItems` (or the appropriate items array):
 ```ts
@@ -325,7 +276,7 @@ Add to `customizationItems` (or the appropriate items array):
 
 Import the icon from `lucide-react`. Choose one not already used by another sidebar entry.
 
-### 15. Breadcrumbs
+### 14. Breadcrumbs
 
 Two edits — both are required:
 
@@ -347,7 +298,7 @@ Two edits — both are required:
 
 The `slugFor` index must match `slugIndex` in `TAXONOMY_DESCRIPTORS`.
 
-### 16. Settings page — no change needed
+### 15. Settings page — no change needed
 
 The existing settings page (e.g. `routes/settings.saved-filters.tsx`) continues to render the
 same `<EntityManager />` component. No redirect, no replacement — both `/settings/my-entities`
@@ -381,8 +332,7 @@ capture site.
 4. `/my-entities/my-slug` → redirects to `…/info`; the Info page shows entity fields, slug, dates
 5. Edit tab: change name, blur → toast "Name saved"; URL updates to new slug
 6. Toggles on edit tab → toast fires immediately
-7. Right panel → browse My Entities → view/edit opens identically to the main page
-8. Sidebar → Customization → "My Entities" link navigates correctly
-9. Breadcrumb on detail page: `My Entities (link) → Entity Name`
-10. `pnpm typecheck` — passes
-11. `pnpm lint:fix` — clean
+7. Sidebar → Customization → "My Entities" link navigates correctly
+8. Breadcrumb on detail page: `My Entities (link) → Entity Name`
+9. `pnpm typecheck` — passes
+10. `pnpm lint:fix` — clean

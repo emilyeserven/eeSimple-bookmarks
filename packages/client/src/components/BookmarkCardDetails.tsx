@@ -71,7 +71,6 @@ export function BookmarkCardDetails({
   const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
 
   // The card header elements, now placeable fields (title link, open-URL button, "More" menu).
-  // BookmarkTitleLink owns its own useViewPanelClick / useSidebarOpenModifier hooks.
   const titleNode = <BookmarkTitleLink bookmark={bookmark} />;
   const externalLinkNode = <BookmarkExternalLinkButton url={bookmark.url ?? ""} />;
   // The four connector deep-link buttons (ArchiveBox / Kavita / Plex / Podcast), each null when N/A.

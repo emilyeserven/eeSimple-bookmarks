@@ -7,14 +7,12 @@ import { EditActionCell } from "./cells";
 import { useDisplayPreferenceSettings } from "../../hooks/useAppSettings";
 import i18n from "../../i18n";
 import { TYPE_LABELS, resolvePropertyTypeIcon } from "../../lib/propertyFormat";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
 
 /** Column definitions for the Custom Properties listing Table view. */
 export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
-  const editClick = useEditPanelClick();
   const {
     data: displayPrefs,
   } = useDisplayPreferenceSettings();
@@ -99,11 +97,10 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "property", row.original.id)}
           />
         ),
       },
     ],
-    [editClick, typeIcons],
+    [typeIcons],
   );
 }

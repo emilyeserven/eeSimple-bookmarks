@@ -19,7 +19,6 @@ import {
   MapPin,
   Monitor,
   PanelLeft,
-  PanelRight,
   RefreshCw,
   Share2,
   SquarePlus,
@@ -66,11 +65,6 @@ export const displayNav: readonly SettingsTabNavItem[] = [
     to: "/settings/display/filters",
     label: i18n.t("Filters"),
     icon: Filter,
-  },
-  {
-    to: "/settings/display/drawer",
-    label: i18n.t("Drawer"),
-    icon: PanelRight,
   },
   {
     to: "/settings/display/homepage",

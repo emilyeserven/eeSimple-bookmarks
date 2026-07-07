@@ -25,9 +25,7 @@ const meta = {
       bookmarkCount: 12,
     }),
     pathname: "/bookmarks",
-    modifier: "alt",
     sidebarState: "expanded",
-    onViewClick: () => {},
   },
 } satisfies Meta<typeof SidebarCategoryMenuItem>;
 

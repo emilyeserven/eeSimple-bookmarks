@@ -30,7 +30,7 @@ export function NewsletterTable({
       data={newsletters}
       sortable
       onRowClick={(newsletter, event) =>
-        rowNav(event, "newsletter", newsletter.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/taxonomies/newsletters/$newsletterSlug",
             params: {

@@ -30,7 +30,7 @@ export function CustomPropertyTable({
       data={filtered}
       sortable
       onRowClick={(property, event) =>
-        rowNav(event, "property", property.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/custom-properties/$propertySlug",
             params: {

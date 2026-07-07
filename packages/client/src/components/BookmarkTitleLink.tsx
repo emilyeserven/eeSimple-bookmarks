@@ -5,23 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { resolveDisplayNames } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-
-import { entityLinkTitle } from "@/lib/sidebarModifier";
-
 /**
- * The bookmark title rendered as a navigation link. Encapsulates `useViewPanelClick` and
- * `useSidebarOpenModifier` so those hooks are counted outside `BookmarkCardDetails`. Renders the
- * resolved **primary** name via `resolveDisplayNames` (against `bookmark.names`); the de-emphasized
- * secondary is the separately placeable `secondaryName` card field (see
- * {@link BookmarkSecondaryNameField}).
+ * The bookmark title rendered as a navigation link. Renders the resolved **primary** name via
+ * `resolveDisplayNames` (against `bookmark.names`); the de-emphasized secondary is the separately
+ * placeable `secondaryName` card field (see {@link BookmarkSecondaryNameField}).
  */
 export function BookmarkTitleLink({
   bookmark,
 }: { bookmark: Bookmark }) {
-  const viewClick = useViewPanelClick();
-  const sidebarModifier = useSidebarOpenModifier();
   const {
     primary,
   } = resolveDisplayNames(
@@ -36,8 +27,7 @@ export function BookmarkTitleLink({
         params={{
           bookmarkId: bookmark.id,
         }}
-        title={entityLinkTitle(sidebarModifier)}
-        onClick={event => viewClick(event, "bookmark", bookmark.id, bookmark.id)}
+        title={primary}
         className="
           wrap-break-word text-primary
           hover:underline

@@ -1,6 +1,4 @@
 import type { useAppSidebarData } from "./useAppSidebarData";
-import type { SidebarOpenModifier } from "@eesimple/types";
-import type { MouseEvent } from "react";
 
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -23,18 +21,14 @@ export function SidebarCategoriesSection({
   expanded,
   setExpanded,
   pathname,
-  modifier,
   sidebarState,
-  onViewClick,
 }: {
   visibleCategories: SidebarData["visibleCategories"];
   seeMoreCategories: SidebarData["seeMoreCategories"];
   expanded: boolean;
   setExpanded: (v: boolean) => void;
   pathname: string;
-  modifier: SidebarOpenModifier;
   sidebarState: string;
-  onViewClick: (event: MouseEvent, id: string) => void;
 }) {
   const {
     t,
@@ -50,9 +44,7 @@ export function SidebarCategoriesSection({
             key={category.id}
             category={category}
             pathname={pathname}
-            modifier={modifier}
             sidebarState={sidebarState}
-            onViewClick={onViewClick}
           />
         ))}
         {seeMoreCategories.length > 0 && !expanded && sidebarState !== "collapsed"
@@ -75,9 +67,7 @@ export function SidebarCategoriesSection({
               key={category.id}
               category={category}
               pathname={pathname}
-              modifier={modifier}
               sidebarState={sidebarState}
-              onViewClick={onViewClick}
             />
           ))
           : null}

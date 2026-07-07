@@ -3,15 +3,13 @@ import type { CustomProperty, CustomPropertyType } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useDisplayPreferenceSettings, useSidebarOpenModifier } from "../hooks/useAppSettings";
+import { useDisplayPreferenceSettings } from "../hooks/useAppSettings";
 import { TYPE_LABELS, resolvePropertyTypeIcon } from "../lib/propertyFormat";
 import { propertyPreviewSummary } from "../lib/propertyPreview";
 
 import { Badge } from "@/components/ui/badge";
 import { RowCard } from "@/components/ui/card";
 import { CategoryIcon } from "@/lib/icons";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 import { cn } from "@/lib/utils";
 
 interface PropertyPreviewProps {
@@ -101,8 +99,6 @@ export function PropertyPreview({
   const {
     t,
   } = useTranslation();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const {
     data: displayPrefs,
   } = useDisplayPreferenceSettings();
@@ -143,8 +139,9 @@ export function PropertyPreview({
             params={{
               propertySlug: property.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "property", property.id, property.slug)}
+            title={t("View {{name}}", {
+              name: property.name,
+            })}
             className="flex flex-col gap-1 p-4"
           >
             <PropertyPreviewBody

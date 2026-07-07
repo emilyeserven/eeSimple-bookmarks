@@ -3,13 +3,10 @@ import type { BookmarkMediaType } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { MediaTypeHierarchyHoverCard } from "./MediaTypeHierarchyHoverCard";
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
 import { useBuiltInName } from "@/lib/builtInName";
 import { CategoryIcon } from "@/lib/icons";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface MediaTypePillProps {
   mediaType: BookmarkMediaType;
@@ -17,12 +14,10 @@ interface MediaTypePillProps {
   showHierarchyOnHover?: boolean;
 }
 
-/** A clickable pill showing a media type's icon and name. Navigates to the media type page; hold the modifier key to open in the sidebar. */
+/** A clickable pill showing a media type's icon and name. Navigates to the media type page. */
 export function MediaTypePill({
   mediaType, showHierarchyOnHover = false,
 }: MediaTypePillProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const builtInName = useBuiltInName();
   const link = (
     <Link
@@ -30,8 +25,7 @@ export function MediaTypePill({
       params={{
         mediaTypeSlug: mediaType.slug,
       }}
-      title={entityLinkTitle(modifier)}
-      onClick={event => viewClick(event, "media-type", mediaType.id, mediaType.slug)}
+      title={builtInName(mediaType)}
     >
       <Badge
         variant="secondary"

@@ -5,12 +5,9 @@ import { Globe, Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface WebsiteListItemProps {
   website: Website;
@@ -31,9 +28,6 @@ export function WebsiteListItem({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const {
     showImage,
     onError,
@@ -88,10 +82,9 @@ export function WebsiteListItem({
             params={{
               websiteSlug: website.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: website.siteName,
             })}
-            onClick={event => editClick(event, "website", website.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">
@@ -109,8 +102,9 @@ export function WebsiteListItem({
             params={{
               websiteSlug: website.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "website", website.id, website.slug)}
+            title={t("View {{name}}", {
+              name: website.siteName,
+            })}
           >
             <Info className="size-4" />
             <span className="sr-only">

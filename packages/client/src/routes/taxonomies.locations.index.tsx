@@ -1,17 +1,11 @@
-import type { MouseEvent } from "react";
-
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { LocationsListing } from "../components/LocationManager";
-import { usePanelControls } from "../components/panel/usePanelControls";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useLocations } from "../hooks/useLocations";
 
 import { Badge } from "@/components/ui/badge";
-import { NEW_SENTINEL } from "@/lib/drawerSearch";
-import { hasSidebarModifier } from "@/lib/sidebarModifier";
 
 export const Route = createFileRoute("/taxonomies/locations/")({
   component: LocationsTaxonomyPage,
@@ -26,18 +20,9 @@ function LocationsTaxonomyPage() {
     data: allLocations,
   } = useLocations();
   const navigate = useNavigate();
-  const {
-    openItem,
-  } = usePanelControls();
-  const modifier = useSidebarOpenModifier();
 
-  // Normal click → the full create page (geocoding lookup + ancestor chain). Modifier-click opens the
-  // same LocationForm in the right drawer, keeping the drawer and main app at parity.
-  const createLocation = (event?: MouseEvent) => {
-    if (event && hasSidebarModifier(event, modifier)) {
-      openItem("location", NEW_SENTINEL, "edit");
-      return;
-    }
+  // Click → the full create page (geocoding lookup + ancestor chain).
+  const createLocation = () => {
     void navigate({
       to: "/taxonomies/locations/new",
     });

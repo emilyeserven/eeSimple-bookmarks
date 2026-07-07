@@ -2,7 +2,7 @@
 name: toast-notifications
 description: >-
   Wire a page in eeSimple Bookmarks with standardized success/error toasts that are also recorded in
-  the right-panel Notifications log, and convert a Save-button page to debounced auto-save. Use when
+  the Notifications log (the header bell popover), and convert a Save-button page to debounced auto-save. Use when
   asked to "fire a toast when X is saved", "wire a page with success notifications", "drop the Save
   button in favor of auto-save", "record toasts / add a notifications history", or "use the standard
   toast helper". Mirrors how Settings > Homepage was wired.
@@ -17,9 +17,9 @@ Toasts in this app go through two thin pieces, not raw `toast.*`:
   user-meaningful save/create/delete. They're safe to call outside React (e.g. inside a mutation's
   `onSuccess`/`onError`) because they write via `useNotificationStore.getState()`.
 - **The Notifications log** (`packages/client/src/stores/notificationStore.ts`, a persisted Zustand
-  store) — surfaced in the right panel via `NotificationsPanel`
-  (`packages/client/src/components/panel/NotificationsPanel.tsx`), reachable from the panel's
-  "Notifications" tile. Records carry `{ type, message, timestamp }` and show newest-first with a
+  store) — surfaced via the header bell popover
+  (`packages/client/src/components/NotificationsBellPopover.tsx`). Records carry
+  `{ type, message, timestamp }` and show newest-first with a
   formatted date/time. Capped at 100; "Clear all" empties it.
 
 The `<Toaster />` is already mounted once in `routes/-rootLayout.tsx` — don't add another.
@@ -138,9 +138,9 @@ Rules (decided once, applied everywhere):
 - The `lib/form.tsx` field primitives already expose `onBlur` (text/number) and `onValueChange`
   (select/combobox) hooks — wire these, don't fork the primitives.
 
-**Exceptions (keep a Save button):** create flows — create pages, the right-panel create form, and
-inline-create modals — submit explicitly. **Local-only Zustand prefs** (Display/Sidebar/Automations
-settings) stay instant with **no toast** (nothing persists server-side).
+**Exceptions (keep a Save button):** create flows — create pages and inline-create modals — submit
+explicitly. **Local-only Zustand prefs** (Display/Sidebar/Automations settings) stay instant with
+**no toast** (nothing persists server-side).
 
 > **Local-pref vs. server setting — classify first.** The no-toast carve-out is **only** for
 > ephemeral, device-local view prefs in `uiStore`. If a setting must **persist across devices/browsers**,
@@ -150,10 +150,8 @@ settings) stay instant with **no toast** (nothing persists server-side).
 > **Advanced** sidebar-link settings). Misclassifying a should-persist setting as a local pref is how
 > the Advanced page shipped both toast-less and non-syncing.
 
-## Add a new entry point to the Notifications panel (rarely needed)
+## Viewing the Notifications log
 
-The panel content type `"notifications"` is already registered: it lives in the `DrawerContentType`
-union + `DRAWER_CONTENT_TYPES` (`packages/client/src/lib/drawerSearch.ts`), is special-cased in
-`PanelContent.tsx` and `PanelBreadcrumbs.tsx` (it has no per-item view/edit, so it isn't in the
-`PANEL_CONTENT_TYPES` registry), and has its own tile in `PanelTypeTiles.tsx`. To open it
-imperatively from elsewhere, call `usePanelControls().openType("notifications")`.
+The log is surfaced by the header **bell popover** (`packages/client/src/components/NotificationsBellPopover.tsx`),
+mounted once in the app header — no per-page registration is needed. It reads the persisted
+`notificationStore` directly and renders the records newest-first, with a "Clear all" control.

@@ -13,7 +13,7 @@ description: >-
 
 The top app header is responsive (issue: header-responsive-design). On wide screens it shows the
 inline breadcrumb trail + a row of toolbar icons; on small screens (`<md`, 768px — `useIsMobile()`)
-the breadcrumbs stack and **every toolbar action except the right-panel toggle collapses into one
+the breadcrumbs stack and **every collapsible toolbar action folds into one
 "More" menu** with icon + label rows. Any header popover control must therefore work as a **popover
 on desktop and a modal `Dialog` on mobile**, sharing one body — never two copies that drift.
 
@@ -27,7 +27,7 @@ The pieces (all under `packages/client/src/`):
   ordered `ToolbarAction[]`. The array order **is** the button order, applied to both the desktop row
   and the More menu. `ToolbarAction = { key; desktop; mobile }` where `mobile` is a discriminated
   union: `menuItem` (a self-contained `DropdownMenuItem`), `modal` (`{ icon, label, disabled?,
-  renderModal }`), or `standalone` (never collapses — the panel toggle only).
+  renderModal }`), or `standalone` (never collapses into the More menu).
 - **`components/header/HeaderToolbar.tsx`** — `HeaderToolbar` (desktop row vs mobile More menu) and
   the internal `HeaderMoreMenu`, which renders each `modal` control as a **sibling of the dropdown**
   keyed off `activeModal` so the modal survives the dropdown closing.
@@ -52,7 +52,7 @@ The pieces (all under `packages/client/src/`):
    - For a non-popover action (a link / one-shot button) use `mobile: { kind: "menuItem", node:
      <DropdownMenuItem …/> }` instead. For a stateful toggle, add a small component to
      `headerMenuItems.tsx` and reference it as the `node`.
-   - The panel toggle is the only `{ kind: "standalone" }`.
+   - A control that must never fold into the More menu uses `{ kind: "standalone" }`.
 4. **Resolve any new context** the builder needs in `AppHeader` (`routes/-appHeader.tsx`) and pass it
    through the `ToolbarContext` object — keep the resolving hooks in `AppHeader`, not the builder.
 5. **Add a `.stories.tsx`** for the new `*Controls` (and rely on `responsive-popover.stories.tsx` for
@@ -74,4 +74,4 @@ The pieces (all under `packages/client/src/`):
 ## When NOT to use it
 
 - A full create page/route → `add-entity`. A name-only inline create dialog → `inline-create-modal`.
-- The panel toggle, or any control that must never collapse → `{ kind: "standalone" }`.
+- Any control that must never collapse into the More menu → `{ kind: "standalone" }`.

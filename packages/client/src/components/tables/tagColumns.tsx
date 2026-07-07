@@ -9,11 +9,9 @@ import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import i18n from "../../i18n";
 import { LocalizedNameLabel } from "../LocalizedNameLabel";
-import { useViewPanelClick } from "../panel/useEditPanelClick";
 
 /** Column definitions for the Tags listing Table view (a flattened, expandable tree). */
 export function useTagColumns(): ColumnDef<TagNode>[] {
-  const viewClick = useViewPanelClick();
   return useMemo(
     () => [
       {
@@ -37,7 +35,6 @@ export function useTagColumns(): ColumnDef<TagNode>[] {
               title={i18n.t("Browse bookmarks tagged {{name}}", {
                 name: row.original.name,
               })}
-              onClick={event => viewClick(event, "tag", row.original.id, row.original.slug)}
               className="
                 font-medium
                 hover:underline
@@ -53,6 +50,6 @@ export function useTagColumns(): ColumnDef<TagNode>[] {
       },
       bookmarkCountColumn<TagNode>(),
     ],
-    [viewClick],
+    [],
   );
 }

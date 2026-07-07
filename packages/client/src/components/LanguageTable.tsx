@@ -32,7 +32,7 @@ export function LanguageTable({
       data={data}
       sortable
       onRowClick={(language, event) =>
-        rowNav(event, "language", language.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/taxonomies/languages/$languageSlug",
             params: {

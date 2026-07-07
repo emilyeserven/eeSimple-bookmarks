@@ -220,9 +220,7 @@ The top app-bar breadcrumb trail is built in **one place** —
 `packages/client/src/routes/-appHeader.tsx` (`breadcrumbsForPath()` + its helpers). It derives crumbs
 from the **pathname** and enriches them with real entity names resolved via `use*BySlug` hooks. Don't
 render a page-specific breadcrumb anywhere else; route components only set their own `<h1>`/`<h2>`
-title (see **Content hierarchies**), never a header crumb. (The right-panel trail,
-`components/panel/PanelBreadcrumbs.tsx`, is a **separate, intentionally distinct** system — it
-navigates by `onClick` from a `Browse` root rather than by `<Link>`/pathname. Don't merge them.)
+title (see **Content hierarchies**), never a header crumb.
 
 - **Shape:** `List → [ancestors…] → Name → [Section]`. Every crumb except the last is a `<Link>`
   (`BreadcrumbLink asChild`); the last is the current page (`BreadcrumbPage`, non-link).
@@ -279,14 +277,13 @@ that matches the surface — don't invent a new structure for a one-off page.
   path segment. This is the shell for every entity's **Edit** tabs (`…/$slug/edit/<tab>`) and the
   **Settings** page (`routes/settings.tsx`) — **not** the read-only Info page (that is the vertical
   `EntityInfoView` above). The strip (`navStripClass`: `flex items-center gap-1 overflow-x-auto border-b
-  pb-1`) scrolls horizontally when the tabs overflow, so the same component serves the page, mobile, and
-  the panel. (`VerticalTabbedLayout` is the sanctioned **settings-section** pattern — the tabbed
+  pb-1`) scrolls horizontally when the tabs overflow, so the same component serves the page and mobile.
+  (`VerticalTabbedLayout` is the sanctioned **settings-section** pattern — the tabbed
   Display/Automations/Locations/Advanced sections render through it; never use it for a slug-routed
   entity's edit tabs.) A `group` nav entry collapses into a trailing **"More" dropdown** (active state
   resolved via `useMatchRoute`, so it works for both `$slug` and static routes). Each edit tab's body
   comes from the entity's **`EntityWorkbench` descriptor** via `workbench/WorkbenchRouteTab.tsx`
-  (`mode="edit"`); the right panel renders all tabs (view or edit) via `workbench/EntityWorkbenchView.tsx`
-  (horizontal, controlled by `dTab`) — one descriptor for every surface. Each tab body is itself a flat
+  (`mode="edit"`) — one descriptor for every surface. Each tab body is itself a flat
   `LabeledSection` stack.
   - **Hierarchy tab rule:** every taxonomy whose schema row has a `parentId` tree — currently
     **Tags**, **Media Types**, **Locations**, and **Genres & Moods** — gets a view-only **"Hierarchy"**
@@ -331,38 +328,29 @@ that matches the surface — don't invent a new structure for a one-off page.
     `CategoryPreviewCard` (row variant), `BookmarkSearchView`, `HomepageSectionBlock`,
     `CustomPropertyManager`, `AutofillRulesList`.
   - **Settings panels**: use the shadcn `<Card>` with `<CardHeader>`, `<CardContent>`, etc.
-    (`DisplaySettings`, `SidebarSettings`, `AutomationsSettings`, `LinkParsingSettings`,
+    (`DisplaySettings`, `AutomationsSettings`, `LinkParsingSettings`,
     `HomepageSectionsSettings`).
-- **URL-driven right panel** (`packages/client/src/components/panel/` — `RightPanel.tsx`,
-  `PanelContent.tsx`, `contentTypes.tsx`) — URL-driven (`dOpen`/`dCT`/`dCId`/`dMode`/`dTab`):
-  content-type tiles → searchable list → view/edit (`dTab` = active tab within a multi-tab entity).
-  It must achieve **feature and component parity** with the main app: a single item viewed/edited in
-  the panel renders the **exact same view/edit bodies and the same tabbed shell** the main-app pages
-  render — never a panel-only variant.
+- **Entity view/edit = the `EntityWorkbench` descriptor** (the URL-driven right drawer/panel was
+  removed in issue #1108 — there is no more `components/panel/`, `drawerSearch`, `dOpen`/`dCT`/…
+  params, or `useEditPanelClick`/`usePanelControls`; every affordance now just navigates to the full
+  page).
   - **One source of truth per entity = its `EntityWorkbench` descriptor** (`components/workbench/<entity>.tsx`,
     typed by `workbench/types.ts`). The descriptor lists the entity's tabs, each with a `view` and/or
-    `edit` `WorkbenchPane` (title + description + a body component), the load hooks (`useBySlug` for
-    routes, `useById` for the panel), `name`/`isBuiltIn`/`canDelete`, and a `useDelete` control. **Both**
-    surfaces render from it: the main pane via `WorkbenchRouteTab` (one tab per route, selected by the
-    router `<Outlet/>`) and the right panel via `EntityWorkbenchView` (all tabs with a controlled
-    active tab, driven by `dTab`), wrapped for the drawer by `panel/EntityWorkbenchPanel.tsx`. So the
-    view bodies, the edit forms (the auto-save `*GeneralForm`/per-tab forms), and the responsive
-    `TabbedShell` are all shared — add/rename a tab in exactly one place. **Never** reintroduce a
-    panel-only `*Row` inline editor, a panel-only view card (`*Card`/`TagViewInfo`), or the monolithic
-    submit **create** form for edit. **Create** flows (the panel's `NEW_SENTINEL` path, inline-create
-    modals) keep their submit form — `CreateAutofillRule` / `TagCreateForm` / `PropertyForm` /
-    `BookmarkForm` stay submit-driven for create only.
+    `edit` `WorkbenchPane` (title + description + a body component), the load hook (`useBySlug`),
+    `name`/`isBuiltIn`/`canDelete`, and a `useDelete` control. The main pane renders it via
+    `WorkbenchRouteTab` (one tab per route, selected by the router `<Outlet/>`). So the view bodies,
+    the edit forms (the auto-save `*GeneralForm`/per-tab forms), and the responsive `TabbedShell` are
+    all shared — add/rename a tab in exactly one place. **Never** reintroduce an inline `*Row` editor,
+    a `*Card`/`TagViewInfo` view card, or the monolithic submit **create** form for edit. **Create**
+    flows (inline-create modals) keep their submit form — `CreateAutofillRule` / `TagCreateForm` /
+    `PropertyForm` / `BookmarkForm` stay submit-driven for create only.
   - **The shared tabbed shell is `components/TabbedShell.tsx`** — a horizontal, scrollable tab strip
-    (`navStripClass`) above the active body, on every surface (full-width page, phone, and the right
-    drawer); the strip scrolls horizontally when the tabs overflow. Both the main-pane
-    `TabbedEntityLayout` and the panel's `EntityWorkbenchView` render through it, so the panel is
-    tab-for-tab identical to the page and the main pane is mobile-friendly for free. A single-tab (or
-    tab-less) surface drops the nav strip.
-  - **Bookmarks are the one asymmetric case:** a bookmark's *view* is one rich component
-    (`BookmarkDetail`, shared by the detail page and the panel View directly, not via the workbench),
-    while its *edit* is tabbed via a **panel-only** `bookmarkEditWorkbench` (the main-app bookmark edit
-    tabs stay router-driven). The relationships pane resolves its surface-specific "done" through
-    `usePanelControls`.
+    (`navStripClass`) above the active body, on every surface (full-width page and phone); the strip
+    scrolls horizontally when the tabs overflow, so the main pane is mobile-friendly for free. A
+    single-tab (or tab-less) surface drops the nav strip.
+  - **Bookmarks are asymmetric:** a bookmark's *view* is one rich component (`BookmarkDetail`, shared
+    by the detail page directly, not via the workbench), while its *edit* is the router-driven bookmark
+    edit tabs.
 
 ## Large-form / over-cap decomposition
 
@@ -401,7 +389,9 @@ group seams rather than growing it inline.
 Every slug-routed entity **edit** tab (Categories, Custom Properties, Websites, Media Types, YouTube
 Channels, Tags, Property Groups, Autofill) **auto-saves per field — there is no Save button.** Each
 field persists on its own and fires a toast that **names the field** and is recorded in the
-right-panel Notifications log. The single implementation is `hooks/useFieldAutoSave.ts` (the
+Notifications log (the header **bell popover**, `components/NotificationsBellPopover.tsx`, over the
+`notificationStore` — this is the history home since the right drawer was removed in issue #1108).
+The single implementation is `hooks/useFieldAutoSave.ts` (the
 `saveField` engine: single-field PATCH, deep-equal no-op skip, invalid skip, success-only snapshot
 advance) + `lib/autoSave.ts` (`notifyFieldSaved` / `notifyFieldSaveError` wording). **Reference:
 `components/CategoryGeneralForm.tsx`.** The full recipe + rules live in the **`toast-notifications`**
@@ -438,13 +428,15 @@ skill — consult it before building or changing an edit tab. In short:
   persists server-side it **does** fire a specific, recorded toast on save like any other persisted
   setting. The **Display / Sidebar (Drawer) / Automations** settings pages were migrated this way
   (issue #410, mirroring the **Advanced** Coolify/docs/Storybook fix): the sidebar-visibility lists,
-  auto-fetch + open-in-drawer modifier, bookmark-detail media sizing/layout, the listing search-box
-  pin (`searchBoxPinned`), drawer pin/breakpoints, and the built-in Cropped W/H are server-backed groups
+  auto-fetch, bookmark-detail media sizing/layout, the listing search-box
+  pin (`searchBoxPinned`), and the built-in Cropped W/H are server-backed groups
   (`/api/app-settings/{sidebar-customization,automation,display-preferences}`), read via convenience
-  hooks (`useSidebarOpenModifier`, `useCroppedWidth`, …) and written with a `notifySuccess` toast —
-  **including the inline popovers** that set the same prefs (panel-pin,
-  detail-layout) and the on-blur Cropped W/H inputs. Don't misclassify a should-persist setting as a
-  local pref: that's exactly what shipped those pages toast-less (and non-syncing) before the move.
+  hooks (`useCroppedWidth`, …) and written with a `notifySuccess` toast —
+  **including the inline popovers** that set the same prefs (detail-layout) and the on-blur Cropped
+  W/H inputs. Don't misclassify a should-persist setting as a local pref: that's exactly what shipped
+  those pages toast-less (and non-syncing) before the move. (The `panelPinned`/
+  `drawerUnpinnedBreakpoints`/`sidebarOpenModifier` keys of these groups are dormant orphans left over
+  from the removed right drawer — issue #1108.)
 
 ## Data shaping: middleware vs. client
 

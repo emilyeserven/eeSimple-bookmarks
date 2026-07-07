@@ -4,12 +4,9 @@ import { Link } from "@tanstack/react-router";
 import { Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { useBuiltInName } from "@/lib/builtInName";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface MediaTypeTreeListProps {
   /** The root media types to render. */
@@ -29,9 +26,6 @@ export function MediaTypeTreeList({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const builtInName = useBuiltInName();
 
   return (
@@ -66,10 +60,9 @@ export function MediaTypeTreeList({
           aria-label={t("Edit {{name}}", {
             name: node.name,
           })}
-          title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-            modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+          title={t("Edit {{name}}", {
+            name: node.name,
           })}
-          onClick={event => editClick(event, "media-type", node.id)}
         >
           <Pencil className="size-4" />
         </Link>
@@ -83,8 +76,9 @@ export function MediaTypeTreeList({
           aria-label={t("View {{name}}", {
             name: node.name,
           })}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "media-type", node.id, node.slug)}
+          title={t("View {{name}}", {
+            name: node.name,
+          })}
         >
           <Info className="size-4" />
         </Link>

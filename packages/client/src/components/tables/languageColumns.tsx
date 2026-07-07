@@ -8,14 +8,12 @@ import { Languages } from "lucide-react";
 import { EditActionCell } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { languageName } from "@/lib/builtInName";
 
 /** Column definitions for the Languages listing Table view. */
 export function useLanguageColumns(): ColumnDef<Language>[] {
-  const editClick = useEditPanelClick();
   return useMemo(
     () => [
       {
@@ -69,11 +67,10 @@ export function useLanguageColumns(): ColumnDef<Language>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "language", row.original.id)}
           />
         ),
       },
     ],
-    [editClick],
+    [],
   );
 }

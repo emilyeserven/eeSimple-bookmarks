@@ -4,11 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { Info, Layers, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /**
  * A single row in the property-group listing. Exception to the standard: a property group has no
@@ -31,9 +27,6 @@ export function PropertyGroupListItem({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
 
   return (
     <StandardListingCard
@@ -53,8 +46,9 @@ export function PropertyGroupListItem({
           params={{
             propertyGroupSlug: group.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "property-group", group.id, group.slug)}
+          title={t("View {{name}}", {
+            name: group.name,
+          })}
           className={className}
         >
           {children}
@@ -67,10 +61,9 @@ export function PropertyGroupListItem({
             params={{
               propertyGroupSlug: group.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: group.name,
             })}
-            onClick={event => editClick(event, "property-group", group.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">
@@ -88,8 +81,9 @@ export function PropertyGroupListItem({
             params={{
               propertyGroupSlug: group.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "property-group", group.id, group.slug)}
+            title={t("View {{name}}", {
+              name: group.name,
+            })}
           >
             <Info className="size-4" />
             <span className="sr-only">

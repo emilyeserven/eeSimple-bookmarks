@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 /**
  * Shared styling for a tab nav item, used by the router-driven `TabbedEntityLayout` (main pane +
- * Settings), the controlled `EntityWorkbenchView` (right panel), and `BookmarkDetailTabbed`.
+ * Settings) and `BookmarkDetailTabbed`.
  * `whitespace-nowrap` keeps labels on one line so the horizontal strip scrolls instead of wrapping.
  */
 export const navLinkClass = `
