@@ -297,6 +297,8 @@ export function useBookmarkFormController({
     socialAccountOffer: ui.socialAccountOffer,
     setSocialAccountOffer: ui.setSocialAccountOffer,
     createPersonFromSocialAccount,
+    // The coarse content kind the last scan detected, for the "Detected content type" badge.
+    detectedContentKind: ui.detectedContentKind,
     // "Set as default" context for the source-default checkboxes (rendered under their fields).
     sourceDefaults,
     // Auto-filled tracking (create-only) — lifts automation-filled fields into the main area.

@@ -7,9 +7,10 @@ import type { useAutofilledFields, useBookmarkFormUiState, useSourceDefaultFlags
 import type { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import type { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
 import type { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
-import type { Bookmark, CreateBookmarkInput, ScanResult } from "@eesimple/types";
+import type { Bookmark, BookmarkContentKind, CreateBookmarkInput, ScanResult } from "@eesimple/types";
 import type { KeyboardEvent } from "react";
 
+import { contentKindToMediaTypeName } from "@eesimple/types";
 import { useStore } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -391,6 +392,19 @@ export function useBookmarkFormHandlers({
   // YouTube/oEmbed enrichment). Autofill, the website lookup, and the duplicate check run alongside.
   // `revealing` is the explicit "Check URL" action — it always fills the title and reveals the rest
   // of the form; on later blurs the title fill honours the autoFetchTitle setting.
+  // Pre-select the built-in Media Type a detected content kind maps to, but only when the field is
+  // still empty (never clobbers a manual pick or a website default). Marks it auto-filled so the
+  // "reveal auto-filled in main" setting can lift it. Create-form only, like the rest of the scan flow.
+  function applyDetectedMediaType(kind: BookmarkContentKind): void {
+    if ((form.getFieldValue("mediaTypeId") as string).trim() !== "") return;
+    const name = contentKindToMediaTypeName(kind);
+    if (!name) return;
+    const match = mediaTypes?.find(mt => mt.name === name);
+    if (!match) return;
+    form.setFieldValue("mediaTypeId", match.id);
+    autofilled.markAutofilledField("mediaTypeId");
+  }
+
   async function performUrlScan({
     revealing,
   }: { revealing: boolean }): Promise<void> {
@@ -439,11 +453,19 @@ export function useBookmarkFormHandlers({
       }, {
         onSuccess: setUrlDuplicate,
       });
+      ui.setDetectedContentKind(scan?.detectedContentKind ?? null);
       if (scan) {
         setImageCandidates(scan.imageCandidates);
         if (scan.imageCandidates.length > 0) autofilled.markAutofilledField("image");
         if (scan.isbn) {
           await handleAmazonIsbnDetected(scan.isbn);
+        }
+        // Pre-select the matching built-in Media Type when the field is still empty (mirrors the
+        // ISBN→Book default), so the detected content kind is actionable, not just informational.
+        // Skipped when the website carries its own default media type — that default should win, as it
+        // does server-side (user-provided > website default > detection), and pre-filling would clobber it.
+        if (scan.detectedContentKind && !scan.website.mediaTypeId) {
+          applyDetectedMediaType(scan.detectedContentKind);
         }
         await applyScanMetadata(finalUrl, scan, {
           fillTitle,

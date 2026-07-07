@@ -1,19 +1,38 @@
 import type {
+  BookmarkAddFormAdvancedRule,
   BookmarkAddFormPlacement,
   BookmarkAddFormSettings,
   BookmarkAddFormStandardField,
   CustomProperty,
   UpdateCustomPropertyInput,
 } from "@eesimple/types";
+import type { LucideIcon } from "lucide-react";
 
-import { BOOKMARK_FORM_DETAIL_SLUGS } from "@eesimple/types";
+import { BOOKMARK_FORM_DETAIL_SLUGS, makeEmptyAdvancedRule } from "@eesimple/types";
+import {
+  Ban,
+  CaseSensitive,
+  Clapperboard,
+  Drama,
+  Film,
+  FolderOpen,
+  Image,
+  MapPin,
+  MapPinOff,
+  Tags,
+  Type,
+  UserRound,
+  Users,
+} from "lucide-react";
 
 import {
   useBookmarkAddFormConfig,
   useUpdateBookmarkAddFormSettings,
 } from "./useAppSettings";
+import { useCategories } from "./useCategories";
 import { useCustomProperties, useUpdateCustomProperty } from "./useCustomProperties";
 import { usePropertyGroups } from "./usePropertyGroups";
+import { useTagTree } from "./useTags";
 import { useTranslatedLabel } from "./useTranslatedLabel";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -32,6 +51,23 @@ export const BOOKMARK_ADD_FORM_STANDARD_LABELS: Record<BookmarkAddFormStandardFi
   mediaLink: "Media (Book/Movie/TV…)",
   blacklistedTagIds: "Excluded Tags",
   blacklistedLocationIds: "Excluded Locations",
+};
+
+/** A distinct lucide icon per standard field (shared by the settings card and the advanced-rule editor). */
+export const STANDARD_FIELD_ICONS: Record<BookmarkAddFormStandardField, LucideIcon> = {
+  title: Type,
+  names: CaseSensitive,
+  categoryId: FolderOpen,
+  mediaTypeId: Clapperboard,
+  descriptionTags: Tags,
+  personIds: UserRound,
+  image: Image,
+  groupIds: Users,
+  genreMoodIds: Drama,
+  locationIds: MapPin,
+  mediaLink: Film,
+  blacklistedTagIds: Ban,
+  blacklistedLocationIds: MapPinOff,
 };
 
 /** A built-in detail property row: its slug, resolved display label, and current placement. */
@@ -112,6 +148,12 @@ export function useBookmarkAddFormSettingsPage() {
   const {
     data: groups,
   } = usePropertyGroups();
+  const {
+    data: categories = [],
+  } = useCategories();
+  const {
+    data: tagTree = [],
+  } = useTagTree();
   const updateProperty = useUpdateCustomProperty();
 
   const allProperties = properties ?? [];
@@ -174,6 +216,34 @@ export function useBookmarkAddFormSettingsPage() {
     });
   }
 
+  /** Persist a new advanced-rules array (the whole settings payload), with the shared section toast. */
+  function persistAdvancedRules(advancedRules: BookmarkAddFormAdvancedRule[]): void {
+    persistSettings({
+      ...config,
+      advancedRules,
+    }, tLabel("Advanced rules"));
+  }
+
+  function addAdvancedRule(): void {
+    const nextSortOrder = config.advancedRules.reduce((max, rule) => Math.max(max, rule.sortOrder), 0) + 1;
+    persistAdvancedRules([...config.advancedRules, makeEmptyAdvancedRule(crypto.randomUUID(), nextSortOrder)]);
+  }
+
+  function updateAdvancedRule(id: string, patch: Partial<BookmarkAddFormAdvancedRule>): void {
+    persistAdvancedRules(config.advancedRules.map(rule => (rule.id === id
+      ? {
+        ...rule,
+        ...patch,
+      }
+      : rule)));
+  }
+
+  function deleteAdvancedRule(id: string): void {
+    persistAdvancedRules(config.advancedRules.filter(rule => rule.id !== id));
+  }
+
+  const advancedRules = [...config.advancedRules].sort((a, b) => a.sortOrder - b.sortOrder);
+
   const detailProperties: DetailPropertyRow[] = BOOKMARK_FORM_DETAIL_SLUGS.map((slug) => {
     const property = allProperties.find(p => p.slug === slug);
     return {
@@ -210,5 +280,14 @@ export function useBookmarkAddFormSettingsPage() {
     setCustomPropertyPlacement,
     detailProperties,
     customProperties,
+    // Advanced Rules — conditional placement overrides.
+    advancedRules,
+    addAdvancedRule,
+    updateAdvancedRule,
+    deleteAdvancedRule,
+    // Data for the rule editor's embedded ConditionsField.
+    conditionCategories: categories,
+    conditionProperties: allProperties,
+    conditionTagTree: tagTree,
   };
 }

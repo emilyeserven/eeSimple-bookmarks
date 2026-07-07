@@ -30,6 +30,7 @@ import { RevealedCustomFields } from "./RevealedCustomFields";
 import { RevealedNameField } from "./RevealedNameField";
 import { RevealedUrlCleanupSection } from "./RevealedUrlCleanupSection";
 import { RevealedWebsiteBanner } from "./RevealedWebsiteBanner";
+import { useBookmarkAddFormEffectiveConfig } from "../hooks/useBookmarkAddFormEffectiveConfig";
 import { useBookmarkAddFormVisibility } from "../hooks/useBookmarkAddFormVisibility";
 
 type WebsiteLookupResult = ReturnType<typeof useWebsiteLookup>;
@@ -144,10 +145,27 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
   // A coordinator: each conditional region is delegated to a `Revealed*` sub-component that picks
   // the slice of props it needs. Passing the whole bag keeps this function flat and low-complexity;
   // only the few props that need renaming for a leaf component are spelled out below.
+  // The create-form config with its Advanced Rules resolved against the live form state (a no-op in
+  // edit mode or when no rules exist). Fed into the visibility resolver so conditional placement
+  // overrides take effect as the user fills the form.
+  const effectiveConfig = useBookmarkAddFormEffectiveConfig(
+    props.form,
+    {
+      numberInputs: props.numberInputs,
+      booleanInputs: props.booleanInputs,
+      dateTimeInputs: props.dateTimeInputs,
+      choicesInputs: props.choicesInputs,
+      progressInputs: props.progressInputs,
+      sectionsInputs: props.sectionsInputs,
+      textInputs: props.textInputs,
+    },
+    props.customProperties,
+    props.isEdit ?? false,
+  );
   const {
     mainStandardFields, advancedStandardFields, mainHiddenSlugs, advancedHiddenSlugs, placementOverrides,
     revealAutofilledInMain,
-  } = useBookmarkAddFormVisibility(props.isEdit ?? false, props.autofilledFields);
+  } = useBookmarkAddFormVisibility(props.isEdit ?? false, props.autofilledFields, effectiveConfig);
 
   // The whole render-props bag the standard-field components need. Threaded into every zone.
   const renderProps: StandardFieldRenderProps = {

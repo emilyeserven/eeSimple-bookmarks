@@ -1,31 +1,17 @@
-import type { BookmarkAddFormStandardField } from "@eesimple/types";
 import type { LucideIcon } from "lucide-react";
 
 import { useState } from "react";
 
 import { BOOKMARK_ADD_FORM_PLACEMENTS, BOOKMARK_ADD_FORM_STANDARD_FIELDS } from "@eesimple/types";
-import {
-  Ban,
-  CaseSensitive,
-  Clapperboard,
-  Drama,
-  Eye,
-  Film,
-  FolderOpen,
-  Image,
-  MapPin,
-  MapPinOff,
-  Tags,
-  Type,
-  Users,
-  UserRound,
-} from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { BookmarkAddFormAdvancedRuleEditor } from "./BookmarkAddFormAdvancedRuleEditor";
 import { BookmarkAddFormPreviewDialog } from "./BookmarkAddFormPreviewDialog";
 import { SegmentedToggleRow } from "./SegmentedToggleRow";
 import {
   BOOKMARK_ADD_FORM_STANDARD_LABELS,
+  STANDARD_FIELD_ICONS,
   standardFieldPlacement,
   useBookmarkAddFormSettingsPage,
 } from "../hooks/useBookmarkAddFormSettingsPage";
@@ -41,23 +27,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
-
-/** A distinct lucide icon per standard field. */
-const STANDARD_FIELD_ICONS: Record<BookmarkAddFormStandardField, LucideIcon> = {
-  title: Type,
-  names: CaseSensitive,
-  categoryId: FolderOpen,
-  mediaTypeId: Clapperboard,
-  descriptionTags: Tags,
-  personIds: UserRound,
-  image: Image,
-  groupIds: Users,
-  genreMoodIds: Drama,
-  locationIds: MapPin,
-  mediaLink: Film,
-  blacklistedTagIds: Ban,
-  blacklistedLocationIds: MapPinOff,
-};
 
 function fieldIcon(Icon: LucideIcon) {
   return <Icon className="size-3.5 shrink-0 text-muted-foreground" />;
@@ -80,6 +49,13 @@ export function DisplayBookmarkAddSettings() {
     setCustomPropertyPlacement,
     detailProperties,
     customProperties,
+    advancedRules,
+    addAdvancedRule,
+    updateAdvancedRule,
+    deleteAdvancedRule,
+    conditionCategories,
+    conditionProperties,
+    conditionTagTree,
   } = useBookmarkAddFormSettingsPage();
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -214,6 +190,43 @@ export function DisplayBookmarkAddSettings() {
           {customProperties.length === 0 && (
             <p className="text-sm text-muted-foreground">{t("No custom properties yet.")}</p>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Advanced Rules")}</CardTitle>
+          <CardDescription>
+            {t(
+              "Override where fields appear based on the bookmark being added. When a rule's conditions match (e.g. the detected Media Type is Book), its fields move to Default, Advanced, or Hidden — overriding the placements above. Rules apply in order; a later matching rule wins a field. Create form only.",
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {advancedRules.map(rule => (
+            <BookmarkAddFormAdvancedRuleEditor
+              key={rule.id}
+              rule={rule}
+              detailProperties={detailProperties}
+              customProperties={customProperties}
+              categories={conditionCategories}
+              properties={conditionProperties}
+              tagTree={conditionTagTree}
+              onChange={patch => updateAdvancedRule(rule.id, patch)}
+              onDelete={() => deleteAdvancedRule(rule.id)}
+            />
+          ))}
+          {advancedRules.length === 0 && (
+            <p className="text-sm text-muted-foreground">{t("No advanced rules yet.")}</p>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addAdvancedRule}
+          >
+            <Plus className="size-4" />
+            {t("Add rule")}
+          </Button>
         </CardContent>
       </Card>
 

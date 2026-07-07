@@ -5,6 +5,7 @@
  * (`@eesimple/client`) so the wire contract stays in one place.
  */
 
+import type { BookmarkContentKind } from "./bookmarkContentKind.js";
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { EntityName, UpdateEntityNameEntry } from "./entityNames.js";
@@ -20,6 +21,7 @@ export * from "./autofillMerge.js";
 export * from "./albums.js";
 export * from "./amazon.js";
 export * from "./bookmarkAddForm.js";
+export * from "./bookmarkContentKind.js";
 export * from "./honto.js";
 export * from "./books.js";
 export * from "./entityNames.js";
@@ -3006,6 +3008,12 @@ export interface ScanResult {
   languageCode: string | null;
   /** The social-media account `finalUrl` points at (Instagram/X/…), or `null`. Pure of `finalUrl`. */
   socialAccount: SocialAccountRef | null;
+  /**
+   * Coarse content kind derived from the scan's own signals (YouTube video / book / social account),
+   * for the create form's "Detected content type" badge and the media-type pre-select. `null` when
+   * nothing more specific than a generic web link is detected.
+   */
+  detectedContentKind: BookmarkContentKind | null;
   /**
    * A checksum-valid ISBN-13 extracted from an Amazon product URL's ASIN, or `null`. Pure of
    * `finalUrl` (no HTTP call) — the client resolves book metadata via the existing ISBN pipeline.

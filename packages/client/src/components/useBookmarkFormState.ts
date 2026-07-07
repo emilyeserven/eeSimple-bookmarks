@@ -1,4 +1,4 @@
-import type { BookmarkAddFormStandardField, BookmarkUrlDuplicateResult, SocialAccountRef } from "@eesimple/types";
+import type { BookmarkAddFormStandardField, BookmarkContentKind, BookmarkUrlDuplicateResult, SocialAccountRef } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
@@ -104,6 +104,9 @@ export function useBookmarkFormUiState({
   // The social account a scanned social-network URL points at, with no existing person — drives the
   // "Create person from this account" offer banner. Null when matched or not a social URL.
   const [socialAccountOffer, setSocialAccountOffer] = useState<SocialAccountRef | null>(null);
+  // The coarse content kind the last scan detected (YouTube video / book / social account), shown as
+  // a "Detected content type" badge once the form is revealed. Null when nothing specific is detected.
+  const [detectedContentKind, setDetectedContentKind] = useState<BookmarkContentKind | null>(null);
   // When the fetch-title button overwrites a non-empty title, record the previous value so the
   // banner can offer an undo. Cleared when the user manually edits the title field.
   const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
@@ -128,6 +131,7 @@ export function useBookmarkFormUiState({
   function resetUiState(): void {
     setWebsiteSiteName("");
     setSocialAccountOffer(null);
+    setDetectedContentKind(null);
     setScanned(false);
     setUrlDuplicate(null);
     setAutofillOfferDismissed(false);
@@ -152,6 +156,8 @@ export function useBookmarkFormUiState({
     setWebsiteSiteName,
     socialAccountOffer,
     setSocialAccountOffer,
+    detectedContentKind,
+    setDetectedContentKind,
     titleFetch,
     setTitleFetch,
     scanned,

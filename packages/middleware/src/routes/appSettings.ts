@@ -233,6 +233,30 @@ const placementMap = {
     enum: [...BOOKMARK_ADD_FORM_PLACEMENTS],
   },
 } as const;
+// One conditional placement override: a condition tree (shared `conditionTree#` schema) plus two
+// sparse placement maps. Kept optional on the body so older clients that don't send `advancedRules`
+// still validate.
+const advancedRuleSchema = {
+  type: "object",
+  required: ["id", "conditions", "standardFieldPlacements", "propertyPlacements", "sortOrder"],
+  additionalProperties: false,
+  properties: {
+    id: {
+      type: "string",
+    },
+    name: {
+      type: "string",
+    },
+    conditions: {
+      $ref: "conditionTree#",
+    },
+    standardFieldPlacements: placementMap,
+    propertyPlacements: placementMap,
+    sortOrder: {
+      type: "number",
+    },
+  },
+} as const;
 const bookmarkAddFormBody = {
   type: "object",
   required: ["standardFieldPlacements", "builtInPropertyPlacements"],
@@ -242,6 +266,10 @@ const bookmarkAddFormBody = {
     builtInPropertyPlacements: placementMap,
     revealAutofilledInMain: {
       type: "boolean",
+    },
+    advancedRules: {
+      type: "array",
+      items: advancedRuleSchema,
     },
   },
 } as const;

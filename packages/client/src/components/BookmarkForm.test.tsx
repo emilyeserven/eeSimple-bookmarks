@@ -66,6 +66,7 @@ function emptyScan(url: string): ScanResult {
     languageCode: null,
     socialAccount: null,
     isbn: null,
+    detectedContentKind: null,
     faviconUrl: null,
   };
 }
@@ -188,6 +189,9 @@ vi.mock("../hooks/useAutofill", () => ({
 }));
 vi.mock("../hooks/useTags", () => ({
   useTagTree: () => ({
+    data: [],
+  }),
+  useTags: () => ({
     data: [],
   }),
 }));

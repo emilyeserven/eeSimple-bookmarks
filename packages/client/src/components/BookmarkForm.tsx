@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import { Brush, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { BookmarkDetectedTypeBadge } from "./BookmarkDetectedTypeBadge";
 import { bookmarkInputHint } from "./bookmarkFormSchema";
 import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
 import { BookmarkUrlResolveFeedback } from "./BookmarkUrlResolveFeedback";
@@ -106,6 +107,11 @@ export function BookmarkForm({
               : null;
           }}
         </form.Subscribe>
+      )}
+
+      {/* Once revealed, show what kind of content the scan detected (YouTube video / book / social). */}
+      {c.scanned && !c.isEdit && (
+        <BookmarkDetectedTypeBadge kind={c.detectedContentKind} />
       )}
 
       {c.urlResolveError && (
