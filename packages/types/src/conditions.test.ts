@@ -4,6 +4,7 @@ import { test } from "node:test";
 import type { ConditionInput, ConditionNode } from "./conditions.js";
 
 import {
+  buildLocationDescendants,
   buildTagDescendants,
   emptyConditionTree,
   evaluateConditions,
@@ -728,4 +729,89 @@ test("buildTagDescendants is inclusive and tolerates cycles", () => {
   const descendants = resolve("a");
   assert.equal(descendants.has("a"), true);
   assert.equal(descendants.has("b"), true);
+});
+
+test("location matches an exact id, and cascades to descendants via the resolver", () => {
+  const locations = [
+    {
+      id: "country",
+      parentId: null,
+    },
+    {
+      id: "region",
+      parentId: "country",
+    },
+    {
+      id: "city",
+      parentId: "region",
+    },
+  ];
+  const resolve = buildLocationDescendants(locations);
+  const input = makeInput({
+    locationIds: new Set(["city"]),
+  });
+
+  // Without a resolver, only the exact id matches.
+  assert.equal(evaluateConditions({
+    type: "location",
+    locationIds: ["country"],
+  }, input), false);
+  // With cascade, selecting the country matches a descendant city.
+  assert.equal(evaluateConditions({
+    type: "location",
+    locationIds: ["country"],
+  }, input, {
+    locationDescendants: resolve,
+  }), true);
+  // The exact id still matches with the resolver present.
+  assert.equal(evaluateConditions({
+    type: "location",
+    locationIds: ["city"],
+  }, input, {
+    locationDescendants: resolve,
+  }), true);
+  // Empty list never matches.
+  assert.equal(evaluateConditions({
+    type: "location",
+    locationIds: [],
+  }, input, {
+    locationDescendants: resolve,
+  }), false);
+});
+
+test("nested groups recurse: an inner group is one child of an outer group", () => {
+  const urlMatch: ConditionNode = {
+    type: "match",
+    field: "url",
+    operator: "contains",
+    pattern: "example",
+  };
+  const titleMiss: ConditionNode = {
+    type: "match",
+    field: "title",
+    operator: "contains",
+    pattern: "nope",
+  };
+  const titleMatch: ConditionNode = {
+    type: "match",
+    field: "title",
+    operator: "contains",
+    pattern: "example",
+  };
+
+  // Inner AND fails (titleMiss), but the sibling leaf makes the outer OR pass.
+  assert.equal(
+    evaluateConditions(group([group([urlMatch, titleMiss], "and"), urlMatch], "or"), makeInput()),
+    true,
+  );
+  // Inner AND passes (both children match), so the outer AND passes too.
+  assert.equal(
+    evaluateConditions(group([group([urlMatch, titleMatch], "and"), urlMatch], "and"), makeInput()),
+    true,
+  );
+  // Inner AND fails and it is the only child of an outer AND — the whole tree fails.
+  assert.equal(
+    evaluateConditions(group([group([urlMatch, titleMiss], "and")], "and"), makeInput()),
+    false,
+  );
 });
