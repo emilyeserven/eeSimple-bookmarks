@@ -61,6 +61,15 @@ const BUILT_IN_RELATIONSHIP_TYPES: BuiltInRelationshipType[] = [
     name: "Opposite",
     directional: false,
   },
+  {
+    // "About" is directional with the subject (the media item) stored as the parent — the #1075
+    // backfill converts each `bookmarks.{bookId..podcastId}` link into an About edge from the
+    // referring bookmark (child) to the media-item bookmark (parent), the generic form of the
+    // #1057 "Analysis of" example. Kept distinct from Parent/child so it stays separately
+    // filterable and doesn't pollute the Franchise hierarchy view.
+    name: "About",
+    directional: true,
+  },
 ];
 
 /** Map a DB row (plus optional precomputed counts) to the shared `RelationshipType` wire type. */

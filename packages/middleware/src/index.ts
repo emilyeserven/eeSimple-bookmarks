@@ -15,6 +15,7 @@ import { resetStalledReelArchiveJobs } from "@/services/reelArchive";
 import { ensureImportRuleSlugs } from "@/services/importRules";
 import { backfillImageCropModes, ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
+import { backfillMediaTaxonomiesIntoBookmarks } from "@/services/mediaMigration";
 import { ensureBuiltInLanguages } from "@/services/languages";
 import { backfillLanguageUsageLevelSlugs, ensureBuiltInLanguageUsageLevels } from "@/services/languageUsageLevels";
 import { backfillTranslationSourceSlugs, ensureBuiltInTranslationSources } from "@/services/translationSources";
@@ -114,6 +115,13 @@ try {
   // name/title + `romanized_name` with script detection, after every owner's base name/slug is
   // populated and the Primary Language usage level is seeded. Re-runs insert nothing.
   await backfillEntityNames();
+  // One-time, idempotent (#1075): materialize each media-taxonomy row (books/movies/tv_shows/
+  // episodes/albums/tracks/podcasts + media_properties) into a bookmark carrying its identity,
+  // names, images, and polymorphic layers, and convert the media FK links + parent links + franchise
+  // groupings into `bookmark_relationships` edges. Runs after the built-in media types (Movie/TV
+  // Show/…/Franchise), relationship types (Parent/child, About), languages, and entity names are all
+  // seeded above; gated on a per-bookmark `migration_source` marker so a re-run is a no-op.
+  await backfillMediaTaxonomiesIntoBookmarks();
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
   // previous is-homepage / homepage-tags mechanism on first boot.
   await ensureAutofillConditions();
