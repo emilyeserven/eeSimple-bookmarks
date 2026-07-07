@@ -1,7 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, type PgColumnBuilderBase, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { TAXONOMY_IMAGE_OWNER_TYPES } from "@eesimple/types";
-import type { BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -343,6 +343,9 @@ export const websites = pgTable("websites", {
   faviconAutoGrabError: text("favicon_auto_grab_error"),
   // Social media profile links (X, Instagram, Facebook, …). NOT NULL; pre-applied in migrate.ts.
   socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
+  // Labeled websites/links (freeform label + URL, optionally a Websites-taxonomy ref). NOT NULL;
+  // pre-applied in migrate.ts.
+  labeledWebsites: jsonb("labeled_websites").$type<LabeledWebsite[]>().notNull().default(sql`'[]'::jsonb`),
   // Extra names this site appends to bookmark titles (e.g. "GH" for GitHub). Used to strip title
   // suffixes during metadata fetch, mirroring YouTube channel selfIds. Nullable (push-safe additive).
   alternateNames: jsonb("alternate_names").$type<string[]>(),
@@ -601,16 +604,15 @@ export const groups = pgTable("groups", {
   slug: text("slug"),
   // Free-text description surfaced on the group's detail page.
   description: text("description"),
-  // Optional link to an existing website entry. set null when the website is deleted.
-  websiteId: uuid("website_id").references((): AnyPgColumn => websites.id, {
-    onDelete: "set null",
-  }),
   // Optional classifying group type. set null when the group type is deleted. Nullable → push-safe.
   groupTypeId: uuid("group_type_id").references((): AnyPgColumn => groupTypes.id, {
     onDelete: "set null",
   }),
   // Social media profile links. NOT NULL; pre-applied in migrate.ts.
   socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
+  // Labeled websites/links (freeform label + URL, optionally a Websites-taxonomy ref). NOT NULL;
+  // pre-applied in migrate.ts.
+  labeledWebsites: jsonb("labeled_websites").$type<LabeledWebsite[]>().notNull().default(sql`'[]'::jsonb`),
   // Fields absorbed from the former Artists taxonomy (a group/band is a Group). `sort_order` is
   // NOT NULL default 0 → pre-applied in migrate.ts (push would prompt); the rest are nullable → push-safe.
   sortOrder: integer("sort_order").notNull().default(0),
@@ -766,6 +768,9 @@ const plexTaxonomyColumns = <T extends Record<string, PgColumnBuilderBase> = Rec
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
+  // Labeled websites/links (freeform label + URL, optionally a Websites-taxonomy ref). NOT NULL;
+  // pre-applied per Plex table in migrate.ts.
+  labeledWebsites: jsonb("labeled_websites").$type<LabeledWebsite[]>().notNull().default(sql`'[]'::jsonb`),
 });
 
 /**
@@ -865,6 +870,9 @@ export const podcasts = pgTable("podcasts", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
+  // Labeled websites/links (freeform label + URL, optionally a Websites-taxonomy ref). NOT NULL;
+  // pre-applied in migrate.ts.
+  labeledWebsites: jsonb("labeled_websites").$type<LabeledWebsite[]>().notNull().default(sql`'[]'::jsonb`),
 }, table => [
   unique("podcasts_name_unique").on(table.name),
   unique("podcasts_slug_unique").on(table.slug),
@@ -1005,6 +1013,9 @@ export const youtubeChannels = pgTable("youtube_channels", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
+  // Labeled websites/links (freeform label + URL, optionally a Websites-taxonomy ref). NOT NULL;
+  // pre-applied in migrate.ts.
+  labeledWebsites: jsonb("labeled_websites").$type<LabeledWebsite[]>().notNull().default(sql`'[]'::jsonb`),
 }, table => [
   unique("youtube_channels_key_unique").on(table.channelKey),
   unique("youtube_channels_slug_unique").on(table.slug),
@@ -1331,6 +1342,9 @@ export const locations = pgTable("locations", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
+  // Labeled websites/links (freeform label + URL, optionally a Websites-taxonomy ref). NOT NULL;
+  // pre-applied in migrate.ts.
+  labeledWebsites: jsonb("labeled_websites").$type<LabeledWebsite[]>().notNull().default(sql`'[]'::jsonb`),
 }, table => [
   // Sibling names unique within a parent — a unique INDEX (not a constraint), same rationale as
   // `tags_parent_name_unique`: a composite unique CONSTRAINT can't converge under `drizzle-kit push`.
@@ -2881,10 +2895,11 @@ export const people = pgTable("people", {
   slug: text("slug"),
   // Free-text description surfaced on the person's detail page.
   description: text("description"),
-  personWebsiteUrl: text("person_website_url"),
-  biographyUrl: text("biography_url"),
   // Social media profile links. NOT NULL; pre-applied in migrate.ts.
   socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
+  // Labeled websites/links (freeform label + URL, optionally a Websites-taxonomy ref). NOT NULL;
+  // pre-applied in migrate.ts.
+  labeledWebsites: jsonb("labeled_websites").$type<LabeledWebsite[]>().notNull().default(sql`'[]'::jsonb`),
   // Fields absorbed from the former Artists taxonomy (a solo artist is a Person). `sort_order` is
   // NOT NULL default 0 → pre-applied in migrate.ts (push would prompt); the rest are nullable → push-safe.
   sortOrder: integer("sort_order").notNull().default(0),

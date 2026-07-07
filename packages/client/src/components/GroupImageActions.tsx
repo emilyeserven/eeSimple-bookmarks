@@ -29,7 +29,7 @@ export function GroupImageActions({
         type="button"
         variant="outline"
         size="sm"
-        disabled={busy || !group.websiteId}
+        disabled={busy || !group.labeledWebsites.some(w => w.websiteId)}
         onClick={() => autoImage.mutate({
           id: group.id,
           source: "website",

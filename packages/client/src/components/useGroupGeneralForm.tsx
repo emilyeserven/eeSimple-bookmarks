@@ -1,33 +1,33 @@
 import type { Group, UpdateGroupInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
-import { Globe, Library } from "lucide-react";
+import { Library } from "lucide-react";
 import { z } from "zod";
 
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateGroup } from "../hooks/useGroups";
 import { useGroupTypes } from "../hooks/useGroupTypes";
-import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import i18n from "../i18n";
 import { useAppForm } from "../lib/form";
+import { labeledWebsiteSchema } from "../lib/labeledWebsites";
 import { socialLinkSchema } from "../lib/socialLinks";
 
 const groupGeneralSchema = z.object({
   name: z.string().trim().min(1, i18n.t("Name is required")),
   description: z.string(),
-  websiteId: z.string().nullable(),
   groupTypeId: z.string().nullable(),
   socialLinks: z.array(socialLinkSchema),
+  labeledWebsites: z.array(labeledWebsiteSchema),
 });
 
 const LABELS: Partial<Record<keyof UpdateGroupInput, string>> = {
   name: i18n.t("Name"),
   description: i18n.t("Description"),
-  websiteId: i18n.t("Website"),
   groupTypeId: i18n.t("Group type"),
   socialLinks: i18n.t("Social media links"),
+  labeledWebsites: i18n.t("Websites"),
   youtubeChannelIds: i18n.t("YouTube channels"),
 };
 
@@ -39,9 +39,6 @@ const LABELS: Partial<Record<keyof UpdateGroupInput, string>> = {
 export function useGroupGeneralForm(group: Group) {
   const navigate = useNavigate();
   const update = useUpdateGroup();
-  const {
-    data: websites,
-  } = useWebsites();
   const {
     data: groupTypes,
   } = useGroupTypes();
@@ -56,20 +53,12 @@ export function useGroupGeneralForm(group: Group) {
     initial: {
       name: group.name,
       description: group.description ?? null,
-      websiteId: group.websiteId ?? null,
       groupTypeId: group.groupTypeId ?? null,
       socialLinks: group.socialLinks,
+      labeledWebsites: group.labeledWebsites,
       youtubeChannelIds: group.youtubeChannelIds,
     },
   });
-
-  const websiteOptions = (websites ?? []).map(website => ({
-    value: website.id,
-    label: website.siteName,
-    icon: (
-      <Globe className="size-4 shrink-0 text-muted-foreground" />
-    ),
-  }));
 
   const groupTypeOptions = (groupTypes ?? []).map(groupType => ({
     value: groupType.id,
@@ -83,7 +72,6 @@ export function useGroupGeneralForm(group: Group) {
     defaultValues: {
       name: group.name,
       description: group.description ?? "",
-      websiteId: group.websiteId ?? null,
       groupTypeId: group.groupTypeId ?? null,
     },
     validators: {
@@ -91,7 +79,6 @@ export function useGroupGeneralForm(group: Group) {
     },
   });
 
-  const websiteCreate = useEntityCreateOption("website", website => form.setFieldValue("websiteId", website.id));
   const groupTypeCreate = useEntityCreateOption(
     "group-type",
     groupType => form.setFieldValue("groupTypeId", groupType.id),
@@ -118,8 +105,6 @@ export function useGroupGeneralForm(group: Group) {
     form,
     saveField: autoSave.saveField,
     saveName,
-    websiteOptions,
-    websiteCreate,
     groupTypeOptions,
     groupTypeCreate,
     youtubeChannels: youtubeChannels ?? [],

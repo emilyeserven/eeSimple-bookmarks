@@ -45,6 +45,7 @@ const LABELS: Record<keyof UpdateLocationInput, string> = {
   sortOrder: "Sort order",
   parentId: "Parent",
   tagIds: "Tags",
+  labeledWebsites: "Websites",
 };
 
 /**
@@ -76,6 +77,7 @@ export function buildLocationAutoSaveInitial(node: LocationNode): UpdateLocation
     alternateNames: node.alternateNames,
     parentId: node.parentId,
     tagIds: node.tagIds ?? [],
+    labeledWebsites: node.labeledWebsites,
   };
 }
 

@@ -8,6 +8,7 @@ import {
   updateTvShow,
 } from "@/services/tvShows";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { NotFoundError } from "@/utils/errors";
 import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
@@ -78,6 +79,7 @@ const updateTvShowBody = {
       minLength: 1,
     },
     ...tvShowDataFields,
+    labeledWebsites: labeledWebsitesSchema,
   },
 } as const;
 

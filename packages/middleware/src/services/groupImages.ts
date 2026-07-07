@@ -6,6 +6,7 @@
  */
 
 import { eq } from "drizzle-orm";
+import type { LabeledWebsite } from "@eesimple/types";
 import { db } from "@/db";
 import { groupImages, groups, type GroupImageRow, websiteFavicons } from "@/db/schema";
 import { type EntityImageResult } from "@/services/metadata";
@@ -100,18 +101,22 @@ export async function fetchAndStoreGroupImage(
 ): Promise<EntityImageResult | "no_url"> {
   const [group] = await db
     .select({
-      websiteId: groups.websiteId,
+      labeledWebsites: groups.labeledWebsites,
     })
     .from(groups)
     .where(eq(groups.id, groupId));
   if (!group) return "not_found";
-  if (!group.websiteId) return "no_url";
+  // The group's website is now a taxonomy-linked row in its labeled-websites list; use the first
+  // row that references a Websites-taxonomy entry.
+  const websiteId = ((group.labeledWebsites as LabeledWebsite[] | null) ?? [])
+    .find(w => w.websiteId)?.websiteId;
+  if (!websiteId) return "no_url";
 
   // Prefer the linked website's stored favicon; fall back to fetching its og:image.
   const [faviconRow] = await db
     .select()
     .from(websiteFavicons)
-    .where(eq(websiteFavicons.websiteId, group.websiteId));
+    .where(eq(websiteFavicons.websiteId, websiteId));
   if (faviconRow) {
     const bytes = await getObjectBytes(faviconRow.objectKey);
     if (bytes) return setGroupImage(groupId, bytes, "website");

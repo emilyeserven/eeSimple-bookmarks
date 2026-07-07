@@ -8,6 +8,7 @@ import { EntityImageField } from "./EntityImageField";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
+import { LabeledWebsitesField } from "./LabeledWebsitesField";
 import { PersonAvatarActions } from "./PersonAvatarActions";
 import { SocialLinksField } from "./SocialLinksField";
 import { usePersonGeneralForm } from "./usePersonGeneralForm";
@@ -34,14 +35,15 @@ export function PersonGeneralForm({
   const {
     form, avatarBusy, uploadAvatar, autoAvatar, deleteAvatar, adoptChannel, adoptWebsite,
     detectLinks, connectedChannelsWithImage, connectedWebsitesWithImage,
-    saveField, saveName, detectSocialLinks, saveSocialLinks,
+    saveField, saveName, detectSocialLinks, saveSocialLinks, saveLabeledWebsites,
   } = usePersonGeneralForm(person);
   const updatePerson = useUpdatePerson();
   const primaryLanguage = usePrimaryLanguageField("person", person.id);
 
   // Register the header "Sync from source" button (preview + re-fetch the avatar from the person's
-  // website / biography og:image). Only offered when there's a source URL to resolve from.
-  const avatarSource = person.personWebsiteUrl ? "website" : person.biographyUrl ? "biography" : null;
+  // labeled-website og:image). Only offered when the list carries a source URL — the middleware
+  // picks the "Website" row, else the first listed URL (see `sourceUrlFromLabeled`).
+  const avatarSource = person.labeledWebsites.some(w => w.url.trim().length > 0) ? "website" : null;
   useImageTaxonomySyncRegistration({
     entityId: person.id,
     entityLabel: person.name,
@@ -99,33 +101,10 @@ export function PersonGeneralForm({
         />
       </div>
 
-      <form.AppField name="personWebsiteUrl">
-        {field => (
-          <field.TextField
-            label={t("Person website URL")}
-            type="url"
-            placeholder="https://example.com"
-            onBlur={() => saveField(
-              "personWebsiteUrl",
-              field.state.value.trim() || null,
-            )}
-          />
-        )}
-      </form.AppField>
-
-      <form.AppField name="biographyUrl">
-        {field => (
-          <field.TextField
-            label={t("Biography URL")}
-            type="url"
-            placeholder="https://example.com/bio"
-            onBlur={() => saveField(
-              "biographyUrl",
-              field.state.value.trim() || null,
-            )}
-          />
-        )}
-      </form.AppField>
+      <LabeledWebsitesField
+        labeledWebsites={person.labeledWebsites}
+        onChange={saveLabeledWebsites}
+      />
 
       <EntityImageField
         label={t("Avatar")}
@@ -157,7 +136,7 @@ export function PersonGeneralForm({
           type="button"
           variant="outline"
           size="sm"
-          disabled={detectLinks.isPending || !person.personWebsiteUrl}
+          disabled={detectLinks.isPending || avatarSource === null}
           onClick={detectSocialLinks}
         >
           <Sparkles className="size-4" />

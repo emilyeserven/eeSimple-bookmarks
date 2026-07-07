@@ -19,6 +19,7 @@ import {
   listYouTubeChannels,
   updateYouTubeChannel,
 } from "@/services/youtubeChannels";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { AppError, ImageTooLargeError, NoFileUploadedError, NotFoundError, StorageUnconfiguredError } from "@/utils/errors";
@@ -86,6 +87,7 @@ const updateChannelBody = {
         format: "uuid",
       },
     },
+    labeledWebsites: labeledWebsitesSchema,
   },
 } as const;
 

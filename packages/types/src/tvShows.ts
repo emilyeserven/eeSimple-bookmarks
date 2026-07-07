@@ -1,4 +1,5 @@
 import type { EntityName } from "./entityNames.js";
+import type { LabeledWebsite } from "./labeledWebsites.js";
 import type { LanguageUsage } from "./languageUsages.js";
 
 /**
@@ -40,6 +41,8 @@ export interface TvShow {
   languageUsages?: LanguageUsage[];
   /** Main artwork image URL (from the taxonomy-image gallery), or null when none is set. */
   imageUrl: string | null;
+  /** Labeled websites/links for this show (freeform label + URL, optionally a Websites-taxonomy ref). */
+  labeledWebsites: LabeledWebsite[];
 }
 
 /** Payload for creating a TV show. */
@@ -68,4 +71,6 @@ export interface UpdateTvShowInput {
   wikidataId?: string | null;
   wikipediaLinkEn?: string | null;
   wikipediaLinkLocal?: string | null;
+  /** Labeled websites/links. Replaces the full list; omit to leave unchanged. */
+  labeledWebsites?: LabeledWebsite[];
 }

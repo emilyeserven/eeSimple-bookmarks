@@ -9,6 +9,7 @@ import {
 } from "@/services/movies";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { NotFoundError } from "@/utils/errors";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
@@ -78,6 +79,7 @@ const updateMovieBody = {
       minLength: 1,
     },
     ...movieDataFields,
+    labeledWebsites: labeledWebsitesSchema,
   },
 } as const;
 

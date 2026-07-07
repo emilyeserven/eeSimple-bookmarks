@@ -77,40 +77,30 @@ export function PersonGeneralView({
             </>
           )
           : null}
-        {person.personWebsiteUrl != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Website")}</dt>
-              <dd>
-                <a
-                  href={person.personWebsiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  {person.personWebsiteUrl}
-                </a>
-              </dd>
-            </>
-          )
-          : null}
-        {person.biographyUrl != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Biography")}</dt>
-              <dd>
-                <a
-                  href={person.biographyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  {person.biographyUrl}
-                </a>
-              </dd>
-            </>
-          )
-          : null}
+        {person.labeledWebsites.map((site, index) => (
+          <>
+            <dt
+
+              key={`lw-label-${index}`}
+              className="text-muted-foreground"
+            >
+              {site.label.trim().length > 0 ? site.label : t("Website")}
+            </dt>
+            <dd
+
+              key={`lw-value-${index}`}
+            >
+              <a
+                href={site.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                {site.url}
+              </a>
+            </dd>
+          </>
+        ))}
         {person.year != null
           ? (
             <>

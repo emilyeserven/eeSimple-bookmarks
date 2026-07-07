@@ -61,10 +61,10 @@ export function PersonGroupsForm({
                   className="cursor-pointer font-normal"
                 >
                   {pub.name}
-                  {pub.website
+                  {pub.labeledWebsites[0]
                     ? (
                       <span className="ml-1 text-xs text-muted-foreground">
-                        {pub.website.domain}
+                        {pub.labeledWebsites[0].url}
                       </span>
                     )
                     : null}
@@ -101,8 +101,8 @@ export function PersonGroupsView({
           className="text-sm"
         >
           {pub.name}
-          {pub.website
-            ? <span className="ml-1 text-xs text-muted-foreground">{pub.website.domain}</span>
+          {pub.labeledWebsites[0]
+            ? <span className="ml-1 text-xs text-muted-foreground">{pub.labeledWebsites[0].url}</span>
             : null}
         </li>
       ))}

@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
+import { LabeledWebsitesField } from "./LabeledWebsitesField";
 import { SelfIdsField } from "./SelfIdsField";
 import { SocialLinksField } from "./SocialLinksField";
 import { SourceDefaultFields } from "./SourceDefaultFields";
@@ -160,6 +161,13 @@ export function WebsiteGeneralForm({
       <SocialLinksField
         socialLinks={website.socialLinks}
         onChange={(links: SocialLink[]) => saveField("socialLinks", links)}
+      />
+
+      <Separator />
+
+      <LabeledWebsitesField
+        labeledWebsites={website.labeledWebsites}
+        onChange={websites => saveField("labeledWebsites", websites)}
       />
 
       <Separator />

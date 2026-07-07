@@ -39,11 +39,11 @@ export function useGroupColumns(): ColumnDef<Group>[] {
         cell: ({
           row,
         }) => {
-          const website = row.original.website;
-          if (!website) return null;
+          const site = row.original.labeledWebsites[0];
+          if (!site) return null;
           return (
             <span className="text-muted-foreground">
-              {website.siteName ? `${website.siteName} (${website.domain})` : website.domain}
+              {site.label.trim().length > 0 ? `${site.label} (${site.url})` : site.url}
             </span>
           );
         },

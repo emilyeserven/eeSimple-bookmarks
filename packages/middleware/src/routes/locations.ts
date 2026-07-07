@@ -20,6 +20,7 @@ import {
 } from "@/services/locations";
 import { geocodeLocation } from "@/services/geocoding";
 import { wikidataGeocode } from "@/services/wikidataGeocoding";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { NotFoundError } from "@/utils/errors";
 
@@ -164,6 +165,7 @@ const updateLocationBody = {
       minLength: 1,
     },
     ...locationFields,
+    labeledWebsites: labeledWebsitesSchema,
   },
 } as const;
 

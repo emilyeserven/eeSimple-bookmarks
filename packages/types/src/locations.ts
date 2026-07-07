@@ -9,6 +9,7 @@
  */
 
 import type { EntityName } from "./entityNames.js";
+import type { LabeledWebsite } from "./labeledWebsites.js";
 
 import { titleMatchesTerm } from "./titleTags.js";
 
@@ -94,6 +95,8 @@ export interface Location {
   bookmarkCount?: number;
   /** Distinct bookmarks carrying this location directly, excluding its descendants. */
   ownBookmarkCount?: number;
+  /** Labeled websites/links for this location (freeform label + URL, optionally a Websites-taxonomy ref). */
+  labeledWebsites: LabeledWebsite[];
 }
 
 /** A location with its children populated — used to render the taxonomy tree. */
@@ -156,6 +159,8 @@ export interface UpdateLocationInput {
   sortOrder?: number;
   parentId?: string | null;
   tagIds?: string[];
+  /** Labeled websites/links. Replaces the full list; omit to leave unchanged. */
+  labeledWebsites?: LabeledWebsite[];
 }
 
 /**

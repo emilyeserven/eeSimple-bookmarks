@@ -1,6 +1,7 @@
 import type {
   CreateEpisodeInput,
   Episode,
+  LabeledWebsite,
   UpdateEpisodeInput,
 } from "@eesimple/types";
 import { createPlexTaxonomyService } from "@/services/plexTaxonomyService";
@@ -43,6 +44,7 @@ function toEpisode(row: EpisodeRow & {
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
     imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
   };
 }
 

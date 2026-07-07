@@ -20,6 +20,7 @@ import {
   personExists,
   updatePerson,
 } from "@/services/people";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { AppError, ImageTooLargeError, NoFileUploadedError, NotFoundError, StorageUnconfiguredError, ValidationError } from "@/utils/errors";
@@ -88,13 +89,8 @@ const updatePersonBody = {
     description: {
       type: ["string", "null"],
     },
-    personWebsiteUrl: {
-      type: ["string", "null"],
-    },
-    biographyUrl: {
-      type: ["string", "null"],
-    },
     socialLinks: socialLinksSchema,
+    labeledWebsites: labeledWebsitesSchema,
     youtubeChannelIds: {
       type: "array",
       items: {

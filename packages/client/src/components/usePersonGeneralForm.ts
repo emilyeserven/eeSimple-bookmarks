@@ -1,4 +1,4 @@
-import type { Person, SocialLink, UpdatePersonInput } from "@eesimple/types";
+import type { LabeledWebsite, Person, SocialLink, UpdatePersonInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -17,23 +17,22 @@ import {
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { useAppForm } from "../lib/form";
+import { labeledWebsiteSchema } from "../lib/labeledWebsites";
 import { notifySuccess } from "../lib/notifications";
 import { SOCIAL_MEDIA_PLATFORM_LABELS, socialLinkSchema } from "../lib/socialLinks";
 
 const personGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   description: z.string(),
-  personWebsiteUrl: z.string(),
-  biographyUrl: z.string(),
   socialLinks: z.array(socialLinkSchema),
+  labeledWebsites: z.array(labeledWebsiteSchema),
 });
 
 const LABELS: Partial<Record<keyof UpdatePersonInput, string>> = {
   name: "Name",
   description: "Description",
-  personWebsiteUrl: "Person website",
-  biographyUrl: "Biography URL",
   socialLinks: "Social media links",
+  labeledWebsites: "Websites",
 };
 
 /**
@@ -82,9 +81,8 @@ export function usePersonGeneralForm(person: Person) {
     initial: {
       name: person.name,
       description: person.description ?? null,
-      personWebsiteUrl: person.personWebsiteUrl,
-      biographyUrl: person.biographyUrl,
       socialLinks: person.socialLinks,
+      labeledWebsites: person.labeledWebsites,
     },
   });
 
@@ -92,8 +90,6 @@ export function usePersonGeneralForm(person: Person) {
     defaultValues: {
       name: person.name,
       description: person.description ?? "",
-      personWebsiteUrl: person.personWebsiteUrl ?? "",
-      biographyUrl: person.biographyUrl ?? "",
     },
     validators: {
       onChange: personGeneralSchema,
@@ -155,5 +151,6 @@ export function usePersonGeneralForm(person: Person) {
     saveName,
     detectSocialLinks,
     saveSocialLinks: (links: SocialLink[]) => autoSave.saveField("socialLinks", links),
+    saveLabeledWebsites: (websites: LabeledWebsite[]) => autoSave.saveField("labeledWebsites", websites),
   };
 }

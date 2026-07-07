@@ -1,5 +1,5 @@
 import { and, asc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
-import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteNode, WebsiteParamRule } from "@eesimple/types";
+import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, LabeledWebsite, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteNode, WebsiteParamRule } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { db } from "@/db";
@@ -213,6 +213,7 @@ function toWebsite(
     tagIds,
     mediaTypeId: row.mediaTypeId ?? null,
     socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
     youtubeChannelIds,
     alternateNames: (row.alternateNames as string[] | null) ?? [],
     redirectResolutionFailure: row.redirectResolutionFailure ?? false,
@@ -230,6 +231,7 @@ const websiteSelect = {
   shortenedLinks: websites.shortenedLinks,
   paramRules: websites.paramRules,
   socialLinks: websites.socialLinks,
+  labeledWebsites: websites.labeledWebsites,
   alternateNames: websites.alternateNames,
   createdAt: websites.createdAt,
   categoryId: websites.categoryId,
@@ -551,7 +553,7 @@ export async function updateWebsite(
     throw new BuiltInWebsiteError("A built-in website cannot be renamed or moved");
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "alternateNames" | "redirectResolutionFailure">> = buildWebsiteScalarPatch(input);
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "redirectResolutionFailure">> = buildWebsiteScalarPatch(input);
   if (input.domain !== undefined) {
     const domain = normalizeWebsiteDomain(input.domain);
     const [clash] = await db.select({

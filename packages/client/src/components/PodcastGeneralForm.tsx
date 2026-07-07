@@ -8,6 +8,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
+import { LabeledWebsitesField } from "./LabeledWebsitesField";
 import { LocationAssignmentSection } from "./LocationAssignmentSection";
 import { PodcastAuthorsFields } from "./PodcastAuthorsFields";
 import { PodcastSearchPicker } from "./PodcastSearchPicker";
@@ -48,6 +49,7 @@ const LABELS: Record<keyof UpdatePodcastInput, string> = {
   personIds: i18n.t("People"),
   groupIds: i18n.t("Groups"),
   description: i18n.t("Description"),
+  labeledWebsites: i18n.t("Websites"),
 };
 
 interface Props {
@@ -71,6 +73,7 @@ export function PodcastGeneralForm({
       spotifyUrl: podcast.spotifyUrl ?? "",
       defaultLinkProvider: podcast.defaultLinkProvider ?? null,
       description: podcast.description ?? "",
+      labeledWebsites: podcast.labeledWebsites,
     },
   });
 
@@ -330,6 +333,11 @@ export function PodcastGeneralForm({
           />
         )}
       </form.AppField>
+
+      <LabeledWebsitesField
+        labeledWebsites={podcast.labeledWebsites}
+        onChange={next => autoSave.saveField("labeledWebsites", next)}
+      />
 
       <GenreMoodAssignmentSection
         ownerType="podcast"

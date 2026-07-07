@@ -5,6 +5,7 @@ import type {
   EntityName,
   EntityNameOwnerType,
   GenreMoodOwnerType,
+  LabeledWebsite,
   LanguageUsageOwnerType,
   LocationAssignmentOwnerType,
   TaxonomyImageOwnerType,
@@ -65,6 +66,7 @@ export interface PlexTaxonomyCreateInput {
   wikidataId?: string | null;
   wikipediaLinkEn?: string | null;
   wikipediaLinkLocal?: string | null;
+  labeledWebsites?: LabeledWebsite[];
 }
 
 /** The update input — every field optional (name included). */
@@ -87,6 +89,7 @@ export function buildPlexTaxonomyData(
   if (input.wikidataId !== undefined) patch.wikidataId = input.wikidataId ?? null;
   if (input.wikipediaLinkEn !== undefined) patch.wikipediaLinkEn = input.wikipediaLinkEn ?? null;
   if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal ?? null;
+  if (input.labeledWebsites !== undefined) patch.labeledWebsites = input.labeledWebsites ?? [];
   return patch;
 }
 

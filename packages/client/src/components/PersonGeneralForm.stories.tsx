@@ -9,7 +9,13 @@ const person = makePerson({
   name: "Jane Person",
   slug: "jane-person",
   bookmarkCount: 3,
-  personWebsiteUrl: "https://janeperson.example.com",
+  labeledWebsites: [
+    {
+      label: "Website",
+      url: "https://janeperson.example.com",
+      websiteId: null,
+    },
+  ],
 });
 
 const meta = {

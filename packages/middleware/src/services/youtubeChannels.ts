@@ -1,5 +1,5 @@
 import { asc, eq, inArray, isNull } from "drizzle-orm";
-import type { BulkDeleteResult, CreateYouTubeChannelInput, UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
+import type { BulkDeleteResult, CreateYouTubeChannelInput, LabeledWebsite, UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
@@ -237,6 +237,7 @@ function toYouTubeChannel(
     tagIds,
     websiteIds,
     groupIds,
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
   };
 }
 
@@ -253,6 +254,7 @@ export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
       name: youtubeChannels.name,
       description: youtubeChannels.description,
       slug: youtubeChannels.slug,
+      labeledWebsites: youtubeChannels.labeledWebsites,
       createdAt: youtubeChannels.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.youtubeChannelId, youtubeChannels.id)),
       avatarCreatedAt: youtubeChannelImages.createdAt,
@@ -291,6 +293,7 @@ const channelSelect = {
   description: youtubeChannels.description,
   slug: youtubeChannels.slug,
   categoryId: youtubeChannels.categoryId,
+  labeledWebsites: youtubeChannels.labeledWebsites,
   createdAt: youtubeChannels.createdAt,
   avatarCreatedAt: youtubeChannelImages.createdAt,
   categoryName: categories.name,
@@ -447,6 +450,15 @@ export async function updateYouTubeChannel(
       .update(youtubeChannels)
       .set({
         categoryId: input.categoryId ?? null,
+      })
+      .where(eq(youtubeChannels.id, id));
+  }
+
+  if ("labeledWebsites" in input) {
+    await db
+      .update(youtubeChannels)
+      .set({
+        labeledWebsites: input.labeledWebsites ?? [],
       })
       .where(eq(youtubeChannels.id, id));
   }

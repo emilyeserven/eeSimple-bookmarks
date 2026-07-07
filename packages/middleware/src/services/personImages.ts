@@ -3,11 +3,11 @@
  * (`utils/objectStore`), and the `person_images` table together so the routes stay thin.
  * Mirrors `youtubeChannelImages`. Avatars live under the `person-images/` object-storage prefix.
  *
- * Auto-fetch reads the person's stored `personWebsiteUrl` or `biographyUrl` and pulls the page's
- * `og:image` — no client-supplied URL, so there is no SSRF amplifier.
+ * Auto-fetch reads the person's stored labeled-websites list (the "Website" / "Biography" row) and
+ * pulls the page's `og:image` — no client-supplied URL, so there is no SSRF amplifier.
  */
 
-import type { SocialLink, SocialMediaPlatform } from "@eesimple/types";
+import type { LabeledWebsite, SocialLink, SocialMediaPlatform } from "@eesimple/types";
 
 import { eq } from "drizzle-orm";
 import { socialAccountFromLink } from "@eesimple/types";
@@ -20,6 +20,22 @@ import { deleteObject, getObjectBytes, putObject } from "@/utils/objectStore";
 
 function objectKeyFor(personId: string): string {
   return `person-images/${personId}.webp`;
+}
+
+/**
+ * Resolve the avatar source URL from a person's labeled-websites list. `"website"` prefers the row
+ * labeled "Website" (else the first listed URL); `"biography"` matches the "Biography" row only, so
+ * it never mistakes an unrelated link for the biography source.
+ */
+function sourceUrlFromLabeled(
+  labeledWebsites: LabeledWebsite[] | null,
+  source: "website" | "biography",
+): string | null {
+  const list = labeledWebsites ?? [];
+  const wanted = source === "website" ? "website" : "biography";
+  const labeled = list.find(w => w.label.trim().toLowerCase() === wanted)?.url;
+  if (labeled) return labeled;
+  return source === "website" ? list[0]?.url ?? null : null;
 }
 
 function imageVersion(row: PersonImageRow): number {
@@ -102,14 +118,13 @@ export async function fetchAndStorePersonImage(
 ): Promise<EntityImageResult | "no_url"> {
   const [person] = await db
     .select({
-      personWebsiteUrl: people.personWebsiteUrl,
-      biographyUrl: people.biographyUrl,
+      labeledWebsites: people.labeledWebsites,
     })
     .from(people)
     .where(eq(people.id, personId));
   if (!person) return "not_found";
 
-  const url = source === "website" ? person.personWebsiteUrl : person.biographyUrl;
+  const url = sourceUrlFromLabeled(person.labeledWebsites as LabeledWebsite[] | null, source);
   if (!url) return "no_url";
 
   const result = await withTransientRetry(() => fetchOgImage(url));
@@ -183,14 +198,13 @@ export async function resolvePersonImageUrl(
 
   const [person] = await db
     .select({
-      personWebsiteUrl: people.personWebsiteUrl,
-      biographyUrl: people.biographyUrl,
+      labeledWebsites: people.labeledWebsites,
     })
     .from(people)
     .where(eq(people.id, personId));
   if (!person) return null;
 
-  const url = source === "website" ? person.personWebsiteUrl : person.biographyUrl;
+  const url = sourceUrlFromLabeled(person.labeledWebsites as LabeledWebsite[] | null, source);
   if (!url) return null;
 
   const html = await fetchHeadOrImageError(url);

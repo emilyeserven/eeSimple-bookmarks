@@ -26,6 +26,7 @@ function node(overrides: Partial<LocationNode> & Pick<LocationNode, "id">): Loca
     sortOrder: 0,
     parentId: null,
     createdAt: "2024-01-01T00:00:00.000Z",
+    labeledWebsites: [],
     children: [],
     ...overrides,
   };

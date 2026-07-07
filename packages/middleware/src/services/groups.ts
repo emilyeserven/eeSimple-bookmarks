@@ -4,6 +4,7 @@ import type {
   Group,
   CreateGroupInput,
   EntityName,
+  LabeledWebsite,
   SocialLink,
   UpdateGroupInput,
 } from "@eesimple/types";
@@ -18,7 +19,6 @@ import {
   groupWebsites,
   groupYoutubeChannels,
   type GroupRow,
-  websites,
 } from "@/db/schema";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
@@ -41,10 +41,6 @@ export class DuplicateGroupError extends AppError {
   }
 }
 
-type WebsiteJoin = { id: string;
-  domain: string;
-  siteName: string; } | null;
-
 type GroupTypeJoin = { id: string;
   name: string;
   slug: string | null; } | null;
@@ -53,12 +49,6 @@ const groupTypeSelect = {
   id: groupTypes.id,
   name: groupTypes.name,
   slug: groupTypes.slug,
-} as const;
-
-const websiteSelect = {
-  id: websites.id,
-  domain: websites.domain,
-  siteName: websites.siteName,
 } as const;
 
 function imageUrlFrom(groupId: string, imageCreatedAt: Date | string | null): string | null {
@@ -169,7 +159,6 @@ async function setGroupWebsites(
 
 function toGroup(
   row: GroupRow & { imageCreatedAt?: Date | string | null },
-  website: WebsiteJoin,
   groupType: GroupTypeJoin,
   bookmarkCount?: number,
   albumIds: string[] = [],
@@ -183,8 +172,6 @@ function toGroup(
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     description: row.description,
-    websiteId: row.websiteId,
-    website: website ?? null,
     groupTypeId: row.groupTypeId,
     groupType: groupType
       ? {
@@ -196,6 +183,7 @@ function toGroup(
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount,
     socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
     sortOrder: row.sortOrder,
     year: row.year ?? null,
     plexRatingKey: row.plexRatingKey ?? null,
@@ -212,21 +200,16 @@ export async function listGroups(): Promise<Group[]> {
   const rows = await db
     .select({
       group: groups,
-      website: websiteSelect,
       groupType: groupTypeSelect,
       imageCreatedAt: groupImages.createdAt,
       bookmarkCount: count(bookmarks.id),
     })
     .from(groups)
-    .leftJoin(websites, eq(groups.websiteId, websites.id))
     .leftJoin(groupTypes, eq(groups.groupTypeId, groupTypes.id))
     .leftJoin(groupImages, eq(groupImages.groupId, groups.id))
     .leftJoin(bookmarks, eq(bookmarks.groupId, groups.id))
     .groupBy(
       groups.id,
-      websites.id,
-      websites.domain,
-      websites.siteName,
       groupTypes.id,
       groupTypes.name,
       groupTypes.slug,
@@ -247,7 +230,6 @@ export async function listGroups(): Promise<Group[]> {
         ...r.group,
         imageCreatedAt: r.imageCreatedAt ?? null,
       },
-      r.website ?? null,
       r.groupType ?? null,
       r.bookmarkCount,
       albumMap.get(r.group.id) ?? [],
@@ -261,12 +243,10 @@ export async function getGroupBySlug(slug: string): Promise<Group | null> {
   const rows = await db
     .select({
       group: groups,
-      website: websiteSelect,
       groupType: groupTypeSelect,
       imageCreatedAt: groupImages.createdAt,
     })
     .from(groups)
-    .leftJoin(websites, eq(groups.websiteId, websites.id))
     .leftJoin(groupTypes, eq(groups.groupTypeId, groupTypes.id))
     .leftJoin(groupImages, eq(groupImages.groupId, groups.id))
     .where(eq(groups.slug, slug))
@@ -284,7 +264,6 @@ export async function getGroupBySlug(slug: string): Promise<Group | null> {
       ...r.group,
       imageCreatedAt: r.imageCreatedAt ?? null,
     },
-    r.website ?? null,
     r.groupType ?? null,
     undefined,
     albumMap.get(r.group.id) ?? [],
@@ -298,12 +277,10 @@ export async function getGroupById(id: string): Promise<Group | null> {
   const rows = await db
     .select({
       group: groups,
-      website: websiteSelect,
       groupType: groupTypeSelect,
       imageCreatedAt: groupImages.createdAt,
     })
     .from(groups)
-    .leftJoin(websites, eq(groups.websiteId, websites.id))
     .leftJoin(groupTypes, eq(groups.groupTypeId, groupTypes.id))
     .leftJoin(groupImages, eq(groupImages.groupId, groups.id))
     .where(eq(groups.id, id))
@@ -321,7 +298,6 @@ export async function getGroupById(id: string): Promise<Group | null> {
       ...r.group,
       imageCreatedAt: r.imageCreatedAt ?? null,
     },
-    r.website ?? null,
     r.groupType ?? null,
     undefined,
     albumMap.get(r.group.id) ?? [],
@@ -349,7 +325,6 @@ export async function createGroup(input: CreateGroupInput): Promise<Group> {
       name: input.name,
       slug,
       description: input.description ?? null,
-      websiteId: input.websiteId ?? null,
       groupTypeId: input.groupTypeId ?? null,
     })
     .returning();
@@ -390,14 +365,14 @@ export async function updateGroup(id: string, input: UpdateGroupInput): Promise<
   if (input.description !== undefined) {
     updates.description = input.description ?? null;
   }
-  if ("websiteId" in input) {
-    updates.websiteId = input.websiteId ?? null;
-  }
   if ("groupTypeId" in input) {
     updates.groupTypeId = input.groupTypeId ?? null;
   }
   if ("socialLinks" in input) {
     updates.socialLinks = input.socialLinks ?? [];
+  }
+  if ("labeledWebsites" in input) {
+    updates.labeledWebsites = input.labeledWebsites ?? [];
   }
   if (input.sortOrder !== undefined) {
     updates.sortOrder = input.sortOrder;

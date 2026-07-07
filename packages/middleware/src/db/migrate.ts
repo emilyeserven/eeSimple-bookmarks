@@ -1858,6 +1858,158 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false
     `),
   },
+  // ---------------------------------------------------------------------------------------------
+  // `<entity>.labeled_websites` — the shared labeled-websites list (issue #1059). NOT NULL DEFAULT
+  // '[]'::jsonb on a populated table makes drizzle-kit push prompt non-interactively (crash), so
+  // pre-apply one `ADD COLUMN IF NOT EXISTS` per physical table here (mirrors the social_links steps
+  // above). `ALTER TABLE IF EXISTS` no-ops on a fresh DB where push hasn't created the table yet.
+  // ---------------------------------------------------------------------------------------------
+  {
+    name: "add groups.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "groups"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    name: "add people.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "people"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    name: "add websites.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "websites"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    name: "add youtube_channels.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "youtube_channels"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    name: "add locations.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "locations"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    name: "add podcasts.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "podcasts"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    name: "add movies.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "movies"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    name: "add tv_shows.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "tv_shows"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    name: "add episodes.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "episodes"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    name: "add albums.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "albums"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    name: "add tracks.labeled_websites column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "tracks"
+        ADD COLUMN IF NOT EXISTS "labeled_websites" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  // ---------------------------------------------------------------------------------------------
+  // Fold the pure-display single URL fields into `labeled_websites`, then drop them (issue #1059).
+  // Backfill is guarded on the OLD column still existing (via information_schema) so a second boot
+  // — after the column has been dropped — is a clean no-op; and on `labeled_websites = '[]'` so it
+  // never clobbers an already-migrated / user-edited list. Data-preserving transform + drop, so it
+  // lives here (runs before push). One statement per db.execute (the DO block counts as one).
+  // ---------------------------------------------------------------------------------------------
+  {
+    // Person: person_website_url → "Website" row, biography_url → "Biography" row.
+    name: "backfill people.labeled_websites from url columns",
+    run: db => db.execute(sql`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'people' AND column_name = 'person_website_url'
+        ) THEN
+          UPDATE "people" SET "labeled_websites" =
+            (CASE WHEN "person_website_url" IS NOT NULL AND "person_website_url" <> ''
+                  THEN jsonb_build_array(jsonb_build_object(
+                    'label', 'Website', 'url', "person_website_url", 'websiteId', NULL))
+                  ELSE '[]'::jsonb END)
+            ||
+            (CASE WHEN "biography_url" IS NOT NULL AND "biography_url" <> ''
+                  THEN jsonb_build_array(jsonb_build_object(
+                    'label', 'Biography', 'url', "biography_url", 'websiteId', NULL))
+                  ELSE '[]'::jsonb END)
+          WHERE "labeled_websites" = '[]'::jsonb
+            AND (("person_website_url" IS NOT NULL AND "person_website_url" <> '')
+              OR ("biography_url" IS NOT NULL AND "biography_url" <> ''));
+        END IF;
+      END $$;
+    `),
+  },
+  {
+    name: "drop people.person_website_url column",
+    run: db => db.execute(sql`ALTER TABLE IF EXISTS "people" DROP COLUMN IF EXISTS "person_website_url"`),
+  },
+  {
+    name: "drop people.biography_url column",
+    run: db => db.execute(sql`ALTER TABLE IF EXISTS "people" DROP COLUMN IF EXISTS "biography_url"`),
+  },
+  {
+    // Group: website_id → a single "Website" row, url derived from the linked website's domain, and
+    // websiteId preserved so the client still hydrates the site name/favicon from cache.
+    name: "backfill groups.labeled_websites from website_id",
+    run: db => db.execute(sql`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'groups' AND column_name = 'website_id'
+        ) THEN
+          UPDATE "groups" g SET "labeled_websites" = jsonb_build_array(jsonb_build_object(
+            'label', 'Website',
+            'url', 'https://' || w."domain",
+            'websiteId', g."website_id"::text))
+          FROM "websites" w
+          WHERE g."website_id" = w."id"
+            AND g."labeled_websites" = '[]'::jsonb
+            AND g."website_id" IS NOT NULL;
+        END IF;
+      END $$;
+    `),
+  },
+  {
+    name: "drop groups.website_id column",
+    run: db => db.execute(sql`ALTER TABLE IF EXISTS "groups" DROP COLUMN IF EXISTS "website_id"`),
+  },
 ];
 
 async function main(): Promise<void> {

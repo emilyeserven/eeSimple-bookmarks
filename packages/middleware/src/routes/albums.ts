@@ -9,6 +9,7 @@ import {
 } from "@/services/albums";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { NotFoundError } from "@/utils/errors";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
@@ -92,6 +93,7 @@ const updateAlbumBody = {
       minLength: 1,
     },
     ...albumDataFields,
+    labeledWebsites: labeledWebsitesSchema,
   },
 } as const;
 

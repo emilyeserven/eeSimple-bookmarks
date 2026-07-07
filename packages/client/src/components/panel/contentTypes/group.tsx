@@ -18,7 +18,7 @@ function useGroupList() {
     () => (data ?? []).map(group => ({
       id: group.id,
       label: group.name,
-      sublabel: group.website?.domain,
+      sublabel: group.labeledWebsites[0]?.url,
     })),
     [data],
   );

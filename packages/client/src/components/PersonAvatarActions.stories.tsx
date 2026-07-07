@@ -16,8 +16,18 @@ const person = makePerson({
   name: "Jane Person",
   slug: "jane-person",
   bookmarkCount: 3,
-  personWebsiteUrl: "https://janeperson.example.com",
-  biographyUrl: "https://janeperson.example.com/bio",
+  labeledWebsites: [
+    {
+      label: "Website",
+      url: "https://janeperson.example.com",
+      websiteId: null,
+    },
+    {
+      label: "Biography",
+      url: "https://janeperson.example.com/bio",
+      websiteId: null,
+    },
+  ],
 });
 
 const channels = [

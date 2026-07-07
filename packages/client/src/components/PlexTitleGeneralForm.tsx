@@ -1,7 +1,7 @@
 import type { createTaxonomyImageApi } from "../lib/api/taxonomyImages";
 import type { PlexTitleSyncField } from "../lib/syncSources/plexTitleDiff";
 import type { PlexKind } from "@/lib/plexParent";
-import type { EntityNameOwnerType, LocationAssignmentOwnerType, PlexItemResult } from "@eesimple/types";
+import type { EntityNameOwnerType, LabeledWebsite, LocationAssignmentOwnerType, PlexItemResult } from "@eesimple/types";
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
+import { LabeledWebsitesField } from "./LabeledWebsitesField";
 import { LocationAssignmentSection } from "./LocationAssignmentSection";
 import { PlexItemLookup } from "./PlexItemLookup";
 import { TaxonomyGeneralFields } from "./TaxonomyGeneralFields";
@@ -35,6 +36,7 @@ export interface PlexTitle {
   wikidataId?: string | null;
   wikipediaLinkEn?: string | null;
   wikipediaLinkLocal?: string | null;
+  labeledWebsites: LabeledWebsite[];
 }
 
 /** The partial-update payload the shared edit form writes (Movie / TV Show update inputs match this). */
@@ -49,6 +51,7 @@ export interface PlexTitleUpdateInput {
   wikidataId?: string | null;
   wikipediaLinkEn?: string | null;
   wikipediaLinkLocal?: string | null;
+  labeledWebsites?: LabeledWebsite[];
 }
 
 const plexTitleSchema = z.object({
@@ -71,6 +74,7 @@ const LABELS: Record<keyof PlexTitleUpdateInput, string> = {
   wikidataId: i18n.t("Wikidata"),
   wikipediaLinkEn: i18n.t("Wikipedia (English)"),
   wikipediaLinkLocal: i18n.t("Wikipedia (local)"),
+  labeledWebsites: i18n.t("Websites"),
 };
 
 interface PlexTitleGeneralFormProps<E extends PlexTitle> {
@@ -130,6 +134,7 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
       year: entity.year,
       wikipediaLinkEn: entity.wikipediaLinkEn ?? "",
       wikipediaLinkLocal: entity.wikipediaLinkLocal ?? "",
+      labeledWebsites: entity.labeledWebsites,
     },
   });
 
@@ -267,6 +272,11 @@ export function PlexTitleGeneralForm<E extends PlexTitle>({
           />
         )}
       </form.AppField>
+
+      <LabeledWebsitesField
+        labeledWebsites={entity.labeledWebsites}
+        onChange={next => autoSave.saveField("labeledWebsites", next)}
+      />
 
       {renderExtra}
 
