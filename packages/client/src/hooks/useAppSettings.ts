@@ -252,6 +252,8 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   screenshotDefaultWidth: 1280,
   screenshotDefaultHeight: 720,
   screenshotDefaultScrollDistance: 0,
+  maxImageEdge: 1200,
+  imageQuality: 80,
 };
 
 /** Sidebar-customization settings (group A): which left-sidebar items/groups are hidden. */

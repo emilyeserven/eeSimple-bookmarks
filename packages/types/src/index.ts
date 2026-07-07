@@ -572,6 +572,14 @@ export interface DisplayPreferenceSettings {
   screenshotDefaultWidth: number;
   screenshotDefaultHeight: number;
   screenshotDefaultScrollDistance: number;
+  /**
+   * Longest-edge cap (px) applied when resizing a newly processed image (uploads, screenshots,
+   * og-image scrapes, and every other entity's image). Applies to new images only — existing
+   * stored images are never reprocessed.
+   */
+  maxImageEdge: number;
+  /** WebP re-encode quality (1-100) applied when compressing a newly processed image. */
+  imageQuality: number;
   /** The interface language driving i18next + `Intl` formatting. */
   interfaceLanguage: InterfaceLanguage;
 }

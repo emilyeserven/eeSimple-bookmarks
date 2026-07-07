@@ -7,6 +7,7 @@ import type {
 import { useTranslation } from "react-i18next";
 
 import { ImageAspectRatiosCard } from "./ImageAspectRatiosCard";
+import { ImageProcessingSettingsCard } from "./ImageProcessingSettingsCard";
 import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
@@ -152,6 +153,7 @@ export function DisplayMediaSettings() {
       </Card>
 
       <ImageAspectRatiosCard />
+      <ImageProcessingSettingsCard />
     </div>
   );
 }

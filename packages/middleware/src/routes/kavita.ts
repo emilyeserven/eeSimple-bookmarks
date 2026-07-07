@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { getImageProcessingOptions } from "@/services/appSettings";
 import {
   fetchKavitaSeriesCover,
   fetchKavitaSeriesDetail,
@@ -106,7 +107,7 @@ export async function kavitaRoutes(app: FastifyInstance): Promise<void> {
     if (!bytes) {
       throw new NotFoundError("Cover", "No cover available");
     }
-    const processed = await processImage(bytes);
+    const processed = await processImage(bytes, await getImageProcessingOptions());
     if ("error" in processed) {
       throw new NotFoundError("Cover", "No cover available");
     }

@@ -9,6 +9,7 @@ import type { BookmarkFileValue } from "@eesimple/types";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { bookmarkFileValues, type BookmarkFileValueRow, bookmarks, customProperties } from "@/db/schema";
+import { getImageProcessingOptions } from "@/services/appSettings";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
 import { processImage } from "@/utils/image";
@@ -88,7 +89,7 @@ export async function setBookmarkPropertyFile(
   let width: number | null = null;
   let height: number | null = null;
   if (isImage) {
-    const processed = await processImage(rawBytes);
+    const processed = await processImage(rawBytes, await getImageProcessingOptions());
     if ("error" in processed) return "bad_image";
     body = processed.body;
     storedContentType = processed.contentType;

@@ -432,6 +432,8 @@ const displayPreferenceBody = {
     "screenshotDefaultWidth",
     "screenshotDefaultHeight",
     "screenshotDefaultScrollDistance",
+    "maxImageEdge",
+    "imageQuality",
   ],
   additionalProperties: false,
   properties: {
@@ -530,6 +532,16 @@ const displayPreferenceBody = {
       type: "integer",
       minimum: 0,
       maximum: 10000,
+    },
+    maxImageEdge: {
+      type: "integer",
+      minimum: 200,
+      maximum: 4000,
+    },
+    imageQuality: {
+      type: "integer",
+      minimum: 1,
+      maximum: 100,
     },
   },
 } as const;

@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 import type { LabeledWebsite } from "@eesimple/types";
 import { db } from "@/db";
 import { groupImages, groups, type GroupImageRow, websiteFavicons } from "@/db/schema";
+import { getImageProcessingOptions } from "@/services/appSettings";
 import { type EntityImageResult } from "@/services/metadata";
 import { fetchPlexPoster } from "@/services/plex";
 import { processImage } from "@/utils/image";
@@ -48,7 +49,7 @@ async function setGroupImage(
     .where(eq(groups.id, groupId));
   if (!group) return "not_found";
 
-  const processed = await processImage(rawBytes);
+  const processed = await processImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) return "bad_image";
 
   const objectKey = objectKeyFor(groupId);

@@ -17,7 +17,7 @@ import { fetchOEmbedThumbnail } from "@/services/oembed";
 import { fetchYouTubeThumbnail, isYouTubeVideoUrl } from "@/services/youtube";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
-import { getActiveHostedEndpoint, getDecryptedHostedApiKey, getImageUrlBlacklist } from "@/services/appSettings";
+import { getActiveHostedEndpoint, getDecryptedHostedApiKey, getImageProcessingOptions, getImageUrlBlacklist } from "@/services/appSettings";
 
 export type SetImageResult = BookmarkImage | "not_found" | "bad_image";
 export type ImageAutoGrabError = "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error";
@@ -205,7 +205,7 @@ export async function takeAndStoreScreenshot(
     return "bad_image";
   }
 
-  const processed = await processImage(rawBytes);
+  const processed = await processImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) return "bad_image";
 
   const objectKey = screenshotKeyFor(bookmarkId);
@@ -352,7 +352,7 @@ export async function addBookmarkImage(
   const existing = await listBookmarkImageRows(bookmarkId);
   if (existing.length >= MAX_BOOKMARK_IMAGES) return "too_many";
 
-  const processed = await processImage(rawBytes);
+  const processed = await processImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) return "bad_image";
 
   const makeMain = opts?.setMain === true || existing.length === 0;
@@ -388,7 +388,7 @@ export async function setBookmarkImage(
   }).from(bookmarks).where(eq(bookmarks.id, bookmarkId));
   if (!bookmark) return "not_found";
 
-  const processed = await processImage(rawBytes);
+  const processed = await processImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) return "bad_image";
 
   await deleteAllBookmarkImages(bookmarkId);
