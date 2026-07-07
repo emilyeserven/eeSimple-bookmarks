@@ -32,10 +32,11 @@ export function GroupListItem({
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
 
-  const websiteLabel = group.website
-    ? (group.website.siteName
-      ? `${group.website.siteName} (${group.website.domain})`
-      : group.website.domain)
+  const primaryWebsite = group.labeledWebsites[0];
+  const websiteLabel = primaryWebsite
+    ? (primaryWebsite.label.trim().length > 0
+      ? `${primaryWebsite.label} (${primaryWebsite.url})`
+      : primaryWebsite.url)
     : undefined;
 
   return (

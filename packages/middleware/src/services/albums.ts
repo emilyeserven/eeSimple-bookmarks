@@ -4,6 +4,7 @@ import type {
   BulkDeleteResult,
   CreateAlbumInput,
   EntityName,
+  LabeledWebsite,
   UpdateAlbumInput,
 } from "@eesimple/types";
 import { db } from "@/db";
@@ -64,6 +65,7 @@ function toAlbum(
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
     imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
   };
 }
 
@@ -75,7 +77,7 @@ const takenSlugs = (excludeId?: string) =>
 type AlbumDataColumns = Pick<
   AlbumRow,
   "mediaPropertyId" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "year"
-  | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal"
+  | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal" | "labeledWebsites"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -89,6 +91,9 @@ function dataFromInput(input: CreateAlbumInput | UpdateAlbumInput): Partial<Albu
   if (input.wikidataId !== undefined) patch.wikidataId = input.wikidataId ?? null;
   if (input.wikipediaLinkEn !== undefined) patch.wikipediaLinkEn = input.wikipediaLinkEn ?? null;
   if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal ?? null;
+  if ("labeledWebsites" in input && input.labeledWebsites !== undefined) {
+    patch.labeledWebsites = input.labeledWebsites ?? [];
+  }
   return patch;
 }
 
@@ -164,6 +169,7 @@ export async function listAlbums(): Promise<Album[]> {
       wikidataId: albums.wikidataId,
       wikipediaLinkEn: albums.wikipediaLinkEn,
       wikipediaLinkLocal: albums.wikipediaLinkLocal,
+      labeledWebsites: albums.labeledWebsites,
       createdAt: albums.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.albumId, albums.id)),
       mainImage: {

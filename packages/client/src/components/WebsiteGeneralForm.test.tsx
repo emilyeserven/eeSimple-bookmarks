@@ -55,6 +55,10 @@ vi.mock("@/hooks/useWebsites", () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
+  // The LabeledWebsitesField renders inside the form and reads the cached websites list.
+  useWebsites: () => ({
+    data: [],
+  }),
 }));
 
 vi.mock("@/hooks/useCategories", () => ({

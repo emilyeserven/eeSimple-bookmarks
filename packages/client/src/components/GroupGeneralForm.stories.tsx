@@ -8,12 +8,13 @@ const group = makeGroup({
   id: "pub-oreilly",
   name: "O'Reilly Media",
   slug: "oreilly-media",
-  websiteId: "site-github",
-  website: {
-    id: "site-github",
-    domain: "github.com",
-    siteName: "GitHub",
-  },
+  labeledWebsites: [
+    {
+      label: "Website",
+      url: "https://oreilly.com",
+      websiteId: null,
+    },
+  ],
   bookmarkCount: 12,
 });
 
@@ -42,8 +43,7 @@ export const NoWebsite: Story = {
   args: {
     group: {
       ...group,
-      websiteId: null,
-      website: null,
+      labeledWebsites: [],
     },
   },
 };

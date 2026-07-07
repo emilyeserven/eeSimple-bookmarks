@@ -9,6 +9,7 @@ import { ChannelWebsitesField } from "./ChannelWebsitesField";
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
+import { LabeledWebsitesField } from "./LabeledWebsitesField";
 import { SelfIdsField } from "./SelfIdsField";
 import { SourceDefaultFields } from "./SourceDefaultFields";
 import { useYouTubeChannelGeneralForm } from "./useYouTubeChannelGeneralForm";
@@ -133,6 +134,13 @@ export function YouTubeChannelGeneralForm({
         groups={groups}
         selectedIds={channel.groupIds ?? []}
         onChange={ids => saveField("groupIds", ids)}
+      />
+
+      <Separator />
+
+      <LabeledWebsitesField
+        labeledWebsites={channel.labeledWebsites}
+        onChange={next => saveField("labeledWebsites", next)}
       />
 
       <Separator />

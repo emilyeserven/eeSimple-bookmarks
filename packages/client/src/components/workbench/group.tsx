@@ -68,18 +68,30 @@ function GroupGeneralView({
         </dd>
         <dt className="text-muted-foreground">{t("Group type")}</dt>
         <dd>{group.groupType?.name ?? <span className="text-muted-foreground">{t("None")}</span>}</dd>
-        {group.website != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Website")}</dt>
-              <dd>
-                {group.website.siteName
-                  ? `${group.website.siteName} (${group.website.domain})`
-                  : group.website.domain}
-              </dd>
-            </>
-          )
-          : null}
+        {group.labeledWebsites.map((site, index) => (
+          <>
+            <dt
+
+              key={`lw-label-${index}`}
+              className="text-muted-foreground"
+            >
+              {site.label.trim().length > 0 ? site.label : t("Website")}
+            </dt>
+            <dd
+
+              key={`lw-value-${index}`}
+            >
+              <a
+                href={site.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                {site.url}
+              </a>
+            </dd>
+          </>
+        ))}
         {group.bookmarkCount != null
           ? (
             <>

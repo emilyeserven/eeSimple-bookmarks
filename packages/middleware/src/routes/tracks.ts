@@ -8,6 +8,7 @@ import {
   updateTrack,
 } from "@/services/tracks";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { NotFoundError } from "@/utils/errors";
 import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
@@ -82,6 +83,7 @@ const updateTrackBody = {
       minLength: 1,
     },
     ...trackDataFields,
+    labeledWebsites: labeledWebsitesSchema,
   },
 } as const;
 

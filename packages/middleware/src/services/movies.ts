@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import type {
   CreateMovieInput,
+  LabeledWebsite,
   Movie,
   UpdateMovieInput,
 } from "@eesimple/types";
@@ -44,6 +45,7 @@ function toMovie(row: MovieRow & {
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
     imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
   };
 }
 

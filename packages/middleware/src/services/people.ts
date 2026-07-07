@@ -1,5 +1,5 @@
 import { asc, count, eq, inArray, isNull } from "drizzle-orm";
-import type { Person, BulkDeleteResult, CreatePersonInput, EntityName, SocialLink, UpdatePersonInput } from "@eesimple/types";
+import type { Person, BulkDeleteResult, CreatePersonInput, EntityName, LabeledWebsite, SocialLink, UpdatePersonInput } from "@eesimple/types";
 import { db } from "@/db";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
@@ -188,10 +188,9 @@ function toPerson(
     description: row.description ?? null,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount,
-    personWebsiteUrl: row.personWebsiteUrl ?? null,
-    biographyUrl: row.biographyUrl ?? null,
     imageUrl: avatarUrlFrom(row.id, row.avatarCreatedAt ?? null),
     socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
     youtubeChannelIds,
     websiteIds,
     groupIds,
@@ -217,9 +216,8 @@ export async function listPeople(): Promise<Person[]> {
       name: people.name,
       slug: people.slug,
       description: people.description,
-      personWebsiteUrl: people.personWebsiteUrl,
-      biographyUrl: people.biographyUrl,
       socialLinks: people.socialLinks,
+      labeledWebsites: people.labeledWebsites,
       sortOrder: people.sortOrder,
       mediaPropertyId: people.mediaPropertyId,
       plexRatingKey: people.plexRatingKey,
@@ -298,7 +296,7 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
   const [existing] = await db.select().from(people).where(eq(people.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<PersonRow, "name" | "slug" | "description" | "personWebsiteUrl" | "biographyUrl" | "socialLinks" | "sortOrder">> & Partial<PersonDataColumns> = {
+  const patch: Partial<Pick<PersonRow, "name" | "slug" | "description" | "socialLinks" | "labeledWebsites" | "sortOrder">> & Partial<PersonDataColumns> = {
     ...creatorDataFromInput(input),
   };
   if (input.name !== undefined && input.name.trim() !== existing.name) {
@@ -311,9 +309,8 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
     patch.slug = uniqueSlug(name, await takenSlugs(id), "person");
   }
   if (input.description !== undefined) patch.description = input.description ?? null;
-  if ("personWebsiteUrl" in input) patch.personWebsiteUrl = input.personWebsiteUrl ?? null;
-  if ("biographyUrl" in input) patch.biographyUrl = input.biographyUrl ?? null;
   if ("socialLinks" in input) patch.socialLinks = input.socialLinks ?? [];
+  if ("labeledWebsites" in input) patch.labeledWebsites = input.labeledWebsites ?? [];
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
 
   const hasAssociationChanges
@@ -392,18 +389,21 @@ export async function detectPersonSocialLinksFromWebsite(
 ): Promise<SocialLink[] | "not_found" | "no_url" | "fetch_error"> {
   const [row] = await db
     .select({
-      personWebsiteUrl: people.personWebsiteUrl,
+      labeledWebsites: people.labeledWebsites,
     })
     .from(people)
     .where(eq(people.id, id));
 
   if (!row) return "not_found";
-  if (!row.personWebsiteUrl) return "no_url";
+  // Prefer a row explicitly labeled "Website", else fall back to the first listed URL.
+  const list = (row.labeledWebsites as LabeledWebsite[] | null) ?? [];
+  const sourceUrl = list.find(w => w.label.trim().toLowerCase() === "website")?.url ?? list[0]?.url;
+  if (!sourceUrl) return "no_url";
 
-  const result = await fetchBodyHtmlResult(row.personWebsiteUrl, /<\/body>/i);
+  const result = await fetchBodyHtmlResult(sourceUrl, /<\/body>/i);
   if (result.kind !== "ok") return "fetch_error";
 
-  return extractSocialProfileLinks(result.html, row.personWebsiteUrl);
+  return extractSocialProfileLinks(result.html, sourceUrl);
 }
 
 /** Delete an person. Bookmark join rows are removed via cascade. Returns false when not found. */

@@ -3,6 +3,7 @@ import type { UpdateWebsiteInput, Website } from "@eesimple/types";
 import { z } from "zod";
 
 import i18n from "@/i18n";
+import { labeledWebsiteSchema } from "@/lib/labeledWebsites";
 import { socialLinkSchema } from "@/lib/socialLinks";
 
 export const websiteGeneralSchema = z.object({
@@ -10,6 +11,7 @@ export const websiteGeneralSchema = z.object({
   domain: z.string().trim().min(1, i18n.t("Domain is required")),
   description: z.string(),
   socialLinks: z.array(socialLinkSchema),
+  labeledWebsites: z.array(labeledWebsiteSchema),
 });
 
 export const WEBSITE_LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
@@ -20,6 +22,7 @@ export const WEBSITE_LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> =
   mediaTypeId: "Media type",
   tagIds: "Default tags",
   socialLinks: "Social media links",
+  labeledWebsites: "Websites",
   youtubeChannelIds: "YouTube channels",
   alternateNames: "Alternate names",
   redirectResolutionFailure: "Redirect resolution failure",
@@ -35,6 +38,7 @@ export function websiteAutoSaveInitial(website: Website): UpdateWebsiteInput {
     mediaTypeId: website.mediaTypeId ?? null,
     tagIds: website.tagIds ?? [],
     socialLinks: website.socialLinks,
+    labeledWebsites: website.labeledWebsites,
     youtubeChannelIds: website.youtubeChannelIds ?? [],
     alternateNames: website.alternateNames,
     redirectResolutionFailure: website.redirectResolutionFailure ?? false,

@@ -4,6 +4,7 @@ import type {
   CreateLocationChainInput,
   CreateLocationInput,
   EntityName,
+  LabeledWebsite,
   Location,
   LocationNode,
   LocationTitleCandidate,
@@ -74,6 +75,7 @@ function toLocation(
     tagIds,
     bookmarkCount: counts?.subtree,
     ownBookmarkCount: counts?.own,
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
   };
 }
 
@@ -356,6 +358,7 @@ export function locationInputToPatch(input: UpdateLocationInput): Partial<Locati
   if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
+  if (input.labeledWebsites !== undefined) patch.labeledWebsites = input.labeledWebsites;
   return patch;
 }
 

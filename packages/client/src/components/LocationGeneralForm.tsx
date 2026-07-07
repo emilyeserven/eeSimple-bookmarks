@@ -8,6 +8,7 @@ import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
+import { LabeledWebsitesField } from "./LabeledWebsitesField";
 import { LocationAncestorsSection } from "./LocationAncestorsSection";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
@@ -337,6 +338,11 @@ export function LocationGeneralForm({
         </p>
       </div>
       {tagCreate.modal}
+
+      <LabeledWebsitesField
+        labeledWebsites={node.labeledWebsites}
+        onChange={next => saveField("labeledWebsites", next)}
+      />
 
       <GenreMoodAssignmentSection
         ownerType="location"

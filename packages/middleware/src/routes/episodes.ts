@@ -9,6 +9,7 @@ import {
 } from "@/services/episodes";
 import { importPlexPosterForTaxonomy } from "@/services/plex";
 import { NotFoundError } from "@/utils/errors";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { registerPlexMetadataPreviewRoute } from "@/routes/plexMetadataPreviewRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
@@ -82,6 +83,7 @@ const updateEpisodeBody = {
       minLength: 1,
     },
     ...episodeDataFields,
+    labeledWebsites: labeledWebsitesSchema,
   },
 } as const;
 

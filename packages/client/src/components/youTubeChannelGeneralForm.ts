@@ -3,10 +3,12 @@ import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types"
 import { z } from "zod";
 
 import i18n from "@/i18n";
+import { labeledWebsiteSchema } from "@/lib/labeledWebsites";
 
 export const channelGeneralSchema = z.object({
   name: z.string().trim().min(1, i18n.t("Name is required")),
   description: z.string(),
+  labeledWebsites: z.array(labeledWebsiteSchema),
 });
 
 export const CHANNEL_LABELS: Partial<Record<keyof UpdateYouTubeChannelInput, string>> = {
@@ -15,7 +17,8 @@ export const CHANNEL_LABELS: Partial<Record<keyof UpdateYouTubeChannelInput, str
   selfIds: "Self-identifiers",
   categoryId: "Category",
   tagIds: "Default tags",
-  websiteIds: "Websites",
+  websiteIds: "Associated websites",
+  labeledWebsites: "Websites",
   groupIds: "Groups",
 };
 
@@ -28,6 +31,7 @@ export function channelAutoSaveInitial(channel: YouTubeChannel): UpdateYouTubeCh
     categoryId: channel.category?.id ?? null,
     tagIds: channel.tagIds ?? [],
     websiteIds: channel.websiteIds ?? [],
+    labeledWebsites: channel.labeledWebsites,
     groupIds: channel.groupIds ?? [],
   };
 }

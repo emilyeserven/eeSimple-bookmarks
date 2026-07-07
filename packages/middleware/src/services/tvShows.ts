@@ -1,5 +1,6 @@
 import type {
   CreateTvShowInput,
+  LabeledWebsite,
   TvShow,
   UpdateTvShowInput,
 } from "@eesimple/types";
@@ -42,6 +43,7 @@ function toTvShow(row: TvShowRow & {
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
     imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
   };
 }
 

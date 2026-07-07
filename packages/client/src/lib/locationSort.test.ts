@@ -27,6 +27,7 @@ function node(name: string, placeType: string | null, children: LocationNode[] =
     sortOrder: 0,
     parentId: null,
     createdAt: "2026-01-01T00:00:00.000Z",
+    labeledWebsites: [],
     children,
   };
 }

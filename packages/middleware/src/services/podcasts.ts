@@ -3,6 +3,7 @@ import type {
   BulkDeleteResult,
   CreatePodcastInput,
   EntityName,
+  LabeledWebsite,
   Podcast,
   PodcastLinkProvider,
   UpdatePodcastInput,
@@ -72,6 +73,7 @@ function toPodcast(
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
     imageUrl: mainImageUrl(row.mainImage ?? null),
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
   };
 }
 
@@ -83,7 +85,7 @@ const takenSlugs = (excludeId?: string) =>
 type PodcastDataColumns = Pick<
   PodcastRow,
   | "mediaPropertyId" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid"
-  | "pocketCastsUrl" | "defaultLinkProvider" | "description"
+  | "pocketCastsUrl" | "defaultLinkProvider" | "description" | "labeledWebsites"
 >;
 
 /** Build the settable data columns from an input, treating missing keys as "leave"/null. */
@@ -98,6 +100,9 @@ function dataFromInput(input: CreatePodcastInput | UpdatePodcastInput): Partial<
   if (input.pocketCastsUrl !== undefined) patch.pocketCastsUrl = input.pocketCastsUrl ?? null;
   if (input.defaultLinkProvider !== undefined) patch.defaultLinkProvider = input.defaultLinkProvider ?? null;
   if (input.description !== undefined) patch.description = input.description ?? null;
+  if ("labeledWebsites" in input && input.labeledWebsites !== undefined) {
+    patch.labeledWebsites = input.labeledWebsites ?? [];
+  }
   return patch;
 }
 
@@ -172,6 +177,7 @@ export async function listPodcasts(): Promise<Podcast[]> {
       slug: podcasts.slug,
       sortOrder: podcasts.sortOrder,
       mediaPropertyId: podcasts.mediaPropertyId,
+      labeledWebsites: podcasts.labeledWebsites,
       feedUrl: podcasts.feedUrl,
       itunesId: podcasts.itunesId,
       itunesUrl: podcasts.itunesUrl,

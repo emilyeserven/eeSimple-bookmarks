@@ -11,6 +11,7 @@ import type { EntityName, UpdateEntityNameEntry } from "./entityNames.js";
 import type { BookmarkGenreMood } from "./genreMoods.js";
 import type { HomepageWidget } from "./homepageWidgets.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
+import type { LabeledWebsite } from "./labeledWebsites.js";
 import type { LanguageUsage, UpdateLanguageUsageEntry } from "./languageUsages.js";
 import type { BookmarkLocation } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
@@ -30,6 +31,7 @@ export * from "./groupTypes.js";
 export * from "./homepageWidgets.js";
 export * from "./importBlacklist.js";
 export * from "./isbn.js";
+export * from "./labeledWebsites.js";
 export * from "./languageUsages.js";
 export * from "./locationAssignments.js";
 export * from "./locations.js";
@@ -175,6 +177,8 @@ export interface Website {
   mediaTypeId?: string | null;
   /** Social media links for this website. */
   socialLinks: SocialLink[];
+  /** Labeled websites/links for this website (freeform label + URL, optionally a Websites-taxonomy ref). */
+  labeledWebsites: LabeledWebsite[];
   /** Ids of YouTube channels associated with this website. */
   youtubeChannelIds?: string[];
   /** Extra names this site appends to titles (e.g. "GH"); stripped during title fetch. */
@@ -222,6 +226,8 @@ export interface UpdateWebsiteInput {
   mediaTypeId?: string | null;
   /** Social media links for this website. Replaces the full list; omit to leave unchanged. */
   socialLinks?: SocialLink[];
+  /** Labeled websites/links. Replaces the full list; omit to leave unchanged. */
+  labeledWebsites?: LabeledWebsite[];
   /** Full replacement list of associated YouTube channel ids. Omit to leave unchanged. */
   youtubeChannelIds?: string[];
   /** Full replacement list of extra site-name aliases used for title stripping. Omit to leave unchanged. */
@@ -759,12 +765,6 @@ export interface Group {
   slug: string;
   /** Free-text description surfaced on the group's detail page. */
   description: string | null;
-  /** Id of the website this group is associated with, or null when unset. */
-  websiteId: string | null;
-  /** The associated website, populated by list/get endpoints. */
-  website?: { id: string;
-    domain: string;
-    siteName: string; } | null;
   /** Id of the group type classifying this group, or null when unset. */
   groupTypeId: string | null;
   /** The classifying group type, populated by list/get endpoints. */
@@ -777,6 +777,8 @@ export interface Group {
   bookmarkCount?: number;
   /** Social media links for this group. */
   socialLinks: SocialLink[];
+  /** Labeled websites/links for this group (freeform label + URL, optionally a Websites-taxonomy ref). */
+  labeledWebsites: LabeledWebsite[];
   /** Display ordering weight; lower sorts first (absorbed from the former Artists taxonomy). */
   sortOrder: number;
   /** Optional release year surfaced by the Plex search, or null. */
@@ -803,8 +805,6 @@ export type BookmarkGroup = Pick<Group, "id" | "name" | "slug">;
 /** Payload for creating a group. */
 export interface CreateGroupInput {
   name: string;
-  /** Id of the website to associate with this group; null to leave unset. */
-  websiteId?: string | null;
   /** Id of the group type to classify this group under; null to leave unset. */
   groupTypeId?: string | null;
   description?: string | null;
@@ -813,13 +813,13 @@ export interface CreateGroupInput {
 /** Payload for updating a group. */
 export interface UpdateGroupInput {
   name?: string;
-  /** Id of the website to associate with this group; null to clear it. */
-  websiteId?: string | null;
   /** Id of the group type to classify this group under; null to clear it. */
   groupTypeId?: string | null;
   description?: string | null;
   /** Social media links for this group. Replaces the full list; omit to leave unchanged. */
   socialLinks?: SocialLink[];
+  /** Labeled websites/links. Replaces the full list; omit to leave unchanged. */
+  labeledWebsites?: LabeledWebsite[];
   sortOrder?: number;
   year?: number | null;
   plexRatingKey?: string | null;
@@ -947,6 +947,8 @@ export interface YouTubeChannel {
   websiteIds?: string[];
   /** Ids of groups this channel is associated with. Populated by list/get endpoints. */
   groupIds?: string[];
+  /** Labeled websites/links for this channel (freeform label + URL, optionally a Websites-taxonomy ref). */
+  labeledWebsites: LabeledWebsite[];
   /** Languages associated with this channel, each qualified by a usage level. Populated by get endpoints. */
   languageUsages?: LanguageUsage[];
 }
@@ -990,6 +992,8 @@ export interface UpdateYouTubeChannelInput {
   websiteIds?: string[];
   /** Full replacement list of associated group ids. Omit to leave unchanged. */
   groupIds?: string[];
+  /** Labeled websites/links. Replaces the full list; omit to leave unchanged. */
+  labeledWebsites?: LabeledWebsite[];
 }
 
 /**
@@ -1034,11 +1038,11 @@ export interface Person {
   bookmarkCount?: number;
   /** Free-text description surfaced on the person's detail page. */
   description: string | null;
-  personWebsiteUrl: string | null;
-  biographyUrl: string | null;
   imageUrl: string | null;
   /** Social media links for this person. */
   socialLinks: SocialLink[];
+  /** Labeled websites/links for this person (freeform label + URL, optionally a Websites-taxonomy ref). */
+  labeledWebsites: LabeledWebsite[];
   /** IDs of YouTube channels associated with this person. */
   youtubeChannelIds: string[];
   /** IDs of websites associated with this person. */
@@ -1076,10 +1080,10 @@ export interface CreatePersonInput {
 export interface UpdatePersonInput {
   name?: string;
   description?: string | null;
-  personWebsiteUrl?: string | null;
-  biographyUrl?: string | null;
   /** Social media links for this person. Replaces the full list; omit to leave unchanged. */
   socialLinks?: SocialLink[];
+  /** Labeled websites/links. Replaces the full list; omit to leave unchanged. */
+  labeledWebsites?: LabeledWebsite[];
   /** IDs of YouTube channels to associate; replaces the full set. Omit to leave unchanged. */
   youtubeChannelIds?: string[];
   /** IDs of websites to associate; replaces the full set. Omit to leave unchanged. */

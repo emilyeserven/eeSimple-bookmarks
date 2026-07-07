@@ -16,6 +16,7 @@ import {
   removeGroupImage,
   setGroupImageFromBytes,
 } from "@/services/groupImages";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import {
@@ -76,10 +77,6 @@ const createGroupBody = {
     description: {
       type: ["string", "null"],
     },
-    websiteId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
     groupTypeId: {
       type: ["string", "null"],
       format: "uuid",
@@ -112,6 +109,7 @@ const updateGroupBody = {
   properties: {
     ...createGroupBody.properties,
     socialLinks: socialLinksSchema,
+    labeledWebsites: labeledWebsitesSchema,
     sortOrder: {
       type: "integer",
     },

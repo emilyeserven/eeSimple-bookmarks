@@ -21,6 +21,7 @@ import {
   lookupWebsiteByUrl,
   updateWebsite,
 } from "@/services/websites";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import {
@@ -185,6 +186,7 @@ const updateWebsiteBody = {
       format: "uuid",
     },
     socialLinks: socialLinksSchema,
+    labeledWebsites: labeledWebsitesSchema,
     youtubeChannelIds: {
       type: "array",
       items: {

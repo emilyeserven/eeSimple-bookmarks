@@ -1,4 +1,4 @@
-import type { Group, SocialLink } from "@eesimple/types";
+import type { Group, LabeledWebsite, SocialLink } from "@eesimple/types";
 
 import { Building2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,7 @@ import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { GroupImageActions } from "./GroupImageActions";
 import { GroupYouTubeChannelsField } from "./GroupYouTubeChannelsField";
+import { LabeledWebsitesField } from "./LabeledWebsitesField";
 import { SocialLinksField } from "./SocialLinksField";
 import { useGroupGeneralForm } from "./useGroupGeneralForm";
 import {
@@ -38,8 +39,6 @@ export function GroupGeneralForm({
     form,
     saveField,
     saveName,
-    websiteOptions,
-    websiteCreate,
     groupTypeOptions,
     groupTypeCreate,
     youtubeChannels,
@@ -92,20 +91,10 @@ export function GroupGeneralForm({
         />
       </div>
 
-      <form.AppField name="websiteId">
-        {field => (
-          <field.ComboboxField
-            label={t("Website")}
-            placeholder={t("No website")}
-            searchPlaceholder={t("Search websites…")}
-            emptyText={t("No websites found.")}
-            options={websiteOptions}
-            createOption={websiteCreate.createOption}
-            onValueChange={value => saveField("websiteId", value || null)}
-          />
-        )}
-      </form.AppField>
-      {websiteCreate.modal}
+      <LabeledWebsitesField
+        labeledWebsites={group.labeledWebsites}
+        onChange={(websites: LabeledWebsite[]) => saveField("labeledWebsites", websites)}
+      />
 
       <form.AppField name="groupTypeId">
         {field => (

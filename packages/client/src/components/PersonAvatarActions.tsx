@@ -32,17 +32,26 @@ export function PersonAvatarActions({
   const {
     t,
   } = useTranslation();
+  // Mirror the middleware's `sourceUrlFromLabeled`: "website" prefers a "Website"-labeled row (else
+  // the first URL); "biography" matches only a "Biography"-labeled row. `sourceUrl` is used just for
+  // the client error toast — the server re-derives the actual URL from the person's list.
+  const websiteSourceUrl = person.labeledWebsites.find(
+    w => w.label.trim().toLowerCase() === "website",
+  )?.url ?? person.labeledWebsites[0]?.url;
+  const biographySourceUrl = person.labeledWebsites.find(
+    w => w.label.trim().toLowerCase() === "biography",
+  )?.url;
   return (
     <div className="flex flex-col gap-2">
       <Button
         type="button"
         variant="outline"
         size="sm"
-        disabled={avatarBusy || !person.personWebsiteUrl}
+        disabled={avatarBusy || !websiteSourceUrl}
         onClick={() => autoAvatar.mutate({
           id: person.id,
           source: "website",
-          sourceUrl: person.personWebsiteUrl ?? undefined,
+          sourceUrl: websiteSourceUrl,
         })}
       >
         <Sparkles className="size-4" />
@@ -52,11 +61,11 @@ export function PersonAvatarActions({
         type="button"
         variant="outline"
         size="sm"
-        disabled={avatarBusy || !person.biographyUrl}
+        disabled={avatarBusy || !biographySourceUrl}
         onClick={() => autoAvatar.mutate({
           id: person.id,
           source: "biography",
-          sourceUrl: person.biographyUrl ?? undefined,
+          sourceUrl: biographySourceUrl,
         })}
       >
         <Sparkles className="size-4" />

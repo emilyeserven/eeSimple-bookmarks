@@ -1,5 +1,6 @@
 import type {
   CreateTrackInput,
+  LabeledWebsite,
   Track,
   UpdateTrackInput,
 } from "@eesimple/types";
@@ -43,6 +44,7 @@ function toTrack(row: TrackRow & {
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
     imageUrl: mainTaxonomyImageUrl(row.mainImage ?? null),
+    labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
   };
 }
 

@@ -5,6 +5,7 @@
  * in exactly one place: this tuple + its label below.
  */
 import type { EntityName } from "./entityNames.js";
+import type { LabeledWebsite } from "./labeledWebsites.js";
 
 export const PODCAST_LINK_PROVIDERS = ["feed", "itunes", "spotify", "pocketCasts"] as const;
 export type PodcastLinkProvider = typeof PODCAST_LINK_PROVIDERS[number];
@@ -71,6 +72,8 @@ export interface Podcast {
   bookmarkCount?: number;
   /** Main artwork image URL (from the taxonomy-image gallery), or null when none is set. */
   imageUrl: string | null;
+  /** Labeled websites/links for this podcast (freeform label + URL, optionally a Websites-taxonomy ref). */
+  labeledWebsites: LabeledWebsite[];
 }
 
 /** Payload for creating a podcast. */
@@ -109,6 +112,8 @@ export interface UpdatePodcastInput {
   /** Groups (organizations/networks) credited as authors/hosts. Replaces the full set when present. */
   groupIds?: string[];
   description?: string | null;
+  /** Labeled websites/links. Replaces the full list; omit to leave unchanged. */
+  labeledWebsites?: LabeledWebsite[];
 }
 
 /**

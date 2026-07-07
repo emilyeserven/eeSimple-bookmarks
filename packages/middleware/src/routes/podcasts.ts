@@ -17,6 +17,7 @@ import {
   searchPodcasts,
   searchPodcastsPocketCasts,
 } from "@/services/podcastFeed";
+import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { registerTaxonomyImageRoutes } from "@/routes/taxonomyImageRoutes";
 import { NotFoundError, ValidationError } from "@/utils/errors";
@@ -104,6 +105,7 @@ const updatePodcastBody = {
       minLength: 1,
     },
     ...podcastDataFields,
+    labeledWebsites: labeledWebsitesSchema,
   },
 } as const;
 

@@ -46,6 +46,7 @@ function makeLocation(partial: Partial<Location> & Pick<Location, "id" | "name" 
     wikipediaLinkLocal: null,
     sortOrder: 0,
     createdAt: "2026-06-01T00:00:00.000Z",
+    labeledWebsites: [],
     ...partial,
   };
 }

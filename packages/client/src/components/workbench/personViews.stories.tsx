@@ -9,8 +9,18 @@ const person = makePerson({
   name: "Jane Doe",
   slug: "jane-doe",
   bookmarkCount: 12,
-  personWebsiteUrl: "https://janedoe.example.com",
-  biographyUrl: "https://en.wikipedia.org/wiki/Jane_Doe",
+  labeledWebsites: [
+    {
+      label: "Website",
+      url: "https://janedoe.example.com",
+      websiteId: null,
+    },
+    {
+      label: "Biography",
+      url: "https://en.wikipedia.org/wiki/Jane_Doe",
+      websiteId: null,
+    },
+  ],
   socialLinks: [
     {
       platform: "x",
@@ -47,8 +57,7 @@ export const Minimal: Story = {
       name: "Anonymous",
       slug: "anonymous",
       bookmarkCount: 0,
-      personWebsiteUrl: null,
-      biographyUrl: null,
+      labeledWebsites: [],
       socialLinks: [],
     },
   },
