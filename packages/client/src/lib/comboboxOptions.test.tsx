@@ -98,6 +98,55 @@ describe("mediaTypeNodesToOptions", () => {
     expect(options.map(o => o.value)).toEqual(["visible"]);
   });
 
+  it("translates a built-in label via nameOf while keeping the English name searchable", () => {
+    // Mirrors `builtInName`: translate only built-in rows, leave user rows verbatim.
+    const nameOf = (row: { name: string;
+      builtIn?: boolean; }) => (row.builtIn ? `t:${row.name}` : row.name);
+    const [builtIn, custom] = mediaTypeNodesToOptions(
+      [
+        makeNode({
+          id: "podcast",
+          name: "Podcast",
+          builtIn: true,
+        }),
+        makeNode({
+          id: "custom",
+          name: "Zine",
+          builtIn: false,
+        }),
+      ],
+      nameOf,
+    );
+    // Built-in: label translated, English seed name folded into searchAlias so it still matches.
+    expect(builtIn?.label).toBe("t:Podcast");
+    expect(builtIn?.searchAlias).toBe("Podcast");
+    // User-created: label untouched, no English alias added.
+    expect(custom?.label).toBe("Zine");
+    expect(custom?.searchAlias).toBeUndefined();
+  });
+
+  it("folds the English name and its language variants together for a built-in", () => {
+    const [option] = mediaTypeNodesToOptions([
+      makeNode({
+        id: "podcast",
+        name: "Podcast",
+        builtIn: true,
+        names: [nm("ポッドキャスト")],
+      }),
+    ]);
+    expect(option?.searchAlias).toContain("Podcast");
+    expect(option?.searchAlias).toContain("ポッドキャスト");
+  });
+
+  it("defaults label to the verbatim name when no nameOf is passed", () => {
+    const [option] = mediaTypeNodesToOptions([makeNode({
+      id: "podcast",
+      name: "Podcast",
+      builtIn: true,
+    })]);
+    expect(option?.label).toBe("Podcast");
+  });
+
   it("hoists the visible children of a hidden parent up to its level", () => {
     const options = mediaTypeNodesToOptions([
       makeNode({

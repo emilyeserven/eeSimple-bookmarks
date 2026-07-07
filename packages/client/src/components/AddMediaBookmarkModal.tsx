@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useBuiltInName } from "@/lib/builtInName";
 import { iconComboboxOptions } from "@/lib/comboboxOptions";
 
 const schema = z.object({
@@ -50,6 +51,7 @@ export function AddMediaBookmarkModal({
   const {
     data: mediaTypes,
   } = useMediaTypes();
+  const builtInName = useBuiltInName();
   const createBookmark = useCreateBookmark();
   const form = useAppForm({
     defaultValues: {
@@ -119,7 +121,7 @@ export function AddMediaBookmarkModal({
                 placeholder={t("No media type")}
                 searchPlaceholder={t("Search media types…")}
                 emptyText={t("No media types found.")}
-                options={iconComboboxOptions((mediaTypes ?? []).filter(mt => !mt.hidden))}
+                options={iconComboboxOptions((mediaTypes ?? []).filter(mt => !mt.hidden), builtInName)}
               />
             )}
           </form.AppField>

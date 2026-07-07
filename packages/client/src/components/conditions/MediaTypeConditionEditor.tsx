@@ -6,6 +6,7 @@ import { TreeMultiCombobox } from "../TreeMultiCombobox";
 import { useEntityCreateOption } from "../useEntityCreateOption";
 
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
+import { useBuiltInName } from "@/lib/builtInName";
 import { mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 interface MediaTypeConditionEditorProps {
@@ -23,6 +24,7 @@ export function MediaTypeConditionEditor({
   const {
     data: mediaTypeTree = [], isLoading,
   } = useMediaTypeTree();
+  const builtInName = useBuiltInName();
   const mediaTypeCreate = useEntityCreateOption("media-type", mediaType =>
     onChange({
       ...value,
@@ -36,7 +38,7 @@ export function MediaTypeConditionEditor({
         placeholder={isLoading ? t("Loading…") : t("Any media type")}
         searchPlaceholder={t("Search media types…")}
         emptyText={t("No media types found.")}
-        options={mediaTypeNodesToOptions(mediaTypeTree)}
+        options={mediaTypeNodesToOptions(mediaTypeTree, builtInName)}
         values={value.mediaTypeIds}
         onValuesChange={mediaTypeIds =>
           onChange({

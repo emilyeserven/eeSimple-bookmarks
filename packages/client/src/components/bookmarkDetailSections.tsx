@@ -25,6 +25,7 @@ import { LabeledSection } from "@/components/LabeledSection";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import i18n from "@/i18n";
+import { builtInName } from "@/lib/builtInName";
 
 export type BookmarkDetailSectionId
   = | "general"
@@ -263,7 +264,12 @@ function videoSection(bookmark: Bookmark): BookmarkDetailSection | null {
 function relationshipBadges(relationship: BookmarkRelationship): ReactNode {
   return (
     <>
-      <Badge variant="secondary">{relationship.relationshipTypeName}</Badge>
+      <Badge variant="secondary">
+        {builtInName({
+          name: relationship.relationshipTypeName,
+          builtIn: relationship.relationshipTypeBuiltIn,
+        }, i18n.t)}
+      </Badge>
       {relationship.directional
         ? (
           <Badge variant="outline">

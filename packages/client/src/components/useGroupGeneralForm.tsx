@@ -10,6 +10,7 @@ import { useUpdateGroup } from "../hooks/useGroups";
 import { useGroupTypes } from "../hooks/useGroupTypes";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import i18n from "../i18n";
+import { useBuiltInName } from "../lib/builtInName";
 import { useAppForm } from "../lib/form";
 import { labeledWebsiteSchema } from "../lib/labeledWebsites";
 import { socialLinkSchema } from "../lib/socialLinks";
@@ -60,9 +61,11 @@ export function useGroupGeneralForm(group: Group) {
     },
   });
 
+  const builtInName = useBuiltInName();
   const groupTypeOptions = (groupTypes ?? []).filter(groupType => !groupType.hidden).map(groupType => ({
     value: groupType.id,
-    label: groupType.name,
+    label: builtInName(groupType),
+    searchAlias: groupType.builtIn ? groupType.name : undefined,
     icon: (
       <Library className="size-4 shrink-0 text-muted-foreground" />
     ),

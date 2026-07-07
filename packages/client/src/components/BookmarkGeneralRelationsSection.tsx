@@ -6,6 +6,7 @@ import { AddTagModal } from "./AddTagModal";
 import { GatedTagPicker } from "./BookmarkTagsField";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
+import { useBuiltInName } from "@/lib/builtInName";
 import { mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 type Ctrl = ReturnType<typeof useBookmarkGeneralForm>;
@@ -31,6 +32,7 @@ export function BookmarkGeneralRelationsSection({
     saveTags,
     touchedRef,
   } = ctrl;
+  const builtInName = useBuiltInName();
   const mediaTypeCreate = useEntityCreateOption("media-type", (mediaType) => {
     form.setFieldValue("mediaTypeId", mediaType.id);
     saveField("mediaTypeId", mediaType.id);
@@ -46,7 +48,7 @@ export function BookmarkGeneralRelationsSection({
             emptyText={t("No media types found.")}
             onValueChange={value => saveField("mediaTypeId", value || null)}
             createOption={mediaTypeCreate.createOption}
-            options={mediaTypeNodesToOptions(mediaTypes ?? [])}
+            options={mediaTypeNodesToOptions(mediaTypes ?? [], builtInName)}
           />
         )}
       </form.AppField>

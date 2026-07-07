@@ -10,6 +10,7 @@ import { bookmarkCountColumn } from "./columnHelpers";
 import i18n from "../../i18n";
 
 import { Badge } from "@/components/ui/badge";
+import { builtInName } from "@/lib/builtInName";
 
 /** Column definitions for the Relationship Types listing Table view. */
 export function useRelationshipTypeColumns(): ColumnDef<RelationshipType>[] {
@@ -23,7 +24,7 @@ export function useRelationshipTypeColumns(): ColumnDef<RelationshipType>[] {
         }) => (
           <div className="flex items-center gap-2 font-medium">
             <Link2 className="size-4 shrink-0 text-muted-foreground" />
-            {row.original.name}
+            {builtInName(row.original, i18n.t)}
             {row.original.builtIn ? <Badge variant="outline">{i18n.t("Built-in")}</Badge> : null}
           </div>
         ),
@@ -64,7 +65,7 @@ export function useRelationshipTypeColumns(): ColumnDef<RelationshipType>[] {
               relationshipTypeSlug: row.original.slug,
             }}
             label={i18n.t("Edit {{name}}", {
-              name: row.original.name,
+              name: builtInName(row.original, i18n.t),
             })}
           />
         ),

@@ -8,6 +8,7 @@ import { HideToggleButton, HoverIconButton, StandardListingCard } from "./Standa
 import { useUpdateRelationshipType } from "../hooks/useRelationshipTypes";
 
 import { Badge } from "@/components/ui/badge";
+import { useBuiltInName } from "@/lib/builtInName";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 
 /** A single relationship-type listing card: body → its detail page, with hover Edit / Info. */
@@ -27,6 +28,8 @@ export function RelationshipTypeCard({
   const {
     t,
   } = useTranslation();
+  const builtInName = useBuiltInName();
+  const name = builtInName(relationshipType);
   const update = useUpdateRelationshipType();
 
   const toggleHidden = () => {
@@ -40,13 +43,13 @@ export function RelationshipTypeCard({
       onSuccess: () =>
         notifySuccess(nextHidden
           ? t("Hid \"{{name}}\" from pickers", {
-            name: relationshipType.name,
+            name: name,
           })
           : t("Showing \"{{name}}\" in pickers", {
-            name: relationshipType.name,
+            name: name,
           })),
       onError: () => notifyError(t("Couldn't update \"{{name}}\"", {
-        name: relationshipType.name,
+        name: name,
       })),
     });
   };
@@ -58,7 +61,7 @@ export function RelationshipTypeCard({
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
       icon={<Link2 className="size-5 shrink-0 text-muted-foreground" />}
-      title={relationshipType.name}
+      title={name}
       titleAdornment={
         <>
           {relationshipType.builtIn ? <Badge variant="secondary">{t("Built-in")}</Badge> : null}
@@ -70,7 +73,7 @@ export function RelationshipTypeCard({
       renderExtra={() => (
         <HideToggleButton
           hidden={relationshipType.hidden}
-          name={relationshipType.name}
+          name={name}
           onToggle={toggleHidden}
         />
       )}
@@ -81,7 +84,7 @@ export function RelationshipTypeCard({
             relationshipTypeSlug: relationshipType.slug,
           }}
           title={t("View {{name}}", {
-            name: relationshipType.name,
+            name: name,
           })}
           className={className}
         >
@@ -96,12 +99,12 @@ export function RelationshipTypeCard({
               relationshipTypeSlug: relationshipType.slug,
             }}
             title={t("Edit {{name}}", {
-              name: relationshipType.name,
+              name: name,
             })}
           >
             <Pencil className="size-4" />
             <span className="sr-only">{t("Edit {{name}}", {
-              name: relationshipType.name,
+              name: name,
             })}
             </span>
           </Link>
@@ -115,12 +118,12 @@ export function RelationshipTypeCard({
               relationshipTypeSlug: relationshipType.slug,
             }}
             title={t("View {{name}}", {
-              name: relationshipType.name,
+              name: name,
             })}
           >
             <Info className="size-4" />
             <span className="sr-only">{t("View {{name}}", {
-              name: relationshipType.name,
+              name: name,
             })}
             </span>
           </Link>

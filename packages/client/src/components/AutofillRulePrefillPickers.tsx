@@ -9,6 +9,7 @@ import { TagPickerWithCreate } from "./TagPickerWithCreate";
 import { TreeCombobox } from "./TreeCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useGatedTagTree } from "../hooks/useGatedTagTree";
+import { useBuiltInName } from "../lib/builtInName";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 
 import { Label } from "@/components/ui/label";
@@ -39,6 +40,7 @@ export function AutofillRulePrefillPickers({
   const {
     t,
   } = useTranslation();
+  const builtInName = useBuiltInName();
   const categoryCreate = useEntityCreateOption("category", c => onCategoryChange(c.id));
   const mediaTypeCreate = useEntityCreateOption("media-type", m => onMediaTypeChange(m.id));
   const {
@@ -71,7 +73,7 @@ export function AutofillRulePrefillPickers({
       <div className="space-y-1">
         <Label>{t("Set media type")}</Label>
         <TreeCombobox
-          options={mediaTypeNodesToOptions(mediaTypeTree)}
+          options={mediaTypeNodesToOptions(mediaTypeTree, builtInName)}
           leadingOption={{
             value: NO_MEDIA_TYPE,
             label: leaveUnchanged,

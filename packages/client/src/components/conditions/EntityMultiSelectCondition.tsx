@@ -7,7 +7,8 @@ interface EntityMultiSelectConditionProps {
   searchPlaceholder: string;
   emptyText: string;
   options: { value: string;
-    label: string; }[];
+    label: string;
+    searchAlias?: string; }[];
   values: string[];
   onValuesChange: (ids: string[]) => void;
 }

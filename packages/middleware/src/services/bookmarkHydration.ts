@@ -868,6 +868,7 @@ async function relationshipsByBookmarkId(
       relationshipTypeId: bookmarkRelationships.relationshipTypeId,
       label: bookmarkRelationships.label,
       typeName: relationshipTypes.name,
+      typeBuiltIn: relationshipTypes.builtIn,
       directional: relationshipTypes.directional,
     })
     .from(bookmarkRelationships)
@@ -921,6 +922,7 @@ async function relationshipsByBookmarkId(
         },
         relationshipTypeId: rel.relationshipTypeId,
         relationshipTypeName: rel.typeName,
+        relationshipTypeBuiltIn: rel.typeBuiltIn ?? false,
         directional: rel.directional,
         role,
         label: rel.label,

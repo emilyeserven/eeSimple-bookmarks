@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
+import { useBuiltInName } from "@/lib/builtInName";
 import { mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 interface BookmarkAdvancedMediaTypeFieldProps {
@@ -25,6 +26,7 @@ export function BookmarkAdvancedMediaTypeField({
   const {
     t,
   } = useTranslation();
+  const builtInName = useBuiltInName();
   const mediaTypeCreate = useEntityCreateOption("media-type", mediaType => form.setFieldValue("mediaTypeId", mediaType.id));
 
   return (
@@ -37,7 +39,7 @@ export function BookmarkAdvancedMediaTypeField({
             searchPlaceholder={t("Search media types…")}
             emptyText={t("No media types found.")}
             createOption={mediaTypeCreate.createOption}
-            options={mediaTypeNodesToOptions(mediaTypes)}
+            options={mediaTypeNodesToOptions(mediaTypes, builtInName)}
           />
         )}
       </form.AppField>

@@ -8,6 +8,7 @@ import { HideToggleButton, HoverIconButton, StandardListingCard } from "./Standa
 import { useUpdateGroupType } from "../hooks/useGroupTypes";
 
 import { Badge } from "@/components/ui/badge";
+import { useBuiltInName } from "@/lib/builtInName";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 
 /**
@@ -31,6 +32,8 @@ export function GroupTypeListItem({
   const {
     t,
   } = useTranslation();
+  const builtInName = useBuiltInName();
+  const name = builtInName(groupType);
   const update = useUpdateGroupType();
 
   const toggleHidden = () => {
@@ -44,13 +47,13 @@ export function GroupTypeListItem({
       onSuccess: () =>
         notifySuccess(nextHidden
           ? t("Hid \"{{name}}\" from pickers", {
-            name: groupType.name,
+            name: name,
           })
           : t("Showing \"{{name}}\" in pickers", {
-            name: groupType.name,
+            name: name,
           })),
       onError: () => notifyError(t("Couldn't update \"{{name}}\"", {
-        name: groupType.name,
+        name: name,
       })),
     });
   };
@@ -62,7 +65,7 @@ export function GroupTypeListItem({
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
       icon={<Library className="size-5 shrink-0 text-muted-foreground" />}
-      title={groupType.name}
+      title={name}
       titleAdornment={
         <>
           {groupType.builtIn ? <Badge variant="secondary">{t("Built-in")}</Badge> : null}
@@ -73,7 +76,7 @@ export function GroupTypeListItem({
       renderExtra={() => (
         <HideToggleButton
           hidden={groupType.hidden}
-          name={groupType.name}
+          name={name}
           onToggle={toggleHidden}
         />
       )}
@@ -84,7 +87,7 @@ export function GroupTypeListItem({
             groupTypeSlug: groupType.slug,
           }}
           title={t("View {{name}}", {
-            name: groupType.name,
+            name: name,
           })}
           className={className}
         >
@@ -99,13 +102,13 @@ export function GroupTypeListItem({
               groupTypeSlug: groupType.slug,
             }}
             title={t("Edit {{name}}", {
-              name: groupType.name,
+              name: name,
             })}
           >
             <Pencil className="size-4" />
             <span className="sr-only">
               {t("Edit {{name}}", {
-                name: groupType.name,
+                name: name,
               })}
             </span>
           </Link>
@@ -119,13 +122,13 @@ export function GroupTypeListItem({
               groupTypeSlug: groupType.slug,
             }}
             title={t("View {{name}}", {
-              name: groupType.name,
+              name: name,
             })}
           >
             <Info className="size-4" />
             <span className="sr-only">
               {t("View {{name}}", {
-                name: groupType.name,
+                name: name,
               })}
             </span>
           </Link>

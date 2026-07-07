@@ -33,6 +33,7 @@ import {
   withYouTubeChannelPresence,
   withYouTubeChannels,
 } from "../lib/bookmarkSearch";
+import { useBuiltInName, useLanguageName } from "../lib/builtInName";
 import { mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 import { sortLanguagesFavoritesFirst } from "../lib/languageOptions";
 import { buildMediaTypeTree } from "../lib/mediaTypeTree";
@@ -168,7 +169,8 @@ export function MediaTypeFilterBody({
   const {
     t,
   } = useTranslation();
-  const options = mediaTypeNodesToOptions(buildMediaTypeTree(mediaTypes ?? []));
+  const builtInName = useBuiltInName();
+  const options = mediaTypeNodesToOptions(buildMediaTypeTree(mediaTypes ?? []), builtInName);
   const selected = search.mediaTypes ?? [];
   const filterActive = selected.length > 0 || search.mediaTypePresence !== undefined;
 
@@ -462,9 +464,11 @@ export function RelationshipTypeFilterBody({
   const {
     t,
   } = useTranslation();
+  const builtInName = useBuiltInName();
   const options = (relationshipTypes ?? []).filter(rt => !rt.hidden).map(rt => ({
     value: rt.id,
-    label: rt.name,
+    label: builtInName(rt),
+    searchAlias: rt.builtIn ? rt.name : undefined,
     icon: <Share2 className="size-4 shrink-0 text-muted-foreground" />,
   }));
   const selected = search.relationshipTypes ?? [];
@@ -513,6 +517,8 @@ export function LanguageUsageFilterBody({
   const {
     t,
   } = useTranslation();
+  const languageName = useLanguageName();
+  const builtInName = useBuiltInName();
   const {
     data: languages = [],
   } = useLanguages();
@@ -530,7 +536,8 @@ export function LanguageUsageFilterBody({
       <MultiCombobox
         options={sortLanguagesFavoritesFirst(languages).map(l => ({
           value: l.id,
-          label: l.name,
+          label: languageName(l),
+          searchAlias: l.builtIn ? l.name : undefined,
           icon: <Languages className="size-4 shrink-0 text-muted-foreground" />,
         }))}
         values={selectedLanguages}
@@ -543,7 +550,8 @@ export function LanguageUsageFilterBody({
       <MultiCombobox
         options={levels.filter(l => !l.hidden).map(l => ({
           value: l.id,
-          label: l.name,
+          label: builtInName(l),
+          searchAlias: l.builtIn ? l.name : undefined,
           icon: <Captions className="size-4 shrink-0 text-muted-foreground" />,
         }))}
         values={selectedLevels}

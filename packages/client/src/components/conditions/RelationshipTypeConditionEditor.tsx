@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { EntityMultiSelectCondition } from "./EntityMultiSelectCondition";
 
 import { useRelationshipTypes } from "@/hooks/useRelationshipTypes";
+import { useBuiltInName } from "@/lib/builtInName";
 
 interface RelationshipTypeConditionEditorProps {
   value: RelationshipTypeCondition;
@@ -21,6 +22,7 @@ export function RelationshipTypeConditionEditor({
   const {
     data: relationshipTypes = [], isLoading,
   } = useRelationshipTypes();
+  const builtInName = useBuiltInName();
 
   return (
     <EntityMultiSelectCondition
@@ -30,7 +32,8 @@ export function RelationshipTypeConditionEditor({
       emptyText={t("No relationship types found.")}
       options={relationshipTypes.filter(rt => !rt.hidden).map(rt => ({
         value: rt.id,
-        label: rt.name,
+        label: builtInName(rt),
+        searchAlias: rt.builtIn ? rt.name : undefined,
       }))}
       values={value.relationshipTypeIds}
       onValuesChange={relationshipTypeIds =>
