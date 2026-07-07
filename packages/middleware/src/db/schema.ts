@@ -125,6 +125,11 @@ export const bookmarks = pgTable("bookmarks", {
   // (prefer image, else screenshot). Nullable so `drizzle-kit push` applies cleanly to existing
   // rows (push-safe additive change).
   imageDisplayPreference: text("image_display_preference"),
+  // Idempotency marker for the one-time media-taxonomy → bookmark backfill (#1075). NULL on every
+  // user-created bookmark; set to `"<sourceTable>:<uuid>"` (e.g. `"movie:…"`, `"mediaProperty:…"`)
+  // on a bookmark materialized from a media-taxonomy row so a re-run of the boot step is a no-op.
+  // Nullable → push-safe additive (lone nullable column, no new table).
+  migrationSource: text("migration_source"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -133,6 +138,10 @@ export const bookmarks = pgTable("bookmarks", {
   }),
 }, table => [
   unique("bookmarks_url_unique").on(table.url),
+  // Partial index over the #1075 migration marker so the backfill's "already migrated?" lookup is
+  // cheap. Plain (not unique) — the boot step is single-process and gates on an in-memory map; a
+  // unique index would risk a `drizzle-kit push` prompt on an existing populated table.
+  index("bookmarks_migration_source_idx").on(table.migrationSource).where(sql`${table.migrationSource} IS NOT NULL`),
 ]);
 
 /**

@@ -63,14 +63,33 @@ interface BuiltInMediaType {
  */
 const BUILT_IN_MEDIA_TYPES: BuiltInMediaType[] = [
   {
+    // Movie / TV Show / Episode are the media-taxonomy items materialized as bookmarks by the #1075
+    // backfill (each old `movies`/`tv_shows`/`episodes` row becomes a bookmark carrying one of these
+    // fine-grained types under the coarse "Video" root).
     name: "Video",
     icon: "Video",
+    children: [
+      {
+        name: "Movie",
+        icon: "Film",
+      },
+      {
+        name: "TV Show",
+        icon: "Tv",
+      },
+      {
+        name: "Episode",
+        icon: "MonitorPlay",
+      },
+    ],
   },
   {
     name: "Video Game",
     icon: "Gamepad2",
   },
   {
+    // Album / Track are the media-taxonomy items materialized as bookmarks by the #1075 backfill
+    // (each old `albums`/`tracks` row becomes a bookmark under the coarse "Audio" root).
     name: "Audio",
     icon: "AudioLines",
     children: [
@@ -85,6 +104,14 @@ const BUILT_IN_MEDIA_TYPES: BuiltInMediaType[] = [
       {
         name: "Interview",
         icon: "Mic",
+      },
+      {
+        name: "Album",
+        icon: "Disc3",
+      },
+      {
+        name: "Track",
+        icon: "AudioLines",
       },
     ],
   },
