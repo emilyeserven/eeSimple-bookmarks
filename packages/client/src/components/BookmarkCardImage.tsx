@@ -5,10 +5,15 @@ import { ImageOff } from "lucide-react";
 
 import { CardImageOverlays } from "./CardImageOverlays";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
-import { bookmarkImageAspectStyle, bookmarkImageClass, resolveBookmarkDisplayImage } from "../lib/bookmarkImage";
+import {
+  bookmarkImageAspectStyle,
+  bookmarkImageClass,
+  bookmarkThumbnailWidthClass,
+  resolveBookmarkDisplayImage,
+} from "../lib/bookmarkImage";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCroppedHeight, useCroppedWidth } from "@/hooks/useAppSettings";
+import { useBookmarkCardThumbnailSize, useCroppedHeight, useCroppedWidth } from "@/hooks/useAppSettings";
 
 interface BookmarkCardImageProps {
   bookmark: Bookmark;
@@ -43,6 +48,7 @@ export function BookmarkCardImage({
 }: BookmarkCardImageProps) {
   const croppedWidth = useCroppedWidth();
   const croppedHeight = useCroppedHeight();
+  const thumbnailSize = useBookmarkCardThumbnailSize();
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();
@@ -51,10 +57,11 @@ export function BookmarkCardImage({
 
   // "natural" has no fixed ratio; use opengraph (191:100) for skeleton and placeholder sizing.
   const noRatioFallback = imageMode === "natural" ? "opengraph" : imageMode;
+  const thumbnailWidth = bookmarkThumbnailWidthClass(thumbnailSize);
 
   if (loading) {
     const skeletonClass = imageLeft
-      ? "w-32 shrink-0 self-start rounded-md sm:w-40"
+      ? `${thumbnailWidth} shrink-0 self-start rounded-md`
       : "mb-2 w-full rounded-md";
     return (
       <Skeleton
@@ -67,7 +74,7 @@ export function BookmarkCardImage({
   if (!displayImage) {
     if (!showPlaceholder) return null;
     const placeholderClass = imageLeft
-      ? "relative flex items-center justify-center w-32 shrink-0 self-start rounded-md border bg-muted sm:w-40"
+      ? `relative flex items-center justify-center ${thumbnailWidth} shrink-0 self-start rounded-md border bg-muted`
       : "relative mb-2 flex items-center justify-center w-full rounded-md border bg-muted";
     return (
       <div
@@ -91,7 +98,7 @@ export function BookmarkCardImage({
         loading="lazy"
         width={displayImage.width}
         height={displayImage.height}
-        className={bookmarkImageClass(imageLeft, imageMode)}
+        className={bookmarkImageClass(imageLeft, imageMode, thumbnailSize)}
         style={bookmarkImageAspectStyle(imageMode, croppedWidth, croppedHeight, customRatios)}
       />
       {overlayItems.length > 0 ? <CardImageOverlays items={overlayItems} /> : null}

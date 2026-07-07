@@ -4,23 +4,47 @@ import { describe, expect, it } from "vitest";
 
 import { makeBookmarkImage } from "../test-utils/factories";
 
-import { bookmarkImageAspectStyle, bookmarkImageClass, resolveBookmarkDisplayImage } from "./bookmarkImage";
+import { bookmarkImageAspectStyle, bookmarkImageClass, bookmarkThumbnailWidthClass, resolveBookmarkDisplayImage } from "./bookmarkImage";
 
 describe("bookmarkImageClass", () => {
   it("uses fixed-width left layout, omitting object-cover for natural mode", () => {
-    expect(bookmarkImageClass(true, "natural")).toContain("w-32");
-    expect(bookmarkImageClass(true, "natural")).not.toContain("object-cover");
+    expect(bookmarkImageClass(true, "natural", "medium")).toContain("w-32");
+    expect(bookmarkImageClass(true, "natural", "medium")).not.toContain("object-cover");
   });
 
   it("crops to fill (object-cover) for a non-natural left layout", () => {
-    expect(bookmarkImageClass(true, "cropped")).toContain("object-cover");
-    expect(bookmarkImageClass(true, "cropped")).not.toContain("object-contain");
+    expect(bookmarkImageClass(true, "cropped", "medium")).toContain("object-cover");
+    expect(bookmarkImageClass(true, "cropped", "medium")).not.toContain("object-contain");
   });
 
   it("uses full-width top layout when imageLeft is false", () => {
-    expect(bookmarkImageClass(false, "natural")).toContain("w-full");
-    expect(bookmarkImageClass(false, "cropped")).toContain("object-cover");
-    expect(bookmarkImageClass(false, "cropped")).not.toContain("object-contain");
+    expect(bookmarkImageClass(false, "natural", "medium")).toContain("w-full");
+    expect(bookmarkImageClass(false, "cropped", "medium")).toContain("object-cover");
+    expect(bookmarkImageClass(false, "cropped", "medium")).not.toContain("object-contain");
+  });
+
+  it("defaults to the original fixed w-32 sm:w-40 pair at medium size", () => {
+    expect(bookmarkImageClass(true, "cropped", "medium")).toBe(
+      "w-32 sm:w-40 shrink-0 self-start rounded-md border object-cover",
+    );
+  });
+
+  it("varies the left-layout width by size, leaving the stacked layout unaffected", () => {
+    expect(bookmarkImageClass(true, "cropped", "small")).toContain("w-24");
+    expect(bookmarkImageClass(true, "cropped", "large")).toContain("w-40");
+    expect(bookmarkImageClass(false, "cropped", "small")).toContain("w-full");
+    expect(bookmarkImageClass(false, "cropped", "large")).toContain("w-full");
+  });
+});
+
+describe("bookmarkThumbnailWidthClass", () => {
+  it("returns the medium width unchanged from the original fixed pair", () => {
+    expect(bookmarkThumbnailWidthClass("medium")).toBe("w-32 sm:w-40");
+  });
+
+  it("returns distinct widths for small and large", () => {
+    expect(bookmarkThumbnailWidthClass("small")).not.toBe(bookmarkThumbnailWidthClass("medium"));
+    expect(bookmarkThumbnailWidthClass("large")).not.toBe(bookmarkThumbnailWidthClass("medium"));
   });
 });
 

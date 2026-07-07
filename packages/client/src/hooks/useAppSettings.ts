@@ -2,6 +2,7 @@ import type {
   AiSummarizationSettings,
   AutomationSettings,
   BookmarkAddFormSettings,
+  BookmarkCardThumbnailSize,
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
@@ -237,6 +238,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   bookmarkDetailImageSize: "medium" as BookmarkDetailImageSize,
   bookmarkDetailVideoSize: "standard" as BookmarkDetailVideoSize,
   bookmarkDetailLayout: "single" as BookmarkDetailLayout,
+  bookmarkCardThumbnailSize: "medium" as BookmarkCardThumbnailSize,
   interfaceLanguage: "en" as InterfaceLanguage,
   onDemandFilters: [] as string[],
   searchBoxPinned: false,
@@ -523,6 +525,14 @@ export function useBookmarkDetailLayout(): BookmarkDetailLayout {
     data,
   } = useDisplayPreferenceSettings();
   return data?.bookmarkDetailLayout ?? DISPLAY_PREFERENCE_DEFAULTS.bookmarkDetailLayout;
+}
+
+/** Bookmark card thumbnail size, image-left/row card layout (default "medium"). */
+export function useBookmarkCardThumbnailSize(): BookmarkCardThumbnailSize {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.bookmarkCardThumbnailSize ?? DISPLAY_PREFERENCE_DEFAULTS.bookmarkCardThumbnailSize;
 }
 
 /** Interface language driving i18next + Intl formatting (default "en"). */
