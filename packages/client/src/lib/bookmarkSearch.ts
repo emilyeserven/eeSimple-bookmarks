@@ -496,69 +496,6 @@ function passesValueFilters(bookmark: SearchableBookmark, search: BookmarkSearch
   return bookmarkMatchesFilters(bookmark, numberFilters, booleanFilters, dateTimeFilters, bookmark.progressValues);
 }
 
-/** Whether a bookmark satisfies every active filter in `search`. */
-export function bookmarkMatchesSearch(
-  bookmark: SearchableBookmark,
-  search: BookmarkSearch,
-): boolean {
-  return (
-    // Categories: same single-valued pattern as Websites/YouTube channels below.
-    (search.categoryPresence === "exclude"
-      ? passesIdFilterExclude(search.categories, bookmark.categoryId)
-      : passesIdFilter(search.categories, bookmark.categoryId)
-        && passesPresence(search.categoryPresence, Boolean(bookmark.categoryId)))
-    // Media types: same single-valued pattern as Categories/Websites/YouTube channels.
-      && (search.mediaTypePresence === "exclude"
-        ? passesIdFilterExclude(search.mediaTypes, bookmark.mediaType?.id)
-        : passesIdFilter(search.mediaTypes, bookmark.mediaType?.id)
-          && passesPresence(search.mediaTypePresence, Boolean(bookmark.mediaType)))
-    // YouTube channels: exclude mode uses passesIdFilterExclude; include/presence modes use the pair.
-        && (search.youtubeChannelPresence === "exclude"
-          ? passesIdFilterExclude(search.youtubeChannels, bookmark.youtubeChannel?.id)
-          : passesIdFilter(search.youtubeChannels, bookmark.youtubeChannel?.id)
-            && passesPresence(search.youtubeChannelPresence, Boolean(bookmark.youtubeChannel)))
-    // Websites: same pattern as YouTube channels.
-          && (search.websitePresence === "exclude"
-            ? passesIdFilterExclude(search.websites, bookmark.website?.id)
-            : passesIdFilter(search.websites, bookmark.website?.id)
-              && passesPresence(search.websitePresence, Boolean(bookmark.website)))
-            && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
-            && passesLanguageUsagesFilter(
-              search.languageUsageLanguages,
-              search.languageUsageLevels,
-              bookmark.languageUsages.map(usage => ({
-                languageId: usage.language.id,
-                usageLevelId: usage.level.id,
-              })),
-            )
-            && (search.peoplePresence === "exclude"
-              ? passesPeopleExclusion(search.people, bookmark.people)
-              : passesPeopleFilter(search.people, bookmark.people)
-                && passesPresence(search.peoplePresence, bookmark.people.length > 0))
-    // Place types: multi-valued (a bookmark can carry several locations), so "any match" like tags.
-              && (search.placeTypePresence === "exclude"
-                ? passesPlaceTypesExclusion(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
-                : passesPlaceTypesFilter(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
-                  && passesPresence(search.placeTypePresence, bookmarkPlaceTypeKeys(bookmark.locations).length > 0))
-    // Genres & Moods: multi-valued (a bookmark can carry several), so "any match" like place types.
-                && (search.genreMoodPresence === "exclude"
-                  ? passesGenreMoodsExclusion(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
-                  : passesGenreMoodsFilter(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
-                    && passesPresence(search.genreMoodPresence, bookmark.genreMoods.length > 0))
-    // Tags: server handles inclusion (tagsForServerQuery gates the query); client handles presence and exclude.
-                  && (search.tagPresence === "exclude"
-                    ? passesTagsExclusion(search.tags, bookmark.tags)
-                    : passesPresence(search.tagPresence, bookmark.tags.length > 0))
-                  && passesPropertyPresence(bookmark, search)
-                  && passesValueFilters(bookmark, search)
-                  && passesChoicesFilters(bookmark, search)
-                  && passesSectionsPresence(bookmark, search.sectionsPresence)
-                  && passesSectionTypes(bookmark, search.sectionTypes, search.sectionsPresence)
-                  && passesPresence(search.mediaSourcePresence, hasMediaSourceIdentity(bookmark))
-                  && passesMediaSourceMatch(bookmark, search)
-  );
-}
-
 /** A non-empty array filter. */
 function hasItems(value: readonly unknown[] | undefined): boolean {
   return (value?.length ?? 0) > 0;
@@ -569,41 +506,129 @@ function hasEntries(value: Record<string, unknown> | undefined): boolean {
   return Object.keys(value ?? {}).length > 0;
 }
 
+/**
+ * One entry in the {@link BOOKMARK_SEARCH_FACETS} table: how a facet matches a bookmark, and
+ * whether it currently holds an active filter (used by {@link hasAnyActiveFilter}). Adding a new
+ * search facet means adding one entry here rather than editing `bookmarkMatchesSearch` and
+ * `hasAnyActiveFilter` separately.
+ */
+interface BookmarkSearchFacet {
+  matches: (bookmark: SearchableBookmark, search: BookmarkSearch) => boolean;
+  isActive: (search: BookmarkSearch) => boolean;
+}
+
+/**
+ * Build a {@link BookmarkSearchFacet} for the common "single id + has/missing/exclude presence"
+ * shape shared by Categories, Media Types, YouTube Channels, and Websites: exclude mode routes
+ * through `passesIdFilterExclude`; include/presence modes use `passesIdFilter` + `passesPresence`.
+ */
+function idPresenceFacet(
+  selected: (search: BookmarkSearch) => string[] | undefined,
+  presence: (search: BookmarkSearch) => "has" | "missing" | "exclude" | undefined,
+  value: (bookmark: SearchableBookmark) => string | null | undefined,
+): BookmarkSearchFacet {
+  return {
+    matches: (bookmark, search) => {
+      const mode = presence(search);
+      const ids = selected(search);
+      const v = value(bookmark);
+      return mode === "exclude"
+        ? passesIdFilterExclude(ids, v)
+        : passesIdFilter(ids, v) && passesPresence(mode, Boolean(v));
+    },
+    isActive: search => hasItems(selected(search)) || presence(search) !== undefined,
+  };
+}
+
+const BOOKMARK_SEARCH_FACETS: BookmarkSearchFacet[] = [
+  idPresenceFacet(search => search.categories, search => search.categoryPresence, bookmark => bookmark.categoryId),
+  idPresenceFacet(search => search.mediaTypes, search => search.mediaTypePresence, bookmark => bookmark.mediaType?.id),
+  idPresenceFacet(search => search.youtubeChannels, search => search.youtubeChannelPresence, bookmark => bookmark.youtubeChannel?.id),
+  idPresenceFacet(search => search.websites, search => search.websitePresence, bookmark => bookmark.website?.id),
+  {
+    matches: (bookmark, search) => passesRelationshipTypeFilter(search.relationshipTypes, bookmark),
+    isActive: search => hasItems(search.relationshipTypes),
+  },
+  {
+    matches: (bookmark, search) => passesLanguageUsagesFilter(
+      search.languageUsageLanguages,
+      search.languageUsageLevels,
+      bookmark.languageUsages.map(usage => ({
+        languageId: usage.language.id,
+        usageLevelId: usage.level.id,
+      })),
+    ),
+    isActive: search => hasItems(search.languageUsageLanguages) || hasItems(search.languageUsageLevels),
+  },
+  {
+    matches: (bookmark, search) => search.peoplePresence === "exclude"
+      ? passesPeopleExclusion(search.people, bookmark.people)
+      : passesPeopleFilter(search.people, bookmark.people)
+        && passesPresence(search.peoplePresence, bookmark.people.length > 0),
+    isActive: search => hasItems(search.people) || search.peoplePresence !== undefined,
+  },
+  // Place types are multi-valued (a bookmark can carry several locations), so "any match" like tags.
+  {
+    matches: (bookmark, search) => search.placeTypePresence === "exclude"
+      ? passesPlaceTypesExclusion(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
+      : passesPlaceTypesFilter(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
+        && passesPresence(search.placeTypePresence, bookmarkPlaceTypeKeys(bookmark.locations).length > 0),
+    isActive: search => hasItems(search.placeTypes) || search.placeTypePresence !== undefined,
+  },
+  // Genres & Moods are multi-valued (a bookmark can carry several), so "any match" like place types.
+  {
+    matches: (bookmark, search) => search.genreMoodPresence === "exclude"
+      ? passesGenreMoodsExclusion(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
+      : passesGenreMoodsFilter(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
+        && passesPresence(search.genreMoodPresence, bookmark.genreMoods.length > 0),
+    isActive: search => hasItems(search.genreMoods) || search.genreMoodPresence !== undefined,
+  },
+  // Tags: server handles inclusion (tagsForServerQuery gates the query); client handles presence and exclude.
+  {
+    matches: (bookmark, search) => search.tagPresence === "exclude"
+      ? passesTagsExclusion(search.tags, bookmark.tags)
+      : passesPresence(search.tagPresence, bookmark.tags.length > 0),
+    isActive: search => hasItems(search.tags) || search.tagPresence !== undefined,
+  },
+  {
+    matches: (bookmark, search) => passesPropertyPresence(bookmark, search),
+    isActive: search => hasEntries(search.presence),
+  },
+  {
+    matches: (bookmark, search) => passesValueFilters(bookmark, search),
+    isActive: search => hasEntries(search.num) || hasEntries(search.bool) || hasEntries(search.date),
+  },
+  {
+    matches: (bookmark, search) => passesChoicesFilters(bookmark, search),
+    isActive: search => hasEntries(search.choices),
+  },
+  {
+    matches: (bookmark, search) => passesSectionsPresence(bookmark, search.sectionsPresence)
+      && passesSectionTypes(bookmark, search.sectionTypes, search.sectionsPresence),
+    isActive: search => search.sectionsPresence !== undefined || hasItems(search.sectionTypes),
+  },
+  {
+    matches: (bookmark, search) => passesPresence(search.mediaSourcePresence, hasMediaSourceIdentity(bookmark))
+      && passesMediaSourceMatch(bookmark, search),
+    isActive: search => search.mediaSourcePresence !== undefined
+      || search.plexRatingKey !== undefined
+      || search.kavitaSeriesId !== undefined
+      || search.isbn !== undefined
+      || search.feedUrl !== undefined,
+  },
+];
+
+/** Whether a bookmark satisfies every active filter in `search`. */
+export function bookmarkMatchesSearch(
+  bookmark: SearchableBookmark,
+  search: BookmarkSearch,
+): boolean {
+  return BOOKMARK_SEARCH_FACETS.every(facet => facet.matches(bookmark, search));
+}
+
 /** Whether any filter in `search` is active (used to choose the empty-state message). */
 export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
-  return (
-    hasItems(search.tags)
-    || search.tagPresence !== undefined
-    || hasItems(search.categories)
-    || search.categoryPresence !== undefined
-    || hasItems(search.mediaTypes)
-    || search.mediaTypePresence !== undefined
-    || hasItems(search.youtubeChannels)
-    || search.youtubeChannelPresence !== undefined
-    || hasItems(search.websites)
-    || search.websitePresence !== undefined
-    || hasItems(search.relationshipTypes)
-    || hasItems(search.languageUsageLanguages)
-    || hasItems(search.languageUsageLevels)
-    || hasItems(search.people)
-    || search.peoplePresence !== undefined
-    || hasItems(search.placeTypes)
-    || search.placeTypePresence !== undefined
-    || hasItems(search.genreMoods)
-    || search.genreMoodPresence !== undefined
-    || hasEntries(search.num)
-    || hasEntries(search.bool)
-    || hasEntries(search.date)
-    || hasEntries(search.presence)
-    || hasEntries(search.choices)
-    || search.sectionsPresence !== undefined
-    || hasItems(search.sectionTypes)
-    || search.mediaSourcePresence !== undefined
-    || search.plexRatingKey !== undefined
-    || search.kavitaSeriesId !== undefined
-    || search.isbn !== undefined
-    || search.feedUrl !== undefined
-  );
+  return BOOKMARK_SEARCH_FACETS.some(facet => facet.isActive(search));
 }
 
 /** Stable, recursively key-sorted JSON so object/record key order doesn't affect equality. */

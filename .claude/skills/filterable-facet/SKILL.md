@@ -48,18 +48,20 @@ Mirror Media Types / YouTube Channels. The entity must already be a fetched taxo
 - **`validateBookmarkSearch`**: validate the id list with `validStringList` **and** the presence
   mode with `validPresence(search.<entity>Presence)` (copy the `youtubeChannels` /
   `youtubeChannelPresence` pair).
-- **`bookmarkMatchesSearch`**: use the **presence/exclusion pair pattern** — exclude mode routes
-  through `passesIdFilterExclude`; include/presence modes use `passesIdFilter` (include) +
-  `passesPresence` (has/missing). Copy the YouTube channel block:
+- **`bookmarkMatchesSearch`/`hasAnyActiveFilter`**: both are driven by the single
+  `BOOKMARK_SEARCH_FACETS` table (an array of `{ matches, isActive }` entries) — add **one** entry
+  rather than editing the two functions separately. For the common "single id + has/missing/exclude
+  presence" shape (Categories/Media Types/YouTube Channels/Websites all use it), call the
+  `idPresenceFacet` factory instead of hand-writing the ternary:
   ```ts
-  && (search.<entity>Presence === "exclude"
-    ? passesIdFilterExclude(search.<entity>s, bookmark.<entity>?.id)
-    : passesIdFilter(search.<entity>s, bookmark.<entity>?.id)
-      && passesPresence(search.<entity>Presence, Boolean(bookmark.<entity>)))
+  idPresenceFacet(search => search.<entity>s, search => search.<entity>Presence, bookmark => bookmark.<entity>?.id),
   ```
-  Add the entity's relation to the `Pick<Bookmark, …>` param list.
-- **`hasAnyActiveFilter`**: add
-  `|| (search.<entity>s?.length ?? 0) > 0 || !!search.<entity>Presence`.
+  `idPresenceFacet` already implements the presence/exclusion pair pattern (exclude mode routes
+  through `passesIdFilterExclude`; include/presence modes use `passesIdFilter` + `passesPresence`)
+  and derives `isActive` from the same `selected`/`presence` accessors. Add the entity's relation to
+  the `Pick<Bookmark, …>` `SearchableBookmark` param list. A facet with a different shape (not a
+  single id) is a plain `BookmarkSearchFacet` object literal instead — see the other entries in the
+  table for the pattern (e.g. the multi-valued place-types/genre-moods "any match" facets).
 - **Id helper**: export `with<Entity>s(search, ids): BookmarkSearch` — clear when empty, else set.
   Copy `withYouTubeChannels`.
 - **Presence helper**: export `with<Entity>Presence(search, mode): BookmarkSearch` — copy

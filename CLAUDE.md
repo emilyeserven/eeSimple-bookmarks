@@ -478,6 +478,10 @@ instead.
 - **Interactive, URL-driven filter/search state** — `lib/bookmarkSearch.ts`
   (`bookmarkMatchesSearch`) and the range sliders / multi-selects it backs. A round-trip per slider
   drag would hurt; the bookmarks page deliberately fetches the whole set once and filters in memory.
+  `bookmarkMatchesSearch` and `hasAnyActiveFilter` are both thin `.every()`/`.some()` iterations over
+  one `BOOKMARK_SEARCH_FACETS` table — each entry pairs a facet's match predicate with its
+  active-filter check, so adding a facet is one table entry instead of editing both functions'
+  `&&`/`||` chains (see the **`filterable-facet`** skill).
 - **Presentation formatting** — `lib/bookmarkFormat.ts` (number/boolean/date-time display).
 - **Derivations that are O(n) over data the page already loaded** — slug lookups (`use*BySlug`),
   facet slider bounds (`effectiveBounds`), and "which rules target this entity"
