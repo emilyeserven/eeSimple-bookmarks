@@ -9,9 +9,6 @@ import type {
 
 import {
   boundaryAreaKm2,
-  locationLacksLevel,
-  NO_LEVEL_MAP_COLOR,
-  NO_PLACE_TYPE_MAP_COLOR,
   placeTypeKey,
   resolveLocationColor,
   resolveLocationDisplay,
@@ -19,6 +16,7 @@ import {
   resolveLocationPlaceTypeColor,
 } from "@eesimple/types";
 
+import { resolveFallbackMapColor } from "./locationMapColor";
 import { flattenTree } from "./tagTree";
 
 /**
@@ -224,30 +222,6 @@ export interface MapDebugInput {
   ancestry?: MapAncestryDebug | null;
 }
 
-/**
- * The fallback color (and why) a node falls back to when it has no chosen color — mirrors the private
- * `fallbackColor` in `LocationMap` so the diagnostic matches what the map actually draws.
- */
-function fallbackColor(
-  node: { placeType: string | null },
-  config: PlaceTypeDisplayConfig,
-): { color: string;
-  reason: "no-place-type" | "no-level"; } | null {
-  if (node.placeType === null) {
-    return {
-      color: NO_PLACE_TYPE_MAP_COLOR,
-      reason: "no-place-type",
-    };
-  }
-  if (locationLacksLevel(node, config)) {
-    return {
-      color: NO_LEVEL_MAP_COLOR,
-      reason: "no-level",
-    };
-  }
-  return null;
-}
-
 /** Classify one flattened node exactly as `LocationMap`'s `toRenderItems` would. */
 function describeNode(
   node: LocationNode,
@@ -303,7 +277,7 @@ function describeNode(
 
   const overrideColor = resolveLocationPlaceTypeColor(node, input.colorConfig)
     ?? resolveLocationColor(node, input.displayConfig);
-  const fallback = overrideColor === null ? fallbackColor(node, input.displayConfig) : null;
+  const fallback = overrideColor === null ? resolveFallbackMapColor(node, input.displayConfig) : null;
   const color = overrideColor ?? fallback?.color ?? null;
   const icon = resolveLocationIcon(node, input.iconConfig);
 

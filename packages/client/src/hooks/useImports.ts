@@ -1,6 +1,7 @@
 import type {
   ActiveImport,
   BlockImportItemInput,
+  ImportApproveResult,
   InboxPreFillDefaults,
   IngestPasteInput,
   IngestUrlInput,
@@ -209,6 +210,13 @@ export function useRemoveIssueBookmarks(importId: string) {
     mutationFn: (bookmarkIds: string[]) => importApi.removeIssueBookmarks(importId, bookmarkIds),
     onSuccess: () => invalidate(),
   });
+}
+
+/** Surface the outcome of an approve call (one item or a bulk run) as a recorded toast. */
+export function notifyApprove(result: ImportApproveResult, t: (key: string) => string): void {
+  if (result.status === "approved") notifySuccess(t("Bookmark added"));
+  else if (result.status === "duplicate") notifyError(result.message ?? t("Already saved as a bookmark"));
+  else if (result.status === "error") notifyError(result.message ?? t("Couldn't add bookmark"));
 }
 
 export function useApproveImportItem() {

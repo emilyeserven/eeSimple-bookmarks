@@ -1,5 +1,4 @@
 import type {
-  ImportApproveResult,
   ImportItem,
   ImportItemStatus,
   InboxPreFillDefaults,
@@ -11,11 +10,12 @@ import { useTranslation } from "react-i18next";
 
 import { MoreActionsMenu } from "./InboxMoreActionsMenu";
 import {
+  notifyApprove,
   useApproveImportItem,
   useRejectImportItem,
   useUnrejectImportItem,
 } from "../hooks/useImports";
-import { notifyError, notifySuccess } from "../lib/notifications";
+import { notifySuccess } from "../lib/notifications";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,13 +54,6 @@ const STATUS_META: Record<ImportItemStatus, { label: string;
     variant: "outline",
   },
 };
-
-/** Surface the outcome of an approve call (one item or a bulk run) as a recorded toast. */
-function notifyApprove(result: ImportApproveResult, t: (key: string) => string): void {
-  if (result.status === "approved") notifySuccess(t("Bookmark added"));
-  else if (result.status === "duplicate") notifyError(result.message ?? t("Already saved as a bookmark"));
-  else if (result.status === "error") notifyError(result.message ?? t("Couldn't add bookmark"));
-}
 
 export function StatusBadge({
   item,

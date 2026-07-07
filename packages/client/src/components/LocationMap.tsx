@@ -7,9 +7,6 @@ import type { MutableRefObject, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import {
-  locationLacksLevel,
-  NO_LEVEL_MAP_COLOR,
-  NO_PLACE_TYPE_MAP_COLOR,
   resolveLocationColor,
   resolveLocationDisplay,
   resolveLocationIcon,
@@ -25,6 +22,7 @@ import { LocationMapFootnotes } from "./LocationMapFootnotes";
 import { useMapPinScale, useMinAreaPinThresholdKm2 } from "../hooks/useAppSettings";
 import i18n from "../i18n";
 import { boundaryContainsPoint } from "../lib/locationGeo";
+import { resolveFallbackMapColor } from "../lib/locationMapColor";
 import { buildMapDebugInfo } from "../lib/locationMapDebug";
 import { markerIconFor } from "../lib/locationMapMarkers";
 
@@ -81,31 +79,6 @@ interface RenderItem {
 }
 
 /**
- * The color (and why) a node falls back to when neither a per-placeType override nor its level
- * group has an explicit color: flag a missing placeType or a placeType with no level at all, so
- * those "needs configuration" nodes stand out instead of blending into Leaflet's default blue.
- */
-function fallbackColor(
-  node: MappedNode,
-  config: PlaceTypeDisplayConfig,
-): { color: string;
-  reason: "no-place-type" | "no-level"; } | null {
-  if (node.placeType === null) {
-    return {
-      color: NO_PLACE_TYPE_MAP_COLOR,
-      reason: "no-place-type",
-    };
-  }
-  if (locationLacksLevel(node, config)) {
-    return {
-      color: NO_LEVEL_MAP_COLOR,
-      reason: "no-level",
-    };
-  }
-  return null;
-}
-
-/**
  * Apply the per-placeType display config to the placed nodes: drop hidden levels, and for each
  * survivor decide an area (polygon) or pin (marker) rendering, falling back to whatever geometry is
  * actually available (a "pin" with only a boundary still draws the area; an "area" with no boundary
@@ -124,7 +97,7 @@ function toRenderItems(
     if (resolved === "hidden") continue;
     // Per-placeType override wins; else the level group's color; else a needs-attention fallback.
     const overrideColor = resolveLocationPlaceTypeColor(node, colorConfig) ?? resolveLocationColor(node, config);
-    const fallback = overrideColor === null ? fallbackColor(node, config) : null;
+    const fallback = overrideColor === null ? resolveFallbackMapColor(node, config) : null;
     const color = overrideColor ?? fallback?.color ?? null;
     const icon = resolveLocationIcon(node, iconConfig);
     if (resolved === "area" && node.boundary) items.push({

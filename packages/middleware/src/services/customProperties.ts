@@ -597,6 +597,25 @@ async function scopePropertyToVideoAudioTree(propertyId: string): Promise<void> 
 }
 
 /**
+ * Scope a property to a single media type looked up by slug. Replaces the full
+ * `propertyMediaTypes` set for the property. No-ops if the media type doesn't exist yet.
+ */
+async function scopePropertyToMediaTypeSlug(propertyId: string, mediaTypeSlug: string): Promise<void> {
+  const [row] = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(eq(mediaTypes.slug, mediaTypeSlug));
+  if (!row) return;
+  await db.delete(propertyMediaTypes).where(eq(propertyMediaTypes.propertyId, propertyId));
+  await db.insert(propertyMediaTypes).values([{
+    propertyId,
+    mediaTypeId: row.id,
+  }]);
+}
+
+/**
  * Ensure the built-in "Runtime" property exists and is scoped to Video and Audio media types
  * (including their children). Idempotent and safe to call at boot — must run after
  * ensureBuiltInMediaTypes so the Video/Audio rows are present when scoping is applied.
@@ -948,23 +967,7 @@ export async function ensurePageRangeProperty(): Promise<string> {
   }
 
   // Scope to the "Book" media type — mirrors the ensureRuntimeProperty pattern.
-  const [bookRow] = await db
-    .select({
-      id: mediaTypes.id,
-    })
-    .from(mediaTypes)
-    .where(eq(mediaTypes.slug, "book"));
-  if (bookRow) {
-    await db
-      .delete(propertyMediaTypes)
-      .where(eq(propertyMediaTypes.propertyId, propertyId));
-    await db
-      .insert(propertyMediaTypes)
-      .values([{
-        propertyId,
-        mediaTypeId: bookRow.id,
-      }]);
-  }
+  await scopePropertyToMediaTypeSlug(propertyId, "book");
 
   return propertyId;
 }
@@ -1082,19 +1085,7 @@ export async function ensurePageSectionsProperty(): Promise<string> {
     propertyId = row ? row.id : await readPropertyIdBySlug(PAGE_SECTIONS_SLUG);
   }
 
-  const [bookRow] = await db
-    .select({
-      id: mediaTypes.id,
-    })
-    .from(mediaTypes)
-    .where(eq(mediaTypes.slug, "book"));
-  if (bookRow) {
-    await db.delete(propertyMediaTypes).where(eq(propertyMediaTypes.propertyId, propertyId));
-    await db.insert(propertyMediaTypes).values([{
-      propertyId,
-      mediaTypeId: bookRow.id,
-    }]);
-  }
+  await scopePropertyToMediaTypeSlug(propertyId, "book");
 
   return propertyId;
 }
@@ -1149,19 +1140,7 @@ export async function ensureUrlSectionsProperty(): Promise<string> {
     propertyId = row ? row.id : await readPropertyIdBySlug(URL_SECTIONS_SLUG);
   }
 
-  const [websiteRow] = await db
-    .select({
-      id: mediaTypes.id,
-    })
-    .from(mediaTypes)
-    .where(eq(mediaTypes.slug, "website-app"));
-  if (websiteRow) {
-    await db.delete(propertyMediaTypes).where(eq(propertyMediaTypes.propertyId, propertyId));
-    await db.insert(propertyMediaTypes).values([{
-      propertyId,
-      mediaTypeId: websiteRow.id,
-    }]);
-  }
+  await scopePropertyToMediaTypeSlug(propertyId, "website-app");
 
   return propertyId;
 }

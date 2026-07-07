@@ -1,5 +1,6 @@
 import type {
   AiSummarizationSettings,
+  AutomationSettings,
   BookmarkAddFormSettings,
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
@@ -300,6 +301,30 @@ export function useUpdateAutomationSettings() {
     },
     onError: (error, vars) => notifyError(vars.errorMessage ?? error.message),
   });
+}
+
+/** Shared by every automation-settings checkbox: current settings + a save(patch, message) that persists one field with a named toast. */
+export function useAutomationSettingsForm() {
+  const {
+    data,
+  } = useAutomationSettings();
+  const update = useUpdateAutomationSettings();
+  const settings = data ?? AUTOMATION_DEFAULTS;
+
+  function save(patch: Partial<AutomationSettings>, message: string): void {
+    update.mutate({
+      input: {
+        ...settings,
+        ...patch,
+      },
+      successMessage: message,
+    });
+  }
+
+  return {
+    settings,
+    save,
+  };
 }
 
 /** Bookmark Graph settings: per-dimension relatedness weights + how many related cards to show. */

@@ -1,8 +1,6 @@
-import type { AutomationSettings } from "@eesimple/types";
-
 import { useTranslation } from "react-i18next";
 
-import { useAutomationSettings, useUpdateAutomationSettings } from "../hooks/useAppSettings";
+import { useAutomationSettingsForm } from "../hooks/useAppSettings";
 
 import {
   Card,
@@ -14,14 +12,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-const DEFAULTS: AutomationSettings = {
-  autoFetchTitle: true,
-  autoFetchImage: true,
-  autoApplyTitleTags: false,
-  autoApplyTitleLocations: false,
-  sidebarOpenModifier: "alt",
-};
-
 /**
  * Automation preferences for auto-fetching bookmark metadata. Persisted server-side (the
  * `app_settings` singleton) so the choices stick across devices, and each change fires a recorded
@@ -32,21 +22,8 @@ export function AutomationsSettings() {
     t,
   } = useTranslation();
   const {
-    data,
-  } = useAutomationSettings();
-  const update = useUpdateAutomationSettings();
-  const settings = data ?? DEFAULTS;
-
-  /** Persist a single-field change; the hook fires the named toast. */
-  function save(patch: Partial<AutomationSettings>, message: string): void {
-    update.mutate({
-      input: {
-        ...settings,
-        ...patch,
-      },
-      successMessage: message,
-    });
-  }
+    settings, save,
+  } = useAutomationSettingsForm();
 
   return (
     <>

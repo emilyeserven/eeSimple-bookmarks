@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { CardDisplayRulePreview } from "./CardDisplayRulePreview";
 import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
+import { RuleGeneralFields } from "./RuleGeneralFields";
 import { ruleToDisplay } from "../lib/cardDisplayRuleForm";
 
 import { LabeledSection } from "@/components/LabeledSection";
@@ -22,19 +23,12 @@ export function CardDisplayRuleGeneralView({
     t,
   } = useTranslation();
   return (
-    <div className="space-y-3 text-sm">
-      {rule.description
-        ? <p>{rule.description}</p>
-        : <p className="text-muted-foreground">{t("No description.")}</p>}
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2">
-        <dt className="text-muted-foreground">{t("Priority")}</dt>
-        <dd>{rule.isDefault ? t("Baseline (lowest)") : rule.sortOrder}</dd>
-        <dt className="text-muted-foreground">{t("Slug")}</dt>
-        <dd className="font-mono">{rule.slug}</dd>
-        <dt className="text-muted-foreground">{t("Added")}</dt>
-        <dd>{new Date(rule.createdAt).toLocaleDateString()}</dd>
-      </dl>
-    </div>
+    <RuleGeneralFields
+      description={rule.description}
+      slug={rule.slug}
+      createdAt={rule.createdAt}
+      priorityLabel={rule.isDefault ? t("Baseline (lowest)") : rule.sortOrder}
+    />
   );
 }
 

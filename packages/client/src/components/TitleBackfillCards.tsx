@@ -1,8 +1,6 @@
-import type { AutomationSettings } from "@eesimple/types";
-
 import { useTranslation } from "react-i18next";
 
-import { useAutomationSettings, useUpdateAutomationSettings } from "../hooks/useAppSettings";
+import { useAutomationSettingsForm } from "../hooks/useAppSettings";
 import { useBackfillTitleLocations, useBackfillTitleTags } from "../hooks/useBookmarks";
 
 import { Button } from "@/components/ui/button";
@@ -16,45 +14,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-const DEFAULTS: AutomationSettings = {
-  autoFetchTitle: true,
-  autoFetchImage: true,
-  autoApplyTitleTags: false,
-  autoApplyTitleLocations: false,
-  sidebarOpenModifier: "alt",
-};
-
-/** Shared by both title-backfill cards: persist a single automation-settings field + named toast. */
-function useSaveAutomationSetting() {
-  const {
-    data,
-  } = useAutomationSettings();
-  const update = useUpdateAutomationSettings();
-  const settings = data ?? DEFAULTS;
-
-  function save(patch: Partial<AutomationSettings>, message: string): void {
-    update.mutate({
-      input: {
-        ...settings,
-        ...patch,
-      },
-      successMessage: message,
-    });
-  }
-
-  return {
-    settings,
-    save,
-  };
-}
-
 export function TitleTagBackfillCard() {
   const {
     t,
   } = useTranslation();
   const {
     settings, save,
-  } = useSaveAutomationSetting();
+  } = useAutomationSettingsForm();
   const backfillTags = useBackfillTitleTags();
 
   return (
@@ -113,7 +79,7 @@ export function TitleLocationBackfillCard() {
   } = useTranslation();
   const {
     settings, save,
-  } = useSaveAutomationSetting();
+  } = useAutomationSettingsForm();
   const backfillLocations = useBackfillTitleLocations();
 
   return (
