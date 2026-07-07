@@ -41,6 +41,9 @@ export const bookmarkSchema = z.object({
   tagIds: z.array(z.string()),
   genreMoodIds: z.array(z.string()),
   locationIds: z.array(z.string()),
+  // How this bookmark relates to each assigned location: a `locationId → locationRelationId | null`
+  // map. Only keys in `locationIds` are meaningful; qualifies each `(bookmark, location)` edge.
+  locationRelationByLocationId: z.record(z.string(), z.string().nullable()),
   blacklistedTagIds: z.array(z.string()),
   blacklistedLocationIds: z.array(z.string()),
   personIds: z.array(z.string()),
@@ -170,6 +173,7 @@ const SAMPLE_DEFAULT_VALUES: {
   tagIds: string[];
   genreMoodIds: string[];
   locationIds: string[];
+  locationRelationByLocationId: Record<string, string | null>;
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
   personIds: string[];
@@ -187,6 +191,7 @@ const SAMPLE_DEFAULT_VALUES: {
   tagIds: [],
   genreMoodIds: [],
   locationIds: [],
+  locationRelationByLocationId: {},
   blacklistedTagIds: [],
   blacklistedLocationIds: [],
   personIds: [],
@@ -253,6 +258,11 @@ function relationDefaults(bookmark: Bookmark | undefined) {
     tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
     genreMoodIds: (bookmark?.genreMoods.map(entry => entry.id) ?? []) as string[],
     locationIds: (bookmark?.locations.map(location => location.id) ?? []) as string[],
+    locationRelationByLocationId: Object.fromEntries(
+      (bookmark?.locations ?? [])
+        .filter(location => location.locationRelation)
+        .map(location => [location.id, location.locationRelation?.id ?? null]),
+    ) as Record<string, string | null>,
     blacklistedTagIds: (bookmark?.blacklistedTagIds ?? []) as string[],
     blacklistedLocationIds: (bookmark?.blacklistedLocationIds ?? []) as string[],
     personIds: (bookmark?.people.map(a => a.id) ?? []) as string[],

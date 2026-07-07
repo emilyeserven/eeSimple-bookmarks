@@ -27,12 +27,13 @@ export function TreeListingScaffold<N extends { id: string;
   } = state;
 
   const toolbar = config.renderToolbar ? config.renderToolbar() : null;
+  const searchSort = config.renderSearchSort ? config.renderSearchSort() : undefined;
   // Expansion is forced while a query is active, so the toggle only shows without one.
   const showExpandToggle = viewMode !== "table" && !hasQuery;
 
   return (
     <div className="space-y-4">
-      <ListingSearchBox />
+      <ListingSearchBox sort={searchSort} />
 
       <ListingStatusMessages
         isLoading={isLoading}

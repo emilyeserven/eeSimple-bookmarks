@@ -643,7 +643,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
       });
     await linkTags(tx, row.id, mergedTagIds);
     await linkGenreMoods(tx, row.id, input.genreMoodIds);
-    await linkLocations(tx, row.id, mergedLocationIds);
+    await linkLocations(tx, row.id, mergedLocationIds, input.locationRelationByLocationId);
     if (input.blacklistedTagIds?.length) {
       await setBookmarkTagBlacklist(tx, row.id, input.blacklistedTagIds);
     }
@@ -787,7 +787,7 @@ async function applyBookmarkValueUpdates(
   }
   if (input.locationIds !== undefined) {
     await tx.delete(bookmarkLocations).where(eq(bookmarkLocations.bookmarkId, id));
-    await linkLocations(tx, id, input.locationIds);
+    await linkLocations(tx, id, input.locationIds, input.locationRelationByLocationId);
   }
   if (input.blacklistedTagIds !== undefined) {
     await setBookmarkTagBlacklist(tx, id, input.blacklistedTagIds);

@@ -2159,6 +2159,36 @@ const migrations: RuntimeMigration[] = [
       )
     `),
   },
+  {
+    // New table on a populated DB ⇒ pre-create so push's diff stays additive (else the
+    // `pgSuggestions` truncate prompt crashes the non-TTY deploy and silently skips the rest of the
+    // additive diff). Self-contained: single-column UNIQUE constraints inline (they converge); push
+    // adds nothing else for this table.
+    name: "create location_relations table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "location_relations" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "slug" text,
+        "description" text,
+        "built_in" boolean DEFAULT false NOT NULL,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+        CONSTRAINT "location_relations_name_unique" UNIQUE("name"),
+        CONSTRAINT "location_relations_slug_unique" UNIQUE("slug")
+      )
+    `),
+  },
+  {
+    // Companion column for the value-carrying bookmark_locations edge. Pre-added (not left to push)
+    // because a brand-new table in the same release makes push bail at the truncate prompt and skip
+    // the remaining additive diff — including this plain nullable ADD COLUMN. Declared as a bare uuid
+    // (no REFERENCES to the just-created table); push adds the FK constraint afterward.
+    name: "add bookmark_locations.location_relation_id column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "bookmark_locations" ADD COLUMN IF NOT EXISTS "location_relation_id" uuid
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

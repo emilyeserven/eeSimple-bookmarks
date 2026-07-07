@@ -1,5 +1,6 @@
 import { useGroups } from "../hooks/useGroups";
 import { useGroupTypes } from "../hooks/useGroupTypes";
+import { useLocationRelations } from "../hooks/useLocationRelations";
 import { useLocations } from "../hooks/useLocations";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useNewsletters } from "../hooks/useNewsletters";
@@ -17,6 +18,7 @@ export function useSidebarTaxonomyData() {
     allMediaTypes: useMediaTypes().data,
     allLocations: useLocations().data,
     allPlaceTypes: usePlaceTypes().data,
+    allLocationRelations: useLocationRelations().data,
     allChannels: useYouTubeChannels().data,
     allNewsletters: useNewsletters().data,
     allPeople: usePeople().data,

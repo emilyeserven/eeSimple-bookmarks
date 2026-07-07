@@ -26,6 +26,9 @@ import type {
   EntityNameOwnerType,
   UpdateEntityNameEntry,
   CreatePlaceTypeInput,
+  CreateLocationRelationInput,
+  UpdateLocationRelationInput,
+  LocationRelation,
   CreatePropertyGroupInput,
   CreateGroupInput,
   CreateGroupTypeInput,
@@ -235,6 +238,19 @@ export const placeTypesApi = {
   remove: (id: string, reassignTo?: string) =>
     request<undefined>(
       `/place-types/${id}${reassignTo ? `?reassignTo=${encodeURIComponent(reassignTo)}` : ""}`,
+      {
+        method: "DELETE",
+      },
+    ),
+};
+
+export const locationRelationsApi = {
+  ...createCrudApi<LocationRelation, CreateLocationRelationInput, UpdateLocationRelationInput>("location-relations"),
+  // Override the generic remove so deletion can optionally reassign the relation's bookmark-location
+  // edges to another relation (via the `reassignTo` query param) instead of clearing them.
+  remove: (id: string, reassignTo?: string) =>
+    request<undefined>(
+      `/location-relations/${id}${reassignTo ? `?reassignTo=${encodeURIComponent(reassignTo)}` : ""}`,
       {
         method: "DELETE",
       },

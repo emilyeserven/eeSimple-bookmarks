@@ -63,6 +63,7 @@ function ExpandableLinkSection({
   sidebarState,
   seeMoreTooltip,
   placeTypesCount,
+  locationRelationsCount,
   groupTypesCount,
 }: {
   sectionKey: string;
@@ -75,6 +76,7 @@ function ExpandableLinkSection({
   sidebarState: string;
   seeMoreTooltip: string;
   placeTypesCount?: number;
+  locationRelationsCount?: number;
   groupTypesCount?: number;
 }) {
   const {
@@ -89,6 +91,7 @@ function ExpandableLinkSection({
           pathname={pathname}
           locationsCount={item.count}
           placeTypesCount={placeTypesCount}
+          locationRelationsCount={locationRelationsCount}
           sidebarState={sidebarState}
         />
       );
@@ -211,6 +214,7 @@ export function AppSidebar({
     inboxCount,
     aiSummarizationCount,
     placeTypesCount,
+    locationRelationsCount,
     groupTypesCount,
     modifier,
     viewClick,
@@ -304,6 +308,7 @@ export function AppSidebar({
               sidebarState={state}
               seeMoreTooltip={t("Show more taxonomy links")}
               placeTypesCount={placeTypesCount}
+              locationRelationsCount={locationRelationsCount}
               groupTypesCount={groupTypesCount}
             />
           )

@@ -123,6 +123,7 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   inboxCount: number | undefined;
   aiSummarizationCount: number | undefined;
   placeTypesCount: number | undefined;
+  locationRelationsCount: number | undefined;
   groupsCount: number | undefined;
   groupTypesCount: number | undefined;
   currentBookmarkCategories: string[];
@@ -258,6 +259,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     inboxCount: data.inboxItems?.filter(item => item.status === "pending").length,
     aiSummarizationCount: data.aiSummaryQueue?.length,
     placeTypesCount: data.allPlaceTypes?.length,
+    locationRelationsCount: data.allLocationRelations?.length,
     groupsCount: data.allGroups?.length,
     groupTypesCount: data.allGroupTypes?.length,
     currentBookmarkCategories,

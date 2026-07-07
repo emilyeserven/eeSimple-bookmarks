@@ -33,6 +33,7 @@ import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { genreMoodRoutes } from "@/routes/genreMoods";
 import { genreMoodAssignmentRoutes } from "@/routes/genreMoodAssignments";
 import { locationRoutes } from "@/routes/locations";
+import { locationRelationRoutes } from "@/routes/locationRelations";
 import { placeTypeRoutes } from "@/routes/placeTypes";
 import { connectorsRoutes } from "@/routes/connectors";
 import { kavitaRoutes } from "@/routes/kavita";
@@ -250,6 +251,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(entityNameRoutes);
   await app.register(locationRoutes);
   await app.register(placeTypeRoutes);
+  await app.register(locationRelationRoutes);
   await app.register(youtubeChannelRoutes);
   await app.register(customPropertyRoutes);
   await app.register(propertyGroupRoutes);

@@ -203,6 +203,18 @@ vi.mock("../hooks/useLocations", () => ({
     data: [],
   }),
 }));
+vi.mock("../hooks/useLocationRelations", () => ({
+  useLocationRelations: () => ({
+    data: [],
+  }),
+  useCreateLocationRelation: () => ({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+  }),
+}));
 vi.mock("../hooks/useFetchTitle", () => ({
   useFetchTitle: () => ({
     mutateAsync,

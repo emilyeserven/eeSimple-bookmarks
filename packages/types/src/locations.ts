@@ -10,8 +10,16 @@
 
 import type { EntityName } from "./entityNames.js";
 import type { LabeledWebsite } from "./labeledWebsites.js";
+import type { BookmarkLocationRelation, LocationRelation } from "./locationRelations.js";
 
 import { titleMatchesTerm } from "./titleTags.js";
+
+/**
+ * A relation a location's bookmarks express toward it, with its sort weight — derived server-side from
+ * the distinct `bookmark_locations.location_relation_id` values across the location's own bookmarks.
+ * Used to group/sort the Locations listing by "Location Relation".
+ */
+export type LocationRelationUsage = Pick<LocationRelation, "id" | "name" | "slug" | "sortOrder">;
 
 /**
  * A simplified GeoJSON boundary geometry for a location (an administrative area outline fetched from
@@ -95,6 +103,12 @@ export interface Location {
   bookmarkCount?: number;
   /** Distinct bookmarks carrying this location directly, excluding its descendants. */
   ownBookmarkCount?: number;
+  /**
+   * The distinct Location Relations this location's own bookmarks express toward it (populated by list
+   * endpoints). Empty when no edge carries a relation. Drives the Locations listing "Location Relation"
+   * sort/column/search.
+   */
+  locationRelations?: LocationRelationUsage[];
   /** Labeled websites/links for this location (freeform label + URL, optionally a Websites-taxonomy ref). */
   labeledWebsites: LabeledWebsite[];
 }
@@ -104,8 +118,13 @@ export interface LocationNode extends Location {
   children: LocationNode[];
 }
 
-/** Lightweight location shape carried on a bookmark. */
-export type BookmarkLocation = Pick<Location, "id" | "name" | "slug" | "parentId" | "placeType">;
+/**
+ * Lightweight location shape carried on a bookmark — plus the relation this bookmark expresses toward
+ * this specific location (`null` when the `(bookmark, location)` edge has no relation set).
+ */
+export type BookmarkLocation = Pick<Location, "id" | "name" | "slug" | "parentId" | "placeType"> & {
+  locationRelation: BookmarkLocationRelation | null;
+};
 
 /** Payload for creating a location. */
 export interface CreateLocationInput {

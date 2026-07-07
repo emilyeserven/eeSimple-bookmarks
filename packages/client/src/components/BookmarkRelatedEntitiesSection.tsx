@@ -3,6 +3,7 @@ import type { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { useTranslation } from "react-i18next";
 
 import { AddPersonModal } from "./AddPersonModal";
+import { BookmarkLocationRelationsField } from "./BookmarkLocationRelationsField";
 import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
@@ -32,6 +33,7 @@ export function BookmarkRelatedEntitiesSection({
     setAddPersonOpen,
     saveField,
     saveLocations,
+    saveLocationRelations,
     savePeople,
     saveGroups,
     touchedRef,
@@ -99,6 +101,24 @@ export function BookmarkRelatedEntitiesSection({
         )}
       </form.Field>
       {locationCreate.modal}
+
+      <form.Subscribe selector={state => state.values.locationIds}>
+        {locationIds => (
+          <form.Field name="locationRelationByLocationId">
+            {relationField => (
+              <BookmarkLocationRelationsField
+                locationIds={locationIds}
+                locationTree={locationTree ?? []}
+                value={relationField.state.value}
+                onChange={(next) => {
+                  relationField.handleChange(next);
+                  saveLocationRelations(next);
+                }}
+              />
+            )}
+          </form.Field>
+        )}
+      </form.Subscribe>
 
       <form.Field name="personIds">
         {field => (

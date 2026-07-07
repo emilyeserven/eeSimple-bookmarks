@@ -32,6 +32,7 @@ export * from "./importBlacklist.js";
 export * from "./isbn.js";
 export * from "./labeledWebsites.js";
 export * from "./languageUsages.js";
+export * from "./locationRelations.js";
 export * from "./locations.js";
 export * from "./podcasts.js";
 export * from "./translationSources.js";
@@ -1457,6 +1458,12 @@ export interface CreateBookmarkInput {
   siteLanguageCode?: string | null;
   /** Ids of locations to assign, drawn from the Locations taxonomy. */
   locationIds?: string[];
+  /**
+   * The Location Relation to attach per assigned location — a map of `locationId → locationRelationId`
+   * (or `null` to clear). Only keys present in `locationIds` are applied; a missing key leaves that
+   * edge's relation unset. Order-independent; qualifies each `(bookmark, location)` edge.
+   */
+  locationRelationByLocationId?: Record<string, string | null>;
   /** Tag IDs to exclude from autofill auto-apply on this bookmark. */
   blacklistedTagIds?: string[];
   /** Location IDs to exclude from autofill auto-apply on this bookmark. */

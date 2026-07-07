@@ -7,13 +7,14 @@ import type {
   LabeledWebsite,
   Location,
   LocationNode,
+  LocationRelationUsage,
   LocationTitleCandidate,
   SetLocationAncestorsInput,
   UpdateLocationInput,
 } from "@eesimple/types";
 import { matchLocationIdsByTitle, slugSourceFromNames } from "@eesimple/types";
 import { db } from "@/db";
-import { bookmarkLocations, locations, locationTags, type LocationRow } from "@/db/schema";
+import { bookmarkLocations, locationRelations, locations, locationTags, type LocationRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { geocodeLocation, refreshLocationBoundary } from "@/services/geocoding";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
@@ -48,6 +49,7 @@ function toLocation(
   counts?: LocationBookmarkCounts,
   tagIds?: string[],
   names?: EntityName[],
+  relationUsages?: LocationRelationUsage[],
 ): Location {
   return {
     id: row.id,
@@ -75,8 +77,43 @@ function toLocation(
     tagIds,
     bookmarkCount: counts?.subtree,
     ownBookmarkCount: counts?.own,
+    locationRelations: relationUsages,
     labeledWebsites: (row.labeledWebsites as LabeledWebsite[] | null) ?? [],
   };
+}
+
+/**
+ * Load the distinct Location Relations each location's own bookmarks express toward it, keyed by
+ * location id. Derived from `bookmark_locations.location_relation_id` joined to `location_relations`
+ * (a location row carries no relation of its own). Ordered by the relation's sort weight then name so
+ * the Locations listing "Location Relation" sort has a stable representative.
+ */
+async function locationRelationsByLocation(locationIds: string[]): Promise<Map<string, LocationRelationUsage[]>> {
+  const map = new Map<string, LocationRelationUsage[]>();
+  if (locationIds.length === 0) return map;
+  const rows = await db
+    .selectDistinct({
+      locationId: bookmarkLocations.locationId,
+      id: locationRelations.id,
+      name: locationRelations.name,
+      slug: locationRelations.slug,
+      sortOrder: locationRelations.sortOrder,
+    })
+    .from(bookmarkLocations)
+    .innerJoin(locationRelations, eq(bookmarkLocations.locationRelationId, locationRelations.id))
+    .where(inArray(bookmarkLocations.locationId, locationIds))
+    .orderBy(asc(locationRelations.sortOrder), asc(locationRelations.name));
+  for (const row of rows) {
+    const list = map.get(row.locationId) ?? [];
+    list.push({
+      id: row.id,
+      name: row.name,
+      slug: row.slug ?? slugify(row.name),
+      sortOrder: row.sortOrder,
+    });
+    map.set(row.locationId, list);
+  }
+  return map;
 }
 
 // The "auto-tag from title" matcher lives in `@eesimple/types`; re-exported so callers/tests can
@@ -187,9 +224,12 @@ export async function listLocations(): Promise<Location[]> {
     })
     .from(bookmarkLocations);
   const counts = computeLocationBookmarkCounts(rows, links);
-  const tagMap = await tagIdsByLocation(rows.map(row => row.id));
-  const namesMap = await loadEntityNames("location", rows.map(row => row.id));
-  return rows.map(row => toLocation(row, counts.get(row.id), tagMap.get(row.id) ?? [], namesMap.get(row.id)));
+  const ids = rows.map(row => row.id);
+  const tagMap = await tagIdsByLocation(ids);
+  const namesMap = await loadEntityNames("location", ids);
+  const relationMap = await locationRelationsByLocation(ids);
+  return rows.map(row =>
+    toLocation(row, counts.get(row.id), tagMap.get(row.id) ?? [], namesMap.get(row.id), relationMap.get(row.id) ?? []));
 }
 
 export async function getLocationTree(): Promise<LocationNode[]> {

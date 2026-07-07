@@ -24,6 +24,7 @@ import {
   Share2,
   SquarePlus,
   Wand2,
+  Waypoints,
 } from "lucide-react";
 
 import i18n from "../i18n";
@@ -149,6 +150,11 @@ export const locationsNav: readonly SettingsTabNavItem[] = [
     to: "/settings/locations/place-types",
     label: i18n.t("Place Types"),
     icon: MapPin,
+  },
+  {
+    to: "/settings/locations/location-relations",
+    label: i18n.t("Location Relations"),
+    icon: Waypoints,
   },
 ] as const;
 

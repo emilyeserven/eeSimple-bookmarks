@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, ChevronRight, MapPin, MapPinned } from "lucide-react";
+import { ChevronDown, ChevronRight, MapPin, MapPinned, Waypoints } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useIsMobile } from "../hooks/use-mobile";
@@ -50,6 +50,42 @@ function PlaceTypesLink({
   );
 }
 
+/** The Location Relations shortcut revealed by the Locations flyout — shared by desktop + mobile. */
+function LocationRelationsLink({
+  onNavigate,
+  locationRelationsCount,
+}: {
+  onNavigate: () => void;
+  locationRelationsCount?: number;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <Link
+      to="/taxonomies/location-relations"
+      onClick={onNavigate}
+      className="
+        flex items-center gap-2 rounded-md px-2 py-1.5 text-sm
+        hover:bg-accent hover:text-accent-foreground
+      "
+    >
+      <Waypoints className="size-3.5 shrink-0 text-muted-foreground" />
+      <span className="flex-1 truncate">{t("Location Relations")}</span>
+      {locationRelationsCount != null && locationRelationsCount > 0
+        ? (
+          <Badge
+            variant="secondary"
+            className="shrink-0"
+          >
+            {locationRelationsCount}
+          </Badge>
+        )
+        : null}
+    </Link>
+  );
+}
+
 /**
  * The sidebar "Locations" entry with a hover flyout surfacing its Place Types taxonomy. On desktop,
  * hovering the button (or the flyout) opens a popover to the right — a chevron affordance on the
@@ -61,11 +97,13 @@ export function LocationsSidebarItem({
   pathname,
   locationsCount,
   placeTypesCount,
+  locationRelationsCount,
   sidebarState,
 }: {
   pathname: string;
   locationsCount?: number;
   placeTypesCount?: number;
+  locationRelationsCount?: number;
   sidebarState?: string;
 }) {
   const {
@@ -147,10 +185,14 @@ export function LocationsSidebarItem({
         </SidebarMenuItem>
         {expanded
           ? (
-            <SidebarMenuItem className="px-1 pb-1">
+            <SidebarMenuItem className="space-y-1 px-1 pb-1">
               <PlaceTypesLink
                 onNavigate={() => setExpanded(false)}
                 placeTypesCount={placeTypesCount}
+              />
+              <LocationRelationsLink
+                onNavigate={() => setExpanded(false)}
+                locationRelationsCount={locationRelationsCount}
               />
             </SidebarMenuItem>
           )
@@ -184,10 +226,16 @@ export function LocationsSidebarItem({
           <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">
             {t("Locations")}
           </p>
-          <PlaceTypesLink
-            onNavigate={() => setOpen(false)}
-            placeTypesCount={placeTypesCount}
-          />
+          <div className="space-y-1">
+            <PlaceTypesLink
+              onNavigate={() => setOpen(false)}
+              placeTypesCount={placeTypesCount}
+            />
+            <LocationRelationsLink
+              onNavigate={() => setOpen(false)}
+              locationRelationsCount={locationRelationsCount}
+            />
+          </div>
         </PopoverContent>
       </Popover>
     </SidebarMenuItem>

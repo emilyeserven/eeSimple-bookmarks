@@ -25,6 +25,7 @@ export type DrawerContentType
     | "language"
     | "location"
     | "place-type"
+    | "location-relation"
     | "youtube-channel"
     | "newsletter"
     | "person"
@@ -57,6 +58,7 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "language",
   "location",
   "place-type",
+  "location-relation",
   "youtube-channel",
   "newsletter",
   "person",

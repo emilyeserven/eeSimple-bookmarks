@@ -6,7 +6,12 @@ import { describe, expect, it } from "vitest";
 import { sortLocationTree } from "./locationSort";
 
 /** Minimal LocationNode factory for sort tests (only the fields the sorter reads matter). */
-function node(name: string, placeType: string | null, children: LocationNode[] = []): LocationNode {
+function node(
+  name: string,
+  placeType: string | null,
+  children: LocationNode[] = [],
+  locationRelations: LocationNode["locationRelations"] = undefined,
+): LocationNode {
   return {
     id: name,
     name,
@@ -28,7 +33,18 @@ function node(name: string, placeType: string | null, children: LocationNode[] =
     parentId: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     labeledWebsites: [],
+    locationRelations,
     children,
+  };
+}
+
+/** A derived Location Relation usage (only id/name/slug/sortOrder matter to the sorter). */
+function relation(name: string, sortOrder: number) {
+  return {
+    id: name,
+    name,
+    slug: name.toLowerCase(),
+    sortOrder,
   };
 }
 
@@ -74,5 +90,22 @@ describe("sortLocationTree", () => {
   it("breaks ties on name", () => {
     const tree = [node("Osaka", "city"), node("Kyoto", "city")];
     expect(names(sortLocationTree(tree, "place-type", {}))).toEqual(["Kyoto", "Osaka"]);
+  });
+
+  describe("location-relation mode", () => {
+    it("groups by the location's lowest-sortOrder relation, unassigned last", () => {
+      const tree = [
+        node("Osaka", "city", [], []), // no relation → sorts last
+        node("Kyoto", "city", [], [relation("Inspired By", 3)]),
+        node("Nara", "city", [], [relation("Created In", 2), relation("Inspired By", 3)]), // rank 2
+      ];
+      expect(names(sortLocationTree(tree, "location-relation", {}))).toEqual(["Nara", "Kyoto", "Osaka"]);
+    });
+
+    it("keeps a stable name order among two unassigned locations (no NaN comparator)", () => {
+      const tree = [node("Osaka", "city", [], []), node("Kobe", "city", [], [])];
+      // Both rank Infinity → tie on name (Kobe < Osaka), never a NaN comparator.
+      expect(names(sortLocationTree(tree, "location-relation", {}))).toEqual(["Kobe", "Osaka"]);
+    });
   });
 });

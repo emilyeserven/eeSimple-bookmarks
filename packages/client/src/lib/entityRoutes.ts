@@ -12,6 +12,7 @@ export type EntityRouteKind
     | "language"
     | "location"
     | "place-type"
+    | "location-relation"
     | "youtube-channel"
     | "newsletter"
     | "person"

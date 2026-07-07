@@ -80,12 +80,22 @@ export async function linkGenreMoods(tx: Tx, bookmarkId: string, genreMoodIds: s
   })));
 }
 
-/** Insert join rows linking a bookmark to the given location ids (no-op when empty). */
-export async function linkLocations(tx: Tx, bookmarkId: string, locationIds: string[] | undefined): Promise<void> {
+/**
+ * Insert join rows linking a bookmark to the given location ids (no-op when empty). Each edge carries
+ * the Location Relation from `relationByLocationId` (a `locationId → relationId | null` map), or null
+ * when the location has no entry.
+ */
+export async function linkLocations(
+  tx: Tx,
+  bookmarkId: string,
+  locationIds: string[] | undefined,
+  relationByLocationId?: Record<string, string | null>,
+): Promise<void> {
   if (!locationIds || locationIds.length === 0) return;
   await tx.insert(bookmarkLocations).values([...new Set(locationIds)].map(locationId => ({
     bookmarkId,
     locationId,
+    locationRelationId: relationByLocationId?.[locationId] ?? null,
   })));
 }
 

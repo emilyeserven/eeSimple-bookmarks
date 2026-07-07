@@ -111,6 +111,11 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
       genreMoodIds: (bookmark.genreMoods.map(entry => entry.id)) as string[],
       locationIds: (bookmark.locations.map(location => location.id)) as string[],
+      locationRelationByLocationId: Object.fromEntries(
+        bookmark.locations
+          .filter(location => location.locationRelation)
+          .map(location => [location.id, location.locationRelation?.id ?? null]),
+      ) as Record<string, string | null>,
       blacklistedTagIds: bookmark.blacklistedTagIds as string[],
       blacklistedLocationIds: bookmark.blacklistedLocationIds as string[],
       personIds: (bookmark.people.map(a => a.id)) as string[],
@@ -158,11 +163,28 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
         id: bookmark.id,
         input: {
           locationIds,
+          locationRelationByLocationId: form.getFieldValue("locationRelationByLocationId"),
         },
       },
       {
         onSuccess: () => notifyFieldSaved("Locations"),
         onError: e => notifyFieldSaveError("Locations", describeError(e)),
+      },
+    );
+  }
+
+  function saveLocationRelations(relationByLocationId: Record<string, string | null>): void {
+    updateBookmark.mutate(
+      {
+        id: bookmark.id,
+        input: {
+          locationIds: form.getFieldValue("locationIds"),
+          locationRelationByLocationId: relationByLocationId,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Location relations"),
+        onError: e => notifyFieldSaveError("Location relations", describeError(e)),
       },
     );
   }
@@ -419,6 +441,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveDescription,
     saveTags,
     saveLocations,
+    saveLocationRelations,
     saveBlacklistedTagIds,
     saveBlacklistedLocationIds,
     savePeople,
