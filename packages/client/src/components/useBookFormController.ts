@@ -61,7 +61,6 @@ export function useBookFormController({
   const [kavita, setKavita] = useState<KavitaLink>(EMPTY_KAVITA);
   const [addMediaPropertyOpen, setAddMediaPropertyOpen] = useState(false);
   const [isbnInput, setIsbnInput] = useState("");
-  const [isbn, setIsbn] = useState("");
   const [isbnReleaseYear, setIsbnReleaseYear] = useState<number | null>(null);
   const [isbnCoverAvailable, setIsbnCoverAvailable] = useState(false);
 
@@ -97,7 +96,6 @@ export function useBookFormController({
       const parsedYear = parseInt(result.year, 10);
       if (!Number.isNaN(parsedYear)) setIsbnReleaseYear(parsedYear);
     }
-    setIsbn(trimmed);
     setIsbnCoverAvailable(Boolean(result.coverUrl));
   }
 
@@ -109,7 +107,7 @@ export function useBookFormController({
       {
         name: trimmed,
         mediaPropertyId: mediaPropertyId || null,
-        isbn: isbn.trim() || null,
+        isbn: isbnInput.trim() || null,
         ...kavita,
         releaseYear: kavita.releaseYear ?? isbnReleaseYear,
       },
@@ -146,7 +144,6 @@ export function useBookFormController({
     setAddMediaPropertyOpen,
     isbnInput,
     setIsbnInput,
-    isbn,
     applyCandidate,
     handleIsbnLookup,
     handleSubmit,

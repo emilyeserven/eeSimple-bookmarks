@@ -48,7 +48,6 @@ export function BookForm(props: BookFormProps) {
     setAddMediaPropertyOpen,
     isbnInput,
     setIsbnInput,
-    isbn,
     applyCandidate,
     handleIsbnLookup,
     handleSubmit,
@@ -115,11 +114,11 @@ export function BookForm(props: BookFormProps) {
             {isbnFetch.isPending ? t("Looking up…") : t("Look up")}
           </Button>
         </div>
-        {isbn
+        {isbnInput.trim()
           ? (
             <p className="text-xs text-muted-foreground">
               {t("ISBN {{isbn}} will be saved with this book.", {
-                isbn,
+                isbn: isbnInput.trim(),
               })}
             </p>
           )
