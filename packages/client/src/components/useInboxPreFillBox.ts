@@ -8,6 +8,7 @@ import { useGroups } from "../hooks/useGroups";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { usePeople } from "../hooks/usePeople";
 import { useTagTree } from "../hooks/useTags";
+import { useBuiltInName } from "../lib/builtInName";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 import { INBOX_PREFILLABLE_TYPES } from "../lib/inboxPreFill";
 import { buildSearchAlias } from "../lib/searchAlias";
@@ -46,8 +47,9 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     (p: CustomProperty) => p.enabledInInbox && p.enabled && INBOX_PREFILLABLE_TYPES.has(p.type),
   );
 
+  const builtInName = useBuiltInName();
   const categoryOptions = iconComboboxOptions(categories);
-  const mediaTypeOptions = mediaTypeNodesToOptions(mediaTypeTree);
+  const mediaTypeOptions = mediaTypeNodesToOptions(mediaTypeTree, builtInName);
   const personOptions = people.map(a => ({
     value: a.id,
     label: a.name,

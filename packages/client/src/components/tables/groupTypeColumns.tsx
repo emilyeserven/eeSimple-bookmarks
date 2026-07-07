@@ -7,6 +7,7 @@ import { EditActionCell } from "./cells";
 import i18n from "../../i18n";
 
 import { Badge } from "@/components/ui/badge";
+import { builtInName } from "@/lib/builtInName";
 
 /** Column definitions for the Group Types listing Table view. */
 export function useGroupTypeColumns(): ColumnDef<GroupType>[] {
@@ -17,7 +18,7 @@ export function useGroupTypeColumns(): ColumnDef<GroupType>[] {
         header: i18n.t("Name"),
         cell: ({
           row,
-        }) => <span className="font-medium">{row.original.name}</span>,
+        }) => <span className="font-medium">{builtInName(row.original, i18n.t)}</span>,
       },
       {
         accessorKey: "sortOrder",
@@ -48,7 +49,7 @@ export function useGroupTypeColumns(): ColumnDef<GroupType>[] {
               groupTypeSlug: row.original.slug,
             }}
             label={i18n.t("Edit {{name}}", {
-              name: row.original.name,
+              name: builtInName(row.original, i18n.t),
             })}
           />
         ),

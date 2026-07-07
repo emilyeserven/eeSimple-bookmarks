@@ -2,6 +2,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
+import { useBuiltInName } from "@/lib/builtInName";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 /**
@@ -22,10 +23,11 @@ export function useWebsiteGeneralFormData() {
   const {
     data: youtubeChannels,
   } = useYouTubeChannels();
+  const builtInName = useBuiltInName();
 
   return {
     categoryOptions: iconComboboxOptions(categories ?? []),
-    mediaTypeOptions: mediaTypeNodesToOptions(mediaTypeTree ?? []),
+    mediaTypeOptions: mediaTypeNodesToOptions(mediaTypeTree ?? [], builtInName),
     tagTree: tagTree ?? [],
     youtubeChannels: youtubeChannels ?? [],
   };

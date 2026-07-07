@@ -13,7 +13,7 @@ describe("registerBuiltInNameKeys", () => {
   it("calls t() for every seeded built-in name without throwing", () => {
     const t = vi.fn(stubT());
     expect(() => registerBuiltInNameKeys(t as unknown as TFunction)).not.toThrow();
-    expect(t).toHaveBeenCalledTimes(23);
+    expect(t).toHaveBeenCalledTimes(35);
   });
 
   it("registers no duplicate keys", () => {

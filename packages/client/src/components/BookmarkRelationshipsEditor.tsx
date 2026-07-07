@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useUpdateBookmarkRelationships, useBookmarks } from "@/hooks/useBookmarks";
 import { useRelationshipTypes } from "@/hooks/useRelationshipTypes";
+import { useBuiltInName } from "@/lib/builtInName";
 
 interface BookmarkRelationshipsEditorProps {
   bookmarkId: string;
@@ -60,6 +61,7 @@ export function BookmarkRelationshipsEditor({
   const {
     data: relationshipTypes,
   } = useRelationshipTypes();
+  const builtInName = useBuiltInName();
   const updateRelationships = useUpdateBookmarkRelationships();
 
   const [drafts, setDrafts] = useState<RelationshipDraft[]>(() =>
@@ -85,7 +87,8 @@ export function BookmarkRelationshipsEditor({
     .filter(rt => !rt.hidden)
     .map(rt => ({
       value: rt.id,
-      label: rt.name,
+      label: builtInName(rt),
+      searchAlias: rt.builtIn ? rt.name : undefined,
     }));
 
   const directionalTypeIds = useMemo(

@@ -18,21 +18,51 @@ export interface IconComboboxOption {
 }
 
 /**
+ * Renders a row's display name. Pass `useBuiltInName()` (from `@/lib/builtInName`) to translate a
+ * seeded built-in name at render; the default leaves every name verbatim so existing callers and
+ * user-created rows are unchanged. These builders are pure (no `t`), so the translator is threaded
+ * in rather than called here.
+ */
+export type OptionNameFn = (row: { name: string;
+  builtIn?: boolean; }) => string;
+
+const verbatimName: OptionNameFn = row => row.name;
+
+/**
+ * Search text for an option. A built-in row whose label may be translated keeps its English seed
+ * `name` searchable (folded in alongside the multilingual `names` variants), so an English-typed
+ * query still matches a Japanese label — the invariant documented in `lib/builtInName.ts`.
+ */
+function optionSearchAlias(row: { name: string;
+  builtIn?: boolean;
+  names?: EntityName[] | null; }): string | undefined {
+  const names = row.builtIn
+    ? [{
+      value: row.name,
+    } as EntityName, ...(row.names ?? [])]
+    : row.names;
+  return buildSearchAlias(names);
+}
+
+/**
  * Build `{ value, label, icon }` combobox options for an icon-bearing taxonomy row (Category,
  * MediaType, …). Shared by the auto-save general forms so the default category / media-type pickers
  * don't re-list the same `.map()` + `<CategoryIcon>` block. Every language-labelled name variant is
- * carried as `searchAlias` so the picker search matches any of them.
+ * carried as `searchAlias` so the picker search matches any of them. Pass `nameOf` (e.g.
+ * `useBuiltInName()`) to translate seeded built-in names.
  */
 export function iconComboboxOptions(
   items: { id: string;
     name: string;
     icon: string | null;
+    builtIn?: boolean;
     names?: EntityName[]; }[],
+  nameOf: OptionNameFn = verbatimName,
 ): IconComboboxOption[] {
   return items.map(item => ({
     value: item.id,
-    label: item.name,
-    searchAlias: buildSearchAlias(item.names),
+    label: nameOf(item),
+    searchAlias: optionSearchAlias(item),
     names: item.names,
     icon: (
       <CategoryIcon
@@ -81,15 +111,18 @@ export function genreMoodTreeComboboxOptions(
  * only kept out of the option list here. Do NOT route the reparent/parent picker through this
  * builder; that one must still see every type.
  */
-export function mediaTypeNodesToOptions(nodes: MediaTypeNode[]): TreeComboboxOption[] {
+export function mediaTypeNodesToOptions(
+  nodes: MediaTypeNode[],
+  nameOf: OptionNameFn = verbatimName,
+): TreeComboboxOption[] {
   return nodes.flatMap((node) => {
-    const children = mediaTypeNodesToOptions(node.children);
+    const children = mediaTypeNodesToOptions(node.children, nameOf);
     if (node.hidden) return children;
     return [
       {
         value: node.id,
-        label: node.name,
-        searchAlias: buildSearchAlias(node.names),
+        label: nameOf(node),
+        searchAlias: optionSearchAlias(node),
         names: node.names,
         icon: (
           <CategoryIcon

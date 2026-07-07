@@ -12,6 +12,7 @@ import { useUpdateNewsletter } from "../hooks/useNewsletters";
 import { useCategories } from "@/hooks/useCategories";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
+import { useBuiltInName } from "@/lib/builtInName";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 import { useAppForm } from "@/lib/form";
 
@@ -104,6 +105,8 @@ export function useNewsletterGeneralForm(newsletter: Newsletter) {
     saveTagIds(tagIds.includes(id) ? tagIds.filter(t => t !== id) : [...tagIds, id]);
   }
 
+  const builtInName = useBuiltInName();
+
   return {
     form,
     tagIds,
@@ -113,7 +116,7 @@ export function useNewsletterGeneralForm(newsletter: Newsletter) {
     saveCategoryId: (id: string | null) => autoSave.saveField("categoryId", id),
     saveMediaTypeId: (id: string | null) => autoSave.saveField("mediaTypeId", id),
     categoryOptions: iconComboboxOptions(categories ?? []),
-    mediaTypeOptions: mediaTypeNodesToOptions(mediaTypeTree ?? []),
+    mediaTypeOptions: mediaTypeNodesToOptions(mediaTypeTree ?? [], builtInName),
     tagTree: tagTree ?? [],
   };
 }

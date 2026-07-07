@@ -7,6 +7,7 @@ import { Combobox } from "./Combobox";
 import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
 import { TreeCombobox } from "./TreeCombobox";
+import { useBuiltInName } from "../lib/builtInName";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 import { buildSearchAlias } from "../lib/searchAlias";
 
@@ -61,6 +62,7 @@ export function ImportItemAdvancedEditFields({
     groupCreate,
     locationCreate,
   } = state;
+  const builtInName = useBuiltInName();
 
   return (
     <>
@@ -80,7 +82,7 @@ export function ImportItemAdvancedEditFields({
       <div className="space-y-1">
         <Label className="text-xs">{t("Media type")}</Label>
         <TreeCombobox
-          options={mediaTypeNodesToOptions(mediaTypeTree)}
+          options={mediaTypeNodesToOptions(mediaTypeTree, builtInName)}
           value={mediaTypeId}
           onValueChange={onMediaTypeChange}
           placeholder={t("No media type")}

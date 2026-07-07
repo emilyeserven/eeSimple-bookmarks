@@ -1642,6 +1642,11 @@ export interface BookmarkRelationship {
   relationshipTypeId: string;
   /** Display name of the relationship type, denormalized for rendering. */
   relationshipTypeName: string;
+  /**
+   * Whether the relationship type is a seeded built-in, denormalized so the badge can translate the
+   * name at render (`builtInName`). Optional/absent = treat as not built-in (verbatim name).
+   */
+  relationshipTypeBuiltIn?: boolean;
   /** Whether the type is directional (parent→child) rather than symmetric. */
   directional: boolean;
   /** Role of `bookmark` relative to the carrying bookmark. */
