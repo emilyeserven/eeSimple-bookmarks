@@ -117,7 +117,6 @@ export function YouTubeChannelGeneralForm({
         selectedIds={tagIds}
         onToggle={toggleTag}
         description={t("Tags applied automatically to bookmarks saved from this channel.")}
-        categoryId={channel.category?.id ?? null}
       />
 
       <Separator />

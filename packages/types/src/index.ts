@@ -2589,16 +2589,6 @@ export interface CreateCategoryInput {
 /** Payload for partially updating a category. */
 export type UpdateCategoryInput = Partial<CreateCategoryInput>;
 
-/** Payload for replacing a category's enabled root-tag allowlist (empty = all roots enabled). */
-export interface UpdateCategoryRootTagsInput {
-  tagIds: string[];
-}
-
-/** Payload for replacing the categories whose root-tag allowlist includes a given (root) tag. */
-export interface UpdateTagCategoriesInput {
-  categoryIds: string[];
-}
-
 /** A category's default custom-property values, applied to new bookmarks added to it. */
 export interface CategoryPropertyDefaults {
   /** Default number/calculate property values (calculate defaults are ignored on save). */

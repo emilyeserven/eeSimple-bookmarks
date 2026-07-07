@@ -8,7 +8,6 @@ import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { CategoryCustomProperties } from "../CategoryCustomProperties";
 import { CategoryGeneralForm } from "../CategoryGeneralForm";
 import { CategoryGeneralFields } from "../CategoryPreviewCard";
-import { CategoryTieredTags } from "../CategoryTieredTags";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { EntityNamesTabView, PrimaryLanguageTabView } from "../entityNames/EntityNamesTab";
 import { ListingDisplayControls } from "../ListingDisplayControls";
@@ -93,24 +92,6 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
         render: ({
           entity,
         }) => <CategoryGeneralForm category={entity} />,
-      },
-    },
-    {
-      key: "tiered-tags",
-      label: i18n.t("Tiered Tags"),
-      view: {
-        title: i18n.t("Tiered Tags"),
-        description: i18n.t("Tiered (parent) tags scoped to this category."),
-        render: ({
-          entity,
-        }) => <CategoryTieredTags categoryId={entity.id} />,
-      },
-      edit: {
-        title: i18n.t("Tiered Tags"),
-        description: i18n.t("Tiered (parent) tags scoped to this category."),
-        render: ({
-          entity,
-        }) => <CategoryTieredTags categoryId={entity.id} />,
       },
     },
     {

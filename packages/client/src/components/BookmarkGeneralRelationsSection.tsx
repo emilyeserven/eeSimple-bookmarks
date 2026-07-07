@@ -3,7 +3,7 @@ import type { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { useTranslation } from "react-i18next";
 
 import { AddTagModal } from "./AddTagModal";
-import { GatedTagPicker } from "./BookmarkTagsField";
+import { BookmarkTagsField } from "./BookmarkTagsField";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 
 import { useBuiltInName } from "@/lib/builtInName";
@@ -54,32 +54,27 @@ export function BookmarkGeneralRelationsSection({
       </form.AppField>
       {mediaTypeCreate.modal}
 
-      <form.Subscribe selector={state => state.values.categoryId}>
-        {categoryId => (
-          <form.Field name="tagIds">
-            {field => (
-              <GatedTagPicker
-                categoryId={categoryId}
-                tree={tagTree ?? []}
-                selectedIds={field.state.value}
-                onToggle={(id) => {
-                  touchedRef.current.add("tags");
-                  const current = field.state.value;
-                  const newTagIds = current.includes(id)
-                    ? current.filter(tagId => tagId !== id)
-                    : [...current, id];
-                  field.handleChange(newTagIds);
-                  saveTags(newTagIds);
-                }}
-                createOption={{
-                  label: t("Create tag"),
-                  onSelect: () => setAddTagOpen(true),
-                }}
-              />
-            )}
-          </form.Field>
+      <form.Field name="tagIds">
+        {field => (
+          <BookmarkTagsField
+            tree={tagTree ?? []}
+            selectedIds={field.state.value}
+            onToggle={(id) => {
+              touchedRef.current.add("tags");
+              const current = field.state.value;
+              const newTagIds = current.includes(id)
+                ? current.filter(tagId => tagId !== id)
+                : [...current, id];
+              field.handleChange(newTagIds);
+              saveTags(newTagIds);
+            }}
+            createOption={{
+              label: t("Create tag"),
+              onSelect: () => setAddTagOpen(true),
+            }}
+          />
         )}
-      </form.Subscribe>
+      </form.Field>
       <AddTagModal
         open={addTagOpen}
         onOpenChange={setAddTagOpen}

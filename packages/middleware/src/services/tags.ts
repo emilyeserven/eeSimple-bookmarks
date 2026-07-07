@@ -2,10 +2,9 @@ import { asc, eq, ne, sql } from "drizzle-orm";
 import type { BulkDeleteResult, CreateTagInput, EntityName, Tag, TagNode, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
 import { matchTagIdsByTitle, titleMatchesTerm } from "@eesimple/types";
 import { db } from "@/db";
-import { bookmarkTags, categoryRootTags, tags, type TagRow } from "@/db/schema";
+import { bookmarkTags, tags, type TagRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { InvalidRootTagError } from "@/services/categories";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import {
@@ -236,49 +235,4 @@ export async function deleteTag(id: string): Promise<boolean> {
  */
 export function bulkDeleteTags(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deleteTag);
-}
-
-/** The categories whose root-tag allowlist includes this tag (the reverse of the Tiered Tags tab). */
-export async function getTagCategories(tagId: string): Promise<string[]> {
-  const rows = await db
-    .select({
-      categoryId: categoryRootTags.categoryId,
-    })
-    .from(categoryRootTags)
-    .where(eq(categoryRootTags.tagId, tagId));
-  return rows.map(row => row.categoryId);
-}
-
-/**
- * Replace the set of categories whose root-tag allowlist includes this tag. Returns null if the
- * tag is missing; throws `InvalidRootTagError` if it is not a root tag (only root tags can be
- * scoped to categories, matching the Tiered Tags allowlist). Display-only — like
- * `setCategoryRootTags`, it does not touch the bookmark cache.
- */
-export async function setTagCategories(
-  tagId: string,
-  categoryIds: string[],
-): Promise<string[] | null> {
-  const [tag] = await db
-    .select({
-      id: tags.id,
-      parentId: tags.parentId,
-    })
-    .from(tags)
-    .where(eq(tags.id, tagId));
-  if (!tag) return null;
-  if (tag.parentId !== null) {
-    throw new InvalidRootTagError(`Tag ${tagId} is not a root tag`);
-  }
-
-  await db.transaction(async (tx) => {
-    await tx.delete(categoryRootTags).where(eq(categoryRootTags.tagId, tagId));
-    if (categoryIds.length > 0) {
-      await tx.insert(categoryRootTags).values(categoryIds.map(categoryId => ({
-        categoryId,
-        tagId,
-      })));
-    }
-  });
-  return categoryIds;
 }

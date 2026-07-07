@@ -205,9 +205,6 @@ export const apiHandlers = [
   http.get("/api/tags/tree", () => HttpResponse.json(sampleTagTree)),
   http.get("/api/custom-properties", () => HttpResponse.json(sampleProperties)),
   http.get("/api/categories", () => HttpResponse.json(sampleCategories)),
-  http.get("/api/categories/:id/root-tags", () => HttpResponse.json({
-    tagIds: [],
-  })),
   http.get("/api/homepage-tags", () => HttpResponse.json({
     tagIds: [],
   })),

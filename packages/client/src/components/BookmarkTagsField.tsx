@@ -4,14 +4,12 @@ import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { TagPicker } from "./TagPicker";
-import { useGatedTagTree } from "../hooks/useGatedTagTree";
 
 import { Label } from "@/components/ui/label";
 
 type CreateOption = ComponentProps<typeof TagPicker>["createOption"];
 
-interface GatedTagPickerProps {
-  categoryId: string;
+interface BookmarkTagsFieldProps {
   tree: TagNode[];
   selectedIds: string[];
   onToggle: (id: string) => void;
@@ -24,31 +22,20 @@ interface GatedTagPickerProps {
   below?: ReactNode;
 }
 
-/**
- * Tags section limited to the selected category's available root tags: tags explicitly assigned
- * to the category, plus tags with no category assignment at all. Hidden entirely when the
- * category has no available root tags. Shows all tags while the available set is still loading
- * (undefined).
- */
-export function GatedTagPicker({
-  categoryId, tree, selectedIds, onToggle, createOption, label, description, below,
-}: GatedTagPickerProps) {
+/** A labelled tags section over the full tag tree. */
+export function BookmarkTagsField({
+  tree, selectedIds, onToggle, createOption, label, description, below,
+}: BookmarkTagsFieldProps) {
   const {
     t,
   } = useTranslation();
-  const {
-    availableRootIds, tree: gated,
-  } = useGatedTagTree(categoryId, tree);
-
-  // Hide the tags section when the category has no available root tags.
-  if (availableRootIds !== undefined && availableRootIds.length === 0) return null;
 
   return (
     <div className="space-y-1">
       <Label>{label ?? t("Tags")}</Label>
       {description && <p className="text-xs text-muted-foreground">{description}</p>}
       <TagPicker
-        tree={gated}
+        tree={tree}
         selectedIds={selectedIds}
         onToggle={onToggle}
         createOption={createOption}

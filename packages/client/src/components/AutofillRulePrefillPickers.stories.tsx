@@ -36,7 +36,6 @@ const meta = {
     onToggleTag: () => {},
     locationIds: [],
     onToggleLocation: () => {},
-    appliedCategoryId: null,
   },
 } satisfies Meta<typeof AutofillRulePrefillPickers>;
 
@@ -53,6 +52,5 @@ export const WithSelections: Story = {
     setCategoryId: "cat-workflow",
     setMediaTypeId: "media-article",
     tagIds: ["tag-cli"],
-    appliedCategoryId: "cat-workflow",
   },
 };

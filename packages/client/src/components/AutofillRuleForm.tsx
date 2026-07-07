@@ -209,27 +209,22 @@ export function AutofillRuleForm({
           )}
         </form.AppField>
 
-        <form.Subscribe selector={state => state.values.setCategoryId}>
-          {setCategoryId => (
-            <form.Field name="tagIds">
-              {field => (
-                <RuleTagsField
-                  tagTree={tagTree}
-                  selectedIds={field.state.value}
-                  onToggle={(id) => {
-                    const current = field.state.value;
-                    field.handleChange(
-                      current.includes(id)
-                        ? current.filter(tagId => tagId !== id)
-                        : [...current, id],
-                    );
-                  }}
-                  categoryId={setCategoryId === NO_CATEGORY ? null : setCategoryId}
-                />
-              )}
-            </form.Field>
+        <form.Field name="tagIds">
+          {field => (
+            <RuleTagsField
+              tagTree={tagTree}
+              selectedIds={field.state.value}
+              onToggle={(id) => {
+                const current = field.state.value;
+                field.handleChange(
+                  current.includes(id)
+                    ? current.filter(tagId => tagId !== id)
+                    : [...current, id],
+                );
+              }}
+            />
           )}
-        </form.Subscribe>
+        </form.Field>
 
         <form.Field name="locationIds">
           {field => (

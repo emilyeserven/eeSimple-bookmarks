@@ -133,7 +133,7 @@ Rules (decided once, applied everywhere):
 - **Multi-key sections** (e.g. `categoryIds` + `allCategories` toggle together): call
   `update.mutate({ id, input: { … both … } }, { onSuccess: () => notifyFieldSaved("Categories"), … })`
   directly so the user sees **one** section toast (see `PropertyCategoriesSection`).
-- **Association/toggle tabs** that already mutate-on-toggle (e.g. `CategoryTieredTags`) just add the
+- **Association/toggle tabs** that already mutate-on-toggle (e.g. `CategoryCustomProperties`) just add the
   `notifyFieldSaved`/`notifyFieldSaveError` callbacks to their existing mutation.
 - The `lib/form.tsx` field primitives already expose `onBlur` (text/number) and `onValueChange`
   (select/combobox) hooks — wire these, don't fork the primitives.

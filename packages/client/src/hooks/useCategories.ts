@@ -88,44 +88,6 @@ export function useBulkDeleteCategories() {
   return useBulkDeleteEntity(categoriesApi.bulkDelete, useCategoryInvalidation());
 }
 
-/** The enabled root-tag allowlist for a category (empty = all root tags enabled). */
-export function useCategoryRootTags(categoryId: string) {
-  return useQuery({
-    queryKey: [...CATEGORIES_KEY, categoryId, "root-tags"],
-    queryFn: () => categoriesApi.rootTags(categoryId).then(result => result.tagIds),
-  });
-}
-
-export function useSetCategoryRootTags(categoryId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (tagIds: string[]) => categoriesApi.setRootTags(categoryId, tagIds),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: [...CATEGORIES_KEY, categoryId, "root-tags"],
-      });
-      // Changing one category's explicit allowlist can change which tags are "globally
-      // unassigned," which affects every category's available-tags set.
-      void queryClient.invalidateQueries({
-        predicate: query =>
-          query.queryKey[0] === CATEGORIES_KEY[0]
-          && query.queryKey[query.queryKey.length - 1] === "available-tags",
-      });
-    },
-  });
-}
-
-/**
- * A category's available tags for tagging bookmarks: root tags explicitly assigned to this
- * category, plus root tags with no category assignment at all.
- */
-export function useCategoryAvailableTags(categoryId: string) {
-  return useQuery({
-    queryKey: [...CATEGORIES_KEY, categoryId, "available-tags"],
-    queryFn: () => categoriesApi.availableTags(categoryId).then(result => result.tagIds),
-  });
-}
-
 /** A category's default custom-property values, applied to new bookmarks added to it. */
 export function useCategoryDefaults(categoryId: string) {
   return useQuery({

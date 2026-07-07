@@ -1,7 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type {
   CreateTagInput,
-  UpdateTagCategoriesInput,
   UpdateTagInput,
 } from "@eesimple/types";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
@@ -9,10 +8,8 @@ import {
   bulkDeleteTags,
   createTag,
   deleteTag,
-  getTagCategories,
   getTagTree,
   listTags,
-  setTagCategories,
   updateTag,
 } from "@/services/tags";
 import { NotFoundError } from "@/utils/errors";
@@ -57,21 +54,6 @@ const updateTagBody = {
     },
     excludeFromBackfill: {
       type: "boolean",
-    },
-  },
-} as const;
-
-const categoryIdsBody = {
-  type: "object",
-  required: ["categoryIds"],
-  additionalProperties: false,
-  properties: {
-    categoryIds: {
-      type: "array",
-      items: {
-        type: "string",
-        format: "uuid",
-      },
     },
   },
 } as const;
@@ -129,39 +111,5 @@ export async function tagRoutes(app: FastifyInstance): Promise<void> {
     const deleted = await deleteTag(id);
     if (!deleted) throw new NotFoundError("Tag");
     return reply.code(204).send();
-  });
-
-  app.get("/api/tags/:id/categories", {
-    schema: {
-      tags: ["tags"],
-      params: tagParams,
-    },
-  }, async (req) => {
-    const {
-      id,
-    } = req.params as { id: string };
-    return {
-      categoryIds: await getTagCategories(id),
-    };
-  });
-
-  app.put("/api/tags/:id/categories", {
-    schema: {
-      tags: ["tags"],
-      params: tagParams,
-      body: categoryIdsBody,
-    },
-  }, async (req, reply) => {
-    const {
-      id,
-    } = req.params as { id: string };
-    const {
-      categoryIds,
-    } = req.body as UpdateTagCategoriesInput;
-    const result = await setTagCategories(id, categoryIds);
-    if (result === null) throw new NotFoundError("Tag");
-    return {
-      categoryIds: result,
-    };
   });
 }

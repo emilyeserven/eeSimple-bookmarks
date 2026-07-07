@@ -16,10 +16,6 @@ const editNav = [
     label: i18n.t("General"),
   },
   {
-    to: "/tags/$tagSlug/edit/categories",
-    label: i18n.t("Categories"),
-  },
-  {
     type: "group",
     label: i18n.t("Rules"),
     items: [

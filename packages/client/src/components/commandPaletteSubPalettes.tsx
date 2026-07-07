@@ -20,7 +20,6 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useCategoryAvailableTags } from "@/hooks/useCategories";
 import { subtreeIds } from "@/lib/tagTree";
 
 export type TaxonomyMode = "category" | "media-type" | "tags" | "locations" | "people" | "groups" | "newsletter" | "choices-property" | "rating-property";
@@ -28,14 +27,7 @@ export type TaxonomyMode = "category" | "media-type" | "tags" | "locations" | "p
 function useTagsPalette(
   flatTags: FlatNode<TagNode>[],
   pendingTagIds: string[],
-  categoryId: string | undefined,
 ) {
-  // "Available" = explicitly assigned to the category, plus tags with no category assignment at
-  // all — matches the gating already applied by `GatedTagPicker` on the bookmark form.
-  const {
-    data: allowedRootIds,
-  } = useCategoryAvailableTags(categoryId ?? "");
-
   const allTagsById = useMemo(
     () => new Map(flatTags.map(({
       node,
@@ -43,25 +35,12 @@ function useTagsPalette(
     [flatTags],
   );
 
-  const filteredFlatTags = useMemo(() => {
-    if (allowedRootIds === undefined) return flatTags;
-    if (allowedRootIds.length === 0) return [];
-    const allowedSet = new Set(allowedRootIds);
-    return flatTags.filter(({
-      node,
-    }) => {
-      let current: TagNode | undefined = node;
-      while (current?.parentId) current = allTagsById.get(current.parentId);
-      return current !== undefined && allowedSet.has(current.id);
-    });
-  }, [flatTags, allowedRootIds, allTagsById]);
-
   const {
     priorityTags, otherTags,
   } = useMemo(() => {
     if (pendingTagIds.length === 0) return {
       priorityTags: [],
-      otherTags: filteredFlatTags,
+      otherTags: flatTags,
     };
     const priorityIds = new Set<string>();
     for (const tagId of pendingTagIds) {
@@ -75,14 +54,14 @@ function useTagsPalette(
       if (node) subtreeIds(node).forEach(id => priorityIds.add(id));
     }
     return {
-      priorityTags: filteredFlatTags.filter(({
+      priorityTags: flatTags.filter(({
         node,
       }) => priorityIds.has(node.id)),
-      otherTags: filteredFlatTags.filter(({
+      otherTags: flatTags.filter(({
         node,
       }) => !priorityIds.has(node.id)),
     };
-  }, [filteredFlatTags, pendingTagIds, allTagsById]);
+  }, [flatTags, pendingTagIds, allTagsById]);
 
   return {
     priorityTags,
@@ -215,7 +194,6 @@ export function MediaTypeSubPalette({
 
 export function TagsSubPalette({
   flatTags,
-  categoryId,
   pendingTagIds,
   onToggleTag,
   onBack,
@@ -223,7 +201,6 @@ export function TagsSubPalette({
   onCreateNew,
 }: {
   flatTags: FlatNode<TagNode>[];
-  categoryId: string | undefined;
   pendingTagIds: string[];
   onToggleTag: (tagId: string) => void;
   onBack: () => void;
@@ -235,7 +212,7 @@ export function TagsSubPalette({
   } = useTranslation();
   const {
     priorityTags, otherTags,
-  } = useTagsPalette(flatTags, pendingTagIds, categoryId);
+  } = useTagsPalette(flatTags, pendingTagIds);
 
   const renderTagItem = ({
     node: tag, depth,

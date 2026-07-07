@@ -84,13 +84,12 @@ function TagsMode({
   taxonomy, taxonomyContext, onExitMode, onClose, onCreateAndAssign,
 }: CommandPaletteTaxonomyModesProps) {
   const {
-    bookmarkId, bookmark, flatTags, updateBookmark,
+    bookmarkId, flatTags, updateBookmark,
   } = taxonomyContext;
   if (taxonomy.taxonomyMode !== "tags" || !bookmarkId) return null;
   return (
     <TagsSubPalette
       flatTags={flatTags}
-      categoryId={bookmark?.categoryId ?? undefined}
       pendingTagIds={taxonomy.pendingTagIds}
       onToggleTag={tagId =>
         taxonomy.setPendingTagIds(prev =>

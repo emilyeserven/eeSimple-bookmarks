@@ -3,7 +3,6 @@ import type { TagNode } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
-import { useGatedTagTree } from "../hooks/useGatedTagTree";
 
 import { Label } from "@/components/ui/label";
 
@@ -16,31 +15,25 @@ interface Props {
   onToggle: (id: string) => void;
   /** Muted helper text under the label (e.g. where the tags get applied). */
   description: string;
-  /** The source's own default category, if any — gates the tree to that category's available tags. */
-  categoryId?: string | null;
 }
 
 /**
  * "Default tags" section shared by the Website, YouTube channel, and Newsletter general forms:
- * a label, a description, and a bordered {@link TagPicker}. Gated to the source's own default
- * category's available tags when one is set.
+ * a label, a description, and a bordered {@link TagPicker}.
  */
 export function DefaultTagsField({
-  tree, selectedIds, onToggle, description, categoryId,
+  tree, selectedIds, onToggle, description,
 }: Props) {
   const {
     t,
   } = useTranslation();
-  const {
-    tree: gated,
-  } = useGatedTagTree(categoryId, tree);
 
   return (
     <div className="space-y-2">
       <Label className="block">{t("Default tags")}</Label>
       <p className="text-sm text-muted-foreground">{description}</p>
       <TagPickerWithCreate
-        tree={gated}
+        tree={tree}
         selectedIds={selectedIds}
         onToggle={onToggle}
       />

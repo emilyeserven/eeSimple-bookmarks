@@ -2,7 +2,7 @@ import type { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 
 import { useTranslation } from "react-i18next";
 
-import { GatedTagPicker } from "./BookmarkTagsField";
+import { BookmarkTagsField } from "./BookmarkTagsField";
 import { LocationPicker } from "./LocationPicker";
 
 import { Label } from "@/components/ui/label";
@@ -30,29 +30,24 @@ export function BookmarkBlacklistSection({
         md:grid-cols-2
       "
     >
-      <form.Subscribe selector={state => state.values.categoryId}>
-        {categoryId => (
-          <form.Field name="blacklistedTagIds">
-            {field => (
-              <GatedTagPicker
-                categoryId={categoryId}
-                tree={tagTree ?? []}
-                selectedIds={field.state.value}
-                onToggle={(id) => {
-                  const current = field.state.value;
-                  const next = current.includes(id)
-                    ? current.filter(tagId => tagId !== id)
-                    : [...current, id];
-                  field.handleChange(next);
-                  saveBlacklistedTagIds(next);
-                }}
-                label={t("Tag blacklist")}
-                description={t("Tags toggled here will never be auto-applied by autofill rules.")}
-              />
-            )}
-          </form.Field>
+      <form.Field name="blacklistedTagIds">
+        {field => (
+          <BookmarkTagsField
+            tree={tagTree ?? []}
+            selectedIds={field.state.value}
+            onToggle={(id) => {
+              const current = field.state.value;
+              const next = current.includes(id)
+                ? current.filter(tagId => tagId !== id)
+                : [...current, id];
+              field.handleChange(next);
+              saveBlacklistedTagIds(next);
+            }}
+            label={t("Tag blacklist")}
+            description={t("Tags toggled here will never be auto-applied by autofill rules.")}
+          />
         )}
-      </form.Subscribe>
+      </form.Field>
 
       <form.Field name="blacklistedLocationIds">
         {field => (

@@ -89,28 +89,3 @@ export function useDeleteTag() {
 export function useBulkDeleteTags() {
   return useBulkDeleteEntity(tagsApi.bulkDelete, useTagInvalidation());
 }
-
-/** The categories whose root-tag allowlist includes this tag (reverse of the Tiered Tags tab). */
-export function useTagCategories(tagId: string, options?: { enabled?: boolean }) {
-  return useQuery({
-    queryKey: [...TAGS_KEY, tagId, "categories"],
-    queryFn: () => tagsApi.categories(tagId).then(result => result.categoryIds),
-    enabled: options?.enabled,
-  });
-}
-
-export function useSetTagCategories(tagId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (categoryIds: string[]) => tagsApi.setCategories(tagId, categoryIds),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: [...TAGS_KEY, tagId, "categories"],
-      });
-      // Prefix-invalidate the category caches so the Categories → Tiered Tags tab reflects the change.
-      void queryClient.invalidateQueries({
-        queryKey: ["categories"],
-      });
-    },
-  });
-}

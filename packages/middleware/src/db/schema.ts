@@ -1619,24 +1619,6 @@ export const categories = pgTable("categories", {
 ]);
 
 /**
- * `category_root_tags` — per-category allowlist of enabled root tags. A category with no
- * rows enables all root tags; otherwise only the listed root tags (and their subtrees)
- * are offered when tagging a bookmark in that category.
- */
-export const categoryRootTags = pgTable("category_root_tags", {
-  categoryId: uuid("category_id").notNull().references(() => categories.id, {
-    onDelete: "cascade",
-  }),
-  tagId: uuid("tag_id").notNull().references(() => tags.id, {
-    onDelete: "cascade",
-  }),
-}, table => [
-  primaryKey({
-    columns: [table.categoryId, table.tagId],
-  }),
-]);
-
-/**
  * `homepage_tags` — tags selected (in Settings → Categories) to surface their bookmarks on
  * the homepage. A bookmark appears on the homepage if it carries one of these tags (or a
  * descendant), unioned with bookmarks in homepage categories.
@@ -2399,7 +2381,6 @@ export const categoriesRelations = relations(categories, ({
 }) => ({
   bookmarks: many(bookmarks),
   propertyCategories: many(propertyCategories),
-  categoryRootTags: many(categoryRootTags),
   youtubeChannels: many(youtubeChannels),
   websites: many(websites),
 }));
@@ -2453,19 +2434,6 @@ export const propertyGroupMediaTypesRelations = relations(propertyGroupMediaType
   mediaType: one(mediaTypes, {
     fields: [propertyGroupMediaTypes.mediaTypeId],
     references: [mediaTypes.id],
-  }),
-}));
-
-export const categoryRootTagsRelations = relations(categoryRootTags, ({
-  one,
-}) => ({
-  category: one(categories, {
-    fields: [categoryRootTags.categoryId],
-    references: [categories.id],
-  }),
-  tag: one(tags, {
-    fields: [categoryRootTags.tagId],
-    references: [tags.id],
   }),
 }));
 
@@ -2603,7 +2571,6 @@ export type PropertyCategoryRow = typeof propertyCategories.$inferSelect;
 export type PropertyMediaTypeRow = typeof propertyMediaTypes.$inferSelect;
 export type PropertyGroupCategoryRow = typeof propertyGroupCategories.$inferSelect;
 export type PropertyGroupMediaTypeRow = typeof propertyGroupMediaTypes.$inferSelect;
-export type CategoryRootTagRow = typeof categoryRootTags.$inferSelect;
 export type WebsiteTagRow = typeof websiteTags.$inferSelect;
 export type YouTubeChannelTagRow = typeof youtubeChannelTags.$inferSelect;
 export type HomepageTagRow = typeof homepageTags.$inferSelect;

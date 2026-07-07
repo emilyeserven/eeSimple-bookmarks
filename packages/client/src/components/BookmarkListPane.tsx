@@ -49,10 +49,6 @@ function BookmarkListContent({
   const visibleIds = useMemo(() => visibleBookmarks.map(b => b.id), [visibleBookmarks]);
   const selection = useListSelection(pageKey, visibleIds);
   const onToggleAll = () => (selection.allSelected ? selection.clear() : selection.selectAll());
-  const selectedBookmarks = useMemo(
-    () => visibleBookmarks.filter(b => selection.isSelected(b.id)),
-    [visibleBookmarks, selection],
-  );
 
   return (
     <>
@@ -65,7 +61,6 @@ function BookmarkListContent({
       >
         <BookmarkBulkActions
           selectedIds={selection.selectedIds}
-          selectedBookmarks={selectedBookmarks}
           properties={properties}
           onDone={selection.clear}
         />

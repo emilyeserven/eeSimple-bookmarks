@@ -117,12 +117,6 @@ interface BulkTagsDialogProps {
   title: string;
   isPending: boolean;
   onApply: (tagIds: string[], op: "add" | "remove", cb: ApplyCallbacks) => void;
-  /**
-   * Root tag ids to limit the picker to (a category's available tags). Omit to show every tag —
-   * used when there's no single category to gate against (e.g. website bulk actions, or a
-   * bookmark selection spanning multiple categories).
-   */
-  availableRootTagIds?: string[];
 }
 
 /** Generic add/remove tags dialog — shared by Bookmark and Website bulk actions. */
@@ -133,7 +127,6 @@ export function BulkTagsDialog({
   title,
   isPending,
   onApply,
-  availableRootTagIds,
 }: BulkTagsDialogProps) {
   const {
     t,
@@ -143,9 +136,6 @@ export function BulkTagsDialog({
   const {
     data: tagTree = [],
   } = useTagTree();
-  const gatedTree = availableRootTagIds
-    ? tagTree.filter(root => availableRootTagIds.includes(root.id))
-    : tagTree;
 
   function apply(op: "add" | "remove") {
     if (selectedTagIds.length === 0) return;
@@ -181,7 +171,7 @@ export function BulkTagsDialog({
           </DialogDescription>
         </DialogHeader>
         <TagPickerWithCreate
-          tree={gatedTree}
+          tree={tagTree}
           selectedIds={selectedTagIds}
           onToggle={id => setSelectedTagIds(current =>
             current.includes(id) ? current.filter(x => x !== id) : [...current, id])}
