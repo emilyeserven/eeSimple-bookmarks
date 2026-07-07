@@ -1,4 +1,4 @@
-import { asc, eq, isNull, ne } from "drizzle-orm";
+import { asc, eq, ne } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   ConditionInput,
@@ -116,30 +116,6 @@ export async function deleteImportRule(id: string): Promise<boolean> {
 /** Delete many import rules, reporting per-item outcomes. */
 export function bulkDeleteImportRules(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deleteImportRule);
-}
-
-/**
- * Backfill `slug` for any import rules that predate the column. New table so this is a no-op on
- * fresh installs, but kept for consistency with the autofill pattern. Runs at boot; idempotent.
- */
-export async function ensureImportRuleSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: importRules.id,
-      name: importRules.name,
-    })
-    .from(importRules)
-    .where(isNull(importRules.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenImportRuleSlugs();
-  for (const rule of missing) {
-    const slug = uniqueImportRuleSlug(rule.name, taken);
-    taken.add(slug);
-    await db.update(importRules).set({
-      slug,
-    }).where(eq(importRules.id, rule.id));
-  }
 }
 
 /**

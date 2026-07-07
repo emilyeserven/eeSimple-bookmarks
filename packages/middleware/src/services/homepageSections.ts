@@ -211,18 +211,6 @@ export async function listHomepageSectionBookmarks(): Promise<HomepageSectionBoo
 }
 
 /**
- * Populate the `image_crop_mode` text column for rows that still carry only the legacy boolean
- * `image_mode`. Idempotent — only touches rows where `image_crop_mode IS NULL`.
- */
-export async function backfillImageCropModes(): Promise<void> {
-  await db.execute(sql`
-    UPDATE homepage_sections
-    SET image_crop_mode = CASE WHEN image_mode THEN 'natural' ELSE 'cropped' END
-    WHERE image_crop_mode IS NULL
-  `);
-}
-
-/**
  * Seed the homepage sections on first boot. If the table is empty, migrate the existing
  * `homepage_filter` conditions into a single "My Bookmarks" section. Idempotent.
  */

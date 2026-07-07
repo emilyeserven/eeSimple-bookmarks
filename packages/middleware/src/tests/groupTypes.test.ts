@@ -29,7 +29,6 @@ mock.module("@/db", {
 });
 
 const {
-  backfillGroupTypeSlugs,
   deleteGroupType,
   ensureDefaultGroupTypes,
 } = await import("@/services/groupTypes");
@@ -57,28 +56,6 @@ test("deleteGroupType: a plain delete never invalidates the bookmark cache — t
   assert.equal(deleted, true);
   assert.equal(groupTypeRows.some(row => row.id === "gt-1"), false);
   assert.equal(bookmarkCacheVersion(), versionBefore);
-});
-
-test("backfillGroupTypeSlugs: fills in slugs for group types missing one, leaves existing slugs untouched", async () => {
-  resetRows([
-    {
-      id: "gt-no-slug",
-      name: "Doujin Circle",
-      slug: null,
-    },
-    {
-      id: "gt-has-slug",
-      name: "Company",
-      slug: "company",
-    },
-  ]);
-
-  await backfillGroupTypeSlugs();
-
-  const noSlugRow = groupTypeRows.find(r => r.id === "gt-no-slug");
-  assert.equal(noSlugRow?.slug, "doujin-circle");
-  const hasSlugRow = groupTypeRows.find(r => r.id === "gt-has-slug");
-  assert.equal(hasSlugRow?.slug, "company");
 });
 
 test("ensureDefaultGroupTypes: idempotent — seeds the 4 built-ins once, skips them on a repeat call", async () => {

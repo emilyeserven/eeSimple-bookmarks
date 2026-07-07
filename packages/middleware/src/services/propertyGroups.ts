@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNull } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreatePropertyGroupInput,
@@ -245,25 +245,4 @@ export async function deletePropertyGroup(id: string): Promise<boolean> {
 /** Delete many property groups, reporting per-item outcomes. */
 export function bulkDeletePropertyGroups(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deletePropertyGroup);
-}
-
-/** Fill in slugs for any property groups missing one (e.g. rows that predate the `slug` column). */
-export async function backfillPropertyGroupSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: propertyGroups.id,
-      name: propertyGroups.name,
-    })
-    .from(propertyGroups)
-    .where(isNull(propertyGroups.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const group of missing) {
-    const slug = uniqueSlug(group.name, taken, "property-group");
-    taken.push(slug);
-    await db.update(propertyGroups).set({
-      slug,
-    }).where(eq(propertyGroups.id, group.id));
-  }
 }

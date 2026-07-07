@@ -1,4 +1,4 @@
-import { asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { asc, eq, isNotNull, sql } from "drizzle-orm";
 import type { BulkDeleteResult, CreatePlaceTypeInput, PlaceType, UpdatePlaceTypeInput } from "@eesimple/types";
 import { placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
@@ -44,11 +44,6 @@ function toPlaceType(row: PlaceTypeRow, locationCount = 0): PlaceType {
 /** Existing place-type slugs, optionally excluding one row (when renaming). */
 const takenSlugs = (excludeId?: string) =>
   takenSlugsOf(placeTypes, placeTypes.slug, placeTypes.id, excludeId);
-
-/** Humanize a snake/underscore key like `state_district` → `State District`. */
-function titleCase(key: string): string {
-  return key.replace(/[_-]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-}
 
 /**
  * Count locations per place type, keyed by the normalized `placeTypeKey` so legacy raw values
@@ -161,59 +156,4 @@ export async function deletePlaceType(id: string, reassignToId?: string): Promis
 /** Delete many place types, reporting per-item outcomes. */
 export function bulkDeletePlaceTypes(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deletePlaceType, () => false);
-}
-
-/**
- * Seed `place_types` from distinct `locations.placeType` values — idempotent boot step.
- * Short-circuits immediately when any rows already exist.
- */
-export async function seedPlaceTypesFromLocations(): Promise<void> {
-  const [existing] = await db.select({
-    id: placeTypes.id,
-  }).from(placeTypes).limit(1);
-  if (existing) return;
-
-  const rows = await db
-    .selectDistinct({
-      placeType: locations.placeType,
-    })
-    .from(locations)
-    .where(isNotNull(locations.placeType));
-
-  for (const row of rows) {
-    if (!row.placeType) continue;
-    const slug = placeTypeKey(row.placeType);
-    const name = titleCase(slug);
-    await db
-      .insert(placeTypes)
-      .values({
-        name,
-        slug,
-        sortOrder: 0,
-      })
-      .onConflictDoNothing({
-        target: placeTypes.slug,
-      });
-  }
-}
-
-/** Fill in slugs for any place types missing one (e.g. rows that predate the `slug` column). */
-export async function backfillPlaceTypeSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: placeTypes.id,
-      name: placeTypes.name,
-    })
-    .from(placeTypes)
-    .where(isNull(placeTypes.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const pt of missing) {
-    const slug = uniqueSlug(pt.name, taken, "place-type");
-    taken.push(slug);
-    await db.update(placeTypes).set({
-      slug,
-    }).where(eq(placeTypes.id, pt.id));
-  }
 }

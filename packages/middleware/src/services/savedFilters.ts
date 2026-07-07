@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateSavedFilterInput,
@@ -94,25 +94,4 @@ export async function deleteSavedFilter(id: string): Promise<boolean> {
 
 export function bulkDeleteSavedFilters(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deleteSavedFilter);
-}
-
-/** Fill in slugs for any saved filters missing one (rows that predate the `slug` column). */
-export async function backfillSavedFilterSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: savedFilters.id,
-      name: savedFilters.name,
-    })
-    .from(savedFilters)
-    .where(isNull(savedFilters.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const filter of missing) {
-    const slug = uniqueSlug(filter.name, taken, "saved-filter");
-    taken.push(slug);
-    await db.update(savedFilters).set({
-      slug,
-    }).where(eq(savedFilters.id, filter.id));
-  }
 }

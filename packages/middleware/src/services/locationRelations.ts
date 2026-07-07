@@ -1,4 +1,4 @@
-import { asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { asc, eq, isNotNull, sql } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateLocationRelationInput,
@@ -183,26 +183,5 @@ export async function ensureDefaultLocationRelations(): Promise<void> {
         target: locationRelations.slug,
       });
     order += 1;
-  }
-}
-
-/** Fill in slugs for any relations missing one (e.g. rows that predate the `slug` column). */
-export async function backfillLocationRelationSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: locationRelations.id,
-      name: locationRelations.name,
-    })
-    .from(locationRelations)
-    .where(isNull(locationRelations.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const relation of missing) {
-    const slug = uniqueSlug(relation.name, taken, "location-relation");
-    taken.push(slug);
-    await db.update(locationRelations).set({
-      slug,
-    }).where(eq(locationRelations.id, relation.id));
   }
 }

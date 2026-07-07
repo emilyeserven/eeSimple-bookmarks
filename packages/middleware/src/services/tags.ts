@@ -1,4 +1,4 @@
-import { asc, eq, isNull, ne, sql } from "drizzle-orm";
+import { asc, eq, ne, sql } from "drizzle-orm";
 import type { BulkDeleteResult, CreateTagInput, EntityName, Tag, TagNode, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
 import { matchTagIdsByTitle, titleMatchesTerm } from "@eesimple/types";
 import { db } from "@/db";
@@ -213,27 +213,6 @@ export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag 
   // A reparent changes tag-descendant resolution; invalidate the condition-matching cache.
   if (row) invalidateBookmarkCache();
   return row ? toTag(row) : null;
-}
-
-/** Fill in slugs for any tags missing one (e.g. rows that predate the `slug` column). */
-export async function backfillTagSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: tags.id,
-      name: tags.name,
-    })
-    .from(tags)
-    .where(isNull(tags.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenTagSlugs();
-  for (const tag of missing) {
-    const slug = uniqueSlug(tag.name, taken, "tag");
-    taken.push(slug);
-    await db.update(tags).set({
-      slug,
-    }).where(eq(tags.id, tag.id));
-  }
 }
 
 export async function deleteTag(id: string): Promise<boolean> {

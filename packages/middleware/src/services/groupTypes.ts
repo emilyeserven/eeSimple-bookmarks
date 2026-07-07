@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateGroupTypeInput,
@@ -166,27 +166,6 @@ export async function deleteGroupType(id: string): Promise<boolean> {
 /** Delete many group types, reporting per-item outcomes (built-ins are skipped). */
 export function bulkDeleteGroupTypes(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deleteGroupType, err => err instanceof BuiltInGroupTypeError);
-}
-
-/** Fill in slugs for any group types missing one. */
-export async function backfillGroupTypeSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: groupTypes.id,
-      name: groupTypes.name,
-    })
-    .from(groupTypes)
-    .where(isNull(groupTypes.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const gt of missing) {
-    const slug = uniqueSlug(slugify(gt.name), taken, "group-type");
-    taken.push(slug);
-    await db.update(groupTypes).set({
-      slug,
-    }).where(eq(groupTypes.id, gt.id));
-  }
 }
 
 /**

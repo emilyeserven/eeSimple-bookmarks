@@ -29,7 +29,6 @@ mock.module("@/db", {
 });
 
 const {
-  backfillPropertyGroupSlugs,
   deletePropertyGroup,
 } = await import("@/services/propertyGroups");
 const {
@@ -56,26 +55,4 @@ test("deletePropertyGroup: a plain delete never invalidates the bookmark cache â
   assert.equal(deleted, true);
   assert.equal(propertyGroupRows.some(row => row.id === "pg-1"), false);
   assert.equal(bookmarkCacheVersion(), versionBefore);
-});
-
-test("backfillPropertyGroupSlugs: slugs the raw name (no slugify pre-pass), leaves existing slugs untouched", async () => {
-  resetRows([
-    {
-      id: "pg-no-slug",
-      name: "Movie & TV Metadata!",
-      slug: null,
-    },
-    {
-      id: "pg-has-slug",
-      name: "Book Metadata",
-      slug: "book-metadata",
-    },
-  ]);
-
-  await backfillPropertyGroupSlugs();
-
-  const noSlugRow = propertyGroupRows.find(r => r.id === "pg-no-slug");
-  assert.equal(noSlugRow?.slug, "movie-tv-metadata");
-  const hasSlugRow = propertyGroupRows.find(r => r.id === "pg-has-slug");
-  assert.equal(hasSlugRow?.slug, "book-metadata");
 });

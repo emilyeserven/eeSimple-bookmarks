@@ -46,6 +46,14 @@ Destructive or push-incompatible changes (dropping a column, `ALTER TYPE … ADD
 transforms) go in the idempotent runtime-migrations hook at
 `packages/middleware/src/db/migrate.ts`, which runs before `push`.
 
+> **Single-deployment upgrade caveat.** This app targets **one deployment**. Once a runtime migration
+> or one-time boot backfill has applied to that database, it is pruned from the source (issue #862) —
+> `migrate.ts` is kept but its list of steps is emptied, since a fresh database gets the complete
+> schema from `push`. Because of this, **an old install cannot upgrade by jumping straight to the
+> latest version**: it would skip the pruned steps. If you are ever self-hosting an older copy, upgrade
+> **through the last release that still carried the full migration set** (the `0.1.10` release — the
+> one immediately before this pruning) before moving to a newer version.
+
 ### Object storage (Garage) for bookmark images
 
 Bookmark images are compressed to an 800px WebP and stored in **Garage**, an S3-compatible object

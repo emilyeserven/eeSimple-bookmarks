@@ -208,11 +208,10 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     card-display-rules **and** homepage-sections routes) **derive** their zone-name sets from
     `CARD_FIELD_ZONES`/`CARD_BODY_ZONES` and check the placement-prop map exhaustive against
     `CardFieldPlacement` via `satisfies` — a new zone flows through automatically; a new placement
-    prop fails `tsc` there until its schema is added. The legacy single
-    `card` zone is migrated to `card-labels` by the idempotent boot step
-    `backfillCardDisplayRuleSubZones()`; the header fields are injected into existing rules by
-    `backfillCardDisplayRuleHeaderFields()` (both jsonb, no schema change). **To add a field or a
-    per-field knob to this area, see the `card-field-area` skill.**
+    prop fails `tsc` there until its schema is added. (The legacy single `card` zone → `card-labels`
+    sub-zones and the header-field injection were one-time jsonb boot backfills, since retired with the
+    rest of the spent migrations in issue #862 — a fresh install seeds the concrete Default rule
+    directly.) **To add a field or a per-field knob to this area, see the `card-field-area` skill.**
 
 ## Page-header breadcrumbs
 

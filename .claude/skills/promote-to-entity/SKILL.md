@@ -97,8 +97,9 @@ Additionally add:
 
 - **`getEntityBySlug(slug: string)`** — for server-side lookup (the client resolves by slug from
   the cached list, but a REST endpoint may still want this).
-- **`backfillEntitySlugs()`** — finds rows with null slugs and assigns them. Call from the boot
-  block. Mirror `backfillPropertyGroupSlugs` in `services/propertyGroups.ts`:
+- **`backfillEntitySlugs()`** — a one-time step that finds pre-existing rows with null slugs and
+  assigns them (the create path already writes the slug). Call from the boot block, then prune it once
+  it has applied in production (see the `db-schema-change` skill's "Pruning spent steps"):
   ```ts
   export async function backfillEntitySlugs() {
     const rows = await db.select().from(myEntities).where(isNull(myEntities.slug));
@@ -128,7 +129,8 @@ registerBulkDelete(app, "/api/my-entities", "my-entities", bulkDeleteMyEntities)
 
 ### 6. Boot step (`packages/middleware/src/index.ts`)
 
-After `app.listen()`, add the backfill call alongside other backfill steps:
+After `app.listen()`, add the backfill call in the boot block (it's a temporary step — prune it once
+it has run in production):
 
 ```ts
 await backfillEntitySlugs();

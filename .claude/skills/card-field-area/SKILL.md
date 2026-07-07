@@ -57,10 +57,12 @@ properties are added automatically (see `eligibleCustomCardFields`), so this is 
    click-through; each item re-enables `pointer-events-auto`, which is what makes an interactive
    overlay clickable — keep that when adding interactive overlays.
 5. **Boot backfill for existing rules.** "Absent = hidden", so existing rules won't show the new
-   field until backfilled. Add an idempotent boot step beside `backfillCardDisplayRuleHeaderFields()`
-   / `backfillCardDisplayRuleSubZones()` in `services/cardDisplayRules.ts`, wired into `src/index.ts`
-   after the other `backfill*` steps (per CLAUDE.md boot ordering). Inject the key into its default
-   zone for every rule with non-null `field_zones` that lacks it.
+   field until backfilled. Add an idempotent `backfillCardDisplayRule*` boot step in
+   `services/cardDisplayRules.ts`, wired into `src/index.ts` after `ensureDefaultCardDisplayRule()`:
+   inject the key into its default zone for every rule with non-null `field_zones` that lacks it. The
+   earlier reshape backfills were retired once applied (issue #862; the `db-schema-change` skill's
+   "Pruning spent steps"), so there's no sibling to copy anymore — model it on the empty-array note in
+   `migrate.ts` and prune your step the same way once it has run in production.
 
 ## B. Add a new per-field placement knob
 

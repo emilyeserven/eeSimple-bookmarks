@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNull } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import type { BulkDeleteResult, CreateYouTubeChannelInput, LabeledWebsite, UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
@@ -525,25 +525,4 @@ export async function createYouTubeChannel(input: CreateYouTubeChannelInput): Pr
     });
 
   return (await getYouTubeChannel(row.id))!;
-}
-
-/** Fill in slugs for any channels missing one (e.g. rows that predate the `slug` column). */
-export async function backfillYouTubeChannelSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: youtubeChannels.id,
-      name: youtubeChannels.name,
-    })
-    .from(youtubeChannels)
-    .where(isNull(youtubeChannels.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const channel of missing) {
-    const slug = uniqueSlug(channel.name, taken, "youtube-channel");
-    taken.push(slug);
-    await db.update(youtubeChannels).set({
-      slug,
-    }).where(eq(youtubeChannels.id, channel.id));
-  }
 }

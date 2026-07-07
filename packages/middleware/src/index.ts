@@ -2,33 +2,21 @@ import "dotenv/config";
 import { buildApp, docsEnabled } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAppSettings, ensureDefaultPlaceTypeLevelGroups } from "@/services/appSettings";
-import { backfillPersonSlugs } from "@/services/people";
-import { backfillGroupSlugs } from "@/services/groups";
-import { backfillGroupTypeSlugs, ensureDefaultGroupTypes } from "@/services/groupTypes";
-import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
-import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleGroupsField, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleLocationsField, backfillCardDisplayRulePeopleField, backfillCardDisplayRulePodcastLinkField, backfillCardDisplayRuleSecondaryNameField, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
+import { ensureDefaultGroupTypes } from "@/services/groupTypes";
+import { ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
-import { backfillContentStatusOptions, backfillCustomPropertySlugs, ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
+import { ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { resetStalledImports } from "@/services/imports";
 import { resetStalledReelArchiveJobs } from "@/services/reelArchive";
-import { ensureImportRuleSlugs } from "@/services/importRules";
-import { backfillImageCropModes, ensureHomepageSections } from "@/services/homepageSections";
-import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
+import { ensureHomepageSections } from "@/services/homepageSections";
+import { ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { ensureBuiltInLanguages } from "@/services/languages";
-import { backfillLanguageUsageLevelSlugs, ensureBuiltInLanguageUsageLevels } from "@/services/languageUsageLevels";
-import { backfillTranslationSourceSlugs, ensureBuiltInTranslationSources } from "@/services/translationSources";
-import { backfillEntityNames } from "@/services/entityNames";
-import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
-import { backfillSavedFilterSlugs } from "@/services/savedFilters";
+import { ensureBuiltInLanguageUsageLevels } from "@/services/languageUsageLevels";
+import { ensureBuiltInTranslationSources } from "@/services/translationSources";
 import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
-import { backfillTagSlugs } from "@/services/tags";
-import { backfillGenreMoodSlugs } from "@/services/genreMoods";
-import { backfillLocationRelationSlugs, ensureDefaultLocationRelations } from "@/services/locationRelations";
-import { backfillLocationSlugs } from "@/services/locations";
-import { backfillPlaceTypeSlugs, seedPlaceTypesFromLocations } from "@/services/placeTypes";
-import { backfillWebsiteSlugs, ensureBuiltInWebsites } from "@/services/websites";
-import { backfillYouTubeChannelSlugs } from "@/services/youtubeChannels";
+import { ensureDefaultLocationRelations } from "@/services/locationRelations";
+import { ensureBuiltInWebsites } from "@/services/websites";
 import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
 
 const port = Number(process.env.PORT ?? 3001);
@@ -56,26 +44,21 @@ catch (err) {
 }
 
 try {
-  // Runs in every environment: guarantees the built-in "Default" category.
-  // Default also backfills any bookmarks left without a category.
+  // Seeds only (`ensure*`): a fresh install needs each of these; every one is idempotent and
+  // re-runs as a no-op. The one-time `backfill*` steps were retired in issue #862 (the single
+  // production deployment is fully migrated, and create paths now always write the field).
+  // Runs in every environment: guarantees the built-in "Default" category, backfilling any
+  // bookmarks left without one.
   await ensureDefaultCategory();
   await ensureAppSettings();
   await ensureBuiltInWebsites();
-  await backfillWebsiteSlugs();
-  await backfillCustomPropertySlugs();
   await ensureDatePostedProperty();
   await ensureContentStatusProperty();
-  await backfillContentStatusOptions();
   await ensureBuiltInMediaTypes();
-  await backfillMediaTypeSlugs();
   await ensureBuiltInLanguages();
   await ensureBuiltInLanguageUsageLevels();
-  await backfillLanguageUsageLevelSlugs();
   await ensureBuiltInTranslationSources();
-  await backfillTranslationSourceSlugs();
-  await backfillGroupSlugs();
   await ensureDefaultGroupTypes();
-  await backfillGroupTypeSlugs();
   await ensureRuntimeProperty();
   await ensurePageProgressProperty();
   await ensurePageRangeProperty();
@@ -83,44 +66,13 @@ try {
   await ensurePageSectionsProperty();
   await ensureUrlSectionsProperty();
   await ensureIsbnProperty();
-  await backfillPropertyGroupSlugs();
-  await backfillSavedFilterSlugs();
   await ensureBuiltInRelationshipTypes();
-  await backfillYouTubeChannelSlugs();
-  await backfillTagSlugs();
-  await backfillGenreMoodSlugs();
-  await backfillLocationSlugs();
-  await seedPlaceTypesFromLocations();
-  await backfillPlaceTypeSlugs();
   await ensureDefaultLocationRelations();
-  await backfillLocationRelationSlugs();
   await ensureDefaultPlaceTypeLevelGroups();
-  await backfillPersonSlugs();
   await maybeSeed();
-  // One-time, idempotent (#966): seed multilingual `entity_names` from each owner's existing
-  // name/title + `romanized_name` with script detection, after every owner's base name/slug is
-  // populated and the Primary Language usage level is seeded. Re-runs insert nothing.
-  await backfillEntityNames();
-  // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
-  // previous is-homepage / homepage-tags mechanism on first boot.
-  await ensureAutofillConditions();
-  await ensureWebsiteConditions();
-  await ensureAutofillSlugs();
-  await ensureImportRuleSlugs();
   await ensureHomepageFilter();
   await ensureHomepageSections();
-  await backfillImageCropModes();
   await ensureDefaultCardDisplayRule();
-  await backfillCardDisplayRuleFieldZones();
-  await backfillCardDisplayRuleSubZones();
-  await backfillCardDisplayRuleHeaderFields();
-  await backfillCardDisplayRuleLocationsField();
-  await backfillCardDisplayRulePeopleField();
-  await backfillCardDisplayRuleGroupsField();
-  await backfillCardDisplayRuleSecondaryNameField();
-  await backfillCardDisplayRulePodcastLinkField();
-  await backfillCardDisplayRuleZoneLayouts();
-  await backfillCardDisplayRuleSlugs();
   // A restart abandons any in-process import worker, so fail anything left queued/processing.
   await resetStalledImports();
   await resetStalledReelArchiveJobs();

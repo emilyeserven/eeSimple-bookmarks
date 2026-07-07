@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateLanguageUsageLevelInput,
@@ -272,26 +272,5 @@ export async function ensureBuiltInLanguageUsageLevels(): Promise<void> {
         target: languageUsageLevels.slug,
       });
     order += 1;
-  }
-}
-
-/** Fill in slugs for any usage levels missing one (e.g. rows that predate the `slug` column). */
-export async function backfillLanguageUsageLevelSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: languageUsageLevels.id,
-      name: languageUsageLevels.name,
-    })
-    .from(languageUsageLevels)
-    .where(isNull(languageUsageLevels.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const level of missing) {
-    const slug = uniqueSlug(level.name, taken, "language-usage-level");
-    taken.push(slug);
-    await db.update(languageUsageLevels).set({
-      slug,
-    }).where(eq(languageUsageLevels.id, level.id));
   }
 }
