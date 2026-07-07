@@ -1,4 +1,4 @@
-import type { BookmarkFormApi } from "../components/bookmarkFormSchema";
+import type { BookmarkFormApi, MediaLinkTarget } from "../components/bookmarkFormSchema";
 import type { DraftEntityName } from "../components/entityNames/draftEntityName";
 import type { ReactNode } from "react";
 
@@ -21,13 +21,7 @@ interface BookmarkFormHostValues {
   personIds: string[];
   groupIds: string[];
   groupId: string;
-  bookId: string;
-  movieId: string;
-  tvShowId: string;
-  episodeId: string;
-  albumId: string;
-  trackId: string;
-  podcastId: string;
+  mediaLinkTarget: MediaLinkTarget | null;
 }
 
 interface BookmarkFormHostProps {
@@ -64,13 +58,7 @@ export function BookmarkFormHost({
       personIds: [],
       groupIds: [],
       groupId: "",
-      bookId: "",
-      movieId: "",
-      tvShowId: "",
-      episodeId: "",
-      albumId: "",
-      trackId: "",
-      podcastId: "",
+      mediaLinkTarget: null,
       ...initialValues,
     },
     validators: {

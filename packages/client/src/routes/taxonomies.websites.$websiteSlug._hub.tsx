@@ -54,10 +54,6 @@ function WebsiteHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/websites/$websiteSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/websites/$websiteSlug/info",
           label: t("Info"),
         },

@@ -41,10 +41,6 @@ function LanguageHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/languages/$languageSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/languages/$languageSlug/info",
           label: t("Info"),
         },

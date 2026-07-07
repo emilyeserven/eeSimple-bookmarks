@@ -60,10 +60,6 @@ function MovieHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/movies/$movieSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/movies/$movieSlug/info",
           label: t("Info"),
         },

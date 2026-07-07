@@ -556,16 +556,14 @@ function newBookmarkScalarColumns(input: CreateBookmarkInput) {
   };
 }
 
-/** The media-item link FK columns of a new bookmark row (book/movie/…/Kavita/Plex). */
+/**
+ * The media-identity columns of a new bookmark row (Kavita/Plex/ISBN/podcast-feed/…). The legacy
+ * bookId/movieId/tvShowId/episodeId/albumId/trackId/podcastId FK columns are intentionally NOT set
+ * here — #1076 stopped writing them client-side (media links are now `About` relationship edges);
+ * the columns themselves stay for reads until the retirement ticket.
+ */
 function newBookmarkMediaColumns(input: CreateBookmarkInput) {
   return {
-    bookId: input.bookId ?? null,
-    movieId: input.movieId ?? null,
-    tvShowId: input.tvShowId ?? null,
-    episodeId: input.episodeId ?? null,
-    albumId: input.albumId ?? null,
-    trackId: input.trackId ?? null,
-    podcastId: input.podcastId ?? null,
     kavitaSeriesId: input.kavitaSeriesId ?? null,
     kavitaLibraryId: input.kavitaLibraryId ?? null,
     kavitaSeriesName: input.kavitaSeriesName ?? null,
@@ -705,12 +703,14 @@ type ScalarBookmarkPatch = Partial<
  * Nullable scalar columns copied through verbatim when the caller provided the field, coalescing an
  * explicit `null`/`undefined` value to `null` (an omitted key leaves the column untouched).
  */
+// The legacy bookId/movieId/tvShowId/episodeId/albumId/trackId/podcastId FK columns are
+// intentionally excluded — #1076 stopped writing them (create + update); the columns stay on
+// `BookmarkRow`/`ScalarBookmarkPatch` for reads until the retirement ticket.
 const NULLABLE_SCALAR_FIELDS = [
-  "originalUrl", "description", "mediaTypeId", "youtubeChannelId", "groupId", "bookId", "movieId",
-  "tvShowId", "episodeId", "albumId", "trackId", "podcastId", "kavitaSeriesId", "kavitaLibraryId",
-  "kavitaSeriesName", "plexRatingKey", "plexItemType", "plexItemTitle", "isbn", "year", "wikidataId",
-  "wikipediaLinkEn", "wikipediaLinkLocal", "feedUrl", "itunesId", "itunesUrl", "spotifyUrl",
-  "pocketCastsUuid", "pocketCastsUrl", "defaultLinkProvider", "imageDisplayPreference",
+  "originalUrl", "description", "mediaTypeId", "youtubeChannelId", "groupId", "kavitaSeriesId",
+  "kavitaLibraryId", "kavitaSeriesName", "plexRatingKey", "plexItemType", "plexItemTitle", "isbn",
+  "year", "wikidataId", "wikipediaLinkEn", "wikipediaLinkLocal", "feedUrl", "itunesId", "itunesUrl",
+  "spotifyUrl", "pocketCastsUuid", "pocketCastsUrl", "defaultLinkProvider", "imageDisplayPreference",
 ] as const satisfies readonly (keyof ScalarBookmarkPatch)[];
 
 /** Scalar columns copied through exactly as given (no null-coalescing) when the caller set them. */

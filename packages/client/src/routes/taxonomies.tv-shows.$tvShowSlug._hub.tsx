@@ -60,10 +60,6 @@ function TvShowHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/tv-shows/$tvShowSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/tv-shows/$tvShowSlug/info",
           label: t("Info"),
         },

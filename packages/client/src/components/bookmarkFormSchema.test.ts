@@ -39,23 +39,17 @@ describe("buildBookmarkDefaultValues", () => {
     expect(values.title).toBe("Saved title");
   });
 
-  it("defaults the media-link FK fields to empty strings when unset", () => {
+  it("always defaults mediaLinkTarget to null (create-only field)", () => {
     const values = buildBookmarkDefaultValues(undefined, undefined);
-    expect(values.bookId).toBe("");
-    expect(values.movieId).toBe("");
-    expect(values.tvShowId).toBe("");
-    expect(values.episodeId).toBe("");
-    expect(values.albumId).toBe("");
-    expect(values.trackId).toBe("");
+    expect(values.mediaLinkTarget).toBeNull();
   });
 
-  it("seeds the media-link FK from a persisted bookmark (edit mode)", () => {
+  it("keeps mediaLinkTarget null in edit mode too, regardless of the bookmark", () => {
     const bookmark = makeBookmark({
       movieId: "movie-1",
     });
     const values = buildBookmarkDefaultValues(bookmark, undefined);
-    expect(values.movieId).toBe("movie-1");
-    expect(values.bookId).toBe("");
+    expect(values.mediaLinkTarget).toBeNull();
   });
 });
 

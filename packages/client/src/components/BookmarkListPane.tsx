@@ -12,7 +12,6 @@ import { BookmarkPagination } from "./BookmarkPagination";
 import { BookmarkTableView } from "./BookmarkTableView";
 import { BookmarkBulkActions } from "./bulk/BookmarkBulkActions";
 import { BulkActionBar } from "./bulk/BulkActionBar";
-import { MediaItemsPane } from "./MediaItemsPane";
 import { navLinkClass, navStripClass } from "./TabbedShell";
 import { useBookmarksPerPage } from "../hooks/useAppSettings";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
@@ -120,7 +119,7 @@ interface BookmarkListPaneProps {
   showGallery?: boolean;
   /**
    * When set, the pane is **controlled**: it renders only this results view and drops its own
-   * `Bookmarks | Gallery | Media` strip (an outer `_hub` strip owns tab selection via the URL). When
+   * `Bookmarks | Gallery` strip (an outer `_hub` strip owns tab selection via the URL). When
    * omitted the pane stays uncontrolled with its internal `useState` strip (the main `/bookmarks` page).
    */
   activeView?: ResultsTab;
@@ -205,12 +204,12 @@ function BookmarkListBody({
   );
 }
 
-type ResultsTab = "bookmarks" | "gallery" | "media";
+type ResultsTab = "bookmarks" | "gallery";
 
 /**
- * The tab strip above the results — Bookmarks, an optional Gallery, and Media (the taxonomy items the
- * filtered bookmarks reference). Both non-bookmark tabs share the filter sidebar; only the body pane
- * switches. Extracted so `BookmarkListPane` stays under the complexity cap.
+ * The tab strip above the results — Bookmarks and an optional Gallery. Both share the filter
+ * sidebar; only the body pane switches. Extracted so `BookmarkListPane` stays under the complexity
+ * cap.
  */
 function ResultsTabNav({
   tab, onChange, showGallery,
@@ -234,10 +233,6 @@ function ResultsTabNav({
         label: t("Gallery"),
       }]
       : []),
-    {
-      key: "media",
-      label: t("Media"),
-    },
   ];
 
   return (
@@ -263,9 +258,8 @@ function ResultsTabNav({
 }
 
 /**
- * Right column of the search view: the matching bookmarks (grid/table), an image gallery, or the
- * media taxonomy items those bookmarks reference — switched by the tab strip, all sharing the same
- * filtered set.
+ * Right column of the search view: the matching bookmarks (grid/table) or an image gallery —
+ * switched by the tab strip, both sharing the same filtered set.
  */
 export function BookmarkListPane({
   pageKey,
@@ -286,7 +280,6 @@ export function BookmarkListPane({
   useRegisterBulkSelect(pageKey);
   const [tab, setTab] = useState<ResultsTab>("bookmarks");
   const titleSort = usePageTitleSort(pageKey);
-  const headerSearchQuery = useUiStore(s => s.headerSearchQuery);
   const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const visibleBookmarks = sortBookmarks(filtered, search.sort, properties, titleSort);
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
@@ -315,15 +308,6 @@ export function BookmarkListPane({
           <BookmarkImageGallery
             bookmarks={visibleBookmarks}
             pageKey={pageKey}
-          />
-        )
-        : null}
-      {activeTab === "media"
-        ? (
-          <MediaItemsPane
-            bookmarks={visibleBookmarks}
-            search={search}
-            textQuery={headerSearchQuery}
           />
         )
         : null}

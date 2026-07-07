@@ -157,10 +157,6 @@ function LocationHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/locations/$locationSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/locations/$locationSlug/info",
           label: t("Info"),
         },

@@ -55,10 +55,6 @@ function PersonHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/people/$personSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/people/$personSlug/info",
           label: t("Info"),
         },

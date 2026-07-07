@@ -60,10 +60,6 @@ function PodcastHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/podcasts/$podcastSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/podcasts/$podcastSlug/info",
           label: t("Info"),
         },

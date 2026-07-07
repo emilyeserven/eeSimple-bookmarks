@@ -11,7 +11,7 @@ import { bookmarksForMediaProperty, memberItemIdsByType } from "../lib/mediaProp
 interface Props {
   mediaPropertySlug: string;
   /** Which results view the outer `_hub` strip selected (bookmarks/gallery/media). */
-  activeView: "bookmarks" | "gallery" | "media";
+  activeView: "bookmarks" | "gallery";
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }

@@ -57,10 +57,6 @@ function MediaTypeHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/media-types/$mediaTypeSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/media-types/$mediaTypeSlug/info",
           label: t("Info"),
         },

@@ -27,6 +27,10 @@ let autofillRulesData: AutofillRule[] = [];
 
 const createMutateAsync = vi.fn<(args: unknown) => Promise<{ id: string }>>();
 const updateMutateAsync = vi.fn<(args: unknown) => Promise<unknown>>();
+const updateRelationshipsMutateAsync = vi.fn<(args: unknown) => Promise<unknown>>();
+let bookmarkAddFormConfig = DEFAULT_BOOKMARK_ADD_FORM_SETTINGS;
+let allBookmarksData: { id: string;
+  title: string; }[] = [];
 
 // The reveal / on-blur scan now goes through the consolidated `/api/scan` endpoint.
 const scanMock = vi.fn<(args: { url: string;
@@ -91,11 +95,17 @@ vi.mock("sonner", () => ({
   },
 }));
 vi.mock("../hooks/useBookmarks", () => ({
+  useBookmarks: () => ({
+    data: allBookmarksData,
+  }),
   useCreateBookmark: () => ({
     mutateAsync: createMutateAsync,
     isError: false,
     isPending: false,
     error: null,
+  }),
+  useUpdateBookmarkRelationships: () => ({
+    mutateAsync: updateRelationshipsMutateAsync,
   }),
   useUpdateBookmark: () => ({
     mutateAsync: updateMutateAsync,
@@ -144,6 +154,9 @@ vi.mock("../hooks/useCategories", () => ({
     data: [],
   }),
   useCategoryDefaults: () => ({
+    data: undefined,
+  }),
+  useCategoryAvailableTags: () => ({
     data: undefined,
   }),
 }));
@@ -241,7 +254,21 @@ vi.mock("../hooks/useAppSettings", () => ({
   }),
   useAutoFetchTitle: () => autoFetchTitle,
   useAutoFetchImage: () => true,
-  useBookmarkAddFormConfig: () => DEFAULT_BOOKMARK_ADD_FORM_SETTINGS,
+  useBookmarkAddFormConfig: () => bookmarkAddFormConfig,
+}));
+vi.mock("../hooks/useRelationshipTypes", () => ({
+  useRelationshipTypes: () => ({
+    data: [
+      {
+        id: "about-id",
+        name: "About",
+        slug: "about",
+        directional: true,
+        builtIn: true,
+        sortOrder: 0,
+      },
+    ],
+  }),
 }));
 vi.mock("../hooks/usePeople", () => ({
   usePeople: () => ({
@@ -784,5 +811,88 @@ describe("BookmarkForm preview mode", () => {
     }));
 
     expect(createMutateAsync).not.toHaveBeenCalled();
+  });
+});
+
+describe("BookmarkForm media link", () => {
+  beforeEach(() => {
+    scanMock.mockReset();
+    scanMock.mockImplementation(({
+      url,
+    }) => Promise.resolve({
+      ...emptyScan(url),
+      title: "Example Domain",
+    }));
+    createMutateAsync.mockReset();
+    createMutateAsync.mockResolvedValue({
+      id: "new-id",
+    });
+    updateRelationshipsMutateAsync.mockReset();
+    updateRelationshipsMutateAsync.mockResolvedValue(undefined);
+    autoFetchTitle = false;
+    websiteLookupData = undefined;
+    websitesData = [];
+    categoriesData = [{
+      id: "cat-1",
+      name: "Default",
+      builtIn: true,
+    }];
+    allBookmarksData = [{
+      id: "parasite-id",
+      title: "Parasite",
+    }];
+    // Un-hide the mediaLink field (hidden by default) so this suite can exercise it.
+    bookmarkAddFormConfig = {
+      ...DEFAULT_BOOKMARK_ADD_FORM_SETTINGS,
+      standardFieldPlacements: {
+        ...DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.standardFieldPlacements,
+        mediaLink: "default",
+      },
+    };
+  });
+
+  afterEach(() => {
+    bookmarkAddFormConfig = DEFAULT_BOOKMARK_ADD_FORM_SETTINGS;
+    allBookmarksData = [];
+  });
+
+  it("does not stage a relationship when no media link is picked", async () => {
+    render(<BookmarkForm lockedCategoryId="cat-1" />);
+    await revealForm("https://example.com");
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Add Bookmark",
+    }));
+
+    await waitFor(() => expect(createMutateAsync).toHaveBeenCalledTimes(1));
+    expect(updateRelationshipsMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("stages an About relationship to the picked media bookmark on create", async () => {
+    render(<BookmarkForm lockedCategoryId="cat-1" />);
+    await revealForm("https://example.com");
+
+    fireEvent.click(screen.getByRole("combobox", {
+      name: "Media bookmark",
+    }));
+    fireEvent.click(screen.getByRole("option", {
+      name: "Parasite",
+    }));
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Add Bookmark",
+    }));
+
+    await waitFor(() => expect(createMutateAsync).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(updateRelationshipsMutateAsync).toHaveBeenCalledWith({
+      id: "new-id",
+      input: {
+        relationships: [{
+          bookmarkId: "parasite-id",
+          relationshipTypeId: "about-id",
+          direction: "parent",
+        }],
+      },
+    }));
   });
 });

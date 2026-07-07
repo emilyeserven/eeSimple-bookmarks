@@ -60,10 +60,6 @@ function TrackHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/tracks/$trackSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/tracks/$trackSlug/info",
           label: t("Info"),
         },

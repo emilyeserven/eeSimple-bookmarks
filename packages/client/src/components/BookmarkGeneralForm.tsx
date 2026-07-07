@@ -8,7 +8,6 @@ import { BookmarkCategoryField } from "./BookmarkCategoryField";
 import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
 import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSection";
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
-import { BookmarkMediaField } from "./BookmarkMediaField";
 import { BookmarkMediaIdentitySection } from "./BookmarkMediaIdentitySection";
 import { BookmarkNameField } from "./BookmarkNameField";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
@@ -17,7 +16,6 @@ import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { PersonSocialAccountOffer } from "./PersonSocialAccountOffer";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
-import { mediaSelectionFromBookmark } from "./useBookmarkMediaField";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 import { useBookmarkSyncRegistration } from "../hooks/useBookmarkSyncRegistration";
 import { usePrimaryLanguageField } from "../hooks/usePrimaryLanguageField";
@@ -191,12 +189,6 @@ export function BookmarkGeneralForm({
         "
       >
         <BookmarkGeneralRelationsSection ctrl={ctrl} />
-
-        <BookmarkMediaField
-          value={mediaSelectionFromBookmark(bookmark)}
-          bookmark={bookmark}
-          onSelect={ctrl.saveMedia}
-        />
 
         <GenreMoodAssignmentSection
           ownerType="bookmark"

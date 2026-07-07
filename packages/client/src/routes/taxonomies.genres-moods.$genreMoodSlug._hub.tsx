@@ -49,10 +49,6 @@ function GenreMoodHubLayout() {
           label: t("Gallery"),
         },
         {
-          to: "/taxonomies/genres-moods/$genreMoodSlug/media",
-          label: t("Media"),
-        },
-        {
           to: "/taxonomies/genres-moods/$genreMoodSlug/info",
           label: t("Info"),
         },

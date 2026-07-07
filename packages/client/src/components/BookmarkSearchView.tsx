@@ -57,7 +57,7 @@ interface BookmarkSearchViewProps {
    * When set, the results view is **controlled** by the URL (an outer `_hub` strip) — the list pane
    * renders only this view and drops its own strip. Omitted on the main `/bookmarks` page.
    */
-  activeView?: "bookmarks" | "gallery" | "media";
+  activeView?: "bookmarks" | "gallery";
 }
 
 /**

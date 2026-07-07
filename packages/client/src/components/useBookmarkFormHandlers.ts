@@ -22,6 +22,7 @@ import {
 import { applyImageIntent, promoteSourceDefaults } from "./bookmarkSubmit";
 import { entriesFromDrafts } from "./entityNames/draftEntityName";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
+import { useUpdateBookmarkRelationships } from "../hooks/useBookmarks";
 import { metadataApi } from "../lib/api/metadata";
 import { notifySuccess } from "../lib/notifications";
 
@@ -94,6 +95,7 @@ export function useBookmarkFormHandlers({
   const {
     t,
   } = useTranslation();
+  const updateRelationships = useUpdateBookmarkRelationships();
 
   const {
     actions: {
@@ -262,13 +264,6 @@ export function useBookmarkFormHandlers({
       personIds: value.personIds,
       groupId: form.getFieldValue("groupId") || null,
       groupIds: form.getFieldValue("groupIds"),
-      bookId: form.getFieldValue("bookId") || null,
-      movieId: form.getFieldValue("movieId") || null,
-      tvShowId: form.getFieldValue("tvShowId") || null,
-      episodeId: form.getFieldValue("episodeId") || null,
-      albumId: form.getFieldValue("albumId") || null,
-      trackId: form.getFieldValue("trackId") || null,
-      podcastId: form.getFieldValue("podcastId") || null,
       numberValues,
       booleanValues,
       dateTimeValues,
@@ -321,6 +316,24 @@ export function useBookmarkFormHandlers({
       setMainImage,
       deleteImageById,
     });
+
+    // Stage the media-link relationship (if any) now that the bookmark exists. This is a
+    // non-atomic follow-up call, not folded into the create transaction — safe as a full-replace
+    // `updateBookmarkRelationships` here specifically because a just-created bookmark has zero
+    // pre-existing edges to wipe.
+    const mediaLinkTarget = form.getFieldValue("mediaLinkTarget");
+    if (mediaLinkTarget) {
+      await updateRelationships.mutateAsync({
+        id: created.id,
+        input: {
+          relationships: [{
+            bookmarkId: mediaLinkTarget.bookmarkId,
+            relationshipTypeId: mediaLinkTarget.relationshipTypeId,
+            direction: mediaLinkTarget.direction,
+          }],
+        },
+      });
+    }
 
     promoteSourceDefaults(created, value.categoryId, value.mediaTypeId, value.tagIds, {
       setWebsiteCategory: flags.setWebsiteCategory,

@@ -10,7 +10,7 @@ import { tagsForServerQuery } from "../lib/bookmarkSearch";
 interface Props {
   genreMoodSlug: string;
   /** Which results view the outer `_hub` strip selected (bookmarks/gallery/media). */
-  activeView: "bookmarks" | "gallery" | "media";
+  activeView: "bookmarks" | "gallery";
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }
