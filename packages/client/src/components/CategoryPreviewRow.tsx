@@ -62,7 +62,7 @@ export function CategoryPreviewRow({
       renderEdit={() => (
         <HoverIconButton>
           <Link
-            to="/categories/$categorySlug/edit/general"
+            to="/categories/$categorySlug/edit"
             params={{
               categorySlug: category.slug,
             }}

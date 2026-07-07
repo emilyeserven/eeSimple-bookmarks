@@ -12,3 +12,11 @@ export function validateInfoTabSearch(search: Record<string, unknown>): InfoTabS
     tab: typeof search.tab === "string" ? search.tab : undefined,
   };
 }
+
+/**
+ * The **Edit** page (`…/$slug/edit`) uses the same `?tab=<key>` shape as Info — `EntityEditView`
+ * writes it and falls back to the first edit tab. Aliased for call-site clarity (and so the two
+ * surfaces can diverge later without touching every route).
+ */
+export type EditTabSearch = InfoTabSearch;
+export const validateEditTabSearch = validateInfoTabSearch;

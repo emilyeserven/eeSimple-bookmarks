@@ -99,6 +99,7 @@ function taxonomyCrumbs(
   pathname: string,
   descriptor: TaxonomyDescriptor,
   resolved?: TaxonomyName,
+  editTab?: string,
 ): BreadcrumbSegment[] {
   const {
     prefix, listLabel, singular, slugIndex,
@@ -126,8 +127,10 @@ function taxonomyCrumbs(
     };
     return [listCrumb, nameCrumb];
   }
-  // Edit tabs: link the name back to its view, end on the section/tab label.
-  const tab = parts[slugIndex + 2];
+  // Edit tabs: link the name back to its view, end on the section/tab label. The tab comes from the
+  // path segment for still-path-routed entities, else from the `?tab=` search param (entities migrated
+  // to the unified `…/edit?tab=` route — see `EntityEditView`).
+  const tab = parts[slugIndex + 2] ?? editTab;
   return [listCrumb, {
     label: itemLabel,
     names,
@@ -382,6 +385,8 @@ interface BreadcrumbContext {
   bookmarkData?: BookmarkCrumbData;
   /** Resolved entity name (+ optional multilingual names) keyed by `TaxonomyDescriptor.prefix`. */
   taxonomyNames?: Record<string, TaxonomyName | undefined>;
+  /** The `?tab=` search param, used to label the edit crumb for entities on the unified edit route. */
+  editTab?: string;
 }
 
 /** Derive breadcrumb segments from a pathname. */
@@ -420,7 +425,7 @@ function breadcrumbsForPath(pathname: string, ctx: BreadcrumbContext): Breadcrum
     d => pathname === d.prefix || pathname.startsWith(`${d.prefix}/`),
   );
   if (descriptor)
-    return taxonomyCrumbs(pathname, descriptor, ctx.taxonomyNames?.[descriptor.prefix]);
+    return taxonomyCrumbs(pathname, descriptor, ctx.taxonomyNames?.[descriptor.prefix], ctx.editTab);
 
   return [{
     label: i18n.t("eeSimple Bookmarks"),
@@ -451,7 +456,11 @@ export interface HeaderBreadcrumbData {
  * `breadcrumbsForPath` deriver. Also returns the raw entities the header's pin / add-child controls
  * consume so the component doesn't re-resolve them.
  */
-export function useHeaderBreadcrumbs(pathname: string, pathParts: string[]): HeaderBreadcrumbData {
+export function useHeaderBreadcrumbs(
+  pathname: string,
+  pathParts: string[],
+  editTab?: string,
+): HeaderBreadcrumbData {
   // Resolve each taxonomy entity's real name for its `List → Name` crumb (and the few raw entities
   // the pin / add-child controls need).
   const {
@@ -514,6 +523,7 @@ export function useHeaderBreadcrumbs(pathname: string, pathParts: string[]): Hea
     locationAncestors,
     bookmarkData,
     taxonomyNames,
+    editTab,
   });
 
   return {

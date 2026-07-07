@@ -20,13 +20,13 @@ describe("taxonomyEditLink", () => {
   it("links a top-level categories/tags item to its General edit tab — including the bare listing", () => {
     // The Info header button became a listing tab; Edit now shows on the bare listing (length 2) too.
     expect(linkProps(taxonomyEditLink(["categories", "news"], "x"))).toEqual({
-      to: "/categories/$categorySlug/edit/general",
+      to: "/categories/$categorySlug/edit",
       params: {
         categorySlug: "news",
       },
     });
     expect(linkProps(taxonomyEditLink(["categories", "news", "info"], "x"))).toEqual({
-      to: "/categories/$categorySlug/edit/general",
+      to: "/categories/$categorySlug/edit",
       params: {
         categorySlug: "news",
       },

@@ -38,7 +38,7 @@ function CategoryControls({
           size="sm"
         >
           <Link
-            to="/categories/$categorySlug/edit/general"
+            to="/categories/$categorySlug/edit"
             params={{
               categorySlug: category.slug,
             }}

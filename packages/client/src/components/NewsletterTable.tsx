@@ -39,7 +39,7 @@ export function NewsletterTable({
           });
         }, () => {
           void navigate({
-            to: "/taxonomies/newsletters/$newsletterSlug/edit/general",
+            to: "/taxonomies/newsletters/$newsletterSlug/edit",
             params: {
               newsletterSlug: newsletter.slug,
             },

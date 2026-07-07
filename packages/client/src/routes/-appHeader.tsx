@@ -23,6 +23,10 @@ export function AppHeader() {
   const pathname = useRouterState({
     select: state => state.location.pathname,
   });
+  // The `?tab=` search param labels the edit crumb for entities on the unified `…/edit?tab=` route.
+  const editTab = useRouterState({
+    select: state => (state.location.search as { tab?: string }).tab,
+  });
 
   const pathParts = pathname.split("/").filter(Boolean);
 
@@ -30,7 +34,7 @@ export function AppHeader() {
   // one hook to keep this component under the complexity cap.
   const {
     crumbs, ...toolbarData
-  } = useHeaderBreadcrumbs(pathname, pathParts);
+  } = useHeaderBreadcrumbs(pathname, pathParts, editTab);
 
   const toolbarActions = useHeaderToolbarActions(pathname, pathParts, toolbarData);
 

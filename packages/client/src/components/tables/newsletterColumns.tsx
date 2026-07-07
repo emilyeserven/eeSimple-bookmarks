@@ -46,7 +46,7 @@ export function useNewsletterColumns(): ColumnDef<Newsletter>[] {
           row,
         }) => (
           <EditActionCell
-            to="/taxonomies/newsletters/$newsletterSlug/edit/general"
+            to="/taxonomies/newsletters/$newsletterSlug/edit"
             params={{
               newsletterSlug: row.original.slug,
             }}

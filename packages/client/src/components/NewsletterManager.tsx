@@ -36,7 +36,7 @@ export function NewslettersListing() {
         onOpenChange={setModalOpen}
         onCreated={(newsletter) => {
           void navigate({
-            to: "/taxonomies/newsletters/$newsletterSlug/edit/general",
+            to: "/taxonomies/newsletters/$newsletterSlug/edit",
             params: {
               newsletterSlug: newsletter.slug,
             },

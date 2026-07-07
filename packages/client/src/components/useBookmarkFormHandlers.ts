@@ -356,7 +356,7 @@ export function useBookmarkFormHandlers({
         action: {
           label: "Edit category",
           onClick: () => void navigate({
-            to: "/categories/$categorySlug/edit/general",
+            to: "/categories/$categorySlug/edit",
             params: {
               categorySlug,
             },

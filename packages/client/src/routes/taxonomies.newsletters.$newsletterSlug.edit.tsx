@@ -1,59 +1,7 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
-import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
-import { useNewsletterBySlug } from "../hooks/useNewsletters";
-
-import i18n from "@/i18n";
-
+/** Pathless layout for a newsletter's edit surface. The page lives in the `index` child; the `$`
+ *  child redirects the old per-tab paths. */
 export const Route = createFileRoute("/taxonomies/newsletters/$newsletterSlug/edit")({
-  component: NewsletterEditLayout,
+  component: Outlet,
 });
-
-const editNav = [
-  {
-    to: "/taxonomies/newsletters/$newsletterSlug/edit/general",
-    label: i18n.t("General"),
-  },
-] as const;
-
-function NewsletterEditLayout() {
-  const {
-    t,
-  } = useTranslation();
-  const {
-    newsletterSlug,
-  } = Route.useParams();
-  const {
-    newsletter, isLoading,
-  } = useNewsletterBySlug(newsletterSlug);
-
-  return (
-    <TabbedEntityLayout
-      header={(
-        <div className="space-y-1">
-          <Link
-            to="/taxonomies/newsletters/$newsletterSlug"
-            params={{
-              newsletterSlug,
-            }}
-            className="
-              text-sm text-muted-foreground
-              hover:text-foreground
-            "
-          >
-            {t("← Back to {{name}}", {
-              name: isLoading ? t("newsletter") : (newsletter?.name ?? t("newsletter")),
-            })}
-          </Link>
-          <h1 className="text-2xl font-bold">{t("Edit newsletter")}</h1>
-        </div>
-      )}
-      nav={editNav}
-      params={{
-        newsletterSlug,
-      }}
-      navAriaLabel={t("Newsletter edit sections")}
-    />
-  );
-}
