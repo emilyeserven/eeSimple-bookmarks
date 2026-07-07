@@ -1,18 +1,18 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 /**
- * The bookmark "Relationships" edit tab moved to Settings → Relationships (deeplinked per-bookmark),
- * mirroring the Autofill Rules → Settings → Autofill consolidation. This route is kept only to redirect
- * stale/bookmarked links to the new home with this bookmark preselected.
+ * The bookmark "Relationships" edit tab was resurfaced inline as the "Related" edit tab (which also
+ * carries the Media identity + creator/location/genre fields). This route is kept only to redirect
+ * stale/bookmarked links to the new home.
  */
 export const Route = createFileRoute("/bookmarks/$bookmarkId/edit/relationships")({
   beforeLoad: ({
     params,
   }) => {
     throw redirect({
-      to: "/settings/relationships",
-      search: {
-        bookmark: params.bookmarkId,
+      to: "/bookmarks/$bookmarkId/edit/related",
+      params: {
+        bookmarkId: params.bookmarkId,
       },
     });
   },

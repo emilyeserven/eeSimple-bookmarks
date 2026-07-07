@@ -102,7 +102,7 @@ describe("buildBookmarkDetailSections", () => {
     expect(build(makeBookmark())).not.toContain("related");
   });
 
-  it("adds the Hierarchy section when a flat hierarchy is supplied", () => {
+  it("folds the parent/child hierarchy into the Related section", () => {
     const flat: FlatNode<BookmarkHierarchyNode>[] = [
       {
         node: {
@@ -115,7 +115,31 @@ describe("buildBookmarkDetailSections", () => {
         depth: 0,
       },
     ];
-    expect(build(makeBookmark(), flat)).toContain("hierarchy");
+    // Hierarchy is no longer a standalone section — it shows up under "related".
+    expect(build(makeBookmark(), flat)).toContain("related");
+    expect(build(makeBookmark(), flat)).not.toContain("hierarchy");
+  });
+
+  it("folds shared media-source matches into the Related section", () => {
+    const sections = buildBookmarkDetailSections({
+      bookmark: makeBookmark({
+        isbn: "9780000000000",
+      }),
+      categories: [],
+      properties: [],
+      propertyGroups: [],
+      flatHierarchy: [],
+      relatedBookmarks: [],
+      mediaSourceMatches: [{
+        field: "isbn",
+        value: "9780000000000",
+        bookmarks: [makeBookmark({
+          id: "other",
+        })],
+      }],
+    }).map(s => s.id);
+    expect(sections).toContain("related");
+    expect(sections).not.toContain("media-source");
   });
 
   it("keeps a stable order when several optional sections are present", () => {

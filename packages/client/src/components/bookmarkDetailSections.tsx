@@ -30,10 +30,7 @@ export type BookmarkDetailSectionId
   = | "general"
     | "gallery"
     | "video"
-    | "relationships"
     | "related"
-    | "media-source"
-    | "hierarchy"
     | "locations"
     | "metadata"
     | "debug";
@@ -281,33 +278,73 @@ function relationshipBadges(relationship: BookmarkRelationship): ReactNode {
   );
 }
 
-function relatedSection(args: BuildArgs): BookmarkDetailSection | null {
+/** The "Related bookmarks" card grid, or null when this bookmark has no related bookmarks. */
+function relatedBookmarksContent(args: BuildArgs): ReactNode {
   if (args.relatedBookmarks.length === 0) return null;
   const relationshipByBookmarkId = new Map(
     args.relatedBookmarks
       .filter(entry => entry.relationship !== undefined)
       .map(entry => [entry.bookmark.id, entry.relationship as BookmarkRelationship]),
   );
-  return {
-    id: "related",
-    label: i18n.t("Related"),
-    content: (
-      <LabeledSection
-        title={i18n.t("Related bookmarks")}
-        description={i18n.t("Explicitly related bookmarks are pinned first; the rest are scored by the weights in Settings → Display → Bookmark Graph.")}
-      >
-        <BookmarkCardGrid
-          bookmarks={args.relatedBookmarks.map(entry => entry.bookmark)}
-          properties={args.properties}
-          columns={2}
-          badgeFor={(bookmark) => {
-            const relationship = relationshipByBookmarkId.get(bookmark.id);
-            return relationship ? relationshipBadges(relationship) : null;
-          }}
-        />
-      </LabeledSection>
-    ),
-  };
+  return (
+    <LabeledSection
+      title={i18n.t("Related bookmarks")}
+      description={i18n.t("Explicitly related bookmarks are pinned first; the rest are scored by the weights in Settings → Display → Bookmark Graph.")}
+    >
+      <BookmarkCardGrid
+        bookmarks={args.relatedBookmarks.map(entry => entry.bookmark)}
+        properties={args.properties}
+        columns={2}
+        badgeFor={(bookmark) => {
+          const relationship = relationshipByBookmarkId.get(bookmark.id);
+          return relationship ? relationshipBadges(relationship) : null;
+        }}
+      />
+    </LabeledSection>
+  );
+}
+
+/** The parent/child hierarchy tree, or null when this bookmark has no such relationships. */
+function hierarchyContent(flatHierarchy: FlatNode<BookmarkHierarchyNode>[]): ReactNode {
+  if (flatHierarchy.length === 0) return null;
+  return (
+    <LabeledSection
+      title={i18n.t("Hierarchy")}
+      description={i18n.t("Parent/child relationships above and below this bookmark.")}
+    >
+      <ul className="space-y-1">
+        {flatHierarchy.map(({
+          node, depth,
+        }) => (
+          <li
+            key={node.bookmark.id}
+            style={{
+              paddingLeft: `${depth * 1.25}rem`,
+            }}
+          >
+            {node.isTarget
+              ? (
+                <span className="text-sm font-semibold">{node.bookmark.title}</span>
+              )
+              : (
+                <Link
+                  to="/bookmarks/$bookmarkId"
+                  params={{
+                    bookmarkId: node.bookmark.id,
+                  }}
+                  className="
+                    text-sm
+                    hover:underline
+                  "
+                >
+                  {node.bookmark.title}
+                </Link>
+              )}
+          </li>
+        ))}
+      </ul>
+    </LabeledSection>
+  );
 }
 
 /** The bookmark-detail label for each shareable media-source identity field. */
@@ -318,89 +355,75 @@ const MEDIA_SOURCE_FIELD_LABELS: Record<MediaSourceMatchGroup["field"], () => st
   feedUrl: () => i18n.t("podcast feed"),
 };
 
-function mediaSourceSection(args: BuildArgs): BookmarkDetailSection | null {
+/** Cross-links to other bookmarks sharing a Plex/Kavita/ISBN/feed identity, or null when none. */
+function mediaSourceContent(args: BuildArgs): ReactNode {
   if (args.mediaSourceMatches.length === 0) return null;
-  return {
-    id: "media-source",
-    label: i18n.t("Media source"),
-    content: (
-      <LabeledSection
-        title={i18n.t("Shared media source")}
-        description={i18n.t("Other bookmarks that carry the same Plex, Kavita, ISBN, or podcast-feed identity.")}
-      >
-        <ul className="space-y-1 text-sm">
-          {args.mediaSourceMatches.map((group) => {
-            const count = group.bookmarks.length;
-            const label = MEDIA_SOURCE_FIELD_LABELS[group.field]();
-            return (
-              <li key={group.field}>
-                <Link
-                  to="/bookmarks"
-                  search={withMediaSourceMatch(group.field, group.value)}
-                  className="hover:underline"
-                >
-                  {count === 1
-                    ? i18n.t("1 other bookmark shares this {{label}}", {
-                      label,
-                    })
-                    : i18n.t("{{count}} other bookmarks share this {{label}}", {
-                      count,
-                      label,
-                    })}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </LabeledSection>
-    ),
-  };
+  return (
+    <LabeledSection
+      title={i18n.t("Shared media source")}
+      description={i18n.t("Other bookmarks that carry the same Plex, Kavita, ISBN, or podcast-feed identity.")}
+    >
+      <ul className="space-y-1 text-sm">
+        {args.mediaSourceMatches.map((group) => {
+          const count = group.bookmarks.length;
+          const label = MEDIA_SOURCE_FIELD_LABELS[group.field]();
+          return (
+            <li key={group.field}>
+              <Link
+                to="/bookmarks"
+                search={withMediaSourceMatch(group.field, group.value)}
+                className="hover:underline"
+              >
+                {count === 1
+                  ? i18n.t("1 other bookmark shares this {{label}}", {
+                    label,
+                  })
+                  : i18n.t("{{count}} other bookmarks share this {{label}}", {
+                    count,
+                    label,
+                  })}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </LabeledSection>
+  );
 }
 
-function hierarchySection(
-  flatHierarchy: FlatNode<BookmarkHierarchyNode>[],
-): BookmarkDetailSection | null {
-  if (flatHierarchy.length === 0) return null;
+/**
+ * The combined "Related" section: related bookmarks, the parent/child hierarchy, and shared
+ * media-source cross-links, stacked under one tab. Each sub-block is omitted when empty; the whole
+ * section is omitted only when all three are empty.
+ */
+function relatedSection(args: BuildArgs): BookmarkDetailSection | null {
+  const blocks = [
+    {
+      key: "related-bookmarks",
+      node: relatedBookmarksContent(args),
+    },
+    {
+      key: "hierarchy",
+      node: hierarchyContent(args.flatHierarchy),
+    },
+    {
+      key: "media-source",
+      node: mediaSourceContent(args),
+    },
+  ].filter(block => block.node !== null);
+  if (blocks.length === 0) return null;
   return {
-    id: "hierarchy",
-    label: i18n.t("Hierarchy"),
+    id: "related",
+    label: i18n.t("Related"),
     content: (
-      <LabeledSection
-        title={i18n.t("Hierarchy")}
-        description={i18n.t("Parent/child relationships above and below this bookmark.")}
-      >
-        <ul className="space-y-1">
-          {flatHierarchy.map(({
-            node, depth,
-          }) => (
-            <li
-              key={node.bookmark.id}
-              style={{
-                paddingLeft: `${depth * 1.25}rem`,
-              }}
-            >
-              {node.isTarget
-                ? (
-                  <span className="text-sm font-semibold">{node.bookmark.title}</span>
-                )
-                : (
-                  <Link
-                    to="/bookmarks/$bookmarkId"
-                    params={{
-                      bookmarkId: node.bookmark.id,
-                    }}
-                    className="
-                      text-sm
-                      hover:underline
-                    "
-                  >
-                    {node.bookmark.title}
-                  </Link>
-                )}
-            </li>
-          ))}
-        </ul>
-      </LabeledSection>
+      <div className="space-y-6">
+        {blocks.map((block, i) => (
+          <div key={block.key}>
+            {i > 0 ? <Separator className="mb-6" /> : null}
+            {block.node}
+          </div>
+        ))}
+      </div>
     ),
   };
 }
@@ -457,9 +480,10 @@ function debugSection(bookmark: Bookmark): BookmarkDetailSection {
 }
 
 /**
- * Build the list of present bookmark-detail sections (General, Tags, Relationships, Hierarchy,
- * Properties, Metadata, Debug) as `{ id, label, content }`. Empty sections are omitted. Shared by
- * `BookmarkDetailBody` (single column) and `BookmarkDetailTabbed` so both render identical content.
+ * Build the list of present bookmark-detail sections (General, Gallery, Video, Related, Locations,
+ * Metadata, Debug) as `{ id, label, content }`. Empty sections are omitted. The "Related" section
+ * combines related bookmarks, the parent/child hierarchy, and shared media-source cross-links. Shared
+ * by `BookmarkDetailBody` (single column) and `BookmarkDetailTabbed` so both render identical content.
  *
  * Pure: callers compute `flatHierarchy` (via `useBookmarks()` + `buildBookmarkHierarchy` +
  * `flattenTree`) and pass it in.
@@ -471,8 +495,6 @@ export function buildBookmarkDetailSections(args: BuildArgs): BookmarkDetailSect
     gallerySection(args.bookmark),
     videoSection(args.bookmark),
     relatedSection(args),
-    mediaSourceSection(args),
-    hierarchySection(args.flatHierarchy),
     locationsSection(args.bookmark, args.locationTree),
     metadataSection(args.bookmark),
     debugSection(args.bookmark),
