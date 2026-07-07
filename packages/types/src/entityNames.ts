@@ -82,16 +82,20 @@ function matchesLanguage(name: EntityName, preferred: PreferredLanguage): boolea
  * primary. When no `preferredLanguage` match is found (there is no interface-language setting yet, so
  * this is the common case today), the secondary prefers `secondaryLanguage` when given (the user's
  * configured secondary display language, e.g. Settings → Display → "Secondary display language"),
- * else falls back to "the most useful other name": an English-tagged name if one exists, else the
- * first other name, so a romanized/alternate name still shows even with no explicit preference —
- * generalizing `orderRomanized` (romanized.ts) for the multi-language model while keeping today's
- * always-show-a-secondary behavior stable.
+ * else falls back to "the most useful other name": a name tagged with the configured
+ * `fallbackLanguage` (Settings → Display → "Fallback display language", defaulting to English when
+ * unset) if one exists, else the first other name, so a romanized/alternate name still shows even
+ * with no explicit preference — generalizing `orderRomanized` (romanized.ts) for the multi-language
+ * model while keeping today's always-show-a-secondary behavior stable. `fallbackLanguage` defaults
+ * to English (`{ isoCode: "en" }`) inside this helper, so omitting it is byte-identical to the old
+ * hardcoded English fallback.
  */
 export function resolveDisplayNames(
   names: EntityName[],
   preferredLanguage: PreferredLanguage | null | undefined,
   base: string,
   secondaryLanguage?: PreferredLanguage | null,
+  fallbackLanguage?: PreferredLanguage | null,
 ): EntityDisplayNames {
   const preferred = preferredLanguage
     ? names.find(name => matchesLanguage(name, preferredLanguage))
@@ -109,8 +113,10 @@ export function resolveDisplayNames(
   const secondaryMatch = secondaryLanguage
     ? others.find(name => matchesLanguage(name, secondaryLanguage))
     : undefined;
-  const englishOther = others.find(name => name.language.isoCode?.toLowerCase() === "en");
-  const fallback = secondaryMatch ?? englishOther ?? others[0];
+  const fallbackOther = others.find(name => matchesLanguage(name, fallbackLanguage ?? {
+    isoCode: "en",
+  }));
+  const fallback = secondaryMatch ?? fallbackOther ?? others[0];
   return {
     primary,
     secondary: fallback ? fallback.value : null,
@@ -144,17 +150,30 @@ export interface NameSortOptions {
   preferredLanguage?: PreferredLanguage | null;
   /**
    * Legacy "sort by romanized" fallback (the tag-tree toggle): when no preferred-language name
-   * exists, prefer the English / legacy-romanized form (the same "romanized" the display model uses)
-   * before falling back to the primary/base name.
+   * exists, prefer the `fallbackLanguage` (default English) / legacy-romanized form (the same
+   * "romanized" the display model uses) before falling back to the primary/base name.
    */
   preferRomanized?: boolean;
+  /**
+   * The configured fallback display language (Settings → Display → "Fallback display language").
+   * Used by the `preferRomanized` branch in place of the hardcoded English form; defaults to English
+   * (`{ isoCode: "en" }`) when unset, so behavior is byte-identical out of the box.
+   */
+  fallbackLanguage?: PreferredLanguage | null;
 }
 
-/** The English/legacy-romanized name — the "romanized" form the display + slug helpers already prefer. */
-function romanizedName(names: EntityName[]): EntityName | undefined {
-  return names.find(
-    name => name.id === "legacy-romanized" || name.language.isoCode?.toLowerCase() === "en",
-  );
+/**
+ * The romanized/fallback name — the legacy-romanized synthesized row, else a name in the configured
+ * `fallbackLanguage` (default English), the "romanized" form the display + slug helpers already prefer.
+ */
+function romanizedName(
+  names: EntityName[],
+  fallbackLanguage?: PreferredLanguage | null,
+): EntityName | undefined {
+  const fb = fallbackLanguage ?? {
+    isoCode: "en",
+  };
+  return names.find(name => name.id === "legacy-romanized" || matchesLanguage(name, fb));
 }
 
 /**
@@ -174,7 +193,7 @@ export function resolveNameSortKey(
     : undefined;
   if (preferred) return preferred.value;
   if (opts.preferRomanized) {
-    const rom = romanizedName(names);
+    const rom = romanizedName(names, opts.fallbackLanguage);
     if (rom) return rom.value;
   }
   const primaryRow = names.find(name => name.isPrimary);

@@ -114,7 +114,10 @@ Then point the fetch hook's `previewPath` / plex branch at it.
   form). The CMD+K item navigates there implicitly by only showing while a provider is registered.
 - **Locations:** never sync name/English name (they drive the slug); the re-geocode toggle is
   **default off** (fill-empty), on = force overwrite coordinates + boundary via `repullCoordinates`.
-  Respect the `locations-map` skill + the `lib/locationLevels.ts` doc block.
+  Respect the `locations-map` skill + the `lib/locationLevels.ts` doc block. The English name a source
+  writes (`englishName` → `mergeEnglishEntityName`) stays **English-anchored** regardless of the
+  "Fallback display language" setting (CLAUDE.md → **Multilingual display names**) — that setting only
+  changes which stored name is *displayed/sorted*, never what a source writes or what the slug uses.
 
 See also: `add-connector` (adding the underlying scan/oEmbed source), `surface-entity-field` (exposing a
 field on view/edit first), `toast-notifications` (the auto-save + toast standard staged rows rely on),

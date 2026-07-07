@@ -116,6 +116,8 @@ export function locationNodesToOptions(nodes: LocationNode[]): TreeComboboxOptio
 export interface TreeSortContext {
   /** The language whose name to sort by when a node has one (interface language / override). */
   preferredLanguage?: PreferredLanguage | null;
+  /** Fallback language for the `preferRomanized` sort branch; defaults to English when unset. */
+  fallbackLanguage?: PreferredLanguage | null;
   /** BCP-47 collation locale for the comparison (e.g. `ja`), or undefined for the default locale. */
   locale?: string;
 }
@@ -127,6 +129,7 @@ function tagNodeSortKey(node: TagNode, ctx: TreeSortContext): string {
     node.name,
     {
       preferredLanguage: ctx.preferredLanguage,
+      fallbackLanguage: ctx.fallbackLanguage,
     },
   );
 }

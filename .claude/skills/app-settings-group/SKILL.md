@@ -47,6 +47,15 @@ All layers live in four files; a new setting in an *existing* group touches each
 `notifySuccess`/`notifyFieldSaved` naming the field — auto-save on change/blur, no Save button (see
 the `toast-notifications` skill). Shared types for the group live in `@eesimple/types`.
 
+**Worked example — a single nullable-FK field.** `display-preferences` carries two sibling language
+fields that are the cleanest template for adding one scalar field: `secondaryLanguageId` and
+`fallbackLanguageId` (each a nullable `uuid("…").references(() => languages.id, { onDelete: "set null" })`
+column, defaulted `null`, passed through raw on read, coerced `input.x ?? null` on write, schema-typed
+`{ type: ["string", "null"] }` and **kept out of `required`**, with a `use*` reader hook that resolves
+the id against `useLanguages()`). Adding `fallbackLanguageId` (issue #1126) touched exactly those spots
+plus a `Combobox` row in `DisplayGeneralSettings`'s "Names" card — no migration, since a lone nullable
+column is push-safe.
+
 ## Secrets (API keys)
 
 A key is never returned raw: store it via the encrypted-at-rest path

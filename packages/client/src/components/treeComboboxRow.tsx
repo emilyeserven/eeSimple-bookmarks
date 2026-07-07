@@ -28,6 +28,11 @@ export interface TreeComboboxRowConfig {
    * structured `names` so the secondary form matches the user's setting. `null`/omitted = auto.
    */
   secondaryLanguage?: PreferredLanguage | null;
+  /**
+   * The configured Fallback display language, forwarded to `LocalizedNameLabel` so the secondary
+   * form falls back to the user's setting (default English) when no preferred/secondary match.
+   */
+  fallbackLanguage?: PreferredLanguage | null;
 }
 
 /**
@@ -91,6 +96,7 @@ export function renderTreeComboboxRows(
                   names={node.names}
                   base={node.label}
                   secondaryLanguage={config.secondaryLanguage}
+                  fallbackLanguage={config.fallbackLanguage}
                 />
               )
               : (

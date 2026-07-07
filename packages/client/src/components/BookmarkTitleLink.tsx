@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { resolveDisplayNames } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
+import { useFallbackDisplayLanguageValue } from "../hooks/fallbackDisplayLanguage";
+
 /**
  * The bookmark title rendered as a navigation link. Renders the resolved **primary** name via
  * `resolveDisplayNames` (against `bookmark.names`); the de-emphasized secondary is the separately
@@ -48,12 +50,15 @@ export function BookmarkTitleLink({
 export function BookmarkSecondaryNameField({
   bookmark,
 }: { bookmark: Bookmark }) {
+  const fallbackLanguage = useFallbackDisplayLanguageValue();
   const {
     secondary,
   } = resolveDisplayNames(
     bookmark.names,
     null,
     bookmark.title,
+    undefined,
+    fallbackLanguage,
   );
   if (!secondary) return null;
   return <span className="text-sm wrap-break-word text-muted-foreground">{secondary}</span>;

@@ -1,6 +1,6 @@
 import type { TitleSortContext } from "../lib/bookmarkSort";
 
-import { useInterfaceLanguage } from "./useAppSettings";
+import { useFallbackDisplayLanguage, useInterfaceLanguage } from "./useAppSettings";
 import { useLanguages } from "./useLanguages";
 import { useUiStore } from "../stores/uiStore";
 
@@ -11,10 +11,12 @@ import { useUiStore } from "../stores/uiStore";
  */
 export function useInterfaceTitleSort(): TitleSortContext {
   const language = useInterfaceLanguage();
+  const fallbackLanguage = useFallbackDisplayLanguage();
   return {
     preferredLanguage: {
       isoCode: language,
     },
+    fallbackLanguage,
     locale: language,
   };
 }
@@ -53,6 +55,7 @@ export function usePageTitleSort(pageKey: string): TitleSortContext {
       id: language.id,
       isoCode: language.isoCode,
     },
+    fallbackLanguage: interfaceSort.fallbackLanguage,
     locale: language.isoCode ?? undefined,
   };
 }

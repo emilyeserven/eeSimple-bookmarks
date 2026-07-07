@@ -170,6 +170,54 @@ test("resolveDisplayNames falls back to the English/first-other name when second
   });
 });
 
+test("resolveDisplayNames uses an explicit fallbackLanguage over the English-tagged name", () => {
+  const french = makeName({
+    value: "L'Attaque des Titans",
+    isoCode: "fr",
+    languageId: "lang-fr",
+    sortOrder: 2,
+  });
+  // No secondaryLanguage/preferred match, but a French fallbackLanguage is configured: French wins
+  // over the English-tagged name that the historical hardcoded behavior would have chosen.
+  assert.deepEqual(resolveDisplayNames([japanese, english, french], null, "進撃の巨人", undefined, {
+    isoCode: "fr",
+  }), {
+    primary: "進撃の巨人",
+    secondary: "L'Attaque des Titans",
+  });
+});
+
+test("resolveDisplayNames matches fallbackLanguage by id too", () => {
+  const french = makeName({
+    value: "L'Attaque des Titans",
+    isoCode: "fr",
+    languageId: "lang-fr",
+    sortOrder: 2,
+  });
+  assert.deepEqual(resolveDisplayNames([japanese, english, french], null, "進撃の巨人", undefined, {
+    id: "lang-fr",
+  }), {
+    primary: "進撃の巨人",
+    secondary: "L'Attaque des Titans",
+  });
+});
+
+test("resolveDisplayNames with an omitted/null fallbackLanguage is byte-identical to the English default", () => {
+  const french = makeName({
+    value: "L'Attaque des Titans",
+    isoCode: "fr",
+    languageId: "lang-fr",
+    sortOrder: 2,
+  });
+  const expected = {
+    primary: "進撃の巨人",
+    secondary: "Attack on Titan",
+  };
+  // Omitted and explicit-null both reduce to the historical English-tagged fallback.
+  assert.deepEqual(resolveDisplayNames([japanese, french, english], null, "進撃の巨人"), expected);
+  assert.deepEqual(resolveDisplayNames([japanese, french, english], null, "進撃の巨人", undefined, null), expected);
+});
+
 // --- nameSortKey ---
 
 test("nameSortKey sorts by the primary name by default", () => {
@@ -229,6 +277,42 @@ test("resolveNameSortKey uses a synthesized legacy-romanized row as the romanize
   assert.equal(
     resolveNameSortKey(names, "進撃の巨人", {
       preferRomanized: true,
+    }),
+    "Shingeki no Kyojin",
+  );
+});
+
+test("resolveNameSortKey honors a non-English fallbackLanguage in the preferRomanized branch", () => {
+  const french = makeName({
+    value: "L'Attaque des Titans",
+    isoCode: "fr",
+    languageId: "lang-fr",
+    sortOrder: 2,
+  });
+  // No preferred match; preferRomanized + a French fallbackLanguage sorts by the French name rather
+  // than the English one the hardcoded behavior would have chosen.
+  assert.equal(
+    resolveNameSortKey([japanese, english, french], "進撃の巨人", {
+      preferredLanguage: {
+        isoCode: "de",
+      },
+      preferRomanized: true,
+      fallbackLanguage: {
+        isoCode: "fr",
+      },
+    }),
+    "L'Attaque des Titans",
+  );
+});
+
+test("resolveNameSortKey still honors the synthesized legacy-romanized row regardless of fallbackLanguage", () => {
+  const names = namesWithLegacyFallback([], "Shingeki no Kyojin");
+  assert.equal(
+    resolveNameSortKey(names, "進撃の巨人", {
+      preferRomanized: true,
+      fallbackLanguage: {
+        isoCode: "fr",
+      },
     }),
     "Shingeki no Kyojin",
   );

@@ -583,6 +583,12 @@ export interface DisplayPreferenceSettings {
    */
   secondaryLanguageId: string | null;
   /**
+   * The language whose entity name is used as the de-emphasized fallback secondary label (and the
+   * `preferRomanized` sort fallback) when no preferred/secondary-language name matches. `null` =
+   * English — the historical hardcoded behavior, so leaving it unset is byte-identical.
+   */
+  fallbackLanguageId: string | null;
+  /**
    * Minimum area (km²) an `"area"`-mode location's boundary must have to still render as a polygon
    * on the map; smaller boundaries render as a pin instead. `0` disables the threshold (legacy
    * behavior — any boundary renders as an area).

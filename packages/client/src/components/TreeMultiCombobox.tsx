@@ -9,6 +9,7 @@ import { renderTreeComboboxRows } from "./treeComboboxRow";
 import { ancestorIdsForSelected, filterTreeByTerm, flattenOptions } from "./treeExpansion";
 
 import { CommandGroup } from "@/components/ui/command";
+import { useFallbackDisplayLanguageValue } from "@/hooks/fallbackDisplayLanguage";
 import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
@@ -73,6 +74,7 @@ export function TreeMultiCombobox({
     t,
   } = useTranslation();
   const secondaryLanguage = useSecondaryDisplayLanguageValue();
+  const fallbackLanguage = useFallbackDisplayLanguageValue();
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
@@ -154,6 +156,7 @@ export function TreeMultiCombobox({
               onSelect: toggle,
               onToggleExpand: toggleExpand,
               secondaryLanguage,
+              fallbackLanguage,
             })}
           </CommandGroup>
         )}

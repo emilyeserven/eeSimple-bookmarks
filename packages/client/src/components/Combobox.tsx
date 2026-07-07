@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useFallbackDisplayLanguageValue } from "@/hooks/fallbackDisplayLanguage";
 import { useSecondaryDisplayLanguageValue } from "@/hooks/secondaryDisplayLanguage";
 import { cn } from "@/lib/utils";
 
@@ -78,6 +79,7 @@ function renderComboOption(
   onValueChange: (value: string | undefined) => void,
   setOpen: (open: boolean) => void,
   secondaryLanguage: PreferredLanguage | null,
+  fallbackLanguage: PreferredLanguage | null,
 ) {
   return (
     <CommandItem
@@ -100,6 +102,7 @@ function renderComboOption(
         names={option.names ?? []}
         base={option.label}
         secondaryLanguage={secondaryLanguage}
+        fallbackLanguage={fallbackLanguage}
       />
       <Check
         className={cn(
@@ -132,6 +135,7 @@ export function Combobox({
     t,
   } = useTranslation();
   const secondaryLanguage = useSecondaryDisplayLanguageValue();
+  const fallbackLanguage = useFallbackDisplayLanguageValue();
   const [open, setOpen] = React.useState(false);
   const allOptions = groups ? groups.flatMap(g => g.options) : (options ?? []);
   const selected = allOptions.find(option => option.value === value);
@@ -168,6 +172,7 @@ export function Combobox({
                     names={selected.names ?? []}
                     base={selected.label}
                     secondaryLanguage={secondaryLanguage}
+                    fallbackLanguage={fallbackLanguage}
                   />
                 )
                 : resolvedPlaceholder}
@@ -191,13 +196,13 @@ export function Combobox({
                   heading={group.heading}
                 >
                   {group.options.map(option =>
-                    renderComboOption(option, value, onValueChange, setOpen, secondaryLanguage))}
+                    renderComboOption(option, value, onValueChange, setOpen, secondaryLanguage, fallbackLanguage))}
                 </CommandGroup>
               ))
               : (
                 <CommandGroup>
                   {(options ?? []).map(option =>
-                    renderComboOption(option, value, onValueChange, setOpen, secondaryLanguage))}
+                    renderComboOption(option, value, onValueChange, setOpen, secondaryLanguage, fallbackLanguage))}
                 </CommandGroup>
               )}
           </CommandList>
