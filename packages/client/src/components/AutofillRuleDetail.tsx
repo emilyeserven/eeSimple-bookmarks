@@ -12,6 +12,7 @@ import type {
 import { useTranslation } from "react-i18next";
 
 import { LabeledSection } from "./LabeledSection";
+import { RuleGeneralFields } from "./RuleGeneralFields";
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 import { describePropertyPredicate } from "../lib/describePropertyPredicate";
 
@@ -125,23 +126,13 @@ function describeConditionNode(
 export function AutofillGeneralFields({
   rule,
 }: { rule: AutofillRule }) {
-  const {
-    t,
-  } = useTranslation();
   return (
-    <div className="space-y-3 text-sm">
-      {rule.description
-        ? <p>{rule.description}</p>
-        : <p className="text-muted-foreground">{t("No description.")}</p>}
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2">
-        <dt className="text-muted-foreground">{t("Priority")}</dt>
-        <dd>{rule.sortOrder}</dd>
-        <dt className="text-muted-foreground">{t("Slug")}</dt>
-        <dd className="font-mono">{rule.slug}</dd>
-        <dt className="text-muted-foreground">{t("Added")}</dt>
-        <dd>{new Date(rule.createdAt).toLocaleDateString()}</dd>
-      </dl>
-    </div>
+    <RuleGeneralFields
+      description={rule.description}
+      slug={rule.slug}
+      createdAt={rule.createdAt}
+      priorityLabel={rule.sortOrder}
+    />
   );
 }
 

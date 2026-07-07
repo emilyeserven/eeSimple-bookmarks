@@ -1,18 +1,13 @@
-import type { AutofillBackfillEntry, GlobalAutofillBackfillGroup } from "@eesimple/types";
+import type { GlobalAutofillBackfillGroup } from "@eesimple/types";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import {
-  useApplyAutofillBackfill,
-  useGlobalAutofillBackfill,
-  useRemoveAutofillExempt,
-  useSetAutofillExempt,
-} from "../hooks/useAutofill";
+import { AutofillBackfillRow } from "../components/AutofillBackfillRow";
+import { useApplyAutofillBackfill, useGlobalAutofillBackfill } from "../hooks/useAutofill";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 
 export const Route = createFileRoute("/autofill/backfill")({
@@ -170,83 +165,16 @@ function RuleGroup({
 
       <div className="space-y-1">
         {group.entries.map(entry => (
-          <GlobalBackfillRow
+          <AutofillBackfillRow
             key={entry.bookmark.id}
             entry={entry}
             ruleId={group.rule.id}
+            checkbox={{
+              mode: "readonly",
+            }}
           />
         ))}
       </div>
-    </div>
-  );
-}
-
-function GlobalBackfillRow({
-  entry, ruleId,
-}: {
-  entry: AutofillBackfillEntry;
-  ruleId: string;
-}) {
-  const {
-    t,
-  } = useTranslation();
-  const setExempt = useSetAutofillExempt();
-  const removeExempt = useRemoveAutofillExempt();
-  const exemptPending = setExempt.isPending || removeExempt.isPending;
-
-  return (
-    <div className="flex items-start gap-3 rounded-md border px-3 py-2">
-      <Checkbox
-        checked={entry.needsBackfill && !entry.isExempt}
-        disabled
-        className="mt-0.5 shrink-0"
-        aria-hidden
-      />
-      <div className="min-w-0 flex-1 space-y-0.5">
-        <p className="truncate text-sm font-medium">{entry.bookmark.title}</p>
-        <p className="truncate text-xs text-muted-foreground">{entry.bookmark.url}</p>
-      </div>
-      {entry.isExempt
-        ? (
-          <Badge
-            variant="secondary"
-            className="shrink-0"
-          >
-            {t("Exempt")}
-          </Badge>
-        )
-        : (
-          <Badge
-            variant="default"
-            className="
-              shrink-0 bg-amber-600
-              hover:bg-amber-600
-            "
-          >
-            {t("Needs backfill")}
-          </Badge>
-        )}
-      <Button
-        variant="ghost"
-        size="sm"
-        disabled={exemptPending}
-        onClick={() => {
-          if (entry.isExempt) {
-            removeExempt.mutate({
-              ruleId,
-              bookmarkId: entry.bookmark.id,
-            });
-          }
-          else {
-            setExempt.mutate({
-              ruleId,
-              bookmarkId: entry.bookmark.id,
-            });
-          }
-        }}
-      >
-        {entry.isExempt ? t("Un-exempt") : t("Exempt")}
-      </Button>
     </div>
   );
 }

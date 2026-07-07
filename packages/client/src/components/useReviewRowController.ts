@@ -1,4 +1,4 @@
-import type { ImportApproveResult, InboxItem, InboxPreFillDefaults } from "@eesimple/types";
+import type { InboxItem, InboxPreFillDefaults } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -9,17 +9,12 @@ import { useInboxPrefillSeed } from "./useInboxPrefillSeed";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useCategories } from "../hooks/useCategories";
 import {
+  notifyApprove,
   useApproveImportItem,
   useRejectImportItem,
 } from "../hooks/useImports";
 import { useSwipeGesture } from "../hooks/useSwipeGesture";
-import { notifyError, notifySuccess } from "../lib/notifications";
-
-function notifyApprove(result: ImportApproveResult, t: (key: string) => string): void {
-  if (result.status === "approved") notifySuccess(t("Bookmark added"));
-  else if (result.status === "duplicate") notifyError(result.message ?? t("Already saved as a bookmark"));
-  else if (result.status === "error") notifyError(result.message ?? t("Couldn't add bookmark"));
-}
+import { notifySuccess } from "../lib/notifications";
 
 /**
  * Owns every hook, derivation, and handler a single Inbox `ReviewRow` needs — categories, the
