@@ -573,6 +573,18 @@ export interface DisplayPreferenceSettings {
   /** Filter facet keys / custom-property ids hidden from the filter rail until added on demand. */
   onDemandFilters: string[];
   /**
+   * User-defined order of filter keys (facet keys + custom-property ids) in the filter rail. Keys
+   * absent from this list keep their default order and sort after the ordered ones. Empty = the
+   * default order (registry order, then custom properties).
+   */
+  filterOrder: string[];
+  /**
+   * Filter facet keys / custom-property ids hidden by default on small (mobile) screens. Layered on
+   * top of {@link onDemandFilters}: on mobile these behave as on-demand (hidden until added from the
+   * "Add filter" control), while a filter with an active value still shows.
+   */
+  mobileHiddenFilters: string[];
+  /**
    * Language to assume for Han-only (no-kana) names, which are ambiguous Japanese vs. Chinese.
    * Drives the multilingual names migration and future script detection. Defaults to `"ja"`.
    */

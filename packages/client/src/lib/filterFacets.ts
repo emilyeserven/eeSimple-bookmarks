@@ -1,5 +1,6 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
 import type { CustomProperty } from "@eesimple/types";
+import type { TFunction } from "i18next";
 
 import i18n from "../i18n";
 
@@ -206,4 +207,60 @@ export function languageUsageHasActiveSelection(search: BookmarkSearch): boolean
     (search.languageUsageLanguages?.length ?? 0) > 0
     || (search.languageUsageLevels?.length ?? 0) > 0
   );
+}
+
+/**
+ * Order `items` by their key's position in `order`. Keys absent from `order` keep their incoming
+ * relative order and sort after the ordered ones (stable). Shared by the Display → Filters settings
+ * list and the pill row so both honor the same `DisplayPreferenceSettings.filterOrder`; because
+ * callers pass items already in default order, an empty `order` reduces to the default order.
+ */
+export function applyFilterOrder<T extends { key: string }>(items: readonly T[], order: string[]): T[] {
+  const rank = new Map(order.map((key, index) => [key, index]));
+  const fallback = order.length;
+  return items
+    .map((item, index) => ({
+      item,
+      index,
+      rank: rank.get(item.key) ?? fallback,
+    }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .map(entry => entry.item);
+}
+
+/**
+ * A human description of when a standard facet appears in the filter rail — every facet is data-gated
+ * (it only shows when there is data to filter on), so the Display → Filters settings row surfaces
+ * this as a hover hint next to each filter.
+ */
+export function facetVisibilityHint(key: FilterFacetKey, t: TFunction): string {
+  switch (key) {
+    case "tags":
+      return t("Appears when you have tags.");
+    case "categories":
+      return t("Appears when you have categories.");
+    case "media-types":
+      return t("Appears when you have media types.");
+    case "channels":
+      return t("Appears when you have YouTube channels.");
+    case "websites":
+      return t("Appears when you have websites.");
+    case "relationship-types":
+      return t("Appears when you have relationship types.");
+    case "people":
+      return t("Appears when you have people.");
+    case "place-types":
+      return t("Appears when you have place types.");
+    case "genre-moods":
+      return t("Appears when you have genres & moods.");
+    case "sections":
+      return t("Appears when a Sections-type custom property exists.");
+    case "media-source":
+      return t("Appears when a bookmark is linked to Plex, Kavita, an ISBN, or an RSS feed.");
+  }
+}
+
+/** The hover hint for a custom-property filter row (properties are gated by enablement + category lock). */
+export function propertyVisibilityHint(t: TFunction): string {
+  return t("Appears when enabled; a category-locked property also needs a matching category or media type selected.");
 }
