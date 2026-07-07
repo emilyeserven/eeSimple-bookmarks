@@ -511,7 +511,8 @@ change recipes):
 - **`language_usage_levels`** — a user-definable taxonomy (mirrors `place_types`) **grouped by
   `kind`**: `availability` (Dub, Subtitles, Explanations…) qualifies content, `proficiency` (Native,
   Fluent, Learning…) qualifies People. `kind` is free text (add a kind without a migration); built-ins
-  are seeded (`ensureBuiltInLanguageUsageLevels`) and non-deletable. Its `(kind, name)` uniqueness is a
+  are seeded (`ensureBuiltInLanguageUsageLevels`) and non-deletable — but **hideable** from pickers via
+  the `hidden` flag (see **Hiding seeded built-in vocabularies**). Its `(kind, name)` uniqueness is a
   **`uniqueIndex`, not a `unique()` constraint** — see the composite-unique rule under **Database
   schema changes** (a composite `unique()` there crashed prod `drizzle-kit push`). `deleteLanguageUsageLevel(id, reassignToId?)` reassigns or drops referencing rows (no
   cascade FK), like `deletePlaceType`.
@@ -785,12 +786,17 @@ row into this shape. The convention rides entirely on existing bookmark/relation
   (the built-in seeded by `ensureBuiltInMediaTypes()` in `services/mediaTypes.ts`). The Franchise media
   type is what makes hubs identifiable and gives a one-click **"show all franchises"** via the ordinary
   Media Type filter facet — don't add a parallel franchise vocabulary. URL-less hubs render via the
-  #1070 nullable-`url` support.
+  #1070 nullable-`url` support. **Franchise is convention-only, not code-load-bearing** — no code
+  resolves it by identity, so it is safe to **hide** (like any built-in; see **Hiding seeded built-in
+  vocabularies**), though it stays non-deletable; hiding it only removes it from the media-type pickers,
+  and existing hubs keep rendering.
 - **Member edges** — a hub links each member via the built-in **directional Parent/child** relationship
   type, **hub = parent, member = child** (in the `BookmarkRelationshipsEditor`, tick "Selected bookmark
   is the parent" on the member so the hub becomes the parent). Storage/direction and rendering are the
   standard relationship stack: `bookmark_relationships` (parent = `bookmark_a_id`), `lib/bookmarkHierarchy.ts`,
-  and the "Hierarchy" detail section (`components/bookmarkDetailSections.tsx`).
+  and the "Hierarchy" detail section (`components/bookmarkDetailSections.tsx`). The hierarchy keys off the
+  generic **`directional`** flag, **not the Parent/child type's identity**, so Parent/child is likewise
+  convention-only — hideable (non-deletable) without breaking hubs or the hierarchy view.
 - **Franchise page = the hub bookmark's own detail view** (its Hierarchy/Related sections list the
   members) — this replaces `/taxonomies/media-properties/$slug`. Don't build a dedicated franchise page.
 - **Discoverability is intentionally minimal.** Per-franchise browsing is the hub page; global discovery
