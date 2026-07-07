@@ -135,7 +135,6 @@ import { Route as SettingsDisplayLanguagesRouteImport } from './routes/settings.
 import { Route as SettingsDisplayHomepageRouteImport } from './routes/settings.display.homepage'
 import { Route as SettingsDisplayGeneralRouteImport } from './routes/settings.display.general'
 import { Route as SettingsDisplayFiltersRouteImport } from './routes/settings.display.filters'
-import { Route as SettingsDisplayDrawerRouteImport } from './routes/settings.display.drawer'
 import { Route as SettingsDisplayBookmarkGraphRouteImport } from './routes/settings.display.bookmark-graph'
 import { Route as SettingsDisplayBookmarkAddRouteImport } from './routes/settings.display.bookmark-add'
 import { Route as SettingsAutomationsRedirectFailuresRouteImport } from './routes/settings.automations.redirect-failures'
@@ -993,11 +992,6 @@ const SettingsDisplayGeneralRoute = SettingsDisplayGeneralRouteImport.update({
 const SettingsDisplayFiltersRoute = SettingsDisplayFiltersRouteImport.update({
   id: '/filters',
   path: '/filters',
-  getParentRoute: () => SettingsDisplayRoute,
-} as any)
-const SettingsDisplayDrawerRoute = SettingsDisplayDrawerRouteImport.update({
-  id: '/drawer',
-  path: '/drawer',
   getParentRoute: () => SettingsDisplayRoute,
 } as any)
 const SettingsDisplayBookmarkGraphRoute =
@@ -2158,7 +2152,6 @@ export interface FileRoutesByFullPath {
   '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
   '/settings/display/bookmark-add': typeof SettingsDisplayBookmarkAddRoute
   '/settings/display/bookmark-graph': typeof SettingsDisplayBookmarkGraphRoute
-  '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
   '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
@@ -2413,7 +2406,6 @@ export interface FileRoutesByTo {
   '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
   '/settings/display/bookmark-add': typeof SettingsDisplayBookmarkAddRoute
   '/settings/display/bookmark-graph': typeof SettingsDisplayBookmarkGraphRoute
-  '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
   '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
@@ -2684,7 +2676,6 @@ export interface FileRoutesById {
   '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
   '/settings/display/bookmark-add': typeof SettingsDisplayBookmarkAddRoute
   '/settings/display/bookmark-graph': typeof SettingsDisplayBookmarkGraphRoute
-  '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
   '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
@@ -2994,7 +2985,6 @@ export interface FileRouteTypes {
     | '/settings/automations/redirect-failures'
     | '/settings/display/bookmark-add'
     | '/settings/display/bookmark-graph'
-    | '/settings/display/drawer'
     | '/settings/display/filters'
     | '/settings/display/general'
     | '/settings/display/homepage'
@@ -3249,7 +3239,6 @@ export interface FileRouteTypes {
     | '/settings/automations/redirect-failures'
     | '/settings/display/bookmark-add'
     | '/settings/display/bookmark-graph'
-    | '/settings/display/drawer'
     | '/settings/display/filters'
     | '/settings/display/general'
     | '/settings/display/homepage'
@@ -3519,7 +3508,6 @@ export interface FileRouteTypes {
     | '/settings/automations/redirect-failures'
     | '/settings/display/bookmark-add'
     | '/settings/display/bookmark-graph'
-    | '/settings/display/drawer'
     | '/settings/display/filters'
     | '/settings/display/general'
     | '/settings/display/homepage'
@@ -4647,13 +4635,6 @@ declare module '@tanstack/react-router' {
       path: '/filters'
       fullPath: '/settings/display/filters'
       preLoaderRoute: typeof SettingsDisplayFiltersRouteImport
-      parentRoute: typeof SettingsDisplayRoute
-    }
-    '/settings/display/drawer': {
-      id: '/settings/display/drawer'
-      path: '/drawer'
-      fullPath: '/settings/display/drawer'
-      preLoaderRoute: typeof SettingsDisplayDrawerRouteImport
       parentRoute: typeof SettingsDisplayRoute
     }
     '/settings/display/bookmark-graph': {
@@ -6394,7 +6375,6 @@ const SettingsAutomationsRouteWithChildren =
 interface SettingsDisplayRouteChildren {
   SettingsDisplayBookmarkAddRoute: typeof SettingsDisplayBookmarkAddRoute
   SettingsDisplayBookmarkGraphRoute: typeof SettingsDisplayBookmarkGraphRoute
-  SettingsDisplayDrawerRoute: typeof SettingsDisplayDrawerRoute
   SettingsDisplayFiltersRoute: typeof SettingsDisplayFiltersRoute
   SettingsDisplayGeneralRoute: typeof SettingsDisplayGeneralRoute
   SettingsDisplayHomepageRoute: typeof SettingsDisplayHomepageRoute
@@ -6407,7 +6387,6 @@ interface SettingsDisplayRouteChildren {
 const SettingsDisplayRouteChildren: SettingsDisplayRouteChildren = {
   SettingsDisplayBookmarkAddRoute: SettingsDisplayBookmarkAddRoute,
   SettingsDisplayBookmarkGraphRoute: SettingsDisplayBookmarkGraphRoute,
-  SettingsDisplayDrawerRoute: SettingsDisplayDrawerRoute,
   SettingsDisplayFiltersRoute: SettingsDisplayFiltersRoute,
   SettingsDisplayGeneralRoute: SettingsDisplayGeneralRoute,
   SettingsDisplayHomepageRoute: SettingsDisplayHomepageRoute,

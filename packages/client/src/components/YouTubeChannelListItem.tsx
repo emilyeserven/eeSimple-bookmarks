@@ -6,13 +6,10 @@ import { Info, MonitorPlay, Pencil, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useAutoYouTubeChannelImage } from "../hooks/useYouTubeChannels";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface YouTubeChannelListItemProps {
   channel: YouTubeChannel;
@@ -33,9 +30,6 @@ export function YouTubeChannelListItem({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   const autoAvatar = useAutoYouTubeChannelImage();
   const {
     showImage,
@@ -111,10 +105,9 @@ export function YouTubeChannelListItem({
             params={{
               channelSlug: channel.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: channel.name,
             })}
-            onClick={event => editClick(event, "youtube-channel", channel.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">
@@ -132,8 +125,9 @@ export function YouTubeChannelListItem({
             params={{
               channelSlug: channel.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "youtube-channel", channel.id, channel.slug)}
+            title={t("View {{name}}", {
+              name: channel.name,
+            })}
           >
             <Info className="size-4" />
             <span className="sr-only">

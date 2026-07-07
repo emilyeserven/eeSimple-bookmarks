@@ -5,11 +5,7 @@ import { Info, Mail, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A single row in the newsletter listing: an icon, a body link to its issues, and hover Edit / Info. */
 export function NewsletterListItem({
@@ -28,9 +24,6 @@ export function NewsletterListItem({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
 
   return (
     <StandardListingCard
@@ -71,10 +64,9 @@ export function NewsletterListItem({
             params={{
               newsletterSlug: newsletter.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: newsletter.name,
             })}
-            onClick={event => editClick(event, "newsletter", newsletter.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">
@@ -92,8 +84,9 @@ export function NewsletterListItem({
             params={{
               newsletterSlug: newsletter.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "newsletter", newsletter.id, newsletter.slug)}
+            title={t("View {{name}}", {
+              name: newsletter.name,
+            })}
           >
             <Info className="size-4" />
             <span className="sr-only">

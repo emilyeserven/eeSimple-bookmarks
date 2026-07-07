@@ -30,7 +30,7 @@ export function GroupTable({
       data={groups}
       sortable
       onRowClick={(group, event) =>
-        rowNav(event, "group", group.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/taxonomies/groups/$groupSlug",
             params: {

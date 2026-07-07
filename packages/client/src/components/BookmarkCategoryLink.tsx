@@ -2,28 +2,21 @@ import type { Category } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-
 import { CategoryIcon } from "@/lib/icons";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
-/** The bookmark's category rendered as an icon + name link that opens the category (or its panel). */
+/** The bookmark's category rendered as an icon + name link that opens the category. */
 export function BookmarkCategoryLink({
   category,
 }: {
   category: Category;
 }) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <Link
       to="/categories/$categorySlug"
       params={{
         categorySlug: category.slug,
       }}
-      title={entityLinkTitle(modifier)}
-      onClick={event => viewClick(event, "category", category.id, category.slug)}
+      title={category.name}
       className="
         inline-flex items-center gap-1.5 text-primary
         hover:underline

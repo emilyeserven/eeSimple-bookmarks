@@ -5,11 +5,7 @@ import { Fragment } from "react";
 import { Link } from "@tanstack/react-router";
 import { Users } from "lucide-react";
 
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-
 import { Badge } from "@/components/ui/badge";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface GroupsBoxProps {
   groups: BookmarkGroup[];
@@ -24,8 +20,6 @@ interface GroupsBoxProps {
 export function BookmarkGroupBadges({
   groups,
 }: GroupsBoxProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <div className="flex flex-wrap items-center gap-1">
       {groups.map(group => (
@@ -35,8 +29,7 @@ export function BookmarkGroupBadges({
           params={{
             groupSlug: group.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "group", group.id, group.slug)}
+          title={group.name}
         >
           <Badge
             variant="secondary"
@@ -59,8 +52,6 @@ export function BookmarkGroupBadges({
 export function BookmarkGroupLinks({
   groups,
 }: GroupsBoxProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <span className="text-sm">
       {groups.map((group, index) => (
@@ -71,8 +62,7 @@ export function BookmarkGroupLinks({
             params={{
               groupSlug: group.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "group", group.id, group.slug)}
+            title={group.name}
             className="
               text-primary
               hover:underline

@@ -7,13 +7,11 @@ import { Lock, Waypoints } from "lucide-react";
 
 import { EditActionCell } from "./cells";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 
 /** Column definitions for the Location Relations listing Table view. */
 export function useLocationRelationColumns(): ColumnDef<LocationRelation>[] {
-  const editClick = useEditPanelClick();
   return useMemo(
     () => [
       {
@@ -64,11 +62,10 @@ export function useLocationRelationColumns(): ColumnDef<LocationRelation>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "location-relation", row.original.id)}
           />
         ),
       },
     ],
-    [editClick],
+    [],
   );
 }

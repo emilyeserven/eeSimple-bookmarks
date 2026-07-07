@@ -33,7 +33,7 @@ export function CategoriesTable({
       data={data}
       sortable
       onRowClick={(category, event) =>
-        rowNav(event, "category", category.id, () => onView(category.slug), () => onEdit(category.slug))}
+        rowNav(event, () => onView(category.slug), () => onEdit(category.slug))}
     />
   );
 }

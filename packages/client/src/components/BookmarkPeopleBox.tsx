@@ -5,11 +5,7 @@ import { Fragment } from "react";
 import { Link } from "@tanstack/react-router";
 import { User } from "lucide-react";
 
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-
 import { Badge } from "@/components/ui/badge";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface PeopleBoxProps {
   people: BookmarkPerson[];
@@ -23,8 +19,6 @@ interface PeopleBoxProps {
 export function BookmarkPeopleBadges({
   people,
 }: PeopleBoxProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <div className="flex flex-wrap items-center gap-1">
       {people.map(person => (
@@ -34,8 +28,7 @@ export function BookmarkPeopleBadges({
           params={{
             personSlug: person.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "person", person.id, person.slug)}
+          title={person.name}
         >
           <Badge
             variant="secondary"
@@ -58,8 +51,6 @@ export function BookmarkPeopleBadges({
 export function BookmarkPeopleLinks({
   people,
 }: PeopleBoxProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <span className="text-sm">
       {people.map((person, index) => (
@@ -70,8 +61,7 @@ export function BookmarkPeopleLinks({
             params={{
               personSlug: person.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "person", person.id, person.slug)}
+            title={person.name}
             className="
               text-primary
               hover:underline

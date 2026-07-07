@@ -47,9 +47,7 @@ const meta = {
     expanded: false,
     setExpanded: () => {},
     pathname: "/bookmarks",
-    modifier: "alt",
     sidebarState: "expanded",
-    onViewClick: () => {},
   },
 } satisfies Meta<typeof SidebarCategoriesSection>;
 

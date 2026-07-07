@@ -30,7 +30,7 @@ export function PersonTable({
       data={people}
       sortable
       onRowClick={(person, event) =>
-        rowNav(event, "person", person.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/taxonomies/people/$personSlug",
             params: {

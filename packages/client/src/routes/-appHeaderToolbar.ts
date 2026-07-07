@@ -4,7 +4,6 @@ import type { ToolbarAction } from "@/components/header/toolbarActions";
 import { resolveAddChild, resolvePinContext } from "./-appHeaderData";
 
 import { buildToolbarActions } from "@/components/header/toolbarActions";
-import { usePanelControls } from "@/components/panel/usePanelControls";
 import { findSettingsPage } from "@/lib/settingsPages";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -16,8 +15,8 @@ type ToolbarBreadcrumbData = Pick<
 
 /**
  * Builds the right-side header toolbar actions for the current path. Owns the pin / add-child
- * resolution, the settings-page lookup, the panel controls, and the listing/bulk `uiStore`
- * selectors, so the `AppHeader` component stays thin and under the complexity cap.
+ * resolution, the settings-page lookup, and the listing/bulk `uiStore` selectors, so the
+ * `AppHeader` component stays thin and under the complexity cap.
  */
 export function useHeaderToolbarActions(
   pathname: string,
@@ -49,17 +48,13 @@ export function useHeaderToolbarActions(
     currentTag,
   });
 
-  const {
-    open,
-  } = usePanelControls();
-
   const listingPage = useUiStore(state => state.listingPage);
   const bulkSelectPageKey = useUiStore(state => state.bulkSelectPageKey);
   const syncProvider = useUiStore(state => state.syncProvider);
 
   // Right-side toolbar controls in canonical left→right order. The builder owns ordering and
   // conditional presence; `HeaderToolbar` renders the inline row on wide screens and collapses
-  // everything but the panel toggle into a More menu on small screens.
+  // everything into a More menu on small screens.
   return buildToolbarActions({
     pathParts,
     listingPage,
@@ -69,7 +64,6 @@ export function useHeaderToolbarActions(
     addChild,
     settingsPage,
     pinContext,
-    openPanel: open,
     syncProvider,
   });
 }

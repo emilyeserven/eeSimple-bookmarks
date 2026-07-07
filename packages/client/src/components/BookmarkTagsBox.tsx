@@ -4,13 +4,10 @@ import { Fragment } from "react";
 
 import { Link } from "@tanstack/react-router";
 
-import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { ScrollFadeBox } from "./ScrollFadeBox";
 import { TagHierarchyHoverCard } from "./TagHierarchyHoverCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface TagsBoxProps {
   tags: BookmarkTag[];
@@ -22,9 +19,6 @@ interface TagsBoxProps {
 export function BookmarkTagsBox({
   tags, showHierarchyOnHover = false,
 }: TagsBoxProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
-
   return (
     <ScrollFadeBox itemCount={tags.length}>
       {tags.map((tag) => {
@@ -34,8 +28,7 @@ export function BookmarkTagsBox({
             params={{
               tagSlug: tag.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "tag", tag.id, tag.slug)}
+            title={tag.name}
           >
             <Badge variant="secondary">{tag.name}</Badge>
           </Link>
@@ -64,8 +57,6 @@ export function BookmarkTagsBox({
 export function BookmarkTagLinks({
   tags, showHierarchyOnHover = false,
 }: TagsBoxProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <span className="text-sm">
       {tags.map((tag, index) => {
@@ -75,8 +66,7 @@ export function BookmarkTagLinks({
             params={{
               tagSlug: tag.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "tag", tag.id, tag.slug)}
+            title={tag.name}
             className="
               text-primary
               hover:underline

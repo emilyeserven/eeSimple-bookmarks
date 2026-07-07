@@ -6,12 +6,9 @@ import { Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
 
 import { LocationHierarchyHoverCard } from "./LocationHierarchyHoverCard";
-import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { ScrollFadeBox } from "./ScrollFadeBox";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface LocationsBoxProps {
   locations: BookmarkLocation[];
@@ -23,9 +20,6 @@ interface LocationsBoxProps {
 export function BookmarkLocationsBox({
   locations,
 }: LocationsBoxProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
-
   return (
     <ScrollFadeBox itemCount={locations.length}>
       {locations.map(location => (
@@ -35,8 +29,7 @@ export function BookmarkLocationsBox({
             params={{
               locationSlug: location.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "location", location.id, location.slug)}
+            title={location.name}
           >
             <Badge
               variant="secondary"
@@ -60,8 +53,6 @@ export function BookmarkLocationsBox({
 export function BookmarkLocationBadges({
   locations, showHierarchyOnHover = false,
 }: LocationsBoxProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <div className="flex flex-wrap items-center gap-1">
       {locations.map((location) => {
@@ -71,8 +62,7 @@ export function BookmarkLocationBadges({
             params={{
               locationSlug: location.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "location", location.id, location.slug)}
+            title={location.name}
           >
             <Badge
               variant="secondary"
@@ -107,8 +97,6 @@ export function BookmarkLocationBadges({
 export function BookmarkLocationLinks({
   locations, showHierarchyOnHover = false,
 }: LocationsBoxProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <span className="text-sm">
       {locations.map((location, index) => {
@@ -118,8 +106,7 @@ export function BookmarkLocationLinks({
             params={{
               locationSlug: location.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "location", location.id, location.slug)}
+            title={location.name}
             className="
               text-primary
               hover:underline

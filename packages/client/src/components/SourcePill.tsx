@@ -5,11 +5,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Globe, MonitorPlay } from "lucide-react";
 
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-
 import { Badge } from "@/components/ui/badge";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 type Props
   = {
@@ -27,8 +23,6 @@ export function SourcePill({
   data,
 }: Props) {
   const [imgError, setImgError] = useState(false);
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
 
   const imageUrl = data.imageUrl;
   const showImage = !!imageUrl && !imgError;
@@ -67,8 +61,7 @@ export function SourcePill({
         params={{
           websiteSlug: data.slug,
         }}
-        title={entityLinkTitle(modifier)}
-        onClick={event => viewClick(event, "website", data.id, data.slug)}
+        title={data.siteName}
       >
         {badge}
       </Link>
@@ -81,8 +74,7 @@ export function SourcePill({
       params={{
         channelSlug: data.slug,
       }}
-      title={entityLinkTitle(modifier)}
-      onClick={event => viewClick(event, "youtube-channel", data.id, data.slug)}
+      title={data.name}
     >
       {badge}
     </Link>

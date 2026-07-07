@@ -216,8 +216,6 @@ export function AppSidebar({
     placeTypesCount,
     locationRelationsCount,
     groupTypesCount,
-    modifier,
-    viewClick,
     hiddenSidebarGroups,
     advanced,
   } = useAppSidebarData(taxonomyItems, customizationItems);
@@ -288,9 +286,7 @@ export function AppSidebar({
               expanded={categoriesExpanded}
               setExpanded={setCategoriesExpanded}
               pathname={pathname}
-              modifier={modifier}
               sidebarState={state}
-              onViewClick={(event, id) => viewClick(event, "category", id)}
             />
           )
           : null}

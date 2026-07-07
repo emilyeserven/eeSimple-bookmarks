@@ -453,14 +453,6 @@ export function useAutoFetchImage(): boolean {
   return data?.autoFetchImage ?? AUTOMATION_DEFAULTS.autoFetchImage;
 }
 
-/** The modifier key that opens an item in the drawer when held during an Edit click (default "alt"). */
-export function useSidebarOpenModifier(): SidebarOpenModifier {
-  const {
-    data,
-  } = useAutomationSettings();
-  return data?.sidebarOpenModifier ?? AUTOMATION_DEFAULTS.sidebarOpenModifier;
-}
-
 /** Display/detail preferences (group C): detail media sizing, filter placement, pin, cropped ratio. */
 export function useDisplayPreferenceSettings() {
   return useQuery({
@@ -563,14 +555,6 @@ export function useOnDemandFilters(): string[] {
   return data?.onDemandFilters ?? DISPLAY_PREFERENCE_DEFAULTS.onDemandFilters;
 }
 
-/** Whether the right-hand panel docks as a persistent column by default (default false). */
-export function usePanelPinned(): boolean {
-  const {
-    data,
-  } = useDisplayPreferenceSettings();
-  return data?.panelPinned ?? DISPLAY_PREFERENCE_DEFAULTS.panelPinned;
-}
-
 /** Minimum boundary area (km²) for an "area"-mode location to still render as a polygon (default 0 = off). */
 export function useMinAreaPinThresholdKm2(): number {
   const {
@@ -585,14 +569,6 @@ export function useMapPinScale(): number {
     data,
   } = useDisplayPreferenceSettings();
   return data?.mapPinScale ?? DISPLAY_PREFERENCE_DEFAULTS.mapPinScale;
-}
-
-/** Viewport widths (px) below which the drawer floats even when pinned (default [768]). */
-export function useDrawerUnpinnedBreakpoints(): number[] {
-  const {
-    data,
-  } = useDisplayPreferenceSettings();
-  return data?.drawerUnpinnedBreakpoints ?? DISPLAY_PREFERENCE_DEFAULTS.drawerUnpinnedBreakpoints;
 }
 
 /** Width component of the built-in "Cropped" aspect ratio (default 16). */

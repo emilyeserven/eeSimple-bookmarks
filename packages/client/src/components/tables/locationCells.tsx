@@ -6,13 +6,9 @@ import { Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
 
 import { TreeExpandToggle } from "./cells";
-import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 import i18n from "../../i18n";
 import { placeTypeLabel } from "../../lib/locationLevels";
 import { LocalizedNameLabel } from "../LocalizedNameLabel";
-import { useViewPanelClick } from "../panel/useEditPanelClick";
-
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** Name cell for the Locations table: indentation + expand toggle + map-pin icon + a detail link. */
 export function LocationNameCell({
@@ -20,8 +16,6 @@ export function LocationNameCell({
 }: {
   row: Row<LocationNode>;
 }) {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return (
     <div
       className="flex items-center gap-1"
@@ -36,8 +30,7 @@ export function LocationNameCell({
         params={{
           locationSlug: row.original.slug,
         }}
-        title={entityLinkTitle(modifier)}
-        onClick={event => viewClick(event, "location", row.original.id, row.original.slug)}
+        title={row.original.name}
         className="
           font-medium
           hover:underline

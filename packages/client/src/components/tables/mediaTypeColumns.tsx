@@ -7,19 +7,14 @@ import { Link } from "@tanstack/react-router";
 
 import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
-import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 import i18n from "../../i18n";
-import { useViewPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { builtInName } from "@/lib/builtInName";
 import { CategoryIcon } from "@/lib/icons";
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** Column definitions for the Media Types listing Table view (a flattened, expandable tree). */
 export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return useMemo(
     () => [
       {
@@ -44,8 +39,7 @@ export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
               params={{
                 mediaTypeSlug: row.original.slug,
               }}
-              title={entityLinkTitle(modifier)}
-              onClick={event => viewClick(event, "media-type", row.original.id, row.original.slug)}
+              title={builtInName(row.original, i18n.t)}
               className="
                 font-medium
                 hover:underline
@@ -59,6 +53,6 @@ export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
       },
       bookmarkCountColumn<MediaTypeNode>(),
     ],
-    [viewClick, modifier],
+    [],
   );
 }

@@ -30,7 +30,7 @@ export function PropertyGroupTable({
       data={data}
       sortable
       onRowClick={(group, event) =>
-        rowNav(event, "property-group", group.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/taxonomies/property-groups/$propertyGroupSlug",
             params: {

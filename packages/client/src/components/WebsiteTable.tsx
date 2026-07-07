@@ -30,7 +30,7 @@ export function WebsiteTable({
       data={websites}
       sortable
       onRowClick={(website, event) =>
-        rowNav(event, "website", website.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/taxonomies/websites/$websiteSlug",
             params: {

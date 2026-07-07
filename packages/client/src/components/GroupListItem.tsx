@@ -4,10 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { BookOpen, Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "../lib/sidebarModifier";
 
 interface GroupListItemProps {
   group: Group;
@@ -28,9 +25,6 @@ export function GroupListItem({
   const {
     t,
   } = useTranslation();
-  const editClick = useEditPanelClick();
-  const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
 
   const primaryWebsite = group.labeledWebsites[0];
   const websiteLabel = primaryWebsite
@@ -79,10 +73,9 @@ export function GroupListItem({
             params={{
               groupSlug: group.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: group.name,
             })}
-            onClick={event => editClick(event, "group", group.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">{t("Edit {{name}}", {
@@ -99,8 +92,9 @@ export function GroupListItem({
             params={{
               groupSlug: group.slug,
             }}
-            title={entityLinkTitle(modifier)}
-            onClick={event => viewClick(event, "group", group.id, group.slug)}
+            title={t("View {{name}}", {
+              name: group.name,
+            })}
           >
             <Info className="size-4" />
             <span className="sr-only">{t("View {{name}}", {

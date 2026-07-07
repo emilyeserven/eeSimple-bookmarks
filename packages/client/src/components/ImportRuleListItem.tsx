@@ -4,13 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { Badge } from "@/components/ui/badge";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 const ACTION_BADGE_VARIANTS: Record<ImportRuleAction, "default" | "secondary" | "destructive" | "outline"> = {
   approve: "default",
@@ -38,9 +35,6 @@ export function ImportRuleListItem({
   const {
     t,
   } = useTranslation();
-  const viewClick = useViewPanelClick();
-  const editClick = useEditPanelClick();
-  const modifier = useSidebarOpenModifier();
 
   return (
     <StandardListingCard
@@ -61,8 +55,9 @@ export function ImportRuleListItem({
           params={{
             ruleSlug: rule.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "import-rule", rule.id, rule.slug)}
+          title={t("View {{name}}", {
+            name: rule.name,
+          })}
           className={className}
         >
           {children}
@@ -75,10 +70,9 @@ export function ImportRuleListItem({
             params={{
               ruleSlug: rule.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: rule.name,
             })}
-            onClick={event => editClick(event, "import-rule", rule.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">{t("Edit {{name}}", {

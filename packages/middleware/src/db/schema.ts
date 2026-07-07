@@ -1809,6 +1809,9 @@ export const appSettings = pgTable("app_settings", {
   // when APP_SECRET is configured. Nullable = push-safe additive; the YOUTUBE_API_KEY env var is
   // used as fallback when null.
   youtubeApiKey: text("youtube_api_key"),
+  // YouTube embed host preference (Settings → Connectors): true/null = privacy-enhanced
+  // youtube-nocookie.com (the default); false = plain youtube.com. Nullable = push-safe additive.
+  useNoCookieYoutubeEmbeds: boolean("use_no_cookie_youtube_embeds"),
   // Image-URL blacklist (Settings → Connectors): patterns that exclude matching candidate images
   // from a URL scan. Display/scan-only, never touches the bookmark cache. Nullable = push-safe
   // additive; the service reads `?? []`.

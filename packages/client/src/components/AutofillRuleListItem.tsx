@@ -4,13 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { Badge } from "@/components/ui/badge";
-import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface RuleListItemProps {
   rule: AutofillRule;
@@ -32,9 +29,6 @@ export function AutofillRuleListItem({
   const {
     t,
   } = useTranslation();
-  const viewClick = useViewPanelClick();
-  const editClick = useEditPanelClick();
-  const modifier = useSidebarOpenModifier();
   const categoryName = rule.setCategoryId
     ? categories.find(category => category.id === rule.setCategoryId)?.name
     : null;
@@ -55,8 +49,9 @@ export function AutofillRuleListItem({
           params={{
             ruleSlug: rule.slug,
           }}
-          title={entityLinkTitle(modifier)}
-          onClick={event => viewClick(event, "autofill", rule.id, rule.slug)}
+          title={t("View {{name}}", {
+            name: rule.name,
+          })}
           className={className}
         >
           {children}
@@ -69,10 +64,9 @@ export function AutofillRuleListItem({
             params={{
               ruleSlug: rule.slug,
             }}
-            title={t("Edit (hold {{modifier}} to open in the sidebar)", {
-              modifier: SIDEBAR_MODIFIER_LABELS[modifier],
+            title={t("Edit {{name}}", {
+              name: rule.name,
             })}
-            onClick={event => editClick(event, "autofill", rule.id)}
           >
             <Pencil className="size-4" />
             <span className="sr-only">

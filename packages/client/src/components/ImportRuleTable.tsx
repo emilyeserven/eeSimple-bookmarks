@@ -30,7 +30,7 @@ export function ImportRuleTable({
       data={rules}
       sortable
       onRowClick={(rule, event) =>
-        rowNav(event, "import-rule", rule.id, () => {
+        rowNav(event, () => {
           void navigate({
             to: "/import-rules/$ruleSlug",
             params: {

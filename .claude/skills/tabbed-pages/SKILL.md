@@ -6,16 +6,15 @@ description: >-
   "give X a tabbed layout", "make X's detail/edit pages tabbed like Categories/Settings", "split the X
   page into tabs", or "add an autofill tab to X". Mirrors how Custom Properties / Websites / Media
   Types / YouTube Channels / Categories / Tags / Property Groups view and edit pages were tabbed.
-  Also covers maintaining tabs — "add/rename/remove a tab on X", "reorder X's tabs", "the panel and page tabs disagree".
+  Also covers maintaining tabs — "add/rename/remove a tab on X", "reorder X's tabs".
 ---
 
 # Convert detail/edit pages to a tabbed layout
 
-> **Read first — the tab bodies come from a shared `EntityWorkbench` descriptor, and the two surfaces
-> now render it differently.** Every slug-routed entity's tabs (view + edit bodies, titles,
-> descriptions) live in one `components/workbench/<entity>.tsx` descriptor (typed by
-> `workbench/types.ts`). Since the routing refactor there are **three surfaces**, all deriving from
-> that one descriptor:
+> **Read first — the tab bodies come from a shared `EntityWorkbench` descriptor.** Every slug-routed
+> entity's tabs (view + edit bodies, titles, descriptions) live in one
+> `components/workbench/<entity>.tsx` descriptor (typed by `workbench/types.ts`). Since the routing
+> refactor there are **two surfaces**, both deriving from that one descriptor:
 >
 > - **View / Info page** — a **single** `…/$slug/info` route rendering `components/workbench/EntityInfoView.tsx`,
 >   a **vertical** tab rail whose active tab is a **`?tab=<key>` search param** (e.g.
@@ -23,10 +22,8 @@ description: >-
 >   `view` pane, honoring `showIf`); each body is a `WorkbenchRouteTab` (`mode="view"`). **There are no
 >   `_view.tsx` / `_view.<tab>.tsx` route files** — that whole pathless subtree and the `viewNav` array
 >   are gone. A view-only tab (e.g. Hierarchy) is just a `view`-only `WorkbenchTab` in the descriptor.
-> - **Edit pages** — **unchanged**: the horizontal `TabbedEntityLayout` + real path-segment
+> - **Edit pages** — the horizontal `TabbedEntityLayout` + real path-segment
 >   `…/$slug/edit/<tab>` route files, each a one-line `WorkbenchRouteTab` (`mode="edit"`).
-> - **Right panel** — renders all tabs via `EntityWorkbenchView` (horizontal `TabbedShell`, controlled
->   by `dTab`) — unchanged.
 >
 > The per-entity `createTabWrapper` / `<Entity>TabWrapper` pattern below is **superseded** for new
 > tabbed entities — only `BookmarkEditTabWrapper` still uses it. Prefer a descriptor; the wrapper
@@ -37,7 +34,7 @@ Settings and the entity **edit** pages render a **horizontal scrolling tab strip
 **vertical** rail beside the active tab body, selected by `?tab=`. This skill restructures an entity
 that currently has one long detail page and one long edit form into that shape. The edit shell is
 `TabbedShell` — a horizontal, horizontally-scrollable tab strip (`navStripClass`) on **every** surface
-(full-width edit page, phone, and the right drawer); the old wide-screen vertical-sidebar mode was
+(full-width edit page and phone); the old wide-screen vertical-sidebar mode was
 removed in #578. Copy whichever entity is closest:
 
 - **Custom Properties** — the most complete (read-only View *and* Edit, a **conditional** tab, plus a
@@ -115,8 +112,8 @@ Pass the hook **by reference** (not wrapped in an arrow) so `react-hooks/rules-o
 Export each section's **body** (no `LabeledSection`/title wrapper) from the existing `*Detail`, e.g.
 `PropertyGeneralFields`, `PropertyOptionsFields`, `PropertyCategoriesContent`, `PropertyDisplayFields`
 in `PropertyDetail.tsx` (or `CategoryGeneralFields` in `CategoryPreviewCard.tsx`). The whole `*Detail`
-recomposes them under `LabeledSection` + `Separator` (so the **right panel keeps using the whole
-`*Detail`** — right-panel parity), while each view-tab route renders one bare body inside the wrapper.
+recomposes them under `LabeledSection` + `Separator`, while each view-tab route renders one bare body
+inside the wrapper.
 - **Gotcha:** `react-refresh/only-export-components` — a file that exports components must not also
   export plain functions. Put helpers like `hasPropertyOptions` in a `lib/*.ts`. (Where a file
   genuinely must mix the two — as `lib/form.tsx` and `TabWrapper.tsx` do — add a file-level
@@ -125,8 +122,7 @@ recomposes them under `LabeledSection` + `Separator` (so the **right panel keeps
 ### 3. Extract shared form pieces from `*Form`
 Move reusable subcomponents (e.g. `CategoryCheckboxList`, `OperandCheckboxList` →
 `PropertyFormFields.tsx`) and pure helpers/constants/zod bits (`toggleId`, `summarize*`, option
-arrays → `lib/propertyForm.ts`). The **whole `*Form` stays** for the create page + right panel and
-re-imports them.
+arrays → `lib/propertyForm.ts`). The **whole `*Form` stays** for the create page and re-imports them.
 
 ### 4. Per-tab edit forms (`packages/client/src/components/<Entity><Tab>Form.tsx`)
 Each tab is an **independent** `useAppForm` that saves a **partial** update via
@@ -227,10 +223,6 @@ the view and edit autofill tabs.
   (`categoryProps` in `AutofillRuleForm.tsx`), so there's no coherent default to prefill from a
   property with no category — the "New Autofill Rule" button just opens the standard create form.
 
-### 7. Leave the right panel alone
-The panel's content type keeps reusing the **whole** `*Detail` / `*Form` in its narrow column. Don't
-build panel-only tabbed variants — `contentTypes.tsx` needs no change.
-
 ## Verify
 
 ```
@@ -246,16 +238,15 @@ Then run `pnpm dev` and check that the entity:
   search param and conditional tabs appear/disappear by type,
 - has an **Edit** link on the Info page that preserves the active `?tab=` (e.g. clicking Edit from the
   "Options" tab lands on the edit "Options" tab, not "General"); tabs without an edit counterpart fall
-  back to "General"; each edit tab saves independently and the tab reloads correctly,
-- (if added) shows only the autofill rules scoped to the entity on its Autofill tab, and
-- still works in the right panel via the whole `*Detail` / `*Form`.
+  back to "General"; each edit tab saves independently and the tab reloads correctly, and
+- (if added) shows only the autofill rules scoped to the entity on its Autofill tab.
 ```
 
 ## Maintaining an existing tabbed entity
 
 - **Add / rename / remove a tab in one place**: the entity's `EntityWorkbench` descriptor
-  (`components/workbench/<entity>.tsx`) — the Info rail (`EntityInfoView`), the edit routes
-  (`WorkbenchRouteTab`), and the right panel (`EntityWorkbenchView`) all derive from it. Adding a
+  (`components/workbench/<entity>.tsx`) — the Info rail (`EntityInfoView`) and the edit routes
+  (`WorkbenchRouteTab`) both derive from it. Adding a
   **view** tab is descriptor-only (it appears in the vertical Info rail automatically — no route
   file). Adding an **edit** tab also needs its `edit.<tab>.tsx` route + `editNav`/`VIEW_TO_EDIT`
   entries. A rename needs no breadcrumb work (`crumbLabel()` title-cases the slug; only oddities go in
@@ -263,5 +254,5 @@ Then run `pnpm dev` and check that the entity:
 - **Removing a tab**: for a view tab, just drop it from the descriptor; for an edit tab, also delete
   its `edit.<tab>.tsx` route file and its `editNav`/`VIEW_TO_EDIT` entries. A view-only tab (e.g.
   Hierarchy) must never appear in `VIEW_TO_EDIT`.
-- **Panel/page drift** ("the drawer shows a different tab set") means someone bypassed the
+- **Tab drift** ("the Info rail and edit tabs show a different tab set") means someone bypassed the
   descriptor — fold the stray tab back into it rather than patching one surface.

@@ -10,11 +10,12 @@ import { AppSyncModal } from "@/components/AppSyncModal";
 import { HeaderBreadcrumbs } from "@/components/header/HeaderBreadcrumbs";
 import { HeaderProgressIndicators } from "@/components/header/HeaderProgressIndicators";
 import { HeaderToolbar } from "@/components/header/HeaderToolbar";
+import { NotificationsBellPopover } from "@/components/NotificationsBellPopover";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-/** Top app bar: sidebar trigger, breadcrumbs derived from the path, and the panel toggle. */
+/** Top app bar: sidebar trigger, breadcrumbs derived from the path, notifications, and the toolbar. */
 export function AppHeader() {
   const {
     t,
@@ -58,6 +59,7 @@ export function AppHeader() {
             <Settings className="size-4" />
           </Link>
         </Button>
+        <NotificationsBellPopover />
         <HeaderToolbar actions={toolbarActions} />
       </div>
       <AppAddBookmarkModal />

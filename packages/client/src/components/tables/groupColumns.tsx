@@ -9,11 +9,9 @@ import { EditActionCell, ImageCell } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import { formatAdded } from "./inboxColumns";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 /** Column definitions for the Groups listing Table view. */
 export function useGroupColumns(): ColumnDef<Group>[] {
-  const editClick = useEditPanelClick();
   return useMemo(
     () => [
       {
@@ -73,11 +71,10 @@ export function useGroupColumns(): ColumnDef<Group>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "group", row.original.id)}
           />
         ),
       },
     ],
-    [editClick],
+    [],
   );
 }

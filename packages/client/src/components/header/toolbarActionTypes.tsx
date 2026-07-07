@@ -47,7 +47,6 @@ export interface ToolbarContext {
     parentId: string | undefined; } | null;
   settingsPage: SettingsPage | null | undefined;
   pinContext: PinContext | null;
-  openPanel: () => void;
   /** The mounted edit form's outside-source sync provider, or null. Gates the "Sync from source" button. */
   syncProvider: SyncProvider | null;
 }

@@ -15,6 +15,9 @@ function makeStatus(overrides: Partial<ConnectorsStatus> = {}): ConnectorsStatus
     youtubeDataApi: {
       enabled: false,
     },
+    youtubeEmbed: {
+      useNoCookie: true,
+    },
     instagram: {
       apiKey: false,
     },

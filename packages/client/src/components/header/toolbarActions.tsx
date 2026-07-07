@@ -9,7 +9,6 @@ import {
   addChildAction,
   createListingAction,
   homepageSettingsAction,
-  openPanelAction,
   pinAction,
   settingsFavoriteAction,
 } from "./toolbarEntityActions";
@@ -24,7 +23,7 @@ export type { ToolbarAction, ToolbarContext, ToolbarMobile } from "./toolbarActi
 /**
  * The canonical, ordered header toolbar actions (left → right). The array order is the single source
  * of button order, applied identically to the desktop row and the small-screen More menu. Only
- * present ones render; the panel toggle is always last (the rightmost control).
+ * present ones render.
  */
 export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
   return [
@@ -39,6 +38,5 @@ export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
     settingsFavoriteAction(ctx),
     pinAction(ctx),
     homepageSettingsAction(ctx),
-    openPanelAction(ctx),
   ].filter((action): action is ToolbarAction => action !== null);
 }

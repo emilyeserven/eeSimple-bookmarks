@@ -87,7 +87,7 @@ export function EditActionCell({
 }: { to: string;
   params: Record<string, string>;
   label: string;
-  onClick: (event: React.MouseEvent) => void; }) {
+  onClick?: (event: React.MouseEvent) => void; }) {
   return (
     <div
       className="flex justify-end"

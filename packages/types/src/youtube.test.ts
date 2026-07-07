@@ -56,9 +56,18 @@ test("isYouTubeVideoUrl mirrors parseYouTubeVideo", () => {
   assert.equal(isYouTubeVideoUrl("https://example.com"), false);
 });
 
-test("youtubeEmbedUrl builds a nocookie embed URL or null", () => {
+test("youtubeEmbedUrl builds a nocookie embed URL by default, or null", () => {
   assert.equal(youtubeEmbedUrl(`https://youtu.be/${ID}`), `https://www.youtube-nocookie.com/embed/${ID}`);
   assert.equal(youtubeEmbedUrl("https://example.com"), null);
+});
+
+test("youtubeEmbedUrl honors the useNoCookie flag", () => {
+  assert.equal(
+    youtubeEmbedUrl(`https://youtu.be/${ID}`, true),
+    `https://www.youtube-nocookie.com/embed/${ID}`,
+  );
+  assert.equal(youtubeEmbedUrl(`https://youtu.be/${ID}`, false), `https://www.youtube.com/embed/${ID}`);
+  assert.equal(youtubeEmbedUrl("https://example.com", false), null);
 });
 
 test("channelUrlFromKey routes handles, channel ids, and vanity names", () => {

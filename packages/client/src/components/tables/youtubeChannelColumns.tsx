@@ -8,11 +8,9 @@ import { MonitorPlay } from "lucide-react";
 import { EditActionCell, ImageCell } from "./cells";
 import { bookmarkCountColumn, categoryPillColumn } from "./columnHelpers";
 import i18n from "../../i18n";
-import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 /** Column definitions for the YouTube Channels listing Table view. */
 export function useYouTubeChannelColumns(): ColumnDef<YouTubeChannel>[] {
-  const editClick = useEditPanelClick();
   return useMemo(
     () => [
       {
@@ -57,11 +55,10 @@ export function useYouTubeChannelColumns(): ColumnDef<YouTubeChannel>[] {
             label={i18n.t("Edit {{name}}", {
               name: row.original.name,
             })}
-            onClick={event => editClick(event, "youtube-channel", row.original.id)}
           />
         ),
       },
     ],
-    [editClick],
+    [],
   );
 }
