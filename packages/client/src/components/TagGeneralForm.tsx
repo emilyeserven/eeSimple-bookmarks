@@ -21,6 +21,7 @@ import { tagNodesToOptions } from "../lib/tagTree";
 const LABELS: Record<keyof UpdateTagInput, string> = {
   name: "Name",
   parentId: "Parent",
+  description: "Description",
   editableOnCard: "Editable on card",
   excludeFromBackfill: "Exclude from backfilling",
 };
@@ -54,6 +55,7 @@ export function TagGeneralForm({
     initial: {
       name: node.name,
       parentId: node.parentId,
+      description: node.description ?? null,
       editableOnCard: node.editableOnCard ?? false,
       excludeFromBackfill: node.excludeFromBackfill ?? false,
     },
@@ -65,6 +67,7 @@ export function TagGeneralForm({
     defaultValues: {
       name: node.name,
       parent: node.parentId ?? "",
+      description: node.description ?? "",
     },
     validators: {
       onChange: tagSchema,
@@ -108,6 +111,21 @@ export function TagGeneralForm({
         value={primaryLanguage.primaryLanguageId}
         onValueChange={v => primaryLanguage.setPrimaryLanguage(v, form.state.values.name)}
       />
+
+      <form.AppField name="description">
+        {field => (
+          <field.TextareaField
+            label={t("Description")}
+            onBlur={() => autoSave.saveField(
+              "description",
+              field.state.value.trim() || null,
+              {
+                valid: field.state.meta.errors.length === 0,
+              },
+            )}
+          />
+        )}
+      </form.AppField>
 
       <div className="space-y-1">
         <Label>{t("Names")}</Label>

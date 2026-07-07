@@ -35,6 +35,9 @@ const createNewsletterBody = {
       type: "string",
       minLength: 1,
     },
+    description: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -45,6 +48,9 @@ const updateNewsletterBody = {
     name: {
       type: "string",
       minLength: 1,
+    },
+    description: {
+      type: ["string", "null"],
     },
     categoryId: {
       type: ["string", "null"],

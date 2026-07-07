@@ -137,6 +137,7 @@ export function geocodedAncestorsToDrafts(
 export const locationSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   englishName: z.string(),
+  description: z.string(),
   latitude: z.number(),
   longitude: z.number(),
   mapUrl: z.string(),

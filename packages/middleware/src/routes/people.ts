@@ -52,6 +52,9 @@ const createPersonBody = {
       type: "string",
       minLength: 1,
     },
+    description: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -81,6 +84,9 @@ const updatePersonBody = {
     name: {
       type: "string",
       minLength: 1,
+    },
+    description: {
+      type: ["string", "null"],
     },
     personWebsiteUrl: {
       type: ["string", "null"],

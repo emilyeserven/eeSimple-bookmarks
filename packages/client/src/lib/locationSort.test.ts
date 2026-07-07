@@ -11,6 +11,7 @@ function node(name: string, placeType: string | null, children: LocationNode[] =
     id: name,
     name,
     slug: name.toLowerCase(),
+    description: null,
     alternateNames: [],
     latitude: null,
     longitude: null,

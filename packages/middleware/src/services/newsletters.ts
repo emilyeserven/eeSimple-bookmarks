@@ -57,6 +57,7 @@ function toNewsletter(
     id: row.id,
     name: row.name,
     slug: row.slug ?? slugify(row.name),
+    description: row.description,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
@@ -82,6 +83,7 @@ const newsletterSelect = {
   id: newsletters.id,
   name: newsletters.name,
   slug: newsletters.slug,
+  description: newsletters.description,
   categoryId: newsletters.categoryId,
   mediaTypeId: newsletters.mediaTypeId,
   createdAt: newsletters.createdAt,
@@ -136,6 +138,7 @@ export async function createNewsletter(input: CreateNewsletterInput): Promise<Ne
     .values({
       name,
       slug,
+      description: input.description ?? null,
     })
     .returning({
       id: newsletters.id,
@@ -166,6 +169,15 @@ export async function updateNewsletter(
         })
         .where(eq(newsletters.id, id));
     }
+  }
+
+  if (input.description !== undefined) {
+    await db
+      .update(newsletters)
+      .set({
+        description: input.description ?? null,
+      })
+      .where(eq(newsletters.id, id));
   }
 
   if ("categoryId" in input) {

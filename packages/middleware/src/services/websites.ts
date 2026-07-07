@@ -193,6 +193,7 @@ function toWebsite(
     domain: row.domain,
     siteName: row.siteName,
     slug: row.slug ?? slugFromDomain(row.domain),
+    description: row.description,
     builtIn: row.builtIn,
     shortenedLinks: row.shortenedLinks,
     paramRules: row.paramRules,
@@ -224,6 +225,7 @@ const websiteSelect = {
   domain: websites.domain,
   siteName: websites.siteName,
   slug: websites.slug,
+  description: websites.description,
   builtIn: websites.builtIn,
   shortenedLinks: websites.shortenedLinks,
   paramRules: websites.paramRules,
@@ -520,6 +522,7 @@ export async function createWebsite(input: CreateWebsiteInput): Promise<Website>
     domain,
     siteName,
     slug,
+    description: input.description ?? null,
     ...(input.shortenedLinks !== undefined && {
       shortenedLinks: input.shortenedLinks,
     }),
@@ -548,7 +551,7 @@ export async function updateWebsite(
     throw new BuiltInWebsiteError("A built-in website cannot be renamed or moved");
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "alternateNames" | "redirectResolutionFailure">> = buildWebsiteScalarPatch(input);
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "alternateNames" | "redirectResolutionFailure">> = buildWebsiteScalarPatch(input);
   if (input.domain !== undefined) {
     const domain = normalizeWebsiteDomain(input.domain);
     const [clash] = await db.select({

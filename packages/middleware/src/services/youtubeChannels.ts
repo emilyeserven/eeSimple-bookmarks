@@ -219,6 +219,7 @@ function toYouTubeChannel(
     id: row.id,
     channelKey: row.channelKey,
     name: row.name,
+    description: row.description ?? null,
     slug: row.slug ?? slugify(row.name),
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -250,6 +251,7 @@ export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
       id: youtubeChannels.id,
       channelKey: youtubeChannels.channelKey,
       name: youtubeChannels.name,
+      description: youtubeChannels.description,
       slug: youtubeChannels.slug,
       createdAt: youtubeChannels.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.youtubeChannelId, youtubeChannels.id)),
@@ -286,6 +288,7 @@ const channelSelect = {
   id: youtubeChannels.id,
   channelKey: youtubeChannels.channelKey,
   name: youtubeChannels.name,
+  description: youtubeChannels.description,
   slug: youtubeChannels.slug,
   categoryId: youtubeChannels.categoryId,
   createdAt: youtubeChannels.createdAt,
@@ -426,6 +429,15 @@ export async function updateYouTubeChannel(
     }
   }
 
+  if (input.description !== undefined) {
+    await db
+      .update(youtubeChannels)
+      .set({
+        description: input.description ?? null,
+      })
+      .where(eq(youtubeChannels.id, id));
+  }
+
   if (input.selfIds !== undefined) {
     await setSelfIds(db, id, input.selfIds);
   }
@@ -493,6 +505,7 @@ export async function createYouTubeChannel(input: CreateYouTubeChannelInput): Pr
     .values({
       channelKey,
       name,
+      description: input.description ?? null,
       slug,
     })
     .returning({

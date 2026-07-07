@@ -7,6 +7,7 @@ const baseType: RelationshipType = {
   id: "rt-parent-child",
   name: "Parent / Child",
   slug: "parent-child",
+  description: null,
   directional: true,
   builtIn: true,
   sortOrder: 0,

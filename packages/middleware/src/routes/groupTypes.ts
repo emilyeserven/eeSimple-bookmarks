@@ -41,6 +41,9 @@ const createGroupTypeBody = {
       type: "string",
       minLength: 1,
     },
+    description: {
+      type: ["string", "null"],
+    },
     sortOrder: {
       type: "integer",
     },
@@ -54,6 +57,9 @@ const updateGroupTypeBody = {
     name: {
       type: "string",
       minLength: 1,
+    },
+    description: {
+      type: ["string", "null"],
     },
     sortOrder: {
       type: "integer",

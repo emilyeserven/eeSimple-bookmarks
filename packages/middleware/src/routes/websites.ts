@@ -117,6 +117,9 @@ const createWebsiteBody = {
       type: "string",
       minLength: 1,
     },
+    description: {
+      type: ["string", "null"],
+    },
     shortenedLinks: shortenedLinksSchema,
     paramRules: paramRulesSchema,
   },
@@ -160,6 +163,9 @@ const updateWebsiteBody = {
     domain: {
       type: "string",
       minLength: 1,
+    },
+    description: {
+      type: ["string", "null"],
     },
     shortenedLinks: shortenedLinksSchema,
     paramRules: paramRulesSchema,

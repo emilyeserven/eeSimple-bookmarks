@@ -41,6 +41,9 @@ const createTagBody = {
       type: ["string", "null"],
       format: "uuid",
     },
+    description: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 

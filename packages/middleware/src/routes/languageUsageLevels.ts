@@ -60,6 +60,9 @@ const createBody = {
     sortOrder: {
       type: "integer",
     },
+    description: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -73,6 +76,9 @@ const updateBody = {
     },
     sortOrder: {
       type: "integer",
+    },
+    description: {
+      type: ["string", "null"],
     },
   },
 } as const;

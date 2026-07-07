@@ -310,6 +310,8 @@ export const websites = pgTable("websites", {
   // URL-friendly identifier derived from the domain (e.g. "github" from "github.com"). Nullable at
   // the DB level so `drizzle-kit push` applies cleanly to existing rows; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the website's detail page.
+  description: text("description"),
   // Seeded built-ins (e.g. youtube.com) can't be renamed or deleted; auto-created sites can.
   builtIn: boolean("built_in").notNull().default(false),
   // Verified shortened-link domains that resolve to this site (e.g. youtu.be → youtube.com), with
@@ -356,6 +358,8 @@ export const mediaTypes = pgTable("media_types", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the media type's detail page.
+  description: text("description"),
   // Seeded built-ins (Video, Article, …) can't be renamed or deleted; users may add custom ones.
   builtIn: boolean("built_in").notNull().default(false),
   // Display ordering; lower sorts first. Seeded built-ins get a stable order.
@@ -388,6 +392,8 @@ export const languages = pgTable("languages", {
   isoCode: text("iso_code"),
   // Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the language's detail page.
+  description: text("description"),
   // Seeded built-ins (English, Spanish, …) can't be renamed or deleted; users may add custom ones.
   builtIn: boolean("built_in").notNull().default(false),
   // Display ordering; lower sorts first. Seeded built-ins get a stable order.
@@ -417,6 +423,8 @@ export const languageUsageLevels = pgTable("language_usage_levels", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
+  // Free-text description surfaced alongside the level.
+  description: text("description"),
   // "availability" | "proficiency"
   kind: text("kind").notNull(),
   builtIn: boolean("built_in").notNull().default(false),
@@ -559,6 +567,8 @@ export const groupTypes = pgTable("group_types", {
   name: text("name").notNull(),
   // Nullable so drizzle-kit push applies cleanly to any future rows; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the group type's detail page.
+  description: text("description"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -580,6 +590,8 @@ export const groups = pgTable("groups", {
   name: text("name").notNull(),
   // Nullable so drizzle-kit push applies cleanly to any future rows; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the group's detail page.
+  description: text("description"),
   // Optional link to an existing website entry. set null when the website is deleted.
   websiteId: uuid("website_id").references((): AnyPgColumn => websites.id, {
     onDelete: "set null",
@@ -947,6 +959,8 @@ export const relationshipTypes = pgTable("relationship_types", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the relationship type's detail page.
+  description: text("description"),
   // Whether the relationship has a direction (parent→child) rather than being symmetric.
   directional: boolean("directional").notNull().default(false),
   // Seeded built-ins (Similar, Parent/child, Opposite) can't be renamed or deleted.
@@ -973,6 +987,8 @@ export const youtubeChannels = pgTable("youtube_channels", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the channel's detail page.
+  description: text("description"),
   // Optional category association; set null when the category is deleted.
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",
@@ -1076,6 +1092,8 @@ export const newsletters = pgTable("newsletters", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name, generated on create.
   slug: text("slug").notNull(),
+  // Free-text description surfaced on the newsletter's detail page.
+  description: text("description"),
   // Optional default category applied to new bookmarks imported from this newsletter; set null when
   // the category is deleted.
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
@@ -1114,6 +1132,8 @@ export const tags = pgTable("tags", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the tag's detail page.
+  description: text("description"),
   parentId: uuid("parent_id").references((): AnyPgColumn => tags.id, {
     onDelete: "cascade",
   }),
@@ -1188,6 +1208,8 @@ export const genreMoods = pgTable("genre_moods", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the genre/mood's detail page.
+  description: text("description"),
   parentId: uuid("parent_id").references((): AnyPgColumn => genreMoods.id, {
     onDelete: "cascade",
   }),
@@ -1271,6 +1293,8 @@ export const locations = pgTable("locations", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the location's detail page.
+  description: text("description"),
   // Extra names for different romanization styles.
   alternateNames: jsonb("alternate_names").$type<LocationAlternateName[]>().notNull().default(sql`'[]'::jsonb`),
   latitude: real("latitude"),
@@ -1356,6 +1380,8 @@ export const placeTypes = pgTable("place_types", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug"),
+  // Free-text description surfaced on the place type's detail page.
+  description: text("description"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -2844,6 +2870,8 @@ export const people = pgTable("people", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  // Free-text description surfaced on the person's detail page.
+  description: text("description"),
   personWebsiteUrl: text("person_website_url"),
   biographyUrl: text("biography_url"),
   // Social media profile links. NOT NULL; pre-applied in migrate.ts.

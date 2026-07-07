@@ -23,6 +23,7 @@ const ROOT = "__root__";
 
 const LABELS: Record<keyof UpdateGenreMoodInput, string> = {
   name: "Name",
+  description: "Description",
   parentId: "Parent",
 };
 
@@ -35,7 +36,7 @@ interface GenreMoodGeneralFormProps {
   forbiddenIds: Set<string>;
 }
 
-/** Edit an entry's name and parent. Each field auto-saves (no Save button). */
+/** Edit an entry's name, description, and parent. Each field auto-saves (no Save button). */
 export function GenreMoodGeneralForm({
   node,
   allGenreMoods,
@@ -54,6 +55,7 @@ export function GenreMoodGeneralForm({
     labels: LABELS,
     initial: {
       name: node.name,
+      description: node.description ?? null,
       parentId: node.parentId,
     },
   });
@@ -76,6 +78,7 @@ export function GenreMoodGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: node.name,
+      description: node.description ?? "",
       parent: node.parentId ?? ROOT,
     },
     validators: {
@@ -112,6 +115,21 @@ export function GenreMoodGeneralForm({
               );
               primaryLanguage.syncPrimaryValue(trimmed);
             }}
+          />
+        )}
+      </form.AppField>
+
+      <form.AppField name="description">
+        {field => (
+          <field.TextareaField
+            label={t("Description")}
+            onBlur={() => autoSave.saveField(
+              "description",
+              field.state.value.trim() || null,
+              {
+                valid: field.state.meta.errors.length === 0,
+              },
+            )}
           />
         )}
       </form.AppField>

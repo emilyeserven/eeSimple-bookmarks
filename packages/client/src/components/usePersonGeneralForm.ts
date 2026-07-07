@@ -22,6 +22,7 @@ import { SOCIAL_MEDIA_PLATFORM_LABELS, socialLinkSchema } from "../lib/socialLin
 
 const personGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  description: z.string(),
   personWebsiteUrl: z.string(),
   biographyUrl: z.string(),
   socialLinks: z.array(socialLinkSchema),
@@ -29,6 +30,7 @@ const personGeneralSchema = z.object({
 
 const LABELS: Partial<Record<keyof UpdatePersonInput, string>> = {
   name: "Name",
+  description: "Description",
   personWebsiteUrl: "Person website",
   biographyUrl: "Biography URL",
   socialLinks: "Social media links",
@@ -79,6 +81,7 @@ export function usePersonGeneralForm(person: Person) {
     labels: LABELS,
     initial: {
       name: person.name,
+      description: person.description ?? null,
       personWebsiteUrl: person.personWebsiteUrl,
       biographyUrl: person.biographyUrl,
       socialLinks: person.socialLinks,
@@ -88,6 +91,7 @@ export function usePersonGeneralForm(person: Person) {
   const form = useAppForm({
     defaultValues: {
       name: person.name,
+      description: person.description ?? "",
       personWebsiteUrl: person.personWebsiteUrl ?? "",
       biographyUrl: person.biographyUrl ?? "",
     },

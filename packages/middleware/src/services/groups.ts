@@ -182,6 +182,7 @@ function toGroup(
     name: row.name,
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
+    description: row.description,
     websiteId: row.websiteId,
     website: website ?? null,
     groupTypeId: row.groupTypeId,
@@ -347,6 +348,7 @@ export async function createGroup(input: CreateGroupInput): Promise<Group> {
     .values({
       name: input.name,
       slug,
+      description: input.description ?? null,
       websiteId: input.websiteId ?? null,
       groupTypeId: input.groupTypeId ?? null,
     })
@@ -384,6 +386,9 @@ export async function updateGroup(id: string, input: UpdateGroupInput): Promise<
     updates.name = input.name;
     const takenSlugs = await takenSlugsOf(groups, groups.slug, groups.id, id);
     updates.slug = uniqueSlug(slugify(input.name), takenSlugs, "group");
+  }
+  if (input.description !== undefined) {
+    updates.description = input.description ?? null;
   }
   if ("websiteId" in input) {
     updates.websiteId = input.websiteId ?? null;

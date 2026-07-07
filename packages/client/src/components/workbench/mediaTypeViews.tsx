@@ -31,6 +31,14 @@ export function MediaTypeGeneralView({
         <dd>{new Date(mt.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{mt.slug}</dd>
+        {mt.description
+          ? (
+            <>
+              <dt className="text-muted-foreground">{t("Description")}</dt>
+              <dd>{mt.description}</dd>
+            </>
+          )
+          : null}
         {mt.parentId != null
           ? (
             <>

@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const relationshipTypeGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  description: z.string(),
   directional: z.boolean(),
 });
 
@@ -31,6 +32,7 @@ export function RelationshipTypeGeneralForm({
   } = useTranslation();
   const LABELS: Partial<Record<keyof UpdateRelationshipTypeInput, string>> = {
     name: t("Name"),
+    description: t("Description"),
     directional: t("Direction"),
   };
   const navigate = useNavigate();
@@ -41,6 +43,7 @@ export function RelationshipTypeGeneralForm({
     labels: LABELS,
     initial: {
       name: relationshipType.name,
+      description: relationshipType.description ?? null,
       directional: relationshipType.directional,
     },
   });
@@ -48,6 +51,7 @@ export function RelationshipTypeGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: relationshipType.name,
+      description: relationshipType.description ?? "",
       directional: relationshipType.directional,
     },
     validators: {
@@ -86,6 +90,21 @@ export function RelationshipTypeGeneralForm({
       {relationshipType.builtIn
         ? <p className="text-xs text-muted-foreground">{t("Built-in types can't be renamed.")}</p>
         : null}
+
+      <form.AppField name="description">
+        {field => (
+          <field.TextareaField
+            label={t("Description")}
+            onBlur={() => autoSave.saveField(
+              "description",
+              field.state.value.trim() || null,
+              {
+                valid: field.state.meta.errors.length === 0,
+              },
+            )}
+          />
+        )}
+      </form.AppField>
 
       <form.AppField name="directional">
         {field => (

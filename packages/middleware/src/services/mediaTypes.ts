@@ -138,6 +138,7 @@ function toMediaType(
     name: row.name,
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
+    description: row.description,
     icon: row.icon ?? null,
     builtIn: row.builtIn,
     sortOrder: row.sortOrder,
@@ -298,6 +299,7 @@ export async function createMediaType(input: CreateMediaTypeInput): Promise<Medi
   const [row] = await db.insert(mediaTypes).values({
     name,
     slug,
+    description: input.description ?? null,
     icon: input.icon ?? null,
     parentId,
     sortOrder: input.sortOrder ?? BUILT_IN_MEDIA_TYPES.length,
@@ -316,7 +318,9 @@ export async function updateMediaType(
     throw new BuiltInMediaTypeError("A built-in media type cannot be renamed");
   }
 
-  const patch: Partial<Pick<MediaTypeRow, "name" | "slug" | "sortOrder" | "icon" | "parentId">> = {};
+  const patch: Partial<
+    Pick<MediaTypeRow, "name" | "slug" | "description" | "sortOrder" | "icon" | "parentId">
+  > = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -326,6 +330,7 @@ export async function updateMediaType(
     patch.name = name;
     patch.slug = uniqueSlug(name, await takenSlugs(id), "media-type");
   }
+  if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.icon !== undefined) patch.icon = input.icon;
   if (input.parentId !== undefined) {

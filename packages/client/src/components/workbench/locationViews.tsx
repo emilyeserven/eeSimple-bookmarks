@@ -92,6 +92,14 @@ export function LocationGeneralView({
         <dd>{node.children.length}</dd>
         <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{node.slug}</dd>
+        {node.description
+          ? (
+            <>
+              <dt className="text-muted-foreground">{t("Description")}</dt>
+              <dd>{node.description}</dd>
+            </>
+          )
+          : null}
         <PrimaryLanguageDlRow
           ownerType="location"
           ownerId={node.id}

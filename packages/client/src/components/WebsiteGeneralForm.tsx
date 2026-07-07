@@ -82,6 +82,20 @@ export function WebsiteGeneralForm({
             />
           )}
         </form.AppField>
+        <form.AppField name="description">
+          {field => (
+            <field.TextareaField
+              label={t("Description")}
+              onBlur={() => saveField(
+                "description",
+                field.state.value.trim() || null,
+                {
+                  valid: field.state.meta.errors.length === 0,
+                },
+              )}
+            />
+          )}
+        </form.AppField>
       </div>
 
       <SelfIdsField

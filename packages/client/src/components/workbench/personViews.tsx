@@ -50,6 +50,14 @@ export function PersonGeneralView({
         <dd>{new Date(person.createdAt).toLocaleDateString()}</dd>
         <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{person.slug}</dd>
+        {person.description != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">{t("Description")}</dt>
+              <dd>{person.description}</dd>
+            </>
+          )
+          : null}
         <PrimaryLanguageDlRow
           ownerType="person"
           ownerId={person.id}

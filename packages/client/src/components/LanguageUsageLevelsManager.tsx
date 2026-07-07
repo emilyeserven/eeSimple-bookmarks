@@ -169,6 +169,7 @@ function LevelRow({
     t,
   } = useTranslation();
   const [name, setName] = useState(level.name);
+  const [description, setDescription] = useState(level.description ?? "");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const update = useUpdateLanguageUsageLevel();
   const builtInName = useBuiltInName();
@@ -198,41 +199,73 @@ function LevelRow({
     );
   }
 
+  function saveDescription() {
+    const trimmed = description.trim();
+    if (trimmed === (level.description ?? "")) return;
+    update.mutate(
+      {
+        id: level.id,
+        input: {
+          description: trimmed || null,
+        },
+      },
+      {
+        onSuccess: () => notifySuccess(t("Updated description for \"{{name}}\"", {
+          name: level.name,
+        })),
+        onError: (error) => {
+          setDescription(level.description ?? "");
+          notifyError(describeError(error));
+        },
+      },
+    );
+  }
+
   return (
-    <div className="flex items-center gap-2">
-      {level.builtIn
-        ? (
-          <div className="flex flex-1 items-center gap-2 text-sm">
-            <Lock className="size-3.5 text-muted-foreground" />
-            {builtInName(level)}
-          </div>
-        )
-        : (
-          <Input
-            className="flex-1"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            onBlur={saveName}
-            aria-label={t("Level name")}
-          />
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        {level.builtIn
+          ? (
+            <div className="flex flex-1 items-center gap-2 text-sm">
+              <Lock className="size-3.5 text-muted-foreground" />
+              {builtInName(level)}
+            </div>
+          )
+          : (
+            <Input
+              className="flex-1"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              onBlur={saveName}
+              aria-label={t("Level name")}
+            />
+          )}
+        <Badge variant="outline">{level.usageCount}</Badge>
+        {!level.builtIn && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("Delete level")}
+            onClick={() => setDeleteOpen(true)}
+          >
+            <Trash2 className="size-4" />
+          </Button>
         )}
-      <Badge variant="outline">{level.usageCount}</Badge>
-      {!level.builtIn && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={t("Delete level")}
-          onClick={() => setDeleteOpen(true)}
-        >
-          <Trash2 className="size-4" />
-        </Button>
-      )}
-      <DeleteLevelDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        level={level}
-        siblings={siblings.filter(s => s.id !== level.id)}
+        <DeleteLevelDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          level={level}
+          siblings={siblings.filter(s => s.id !== level.id)}
+        />
+      </div>
+      <Input
+        className="text-sm text-muted-foreground"
+        placeholder={t("Description (optional)")}
+        value={description}
+        onChange={e => setDescription(e.target.value)}
+        onBlur={saveDescription}
+        aria-label={t("Level description")}
       />
     </div>
   );

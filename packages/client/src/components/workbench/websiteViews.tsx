@@ -55,6 +55,14 @@ export function WebsiteGeneralView({
         <dd className="font-mono">{website.slug}</dd>
         <dt className="text-muted-foreground">{t("Built-in")}</dt>
         <dd>{website.builtIn ? t("Yes — name & domain are fixed") : t("No")}</dd>
+        {website.description
+          ? (
+            <>
+              <dt className="text-muted-foreground">{t("Description")}</dt>
+              <dd>{website.description}</dd>
+            </>
+          )
+          : null}
         {website.alternateNames.length > 0
           ? (
             <>

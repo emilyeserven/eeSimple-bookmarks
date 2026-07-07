@@ -40,6 +40,8 @@ export interface Location {
   names?: EntityName[];
   /** URL-friendly identifier derived from the name; unique across all locations. */
   slug: string;
+  /** Free-text description surfaced on the location's detail page. */
+  description: string | null;
   /** Extra names for different romanization styles; matched alongside `name`. */
   alternateNames: LocationAlternateName[];
   /** Latitude in decimal degrees (−90…90), or `null` when no coordinate is set. */
@@ -107,6 +109,7 @@ export interface CreateLocationInput {
   name: string;
   /** English name candidate (e.g. resolved from Wikidata / Nominatim); merged into `entity_names`. */
   englishName?: string | null;
+  description?: string | null;
   alternateNames?: LocationAlternateName[];
   latitude?: number | null;
   longitude?: number | null;
@@ -134,6 +137,7 @@ export interface UpdateLocationInput {
   name?: string;
   /** English name candidate (e.g. resolved from Wikidata / Nominatim); merged into `entity_names`. */
   englishName?: string | null;
+  description?: string | null;
   alternateNames?: LocationAlternateName[];
   latitude?: number | null;
   longitude?: number | null;

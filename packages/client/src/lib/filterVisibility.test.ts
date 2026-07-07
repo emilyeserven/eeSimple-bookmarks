@@ -42,6 +42,7 @@ describe("computeFacetData", () => {
         id: "gm-1",
         name: "Sci-Fi",
         slug: "sci-fi",
+        description: null,
         parentId: null,
         createdAt: "2026-01-01T00:00:00.000Z",
       }],

@@ -40,6 +40,7 @@ function toLanguage(row: LanguageRow & { bookmarkCount?: number }): Language {
     name: row.name,
     isoCode: row.isoCode,
     slug: row.slug ?? slugify(row.name),
+    description: row.description,
     builtIn: row.builtIn,
     sortOrder: row.sortOrder,
     isFavorite: row.isFavorite,
@@ -105,6 +106,7 @@ export async function createLanguage(input: CreateLanguageInput): Promise<Langua
     name,
     isoCode,
     slug,
+    description: input.description ?? null,
     sortOrder: input.sortOrder ?? LANGUAGE_CODES.length,
   }).returning();
   return toLanguage(row);
@@ -121,7 +123,9 @@ export async function updateLanguage(
     throw new BuiltInLanguageError("A built-in language cannot be renamed");
   }
 
-  const patch: Partial<Pick<LanguageRow, "name" | "isoCode" | "slug" | "sortOrder" | "isFavorite">> = {};
+  const patch: Partial<
+    Pick<LanguageRow, "name" | "isoCode" | "slug" | "description" | "sortOrder" | "isFavorite">
+  > = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -145,6 +149,7 @@ export async function updateLanguage(
     }
     patch.isoCode = isoCode;
   }
+  if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
   if (Object.keys(patch).length === 0) return toLanguage(existing);

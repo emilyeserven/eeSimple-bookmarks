@@ -10,6 +10,7 @@ function node(overrides: Partial<LocationNode> & Pick<LocationNode, "id">): Loca
   return {
     name: overrides.id,
     slug: overrides.id,
+    description: null,
     alternateNames: [],
     latitude: null,
     longitude: null,

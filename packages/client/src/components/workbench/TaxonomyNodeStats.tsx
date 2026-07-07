@@ -10,6 +10,7 @@ export interface TaxonomyNodeStatsNode {
   parentId: string | null;
   children: readonly unknown[];
   slug: string;
+  description?: string | null;
   createdAt: string;
   bookmarkCount?: number;
   ownBookmarkCount?: number;
@@ -47,6 +48,14 @@ export function TaxonomyNodeStats<TParent extends { name: string }>({
         <dd>{node.children.length}</dd>
         <dt className="text-muted-foreground">{t("Slug")}</dt>
         <dd className="font-mono">{node.slug}</dd>
+        {node.description
+          ? (
+            <>
+              <dt className="text-muted-foreground">{t("Description")}</dt>
+              <dd>{node.description}</dd>
+            </>
+          )
+          : null}
         <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
         <dd>{node.bookmarkCount ?? 0}</dd>
         {node.children.length > 0 && (node.ownBookmarkCount ?? 0) > 0

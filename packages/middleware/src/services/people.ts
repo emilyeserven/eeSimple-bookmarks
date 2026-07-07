@@ -185,6 +185,7 @@ function toPerson(
     name: row.name,
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
+    description: row.description ?? null,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount,
     personWebsiteUrl: row.personWebsiteUrl ?? null,
@@ -215,6 +216,7 @@ export async function listPeople(): Promise<Person[]> {
       id: people.id,
       name: people.name,
       slug: people.slug,
+      description: people.description,
       personWebsiteUrl: people.personWebsiteUrl,
       biographyUrl: people.biographyUrl,
       socialLinks: people.socialLinks,
@@ -286,6 +288,7 @@ export async function createPerson(input: CreatePersonInput): Promise<Person> {
   const [row] = await db.insert(people).values({
     name,
     slug,
+    description: input.description ?? null,
   }).returning();
   return toPerson(row);
 }
@@ -295,7 +298,7 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
   const [existing] = await db.select().from(people).where(eq(people.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<PersonRow, "name" | "slug" | "personWebsiteUrl" | "biographyUrl" | "socialLinks" | "sortOrder">> & Partial<PersonDataColumns> = {
+  const patch: Partial<Pick<PersonRow, "name" | "slug" | "description" | "personWebsiteUrl" | "biographyUrl" | "socialLinks" | "sortOrder">> & Partial<PersonDataColumns> = {
     ...creatorDataFromInput(input),
   };
   if (input.name !== undefined && input.name.trim() !== existing.name) {
@@ -307,6 +310,7 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
     patch.name = name;
     patch.slug = uniqueSlug(name, await takenSlugs(id), "person");
   }
+  if (input.description !== undefined) patch.description = input.description ?? null;
   if ("personWebsiteUrl" in input) patch.personWebsiteUrl = input.personWebsiteUrl ?? null;
   if ("biographyUrl" in input) patch.biographyUrl = input.biographyUrl ?? null;
   if ("socialLinks" in input) patch.socialLinks = input.socialLinks ?? [];

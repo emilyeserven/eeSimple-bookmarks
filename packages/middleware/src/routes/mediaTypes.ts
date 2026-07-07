@@ -31,6 +31,9 @@ const createMediaTypeBody = {
       type: "string",
       minLength: 1,
     },
+    description: {
+      type: ["string", "null"],
+    },
     sortOrder: {
       type: "integer",
     },
@@ -53,6 +56,9 @@ const updateMediaTypeBody = {
     name: {
       type: "string",
       minLength: 1,
+    },
+    description: {
+      type: ["string", "null"],
     },
     sortOrder: {
       type: "integer",

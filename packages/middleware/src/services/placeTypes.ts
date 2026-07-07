@@ -33,6 +33,7 @@ function toPlaceType(row: PlaceTypeRow, locationCount = 0): PlaceType {
     id: row.id,
     name: row.name,
     slug: row.slug ?? slugify(row.name),
+    description: row.description,
     sortOrder: row.sortOrder,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -90,6 +91,7 @@ export async function createPlaceType(input: CreatePlaceTypeInput): Promise<Plac
     name,
     slug,
     sortOrder: input.sortOrder ?? 0,
+    description: input.description ?? null,
   }).returning();
   return toPlaceType(row);
 }
@@ -102,7 +104,7 @@ export async function updatePlaceType(
   const [existing] = await db.select().from(placeTypes).where(eq(placeTypes.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<PlaceTypeRow, "name" | "slug" | "sortOrder">> = {};
+  const patch: Partial<Pick<PlaceTypeRow, "name" | "slug" | "sortOrder" | "description">> = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -113,6 +115,7 @@ export async function updatePlaceType(
     patch.slug = uniqueSlug(name, await takenSlugs(id), "place-type");
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
+  if (input.description !== undefined) patch.description = input.description ?? null;
   if (Object.keys(patch).length === 0) return toPlaceType(existing);
 
   const [row] = await db.update(placeTypes).set(patch).where(eq(placeTypes.id, id)).returning();

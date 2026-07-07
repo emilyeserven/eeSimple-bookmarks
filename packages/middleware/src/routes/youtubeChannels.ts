@@ -51,6 +51,9 @@ const updateChannelBody = {
       type: "string",
       minLength: 1,
     },
+    description: {
+      type: ["string", "null"],
+    },
     selfIds: {
       type: "array",
       items: {
@@ -98,6 +101,9 @@ const createChannelBody = {
     name: {
       type: "string",
       minLength: 1,
+    },
+    description: {
+      type: ["string", "null"],
     },
   },
 } as const;

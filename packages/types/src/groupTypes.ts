@@ -8,6 +8,8 @@ export interface GroupType {
   name: string;
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
+  /** Free-text description surfaced on the group type's detail page. */
+  description: string | null;
   /** Display ordering weight; lower sorts first. */
   sortOrder: number;
   /** ISO-8601 timestamp of when the group type was created. */
@@ -20,10 +22,12 @@ export interface GroupType {
 export interface CreateGroupTypeInput {
   name: string;
   sortOrder?: number;
+  description?: string | null;
 }
 
 /** Payload for updating a group type (rename and/or reorder). */
 export interface UpdateGroupTypeInput {
   name?: string;
   sortOrder?: number;
+  description?: string | null;
 }

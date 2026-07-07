@@ -39,6 +39,7 @@ function toTag(row: TagRow, counts?: TagBookmarkCounts, names?: EntityName[]): T
     // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
     slug: row.slug ?? slugify(row.name),
     parentId: row.parentId,
+    description: row.description,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: counts?.subtree,
@@ -133,6 +134,7 @@ export async function listTags(): Promise<Tag[]> {
       name: tags.name,
       slug: tags.slug,
       parentId: tags.parentId,
+      description: tags.description,
       createdAt: tags.createdAt,
       editableOnCard: tags.editableOnCard,
       excludeFromBackfill: tags.excludeFromBackfill,
@@ -181,6 +183,7 @@ export async function createTag(input: CreateTagInput): Promise<Tag> {
       name: input.name,
       slug,
       parentId: input.parentId ?? null,
+      description: input.description ?? null,
     })
     .returning();
   // The tag tree feeds the cached tag-descendant resolver used by condition matching.
@@ -195,13 +198,14 @@ export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag 
     if (wouldCreateCycle(all, id, input.parentId)) throw new TagCycleError();
   }
 
-  const patch: Partial<Pick<TagRow, "name" | "slug" | "parentId" | "editableOnCard" | "excludeFromBackfill">> = {};
+  const patch: Partial<Pick<TagRow, "name" | "slug" | "parentId" | "description" | "editableOnCard" | "excludeFromBackfill">> = {};
   if (input.name !== undefined) patch.name = input.name;
   // Keep the slug in sync when the name changes.
   if (input.name !== undefined) {
     patch.slug = uniqueSlug(input.name, await takenTagSlugs(id), "tag");
   }
   if (input.parentId !== undefined) patch.parentId = input.parentId;
+  if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
   if (input.excludeFromBackfill !== undefined) patch.excludeFromBackfill = input.excludeFromBackfill;
 
