@@ -517,8 +517,8 @@ export const DEFAULT_BOOKMARK_GRAPH_SETTINGS: BookmarkGraphSettings = {
   maxRelated: 12,
 };
 
-/** Where the listing-page filters render: the left rail, the right drawer, pills under the search bar, or hidden. */
-export const FILTER_LOCATIONS = ["sidebar", "drawer", "pills", "hide"] as const;
+/** Where the listing-page filters render: the right drawer, pills under the search bar, or hidden. */
+export const FILTER_LOCATIONS = ["drawer", "pills", "hide"] as const;
 export type FilterLocation = typeof FILTER_LOCATIONS[number];
 
 /**

@@ -33,8 +33,6 @@ export interface BookmarkSearchViewData {
 export interface BookmarkSearchViewState {
   /** Per-page column count for the listing grid. */
   columns: number;
-  /** True when the left filter rail should be hidden (filters live in the drawer, pills, or are off). */
-  hideSidebar: boolean;
   /** True when filters render as a pill row under the search bar. */
   showPills: boolean;
   /** Bookmarks after applying the header quick-search text filter. */
@@ -69,11 +67,8 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
   const setFilterContext = useUiStore(state => state.setFilterContext);
   const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
   const {
-    isOpen, dCT, openType,
+    isOpen, openType,
   } = usePanelControls();
-  const filtersActiveInDrawer = isOpen && dCT === "filters";
-  // The left rail shows only in sidebar mode (and not while the drawer is actively showing filters).
-  const hideSidebar = filtersActiveInDrawer || filterLocation !== "sidebar";
   const showPills = filterLocation === "pills";
 
   useEffect(() => {
@@ -115,7 +110,6 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
 
   return {
     columns,
-    hideSidebar,
     showPills,
     textFilteredBookmarks,
     textSearchActive: Boolean(q),

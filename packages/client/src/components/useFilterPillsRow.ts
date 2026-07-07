@@ -21,8 +21,6 @@ export interface FacetBodyContext {
 /**
  * Owns the pill row's derived state so `FilterPillsRow` itself stays template-only (fallow's
  * cognitive-complexity cap is hook-count-driven — see CLAUDE.md's large-form decomposition note).
- * Mirrors `FilterSidebar.tsx`'s own `added`/`revealFilter` state, but as its own independent instance
- * (the sidebar and pill row are mutually exclusive renders per `filterLocation`, never mounted together).
  */
 export function useFilterPillsRow(props: FilterPillsRowProps) {
   const {

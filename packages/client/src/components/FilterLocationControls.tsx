@@ -12,7 +12,7 @@ import { usePanelControls } from "./panel/usePanelControls";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 /**
- * The filter-location chooser body (sidebar / drawer / pills / hide). Shared by `FilterLocationPopover`
+ * The filter-location chooser body (drawer / pills / hide). Shared by `FilterLocationPopover`
  * (desktop popover) and the header More menu's mobile modal — the single source of truth. The enum is
  * persisted directly; the legacy booleans are derived from it server-side (see `resolveFilterLocation`).
  */
@@ -30,7 +30,6 @@ export function FilterLocationControls() {
   } = useTranslation();
 
   const messages: Record<FilterLocation, string> = {
-    sidebar: t("Filters in sidebar"),
     drawer: t("Filters in drawer"),
     pills: t("Filters as pills"),
     hide: t("Filters hidden"),
@@ -47,7 +46,7 @@ export function FilterLocationControls() {
       successMessage: messages[next],
     });
     // Drawer open/close is local UI — apply it immediately regardless of the save round-trip.
-    // Pills and sidebar both live outside the drawer, so close it when leaving the drawer placement.
+    // Pills and hide both live outside the drawer, so close it when leaving the drawer placement.
     if (next === "drawer") {
       openType("filters");
     }
@@ -65,17 +64,11 @@ export function FilterLocationControls() {
       onValueChange={handleChange}
     >
       <ToggleGroupItem
-        value="sidebar"
+        value="drawer"
         className="
           rounded-none border-r border-input
           first:rounded-l-sm
         "
-      >
-        {t("Sidebar")}
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="drawer"
-        className="rounded-none border-r border-input"
       >
         {t("Drawer")}
       </ToggleGroupItem>

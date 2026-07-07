@@ -92,7 +92,7 @@ function displayData(): DisplayPreferenceSettings {
     bookmarkDetailLayout: "single",
     interfaceLanguage: "en",
     secondaryLanguageId: null,
-    filterLocation: "sidebar",
+    filterLocation: "pills",
     filtersInDrawer: false,
     filtersHidden: false,
     panelPinned,

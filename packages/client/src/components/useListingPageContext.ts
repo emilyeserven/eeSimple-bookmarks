@@ -20,7 +20,6 @@ export function useListingPageContext() {
     t,
   } = useTranslation();
   const FILTER_LOCATION_MESSAGES: Record<FilterLocation, string> = {
-    sidebar: t("Filters in sidebar"),
     drawer: t("Filters in drawer"),
     pills: t("Filters as pills"),
     hide: t("Filters hidden"),
@@ -59,7 +58,7 @@ export function useListingPageContext() {
       },
       successMessage: FILTER_LOCATION_MESSAGES[next],
     });
-    // Pills and sidebar both live outside the drawer, so close it when leaving the drawer placement.
+    // Pills and hide both live outside the drawer, so close it when leaving the drawer placement.
     if (next === "drawer") openType("filters");
     else if (dCT === "filters") close();
   }
