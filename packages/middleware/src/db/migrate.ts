@@ -1568,8 +1568,16 @@ const migrations: RuntimeMigration[] = [
   {
     // Artist Plex posters lived in the polymorphic taxonomy_images gallery; "artist" is no longer an
     // owner type. Drop those rows (People re-imports a Plex poster into its own avatar if wanted).
+    // Guarded by `to_regclass` so it no-ops on a fresh DB (or once the media-taxonomy retirement step
+    // below has dropped `taxonomy_images`) instead of crashing on `relation … does not exist`.
     name: "delete artist taxonomy images",
-    run: db => db.execute(sql`DELETE FROM "taxonomy_images" WHERE "owner_type" = 'artist'`),
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF to_regclass('public.taxonomy_images') IS NOT NULL THEN
+          DELETE FROM "taxonomy_images" WHERE "owner_type" = 'artist';
+        END IF;
+      END $$
+    `),
   },
   {
     name: "drop bookmarks.artist_id column",
@@ -1811,32 +1819,34 @@ const migrations: RuntimeMigration[] = [
     run: db => db.execute(sql`ALTER TABLE "groups" DROP COLUMN IF EXISTS "romanized_name"`),
   },
   {
+    // `ALTER TABLE IF EXISTS` so this no-ops once the media-taxonomy retirement step below has dropped
+    // the table (the bare `IF EXISTS` on DROP COLUMN only guards the column, not the relation).
     name: "drop books.romanized_name column",
-    run: db => db.execute(sql`ALTER TABLE "books" DROP COLUMN IF EXISTS "romanized_name"`),
+    run: db => db.execute(sql`ALTER TABLE IF EXISTS "books" DROP COLUMN IF EXISTS "romanized_name"`),
   },
   {
     name: "drop podcasts.romanized_name column",
-    run: db => db.execute(sql`ALTER TABLE "podcasts" DROP COLUMN IF EXISTS "romanized_name"`),
+    run: db => db.execute(sql`ALTER TABLE IF EXISTS "podcasts" DROP COLUMN IF EXISTS "romanized_name"`),
   },
   {
     name: "drop movies.romanized_name column",
-    run: db => db.execute(sql`ALTER TABLE "movies" DROP COLUMN IF EXISTS "romanized_name"`),
+    run: db => db.execute(sql`ALTER TABLE IF EXISTS "movies" DROP COLUMN IF EXISTS "romanized_name"`),
   },
   {
     name: "drop tv_shows.romanized_name column",
-    run: db => db.execute(sql`ALTER TABLE "tv_shows" DROP COLUMN IF EXISTS "romanized_name"`),
+    run: db => db.execute(sql`ALTER TABLE IF EXISTS "tv_shows" DROP COLUMN IF EXISTS "romanized_name"`),
   },
   {
     name: "drop episodes.romanized_name column",
-    run: db => db.execute(sql`ALTER TABLE "episodes" DROP COLUMN IF EXISTS "romanized_name"`),
+    run: db => db.execute(sql`ALTER TABLE IF EXISTS "episodes" DROP COLUMN IF EXISTS "romanized_name"`),
   },
   {
     name: "drop albums.romanized_name column",
-    run: db => db.execute(sql`ALTER TABLE "albums" DROP COLUMN IF EXISTS "romanized_name"`),
+    run: db => db.execute(sql`ALTER TABLE IF EXISTS "albums" DROP COLUMN IF EXISTS "romanized_name"`),
   },
   {
     name: "drop tracks.romanized_name column",
-    run: db => db.execute(sql`ALTER TABLE "tracks" DROP COLUMN IF EXISTS "romanized_name"`),
+    run: db => db.execute(sql`ALTER TABLE IF EXISTS "tracks" DROP COLUMN IF EXISTS "romanized_name"`),
   },
   {
     // `app_settings.show_romanized_by_default` / `sort_by_romanized` drove the now-removed
