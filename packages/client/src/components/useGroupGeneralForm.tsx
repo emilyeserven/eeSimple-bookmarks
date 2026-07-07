@@ -60,7 +60,7 @@ export function useGroupGeneralForm(group: Group) {
     },
   });
 
-  const groupTypeOptions = (groupTypes ?? []).map(groupType => ({
+  const groupTypeOptions = (groupTypes ?? []).filter(groupType => !groupType.hidden).map(groupType => ({
     value: groupType.id,
     label: groupType.name,
     icon: (

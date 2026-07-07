@@ -78,10 +78,14 @@ export function BookmarkRelationshipsEditor({
       label: b.title,
     }));
 
-  const typeOptions: ComboboxOption[] = (relationshipTypes ?? []).map(rt => ({
-    value: rt.id,
-    label: rt.name,
-  }));
+  // Hidden types are kept out of the picker, but the directional Set below stays unfiltered so an
+  // existing edge on a now-hidden type still resolves its parent/child direction.
+  const typeOptions: ComboboxOption[] = (relationshipTypes ?? [])
+    .filter(rt => !rt.hidden)
+    .map(rt => ({
+      value: rt.id,
+      label: rt.name,
+    }));
 
   const directionalTypeIds = useMemo(
     () => new Set((relationshipTypes ?? []).filter(rt => rt.directional).map(rt => rt.id)),

@@ -12,11 +12,13 @@ function website(overrides: Partial<Website> = {}): Website {
     domain: "example.com",
     siteName: "Example",
     slug: "example",
+    description: null,
     builtIn: false,
     shortenedLinks: [],
     paramRules: [],
     createdAt: "2026-01-01T00:00:00.000Z",
     socialLinks: [],
+    labeledWebsites: [],
     alternateNames: [],
     ...overrides,
   };

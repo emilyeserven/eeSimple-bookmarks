@@ -80,6 +80,9 @@ const updateBody = {
     description: {
       type: ["string", "null"],
     },
+    hidden: {
+      type: "boolean",
+    },
   },
 } as const;
 

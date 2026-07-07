@@ -32,6 +32,8 @@ export interface LanguageUsageLevel {
   kind: LanguageUsageKind;
   /** Seeded built-ins can't be renamed or deleted; users may add custom ones. */
   builtIn: boolean;
+  /** Hidden from pickers/facets while still resolvable by existing usages and identity code. */
+  hidden: boolean;
   sortOrder: number;
   createdAt: string;
   /** How many associations currently reference this level. Computed server-side. */
@@ -50,6 +52,8 @@ export interface UpdateLanguageUsageLevelInput {
   name?: string;
   sortOrder?: number;
   description?: string | null;
+  /** Hide/show from pickers/facets. Allowed on built-ins (unlike rename/delete). */
+  hidden?: boolean;
 }
 
 /** A language + usage-level association, denormalized for display. */

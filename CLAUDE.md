@@ -810,6 +810,42 @@ row into this shape. The convention rides entirely on existing bookmark/relation
   `media_properties` retirement** — a person↔franchise link is expressible post-migration by crediting
   the person on the hub bookmark (`bookmark_people`).
 
+## Hiding seeded built-in vocabularies
+
+Four seeded vocabularies — **media types** (`services/mediaTypes.ts`), **relationship types**
+(`services/relationshipTypes.ts`), **group types** (`services/groupTypes.ts`), and **language usage
+levels** (`services/languageUsageLevels.ts`) — each carry a nullable **`hidden`** boolean column
+(null = false, coalesced in the `to*` mapper). A hidden value is **excluded from pickers/facets/condition
+editors but stays fully resolvable** by existing data and by identity-lookup code. The mechanism is
+**hide, never delete built-ins**: built-ins remain non-deletable (so boot re-seeding and identity
+couplings can't break), but any built-in can be **hidden** — the one mutation allowed on a built-in
+(rename/delete stay blocked, and the `hidden` toggle sits outside the rename/delete guards in each
+`updateX`). **Group types were folded into this model**: they gained a `builtIn` column too (the 4
+seeds are marked built-in on boot via `ensureDefaultGroupTypes`'s insert + backfill-by-name), which
+also **dissolved their resurrect-on-boot bug** — a removed default is now hidden, never deleted, so
+nothing is re-seeded over it. No seeder ever writes `hidden` on an existing row, so a user's hide choice
+survives every reboot. The `hidden`/`built_in` columns are **lone nullable columns** = push-safe
+additive (no `migrate.ts` step) per **Database schema changes**.
+
+- **Filtering lives at the picker, not the hook/endpoint.** `list*` endpoints and the client hooks
+  return **every** row (each carrying `hidden`), so the identity lookups keep resolving:
+  the media-type slug `"video"` (`services/bookmarkEnrichment.ts`), the `"Book"` media type
+  (`useBookmarkIsbn.ts`/`useBookmarkFormHandlers.ts`), the `"About"` relationship type
+  (`BookmarkMediaLinkField.tsx`), and the `"primary language"` usage level (`useBookmarkPrimaryLanguage.ts`)
+  — **these four, not Franchise/Parent-child, are the real load-bearing built-ins** (franchise hubs and
+  the hierarchy view key off the `mediaTypeId` facet and the generic `directional` flag, not a specific
+  value's identity). Each **picker/facet/condition editor** filters `!hidden` at its option-list
+  construction. Media types funnel through the shared **`mediaTypeNodesToOptions`** (`lib/comboboxOptions.tsx`),
+  which **prunes-and-hoists** a hidden node (splices it out, lifts its visible children up) so hiding a
+  parent never vanishes a visible child; the other three filter inline at each call site.
+- **UI:** each taxonomy listing card gets a hover **Eye/EyeOff** toggle (`HideToggleButton` in
+  `StandardListingCard.tsx`) + a "Hidden" badge; media types toggle via the edit form
+  (`MediaTypeGeneralForm.tsx`). `group_types` also gained `deletableIds`/`isSelectable` guards
+  (`entities/groupType.tsx`) excluding built-ins from bulk delete/selection.
+- **Accepted edge case:** a stored default (e.g. a website's default media type) pointing at a
+  now-hidden value renders blank in *its* picker — same as today's deleted-value behavior; unhiding
+  restores it. Bookmark cards are unaffected (they render the embedded value, not a picker).
+
 ## Generated files (do not edit)
 
 - `packages/client/src/routeTree.gen.ts` — regenerate with `pnpm --filter=@eesimple/client routeTree`

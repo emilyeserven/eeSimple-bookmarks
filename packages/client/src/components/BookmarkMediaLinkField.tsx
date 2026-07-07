@@ -52,10 +52,14 @@ export function BookmarkMediaLinkField({
     value: b.id,
     label: b.title,
   }));
-  const typeOptions: ComboboxOption[] = (relationshipTypes ?? []).map(rt => ({
-    value: rt.id,
-    label: rt.name,
-  }));
+  // `aboutTypeId`/`directionalTypeIds` above stay unfiltered (identity default + direction resolution);
+  // only the visible option list drops hidden types.
+  const typeOptions: ComboboxOption[] = (relationshipTypes ?? [])
+    .filter(rt => !rt.hidden)
+    .map(rt => ({
+      value: rt.id,
+      label: rt.name,
+    }));
 
   return (
     <form.Field name="mediaLinkTarget">

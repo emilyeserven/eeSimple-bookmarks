@@ -10,6 +10,7 @@ import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { usePrimaryLanguageField } from "../hooks/usePrimaryLanguageField";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 import { useMediaTypes, useUpdateMediaType } from "@/hooks/useMediaTypes";
@@ -54,6 +55,7 @@ export function MediaTypeGeneralForm({
     sortOrder: t("Sort order"),
     icon: t("Icon"),
     parentId: t("Parent"),
+    hidden: t("Hidden"),
   };
   const autoSave = useFieldAutoSave<UpdateMediaTypeInput, MediaType>({
     id: mediaType.id,
@@ -65,6 +67,7 @@ export function MediaTypeGeneralForm({
       sortOrder: mediaType.sortOrder,
       icon: mediaType.icon,
       parentId: mediaType.parentId,
+      hidden: mediaType.hidden,
     },
   });
 
@@ -103,10 +106,19 @@ export function MediaTypeGeneralForm({
       {mediaType.builtIn
         ? (
           <p className="text-sm text-muted-foreground">
-            {t("Built-in media type — it can't be renamed or reordered.")}
+            {t("Built-in media type — it can't be renamed or reordered, but it can be hidden.")}
           </p>
         )
         : null}
+
+      <label className="flex items-center gap-2 text-sm">
+        <Checkbox
+          checked={mediaType.hidden}
+          onCheckedChange={checked => autoSave.saveField("hidden", checked === true)}
+          aria-label={t("Hidden")}
+        />
+        {t("Hide from media-type pickers and filters (existing bookmarks keep it)")}
+      </label>
 
       <div
         className="

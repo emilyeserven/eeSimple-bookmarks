@@ -62,6 +62,9 @@ const updateRelationshipTypeBody = {
     sortOrder: {
       type: "integer",
     },
+    hidden: {
+      type: "boolean",
+    },
   },
 } as const;
 

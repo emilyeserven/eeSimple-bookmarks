@@ -5,10 +5,12 @@ import { Info, Link2, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { HideToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
+import { useUpdateRelationshipType } from "../hooks/useRelationshipTypes";
 
 import { Badge } from "@/components/ui/badge";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A single relationship-type listing card: body → its detail page, with hover Edit / Info. */
@@ -31,6 +33,29 @@ export function RelationshipTypeCard({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const update = useUpdateRelationshipType();
+
+  const toggleHidden = () => {
+    const nextHidden = !relationshipType.hidden;
+    update.mutate({
+      id: relationshipType.id,
+      input: {
+        hidden: nextHidden,
+      },
+    }, {
+      onSuccess: () =>
+        notifySuccess(nextHidden
+          ? t("Hid \"{{name}}\" from pickers", {
+            name: relationshipType.name,
+          })
+          : t("Showing \"{{name}}\" in pickers", {
+            name: relationshipType.name,
+          })),
+      onError: () => notifyError(t("Couldn't update \"{{name}}\"", {
+        name: relationshipType.name,
+      })),
+    });
+  };
 
   return (
     <StandardListingCard
@@ -40,11 +65,21 @@ export function RelationshipTypeCard({
       inSelectionMode={inSelectionMode}
       icon={<Link2 className="size-5 shrink-0 text-muted-foreground" />}
       title={relationshipType.name}
-      titleAdornment={relationshipType.builtIn
-        ? <Badge variant="secondary">{t("Built-in")}</Badge>
-        : undefined}
+      titleAdornment={
+        <>
+          {relationshipType.builtIn ? <Badge variant="secondary">{t("Built-in")}</Badge> : null}
+          {relationshipType.hidden ? <Badge variant="outline">{t("Hidden")}</Badge> : null}
+        </>
+      }
       subtitle={relationshipType.directional ? t("Directional") : t("Symmetric")}
       count={relationshipType.bookmarkCount}
+      renderExtra={() => (
+        <HideToggleButton
+          hidden={relationshipType.hidden}
+          name={relationshipType.name}
+          onToggle={toggleHidden}
+        />
+      )}
       renderPrimaryLink={(className, children) => (
         <Link
           to="/taxonomies/relationship-types/$relationshipTypeSlug/info"

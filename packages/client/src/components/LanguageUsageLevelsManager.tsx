@@ -2,7 +2,7 @@ import type { LanguageUsageKind, LanguageUsageLevel } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { Lock, Plus, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Lock, Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -221,8 +221,31 @@ function LevelRow({
     );
   }
 
+  function toggleHidden() {
+    const nextHidden = !level.hidden;
+    update.mutate(
+      {
+        id: level.id,
+        input: {
+          hidden: nextHidden,
+        },
+      },
+      {
+        onSuccess: () =>
+          notifySuccess(nextHidden
+            ? t("Hid \"{{name}}\" from pickers", {
+              name: level.name,
+            })
+            : t("Showing \"{{name}}\" in pickers", {
+              name: level.name,
+            })),
+        onError: error => notifyError(describeError(error)),
+      },
+    );
+  }
+
   return (
-    <div className="space-y-1">
+    <div className={level.hidden ? "space-y-1 opacity-60" : "space-y-1"}>
       <div className="flex items-center gap-2">
         {level.builtIn
           ? (
@@ -240,7 +263,29 @@ function LevelRow({
               aria-label={t("Level name")}
             />
           )}
+        {level.hidden && <Badge variant="outline">{t("Hidden")}</Badge>}
         <Badge variant="outline">{level.usageCount}</Badge>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={level.hidden
+            ? t("Show {{name}}", {
+              name: level.name,
+            })
+            : t("Hide {{name}}", {
+              name: level.name,
+            })}
+          onClick={toggleHidden}
+        >
+          {level.hidden
+            ? <EyeOff className="size-4" />
+            : (
+              <Eye
+                className="size-4"
+              />
+            )}
+        </Button>
         {!level.builtIn && (
           <Button
             type="button"

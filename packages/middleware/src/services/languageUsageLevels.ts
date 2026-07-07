@@ -46,6 +46,7 @@ function toLevel(row: LanguageUsageLevelRow, usageCount = 0): LanguageUsageLevel
     slug: row.slug ?? slugify(row.name),
     kind: row.kind as LanguageUsageKind,
     builtIn: row.builtIn,
+    hidden: row.hidden ?? false,
     sortOrder: row.sortOrder,
     description: row.description ?? null,
     createdAt:
@@ -120,7 +121,9 @@ export async function updateLanguageUsageLevel(
   const [existing] = await db.select().from(languageUsageLevels).where(eq(languageUsageLevels.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<LanguageUsageLevelRow, "name" | "slug" | "sortOrder" | "description">> = {};
+  const patch: Partial<
+    Pick<LanguageUsageLevelRow, "name" | "slug" | "sortOrder" | "description" | "hidden">
+  > = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     if (existing.builtIn) throw new BuiltInLanguageUsageLevelError();
     const name = input.name.trim();
@@ -136,6 +139,8 @@ export async function updateLanguageUsageLevel(
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.description !== undefined) patch.description = input.description ?? null;
+  // Hiding is allowed even on built-ins (unlike rename above).
+  if (input.hidden !== undefined) patch.hidden = input.hidden;
   if (Object.keys(patch).length === 0) return toLevel(existing);
 
   const [row] = await db

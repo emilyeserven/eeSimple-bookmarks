@@ -19,6 +19,7 @@ const LABELS: Record<keyof UpdateGroupTypeInput, string> = {
   name: "Name",
   description: "Description",
   sortOrder: "Sort order",
+  hidden: "Hidden",
 };
 
 interface Props {

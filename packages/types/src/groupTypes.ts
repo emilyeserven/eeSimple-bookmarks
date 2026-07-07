@@ -10,6 +10,10 @@ export interface GroupType {
   slug: string;
   /** Free-text description surfaced on the group type's detail page. */
   description: string | null;
+  /** Whether this is a seeded built-in (protected from rename/delete). */
+  builtIn: boolean;
+  /** Hidden from the picker while still resolvable by existing groups. */
+  hidden: boolean;
   /** Display ordering weight; lower sorts first. */
   sortOrder: number;
   /** ISO-8601 timestamp of when the group type was created. */
@@ -25,9 +29,11 @@ export interface CreateGroupTypeInput {
   description?: string | null;
 }
 
-/** Payload for updating a group type (rename and/or reorder). */
+/** Payload for updating a group type (rename, reorder, and/or hide). */
 export interface UpdateGroupTypeInput {
   name?: string;
   sortOrder?: number;
   description?: string | null;
+  /** Hide/show from the picker. Allowed on built-ins (unlike rename/delete). */
+  hidden?: boolean;
 }

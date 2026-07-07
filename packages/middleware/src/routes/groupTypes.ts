@@ -64,6 +64,9 @@ const updateGroupTypeBody = {
     sortOrder: {
       type: "integer",
     },
+    hidden: {
+      type: "boolean",
+    },
   },
 } as const;
 

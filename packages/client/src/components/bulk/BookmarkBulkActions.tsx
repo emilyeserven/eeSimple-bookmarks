@@ -122,7 +122,7 @@ export function BookmarkBulkActions({
         triggerLabel={t("Set media type")}
         title={t("Set media type")}
         placeholder={t("Select a media type")}
-        options={mediaTypes.map(mediaType => ({
+        options={mediaTypes.filter(mediaType => !mediaType.hidden).map(mediaType => ({
           value: mediaType.id,
           label: mediaType.name,
         }))}

@@ -72,6 +72,9 @@ const updateMediaTypeBody = {
       format: "uuid",
       nullable: true,
     },
+    hidden: {
+      type: "boolean",
+    },
   },
 } as const;
 

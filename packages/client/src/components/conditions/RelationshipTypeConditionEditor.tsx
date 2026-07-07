@@ -28,7 +28,7 @@ export function RelationshipTypeConditionEditor({
       placeholder={isLoading ? t("Loading…") : t("Any relationship type")}
       searchPlaceholder={t("Search relationship types…")}
       emptyText={t("No relationship types found.")}
-      options={relationshipTypes.map(rt => ({
+      options={relationshipTypes.filter(rt => !rt.hidden).map(rt => ({
         value: rt.id,
         label: rt.name,
       }))}

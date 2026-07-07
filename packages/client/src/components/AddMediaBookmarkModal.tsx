@@ -119,7 +119,7 @@ export function AddMediaBookmarkModal({
                 placeholder={t("No media type")}
                 searchPlaceholder={t("Search media types…")}
                 emptyText={t("No media types found.")}
-                options={iconComboboxOptions(mediaTypes ?? [])}
+                options={iconComboboxOptions((mediaTypes ?? []).filter(mt => !mt.hidden))}
               />
             )}
           </form.AppField>
