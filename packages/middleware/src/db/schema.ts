@@ -1741,6 +1741,13 @@ export const appSettings = pgTable("app_settings", {
   autoApplyTitleLocations: boolean("auto_apply_title_locations"),
   // Modifier held while clicking Edit to open the item in the drawer: "alt" | "ctrl" | "shift" | "meta".
   sidebarOpenModifier: text("sidebar_open_modifier").notNull().default("alt"),
+  // User-configurable fallback category for new/uncategorized bookmarks. Null = use the seeded
+  // built-in "Default" category (ensureDefaultCategory()). Nullable FK → push-safe additive, no
+  // migrate.ts step. onDelete: "set null" self-heals back to the seeded default if the configured
+  // category is ever deleted.
+  defaultCategoryId: uuid("default_category_id").references((): AnyPgColumn => categories.id, {
+    onDelete: "set null",
+  }),
   // Bookmark Graph "Related bookmarks" config: per-dimension weights + max count. Null = defaults.
   // Nullable jsonb = push-safe additive; the resolver merges it over DEFAULT_BOOKMARK_GRAPH_SETTINGS.
   bookmarkGraph: jsonb("bookmark_graph").$type<BookmarkGraphSettings>(),

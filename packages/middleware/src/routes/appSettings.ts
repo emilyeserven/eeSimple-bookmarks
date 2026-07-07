@@ -279,7 +279,7 @@ const bookmarkAddFormBody = {
 
 const automationBody = {
   type: "object",
-  required: ["autoFetchTitle", "autoFetchImage", "autoApplyTitleTags", "autoApplyTitleLocations", "sidebarOpenModifier"],
+  required: ["autoFetchTitle", "autoFetchImage", "autoApplyTitleTags", "autoApplyTitleLocations", "sidebarOpenModifier", "defaultCategoryId"],
   additionalProperties: false,
   properties: {
     autoFetchTitle: {
@@ -297,6 +297,9 @@ const automationBody = {
     sidebarOpenModifier: {
       type: "string",
       enum: ["alt", "ctrl", "shift", "meta"],
+    },
+    defaultCategoryId: {
+      type: ["string", "null"],
     },
   },
 } as const;

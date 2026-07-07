@@ -27,6 +27,11 @@ const bookmarkRows: Record<string, unknown>[] = [];
 const genreMoodAssignmentRows: Record<string, unknown>[] = [];
 const entityNameRows: Record<string, unknown>[] = [];
 
+// Per-test override for the app-configured default category, read by the mocked
+// `getAutomationSettings` below — `resolveDefaultCategoryId()` falls back to `ensureDefaultCategory()`
+// when this is null, mirroring the real service's behavior without seeding the app_settings table.
+let automationDefaultCategoryId: string | null = null;
+
 function resetRows(opts: {
   categories?: Record<string, unknown>[];
   bookmarks?: Record<string, unknown>[];
@@ -34,6 +39,7 @@ function resetRows(opts: {
   entityNames?: Record<string, unknown>[];
 }): void {
   resetFakeIds();
+  automationDefaultCategoryId = null;
   const defaultRow = {
     id: DEFAULT_CATEGORY_ID,
     name: "Default",
@@ -79,11 +85,31 @@ mock.module("@/db", {
   },
 });
 
+// `services/categories.ts` only calls `getAutomationSettings` from this module, but
+// `services/entityNames.ts` (imported transitively) calls other exports of it — re-export the real
+// module's exports and only override `getAutomationSettings`, rather than replacing the module
+// wholesale (which `namedExports` does by default).
+const realAppSettings = await import("@/services/appSettings");
+mock.module("@/services/appSettings", {
+  namedExports: {
+    ...realAppSettings,
+    getAutomationSettings: async () => ({
+      autoFetchTitle: true,
+      autoFetchImage: true,
+      autoApplyTitleTags: false,
+      autoApplyTitleLocations: false,
+      sidebarOpenModifier: "alt",
+      defaultCategoryId: automationDefaultCategoryId,
+    }),
+  },
+});
+
 const {
   BuiltInCategoryError,
   createCategory,
   deleteCategory,
   ensureDefaultCategory,
+  resolveDefaultCategoryId,
 } = await import("@/services/categories");
 const {
   bookmarkCacheVersion,
@@ -211,6 +237,73 @@ test("deleteCategory: cleans up genre/mood + entity-name rows, reassigns orphane
   assert.equal(bm2?.categoryId, "cat-1");
 
   assert.equal(bookmarkCacheVersion(), versionBefore + 1);
+});
+
+test("resolveDefaultCategoryId: falls back to the seeded built-in when unset", async () => {
+  automationDefaultCategoryId = null;
+  const id = await resolveDefaultCategoryId();
+  assert.equal(id, DEFAULT_CATEGORY_ID);
+});
+
+test("resolveDefaultCategoryId: returns the app-configured category when set", async () => {
+  resetRows({
+    categories: [{
+      id: "cat-custom-default",
+      name: "Inbox",
+      slug: "inbox",
+      description: null,
+      icon: null,
+      builtIn: false,
+      isHomepage: false,
+      createdAt: new Date(),
+    }],
+  });
+  automationDefaultCategoryId = "cat-custom-default";
+
+  const id = await resolveDefaultCategoryId();
+  assert.equal(id, "cat-custom-default");
+});
+
+test("deleteCategory: orphaned bookmarks are reassigned to the app-configured default, not always the built-in", async () => {
+  resetRows({
+    categories: [
+      {
+        id: "cat-custom-default",
+        name: "Inbox",
+        slug: "inbox",
+        description: null,
+        icon: null,
+        builtIn: false,
+        isHomepage: false,
+        createdAt: new Date(),
+      },
+      {
+        id: "cat-1",
+        name: "Anime",
+        slug: "anime",
+        description: null,
+        icon: null,
+        builtIn: false,
+        isHomepage: false,
+        createdAt: new Date(),
+      },
+    ],
+    bookmarks: [
+      // Cascade-nulled by the delete, same fixture shape as the other deleteCategory test above
+      // (this fake db doesn't simulate FK cascade, so the orphan is seeded pre-nulled).
+      {
+        id: "bm-1",
+        categoryId: null,
+      },
+    ],
+  });
+  automationDefaultCategoryId = "cat-custom-default";
+
+  const deleted = await deleteCategory("cat-1");
+  assert.equal(deleted, true);
+
+  const bm1 = bookmarkRows.find(row => row.id === "bm-1");
+  assert.equal(bm1?.categoryId, "cat-custom-default");
 });
 
 test("createCategory: a name colliding with an existing slug gets a disambiguated slug", async () => {

@@ -6,7 +6,7 @@ import { createFakeDb } from "./testUtils/fakeDb";
 
 // bookmarkHydration.ts reaches for the module-level `db` singleton directly, so it needs
 // `mock.module("@/db", ...)` installed *before* the dynamic import below (ES module imports are
-// cached process-wide). ensureDefaultCategory/loadLanguageUsages/loadEntityNames are stubbed
+// cached process-wide). resolveDefaultCategoryId/loadLanguageUsages/loadEntityNames are stubbed
 // directly rather than modeled in the fake db — they're out of scope for this file and stubbing
 // them keeps the fixture surface focused on hydration's own grouping/precedence logic.
 
@@ -19,7 +19,7 @@ mock.module("@/db", {
 });
 mock.module("@/services/categories", {
   namedExports: {
-    ensureDefaultCategory: async () => "default-cat-id",
+    resolveDefaultCategoryId: async () => "default-cat-id",
   },
 });
 mock.module("@/services/languageUsages", {
