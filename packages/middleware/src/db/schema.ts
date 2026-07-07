@@ -1852,6 +1852,11 @@ export const appSettings = pgTable("app_settings", {
   screenshotDefaultWidth: integer("screenshot_default_width"),
   screenshotDefaultHeight: integer("screenshot_default_height"),
   screenshotDefaultScrollDistance: integer("screenshot_default_scroll_distance"),
+  // Longest-edge cap (px) and WebP quality (1-100) applied when resizing/compressing a newly
+  // processed image (Settings → Display → Media). Nullable = push-safe additive; the service
+  // clamps and falls back to the hardcoded pipeline defaults (1200px, quality 80) when null.
+  maxImageEdge: integer("max_image_edge"),
+  imageQuality: integer("image_quality"),
   // --- Add Bookmark form field placement (Settings → Display → Add Bookmark Form). ---
   // Standard field keys placed in the collapsible Advanced section. Nullable = push-safe additive;
   // the service reads `?? DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.advancedFields` (a stored `[]` is a

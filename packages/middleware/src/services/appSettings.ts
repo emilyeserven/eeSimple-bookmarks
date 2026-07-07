@@ -40,6 +40,7 @@ import { BOOKMARK_ADD_FORM_PLACEMENTS, CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKM
 import { db } from "@/db";
 import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
+import { MAX_IMAGE_EDGE } from "@/utils/image";
 
 /** The app-settings singleton always lives at row id = 1, mirroring `homepage_filter`. */
 const ROW_ID = 1;
@@ -170,6 +171,8 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   screenshotDefaultWidth: 1280,
   screenshotDefaultHeight: 720,
   screenshotDefaultScrollDistance: 0,
+  maxImageEdge: MAX_IMAGE_EDGE,
+  imageQuality: 80,
 };
 
 /** Coerce a stored width string to the typed union, defaulting to "full". */
@@ -1164,6 +1167,8 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       screenshotDefaultWidth: appSettings.screenshotDefaultWidth,
       screenshotDefaultHeight: appSettings.screenshotDefaultHeight,
       screenshotDefaultScrollDistance: appSettings.screenshotDefaultScrollDistance,
+      maxImageEdge: appSettings.maxImageEdge,
+      imageQuality: appSettings.imageQuality,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -1194,7 +1199,31 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       0,
       10000,
     ),
+    maxImageEdge: asScreenshotDefault(row.maxImageEdge, DEFAULT_DISPLAY_PREFERENCES.maxImageEdge, 200, 4000),
+    imageQuality: asScreenshotDefault(row.imageQuality, DEFAULT_DISPLAY_PREFERENCES.imageQuality, 1, 100),
   };
+}
+
+/**
+ * Read the image-processing options (max edge / WebP quality) used by {@link processImage} at every
+ * call site. Falls back to the hardcoded pipeline defaults when settings can't be read (e.g. DB
+ * unavailable), mirroring {@link getImageUrlBlacklist}'s resilience.
+ */
+export async function getImageProcessingOptions(): Promise<{ maxEdge: number;
+  quality: number; }> {
+  try {
+    const settings = await getDisplayPreferenceSettings();
+    return {
+      maxEdge: settings.maxImageEdge,
+      quality: settings.imageQuality,
+    };
+  }
+  catch {
+    return {
+      maxEdge: MAX_IMAGE_EDGE,
+      quality: 80,
+    };
+  }
 }
 
 /** Read the hosted-metadata connector settings, merging db values with env-var fallbacks. */
@@ -1535,6 +1564,8 @@ export async function updateDisplayPreferenceSettings(
       0,
       10000,
     ),
+    maxImageEdge: asScreenshotDefault(input.maxImageEdge, DEFAULT_DISPLAY_PREFERENCES.maxImageEdge, 200, 4000),
+    imageQuality: asScreenshotDefault(input.imageQuality, DEFAULT_DISPLAY_PREFERENCES.imageQuality, 1, 100),
   };
   await db
     .insert(appSettings)

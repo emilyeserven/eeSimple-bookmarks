@@ -329,6 +329,8 @@ describe("useBookmarkImageEditForm", () => {
       screenshotDefaultWidth: 1920,
       screenshotDefaultHeight: 1080,
       screenshotDefaultScrollDistance: 2000,
+      maxImageEdge: 1200,
+      imageQuality: 80,
     };
     const {
       result,

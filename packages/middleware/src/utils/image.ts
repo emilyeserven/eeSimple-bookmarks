@@ -21,14 +21,28 @@ export interface ProcessImageError {
   error: string;
 }
 
+/** Options overriding the default resize/quality behavior of {@link processImage}. */
+export interface ProcessImageOptions {
+  /** Longest-edge cap (px). Defaults to {@link MAX_IMAGE_EDGE}. */
+  maxEdge?: number;
+  /** WebP re-encode quality (1-100). Defaults to 80. */
+  quality?: number;
+}
+
 /**
- * Resize `input` to fit within {@link MAX_IMAGE_EDGE} on its longest side (without enlarging
- * smaller images) and re-encode it to WebP. Returns a {@link ProcessImageError} (rather than
- * throwing) when the bytes can't be decoded as an image, so callers can treat a bad upload /
- * non-image URL as a clean 4xx rather than a 500 — but the underlying sharp error message is
- * preserved so it can be surfaced to the caller instead of being silently swallowed.
+ * Resize `input` to fit within `opts.maxEdge` (defaulting to {@link MAX_IMAGE_EDGE}) on its longest
+ * side (without enlarging smaller images) and re-encode it to WebP at `opts.quality` (defaulting to
+ * 80). Returns a {@link ProcessImageError} (rather than throwing) when the bytes can't be decoded as
+ * an image, so callers can treat a bad upload / non-image URL as a clean 4xx rather than a 500 —
+ * but the underlying sharp error message is preserved so it can be surfaced to the caller instead
+ * of being silently swallowed.
  */
-export async function processImage(input: Buffer): Promise<ProcessedImage | ProcessImageError> {
+export async function processImage(
+  input: Buffer,
+  opts?: ProcessImageOptions,
+): Promise<ProcessedImage | ProcessImageError> {
+  const maxEdge = opts?.maxEdge ?? MAX_IMAGE_EDGE;
+  const quality = opts?.quality ?? 80;
   try {
     const {
       data, info,
@@ -38,13 +52,13 @@ export async function processImage(input: Buffer): Promise<ProcessedImage | Proc
       // Apply EXIF orientation, then drop metadata, so the stored image looks right everywhere.
       .rotate()
       .resize({
-        width: MAX_IMAGE_EDGE,
-        height: MAX_IMAGE_EDGE,
+        width: maxEdge,
+        height: maxEdge,
         fit: "inside",
         withoutEnlargement: true,
       })
       .webp({
-        quality: 80,
+        quality,
       })
       .toBuffer({
         resolveWithObject: true,

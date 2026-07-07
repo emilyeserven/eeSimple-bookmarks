@@ -13,6 +13,7 @@ import { eq } from "drizzle-orm";
 import { socialAccountFromLink } from "@eesimple/types";
 import { db } from "@/db";
 import { personImages, people, type PersonImageRow, websiteFavicons, youtubeChannelImages } from "@/db/schema";
+import { getImageProcessingOptions } from "@/services/appSettings";
 import { downloadImage, type EntityImageResult, extractImageUrl, fetchHeadOrImageError, fetchOgImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
 import { fetchSocialProfileImageUrl } from "@/services/socialImages";
 import { processImage } from "@/utils/image";
@@ -68,7 +69,7 @@ async function setPersonImage(
     .where(eq(people.id, personId));
   if (!person) return "not_found";
 
-  const processed = await processImage(rawBytes);
+  const processed = await processImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) return "bad_image";
 
   const objectKey = objectKeyFor(personId);

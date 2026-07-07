@@ -18,6 +18,7 @@ import { eq, isNull } from "drizzle-orm";
 import { channelUrlFromKey } from "@eesimple/types";
 import { db } from "@/db";
 import { type YouTubeChannelImageRow, youtubeChannelImages, youtubeChannels } from "@/db/schema";
+import { getImageProcessingOptions } from "@/services/appSettings";
 import { batchFetch } from "@/services/batchFetch";
 import { downloadImage, type EntityImageResult, extractImageUrl, fetchHeadOrImageError, fetchOgImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
 import { fetchChannelAvatarUrlViaApi } from "@/services/youtube";
@@ -77,7 +78,7 @@ async function setYouTubeChannelImage(
     .where(eq(youtubeChannels.id, channelId));
   if (!channel) return "not_found";
 
-  const processed = await processImage(rawBytes);
+  const processed = await processImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) {
     return {
       code: "bad_image",

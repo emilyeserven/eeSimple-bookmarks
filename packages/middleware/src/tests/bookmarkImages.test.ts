@@ -35,6 +35,28 @@ test("processImage returns the decode error for non-image bytes", async () => {
   assert.ok(result.error.length > 0);
 });
 
+test("processImage respects a maxEdge override", async () => {
+  const wide = await sharp({
+    create: {
+      width: 2400,
+      height: 600,
+      channels: 3,
+      background: {
+        r: 200,
+        g: 30,
+        b: 30,
+      },
+    },
+  }).png().toBuffer();
+
+  const result = await processImage(wide, {
+    maxEdge: 400,
+  });
+  assert.ok(!("error" in result), "expected a processed image");
+  assert.equal(result.width, 400);
+  assert.equal(result.height, 100);
+});
+
 test("extractImageUrl prefers og:image and resolves relative URLs", () => {
   assert.equal(
     extractImageUrl(

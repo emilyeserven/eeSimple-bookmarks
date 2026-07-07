@@ -11,6 +11,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { type WebsiteFaviconRow, websiteFavicons, websites } from "@/db/schema";
+import { getImageProcessingOptions } from "@/services/appSettings";
 import { downloadImage, duckDuckGoIconUrl, type EntityImageResult, extractFaviconUrls, fetchFaviconImage, fetchHeadOrImageError, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
@@ -57,7 +58,7 @@ async function setWebsiteFavicon(
     .where(eq(websites.id, websiteId));
   if (!website) return "not_found";
 
-  const processed = await processImage(rawBytes);
+  const processed = await processImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) return "bad_image";
 
   const objectKey = objectKeyFor(websiteId);
