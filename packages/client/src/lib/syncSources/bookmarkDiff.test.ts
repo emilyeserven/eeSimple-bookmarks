@@ -35,6 +35,7 @@ function scan(overrides: Partial<ScanResult> = {}): ScanResult {
     languageCode: null,
     socialAccount: null,
     isbn: null,
+    detectedContentKind: null,
     faviconUrl: null,
     website: null,
     duplicate: null,

@@ -1,6 +1,6 @@
 import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanResult, WebsiteLookup } from "@eesimple/types";
-import { extractIsbn13FromAmazonUrl, isAmazonProductUrl, isHontoProductUrl, socialAccountFromUrl } from "@eesimple/types";
+import { detectContentKind, extractIsbn13FromAmazonUrl, isAmazonProductUrl, isHontoProductUrl, socialAccountFromUrl } from "@eesimple/types";
 import { fetchAmazonIsbnFromPage } from "@/services/amazon";
 import { getImageUrlBlacklist } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
@@ -611,6 +611,11 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     ]);
 
     const website = toWebsiteLookup(websiteRaw);
+    // The social account `finalUrl` points at, if any (pure of `finalUrl`, so cache-safe).
+    const socialAccount = socialAccountFromUrl(finalUrl);
+    // A checksum-valid ISBN-13 from an Amazon product URL's ASIN, or (when the ASIN itself isn't one,
+    // or the URL is a honto.jp product page) scraped from the product page's own structured details.
+    const resolvedIsbn = isbnFromAsin ?? isbnFromAmazonPage ?? isbnFromHontoPage;
     const result: ScanResult = {
       finalUrl,
       redirected: redirect.redirected,
@@ -629,12 +634,14 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       imageCandidates: metadata.imageCandidates,
       authorNames: metadata.authorNames,
       languageCode: metadata.languageCode,
-      // The social account `finalUrl` points at, if any (pure of `finalUrl`, so cache-safe).
-      socialAccount: socialAccountFromUrl(finalUrl),
-      // A checksum-valid ISBN-13 from an Amazon product URL's ASIN, or (when the ASIN itself isn't
-      // one, or the URL is a honto.jp product page) scraped from the product page's own structured
-      // details.
-      isbn: isbnFromAsin ?? isbnFromAmazonPage ?? isbnFromHontoPage,
+      socialAccount,
+      isbn: resolvedIsbn,
+      // Coarse content kind derived from the signals above, for the create form's "Detected" badge.
+      detectedContentKind: detectContentKind({
+        isYouTube: metadata.isYouTube,
+        isbn: resolvedIsbn,
+        hasSocialAccount: socialAccount !== null,
+      }),
       // An instant icon for display via the DuckDuckGo icon service (no scrape, no object storage).
       faviconUrl: website.domain ? duckDuckGoIconUrl(website.domain) : null,
       ...(metadata.diagnostics !== undefined && {

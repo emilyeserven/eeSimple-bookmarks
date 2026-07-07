@@ -1,5 +1,5 @@
 import type { ResolvedBookmarkAddForm } from "../lib/bookmarkAddForm";
-import type { BookmarkAddFormStandardField } from "@eesimple/types";
+import type { BookmarkAddFormSettings, BookmarkAddFormStandardField } from "@eesimple/types";
 
 import { useMemo } from "react";
 
@@ -13,14 +13,20 @@ import { resolveBookmarkAddForm } from "../lib/bookmarkAddForm";
  * "reveal auto-filled in main" setting is on, `autofilledFields` (the create form's runtime set of
  * automation-filled field keys) lifts those fields into the main area. Falls back to the defaults
  * (today's behavior) while the settings query loads or errors.
+ *
+ * `config` defaults to the saved settings, but a caller can pass a pre-resolved config — e.g. the
+ * create form threads the Advanced-Rules-merged config from {@link useBookmarkAddFormEffectiveConfig}
+ * so conditional placement overrides take effect. Edit mode ignores the config regardless.
  */
 export function useBookmarkAddFormVisibility(
   isEdit: boolean,
   autofilledFields?: ReadonlySet<BookmarkAddFormStandardField>,
+  config?: BookmarkAddFormSettings,
 ): ResolvedBookmarkAddForm {
-  const config = useBookmarkAddFormConfig();
+  const savedConfig = useBookmarkAddFormConfig();
+  const resolvedConfig = config ?? savedConfig;
   return useMemo(
-    () => resolveBookmarkAddForm(config, isEdit, autofilledFields),
-    [config, isEdit, autofilledFields],
+    () => resolveBookmarkAddForm(resolvedConfig, isEdit, autofilledFields),
+    [resolvedConfig, isEdit, autofilledFields],
   );
 }

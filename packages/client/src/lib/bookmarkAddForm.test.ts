@@ -23,6 +23,7 @@ function settingsWith(
       ...standardFieldPlacements,
     },
     builtInPropertyPlacements,
+    advancedRules: [],
     revealAutofilledInMain,
   };
 }

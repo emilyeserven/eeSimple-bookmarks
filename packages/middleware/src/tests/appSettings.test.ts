@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_HOMEPAGE_WIDGET_ORDER, resolveHomepageWidgetOrder, RUNTIME_SLUG } from "@eesimple/types";
 import {
+  asBookmarkAddFormAdvancedRules,
   asBookmarkAddFormPlacements,
   asBreakpoints,
   asCropped,
@@ -392,4 +393,87 @@ test("resolveBookmarkAddFormSettings: revealAutofilledInMain defaults to false a
     }).revealAutofilledInMain,
     true,
   );
+});
+
+test("resolveBookmarkAddFormSettings: advancedRules defaults to [] and round-trips stored rules", () => {
+  // Absent column → empty list (unchanged for existing rows).
+  assert.deepEqual(resolveBookmarkAddFormSettings().advancedRules, []);
+  assert.deepEqual(
+    resolveBookmarkAddFormSettings({
+      bookmarkFormStandardPlacements: null,
+      bookmarkFormBuiltInPlacements: null,
+    }).advancedRules,
+    [],
+  );
+  const rule = {
+    id: "r1",
+    name: "Books",
+    conditions: {
+      type: "group",
+      combinator: "and",
+      children: [],
+    },
+    standardFieldPlacements: {
+      image: "default",
+    },
+    propertyPlacements: {
+      "page-progress": "advanced",
+    },
+    sortOrder: 2,
+  };
+  const resolved = resolveBookmarkAddFormSettings({
+    bookmarkFormStandardPlacements: null,
+    bookmarkFormBuiltInPlacements: null,
+    bookmarkFormAdvancedRules: [rule],
+  });
+  assert.equal(resolved.advancedRules.length, 1);
+  assert.deepEqual(resolved.advancedRules[0], rule);
+});
+
+test("asBookmarkAddFormAdvancedRules: drops malformed entries and coerces bad fields", () => {
+  const out = asBookmarkAddFormAdvancedRules([
+    // Missing id → dropped.
+    {
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [],
+      },
+    },
+    // Bad conditions + junk placement values → coerced to an empty tree + dropped placements.
+    {
+      id: "ok",
+      conditions: "not-a-tree",
+      standardFieldPlacements: {
+        image: "default",
+        junk: "nope",
+      },
+      propertyPlacements: {
+        "page-progress": "hidden",
+      },
+      sortOrder: "5",
+    },
+  ]);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].id, "ok");
+  assert.deepEqual(out[0].conditions, {
+    type: "group",
+    combinator: "and",
+    children: [],
+  });
+  assert.deepEqual(out[0].standardFieldPlacements, {
+    image: "default",
+  });
+  assert.deepEqual(out[0].propertyPlacements, {
+    "page-progress": "hidden",
+  });
+  // A non-numeric sortOrder falls back to the entry index (0 here).
+  assert.equal(out[0].sortOrder, 0);
+});
+
+test("asBookmarkAddFormAdvancedRules: non-array input yields an empty list", () => {
+  assert.deepEqual(asBookmarkAddFormAdvancedRules(null), []);
+  assert.deepEqual(asBookmarkAddFormAdvancedRules(undefined), []);
+  assert.deepEqual(asBookmarkAddFormAdvancedRules("junk"), []);
+  assert.deepEqual(asBookmarkAddFormAdvancedRules({}), []);
 });

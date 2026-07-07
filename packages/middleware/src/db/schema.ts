@@ -1,7 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, type PgColumnBuilderBase, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { TAXONOMY_IMAGE_OWNER_TYPES } from "@eesimple/types";
-import type { BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { BookmarkAddFormAdvancedRule, BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -2164,6 +2164,11 @@ export const appSettings = pgTable("app_settings", {
   // into the create form's main area regardless of their configured Advanced/Hidden placement.
   // Nullable = push-safe additive; the service reads `?? false`.
   bookmarkFormRevealAutofilledInMain: boolean("bookmark_form_reveal_autofilled_in_main"),
+  // Conditional placement overrides for the create form (Settings → Display → Add Bookmark Form →
+  // Advanced Rules). Each rule is a condition tree + sparse placement maps; matching rules are
+  // overlaid on the base placements. Nullable = push-safe additive (a lone new column, no new table);
+  // the service reads `?? []`.
+  bookmarkFormAdvancedRules: jsonb("bookmark_form_advanced_rules").$type<BookmarkAddFormAdvancedRule[]>(),
 });
 
 /**

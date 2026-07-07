@@ -32,6 +32,7 @@ function scan(url: string): ScanResult {
     languageCode: null,
     socialAccount: null,
     isbn: null,
+    detectedContentKind: null,
     faviconUrl: null,
   };
 }

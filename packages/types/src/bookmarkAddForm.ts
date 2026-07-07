@@ -8,6 +8,10 @@
  * edit across packages.
  */
 
+import type { ConditionInput, ConditionTree, EvaluateOptions } from "./conditions.js";
+
+import { emptyConditionTree, evaluateConditions } from "./conditions.js";
+
 /** Built-in custom-property slug for the "Runtime" detail property, hidden from the form by default. */
 export const RUNTIME_SLUG = "runtime";
 /** Built-in custom-property slug for the "Date Posted" detail property, hidden from the form by default. */
@@ -91,11 +95,38 @@ export type BookmarkAddFormPlacement = typeof BOOKMARK_ADD_FORM_PLACEMENTS[numbe
  * main area) — is stored as a real entry rather than being encoded as an absence. This replaced the
  * old `advancedFields`/`hiddenFields` membership arrays, which could not express a per-field default.
  */
+/**
+ * A conditional placement override for the *create* form. When {@link conditions} match the
+ * in-progress bookmark (evaluated live against the partially-filled form via
+ * {@link applyAdvancedRules}), the rule's sparse placement maps are overlaid on top of the base
+ * settings — so, e.g., "if Media Type is Book, show Page Progress in the main area." Reuses the shared
+ * condition tree (the same Filter builder autofill rules and card display rules use).
+ */
+export interface BookmarkAddFormAdvancedRule {
+  /** Stable id (client-generated), used as the React key and for update/delete. */
+  id: string;
+  /** Optional human label shown in the settings list; falls back to a generated summary when absent. */
+  name?: string;
+  /** The condition tree that gates this rule (empty tree = matches nothing, so the rule is inert). */
+  conditions: ConditionTree;
+  /** Sparse: only the standard fields this rule repositions. A field absent here inherits the base placement. */
+  standardFieldPlacements: Record<string, BookmarkAddFormPlacement>;
+  /** Sparse: only the property slugs (built-in detail OR user custom) this rule repositions. */
+  propertyPlacements: Record<string, BookmarkAddFormPlacement>;
+  /** Lower runs first; a later (higher `sortOrder`) matching rule wins a field, matching autofill's last-writer merge. */
+  sortOrder: number;
+}
+
 export interface BookmarkAddFormSettings {
   /** Placement for each standard field, keyed by field. */
   standardFieldPlacements: Record<string, BookmarkAddFormPlacement>;
   /** Placement for each built-in detail custom-property slug, keyed by slug. */
   builtInPropertyPlacements: Record<string, BookmarkAddFormPlacement>;
+  /**
+   * Conditional placement overrides applied on the *create* form when their conditions match the
+   * in-progress bookmark. Empty by default. Create-mode only — edit surfaces never read them.
+   */
+  advancedRules: BookmarkAddFormAdvancedRule[];
   /**
    * When true, any field a URL/title automation just filled (an Autofill Rule's category/tags/
    * locations/property values, or the URL metadata scan's title/description/people/image) is lifted
@@ -144,5 +175,53 @@ export const DEFAULT_BOOKMARK_ADD_FORM_SETTINGS: BookmarkAddFormSettings = {
   builtInPropertyPlacements: Object.fromEntries(
     BOOKMARK_FORM_DETAIL_SLUGS.map(slug => [slug, "hidden"]),
   ) as Record<string, BookmarkAddFormPlacement>,
+  advancedRules: [],
   revealAutofilledInMain: false,
 };
+
+/**
+ * Overlay the matching advanced rules onto the base placement settings for one render of the *create*
+ * form. Each rule whose {@link BookmarkAddFormAdvancedRule.conditions} match `input` contributes its
+ * sparse `standardFieldPlacements` (onto {@link BookmarkAddFormSettings.standardFieldPlacements}) and
+ * `propertyPlacements` (onto {@link BookmarkAddFormSettings.builtInPropertyPlacements}, which the
+ * client resolver turns into per-slug `placementOverrides` covering built-in **and** user custom
+ * property slugs). Rules are applied in ascending `sortOrder`, so a later matching rule wins a
+ * conflicting field — the same last-writer semantics as `mergeMatchingAutofillRules`.
+ *
+ * Pure and create-mode only. The other settings fields (`advancedRules`, `revealAutofilledInMain`)
+ * pass through unchanged; the returned object is safe to feed straight into `resolveBookmarkAddForm`.
+ */
+export function applyAdvancedRules(
+  base: BookmarkAddFormSettings,
+  input: ConditionInput,
+  options?: EvaluateOptions,
+): BookmarkAddFormSettings {
+  if (base.advancedRules.length === 0) return base;
+  const standardFieldPlacements = {
+    ...base.standardFieldPlacements,
+  };
+  const builtInPropertyPlacements = {
+    ...base.builtInPropertyPlacements,
+  };
+  for (const rule of [...base.advancedRules].sort((a, b) => a.sortOrder - b.sortOrder)) {
+    if (!evaluateConditions(rule.conditions, input, options)) continue;
+    Object.assign(standardFieldPlacements, rule.standardFieldPlacements);
+    Object.assign(builtInPropertyPlacements, rule.propertyPlacements);
+  }
+  return {
+    ...base,
+    standardFieldPlacements,
+    builtInPropertyPlacements,
+  };
+}
+
+/** A blank advanced rule, used by the settings UI's "Add rule" action. `id` is supplied by the caller. */
+export function makeEmptyAdvancedRule(id: string, sortOrder: number): BookmarkAddFormAdvancedRule {
+  return {
+    id,
+    conditions: emptyConditionTree(),
+    standardFieldPlacements: {},
+    propertyPlacements: {},
+    sortOrder,
+  };
+}
