@@ -23,6 +23,7 @@ export * from "./bookmarkAddForm.js";
 export * from "./bookmarkContentKind.js";
 export * from "./honto.js";
 export * from "./entityNames.js";
+export * from "./entityLayouts.js";
 export * from "./conditions.js";
 export * from "./genreMoods.js";
 export * from "./customProperties.js";
