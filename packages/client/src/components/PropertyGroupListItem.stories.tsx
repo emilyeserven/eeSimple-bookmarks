@@ -1,18 +1,16 @@
-import type { PropertyGroup } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { PropertyGroupListItem } from "./PropertyGroupListItem";
+import { makePropertyGroup } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const group: PropertyGroup = {
+const group = makePropertyGroup({
   id: "group-reading",
   name: "Reading",
   slug: "reading",
   description: "Progress-tracking properties for books.",
-  priority: 0,
-  createdAt: "2026-06-01T00:00:00.000Z",
   propertyCount: 3,
-};
+});
 
 const meta = {
   title: "Components/PropertyGroupListItem",

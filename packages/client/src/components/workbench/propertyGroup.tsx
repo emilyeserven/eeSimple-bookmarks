@@ -2,11 +2,116 @@
 import type { EntityWorkbench } from "./types";
 import type { PropertyGroup } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import i18n from "../../i18n";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { PropertyGroupGeneralForm } from "../PropertyGroupGeneralForm";
+import { PropertyGroupCategoriesEditForm, PropertyGroupMediaTypesEditForm } from "../PropertyGroupScopeEditForms";
 
+import { Badge } from "@/components/ui/badge";
+import { useCategories } from "@/hooks/useCategories";
+import { useMediaTypes } from "@/hooks/useMediaTypes";
 import { useDeletePropertyGroup, usePropertyGroupBySlug, usePropertyGroups } from "@/hooks/usePropertyGroups";
+import { CategoryIcon } from "@/lib/icons";
+
+/** Read-only "Categories" scope body: which categories show this group. Empty (or "all") = every category. */
+function PropertyGroupCategoriesView({
+  entity: group,
+}: {
+  entity: PropertyGroup;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    data: categories,
+  } = useCategories();
+  if (group.allCategories || group.categoryIds.length === 0) {
+    return <Badge variant="secondary">{t("All categories")}</Badge>;
+  }
+  const assigned = (categories ?? []).filter(category => group.categoryIds.includes(category.id));
+  return (
+    <ul className="flex flex-wrap gap-1">
+      {assigned.map(category => (
+        <li key={category.id}>
+          <Badge
+            variant="secondary"
+            className="gap-1.5"
+          >
+            <CategoryIcon
+              name={category.icon}
+              className="size-3.5"
+            />
+            {category.name}
+          </Badge>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Read-only "Media Types" scope body: the media types this group is additionally shown on. */
+function PropertyGroupMediaTypesView({
+  entity: group,
+}: {
+  entity: PropertyGroup;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    data: mediaTypes,
+  } = useMediaTypes();
+  if (group.allMediaTypes) return <Badge variant="secondary">{t("All media types")}</Badge>;
+  const assigned = (mediaTypes ?? []).filter(mt => group.mediaTypeIds.includes(mt.id));
+  if (assigned.length === 0) {
+    return <span className="text-sm text-muted-foreground">{t("None")}</span>;
+  }
+  return (
+    <ul className="flex flex-wrap gap-1">
+      {assigned.map(mt => (
+        <li key={mt.id}>
+          <Badge variant="secondary">{mt.name}</Badge>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Editable "Categories" scope tab: loads the category list and delegates to the scope form. */
+function PropertyGroupCategoriesEdit({
+  entity: group,
+}: {
+  entity: PropertyGroup;
+}) {
+  const {
+    data: categories,
+  } = useCategories();
+  return (
+    <PropertyGroupCategoriesEditForm
+      group={group}
+      categories={categories ?? []}
+    />
+  );
+}
+
+/** Editable "Media Types" scope tab: loads the media-type list and delegates to the scope form. */
+function PropertyGroupMediaTypesEdit({
+  entity: group,
+}: {
+  entity: PropertyGroup;
+}) {
+  const {
+    data: mediaTypes,
+  } = useMediaTypes();
+  return (
+    <PropertyGroupMediaTypesEditForm
+      group={group}
+      mediaTypes={mediaTypes ?? []}
+    />
+  );
+}
 
 function PropertyGroupGeneralView({
   entity: group,
@@ -89,6 +194,34 @@ export const propertyGroupWorkbench: EntityWorkbench<PropertyGroup> = {
         render: ({
           entity,
         }) => <PropertyGroupGeneralForm group={entity} />,
+      },
+    },
+    {
+      key: "categories",
+      label: i18n.t("Categories"),
+      view: {
+        title: i18n.t("Categories"),
+        description: i18n.t("The categories that show this group on the bookmark form."),
+        render: PropertyGroupCategoriesView,
+      },
+      edit: {
+        title: i18n.t("Categories"),
+        description: i18n.t("Choose which categories show this group on the bookmark form. Leave empty to show it for every category."),
+        render: PropertyGroupCategoriesEdit,
+      },
+    },
+    {
+      key: "media-types",
+      label: i18n.t("Media Types"),
+      view: {
+        title: i18n.t("Media Types"),
+        description: i18n.t("The media types this group is also shown on."),
+        render: PropertyGroupMediaTypesView,
+      },
+      edit: {
+        title: i18n.t("Media Types"),
+        description: i18n.t("Also show this group on bookmarks of the chosen media types (in addition to its categories)."),
+        render: PropertyGroupMediaTypesEdit,
       },
     },
     {

@@ -21,6 +21,14 @@ const propertyGroupParams = {
   },
 } as const;
 
+const uuidArray = {
+  type: "array",
+  items: {
+    type: "string",
+    format: "uuid",
+  },
+} as const;
+
 const createPropertyGroupBody = {
   type: "object",
   required: ["name"],
@@ -35,6 +43,14 @@ const createPropertyGroupBody = {
     },
     priority: {
       type: "integer",
+    },
+    categoryIds: uuidArray,
+    allCategories: {
+      type: "boolean",
+    },
+    mediaTypeIds: uuidArray,
+    allMediaTypes: {
+      type: "boolean",
     },
   },
 } as const;
@@ -52,6 +68,14 @@ const updatePropertyGroupBody = {
     },
     priority: {
       type: "integer",
+    },
+    categoryIds: uuidArray,
+    allCategories: {
+      type: "boolean",
+    },
+    mediaTypeIds: uuidArray,
+    allMediaTypes: {
+      type: "boolean",
     },
   },
 } as const;

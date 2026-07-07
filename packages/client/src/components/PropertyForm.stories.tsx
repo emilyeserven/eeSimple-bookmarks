@@ -1,11 +1,9 @@
-import type { Category, MediaType, PropertyGroup } from "@eesimple/types";
+import type { Category, MediaType } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { PropertyForm } from "./PropertyForm";
-import { makeCategory, makeCustomProperty, makeMediaType } from "../test-utils/factories";
+import { makeCategory, makeCustomProperty, makeMediaType, makePropertyGroup } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
-
-const NOW = "2026-06-01T00:00:00.000Z";
 
 const categories: Category[] = [
   makeCategory({
@@ -28,15 +26,13 @@ const mediaTypes: MediaType[] = [
   }),
 ];
 
-const propertyGroups: PropertyGroup[] = [
-  {
+const propertyGroups = [
+  makePropertyGroup({
     id: "group-reading",
     name: "Reading",
     slug: "reading",
     description: null,
-    priority: 0,
-    createdAt: NOW,
-  },
+  }),
 ];
 
 const meta = {

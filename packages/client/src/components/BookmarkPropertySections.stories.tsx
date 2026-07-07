@@ -1,18 +1,16 @@
-import type { PropertyGroup } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
+import { makePropertyGroup } from "../test-utils/factories";
 import { apiHandlers, sampleBookmark, sampleProperties } from "../test-utils/story-mocks";
 
-const propertyGroups: PropertyGroup[] = [
-  {
+const propertyGroups = [
+  makePropertyGroup({
     id: "group-workflow",
     name: "Workflow",
     slug: "workflow",
     description: null,
-    priority: 0,
-    createdAt: "2026-06-01T00:00:00.000Z",
-  },
+  }),
 ];
 
 const meta = {

@@ -24,6 +24,14 @@ function PropertyGroupEditLayout() {
       label: t("General"),
     },
     {
+      to: "/taxonomies/property-groups/$propertyGroupSlug/edit/categories",
+      label: t("Categories"),
+    },
+    {
+      to: "/taxonomies/property-groups/$propertyGroupSlug/edit/media-types",
+      label: t("Media Types"),
+    },
+    {
       to: "/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules",
       label: t("Display Rules"),
     },

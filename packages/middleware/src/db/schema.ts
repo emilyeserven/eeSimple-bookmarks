@@ -633,6 +633,12 @@ export const propertyGroups = pgTable("property_groups", {
   description: text("description"),
   // Display ordering across groups; lower sorts first.
   priority: integer("priority").notNull().default(0),
+  // When true, the group applies to every category (overrides the property_group_categories scope).
+  // NOT NULL on the populated property_groups table → pre-applied in migrate.ts to keep push additive.
+  allCategories: boolean("all_categories").notNull().default(false),
+  // When true, the group applies to every media type (overrides the property_group_media_types scope).
+  // NOT NULL on the populated property_groups table → pre-applied in migrate.ts to keep push additive.
+  allMediaTypes: boolean("all_media_types").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -2060,6 +2066,34 @@ export const propertyMediaTypes = pgTable("property_media_types", {
   }),
 ]);
 
+/** `property_group_categories` join — many-to-many between property groups and categories (scope). */
+export const propertyGroupCategories = pgTable("property_group_categories", {
+  propertyGroupId: uuid("property_group_id").notNull().references(() => propertyGroups.id, {
+    onDelete: "cascade",
+  }),
+  categoryId: uuid("category_id").notNull().references(() => categories.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.propertyGroupId, table.categoryId],
+  }),
+]);
+
+/** `property_group_media_types` join — many-to-many between property groups and media types (scope). */
+export const propertyGroupMediaTypes = pgTable("property_group_media_types", {
+  propertyGroupId: uuid("property_group_id").notNull().references(() => propertyGroups.id, {
+    onDelete: "cascade",
+  }),
+  mediaTypeId: uuid("media_type_id").notNull().references(() => mediaTypes.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.propertyGroupId, table.mediaTypeId],
+  }),
+]);
+
 /**
  * `autofill_rules` — user-defined rules that prefill the Add-Bookmark form. A rule matches a
  * bookmark against its `conditions` tree, then applies a category, tags, and custom-property
@@ -2314,6 +2348,32 @@ export const propertyMediaTypesRelations = relations(propertyMediaTypes, ({
   }),
 }));
 
+export const propertyGroupCategoriesRelations = relations(propertyGroupCategories, ({
+  one,
+}) => ({
+  propertyGroup: one(propertyGroups, {
+    fields: [propertyGroupCategories.propertyGroupId],
+    references: [propertyGroups.id],
+  }),
+  category: one(categories, {
+    fields: [propertyGroupCategories.categoryId],
+    references: [categories.id],
+  }),
+}));
+
+export const propertyGroupMediaTypesRelations = relations(propertyGroupMediaTypes, ({
+  one,
+}) => ({
+  propertyGroup: one(propertyGroups, {
+    fields: [propertyGroupMediaTypes.propertyGroupId],
+    references: [propertyGroups.id],
+  }),
+  mediaType: one(mediaTypes, {
+    fields: [propertyGroupMediaTypes.mediaTypeId],
+    references: [mediaTypes.id],
+  }),
+}));
+
 export const categoryRootTagsRelations = relations(categoryRootTags, ({
   one,
 }) => ({
@@ -2459,6 +2519,8 @@ export type CategoryRow = typeof categories.$inferSelect;
 export type NewCategoryRow = typeof categories.$inferInsert;
 export type PropertyCategoryRow = typeof propertyCategories.$inferSelect;
 export type PropertyMediaTypeRow = typeof propertyMediaTypes.$inferSelect;
+export type PropertyGroupCategoryRow = typeof propertyGroupCategories.$inferSelect;
+export type PropertyGroupMediaTypeRow = typeof propertyGroupMediaTypes.$inferSelect;
 export type CategoryRootTagRow = typeof categoryRootTags.$inferSelect;
 export type WebsiteTagRow = typeof websiteTags.$inferSelect;
 export type YouTubeChannelTagRow = typeof youtubeChannelTags.$inferSelect;

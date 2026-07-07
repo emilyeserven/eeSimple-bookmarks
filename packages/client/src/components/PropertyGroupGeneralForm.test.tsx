@@ -21,6 +21,10 @@ function makePropertyGroup(overrides: Partial<PropertyGroup> = {}): PropertyGrou
     slug: "reading",
     description: "Books",
     priority: 0,
+    categoryIds: [],
+    allCategories: false,
+    mediaTypeIds: [],
+    allMediaTypes: false,
     createdAt: "2024-01-01T00:00:00.000Z",
     ...overrides,
   };
