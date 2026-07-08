@@ -4,6 +4,7 @@ import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 
 import { bookmarkWorkbench } from "../components/workbench/bookmark";
 import { categoryWorkbench } from "../components/workbench/category";
+import { genreMoodWorkbench } from "../components/workbench/genreMood";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
 import { tagWorkbench } from "../components/workbench/tag";
 import i18n from "../i18n";
@@ -52,6 +53,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Bookmark"),
     fields: fieldsFromRegistry(bookmarkWorkbench.fields),
     defaultLayout: bookmarkWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "genre-mood",
+    label: i18n.t("Genres & Moods"),
+    fields: fieldsFromRegistry(genreMoodWorkbench.fields),
+    defaultLayout: genreMoodWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },
