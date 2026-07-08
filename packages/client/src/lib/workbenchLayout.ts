@@ -90,7 +90,8 @@ export interface RenderTab {
  * The tabs of a resolved layout that have ≥1 mode-visible section (design §2.5 empty-in-mode tab
  * hiding — reproduces today's view-only "Hierarchy" / edit-only "Display" tabs). Labels come from the
  * layout tab (user-editable); the serialized `icon` name is intentionally not surfaced here (the v1
- * rail renders labels only, matching today).
+ * rail renders labels only, matching today). `group` is attached by {@link deriveWorkbenchTabs}, not
+ * here — it is code-only nav metadata (`WorkbenchTab.group`), never stored in the layout jsonb.
  */
 export function modeVisibleTabs<E extends { id: string }>(
   layout: EntityLayout,
@@ -108,10 +109,12 @@ export function modeVisibleTabs<E extends { id: string }>(
 
 /**
  * The single tab list both rails (`EntityInfoView` / `EntityEditView`) consume. Layout-driven when a
- * resolved `layout` is present → {@link modeVisibleTabs} (no `group`). Otherwise the legacy path:
+ * resolved `layout` is present → {@link modeVisibleTabs}, with each tab's `group` re-attached from the
+ * matching `workbench.tabs` entry by key (so the edit strip's "More" dropdown grouping survives the
+ * migration — `group` is code-only nav metadata, kept on `WorkbenchTab`, never persisted in the layout
+ * jsonb; a user-created tab has no matching entry and stays flat). Otherwise the legacy path:
  * `workbench.tabs` filtered to those carrying the mode's pane and passing tab-level `showIf`
- * (optimistically while the entity loads), carrying `group` through for the edit strip's "More"
- * dropdown collapsing.
+ * (optimistically while the entity loads), carrying `group` through directly.
  */
 export function deriveWorkbenchTabs<E extends { id: string }>(
   workbench: EntityWorkbench<E>,
@@ -120,7 +123,11 @@ export function deriveWorkbenchTabs<E extends { id: string }>(
   entity: E | undefined,
 ): RenderTab[] {
   if (layout && workbench.fields) {
-    return modeVisibleTabs(layout, workbench.fields, mode, entity);
+    const groupByKey = new Map(workbench.tabs.map(tab => [tab.key, tab.group]));
+    return modeVisibleTabs(layout, workbench.fields, mode, entity).map(tab => ({
+      ...tab,
+      group: groupByKey.get(tab.key),
+    }));
   }
   return workbench.tabs
     .filter((tab: WorkbenchTab<E>) => {
