@@ -30,6 +30,9 @@ const layoutSectionSchema = {
     title: {
       type: "string",
     },
+    description: {
+      type: "string",
+    },
     columns: {
       type: "integer",
     },
@@ -54,6 +57,9 @@ const layoutTabSchema = {
       type: "string",
     },
     icon: {
+      type: "string",
+    },
+    description: {
       type: "string",
     },
     sections: {

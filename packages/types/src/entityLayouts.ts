@@ -53,7 +53,8 @@ export type LayoutableEntityKind = typeof LAYOUTABLE_ENTITY_KINDS[number];
 /**
  * One field row within a section. `key` is a stable machine slug (identity for merge/diff
  * purposes, never shown to the user); `title` is an optional user-editable display title (absent =
- * untitled section); `fields` are field keys (from the entity's field registry, see #1159) in
+ * untitled section); `description` is an optional user-editable blurb shown under the title on the
+ * View/Edit pages; `fields` are field keys (from the entity's field registry, see #1159) in
  * render order. `columns` is the section's column count (1–4; absent = 1 = a full-width stack) —
  * fields render at `1/columns` width and overflow wraps to the next line, honored identically in
  * the editor preview and on the real View/Edit pages (#1220).
@@ -61,6 +62,7 @@ export type LayoutableEntityKind = typeof LAYOUTABLE_ENTITY_KINDS[number];
 export interface LayoutSection {
   key: string;
   title?: string;
+  description?: string;
   columns?: number;
   fields: string[];
 }
@@ -68,12 +70,14 @@ export interface LayoutSection {
 /**
  * One tab of an {@link EntityLayout}. `icon` is a serialized icon name (not a component — a
  * user-created tab must be jsonb-serializable; the field registry's icon is a real component,
- * resolved from this name at render time).
+ * resolved from this name at render time). `description` is an optional user-editable blurb shown
+ * at the top of the tab body on the View/Edit pages.
  */
 export interface LayoutTab {
   key: string;
   label: string;
   icon?: string;
+  description?: string;
   sections: LayoutSection[];
 }
 
@@ -102,6 +106,7 @@ function isValidLayoutSection(value: unknown): value is LayoutSection {
   const section = value as Record<string, unknown>;
   if (typeof section.key !== "string") return false;
   if (section.title !== undefined && typeof section.title !== "string") return false;
+  if (section.description !== undefined && typeof section.description !== "string") return false;
   if (section.columns !== undefined && typeof section.columns !== "number") return false;
   return isStringArray(section.fields);
 }
@@ -112,6 +117,7 @@ function isValidLayoutTab(value: unknown): value is LayoutTab {
   if (typeof tab.key !== "string") return false;
   if (typeof tab.label !== "string") return false;
   if (tab.icon !== undefined && typeof tab.icon !== "string") return false;
+  if (tab.description !== undefined && typeof tab.description !== "string") return false;
   return Array.isArray(tab.sections) && tab.sections.every(isValidLayoutSection);
 }
 
@@ -208,6 +214,7 @@ export function resolveLayout(
         key: home.tab.key,
         label: home.tab.label,
         icon: home.tab.icon,
+        description: home.tab.description,
         sections: [],
       };
       workingTabs.push(targetTab);
@@ -218,6 +225,7 @@ export function resolveLayout(
       targetSection = {
         key: home.section.key,
         title: home.section.title,
+        description: home.section.description,
         columns: home.section.columns,
         fields: [],
       };

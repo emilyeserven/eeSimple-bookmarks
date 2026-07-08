@@ -91,3 +91,61 @@ describe("LayoutDrivenTabBody column layout (#1220)", () => {
     expect(solo?.parentElement?.className).toContain("space-y-6");
   });
 });
+
+describe("LayoutDrivenTabBody descriptions (#1220 follow-up)", () => {
+  const describedLayout: EntityLayout = {
+    tabs: [{
+      key: "general",
+      label: "General",
+      description: "What this tab is about",
+      sections: [{
+        key: "main",
+        title: "Main",
+        description: "The core fields",
+        fields: ["a"],
+      }],
+    }],
+  };
+
+  it("renders the tab description above the sections and the section description under its title", () => {
+    const {
+      getByText,
+    } = render(
+      <LayoutDrivenTabBody
+        workbench={workbench}
+        layout={describedLayout}
+        tabKey="general"
+        mode="view"
+        entity={demo}
+      />,
+    );
+    expect(getByText("What this tab is about")).toBeTruthy();
+    expect(getByText("The core fields")).toBeTruthy();
+  });
+
+  it("shows a description on an untitled section (title falls back to empty)", () => {
+    const layout: EntityLayout = {
+      tabs: [{
+        key: "general",
+        label: "General",
+        sections: [{
+          key: "main",
+          description: "Standalone blurb",
+          fields: ["a"],
+        }],
+      }],
+    };
+    const {
+      getByText,
+    } = render(
+      <LayoutDrivenTabBody
+        workbench={workbench}
+        layout={layout}
+        tabKey="general"
+        mode="edit"
+        entity={demo}
+      />,
+    );
+    expect(getByText("Standalone blurb")).toBeTruthy();
+  });
+});

@@ -39,12 +39,14 @@ export function sectionColumnsClass(columns: number | undefined): string {
 }
 
 /**
- * The layout classes for the editor's field-chip preview. Unlike the render classes these apply the
- * column count at every breakpoint (the settings editor is a desktop surface and the preview should
- * mirror the chosen width immediately), so a 2-column group shows half-width chips right away.
+ * The layout classes for the editor's field-chip preview. Always a fixed `grid-cols-N` (even for a
+ * single column) at every breakpoint — the settings editor is a desktop surface and the preview
+ * must mirror the chosen width exactly, so each chip spans `1/N` of the row: 1 col → full-width
+ * (one chip per row), 2 → half, 3 → third, 4 → quarter, wrapping on overflow. (A `flex flex-wrap`
+ * here would size chips to their content instead of the column, which is what the tray still uses.)
  */
 const EDITOR_CLASS: Record<number, string> = {
-  1: "flex flex-wrap gap-1.5",
+  1: "grid grid-cols-1 gap-1.5",
   2: "grid grid-cols-2 gap-1.5",
   3: "grid grid-cols-3 gap-1.5",
   4: "grid grid-cols-4 gap-1.5",

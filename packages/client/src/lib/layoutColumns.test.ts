@@ -48,9 +48,10 @@ describe("sectionColumnsClass (render)", () => {
 });
 
 describe("sectionColumnsEditorClass (preview)", () => {
-  it("uses flex-wrap for 1 column and a fixed grid for 2–4", () => {
-    expect(sectionColumnsEditorClass(1)).toBe("flex flex-wrap gap-1.5");
+  it("uses a fixed grid at 1/N width for every count, including a single full-width column", () => {
+    expect(sectionColumnsEditorClass(1)).toBe("grid grid-cols-1 gap-1.5");
     expect(sectionColumnsEditorClass(2)).toBe("grid grid-cols-2 gap-1.5");
+    expect(sectionColumnsEditorClass(3)).toBe("grid grid-cols-3 gap-1.5");
     expect(sectionColumnsEditorClass(4)).toBe("grid grid-cols-4 gap-1.5");
   });
 });

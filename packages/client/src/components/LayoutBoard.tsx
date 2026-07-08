@@ -30,6 +30,8 @@ import {
   renameSection,
   renameTab,
   setSectionColumns,
+  setSectionDescription,
+  setTabDescription,
   setTabIcon,
 } from "./entityLayoutMutations";
 import i18n from "../i18n";
@@ -309,6 +311,15 @@ function TabGroup({
           <Trash2 className="size-3.5" />
         </HeaderIconButton>
       </div>
+      <div className="mb-2 pl-1">
+        <InlineLabel
+          value={tab.description ?? ""}
+          placeholder={i18n.t("Tab description (optional)")}
+          ariaLabel={i18n.t("Tab description")}
+          className="w-full text-xs text-muted-foreground"
+          onCommit={description => onChange(setTabDescription(value, tab.key, description))}
+        />
+      </div>
       <div className="space-y-2 pl-1">
         {tab.sections.map((section, sectionIndex) => (
           <SectionDropArea
@@ -441,6 +452,15 @@ function SectionDropArea({
         >
           <Trash2 className="size-3.5" />
         </HeaderIconButton>
+      </div>
+      <div className="mb-1.5">
+        <InlineLabel
+          value={section.description ?? ""}
+          placeholder={i18n.t("Section description (optional)")}
+          ariaLabel={i18n.t("Section description")}
+          className="w-full text-xs text-muted-foreground"
+          onCommit={description => onChange(setSectionDescription(value, tabKey, section.key, description))}
+        />
       </div>
       <SortableContext
         items={section.fields}

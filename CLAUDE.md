@@ -391,18 +391,21 @@ path (`WorkbenchPane.render`) still exists in the types + `WorkbenchRouteTab`/`d
 registry edit, never a pane edit.
 
 - **Schema (`@eesimple/types`, `entityLayouts.ts`).** `EntityLayout = { tabs: LayoutTab[] }`,
-  `LayoutTab = { key, label, icon?, sections: LayoutSection[] }`, `LayoutSection = { key, title?,
-  columns?, fields: string[] }`. `key`s are stable machine slugs (merge identity); `label`/`title` are
-  user-editable; array order = render order; `icon` is a serialized **string name** (a user-created tab
-  must be jsonb-serializable — the registry's real `LucideIcon` is resolved from it via `lib/icons.tsx`
-  `icons[name]`). `columns` is a section's **column count (1–4; absent = 1 = full-width stack)** — its
-  fields render at `1/columns` width and overflow wraps, honored identically in the editor preview
-  (`LayoutBoard`) and on the real View/Edit pages (`LayoutDrivenTabBody` via `sectionColumnsClass` in
-  `lib/layoutColumns.ts`, which stacks to one column below `md`). `columns` is additive jsonb (no
-  migration) but has two hand-maintained sync points: the Fastify `layoutSectionSchema`
+  `LayoutTab = { key, label, icon?, description?, sections: LayoutSection[] }`, `LayoutSection = { key,
+  title?, description?, columns?, fields: string[] }`. `key`s are stable machine slugs (merge identity);
+  `label`/`title` are user-editable; array order = render order; `icon` is a serialized **string name** (a
+  user-created tab must be jsonb-serializable — the registry's real `LucideIcon` is resolved from it via
+  `lib/icons.tsx` `icons[name]`). `columns` is a section's **column count (1–4; absent = 1 = full-width
+  stack)** — its fields render at `1/columns` width and overflow wraps, honored identically in the editor
+  preview (`LayoutBoard`) and on the real View/Edit pages (`LayoutDrivenTabBody` via `sectionColumnsClass`
+  in `lib/layoutColumns.ts`, which stacks to one column below `md`). `description` is an optional
+  user-editable blurb shown on the View/Edit pages: a **tab** description renders as a muted line at the
+  top of the tab body, a **section** description renders under its title (via `LabeledSection`'s
+  `description`). `columns`/`description` are additive jsonb (no migration) but each has the same
+  hand-maintained sync points: the Fastify `layoutSectionSchema`/`layoutTabSchema`
   (`middleware/routes/entityLayoutsSchema.ts`, `additionalProperties: false`) and the two places a
-  section literal is rebuilt from scratch — `resolveLayout`'s recreated-section branch and the editor's
-  `renameSection` reducer — must carry it through (#1220). **Page Layouts is its own top-level settings
+  tab/section literal is rebuilt from scratch — `resolveLayout`'s recreated-tab/-section branch and the
+  editor's `renameSection` reducer — must carry them through (#1220). **Page Layouts is its own top-level settings
   section** (`/settings/page-layouts`, a vertical entity rail, not the old Display sub-tab dropdown). `LAYOUTABLE_ENTITY_KINDS` (the 21 workbench kinds + `"bookmark"`) is the single edit
   point for adding a layoutable kind; `EntityLayoutRecord` is the API/DB row shape (`{ entityKind, layout,
   updatedAt }`, `layout: null` = no override) and `isValidEntityLayout` is the structural boundary guard

@@ -159,6 +159,25 @@ export function setTabIcon(layout: EntityLayout, tabKey: string, icon: string | 
   });
 }
 
+/**
+ * Set (or clear, on an empty string) a tab's description — the blurb shown at the top of the tab
+ * body on the View/Edit pages. Mirrors {@link setTabIcon}'s set-or-clear shape.
+ */
+export function setTabDescription(
+  layout: EntityLayout,
+  tabKey: string,
+  description: string,
+): EntityLayout {
+  return mapTab(layout, tabKey, (tab) => {
+    const next: LayoutTab = {
+      ...tab,
+    };
+    if (description) next.description = description;
+    else delete next.description;
+    return next;
+  });
+}
+
 /** Rename a section's title. Empty string → untitled (the `title` key is dropped). */
 export function renameSection(
   layout: EntityLayout,
@@ -193,6 +212,26 @@ export function setSectionColumns(
     };
     if (columns && columns > 1) next.columns = columns;
     else delete next.columns;
+    return next;
+  }));
+}
+
+/**
+ * Set (or clear, on an empty string) a section's description — the muted blurb shown under its
+ * title on the View/Edit pages. Mirrors {@link setSectionColumns}'s set-or-clear shape.
+ */
+export function setSectionDescription(
+  layout: EntityLayout,
+  tabKey: string,
+  sectionKey: string,
+  description: string,
+): EntityLayout {
+  return mapTab(layout, tabKey, tab => mapSection(tab, sectionKey, (section) => {
+    const next: LayoutSection = {
+      ...section,
+    };
+    if (description) next.description = description;
+    else delete next.description;
     return next;
   }));
 }

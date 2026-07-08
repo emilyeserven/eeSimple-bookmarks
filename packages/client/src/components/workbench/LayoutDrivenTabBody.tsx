@@ -23,11 +23,13 @@ interface Props<E extends { id: string }> {
 /**
  * Renders one layout tab's body as a flat `LabeledSection` stack (CLAUDE.md "Content hierarchies").
  * For each of the tab's **mode-visible** sections (empty sections already dropped by
- * {@link visibleSectionsForTab}), a titled section becomes a `LabeledSection`, an untitled one a bare
- * full-width stack; sections are divided by `<Separator/>`. Each field renders in array order via its
- * registry entry's mode renderer — one layout tree, the mode picks the renderer, so view/edit parity
- * is by construction. There is no tab-level heading: the rail label + section titles identify the
- * content, and the danger zone stays a `WorkbenchRouteTab` fixture (this body is fields only).
+ * {@link visibleSectionsForTab}), a section with a title and/or description becomes a
+ * `LabeledSection` (its optional muted description under the heading), an untitled/undescribed one a
+ * bare full-width stack; sections are divided by `<Separator/>`. Each field renders in array order
+ * via its registry entry's mode renderer — one layout tree, the mode picks the renderer, so
+ * view/edit parity is by construction. The rail label + section titles identify the content, but an
+ * operator-set **tab description** (if any) renders as a muted blurb at the top of the body; the
+ * danger zone stays a `WorkbenchRouteTab` fixture (this body is fields only).
  */
 export function LayoutDrivenTabBody<E extends { id: string }>({
   workbench, layout, tabKey, mode, entity,
@@ -41,6 +43,9 @@ export function LayoutDrivenTabBody<E extends { id: string }>({
 
   return (
     <div className="space-y-6">
+      {tab.description
+        ? <p className="text-sm text-muted-foreground">{tab.description}</p>
+        : null}
       {sections.map(({
         section, fieldKeys,
       }, index) => {
@@ -62,8 +67,15 @@ export function LayoutDrivenTabBody<E extends { id: string }>({
         return (
           <Fragment key={section.key}>
             {index > 0 ? <Separator /> : null}
-            {section.title
-              ? <LabeledSection title={section.title}>{body}</LabeledSection>
+            {section.title || section.description
+              ? (
+                <LabeledSection
+                  title={section.title ?? ""}
+                  description={section.description}
+                >
+                  {body}
+                </LabeledSection>
+              )
               : body}
           </Fragment>
         );
