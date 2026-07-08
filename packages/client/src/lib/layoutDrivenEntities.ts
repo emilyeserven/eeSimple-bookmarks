@@ -1,0 +1,48 @@
+import type { LayoutFieldMeta } from "../components/LayoutBoard";
+import type { WorkbenchField } from "../components/workbench/types";
+import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
+
+import { categoryWorkbench } from "../components/workbench/category";
+import { newsletterWorkbench } from "../components/workbench/newsletter";
+import i18n from "../i18n";
+
+/** One entity kind selectable on the Page Layouts settings page. */
+export interface LayoutDrivenEntity {
+  kind: LayoutableEntityKind;
+  label: string;
+  fields: LayoutFieldMeta[];
+  defaultLayout: EntityLayout;
+}
+
+function fieldsFromRegistry<E>(fields: Record<string, WorkbenchField<E>> | undefined): LayoutFieldMeta[] {
+  return Object.values(fields ?? {}).map(field => ({
+    key: field.key,
+    label: field.label,
+    icon: field.icon,
+  }));
+}
+
+/**
+ * Entity kinds whose field registry (#1159) has landed — the Page Layouts settings page (#1162)
+ * only lists these, per `LAYOUTABLE_ENTITY_KINDS`' own doc note that not every kind has a registry
+ * yet. Add an entry here as each entity's workbench gains `layoutKind`/`fields`/`defaultLayout`
+ * (see CLAUDE.md "Entity page layouts").
+ */
+export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
+  {
+    kind: "category",
+    label: i18n.t("Category"),
+    fields: fieldsFromRegistry(categoryWorkbench.fields),
+    defaultLayout: categoryWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "newsletter",
+    label: i18n.t("Newsletter"),
+    fields: fieldsFromRegistry(newsletterWorkbench.fields),
+    defaultLayout: newsletterWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+];
