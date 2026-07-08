@@ -168,7 +168,8 @@ Add to the existing hooks file:
 ### 8. View body component (`packages/client/src/components/workbench/<entity>.tsx`)
 
 Create a `<Entity>GeneralView({ entity })` component rendering a `dl` grid (mirror
-`PropertyGroupGeneralView`). Typical fields:
+`PropertyGroupGeneralView`). This becomes the `general` field's **`view`** renderer in step 10. Typical
+rows:
 - Description (if set)
 - Entity-specific summary (e.g. `summarizeBookmarkSearch(filter.filters)`)
 - Boolean status badge
@@ -208,54 +209,73 @@ autoSave.saveField("name", value, {
 
 ### 10. Workbench descriptor (`packages/client/src/components/workbench/<entity>.tsx`)
 
-```ts
+The descriptor is **layout-driven** (CLAUDE.md → "Entity page layouts"; see the `tabbed-pages` skill): a
+field registry + a `defaultLayout`, **not** opaque `view`/`edit` panes. For a one-tab settings entity:
+
+```tsx
+type MyEntityFieldKey = "general";
+
+const myEntityFields = {
+  general: {
+    key: "general",
+    label: i18n.t("General"),
+    view: ({ entity }) => <EntityGeneralView entity={entity} />,   // the step-8 dl
+    edit: ({ entity }) => <EntityGeneralForm entity={entity} />,   // the step-9 auto-save form
+  },
+} satisfies Record<MyEntityFieldKey, WorkbenchField<MyEntity>>;
+
+const MY_ENTITY_DEFAULT_LAYOUT: EntityLayout = {
+  tabs: [{ key: "general", label: i18n.t("General"),
+    sections: [{ key: "general", fields: ["general"] satisfies MyEntityFieldKey[] }] }],
+};
+
 export const entityWorkbench: EntityWorkbench<MyEntity> = {
   useBySlug: (slug) => {
     const { entity, isLoading } = useEntityBySlug(slug);
     return { entity, isLoading };
   },
-  name: (e) => e.name,
+  useById: (id) => { /* find by id in the cached list */ },
+  name: e => e.name,
   useDelete: () => {
     const mut = useDeleteEntity();
-    return { mutate: mut.mutate, isPending: mut.isPending };
+    return { isPending: mut.isPending, error: mut.isError ? mut.error.message : null,
+      run: (id, onDeleted) => mut.mutate(id, { onSuccess: onDeleted }) };
   },
-  notFound: "Entity not found.",
-  navAriaLabel: "Entity sections",
-  tabs: [{
-    key: "general",
-    label: "General",
-    view: {
-      title: "General",
-      description: "…",
-      render: EntityGeneralView,
-    },
-    edit: {
-      title: "General",
-      description: "Name, description, and settings.",
-      render: EntityGeneralForm,
-    },
-  }],
+  notFound: i18n.t("Entity not found."),
+  navAriaLabel: i18n.t("Entity sections"),
+  getSlug: e => e.slug,
+  // listingPath: "/my-entities",   // set → a General-tab "Danger zone" Delete; omit for config entities
+  layoutKind: "saved-filter",       // the entity's LAYOUTABLE_ENTITY_KINDS value (add to the tuple if new)
+  fields: myEntityFields,
+  defaultLayout: MY_ENTITY_DEFAULT_LAYOUT,
+  tabs: [{ key: "general", label: i18n.t("General") }],  // thin: key/label/group? only, no panes
 };
 ```
+
+A single-field/single-tab entity drops the rail automatically. For extra tabs, add fields + a
+`defaultLayout` tab each (view-only tab = a field with only `view`; group two tabs with `group` on the
+thin `tabs` array). If the `layoutKind` is new, add it to `LAYOUTABLE_ENTITY_KINDS` in
+`packages/types/src/entityLayouts.ts`.
 
 ### 11. Route files (`packages/client/src/routes/`)
 
 An info-only entity's set — copy from any existing info-only entity (e.g. `autofill.*` or
-`import-rules.*`):
+`import-rules.*`). Both Info and Edit are single `?tab=` routes; there is **no `_view.*` subtree and no
+per-tab `edit.<tab>.tsx` file** (the tabs derive from the descriptor):
 
 | File | Purpose |
 |---|---|
 | `<area>.tsx` | Root layout — `<Outlet/>` |
 | `<area>.index.tsx` | Listing — renders the manager/listing component |
 | `<area>.$entitySlug.tsx` | Entity layout — `<Outlet/>` |
-| `<area>.$entitySlug.index.tsx` | Redirect → `…/info` |
-| `<area>.$entitySlug.info.tsx` | `EntityInfoView` (vertical `?tab=` rail, header prop) |
-| `<area>.$entitySlug.edit.general.tsx` | `WorkbenchRouteTab` edit mode |
-| `<area>.$entitySlug.edit.index.tsx` | Redirect → `…/edit/general` |
+| `<area>.$entitySlug.index.tsx` | `beforeLoad` redirect → `…/info` |
+| `<area>.$entitySlug.info.tsx` | `EntityInfoView` (vertical `?tab=` rail, header prop, `validateInfoTabSearch`) |
+| `<area>.$entitySlug.edit.tsx` | Pathless `Outlet` layout |
+| `<area>.$entitySlug.edit.index.tsx` | `EntityEditView` (horizontal `?tab=` strip, `validateEditTabSearch`, header) |
+| `<area>.$entitySlug.edit.$.tsx` | Splat `beforeLoad` redirect: old `…/edit/<seg>` → `…/edit?tab=<seg>` |
 
-There is **no** `_view.*` route file — the read-only view tabs derive from the workbench descriptor,
-rendered by `EntityInfoView`. (A **listing** entity instead uses the `_hub` route set — see the
-`tabbed-pages` / `add-entity` skills.)
+(A **listing** entity instead uses the `_hub` route set — see the `tabbed-pages` / `add-entity`
+skills.)
 
 After creating/modifying route files, regenerate:
 ```

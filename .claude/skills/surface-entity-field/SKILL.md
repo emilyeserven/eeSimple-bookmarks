@@ -1,39 +1,44 @@
 ---
 name: surface-entity-field
 description: >-
-  Surface a stored-but-hidden entity property on its slug-routed View (detail) and Edit tab in
-  eeSimple Bookmarks — wire a single field through the tabbed View+Edit layout so it can be read and
-  edited. Use when asked to "show field X on the View/Edit page", "expose/surface a property",
-  "field X isn't displayed/editable", "add X to the General/Options tab", or "the API stores X but
-  the UI doesn't show it". Mirrors how numberFormat (Custom Properties), setMediaTypeId (Autofill
-  prefill), favicon (Websites), avatar (YouTube Channels), and builtIn/icon (Media Types) were
-  surfaced. For a brand-new field/column end-to-end use `add-entity`; to scaffold the tabs
-  themselves use `tabbed-pages`.
+  Surface a stored-but-hidden entity property on its slug-routed View (detail) and Edit page in
+  eeSimple Bookmarks — wire a single field through the entity's field registry + layout so it can be
+  read and edited. Use when asked to "show field X on the View/Edit page", "expose/surface a
+  property", "field X isn't displayed/editable", "add X to the General/Options tab", or "the API
+  stores X but the UI doesn't show it". Mirrors how numberFormat (Custom Properties), setMediaTypeId
+  (Autofill prefill), favicon (Websites), avatar (YouTube Channels), and builtIn/icon (Media Types)
+  were surfaced. For a brand-new field/column end-to-end use `add-entity`; to scaffold the whole
+  view/edit layout use `tabbed-pages`.
 ---
 
-# Surface a stored field on an entity's View + Edit tab
+# Surface a stored field on an entity's page
 
-Most "show field X on the page" requests are **client-only**: the field already round-trips through
-the shared types, the route's JSON schema, and the service — it's just missing from the form and the
-detail view. **So always trace first** (step 0) and only touch the middleware when the trace fails.
+Every entity's view/edit UI is now **layout-driven**: a **field registry** (`fields`) + a
+**`defaultLayout`** on its `EntityWorkbench` descriptor (`components/workbench/<entity>.tsx`), rendered
+by `EntityInfoView` / `EntityEditView` → `LayoutDrivenTabBody`. **Read CLAUDE.md → "Entity page
+layouts" first** — that section is the model this skill applies to a single field. There are **no
+`*Detail` bodies, no per-tab route files, and no opaque panes** anymore; a field is a `WorkbenchField`
+in the registry, and its placement is a `key` in `defaultLayout`.
 
-> **Bookmarks are the exception (#1163).** A **bookmark** is layout-driven but **id-routed and off
-> `ENTITY_DESCRIPTORS`**, so surfacing a bookmark field is **not** this slug-routed tabbed-page flow.
-> Add/extend a `WorkbenchField` in `components/workbench/bookmark.tsx` (view renderers live in
-> `bookmarkViewFields.tsx`; edit renderers wrap the existing `Bookmark*Form` components) and place its
-> key in `BOOKMARK_DEFAULT_LAYOUT`. The detail page (`BookmarkDetailBody`/`Tabbed` via
-> `hooks/useBookmarkViewTabs.ts`) and edit page (`BookmarkEditView`) both render from that registry.
-> A data-empty view tab is dropped in `lib/bookmarkViewTabs.ts` (`hiddenBookmarkViewTabKeys`), not via
-> per-field `showIf`. See CLAUDE.md → **Content hierarchies → Bookmarks are layout-driven**.
+Most "show field X on the page" requests are **client-only**: the field already round-trips through the
+shared types, the route's JSON schema, and the service — it's just missing from a form + a view. **So
+always trace first** (step 0) and only touch the middleware when the trace fails.
+
+> **Bookmarks are the same registry pattern, off `ENTITY_DESCRIPTORS` (#1163).** A **bookmark** is
+> id-routed, so surfacing a bookmark field is done in `components/workbench/bookmark.tsx` (view
+> renderers live in `bookmarkViewFields.tsx`; edit renderers wrap the existing `Bookmark*Form`
+> components) and placed in `BOOKMARK_DEFAULT_LAYOUT`. The detail page (`BookmarkDetailBody`/`Tabbed`
+> via `hooks/useBookmarkViewTabs.ts`) and edit page (`BookmarkEditView`) both render from that
+> registry. A **data-empty** view tab is dropped in `lib/bookmarkViewTabs.ts`
+> (`hiddenBookmarkViewTabKeys`), not via per-field `showIf`. Everything else below applies unchanged.
 
 Canonical examples already in the tree, by effort:
 
-- **`numberFormat`** (Custom Properties) — client-only enum select added to a typed Options tab.
-  Files: `propertyFormSchema.ts`, `PropertyForm.tsx`, `PropertyDetail.tsx`, `lib/propertyForm.ts`,
+- **`numberFormat`** (Custom Properties) — a client-only enum select added to the `options` composite
+  field. Files: `propertyFormSchema.ts`, the Options edit form, the Options view, `lib/propertyForm.ts`,
   `lib/propertyFormat.ts`.
-- **`setMediaTypeId`** (Autofill *Prefill* tab) — client-only nullable `<Select>` copied from the
-  unified `AutofillRuleForm.tsx` into the per-tab form/view. Files: `AutofillRulePrefillForm.tsx`,
-  `AutofillRulePrefillPickers.tsx`, `AutofillRuleDetail.tsx`, the prefill view route.
+- **`setMediaTypeId`** (Autofill *Prefill*) — a client-only nullable `<Select>` added to the prefill
+  composite's edit form + view.
 - **Favicon / avatar** (Websites, YouTube Channels) — images. Display via `EntityImagePreview`;
   upload/replace via `EntityImageField` + a multipart route + a "from bytes" service.
 
@@ -66,52 +71,93 @@ field is an enum. `@eesimple/types` emits native ESM — intra-package re-export
   `if (input.X !== undefined) patch.X = input.X;` to the update patch. Use the `numberFormat` lines in
   `services/customProperties.ts` as the template.
 
-## Step 3 — Pick the tab
+## Step 3 — Decide the placement: extend a composite field, or add a new one
 
-Map the field to the right existing View+Edit tab — General for most, or a **typed/conditional** tab
-(Custom Properties' Options is gated by `type === "number"` via `hasPropertyOptions` in
-`lib/propertyForm.ts`). Don't invent a new tab for a single field.
+Open the entity's descriptor (`components/workbench/<entity>.tsx`) and its `fields` registry. Two
+outcomes:
 
-## Step 4 — Add the field to the edit form's schema module
+- **The field joins an existing composite field** (the common case). Most scalars belong in the
+  **General** tab, and General is registered as **one** placeable field — e.g. media type's
+  `general: { view: MediaTypeGeneralView, edit: ({entity}) => <MediaTypeGeneralForm mediaType={entity} /> }`,
+  or category's `details` (name/icon/description as one `useAppForm` grid). A composite registers as one
+  field on purpose (CLAUDE.md → "Field-granularity edge cases"), so you **don't add a registry key** —
+  you edit the composite's underlying view + edit components (step 4a). Do this unless the field is
+  genuinely a new section.
+- **The field warrants its own placeable unit** (a distinct section/tab — rare for a single field). Add
+  a new `WorkbenchField` to the registry and place its key in `defaultLayout` (step 4b).
 
-In the per-tab form's schema module (canonical `components/propertyFormSchema.ts`):
+Don't invent a whole new tab for one scalar — fold it into General's composite.
 
-- add the field to the zod object,
-- add it to `CREATE_DEFAULTS` / `defaultValues`,
-- map it in `valuesFromProperty` with a null fallback (`property.numberFormat ?? "plain"`),
-- emit it in `payloadFromValues`, **gating by type** where the field only applies to one type
-  (`numberFormat: isNumber ? values.numberFormat : null`).
+## Step 4a — Common case: extend an existing composite field
 
-For a form that holds its values in `useState` (e.g. `AutofillRulePrefillForm.tsx`), instead add: an
-`initial…` value, the `useState`, an entry in the `isDirty` check, and the key in the
-`update….mutate({ input })` object.
+The composite's edit renderer wraps `<Entity>GeneralForm` (auto-save) and its view renderer wraps
+`<Entity>GeneralView` (a read-only `dl`). Edit those two components — **no registry or `defaultLayout`
+change**:
 
-## Step 5 — Render the control in the edit form
+**Edit form** (`components/<Entity>GeneralForm.tsx`, the auto-save form — reference
+`CategoryGeneralForm.tsx`):
+- add the field to the module's zod object (`categorySchema` etc.) and to `defaultValues` /
+  `valuesFromEntity` with a null fallback (`entity.numberFormat ?? "plain"`);
+- render the control via `form.AppField` (`TextField` / `TextareaField` / `NumberField` / `SelectField`
+  / `ComboboxField`, or `IconPicker` / `DateTimePicker` / `EntityImageField`), and save it through the
+  form's `useFieldAutoSave` instance: **text/textarea save on blur** (`onBlur={() =>
+  autoSave.saveField("x", value)}`), **selects/toggles/comboboxes on change** (`onValueChange`). Reuse a
+  shared options array (e.g. `NUMBER_FORMAT_OPTIONS` in `lib/propertyForm.ts`); a **nullable** select
+  uses a `NO_*` sentinel mapped to `null` on save. There is **no Save button** — see the
+  `toast-notifications` skill for the auto-save rules.
 
-Use the right input via `form.AppField`: `TextField` / `TextareaField` / `NumberField` /
-`SelectField` / `ComboboxField`, or `IconPicker` / `DateTimePicker`. Reuse a shared options array
-(e.g. `NUMBER_FORMAT_OPTIONS` in `lib/propertyForm.ts`). A **nullable** select uses a `NO_*` sentinel
-mapped to `null` on save — copy the `setMediaTypeId` select from `AutofillRuleForm.tsx`. Images use
-`EntityImageField` (`components/EntityImageField.tsx`): pass `imageUrl`, `shape`, a `fallback` icon,
-and `onUpload`/`onAuto`/`onRemove` mutations + a `busy` flag.
+**View** (`components/workbench/<entity>Views.tsx` `<Entity>GeneralView`, the `dl`): add a `<dt>/<dd>`
+pair (or a `DetailField` row, which auto-hides when empty). For enums add a labels map in
+`lib/<entity>Format.ts` (mirror `NUMBER_FORMAT_LABELS`); for icons use `CategoryIcon` from `@/lib/icons`;
+for images use `EntityImagePreview`; resolve foreign-key ids to names from the relevant list hook
+(`useMediaTypes()` etc.).
 
-## Step 6 — Render the read-only row in the View
+## Step 4b — New placeable field (a distinct section)
 
-Add a `DetailField` row (`components/DetailField.tsx`; label + children, auto-hides when empty) inside
-the detail body, or a `<dt>/<dd>` pair for the General tabs that use a raw `<dl>` grid (Media Types /
-Websites / YouTube Channels General **view panes** in `components/workbench/<entity>*.tsx`, rendered
-on the `…/$slug/info` page). For enums, add a labels map in `lib/propertyFormat.ts`
-(mirror `DATE_TIME_FORMAT_LABELS` / `NUMBER_FORMAT_LABELS`). For icons use `CategoryIcon` from
-`@/lib/icons`. For images use `EntityImagePreview` (read-only, fallback icon). Resolve foreign-key ids
-to names from the relevant list hook (e.g. `useMediaTypes()` to name `setMediaTypeId`) and pass them
-into the view component as a prop from its route.
+Add a `WorkbenchField` entry to the entity's `fields` registry and its key to the `defaultLayout`:
 
-## Step 7 — Confirm the mutation (usually nothing to add)
+```tsx
+type <Entity>FieldKey = … | "myField";
 
-The per-tab form already saves a partial via `useUpdate<Entity>().mutate({ id, input })`, and that
-hook invalidates the relevant React Query caches — just include the new key in `input`. The right
-panel reuses the **same** `*Detail` / `*Form`, so it inherits the field automatically; never make a
-panel-only variant.
+const <entity>Fields = {
+  // …existing fields…
+  myField: {
+    key: "myField",
+    label: i18n.t("My section"),
+    view: ({ entity }) => <MyFieldView entity={entity} />,   // omit ⇒ never in view mode
+    edit: ({ entity }) => <MyFieldForm entity={entity} />,   // owns its own useFieldAutoSave; omit ⇒ never in edit
+    showIf: entity => entity.type === "number",              // optional
+  },
+} satisfies Record<<Entity>FieldKey, WorkbenchField<Entity>>;
+```
+
+Then append `"myField"` to the right section in `defaultLayout` (typed `<Entity>FieldKey[]`), e.g. a new
+tab:
+
+```ts
+{ key: "my-tab", label: i18n.t("My section"),
+  sections: [{ key: "my-tab", fields: ["myField"] satisfies <Entity>FieldKey[] }] }
+```
+
+Rules that matter (CLAUDE.md → "Entity page layouts"):
+- **The renderer must return a JSX *element*, not call hooks directly** — `LayoutDrivenTabBody` invokes
+  `render({entity})` as a plain call, so any hooks live inside the returned component (`MyFieldForm`),
+  never in the arrow.
+- **view/edit parity is by construction**: an `edit`-only field renders nothing in view (the old
+  edit-only "Display" tab), a `view`-only field renders nothing in edit (the old view-only "Hierarchy"
+  tab). `showIf` hides the field (and, if it's the only field in a section/tab, that section/tab) unless
+  it returns true — reproducing a conditional tab like Custom Properties' Options
+  (`hasPropertyOptions`).
+- **Exhaustiveness**: the `satisfies Record<<Entity>FieldKey, …>` makes a declared key without a renderer
+  fail `tsc`; a `defaultLayout` field key that isn't in the registry is silently dropped by
+  `resolveLayout`, so keep the union + registry + layout in sync.
+
+## Step 5 — Confirm the mutation (usually nothing to add)
+
+The edit form already saves a partial via `useFieldAutoSave` → `useUpdate<Entity>().mutate({ id,
+input })`, and that hook invalidates the relevant React Query caches — just include the new key. The
+view re-reads the same entity from cache, so it inherits the field automatically; never build a
+surface-specific variant.
 
 ### Images — the larger path (only when adding upload/replace)
 
@@ -126,7 +172,7 @@ entity, but **no bytes-ingest** path. To add upload:
   bad-image, 201 with `{ imageUrl }`). Place it beside the existing `…/image/auto` route.
 - **Client:** add `uploadImage` to the entity's API module via the shared `uploadImageFile` helper in
   `lib/api.ts`; add a `useUpload<Entity>Image` hook (mirror `useUploadBookmarkImage`) that invalidates
-  the entity query; wire it into `EntityImageField` on the Edit General tab.
+  the entity query; wire it into `EntityImageField` in the composite's edit renderer.
 
 ## Verify
 
@@ -138,9 +184,10 @@ pnpm lint:fix          # always from repo root
 
 Then `pnpm dev` and confirm the entity:
 
-- shows the new field/row on its **View** tab (enum labels, resolved FK names, image preview, or
-  "None" when empty),
-- edits and **persists** it from the **Edit** tab after a reload, with the Save button still
-  `requireDirty`-gated (or the `isDirty` button disabled until changed),
+- shows the new field/row on its **Info** page (enum labels, resolved FK names, image preview, or
+  "None"/omitted when empty),
+- edits and **persists** it from the **Edit** page after a reload, auto-saving on blur/change with a
+  field-named toast (no Save button; see `toast-notifications`),
 - (images) uploads, auto-captures, and removes — the `?v=` cache-buster refreshes the served URL,
-- still renders the same component in the right panel.
+- (new registry field) appears in the resolved layout in the right mode, and disappears cleanly when
+  `showIf` is false (the whole tab hides if it was the only field).
