@@ -3,7 +3,7 @@ import type { ActiveImport, ActiveReelArchiveJob, AutoFetchJobStatus } from "@ee
 
 import { describe, expect, it } from "vitest";
 
-import { fetchRow, importRow, reelRow } from "./headerActivity";
+import { fetchRow, importRow, reelRow, screenshotRow } from "./headerActivity";
 
 function makeImport(overrides: Partial<ActiveImport> = {}): ActiveImport {
   return {
@@ -107,6 +107,52 @@ describe("fetchRow", () => {
     expect(row).toMatchObject({
       detail: "…",
       fraction: 0,
+    });
+  });
+});
+
+describe("screenshotRow", () => {
+  it("is null when idle (no run in progress)", () => {
+    expect(screenshotRow({
+      total: 0,
+      completed: 0,
+      failed: 0,
+      active: 0,
+    })).toBeNull();
+  });
+
+  it("is null once the run has drained (nothing pending or in flight)", () => {
+    expect(screenshotRow({
+      total: 3,
+      completed: 2,
+      failed: 1,
+      active: 0,
+    })).toBeNull();
+  });
+
+  it("builds a processed/total row with a fraction while the run is active", () => {
+    expect(screenshotRow({
+      total: 4,
+      completed: 1,
+      failed: 0,
+      active: 3,
+    })).toEqual({
+      key: "screenshots",
+      label: "Generating screenshots",
+      detail: "1 / 4",
+      fraction: 0.25,
+    });
+  });
+
+  it("counts failures toward processed", () => {
+    expect(screenshotRow({
+      total: 4,
+      completed: 1,
+      failed: 1,
+      active: 2,
+    })).toMatchObject({
+      detail: "2 / 4",
+      fraction: 0.5,
     });
   });
 });

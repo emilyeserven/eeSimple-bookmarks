@@ -69,6 +69,26 @@ export interface EntityListingConfig<E extends { id: string }> {
     matches: (item: E, value: string | null) => boolean;
   };
   /**
+   * Extra facet filter(s) that need store/query state richer than `secondaryFilter`'s single string
+   * (e.g. Websites' Category + Media Type + Built-in + Has-bookmarks combination). A hook slot — same
+   * rule as `useSortedItems` — applied after the header/secondary filters and BEFORE `useSortedItems`,
+   * so it reduces the "N of M" filtered count and the bulk-select set. Default: identity. Pair it with
+   * a `renderSearchSort` control that writes the facet state. Mirrors the tree config's hook slots.
+   */
+  useExtraFilter?: (items: E[]) => E[];
+  /**
+   * Client-side re-sort of the filtered items before render (hook slot, so it can read a uiStore sort
+   * mode — mirrors `EntityTreeListingConfig.useSortedTree`). Applied last, after every filter, so it
+   * never changes the counts. Must be a stable hook per `pageKey`. Default: identity.
+   */
+  useSortedItems?: (items: E[]) => E[];
+  /**
+   * A sort/filter control rendered in the `ListingSearchBox`'s right-hand `sort` slot — the same slot
+   * the bookmark listings use, and the flat mirror of `EntityTreeListingConfig.renderSearchSort`. Wire
+   * it to the state that `useSortedItems`/`useExtraFilter` read.
+   */
+  renderSearchSort?: () => ReactNode;
+  /**
    * Optional partition of the rendered list (both card/list and table views) into labeled sections,
    * e.g. Languages' used vs. "Unused" split. Each filtered item is assigned to the FIRST section
    * whose `match` returns true (sections should be mutually exclusive & exhaustive); items matching
@@ -82,19 +102,6 @@ export interface EntityListingConfig<E extends { id: string }> {
     title?: string;
     match: (item: E) => boolean;
   }[];
-  /**
-   * Client-side re-sort applied to the filtered list before render (both card and table views). A
-   * hook slot (not a pure fn) so entities can read settings stores — Categories: name/bookmark-count
-   * sort (`sortCategories`). Must be a stable hook per `pageKey` (same rule as `useBulkDelete`).
-   * Defaults to identity.
-   */
-  useSorted?: (items: E[]) => E[];
-  /**
-   * A sort control rendered in the `ListingSearchBox`'s right-hand `sort` slot — like the normal
-   * (bookmark) listing pages and the tree taxonomies' `renderSearchSort`. Categories uses this for its
-   * Name / Bookmark-count sort dropdown.
-   */
-  renderSearchSort?: () => ReactNode;
   renderListItem: (props: {
     entity: E;
     /** The full unfiltered list, for entities whose card needs cross-item lookups (e.g. a

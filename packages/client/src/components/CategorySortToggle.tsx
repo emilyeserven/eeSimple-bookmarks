@@ -6,7 +6,6 @@ import { Combobox } from "./Combobox";
 
 import { useUiStore } from "@/stores/uiStore";
 
-const CATEGORIES_PAGE_KEY = "categories-listing";
 const CATEGORY_SORT_MODES: CategorySortMode[] = ["name-asc", "name-desc", "count-desc", "count-asc"];
 
 function isCategorySortMode(value: string | undefined): value is CategorySortMode {
@@ -15,16 +14,16 @@ function isCategorySortMode(value: string | undefined): value is CategorySortMod
 
 /**
  * The Categories listing's sort-mode control, rendered in the search box's `sort` slot (like the
- * Locations sort dropdown). Offers Name (A–Z / Z–A) and bookmark-count (Most / Fewest) ordering.
- * Reads/writes the per-page `listingSortMode["categories-listing"]` uiStore pref consumed by
- * `useCategorySortedItems` (`entities/category.tsx`).
+ * Websites/Locations sort dropdowns). Offers Name (A–Z / Z–A) and bookmark-count (Most / Fewest)
+ * ordering. Reads/writes the `uiStore.categorySortMode` pref consumed by `useCategorySortedItems`
+ * (`hooks/useCategoryListing.ts`).
  */
 export function CategorySortToggle() {
   const {
     t,
   } = useTranslation();
-  const mode = useUiStore(state => state.listingSortMode[CATEGORIES_PAGE_KEY] ?? "name-asc");
-  const setListingSortMode = useUiStore(state => state.setListingSortMode);
+  const mode = useUiStore(state => state.categorySortMode);
+  const setCategorySortMode = useUiStore(state => state.setCategorySortMode);
 
   const options = [
     {
@@ -60,7 +59,7 @@ export function CategorySortToggle() {
           value={mode}
           onValueChange={(value) => {
             if (isCategorySortMode(value)) {
-              setListingSortMode(CATEGORIES_PAGE_KEY, value);
+              setCategorySortMode(value);
             }
           }}
           aria-label={t("Sort categories")}

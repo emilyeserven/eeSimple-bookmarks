@@ -1,5 +1,4 @@
 import type { EntityDescriptor, EntityListingConfig } from "./types";
-import type { CategorySortMode } from "../lib/categorySort";
 import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
 import type { EntityRoute } from "../lib/entityRoutes";
 import type { Category, UpdateCategoryInput } from "@eesimple/types";
@@ -11,20 +10,11 @@ import { CategoryPreviewRow } from "../components/CategoryPreviewRow";
 import { CategorySortToggle } from "../components/CategorySortToggle";
 import { categoryWorkbench } from "../components/workbench/category";
 import { useBulkDeleteCategories, useCategories } from "../hooks/useCategories";
-import { usePageTitleSort } from "../hooks/useTitleSortContext";
+import { useCategorySortedItems } from "../hooks/useCategoryListing";
 import i18n from "../i18n";
 import { categoriesApi } from "../lib/api/taxonomies";
-import { sortCategories } from "../lib/categorySort";
-import { useUiStore } from "../stores/uiStore";
 
 const CATEGORIES_PAGE_KEY = "categories-listing";
-
-/** Sort the filtered category list by the per-page `listingSortMode` pref (default Name A–Z). */
-function useCategorySortedItems(items: Category[]): Category[] {
-  const mode = useUiStore(state => state.listingSortMode[CATEGORIES_PAGE_KEY] ?? "name-asc");
-  const ctx = usePageTitleSort(CATEGORIES_PAGE_KEY);
-  return sortCategories(items, mode as CategorySortMode, ctx);
-}
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -58,7 +48,7 @@ const CATEGORY_PALETTE: EntityPaletteConfig = {
 export const categoryListingConfig: EntityListingConfig<Category> = {
   pageKey: CATEGORIES_PAGE_KEY,
   useItems: useCategories,
-  useSorted: useCategorySortedItems,
+  useSortedItems: useCategorySortedItems,
   renderSearchSort: () => <CategorySortToggle />,
   matches: (category, query) => category.name.toLowerCase().includes(query)
     || (category.description ?? "").toLowerCase().includes(query),

@@ -36,12 +36,17 @@ export function useListingScaffold<E extends { id: string }>(config: EntityListi
   const {
     secondaryFilter,
   } = config;
-  const matched = secondaryFilter
+  const preFacet = secondaryFilter
     ? textFiltered.filter(item => secondaryFilter.matches(item, secondaryFilterValue))
     : textFiltered;
-  // `config` is a module-level constant, so this conditional hook call is stable across renders
-  // (same pattern as `config.useBulkDelete` below). Covers card + table views via the shared `filtered`.
-  const filtered = config.useSorted ? config.useSorted(matched) : matched;
+
+  // Extra hook-based facet filter (Websites' Category/Media-Type/Built-in/Has-bookmarks). Applied
+  // before sorting so it reduces the counts + bulk-select set; sorting never changes the counts.
+  const filtered = config.useExtraFilter ? config.useExtraFilter(preFacet) : preFacet;
+  const sorted = config.useSortedItems ? config.useSortedItems(filtered) : filtered;
+  // Entity-agnostic proxy for "a facet is narrowing the list" — lets ListingStatusMessages surface the
+  // "Showing X of Y" summary + generic no-match wording when a facet (not a text query) is active.
+  const facetActive = config.useExtraFilter != null && filtered.length !== preFacet.length;
 
   const deletableIds = (config.deletableIds ?? (all => all.map(item => item.id)))(filtered);
   const selection = useListSelection(config.pageKey, deletableIds);
@@ -57,6 +62,8 @@ export function useListingScaffold<E extends { id: string }>(config: EntityListi
     rawQuery,
     hasQuery,
     filtered,
+    sorted,
+    facetActive,
     deletableIds,
     selection,
     bulkDelete,

@@ -87,7 +87,7 @@ export function BookmarkUrlFixRow({
     return (
       <div className="flex items-center justify-between gap-3 py-3">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{bookmark.title}</p>
+          <p className="text-sm font-medium wrap-break-word">{bookmark.title}</p>
           {bookmark.url
             ? (
               <a

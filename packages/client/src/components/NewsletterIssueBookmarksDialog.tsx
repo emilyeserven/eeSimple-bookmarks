@@ -105,7 +105,7 @@ export function NewsletterIssueBookmarksDialog({
                   className="mt-0.5"
                 />
                 <span className="min-w-0">
-                  <span className="block truncate font-medium">{bookmark.title}</span>
+                  <span className="block font-medium wrap-break-word">{bookmark.title}</span>
                   <span className="block truncate text-xs text-muted-foreground">{bookmark.url}</span>
                 </span>
               </label>
