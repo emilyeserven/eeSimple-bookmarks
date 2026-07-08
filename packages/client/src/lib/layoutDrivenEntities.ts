@@ -2,6 +2,7 @@ import type { LayoutFieldMeta } from "../components/LayoutBoard";
 import type { WorkbenchField } from "../components/workbench/types";
 import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 
+import { useBookmarkDynamicFields } from "../components/BookmarkPropertyLayoutFields";
 import { autofillWorkbench } from "../components/workbench/autofill";
 import { bookmarkWorkbench } from "../components/workbench/bookmark";
 import { cardDisplayRuleWorkbench } from "../components/workbench/cardDisplayRule";
@@ -32,6 +33,29 @@ function fieldsFromRegistry<E>(fields: Record<string, WorkbenchField<E>> | undef
     label: field.label,
     icon: field.icon,
   }));
+}
+
+/** Editor-facing view of a kind's dynamic (runtime-sourced) placeable fields: tray metas + home. */
+export interface DynamicLayoutFields {
+  metas: LayoutFieldMeta[];
+  defaultHome: { tabKey: string;
+    sectionKey: string; };
+}
+
+/**
+ * The dynamic placeable fields per kind for the Page Layouts editor (tray + resolve). Each source hook
+ * is called **unconditionally** so the hook order stays stable as the operator switches the selected
+ * kind (only bookmark has a dynamic source today; add one line per new source). The render side reads
+ * the same source via `useLayoutDrivenWorkbench`, so the editor and the live pages agree.
+ */
+export function useDynamicLayoutFieldsByKind(): Partial<Record<LayoutableEntityKind, DynamicLayoutFields>> {
+  const bookmark = useBookmarkDynamicFields();
+  return {
+    bookmark: {
+      metas: fieldsFromRegistry(bookmark.fields),
+      defaultHome: bookmark.defaultHome,
+    },
+  };
 }
 
 /**

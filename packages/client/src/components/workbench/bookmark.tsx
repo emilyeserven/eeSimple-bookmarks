@@ -10,7 +10,6 @@ import {
   BookmarkMediaSourceView,
   BookmarkMediaTypeDetailView,
   BookmarkMetadataView,
-  BookmarkPropertiesView,
   BookmarkRelatedBookmarksView,
   BookmarkTagsDetailView,
   BookmarkWebsiteDetailView,
@@ -32,7 +31,7 @@ import {
   BookmarkUrlEditField,
 } from "../BookmarkGeneralForm";
 import { BookmarkImageEditForm } from "../BookmarkImageEditForm";
-import { BookmarkPropertiesForm } from "../BookmarkPropertiesForm";
+import { bookmarkYouTubeMetadataField, useBookmarkDynamicFields } from "../BookmarkPropertyLayoutFields";
 import { BookmarkReelArchivePlayer } from "../BookmarkReelArchive";
 import { BookmarkRelatedForm } from "../BookmarkRelatedForm";
 import { BookmarkVideoEditForm } from "../BookmarkVideoEditForm";
@@ -69,7 +68,7 @@ export type BookmarkFieldKey
     | "detailsExtra"
     | "tagBlacklist"
     | "locationBlacklist"
-    | "customProperties"
+    | "youtubeMetadata"
     | "languageUsages"
     | "gallery"
     | "reel"
@@ -158,16 +157,7 @@ const bookmarkFields = {
     label: i18n.t("Location blacklist"),
     edit: () => <BookmarkLocationBlacklistEditField />,
   },
-  customProperties: {
-    key: "customProperties",
-    label: i18n.t("Properties"),
-    view: ({
-      entity,
-    }) => <BookmarkPropertiesView bookmark={entity} />,
-    edit: ({
-      entity,
-    }) => <BookmarkPropertiesForm bookmark={entity} />,
-  },
+  youtubeMetadata: bookmarkYouTubeMetadataField,
   languageUsages: {
     key: "languageUsages",
     label: i18n.t("Languages"),
@@ -295,7 +285,9 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("Properties"),
       sections: [{
         key: "properties",
-        fields: ["customProperties"] satisfies BookmarkFieldKey[],
+        // The static YouTube-metadata field; each enabled custom property is a **dynamic** field
+        // (`useBookmarkDynamicFields`) whose default home is this section (appended by the engine).
+        fields: ["youtubeMetadata"] satisfies BookmarkFieldKey[],
       }],
     },
     {
@@ -384,6 +376,9 @@ export const bookmarkWorkbench: EntityWorkbench<Bookmark> = {
   getSlug: bookmark => bookmark.id,
   layoutKind: "bookmark",
   fields: bookmarkFields,
+  // Each enabled custom property is a placeable field keyed by its id (#1163+), merged in by
+  // `useLayoutDrivenWorkbench` and given a home in the Properties tab via `augmentDefaultLayout`.
+  useDynamicFields: useBookmarkDynamicFields,
   defaultLayout: BOOKMARK_DEFAULT_LAYOUT,
   tabs: [
     {

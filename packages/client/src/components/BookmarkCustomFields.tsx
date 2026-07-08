@@ -162,7 +162,7 @@ export function CategoryCustomFields({
   );
 }
 
-interface CategoryPropertyFieldProps extends CustomPropertyInputBundle {
+export interface CategoryPropertyFieldProps extends CustomPropertyInputBundle {
   property: CustomProperty;
   bookmark: Bookmark | null;
 }
@@ -325,7 +325,7 @@ const PROPERTY_FIELD_RENDERERS: Record<
 };
 
 /** Renders the single input appropriate to one custom property's type. */
-function CategoryPropertyField(props: CategoryPropertyFieldProps) {
+export function CategoryPropertyField(props: CategoryPropertyFieldProps) {
   const Renderer = PROPERTY_FIELD_RENDERERS[props.property.type];
   return <Renderer {...props} />;
 }

@@ -6,17 +6,13 @@ import type { ReactNode } from "react";
 
 import { Link } from "@tanstack/react-router";
 
-import { useBookmarks, useUpdateBookmark } from "../../hooks/useBookmarks";
+import { useBookmarks } from "../../hooks/useBookmarks";
 import { useBookmarksSharingMediaSource } from "../../hooks/useBookmarksSharingMediaSource";
 import { useCategories } from "../../hooks/useCategories";
 import { useCustomProperties } from "../../hooks/useCustomProperties";
 import { useLocationTree } from "../../hooks/useLocations";
-import { usePropertyGroups } from "../../hooks/usePropertyGroups";
 import { useRelatedBookmarks } from "../../hooks/useRelatedBookmarks";
-import { useDefaultFieldZones } from "../../lib/bookmarkCardFields";
-import { mergeBooleanValue } from "../../lib/bookmarkFormat";
 import { buildBookmarkHierarchy } from "../../lib/bookmarkHierarchy";
-import { hasBookmarkPropertyRows } from "../../lib/bookmarkProperties";
 import { withMediaSourceMatch } from "../../lib/bookmarkSearch";
 import { flattenTree } from "../../lib/tagTree";
 import { BookmarkCardGrid } from "../BookmarkCardGrid";
@@ -25,7 +21,6 @@ import { BookmarkKavitaDetailRow } from "../BookmarkKavitaField";
 import { BookmarkLocationsBox } from "../BookmarkLocationsBox";
 import { BookmarkLocationsTabContent } from "../BookmarkLocationsTabContent";
 import { BookmarkPlexDetailRow } from "../BookmarkPlexField";
-import { BookmarkPropertySections } from "../BookmarkPropertySections";
 
 import { DetailField } from "@/components/DetailField";
 import { LabeledSection } from "@/components/LabeledSection";
@@ -230,43 +225,6 @@ export function BookmarkDetailsExtraView({
 
       <BookmarkPlexDetailRow bookmark={bookmark} />
     </>
-  );
-}
-
-/** The grouped custom-property sections + the in-view boolean toggle handler. Returns null when this
- *  bookmark has no property rows (the detail bodies also drop the whole Properties tab when empty). */
-export function BookmarkPropertiesView({
-  bookmark,
-}: {
-  bookmark: Bookmark;
-}) {
-  const {
-    data: properties,
-  } = useCustomProperties();
-  const {
-    data: propertyGroups,
-  } = usePropertyGroups();
-  const defaultFieldZones = useDefaultFieldZones();
-  const updateBookmark = useUpdateBookmark();
-
-  if (!hasBookmarkPropertyRows(bookmark, properties ?? [], defaultFieldZones)) return null;
-
-  function saveBoolean(propertyId: string, value: boolean) {
-    updateBookmark.mutate({
-      id: bookmark.id,
-      input: {
-        booleanValues: mergeBooleanValue(bookmark.booleanValues, propertyId, value),
-      },
-    });
-  }
-
-  return (
-    <BookmarkPropertySections
-      bookmark={bookmark}
-      properties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
-      onSaveBoolean={saveBoolean}
-    />
   );
 }
 
