@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { DefaultTagsField } from "./DefaultTagsField";
 import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
-import { SourceDefaultFields } from "./SourceDefaultFields";
+import { CategoryDefaultField, MediaTypeDefaultField } from "./SourceDefaultFields";
 import { useNewsletterGeneralForm } from "./useNewsletterGeneralForm";
 
 import { Separator } from "@/components/ui/separator";
@@ -66,28 +66,53 @@ export function NewsletterDescriptionEdit({
   );
 }
 
-/** Default category + media type applied to imported bookmarks — each combobox auto-saves on change. */
-export function NewsletterSourceDefaultsEdit({
+/** Default category applied to imported bookmarks — auto-saves on change. */
+export function NewsletterCategoryEdit({
   newsletter,
 }: Props) {
   const {
     t,
   } = useTranslation();
   const {
-    saveCategoryId, saveMediaTypeId, categoryOptions, mediaTypeOptions,
+    saveCategoryId, categoryOptions,
   } = useNewsletterGeneralForm(newsletter);
   return (
-    <SourceDefaultFields
-      initialCategoryId={newsletter.category?.id ?? null}
-      initialMediaTypeId={newsletter.mediaTypeId ?? null}
-      categoryLabel={t("Default category")}
-      mediaTypeLabel={t("Default media type")}
-      categoryOptions={categoryOptions}
-      mediaTypeOptions={mediaTypeOptions}
-      onCategoryChange={saveCategoryId}
-      onMediaTypeChange={saveMediaTypeId}
-      note={t("Category and media type applied automatically to bookmarks imported from this newsletter.")}
-    />
+    <>
+      <CategoryDefaultField
+        initialCategoryId={newsletter.category?.id ?? null}
+        categoryLabel={t("Default category")}
+        categoryOptions={categoryOptions}
+        onCategoryChange={saveCategoryId}
+      />
+      <p className="text-sm text-muted-foreground">
+        {t("Category applied automatically to bookmarks imported from this newsletter.")}
+      </p>
+    </>
+  );
+}
+
+/** Default media type applied to imported bookmarks — auto-saves on change. */
+export function NewsletterMediaTypeEdit({
+  newsletter,
+}: Props) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    saveMediaTypeId, mediaTypeOptions,
+  } = useNewsletterGeneralForm(newsletter);
+  return (
+    <>
+      <MediaTypeDefaultField
+        initialMediaTypeId={newsletter.mediaTypeId ?? null}
+        mediaTypeLabel={t("Default media type")}
+        mediaTypeOptions={mediaTypeOptions}
+        onMediaTypeChange={saveMediaTypeId}
+      />
+      <p className="text-sm text-muted-foreground">
+        {t("Media type applied automatically to bookmarks imported from this newsletter.")}
+      </p>
+    </>
   );
 }
 
@@ -141,7 +166,8 @@ export function NewsletterGeneralForm({
     <div className="space-y-4">
       <NewsletterNameField newsletter={newsletter} />
       <NewsletterDescriptionEdit newsletter={newsletter} />
-      <NewsletterSourceDefaultsEdit newsletter={newsletter} />
+      <NewsletterCategoryEdit newsletter={newsletter} />
+      <NewsletterMediaTypeEdit newsletter={newsletter} />
       <NewsletterTagsEdit newsletter={newsletter} />
       <NewsletterGenreMoodEdit newsletter={newsletter} />
     </div>

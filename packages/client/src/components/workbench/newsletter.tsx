@@ -6,10 +6,11 @@ import { useTranslation } from "react-i18next";
 
 import i18n from "../../i18n";
 import {
+  NewsletterCategoryEdit,
   NewsletterDescriptionEdit,
   NewsletterGenreMoodEdit,
+  NewsletterMediaTypeEdit,
   NewsletterNameField,
-  NewsletterSourceDefaultsEdit,
   NewsletterTagsEdit,
 } from "../NewsletterGeneralForm";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
@@ -46,16 +47,22 @@ function NewsletterMetadataView({
 /**
  * The newsletter workbench's field registry (#1106 layout editor). The old `general` view/edit panes
  * become placeable, mode-aware {@link WorkbenchField}s; the mode picks the `view`/`edit` renderer, so
- * parity is by construction: `name`/`tags`/`genreMoods` are **edit-only**, `metadata` **view-only**, and
- * `description`/`sourceDefaults` carry both. Ordered so the default layout renders byte-identically to
- * the old view (`description → metadata → defaults`) and edit (`name → description → defaults → tags →
- * genres`). Authored as an exhaustive `Record<NewsletterFieldKey, …>` so a key without a renderer fails `tsc`.
+ * parity is by construction: `name`/`category`/`mediaType`/`tags`/`genreMoods` are **edit-only**,
+ * `metadata`/`sourceDefaults` are **view-only**, and `description` carries both. `category`/`mediaType`
+ * (#1187) are the granular replacement for the old bundled `sourceDefaults` *edit* renderer —
+ * `sourceDefaults` itself stays as the view-only combined "applied automatically" summary. Ordered so
+ * the default layout renders byte-identically to the old view (`description → metadata → defaults`)
+ * and, for edit, puts `category`/`mediaType` where the old bundled defaults editor sat (`name →
+ * description → category → mediaType → tags → genres`). Authored as an exhaustive
+ * `Record<NewsletterFieldKey, …>` so a key without a renderer fails `tsc`.
  */
 type NewsletterFieldKey
   = | "name"
     | "description"
     | "metadata"
     | "sourceDefaults"
+    | "category"
+    | "mediaType"
     | "tags"
     | "genreMoods";
 
@@ -99,9 +106,20 @@ const newsletterFields = {
         tagIds={entity.tagIds}
       />
     ),
+  },
+  category: {
+    key: "category",
+    label: i18n.t("Default category"),
     edit: ({
       entity,
-    }) => <NewsletterSourceDefaultsEdit newsletter={entity} />,
+    }) => <NewsletterCategoryEdit newsletter={entity} />,
+  },
+  mediaType: {
+    key: "mediaType",
+    label: i18n.t("Default media type"),
+    edit: ({
+      entity,
+    }) => <NewsletterMediaTypeEdit newsletter={entity} />,
   },
   tags: {
     key: "tags",
@@ -127,7 +145,7 @@ const NEWSLETTER_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["name", "description", "metadata", "sourceDefaults", "tags", "genreMoods"] satisfies NewsletterFieldKey[],
+        fields: ["name", "description", "metadata", "sourceDefaults", "category", "mediaType", "tags", "genreMoods"] satisfies NewsletterFieldKey[],
       }],
     },
   ],
