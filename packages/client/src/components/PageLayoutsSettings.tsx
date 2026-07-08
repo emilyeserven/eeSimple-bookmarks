@@ -6,6 +6,7 @@ import { resolveLayout } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { LayoutBoard } from "./LayoutBoard";
+import { navLinkClass } from "./TabbedShell";
 import { useEntityLayout } from "../hooks/useEntityLayout";
 import { useEntityLayouts, useResetEntityLayout, useSaveEntityLayout } from "../hooks/useEntityLayouts";
 import { describeError } from "../lib/apiError";
@@ -23,8 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 /**
  * Settings → Display → Page Layouts (#1162): pick a layout-driven entity kind (only kinds whose
@@ -104,58 +104,68 @@ export function PageLayoutsSettings({
         {t("Rearrange an entity's view/edit tabs, sections, and fields. Changes only apply after Save; Reset restores the built-in default.")}
       </p>
 
-      <div className="space-y-1">
-        <Label htmlFor="page-layouts-kind">{t("Entity")}</Label>
-        <Select
-          value={selectedKind}
-          onValueChange={kind => onSelectKind(kind as LayoutableEntityKind)}
+      <div
+        className="
+          flex flex-col gap-4
+          md:flex-row
+        "
+      >
+        <nav
+          aria-label={t("Entity")}
+          className="
+            flex flex-row gap-1 overflow-x-auto border-b pb-1
+            md:w-48 md:shrink-0 md:flex-col md:border-b-0 md:pb-0
+          "
         >
-          <SelectTrigger
-            id="page-layouts-kind"
-            className="
-              w-full
-              sm:w-60
-            "
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {LAYOUT_DRIVEN_ENTITIES.map(entity => (
-              <SelectItem
-                key={entity.kind}
-                value={entity.kind}
-              >
-                {entity.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+          {LAYOUT_DRIVEN_ENTITIES.map(entity => (
+            <button
+              key={entity.kind}
+              type="button"
+              onClick={() => onSelectKind(entity.kind)}
+              className={cn(
+                navLinkClass,
+                `
+                  text-left
+                  md:w-full
+                `,
+                entity.kind === selectedKind && `
+                  bg-accent text-accent-foreground
+                `,
+              )}
+              aria-current={entity.kind === selectedKind ? "page" : undefined}
+            >
+              {entity.label}
+            </button>
+          ))}
+        </nav>
 
-      {isLoading
-        ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
-        : (
-          <LayoutBoard
-            value={value}
-            onChange={setValue}
-            fields={selectedEntity.fields}
-            idPrefix={selectedKind}
-          />
-        )}
+        <div className="min-w-0 flex-1 space-y-4">
+          {isLoading
+            ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
+            : (
+              <LayoutBoard
+                value={value}
+                onChange={setValue}
+                fields={selectedEntity.fields}
+                idPrefix={selectedKind}
+              />
+            )}
 
-      <div className="flex items-center gap-2">
-        <Button
-          onClick={handleSave}
-          disabled={saveLayout.isPending}
-        >
-          {saveLayout.isPending ? t("Saving…") : t("Save layout")}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => setResetOpen(true)}
-        >
-          {t("Reset to default")}
-        </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleSave}
+              disabled={saveLayout.isPending}
+            >
+              {saveLayout.isPending ? t("Saving…") : t("Save layout")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setResetOpen(true)}
+            >
+              {t("Reset to default")}
+            </Button>
+          </div>
+        </div>
       </div>
 
       <Dialog

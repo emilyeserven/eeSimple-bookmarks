@@ -15,7 +15,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { SortableContext, useSortable } from "@dnd-kit/sortable";
+import { rectSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ChevronDown, ChevronUp, GripVertical, Move, Plus, Trash2 } from "lucide-react";
 
@@ -29,6 +29,7 @@ import {
   moveTab,
   renameSection,
   renameTab,
+  setSectionColumns,
   setTabIcon,
 } from "./entityLayoutMutations";
 import i18n from "../i18n";
@@ -43,6 +44,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Input } from "@/components/ui/input";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { SECTION_COLUMN_OPTIONS, sectionColumnsEditorClass } from "@/lib/layoutColumns";
 
 /** The droppable id for the tray of unplaced fields. */
 const TRAY_ID = "layout-tray";
@@ -338,6 +343,46 @@ function isSectionHighlighted(overTarget: OverTarget, tabKey: string, sectionKey
     });
 }
 
+interface ColumnsSelectProps {
+  columns: number;
+  onSelect: (columns: number) => void;
+}
+
+/**
+ * The per-section column-count picker (1–4). `1` is a full-width stack; higher counts render the
+ * section's fields at `1/n` width, wrapping on overflow — mirrored on the real View/Edit pages.
+ */
+function ColumnsSelect({
+  columns, onSelect,
+}: ColumnsSelectProps) {
+  return (
+    <Select
+      value={String(columns)}
+      onValueChange={next => onSelect(Number(next))}
+    >
+      <SelectTrigger
+        className="h-7 w-18 text-xs"
+        aria-label={i18n.t("Section columns")}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {SECTION_COLUMN_OPTIONS.map(option => (
+          <SelectItem
+            key={option}
+            value={String(option)}
+            className="text-xs"
+          >
+            {i18n.t("{{count}} col", {
+              count: option,
+            })}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 interface SectionDropAreaProps {
   tabKey: string;
   section: LayoutSection;
@@ -378,6 +423,10 @@ function SectionDropArea({
           className="flex-1 text-xs font-medium text-muted-foreground"
           onCommit={title => onChange(renameSection(value, tabKey, section.key, title))}
         />
+        <ColumnsSelect
+          columns={section.columns ?? 1}
+          onSelect={cols => onChange(setSectionColumns(value, tabKey, section.key, cols))}
+        />
         <ReorderButtons
           index={sectionIndex}
           count={sectionCount}
@@ -393,8 +442,11 @@ function SectionDropArea({
           <Trash2 className="size-3.5" />
         </HeaderIconButton>
       </div>
-      <SortableContext items={section.fields}>
-        <div className="flex flex-wrap gap-1.5">
+      <SortableContext
+        items={section.fields}
+        strategy={rectSortingStrategy}
+      >
+        <div className={sectionColumnsEditorClass(section.columns)}>
           {section.fields.length === 0
             ? <p className="text-xs text-muted-foreground">{i18n.t("Drop fields here")}</p>
             : section.fields.map(fieldKey => (

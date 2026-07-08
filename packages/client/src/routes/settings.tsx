@@ -35,6 +35,10 @@ function SettingsLayout() {
       label: t("Extension"),
     },
     {
+      to: "/settings/page-layouts",
+      label: t("Page Layouts"),
+    },
+    {
       to: "/settings/advanced",
       label: t("Advanced"),
     },

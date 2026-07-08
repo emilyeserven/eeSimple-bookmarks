@@ -30,6 +30,9 @@ const layoutSectionSchema = {
     title: {
       type: "string",
     },
+    columns: {
+      type: "integer",
+    },
     fields: {
       type: "array",
       items: {

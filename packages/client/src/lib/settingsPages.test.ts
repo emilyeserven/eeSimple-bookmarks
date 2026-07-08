@@ -46,6 +46,19 @@ describe("settingsPages registry", () => {
     expect(page?.icon).toBeDefined();
   });
 
+  it("resolves the standalone Page Layouts settings section", () => {
+    const page = findSettingsPage("/settings/page-layouts");
+    expect(page).toMatchObject({
+      path: "/settings/page-layouts",
+      label: "Page Layouts",
+    });
+    expect(page?.icon).toBeDefined();
+  });
+
+  it("no longer registers Page Layouts as a Display sub-tab", () => {
+    expect(findSettingsPage("/settings/display/page-layouts")).toBeUndefined();
+  });
+
   it("resolves the Place Types taxonomy listing page", () => {
     const page = findSettingsPage("/taxonomies/place-types");
     expect(page).toMatchObject({

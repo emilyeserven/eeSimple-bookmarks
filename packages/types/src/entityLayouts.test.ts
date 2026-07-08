@@ -416,10 +416,109 @@ test("resolveLayout is idempotent from the recreated-tab scenario", () => {
   assert.deepEqual(secondPass, firstPass);
 });
 
+// ---- section columns (#1220) -----------------------------------------------------------------------
+
+test("a section's columns count is preserved through reconciliation", () => {
+  const defaultLayout = makeDefaultLayout();
+  const stored: EntityLayout = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        sections: [
+          {
+            key: "main",
+            columns: 2,
+            fields: ["name", "description"],
+          },
+        ],
+      },
+    ],
+  };
+  const result = resolveLayout(stored, defaultLayout, defaultKnownFieldKeys());
+  const main = result.tabs.find(t => t.key === "general")!.sections.find(s => s.key === "main")!;
+  assert.equal(main.columns, 2);
+});
+
+test("a recreated section inherits its columns count from the default home", () => {
+  const defaultLayout: EntityLayout = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        sections: [
+          {
+            key: "main",
+            fields: ["name"],
+          },
+          {
+            key: "grid",
+            title: "Grid",
+            columns: 3,
+            fields: ["icon"],
+          },
+        ],
+      },
+    ],
+  };
+  const stored: EntityLayout = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        // "grid" section (columns=3) was deleted, so "icon" is missing and gets recreated.
+        sections: [{
+          key: "main",
+          fields: ["name"],
+        }],
+      },
+    ],
+  };
+  const result = resolveLayout(stored, defaultLayout, new Set(["name", "icon"]));
+  const recreated = result.tabs[0].sections.at(-1)!;
+  assert.equal(recreated.key, "grid");
+  assert.equal(recreated.columns, 3);
+  assert.deepEqual(recreated.fields, ["icon"]);
+});
+
 // ---- isValidEntityLayout ---------------------------------------------------------------------------
 
 test("isValidEntityLayout accepts a well-formed layout", () => {
   assert.equal(isValidEntityLayout(makeDefaultLayout()), true);
+});
+
+test("isValidEntityLayout accepts a section with a numeric columns count", () => {
+  const value = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        sections: [{
+          key: "main",
+          columns: 2,
+          fields: ["name"],
+        }],
+      },
+    ],
+  };
+  assert.equal(isValidEntityLayout(value), true);
+});
+
+test("isValidEntityLayout rejects a section with a non-numeric columns value", () => {
+  const value = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        sections: [{
+          key: "main",
+          columns: "two",
+          fields: ["name"],
+        }],
+      },
+    ],
+  };
+  assert.equal(isValidEntityLayout(value), false);
 });
 
 test("isValidEntityLayout rejects non-object values", () => {
