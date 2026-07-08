@@ -3,28 +3,130 @@ import type { EntityLayout, Person } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
-import { PersonGeneralForm } from "../PersonGeneralForm";
+import {
+  PersonAvatarEdit,
+  PersonCreatorMediaEdit,
+  PersonDetailsFields,
+  PersonGenreMoodsEdit,
+  PersonLabeledWebsitesEdit,
+  PersonNamesEdit,
+  PersonPrimaryLanguageEdit,
+  PersonSocialLinksEdit,
+} from "../PersonGeneralForm";
 import { PersonGroupsForm, PersonGroupsView } from "../PersonGroupsForm";
 import { PersonWebsitesForm, PersonWebsitesView } from "../PersonWebsitesForm";
 import { PersonYouTubeChannelsForm, PersonYouTubeChannelsView } from "../PersonYouTubeChannelsForm";
-import { PersonGeneralView } from "./personViews";
+import {
+  PersonAvatarView,
+  PersonConnectionsView,
+  PersonCreatorMediaView,
+  PersonDescriptionView,
+  PersonLabeledWebsitesView,
+  PersonMetadataView,
+  PersonNamesView,
+  PersonPrimaryLanguageView,
+  PersonSocialLinksView,
+} from "./personViews";
 
 import { usePersonById, usePersonBySlug, useDeletePerson } from "@/hooks/usePeople";
 
 /**
- * The person workbench's field registry (#1106 layout editor). All five fields carry both modes — the
- * entity has no view-only/edit-only tabs today.
+ * The person workbench's field registry (#1106 layout editor). The old opaque `general` composite is
+ * broken into granular, independently-placeable fields (#1194); the four remaining tabs stay one field
+ * each. `avatar`/`details`/`primaryLanguage`/`names`/`labeledWebsites`/`socialLinks`/`creatorMedia` carry
+ * both modes; `genreMoods` is edit-only (not shown in view) and `metadata`/`connections` are view-only —
+ * that is how the asymmetric General view/edit reconcile into one ordered field list (the mode picks the
+ * renderer, so view/edit parity is by construction).
  */
-type PersonFieldKey = "general" | "youtubeChannels" | "websites" | "groups" | "languages";
+type PersonFieldKey
+  = | "avatar"
+    | "details"
+    | "primaryLanguage"
+    | "names"
+    | "labeledWebsites"
+    | "socialLinks"
+    | "creatorMedia"
+    | "genreMoods"
+    | "metadata"
+    | "connections"
+    | "youtubeChannels"
+    | "websites"
+    | "groups"
+    | "languages";
 
 const personFields = {
-  general: {
-    key: "general",
-    label: i18n.t("General"),
-    view: PersonGeneralView,
+  avatar: {
+    key: "avatar",
+    label: i18n.t("Avatar"),
+    view: PersonAvatarView,
     edit: ({
       entity,
-    }) => <PersonGeneralForm person={entity} />,
+    }) => <PersonAvatarEdit person={entity} />,
+  },
+  details: {
+    key: "details",
+    label: i18n.t("Details"),
+    view: PersonDescriptionView,
+    edit: ({
+      entity,
+    }) => <PersonDetailsFields person={entity} />,
+  },
+  primaryLanguage: {
+    key: "primaryLanguage",
+    label: i18n.t("Primary language"),
+    view: PersonPrimaryLanguageView,
+    edit: ({
+      entity,
+    }) => <PersonPrimaryLanguageEdit person={entity} />,
+  },
+  names: {
+    key: "names",
+    label: i18n.t("Names"),
+    view: PersonNamesView,
+    edit: ({
+      entity,
+    }) => <PersonNamesEdit person={entity} />,
+  },
+  labeledWebsites: {
+    key: "labeledWebsites",
+    label: i18n.t("Websites"),
+    view: PersonLabeledWebsitesView,
+    edit: ({
+      entity,
+    }) => <PersonLabeledWebsitesEdit person={entity} />,
+  },
+  socialLinks: {
+    key: "socialLinks",
+    label: i18n.t("Social links"),
+    view: PersonSocialLinksView,
+    edit: ({
+      entity,
+    }) => <PersonSocialLinksEdit person={entity} />,
+  },
+  creatorMedia: {
+    key: "creatorMedia",
+    label: i18n.t("Creator / media"),
+    view: PersonCreatorMediaView,
+    edit: ({
+      entity,
+    }) => <PersonCreatorMediaEdit person={entity} />,
+  },
+  genreMoods: {
+    key: "genreMoods",
+    label: i18n.t("Genres & moods"),
+    edit: ({
+      entity,
+    }) => <PersonGenreMoodsEdit person={entity} />,
+  },
+  metadata: {
+    key: "metadata",
+    label: i18n.t("Metadata"),
+    view: PersonMetadataView,
+  },
+  connections: {
+    key: "connections",
+    label: i18n.t("Connections"),
+    view: PersonConnectionsView,
   },
   youtubeChannels: {
     key: "youtubeChannels",
@@ -87,7 +189,20 @@ const PERSON_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["general"] satisfies PersonFieldKey[],
+        // Edit order kept close to the pre-extraction form; the view-only `metadata`/`connections`
+        // fields trail and vanish in edit, and edit-only `genreMoods` vanishes in view.
+        fields: [
+          "avatar",
+          "details",
+          "primaryLanguage",
+          "names",
+          "labeledWebsites",
+          "socialLinks",
+          "creatorMedia",
+          "genreMoods",
+          "metadata",
+          "connections",
+        ] satisfies PersonFieldKey[],
       }],
     },
     {

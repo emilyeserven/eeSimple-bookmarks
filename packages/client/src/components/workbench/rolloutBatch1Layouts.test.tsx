@@ -260,50 +260,87 @@ describe("relationshipType default layout", () => {
 });
 
 describe("person default layout", () => {
-  it("renders all five tabs identically in both modes", () => {
-    const expected = [
+  // The four specialized tabs are one field each and identical in both modes; only the extracted
+  // General tab (#1194) differs by mode — `genreMoods` is edit-only, `metadata`/`connections` view-only.
+  const otherTabs = [
+    {
+      key: "youtube-channels",
+      group: undefined,
+      sections: [{
+        key: "youtube-channels",
+        fields: ["youtubeChannels"],
+      }],
+    },
+    {
+      key: "websites",
+      group: undefined,
+      sections: [{
+        key: "websites",
+        fields: ["websites"],
+      }],
+    },
+    {
+      key: "groups",
+      group: undefined,
+      sections: [{
+        key: "groups",
+        fields: ["groups"],
+      }],
+    },
+    {
+      key: "languages",
+      group: undefined,
+      sections: [{
+        key: "languages",
+        fields: ["languages"],
+      }],
+    },
+  ];
+
+  it("renders the General view tab with the granular view fields (edit-only genreMoods dropped)", () => {
+    expect(shape(personWorkbench, "view")).toEqual([
       {
         key: "general",
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["general"],
+          fields: [
+            "avatar",
+            "details",
+            "primaryLanguage",
+            "names",
+            "labeledWebsites",
+            "socialLinks",
+            "creatorMedia",
+            "metadata",
+            "connections",
+          ],
         }],
       },
+      ...otherTabs,
+    ]);
+  });
+
+  it("renders the General edit tab with the granular edit fields (view-only metadata/connections dropped)", () => {
+    expect(shape(personWorkbench, "edit")).toEqual([
       {
-        key: "youtube-channels",
+        key: "general",
         group: undefined,
         sections: [{
-          key: "youtube-channels",
-          fields: ["youtubeChannels"],
+          key: "general",
+          fields: [
+            "avatar",
+            "details",
+            "primaryLanguage",
+            "names",
+            "labeledWebsites",
+            "socialLinks",
+            "creatorMedia",
+            "genreMoods",
+          ],
         }],
       },
-      {
-        key: "websites",
-        group: undefined,
-        sections: [{
-          key: "websites",
-          fields: ["websites"],
-        }],
-      },
-      {
-        key: "groups",
-        group: undefined,
-        sections: [{
-          key: "groups",
-          fields: ["groups"],
-        }],
-      },
-      {
-        key: "languages",
-        group: undefined,
-        sections: [{
-          key: "languages",
-          fields: ["languages"],
-        }],
-      },
-    ];
-    expect(shape(personWorkbench, "view")).toEqual(expected);
-    expect(shape(personWorkbench, "edit")).toEqual(expected);
+      ...otherTabs,
+    ]);
   });
 });

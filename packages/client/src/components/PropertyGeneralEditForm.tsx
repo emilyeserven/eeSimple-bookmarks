@@ -1,64 +1,140 @@
-import type { CustomProperty, UpdateCustomPropertyInput } from "@eesimple/types";
+import type { CustomProperty } from "@eesimple/types";
 
-import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { TYPE_OPTIONS, propertySchema, valuesFromProperty } from "./propertyFormParts";
-import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
-import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-import { useAppForm } from "../lib/form";
+import { usePropertyGeneralForm } from "./usePropertyGeneralForm";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 
-const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
-  name: "Name",
-  description: "Description",
-  enabled: "Status",
-};
-
-interface PropertyGeneralEditFormProps {
+interface Props {
   property: CustomProperty;
+}
+
+/**
+ * The placeable sub-fields of a custom property's General edit form (the property workbench registry
+ * uses each as a `WorkbenchField.edit` renderer; `PropertyGeneralEditForm` recomposes them into the
+ * same whole form its Storybook story + `PropertyEditForm.test.tsx` render). Each owns its own
+ * `usePropertyGeneralForm` slice — auto-save is per field, react-query dedupes the shared mutation.
+ * Type is immutable in edit so it renders disabled and never saves.
+ */
+
+/** Name field — auto-saves on blur and follows the new slug on rename. */
+export function PropertyNameField({
+  property,
+}: Props) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    form, saveName,
+  } = usePropertyGeneralForm(property);
+  return (
+    <form.AppField name="name">
+      {field => (
+        <field.TextField
+          label={t("Name")}
+          placeholder={t("e.g. Priority")}
+          onBlur={() => saveName(field.state.value, field.state.meta.errors.length === 0)}
+        />
+      )}
+    </form.AppField>
+  );
+}
+
+/** Type field — immutable in edit, so it renders disabled and is never saved. */
+export function PropertyTypeField({
+  property,
+}: Props) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    form, typeOptions,
+  } = usePropertyGeneralForm(property);
+  return (
+    <form.AppField name="type">
+      {field => (
+        <field.SelectField
+          label={t("Type")}
+          options={typeOptions}
+          disabled
+        />
+      )}
+    </form.AppField>
+  );
+}
+
+/** Status (active) field — auto-saves on change. Locked for built-in properties. */
+export function PropertyStatusField({
+  property,
+}: Props) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    form, isBuiltIn, saveEnabled,
+  } = usePropertyGeneralForm(property);
+  return (
+    <form.AppField name="enabled">
+      {field => (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id={`property-${property.id}-enabled`}
+              checked={field.state.value}
+              disabled={isBuiltIn}
+              onCheckedChange={(checked) => {
+                const next = checked === true;
+                field.handleChange(next);
+                saveEnabled(next);
+              }}
+            />
+            <Label htmlFor={`property-${property.id}-enabled`}>{t("Property is active")}</Label>
+          </div>
+          {isBuiltIn
+            ? <p className="text-xs text-muted-foreground">{t("Built-in properties can't be disabled.")}</p>
+            : null}
+        </div>
+      )}
+    </form.AppField>
+  );
+}
+
+/** Description field — auto-saves on blur. */
+export function PropertyDescriptionField({
+  property,
+}: Props) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    form, saveDescription,
+  } = usePropertyGeneralForm(property);
+  return (
+    <form.AppField name="description">
+      {field => (
+        <field.TextareaField
+          label={t("Description")}
+          placeholder={t("Optional — shown as a hint where this property appears.")}
+          rows={2}
+          onBlur={() => saveDescription(field.state.value, field.state.meta.errors.length === 0)}
+        />
+      )}
+    </form.AppField>
+  );
 }
 
 /**
  * The General edit tab: name, status, and description. Each field auto-saves (no Save button) — name
  * and description on blur, the active checkbox on change. Type is immutable in edit so it renders
- * disabled and is never saved. Renaming changes the slug, so a successful name save follows it.
+ * disabled. Composed from the same placeable sub-fields the property workbench registry uses, so this
+ * whole-form shell (rendered by its Storybook story) stays in lockstep with the layout-driven General
+ * tab (Name + Type keep their two-column grid here; the layout seam stacks them per field).
  */
 export function PropertyGeneralEditForm({
   property,
-}: PropertyGeneralEditFormProps) {
-  const {
-    t,
-  } = useTranslation();
-  const tLabel = useTranslatedLabel();
-  const typeOptions = TYPE_OPTIONS.map(option => ({
-    ...option,
-    label: tLabel(option.label),
-  }));
-  const navigate = useNavigate();
-  const updateProperty = useUpdateCustomProperty();
-  const isBuiltIn = property.builtIn;
-  const autoSave = useFieldAutoSave<UpdateCustomPropertyInput, CustomProperty>({
-    id: property.id,
-    update: updateProperty,
-    labels: LABELS,
-    initial: {
-      name: property.name,
-      description: property.description ?? null,
-      enabled: property.enabled,
-    },
-  });
-
-  const form = useAppForm({
-    defaultValues: valuesFromProperty(property),
-    validators: {
-      onChange: propertySchema,
-    },
-  });
-
+}: Props) {
   return (
     <div className="space-y-4">
       <div
@@ -67,83 +143,11 @@ export function PropertyGeneralEditForm({
           sm:grid-cols-2
         "
       >
-        <form.AppField name="name">
-          {field => (
-            <field.TextField
-              label={t("Name")}
-              placeholder={t("e.g. Priority")}
-              onBlur={() => autoSave.saveField(
-                "name",
-                field.state.value.trim(),
-                {
-                  valid: field.state.meta.errors.length === 0,
-                  // Renaming changes the slug; follow it so the edit page keeps resolving.
-                  onSuccess: (updated) => {
-                    if (updated.slug !== property.slug) {
-                      void navigate({
-                        to: "/custom-properties/$propertySlug/edit",
-                        params: {
-                          propertySlug: updated.slug,
-                        },
-                      });
-                    }
-                  },
-                },
-              )}
-            />
-          )}
-        </form.AppField>
-
-        <form.AppField name="type">
-          {field => (
-            <field.SelectField
-              label={t("Type")}
-              options={typeOptions}
-              disabled
-            />
-          )}
-        </form.AppField>
+        <PropertyNameField property={property} />
+        <PropertyTypeField property={property} />
       </div>
-
-      <form.AppField name="enabled">
-        {field => (
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id={`property-${property.id}-enabled`}
-                checked={field.state.value}
-                disabled={isBuiltIn}
-                onCheckedChange={(checked) => {
-                  const next = checked === true;
-                  field.handleChange(next);
-                  autoSave.saveField("enabled", next);
-                }}
-              />
-              <Label htmlFor={`property-${property.id}-enabled`}>{t("Property is active")}</Label>
-            </div>
-            {isBuiltIn
-              ? <p className="text-xs text-muted-foreground">{t("Built-in properties can't be disabled.")}</p>
-              : null}
-          </div>
-        )}
-      </form.AppField>
-
-      <form.AppField name="description">
-        {field => (
-          <field.TextareaField
-            label={t("Description")}
-            placeholder={t("Optional — shown as a hint where this property appears.")}
-            rows={2}
-            onBlur={() => autoSave.saveField(
-              "description",
-              field.state.value.trim() || null,
-              {
-                valid: field.state.meta.errors.length === 0,
-              },
-            )}
-          />
-        )}
-      </form.AppField>
+      <PropertyStatusField property={property} />
+      <PropertyDescriptionField property={property} />
     </div>
   );
 }
