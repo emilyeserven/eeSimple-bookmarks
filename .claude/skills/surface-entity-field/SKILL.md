@@ -194,19 +194,25 @@ not whether a `useAppForm` exists:
   fibers, so nothing else is needed. Precedents: Category (`primaryLanguage`/`names` beside the `details`
   composite), **Newsletter** (`useNewsletterGeneralForm` called per sub-field, #1187), **Custom
   Property** (`usePropertyGeneralForm` → `name`/`type`/`status`/`description` edit fields +
-  `status`/`description`/`created` view rows, #1196), and **Media Type** (the *whole* General composite
+  `status`/`description`/`created` view rows, #1196), **Media Type** (the *whole* General composite
   atomized — name/sortOrder/description/parent/icon/hidden edit fields + per-row `DetailField` view rows,
   each field its **own** single-field `useAppForm`+`useFieldAutoSave`; the sole name→primary-language
   coupling rides the react-query cache via `usePrimaryLanguageField` reading the persisted `mediaType.name`,
-  #1189). These share a `useAppForm`+autosave but split cleanly because each field's save is self-contained
+  #1189), and **YouTube Channel** (`useYouTubeChannelGeneralForm` called per sub-field — name / description /
+  avatar / default category / self-ids / tags / websites / groups / labeled-websites / genres, #1192).
+  These share a `useAppForm`+autosave but split cleanly because each field's save is self-contained
   (e.g. name→slug follow) and the fields don't read each other's live state — so **skip the provider**, and
   recompose the whole-form/whole-view shells (`MediaTypeGeneralForm` / `MediaTypeGeneralView`) from the
-  split halves so their story/test stay unchanged.
+  split halves so their story/test stay unchanged. **Note the `useImageTaxonomySyncRegistration` placement:**
+  YouTube Channel avoids the Website provider case below by putting the once-only "Sync from source"
+  registration inside the **single** avatar field (one fiber), *not* in the per-field controller — so it
+  never re-runs per fiber and no provider is needed.
 - **Shared controller that must mount exactly once** — either **genuine cross-field coordination**
   (name-blur autofill, website-lookup → offer → category, primary-language sync — the bookmark case) **or**
   granular fields that share **one mounted instance**: local `useState` that can't dedupe across fibers,
   or a once-only side-effect like the header "Sync from source" registration (the **Website** case,
-  `useImageTaxonomySyncRegistration` — calling the controller per fiber would thrash the store). The render
+  `useImageTaxonomySyncRegistration` living **in** the per-fiber controller — calling it per fiber would
+  thrash the store). The render
   seam calls each field renderer as a plain function, so N naive field components would each instantiate N
   separate controllers **and lose the coordination / re-run the side-effect**. Use a **form-context
   provider**:

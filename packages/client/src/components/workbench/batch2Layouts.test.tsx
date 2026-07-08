@@ -193,6 +193,21 @@ describe("YouTube channel default layout", () => {
   it("renders the edit tabs in order", () => {
     expect(shape(youtubeChannelWorkbench, "edit").map(tab => tab.key)).toEqual(expectedTabs);
   });
+
+  it("atomizes the general composite into granular view-visible fields (#1192)", () => {
+    const general = shape(youtubeChannelWorkbench, "view").find(tab => tab.key === "general");
+    expect(general?.sections[0].fields).toEqual([
+      "description", "avatar", "metadata", "sourceDefaults", "selfIds", "channelGroups",
+    ]);
+  });
+
+  it("atomizes the general composite into granular edit-visible fields (#1192)", () => {
+    const general = shape(youtubeChannelWorkbench, "edit").find(tab => tab.key === "general");
+    expect(general?.sections[0].fields).toEqual([
+      "name", "description", "avatar", "category", "selfIds", "tags",
+      "channelWebsites", "channelGroups", "labeledWebsites", "genreMoods",
+    ]);
+  });
 });
 
 describe("autofill rule default layout", () => {

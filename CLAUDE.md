@@ -465,7 +465,12 @@ registry edit, never a pane edit.
        between the three (each already auto-saved on its own trigger); splitting them just meant giving
        each its own tiny `useAppForm` + `useFieldAutoSave` instance, not a form-context provider. Check
        for genuine coordination (shared validation, one field's save affecting another) before reaching
-       for shape 2 below.
+       for shape 2 below. A single **bundled** state hook likewise counts here (no provider) when each
+       returned slice is used by exactly one field and auto-save is per field: every granular field
+       component calls the one hook and reads only its slice — Newsletter (`useNewsletterGeneralForm`)
+       and **YouTube Channel** (#1192, `useYouTubeChannelGeneralForm`, atomized into name / description /
+       avatar / default-category / self-ids / tags / websites / groups / labeled-websites / genres; the
+       avatar field owns the "Sync from source" registration).
     2. **Shared-`useAppForm` composite** (one controller with cross-field coordination — the bookmark
        General form: name-blur autofill, website-lookup → autofill offer → category, primary-language
        sync) → because the render seam calls each field renderer as a plain function, N independent field
@@ -520,10 +525,10 @@ registry edit, never a pane edit.
   - **Editor selectable-list caveat.** The render path honors stored layouts for **all** kinds, but the
     editor's kind picker (`LAYOUT_DRIVEN_ENTITIES` in `lib/layoutDrivenEntities.ts`) currently lists only
     **Category, Newsletter, Bookmark, Genres & Moods, Tag, Custom Property, Website, Media Type,
-    Location**. Growing it to the rest is a follow-up — add one
+    Location, YouTube Channel**. Growing it to the rest is a follow-up — add one
     `{ kind, label, fields, defaultLayout }` entry per kind; the render side needs no change. (An entity
     is added here once its General composite is broken into granular fields — e.g. Website #1188,
-    Location #1191.)
+    Location #1191, YouTube Channel #1192.)
 - **Explicitly out of scope for v1 — don't "fix" these:**
   - **Create forms are unaffected.** The Add Bookmark quick-create form keeps its own, separate placement
     system (Settings → Display → Bookmark Add Form; see **Add Bookmark form field placement** + the
