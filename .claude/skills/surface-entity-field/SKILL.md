@@ -192,7 +192,9 @@ not whether a `useAppForm` exists:
   the existing sub-component, placed in `defaultLayout`. Each field can call the same controller hook
   **independently** (its own instance per fiber); react-query dedupes the shared mutation/queries across
   fibers, so nothing else is needed. Precedents: Category (`primaryLanguage`/`names` beside the `details`
-  composite), **Newsletter** (`useNewsletterGeneralForm` called per sub-field, #1187), **Custom
+  composite), **Newsletter** (`useNewsletterGeneralForm` called per sub-field, #1187), **Group**
+  (`useGroupGeneralForm` called per sub-field — name/description/group-type/websites/channels/social
+  split, with `CreatorMediaSection` kept as one `creatorMedia` field, #1195), **Custom
   Property** (`usePropertyGeneralForm` → `name`/`type`/`status`/`description` edit fields +
   `status`/`description`/`created` view rows, #1196), **Media Type** (the *whole* General composite
   atomized — name/sortOrder/description/parent/icon/hidden edit fields + per-row `DetailField` view rows,
@@ -207,7 +209,9 @@ not whether a `useAppForm` exists:
   These share a `useAppForm`+autosave but split cleanly because each field's save is self-contained
   (e.g. name→slug follow) and the fields don't read each other's live state — so **skip the provider**, and
   recompose the whole-form/whole-view shells (`MediaTypeGeneralForm` / `MediaTypeGeneralView`,
-  `PersonGeneralForm` / `PersonGeneralView`) from the split halves so their story/test stay unchanged.
+  `PersonGeneralForm` / `PersonGeneralView`, `GroupGeneralForm`) from the split halves so their story/test
+  stay unchanged. Slug-routed entities render through the generic `EntityEditView`, so this pattern keeps
+  `EntityEditView`/`WorkbenchRouteTab` untouched.
   **Note the `useImageTaxonomySyncRegistration` placement:** YouTube Channel and Person avoid the Website
   provider case below by putting the once-only "Sync from source" registration inside the **single** avatar
   field (one fiber), *not* in the per-field controller — so it never re-runs per fiber and no provider is

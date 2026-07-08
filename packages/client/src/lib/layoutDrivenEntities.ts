@@ -5,6 +5,7 @@ import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 import { bookmarkWorkbench } from "../components/workbench/bookmark";
 import { categoryWorkbench } from "../components/workbench/category";
 import { genreMoodWorkbench } from "../components/workbench/genreMood";
+import { groupWorkbench } from "../components/workbench/group";
 import { locationWorkbench } from "../components/workbench/location";
 import { mediaTypeWorkbench } from "../components/workbench/mediaType";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
@@ -51,6 +52,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Newsletter"),
     fields: fieldsFromRegistry(newsletterWorkbench.fields),
     defaultLayout: newsletterWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "group",
+    label: i18n.t("Group"),
+    fields: fieldsFromRegistry(groupWorkbench.fields),
+    defaultLayout: groupWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },
