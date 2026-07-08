@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- this module exports an entity descriptor that pairs tab bodies with metadata, not a component */
-import type { EntityWorkbench } from "./types";
+import type { EntityWorkbench, WorkbenchField } from "./types";
 import type { PropertyFormSection } from "../propertyFormSchema";
-import type { CustomProperty } from "@eesimple/types";
+import type { CustomProperty, EntityLayout } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
@@ -101,6 +101,152 @@ function editPane(section: PropertyFormSection) {
   return PropertyEditPane;
 }
 
+/**
+ * The custom-property workbench's field registry (#1106 layout editor). Each existing tab pane
+ * becomes ONE placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key (#1165
+ * composite-editor recipe). The former tab-level `showIf: hasPropertyOptions` moves onto the
+ * `options` field itself — `fieldRendersInMode` checks `showIf` before a field counts as visible,
+ * so an options-less property's Options section (and therefore its tab) still hides exactly as
+ * before. Authored as an exhaustive `Record<PropertyFieldKey, …>` so a key without a renderer fails
+ * `tsc`.
+ */
+type PropertyFieldKey
+  = | "general"
+    | "options"
+    | "categories"
+    | "mediaTypes"
+    | "display"
+    | "autofillRules"
+    | "displayRules";
+
+const propertyFields = {
+  general: {
+    key: "general",
+    label: i18n.t("General"),
+    view: ({
+      entity,
+    }) => <PropertyGeneralFields property={entity} />,
+    edit: editPane("general"),
+  },
+  options: {
+    key: "options",
+    label: i18n.t("Options"),
+    showIf: hasPropertyOptions,
+    view: PropertyOptionsView,
+    edit: editPane("options"),
+  },
+  categories: {
+    key: "categories",
+    label: i18n.t("Categories"),
+    view: PropertyCategoriesView,
+    edit: editPane("categories"),
+  },
+  mediaTypes: {
+    key: "mediaTypes",
+    label: i18n.t("Media Types"),
+    view: PropertyMediaTypesView,
+    edit: editPane("media-types"),
+  },
+  display: {
+    key: "display",
+    label: i18n.t("Display"),
+    view: PropertyDisplayView,
+    edit: editPane("display"),
+  },
+  autofillRules: {
+    key: "autofillRules",
+    label: i18n.t("Autofill Rules"),
+    view: ({
+      entity,
+    }) => (
+      <AutofillRulesList
+        propertyId={entity.id}
+        query=""
+      />
+    ),
+    edit: ({
+      entity,
+    }) => (
+      <AutofillRulesList
+        propertyId={entity.id}
+        query=""
+      />
+    ),
+  },
+  displayRules: {
+    key: "displayRules",
+    label: i18n.t("Display Rules"),
+    view: ({
+      entity,
+    }) => <CardDisplayRulesList propertyId={entity.id} />,
+    edit: ({
+      entity,
+    }) => <CardDisplayRulesList propertyId={entity.id} />,
+  },
+} satisfies Record<PropertyFieldKey, WorkbenchField<CustomProperty>>;
+
+/** The code-defined default layout — the current tab list, one untitled section per tab. */
+const PROPERTY_DEFAULT_LAYOUT: EntityLayout = {
+  tabs: [
+    {
+      key: "general",
+      label: i18n.t("General"),
+      sections: [{
+        key: "general",
+        fields: ["general"] satisfies PropertyFieldKey[],
+      }],
+    },
+    {
+      key: "options",
+      label: i18n.t("Options"),
+      sections: [{
+        key: "options",
+        fields: ["options"] satisfies PropertyFieldKey[],
+      }],
+    },
+    {
+      key: "categories",
+      label: i18n.t("Categories"),
+      sections: [{
+        key: "categories",
+        fields: ["categories"] satisfies PropertyFieldKey[],
+      }],
+    },
+    {
+      key: "media-types",
+      label: i18n.t("Media Types"),
+      sections: [{
+        key: "media-types",
+        fields: ["mediaTypes"] satisfies PropertyFieldKey[],
+      }],
+    },
+    {
+      key: "display",
+      label: i18n.t("Display"),
+      sections: [{
+        key: "display",
+        fields: ["display"] satisfies PropertyFieldKey[],
+      }],
+    },
+    {
+      key: "autofill",
+      label: i18n.t("Autofill Rules"),
+      sections: [{
+        key: "autofill",
+        fields: ["autofillRules"] satisfies PropertyFieldKey[],
+      }],
+    },
+    {
+      key: "display-rules",
+      label: i18n.t("Display Rules"),
+      sections: [{
+        key: "display-rules",
+        fields: ["displayRules"] satisfies PropertyFieldKey[],
+      }],
+    },
+  ],
+};
+
 /** Single source of truth for a custom property's tabbed view/edit UI (main pane routes + right panel). */
 export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
   useBySlug: (slug) => {
@@ -136,127 +282,42 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
   notFound: i18n.t("Custom property not found."),
   navAriaLabel: i18n.t("Custom property sections"),
   getSlug: property => property.slug,
+  layoutKind: "custom-property",
+  fields: propertyFields,
+  defaultLayout: PROPERTY_DEFAULT_LAYOUT,
+  // Layout-driven: the tab rail + section stacks come from `fields` + `defaultLayout`. `tabs` is
+  // retained only to carry the code-only `group` nav metadata (the "Rules" More dropdown on the
+  // edit strip), re-attached by tab key in `deriveWorkbenchTabs`.
   tabs: [
     {
       key: "general",
-      label: "General",
-      view: {
-        title: i18n.t("General"),
-        description: i18n.t("Status, description, and when this property was created."),
-        render: ({
-          entity,
-        }) => <PropertyGeneralFields property={entity} />,
-      },
-      edit: {
-        title: i18n.t("General"),
-        description: i18n.t("Name, status, and description."),
-        render: editPane("general"),
-      },
+      label: i18n.t("General"),
     },
     {
       key: "options",
-      label: "Options",
-      showIf: hasPropertyOptions,
-      view: {
-        title: i18n.t("Options"),
-        description: i18n.t("Type-specific configuration for this property."),
-        render: PropertyOptionsView,
-      },
-      edit: {
-        title: i18n.t("Options"),
-        description: i18n.t("Type-specific configuration for this property."),
-        render: editPane("options"),
-      },
+      label: i18n.t("Options"),
     },
     {
       key: "categories",
-      label: "Categories",
-      view: {
-        title: i18n.t("Categories"),
-        description: i18n.t("The categories this property applies to."),
-        render: PropertyCategoriesView,
-      },
-      edit: {
-        title: i18n.t("Categories"),
-        description: i18n.t("Choose which categories this property applies to."),
-        render: editPane("categories"),
-      },
+      label: i18n.t("Categories"),
     },
     {
       key: "media-types",
-      label: "Media Types",
-      view: {
-        title: i18n.t("Media Types"),
-        description: i18n.t("The media types this property is also scoped to."),
-        render: PropertyMediaTypesView,
-      },
-      edit: {
-        title: i18n.t("Media Types"),
-        description: i18n.t("Also show this property on bookmarks of the chosen media types (in addition to its categories)."),
-        render: editPane("media-types"),
-      },
+      label: i18n.t("Media Types"),
     },
     {
       key: "display",
-      label: "Display",
-      view: {
-        title: i18n.t("Display"),
-        description: i18n.t("Where this property appears and whether it's editable from the card menu or CMD+K."),
-        render: PropertyDisplayView,
-      },
-      edit: {
-        title: i18n.t("Display"),
-        description: i18n.t("Where this property appears and whether it's editable from the card menu or CMD+K."),
-        render: editPane("display"),
-      },
+      label: i18n.t("Display"),
     },
     {
       key: "autofill",
-      label: "Autofill Rules",
+      label: i18n.t("Autofill Rules"),
       group: i18n.t("Rules"),
-      view: {
-        title: i18n.t("Autofill Rules"),
-        description: i18n.t("Autofill rules that set a value for this property."),
-        render: ({
-          entity,
-        }) => (
-          <AutofillRulesList
-            propertyId={entity.id}
-            query=""
-          />
-        ),
-      },
-      edit: {
-        title: i18n.t("Autofill Rules"),
-        description: i18n.t("Autofill rules that set a value for this property."),
-        render: ({
-          entity,
-        }) => (
-          <AutofillRulesList
-            propertyId={entity.id}
-            query=""
-          />
-        ),
-      },
     },
     {
       key: "display-rules",
-      label: "Display Rules",
+      label: i18n.t("Display Rules"),
       group: i18n.t("Rules"),
-      view: {
-        title: i18n.t("Display Rules"),
-        description: i18n.t("Card display rules whose conditions reference this property."),
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList propertyId={entity.id} />,
-      },
-      edit: {
-        title: i18n.t("Display Rules"),
-        description: i18n.t("Card display rules whose conditions reference this property."),
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList propertyId={entity.id} />,
-      },
     },
   ],
 };

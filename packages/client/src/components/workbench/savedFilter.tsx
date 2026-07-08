@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- this module exports an entity descriptor that pairs tab bodies with metadata, not a component */
-import type { EntityWorkbench } from "./types";
-import type { SavedFilter } from "@eesimple/types";
+import type { EntityWorkbench, WorkbenchField } from "./types";
+import type { EntityLayout, SavedFilter } from "@eesimple/types";
 
 import { Globe } from "lucide-react";
 
@@ -37,6 +37,39 @@ function SavedFilterGeneralView({
   );
 }
 
+/**
+ * The saved-filter workbench's field registry (#1106 layout editor). The single `general` pane
+ * becomes ONE placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key — the
+ * composite-editor recipe (#1165). Authored as an exhaustive `Record<SavedFilterFieldKey, …>` so a
+ * key without a renderer fails `tsc`.
+ */
+type SavedFilterFieldKey = "general";
+
+const savedFilterFields = {
+  general: {
+    key: "general",
+    label: i18n.t("General"),
+    view: SavedFilterGeneralView,
+    edit: ({
+      entity,
+    }) => <SavedFilterGeneralForm filter={entity} />,
+  },
+} satisfies Record<SavedFilterFieldKey, WorkbenchField<SavedFilter>>;
+
+/** The code default layout: the single General tab, one untitled section. */
+const SAVED_FILTER_DEFAULT_LAYOUT: EntityLayout = {
+  tabs: [
+    {
+      key: "general",
+      label: i18n.t("General"),
+      sections: [{
+        key: "general",
+        fields: ["general"] satisfies SavedFilterFieldKey[],
+      }],
+    },
+  ],
+};
+
 /** Single source of truth for a saved filter's view/edit UI (main pane routes + right panel). */
 export const savedFilterWorkbench: EntityWorkbench<SavedFilter> = {
   useBySlug: (slug) => {
@@ -72,22 +105,15 @@ export const savedFilterWorkbench: EntityWorkbench<SavedFilter> = {
   notFound: i18n.t("Saved filter not found."),
   navAriaLabel: i18n.t("Saved filter sections"),
   getSlug: filter => filter.slug,
+  layoutKind: "saved-filter",
+  fields: savedFilterFields,
+  defaultLayout: SAVED_FILTER_DEFAULT_LAYOUT,
+  // Layout-driven: the body comes from `fields` + `defaultLayout`. A single tab needs no `group`, so
+  // `tabs` is a thin placeholder retained only for the descriptor's type requirement.
   tabs: [
     {
       key: "general",
-      label: "General",
-      view: {
-        title: i18n.t("General"),
-        description: i18n.t("Filter summary and sidebar settings."),
-        render: SavedFilterGeneralView,
-      },
-      edit: {
-        title: i18n.t("General"),
-        description: i18n.t("Name, description, and sidebar visibility."),
-        render: ({
-          entity,
-        }) => <SavedFilterGeneralForm filter={entity} />,
-      },
+      label: i18n.t("General"),
     },
   ],
 };
