@@ -1,4 +1,5 @@
 import type { EntityWorkbench, WorkbenchMode } from "./types";
+import type { SectionMatches } from "@/lib/workbenchLayout";
 import type { EntityLayout } from "@eesimple/types";
 
 import { Fragment } from "react";
@@ -18,6 +19,11 @@ interface Props<E extends { id: string }> {
   mode: WorkbenchMode;
   /** The loaded entity (resolved upstream by `TabWrapper`). */
   entity: E;
+  /**
+   * Optional per-section condition gate (a section's `visibleIf`). Bookmark surfaces pass this from
+   * `useBookmarkSectionVisibility`; other kinds omit it, so every section shows as before.
+   */
+  sectionMatches?: SectionMatches;
 }
 
 /**
@@ -32,13 +38,13 @@ interface Props<E extends { id: string }> {
  * danger zone stays a `WorkbenchRouteTab` fixture (this body is fields only).
  */
 export function LayoutDrivenTabBody<E extends { id: string }>({
-  workbench, layout, tabKey, mode, entity,
+  workbench, layout, tabKey, mode, entity, sectionMatches,
 }: Props<E>) {
   const fields = workbench.fields ?? {};
   const tab = layout.tabs.find(candidate => candidate.key === tabKey);
   if (!tab) return null;
 
-  const sections = visibleSectionsForTab(tab, fields, mode, entity);
+  const sections = visibleSectionsForTab(tab, fields, mode, entity, sectionMatches);
   if (sections.length === 0) return null;
 
   return (

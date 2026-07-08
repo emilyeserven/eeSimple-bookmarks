@@ -123,15 +123,28 @@ export interface VisibleSection {
   fieldKeys: string[];
 }
 
-/** The sections of a tab that have ≥1 mode-visible field (design §2.4 empty-section hiding). */
+/**
+ * A predicate deciding whether a section passes its own condition gate (its `visibleIf`), evaluated
+ * against the rendered entity by the caller. Omitted (or returning true) = the section shows.
+ * Bookmarks supply this from `useBookmarkSectionVisibility`; other kinds leave it undefined so their
+ * behavior is byte-identical to before this feature.
+ */
+export type SectionMatches = (section: LayoutSection) => boolean;
+
+/**
+ * The sections of a tab that have ≥1 mode-visible field (design §2.4 empty-section hiding) **and**
+ * pass `sectionMatches` (the optional condition gate — §condition-based section visibility).
+ */
 export function visibleSectionsForTab<E extends { id: string }>(
   tab: LayoutTab,
   fields: Record<string, WorkbenchField<E>>,
   mode: WorkbenchMode,
   entity: E | undefined,
+  sectionMatches?: SectionMatches,
 ): VisibleSection[] {
   const visible: VisibleSection[] = [];
   for (const section of tab.sections) {
+    if (sectionMatches && !sectionMatches(section)) continue;
     const fieldKeys = visibleFieldKeys(section, fields, mode, entity);
     if (fieldKeys.length > 0) visible.push({
       section,
@@ -160,9 +173,10 @@ export function modeVisibleTabs<E extends { id: string }>(
   fields: Record<string, WorkbenchField<E>>,
   mode: WorkbenchMode,
   entity: E | undefined,
+  sectionMatches?: SectionMatches,
 ): RenderTab[] {
   return layout.tabs
-    .filter(tab => visibleSectionsForTab(tab, fields, mode, entity).length > 0)
+    .filter(tab => visibleSectionsForTab(tab, fields, mode, entity, sectionMatches).length > 0)
     .map(tab => ({
       key: tab.key,
       label: tab.label,
@@ -183,10 +197,11 @@ export function deriveWorkbenchTabs<E extends { id: string }>(
   layout: EntityLayout | null,
   mode: WorkbenchMode,
   entity: E | undefined,
+  sectionMatches?: SectionMatches,
 ): RenderTab[] {
   if (layout && workbench.fields) {
     const groupByKey = new Map(workbench.tabs.map(tab => [tab.key, tab.group]));
-    return modeVisibleTabs(layout, workbench.fields, mode, entity).map(tab => ({
+    return modeVisibleTabs(layout, workbench.fields, mode, entity, sectionMatches).map(tab => ({
       ...tab,
       group: groupByKey.get(tab.key),
     }));

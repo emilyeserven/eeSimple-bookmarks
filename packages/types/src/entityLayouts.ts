@@ -16,6 +16,8 @@
  * sub-issues and isn't implemented here.
  */
 
+import type { ConditionTree } from "./conditions.js";
+
 /**
  * The 21 slug-routed workbench entity kinds (the `ENTITY_DESCRIPTORS` keys in
  * `packages/client/src/entities/registry.ts`), plus `"bookmark"` — bookmarks adopt the field
@@ -57,12 +59,19 @@ export type LayoutableEntityKind = typeof LAYOUTABLE_ENTITY_KINDS[number];
  * render order. `columns` is the section's column count (1–4; absent = 1 = a full-width stack) —
  * fields render at `1/columns` width and overflow wraps to the next line, honored identically in
  * the editor preview and on the real View/Edit pages (#1220).
+ *
+ * `visibleIf` is an optional condition tree gating the whole section on the rendered entity's own
+ * data: when set, the section (and, if it leaves a tab with no visible sections, the tab) is hidden
+ * for entities that don't match. Evaluated with the shared `evaluateConditions` — only bookmarks
+ * carry a `ConditionInput` projection today, so it is authored/evaluated for the `"bookmark"` kind;
+ * other kinds leave it unset. An absent or empty tree means "always visible".
  */
 export interface LayoutSection {
   key: string;
   title?: string;
   description?: string;
   columns?: number;
+  visibleIf?: ConditionTree;
   fields: string[];
 }
 
@@ -100,6 +109,18 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(item => typeof item === "string");
 }
 
+/**
+ * Light structural check for a section's optional `visibleIf`: a root condition group (`type:
+ * "group"` with an array `children`). Node-level shape is enforced strictly at the API boundary by
+ * the Fastify `conditionTree#` schema — this guard only rejects an obviously non-group value so the
+ * pure resolver can trust `visibleIf.children`.
+ */
+function isConditionTreeLike(value: unknown): value is ConditionTree {
+  if (typeof value !== "object" || value === null) return false;
+  const tree = value as Record<string, unknown>;
+  return tree.type === "group" && Array.isArray(tree.children);
+}
+
 function isValidLayoutSection(value: unknown): value is LayoutSection {
   if (typeof value !== "object" || value === null) return false;
   const section = value as Record<string, unknown>;
@@ -107,6 +128,7 @@ function isValidLayoutSection(value: unknown): value is LayoutSection {
   if (section.title !== undefined && typeof section.title !== "string") return false;
   if (section.description !== undefined && typeof section.description !== "string") return false;
   if (section.columns !== undefined && typeof section.columns !== "number") return false;
+  if (section.visibleIf !== undefined && !isConditionTreeLike(section.visibleIf)) return false;
   return isStringArray(section.fields);
 }
 
@@ -226,6 +248,7 @@ export function resolveLayout(
         title: home.section.title,
         description: home.section.description,
         columns: home.section.columns,
+        visibleIf: home.section.visibleIf,
         fields: [],
       };
       targetTab.sections.push(targetSection);

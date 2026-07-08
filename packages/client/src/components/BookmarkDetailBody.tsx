@@ -21,7 +21,7 @@ export function BookmarkDetailBody({
   bookmark,
 }: BookmarkDetailBodyProps) {
   const {
-    layout, tabs, workbench,
+    layout, tabs, workbench, sectionMatches,
   } = useBookmarkViewTabs(bookmark);
   if (!layout) return null;
 
@@ -38,6 +38,7 @@ export function BookmarkDetailBody({
             tabKey={tab.key}
             mode="view"
             entity={bookmark}
+            sectionMatches={sectionMatches}
           />
         </Fragment>
       ))}

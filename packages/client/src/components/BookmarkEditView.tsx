@@ -11,6 +11,7 @@ import { TabbedShell, navLinkClass } from "./TabbedShell";
 import { bookmarkWorkbench } from "./workbench/bookmark";
 import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
 import { useBookmark, useDeleteBookmark } from "../hooks/useBookmarks";
+import { useBookmarkSectionVisibility } from "../hooks/useBookmarkSectionVisibility";
 import { useCategories } from "../hooks/useCategories";
 
 /**
@@ -142,7 +143,8 @@ export function BookmarkEditView({
   // Route through the dynamic-field merge seam so per-property fields (#1163+) resolve + render.
   const workbench = useLayoutDrivenWorkbench(bookmarkWorkbench);
   const layout = useResolvedWorkbenchLayout(workbench);
-  const tabs = deriveWorkbenchTabs(workbench, layout, "edit", bookmark);
+  const sectionMatches = useBookmarkSectionVisibility(bookmark);
+  const tabs = deriveWorkbenchTabs(workbench, layout, "edit", bookmark, sectionMatches);
   const active = tabs.find(tab => tab.key === activeTab)?.key ?? tabs[0]?.key;
 
   const nav = tabs.length <= 1
@@ -184,6 +186,7 @@ export function BookmarkEditView({
         tabKey={active}
         mode="edit"
         entity={bookmark}
+        sectionMatches={sectionMatches}
       />
     );
     if (hasSharedFormField) {

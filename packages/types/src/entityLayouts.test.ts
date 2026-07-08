@@ -549,6 +549,80 @@ test("a recreated tab and section inherit their description from the default hom
   assert.equal(recreatedTab.sections[0].description, "Everything connected");
 });
 
+// ---- section visibleIf condition gate --------------------------------------------------------------
+
+const sampleVisibleIf = {
+  type: "group",
+  combinator: "and",
+  children: [{
+    type: "media-type",
+    mediaTypeIds: ["mt-video"],
+  }],
+} as const;
+
+test("a section's visibleIf condition is preserved through reconciliation", () => {
+  const defaultLayout = makeDefaultLayout();
+  const stored: EntityLayout = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        sections: [
+          {
+            key: "main",
+            visibleIf: sampleVisibleIf,
+            fields: ["name", "description"],
+          },
+        ],
+      },
+    ],
+  };
+  const result = resolveLayout(stored, defaultLayout, defaultKnownFieldKeys());
+  const main = result.tabs.find(t => t.key === "general")!.sections.find(s => s.key === "main")!;
+  assert.deepEqual(main.visibleIf, sampleVisibleIf);
+});
+
+test("a recreated section inherits its visibleIf from the default home", () => {
+  const defaultLayout: EntityLayout = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        sections: [
+          {
+            key: "main",
+            fields: ["name"],
+          },
+          {
+            key: "video",
+            title: "Video",
+            visibleIf: sampleVisibleIf,
+            fields: ["icon"],
+          },
+        ],
+      },
+    ],
+  };
+  const stored: EntityLayout = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        // "video" section (with its visibleIf) was deleted, so "icon" is missing and recreated.
+        sections: [{
+          key: "main",
+          fields: ["name"],
+        }],
+      },
+    ],
+  };
+  const result = resolveLayout(stored, defaultLayout, new Set(["name", "icon"]));
+  const recreated = result.tabs[0].sections.at(-1)!;
+  assert.equal(recreated.key, "video");
+  assert.deepEqual(recreated.visibleIf, sampleVisibleIf);
+  assert.deepEqual(recreated.fields, ["icon"]);
+});
+
 // ---- isValidEntityLayout ---------------------------------------------------------------------------
 
 test("isValidEntityLayout accepts a well-formed layout", () => {
@@ -618,6 +692,43 @@ test("isValidEntityLayout rejects a section with a non-numeric columns value", (
         sections: [{
           key: "main",
           columns: "two",
+          fields: ["name"],
+        }],
+      },
+    ],
+  };
+  assert.equal(isValidEntityLayout(value), false);
+});
+
+test("isValidEntityLayout accepts a section with a group-shaped visibleIf", () => {
+  const value = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        sections: [{
+          key: "main",
+          visibleIf: sampleVisibleIf,
+          fields: ["name"],
+        }],
+      },
+    ],
+  };
+  assert.equal(isValidEntityLayout(value), true);
+});
+
+test("isValidEntityLayout rejects a section whose visibleIf is not a condition group", () => {
+  const value = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        sections: [{
+          key: "main",
+          visibleIf: {
+            type: "media-type",
+            mediaTypeIds: [],
+          },
           fields: ["name"],
         }],
       },

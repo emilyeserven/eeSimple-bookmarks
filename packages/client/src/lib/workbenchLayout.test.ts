@@ -155,7 +155,42 @@ describe("visibleSectionsForTab", () => {
   });
 });
 
+describe("visibleSectionsForTab (sectionMatches gate)", () => {
+  const tab = {
+    key: "t",
+    label: "T",
+    sections: [
+      {
+        key: "a",
+        fields: ["name"],
+      },
+      {
+        key: "b",
+        fields: ["name"],
+      },
+    ],
+  };
+
+  it("drops a section whose sectionMatches predicate returns false", () => {
+    const visible = visibleSectionsForTab(tab, fields, "view", withOptions, section => section.key !== "b");
+    expect(visible.map(v => v.section.key)).toEqual(["a"]);
+  });
+
+  it("keeps every section when no predicate is supplied (byte-identical to before)", () => {
+    const visible = visibleSectionsForTab(tab, fields, "view", withOptions);
+    expect(visible.map(v => v.section.key)).toEqual(["a", "b"]);
+  });
+});
+
 describe("modeVisibleTabs", () => {
+  it("hides a tab whose only section is gated off by sectionMatches", () => {
+    // Hide the section in the 'general' tab (its sole section 'main') → the tab disappears.
+    const keys = modeVisibleTabs(layout, fields, "view", withOptions, section => section.key !== "main")
+      .map(t => t.key);
+    expect(keys).not.toContain("general");
+    expect(keys).toContain("hierarchy");
+  });
+
   it("hides edit-only tabs in view mode", () => {
     const keys = modeVisibleTabs(layout, fields, "view", withOptions).map(t => t.key);
     expect(keys).toEqual(["general", "hierarchy", "opts"]); // 'display' (edit-only) dropped
