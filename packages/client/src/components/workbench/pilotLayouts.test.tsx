@@ -113,14 +113,14 @@ describe("newsletter default layout", () => {
     ]);
   });
 
-  it("renders the single edit tab in field order (view-only metadata dropped)", () => {
+  it("renders the single edit tab in field order (view-only fields dropped)", () => {
     expect(shape(newsletterWorkbench, "edit")).toEqual([
       {
         key: "general",
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["name", "description", "sourceDefaults", "tags", "genreMoods"],
+          fields: ["name", "description", "category", "mediaType", "tags", "genreMoods"],
         }],
       },
     ]);
