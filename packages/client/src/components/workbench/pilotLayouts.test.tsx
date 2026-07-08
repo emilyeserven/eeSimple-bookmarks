@@ -60,7 +60,7 @@ describe("category default layout", () => {
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["details", "primaryLanguage", "names", "genreMoods"],
+          fields: ["name", "icon", "description", "primaryLanguage", "names", "genreMoods"],
         }],
       },
       {
