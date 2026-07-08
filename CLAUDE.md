@@ -473,7 +473,11 @@ registry edit, never a pane edit.
        the entity's **edit-view** level that instantiates the controller **once**
        (`BookmarkGeneralFormProvider` in `BookmarkGeneralFormContext.tsx`, mounted by `BookmarkEditView`
        around the edit body — gated on the active tab hosting a shared-form field so it mounts exactly
-       where the old monolithic form did). Each granular **edit** field is then a thin component that
+       where the old monolithic form did). **A slug-routed entity has no bespoke edit view** (it renders
+       through the generic `EntityEditView`), so it declares the provider on its **workbench descriptor**
+       instead — `editFormProvider` + `sharedFormFieldKeys` on `EntityWorkbench`, which `EntityEditView`
+       uses to wrap the edit body with the same active-tab gate (reference: `websiteWorkbench` +
+       `WebsiteGeneralFormContext.tsx`, #1188). Each granular **edit** field is then a thin component that
        reads the shared controller from context (`useBookmarkGeneralFormContext`) and renders the existing
        sub-component; **view** fields read the entity directly and need no context. Split any shared
        sub-component into per-field halves (`BookmarkGeneralRelationsSection` → media-type + tags;
@@ -515,9 +519,10 @@ registry edit, never a pane edit.
   `PUT` a layout for a kind and the live page rearranges in both modes; `DELETE` resets to the default.
   - **Editor selectable-list caveat.** The render path honors stored layouts for **all** kinds, but the
     editor's kind picker (`LAYOUT_DRIVEN_ENTITIES` in `lib/layoutDrivenEntities.ts`) currently lists only
-    **Category, Newsletter, Bookmark, Genres & Moods, Tag, Custom Property**. Growing it to the rest is a
-    follow-up — add one
-    `{ kind, label, fields, defaultLayout }` entry per kind; the render side needs no change.
+    **Category, Newsletter, Bookmark, Genres & Moods, Tag, Custom Property, Website**. Growing it to the
+    rest is a follow-up — add one
+    `{ kind, label, fields, defaultLayout }` entry per kind; the render side needs no change. (An entity
+    is added here once its General composite is broken into granular fields — e.g. Website #1188.)
 - **Explicitly out of scope for v1 — don't "fix" these:**
   - **Create forms are unaffected.** The Add Bookmark quick-create form keeps its own, separate placement
     system (Settings → Display → Bookmark Add Form; see **Add Bookmark form field placement** + the

@@ -196,17 +196,26 @@ not whether a `useAppForm` exists:
   Property** (`usePropertyGeneralForm` → `name`/`type`/`status`/`description` edit fields +
   `status`/`description`/`created` view rows, #1196) — the last two share a `useAppForm`+autosave but split
   cleanly because name→slug follow is self-contained and status/description don't interact.
-- **Shared-`useAppForm` composite with genuine cross-field coordination** (name-blur autofill,
-  website-lookup → offer → category, primary-language sync — the bookmark case) → the render seam calls
-  each field renderer as a plain function, so N naive field components would each instantiate N separate
-  form instances **and lose the coordination**. Use a **form-context provider**:
+- **Shared controller that must mount exactly once** — either **genuine cross-field coordination**
+  (name-blur autofill, website-lookup → offer → category, primary-language sync — the bookmark case) **or**
+  granular fields that share **one mounted instance**: local `useState` that can't dedupe across fibers,
+  or a once-only side-effect like the header "Sync from source" registration (the **Website** case,
+  `useImageTaxonomySyncRegistration` — calling the controller per fiber would thrash the store). The render
+  seam calls each field renderer as a plain function, so N naive field components would each instantiate N
+  separate controllers **and lose the coordination / re-run the side-effect**. Use a **form-context
+  provider**:
   1. **Context** — a `<Entity>GeneralFormProvider` that calls the controller hook (+ any react-query
      field hooks + the sync registration) **once** and exposes them; a `use<Entity>GeneralFormContext()`
      reader. Reference: `components/BookmarkGeneralFormContext.tsx`.
   2. **Mount** it at the entity's **edit-view** level, wrapping the edit body — gated on the active tab
      hosting a shared-form field so the controller mounts exactly where the old monolithic form did (and
      follows the fields if an operator relocates them). Reference: `BookmarkEditView.tsx`
-     (`SHARED_FORM_FIELD_KEYS`).
+     (`SHARED_FORM_FIELD_KEYS`). **A slug-routed entity has no bespoke edit view** — it renders through
+     the generic `EntityEditView`, so instead of editing an edit-view file you declare the provider on the
+     **workbench descriptor**: set `editFormProvider: ({ entity, children }) => <XGeneralFormProvider
+     entity={entity}>{children}</…>` and `sharedFormFieldKeys: new Set([...])` on `EntityWorkbench`, and
+     `EntityEditView` wraps the edit body with the same active-tab gate. Reference: `websiteWorkbench`
+     (`components/workbench/website.tsx`) + `WebsiteGeneralFormContext.tsx`.
   3. **Granular edit fields** — each a thin component that reads the shared controller from context and
      renders the existing sub-component; register each as a `WorkbenchField.edit`. View fields read the
      entity directly (no context). Split any shared sub-component into per-field halves
