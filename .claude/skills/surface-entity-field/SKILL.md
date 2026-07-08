@@ -220,8 +220,10 @@ not whether a `useAppForm` exists:
      the generic `EntityEditView`, so instead of editing an edit-view file you declare the provider on the
      **workbench descriptor**: set `editFormProvider: ({ entity, children }) => <XGeneralFormProvider
      entity={entity}>{children}</…>` and `sharedFormFieldKeys: new Set([...])` on `EntityWorkbench`, and
-     `EntityEditView` wraps the edit body with the same active-tab gate. Reference: `websiteWorkbench`
-     (`components/workbench/website.tsx`) + `WebsiteGeneralFormContext.tsx`.
+     `EntityEditView` wraps the edit body with the same active-tab gate. References: `websiteWorkbench`
+     (`components/workbench/website.tsx`) + `WebsiteGeneralFormContext.tsx`; `locationWorkbench`
+     (`components/workbench/location.tsx`) + `LocationGeneralFormContext.tsx` (#1191, the
+     maximal-atomization case whose map is its own view-only `map` field).
   3. **Granular edit fields** — each a thin component that reads the shared controller from context and
      renders the existing sub-component; register each as a `WorkbenchField.edit`. View fields read the
      entity directly (no context). Split any shared sub-component into per-field halves
@@ -231,10 +233,17 @@ not whether a `useAppForm` exists:
   4. **Layout** — place the new keys in `defaultLayout`; group the pulled-out fields into a **titled
      section** (`{ key, title, fields }`) to turn a former `CollapsibleFormSection` into a first-class
      section (the bookmark **Advanced** section).
-  5. **Snapshot** — update the both-modes layout test (`bookmarkLayout.test.tsx`, or the entity's rollout
-     harness — e.g. `batch2Layouts.test.tsx` for Custom Property) to the new field/section order. Remember
-     view/edit parity: edit-only fields (Name/Type/blacklists) drop in view, a view-only field (bookmark
-     `detailsExtra`, Custom Property `created`) drops in edit.
+  5. **Snapshot** — add/update the both-modes layout test (`bookmarkLayout.test.tsx`,
+     `locationLayout.test.tsx`, or the entity's rollout harness — e.g. `batch2Layouts.test.tsx` for Custom
+     Property) to the new field/section order. Remember view/edit parity: edit-only fields
+     (Name/Type/blacklists) drop in view, view-only fields (bookmark `detailsExtra`, Custom Property
+     `created`, Location's `map` / `slug` / `bookmarkCount`) drop in edit.
+
+  **Location (#1191)** is the maximal-atomization + slug-routed reference: every General row became its
+  own field (the map is its own **view-only** `map` field — `LocationMapView`, extracted with the
+  ancestry logic, `LocationMapSection` props preserved per the `locations-map` skill), and only two
+  genuine coordination clusters stayed whole (lat/long + Re-geocode button; Wikipedia EN/Local + Autofill
+  button) because a single shared action drives each.
 
 ## Verify
 
