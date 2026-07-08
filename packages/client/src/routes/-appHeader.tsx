@@ -14,6 +14,7 @@ import { NotificationsBellPopover } from "@/components/NotificationsBellPopover"
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 /** Top app bar: sidebar trigger, breadcrumbs derived from the path, notifications, and the toolbar. */
 export function AppHeader() {
@@ -35,6 +36,9 @@ export function AppHeader() {
   const {
     crumbs, ...toolbarData
   } = useHeaderBreadcrumbs(pathname, pathParts, editTab);
+
+  // Keep the browser tab title (`<current page/item> · eeSimple Bookmarks`) in sync with the trail.
+  useDocumentTitle(crumbs, pathParts.includes("edit"));
 
   const toolbarActions = useHeaderToolbarActions(pathname, pathParts, toolbarData);
 
