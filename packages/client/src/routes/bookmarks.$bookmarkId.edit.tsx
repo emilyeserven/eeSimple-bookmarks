@@ -1,64 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
-import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
-import { useBookmark } from "../hooks/useBookmarks";
-import i18n from "../i18n";
-
+/** Pathless layout for a bookmark's edit surface. The page lives in the `index` child; the `$` child
+ *  redirects the old per-tab paths (`…/edit/general`, …). Keeping the page in `index` (not here) makes
+ *  the exact `/edit` path unambiguous against the `$` splat — the #1155 category/newsletter pattern. */
 export const Route = createFileRoute("/bookmarks/$bookmarkId/edit")({
-  component: BookmarkEditLayout,
+  component: Outlet,
 });
-
-const editNav = [
-  {
-    to: "/bookmarks/$bookmarkId/edit/general",
-    label: i18n.t("General"),
-  },
-  {
-    to: "/bookmarks/$bookmarkId/edit/related",
-    label: i18n.t("Related"),
-  },
-  {
-    to: "/bookmarks/$bookmarkId/edit/properties",
-    label: i18n.t("Properties"),
-  },
-  {
-    to: "/bookmarks/$bookmarkId/edit/languages",
-    label: i18n.t("Languages"),
-  },
-  {
-    to: "/bookmarks/$bookmarkId/edit/image",
-    label: i18n.t("Image"),
-  },
-  {
-    to: "/bookmarks/$bookmarkId/edit/video",
-    label: i18n.t("Video"),
-  },
-] as const;
-
-function BookmarkEditLayout() {
-  const {
-    t,
-  } = useTranslation();
-  const {
-    bookmarkId,
-  } = Route.useParams();
-  const {
-    data: bookmark, isLoading,
-  } = useBookmark(bookmarkId);
-
-  return (
-    <TabbedEntityLayout
-      header={(
-        <h1 className="text-2xl font-bold">
-          {isLoading ? t("Edit bookmark") : (bookmark?.title ?? t("Bookmark not found"))}
-        </h1>
-      )}
-      nav={editNav}
-      params={{
-        bookmarkId,
-      }}
-      navAriaLabel={t("Bookmark edit sections")}
-    />
-  );
-}

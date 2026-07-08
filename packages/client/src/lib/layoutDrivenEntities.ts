@@ -2,6 +2,7 @@ import type { LayoutFieldMeta } from "../components/LayoutBoard";
 import type { WorkbenchField } from "../components/workbench/types";
 import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 
+import { bookmarkWorkbench } from "../components/workbench/bookmark";
 import { categoryWorkbench } from "../components/workbench/category";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
 import i18n from "../i18n";
@@ -42,6 +43,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Newsletter"),
     fields: fieldsFromRegistry(newsletterWorkbench.fields),
     defaultLayout: newsletterWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "bookmark",
+    label: i18n.t("Bookmark"),
+    fields: fieldsFromRegistry(bookmarkWorkbench.fields),
+    defaultLayout: bookmarkWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },

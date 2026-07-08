@@ -1,68 +1,40 @@
-import type { BookmarkDetailSectionId } from "./bookmarkDetailSections";
-import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
+import type { Bookmark } from "@eesimple/types";
 
 import { useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
-import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
 import { navLinkClass, navStripClass } from "./TabbedShell";
-import { useBookmarks } from "../hooks/useBookmarks";
-import { useBookmarksSharingMediaSource } from "../hooks/useBookmarksSharingMediaSource";
-import { useLocationTree } from "../hooks/useLocations";
-import { useRelatedBookmarks } from "../hooks/useRelatedBookmarks";
-import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
-import { buildBookmarkHierarchy } from "../lib/bookmarkHierarchy";
-import { flattenTree } from "../lib/tagTree";
+import { bookmarkWorkbench } from "./workbench/bookmark";
+import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
+import { useBookmarkViewTabs } from "../hooks/useBookmarkViewTabs";
 
 import { cn } from "@/lib/utils";
 
 interface BookmarkDetailTabbedProps {
   bookmark: Bookmark;
-  categories: Category[];
-  properties: CustomProperty[];
-  propertyGroups: PropertyGroup[];
-  /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
-  onSaveBoolean?: (propertyId: string, value: boolean) => void;
 }
 
 /**
- * The horizontal-tabbed bookmark detail layout. The detail sections become a horizontal tab strip
- * rendered directly above the active tab's content. Media is rendered in the shared header above
- * this component (see BookmarkDetail).
+ * The horizontal-tabbed bookmark detail layout. The resolved `"bookmark"` layout's view-visible tabs
+ * become a horizontal tab strip above the active tab's `LayoutDrivenTabBody`. Tabs + empty-omission
+ * come from `useBookmarkViewTabs` (shared with the single-column body). Media is rendered in the shared
+ * header above this component (see BookmarkDetail).
  */
 export function BookmarkDetailTabbed({
-  bookmark, categories, properties, propertyGroups, onSaveBoolean,
+  bookmark,
 }: BookmarkDetailTabbedProps) {
   const {
     t,
   } = useTranslation();
   const {
-    data: allBookmarks,
-  } = useBookmarks();
-  const {
-    data: locationTree,
-  } = useLocationTree();
-  const flatHierarchy = flattenTree(buildBookmarkHierarchy(bookmark.id, allBookmarks ?? []));
-  const defaultFieldZones = useDefaultFieldZones();
-  const relatedBookmarks = useRelatedBookmarks(bookmark);
-  const mediaSourceMatches = useBookmarksSharingMediaSource(bookmark);
+    layout, tabs,
+  } = useBookmarkViewTabs(bookmark);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
 
-  const sections = buildBookmarkDetailSections({
-    bookmark,
-    categories,
-    properties,
-    propertyGroups,
-    flatHierarchy,
-    relatedBookmarks,
-    mediaSourceMatches,
-    onSaveBoolean,
-    defaultFieldZones,
-    locationTree,
-  });
+  if (!layout || tabs.length === 0) return null;
 
-  const [activeId, setActiveId] = useState<BookmarkDetailSectionId>(sections[0].id);
-  const active = sections.find(tab => tab.id === activeId) ?? sections[0];
+  const active = tabs.find(tab => tab.key === activeKey) ?? tabs[0];
 
   return (
     <div className="min-w-0 flex-1 space-y-4">
@@ -70,22 +42,30 @@ export function BookmarkDetailTabbed({
         className={navStripClass}
         aria-label={t("Bookmark sections")}
       >
-        {sections.map(tab => (
+        {tabs.map(tab => (
           <button
-            key={tab.id}
+            key={tab.key}
             type="button"
-            onClick={() => setActiveId(tab.id)}
+            onClick={() => setActiveKey(tab.key)}
             className={cn(
               navLinkClass,
               "text-left",
-              tab.id === active.id && "bg-accent text-accent-foreground",
+              tab.key === active.key && "bg-accent text-accent-foreground",
             )}
           >
             {tab.label}
           </button>
         ))}
       </nav>
-      <div className="min-w-0 pb-6">{active.content}</div>
+      <div className="min-w-0 pb-6">
+        <LayoutDrivenTabBody
+          workbench={bookmarkWorkbench}
+          layout={layout}
+          tabKey={active.key}
+          mode="view"
+          entity={bookmark}
+        />
+      </div>
     </div>
   );
 }

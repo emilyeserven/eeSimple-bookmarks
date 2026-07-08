@@ -2,18 +2,20 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { BookmarkDetail } from "./BookmarkDetail";
 import {
+  apiHandlers,
   sampleBookmark,
-  sampleCategories,
-  sampleProperties,
 } from "../test-utils/story-mocks";
 
 const meta = {
   title: "Bookmarks/BookmarkDetail",
   component: BookmarkDetail,
+  parameters: {
+    msw: {
+      handlers: apiHandlers,
+    },
+  },
   args: {
     bookmark: sampleBookmark,
-    categories: sampleCategories,
-    properties: sampleProperties,
   },
 } satisfies Meta<typeof BookmarkDetail>;
 

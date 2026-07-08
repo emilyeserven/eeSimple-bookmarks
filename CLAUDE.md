@@ -347,9 +347,26 @@ that matches the surface — don't invent a new structure for a one-off page.
     (`navStripClass`) above the active body, on every surface (full-width page and phone); the strip
     scrolls horizontally when the tabs overflow, so the main pane is mobile-friendly for free. A
     single-tab (or tab-less) surface drops the nav strip.
-  - **Bookmarks are asymmetric:** a bookmark's *view* is one rich component (`BookmarkDetail`, shared
-    by the detail page directly, not via the workbench), while its *edit* is the router-driven bookmark
-    edit tabs.
+  - **Bookmarks are layout-driven too (#1163), but off `ENTITY_DESCRIPTORS`.** A bookmark's view **and**
+    edit both resolve the `"bookmark"` field registry (`components/workbench/bookmark.tsx` +
+    `bookmarkViewFields.tsx`) through the shared `LayoutDrivenTabBody`; the old asymmetry
+    (`buildBookmarkDetailSections` view vs. a per-tab edit route quartet) is gone. Bookmarks are
+    **id-routed**, not slug-routed, so they can't reuse the slug-coupled `EntityInfoView`/`EntityEditView`:
+    the detail page uses `BookmarkDetailBody` (single column) / `BookmarkDetailTabbed`, both fed by
+    `hooks/useBookmarkViewTabs.ts` (resolves the layout + drops the data-empty tabs — the registry
+    replacement for the old per-section null-omission, pure logic in `lib/bookmarkViewTabs.ts`), and edit
+    is the single `bookmarks.$bookmarkId.edit` route (`?tab=`, redirected from the old `/edit/<seg>` paths
+    incl. legacy `relationships → related`) rendering `components/BookmarkEditView.tsx` — the id-routed
+    mirror of `EntityEditView`, with a bespoke General-tab Delete danger zone (bookmarks have no
+    `useDelete` workbench control). The `"bookmark"` field split gives parity by construction:
+    `general`/`customProperties`/`languageUsages`/`gallery`/`reel` carry both renderers; `relatedEdit` is
+    edit-only; `relatedBookmarks`/`hierarchy`/`mediaSource`/`locationsMap`/`metadata`/`debugInfo` are
+    view-only (so Metadata/Debug are view-only tabs and the Related tab shows the four view blocks in view,
+    the one edit form in edit). Byte-identical is **waived** for bookmarks (design §7-A) — the unified tab
+    order is view-preserving (general, properties, languages, image, video, related, metadata, debug) so
+    the default single-column detail page stays closest to today; the edit strip reorders but each tab's
+    content is unchanged. Every save behavior is untouched (each `edit` renderer just wraps the existing
+    form — see **Edit-tab auto-save standard**).
 
 ## Entity page layouts
 
@@ -377,8 +394,13 @@ landing.** Two entities are already layout-driven pilots: **Category** and **New
   Set all three ⇒ **layout-driven**: `EntityInfoView`/`EntityEditView` build their rail + per-tab
   `LabeledSection` stacks from the resolved layout (`deriveWorkbenchTabs` + `LayoutDrivenTabBody`),
   registry `fields` dispatched by mode. Omit them ⇒ the entity keeps its opaque `tabs`/pane `render`
-  untouched. **Category and Newsletter are the live pilots** (`components/workbench/{category,newsletter}.tsx`);
-  the remaining entities are authored in the rollout sub-issues. Author `fields` exhaustively (`const
+  untouched. **Category, Newsletter, and Bookmark are the live layout-driven entities**
+  (`components/workbench/{category,newsletter,bookmark}.tsx`); the remaining entities are authored in the
+  rollout sub-issues. **Bookmarks are the exception that stays off `ENTITY_DESCRIPTORS`** (id-routed, not
+  slug-routed): they adopt only `layoutKind`/`fields`/`defaultLayout` and render through
+  `LayoutDrivenTabBody` via bookmark-specific view bodies + `BookmarkEditView`, not the slug-coupled
+  `EntityInfoView`/`EntityEditView` — see **Content hierarchies → Bookmarks are layout-driven**. Author
+  `fields` exhaustively (`const
   fooFields = {…} satisfies Record<FooFieldKey, WorkbenchField<Foo>>` + a `defaultLayout` whose section
   `fields` are typed `FooFieldKey[]`) so a declared key without a renderer fails `tsc` — the
   `bookmarkAddFormFields.tsx` FIELD_RENDERERS idiom.
@@ -501,7 +523,13 @@ skill — consult it before building or changing an edit tab. In short:
   value set like the Languages tab, one "Properties" toast) — the **only** Save button left on bookmark
   edit is the Image tab's, which applies the staged multi-image picker intent (uploads/kept/main/
   removals) that can't be expressed as a single field; every other Image action already saves
-  immediately. **Local-only Zustand prefs** stay instant with **no toast**
+  immediately. **Bookmark edit is now the single layout-driven `?tab=` route (#1163)** — the per-tab
+  route quartet is gone; each edit tab body is the `"bookmark"` field registry's `edit` renderer wrapping
+  the **same** form component (`BookmarkGeneralForm` / `BookmarkRelatedForm` / `BookmarkPropertiesForm` /
+  `LanguageUsagesTabEditor` / `BookmarkImageEditForm` / `BookmarkVideoEditForm`), so none of these save
+  semantics changed; the General Delete danger zone is a `BookmarkEditView` fixture (bookmarks are
+  id-routed, off the workbench `useDelete` control). See **Content hierarchies → Bookmarks are
+  layout-driven**. **Local-only Zustand prefs** stay instant with **no toast**
   (nothing persists server-side). The no-toast carve-out is **only** for *ephemeral, device-local
   view prefs* in `uiStore` — what now remains there is `theme`, `collapsedSidebarSections`, the
   physical sizing (`sidebarWidth`/`panelWidth`/`tableColumnWidths`), open/closed state

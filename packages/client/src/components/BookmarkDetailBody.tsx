@@ -1,70 +1,45 @@
-import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
+import type { Bookmark } from "@eesimple/types";
 
 import { Fragment } from "react";
 
-import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
-import { useBookmarks } from "../hooks/useBookmarks";
-import { useBookmarksSharingMediaSource } from "../hooks/useBookmarksSharingMediaSource";
-import { useLocationTree } from "../hooks/useLocations";
-import { useRelatedBookmarks } from "../hooks/useRelatedBookmarks";
-import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
-import { buildBookmarkHierarchy } from "../lib/bookmarkHierarchy";
-import { flattenTree } from "../lib/tagTree";
+import { bookmarkWorkbench } from "./workbench/bookmark";
+import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
+import { useBookmarkViewTabs } from "../hooks/useBookmarkViewTabs";
 
 import { Separator } from "@/components/ui/separator";
 
 interface BookmarkDetailBodyProps {
   bookmark: Bookmark;
-  /** All categories, used to resolve the bookmark's category name/icon/slug. */
-  categories: Category[];
-  /** Custom property definitions, used to label and unit-format the bookmark's values. */
-  properties: CustomProperty[];
-  /** Property groups, used to group property values under their group headings. */
-  propertyGroups: PropertyGroup[];
-  /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
-  onSaveBoolean?: (propertyId: string, value: boolean) => void;
 }
 
 /**
- * The right-hand content column of the bookmark detail view: the Details fields, Tags, Relationships,
- * Hierarchy, the grouped custom-property sections, and Metadata, stacked and divided by separators.
- * Sections come from the shared `buildBookmarkDetailSections` builder (shared with the tabbed layout).
+ * The single-column bookmark detail body: the resolved `"bookmark"` layout flattened in tab order —
+ * each view-visible tab's fields stacked and divided by separators (design §7-A). Tabs and their
+ * empty-omission come from `useBookmarkViewTabs`; each field self-loads its data via
+ * `LayoutDrivenTabBody`. Media is rendered in the shared header above this component (see BookmarkDetail).
  */
 export function BookmarkDetailBody({
-  bookmark, categories, properties, propertyGroups, onSaveBoolean,
+  bookmark,
 }: BookmarkDetailBodyProps) {
   const {
-    data: allBookmarks,
-  } = useBookmarks();
-  const {
-    data: locationTree,
-  } = useLocationTree();
-  const flatHierarchy = flattenTree(buildBookmarkHierarchy(bookmark.id, allBookmarks ?? []));
-  const defaultFieldZones = useDefaultFieldZones();
-  const relatedBookmarks = useRelatedBookmarks(bookmark);
-  const mediaSourceMatches = useBookmarksSharingMediaSource(bookmark);
-
-  const sections = buildBookmarkDetailSections({
-    bookmark,
-    categories,
-    properties,
-    propertyGroups,
-    flatHierarchy,
-    relatedBookmarks,
-    mediaSourceMatches,
-    onSaveBoolean,
-    defaultFieldZones,
-    locationTree,
-  });
+    layout, tabs,
+  } = useBookmarkViewTabs(bookmark);
+  if (!layout) return null;
 
   return (
     <div className="min-w-0 flex-1 space-y-6">
-      {sections.map((section, index) => (
-        <Fragment key={section.id}>
+      {tabs.map((tab, index) => (
+        <Fragment key={tab.key}>
           {index > 0
             ? <Separator />
             : null}
-          {section.content}
+          <LayoutDrivenTabBody
+            workbench={bookmarkWorkbench}
+            layout={layout}
+            tabKey={tab.key}
+            mode="view"
+            entity={bookmark}
+          />
         </Fragment>
       ))}
     </div>

@@ -195,9 +195,12 @@ export function CommandPalette() {
       onEnterRatingMode={handleEnterRatingMode}
       onNavigateProperties={() => {
         void navigate({
-          to: "/bookmarks/$bookmarkId/edit/properties",
+          to: "/bookmarks/$bookmarkId/edit",
           params: {
             bookmarkId,
+          },
+          search: {
+            tab: "properties",
           },
         });
         handleClose();
