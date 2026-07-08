@@ -190,7 +190,22 @@ Pick the shape by how each sub-field is backed:
   `useAppForm`) → just promote it with step 4b: a `WorkbenchField` whose renderer wraps the existing
   sub-component, placed in `defaultLayout`. This is the Category precedent (`primaryLanguage`/`names`
   broken out beside the `details` composite) — react-query coordinates the shared state across fibers, so
-  nothing else is needed.
+  nothing else is needed. Each promoted field mounts its **own** backing (its own `useFieldAutoSave` for
+  an auto-saved scalar/array, its own `usePrimaryLanguageField`, its own image mutations), and the
+  original whole-form shell is **recomposed** from the same sub-fields (`CategoryGeneralForm`) so its
+  story/test stay unchanged.
+  - **A "shared `useFieldAutoSave`" is not automatically shape B.** Judge by *coordination*, not by which
+    engine the fields happen to share today. **Person** (#1194) is the worked example: `name` /
+    `description` / `socialLinks` / `labeledWebsites` all rode one `usePersonGeneralForm`
+    `useFieldAutoSave`, but that was implementation convenience — the only cross-field links are
+    name→primary-language sync (react-query, mount `usePrimaryLanguageField` in both the name field and
+    the standalone one, the Category trick), name→slug-follow (self-contained), and detect-social-links
+    (self-contained to that field). None require a single `useAppForm`, so Person uses **shape A**: each
+    field gets its own `useFieldAutoSave` (name+description stay together as one `details` field, like
+    `CategoryDetailsFields`; the avatar hook `usePersonAvatarField` also carries the
+    `useImageTaxonomySyncRegistration`), touching **zero shared infrastructure**. Reach for shape B's
+    provider **only** for genuine cross-field *form-state* coordination (bookmark: name-blur autofill,
+    website-lookup → autofill offer → category).
 - **Shared-`useAppForm` composite** (one controller with cross-field coordination) → the render seam
   calls each field renderer as a plain function, so N naive field components would each instantiate N
   separate form instances. Use a **form-context provider**:

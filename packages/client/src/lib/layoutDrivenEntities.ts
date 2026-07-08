@@ -6,6 +6,7 @@ import { bookmarkWorkbench } from "../components/workbench/bookmark";
 import { categoryWorkbench } from "../components/workbench/category";
 import { genreMoodWorkbench } from "../components/workbench/genreMood";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
+import { personWorkbench } from "../components/workbench/person";
 import { tagWorkbench } from "../components/workbench/tag";
 import i18n from "../i18n";
 
@@ -69,6 +70,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Tag"),
     fields: fieldsFromRegistry(tagWorkbench.fields),
     defaultLayout: tagWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "person",
+    label: i18n.t("Person"),
+    fields: fieldsFromRegistry(personWorkbench.fields),
+    defaultLayout: personWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },

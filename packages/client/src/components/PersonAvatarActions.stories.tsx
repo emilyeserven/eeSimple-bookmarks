@@ -1,10 +1,10 @@
-import type { usePersonGeneralForm } from "./usePersonGeneralForm";
+import type { usePersonAvatarField } from "./usePersonAvatarField";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { PersonAvatarActions } from "./PersonAvatarActions";
 import { makePerson, makeWebsite, makeYouTubeChannel } from "../test-utils/factories";
 
-type Controller = ReturnType<typeof usePersonGeneralForm>;
+type Controller = ReturnType<typeof usePersonAvatarField>;
 
 /** A throwaway mutation-shaped stub — the component only ever calls `.mutate()`. */
 const noopMutation = {

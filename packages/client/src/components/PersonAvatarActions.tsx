@@ -1,4 +1,4 @@
-import type { usePersonGeneralForm } from "./usePersonGeneralForm";
+import type { usePersonAvatarField } from "./usePersonAvatarField";
 import type { Person, Website, YouTubeChannel } from "@eesimple/types";
 
 import { AtSign, Globe, MonitorPlay, Sparkles } from "lucide-react";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { usePersonSourceLabelSettings } from "@/hooks/useAppSettings";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
-type Controller = ReturnType<typeof usePersonGeneralForm>;
+type Controller = ReturnType<typeof usePersonAvatarField>;
 
 interface PersonAvatarActionsProps {
   person: Person;
