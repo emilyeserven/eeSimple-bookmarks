@@ -1,6 +1,7 @@
 import type { NotificationPage } from "@/stores/notificationStore";
 
 import i18n from "@/i18n";
+import { labelOverrides, titleCaseSegment } from "@/lib/segmentLabels";
 
 /**
  * The page the user is currently on, kept as an imperative module-level holder so the
@@ -25,29 +26,6 @@ export function getCurrentNotificationPage(): NotificationPage {
     pathname: currentPage.pathname,
     label: pageLabelFromPathname(currentPage.pathname),
   };
-}
-
-/** Labels for path segments whose human form differs from a plain title-cased slug (mirrors the
- * breadcrumb overrides in `routes/-appHeaderCrumbs.tsx`). */
-function labelOverrides(): Record<string, string> {
-  return {
-    "youtube-channels": i18n.t("YouTube Channels"),
-    "genres-moods": i18n.t("Genres & Moods"),
-    "autofill": i18n.t("Autofill Rules"),
-    "import-rules": i18n.t("Import Rules"),
-    "saved-filters": i18n.t("Saved Filters"),
-    "ai-summarization": i18n.t("AI Summarization"),
-    "bookmark-add": i18n.t("Bookmark Add Form"),
-  };
-}
-
-/** Title-case a slug segment: `shortened-links` → `Shortened Links`. */
-function titleCaseSegment(segment: string): string {
-  return segment
-    .split("-")
-    .filter(Boolean)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
 }
 
 /**

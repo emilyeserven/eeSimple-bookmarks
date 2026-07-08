@@ -13,34 +13,8 @@ import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import i18n from "@/i18n";
 import { ENTITY_ROUTES } from "@/lib/entityRoutes";
+import { crumbLabel } from "@/lib/segmentLabels";
 import { findAncestorPath } from "@/lib/tagTree";
-
-/** Labels for path segments whose human form differs from a plain title-cased slug. */
-function labelOverrides(): Record<string, string> {
-  return {
-    "youtube-channels": i18n.t("YouTube Channels"),
-    "genres-moods": i18n.t("Genres & Moods"),
-    "autofill": i18n.t("Autofill Rules"),
-    "import-rules": i18n.t("Import Rules"),
-    "saved-filters": i18n.t("Saved Filters"),
-    "ai-summarization": i18n.t("AI Summarization"),
-    "bookmark-add": i18n.t("Bookmark Add Form"),
-  };
-}
-
-/** Title-case a slug segment: `shortened-links` → `Shortened Links`. */
-function titleCaseSegment(segment: string): string {
-  return segment
-    .split("-")
-    .filter(Boolean)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-/** Human label for a single path segment — a settings sub-page, an edit tab, etc. */
-function crumbLabel(segment: string): string {
-  return labelOverrides()[segment] ?? titleCaseSegment(segment);
-}
 
 interface TaxonomyDescriptor {
   /** URL prefix that owns this entity's listing + detail/edit pages. */
