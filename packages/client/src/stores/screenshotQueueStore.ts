@@ -26,6 +26,11 @@ interface ScreenshotQueueState {
   /** Captures that failed this run. */
   failed: number;
   /**
+   * Distinct bookmark ids enqueued in the current run. When a run captures exactly one bookmark, the
+   * completion toast links to it (`/bookmarks/<id>`); a multi-bookmark run has no single target.
+   */
+  runBookmarkIds: string[];
+  /**
    * Queue a bookmark for capture. Starts a fresh run (resets the counters) when the previous run has
    * fully drained, otherwise appends to the run in progress. Kicks the concurrency-limited pump.
    */
@@ -38,17 +43,20 @@ export const useScreenshotQueueStore = create<ScreenshotQueueState>(set => ({
   total: 0,
   completed: 0,
   failed: 0,
+  runBookmarkIds: [],
   enqueue: (job) => {
     set((state) => {
       const drained = state.pending.length === 0
         && state.activeIds.length === 0
         && state.completed + state.failed === state.total;
       const prevTotal = drained ? 0 : state.total;
+      const prevRunIds = drained ? [] : state.runBookmarkIds;
       return {
         pending: [...state.pending, job],
         total: prevTotal + 1,
         completed: drained ? 0 : state.completed,
         failed: drained ? 0 : state.failed,
+        runBookmarkIds: prevRunIds.includes(job.id) ? prevRunIds : [...prevRunIds, job.id],
       };
     });
     pump();
