@@ -211,8 +211,15 @@ Pick the shape by how each sub-field is backed:
      section** (`{ key, title, fields }`) to turn a former `CollapsibleFormSection` into a first-class
      section (the bookmark **Advanced** section).
   5. **Snapshot** — update the both-modes layout test (`bookmarkLayout.test.tsx`) to the new
-     field/section order. Remember view/edit parity: edit-only fields (Name/blacklists) drop in view, a
-     view-only residual field (bookmark `detailsExtra`) drops in edit.
+     field/section order. Remember view/edit parity: edit-only fields (Name/blacklists) drop in view;
+     view-only fields (Channel/Person/Locations/Kavita/Plex) drop in edit.
+
+**Atomize fully — no catch-all residual field.** Break out **every** row into its own `WorkbenchField`,
+including **view-only** rows that have no editable counterpart. Do **not** collect the leftovers into a
+single "Other details"/`detailsExtra`-style field — that just re-nests the composite and stops an
+operator placing those rows independently (this is exactly what a first pass on the bookmark General view
+did and had to undo). When a view-only row's component already exists (e.g. `BookmarkKavitaDetailRow` /
+`BookmarkPlexDetailRow`), point the new field's `view` renderer directly at it — no wrapper needed.
 
 ## Verify
 

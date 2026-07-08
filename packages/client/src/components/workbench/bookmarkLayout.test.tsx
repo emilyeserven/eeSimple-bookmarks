@@ -57,7 +57,7 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["url", "description", "category", "mediaType", "tags", "detailsExtra"],
+          fields: ["url", "description", "category", "mediaType", "tags", "locations", "channel", "person", "kavita", "plex"],
         }],
       },
       {

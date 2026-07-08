@@ -21,10 +21,8 @@ import { withMediaSourceMatch } from "../../lib/bookmarkSearch";
 import { flattenTree } from "../../lib/tagTree";
 import { BookmarkCardGrid } from "../BookmarkCardGrid";
 import { BookmarkCategoryLink } from "../BookmarkCategoryLink";
-import { BookmarkKavitaDetailRow } from "../BookmarkKavitaField";
 import { BookmarkLocationsBox } from "../BookmarkLocationsBox";
 import { BookmarkLocationsTabContent } from "../BookmarkLocationsTabContent";
-import { BookmarkPlexDetailRow } from "../BookmarkPlexField";
 import { BookmarkPropertySections } from "../BookmarkPropertySections";
 
 import { DetailField } from "@/components/DetailField";
@@ -43,12 +41,13 @@ import { builtInName } from "@/lib/builtInName";
  */
 
 /**
- * The core "Details" block, now split into per-field **view** components (#1163 field extraction) so
- * each row is an independently-placeable layout field paired with its edit field in `BookmarkGeneralForm`.
- * Each returns a self-hiding `DetailField` (or null) — the layout seam's `space-y-6` stack applies gaps
- * only between the rows that actually render, so an empty field adds no gap. `BookmarkDetailsExtraView`
- * carries the residual rows (Locations, Website channel, Person, Kavita, Plex) that have no matching edit
- * field on the General tab.
+ * The core "Details" block, now split into **one per-field view component per row** (#1163 field
+ * extraction) so each row is an independently-placeable layout field. The rows with an editable
+ * counterpart pair with their edit field in `BookmarkGeneralForm` (Description/Category/Tags/Media
+ * type/Website); the view-only rows (Locations/Channel/Person, plus the Kavita/Plex rows reused from
+ * their own field components) are their own view-only registry fields — there is intentionally **no**
+ * catch-all "Other details" residual field. Each returns a self-hiding `DetailField` (or null), so the
+ * layout seam's `space-y-6` stack applies gaps only between rows that actually render.
  */
 
 /** Description row. */
@@ -170,66 +169,72 @@ export function BookmarkWebsiteDetailView({
   );
 }
 
-/** The residual General-view rows that have no matching General edit field: locations, channel, person,
- *  and the Kavita/Plex link rows. */
-export function BookmarkDetailsExtraView({
+/** Locations row (compact box), or null when the bookmark has no locations. Distinct from the Related
+ *  tab's full `BookmarkLocationsMapView`. */
+export function BookmarkLocationsDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  if (bookmark.locations.length === 0) return null;
+  return (
+    <DetailField label={i18n.t("Locations")}>
+      <BookmarkLocationsBox locations={bookmark.locations} />
+    </DetailField>
+  );
+}
+
+/** YouTube channel link row. */
+export function BookmarkChannelDetailView({
   bookmark,
 }: {
   bookmark: Bookmark;
 }) {
   return (
-    <>
-      {bookmark.locations.length > 0
+    <DetailField label={i18n.t("Channel")}>
+      {bookmark.youtubeChannel
         ? (
-          <DetailField label={i18n.t("Locations")}>
-            <BookmarkLocationsBox locations={bookmark.locations} />
-          </DetailField>
+          <Link
+            to="/taxonomies/youtube-channels/$channelSlug"
+            params={{
+              channelSlug: bookmark.youtubeChannel.slug,
+            }}
+            className="hover:underline"
+          >
+            {bookmark.youtubeChannel.name}
+          </Link>
         )
         : null}
+    </DetailField>
+  );
+}
 
-      <DetailField label={i18n.t("Channel")}>
-        {bookmark.youtubeChannel
-          ? (
+/** People links row, or null when the bookmark credits no people. */
+export function BookmarkPersonDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  if (bookmark.people.length === 0) return null;
+  return (
+    <DetailField label={i18n.t("Person")}>
+      <span className="flex flex-wrap gap-x-1">
+        {bookmark.people.map((person, i) => (
+          <span key={person.id}>
+            {i > 0 && <span className="mr-1">,</span>}
             <Link
-              to="/taxonomies/youtube-channels/$channelSlug"
+              to="/taxonomies/people/$personSlug"
               params={{
-                channelSlug: bookmark.youtubeChannel.slug,
+                personSlug: person.slug,
               }}
               className="hover:underline"
             >
-              {bookmark.youtubeChannel.name}
+              {person.name}
             </Link>
-          )
-          : null}
-      </DetailField>
-
-      {bookmark.people.length > 0
-        ? (
-          <DetailField label={i18n.t("Person")}>
-            <span className="flex flex-wrap gap-x-1">
-              {bookmark.people.map((person, i) => (
-                <span key={person.id}>
-                  {i > 0 && <span className="mr-1">,</span>}
-                  <Link
-                    to="/taxonomies/people/$personSlug"
-                    params={{
-                      personSlug: person.slug,
-                    }}
-                    className="hover:underline"
-                  >
-                    {person.name}
-                  </Link>
-                </span>
-              ))}
-            </span>
-          </DetailField>
-        )
-        : null}
-
-      <BookmarkKavitaDetailRow bookmark={bookmark} />
-
-      <BookmarkPlexDetailRow bookmark={bookmark} />
-    </>
+          </span>
+        ))}
+      </span>
+    </DetailField>
   );
 }
 
