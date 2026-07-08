@@ -28,12 +28,19 @@ export function TabWrapper<T>({
   } = useTranslation();
   if (isLoading) return <p className="text-muted-foreground">{t("Loading…")}</p>;
   if (!entity) return <p className="text-destructive">{notFoundMessage}</p>;
+  // A layout-driven tab passes an empty title + description (the rail label + section titles identify
+  // it); drop the header entirely in that case so the body starts flush.
+  const hasHeader = title !== "" || description !== "";
   return (
     <section className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
+      {hasHeader
+        ? (
+          <div>
+            <h2 className="text-xl font-semibold">{title}</h2>
+            {description !== "" ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+          </div>
+        )
+        : null}
       {children(entity)}
     </section>
   );
