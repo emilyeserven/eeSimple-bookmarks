@@ -7,6 +7,7 @@ import { categoryWorkbench } from "../components/workbench/category";
 import { genreMoodWorkbench } from "../components/workbench/genreMood";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
 import { tagWorkbench } from "../components/workbench/tag";
+import { youtubeChannelWorkbench } from "../components/workbench/youtubeChannel";
 import i18n from "../i18n";
 
 /** One entity kind selectable on the Page Layouts settings page. */
@@ -69,6 +70,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Tag"),
     fields: fieldsFromRegistry(tagWorkbench.fields),
     defaultLayout: tagWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "youtube-channel",
+    label: i18n.t("YouTube Channel"),
+    fields: fieldsFromRegistry(youtubeChannelWorkbench.fields),
+    defaultLayout: youtubeChannelWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },

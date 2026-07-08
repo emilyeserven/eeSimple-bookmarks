@@ -190,7 +190,14 @@ Pick the shape by how each sub-field is backed:
   `useAppForm`) → just promote it with step 4b: a `WorkbenchField` whose renderer wraps the existing
   sub-component, placed in `defaultLayout`. This is the Category precedent (`primaryLanguage`/`names`
   broken out beside the `details` composite) — react-query coordinates the shared state across fibers, so
-  nothing else is needed.
+  nothing else is needed. **A *bundled* state hook still qualifies** as long as each slice it returns is
+  used by exactly one field and **auto-save is per field** (no cross-field coordination): each granular
+  field component just calls the one hook and destructures only its slice — the extra hook instances are
+  cheap and react-query dedupes the shared queries, so no provider is needed. References:
+  `NewsletterGeneralForm.tsx` (one `useNewsletterGeneralForm` bag, called per field) and
+  `YouTubeChannelGeneralForm.tsx` (name / description / avatar / default category / self-ids / tags /
+  websites / groups / labeled-websites / genres each call `useYouTubeChannelGeneralForm` independently;
+  the avatar field also owns the `useImageTaxonomySyncRegistration` "Sync from source" registration).
 - **Shared-`useAppForm` composite** (one controller with cross-field coordination) → the render seam
   calls each field renderer as a plain function, so N naive field components would each instantiate N
   separate form instances. Use a **form-context provider**:
