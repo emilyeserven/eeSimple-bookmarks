@@ -43,29 +43,36 @@ export function useReelArchiveCompletionToast(active: ActiveReelArchiveJob[] | u
     const current = new Map((active ?? []).map(item => [item.id, item]));
     for (const [id, item] of previous.current) {
       if (current.has(id)) continue;
-      // This job just left the active set — resolve its final state and toast accordingly.
+      // This job just left the active set — resolve its final state and toast accordingly. Link the
+      // toast to the related bookmark so the user can jump straight to the newly-stored reel.
       void reelArchiveApi.getJob(id).then((record) => {
         const title = item.bookmarkTitle ?? null;
+        const bookmarkLink = {
+          link: {
+            href: `/bookmarks/${item.bookmarkId}`,
+            label: t("View bookmark"),
+          },
+        };
         if (record.status === "failed") {
           const reason = record.errorReason ?? null;
           if (title && reason) {
             notifyError(t("Reel archive for \"{{title}}\" failed: {{reason}}", {
               title,
               reason,
-            }));
+            }), bookmarkLink);
           }
           else if (title) {
             notifyError(t("Reel archive for \"{{title}}\" failed.", {
               title,
-            }));
+            }), bookmarkLink);
           }
           else if (reason) {
             notifyError(t("Reel archive failed: {{reason}}", {
               reason,
-            }));
+            }), bookmarkLink);
           }
           else {
-            notifyError(t("Reel archive failed."));
+            notifyError(t("Reel archive failed."), bookmarkLink);
           }
           return;
         }
@@ -75,6 +82,7 @@ export function useReelArchiveCompletionToast(active: ActiveReelArchiveJob[] | u
               title,
             })
             : t("Reel archived"),
+          bookmarkLink,
         );
       }).catch(() => {
         // Best-effort notification; the bookmark refresh below still surfaces the stored reel.

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { toast } from "sonner";
 
+import { setCurrentNotificationPage } from "./notificationPage";
 import { notifyError, notifySuccess } from "./notifications";
 
 import { useNotificationStore } from "@/stores/notificationStore";
@@ -74,5 +75,28 @@ describe("notifyError / notifySuccess", () => {
     });
     const options = vi.mocked(toast.error).mock.calls[0]![1];
     expect(options).not.toHaveProperty("link");
+  });
+
+  it("records the page the toast was fired from", () => {
+    setCurrentNotificationPage({
+      pathname: "/categories/dev/edit",
+      label: "Categories › Dev › Edit",
+    });
+    notifySuccess("Updated Title");
+    const [record] = useNotificationStore.getState().notifications;
+    expect(record!.page).toEqual({
+      pathname: "/categories/dev/edit",
+      label: "Categories › Dev › Edit",
+    });
+  });
+
+  it("falls back to a pathname-derived page label when no rich label is set", () => {
+    setCurrentNotificationPage({
+      pathname: "/settings/display/general",
+      label: "",
+    });
+    notifySuccess("Saved");
+    const [record] = useNotificationStore.getState().notifications;
+    expect(record!.page?.label).toBe("Settings › Display › General");
   });
 });

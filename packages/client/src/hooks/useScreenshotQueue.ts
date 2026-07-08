@@ -45,6 +45,7 @@ export function useScreenshotQueue(): ScreenshotQueueSnapshot {
   const completed = useScreenshotQueueStore(state => state.completed);
   const failed = useScreenshotQueueStore(state => state.failed);
   const active = useScreenshotQueueStore(state => state.pending.length + state.activeIds.length);
+  const runBookmarkIds = useScreenshotQueueStore(state => state.runBookmarkIds);
 
   const processed = completed + failed;
 
@@ -59,14 +60,26 @@ export function useScreenshotQueue(): ScreenshotQueueSnapshot {
     prevProcessed.current = processed;
   }, [processed, queryClient]);
 
-  // One completion toast per run, fired as the queue transitions from active to drained.
+  // One completion toast per run, fired as the queue transitions from active to drained. When the run
+  // captured a single bookmark, link the toast to it; a multi-bookmark run has no single target.
   const wasActive = useRef(false);
   useEffect(() => {
     if (wasActive.current && active === 0 && total > 0) {
-      notifySuccess(completionMessage(t, completed, failed));
+      const bookmarkId = runBookmarkIds.length === 1 ? runBookmarkIds[0] : undefined;
+      notifySuccess(
+        completionMessage(t, completed, failed),
+        bookmarkId
+          ? {
+            link: {
+              href: `/bookmarks/${bookmarkId}`,
+              label: t("View bookmark"),
+            },
+          }
+          : undefined,
+      );
     }
     wasActive.current = active > 0;
-  }, [active, total, completed, failed, t]);
+  }, [active, total, completed, failed, runBookmarkIds, t]);
 
   return {
     total,

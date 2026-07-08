@@ -39,6 +39,7 @@ function resetStore(): void {
     total: 0,
     completed: 0,
     failed: 0,
+    runBookmarkIds: [],
   });
 }
 
@@ -132,6 +133,35 @@ describe("screenshotQueueStore", () => {
     expect(state.completed).toBe(0);
     expect(state.failed).toBe(0);
     expect(state.activeIds).toEqual(["b"]);
+  });
+
+  it("tracks the run's distinct bookmark ids (deduped) for the completion link", () => {
+    const {
+      enqueue,
+    } = useScreenshotQueueStore.getState();
+    enqueue({
+      id: "b1",
+    });
+    enqueue({
+      id: "b1",
+    });
+    enqueue({
+      id: "b2",
+    });
+    expect(useScreenshotQueueStore.getState().runBookmarkIds).toEqual(["b1", "b2"]);
+  });
+
+  it("resets the run's bookmark ids for a fresh run after the previous one drains", async () => {
+    useScreenshotQueueStore.getState().enqueue({
+      id: "a",
+    });
+    deferreds[0]!.resolve();
+    await vi.waitFor(() => expect(useScreenshotQueueStore.getState().completed).toBe(1));
+
+    useScreenshotQueueStore.getState().enqueue({
+      id: "b",
+    });
+    expect(useScreenshotQueueStore.getState().runBookmarkIds).toEqual(["b"]);
   });
 
   it("selectIsBookmarkQueued reflects pending and active ids", () => {

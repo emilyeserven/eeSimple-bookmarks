@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -15,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { setCurrentNotificationPage } from "@/lib/notificationPage";
 
 /** Top app bar: sidebar trigger, breadcrumbs derived from the path, notifications, and the toolbar. */
 export function AppHeader() {
@@ -41,6 +44,17 @@ export function AppHeader() {
   useDocumentTitle(crumbs, pathParts.includes("edit"));
 
   const toolbarActions = useHeaderToolbarActions(pathname, pathParts, toolbarData);
+
+  // Feed the current page into the notification-page holder so toasts fired from mutation callbacks
+  // (outside React) can record which page they came from — reusing the already-resolved crumb trail,
+  // so the label carries entity/bookmark names for free.
+  const pageLabel = crumbs.map(crumb => crumb.label).filter(Boolean).join(" › ");
+  useEffect(() => {
+    setCurrentNotificationPage({
+      pathname,
+      label: pageLabel,
+    });
+  }, [pathname, pageLabel]);
 
   return (
     <header
