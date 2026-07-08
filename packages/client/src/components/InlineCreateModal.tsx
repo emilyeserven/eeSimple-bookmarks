@@ -51,8 +51,8 @@ interface InlineCreateModalProps {
 /**
  * Minimal name-(+one-flag) modal for inline entity creation (e.g. from a form combobox's "Add new
  * X"). Owns the Dialog chrome, the name field, validation, and form reset; callers supply the
- * labels and wire `onSubmit` to their `useCreate*` mutation. See `AddCategoryModal` /
- * `AddPropertyGroupModal` for the name-only case and `AddRelationshipTypeModal` for `extraFields`.
+ * labels and wire `onSubmit` to their `useCreate*` mutation. See `AddCategoryModal` for the
+ * name-only case and `AddRelationshipTypeModal` for `extraFields`.
  */
 export function InlineCreateModal({
   open,

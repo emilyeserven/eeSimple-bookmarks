@@ -8,7 +8,6 @@ import { PropertyForm } from "../components/PropertyForm";
 import { useCategories } from "../hooks/useCategories";
 import { useCreateCustomProperty, useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
-import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
 export const Route = createFileRoute("/custom-properties/new")({
   component: NewCustomPropertyPage,
@@ -29,9 +28,6 @@ function NewCustomPropertyPage() {
   const {
     data: mediaTypes,
   } = useMediaTypes();
-  const {
-    data: propertyGroups,
-  } = usePropertyGroups();
   const createProperty = useCreateCustomProperty();
 
   const numberProperties = (properties ?? []).filter(property => property.type === "number");
@@ -57,7 +53,6 @@ function NewCustomPropertyPage() {
           categories={categories ?? []}
           mediaTypes={mediaTypes ?? []}
           numberProperties={numberProperties}
-          propertyGroups={propertyGroups ?? []}
           onSubmit={payload => createProperty.mutate(payload, {
             onSuccess: (created) => {
               // Seed the list cache so the destination view finds the property before the refetch.

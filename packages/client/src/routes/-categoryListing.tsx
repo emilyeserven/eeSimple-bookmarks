@@ -29,7 +29,6 @@ export function CategoryListing({
     categories,
     categoriesLoading,
     properties,
-    propertyGroups,
     bookmarks,
     bookmarksLoading,
     error,
@@ -63,7 +62,6 @@ export function CategoryListing({
       pageKey={`category:${categorySlug}`}
       tree={tagTree ?? []}
       properties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
       categories={categories ?? []}
       mediaTypes={mediaTypes ?? []}
       youtubeChannels={youtubeChannels ?? []}

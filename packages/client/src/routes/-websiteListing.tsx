@@ -30,7 +30,6 @@ export function WebsiteListing({
   const {
     categories,
     properties,
-    propertyGroups,
     bookmarks,
     bookmarksLoading,
     error,
@@ -63,7 +62,6 @@ export function WebsiteListing({
       pageKey={`website:${websiteSlug}`}
       tree={tagTree ?? []}
       properties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
       categories={categories ?? []}
       mediaTypes={mediaTypes ?? []}
       youtubeChannels={youtubeChannels ?? []}

@@ -205,7 +205,6 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
 
   const customizationCounts = {
     "custom-properties": data.allCustomProperties?.length,
-    "property-groups": data.allPropertyGroups?.length,
     "autofill": data.allAutofillRules?.length,
   };
 

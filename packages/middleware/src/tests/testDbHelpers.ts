@@ -326,8 +326,8 @@ export function createFakeDb(tables: FakeTable[]): Record<string, unknown> {
       throw new Error("createFakeDb: execute() is unimplemented — override it for this test file");
     },
     // Several services build a module-level `SELECT` column map that calls `db.$count(...)` eagerly
-    // at import time (e.g. `propertyGroups.ts`'s `groupSelection`). The tested delete/backfill paths
-    // never select through it, so a placeholder is enough to satisfy that eager evaluation.
+    // at import time. The tested delete/backfill paths never select through it, so a placeholder is
+    // enough to satisfy that eager evaluation.
     $count: (_table?: unknown, _condition?: unknown) => "fake-count-placeholder",
   };
   return fakeDb;

@@ -2,7 +2,7 @@ import type { Category, MediaType } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { PropertyForm } from "./PropertyForm";
-import { makeCategory, makeCustomProperty, makeMediaType, makePropertyGroup } from "../test-utils/factories";
+import { makeCategory, makeCustomProperty, makeMediaType } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
 const categories: Category[] = [
@@ -26,15 +26,6 @@ const mediaTypes: MediaType[] = [
   }),
 ];
 
-const propertyGroups = [
-  makePropertyGroup({
-    id: "group-reading",
-    name: "Reading",
-    slug: "reading",
-    description: null,
-  }),
-];
-
 const meta = {
   title: "Components/PropertyForm",
   component: PropertyForm,
@@ -48,7 +39,6 @@ const meta = {
     categories,
     mediaTypes,
     numberProperties: [],
-    propertyGroups,
     onSubmit: () => {},
     submitLabel: "Create property",
     idPrefix: "story",

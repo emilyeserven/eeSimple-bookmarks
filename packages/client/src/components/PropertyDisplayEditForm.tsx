@@ -1,5 +1,5 @@
 import type { PropertyFormApi } from "./propertyFormSchema";
-import type { CustomProperty, PropertyGroup, UpdateCustomPropertyInput } from "@eesimple/types";
+import type { CustomProperty, UpdateCustomPropertyInput } from "@eesimple/types";
 
 import { useEffect, useRef } from "react";
 
@@ -10,7 +10,6 @@ import i18n from "../i18n";
 import { useAppForm } from "../lib/form";
 
 const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
-  propertyGroupId: i18n.t("Group"),
   showInListings: i18n.t("Bookmark listings"),
   showInDetails: i18n.t("Details page"),
   editableOnCard: i18n.t("Card editing"),
@@ -21,7 +20,7 @@ const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
 /** The display form values that auto-save, mapped to their `UpdateCustomPropertyInput` payload key. */
 type DisplayWatched = Pick<
   ReturnType<typeof valuesFromProperty>,
-  "propertyGroupId" | "showInListings" | "showInDetails" | "editableOnCard" | "editableViaCmdk" | "enabledInInbox"
+  "showInListings" | "showInDetails" | "editableOnCard" | "editableViaCmdk" | "enabledInInbox"
 >;
 
 /**
@@ -41,7 +40,6 @@ function DisplayAutoSaver({
       seeded.current = true;
       return;
     }
-    save("propertyGroupId", values.propertyGroupId || null);
     save("showInListings", values.showInListings);
     save("showInDetails", values.showInDetails);
     save("editableOnCard", values.editableOnCard);
@@ -55,13 +53,11 @@ function DisplayAutoSaver({
 
 interface PropertyDisplayEditFormProps {
   property: CustomProperty;
-  propertyGroups: PropertyGroup[];
 }
 
 /** The Display edit tab: reuses the shared section; each field auto-saves on change (no Save button). */
 export function PropertyDisplayEditForm({
   property,
-  propertyGroups,
 }: PropertyDisplayEditFormProps) {
   const updateProperty = useUpdateCustomProperty();
   const {
@@ -71,7 +67,6 @@ export function PropertyDisplayEditForm({
     update: updateProperty,
     labels: LABELS,
     initial: {
-      propertyGroupId: property.propertyGroupId,
       showInListings: property.showInListings,
       showInDetails: property.showInDetails,
       editableOnCard: property.editableOnCard,
@@ -79,13 +74,6 @@ export function PropertyDisplayEditForm({
       enabledInInbox: property.enabledInInbox,
     },
   });
-
-  const groupOptions = [...propertyGroups]
-    .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name))
-    .map(group => ({
-      value: group.id,
-      label: group.name,
-    }));
 
   const form: PropertyFormApi = useAppForm({
     defaultValues: valuesFromProperty(property),
@@ -99,11 +87,9 @@ export function PropertyDisplayEditForm({
       <PropertyDisplaySection
         form={form}
         idPrefix={`property-${property.id}`}
-        groupOptions={groupOptions}
       />
       <form.Subscribe
         selector={state => ({
-          propertyGroupId: state.values.propertyGroupId,
           showInListings: state.values.showInListings,
           showInDetails: state.values.showInDetails,
           editableOnCard: state.values.editableOnCard,

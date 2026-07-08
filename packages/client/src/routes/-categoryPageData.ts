@@ -5,7 +5,6 @@ import { useGenreMoods } from "../hooks/useGenreMoods";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { usePeople } from "../hooks/usePeople";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
-import { usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useRelationshipTypes } from "../hooks/useRelationshipTypes";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
@@ -22,9 +21,6 @@ export function useCategoryPageData(tags: string[] | undefined) {
   const {
     data: properties,
   } = useCustomProperties();
-  const {
-    data: propertyGroups,
-  } = usePropertyGroups();
   const {
     data: bookmarks, isLoading: bookmarksLoading, error,
   } = useBookmarks(tags);
@@ -57,7 +53,6 @@ export function useCategoryPageData(tags: string[] | undefined) {
     categories,
     categoriesLoading,
     properties,
-    propertyGroups,
     bookmarks,
     bookmarksLoading,
     error,

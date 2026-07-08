@@ -30,7 +30,6 @@ export function YouTubeChannelListing({
   const {
     categories,
     properties,
-    propertyGroups,
     bookmarks,
     bookmarksLoading,
     error,
@@ -62,7 +61,6 @@ export function YouTubeChannelListing({
       pageKey={`channel:${channelSlug}`}
       tree={tagTree ?? []}
       properties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
       categories={categories ?? []}
       mediaTypes={mediaTypes ?? []}
       relationshipTypes={relationshipTypes ?? []}

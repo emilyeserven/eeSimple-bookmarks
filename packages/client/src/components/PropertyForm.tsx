@@ -4,7 +4,6 @@ import type {
   CreateCustomPropertyInput,
   CustomProperty,
   MediaType,
-  PropertyGroup,
 } from "@eesimple/types";
 import type { ReactNode } from "react";
 
@@ -36,8 +35,6 @@ interface PropertyFormProps {
   mediaTypes: MediaType[];
   /** Number properties offered as Calculate operands (exclude the property being edited). */
   numberProperties: CustomProperty[];
-  /** Property groups offered in the Display tab's "Group" combobox. */
-  propertyGroups: PropertyGroup[];
   /** The property to edit; required in `edit` mode. */
   property?: CustomProperty;
   /** Receives the built payload; the update route ignores `type`. */
@@ -75,7 +72,6 @@ export function PropertyForm({
   categories,
   mediaTypes,
   numberProperties,
-  propertyGroups,
   property,
   onSubmit,
   submitLabel,
@@ -95,12 +91,6 @@ export function PropertyForm({
     label: tLabel(option.label),
   }));
   const isBuiltIn = mode === "edit" && Boolean(property?.builtIn);
-  const groupOptions = [...propertyGroups]
-    .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name))
-    .map(group => ({
-      value: group.id,
-      label: group.name,
-    }));
   // When `section` is set we render a single tab; the dividers/collapsibles only make sense in the
   // full form, and a section's collapsible defaults to open.
   const {
@@ -232,7 +222,6 @@ export function PropertyForm({
           <PropertyDisplaySection
             form={form}
             idPrefix={idPrefix}
-            groupOptions={groupOptions}
           />
         )
         : null}

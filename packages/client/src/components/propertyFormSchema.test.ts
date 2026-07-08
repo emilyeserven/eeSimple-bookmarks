@@ -171,13 +171,6 @@ describe("payloadFromValues", () => {
     expect(number.booleanLabelPreset).toBeNull();
   });
 
-  it("converts empty propertyGroupId to null", () => {
-    expect(payloadFromValues({
-      ...CREATE_DEFAULTS,
-      propertyGroupId: "",
-    }).propertyGroupId).toBeNull();
-  });
-
   it("hardcodes the bookmark-form placement flags for a new property (managed centrally in Settings → Display → Bookmark Add Form)", () => {
     const payload = payloadFromValues(CREATE_DEFAULTS);
     expect(payload.hiddenFromForm).toBe(false);

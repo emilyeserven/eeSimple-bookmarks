@@ -1,10 +1,9 @@
 import type { TaxonomyEntity } from "./breadcrumbSwitcherTypes";
-import type { AutofillRule, CustomProperty, ImportRule, PropertyGroup, Website, YouTubeChannel } from "@eesimple/types";
+import type { AutofillRule, CustomProperty, ImportRule, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useAutofillRules } from "@/hooks/useAutofill";
 import { useCustomProperties } from "@/hooks/useCustomProperties";
 import { useImportRules } from "@/hooks/useImportRules";
-import { usePropertyGroups } from "@/hooks/usePropertyGroups";
 import { useWebsites } from "@/hooks/useWebsites";
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 
@@ -12,7 +11,6 @@ export interface TaxonomyLists {
   websites: Website[] | undefined;
   channels: YouTubeChannel[] | undefined;
   properties: CustomProperty[] | undefined;
-  groups: PropertyGroup[] | undefined;
   rules: AutofillRule[] | undefined;
   importRules: ImportRule[] | undefined;
 }
@@ -27,7 +25,6 @@ export function useTaxonomySwitcherData(): TaxonomySwitcherData {
   const websites = useWebsites();
   const channels = useYouTubeChannels();
   const properties = useCustomProperties();
-  const groups = usePropertyGroups();
   const rules = useAutofillRules();
   const importRules = useImportRules();
 
@@ -36,7 +33,6 @@ export function useTaxonomySwitcherData(): TaxonomySwitcherData {
       websites: websites.data,
       channels: channels.data,
       properties: properties.data,
-      groups: groups.data,
       rules: rules.data,
       importRules: importRules.data,
     },
@@ -44,7 +40,6 @@ export function useTaxonomySwitcherData(): TaxonomySwitcherData {
       "website": websites.isLoading,
       "youtube-channel": channels.isLoading,
       "custom-property": properties.isLoading,
-      "property-group": groups.isLoading,
       "autofill": rules.isLoading,
       "import-rule": importRules.isLoading,
     },

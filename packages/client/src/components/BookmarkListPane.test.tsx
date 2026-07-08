@@ -32,7 +32,6 @@ describe("BookmarkListPane store selectors", () => {
         pageKey="bookmarks"
         tree={[]}
         properties={[]}
-        propertyGroups={[]}
         categories={[]}
         mediaTypes={[]}
         youtubeChannels={[]}

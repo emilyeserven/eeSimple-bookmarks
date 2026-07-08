@@ -164,16 +164,6 @@ export function taxonomyEditLink(pathParts: string[], children: React.ReactNode)
           >{children}
           </Link>
         );
-      case "property-groups":
-        return (
-          <Link
-            to="/taxonomies/property-groups/$propertyGroupSlug/edit"
-            params={{
-              propertyGroupSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
       case "relationship-types":
         return (
           <Link

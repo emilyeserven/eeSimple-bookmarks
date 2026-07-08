@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useEffect } from "react";
 
@@ -12,7 +12,6 @@ export interface BookmarkSearchViewData {
   pageKey: string;
   tree: TagNode[];
   properties: CustomProperty[];
-  propertyGroups?: PropertyGroup[];
   categories?: Category[];
   mediaTypes?: MediaType[];
   youtubeChannels?: YouTubeChannel[];
@@ -44,7 +43,7 @@ export interface BookmarkSearchViewState {
  */
 export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSearchViewState {
   const {
-    pageKey, tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels,
+    pageKey, tree, properties, categories, mediaTypes, youtubeChannels,
     websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange,
     addFormCategoryId,
   } = data;
@@ -66,7 +65,6 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     setFilterContext({
       tree,
       properties,
-      propertyGroups,
       categories,
       mediaTypes,
       youtubeChannels,
@@ -81,7 +79,7 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     });
     return () => setFilterContext(null);
     // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
-  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange, setFilterContext]);
+  }, [tree, properties, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange, setFilterContext]);
 
   const q = headerSearchQuery.trim().toLowerCase();
   const textFilteredBookmarks = q

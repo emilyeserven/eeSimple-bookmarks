@@ -3,7 +3,7 @@ import type { CategorySortMode } from "../lib/categorySort";
 import type { LocationSortMode } from "../lib/locationSort";
 import type { SyncProvider } from "../lib/syncSources/syncSourceTypes";
 import type { WebsiteBookmarkFilter, WebsiteBuiltInFilter, WebsiteSortMode } from "../lib/websiteListingSort";
-import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, GenreMood, LocationMapLevelMode, MediaType, PlaceType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, GenreMood, LocationMapLevelMode, MediaType, PlaceType, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { create } from "zustand";
@@ -49,7 +49,6 @@ export function clampSidebarWidth(w: number): number {
 export interface FilterContextData {
   tree: TagNode[];
   properties: CustomProperty[];
-  propertyGroups?: PropertyGroup[];
   categories?: Category[];
   mediaTypes?: MediaType[];
   youtubeChannels?: YouTubeChannel[];

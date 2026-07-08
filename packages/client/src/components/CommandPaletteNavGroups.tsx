@@ -64,10 +64,6 @@ const CREATE_ITEMS: { kind: CreateKind;
     label: "New Website",
   },
   {
-    kind: "property-group",
-    label: "New Property Group",
-  },
-  {
     kind: "youtube-channel",
     label: "New YouTube Channel",
   },

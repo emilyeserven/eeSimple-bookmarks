@@ -11,7 +11,6 @@ import {
   FolderOpen,
   Globe,
   LayoutGrid,
-  Layers,
   ListFilter,
   Mail,
   MapPin,
@@ -113,12 +112,6 @@ export const TAXONOMY_LISTING_PINS: TaxonomyListingPin[] = [
     label: "Custom Properties",
     Icon: SlidersHorizontal,
     path: "/custom-properties",
-  },
-  {
-    key: "property-groups",
-    label: "Property Groups",
-    Icon: Layers,
-    path: "/taxonomies/property-groups",
   },
   {
     key: "relationship-types",

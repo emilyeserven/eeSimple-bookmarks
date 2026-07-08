@@ -5,7 +5,6 @@ import { useGenreMoods } from "../hooks/useGenreMoods";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { usePeople } from "../hooks/usePeople";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
-import { usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useRelationshipTypes } from "../hooks/useRelationshipTypes";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
@@ -25,9 +24,6 @@ export function useBookmarksPageData(tags: string[] | undefined) {
   const {
     data: customProperties,
   } = useCustomProperties();
-  const {
-    data: propertyGroups,
-  } = usePropertyGroups();
   const {
     data: categories,
   } = useCategories();
@@ -59,7 +55,6 @@ export function useBookmarksPageData(tags: string[] | undefined) {
     error,
     tagTree,
     customProperties,
-    propertyGroups,
     categories,
     mediaTypes,
     youtubeChannels,

@@ -205,7 +205,6 @@ describe("PropertyForm create path (regression guard)", () => {
         categories={sampleCategories}
         mediaTypes={sampleMediaTypes}
         numberProperties={[]}
-        propertyGroups={[]}
         onSubmit={onSubmit}
         submitLabel="Add property"
         idPrefix="new"

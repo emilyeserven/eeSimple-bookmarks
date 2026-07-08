@@ -9,7 +9,6 @@ import { AddLocationModal } from "./AddLocationModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
 import { AddPersonModal } from "./AddPersonModal";
-import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { AddTagModal } from "./AddTagModal";
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
@@ -21,7 +20,6 @@ export type CreateKind
     | "person"
     | "group"
     | "website"
-    | "property-group"
     | "youtube-channel"
     | "newsletter"
     | "location"
@@ -123,10 +121,6 @@ export function CommandPaletteModals({
       />
       <AddWebsiteModal
         open={createKind === "website"}
-        onOpenChange={open => !open && closeCreate()}
-      />
-      <AddPropertyGroupModal
-        open={createKind === "property-group"}
         onOpenChange={open => !open && closeCreate()}
       />
       <AddCustomPropertyModal

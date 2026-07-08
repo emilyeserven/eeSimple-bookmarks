@@ -38,11 +38,6 @@ const uuidArray = {
   },
 } as const;
 
-const nullableUuid = {
-  type: ["string", "null"],
-  format: "uuid",
-} as const;
-
 const createPropertyBody = {
   type: "object",
   required: ["name", "type"],
@@ -182,7 +177,6 @@ const createPropertyBody = {
     choicesMultiple: {
       type: "boolean",
     },
-    propertyGroupId: nullableUuid,
     itemInItemsBeforeText: {
       type: ["string", "null"],
     },
@@ -247,7 +241,6 @@ const updatePropertyBody = {
     choicesItems: createPropertyBody.properties.choicesItems,
     choicesDisplay: createPropertyBody.properties.choicesDisplay,
     choicesMultiple: createPropertyBody.properties.choicesMultiple,
-    propertyGroupId: createPropertyBody.properties.propertyGroupId,
     itemInItemsBeforeText: createPropertyBody.properties.itemInItemsBeforeText,
     itemInItemsBetweenText: createPropertyBody.properties.itemInItemsBetweenText,
     itemInItemsAfterText: createPropertyBody.properties.itemInItemsAfterText,

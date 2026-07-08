@@ -95,7 +95,6 @@ function toCustomProperty(
     showInDetails: row.showInDetails,
     enabled: row.enabled,
     allowDefault: row.allowDefault,
-    propertyGroupId: row.propertyGroupId,
     booleanLabelPreset: (row.booleanLabelPreset as CustomProperty["booleanLabelPreset"]) ?? null,
     booleanTrueLabel: row.booleanTrueLabel ?? null,
     booleanFalseLabel: row.booleanFalseLabel ?? null,
@@ -377,7 +376,6 @@ export type UpdatePatch = Partial<
     | "enabledInInbox"
     | "enabled"
     | "allowDefault"
-    | "propertyGroupId"
     | "booleanLabelPreset"
     | "booleanTrueLabel"
     | "booleanFalseLabel"
@@ -435,7 +433,6 @@ const COPYABLE_FIELDS = [
   "enabledInInbox",
   "enabled",
   "allowDefault",
-  "propertyGroupId",
   "booleanLabelPreset",
   "booleanTrueLabel",
   "booleanFalseLabel",

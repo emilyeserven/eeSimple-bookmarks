@@ -20,7 +20,6 @@ function BookmarksPage() {
     bookmarks, isLoading, error,
     tagTree,
     customProperties,
-    propertyGroups,
     categories,
     mediaTypes,
     youtubeChannels,
@@ -37,7 +36,6 @@ function BookmarksPage() {
       pageKey="bookmarks"
       tree={tagTree ?? []}
       properties={customProperties ?? []}
-      propertyGroups={propertyGroups ?? []}
       categories={categories ?? []}
       mediaTypes={mediaTypes ?? []}
       youtubeChannels={youtubeChannels ?? []}

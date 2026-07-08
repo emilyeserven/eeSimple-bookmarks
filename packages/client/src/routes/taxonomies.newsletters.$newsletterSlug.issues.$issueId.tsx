@@ -34,7 +34,6 @@ function NewsletterIssueBookmarksPage() {
   const {
     categories,
     properties,
-    propertyGroups,
     bookmarks,
     bookmarksLoading,
     error,
@@ -106,7 +105,6 @@ function NewsletterIssueBookmarksPage() {
         pageKey={`newsletter-issue:${issueId}`}
         tree={tagTree ?? []}
         properties={properties ?? []}
-        propertyGroups={propertyGroups ?? []}
         categories={categories ?? []}
         mediaTypes={mediaTypes ?? []}
         youtubeChannels={youtubeChannels ?? []}

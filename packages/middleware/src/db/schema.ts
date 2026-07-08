@@ -633,34 +633,6 @@ export const groupImages = pgTable("group_images", {
 export type GroupImageRow = typeof groupImages.$inferSelect;
 
 /**
- * `property_groups` table — optional groupings for custom properties. A property may belong to one
- * group; grouped properties render together (under the group's heading) on bookmark detail pages and
- * in the listings filter sidebar. Groups carry a `priority` (lower sorts first) and a description.
- */
-export const propertyGroups = pgTable("property_groups", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
-  slug: text("slug"),
-  // Free-text description surfaced on the group's detail page.
-  description: text("description"),
-  // Display ordering across groups; lower sorts first.
-  priority: integer("priority").notNull().default(0),
-  // When true, the group applies to every category (overrides the property_group_categories scope).
-  // NOT NULL on the populated property_groups table → pre-applied in migrate.ts to keep push additive.
-  allCategories: boolean("all_categories").notNull().default(false),
-  // When true, the group applies to every media type (overrides the property_group_media_types scope).
-  // NOT NULL on the populated property_groups table → pre-applied in migrate.ts to keep push additive.
-  allMediaTypes: boolean("all_media_types").notNull().default(false),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  unique("property_groups_name_unique").on(table.name),
-  unique("property_groups_slug_unique").on(table.slug),
-]);
-
-/**
  * `relationship_types` table — the "Relationship Types" taxonomy (Similar, Parent/child, Opposite, …)
  * classifying how two bookmarks relate. `directional` types encode a parent→child direction;
  * symmetric types read the same from either side. Seeded built-ins can't be renamed/deleted; users
@@ -1389,11 +1361,6 @@ export const customProperties = pgTable("custom_properties", {
   ratingAllowHalf: boolean("rating_allow_half"),
   ratingShowLabel: boolean("rating_show_label"),
   ratingLabel: text("rating_label"),
-  // Optional group this property belongs to; grouped properties render together. Nullable + set-null
-  // on delete so it's a push-safe additive column and deleting a group simply un-groups its members.
-  propertyGroupId: uuid("property_group_id").references(() => propertyGroups.id, {
-    onDelete: "set null",
-  }),
   // choices-type config (all nullable → push-safe additive columns for non-choices properties).
   // choicesItems: the property's defined selectable options, stored as a ChoicesItem[] JSON array.
   // choicesDisplay: "checkbox" | "radio" | "combobox" | "dropdown" — how the field renders.
@@ -2156,34 +2123,6 @@ export const propertyMediaTypes = pgTable("property_media_types", {
   }),
 ]);
 
-/** `property_group_categories` join — many-to-many between property groups and categories (scope). */
-export const propertyGroupCategories = pgTable("property_group_categories", {
-  propertyGroupId: uuid("property_group_id").notNull().references(() => propertyGroups.id, {
-    onDelete: "cascade",
-  }),
-  categoryId: uuid("category_id").notNull().references(() => categories.id, {
-    onDelete: "cascade",
-  }),
-}, table => [
-  primaryKey({
-    columns: [table.propertyGroupId, table.categoryId],
-  }),
-]);
-
-/** `property_group_media_types` join — many-to-many between property groups and media types (scope). */
-export const propertyGroupMediaTypes = pgTable("property_group_media_types", {
-  propertyGroupId: uuid("property_group_id").notNull().references(() => propertyGroups.id, {
-    onDelete: "cascade",
-  }),
-  mediaTypeId: uuid("media_type_id").notNull().references(() => mediaTypes.id, {
-    onDelete: "cascade",
-  }),
-}, table => [
-  primaryKey({
-    columns: [table.propertyGroupId, table.mediaTypeId],
-  }),
-]);
-
 /**
  * `autofill_rules` — user-defined rules that prefill the Add-Bookmark form. A rule matches a
  * bookmark against its `conditions` tree, then applies a category, tags, and custom-property
@@ -2437,32 +2376,6 @@ export const propertyMediaTypesRelations = relations(propertyMediaTypes, ({
   }),
 }));
 
-export const propertyGroupCategoriesRelations = relations(propertyGroupCategories, ({
-  one,
-}) => ({
-  propertyGroup: one(propertyGroups, {
-    fields: [propertyGroupCategories.propertyGroupId],
-    references: [propertyGroups.id],
-  }),
-  category: one(categories, {
-    fields: [propertyGroupCategories.categoryId],
-    references: [categories.id],
-  }),
-}));
-
-export const propertyGroupMediaTypesRelations = relations(propertyGroupMediaTypes, ({
-  one,
-}) => ({
-  propertyGroup: one(propertyGroups, {
-    fields: [propertyGroupMediaTypes.propertyGroupId],
-    references: [propertyGroups.id],
-  }),
-  mediaType: one(mediaTypes, {
-    fields: [propertyGroupMediaTypes.mediaTypeId],
-    references: [mediaTypes.id],
-  }),
-}));
-
 export const websiteTagsRelations = relations(websiteTags, ({
   one,
 }) => ({
@@ -2566,8 +2479,6 @@ export type MediaTypeRow = typeof mediaTypes.$inferSelect;
 export type NewMediaTypeRow = typeof mediaTypes.$inferInsert;
 export type LanguageRow = typeof languages.$inferSelect;
 export type NewLanguageRow = typeof languages.$inferInsert;
-export type PropertyGroupRow = typeof propertyGroups.$inferSelect;
-export type NewPropertyGroupRow = typeof propertyGroups.$inferInsert;
 export type RelationshipTypeRow = typeof relationshipTypes.$inferSelect;
 export type NewRelationshipTypeRow = typeof relationshipTypes.$inferInsert;
 export type YouTubeChannelRow = typeof youtubeChannels.$inferSelect;
@@ -2595,8 +2506,6 @@ export type CategoryRow = typeof categories.$inferSelect;
 export type NewCategoryRow = typeof categories.$inferInsert;
 export type PropertyCategoryRow = typeof propertyCategories.$inferSelect;
 export type PropertyMediaTypeRow = typeof propertyMediaTypes.$inferSelect;
-export type PropertyGroupCategoryRow = typeof propertyGroupCategories.$inferSelect;
-export type PropertyGroupMediaTypeRow = typeof propertyGroupMediaTypes.$inferSelect;
 export type WebsiteTagRow = typeof websiteTags.$inferSelect;
 export type YouTubeChannelTagRow = typeof youtubeChannelTags.$inferSelect;
 export type HomepageTagRow = typeof homepageTags.$inferSelect;

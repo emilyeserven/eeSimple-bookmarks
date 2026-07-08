@@ -56,7 +56,6 @@ export function LanguageListing({
   } = useLanguageUsageLevels();
   const {
     properties,
-    propertyGroups,
     bookmarks,
     bookmarksLoading,
     error,
@@ -126,7 +125,6 @@ export function LanguageListing({
       pageKey={`language:${languageSlug}`}
       tree={tagTree ?? []}
       properties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
       categories={categories ?? []}
       mediaTypes={mediaTypes ?? []}
       youtubeChannels={youtubeChannels ?? []}

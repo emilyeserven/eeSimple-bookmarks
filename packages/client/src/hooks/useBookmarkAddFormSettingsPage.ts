@@ -31,7 +31,6 @@ import {
 } from "./useAppSettings";
 import { useCategories } from "./useCategories";
 import { useCustomProperties, useUpdateCustomProperty } from "./useCustomProperties";
-import { usePropertyGroups } from "./usePropertyGroups";
 import { useTagTree } from "./useTags";
 import { useTranslatedLabel } from "./useTranslatedLabel";
 import { notifyError, notifySuccess } from "../lib/notifications";
@@ -146,9 +145,6 @@ export function useBookmarkAddFormSettingsPage() {
     data: properties,
   } = useCustomProperties();
   const {
-    data: groups,
-  } = usePropertyGroups();
-  const {
     data: categories = [],
   } = useCategories();
   const {
@@ -157,7 +153,6 @@ export function useBookmarkAddFormSettingsPage() {
   const updateProperty = useUpdateCustomProperty();
 
   const allProperties = properties ?? [];
-  const allGroups = groups ?? [];
 
   function persistSettings(next: BookmarkAddFormSettings, label: string): void {
     updateSettings.mutate(next, {
@@ -253,19 +248,10 @@ export function useBookmarkAddFormSettingsPage() {
     };
   });
 
-  const groupOrder = new Map(
-    [...allGroups]
-      .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name))
-      .map((group, index) => [group.id, index] as const),
-  );
   const detailSlugs = new Set<string>(BOOKMARK_FORM_DETAIL_SLUGS);
   const customProperties: CustomPropertyRow[] = allProperties
     .filter(p => p.enabled && !detailSlugs.has(p.slug))
-    .sort((a, b) => {
-      const orderA = a.propertyGroupId !== null ? groupOrder.get(a.propertyGroupId) ?? Infinity : Infinity;
-      const orderB = b.propertyGroupId !== null ? groupOrder.get(b.propertyGroupId) ?? Infinity : Infinity;
-      return orderA - orderB || a.name.localeCompare(b.name);
-    })
+    .sort((a, b) => a.name.localeCompare(b.name))
     .map(property => ({
       property,
       placement: customPropertyPlacement(property),

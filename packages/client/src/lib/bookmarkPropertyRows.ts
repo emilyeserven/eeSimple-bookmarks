@@ -11,7 +11,6 @@ import { formatProgressValue, formatSectionsValue } from "./propertyFormat";
 export interface NumberPropertyRow {
   id: string;
   name: string;
-  groupId: string | null;
   isCalculated: boolean;
   value: string;
   search: BookmarkSearch;
@@ -20,7 +19,6 @@ export interface NumberPropertyRow {
 export interface RatingPropertyRow {
   id: string;
   name: string;
-  groupId: string | null;
   value: number;
   max: number;
   allowHalf: boolean;
@@ -31,7 +29,6 @@ export interface RatingPropertyRow {
 export interface BooleanPropertyRow {
   id: string;
   name: string;
-  groupId: string | null;
   rawValue: boolean;
   value: string;
   showLabelColon: boolean;
@@ -43,7 +40,6 @@ export interface BooleanPropertyRow {
 export interface DateTimePropertyRow {
   id: string;
   name: string;
-  groupId: string | null;
   value: string;
   search: BookmarkSearch;
 }
@@ -51,7 +47,6 @@ export interface DateTimePropertyRow {
 export interface FilePropertyRow {
   id: string;
   name: string;
-  groupId: string | null;
   isImage: boolean;
   url: string;
   filename: string | null;
@@ -61,7 +56,6 @@ export interface FilePropertyRow {
 export interface ChoicesPropertyRow {
   id: string;
   name: string;
-  groupId: string | null;
   items: ChoicesItem[];
   selectedValues: string[];
   displayMode: ChoicesDisplayType;
@@ -71,7 +65,6 @@ export interface ChoicesPropertyRow {
 export interface ProgressPropertyRow {
   id: string;
   name: string;
-  groupId: string | null;
   current: number;
   total: number;
   formatted: string;
@@ -81,7 +74,6 @@ export interface ProgressPropertyRow {
 export interface SectionsPropertyRow {
   id: string;
   name: string;
-  groupId: string | null;
   exhaustive: boolean;
   sections: SectionEntry[];
   formatted: string;
@@ -91,7 +83,6 @@ export interface SectionsPropertyRow {
 export interface TextPropertyRow {
   id: string;
   name: string;
-  groupId: string | null;
   value: string;
   links: IsbnLink[];
 }
@@ -137,7 +128,6 @@ export function buildBookmarkPropertyRows(
         ? {
           id: entry.propertyId,
           name: property.name,
-          groupId: property.propertyGroupId,
           isCalculated: property.type === "calculate",
           value: formatNumber(entry.value, property),
           search: buildPropertyQuickSearch(property, entry.value),
@@ -153,7 +143,6 @@ export function buildBookmarkPropertyRows(
         ? {
           id: entry.propertyId,
           name: property.name,
-          groupId: property.propertyGroupId,
           value: entry.value,
           max: (property.ratingMax ?? 5) as number,
           allowHalf: property.ratingAllowHalf,
@@ -175,7 +164,6 @@ export function buildBookmarkPropertyRows(
       return {
         id: entry.propertyId,
         name: property.name,
-        groupId: property.propertyGroupId,
         rawValue: entry.value,
         value: formatBoolean(entry.value, property, {
           hideIcon: display.hideIcon,
@@ -195,7 +183,6 @@ export function buildBookmarkPropertyRows(
         ? {
           id: entry.propertyId,
           name: property.name,
-          groupId: property.propertyGroupId,
           value: formatDateTime(entry.value, property),
           search: buildPropertyQuickSearch(property, entry.value),
         }
@@ -211,7 +198,6 @@ export function buildBookmarkPropertyRows(
         ? {
           id: entry.propertyId,
           name: property.name,
-          groupId: property.propertyGroupId,
           isImage: property.type === "image",
           url: entry.url,
           filename: entry.originalFilename,
@@ -228,7 +214,6 @@ export function buildBookmarkPropertyRows(
         ? {
           id: entry.propertyId,
           name: property.name,
-          groupId: property.propertyGroupId,
           items: property.choicesItems,
           selectedValues: entry.values,
           displayMode: property.choicesDisplay ?? "radio",
@@ -245,7 +230,6 @@ export function buildBookmarkPropertyRows(
         ? {
           id: entry.propertyId,
           name: property.name,
-          groupId: property.propertyGroupId,
           current: entry.current,
           total: entry.total,
           formatted: formatProgressValue(entry, property),
@@ -262,7 +246,6 @@ export function buildBookmarkPropertyRows(
         ? {
           id: entry.propertyId,
           name: property.name,
-          groupId: property.propertyGroupId,
           exhaustive: entry.exhaustive,
           sections: entry.sections as SectionEntry[],
           formatted: formatSectionsValue(entry as BookmarkSectionsValue),
@@ -279,7 +262,6 @@ export function buildBookmarkPropertyRows(
         ? {
           id: entry.propertyId,
           name: property.name,
-          groupId: property.propertyGroupId,
           value: entry.value,
           links: buildIsbnLinks(entry.value),
         }

@@ -3,7 +3,6 @@ export type TaxonomyEntity
   = | "website"
     | "youtube-channel"
     | "custom-property"
-    | "property-group"
     | "autofill"
     | "import-rule";
 

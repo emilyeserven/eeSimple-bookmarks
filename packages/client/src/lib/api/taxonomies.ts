@@ -29,7 +29,6 @@ import type {
   CreateLocationRelationInput,
   UpdateLocationRelationInput,
   LocationRelation,
-  CreatePropertyGroupInput,
   CreateGroupInput,
   CreateGroupTypeInput,
   CreateRelationshipTypeInput,
@@ -55,7 +54,6 @@ import type {
   PlaceType,
   UpdateLocationInput,
   UpdatePlaceTypeInput,
-  PropertyGroup,
   Group,
   GroupType,
   RedirectFailureWebsite,
@@ -69,7 +67,6 @@ import type {
   UpdateCustomPropertyInput,
   UpdateMediaTypeInput,
   UpdateLanguageInput,
-  UpdatePropertyGroupInput,
   UpdateGroupInput,
   UpdateGroupTypeInput,
   UpdateRelationshipTypeInput,
@@ -304,8 +301,6 @@ export const entityNamesApi = {
       }),
     }),
 };
-
-export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");
 
 export const relationshipTypesApi = createCrudApi<RelationshipType, CreateRelationshipTypeInput, UpdateRelationshipTypeInput>("relationship-types");
 

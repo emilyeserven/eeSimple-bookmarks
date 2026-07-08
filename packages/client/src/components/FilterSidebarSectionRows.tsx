@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { ChevronDown, TriangleAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -543,10 +543,9 @@ export function PersonFilterSection({
 
 /** Custom-property filters plus a warning for properties with no category assignment. */
 export function PropertiesFilterSection({
-  enabledProperties, propertyGroups, categories, bookmarks, search, onSearchChange, hasCategoryFilter, nameFilter,
+  enabledProperties, categories, bookmarks, search, onSearchChange, hasCategoryFilter, nameFilter,
 }: {
   enabledProperties: CustomProperty[];
-  propertyGroups?: PropertyGroup[];
   categories?: Category[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
@@ -567,7 +566,6 @@ export function PropertiesFilterSection({
       <h2 className="text-sm font-semibold">{t("Properties")}</h2>
       <CustomPropertyFilters
         properties={enabledProperties}
-        propertyGroups={propertyGroups}
         categories={categories}
         selectedCategoryIds={search.categories ?? []}
         nameFilter={nameFilter}

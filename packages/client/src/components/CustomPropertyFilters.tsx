@@ -1,4 +1,4 @@
-import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
 
 import { Ban, ChevronDown, Circle, CircleDot, CircleHelp, CircleMinus } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -18,8 +18,6 @@ import { cn } from "@/lib/utils";
 
 interface CustomPropertyFiltersProps {
   properties: CustomProperty[];
-  /** Property groups; when a property belongs to one, its filter renders under that group's heading. */
-  propertyGroups?: PropertyGroup[];
   /** When provided, each property shows a tooltip naming the categories it belongs to. */
   categories?: Category[];
   /**
@@ -292,7 +290,6 @@ export function PropertyFilterBody({
 /** Renders one dynamic filter control per custom property in the filter sidebar. */
 export function CustomPropertyFilters({
   properties,
-  propertyGroups = [],
   categories,
   selectedCategoryIds,
   bookmarks,
@@ -429,58 +426,9 @@ export function CustomPropertyFilters({
     );
   }
 
-  // Partition properties by group. Groups with members render first (ordered by priority then
-  // name) under their own heading; ungrouped properties (or those whose group is unknown) fall into
-  // a trailing bucket. When there are no group sections at all, the bucket renders headingless to
-  // preserve the original flat layout.
-  const knownGroupIds = new Set(propertyGroups.map(group => group.id));
-  const inGroup = (property: CustomProperty, target: string | null): boolean =>
-    target === null
-      ? property.propertyGroupId === null || !knownGroupIds.has(property.propertyGroupId)
-      : property.propertyGroupId === target;
-  const sortedGroups = [...propertyGroups]
-    .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name));
-  const groupSections = sortedGroups
-    .map(group => ({
-      key: group.id,
-      title: group.name,
-      items: visible.filter(property => inGroup(property, group.id)),
-    }))
-    .filter(section => section.items.length > 0);
-  const ungrouped = visible.filter(property => inGroup(property, null));
-
-  // No groups in play → render the original flat list.
-  if (groupSections.length === 0) {
-    return (
-      <div className="space-y-10">
-        {ungrouped.map(renderProperty)}
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {groupSections.map(section => (
-        <div
-          key={section.key}
-          className="space-y-3"
-        >
-          <h3 className="text-sm font-semibold">{section.title}</h3>
-          <div className="space-y-10">
-            {section.items.map(renderProperty)}
-          </div>
-        </div>
-      ))}
-      {ungrouped.length > 0
-        ? (
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold">{t("Other")}</h3>
-            <div className="space-y-10">
-              {ungrouped.map(renderProperty)}
-            </div>
-          </div>
-        )
-        : null}
+    <div className="space-y-10">
+      {visible.map(renderProperty)}
     </div>
   );
 }

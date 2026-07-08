@@ -36,7 +36,6 @@ function renderForm(property: CustomProperty, section: Parameters<typeof Propert
       categories={sampleCategories}
       mediaTypes={sampleMediaTypes}
       numberProperties={sampleProperties.filter(property => property.type === "number")}
-      propertyGroups={[]}
       property={property}
       onSubmit={onSubmit}
       submitLabel="Save"
