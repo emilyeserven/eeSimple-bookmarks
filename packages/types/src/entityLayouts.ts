@@ -79,6 +79,17 @@ export interface EntityLayout {
   tabs: LayoutTab[];
 }
 
+/**
+ * A stored layout row for one entity kind, as returned by the `entity-layouts` API
+ * (`GET /api/entity-layouts`, `PUT /api/entity-layouts/:kind`). `layout: null` means no override is
+ * stored for this kind — the client resolves the kind's code-defined default via {@link resolveLayout}.
+ */
+export interface EntityLayoutRecord {
+  entityKind: LayoutableEntityKind;
+  layout: EntityLayout | null;
+  updatedAt: string;
+}
+
 function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(item => typeof item === "string");
 }
