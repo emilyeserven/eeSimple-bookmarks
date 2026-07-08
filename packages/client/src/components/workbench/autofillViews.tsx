@@ -8,7 +8,6 @@ import { useLocations } from "@/hooks/useLocations";
 import { useTags } from "@/hooks/useTags";
 
 export { DebugView } from "./autofillDebugView";
-export { PrefillView } from "./autofillPrefillView";
 
 export function ConditionsView({
   entity: rule,

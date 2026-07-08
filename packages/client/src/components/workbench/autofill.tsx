@@ -3,27 +3,47 @@ import type { AutofillRule, EntityLayout } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { AutofillBackfillView } from "../AutofillBackfillView";
+import {
+  AutofillPrefillCategoryField,
+  AutofillPrefillLocationsField,
+  AutofillPrefillMediaTypeField,
+  AutofillPrefillPropertiesField,
+  AutofillPrefillTagsField,
+} from "../AutofillPrefillEditFields";
 import { AutofillRuleConditionsForm } from "../AutofillRuleConditionsForm";
 import { AutofillGeneralFields } from "../AutofillRuleDetail";
 import { AutofillRuleGeneralForm } from "../AutofillRuleGeneralForm";
-import { AutofillRulePrefillForm } from "../AutofillRulePrefillForm";
-import { ConditionsView, DebugView, PrefillView } from "./autofillViews";
+import {
+  AutofillPrefillCategoryView,
+  AutofillPrefillLocationsView,
+  AutofillPrefillMediaTypeView,
+  AutofillPrefillPropertiesView,
+  AutofillPrefillTagsView,
+} from "./autofillPrefillView";
+import { ConditionsView, DebugView } from "./autofillViews";
 
 import { useAutofillRuleById, useAutofillRuleBySlug, useDeleteAutofillRule } from "@/hooks/useAutofill";
 
 /**
- * The autofill-rule workbench's field registry (#1106 layout editor). Each existing tab pane
- * becomes ONE placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key — the
- * composite-editor recipe (#1165): the `conditions` field's edit renderer is the Activation
- * Conditions builder, kept as one opaque block per "a composite editor (Conditions builder, …)
- * registers as ONE field; its internals are not decomposed." `debug` and `backfill` are
- * **view-only** (no `edit`), which is what makes those tabs disappear in edit mode for free.
- * Authored as an exhaustive `Record<AutofillFieldKey, …>` so a key without a renderer fails `tsc`.
+ * The autofill-rule workbench's field registry (#1106 layout editor). The `general`/`conditions`
+ * tab panes stay ONE placeable, mode-aware {@link WorkbenchField} each — the composite-editor recipe
+ * (#1165): the `conditions` field's edit renderer is the Activation Conditions builder, kept as one
+ * opaque block per "a composite editor (Conditions builder, …) registers as ONE field; its internals
+ * are not decomposed." The **Prefill** pane, however, is atomized (#1197) into five independently
+ * placeable fields — `prefillCategory`/`prefillMediaType`/`prefillTags`/`prefillLocations` plus the
+ * category-scoped `prefillProperties` composite (which stays one field, like the Conditions builder).
+ * `debug` and `backfill` are **view-only** (no `edit`), which is what makes those tabs disappear in
+ * edit mode for free. Authored as an exhaustive `Record<AutofillFieldKey, …>` so a key without a
+ * renderer fails `tsc`.
  */
 type AutofillFieldKey
   = | "general"
     | "conditions"
-    | "prefill"
+    | "prefillCategory"
+    | "prefillMediaType"
+    | "prefillTags"
+    | "prefillLocations"
+    | "prefillProperties"
     | "debug"
     | "backfill";
 
@@ -46,13 +66,45 @@ const autofillFields = {
       entity,
     }) => <AutofillRuleConditionsForm rule={entity} />,
   },
-  prefill: {
-    key: "prefill",
-    label: i18n.t("What Gets Prefilled"),
-    view: PrefillView,
+  prefillCategory: {
+    key: "prefillCategory",
+    label: i18n.t("Set category"),
+    view: AutofillPrefillCategoryView,
     edit: ({
       entity,
-    }) => <AutofillRulePrefillForm rule={entity} />,
+    }) => <AutofillPrefillCategoryField rule={entity} />,
+  },
+  prefillMediaType: {
+    key: "prefillMediaType",
+    label: i18n.t("Set media type"),
+    view: AutofillPrefillMediaTypeView,
+    edit: ({
+      entity,
+    }) => <AutofillPrefillMediaTypeField rule={entity} />,
+  },
+  prefillTags: {
+    key: "prefillTags",
+    label: i18n.t("Apply tags"),
+    view: AutofillPrefillTagsView,
+    edit: ({
+      entity,
+    }) => <AutofillPrefillTagsField rule={entity} />,
+  },
+  prefillLocations: {
+    key: "prefillLocations",
+    label: i18n.t("Apply locations"),
+    view: AutofillPrefillLocationsView,
+    edit: ({
+      entity,
+    }) => <AutofillPrefillLocationsField rule={entity} />,
+  },
+  prefillProperties: {
+    key: "prefillProperties",
+    label: i18n.t("Set properties"),
+    view: AutofillPrefillPropertiesView,
+    edit: ({
+      entity,
+    }) => <AutofillPrefillPropertiesField rule={entity} />,
   },
   debug: {
     key: "debug",
@@ -92,7 +144,13 @@ const AUTOFILL_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("What Gets Prefilled"),
       sections: [{
         key: "prefill",
-        fields: ["prefill"] satisfies AutofillFieldKey[],
+        fields: [
+          "prefillCategory",
+          "prefillMediaType",
+          "prefillTags",
+          "prefillLocations",
+          "prefillProperties",
+        ] satisfies AutofillFieldKey[],
       }],
     },
     {

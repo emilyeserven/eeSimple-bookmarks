@@ -1,10 +1,31 @@
 import type { AutofillRule } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { PrefillView } from "./autofillPrefillView";
+import {
+  AutofillPrefillCategoryView,
+  AutofillPrefillLocationsView,
+  AutofillPrefillMediaTypeView,
+  AutofillPrefillPropertiesView,
+  AutofillPrefillTagsView,
+} from "./autofillPrefillView";
 import { apiHandlers } from "../../test-utils/story-mocks";
 
 const NOW = "2026-06-01T00:00:00.000Z";
+
+/** The five granular prefill view fields (#1197) stacked, as the layout renders them together. */
+function PrefillView({
+  entity,
+}: { entity: AutofillRule }) {
+  return (
+    <div className="space-y-6">
+      <AutofillPrefillCategoryView entity={entity} />
+      <AutofillPrefillMediaTypeView entity={entity} />
+      <AutofillPrefillTagsView entity={entity} />
+      <AutofillPrefillLocationsView entity={entity} />
+      <AutofillPrefillPropertiesView entity={entity} />
+    </div>
+  );
+}
 
 const rule: AutofillRule = {
   id: "rule-recipes",

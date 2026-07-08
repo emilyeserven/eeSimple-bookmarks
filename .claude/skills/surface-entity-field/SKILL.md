@@ -196,7 +196,15 @@ not whether a `useAppForm` exists:
   (`useGroupGeneralForm` called per sub-field — name/description/group-type/websites/channels/social
   split, with `CreatorMediaSection` kept as one `creatorMedia` field, #1195), **Custom
   Property** (`usePropertyGeneralForm` → `name`/`type`/`status`/`description` edit fields +
-  `status`/`description`/`created` view rows, #1196), **Media Type** (the *whole* General composite
+  `status`/`description`/`created` view rows, #1196), **Autofill** (#1197: the one `prefill` field →
+  `prefillCategory` / `prefillMediaType` / `prefillTags` / `prefillLocations` / `prefillProperties`, each
+  its own `useState` + single-key `useFieldAutoSave`; the `AutofillRulePrefillPickers` combined pickers
+  split into per-field halves + recompose, view side split into presentational blocks in
+  `AutofillRuleDetail.tsx` + self-contained registry view fields in `workbench/autofillPrefillView.tsx` —
+  **keep a category-scoped dynamic value-set as ONE composite field**: `prefillProperties`'s shown inputs
+  depend on the chosen category, like the Conditions builder, and it scopes off the persisted
+  `rule.setCategoryId` rather than shared in-flight state, which is exactly why no provider is needed),
+  **Media Type** (the *whole* General composite
   atomized — name/sortOrder/description/parent/icon/hidden edit fields + per-row `DetailField` view rows,
   each field its **own** single-field `useAppForm`+`useFieldAutoSave`; the sole name→primary-language
   coupling rides the react-query cache via `usePrimaryLanguageField` reading the persisted `mediaType.name`,
