@@ -111,6 +111,25 @@ describe("custom property default layout", () => {
   it("renders the edit tabs in order", () => {
     expect(shape(propertyWorkbench, "edit").map(tab => tab.key)).toEqual(expectedTabs);
   });
+
+  // The atomized General composite (#1196): one section, five fields ordered so each mode drops the
+  // fields it lacks a renderer for — edit keeps name/type/status/description; view keeps
+  // status/description/created (name/type are edit-only, created is view-only).
+  it("splits the General tab into granular view fields", () => {
+    const general = shape(propertyWorkbench, "view").find(tab => tab.key === "general");
+    expect(general?.sections).toEqual([{
+      key: "general",
+      fields: ["status", "description", "created"],
+    }]);
+  });
+
+  it("splits the General tab into granular edit fields", () => {
+    const general = shape(propertyWorkbench, "edit").find(tab => tab.key === "general");
+    expect(general?.sections).toEqual([{
+      key: "general",
+      fields: ["name", "type", "status", "description"],
+    }]);
+  });
 });
 
 describe("website default layout", () => {

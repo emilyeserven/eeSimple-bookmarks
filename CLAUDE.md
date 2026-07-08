@@ -509,7 +509,7 @@ registry edit, never a pane edit.
   `PUT` a layout for a kind and the live page rearranges in both modes; `DELETE` resets to the default.
   - **Editor selectable-list caveat.** The render path honors stored layouts for **all** kinds, but the
     editor's kind picker (`LAYOUT_DRIVEN_ENTITIES` in `lib/layoutDrivenEntities.ts`) currently lists only
-    **Category, Newsletter, Bookmark**. Growing it to the rest is a follow-up — add one
+    **Category, Newsletter, Bookmark, Custom Property**. Growing it to the rest is a follow-up — add one
     `{ kind, label, fields, defaultLayout }` entry per kind; the render side needs no change.
 - **Explicitly out of scope for v1 — don't "fix" these:**
   - **Create forms are unaffected.** The Add Bookmark quick-create form keeps its own, separate placement
