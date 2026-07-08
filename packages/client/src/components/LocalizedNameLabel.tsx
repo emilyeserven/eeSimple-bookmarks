@@ -43,11 +43,13 @@ export function LocalizedNameLabel({
   if (stacked) {
     return (
       <span className="flex min-w-0 flex-col">
-        <span className="truncate">{primary}</span>
+        <span className="wrap-break-word">{primary}</span>
         {secondary
           ? (
             <span
-              className={cn("truncate text-sm font-normal text-muted-foreground", secondaryClassName)}
+              className={cn(`
+                text-sm font-normal wrap-break-word text-muted-foreground
+              `, secondaryClassName)}
             >
               {secondary}
             </span>

@@ -122,7 +122,7 @@ export function RegisteredGrid({
               />
             </Link>
             <p
-              className="truncate text-sm font-medium"
+              className="text-sm font-medium wrap-break-word"
               title={object.bookmark?.title}
             >
               {object.bookmark?.title}
@@ -275,7 +275,7 @@ export function ArchivedReelsGrid({
                 }}
                 title={bookmark.title}
                 className="
-                  block truncate text-sm font-medium
+                  block text-sm font-medium wrap-break-word
                   hover:underline
                 "
               >

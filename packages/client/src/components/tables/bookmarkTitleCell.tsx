@@ -25,7 +25,7 @@ export function BookmarkTitleColumnCell({
         src={bookmark.website?.imageUrl}
         fallback={<Globe className="size-4" />}
       />
-      <span className="line-clamp-2">{bookmark.title}</span>
+      <span className="wrap-break-word">{bookmark.title}</span>
     </Link>
   );
 }

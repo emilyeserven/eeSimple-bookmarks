@@ -138,7 +138,7 @@ function BulkExpandShortened({
                   className="mt-1"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{item.title}</p>
+                  <p className="font-medium wrap-break-word">{item.title}</p>
                   <p
                     className="truncate font-mono text-xs text-muted-foreground"
                   >{item.url}
