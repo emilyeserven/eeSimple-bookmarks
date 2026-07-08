@@ -126,43 +126,85 @@ describe("propertyGroup default layout", () => {
 });
 
 describe("group default layout", () => {
-  it("renders all four tabs identically in both modes", () => {
-    const expected = [
+  // The General composite was atomized into granular fields (#1195). The unified field order is shared;
+  // the mode filters which render — `name`/`genreMoods` are edit-only, `metadata` is view-only — so the
+  // view and edit projections of the General tab differ.
+  const otherTabs = [
+    {
+      key: "people",
+      group: undefined,
+      sections: [{
+        key: "people",
+        fields: ["people"],
+      }],
+    },
+    {
+      key: "youtube-channels",
+      group: undefined,
+      sections: [{
+        key: "youtube-channels",
+        fields: ["youtubeChannels"],
+      }],
+    },
+    {
+      key: "websites",
+      group: undefined,
+      sections: [{
+        key: "websites",
+        fields: ["websites"],
+      }],
+    },
+  ];
+
+  it("renders the granular General view fields (name/genreMoods are edit-only, so they drop)", () => {
+    expect(shape(groupWorkbench, "view")).toEqual([
       {
         key: "general",
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["general"],
+          fields: [
+            "image",
+            "metadata",
+            "description",
+            "primaryLanguage",
+            "names",
+            "groupType",
+            "labeledWebsites",
+            "connectedYoutubeChannels",
+            "socialLinks",
+            "creatorMedia",
+          ],
         }],
       },
+      ...otherTabs,
+    ]);
+  });
+
+  it("renders the granular General edit fields (metadata is view-only, so it drops)", () => {
+    expect(shape(groupWorkbench, "edit")).toEqual([
       {
-        key: "people",
+        key: "general",
         group: undefined,
         sections: [{
-          key: "people",
-          fields: ["people"],
+          key: "general",
+          fields: [
+            "image",
+            "name",
+            "description",
+            "primaryLanguage",
+            "names",
+            "groupType",
+            "labeledWebsites",
+            "connectedYoutubeChannels",
+            "socialLinks",
+            "creatorMedia",
+            "genreMoods",
+          ],
         }],
       },
-      {
-        key: "youtube-channels",
-        group: undefined,
-        sections: [{
-          key: "youtube-channels",
-          fields: ["youtubeChannels"],
-        }],
-      },
-      {
-        key: "websites",
-        group: undefined,
-        sections: [{
-          key: "websites",
-          fields: ["websites"],
-        }],
-      },
-    ];
-    expect(shape(groupWorkbench, "view")).toEqual(expected);
-    expect(shape(groupWorkbench, "edit")).toEqual(expected);
+      ...otherTabs,
+    ]);
   });
 });
 
@@ -218,50 +260,87 @@ describe("relationshipType default layout", () => {
 });
 
 describe("person default layout", () => {
-  it("renders all five tabs identically in both modes", () => {
-    const expected = [
+  // The four specialized tabs are one field each and identical in both modes; only the extracted
+  // General tab (#1194) differs by mode — `genreMoods` is edit-only, `metadata`/`connections` view-only.
+  const otherTabs = [
+    {
+      key: "youtube-channels",
+      group: undefined,
+      sections: [{
+        key: "youtube-channels",
+        fields: ["youtubeChannels"],
+      }],
+    },
+    {
+      key: "websites",
+      group: undefined,
+      sections: [{
+        key: "websites",
+        fields: ["websites"],
+      }],
+    },
+    {
+      key: "groups",
+      group: undefined,
+      sections: [{
+        key: "groups",
+        fields: ["groups"],
+      }],
+    },
+    {
+      key: "languages",
+      group: undefined,
+      sections: [{
+        key: "languages",
+        fields: ["languages"],
+      }],
+    },
+  ];
+
+  it("renders the General view tab with the granular view fields (edit-only genreMoods dropped)", () => {
+    expect(shape(personWorkbench, "view")).toEqual([
       {
         key: "general",
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["general"],
+          fields: [
+            "avatar",
+            "details",
+            "primaryLanguage",
+            "names",
+            "labeledWebsites",
+            "socialLinks",
+            "creatorMedia",
+            "metadata",
+            "connections",
+          ],
         }],
       },
+      ...otherTabs,
+    ]);
+  });
+
+  it("renders the General edit tab with the granular edit fields (view-only metadata/connections dropped)", () => {
+    expect(shape(personWorkbench, "edit")).toEqual([
       {
-        key: "youtube-channels",
+        key: "general",
         group: undefined,
         sections: [{
-          key: "youtube-channels",
-          fields: ["youtubeChannels"],
+          key: "general",
+          fields: [
+            "avatar",
+            "details",
+            "primaryLanguage",
+            "names",
+            "labeledWebsites",
+            "socialLinks",
+            "creatorMedia",
+            "genreMoods",
+          ],
         }],
       },
-      {
-        key: "websites",
-        group: undefined,
-        sections: [{
-          key: "websites",
-          fields: ["websites"],
-        }],
-      },
-      {
-        key: "groups",
-        group: undefined,
-        sections: [{
-          key: "groups",
-          fields: ["groups"],
-        }],
-      },
-      {
-        key: "languages",
-        group: undefined,
-        sections: [{
-          key: "languages",
-          fields: ["languages"],
-        }],
-      },
-    ];
-    expect(shape(personWorkbench, "view")).toEqual(expected);
-    expect(shape(personWorkbench, "edit")).toEqual(expected);
+      ...otherTabs,
+    ]);
   });
 });

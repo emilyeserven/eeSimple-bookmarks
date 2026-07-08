@@ -6,9 +6,15 @@ import { autofillWorkbench } from "../components/workbench/autofill";
 import { bookmarkWorkbench } from "../components/workbench/bookmark";
 import { categoryWorkbench } from "../components/workbench/category";
 import { genreMoodWorkbench } from "../components/workbench/genreMood";
+import { groupWorkbench } from "../components/workbench/group";
+import { locationWorkbench } from "../components/workbench/location";
+import { mediaTypeWorkbench } from "../components/workbench/mediaType";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
+import { personWorkbench } from "../components/workbench/person";
 import { propertyWorkbench } from "../components/workbench/property";
 import { tagWorkbench } from "../components/workbench/tag";
+import { websiteWorkbench } from "../components/workbench/website";
+import { youtubeChannelWorkbench } from "../components/workbench/youtubeChannel";
 import i18n from "../i18n";
 
 /** One entity kind selectable on the Page Layouts settings page. */
@@ -51,6 +57,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     },
   },
   {
+    kind: "group",
+    label: i18n.t("Group"),
+    fields: fieldsFromRegistry(groupWorkbench.fields),
+    defaultLayout: groupWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
     kind: "bookmark",
     label: i18n.t("Bookmark"),
     fields: fieldsFromRegistry(bookmarkWorkbench.fields),
@@ -79,6 +93,46 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Tag"),
     fields: fieldsFromRegistry(tagWorkbench.fields),
     defaultLayout: tagWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "website",
+    label: i18n.t("Website"),
+    fields: fieldsFromRegistry(websiteWorkbench.fields),
+    defaultLayout: websiteWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "media-type",
+    label: i18n.t("Media Type"),
+    fields: fieldsFromRegistry(mediaTypeWorkbench.fields),
+    defaultLayout: mediaTypeWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "location",
+    label: i18n.t("Location"),
+    fields: fieldsFromRegistry(locationWorkbench.fields),
+    defaultLayout: locationWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "youtube-channel",
+    label: i18n.t("YouTube Channel"),
+    fields: fieldsFromRegistry(youtubeChannelWorkbench.fields),
+    defaultLayout: youtubeChannelWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "person",
+    label: i18n.t("Person"),
+    fields: fieldsFromRegistry(personWorkbench.fields),
+    defaultLayout: personWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },

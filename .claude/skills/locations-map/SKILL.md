@@ -27,7 +27,14 @@ The subsystem is cleanly layered:
   in `locationLevels.test.ts`) and the shared types + resolvers in `packages/types/src/locations.ts`.
 - **Stateful hooks** — `hooks/useLocationLevels.ts` (the server read/write hub), `hooks/useMapLevelMode.ts`
   (the "Show" mode), `hooks/useLocationMapLevelControls.ts` (assembles per-map controls).
-- **Container** — `components/LocationMapSection.tsx`.
+- **Container** — `components/LocationMapSection.tsx`. Since #1191 the location detail's map is its **own
+  view-only Page-Layout field** (`LocationMapView` in `components/workbench/locationViews.tsx`, keyed
+  `map`) rather than a fixed block in the General view — the ancestry chain / `onlyDirectRelatives` toggle /
+  `ancestryDebug` and every `LocationMapSection` prop (`mapKey`, `scope`, `ancestorChildrenScope`,
+  `ancestryDebug`) are preserved exactly; when relocating/wrapping the map, keep them and never depend on
+  the raw `scope` prop. The edit-side coordinate inputs (lat/long + Re-geocode, Map URL, Uses-Wikidata,
+  Plus code, Place type, Country) are likewise separate edit fields sharing the one
+  `useLocationGeneralForm` controller via `LocationGeneralFormContext`.
 - **Overlays** — `components/LocationLevelsOverlay.tsx` (mobile popover) + `components/LocationLevelsMapPanel.tsx`
   (desktop floating panel), sharing `components/locationLevelsShared.tsx`.
 - **Renderer** — `components/LocationMap.tsx` (Leaflet).

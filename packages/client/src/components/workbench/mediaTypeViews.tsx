@@ -8,69 +8,138 @@ import { EntityNamesTabView, PrimaryLanguageTabView } from "../entityNames/Entit
 import { HierarchyView } from "../HierarchyView";
 import { MediaTypeTreeList } from "../MediaTypeTreeList";
 
+import { DetailField } from "@/components/DetailField";
 import { useExpandedSet } from "@/hooks/useExpandedSet";
 import { useMediaTypes, useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { CategoryIcon } from "@/lib/icons";
 import { findAncestorPath, flattenTree } from "@/lib/tagTree";
 
+interface MediaTypeViewProps {
+  mediaType: MediaType;
+}
+
+/** "Added" (created date) row. */
+export function MediaTypeAddedView({
+  mediaType,
+}: MediaTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Added")}>{new Date(mediaType.createdAt).toLocaleDateString()}</DetailField>;
+}
+
+/** "Slug" row (monospace). */
+export function MediaTypeSlugView({
+  mediaType,
+}: MediaTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <DetailField label={t("Slug")}>
+      <span className="font-mono">{mediaType.slug}</span>
+    </DetailField>
+  );
+}
+
+/** "Description" row — self-hiding when empty. */
+export function MediaTypeDescriptionView({
+  mediaType,
+}: MediaTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Description")}>{mediaType.description || null}</DetailField>;
+}
+
+/** "Parent" row — self-hiding for a root type; resolves the parent's name from the flat list. */
+export function MediaTypeParentView({
+  mediaType,
+}: MediaTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    data: allMediaTypes,
+  } = useMediaTypes();
+  if (mediaType.parentId == null) return null;
+  const parentName = (allMediaTypes ?? []).find(m => m.id === mediaType.parentId)?.name ?? "—";
+  return <DetailField label={t("Parent")}>{parentName}</DetailField>;
+}
+
+/** "Icon" row — the icon glyph, or a muted "None". */
+export function MediaTypeIconView({
+  mediaType,
+}: MediaTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <DetailField label={t("Icon")}>
+      {mediaType.icon
+        ? (
+          <CategoryIcon
+            name={mediaType.icon}
+            className="size-4"
+          />
+        )
+        : <span className="text-muted-foreground">{t("None")}</span>}
+    </DetailField>
+  );
+}
+
+/** "Sort order" row. */
+export function MediaTypeSortOrderView({
+  mediaType,
+}: MediaTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Sort order")}>{mediaType.sortOrder}</DetailField>;
+}
+
+/** "Built-in" (Yes/No) row. */
+export function MediaTypeBuiltInView({
+  mediaType,
+}: MediaTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Built-in")}>{mediaType.builtIn ? t("Yes") : t("No")}</DetailField>;
+}
+
+/** "Bookmarks" (count) row — self-hiding when the count wasn't hydrated. */
+export function MediaTypeBookmarksView({
+  mediaType,
+}: MediaTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Bookmarks")}>{mediaType.bookmarkCount ?? null}</DetailField>;
+}
+
+/**
+ * The General view tab, recomposed from the same placeable per-row {@link DetailField} components the
+ * media type workbench registry uses — so this whole-view shell (used by `mediaTypeViews.stories.tsx`)
+ * stays in lockstep with the layout-driven General tab.
+ */
 export function MediaTypeGeneralView({
   entity: mt,
 }: {
   entity: MediaType;
 }) {
-  const {
-    data: allMediaTypes,
-  } = useMediaTypes();
-  const {
-    t,
-  } = useTranslation();
   return (
     <div className="space-y-6">
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">{t("Added")}</dt>
-        <dd>{new Date(mt.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">{t("Slug")}</dt>
-        <dd className="font-mono">{mt.slug}</dd>
-        {mt.description
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Description")}</dt>
-              <dd>{mt.description}</dd>
-            </>
-          )
-          : null}
-        {mt.parentId != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Parent")}</dt>
-              <dd>{(allMediaTypes ?? []).find(m => m.id === mt.parentId)?.name ?? "—"}</dd>
-            </>
-          )
-          : null}
-        <dt className="text-muted-foreground">{t("Icon")}</dt>
-        <dd>
-          {mt.icon
-            ? (
-              <CategoryIcon
-                name={mt.icon}
-                className="size-4"
-              />
-            )
-            : <span className="text-muted-foreground">{t("None")}</span>}
-        </dd>
-        <dt className="text-muted-foreground">{t("Sort order")}</dt>
-        <dd>{mt.sortOrder}</dd>
-        <dt className="text-muted-foreground">{t("Built-in")}</dt>
-        <dd>{mt.builtIn ? t("Yes") : t("No")}</dd>
-        {mt.bookmarkCount != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
-              <dd>{mt.bookmarkCount}</dd>
-            </>
-          )
-          : null}
-      </dl>
+      <div className="space-y-2">
+        <MediaTypeAddedView mediaType={mt} />
+        <MediaTypeSlugView mediaType={mt} />
+        <MediaTypeDescriptionView mediaType={mt} />
+        <MediaTypeParentView mediaType={mt} />
+        <MediaTypeIconView mediaType={mt} />
+        <MediaTypeSortOrderView mediaType={mt} />
+        <MediaTypeBuiltInView mediaType={mt} />
+        <MediaTypeBookmarksView mediaType={mt} />
+      </div>
       <PrimaryLanguageTabView
         ownerType="mediaType"
         ownerId={mt.id}

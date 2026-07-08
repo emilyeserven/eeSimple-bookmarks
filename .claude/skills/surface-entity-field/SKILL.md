@@ -192,29 +192,61 @@ not whether a `useAppForm` exists:
   the existing sub-component, placed in `defaultLayout`. Each field can call the same controller hook
   **independently** (its own instance per fiber); react-query dedupes the shared mutation/queries across
   fibers, so nothing else is needed. Precedents: Category (`primaryLanguage`/`names` beside the `details`
-  composite), **Newsletter** (`useNewsletterGeneralForm` called per sub-field, #1187), and **Custom
+  composite), **Newsletter** (`useNewsletterGeneralForm` called per sub-field, #1187), **Group**
+  (`useGroupGeneralForm` called per sub-field — name/description/group-type/websites/channels/social
+  split, with `CreatorMediaSection` kept as one `creatorMedia` field, #1195), **Custom
   Property** (`usePropertyGeneralForm` → `name`/`type`/`status`/`description` edit fields +
-  `status`/`description`/`created` view rows, #1196) — the last two share a `useAppForm`+autosave but split
-  cleanly because name→slug follow is self-contained and status/description don't interact. Also **Autofill**
-  (#1197: the one `prefill` field → `prefillCategory` / `prefillMediaType` / `prefillTags` /
-  `prefillLocations` / `prefillProperties`, each its own `useState` + single-key `useFieldAutoSave`; the
-  `AutofillRulePrefillPickers` combined pickers split into per-field halves + recompose, view side split
-  into presentational blocks in `AutofillRuleDetail.tsx` + self-contained registry view fields in
-  `workbench/autofillPrefillView.tsx`). **Keep a category-scoped dynamic value-set as ONE composite field**
-  (autofill `prefillProperties` — its shown inputs depend on the chosen category, like the Conditions
-  builder; it scopes off the persisted `rule.setCategoryId` rather than shared in-flight state, which is
-  exactly why no provider is needed).
-- **Shared-`useAppForm` composite with genuine cross-field coordination** (name-blur autofill,
-  website-lookup → offer → category, primary-language sync — the bookmark case) → the render seam calls
-  each field renderer as a plain function, so N naive field components would each instantiate N separate
-  form instances **and lose the coordination**. Use a **form-context provider**:
+  `status`/`description`/`created` view rows, #1196), **Autofill** (#1197: the one `prefill` field →
+  `prefillCategory` / `prefillMediaType` / `prefillTags` / `prefillLocations` / `prefillProperties`, each
+  its own `useState` + single-key `useFieldAutoSave`; the `AutofillRulePrefillPickers` combined pickers
+  split into per-field halves + recompose, view side split into presentational blocks in
+  `AutofillRuleDetail.tsx` + self-contained registry view fields in `workbench/autofillPrefillView.tsx` —
+  **keep a category-scoped dynamic value-set as ONE composite field**: `prefillProperties`'s shown inputs
+  depend on the chosen category, like the Conditions builder, and it scopes off the persisted
+  `rule.setCategoryId` rather than shared in-flight state, which is exactly why no provider is needed),
+  **Media Type** (the *whole* General composite
+  atomized — name/sortOrder/description/parent/icon/hidden edit fields + per-row `DetailField` view rows,
+  each field its **own** single-field `useAppForm`+`useFieldAutoSave`; the sole name→primary-language
+  coupling rides the react-query cache via `usePrimaryLanguageField` reading the persisted `mediaType.name`,
+  #1189), **YouTube Channel** (`useYouTubeChannelGeneralForm` called per sub-field — name / description /
+  avatar / default category / self-ids / tags / websites / groups / labeled-websites / genres, #1192), and
+  **Person** (#1194 — name+description kept together as one `details` field, with primaryLanguage / names /
+  labeledWebsites / socialLinks / avatar / creatorMedia / genreMoods split out, each its **own**
+  `useFieldAutoSave` / react-query hook; `usePersonGeneralForm`'s single shared autosave was implementation
+  convenience, not coordination — dissolved into per-field hooks + `usePersonAvatarField`).
+  These share a `useAppForm`+autosave but split cleanly because each field's save is self-contained
+  (e.g. name→slug follow) and the fields don't read each other's live state — so **skip the provider**, and
+  recompose the whole-form/whole-view shells (`MediaTypeGeneralForm` / `MediaTypeGeneralView`,
+  `PersonGeneralForm` / `PersonGeneralView`, `GroupGeneralForm`) from the split halves so their story/test
+  stay unchanged. Slug-routed entities render through the generic `EntityEditView`, so this pattern keeps
+  `EntityEditView`/`WorkbenchRouteTab` untouched.
+  **Note the `useImageTaxonomySyncRegistration` placement:** YouTube Channel and Person avoid the Website
+  provider case below by putting the once-only "Sync from source" registration inside the **single** avatar
+  field (one fiber), *not* in the per-field controller — so it never re-runs per fiber and no provider is
+  needed.
+- **Shared controller that must mount exactly once** — either **genuine cross-field coordination**
+  (name-blur autofill, website-lookup → offer → category, primary-language sync — the bookmark case) **or**
+  granular fields that share **one mounted instance**: local `useState` that can't dedupe across fibers,
+  or a once-only side-effect like the header "Sync from source" registration (the **Website** case,
+  `useImageTaxonomySyncRegistration` living **in** the per-fiber controller — calling it per fiber would
+  thrash the store). The render
+  seam calls each field renderer as a plain function, so N naive field components would each instantiate N
+  separate controllers **and lose the coordination / re-run the side-effect**. Use a **form-context
+  provider**:
   1. **Context** — a `<Entity>GeneralFormProvider` that calls the controller hook (+ any react-query
      field hooks + the sync registration) **once** and exposes them; a `use<Entity>GeneralFormContext()`
      reader. Reference: `components/BookmarkGeneralFormContext.tsx`.
   2. **Mount** it at the entity's **edit-view** level, wrapping the edit body — gated on the active tab
      hosting a shared-form field so the controller mounts exactly where the old monolithic form did (and
      follows the fields if an operator relocates them). Reference: `BookmarkEditView.tsx`
-     (`SHARED_FORM_FIELD_KEYS`).
+     (`SHARED_FORM_FIELD_KEYS`). **A slug-routed entity has no bespoke edit view** — it renders through
+     the generic `EntityEditView`, so instead of editing an edit-view file you declare the provider on the
+     **workbench descriptor**: set `editFormProvider: ({ entity, children }) => <XGeneralFormProvider
+     entity={entity}>{children}</…>` and `sharedFormFieldKeys: new Set([...])` on `EntityWorkbench`, and
+     `EntityEditView` wraps the edit body with the same active-tab gate. References: `websiteWorkbench`
+     (`components/workbench/website.tsx`) + `WebsiteGeneralFormContext.tsx`; `locationWorkbench`
+     (`components/workbench/location.tsx`) + `LocationGeneralFormContext.tsx` (#1191, the
+     maximal-atomization case whose map is its own view-only `map` field).
   3. **Granular edit fields** — each a thin component that reads the shared controller from context and
      renders the existing sub-component; register each as a `WorkbenchField.edit`. View fields read the
      entity directly (no context). Split any shared sub-component into per-field halves
@@ -224,10 +256,17 @@ not whether a `useAppForm` exists:
   4. **Layout** — place the new keys in `defaultLayout`; group the pulled-out fields into a **titled
      section** (`{ key, title, fields }`) to turn a former `CollapsibleFormSection` into a first-class
      section (the bookmark **Advanced** section).
-  5. **Snapshot** — update the both-modes layout test (`bookmarkLayout.test.tsx`, or the entity's rollout
-     harness — e.g. `batch2Layouts.test.tsx` for Custom Property) to the new field/section order. Remember
-     view/edit parity: edit-only fields (Name/Type/blacklists) drop in view, a view-only field (bookmark
-     `detailsExtra`, Custom Property `created`) drops in edit.
+  5. **Snapshot** — add/update the both-modes layout test (`bookmarkLayout.test.tsx`,
+     `locationLayout.test.tsx`, or the entity's rollout harness — e.g. `batch2Layouts.test.tsx` for Custom
+     Property) to the new field/section order. Remember view/edit parity: edit-only fields
+     (Name/Type/blacklists) drop in view, view-only fields (bookmark `detailsExtra`, Custom Property
+     `created`, Location's `map` / `slug` / `bookmarkCount`) drop in edit.
+
+  **Location (#1191)** is the maximal-atomization + slug-routed reference: every General row became its
+  own field (the map is its own **view-only** `map` field — `LocationMapView`, extracted with the
+  ancestry logic, `LocationMapSection` props preserved per the `locations-map` skill), and only two
+  genuine coordination clusters stayed whole (lat/long + Re-geocode button; Wikipedia EN/Local + Autofill
+  button) because a single shared action drives each.
 
 ## Verify
 

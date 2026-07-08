@@ -4,27 +4,70 @@ import type { EntityLayout, Website } from "@eesimple/types";
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
+import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { ParamRulesList } from "../ParamRulesList";
 import { ShortenedLinksList } from "../ShortenedLinksList";
-import { WebsiteGeneralForm } from "../WebsiteGeneralForm";
+import {
+  WebsiteAlternateNamesEditField,
+  WebsiteDefaultCategoryEditField,
+  WebsiteDefaultMediaTypeEditField,
+  WebsiteDefaultTagsEditField,
+  WebsiteDescriptionEditField,
+  WebsiteDomainEditField,
+  WebsiteFaviconEditField,
+  WebsiteLabeledWebsitesEditField,
+  WebsiteNameEditField,
+  WebsiteRedirectFailureEditField,
+  WebsiteSocialLinksEditField,
+  WebsiteYouTubeChannelsEditField,
+} from "../WebsiteGeneralForm";
+import { WebsiteGeneralFormProvider } from "../WebsiteGeneralFormContext";
 import { WebsiteParamRulesForm } from "../WebsiteParamRulesForm";
 import { WebsitePeopleForm, WebsitePeopleView } from "../WebsitePeopleForm";
 import { WebsiteShortenedLinksForm } from "../WebsiteShortenedLinksForm";
-import { WebsiteGeneralView, WebsiteHierarchyView } from "./websiteViews";
+import {
+  WebsiteAlternateNamesView,
+  WebsiteDescriptionView,
+  WebsiteDomainView,
+  WebsiteFaviconView,
+  WebsiteHierarchyView,
+  WebsiteMetadataView,
+  WebsiteSocialLinksView,
+  WebsiteSourceDefaultsView,
+  WebsiteYouTubeChannelsView,
+} from "./websiteViews";
 
 import { useDeleteWebsite, useWebsiteBySlug, useWebsites } from "@/hooks/useWebsites";
 
 /**
- * The website workbench's field registry (#1106 layout editor). Each existing tab pane becomes ONE
- * placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key (#1165 composite-editor
- * recipe) — `general` bundles the existing view/edit composites (favicon + metadata) unchanged, and
- * `hierarchy` is **view-only** (no `edit`), which is what makes the Hierarchy tab disappear in edit
- * mode for free. Authored as an exhaustive `Record<WebsiteFieldKey, …>` so a key without a renderer
- * fails `tsc`.
+ * The website workbench's field registry (#1106 layout editor). Each existing tab pane becomes a
+ * placeable, mode-aware {@link WorkbenchField}. The old opaque `general` composite is now **broken into
+ * granular fields** (#1188) — name / favicon / domain / metadata / description / alternate names /
+ * default category / default media type / default tags / source-defaults summary / YouTube channels /
+ * social links / labeled websites / redirect-failure / genres & moods — so an operator can rearrange or
+ * relocate each on the Page Layouts editor. Every editable field reads the **one** shared controller
+ * from {@link WebsiteGeneralFormProvider} (mounted by `EntityEditView` via `editFormProvider`), except
+ * `genreMoods` (independently-backed) and the view-only `metadata`/`sourceDefaults`. `hierarchy` is
+ * **view-only** (no `edit`), which is what makes the Hierarchy tab disappear in edit mode for free.
+ * Authored as an exhaustive `Record<WebsiteFieldKey, …>` so a key without a renderer fails `tsc`.
  */
 type WebsiteFieldKey
-  = | "general"
+  = | "name"
+    | "favicon"
+    | "domain"
+    | "metadata"
+    | "description"
+    | "alternateNames"
+    | "defaultCategory"
+    | "defaultMediaType"
+    | "defaultTags"
+    | "sourceDefaults"
+    | "youtubeChannels"
+    | "socialLinks"
+    | "labeledWebsites"
+    | "redirectFailure"
+    | "genreMoods"
     | "people"
     | "shortenedLinks"
     | "paramRules"
@@ -33,14 +76,130 @@ type WebsiteFieldKey
     | "displayRules"
     | "languages";
 
+/** The General-tab field keys whose `edit` renderer reads the shared `useWebsiteGeneralForm` controller
+ *  from {@link WebsiteGeneralFormProvider} — everything editable except `genreMoods` (independently
+ *  backed). Drives `EntityEditView`'s provider gate. */
+const WEBSITE_SHARED_FORM_FIELD_KEYS = new Set<string>([
+  "name",
+  "favicon",
+  "domain",
+  "description",
+  "alternateNames",
+  "defaultCategory",
+  "defaultMediaType",
+  "defaultTags",
+  "youtubeChannels",
+  "socialLinks",
+  "labeledWebsites",
+  "redirectFailure",
+]);
+
 const websiteFields = {
-  general: {
-    key: "general",
-    label: i18n.t("General"),
-    view: WebsiteGeneralView,
+  name: {
+    key: "name",
+    label: i18n.t("Site name"),
     edit: ({
       entity,
-    }) => <WebsiteGeneralForm website={entity} />,
+    }) => <WebsiteNameEditField website={entity} />,
+  },
+  favicon: {
+    key: "favicon",
+    label: i18n.t("Favicon"),
+    view: WebsiteFaviconView,
+    edit: ({
+      entity,
+    }) => <WebsiteFaviconEditField website={entity} />,
+  },
+  domain: {
+    key: "domain",
+    label: i18n.t("Domain"),
+    view: WebsiteDomainView,
+    edit: ({
+      entity,
+    }) => <WebsiteDomainEditField website={entity} />,
+  },
+  metadata: {
+    key: "metadata",
+    label: i18n.t("Metadata"),
+    view: WebsiteMetadataView,
+  },
+  description: {
+    key: "description",
+    label: i18n.t("Description"),
+    view: WebsiteDescriptionView,
+    edit: () => <WebsiteDescriptionEditField />,
+  },
+  alternateNames: {
+    key: "alternateNames",
+    label: i18n.t("Alternate Names"),
+    view: WebsiteAlternateNamesView,
+    edit: () => <WebsiteAlternateNamesEditField />,
+  },
+  defaultCategory: {
+    key: "defaultCategory",
+    label: i18n.t("Default category"),
+    edit: ({
+      entity,
+    }) => <WebsiteDefaultCategoryEditField website={entity} />,
+  },
+  defaultMediaType: {
+    key: "defaultMediaType",
+    label: i18n.t("Default media type"),
+    edit: ({
+      entity,
+    }) => <WebsiteDefaultMediaTypeEditField website={entity} />,
+  },
+  defaultTags: {
+    key: "defaultTags",
+    label: i18n.t("Default tags"),
+    edit: () => <WebsiteDefaultTagsEditField />,
+  },
+  sourceDefaults: {
+    key: "sourceDefaults",
+    label: i18n.t("Source defaults"),
+    view: WebsiteSourceDefaultsView,
+  },
+  youtubeChannels: {
+    key: "youtubeChannels",
+    label: i18n.t("YouTube Channels"),
+    view: WebsiteYouTubeChannelsView,
+    edit: ({
+      entity,
+    }) => <WebsiteYouTubeChannelsEditField website={entity} />,
+  },
+  socialLinks: {
+    key: "socialLinks",
+    label: i18n.t("Social Links"),
+    view: WebsiteSocialLinksView,
+    edit: ({
+      entity,
+    }) => <WebsiteSocialLinksEditField website={entity} />,
+  },
+  labeledWebsites: {
+    key: "labeledWebsites",
+    label: i18n.t("Labeled Websites"),
+    edit: ({
+      entity,
+    }) => <WebsiteLabeledWebsitesEditField website={entity} />,
+  },
+  redirectFailure: {
+    key: "redirectFailure",
+    label: i18n.t("Redirect Resolution Failure"),
+    edit: ({
+      entity,
+    }) => <WebsiteRedirectFailureEditField website={entity} />,
+  },
+  genreMoods: {
+    key: "genreMoods",
+    label: i18n.t("Genres & Moods"),
+    edit: ({
+      entity,
+    }) => (
+      <GenreMoodAssignmentSection
+        ownerType="website"
+        ownerId={entity.id}
+      />
+    ),
   },
   people: {
     key: "people",
@@ -148,7 +307,23 @@ const WEBSITE_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["general"] satisfies WebsiteFieldKey[],
+        fields: [
+          "name",
+          "favicon",
+          "domain",
+          "metadata",
+          "description",
+          "alternateNames",
+          "defaultCategory",
+          "defaultMediaType",
+          "defaultTags",
+          "sourceDefaults",
+          "youtubeChannels",
+          "socialLinks",
+          "labeledWebsites",
+          "redirectFailure",
+          "genreMoods",
+        ] satisfies WebsiteFieldKey[],
       }],
     },
     {
@@ -253,6 +428,13 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
   layoutKind: "website",
   fields: websiteFields,
   defaultLayout: WEBSITE_DEFAULT_LAYOUT,
+  // Shared-`useAppForm` extraction (#1188): the granular General edit fields read one controller from
+  // `WebsiteGeneralFormProvider`, which `EntityEditView` mounts around the edit body whenever the active
+  // tab hosts one of these keys.
+  sharedFormFieldKeys: WEBSITE_SHARED_FORM_FIELD_KEYS,
+  editFormProvider: ({
+    entity, children,
+  }) => <WebsiteGeneralFormProvider website={entity}>{children}</WebsiteGeneralFormProvider>,
   // Layout-driven: the tab rail + section stacks come from `fields` + `defaultLayout`. `tabs` is
   // retained only to carry the code-only `group` nav metadata (the "Rules" More dropdown on the
   // edit strip), re-attached by tab key in `deriveWorkbenchTabs`.
