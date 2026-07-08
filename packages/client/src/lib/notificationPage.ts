@@ -1,10 +1,6 @@
-import i18n from "@/i18n";
+import type { NotificationPage } from "@/stores/notificationStore";
 
-/** The page a notification was generated from: the raw pathname plus a human-readable label. */
-export interface NotificationPage {
-  pathname: string;
-  label: string;
-}
+import i18n from "@/i18n";
 
 /**
  * The page the user is currently on, kept as an imperative module-level holder so the
