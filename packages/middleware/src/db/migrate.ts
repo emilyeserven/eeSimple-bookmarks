@@ -45,6 +45,33 @@ const migrations: RuntimeMigration[] = [
     name: "drop legacy category_root_tags",
     run: db => db.execute(sql`DROP TABLE IF EXISTS "category_root_tags"`),
   },
+  {
+    // `entity_layouts` (#1158) is a brand-new table. Against a populated database `drizzle-kit push`
+    // treats a new table as a "truncate?" (pgSuggestions) change and, in this non-TTY deploy,
+    // SILENTLY SKIPS it while still exiting 0 — so the deploy succeeds but the table never gets
+    // created and every entity-layouts query 500s with `relation "entity_layouts" does not exist`
+    // (the same failure mode as the podcasts/genre_moods pre-creates). Pre-create it here so push's
+    // diff for it is always empty. Idempotent (`IF NOT EXISTS`). No FK columns.
+    name: "create entity_layouts table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "entity_layouts" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "entity_kind" text NOT NULL,
+        "layout" jsonb,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+        "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    // `entity_layouts.entity_kind` is declared as a `uniqueIndex` (not a table `unique()`
+    // constraint) in schema.ts — see the composite-unique push-prompt rule. Pre-create the index
+    // here too so push's diff for it stays empty.
+    name: "create entity_layouts entity_kind unique index",
+    run: db => db.execute(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS "entity_layouts_entity_kind_unique" ON "entity_layouts" ("entity_kind")`,
+    ),
+  },
 ];
 
 async function main(): Promise<void> {

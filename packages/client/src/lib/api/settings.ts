@@ -19,11 +19,14 @@ import type {
   DatabaseTableDetail,
   DatabaseUsageReport,
   DisplayPreferenceSettings,
+  EntityLayout,
+  EntityLayoutRecord,
   FavoriteSettingsPage,
   HomepageContentSettings,
   HomepageSection,
   HomepageSectionBookmarks,
   ImportBlacklistEntry,
+  LayoutableEntityKind,
   PersonSourceLabelSettings,
   PinnedSidebarItem,
   PlaceTypeColorConfig,
@@ -211,6 +214,21 @@ export const cardDisplayRulesApi = {
       body: JSON.stringify({
         orderedIds,
       }),
+    }),
+};
+
+export const entityLayoutsApi = {
+  list: () => request<EntityLayoutRecord[]>("/entity-layouts"),
+  save: (kind: LayoutableEntityKind, layout: EntityLayout) =>
+    request<EntityLayoutRecord>(`/entity-layouts/${kind}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        layout,
+      }),
+    }),
+  reset: (kind: LayoutableEntityKind) =>
+    request<undefined>(`/entity-layouts/${kind}`, {
+      method: "DELETE",
     }),
 };
 

@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, EntityLayout, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -1982,6 +1982,32 @@ export const cardDisplayRules = pgTable("card_display_rules", {
   }).notNull().defaultNow(),
 }, table => [
   unique("card_display_rules_slug_unique").on(table.slug),
+]);
+
+/**
+ * `entity_layouts` — one stored layout per layoutable entity kind (`LayoutableEntityKind` in
+ * @eesimple/types), for the per-entity "Page Layouts" editor (#1106). Nullable `layout` jsonb =
+ * push-safe additive; an absent row or null layout means "no override" — the client's
+ * `resolveLayout` falls back to the kind's code-defined default, so there is no boot seed (unlike
+ * `card_display_rules`, which needs a concrete singleton Default row). The server stores/returns
+ * this jsonb as opaque data — it validates shape only (`isValidEntityLayout`), never which field
+ * keys are legal for a given kind.
+ */
+export const entityLayouts = pgTable("entity_layouts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  entityKind: text("entity_kind").notNull(),
+  layout: jsonb("layout").$type<EntityLayout>(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  // A `uniqueIndex`, NOT a table `unique()` constraint — see the composite-unique push-prompt rule
+  // in CLAUDE.md. Single-column here, but kept as an index for consistency with the migrate.ts
+  // pre-create step below (declaring it identically in both places keeps push's diff for it empty).
+  uniqueIndex("entity_layouts_entity_kind_unique").on(table.entityKind),
 ]);
 
 /**
