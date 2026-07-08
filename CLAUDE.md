@@ -525,10 +525,10 @@ registry edit, never a pane edit.
   - **Editor selectable-list caveat.** The render path honors stored layouts for **all** kinds, but the
     editor's kind picker (`LAYOUT_DRIVEN_ENTITIES` in `lib/layoutDrivenEntities.ts`) currently lists only
     **Category, Newsletter, Bookmark, Genres & Moods, Tag, Custom Property, Website, Media Type,
-    Location, YouTube Channel**. Growing it to the rest is a follow-up — add one
+    Location, YouTube Channel, Person**. Growing it to the rest is a follow-up — add one
     `{ kind, label, fields, defaultLayout }` entry per kind; the render side needs no change. (An entity
     is added here once its General composite is broken into granular fields — e.g. Website #1188,
-    Location #1191, YouTube Channel #1192.)
+    Location #1191, YouTube Channel #1192, Person #1194.)
 - **Explicitly out of scope for v1 — don't "fix" these:**
   - **Create forms are unaffected.** The Add Bookmark quick-create form keeps its own, separate placement
     system (Settings → Display → Bookmark Add Form; see **Add Bookmark form field placement** + the

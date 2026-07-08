@@ -8,6 +8,7 @@ import { genreMoodWorkbench } from "../components/workbench/genreMood";
 import { locationWorkbench } from "../components/workbench/location";
 import { mediaTypeWorkbench } from "../components/workbench/mediaType";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
+import { personWorkbench } from "../components/workbench/person";
 import { propertyWorkbench } from "../components/workbench/property";
 import { tagWorkbench } from "../components/workbench/tag";
 import { websiteWorkbench } from "../components/workbench/website";
@@ -114,6 +115,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("YouTube Channel"),
     fields: fieldsFromRegistry(youtubeChannelWorkbench.fields),
     defaultLayout: youtubeChannelWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "person",
+    label: i18n.t("Person"),
+    fields: fieldsFromRegistry(personWorkbench.fields),
+    defaultLayout: personWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },

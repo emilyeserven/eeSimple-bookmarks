@@ -198,15 +198,20 @@ not whether a `useAppForm` exists:
   atomized — name/sortOrder/description/parent/icon/hidden edit fields + per-row `DetailField` view rows,
   each field its **own** single-field `useAppForm`+`useFieldAutoSave`; the sole name→primary-language
   coupling rides the react-query cache via `usePrimaryLanguageField` reading the persisted `mediaType.name`,
-  #1189), and **YouTube Channel** (`useYouTubeChannelGeneralForm` called per sub-field — name / description /
-  avatar / default category / self-ids / tags / websites / groups / labeled-websites / genres, #1192).
+  #1189), **YouTube Channel** (`useYouTubeChannelGeneralForm` called per sub-field — name / description /
+  avatar / default category / self-ids / tags / websites / groups / labeled-websites / genres, #1192), and
+  **Person** (#1194 — name+description kept together as one `details` field, with primaryLanguage / names /
+  labeledWebsites / socialLinks / avatar / creatorMedia / genreMoods split out, each its **own**
+  `useFieldAutoSave` / react-query hook; `usePersonGeneralForm`'s single shared autosave was implementation
+  convenience, not coordination — dissolved into per-field hooks + `usePersonAvatarField`).
   These share a `useAppForm`+autosave but split cleanly because each field's save is self-contained
   (e.g. name→slug follow) and the fields don't read each other's live state — so **skip the provider**, and
-  recompose the whole-form/whole-view shells (`MediaTypeGeneralForm` / `MediaTypeGeneralView`) from the
-  split halves so their story/test stay unchanged. **Note the `useImageTaxonomySyncRegistration` placement:**
-  YouTube Channel avoids the Website provider case below by putting the once-only "Sync from source"
-  registration inside the **single** avatar field (one fiber), *not* in the per-field controller — so it
-  never re-runs per fiber and no provider is needed.
+  recompose the whole-form/whole-view shells (`MediaTypeGeneralForm` / `MediaTypeGeneralView`,
+  `PersonGeneralForm` / `PersonGeneralView`) from the split halves so their story/test stay unchanged.
+  **Note the `useImageTaxonomySyncRegistration` placement:** YouTube Channel and Person avoid the Website
+  provider case below by putting the once-only "Sync from source" registration inside the **single** avatar
+  field (one fiber), *not* in the per-field controller — so it never re-runs per fiber and no provider is
+  needed.
 - **Shared controller that must mount exactly once** — either **genuine cross-field coordination**
   (name-blur autofill, website-lookup → offer → category, primary-language sync — the bookmark case) **or**
   granular fields that share **one mounted instance**: local `useState` that can't dedupe across fibers,
