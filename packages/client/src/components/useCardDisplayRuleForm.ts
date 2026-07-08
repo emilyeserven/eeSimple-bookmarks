@@ -16,7 +16,12 @@ export interface CardDisplayRuleFormValues {
   display: RuleDisplayValue;
 }
 
-function initialFromRule(rule?: CardDisplayRule, seedConditions?: ConditionTree): CardDisplayRuleFormValues {
+/**
+ * Seed the working form values from an existing rule (or a fresh rule + optional condition seed).
+ * The Default rule's display columns resolve to concrete baseline values; a non-default rule's
+ * resolve to `null` (= inherit) so the layered merge fills them from higher-priority rules.
+ */
+export function initialFromRule(rule?: CardDisplayRule, seedConditions?: ConditionTree): CardDisplayRuleFormValues {
   return {
     name: rule?.name ?? "",
     description: rule?.description ?? "",
