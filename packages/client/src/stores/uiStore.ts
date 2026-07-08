@@ -1,6 +1,7 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { LocationSortMode } from "../lib/locationSort";
 import type { SyncProvider } from "../lib/syncSources/syncSourceTypes";
+import type { WebsiteBookmarkFilter, WebsiteBuiltInFilter, WebsiteSortMode } from "../lib/websiteListingSort";
 import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, GenreMood, LocationMapLevelMode, MediaType, PlaceType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
@@ -134,6 +135,21 @@ interface UiState {
   /** How the Locations list/tree is ordered: server order ("default") or grouped by place type. */
   locationSortMode: LocationSortMode;
   setLocationSortMode: (mode: LocationSortMode) => void;
+  /** How the Websites listing's card view is ordered. */
+  websiteSortMode: WebsiteSortMode;
+  setWebsiteSortMode: (mode: WebsiteSortMode) => void;
+  /** Websites listing facet: category id to filter by, or `null` for all. */
+  websiteCategoryFilter: string | null;
+  setWebsiteCategoryFilter: (id: string | null) => void;
+  /** Websites listing facet: default-media-type id to filter by, or `null` for all. */
+  websiteMediaTypeFilter: string | null;
+  setWebsiteMediaTypeFilter: (id: string | null) => void;
+  /** Websites listing facet: built-in vs custom. */
+  websiteBuiltInFilter: WebsiteBuiltInFilter;
+  setWebsiteBuiltInFilter: (value: WebsiteBuiltInFilter) => void;
+  /** Websites listing facet: has bookmarks vs empty. */
+  websiteBookmarkFilter: WebsiteBookmarkFilter;
+  setWebsiteBookmarkFilter: (value: WebsiteBookmarkFilter) => void;
   /**
    * Whether location maps hide the base tiles' own country/prefecture/state administrative border
    * lines (switches to a borderless tile style). Shared across every location map.
@@ -314,6 +330,26 @@ export const useUiStore = create<UiState>()(
       setLocationSortMode: mode => set({
         locationSortMode: mode,
       }),
+      websiteSortMode: "name-asc",
+      setWebsiteSortMode: mode => set({
+        websiteSortMode: mode,
+      }),
+      websiteCategoryFilter: null,
+      setWebsiteCategoryFilter: id => set({
+        websiteCategoryFilter: id,
+      }),
+      websiteMediaTypeFilter: null,
+      setWebsiteMediaTypeFilter: id => set({
+        websiteMediaTypeFilter: id,
+      }),
+      websiteBuiltInFilter: "all",
+      setWebsiteBuiltInFilter: value => set({
+        websiteBuiltInFilter: value,
+      }),
+      websiteBookmarkFilter: "all",
+      setWebsiteBookmarkFilter: value => set({
+        websiteBookmarkFilter: value,
+      }),
       hideLocationMapAdminBorders: false,
       setHideLocationMapAdminBorders: hide => set({
         hideLocationMapAdminBorders: hide,
@@ -428,6 +464,7 @@ export const useUiStore = create<UiState>()(
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         collapsedLocationMapKeys: state.collapsedLocationMapKeys,
         locationSortMode: state.locationSortMode,
+        websiteSortMode: state.websiteSortMode,
         hideLocationMapAdminBorders: state.hideLocationMapAdminBorders,
         bookmarkImageLayout: state.bookmarkImageLayout,
         bookmarkCornerOverlays: state.bookmarkCornerOverlays,

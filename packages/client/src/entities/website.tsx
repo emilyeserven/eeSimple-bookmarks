@@ -4,9 +4,11 @@ import type { EntityRoute } from "../lib/entityRoutes";
 import type { UpdateWebsiteInput, Website } from "@eesimple/types";
 
 import { WebsiteBulkActions } from "../components/bulk/WebsiteBulkActions";
+import { WebsiteListingControls } from "../components/WebsiteListingControls";
 import { WebsiteListItem } from "../components/WebsiteListItem";
 import { WebsiteTable } from "../components/WebsiteTable";
 import { websiteWorkbench } from "../components/workbench/website";
+import { useWebsiteFacetFilter, useWebsiteSortedItems } from "../hooks/useWebsiteListing";
 import { useWebsites } from "../hooks/useWebsites";
 import i18n from "../i18n";
 import { websitesApi } from "../lib/api/taxonomies";
@@ -56,6 +58,9 @@ export const websiteListingConfig: EntityListingConfig<Website> = {
     website.siteName.toLowerCase().includes(query) || website.domain.toLowerCase().includes(query),
   deletableIds: items => items.filter(w => !w.builtIn).map(w => w.id),
   isSelectable: website => !website.builtIn,
+  useExtraFilter: useWebsiteFacetFilter,
+  useSortedItems: useWebsiteSortedItems,
+  renderSearchSort: () => <WebsiteListingControls />,
   renderBulkActions: ({
     selectedIds, onDone,
   }) => (
