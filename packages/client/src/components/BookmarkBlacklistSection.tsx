@@ -80,23 +80,3 @@ export function BookmarkLocationBlacklistField({
     </form.Field>
   );
 }
-
-/**
- * The Advanced section's exclusion fields: tag blacklist and location blacklist. Recomposed from the two
- * halves above so the recomposed `BookmarkGeneralForm` (its story/test) stays unchanged.
- */
-export function BookmarkBlacklistSection({
-  ctrl,
-}: { ctrl: Ctrl }) {
-  return (
-    <div
-      className="
-        grid gap-4
-        md:grid-cols-2
-      "
-    >
-      <BookmarkTagBlacklistField ctrl={ctrl} />
-      <BookmarkLocationBlacklistField ctrl={ctrl} />
-    </div>
-  );
-}
