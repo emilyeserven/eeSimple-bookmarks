@@ -25,8 +25,15 @@ function formPlacement(property: CustomProperty): string {
   return i18n.t("Shown only in the Advanced area");
 }
 
-/** The "General" section body: status, description, created date. */
-export function PropertyGeneralFields({
+/**
+ * The placeable view rows of a custom property's General section (#1196). Each is registered as its
+ * own `WorkbenchField.view` in the property workbench so an operator can rearrange them in Page
+ * Layouts. The old combined `PropertyGeneralFields` (Status / Description / Created) is gone — the
+ * layout seam stacks these three in the general tab's default order.
+ */
+
+/** Status row — whether the property is enabled. */
+export function PropertyStatusView({
   property,
 }: {
   property: CustomProperty;
@@ -39,13 +46,41 @@ export function PropertyGeneralFields({
       <DetailField label={t("Status")}>
         {property.enabled ? t("Enabled") : t("Disabled")}
       </DetailField>
+    </dl>
+  );
+}
 
+/** Description row. */
+export function PropertyDescriptionView({
+  property,
+}: {
+  property: CustomProperty;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <dl className="space-y-3">
       <DetailField label={t("Description")}>
         {property.description
           ? <p className="whitespace-pre-wrap">{property.description}</p>
           : null}
       </DetailField>
+    </dl>
+  );
+}
 
+/** Created-date row. */
+export function PropertyCreatedView({
+  property,
+}: {
+  property: CustomProperty;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <dl className="space-y-3">
       <DetailField label={t("Created")}>
         <span>{new Date(property.createdAt).toLocaleString()}</span>
       </DetailField>

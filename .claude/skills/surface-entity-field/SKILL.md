@@ -184,16 +184,22 @@ the two blacklists pulled into an **Advanced** section (#1163). The composite-vs
 CLAUDE.md → "Field-granularity edge cases"; do this only when the sub-fields genuinely deserve
 independent placement, not to atomize a cohesive grid.
 
-Pick the shape by how each sub-field is backed:
+Pick the shape by how each sub-field is backed — the deciding question is **cross-field coordination**,
+not whether a `useAppForm` exists:
 
-- **Independently-backed sub-field** (its own hook / react-query-backed, not part of a shared
-  `useAppForm`) → just promote it with step 4b: a `WorkbenchField` whose renderer wraps the existing
-  sub-component, placed in `defaultLayout`. This is the Category precedent (`primaryLanguage`/`names`
-  broken out beside the `details` composite) — react-query coordinates the shared state across fibers, so
-  nothing else is needed.
-- **Shared-`useAppForm` composite** (one controller with cross-field coordination) → the render seam
-  calls each field renderer as a plain function, so N naive field components would each instantiate N
-  separate form instances. Use a **form-context provider**:
+- **Independently-backed sub-field** (its own hook / react-query-backed, or a shared `useAppForm` with
+  **no cross-field coordination**) → just promote it with step 4b: a `WorkbenchField` whose renderer wraps
+  the existing sub-component, placed in `defaultLayout`. Each field can call the same controller hook
+  **independently** (its own instance per fiber); react-query dedupes the shared mutation/queries across
+  fibers, so nothing else is needed. Precedents: Category (`primaryLanguage`/`names` beside the `details`
+  composite), **Newsletter** (`useNewsletterGeneralForm` called per sub-field, #1187), and **Custom
+  Property** (`usePropertyGeneralForm` → `name`/`type`/`status`/`description` edit fields +
+  `status`/`description`/`created` view rows, #1196) — the last two share a `useAppForm`+autosave but split
+  cleanly because name→slug follow is self-contained and status/description don't interact.
+- **Shared-`useAppForm` composite with genuine cross-field coordination** (name-blur autofill,
+  website-lookup → offer → category, primary-language sync — the bookmark case) → the render seam calls
+  each field renderer as a plain function, so N naive field components would each instantiate N separate
+  form instances **and lose the coordination**. Use a **form-context provider**:
   1. **Context** — a `<Entity>GeneralFormProvider` that calls the controller hook (+ any react-query
      field hooks + the sync registration) **once** and exposes them; a `use<Entity>GeneralFormContext()`
      reader. Reference: `components/BookmarkGeneralFormContext.tsx`.
@@ -210,9 +216,10 @@ Pick the shape by how each sub-field is backed:
   4. **Layout** — place the new keys in `defaultLayout`; group the pulled-out fields into a **titled
      section** (`{ key, title, fields }`) to turn a former `CollapsibleFormSection` into a first-class
      section (the bookmark **Advanced** section).
-  5. **Snapshot** — update the both-modes layout test (`bookmarkLayout.test.tsx`) to the new
-     field/section order. Remember view/edit parity: edit-only fields (Name/blacklists) drop in view, a
-     view-only residual field (bookmark `detailsExtra`) drops in edit.
+  5. **Snapshot** — update the both-modes layout test (`bookmarkLayout.test.tsx`, or the entity's rollout
+     harness — e.g. `batch2Layouts.test.tsx` for Custom Property) to the new field/section order. Remember
+     view/edit parity: edit-only fields (Name/Type/blacklists) drop in view, a view-only field (bookmark
+     `detailsExtra`, Custom Property `created`) drops in edit.
 
 ## Verify
 
