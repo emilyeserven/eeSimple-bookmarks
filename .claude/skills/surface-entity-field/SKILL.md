@@ -192,10 +192,16 @@ not whether a `useAppForm` exists:
   the existing sub-component, placed in `defaultLayout`. Each field can call the same controller hook
   **independently** (its own instance per fiber); react-query dedupes the shared mutation/queries across
   fibers, so nothing else is needed. Precedents: Category (`primaryLanguage`/`names` beside the `details`
-  composite), **Newsletter** (`useNewsletterGeneralForm` called per sub-field, #1187), and **Custom
+  composite), **Newsletter** (`useNewsletterGeneralForm` called per sub-field, #1187), **Custom
   Property** (`usePropertyGeneralForm` → `name`/`type`/`status`/`description` edit fields +
-  `status`/`description`/`created` view rows, #1196) — the last two share a `useAppForm`+autosave but split
-  cleanly because name→slug follow is self-contained and status/description don't interact.
+  `status`/`description`/`created` view rows, #1196), and **Media Type** (the *whole* General composite
+  atomized — name/sortOrder/description/parent/icon/hidden edit fields + per-row `DetailField` view rows,
+  each field its **own** single-field `useAppForm`+`useFieldAutoSave`; the sole name→primary-language
+  coupling rides the react-query cache via `usePrimaryLanguageField` reading the persisted `mediaType.name`,
+  #1189). These share a `useAppForm`+autosave but split cleanly because each field's save is self-contained
+  (e.g. name→slug follow) and the fields don't read each other's live state — so **skip the provider**, and
+  recompose the whole-form/whole-view shells (`MediaTypeGeneralForm` / `MediaTypeGeneralView`) from the
+  split halves so their story/test stay unchanged.
 - **Shared controller that must mount exactly once** — either **genuine cross-field coordination**
   (name-blur autofill, website-lookup → offer → category, primary-language sync — the bookmark case) **or**
   granular fields that share **one mounted instance**: local `useState` that can't dedupe across fibers,
