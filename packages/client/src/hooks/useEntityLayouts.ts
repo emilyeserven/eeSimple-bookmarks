@@ -1,3 +1,8 @@
+// fallow-ignore-file unused-file
+// This hook has no UI consumer yet — it's the persistence-layer sub-issue (#1158) of the #1106
+// layout-editor epic. #1159 (field registry + renderer), #1160 (LayoutBoard editor), and #1162
+// (Page Layouts settings page) are what will actually call these hooks. Remove this suppression
+// once one of them imports from this file.
 import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
