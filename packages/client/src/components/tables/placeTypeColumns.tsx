@@ -75,7 +75,7 @@ export function usePlaceTypeColumns(): ColumnDef<PlaceType>[] {
           row,
         }) => (
           <EditActionCell
-            to="/taxonomies/place-types/$placeTypeSlug/edit/general"
+            to="/taxonomies/place-types/$placeTypeSlug/edit"
             params={{
               placeTypeSlug: row.original.slug,
             }}

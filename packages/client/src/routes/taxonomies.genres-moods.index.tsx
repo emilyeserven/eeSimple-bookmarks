@@ -55,7 +55,7 @@ function GenreMoodsTaxonomyPage() {
         onOpenChange={setModalOpen}
         onCreated={(genreMood) => {
           void navigate({
-            to: "/taxonomies/genres-moods/$genreMoodSlug/edit/general",
+            to: "/taxonomies/genres-moods/$genreMoodSlug/edit",
             params: {
               genreMoodSlug: genreMood.slug,
             },

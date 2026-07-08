@@ -72,6 +72,7 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
+      group: i18n.t("Rules"),
       view: {
         title: i18n.t("Autofill Rules"),
         description: i18n.t("Autofill rules that apply this tag."),
@@ -100,6 +101,7 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
     {
       key: "display-rules",
       label: i18n.t("Display Rules"),
+      group: i18n.t("Rules"),
       view: {
         title: i18n.t("Display Rules"),
         description: i18n.t("Card display rules whose conditions reference this tag."),

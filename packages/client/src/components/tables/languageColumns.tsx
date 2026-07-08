@@ -60,7 +60,7 @@ export function useLanguageColumns(): ColumnDef<Language>[] {
           row,
         }) => (
           <EditActionCell
-            to="/taxonomies/languages/$languageSlug/edit/general"
+            to="/taxonomies/languages/$languageSlug/edit"
             params={{
               languageSlug: row.original.slug,
             }}

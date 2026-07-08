@@ -41,7 +41,7 @@ export function LanguageTable({
           });
         }, () => {
           void navigate({
-            to: "/taxonomies/languages/$languageSlug/edit/general",
+            to: "/taxonomies/languages/$languageSlug/edit",
             params: {
               languageSlug: language.slug,
             },

@@ -60,7 +60,7 @@ export function useRelationshipTypeColumns(): ColumnDef<RelationshipType>[] {
           row,
         }) => (
           <EditActionCell
-            to="/taxonomies/relationship-types/$relationshipTypeSlug/edit/general"
+            to="/taxonomies/relationship-types/$relationshipTypeSlug/edit"
             params={{
               relationshipTypeSlug: row.original.slug,
             }}

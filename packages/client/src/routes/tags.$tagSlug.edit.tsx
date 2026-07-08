@@ -1,73 +1,7 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
-import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
-import { useTagBySlug } from "../hooks/useTags";
-
-import i18n from "@/i18n";
-
+/** Pathless layout for a tag's edit surface. The page lives in the `index` child; the `$` child
+ *  redirects the old per-tab paths. */
 export const Route = createFileRoute("/tags/$tagSlug/edit")({
-  component: TagEditLayout,
+  component: Outlet,
 });
-
-const editNav = [
-  {
-    to: "/tags/$tagSlug/edit/general",
-    label: i18n.t("General"),
-  },
-  {
-    type: "group",
-    label: i18n.t("Rules"),
-    items: [
-      {
-        to: "/tags/$tagSlug/edit/autofill",
-        label: i18n.t("Autofill Rules"),
-      },
-      {
-        to: "/tags/$tagSlug/edit/display-rules",
-        label: i18n.t("Display Rules"),
-      },
-    ],
-  },
-] as const;
-
-function TagEditLayout() {
-  const {
-    t,
-  } = useTranslation();
-  const {
-    tagSlug,
-  } = Route.useParams();
-  const {
-    tag, isLoading,
-  } = useTagBySlug(tagSlug);
-
-  return (
-    <TabbedEntityLayout
-      header={(
-        <div className="space-y-1">
-          <Link
-            to="/tags/$tagSlug"
-            params={{
-              tagSlug,
-            }}
-            className="
-              text-sm text-muted-foreground
-              hover:text-foreground
-            "
-          >
-            {t("← Back to {{name}}", {
-              name: isLoading ? t("tag") : (tag?.name ?? t("tag")),
-            })}
-          </Link>
-          <h1 className="text-2xl font-bold">{t("Edit tag")}</h1>
-        </div>
-      )}
-      nav={editNav}
-      params={{
-        tagSlug,
-      }}
-      navAriaLabel={t("Tag edit sections")}
-    />
-  );
-}

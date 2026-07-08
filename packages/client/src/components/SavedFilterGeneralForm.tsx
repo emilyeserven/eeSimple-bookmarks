@@ -73,7 +73,7 @@ export function SavedFilterGeneralForm({
                 onSuccess: (updated) => {
                   if (updated.slug !== filter.slug) {
                     void navigate({
-                      to: "/saved-filters/$filterSlug/edit/general",
+                      to: "/saved-filters/$filterSlug/edit",
                       params: {
                         filterSlug: updated.slug ?? filter.slug ?? "",
                       },

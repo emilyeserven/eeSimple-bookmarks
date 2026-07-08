@@ -31,7 +31,7 @@ export function AddChildModal({
         defaultParentId={parentId}
         onCreated={(tag) => {
           void navigate({
-            to: "/tags/$tagSlug/edit/general",
+            to: "/tags/$tagSlug/edit",
             params: {
               tagSlug: tag.slug,
             },
@@ -48,7 +48,7 @@ export function AddChildModal({
       defaultParentId={parentId}
       onCreated={(mediaType) => {
         void navigate({
-          to: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
+          to: "/taxonomies/media-types/$mediaTypeSlug/edit",
           params: {
             mediaTypeSlug: mediaType.slug,
           },

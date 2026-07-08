@@ -13,13 +13,6 @@ export const Route = createFileRoute("/card-display-rules/$ruleSlug/info")({
   component: CardDisplayRuleInfoTab,
 });
 
-const VIEW_TO_EDIT = {
-  general: "/card-display-rules/$ruleSlug/edit/general",
-  conditions: "/card-display-rules/$ruleSlug/edit/conditions",
-  display: "/card-display-rules/$ruleSlug/edit/display",
-} as const;
-type CardDisplayRuleEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
-
 function CardDisplayRuleInfoTab() {
   const {
     t,
@@ -31,8 +24,6 @@ function CardDisplayRuleInfoTab() {
     tab,
   } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const editRoute: CardDisplayRuleEditRoute
-    = (VIEW_TO_EDIT[(tab ?? "general") as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as CardDisplayRuleEditRoute;
   const {
     rule, isLoading,
   } = useCardDisplayRuleBySlug(ruleSlug);
@@ -71,9 +62,12 @@ function CardDisplayRuleInfoTab() {
                     size="sm"
                   >
                     <Link
-                      to={editRoute}
+                      to="/card-display-rules/$ruleSlug/edit"
                       params={{
                         ruleSlug,
+                      }}
+                      search={{
+                        tab,
                       }}
                     >
                       {t("Edit")}

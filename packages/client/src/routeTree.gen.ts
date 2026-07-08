@@ -204,27 +204,16 @@ import { Route as TaxonomiesGroupTypesGroupTypeSlugInfoRouteImport } from './rou
 import { Route as TaxonomiesGroupTypesGroupTypeSlugEditRouteImport } from './routes/taxonomies.group-types.$groupTypeSlug.edit'
 import { Route as TaxonomiesGenresMoodsGenreMoodSlugEditRouteImport } from './routes/taxonomies.genres-moods.$genreMoodSlug.edit'
 import { Route as TaxonomiesGenresMoodsGenreMoodSlugHubRouteImport } from './routes/taxonomies.genres-moods.$genreMoodSlug._hub'
-import { Route as TagsTagSlugEditGeneralRouteImport } from './routes/tags.$tagSlug.edit.general'
-import { Route as TagsTagSlugEditDisplayRulesRouteImport } from './routes/tags.$tagSlug.edit.display-rules'
-import { Route as TagsTagSlugEditAutofillRouteImport } from './routes/tags.$tagSlug.edit.autofill'
+import { Route as TagsTagSlugEditSplatRouteImport } from './routes/tags.$tagSlug.edit.$'
 import { Route as TagsTagSlugHubInfoRouteImport } from './routes/tags.$tagSlug._hub.info'
 import { Route as TagsTagSlugHubGalleryRouteImport } from './routes/tags.$tagSlug._hub.gallery'
-import { Route as SavedFiltersFilterSlugEditGeneralRouteImport } from './routes/saved-filters.$filterSlug.edit.general'
-import { Route as ImportRulesRuleSlugEditGeneralRouteImport } from './routes/import-rules.$ruleSlug.edit.general'
-import { Route as ImportRulesRuleSlugEditConditionsRouteImport } from './routes/import-rules.$ruleSlug.edit.conditions'
-import { Route as CustomPropertiesPropertySlugEditOptionsRouteImport } from './routes/custom-properties.$propertySlug.edit.options'
-import { Route as CustomPropertiesPropertySlugEditMediaTypesRouteImport } from './routes/custom-properties.$propertySlug.edit.media-types'
-import { Route as CustomPropertiesPropertySlugEditGeneralRouteImport } from './routes/custom-properties.$propertySlug.edit.general'
-import { Route as CustomPropertiesPropertySlugEditDisplayRulesRouteImport } from './routes/custom-properties.$propertySlug.edit.display-rules'
-import { Route as CustomPropertiesPropertySlugEditDisplayRouteImport } from './routes/custom-properties.$propertySlug.edit.display'
-import { Route as CustomPropertiesPropertySlugEditCategoriesRouteImport } from './routes/custom-properties.$propertySlug.edit.categories'
-import { Route as CustomPropertiesPropertySlugEditAutofillRouteImport } from './routes/custom-properties.$propertySlug.edit.autofill'
+import { Route as SavedFiltersFilterSlugEditSplatRouteImport } from './routes/saved-filters.$filterSlug.edit.$'
+import { Route as ImportRulesRuleSlugEditSplatRouteImport } from './routes/import-rules.$ruleSlug.edit.$'
+import { Route as CustomPropertiesPropertySlugEditSplatRouteImport } from './routes/custom-properties.$propertySlug.edit.$'
 import { Route as CategoriesCategorySlugEditSplatRouteImport } from './routes/categories.$categorySlug.edit.$'
 import { Route as CategoriesCategorySlugHubInfoRouteImport } from './routes/categories.$categorySlug._hub.info'
 import { Route as CategoriesCategorySlugHubGalleryRouteImport } from './routes/categories.$categorySlug._hub.gallery'
-import { Route as CardDisplayRulesRuleSlugEditGeneralRouteImport } from './routes/card-display-rules.$ruleSlug.edit.general'
-import { Route as CardDisplayRulesRuleSlugEditDisplayRouteImport } from './routes/card-display-rules.$ruleSlug.edit.display'
-import { Route as CardDisplayRulesRuleSlugEditConditionsRouteImport } from './routes/card-display-rules.$ruleSlug.edit.conditions'
+import { Route as CardDisplayRulesRuleSlugEditSplatRouteImport } from './routes/card-display-rules.$ruleSlug.edit.$'
 import { Route as BookmarksBookmarkIdEditVideoRouteImport } from './routes/bookmarks.$bookmarkId.edit.video'
 import { Route as BookmarksBookmarkIdEditRelationshipsRouteImport } from './routes/bookmarks.$bookmarkId.edit.relationships'
 import { Route as BookmarksBookmarkIdEditRelatedRouteImport } from './routes/bookmarks.$bookmarkId.edit.related'
@@ -232,9 +221,7 @@ import { Route as BookmarksBookmarkIdEditPropertiesRouteImport } from './routes/
 import { Route as BookmarksBookmarkIdEditLanguagesRouteImport } from './routes/bookmarks.$bookmarkId.edit.languages'
 import { Route as BookmarksBookmarkIdEditImageRouteImport } from './routes/bookmarks.$bookmarkId.edit.image'
 import { Route as BookmarksBookmarkIdEditGeneralRouteImport } from './routes/bookmarks.$bookmarkId.edit.general'
-import { Route as AutofillRuleSlugEditPrefillRouteImport } from './routes/autofill.$ruleSlug.edit.prefill'
-import { Route as AutofillRuleSlugEditGeneralRouteImport } from './routes/autofill.$ruleSlug.edit.general'
-import { Route as AutofillRuleSlugEditConditionsRouteImport } from './routes/autofill.$ruleSlug.edit.conditions'
+import { Route as AutofillRuleSlugEditSplatRouteImport } from './routes/autofill.$ruleSlug.edit.$'
 import { Route as TaxonomiesYoutubeChannelsChannelSlugEditIndexRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug.edit.index'
 import { Route as TaxonomiesYoutubeChannelsChannelSlugHubIndexRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug._hub.index'
 import { Route as TaxonomiesWebsitesWebsiteSlugEditIndexRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.index'
@@ -242,6 +229,7 @@ import { Route as TaxonomiesWebsitesWebsiteSlugHubIndexRouteImport } from './rou
 import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug.edit.index'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.edit.index'
 import { Route as TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug.edit.index'
+import { Route as TaxonomiesPeoplePersonSlugEditIndexRouteImport } from './routes/taxonomies.people.$personSlug.edit.index'
 import { Route as TaxonomiesPeoplePersonSlugHubIndexRouteImport } from './routes/taxonomies.people.$personSlug._hub.index'
 import { Route as TaxonomiesNewslettersNewsletterSlugEditIndexRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.edit.index'
 import { Route as TaxonomiesNewslettersNewsletterSlugHubIndexRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug._hub.index'
@@ -252,61 +240,41 @@ import { Route as TaxonomiesLocationsLocationSlugHubIndexRouteImport } from './r
 import { Route as TaxonomiesLocationRelationsLocationRelationSlugEditIndexRouteImport } from './routes/taxonomies.location-relations.$locationRelationSlug.edit.index'
 import { Route as TaxonomiesLanguagesLanguageSlugEditIndexRouteImport } from './routes/taxonomies.languages.$languageSlug.edit.index'
 import { Route as TaxonomiesLanguagesLanguageSlugHubIndexRouteImport } from './routes/taxonomies.languages.$languageSlug._hub.index'
+import { Route as TaxonomiesGroupsGroupSlugEditIndexRouteImport } from './routes/taxonomies.groups.$groupSlug.edit.index'
 import { Route as TaxonomiesGroupsGroupSlugHubIndexRouteImport } from './routes/taxonomies.groups.$groupSlug._hub.index'
 import { Route as TaxonomiesGroupTypesGroupTypeSlugEditIndexRouteImport } from './routes/taxonomies.group-types.$groupTypeSlug.edit.index'
 import { Route as TaxonomiesGenresMoodsGenreMoodSlugEditIndexRouteImport } from './routes/taxonomies.genres-moods.$genreMoodSlug.edit.index'
 import { Route as TaxonomiesGenresMoodsGenreMoodSlugHubIndexRouteImport } from './routes/taxonomies.genres-moods.$genreMoodSlug._hub.index'
-import { Route as TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug.edit.languages'
-import { Route as TaxonomiesYoutubeChannelsChannelSlugEditGeneralRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug.edit.general'
-import { Route as TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug.edit.display-rules'
-import { Route as TaxonomiesYoutubeChannelsChannelSlugEditAutofillRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug.edit.autofill'
+import { Route as TaxonomiesYoutubeChannelsChannelSlugEditSplatRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug.edit.$'
 import { Route as TaxonomiesYoutubeChannelsChannelSlugHubInfoRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug._hub.info'
 import { Route as TaxonomiesYoutubeChannelsChannelSlugHubGalleryRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug._hub.gallery'
-import { Route as TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.shortened-links'
-import { Route as TaxonomiesWebsitesWebsiteSlugEditPeopleRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.people'
-import { Route as TaxonomiesWebsitesWebsiteSlugEditParamRulesRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.param-rules'
-import { Route as TaxonomiesWebsitesWebsiteSlugEditLanguagesRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.languages'
-import { Route as TaxonomiesWebsitesWebsiteSlugEditGeneralRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.general'
-import { Route as TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.display-rules'
-import { Route as TaxonomiesWebsitesWebsiteSlugEditAutofillRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.autofill'
+import { Route as TaxonomiesWebsitesWebsiteSlugEditSplatRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.$'
 import { Route as TaxonomiesWebsitesWebsiteSlugHubInfoRouteImport } from './routes/taxonomies.websites.$websiteSlug._hub.info'
 import { Route as TaxonomiesWebsitesWebsiteSlugHubGalleryRouteImport } from './routes/taxonomies.websites.$websiteSlug._hub.gallery'
-import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug.edit.general'
-import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.edit.media-types'
-import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.edit.general'
-import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.edit.display-rules'
-import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.edit.categories'
-import { Route as TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug.edit.general'
-import { Route as TaxonomiesPeoplePersonSlugEditYoutubeChannelsRouteImport } from './routes/taxonomies.people.$personSlug.edit.youtube-channels'
-import { Route as TaxonomiesPeoplePersonSlugEditWebsitesRouteImport } from './routes/taxonomies.people.$personSlug.edit.websites'
-import { Route as TaxonomiesPeoplePersonSlugEditLanguagesRouteImport } from './routes/taxonomies.people.$personSlug.edit.languages'
-import { Route as TaxonomiesPeoplePersonSlugEditGroupsRouteImport } from './routes/taxonomies.people.$personSlug.edit.groups'
-import { Route as TaxonomiesPeoplePersonSlugEditGeneralRouteImport } from './routes/taxonomies.people.$personSlug.edit.general'
+import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug.edit.$'
+import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.edit.$'
+import { Route as TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRouteImport } from './routes/taxonomies.place-types.$placeTypeSlug.edit.$'
+import { Route as TaxonomiesPeoplePersonSlugEditSplatRouteImport } from './routes/taxonomies.people.$personSlug.edit.$'
 import { Route as TaxonomiesPeoplePersonSlugHubInfoRouteImport } from './routes/taxonomies.people.$personSlug._hub.info'
 import { Route as TaxonomiesPeoplePersonSlugHubGalleryRouteImport } from './routes/taxonomies.people.$personSlug._hub.gallery'
 import { Route as TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.issues.$issueId'
 import { Route as TaxonomiesNewslettersNewsletterSlugEditSplatRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.edit.$'
 import { Route as TaxonomiesNewslettersNewsletterSlugHubInfoRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug._hub.info'
-import { Route as TaxonomiesMediaTypesMediaTypeSlugEditGeneralRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit.general'
-import { Route as TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit.display-rules'
-import { Route as TaxonomiesMediaTypesMediaTypeSlugEditAutofillRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit.autofill'
+import { Route as TaxonomiesMediaTypesMediaTypeSlugEditSplatRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit.$'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugHubInfoRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug._hub.info'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugHubGalleryRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug._hub.gallery'
-import { Route as TaxonomiesLocationsLocationSlugEditGeneralRouteImport } from './routes/taxonomies.locations.$locationSlug.edit.general'
-import { Route as TaxonomiesLocationsLocationSlugEditDisplayRulesRouteImport } from './routes/taxonomies.locations.$locationSlug.edit.display-rules'
-import { Route as TaxonomiesLocationsLocationSlugEditAutofillRouteImport } from './routes/taxonomies.locations.$locationSlug.edit.autofill'
+import { Route as TaxonomiesLocationsLocationSlugEditSplatRouteImport } from './routes/taxonomies.locations.$locationSlug.edit.$'
 import { Route as TaxonomiesLocationsLocationSlugHubInfoRouteImport } from './routes/taxonomies.locations.$locationSlug._hub.info'
 import { Route as TaxonomiesLocationsLocationSlugHubGalleryRouteImport } from './routes/taxonomies.locations.$locationSlug._hub.gallery'
-import { Route as TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRouteImport } from './routes/taxonomies.location-relations.$locationRelationSlug.edit.general'
-import { Route as TaxonomiesLanguagesLanguageSlugEditGeneralRouteImport } from './routes/taxonomies.languages.$languageSlug.edit.general'
+import { Route as TaxonomiesLocationRelationsLocationRelationSlugEditSplatRouteImport } from './routes/taxonomies.location-relations.$locationRelationSlug.edit.$'
+import { Route as TaxonomiesLanguagesLanguageSlugEditSplatRouteImport } from './routes/taxonomies.languages.$languageSlug.edit.$'
 import { Route as TaxonomiesLanguagesLanguageSlugHubInfoRouteImport } from './routes/taxonomies.languages.$languageSlug._hub.info'
 import { Route as TaxonomiesLanguagesLanguageSlugHubGalleryRouteImport } from './routes/taxonomies.languages.$languageSlug._hub.gallery'
-import { Route as TaxonomiesGroupsGroupSlugEditPeopleRouteImport } from './routes/taxonomies.groups.$groupSlug.edit.people'
-import { Route as TaxonomiesGroupsGroupSlugEditGeneralRouteImport } from './routes/taxonomies.groups.$groupSlug.edit.general'
+import { Route as TaxonomiesGroupsGroupSlugEditSplatRouteImport } from './routes/taxonomies.groups.$groupSlug.edit.$'
 import { Route as TaxonomiesGroupsGroupSlugHubInfoRouteImport } from './routes/taxonomies.groups.$groupSlug._hub.info'
 import { Route as TaxonomiesGroupsGroupSlugHubGalleryRouteImport } from './routes/taxonomies.groups.$groupSlug._hub.gallery'
-import { Route as TaxonomiesGroupTypesGroupTypeSlugEditGeneralRouteImport } from './routes/taxonomies.group-types.$groupTypeSlug.edit.general'
-import { Route as TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRouteImport } from './routes/taxonomies.genres-moods.$genreMoodSlug.edit.general'
+import { Route as TaxonomiesGroupTypesGroupTypeSlugEditSplatRouteImport } from './routes/taxonomies.group-types.$groupTypeSlug.edit.$'
+import { Route as TaxonomiesGenresMoodsGenreMoodSlugEditSplatRouteImport } from './routes/taxonomies.genres-moods.$genreMoodSlug.edit.$'
 import { Route as TaxonomiesGenresMoodsGenreMoodSlugHubInfoRouteImport } from './routes/taxonomies.genres-moods.$genreMoodSlug._hub.info'
 import { Route as TaxonomiesGenresMoodsGenreMoodSlugHubGalleryRouteImport } from './routes/taxonomies.genres-moods.$genreMoodSlug._hub.gallery'
 
@@ -1384,20 +1352,9 @@ const TaxonomiesGenresMoodsGenreMoodSlugHubRoute =
     id: '/_hub',
     getParentRoute: () => TaxonomiesGenresMoodsGenreMoodSlugRoute,
   } as any)
-const TagsTagSlugEditGeneralRoute = TagsTagSlugEditGeneralRouteImport.update({
-  id: '/general',
-  path: '/general',
-  getParentRoute: () => TagsTagSlugEditRoute,
-} as any)
-const TagsTagSlugEditDisplayRulesRoute =
-  TagsTagSlugEditDisplayRulesRouteImport.update({
-    id: '/display-rules',
-    path: '/display-rules',
-    getParentRoute: () => TagsTagSlugEditRoute,
-  } as any)
-const TagsTagSlugEditAutofillRoute = TagsTagSlugEditAutofillRouteImport.update({
-  id: '/autofill',
-  path: '/autofill',
+const TagsTagSlugEditSplatRoute = TagsTagSlugEditSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => TagsTagSlugEditRoute,
 } as any)
 const TagsTagSlugHubInfoRoute = TagsTagSlugHubInfoRouteImport.update({
@@ -1410,64 +1367,22 @@ const TagsTagSlugHubGalleryRoute = TagsTagSlugHubGalleryRouteImport.update({
   path: '/gallery',
   getParentRoute: () => TagsTagSlugHubRoute,
 } as any)
-const SavedFiltersFilterSlugEditGeneralRoute =
-  SavedFiltersFilterSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const SavedFiltersFilterSlugEditSplatRoute =
+  SavedFiltersFilterSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => SavedFiltersFilterSlugEditRoute,
   } as any)
-const ImportRulesRuleSlugEditGeneralRoute =
-  ImportRulesRuleSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const ImportRulesRuleSlugEditSplatRoute =
+  ImportRulesRuleSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => ImportRulesRuleSlugEditRoute,
   } as any)
-const ImportRulesRuleSlugEditConditionsRoute =
-  ImportRulesRuleSlugEditConditionsRouteImport.update({
-    id: '/conditions',
-    path: '/conditions',
-    getParentRoute: () => ImportRulesRuleSlugEditRoute,
-  } as any)
-const CustomPropertiesPropertySlugEditOptionsRoute =
-  CustomPropertiesPropertySlugEditOptionsRouteImport.update({
-    id: '/options',
-    path: '/options',
-    getParentRoute: () => CustomPropertiesPropertySlugEditRoute,
-  } as any)
-const CustomPropertiesPropertySlugEditMediaTypesRoute =
-  CustomPropertiesPropertySlugEditMediaTypesRouteImport.update({
-    id: '/media-types',
-    path: '/media-types',
-    getParentRoute: () => CustomPropertiesPropertySlugEditRoute,
-  } as any)
-const CustomPropertiesPropertySlugEditGeneralRoute =
-  CustomPropertiesPropertySlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
-    getParentRoute: () => CustomPropertiesPropertySlugEditRoute,
-  } as any)
-const CustomPropertiesPropertySlugEditDisplayRulesRoute =
-  CustomPropertiesPropertySlugEditDisplayRulesRouteImport.update({
-    id: '/display-rules',
-    path: '/display-rules',
-    getParentRoute: () => CustomPropertiesPropertySlugEditRoute,
-  } as any)
-const CustomPropertiesPropertySlugEditDisplayRoute =
-  CustomPropertiesPropertySlugEditDisplayRouteImport.update({
-    id: '/display',
-    path: '/display',
-    getParentRoute: () => CustomPropertiesPropertySlugEditRoute,
-  } as any)
-const CustomPropertiesPropertySlugEditCategoriesRoute =
-  CustomPropertiesPropertySlugEditCategoriesRouteImport.update({
-    id: '/categories',
-    path: '/categories',
-    getParentRoute: () => CustomPropertiesPropertySlugEditRoute,
-  } as any)
-const CustomPropertiesPropertySlugEditAutofillRoute =
-  CustomPropertiesPropertySlugEditAutofillRouteImport.update({
-    id: '/autofill',
-    path: '/autofill',
+const CustomPropertiesPropertySlugEditSplatRoute =
+  CustomPropertiesPropertySlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => CustomPropertiesPropertySlugEditRoute,
   } as any)
 const CategoriesCategorySlugEditSplatRoute =
@@ -1488,22 +1403,10 @@ const CategoriesCategorySlugHubGalleryRoute =
     path: '/gallery',
     getParentRoute: () => CategoriesCategorySlugHubRoute,
   } as any)
-const CardDisplayRulesRuleSlugEditGeneralRoute =
-  CardDisplayRulesRuleSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
-    getParentRoute: () => CardDisplayRulesRuleSlugEditRoute,
-  } as any)
-const CardDisplayRulesRuleSlugEditDisplayRoute =
-  CardDisplayRulesRuleSlugEditDisplayRouteImport.update({
-    id: '/display',
-    path: '/display',
-    getParentRoute: () => CardDisplayRulesRuleSlugEditRoute,
-  } as any)
-const CardDisplayRulesRuleSlugEditConditionsRoute =
-  CardDisplayRulesRuleSlugEditConditionsRouteImport.update({
-    id: '/conditions',
-    path: '/conditions',
+const CardDisplayRulesRuleSlugEditSplatRoute =
+  CardDisplayRulesRuleSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => CardDisplayRulesRuleSlugEditRoute,
   } as any)
 const BookmarksBookmarkIdEditVideoRoute =
@@ -1548,22 +1451,10 @@ const BookmarksBookmarkIdEditGeneralRoute =
     path: '/general',
     getParentRoute: () => BookmarksBookmarkIdEditRoute,
   } as any)
-const AutofillRuleSlugEditPrefillRoute =
-  AutofillRuleSlugEditPrefillRouteImport.update({
-    id: '/prefill',
-    path: '/prefill',
-    getParentRoute: () => AutofillRuleSlugEditRoute,
-  } as any)
-const AutofillRuleSlugEditGeneralRoute =
-  AutofillRuleSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
-    getParentRoute: () => AutofillRuleSlugEditRoute,
-  } as any)
-const AutofillRuleSlugEditConditionsRoute =
-  AutofillRuleSlugEditConditionsRouteImport.update({
-    id: '/conditions',
-    path: '/conditions',
+const AutofillRuleSlugEditSplatRoute =
+  AutofillRuleSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => AutofillRuleSlugEditRoute,
   } as any)
 const TaxonomiesYoutubeChannelsChannelSlugEditIndexRoute =
@@ -1608,6 +1499,12 @@ const TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => TaxonomiesPlaceTypesPlaceTypeSlugEditRoute,
+  } as any)
+const TaxonomiesPeoplePersonSlugEditIndexRoute =
+  TaxonomiesPeoplePersonSlugEditIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesPeoplePersonSlugEditRoute,
   } as any)
 const TaxonomiesPeoplePersonSlugHubIndexRoute =
   TaxonomiesPeoplePersonSlugHubIndexRouteImport.update({
@@ -1670,6 +1567,12 @@ const TaxonomiesLanguagesLanguageSlugHubIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesLanguagesLanguageSlugHubRoute,
   } as any)
+const TaxonomiesGroupsGroupSlugEditIndexRoute =
+  TaxonomiesGroupsGroupSlugEditIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesGroupsGroupSlugEditRoute,
+  } as any)
 const TaxonomiesGroupsGroupSlugHubIndexRoute =
   TaxonomiesGroupsGroupSlugHubIndexRouteImport.update({
     id: '/',
@@ -1694,28 +1597,10 @@ const TaxonomiesGenresMoodsGenreMoodSlugHubIndexRoute =
     path: '/',
     getParentRoute: () => TaxonomiesGenresMoodsGenreMoodSlugHubRoute,
   } as any)
-const TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRoute =
-  TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRouteImport.update({
-    id: '/languages',
-    path: '/languages',
-    getParentRoute: () => TaxonomiesYoutubeChannelsChannelSlugEditRoute,
-  } as any)
-const TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute =
-  TaxonomiesYoutubeChannelsChannelSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
-    getParentRoute: () => TaxonomiesYoutubeChannelsChannelSlugEditRoute,
-  } as any)
-const TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRoute =
-  TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRouteImport.update({
-    id: '/display-rules',
-    path: '/display-rules',
-    getParentRoute: () => TaxonomiesYoutubeChannelsChannelSlugEditRoute,
-  } as any)
-const TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute =
-  TaxonomiesYoutubeChannelsChannelSlugEditAutofillRouteImport.update({
-    id: '/autofill',
-    path: '/autofill',
+const TaxonomiesYoutubeChannelsChannelSlugEditSplatRoute =
+  TaxonomiesYoutubeChannelsChannelSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesYoutubeChannelsChannelSlugEditRoute,
   } as any)
 const TaxonomiesYoutubeChannelsChannelSlugHubInfoRoute =
@@ -1730,46 +1615,10 @@ const TaxonomiesYoutubeChannelsChannelSlugHubGalleryRoute =
     path: '/gallery',
     getParentRoute: () => TaxonomiesYoutubeChannelsChannelSlugHubRoute,
   } as any)
-const TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute =
-  TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRouteImport.update({
-    id: '/shortened-links',
-    path: '/shortened-links',
-    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
-  } as any)
-const TaxonomiesWebsitesWebsiteSlugEditPeopleRoute =
-  TaxonomiesWebsitesWebsiteSlugEditPeopleRouteImport.update({
-    id: '/people',
-    path: '/people',
-    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
-  } as any)
-const TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute =
-  TaxonomiesWebsitesWebsiteSlugEditParamRulesRouteImport.update({
-    id: '/param-rules',
-    path: '/param-rules',
-    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
-  } as any)
-const TaxonomiesWebsitesWebsiteSlugEditLanguagesRoute =
-  TaxonomiesWebsitesWebsiteSlugEditLanguagesRouteImport.update({
-    id: '/languages',
-    path: '/languages',
-    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
-  } as any)
-const TaxonomiesWebsitesWebsiteSlugEditGeneralRoute =
-  TaxonomiesWebsitesWebsiteSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
-    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
-  } as any)
-const TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute =
-  TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRouteImport.update({
-    id: '/display-rules',
-    path: '/display-rules',
-    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
-  } as any)
-const TaxonomiesWebsitesWebsiteSlugEditAutofillRoute =
-  TaxonomiesWebsitesWebsiteSlugEditAutofillRouteImport.update({
-    id: '/autofill',
-    path: '/autofill',
+const TaxonomiesWebsitesWebsiteSlugEditSplatRoute =
+  TaxonomiesWebsitesWebsiteSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
   } as any)
 const TaxonomiesWebsitesWebsiteSlugHubInfoRoute =
@@ -1784,71 +1633,29 @@ const TaxonomiesWebsitesWebsiteSlugHubGalleryRoute =
     path: '/gallery',
     getParentRoute: () => TaxonomiesWebsitesWebsiteSlugHubRoute,
   } as any)
-const TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute =
-  TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRoute =
+  TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () =>
       TaxonomiesRelationshipTypesRelationshipTypeSlugEditRoute,
   } as any)
-const TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRoute =
-  TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRouteImport.update({
-    id: '/media-types',
-    path: '/media-types',
+const TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRoute =
+  TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesPropertyGroupsPropertyGroupSlugEditRoute,
   } as any)
-const TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute =
-  TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
-    getParentRoute: () => TaxonomiesPropertyGroupsPropertyGroupSlugEditRoute,
-  } as any)
-const TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRoute =
-  TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRouteImport.update({
-    id: '/display-rules',
-    path: '/display-rules',
-    getParentRoute: () => TaxonomiesPropertyGroupsPropertyGroupSlugEditRoute,
-  } as any)
-const TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRoute =
-  TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRouteImport.update({
-    id: '/categories',
-    path: '/categories',
-    getParentRoute: () => TaxonomiesPropertyGroupsPropertyGroupSlugEditRoute,
-  } as any)
-const TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute =
-  TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRoute =
+  TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesPlaceTypesPlaceTypeSlugEditRoute,
   } as any)
-const TaxonomiesPeoplePersonSlugEditYoutubeChannelsRoute =
-  TaxonomiesPeoplePersonSlugEditYoutubeChannelsRouteImport.update({
-    id: '/youtube-channels',
-    path: '/youtube-channels',
-    getParentRoute: () => TaxonomiesPeoplePersonSlugEditRoute,
-  } as any)
-const TaxonomiesPeoplePersonSlugEditWebsitesRoute =
-  TaxonomiesPeoplePersonSlugEditWebsitesRouteImport.update({
-    id: '/websites',
-    path: '/websites',
-    getParentRoute: () => TaxonomiesPeoplePersonSlugEditRoute,
-  } as any)
-const TaxonomiesPeoplePersonSlugEditLanguagesRoute =
-  TaxonomiesPeoplePersonSlugEditLanguagesRouteImport.update({
-    id: '/languages',
-    path: '/languages',
-    getParentRoute: () => TaxonomiesPeoplePersonSlugEditRoute,
-  } as any)
-const TaxonomiesPeoplePersonSlugEditGroupsRoute =
-  TaxonomiesPeoplePersonSlugEditGroupsRouteImport.update({
-    id: '/groups',
-    path: '/groups',
-    getParentRoute: () => TaxonomiesPeoplePersonSlugEditRoute,
-  } as any)
-const TaxonomiesPeoplePersonSlugEditGeneralRoute =
-  TaxonomiesPeoplePersonSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const TaxonomiesPeoplePersonSlugEditSplatRoute =
+  TaxonomiesPeoplePersonSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesPeoplePersonSlugEditRoute,
   } as any)
 const TaxonomiesPeoplePersonSlugHubInfoRoute =
@@ -1881,22 +1688,10 @@ const TaxonomiesNewslettersNewsletterSlugHubInfoRoute =
     path: '/info',
     getParentRoute: () => TaxonomiesNewslettersNewsletterSlugHubRoute,
   } as any)
-const TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute =
-  TaxonomiesMediaTypesMediaTypeSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
-    getParentRoute: () => TaxonomiesMediaTypesMediaTypeSlugEditRoute,
-  } as any)
-const TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute =
-  TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRouteImport.update({
-    id: '/display-rules',
-    path: '/display-rules',
-    getParentRoute: () => TaxonomiesMediaTypesMediaTypeSlugEditRoute,
-  } as any)
-const TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute =
-  TaxonomiesMediaTypesMediaTypeSlugEditAutofillRouteImport.update({
-    id: '/autofill',
-    path: '/autofill',
+const TaxonomiesMediaTypesMediaTypeSlugEditSplatRoute =
+  TaxonomiesMediaTypesMediaTypeSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesMediaTypesMediaTypeSlugEditRoute,
   } as any)
 const TaxonomiesMediaTypesMediaTypeSlugHubInfoRoute =
@@ -1911,22 +1706,10 @@ const TaxonomiesMediaTypesMediaTypeSlugHubGalleryRoute =
     path: '/gallery',
     getParentRoute: () => TaxonomiesMediaTypesMediaTypeSlugHubRoute,
   } as any)
-const TaxonomiesLocationsLocationSlugEditGeneralRoute =
-  TaxonomiesLocationsLocationSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
-    getParentRoute: () => TaxonomiesLocationsLocationSlugEditRoute,
-  } as any)
-const TaxonomiesLocationsLocationSlugEditDisplayRulesRoute =
-  TaxonomiesLocationsLocationSlugEditDisplayRulesRouteImport.update({
-    id: '/display-rules',
-    path: '/display-rules',
-    getParentRoute: () => TaxonomiesLocationsLocationSlugEditRoute,
-  } as any)
-const TaxonomiesLocationsLocationSlugEditAutofillRoute =
-  TaxonomiesLocationsLocationSlugEditAutofillRouteImport.update({
-    id: '/autofill',
-    path: '/autofill',
+const TaxonomiesLocationsLocationSlugEditSplatRoute =
+  TaxonomiesLocationsLocationSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesLocationsLocationSlugEditRoute,
   } as any)
 const TaxonomiesLocationsLocationSlugHubInfoRoute =
@@ -1941,17 +1724,17 @@ const TaxonomiesLocationsLocationSlugHubGalleryRoute =
     path: '/gallery',
     getParentRoute: () => TaxonomiesLocationsLocationSlugHubRoute,
   } as any)
-const TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute =
-  TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const TaxonomiesLocationRelationsLocationRelationSlugEditSplatRoute =
+  TaxonomiesLocationRelationsLocationRelationSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () =>
       TaxonomiesLocationRelationsLocationRelationSlugEditRoute,
   } as any)
-const TaxonomiesLanguagesLanguageSlugEditGeneralRoute =
-  TaxonomiesLanguagesLanguageSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const TaxonomiesLanguagesLanguageSlugEditSplatRoute =
+  TaxonomiesLanguagesLanguageSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesLanguagesLanguageSlugEditRoute,
   } as any)
 const TaxonomiesLanguagesLanguageSlugHubInfoRoute =
@@ -1966,16 +1749,10 @@ const TaxonomiesLanguagesLanguageSlugHubGalleryRoute =
     path: '/gallery',
     getParentRoute: () => TaxonomiesLanguagesLanguageSlugHubRoute,
   } as any)
-const TaxonomiesGroupsGroupSlugEditPeopleRoute =
-  TaxonomiesGroupsGroupSlugEditPeopleRouteImport.update({
-    id: '/people',
-    path: '/people',
-    getParentRoute: () => TaxonomiesGroupsGroupSlugEditRoute,
-  } as any)
-const TaxonomiesGroupsGroupSlugEditGeneralRoute =
-  TaxonomiesGroupsGroupSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const TaxonomiesGroupsGroupSlugEditSplatRoute =
+  TaxonomiesGroupsGroupSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesGroupsGroupSlugEditRoute,
   } as any)
 const TaxonomiesGroupsGroupSlugHubInfoRoute =
@@ -1990,16 +1767,16 @@ const TaxonomiesGroupsGroupSlugHubGalleryRoute =
     path: '/gallery',
     getParentRoute: () => TaxonomiesGroupsGroupSlugHubRoute,
   } as any)
-const TaxonomiesGroupTypesGroupTypeSlugEditGeneralRoute =
-  TaxonomiesGroupTypesGroupTypeSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const TaxonomiesGroupTypesGroupTypeSlugEditSplatRoute =
+  TaxonomiesGroupTypesGroupTypeSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesGroupTypesGroupTypeSlugEditRoute,
   } as any)
-const TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRoute =
-  TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const TaxonomiesGenresMoodsGenreMoodSlugEditSplatRoute =
+  TaxonomiesGenresMoodsGenreMoodSlugEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => TaxonomiesGenresMoodsGenreMoodSlugEditRoute,
   } as any)
 const TaxonomiesGenresMoodsGenreMoodSlugHubInfoRoute =
@@ -2033,7 +1810,7 @@ export interface FileRoutesByFullPath {
   '/autofill/backfill': typeof AutofillBackfillRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
   '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugRouteWithChildren
-  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
+  '/categories/$categorySlug': typeof CategoriesCategorySlugHubRouteWithChildren
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugRouteWithChildren
@@ -2058,7 +1835,7 @@ export interface FileRoutesByFullPath {
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
+  '/tags/$tagSlug': typeof TagsTagSlugHubRouteWithChildren
   '/taxonomies/genres-moods': typeof TaxonomiesGenresMoodsRouteWithChildren
   '/taxonomies/group-types': typeof TaxonomiesGroupTypesRouteWithChildren
   '/taxonomies/groups': typeof TaxonomiesGroupsRouteWithChildren
@@ -2124,22 +1901,22 @@ export interface FileRoutesByFullPath {
   '/settings/media/manage': typeof SettingsMediaManageRoute
   '/settings/media/screenshot-defaults': typeof SettingsMediaScreenshotDefaultsRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
-  '/taxonomies/genres-moods/$genreMoodSlug': typeof TaxonomiesGenresMoodsGenreMoodSlugRouteWithChildren
+  '/taxonomies/genres-moods/$genreMoodSlug': typeof TaxonomiesGenresMoodsGenreMoodSlugHubRouteWithChildren
   '/taxonomies/group-types/$groupTypeSlug': typeof TaxonomiesGroupTypesGroupTypeSlugRouteWithChildren
-  '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugRouteWithChildren
+  '/taxonomies/groups/$groupSlug': typeof TaxonomiesGroupsGroupSlugHubRouteWithChildren
   '/taxonomies/language-usage-levels/edit': typeof TaxonomiesLanguageUsageLevelsEditRoute
-  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugRouteWithChildren
+  '/taxonomies/languages/$languageSlug': typeof TaxonomiesLanguagesLanguageSlugHubRouteWithChildren
   '/taxonomies/location-relations/$locationRelationSlug': typeof TaxonomiesLocationRelationsLocationRelationSlugRouteWithChildren
-  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugRouteWithChildren
+  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugHubRouteWithChildren
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
-  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
-  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugRouteWithChildren
-  '/taxonomies/people/$personSlug': typeof TaxonomiesPeoplePersonSlugRouteWithChildren
+  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugHubRouteWithChildren
+  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugHubRouteWithChildren
+  '/taxonomies/people/$personSlug': typeof TaxonomiesPeoplePersonSlugHubRouteWithChildren
   '/taxonomies/place-types/$placeTypeSlug': typeof TaxonomiesPlaceTypesPlaceTypeSlugRouteWithChildren
   '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
   '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugRouteWithChildren
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
-  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugHubRouteWithChildren
+  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugHubRouteWithChildren
   '/autofill/$ruleSlug/': typeof AutofillRuleSlugIndexRoute
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/card-display-rules/$ruleSlug/': typeof CardDisplayRulesRuleSlugIndexRoute
@@ -2166,9 +1943,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/relationship-types/': typeof TaxonomiesRelationshipTypesIndexRoute
   '/taxonomies/websites/': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels/': typeof TaxonomiesYoutubeChannelsIndexRoute
-  '/autofill/$ruleSlug/edit/conditions': typeof AutofillRuleSlugEditConditionsRoute
-  '/autofill/$ruleSlug/edit/general': typeof AutofillRuleSlugEditGeneralRoute
-  '/autofill/$ruleSlug/edit/prefill': typeof AutofillRuleSlugEditPrefillRoute
+  '/autofill/$ruleSlug/edit/$': typeof AutofillRuleSlugEditSplatRoute
   '/bookmarks/$bookmarkId/edit/general': typeof BookmarksBookmarkIdEditGeneralRoute
   '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
   '/bookmarks/$bookmarkId/edit/languages': typeof BookmarksBookmarkIdEditLanguagesRoute
@@ -2176,27 +1951,16 @@ export interface FileRoutesByFullPath {
   '/bookmarks/$bookmarkId/edit/related': typeof BookmarksBookmarkIdEditRelatedRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
   '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
-  '/card-display-rules/$ruleSlug/edit/conditions': typeof CardDisplayRulesRuleSlugEditConditionsRoute
-  '/card-display-rules/$ruleSlug/edit/display': typeof CardDisplayRulesRuleSlugEditDisplayRoute
-  '/card-display-rules/$ruleSlug/edit/general': typeof CardDisplayRulesRuleSlugEditGeneralRoute
+  '/card-display-rules/$ruleSlug/edit/$': typeof CardDisplayRulesRuleSlugEditSplatRoute
   '/categories/$categorySlug/gallery': typeof CategoriesCategorySlugHubGalleryRoute
   '/categories/$categorySlug/info': typeof CategoriesCategorySlugHubInfoRoute
   '/categories/$categorySlug/edit/$': typeof CategoriesCategorySlugEditSplatRoute
-  '/custom-properties/$propertySlug/edit/autofill': typeof CustomPropertiesPropertySlugEditAutofillRoute
-  '/custom-properties/$propertySlug/edit/categories': typeof CustomPropertiesPropertySlugEditCategoriesRoute
-  '/custom-properties/$propertySlug/edit/display': typeof CustomPropertiesPropertySlugEditDisplayRoute
-  '/custom-properties/$propertySlug/edit/display-rules': typeof CustomPropertiesPropertySlugEditDisplayRulesRoute
-  '/custom-properties/$propertySlug/edit/general': typeof CustomPropertiesPropertySlugEditGeneralRoute
-  '/custom-properties/$propertySlug/edit/media-types': typeof CustomPropertiesPropertySlugEditMediaTypesRoute
-  '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
-  '/import-rules/$ruleSlug/edit/conditions': typeof ImportRulesRuleSlugEditConditionsRoute
-  '/import-rules/$ruleSlug/edit/general': typeof ImportRulesRuleSlugEditGeneralRoute
-  '/saved-filters/$filterSlug/edit/general': typeof SavedFiltersFilterSlugEditGeneralRoute
+  '/custom-properties/$propertySlug/edit/$': typeof CustomPropertiesPropertySlugEditSplatRoute
+  '/import-rules/$ruleSlug/edit/$': typeof ImportRulesRuleSlugEditSplatRoute
+  '/saved-filters/$filterSlug/edit/$': typeof SavedFiltersFilterSlugEditSplatRoute
   '/tags/$tagSlug/gallery': typeof TagsTagSlugHubGalleryRoute
   '/tags/$tagSlug/info': typeof TagsTagSlugHubInfoRoute
-  '/tags/$tagSlug/edit/autofill': typeof TagsTagSlugEditAutofillRoute
-  '/tags/$tagSlug/edit/display-rules': typeof TagsTagSlugEditDisplayRulesRoute
-  '/tags/$tagSlug/edit/general': typeof TagsTagSlugEditGeneralRoute
+  '/tags/$tagSlug/edit/$': typeof TagsTagSlugEditSplatRoute
   '/taxonomies/genres-moods/$genreMoodSlug/edit': typeof TaxonomiesGenresMoodsGenreMoodSlugEditRouteWithChildren
   '/taxonomies/group-types/$groupTypeSlug/edit': typeof TaxonomiesGroupTypesGroupTypeSlugEditRouteWithChildren
   '/taxonomies/group-types/$groupTypeSlug/info': typeof TaxonomiesGroupTypesGroupTypeSlugInfoRoute
@@ -2233,61 +1997,41 @@ export interface FileRoutesByFullPath {
   '/taxonomies/relationship-types/$relationshipTypeSlug/': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugIndexRoute
   '/taxonomies/genres-moods/$genreMoodSlug/gallery': typeof TaxonomiesGenresMoodsGenreMoodSlugHubGalleryRoute
   '/taxonomies/genres-moods/$genreMoodSlug/info': typeof TaxonomiesGenresMoodsGenreMoodSlugHubInfoRoute
-  '/taxonomies/genres-moods/$genreMoodSlug/edit/general': typeof TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRoute
-  '/taxonomies/group-types/$groupTypeSlug/edit/general': typeof TaxonomiesGroupTypesGroupTypeSlugEditGeneralRoute
+  '/taxonomies/genres-moods/$genreMoodSlug/edit/$': typeof TaxonomiesGenresMoodsGenreMoodSlugEditSplatRoute
+  '/taxonomies/group-types/$groupTypeSlug/edit/$': typeof TaxonomiesGroupTypesGroupTypeSlugEditSplatRoute
   '/taxonomies/groups/$groupSlug/gallery': typeof TaxonomiesGroupsGroupSlugHubGalleryRoute
   '/taxonomies/groups/$groupSlug/info': typeof TaxonomiesGroupsGroupSlugHubInfoRoute
-  '/taxonomies/groups/$groupSlug/edit/general': typeof TaxonomiesGroupsGroupSlugEditGeneralRoute
-  '/taxonomies/groups/$groupSlug/edit/people': typeof TaxonomiesGroupsGroupSlugEditPeopleRoute
+  '/taxonomies/groups/$groupSlug/edit/$': typeof TaxonomiesGroupsGroupSlugEditSplatRoute
   '/taxonomies/languages/$languageSlug/gallery': typeof TaxonomiesLanguagesLanguageSlugHubGalleryRoute
   '/taxonomies/languages/$languageSlug/info': typeof TaxonomiesLanguagesLanguageSlugHubInfoRoute
-  '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
-  '/taxonomies/location-relations/$locationRelationSlug/edit/general': typeof TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute
+  '/taxonomies/languages/$languageSlug/edit/$': typeof TaxonomiesLanguagesLanguageSlugEditSplatRoute
+  '/taxonomies/location-relations/$locationRelationSlug/edit/$': typeof TaxonomiesLocationRelationsLocationRelationSlugEditSplatRoute
   '/taxonomies/locations/$locationSlug/gallery': typeof TaxonomiesLocationsLocationSlugHubGalleryRoute
   '/taxonomies/locations/$locationSlug/info': typeof TaxonomiesLocationsLocationSlugHubInfoRoute
-  '/taxonomies/locations/$locationSlug/edit/autofill': typeof TaxonomiesLocationsLocationSlugEditAutofillRoute
-  '/taxonomies/locations/$locationSlug/edit/display-rules': typeof TaxonomiesLocationsLocationSlugEditDisplayRulesRoute
-  '/taxonomies/locations/$locationSlug/edit/general': typeof TaxonomiesLocationsLocationSlugEditGeneralRoute
+  '/taxonomies/locations/$locationSlug/edit/$': typeof TaxonomiesLocationsLocationSlugEditSplatRoute
   '/taxonomies/media-types/$mediaTypeSlug/gallery': typeof TaxonomiesMediaTypesMediaTypeSlugHubGalleryRoute
   '/taxonomies/media-types/$mediaTypeSlug/info': typeof TaxonomiesMediaTypesMediaTypeSlugHubInfoRoute
-  '/taxonomies/media-types/$mediaTypeSlug/edit/autofill': typeof TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute
-  '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules': typeof TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute
-  '/taxonomies/media-types/$mediaTypeSlug/edit/general': typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute
+  '/taxonomies/media-types/$mediaTypeSlug/edit/$': typeof TaxonomiesMediaTypesMediaTypeSlugEditSplatRoute
   '/taxonomies/newsletters/$newsletterSlug/info': typeof TaxonomiesNewslettersNewsletterSlugHubInfoRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/$': typeof TaxonomiesNewslettersNewsletterSlugEditSplatRoute
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
   '/taxonomies/people/$personSlug/gallery': typeof TaxonomiesPeoplePersonSlugHubGalleryRoute
   '/taxonomies/people/$personSlug/info': typeof TaxonomiesPeoplePersonSlugHubInfoRoute
-  '/taxonomies/people/$personSlug/edit/general': typeof TaxonomiesPeoplePersonSlugEditGeneralRoute
-  '/taxonomies/people/$personSlug/edit/groups': typeof TaxonomiesPeoplePersonSlugEditGroupsRoute
-  '/taxonomies/people/$personSlug/edit/languages': typeof TaxonomiesPeoplePersonSlugEditLanguagesRoute
-  '/taxonomies/people/$personSlug/edit/websites': typeof TaxonomiesPeoplePersonSlugEditWebsitesRoute
-  '/taxonomies/people/$personSlug/edit/youtube-channels': typeof TaxonomiesPeoplePersonSlugEditYoutubeChannelsRoute
-  '/taxonomies/place-types/$placeTypeSlug/edit/general': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/categories': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/media-types': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRoute
-  '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute
+  '/taxonomies/people/$personSlug/edit/$': typeof TaxonomiesPeoplePersonSlugEditSplatRoute
+  '/taxonomies/place-types/$placeTypeSlug/edit/$': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRoute
+  '/taxonomies/property-groups/$propertyGroupSlug/edit/$': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRoute
+  '/taxonomies/relationship-types/$relationshipTypeSlug/edit/$': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRoute
   '/taxonomies/websites/$websiteSlug/gallery': typeof TaxonomiesWebsitesWebsiteSlugHubGalleryRoute
   '/taxonomies/websites/$websiteSlug/info': typeof TaxonomiesWebsitesWebsiteSlugHubInfoRoute
-  '/taxonomies/websites/$websiteSlug/edit/autofill': typeof TaxonomiesWebsitesWebsiteSlugEditAutofillRoute
-  '/taxonomies/websites/$websiteSlug/edit/display-rules': typeof TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute
-  '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
-  '/taxonomies/websites/$websiteSlug/edit/languages': typeof TaxonomiesWebsitesWebsiteSlugEditLanguagesRoute
-  '/taxonomies/websites/$websiteSlug/edit/param-rules': typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
-  '/taxonomies/websites/$websiteSlug/edit/people': typeof TaxonomiesWebsitesWebsiteSlugEditPeopleRoute
-  '/taxonomies/websites/$websiteSlug/edit/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/$': typeof TaxonomiesWebsitesWebsiteSlugEditSplatRoute
   '/taxonomies/youtube-channels/$channelSlug/gallery': typeof TaxonomiesYoutubeChannelsChannelSlugHubGalleryRoute
   '/taxonomies/youtube-channels/$channelSlug/info': typeof TaxonomiesYoutubeChannelsChannelSlugHubInfoRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/autofill': typeof TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/display-rules': typeof TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/general': typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/languages': typeof TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRoute
+  '/taxonomies/youtube-channels/$channelSlug/edit/$': typeof TaxonomiesYoutubeChannelsChannelSlugEditSplatRoute
   '/taxonomies/genres-moods/$genreMoodSlug/': typeof TaxonomiesGenresMoodsGenreMoodSlugHubIndexRoute
   '/taxonomies/genres-moods/$genreMoodSlug/edit/': typeof TaxonomiesGenresMoodsGenreMoodSlugEditIndexRoute
   '/taxonomies/group-types/$groupTypeSlug/edit/': typeof TaxonomiesGroupTypesGroupTypeSlugEditIndexRoute
   '/taxonomies/groups/$groupSlug/': typeof TaxonomiesGroupsGroupSlugHubIndexRoute
+  '/taxonomies/groups/$groupSlug/edit/': typeof TaxonomiesGroupsGroupSlugEditIndexRoute
   '/taxonomies/languages/$languageSlug/': typeof TaxonomiesLanguagesLanguageSlugHubIndexRoute
   '/taxonomies/languages/$languageSlug/edit/': typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
   '/taxonomies/location-relations/$locationRelationSlug/edit/': typeof TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute
@@ -2298,6 +2042,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/newsletters/$newsletterSlug/': typeof TaxonomiesNewslettersNewsletterSlugHubIndexRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/': typeof TaxonomiesNewslettersNewsletterSlugEditIndexRoute
   '/taxonomies/people/$personSlug/': typeof TaxonomiesPeoplePersonSlugHubIndexRoute
+  '/taxonomies/people/$personSlug/edit/': typeof TaxonomiesPeoplePersonSlugEditIndexRoute
   '/taxonomies/place-types/$placeTypeSlug/edit/': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit/': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRoute
@@ -2408,9 +2153,7 @@ export interface FileRoutesByTo {
   '/taxonomies/relationship-types': typeof TaxonomiesRelationshipTypesIndexRoute
   '/taxonomies/websites': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsIndexRoute
-  '/autofill/$ruleSlug/edit/conditions': typeof AutofillRuleSlugEditConditionsRoute
-  '/autofill/$ruleSlug/edit/general': typeof AutofillRuleSlugEditGeneralRoute
-  '/autofill/$ruleSlug/edit/prefill': typeof AutofillRuleSlugEditPrefillRoute
+  '/autofill/$ruleSlug/edit/$': typeof AutofillRuleSlugEditSplatRoute
   '/bookmarks/$bookmarkId/edit/general': typeof BookmarksBookmarkIdEditGeneralRoute
   '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
   '/bookmarks/$bookmarkId/edit/languages': typeof BookmarksBookmarkIdEditLanguagesRoute
@@ -2418,31 +2161,18 @@ export interface FileRoutesByTo {
   '/bookmarks/$bookmarkId/edit/related': typeof BookmarksBookmarkIdEditRelatedRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
   '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
-  '/card-display-rules/$ruleSlug/edit/conditions': typeof CardDisplayRulesRuleSlugEditConditionsRoute
-  '/card-display-rules/$ruleSlug/edit/display': typeof CardDisplayRulesRuleSlugEditDisplayRoute
-  '/card-display-rules/$ruleSlug/edit/general': typeof CardDisplayRulesRuleSlugEditGeneralRoute
+  '/card-display-rules/$ruleSlug/edit/$': typeof CardDisplayRulesRuleSlugEditSplatRoute
   '/categories/$categorySlug/gallery': typeof CategoriesCategorySlugHubGalleryRoute
   '/categories/$categorySlug/info': typeof CategoriesCategorySlugHubInfoRoute
   '/categories/$categorySlug/edit/$': typeof CategoriesCategorySlugEditSplatRoute
-  '/custom-properties/$propertySlug/edit/autofill': typeof CustomPropertiesPropertySlugEditAutofillRoute
-  '/custom-properties/$propertySlug/edit/categories': typeof CustomPropertiesPropertySlugEditCategoriesRoute
-  '/custom-properties/$propertySlug/edit/display': typeof CustomPropertiesPropertySlugEditDisplayRoute
-  '/custom-properties/$propertySlug/edit/display-rules': typeof CustomPropertiesPropertySlugEditDisplayRulesRoute
-  '/custom-properties/$propertySlug/edit/general': typeof CustomPropertiesPropertySlugEditGeneralRoute
-  '/custom-properties/$propertySlug/edit/media-types': typeof CustomPropertiesPropertySlugEditMediaTypesRoute
-  '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
-  '/import-rules/$ruleSlug/edit/conditions': typeof ImportRulesRuleSlugEditConditionsRoute
-  '/import-rules/$ruleSlug/edit/general': typeof ImportRulesRuleSlugEditGeneralRoute
-  '/saved-filters/$filterSlug/edit/general': typeof SavedFiltersFilterSlugEditGeneralRoute
+  '/custom-properties/$propertySlug/edit/$': typeof CustomPropertiesPropertySlugEditSplatRoute
+  '/import-rules/$ruleSlug/edit/$': typeof ImportRulesRuleSlugEditSplatRoute
+  '/saved-filters/$filterSlug/edit/$': typeof SavedFiltersFilterSlugEditSplatRoute
   '/tags/$tagSlug/gallery': typeof TagsTagSlugHubGalleryRoute
   '/tags/$tagSlug/info': typeof TagsTagSlugHubInfoRoute
-  '/tags/$tagSlug/edit/autofill': typeof TagsTagSlugEditAutofillRoute
-  '/tags/$tagSlug/edit/display-rules': typeof TagsTagSlugEditDisplayRulesRoute
-  '/tags/$tagSlug/edit/general': typeof TagsTagSlugEditGeneralRoute
+  '/tags/$tagSlug/edit/$': typeof TagsTagSlugEditSplatRoute
   '/taxonomies/group-types/$groupTypeSlug/info': typeof TaxonomiesGroupTypesGroupTypeSlugInfoRoute
-  '/taxonomies/groups/$groupSlug/edit': typeof TaxonomiesGroupsGroupSlugEditRouteWithChildren
   '/taxonomies/location-relations/$locationRelationSlug/info': typeof TaxonomiesLocationRelationsLocationRelationSlugInfoRoute
-  '/taxonomies/people/$personSlug/edit': typeof TaxonomiesPeoplePersonSlugEditRouteWithChildren
   '/taxonomies/place-types/$placeTypeSlug/info': typeof TaxonomiesPlaceTypesPlaceTypeSlugInfoRoute
   '/taxonomies/property-groups/$propertyGroupSlug/info': typeof TaxonomiesPropertyGroupsPropertyGroupSlugInfoRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/info': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugInfoRoute
@@ -2461,64 +2191,45 @@ export interface FileRoutesByTo {
   '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugIndexRoute
   '/taxonomies/genres-moods/$genreMoodSlug/gallery': typeof TaxonomiesGenresMoodsGenreMoodSlugHubGalleryRoute
   '/taxonomies/genres-moods/$genreMoodSlug/info': typeof TaxonomiesGenresMoodsGenreMoodSlugHubInfoRoute
-  '/taxonomies/genres-moods/$genreMoodSlug/edit/general': typeof TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRoute
-  '/taxonomies/group-types/$groupTypeSlug/edit/general': typeof TaxonomiesGroupTypesGroupTypeSlugEditGeneralRoute
+  '/taxonomies/genres-moods/$genreMoodSlug/edit/$': typeof TaxonomiesGenresMoodsGenreMoodSlugEditSplatRoute
+  '/taxonomies/group-types/$groupTypeSlug/edit/$': typeof TaxonomiesGroupTypesGroupTypeSlugEditSplatRoute
   '/taxonomies/groups/$groupSlug/gallery': typeof TaxonomiesGroupsGroupSlugHubGalleryRoute
   '/taxonomies/groups/$groupSlug/info': typeof TaxonomiesGroupsGroupSlugHubInfoRoute
-  '/taxonomies/groups/$groupSlug/edit/general': typeof TaxonomiesGroupsGroupSlugEditGeneralRoute
-  '/taxonomies/groups/$groupSlug/edit/people': typeof TaxonomiesGroupsGroupSlugEditPeopleRoute
+  '/taxonomies/groups/$groupSlug/edit/$': typeof TaxonomiesGroupsGroupSlugEditSplatRoute
   '/taxonomies/languages/$languageSlug/gallery': typeof TaxonomiesLanguagesLanguageSlugHubGalleryRoute
   '/taxonomies/languages/$languageSlug/info': typeof TaxonomiesLanguagesLanguageSlugHubInfoRoute
-  '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
-  '/taxonomies/location-relations/$locationRelationSlug/edit/general': typeof TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute
+  '/taxonomies/languages/$languageSlug/edit/$': typeof TaxonomiesLanguagesLanguageSlugEditSplatRoute
+  '/taxonomies/location-relations/$locationRelationSlug/edit/$': typeof TaxonomiesLocationRelationsLocationRelationSlugEditSplatRoute
   '/taxonomies/locations/$locationSlug/gallery': typeof TaxonomiesLocationsLocationSlugHubGalleryRoute
   '/taxonomies/locations/$locationSlug/info': typeof TaxonomiesLocationsLocationSlugHubInfoRoute
-  '/taxonomies/locations/$locationSlug/edit/autofill': typeof TaxonomiesLocationsLocationSlugEditAutofillRoute
-  '/taxonomies/locations/$locationSlug/edit/display-rules': typeof TaxonomiesLocationsLocationSlugEditDisplayRulesRoute
-  '/taxonomies/locations/$locationSlug/edit/general': typeof TaxonomiesLocationsLocationSlugEditGeneralRoute
+  '/taxonomies/locations/$locationSlug/edit/$': typeof TaxonomiesLocationsLocationSlugEditSplatRoute
   '/taxonomies/media-types/$mediaTypeSlug/gallery': typeof TaxonomiesMediaTypesMediaTypeSlugHubGalleryRoute
   '/taxonomies/media-types/$mediaTypeSlug/info': typeof TaxonomiesMediaTypesMediaTypeSlugHubInfoRoute
-  '/taxonomies/media-types/$mediaTypeSlug/edit/autofill': typeof TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute
-  '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules': typeof TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute
-  '/taxonomies/media-types/$mediaTypeSlug/edit/general': typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute
+  '/taxonomies/media-types/$mediaTypeSlug/edit/$': typeof TaxonomiesMediaTypesMediaTypeSlugEditSplatRoute
   '/taxonomies/newsletters/$newsletterSlug/info': typeof TaxonomiesNewslettersNewsletterSlugHubInfoRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/$': typeof TaxonomiesNewslettersNewsletterSlugEditSplatRoute
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
   '/taxonomies/people/$personSlug/gallery': typeof TaxonomiesPeoplePersonSlugHubGalleryRoute
   '/taxonomies/people/$personSlug/info': typeof TaxonomiesPeoplePersonSlugHubInfoRoute
-  '/taxonomies/people/$personSlug/edit/general': typeof TaxonomiesPeoplePersonSlugEditGeneralRoute
-  '/taxonomies/people/$personSlug/edit/groups': typeof TaxonomiesPeoplePersonSlugEditGroupsRoute
-  '/taxonomies/people/$personSlug/edit/languages': typeof TaxonomiesPeoplePersonSlugEditLanguagesRoute
-  '/taxonomies/people/$personSlug/edit/websites': typeof TaxonomiesPeoplePersonSlugEditWebsitesRoute
-  '/taxonomies/people/$personSlug/edit/youtube-channels': typeof TaxonomiesPeoplePersonSlugEditYoutubeChannelsRoute
-  '/taxonomies/place-types/$placeTypeSlug/edit/general': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/categories': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/media-types': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRoute
-  '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute
+  '/taxonomies/people/$personSlug/edit/$': typeof TaxonomiesPeoplePersonSlugEditSplatRoute
+  '/taxonomies/place-types/$placeTypeSlug/edit/$': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRoute
+  '/taxonomies/property-groups/$propertyGroupSlug/edit/$': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRoute
+  '/taxonomies/relationship-types/$relationshipTypeSlug/edit/$': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRoute
   '/taxonomies/websites/$websiteSlug/gallery': typeof TaxonomiesWebsitesWebsiteSlugHubGalleryRoute
   '/taxonomies/websites/$websiteSlug/info': typeof TaxonomiesWebsitesWebsiteSlugHubInfoRoute
-  '/taxonomies/websites/$websiteSlug/edit/autofill': typeof TaxonomiesWebsitesWebsiteSlugEditAutofillRoute
-  '/taxonomies/websites/$websiteSlug/edit/display-rules': typeof TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute
-  '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
-  '/taxonomies/websites/$websiteSlug/edit/languages': typeof TaxonomiesWebsitesWebsiteSlugEditLanguagesRoute
-  '/taxonomies/websites/$websiteSlug/edit/param-rules': typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
-  '/taxonomies/websites/$websiteSlug/edit/people': typeof TaxonomiesWebsitesWebsiteSlugEditPeopleRoute
-  '/taxonomies/websites/$websiteSlug/edit/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/$': typeof TaxonomiesWebsitesWebsiteSlugEditSplatRoute
   '/taxonomies/youtube-channels/$channelSlug/gallery': typeof TaxonomiesYoutubeChannelsChannelSlugHubGalleryRoute
   '/taxonomies/youtube-channels/$channelSlug/info': typeof TaxonomiesYoutubeChannelsChannelSlugHubInfoRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/autofill': typeof TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/display-rules': typeof TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/general': typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/languages': typeof TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRoute
+  '/taxonomies/youtube-channels/$channelSlug/edit/$': typeof TaxonomiesYoutubeChannelsChannelSlugEditSplatRoute
   '/taxonomies/genres-moods/$genreMoodSlug/edit': typeof TaxonomiesGenresMoodsGenreMoodSlugEditIndexRoute
   '/taxonomies/group-types/$groupTypeSlug/edit': typeof TaxonomiesGroupTypesGroupTypeSlugEditIndexRoute
+  '/taxonomies/groups/$groupSlug/edit': typeof TaxonomiesGroupsGroupSlugEditIndexRoute
   '/taxonomies/languages/$languageSlug/edit': typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
   '/taxonomies/location-relations/$locationRelationSlug/edit': typeof TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute
   '/taxonomies/locations/$locationSlug/edit': typeof TaxonomiesLocationsLocationSlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
   '/taxonomies/newsletters/$newsletterSlug/edit': typeof TaxonomiesNewslettersNewsletterSlugEditIndexRoute
+  '/taxonomies/people/$personSlug/edit': typeof TaxonomiesPeoplePersonSlugEditIndexRoute
   '/taxonomies/place-types/$placeTypeSlug/edit': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRoute
@@ -2679,9 +2390,7 @@ export interface FileRoutesById {
   '/taxonomies/relationship-types/': typeof TaxonomiesRelationshipTypesIndexRoute
   '/taxonomies/websites/': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels/': typeof TaxonomiesYoutubeChannelsIndexRoute
-  '/autofill/$ruleSlug/edit/conditions': typeof AutofillRuleSlugEditConditionsRoute
-  '/autofill/$ruleSlug/edit/general': typeof AutofillRuleSlugEditGeneralRoute
-  '/autofill/$ruleSlug/edit/prefill': typeof AutofillRuleSlugEditPrefillRoute
+  '/autofill/$ruleSlug/edit/$': typeof AutofillRuleSlugEditSplatRoute
   '/bookmarks/$bookmarkId/edit/general': typeof BookmarksBookmarkIdEditGeneralRoute
   '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
   '/bookmarks/$bookmarkId/edit/languages': typeof BookmarksBookmarkIdEditLanguagesRoute
@@ -2689,27 +2398,16 @@ export interface FileRoutesById {
   '/bookmarks/$bookmarkId/edit/related': typeof BookmarksBookmarkIdEditRelatedRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
   '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
-  '/card-display-rules/$ruleSlug/edit/conditions': typeof CardDisplayRulesRuleSlugEditConditionsRoute
-  '/card-display-rules/$ruleSlug/edit/display': typeof CardDisplayRulesRuleSlugEditDisplayRoute
-  '/card-display-rules/$ruleSlug/edit/general': typeof CardDisplayRulesRuleSlugEditGeneralRoute
+  '/card-display-rules/$ruleSlug/edit/$': typeof CardDisplayRulesRuleSlugEditSplatRoute
   '/categories/$categorySlug/_hub/gallery': typeof CategoriesCategorySlugHubGalleryRoute
   '/categories/$categorySlug/_hub/info': typeof CategoriesCategorySlugHubInfoRoute
   '/categories/$categorySlug/edit/$': typeof CategoriesCategorySlugEditSplatRoute
-  '/custom-properties/$propertySlug/edit/autofill': typeof CustomPropertiesPropertySlugEditAutofillRoute
-  '/custom-properties/$propertySlug/edit/categories': typeof CustomPropertiesPropertySlugEditCategoriesRoute
-  '/custom-properties/$propertySlug/edit/display': typeof CustomPropertiesPropertySlugEditDisplayRoute
-  '/custom-properties/$propertySlug/edit/display-rules': typeof CustomPropertiesPropertySlugEditDisplayRulesRoute
-  '/custom-properties/$propertySlug/edit/general': typeof CustomPropertiesPropertySlugEditGeneralRoute
-  '/custom-properties/$propertySlug/edit/media-types': typeof CustomPropertiesPropertySlugEditMediaTypesRoute
-  '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
-  '/import-rules/$ruleSlug/edit/conditions': typeof ImportRulesRuleSlugEditConditionsRoute
-  '/import-rules/$ruleSlug/edit/general': typeof ImportRulesRuleSlugEditGeneralRoute
-  '/saved-filters/$filterSlug/edit/general': typeof SavedFiltersFilterSlugEditGeneralRoute
+  '/custom-properties/$propertySlug/edit/$': typeof CustomPropertiesPropertySlugEditSplatRoute
+  '/import-rules/$ruleSlug/edit/$': typeof ImportRulesRuleSlugEditSplatRoute
+  '/saved-filters/$filterSlug/edit/$': typeof SavedFiltersFilterSlugEditSplatRoute
   '/tags/$tagSlug/_hub/gallery': typeof TagsTagSlugHubGalleryRoute
   '/tags/$tagSlug/_hub/info': typeof TagsTagSlugHubInfoRoute
-  '/tags/$tagSlug/edit/autofill': typeof TagsTagSlugEditAutofillRoute
-  '/tags/$tagSlug/edit/display-rules': typeof TagsTagSlugEditDisplayRulesRoute
-  '/tags/$tagSlug/edit/general': typeof TagsTagSlugEditGeneralRoute
+  '/tags/$tagSlug/edit/$': typeof TagsTagSlugEditSplatRoute
   '/taxonomies/genres-moods/$genreMoodSlug/_hub': typeof TaxonomiesGenresMoodsGenreMoodSlugHubRouteWithChildren
   '/taxonomies/genres-moods/$genreMoodSlug/edit': typeof TaxonomiesGenresMoodsGenreMoodSlugEditRouteWithChildren
   '/taxonomies/group-types/$groupTypeSlug/edit': typeof TaxonomiesGroupTypesGroupTypeSlugEditRouteWithChildren
@@ -2755,61 +2453,41 @@ export interface FileRoutesById {
   '/taxonomies/relationship-types/$relationshipTypeSlug/': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugIndexRoute
   '/taxonomies/genres-moods/$genreMoodSlug/_hub/gallery': typeof TaxonomiesGenresMoodsGenreMoodSlugHubGalleryRoute
   '/taxonomies/genres-moods/$genreMoodSlug/_hub/info': typeof TaxonomiesGenresMoodsGenreMoodSlugHubInfoRoute
-  '/taxonomies/genres-moods/$genreMoodSlug/edit/general': typeof TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRoute
-  '/taxonomies/group-types/$groupTypeSlug/edit/general': typeof TaxonomiesGroupTypesGroupTypeSlugEditGeneralRoute
+  '/taxonomies/genres-moods/$genreMoodSlug/edit/$': typeof TaxonomiesGenresMoodsGenreMoodSlugEditSplatRoute
+  '/taxonomies/group-types/$groupTypeSlug/edit/$': typeof TaxonomiesGroupTypesGroupTypeSlugEditSplatRoute
   '/taxonomies/groups/$groupSlug/_hub/gallery': typeof TaxonomiesGroupsGroupSlugHubGalleryRoute
   '/taxonomies/groups/$groupSlug/_hub/info': typeof TaxonomiesGroupsGroupSlugHubInfoRoute
-  '/taxonomies/groups/$groupSlug/edit/general': typeof TaxonomiesGroupsGroupSlugEditGeneralRoute
-  '/taxonomies/groups/$groupSlug/edit/people': typeof TaxonomiesGroupsGroupSlugEditPeopleRoute
+  '/taxonomies/groups/$groupSlug/edit/$': typeof TaxonomiesGroupsGroupSlugEditSplatRoute
   '/taxonomies/languages/$languageSlug/_hub/gallery': typeof TaxonomiesLanguagesLanguageSlugHubGalleryRoute
   '/taxonomies/languages/$languageSlug/_hub/info': typeof TaxonomiesLanguagesLanguageSlugHubInfoRoute
-  '/taxonomies/languages/$languageSlug/edit/general': typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
-  '/taxonomies/location-relations/$locationRelationSlug/edit/general': typeof TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute
+  '/taxonomies/languages/$languageSlug/edit/$': typeof TaxonomiesLanguagesLanguageSlugEditSplatRoute
+  '/taxonomies/location-relations/$locationRelationSlug/edit/$': typeof TaxonomiesLocationRelationsLocationRelationSlugEditSplatRoute
   '/taxonomies/locations/$locationSlug/_hub/gallery': typeof TaxonomiesLocationsLocationSlugHubGalleryRoute
   '/taxonomies/locations/$locationSlug/_hub/info': typeof TaxonomiesLocationsLocationSlugHubInfoRoute
-  '/taxonomies/locations/$locationSlug/edit/autofill': typeof TaxonomiesLocationsLocationSlugEditAutofillRoute
-  '/taxonomies/locations/$locationSlug/edit/display-rules': typeof TaxonomiesLocationsLocationSlugEditDisplayRulesRoute
-  '/taxonomies/locations/$locationSlug/edit/general': typeof TaxonomiesLocationsLocationSlugEditGeneralRoute
+  '/taxonomies/locations/$locationSlug/edit/$': typeof TaxonomiesLocationsLocationSlugEditSplatRoute
   '/taxonomies/media-types/$mediaTypeSlug/_hub/gallery': typeof TaxonomiesMediaTypesMediaTypeSlugHubGalleryRoute
   '/taxonomies/media-types/$mediaTypeSlug/_hub/info': typeof TaxonomiesMediaTypesMediaTypeSlugHubInfoRoute
-  '/taxonomies/media-types/$mediaTypeSlug/edit/autofill': typeof TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute
-  '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules': typeof TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute
-  '/taxonomies/media-types/$mediaTypeSlug/edit/general': typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute
+  '/taxonomies/media-types/$mediaTypeSlug/edit/$': typeof TaxonomiesMediaTypesMediaTypeSlugEditSplatRoute
   '/taxonomies/newsletters/$newsletterSlug/_hub/info': typeof TaxonomiesNewslettersNewsletterSlugHubInfoRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/$': typeof TaxonomiesNewslettersNewsletterSlugEditSplatRoute
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
   '/taxonomies/people/$personSlug/_hub/gallery': typeof TaxonomiesPeoplePersonSlugHubGalleryRoute
   '/taxonomies/people/$personSlug/_hub/info': typeof TaxonomiesPeoplePersonSlugHubInfoRoute
-  '/taxonomies/people/$personSlug/edit/general': typeof TaxonomiesPeoplePersonSlugEditGeneralRoute
-  '/taxonomies/people/$personSlug/edit/groups': typeof TaxonomiesPeoplePersonSlugEditGroupsRoute
-  '/taxonomies/people/$personSlug/edit/languages': typeof TaxonomiesPeoplePersonSlugEditLanguagesRoute
-  '/taxonomies/people/$personSlug/edit/websites': typeof TaxonomiesPeoplePersonSlugEditWebsitesRoute
-  '/taxonomies/people/$personSlug/edit/youtube-channels': typeof TaxonomiesPeoplePersonSlugEditYoutubeChannelsRoute
-  '/taxonomies/place-types/$placeTypeSlug/edit/general': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/categories': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute
-  '/taxonomies/property-groups/$propertyGroupSlug/edit/media-types': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRoute
-  '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute
+  '/taxonomies/people/$personSlug/edit/$': typeof TaxonomiesPeoplePersonSlugEditSplatRoute
+  '/taxonomies/place-types/$placeTypeSlug/edit/$': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRoute
+  '/taxonomies/property-groups/$propertyGroupSlug/edit/$': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRoute
+  '/taxonomies/relationship-types/$relationshipTypeSlug/edit/$': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRoute
   '/taxonomies/websites/$websiteSlug/_hub/gallery': typeof TaxonomiesWebsitesWebsiteSlugHubGalleryRoute
   '/taxonomies/websites/$websiteSlug/_hub/info': typeof TaxonomiesWebsitesWebsiteSlugHubInfoRoute
-  '/taxonomies/websites/$websiteSlug/edit/autofill': typeof TaxonomiesWebsitesWebsiteSlugEditAutofillRoute
-  '/taxonomies/websites/$websiteSlug/edit/display-rules': typeof TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute
-  '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
-  '/taxonomies/websites/$websiteSlug/edit/languages': typeof TaxonomiesWebsitesWebsiteSlugEditLanguagesRoute
-  '/taxonomies/websites/$websiteSlug/edit/param-rules': typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
-  '/taxonomies/websites/$websiteSlug/edit/people': typeof TaxonomiesWebsitesWebsiteSlugEditPeopleRoute
-  '/taxonomies/websites/$websiteSlug/edit/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/$': typeof TaxonomiesWebsitesWebsiteSlugEditSplatRoute
   '/taxonomies/youtube-channels/$channelSlug/_hub/gallery': typeof TaxonomiesYoutubeChannelsChannelSlugHubGalleryRoute
   '/taxonomies/youtube-channels/$channelSlug/_hub/info': typeof TaxonomiesYoutubeChannelsChannelSlugHubInfoRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/autofill': typeof TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/display-rules': typeof TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/general': typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/languages': typeof TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRoute
+  '/taxonomies/youtube-channels/$channelSlug/edit/$': typeof TaxonomiesYoutubeChannelsChannelSlugEditSplatRoute
   '/taxonomies/genres-moods/$genreMoodSlug/_hub/': typeof TaxonomiesGenresMoodsGenreMoodSlugHubIndexRoute
   '/taxonomies/genres-moods/$genreMoodSlug/edit/': typeof TaxonomiesGenresMoodsGenreMoodSlugEditIndexRoute
   '/taxonomies/group-types/$groupTypeSlug/edit/': typeof TaxonomiesGroupTypesGroupTypeSlugEditIndexRoute
   '/taxonomies/groups/$groupSlug/_hub/': typeof TaxonomiesGroupsGroupSlugHubIndexRoute
+  '/taxonomies/groups/$groupSlug/edit/': typeof TaxonomiesGroupsGroupSlugEditIndexRoute
   '/taxonomies/languages/$languageSlug/_hub/': typeof TaxonomiesLanguagesLanguageSlugHubIndexRoute
   '/taxonomies/languages/$languageSlug/edit/': typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
   '/taxonomies/location-relations/$locationRelationSlug/edit/': typeof TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute
@@ -2820,6 +2498,7 @@ export interface FileRoutesById {
   '/taxonomies/newsletters/$newsletterSlug/_hub/': typeof TaxonomiesNewslettersNewsletterSlugHubIndexRoute
   '/taxonomies/newsletters/$newsletterSlug/edit/': typeof TaxonomiesNewslettersNewsletterSlugEditIndexRoute
   '/taxonomies/people/$personSlug/_hub/': typeof TaxonomiesPeoplePersonSlugHubIndexRoute
+  '/taxonomies/people/$personSlug/edit/': typeof TaxonomiesPeoplePersonSlugEditIndexRoute
   '/taxonomies/place-types/$placeTypeSlug/edit/': typeof TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit/': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRoute
@@ -2981,9 +2660,7 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types/'
     | '/taxonomies/websites/'
     | '/taxonomies/youtube-channels/'
-    | '/autofill/$ruleSlug/edit/conditions'
-    | '/autofill/$ruleSlug/edit/general'
-    | '/autofill/$ruleSlug/edit/prefill'
+    | '/autofill/$ruleSlug/edit/$'
     | '/bookmarks/$bookmarkId/edit/general'
     | '/bookmarks/$bookmarkId/edit/image'
     | '/bookmarks/$bookmarkId/edit/languages'
@@ -2991,27 +2668,16 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit/related'
     | '/bookmarks/$bookmarkId/edit/relationships'
     | '/bookmarks/$bookmarkId/edit/video'
-    | '/card-display-rules/$ruleSlug/edit/conditions'
-    | '/card-display-rules/$ruleSlug/edit/display'
-    | '/card-display-rules/$ruleSlug/edit/general'
+    | '/card-display-rules/$ruleSlug/edit/$'
     | '/categories/$categorySlug/gallery'
     | '/categories/$categorySlug/info'
     | '/categories/$categorySlug/edit/$'
-    | '/custom-properties/$propertySlug/edit/autofill'
-    | '/custom-properties/$propertySlug/edit/categories'
-    | '/custom-properties/$propertySlug/edit/display'
-    | '/custom-properties/$propertySlug/edit/display-rules'
-    | '/custom-properties/$propertySlug/edit/general'
-    | '/custom-properties/$propertySlug/edit/media-types'
-    | '/custom-properties/$propertySlug/edit/options'
-    | '/import-rules/$ruleSlug/edit/conditions'
-    | '/import-rules/$ruleSlug/edit/general'
-    | '/saved-filters/$filterSlug/edit/general'
+    | '/custom-properties/$propertySlug/edit/$'
+    | '/import-rules/$ruleSlug/edit/$'
+    | '/saved-filters/$filterSlug/edit/$'
     | '/tags/$tagSlug/gallery'
     | '/tags/$tagSlug/info'
-    | '/tags/$tagSlug/edit/autofill'
-    | '/tags/$tagSlug/edit/display-rules'
-    | '/tags/$tagSlug/edit/general'
+    | '/tags/$tagSlug/edit/$'
     | '/taxonomies/genres-moods/$genreMoodSlug/edit'
     | '/taxonomies/group-types/$groupTypeSlug/edit'
     | '/taxonomies/group-types/$groupTypeSlug/info'
@@ -3048,61 +2714,41 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types/$relationshipTypeSlug/'
     | '/taxonomies/genres-moods/$genreMoodSlug/gallery'
     | '/taxonomies/genres-moods/$genreMoodSlug/info'
-    | '/taxonomies/genres-moods/$genreMoodSlug/edit/general'
-    | '/taxonomies/group-types/$groupTypeSlug/edit/general'
+    | '/taxonomies/genres-moods/$genreMoodSlug/edit/$'
+    | '/taxonomies/group-types/$groupTypeSlug/edit/$'
     | '/taxonomies/groups/$groupSlug/gallery'
     | '/taxonomies/groups/$groupSlug/info'
-    | '/taxonomies/groups/$groupSlug/edit/general'
-    | '/taxonomies/groups/$groupSlug/edit/people'
+    | '/taxonomies/groups/$groupSlug/edit/$'
     | '/taxonomies/languages/$languageSlug/gallery'
     | '/taxonomies/languages/$languageSlug/info'
-    | '/taxonomies/languages/$languageSlug/edit/general'
-    | '/taxonomies/location-relations/$locationRelationSlug/edit/general'
+    | '/taxonomies/languages/$languageSlug/edit/$'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit/$'
     | '/taxonomies/locations/$locationSlug/gallery'
     | '/taxonomies/locations/$locationSlug/info'
-    | '/taxonomies/locations/$locationSlug/edit/autofill'
-    | '/taxonomies/locations/$locationSlug/edit/display-rules'
-    | '/taxonomies/locations/$locationSlug/edit/general'
+    | '/taxonomies/locations/$locationSlug/edit/$'
     | '/taxonomies/media-types/$mediaTypeSlug/gallery'
     | '/taxonomies/media-types/$mediaTypeSlug/info'
-    | '/taxonomies/media-types/$mediaTypeSlug/edit/autofill'
-    | '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules'
-    | '/taxonomies/media-types/$mediaTypeSlug/edit/general'
+    | '/taxonomies/media-types/$mediaTypeSlug/edit/$'
     | '/taxonomies/newsletters/$newsletterSlug/info'
     | '/taxonomies/newsletters/$newsletterSlug/edit/$'
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
     | '/taxonomies/people/$personSlug/gallery'
     | '/taxonomies/people/$personSlug/info'
-    | '/taxonomies/people/$personSlug/edit/general'
-    | '/taxonomies/people/$personSlug/edit/groups'
-    | '/taxonomies/people/$personSlug/edit/languages'
-    | '/taxonomies/people/$personSlug/edit/websites'
-    | '/taxonomies/people/$personSlug/edit/youtube-channels'
-    | '/taxonomies/place-types/$placeTypeSlug/edit/general'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/categories'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/media-types'
-    | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
+    | '/taxonomies/people/$personSlug/edit/$'
+    | '/taxonomies/place-types/$placeTypeSlug/edit/$'
+    | '/taxonomies/property-groups/$propertyGroupSlug/edit/$'
+    | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/$'
     | '/taxonomies/websites/$websiteSlug/gallery'
     | '/taxonomies/websites/$websiteSlug/info'
-    | '/taxonomies/websites/$websiteSlug/edit/autofill'
-    | '/taxonomies/websites/$websiteSlug/edit/display-rules'
-    | '/taxonomies/websites/$websiteSlug/edit/general'
-    | '/taxonomies/websites/$websiteSlug/edit/languages'
-    | '/taxonomies/websites/$websiteSlug/edit/param-rules'
-    | '/taxonomies/websites/$websiteSlug/edit/people'
-    | '/taxonomies/websites/$websiteSlug/edit/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/$'
     | '/taxonomies/youtube-channels/$channelSlug/gallery'
     | '/taxonomies/youtube-channels/$channelSlug/info'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/autofill'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/display-rules'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/general'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/languages'
+    | '/taxonomies/youtube-channels/$channelSlug/edit/$'
     | '/taxonomies/genres-moods/$genreMoodSlug/'
     | '/taxonomies/genres-moods/$genreMoodSlug/edit/'
     | '/taxonomies/group-types/$groupTypeSlug/edit/'
     | '/taxonomies/groups/$groupSlug/'
+    | '/taxonomies/groups/$groupSlug/edit/'
     | '/taxonomies/languages/$languageSlug/'
     | '/taxonomies/languages/$languageSlug/edit/'
     | '/taxonomies/location-relations/$locationRelationSlug/edit/'
@@ -3113,6 +2759,7 @@ export interface FileRouteTypes {
     | '/taxonomies/newsletters/$newsletterSlug/'
     | '/taxonomies/newsletters/$newsletterSlug/edit/'
     | '/taxonomies/people/$personSlug/'
+    | '/taxonomies/people/$personSlug/edit/'
     | '/taxonomies/place-types/$placeTypeSlug/edit/'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/'
@@ -3223,9 +2870,7 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
-    | '/autofill/$ruleSlug/edit/conditions'
-    | '/autofill/$ruleSlug/edit/general'
-    | '/autofill/$ruleSlug/edit/prefill'
+    | '/autofill/$ruleSlug/edit/$'
     | '/bookmarks/$bookmarkId/edit/general'
     | '/bookmarks/$bookmarkId/edit/image'
     | '/bookmarks/$bookmarkId/edit/languages'
@@ -3233,31 +2878,18 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit/related'
     | '/bookmarks/$bookmarkId/edit/relationships'
     | '/bookmarks/$bookmarkId/edit/video'
-    | '/card-display-rules/$ruleSlug/edit/conditions'
-    | '/card-display-rules/$ruleSlug/edit/display'
-    | '/card-display-rules/$ruleSlug/edit/general'
+    | '/card-display-rules/$ruleSlug/edit/$'
     | '/categories/$categorySlug/gallery'
     | '/categories/$categorySlug/info'
     | '/categories/$categorySlug/edit/$'
-    | '/custom-properties/$propertySlug/edit/autofill'
-    | '/custom-properties/$propertySlug/edit/categories'
-    | '/custom-properties/$propertySlug/edit/display'
-    | '/custom-properties/$propertySlug/edit/display-rules'
-    | '/custom-properties/$propertySlug/edit/general'
-    | '/custom-properties/$propertySlug/edit/media-types'
-    | '/custom-properties/$propertySlug/edit/options'
-    | '/import-rules/$ruleSlug/edit/conditions'
-    | '/import-rules/$ruleSlug/edit/general'
-    | '/saved-filters/$filterSlug/edit/general'
+    | '/custom-properties/$propertySlug/edit/$'
+    | '/import-rules/$ruleSlug/edit/$'
+    | '/saved-filters/$filterSlug/edit/$'
     | '/tags/$tagSlug/gallery'
     | '/tags/$tagSlug/info'
-    | '/tags/$tagSlug/edit/autofill'
-    | '/tags/$tagSlug/edit/display-rules'
-    | '/tags/$tagSlug/edit/general'
+    | '/tags/$tagSlug/edit/$'
     | '/taxonomies/group-types/$groupTypeSlug/info'
-    | '/taxonomies/groups/$groupSlug/edit'
     | '/taxonomies/location-relations/$locationRelationSlug/info'
-    | '/taxonomies/people/$personSlug/edit'
     | '/taxonomies/place-types/$placeTypeSlug/info'
     | '/taxonomies/property-groups/$propertyGroupSlug/info'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/info'
@@ -3276,64 +2908,45 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types/$relationshipTypeSlug'
     | '/taxonomies/genres-moods/$genreMoodSlug/gallery'
     | '/taxonomies/genres-moods/$genreMoodSlug/info'
-    | '/taxonomies/genres-moods/$genreMoodSlug/edit/general'
-    | '/taxonomies/group-types/$groupTypeSlug/edit/general'
+    | '/taxonomies/genres-moods/$genreMoodSlug/edit/$'
+    | '/taxonomies/group-types/$groupTypeSlug/edit/$'
     | '/taxonomies/groups/$groupSlug/gallery'
     | '/taxonomies/groups/$groupSlug/info'
-    | '/taxonomies/groups/$groupSlug/edit/general'
-    | '/taxonomies/groups/$groupSlug/edit/people'
+    | '/taxonomies/groups/$groupSlug/edit/$'
     | '/taxonomies/languages/$languageSlug/gallery'
     | '/taxonomies/languages/$languageSlug/info'
-    | '/taxonomies/languages/$languageSlug/edit/general'
-    | '/taxonomies/location-relations/$locationRelationSlug/edit/general'
+    | '/taxonomies/languages/$languageSlug/edit/$'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit/$'
     | '/taxonomies/locations/$locationSlug/gallery'
     | '/taxonomies/locations/$locationSlug/info'
-    | '/taxonomies/locations/$locationSlug/edit/autofill'
-    | '/taxonomies/locations/$locationSlug/edit/display-rules'
-    | '/taxonomies/locations/$locationSlug/edit/general'
+    | '/taxonomies/locations/$locationSlug/edit/$'
     | '/taxonomies/media-types/$mediaTypeSlug/gallery'
     | '/taxonomies/media-types/$mediaTypeSlug/info'
-    | '/taxonomies/media-types/$mediaTypeSlug/edit/autofill'
-    | '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules'
-    | '/taxonomies/media-types/$mediaTypeSlug/edit/general'
+    | '/taxonomies/media-types/$mediaTypeSlug/edit/$'
     | '/taxonomies/newsletters/$newsletterSlug/info'
     | '/taxonomies/newsletters/$newsletterSlug/edit/$'
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
     | '/taxonomies/people/$personSlug/gallery'
     | '/taxonomies/people/$personSlug/info'
-    | '/taxonomies/people/$personSlug/edit/general'
-    | '/taxonomies/people/$personSlug/edit/groups'
-    | '/taxonomies/people/$personSlug/edit/languages'
-    | '/taxonomies/people/$personSlug/edit/websites'
-    | '/taxonomies/people/$personSlug/edit/youtube-channels'
-    | '/taxonomies/place-types/$placeTypeSlug/edit/general'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/categories'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/media-types'
-    | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
+    | '/taxonomies/people/$personSlug/edit/$'
+    | '/taxonomies/place-types/$placeTypeSlug/edit/$'
+    | '/taxonomies/property-groups/$propertyGroupSlug/edit/$'
+    | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/$'
     | '/taxonomies/websites/$websiteSlug/gallery'
     | '/taxonomies/websites/$websiteSlug/info'
-    | '/taxonomies/websites/$websiteSlug/edit/autofill'
-    | '/taxonomies/websites/$websiteSlug/edit/display-rules'
-    | '/taxonomies/websites/$websiteSlug/edit/general'
-    | '/taxonomies/websites/$websiteSlug/edit/languages'
-    | '/taxonomies/websites/$websiteSlug/edit/param-rules'
-    | '/taxonomies/websites/$websiteSlug/edit/people'
-    | '/taxonomies/websites/$websiteSlug/edit/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/$'
     | '/taxonomies/youtube-channels/$channelSlug/gallery'
     | '/taxonomies/youtube-channels/$channelSlug/info'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/autofill'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/display-rules'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/general'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/languages'
+    | '/taxonomies/youtube-channels/$channelSlug/edit/$'
     | '/taxonomies/genres-moods/$genreMoodSlug/edit'
     | '/taxonomies/group-types/$groupTypeSlug/edit'
+    | '/taxonomies/groups/$groupSlug/edit'
     | '/taxonomies/languages/$languageSlug/edit'
     | '/taxonomies/location-relations/$locationRelationSlug/edit'
     | '/taxonomies/locations/$locationSlug/edit'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
     | '/taxonomies/newsletters/$newsletterSlug/edit'
+    | '/taxonomies/people/$personSlug/edit'
     | '/taxonomies/place-types/$placeTypeSlug/edit'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit'
@@ -3493,9 +3106,7 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types/'
     | '/taxonomies/websites/'
     | '/taxonomies/youtube-channels/'
-    | '/autofill/$ruleSlug/edit/conditions'
-    | '/autofill/$ruleSlug/edit/general'
-    | '/autofill/$ruleSlug/edit/prefill'
+    | '/autofill/$ruleSlug/edit/$'
     | '/bookmarks/$bookmarkId/edit/general'
     | '/bookmarks/$bookmarkId/edit/image'
     | '/bookmarks/$bookmarkId/edit/languages'
@@ -3503,27 +3114,16 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit/related'
     | '/bookmarks/$bookmarkId/edit/relationships'
     | '/bookmarks/$bookmarkId/edit/video'
-    | '/card-display-rules/$ruleSlug/edit/conditions'
-    | '/card-display-rules/$ruleSlug/edit/display'
-    | '/card-display-rules/$ruleSlug/edit/general'
+    | '/card-display-rules/$ruleSlug/edit/$'
     | '/categories/$categorySlug/_hub/gallery'
     | '/categories/$categorySlug/_hub/info'
     | '/categories/$categorySlug/edit/$'
-    | '/custom-properties/$propertySlug/edit/autofill'
-    | '/custom-properties/$propertySlug/edit/categories'
-    | '/custom-properties/$propertySlug/edit/display'
-    | '/custom-properties/$propertySlug/edit/display-rules'
-    | '/custom-properties/$propertySlug/edit/general'
-    | '/custom-properties/$propertySlug/edit/media-types'
-    | '/custom-properties/$propertySlug/edit/options'
-    | '/import-rules/$ruleSlug/edit/conditions'
-    | '/import-rules/$ruleSlug/edit/general'
-    | '/saved-filters/$filterSlug/edit/general'
+    | '/custom-properties/$propertySlug/edit/$'
+    | '/import-rules/$ruleSlug/edit/$'
+    | '/saved-filters/$filterSlug/edit/$'
     | '/tags/$tagSlug/_hub/gallery'
     | '/tags/$tagSlug/_hub/info'
-    | '/tags/$tagSlug/edit/autofill'
-    | '/tags/$tagSlug/edit/display-rules'
-    | '/tags/$tagSlug/edit/general'
+    | '/tags/$tagSlug/edit/$'
     | '/taxonomies/genres-moods/$genreMoodSlug/_hub'
     | '/taxonomies/genres-moods/$genreMoodSlug/edit'
     | '/taxonomies/group-types/$groupTypeSlug/edit'
@@ -3569,61 +3169,41 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types/$relationshipTypeSlug/'
     | '/taxonomies/genres-moods/$genreMoodSlug/_hub/gallery'
     | '/taxonomies/genres-moods/$genreMoodSlug/_hub/info'
-    | '/taxonomies/genres-moods/$genreMoodSlug/edit/general'
-    | '/taxonomies/group-types/$groupTypeSlug/edit/general'
+    | '/taxonomies/genres-moods/$genreMoodSlug/edit/$'
+    | '/taxonomies/group-types/$groupTypeSlug/edit/$'
     | '/taxonomies/groups/$groupSlug/_hub/gallery'
     | '/taxonomies/groups/$groupSlug/_hub/info'
-    | '/taxonomies/groups/$groupSlug/edit/general'
-    | '/taxonomies/groups/$groupSlug/edit/people'
+    | '/taxonomies/groups/$groupSlug/edit/$'
     | '/taxonomies/languages/$languageSlug/_hub/gallery'
     | '/taxonomies/languages/$languageSlug/_hub/info'
-    | '/taxonomies/languages/$languageSlug/edit/general'
-    | '/taxonomies/location-relations/$locationRelationSlug/edit/general'
+    | '/taxonomies/languages/$languageSlug/edit/$'
+    | '/taxonomies/location-relations/$locationRelationSlug/edit/$'
     | '/taxonomies/locations/$locationSlug/_hub/gallery'
     | '/taxonomies/locations/$locationSlug/_hub/info'
-    | '/taxonomies/locations/$locationSlug/edit/autofill'
-    | '/taxonomies/locations/$locationSlug/edit/display-rules'
-    | '/taxonomies/locations/$locationSlug/edit/general'
+    | '/taxonomies/locations/$locationSlug/edit/$'
     | '/taxonomies/media-types/$mediaTypeSlug/_hub/gallery'
     | '/taxonomies/media-types/$mediaTypeSlug/_hub/info'
-    | '/taxonomies/media-types/$mediaTypeSlug/edit/autofill'
-    | '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules'
-    | '/taxonomies/media-types/$mediaTypeSlug/edit/general'
+    | '/taxonomies/media-types/$mediaTypeSlug/edit/$'
     | '/taxonomies/newsletters/$newsletterSlug/_hub/info'
     | '/taxonomies/newsletters/$newsletterSlug/edit/$'
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
     | '/taxonomies/people/$personSlug/_hub/gallery'
     | '/taxonomies/people/$personSlug/_hub/info'
-    | '/taxonomies/people/$personSlug/edit/general'
-    | '/taxonomies/people/$personSlug/edit/groups'
-    | '/taxonomies/people/$personSlug/edit/languages'
-    | '/taxonomies/people/$personSlug/edit/websites'
-    | '/taxonomies/people/$personSlug/edit/youtube-channels'
-    | '/taxonomies/place-types/$placeTypeSlug/edit/general'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/categories'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
-    | '/taxonomies/property-groups/$propertyGroupSlug/edit/media-types'
-    | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
+    | '/taxonomies/people/$personSlug/edit/$'
+    | '/taxonomies/place-types/$placeTypeSlug/edit/$'
+    | '/taxonomies/property-groups/$propertyGroupSlug/edit/$'
+    | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/$'
     | '/taxonomies/websites/$websiteSlug/_hub/gallery'
     | '/taxonomies/websites/$websiteSlug/_hub/info'
-    | '/taxonomies/websites/$websiteSlug/edit/autofill'
-    | '/taxonomies/websites/$websiteSlug/edit/display-rules'
-    | '/taxonomies/websites/$websiteSlug/edit/general'
-    | '/taxonomies/websites/$websiteSlug/edit/languages'
-    | '/taxonomies/websites/$websiteSlug/edit/param-rules'
-    | '/taxonomies/websites/$websiteSlug/edit/people'
-    | '/taxonomies/websites/$websiteSlug/edit/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/$'
     | '/taxonomies/youtube-channels/$channelSlug/_hub/gallery'
     | '/taxonomies/youtube-channels/$channelSlug/_hub/info'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/autofill'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/display-rules'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/general'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/languages'
+    | '/taxonomies/youtube-channels/$channelSlug/edit/$'
     | '/taxonomies/genres-moods/$genreMoodSlug/_hub/'
     | '/taxonomies/genres-moods/$genreMoodSlug/edit/'
     | '/taxonomies/group-types/$groupTypeSlug/edit/'
     | '/taxonomies/groups/$groupSlug/_hub/'
+    | '/taxonomies/groups/$groupSlug/edit/'
     | '/taxonomies/languages/$languageSlug/_hub/'
     | '/taxonomies/languages/$languageSlug/edit/'
     | '/taxonomies/location-relations/$locationRelationSlug/edit/'
@@ -3634,6 +3214,7 @@ export interface FileRouteTypes {
     | '/taxonomies/newsletters/$newsletterSlug/_hub/'
     | '/taxonomies/newsletters/$newsletterSlug/edit/'
     | '/taxonomies/people/$personSlug/_hub/'
+    | '/taxonomies/people/$personSlug/edit/'
     | '/taxonomies/place-types/$placeTypeSlug/edit/'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/'
@@ -5042,25 +4623,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesGenresMoodsGenreMoodSlugHubRouteImport
       parentRoute: typeof TaxonomiesGenresMoodsGenreMoodSlugRoute
     }
-    '/tags/$tagSlug/edit/general': {
-      id: '/tags/$tagSlug/edit/general'
-      path: '/general'
-      fullPath: '/tags/$tagSlug/edit/general'
-      preLoaderRoute: typeof TagsTagSlugEditGeneralRouteImport
-      parentRoute: typeof TagsTagSlugEditRoute
-    }
-    '/tags/$tagSlug/edit/display-rules': {
-      id: '/tags/$tagSlug/edit/display-rules'
-      path: '/display-rules'
-      fullPath: '/tags/$tagSlug/edit/display-rules'
-      preLoaderRoute: typeof TagsTagSlugEditDisplayRulesRouteImport
-      parentRoute: typeof TagsTagSlugEditRoute
-    }
-    '/tags/$tagSlug/edit/autofill': {
-      id: '/tags/$tagSlug/edit/autofill'
-      path: '/autofill'
-      fullPath: '/tags/$tagSlug/edit/autofill'
-      preLoaderRoute: typeof TagsTagSlugEditAutofillRouteImport
+    '/tags/$tagSlug/edit/$': {
+      id: '/tags/$tagSlug/edit/$'
+      path: '/$'
+      fullPath: '/tags/$tagSlug/edit/$'
+      preLoaderRoute: typeof TagsTagSlugEditSplatRouteImport
       parentRoute: typeof TagsTagSlugEditRoute
     }
     '/tags/$tagSlug/_hub/info': {
@@ -5077,74 +4644,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TagsTagSlugHubGalleryRouteImport
       parentRoute: typeof TagsTagSlugHubRoute
     }
-    '/saved-filters/$filterSlug/edit/general': {
-      id: '/saved-filters/$filterSlug/edit/general'
-      path: '/general'
-      fullPath: '/saved-filters/$filterSlug/edit/general'
-      preLoaderRoute: typeof SavedFiltersFilterSlugEditGeneralRouteImport
+    '/saved-filters/$filterSlug/edit/$': {
+      id: '/saved-filters/$filterSlug/edit/$'
+      path: '/$'
+      fullPath: '/saved-filters/$filterSlug/edit/$'
+      preLoaderRoute: typeof SavedFiltersFilterSlugEditSplatRouteImport
       parentRoute: typeof SavedFiltersFilterSlugEditRoute
     }
-    '/import-rules/$ruleSlug/edit/general': {
-      id: '/import-rules/$ruleSlug/edit/general'
-      path: '/general'
-      fullPath: '/import-rules/$ruleSlug/edit/general'
-      preLoaderRoute: typeof ImportRulesRuleSlugEditGeneralRouteImport
+    '/import-rules/$ruleSlug/edit/$': {
+      id: '/import-rules/$ruleSlug/edit/$'
+      path: '/$'
+      fullPath: '/import-rules/$ruleSlug/edit/$'
+      preLoaderRoute: typeof ImportRulesRuleSlugEditSplatRouteImport
       parentRoute: typeof ImportRulesRuleSlugEditRoute
     }
-    '/import-rules/$ruleSlug/edit/conditions': {
-      id: '/import-rules/$ruleSlug/edit/conditions'
-      path: '/conditions'
-      fullPath: '/import-rules/$ruleSlug/edit/conditions'
-      preLoaderRoute: typeof ImportRulesRuleSlugEditConditionsRouteImport
-      parentRoute: typeof ImportRulesRuleSlugEditRoute
-    }
-    '/custom-properties/$propertySlug/edit/options': {
-      id: '/custom-properties/$propertySlug/edit/options'
-      path: '/options'
-      fullPath: '/custom-properties/$propertySlug/edit/options'
-      preLoaderRoute: typeof CustomPropertiesPropertySlugEditOptionsRouteImport
-      parentRoute: typeof CustomPropertiesPropertySlugEditRoute
-    }
-    '/custom-properties/$propertySlug/edit/media-types': {
-      id: '/custom-properties/$propertySlug/edit/media-types'
-      path: '/media-types'
-      fullPath: '/custom-properties/$propertySlug/edit/media-types'
-      preLoaderRoute: typeof CustomPropertiesPropertySlugEditMediaTypesRouteImport
-      parentRoute: typeof CustomPropertiesPropertySlugEditRoute
-    }
-    '/custom-properties/$propertySlug/edit/general': {
-      id: '/custom-properties/$propertySlug/edit/general'
-      path: '/general'
-      fullPath: '/custom-properties/$propertySlug/edit/general'
-      preLoaderRoute: typeof CustomPropertiesPropertySlugEditGeneralRouteImport
-      parentRoute: typeof CustomPropertiesPropertySlugEditRoute
-    }
-    '/custom-properties/$propertySlug/edit/display-rules': {
-      id: '/custom-properties/$propertySlug/edit/display-rules'
-      path: '/display-rules'
-      fullPath: '/custom-properties/$propertySlug/edit/display-rules'
-      preLoaderRoute: typeof CustomPropertiesPropertySlugEditDisplayRulesRouteImport
-      parentRoute: typeof CustomPropertiesPropertySlugEditRoute
-    }
-    '/custom-properties/$propertySlug/edit/display': {
-      id: '/custom-properties/$propertySlug/edit/display'
-      path: '/display'
-      fullPath: '/custom-properties/$propertySlug/edit/display'
-      preLoaderRoute: typeof CustomPropertiesPropertySlugEditDisplayRouteImport
-      parentRoute: typeof CustomPropertiesPropertySlugEditRoute
-    }
-    '/custom-properties/$propertySlug/edit/categories': {
-      id: '/custom-properties/$propertySlug/edit/categories'
-      path: '/categories'
-      fullPath: '/custom-properties/$propertySlug/edit/categories'
-      preLoaderRoute: typeof CustomPropertiesPropertySlugEditCategoriesRouteImport
-      parentRoute: typeof CustomPropertiesPropertySlugEditRoute
-    }
-    '/custom-properties/$propertySlug/edit/autofill': {
-      id: '/custom-properties/$propertySlug/edit/autofill'
-      path: '/autofill'
-      fullPath: '/custom-properties/$propertySlug/edit/autofill'
-      preLoaderRoute: typeof CustomPropertiesPropertySlugEditAutofillRouteImport
+    '/custom-properties/$propertySlug/edit/$': {
+      id: '/custom-properties/$propertySlug/edit/$'
+      path: '/$'
+      fullPath: '/custom-properties/$propertySlug/edit/$'
+      preLoaderRoute: typeof CustomPropertiesPropertySlugEditSplatRouteImport
       parentRoute: typeof CustomPropertiesPropertySlugEditRoute
     }
     '/categories/$categorySlug/edit/$': {
@@ -5168,25 +4686,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategoriesCategorySlugHubGalleryRouteImport
       parentRoute: typeof CategoriesCategorySlugHubRoute
     }
-    '/card-display-rules/$ruleSlug/edit/general': {
-      id: '/card-display-rules/$ruleSlug/edit/general'
-      path: '/general'
-      fullPath: '/card-display-rules/$ruleSlug/edit/general'
-      preLoaderRoute: typeof CardDisplayRulesRuleSlugEditGeneralRouteImport
-      parentRoute: typeof CardDisplayRulesRuleSlugEditRoute
-    }
-    '/card-display-rules/$ruleSlug/edit/display': {
-      id: '/card-display-rules/$ruleSlug/edit/display'
-      path: '/display'
-      fullPath: '/card-display-rules/$ruleSlug/edit/display'
-      preLoaderRoute: typeof CardDisplayRulesRuleSlugEditDisplayRouteImport
-      parentRoute: typeof CardDisplayRulesRuleSlugEditRoute
-    }
-    '/card-display-rules/$ruleSlug/edit/conditions': {
-      id: '/card-display-rules/$ruleSlug/edit/conditions'
-      path: '/conditions'
-      fullPath: '/card-display-rules/$ruleSlug/edit/conditions'
-      preLoaderRoute: typeof CardDisplayRulesRuleSlugEditConditionsRouteImport
+    '/card-display-rules/$ruleSlug/edit/$': {
+      id: '/card-display-rules/$ruleSlug/edit/$'
+      path: '/$'
+      fullPath: '/card-display-rules/$ruleSlug/edit/$'
+      preLoaderRoute: typeof CardDisplayRulesRuleSlugEditSplatRouteImport
       parentRoute: typeof CardDisplayRulesRuleSlugEditRoute
     }
     '/bookmarks/$bookmarkId/edit/video': {
@@ -5238,25 +4742,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookmarksBookmarkIdEditGeneralRouteImport
       parentRoute: typeof BookmarksBookmarkIdEditRoute
     }
-    '/autofill/$ruleSlug/edit/prefill': {
-      id: '/autofill/$ruleSlug/edit/prefill'
-      path: '/prefill'
-      fullPath: '/autofill/$ruleSlug/edit/prefill'
-      preLoaderRoute: typeof AutofillRuleSlugEditPrefillRouteImport
-      parentRoute: typeof AutofillRuleSlugEditRoute
-    }
-    '/autofill/$ruleSlug/edit/general': {
-      id: '/autofill/$ruleSlug/edit/general'
-      path: '/general'
-      fullPath: '/autofill/$ruleSlug/edit/general'
-      preLoaderRoute: typeof AutofillRuleSlugEditGeneralRouteImport
-      parentRoute: typeof AutofillRuleSlugEditRoute
-    }
-    '/autofill/$ruleSlug/edit/conditions': {
-      id: '/autofill/$ruleSlug/edit/conditions'
-      path: '/conditions'
-      fullPath: '/autofill/$ruleSlug/edit/conditions'
-      preLoaderRoute: typeof AutofillRuleSlugEditConditionsRouteImport
+    '/autofill/$ruleSlug/edit/$': {
+      id: '/autofill/$ruleSlug/edit/$'
+      path: '/$'
+      fullPath: '/autofill/$ruleSlug/edit/$'
+      preLoaderRoute: typeof AutofillRuleSlugEditSplatRouteImport
       parentRoute: typeof AutofillRuleSlugEditRoute
     }
     '/taxonomies/youtube-channels/$channelSlug/edit/': {
@@ -5307,6 +4797,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/place-types/$placeTypeSlug/edit/'
       preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRouteImport
       parentRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditRoute
+    }
+    '/taxonomies/people/$personSlug/edit/': {
+      id: '/taxonomies/people/$personSlug/edit/'
+      path: '/'
+      fullPath: '/taxonomies/people/$personSlug/edit/'
+      preLoaderRoute: typeof TaxonomiesPeoplePersonSlugEditIndexRouteImport
+      parentRoute: typeof TaxonomiesPeoplePersonSlugEditRoute
     }
     '/taxonomies/people/$personSlug/_hub/': {
       id: '/taxonomies/people/$personSlug/_hub/'
@@ -5378,6 +4875,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugHubIndexRouteImport
       parentRoute: typeof TaxonomiesLanguagesLanguageSlugHubRoute
     }
+    '/taxonomies/groups/$groupSlug/edit/': {
+      id: '/taxonomies/groups/$groupSlug/edit/'
+      path: '/'
+      fullPath: '/taxonomies/groups/$groupSlug/edit/'
+      preLoaderRoute: typeof TaxonomiesGroupsGroupSlugEditIndexRouteImport
+      parentRoute: typeof TaxonomiesGroupsGroupSlugEditRoute
+    }
     '/taxonomies/groups/$groupSlug/_hub/': {
       id: '/taxonomies/groups/$groupSlug/_hub/'
       path: '/'
@@ -5406,32 +4910,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesGenresMoodsGenreMoodSlugHubIndexRouteImport
       parentRoute: typeof TaxonomiesGenresMoodsGenreMoodSlugHubRoute
     }
-    '/taxonomies/youtube-channels/$channelSlug/edit/languages': {
-      id: '/taxonomies/youtube-channels/$channelSlug/edit/languages'
-      path: '/languages'
-      fullPath: '/taxonomies/youtube-channels/$channelSlug/edit/languages'
-      preLoaderRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRouteImport
-      parentRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditRoute
-    }
-    '/taxonomies/youtube-channels/$channelSlug/edit/general': {
-      id: '/taxonomies/youtube-channels/$channelSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/youtube-channels/$channelSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRouteImport
-      parentRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditRoute
-    }
-    '/taxonomies/youtube-channels/$channelSlug/edit/display-rules': {
-      id: '/taxonomies/youtube-channels/$channelSlug/edit/display-rules'
-      path: '/display-rules'
-      fullPath: '/taxonomies/youtube-channels/$channelSlug/edit/display-rules'
-      preLoaderRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRouteImport
-      parentRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditRoute
-    }
-    '/taxonomies/youtube-channels/$channelSlug/edit/autofill': {
-      id: '/taxonomies/youtube-channels/$channelSlug/edit/autofill'
-      path: '/autofill'
-      fullPath: '/taxonomies/youtube-channels/$channelSlug/edit/autofill'
-      preLoaderRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditAutofillRouteImport
+    '/taxonomies/youtube-channels/$channelSlug/edit/$': {
+      id: '/taxonomies/youtube-channels/$channelSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/youtube-channels/$channelSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditRoute
     }
     '/taxonomies/youtube-channels/$channelSlug/_hub/info': {
@@ -5448,53 +4931,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesYoutubeChannelsChannelSlugHubGalleryRouteImport
       parentRoute: typeof TaxonomiesYoutubeChannelsChannelSlugHubRoute
     }
-    '/taxonomies/websites/$websiteSlug/edit/shortened-links': {
-      id: '/taxonomies/websites/$websiteSlug/edit/shortened-links'
-      path: '/shortened-links'
-      fullPath: '/taxonomies/websites/$websiteSlug/edit/shortened-links'
-      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRouteImport
-      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
-    }
-    '/taxonomies/websites/$websiteSlug/edit/people': {
-      id: '/taxonomies/websites/$websiteSlug/edit/people'
-      path: '/people'
-      fullPath: '/taxonomies/websites/$websiteSlug/edit/people'
-      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditPeopleRouteImport
-      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
-    }
-    '/taxonomies/websites/$websiteSlug/edit/param-rules': {
-      id: '/taxonomies/websites/$websiteSlug/edit/param-rules'
-      path: '/param-rules'
-      fullPath: '/taxonomies/websites/$websiteSlug/edit/param-rules'
-      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRouteImport
-      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
-    }
-    '/taxonomies/websites/$websiteSlug/edit/languages': {
-      id: '/taxonomies/websites/$websiteSlug/edit/languages'
-      path: '/languages'
-      fullPath: '/taxonomies/websites/$websiteSlug/edit/languages'
-      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditLanguagesRouteImport
-      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
-    }
-    '/taxonomies/websites/$websiteSlug/edit/general': {
-      id: '/taxonomies/websites/$websiteSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/websites/$websiteSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRouteImport
-      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
-    }
-    '/taxonomies/websites/$websiteSlug/edit/display-rules': {
-      id: '/taxonomies/websites/$websiteSlug/edit/display-rules'
-      path: '/display-rules'
-      fullPath: '/taxonomies/websites/$websiteSlug/edit/display-rules'
-      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRouteImport
-      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
-    }
-    '/taxonomies/websites/$websiteSlug/edit/autofill': {
-      id: '/taxonomies/websites/$websiteSlug/edit/autofill'
-      path: '/autofill'
-      fullPath: '/taxonomies/websites/$websiteSlug/edit/autofill'
-      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditAutofillRouteImport
+    '/taxonomies/websites/$websiteSlug/edit/$': {
+      id: '/taxonomies/websites/$websiteSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/websites/$websiteSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
     }
     '/taxonomies/websites/$websiteSlug/_hub/info': {
@@ -5511,81 +4952,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugHubGalleryRouteImport
       parentRoute: typeof TaxonomiesWebsitesWebsiteSlugHubRoute
     }
-    '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': {
-      id: '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRouteImport
+    '/taxonomies/relationship-types/$relationshipTypeSlug/edit/$': {
+      id: '/taxonomies/relationship-types/$relationshipTypeSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/relationship-types/$relationshipTypeSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditRoute
     }
-    '/taxonomies/property-groups/$propertyGroupSlug/edit/media-types': {
-      id: '/taxonomies/property-groups/$propertyGroupSlug/edit/media-types'
-      path: '/media-types'
-      fullPath: '/taxonomies/property-groups/$propertyGroupSlug/edit/media-types'
-      preLoaderRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRouteImport
+    '/taxonomies/property-groups/$propertyGroupSlug/edit/$': {
+      id: '/taxonomies/property-groups/$propertyGroupSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/property-groups/$propertyGroupSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditRoute
     }
-    '/taxonomies/property-groups/$propertyGroupSlug/edit/general': {
-      id: '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRouteImport
-      parentRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditRoute
-    }
-    '/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules': {
-      id: '/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules'
-      path: '/display-rules'
-      fullPath: '/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules'
-      preLoaderRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRouteImport
-      parentRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditRoute
-    }
-    '/taxonomies/property-groups/$propertyGroupSlug/edit/categories': {
-      id: '/taxonomies/property-groups/$propertyGroupSlug/edit/categories'
-      path: '/categories'
-      fullPath: '/taxonomies/property-groups/$propertyGroupSlug/edit/categories'
-      preLoaderRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRouteImport
-      parentRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditRoute
-    }
-    '/taxonomies/place-types/$placeTypeSlug/edit/general': {
-      id: '/taxonomies/place-types/$placeTypeSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/place-types/$placeTypeSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRouteImport
+    '/taxonomies/place-types/$placeTypeSlug/edit/$': {
+      id: '/taxonomies/place-types/$placeTypeSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/place-types/$placeTypeSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditRoute
     }
-    '/taxonomies/people/$personSlug/edit/youtube-channels': {
-      id: '/taxonomies/people/$personSlug/edit/youtube-channels'
-      path: '/youtube-channels'
-      fullPath: '/taxonomies/people/$personSlug/edit/youtube-channels'
-      preLoaderRoute: typeof TaxonomiesPeoplePersonSlugEditYoutubeChannelsRouteImport
-      parentRoute: typeof TaxonomiesPeoplePersonSlugEditRoute
-    }
-    '/taxonomies/people/$personSlug/edit/websites': {
-      id: '/taxonomies/people/$personSlug/edit/websites'
-      path: '/websites'
-      fullPath: '/taxonomies/people/$personSlug/edit/websites'
-      preLoaderRoute: typeof TaxonomiesPeoplePersonSlugEditWebsitesRouteImport
-      parentRoute: typeof TaxonomiesPeoplePersonSlugEditRoute
-    }
-    '/taxonomies/people/$personSlug/edit/languages': {
-      id: '/taxonomies/people/$personSlug/edit/languages'
-      path: '/languages'
-      fullPath: '/taxonomies/people/$personSlug/edit/languages'
-      preLoaderRoute: typeof TaxonomiesPeoplePersonSlugEditLanguagesRouteImport
-      parentRoute: typeof TaxonomiesPeoplePersonSlugEditRoute
-    }
-    '/taxonomies/people/$personSlug/edit/groups': {
-      id: '/taxonomies/people/$personSlug/edit/groups'
-      path: '/groups'
-      fullPath: '/taxonomies/people/$personSlug/edit/groups'
-      preLoaderRoute: typeof TaxonomiesPeoplePersonSlugEditGroupsRouteImport
-      parentRoute: typeof TaxonomiesPeoplePersonSlugEditRoute
-    }
-    '/taxonomies/people/$personSlug/edit/general': {
-      id: '/taxonomies/people/$personSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/people/$personSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesPeoplePersonSlugEditGeneralRouteImport
+    '/taxonomies/people/$personSlug/edit/$': {
+      id: '/taxonomies/people/$personSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/people/$personSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesPeoplePersonSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesPeoplePersonSlugEditRoute
     }
     '/taxonomies/people/$personSlug/_hub/info': {
@@ -5623,25 +5015,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesNewslettersNewsletterSlugHubInfoRouteImport
       parentRoute: typeof TaxonomiesNewslettersNewsletterSlugHubRoute
     }
-    '/taxonomies/media-types/$mediaTypeSlug/edit/general': {
-      id: '/taxonomies/media-types/$mediaTypeSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/media-types/$mediaTypeSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRouteImport
-      parentRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditRoute
-    }
-    '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules': {
-      id: '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules'
-      path: '/display-rules'
-      fullPath: '/taxonomies/media-types/$mediaTypeSlug/edit/display-rules'
-      preLoaderRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRouteImport
-      parentRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditRoute
-    }
-    '/taxonomies/media-types/$mediaTypeSlug/edit/autofill': {
-      id: '/taxonomies/media-types/$mediaTypeSlug/edit/autofill'
-      path: '/autofill'
-      fullPath: '/taxonomies/media-types/$mediaTypeSlug/edit/autofill'
-      preLoaderRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditAutofillRouteImport
+    '/taxonomies/media-types/$mediaTypeSlug/edit/$': {
+      id: '/taxonomies/media-types/$mediaTypeSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/media-types/$mediaTypeSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditRoute
     }
     '/taxonomies/media-types/$mediaTypeSlug/_hub/info': {
@@ -5658,25 +5036,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesMediaTypesMediaTypeSlugHubGalleryRouteImport
       parentRoute: typeof TaxonomiesMediaTypesMediaTypeSlugHubRoute
     }
-    '/taxonomies/locations/$locationSlug/edit/general': {
-      id: '/taxonomies/locations/$locationSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/locations/$locationSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesLocationsLocationSlugEditGeneralRouteImport
-      parentRoute: typeof TaxonomiesLocationsLocationSlugEditRoute
-    }
-    '/taxonomies/locations/$locationSlug/edit/display-rules': {
-      id: '/taxonomies/locations/$locationSlug/edit/display-rules'
-      path: '/display-rules'
-      fullPath: '/taxonomies/locations/$locationSlug/edit/display-rules'
-      preLoaderRoute: typeof TaxonomiesLocationsLocationSlugEditDisplayRulesRouteImport
-      parentRoute: typeof TaxonomiesLocationsLocationSlugEditRoute
-    }
-    '/taxonomies/locations/$locationSlug/edit/autofill': {
-      id: '/taxonomies/locations/$locationSlug/edit/autofill'
-      path: '/autofill'
-      fullPath: '/taxonomies/locations/$locationSlug/edit/autofill'
-      preLoaderRoute: typeof TaxonomiesLocationsLocationSlugEditAutofillRouteImport
+    '/taxonomies/locations/$locationSlug/edit/$': {
+      id: '/taxonomies/locations/$locationSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/locations/$locationSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesLocationsLocationSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesLocationsLocationSlugEditRoute
     }
     '/taxonomies/locations/$locationSlug/_hub/info': {
@@ -5693,18 +5057,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLocationsLocationSlugHubGalleryRouteImport
       parentRoute: typeof TaxonomiesLocationsLocationSlugHubRoute
     }
-    '/taxonomies/location-relations/$locationRelationSlug/edit/general': {
-      id: '/taxonomies/location-relations/$locationRelationSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/location-relations/$locationRelationSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRouteImport
+    '/taxonomies/location-relations/$locationRelationSlug/edit/$': {
+      id: '/taxonomies/location-relations/$locationRelationSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/location-relations/$locationRelationSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditRoute
     }
-    '/taxonomies/languages/$languageSlug/edit/general': {
-      id: '/taxonomies/languages/$languageSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/languages/$languageSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugEditGeneralRouteImport
+    '/taxonomies/languages/$languageSlug/edit/$': {
+      id: '/taxonomies/languages/$languageSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/languages/$languageSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesLanguagesLanguageSlugEditRoute
     }
     '/taxonomies/languages/$languageSlug/_hub/info': {
@@ -5721,18 +5085,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesLanguagesLanguageSlugHubGalleryRouteImport
       parentRoute: typeof TaxonomiesLanguagesLanguageSlugHubRoute
     }
-    '/taxonomies/groups/$groupSlug/edit/people': {
-      id: '/taxonomies/groups/$groupSlug/edit/people'
-      path: '/people'
-      fullPath: '/taxonomies/groups/$groupSlug/edit/people'
-      preLoaderRoute: typeof TaxonomiesGroupsGroupSlugEditPeopleRouteImport
-      parentRoute: typeof TaxonomiesGroupsGroupSlugEditRoute
-    }
-    '/taxonomies/groups/$groupSlug/edit/general': {
-      id: '/taxonomies/groups/$groupSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/groups/$groupSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesGroupsGroupSlugEditGeneralRouteImport
+    '/taxonomies/groups/$groupSlug/edit/$': {
+      id: '/taxonomies/groups/$groupSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/groups/$groupSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesGroupsGroupSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesGroupsGroupSlugEditRoute
     }
     '/taxonomies/groups/$groupSlug/_hub/info': {
@@ -5749,18 +5106,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesGroupsGroupSlugHubGalleryRouteImport
       parentRoute: typeof TaxonomiesGroupsGroupSlugHubRoute
     }
-    '/taxonomies/group-types/$groupTypeSlug/edit/general': {
-      id: '/taxonomies/group-types/$groupTypeSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/group-types/$groupTypeSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesGroupTypesGroupTypeSlugEditGeneralRouteImport
+    '/taxonomies/group-types/$groupTypeSlug/edit/$': {
+      id: '/taxonomies/group-types/$groupTypeSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/group-types/$groupTypeSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesGroupTypesGroupTypeSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesGroupTypesGroupTypeSlugEditRoute
     }
-    '/taxonomies/genres-moods/$genreMoodSlug/edit/general': {
-      id: '/taxonomies/genres-moods/$genreMoodSlug/edit/general'
-      path: '/general'
-      fullPath: '/taxonomies/genres-moods/$genreMoodSlug/edit/general'
-      preLoaderRoute: typeof TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRouteImport
+    '/taxonomies/genres-moods/$genreMoodSlug/edit/$': {
+      id: '/taxonomies/genres-moods/$genreMoodSlug/edit/$'
+      path: '/$'
+      fullPath: '/taxonomies/genres-moods/$genreMoodSlug/edit/$'
+      preLoaderRoute: typeof TaxonomiesGenresMoodsGenreMoodSlugEditSplatRouteImport
       parentRoute: typeof TaxonomiesGenresMoodsGenreMoodSlugEditRoute
     }
     '/taxonomies/genres-moods/$genreMoodSlug/_hub/info': {
@@ -5781,16 +5138,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AutofillRuleSlugEditRouteChildren {
-  AutofillRuleSlugEditConditionsRoute: typeof AutofillRuleSlugEditConditionsRoute
-  AutofillRuleSlugEditGeneralRoute: typeof AutofillRuleSlugEditGeneralRoute
-  AutofillRuleSlugEditPrefillRoute: typeof AutofillRuleSlugEditPrefillRoute
+  AutofillRuleSlugEditSplatRoute: typeof AutofillRuleSlugEditSplatRoute
   AutofillRuleSlugEditIndexRoute: typeof AutofillRuleSlugEditIndexRoute
 }
 
 const AutofillRuleSlugEditRouteChildren: AutofillRuleSlugEditRouteChildren = {
-  AutofillRuleSlugEditConditionsRoute: AutofillRuleSlugEditConditionsRoute,
-  AutofillRuleSlugEditGeneralRoute: AutofillRuleSlugEditGeneralRoute,
-  AutofillRuleSlugEditPrefillRoute: AutofillRuleSlugEditPrefillRoute,
+  AutofillRuleSlugEditSplatRoute: AutofillRuleSlugEditSplatRoute,
   AutofillRuleSlugEditIndexRoute: AutofillRuleSlugEditIndexRoute,
 }
 
@@ -5887,20 +5240,14 @@ const BookmarksRouteWithChildren = BookmarksRoute._addFileChildren(
 )
 
 interface CardDisplayRulesRuleSlugEditRouteChildren {
-  CardDisplayRulesRuleSlugEditConditionsRoute: typeof CardDisplayRulesRuleSlugEditConditionsRoute
-  CardDisplayRulesRuleSlugEditDisplayRoute: typeof CardDisplayRulesRuleSlugEditDisplayRoute
-  CardDisplayRulesRuleSlugEditGeneralRoute: typeof CardDisplayRulesRuleSlugEditGeneralRoute
+  CardDisplayRulesRuleSlugEditSplatRoute: typeof CardDisplayRulesRuleSlugEditSplatRoute
   CardDisplayRulesRuleSlugEditIndexRoute: typeof CardDisplayRulesRuleSlugEditIndexRoute
 }
 
 const CardDisplayRulesRuleSlugEditRouteChildren: CardDisplayRulesRuleSlugEditRouteChildren =
   {
-    CardDisplayRulesRuleSlugEditConditionsRoute:
-      CardDisplayRulesRuleSlugEditConditionsRoute,
-    CardDisplayRulesRuleSlugEditDisplayRoute:
-      CardDisplayRulesRuleSlugEditDisplayRoute,
-    CardDisplayRulesRuleSlugEditGeneralRoute:
-      CardDisplayRulesRuleSlugEditGeneralRoute,
+    CardDisplayRulesRuleSlugEditSplatRoute:
+      CardDisplayRulesRuleSlugEditSplatRoute,
     CardDisplayRulesRuleSlugEditIndexRoute:
       CardDisplayRulesRuleSlugEditIndexRoute,
   }
@@ -6009,32 +5356,14 @@ const CategoriesRouteWithChildren = CategoriesRoute._addFileChildren(
 )
 
 interface CustomPropertiesPropertySlugEditRouteChildren {
-  CustomPropertiesPropertySlugEditAutofillRoute: typeof CustomPropertiesPropertySlugEditAutofillRoute
-  CustomPropertiesPropertySlugEditCategoriesRoute: typeof CustomPropertiesPropertySlugEditCategoriesRoute
-  CustomPropertiesPropertySlugEditDisplayRoute: typeof CustomPropertiesPropertySlugEditDisplayRoute
-  CustomPropertiesPropertySlugEditDisplayRulesRoute: typeof CustomPropertiesPropertySlugEditDisplayRulesRoute
-  CustomPropertiesPropertySlugEditGeneralRoute: typeof CustomPropertiesPropertySlugEditGeneralRoute
-  CustomPropertiesPropertySlugEditMediaTypesRoute: typeof CustomPropertiesPropertySlugEditMediaTypesRoute
-  CustomPropertiesPropertySlugEditOptionsRoute: typeof CustomPropertiesPropertySlugEditOptionsRoute
+  CustomPropertiesPropertySlugEditSplatRoute: typeof CustomPropertiesPropertySlugEditSplatRoute
   CustomPropertiesPropertySlugEditIndexRoute: typeof CustomPropertiesPropertySlugEditIndexRoute
 }
 
 const CustomPropertiesPropertySlugEditRouteChildren: CustomPropertiesPropertySlugEditRouteChildren =
   {
-    CustomPropertiesPropertySlugEditAutofillRoute:
-      CustomPropertiesPropertySlugEditAutofillRoute,
-    CustomPropertiesPropertySlugEditCategoriesRoute:
-      CustomPropertiesPropertySlugEditCategoriesRoute,
-    CustomPropertiesPropertySlugEditDisplayRoute:
-      CustomPropertiesPropertySlugEditDisplayRoute,
-    CustomPropertiesPropertySlugEditDisplayRulesRoute:
-      CustomPropertiesPropertySlugEditDisplayRulesRoute,
-    CustomPropertiesPropertySlugEditGeneralRoute:
-      CustomPropertiesPropertySlugEditGeneralRoute,
-    CustomPropertiesPropertySlugEditMediaTypesRoute:
-      CustomPropertiesPropertySlugEditMediaTypesRoute,
-    CustomPropertiesPropertySlugEditOptionsRoute:
-      CustomPropertiesPropertySlugEditOptionsRoute,
+    CustomPropertiesPropertySlugEditSplatRoute:
+      CustomPropertiesPropertySlugEditSplatRoute,
     CustomPropertiesPropertySlugEditIndexRoute:
       CustomPropertiesPropertySlugEditIndexRoute,
   }
@@ -6082,16 +5411,13 @@ const CustomPropertiesRouteWithChildren =
   CustomPropertiesRoute._addFileChildren(CustomPropertiesRouteChildren)
 
 interface ImportRulesRuleSlugEditRouteChildren {
-  ImportRulesRuleSlugEditConditionsRoute: typeof ImportRulesRuleSlugEditConditionsRoute
-  ImportRulesRuleSlugEditGeneralRoute: typeof ImportRulesRuleSlugEditGeneralRoute
+  ImportRulesRuleSlugEditSplatRoute: typeof ImportRulesRuleSlugEditSplatRoute
   ImportRulesRuleSlugEditIndexRoute: typeof ImportRulesRuleSlugEditIndexRoute
 }
 
 const ImportRulesRuleSlugEditRouteChildren: ImportRulesRuleSlugEditRouteChildren =
   {
-    ImportRulesRuleSlugEditConditionsRoute:
-      ImportRulesRuleSlugEditConditionsRoute,
-    ImportRulesRuleSlugEditGeneralRoute: ImportRulesRuleSlugEditGeneralRoute,
+    ImportRulesRuleSlugEditSplatRoute: ImportRulesRuleSlugEditSplatRoute,
     ImportRulesRuleSlugEditIndexRoute: ImportRulesRuleSlugEditIndexRoute,
   }
 
@@ -6142,14 +5468,13 @@ const InboxRouteChildren: InboxRouteChildren = {
 const InboxRouteWithChildren = InboxRoute._addFileChildren(InboxRouteChildren)
 
 interface SavedFiltersFilterSlugEditRouteChildren {
-  SavedFiltersFilterSlugEditGeneralRoute: typeof SavedFiltersFilterSlugEditGeneralRoute
+  SavedFiltersFilterSlugEditSplatRoute: typeof SavedFiltersFilterSlugEditSplatRoute
   SavedFiltersFilterSlugEditIndexRoute: typeof SavedFiltersFilterSlugEditIndexRoute
 }
 
 const SavedFiltersFilterSlugEditRouteChildren: SavedFiltersFilterSlugEditRouteChildren =
   {
-    SavedFiltersFilterSlugEditGeneralRoute:
-      SavedFiltersFilterSlugEditGeneralRoute,
+    SavedFiltersFilterSlugEditSplatRoute: SavedFiltersFilterSlugEditSplatRoute,
     SavedFiltersFilterSlugEditIndexRoute: SavedFiltersFilterSlugEditIndexRoute,
   }
 
@@ -6369,16 +5694,12 @@ const TagsTagSlugHubRouteWithChildren = TagsTagSlugHubRoute._addFileChildren(
 )
 
 interface TagsTagSlugEditRouteChildren {
-  TagsTagSlugEditAutofillRoute: typeof TagsTagSlugEditAutofillRoute
-  TagsTagSlugEditDisplayRulesRoute: typeof TagsTagSlugEditDisplayRulesRoute
-  TagsTagSlugEditGeneralRoute: typeof TagsTagSlugEditGeneralRoute
+  TagsTagSlugEditSplatRoute: typeof TagsTagSlugEditSplatRoute
   TagsTagSlugEditIndexRoute: typeof TagsTagSlugEditIndexRoute
 }
 
 const TagsTagSlugEditRouteChildren: TagsTagSlugEditRouteChildren = {
-  TagsTagSlugEditAutofillRoute: TagsTagSlugEditAutofillRoute,
-  TagsTagSlugEditDisplayRulesRoute: TagsTagSlugEditDisplayRulesRoute,
-  TagsTagSlugEditGeneralRoute: TagsTagSlugEditGeneralRoute,
+  TagsTagSlugEditSplatRoute: TagsTagSlugEditSplatRoute,
   TagsTagSlugEditIndexRoute: TagsTagSlugEditIndexRoute,
 }
 
@@ -6434,14 +5755,14 @@ const TaxonomiesGenresMoodsGenreMoodSlugHubRouteWithChildren =
   )
 
 interface TaxonomiesGenresMoodsGenreMoodSlugEditRouteChildren {
-  TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRoute: typeof TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRoute
+  TaxonomiesGenresMoodsGenreMoodSlugEditSplatRoute: typeof TaxonomiesGenresMoodsGenreMoodSlugEditSplatRoute
   TaxonomiesGenresMoodsGenreMoodSlugEditIndexRoute: typeof TaxonomiesGenresMoodsGenreMoodSlugEditIndexRoute
 }
 
 const TaxonomiesGenresMoodsGenreMoodSlugEditRouteChildren: TaxonomiesGenresMoodsGenreMoodSlugEditRouteChildren =
   {
-    TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRoute:
-      TaxonomiesGenresMoodsGenreMoodSlugEditGeneralRoute,
+    TaxonomiesGenresMoodsGenreMoodSlugEditSplatRoute:
+      TaxonomiesGenresMoodsGenreMoodSlugEditSplatRoute,
     TaxonomiesGenresMoodsGenreMoodSlugEditIndexRoute:
       TaxonomiesGenresMoodsGenreMoodSlugEditIndexRoute,
   }
@@ -6486,14 +5807,14 @@ const TaxonomiesGenresMoodsRouteWithChildren =
   )
 
 interface TaxonomiesGroupTypesGroupTypeSlugEditRouteChildren {
-  TaxonomiesGroupTypesGroupTypeSlugEditGeneralRoute: typeof TaxonomiesGroupTypesGroupTypeSlugEditGeneralRoute
+  TaxonomiesGroupTypesGroupTypeSlugEditSplatRoute: typeof TaxonomiesGroupTypesGroupTypeSlugEditSplatRoute
   TaxonomiesGroupTypesGroupTypeSlugEditIndexRoute: typeof TaxonomiesGroupTypesGroupTypeSlugEditIndexRoute
 }
 
 const TaxonomiesGroupTypesGroupTypeSlugEditRouteChildren: TaxonomiesGroupTypesGroupTypeSlugEditRouteChildren =
   {
-    TaxonomiesGroupTypesGroupTypeSlugEditGeneralRoute:
-      TaxonomiesGroupTypesGroupTypeSlugEditGeneralRoute,
+    TaxonomiesGroupTypesGroupTypeSlugEditSplatRoute:
+      TaxonomiesGroupTypesGroupTypeSlugEditSplatRoute,
     TaxonomiesGroupTypesGroupTypeSlugEditIndexRoute:
       TaxonomiesGroupTypesGroupTypeSlugEditIndexRoute,
   }
@@ -6560,16 +5881,16 @@ const TaxonomiesGroupsGroupSlugHubRouteWithChildren =
   )
 
 interface TaxonomiesGroupsGroupSlugEditRouteChildren {
-  TaxonomiesGroupsGroupSlugEditGeneralRoute: typeof TaxonomiesGroupsGroupSlugEditGeneralRoute
-  TaxonomiesGroupsGroupSlugEditPeopleRoute: typeof TaxonomiesGroupsGroupSlugEditPeopleRoute
+  TaxonomiesGroupsGroupSlugEditSplatRoute: typeof TaxonomiesGroupsGroupSlugEditSplatRoute
+  TaxonomiesGroupsGroupSlugEditIndexRoute: typeof TaxonomiesGroupsGroupSlugEditIndexRoute
 }
 
 const TaxonomiesGroupsGroupSlugEditRouteChildren: TaxonomiesGroupsGroupSlugEditRouteChildren =
   {
-    TaxonomiesGroupsGroupSlugEditGeneralRoute:
-      TaxonomiesGroupsGroupSlugEditGeneralRoute,
-    TaxonomiesGroupsGroupSlugEditPeopleRoute:
-      TaxonomiesGroupsGroupSlugEditPeopleRoute,
+    TaxonomiesGroupsGroupSlugEditSplatRoute:
+      TaxonomiesGroupsGroupSlugEditSplatRoute,
+    TaxonomiesGroupsGroupSlugEditIndexRoute:
+      TaxonomiesGroupsGroupSlugEditIndexRoute,
   }
 
 const TaxonomiesGroupsGroupSlugEditRouteWithChildren =
@@ -6648,14 +5969,14 @@ const TaxonomiesLanguagesLanguageSlugHubRouteWithChildren =
   )
 
 interface TaxonomiesLanguagesLanguageSlugEditRouteChildren {
-  TaxonomiesLanguagesLanguageSlugEditGeneralRoute: typeof TaxonomiesLanguagesLanguageSlugEditGeneralRoute
+  TaxonomiesLanguagesLanguageSlugEditSplatRoute: typeof TaxonomiesLanguagesLanguageSlugEditSplatRoute
   TaxonomiesLanguagesLanguageSlugEditIndexRoute: typeof TaxonomiesLanguagesLanguageSlugEditIndexRoute
 }
 
 const TaxonomiesLanguagesLanguageSlugEditRouteChildren: TaxonomiesLanguagesLanguageSlugEditRouteChildren =
   {
-    TaxonomiesLanguagesLanguageSlugEditGeneralRoute:
-      TaxonomiesLanguagesLanguageSlugEditGeneralRoute,
+    TaxonomiesLanguagesLanguageSlugEditSplatRoute:
+      TaxonomiesLanguagesLanguageSlugEditSplatRoute,
     TaxonomiesLanguagesLanguageSlugEditIndexRoute:
       TaxonomiesLanguagesLanguageSlugEditIndexRoute,
   }
@@ -6698,14 +6019,14 @@ const TaxonomiesLanguagesRouteWithChildren =
   TaxonomiesLanguagesRoute._addFileChildren(TaxonomiesLanguagesRouteChildren)
 
 interface TaxonomiesLocationRelationsLocationRelationSlugEditRouteChildren {
-  TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute
+  TaxonomiesLocationRelationsLocationRelationSlugEditSplatRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditSplatRoute
   TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute: typeof TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute
 }
 
 const TaxonomiesLocationRelationsLocationRelationSlugEditRouteChildren: TaxonomiesLocationRelationsLocationRelationSlugEditRouteChildren =
   {
-    TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute:
-      TaxonomiesLocationRelationsLocationRelationSlugEditGeneralRoute,
+    TaxonomiesLocationRelationsLocationRelationSlugEditSplatRoute:
+      TaxonomiesLocationRelationsLocationRelationSlugEditSplatRoute,
     TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute:
       TaxonomiesLocationRelationsLocationRelationSlugEditIndexRoute,
   }
@@ -6776,20 +6097,14 @@ const TaxonomiesLocationsLocationSlugHubRouteWithChildren =
   )
 
 interface TaxonomiesLocationsLocationSlugEditRouteChildren {
-  TaxonomiesLocationsLocationSlugEditAutofillRoute: typeof TaxonomiesLocationsLocationSlugEditAutofillRoute
-  TaxonomiesLocationsLocationSlugEditDisplayRulesRoute: typeof TaxonomiesLocationsLocationSlugEditDisplayRulesRoute
-  TaxonomiesLocationsLocationSlugEditGeneralRoute: typeof TaxonomiesLocationsLocationSlugEditGeneralRoute
+  TaxonomiesLocationsLocationSlugEditSplatRoute: typeof TaxonomiesLocationsLocationSlugEditSplatRoute
   TaxonomiesLocationsLocationSlugEditIndexRoute: typeof TaxonomiesLocationsLocationSlugEditIndexRoute
 }
 
 const TaxonomiesLocationsLocationSlugEditRouteChildren: TaxonomiesLocationsLocationSlugEditRouteChildren =
   {
-    TaxonomiesLocationsLocationSlugEditAutofillRoute:
-      TaxonomiesLocationsLocationSlugEditAutofillRoute,
-    TaxonomiesLocationsLocationSlugEditDisplayRulesRoute:
-      TaxonomiesLocationsLocationSlugEditDisplayRulesRoute,
-    TaxonomiesLocationsLocationSlugEditGeneralRoute:
-      TaxonomiesLocationsLocationSlugEditGeneralRoute,
+    TaxonomiesLocationsLocationSlugEditSplatRoute:
+      TaxonomiesLocationsLocationSlugEditSplatRoute,
     TaxonomiesLocationsLocationSlugEditIndexRoute:
       TaxonomiesLocationsLocationSlugEditIndexRoute,
   }
@@ -6855,20 +6170,14 @@ const TaxonomiesMediaTypesMediaTypeSlugHubRouteWithChildren =
   )
 
 interface TaxonomiesMediaTypesMediaTypeSlugEditRouteChildren {
-  TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute
-  TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute
-  TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute
+  TaxonomiesMediaTypesMediaTypeSlugEditSplatRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditSplatRoute
   TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
 }
 
 const TaxonomiesMediaTypesMediaTypeSlugEditRouteChildren: TaxonomiesMediaTypesMediaTypeSlugEditRouteChildren =
   {
-    TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute:
-      TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute,
-    TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute:
-      TaxonomiesMediaTypesMediaTypeSlugEditDisplayRulesRoute,
-    TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute:
-      TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute,
+    TaxonomiesMediaTypesMediaTypeSlugEditSplatRoute:
+      TaxonomiesMediaTypesMediaTypeSlugEditSplatRoute,
     TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute:
       TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute,
   }
@@ -7005,25 +6314,16 @@ const TaxonomiesPeoplePersonSlugHubRouteWithChildren =
   )
 
 interface TaxonomiesPeoplePersonSlugEditRouteChildren {
-  TaxonomiesPeoplePersonSlugEditGeneralRoute: typeof TaxonomiesPeoplePersonSlugEditGeneralRoute
-  TaxonomiesPeoplePersonSlugEditGroupsRoute: typeof TaxonomiesPeoplePersonSlugEditGroupsRoute
-  TaxonomiesPeoplePersonSlugEditLanguagesRoute: typeof TaxonomiesPeoplePersonSlugEditLanguagesRoute
-  TaxonomiesPeoplePersonSlugEditWebsitesRoute: typeof TaxonomiesPeoplePersonSlugEditWebsitesRoute
-  TaxonomiesPeoplePersonSlugEditYoutubeChannelsRoute: typeof TaxonomiesPeoplePersonSlugEditYoutubeChannelsRoute
+  TaxonomiesPeoplePersonSlugEditSplatRoute: typeof TaxonomiesPeoplePersonSlugEditSplatRoute
+  TaxonomiesPeoplePersonSlugEditIndexRoute: typeof TaxonomiesPeoplePersonSlugEditIndexRoute
 }
 
 const TaxonomiesPeoplePersonSlugEditRouteChildren: TaxonomiesPeoplePersonSlugEditRouteChildren =
   {
-    TaxonomiesPeoplePersonSlugEditGeneralRoute:
-      TaxonomiesPeoplePersonSlugEditGeneralRoute,
-    TaxonomiesPeoplePersonSlugEditGroupsRoute:
-      TaxonomiesPeoplePersonSlugEditGroupsRoute,
-    TaxonomiesPeoplePersonSlugEditLanguagesRoute:
-      TaxonomiesPeoplePersonSlugEditLanguagesRoute,
-    TaxonomiesPeoplePersonSlugEditWebsitesRoute:
-      TaxonomiesPeoplePersonSlugEditWebsitesRoute,
-    TaxonomiesPeoplePersonSlugEditYoutubeChannelsRoute:
-      TaxonomiesPeoplePersonSlugEditYoutubeChannelsRoute,
+    TaxonomiesPeoplePersonSlugEditSplatRoute:
+      TaxonomiesPeoplePersonSlugEditSplatRoute,
+    TaxonomiesPeoplePersonSlugEditIndexRoute:
+      TaxonomiesPeoplePersonSlugEditIndexRoute,
   }
 
 const TaxonomiesPeoplePersonSlugEditRouteWithChildren =
@@ -7063,14 +6363,14 @@ const TaxonomiesPeopleRouteWithChildren =
   TaxonomiesPeopleRoute._addFileChildren(TaxonomiesPeopleRouteChildren)
 
 interface TaxonomiesPlaceTypesPlaceTypeSlugEditRouteChildren {
-  TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute
+  TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRoute
   TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute: typeof TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute
 }
 
 const TaxonomiesPlaceTypesPlaceTypeSlugEditRouteChildren: TaxonomiesPlaceTypesPlaceTypeSlugEditRouteChildren =
   {
-    TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute:
-      TaxonomiesPlaceTypesPlaceTypeSlugEditGeneralRoute,
+    TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRoute:
+      TaxonomiesPlaceTypesPlaceTypeSlugEditSplatRoute,
     TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute:
       TaxonomiesPlaceTypesPlaceTypeSlugEditIndexRoute,
   }
@@ -7116,23 +6416,14 @@ const TaxonomiesPlaceTypesRouteWithChildren =
   TaxonomiesPlaceTypesRoute._addFileChildren(TaxonomiesPlaceTypesRouteChildren)
 
 interface TaxonomiesPropertyGroupsPropertyGroupSlugEditRouteChildren {
-  TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRoute
-  TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRoute
-  TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute
-  TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRoute
+  TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRoute
   TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute: typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute
 }
 
 const TaxonomiesPropertyGroupsPropertyGroupSlugEditRouteChildren: TaxonomiesPropertyGroupsPropertyGroupSlugEditRouteChildren =
   {
-    TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRoute:
-      TaxonomiesPropertyGroupsPropertyGroupSlugEditCategoriesRoute,
-    TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRoute:
-      TaxonomiesPropertyGroupsPropertyGroupSlugEditDisplayRulesRoute,
-    TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute:
-      TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute,
-    TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRoute:
-      TaxonomiesPropertyGroupsPropertyGroupSlugEditMediaTypesRoute,
+    TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRoute:
+      TaxonomiesPropertyGroupsPropertyGroupSlugEditSplatRoute,
     TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute:
       TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute,
   }
@@ -7181,14 +6472,14 @@ const TaxonomiesPropertyGroupsRouteWithChildren =
   )
 
 interface TaxonomiesRelationshipTypesRelationshipTypeSlugEditRouteChildren {
-  TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute: typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute
+  TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRoute: typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRoute
   TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRoute: typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRoute
 }
 
 const TaxonomiesRelationshipTypesRelationshipTypeSlugEditRouteChildren: TaxonomiesRelationshipTypesRelationshipTypeSlugEditRouteChildren =
   {
-    TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute:
-      TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute,
+    TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRoute:
+      TaxonomiesRelationshipTypesRelationshipTypeSlugEditSplatRoute,
     TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRoute:
       TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRoute,
   }
@@ -7259,32 +6550,14 @@ const TaxonomiesWebsitesWebsiteSlugHubRouteWithChildren =
   )
 
 interface TaxonomiesWebsitesWebsiteSlugEditRouteChildren {
-  TaxonomiesWebsitesWebsiteSlugEditAutofillRoute: typeof TaxonomiesWebsitesWebsiteSlugEditAutofillRoute
-  TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute: typeof TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute
-  TaxonomiesWebsitesWebsiteSlugEditGeneralRoute: typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
-  TaxonomiesWebsitesWebsiteSlugEditLanguagesRoute: typeof TaxonomiesWebsitesWebsiteSlugEditLanguagesRoute
-  TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute: typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
-  TaxonomiesWebsitesWebsiteSlugEditPeopleRoute: typeof TaxonomiesWebsitesWebsiteSlugEditPeopleRoute
-  TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute: typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
+  TaxonomiesWebsitesWebsiteSlugEditSplatRoute: typeof TaxonomiesWebsitesWebsiteSlugEditSplatRoute
   TaxonomiesWebsitesWebsiteSlugEditIndexRoute: typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
 }
 
 const TaxonomiesWebsitesWebsiteSlugEditRouteChildren: TaxonomiesWebsitesWebsiteSlugEditRouteChildren =
   {
-    TaxonomiesWebsitesWebsiteSlugEditAutofillRoute:
-      TaxonomiesWebsitesWebsiteSlugEditAutofillRoute,
-    TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute:
-      TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute,
-    TaxonomiesWebsitesWebsiteSlugEditGeneralRoute:
-      TaxonomiesWebsitesWebsiteSlugEditGeneralRoute,
-    TaxonomiesWebsitesWebsiteSlugEditLanguagesRoute:
-      TaxonomiesWebsitesWebsiteSlugEditLanguagesRoute,
-    TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute:
-      TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute,
-    TaxonomiesWebsitesWebsiteSlugEditPeopleRoute:
-      TaxonomiesWebsitesWebsiteSlugEditPeopleRoute,
-    TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute:
-      TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute,
+    TaxonomiesWebsitesWebsiteSlugEditSplatRoute:
+      TaxonomiesWebsitesWebsiteSlugEditSplatRoute,
     TaxonomiesWebsitesWebsiteSlugEditIndexRoute:
       TaxonomiesWebsitesWebsiteSlugEditIndexRoute,
   }
@@ -7348,23 +6621,14 @@ const TaxonomiesYoutubeChannelsChannelSlugHubRouteWithChildren =
   )
 
 interface TaxonomiesYoutubeChannelsChannelSlugEditRouteChildren {
-  TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute
-  TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRoute
-  TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
-  TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRoute
+  TaxonomiesYoutubeChannelsChannelSlugEditSplatRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditSplatRoute
   TaxonomiesYoutubeChannelsChannelSlugEditIndexRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditIndexRoute
 }
 
 const TaxonomiesYoutubeChannelsChannelSlugEditRouteChildren: TaxonomiesYoutubeChannelsChannelSlugEditRouteChildren =
   {
-    TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute:
-      TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute,
-    TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRoute:
-      TaxonomiesYoutubeChannelsChannelSlugEditDisplayRulesRoute,
-    TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute:
-      TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute,
-    TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRoute:
-      TaxonomiesYoutubeChannelsChannelSlugEditLanguagesRoute,
+    TaxonomiesYoutubeChannelsChannelSlugEditSplatRoute:
+      TaxonomiesYoutubeChannelsChannelSlugEditSplatRoute,
     TaxonomiesYoutubeChannelsChannelSlugEditIndexRoute:
       TaxonomiesYoutubeChannelsChannelSlugEditIndexRoute,
   }

@@ -39,7 +39,7 @@ export function ImportRuleTable({
           });
         }, () => {
           void navigate({
-            to: "/import-rules/$ruleSlug/edit/general",
+            to: "/import-rules/$ruleSlug/edit",
             params: {
               ruleSlug: rule.slug,
             },

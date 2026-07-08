@@ -76,7 +76,7 @@ export function PlaceTypeGeneralForm({
                   onSuccess: (updated) => {
                     if (updated.slug !== placeType.slug) {
                       void navigate({
-                        to: "/taxonomies/place-types/$placeTypeSlug/edit/general",
+                        to: "/taxonomies/place-types/$placeTypeSlug/edit",
                         params: {
                           placeTypeSlug: updated.slug,
                         },

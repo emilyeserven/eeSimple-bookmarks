@@ -55,7 +55,7 @@ function PropertyGroupsPage() {
         onOpenChange={setModalOpen}
         onCreated={(group) => {
           void navigate({
-            to: "/taxonomies/property-groups/$propertyGroupSlug/edit/general",
+            to: "/taxonomies/property-groups/$propertyGroupSlug/edit",
             params: {
               propertyGroupSlug: group.slug,
             },

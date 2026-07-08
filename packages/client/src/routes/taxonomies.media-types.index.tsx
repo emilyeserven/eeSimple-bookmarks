@@ -55,7 +55,7 @@ function MediaTypesTaxonomyPage() {
         onOpenChange={setModalOpen}
         onCreated={(mediaType) => {
           void navigate({
-            to: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
+            to: "/taxonomies/media-types/$mediaTypeSlug/edit",
             params: {
               mediaTypeSlug: mediaType.slug,
             },

@@ -1,68 +1,7 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
-import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
-import { usePropertyGroupBySlug } from "../hooks/usePropertyGroups";
-
+/** Pathless layout for a property group's edit surface. The page lives in the `index` child; the
+ *  `$` child redirects the old per-tab paths. */
 export const Route = createFileRoute("/taxonomies/property-groups/$propertyGroupSlug/edit")({
-  component: PropertyGroupEditLayout,
+  component: Outlet,
 });
-
-function PropertyGroupEditLayout() {
-  const {
-    t,
-  } = useTranslation();
-  const {
-    propertyGroupSlug,
-  } = Route.useParams();
-  const {
-    propertyGroup, isLoading,
-  } = usePropertyGroupBySlug(propertyGroupSlug);
-  const editNav = [
-    {
-      to: "/taxonomies/property-groups/$propertyGroupSlug/edit/general",
-      label: t("General"),
-    },
-    {
-      to: "/taxonomies/property-groups/$propertyGroupSlug/edit/categories",
-      label: t("Categories"),
-    },
-    {
-      to: "/taxonomies/property-groups/$propertyGroupSlug/edit/media-types",
-      label: t("Media Types"),
-    },
-    {
-      to: "/taxonomies/property-groups/$propertyGroupSlug/edit/display-rules",
-      label: t("Display Rules"),
-    },
-  ] as const;
-
-  return (
-    <TabbedEntityLayout
-      header={(
-        <div className="space-y-1">
-          <Link
-            to="/taxonomies/property-groups/$propertyGroupSlug"
-            params={{
-              propertyGroupSlug,
-            }}
-            className="
-              text-sm text-muted-foreground
-              hover:text-foreground
-            "
-          >
-            {t("← Back to {{name}}", {
-              name: isLoading ? t("property group") : (propertyGroup?.name ?? t("property group")),
-            })}
-          </Link>
-          <h1 className="text-2xl font-bold">{t("Edit property group")}</h1>
-        </div>
-      )}
-      nav={editNav}
-      params={{
-        propertyGroupSlug,
-      }}
-      navAriaLabel={t("Property group edit sections")}
-    />
-  );
-}

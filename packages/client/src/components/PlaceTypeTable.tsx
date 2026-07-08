@@ -39,7 +39,7 @@ export function PlaceTypeTable({
           });
         }, () => {
           void navigate({
-            to: "/taxonomies/place-types/$placeTypeSlug/edit/general",
+            to: "/taxonomies/place-types/$placeTypeSlug/edit",
             params: {
               placeTypeSlug: placeType.slug,
             },

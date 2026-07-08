@@ -15,17 +15,6 @@ export const Route = createFileRoute("/custom-properties/$propertySlug/info")({
   component: CustomPropertyInfoTab,
 });
 
-const VIEW_TO_EDIT = {
-  "general": "/custom-properties/$propertySlug/edit/general",
-  "options": "/custom-properties/$propertySlug/edit/options",
-  "categories": "/custom-properties/$propertySlug/edit/categories",
-  "media-types": "/custom-properties/$propertySlug/edit/media-types",
-  "display": "/custom-properties/$propertySlug/edit/display",
-  "autofill": "/custom-properties/$propertySlug/edit/autofill",
-  "display-rules": "/custom-properties/$propertySlug/edit/display-rules",
-} as const;
-type PropertyEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
-
 function CustomPropertyInfoTab() {
   const {
     t,
@@ -37,8 +26,6 @@ function CustomPropertyInfoTab() {
     tab,
   } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const editRoute: PropertyEditRoute
-    = (VIEW_TO_EDIT[(tab ?? "general") as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as PropertyEditRoute;
   const {
     property, isLoading,
   } = usePropertyBySlug(propertySlug);
@@ -84,9 +71,12 @@ function CustomPropertyInfoTab() {
                     size="sm"
                   >
                     <Link
-                      to={editRoute}
+                      to="/custom-properties/$propertySlug/edit"
                       params={{
                         propertySlug,
+                      }}
+                      search={{
+                        tab,
                       }}
                     >
                       {t("Edit")}

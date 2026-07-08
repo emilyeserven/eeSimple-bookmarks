@@ -16,7 +16,7 @@ description: >-
 Every browsable entity in this repo touches the same surface in the same order. Build them by
 copying an existing, complete entity rather than from scratch. **Reference entity:
 `media-types`** (or `youtube-channels`) — the most recent, fully-formed examples of the whole
-pattern, including the route quartet.
+pattern, including the client route set (see step 7).
 
 Work back-to-front: middleware → types → client. Build order is types → middleware → client, so
 keep the shared types compiling first.
@@ -117,19 +117,24 @@ bookmarks listing).
 - `<area>.<entity>.$<entity>Slug._hub.{index,gallery,media}.tsx` — the three listing panes, each
   rendering the shared `routes/-<entity>Listing.tsx` body with an `activeView` prop
 - `<area>.<entity>.$<entity>Slug._hub.info.tsx` — the Info page (`EntityInfoView`)
-- `<area>.<entity>.$<entity>Slug.edit.tsx` (+ `edit.index.tsx` redirect + `edit.<tab>.tsx`) — the edit
-  pages, **outside** `_hub`
+- `<area>.<entity>.$<entity>Slug.edit.tsx` (pathless `Outlet` layout) + `edit.index.tsx`
+  (`EntityEditView`) + `edit.$.tsx` (splat redirect from old per-tab paths) — the edit pages,
+  **outside** `_hub`
 
 **Info-only entity** — copy the `autofill.*` files, renaming:
 - `<area>.<entity>.tsx` / `<area>.<entity>.index.tsx` — layout + listing
 - `<area>.<entity>.$<entity>Slug.tsx` — entity layout with `<Outlet/>`
 - `<area>.<entity>.$<entity>Slug.index.tsx` — a `beforeLoad` **redirect** to `…/info`
 - `<area>.<entity>.$<entity>Slug.info.tsx` — the Info page (`EntityInfoView` with a `header` prop)
-- `<area>.<entity>.$<entity>Slug.edit.tsx` (+ `edit.index.tsx` redirect + `edit.<tab>.tsx`) — edit
+- `<area>.<entity>.$<entity>Slug.edit.tsx` (pathless `Outlet` layout) + `edit.index.tsx`
+  (`EntityEditView`) + `edit.$.tsx` (splat redirect from old per-tab paths) — edit
 
-There is **no** `_view.tsx` / `_view.<tab>.tsx` subtree — the read-only view tabs are derived from the
-workbench descriptor by `EntityInfoView` (vertical rail, `?tab=` search param). See the
-**`tabbed-pages`** skill for the full View/Edit route story.
+There is **no** `_view.tsx` / `_view.<tab>.tsx` subtree and **no** per-tab `edit.<tab>.tsx` route
+file — the read-only view tabs are derived from the workbench descriptor by `EntityInfoView`
+(vertical rail, `?tab=` search param), and the edit tabs are derived from the same descriptor by
+`EntityEditView` (horizontal strip, `?tab=` search param) — a new tab is a descriptor-only change on
+both surfaces. See the **`tabbed-pages`** skill for the full View/Edit route story (the exact shape
+of the three edit-route files, header content, and the `WorkbenchTab.group` nav-grouping mechanism).
 
 `routeTree.gen.ts` is generated — do not hand-edit. Run
 `pnpm --filter=@eesimple/client routeTree` (or let the Vite plugin regenerate it on `dev`/`build`).
@@ -148,9 +153,10 @@ via the workbench descriptor — do **not** reuse the submit create form for edi
   component). This is the **single source** the main-app pages render.
 - **Main-pane surfaces**: the **Info** page (`…$slug.info.tsx` / `…$slug._hub.info.tsx`) renders
   `<EntityInfoView workbench={<entity>Workbench} …>` — the vertical rail derives its view tabs from the
-  descriptor, so there's no route file per view tab. Each **edit** tab route (`edit.<tab>.tsx`) is a
-  one-line `WorkbenchRouteTab` (`workbench={<entity>Workbench}` + `tabKey` + `mode="edit"` + `slug`) —
-  see `routes/taxonomies.media-types.*`.
+  descriptor, so there's no route file per view tab. The **Edit** page (`…$slug.edit.index.tsx`)
+  renders `<EntityEditView workbench={<entity>Workbench} …>` the same way — the horizontal strip
+  derives its edit tabs from the descriptor, so there's no route file per edit tab either — see
+  `routes/taxonomies.media-types.*`.
 
 ### 10. Registries that derive from the sidebar entry
 

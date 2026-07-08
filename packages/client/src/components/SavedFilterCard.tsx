@@ -74,7 +74,7 @@ export function SavedFilterCard({
         ? (
           <HoverIconButton>
             <Link
-              to="/saved-filters/$filterSlug/edit/general"
+              to="/saved-filters/$filterSlug/edit"
               params={{
                 filterSlug: slug,
               }}

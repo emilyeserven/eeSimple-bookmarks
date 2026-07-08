@@ -94,7 +94,7 @@ export function useGroupGeneralForm(group: Group) {
       onSuccess: (updated) => {
         if (updated.slug !== group.slug) {
           void navigate({
-            to: "/taxonomies/groups/$groupSlug/edit/general",
+            to: "/taxonomies/groups/$groupSlug/edit",
             params: {
               groupSlug: updated.slug,
             },

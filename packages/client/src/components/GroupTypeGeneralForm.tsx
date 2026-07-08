@@ -78,7 +78,7 @@ export function GroupTypeGeneralForm({
                   onSuccess: (updated) => {
                     if (updated.slug !== groupType.slug) {
                       void navigate({
-                        to: "/taxonomies/group-types/$groupTypeSlug/edit/general",
+                        to: "/taxonomies/group-types/$groupTypeSlug/edit",
                         params: {
                           groupTypeSlug: updated.slug,
                         },
