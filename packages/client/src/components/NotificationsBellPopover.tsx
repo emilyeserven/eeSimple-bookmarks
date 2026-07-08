@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { Bell, CheckCircle2, ExternalLink, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -24,10 +26,19 @@ export function NotificationsBellPopover() {
     t,
   } = useTranslation();
   const notifications = useNotificationStore(state => state.notifications);
+  const unreadCount = useNotificationStore(state => state.unreadCount);
+  const markAllSeen = useNotificationStore(state => state.markAllSeen);
   const clearNotifications = useNotificationStore(state => state.clearNotifications);
+  const [open, setOpen] = useState(false);
 
   return (
     <ResponsivePopover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        // Opening the log means the user has seen the new notifications — clear the unread badge.
+        if (next) markAllSeen();
+      }}
       title={t("Notifications")}
       description={t("A history of recent toasts.")}
       titleEnd={notifications.length > 0
@@ -52,16 +63,16 @@ export function NotificationsBellPopover() {
           className="relative"
         >
           <Bell className="size-4" />
-          {notifications.length > 0
+          {unreadCount > 0
             ? (
               <span
                 className="
                   absolute -top-0.5 -right-0.5 flex size-4 items-center
-                  justify-center rounded-full bg-primary text-[10px]
-                  leading-none font-medium text-primary-foreground
+                  justify-center rounded-full border border-border bg-muted
+                  text-[10px] leading-none font-medium text-muted-foreground
                 "
               >
-                {notifications.length > 9 ? "9+" : notifications.length}
+                {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )
             : null}
@@ -101,6 +112,15 @@ export function NotificationsBellPopover() {
                         <ExternalLink className="size-3 shrink-0" />
                         {record.link.label}
                       </a>
+                    )
+                    : null}
+                  {record.page?.label
+                    ? (
+                      <p className="truncate text-xs text-muted-foreground">
+                        {t("From {{page}}", {
+                          page: record.page.label,
+                        })}
+                      </p>
                     )
                     : null}
                   <p className="text-xs text-muted-foreground">{formatTimestamp(record.timestamp)}</p>

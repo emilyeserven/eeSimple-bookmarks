@@ -3,6 +3,7 @@ import type { ExternalToast } from "sonner";
 
 import { toast } from "sonner";
 
+import { getCurrentNotificationPage } from "./notificationPage";
 import { useNotificationStore } from "../stores/notificationStore";
 
 /**
@@ -46,6 +47,7 @@ export function notifySuccess(message: string, options?: NotifyOptions): void {
     message,
     timestamp: new Date().toISOString(),
     link: options?.link,
+    page: getCurrentNotificationPage(),
   });
 }
 
@@ -57,5 +59,6 @@ export function notifyError(message: string, options?: NotifyOptions): void {
     message,
     timestamp: new Date().toISOString(),
     link: options?.link,
+    page: getCurrentNotificationPage(),
   });
 }
