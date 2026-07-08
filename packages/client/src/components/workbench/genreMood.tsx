@@ -1,25 +1,119 @@
 import type { EntityWorkbench, WorkbenchField } from "./types";
 import type { EntityLayout, GenreMoodNode } from "@eesimple/types";
 
-import { GenreMoodGeneralEdit, GenreMoodGeneralView, GenreMoodHierarchyView } from "./genreMoodViews";
 import i18n from "../../i18n";
+import { EntityNamesTabView, PrimaryLanguageTabView } from "../entityNames/EntityNamesTab";
+import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
+import {
+  GenreMoodDescriptionField,
+  GenreMoodNameField,
+  GenreMoodNamesEdit,
+  GenreMoodParentField,
+  GenreMoodPrimaryLanguageEdit,
+} from "../GenreMoodGeneralForm";
+import { GenreMoodHierarchyView, GenreMoodStatsView } from "./genreMoodViews";
 
 import { useDeleteGenreMood, useGenreMoodBySlug, useGenreMoodTree } from "@/hooks/useGenreMoods";
 import { flattenTree } from "@/lib/tagTree";
 
 /**
- * The Genres & Moods workbench's field registry (#1106 layout editor). `general` carries both
- * modes (`GenreMoodGeneralView`/`GenreMoodGeneralEdit`, each already a cohesive composite); `hierarchy`
- * is **view-only** — that is how the old view-only "Hierarchy" tab reproduces with no special-casing.
+ * The Genres & Moods workbench's field registry (#1106 layout editor, extraction #1190). The former
+ * single composite `general` field (Name/Description/Parent + Primary language + Names + the
+ * cross-taxonomy assignment picker, all bundled into one `useAppForm`) is split into independently
+ * placeable fields, mirroring the Category precedent (`primaryLanguage`/`names`/`genreMoods` promoted
+ * beside its `details` composite):
+ * - `name`/`description`/`parent` are **edit-only** — each its own small `useAppForm` instance, since
+ *   (unlike Category's name/icon/description) they share no CSS grid and have no real cross-field
+ *   coordination worth a shared form-context provider.
+ * - `stats` is **view-only** — the read-only Parent/Children/Slug/Description/Bookmarks/Created grid
+ *   stays one composite field (splitting a display-only grid would only fragment it).
+ * - `primaryLanguage`/`names` carry **both** modes, promoted exactly like Category's.
+ * - `relatedGenreMoods` is **edit-only**, mirroring Category's edit-only `genreMoods` field.
+ * - `hierarchy` stays **view-only** — that is how the old view-only "Hierarchy" tab reproduces with no
+ *   special-casing.
+ * Authored as an exhaustive `Record<GenreMoodFieldKey, …>` so a key without a renderer fails `tsc`.
  */
-type GenreMoodFieldKey = "general" | "hierarchy";
+type GenreMoodFieldKey
+  = | "name"
+    | "description"
+    | "stats"
+    | "primaryLanguage"
+    | "names"
+    | "parent"
+    | "relatedGenreMoods"
+    | "hierarchy";
 
 const genreMoodFields = {
-  general: {
-    key: "general",
+  name: {
+    key: "name",
+    label: i18n.t("Name"),
+    edit: ({
+      entity,
+    }) => <GenreMoodNameField node={entity} />,
+  },
+  description: {
+    key: "description",
+    label: i18n.t("Description"),
+    edit: ({
+      entity,
+    }) => <GenreMoodDescriptionField node={entity} />,
+  },
+  stats: {
+    key: "stats",
     label: i18n.t("General"),
-    view: GenreMoodGeneralView,
-    edit: GenreMoodGeneralEdit,
+    view: GenreMoodStatsView,
+  },
+  primaryLanguage: {
+    key: "primaryLanguage",
+    label: i18n.t("Primary language"),
+    view: ({
+      entity,
+    }) => (
+      <PrimaryLanguageTabView
+        ownerType="genreMood"
+        ownerId={entity.id}
+      />
+    ),
+    edit: ({
+      entity,
+    }) => <GenreMoodPrimaryLanguageEdit node={entity} />,
+  },
+  names: {
+    key: "names",
+    label: i18n.t("Names"),
+    view: ({
+      entity,
+    }) => (
+      <EntityNamesTabView
+        ownerType="genreMood"
+        ownerId={entity.id}
+      />
+    ),
+    edit: ({
+      entity,
+    }) => <GenreMoodNamesEdit node={entity} />,
+  },
+  parent: {
+    key: "parent",
+    label: i18n.t("Parent"),
+    edit: ({
+      entity,
+    }) => <GenreMoodParentField node={entity} />,
+  },
+  relatedGenreMoods: {
+    key: "relatedGenreMoods",
+    label: i18n.t("Related Genres & Moods"),
+    edit: ({
+      entity,
+    }) => (
+      <GenreMoodAssignmentSection
+        ownerType="genreMood"
+        ownerId={entity.id}
+        excludeId={entity.id}
+        title={i18n.t("Related Genres & Moods")}
+        description={i18n.t("Other Genres & Moods entries associated with this one.")}
+      />
+    ),
   },
   hierarchy: {
     key: "hierarchy",
@@ -28,7 +122,12 @@ const genreMoodFields = {
   },
 } satisfies Record<GenreMoodFieldKey, WorkbenchField<GenreMoodNode>>;
 
-/** The code default layout: the current two tabs, one untitled section each, in current order. */
+/**
+ * The code default layout: a single field order that resolves correctly in both modes. Filtered to
+ * edit-only + both-mode fields: `name, description, primaryLanguage, names, parent,
+ * relatedGenreMoods` — the pre-extraction edit order. Filtered to view-only + both-mode fields:
+ * `stats, primaryLanguage, names` — the pre-extraction view order. `hierarchy` tab unchanged.
+ */
 const GENRE_MOOD_DEFAULT_LAYOUT: EntityLayout = {
   tabs: [
     {
@@ -36,7 +135,15 @@ const GENRE_MOOD_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["general"] satisfies GenreMoodFieldKey[],
+        fields: [
+          "name",
+          "description",
+          "stats",
+          "primaryLanguage",
+          "names",
+          "parent",
+          "relatedGenreMoods",
+        ] satisfies GenreMoodFieldKey[],
       }],
     },
     {

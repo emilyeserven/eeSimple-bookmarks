@@ -4,8 +4,10 @@ import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 
 import { bookmarkWorkbench } from "../components/workbench/bookmark";
 import { categoryWorkbench } from "../components/workbench/category";
+import { genreMoodWorkbench } from "../components/workbench/genreMood";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
 import { propertyWorkbench } from "../components/workbench/property";
+import { tagWorkbench } from "../components/workbench/tag";
 import i18n from "../i18n";
 
 /** One entity kind selectable on the Page Layouts settings page. */
@@ -60,6 +62,22 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Custom Property"),
     fields: fieldsFromRegistry(propertyWorkbench.fields),
     defaultLayout: propertyWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "genre-mood",
+    label: i18n.t("Genres & Moods"),
+    fields: fieldsFromRegistry(genreMoodWorkbench.fields),
+    defaultLayout: genreMoodWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "tag",
+    label: i18n.t("Tag"),
+    fields: fieldsFromRegistry(tagWorkbench.fields),
+    defaultLayout: tagWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },

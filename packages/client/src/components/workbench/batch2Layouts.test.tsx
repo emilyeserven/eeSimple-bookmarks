@@ -69,6 +69,22 @@ describe("tag default layout", () => {
       "general", "autofill", "display-rules",
     ]);
   });
+
+  it("renders the General tab's view fields in the old TagGeneralView order (#1193)", () => {
+    const general = shape(tagWorkbench, "view").find(tab => tab.key === "general");
+    expect(general?.sections).toEqual([{
+      key: "general",
+      fields: ["stats", "primaryLanguage", "names", "autofillSources"],
+    }]);
+  });
+
+  it("renders the General tab's edit fields in the old TagGeneralForm order (#1193)", () => {
+    const general = shape(tagWorkbench, "edit").find(tab => tab.key === "general");
+    expect(general?.sections).toEqual([{
+      key: "general",
+      fields: ["name", "primaryLanguage", "description", "names", "parent", "options", "genreMoods"],
+    }]);
+  });
 });
 
 describe("media type default layout", () => {

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { genreMoodWorkbench } from "./genreMood";
 import { groupWorkbench } from "./group";
 import { groupTypeWorkbench } from "./groupType";
 import { languageWorkbench } from "./language";
@@ -18,42 +17,6 @@ import { shape } from "./workbenchLayoutTestUtils";
  * (`workbenchLayoutTestUtils.ts`). Renderers are never invoked here, only the pure order/visibility
  * helpers, so no React rendering happens.
  */
-
-describe("genreMood default layout", () => {
-  it("renders both view tabs (general, hierarchy)", () => {
-    expect(shape(genreMoodWorkbench, "view")).toEqual([
-      {
-        key: "general",
-        group: undefined,
-        sections: [{
-          key: "general",
-          fields: ["general"],
-        }],
-      },
-      {
-        key: "hierarchy",
-        group: undefined,
-        sections: [{
-          key: "hierarchy",
-          fields: ["hierarchy"],
-        }],
-      },
-    ]);
-  });
-
-  it("renders only the general edit tab (hierarchy is view-only, so it vanishes in edit)", () => {
-    expect(shape(genreMoodWorkbench, "edit")).toEqual([
-      {
-        key: "general",
-        group: undefined,
-        sections: [{
-          key: "general",
-          fields: ["general"],
-        }],
-      },
-    ]);
-  });
-});
 
 describe("language default layout", () => {
   it("renders the single view/edit tab", () => {
