@@ -443,8 +443,8 @@ registry edit, never a pane edit.
     directly** — `LayoutDrivenTabBody` invokes `render({entity})` as a plain call, so any hooks must live
     inside the returned component (isolated fiber), or the changing field set breaks the Rules of Hooks.
   - **Field-granularity edge cases** (judgment, not mechanical): a scalar cluster sharing one `useAppForm`
-    + a `grid sm:grid-cols-2` stays **one** field (Category `details` = name/icon/description — splitting
-    would linearize the grid); asymmetric view/edit composites reconcile into **one ordered field list**
+    + a `grid sm:grid-cols-2` stays **one** field (Website `general` = site name/domain/description —
+    splitting would linearize the grid); asymmetric view/edit composites reconcile into **one ordered field list**
     where each field is view-only, edit-only, or both, and the mode picks the renderer (Category
     `genreMoods` edit-only + `autofillSources` view-only; Newsletter `name`/`tags`/`genreMoods` edit-only +
     `metadata` view-only); a within-tab `<Separator/>` folds into the **leading edge of the field it
@@ -459,7 +459,13 @@ registry edit, never a pane edit.
        promote it directly: add a `WorkbenchField` (its `edit`/`view` renderer wraps the existing
        sub-component) and place its key in `defaultLayout`. This is the Category precedent
        (`primaryLanguage`/`names` broken out beside the `details` composite) — nothing else is needed
-       because react-query already coordinates the shared state across the separate fibers.
+       because react-query already coordinates the shared state across the separate fibers. Category's
+       `name`/`icon`/`description` (#1186) turned out to be this same shape even though they shared one
+       `useAppForm` — the grid was only a layout convenience, with **no real cross-field coordination**
+       between the three (each already auto-saved on its own trigger); splitting them just meant giving
+       each its own tiny `useAppForm` + `useFieldAutoSave` instance, not a form-context provider. Check
+       for genuine coordination (shared validation, one field's save affecting another) before reaching
+       for shape 2 below.
     2. **Shared-`useAppForm` composite** (one controller with cross-field coordination — the bookmark
        General form: name-blur autofill, website-lookup → autofill offer → category, primary-language
        sync) → because the render seam calls each field renderer as a plain function, N independent field

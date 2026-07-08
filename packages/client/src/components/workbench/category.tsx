@@ -6,7 +6,9 @@ import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { CategoryCustomProperties } from "../CategoryCustomProperties";
 import {
-  CategoryDetailsFields,
+  CategoryDescriptionEditField,
+  CategoryIconEditField,
+  CategoryNameEditField,
   CategoryNamesEdit,
   CategoryPrimaryLanguageEdit,
 } from "../CategoryGeneralForm";
@@ -26,12 +28,18 @@ import { useCategories, useCategoryBySlug, useDeleteCategory } from "@/hooks/use
  * - `genreMoods` is **edit-only** (no view) and `autofillSources` **view-only** (no edit) — that is how
  *   the asymmetric General view/edit reconcile into one ordered field list;
  * - `display` is **edit-only** → its tab vanishes in view (the old edit-only "Display" tab);
- * - `name`/`icon`/`description` stay one `details` field (shared `useAppForm` + a two-column grid — one
- *   cohesive layout unit).
+ * - `name`/`icon`/`description` are each **edit-only**, independently-placeable fields — unlike
+ *   bookmark's General form, none of them coordinate with each other (each already auto-saves on its
+ *   own trigger), so no shared-form-context provider is needed (#1186); `details` is now the view-only
+ *   residual metadata block (Slug/Bookmarks/Added/Built-in/On homepage) it always rendered, just without
+ *   an `edit` renderer.
  * Authored as an exhaustive `Record<CategoryFieldKey, …>` so a key without a renderer fails `tsc`.
  */
 type CategoryFieldKey
   = | "details"
+    | "name"
+    | "icon"
+    | "description"
     | "primaryLanguage"
     | "names"
     | "genreMoods"
@@ -48,9 +56,27 @@ const categoryFields = {
     view: ({
       entity,
     }) => <CategoryGeneralFields category={entity} />,
+  },
+  name: {
+    key: "name",
+    label: i18n.t("Name"),
     edit: ({
       entity,
-    }) => <CategoryDetailsFields category={entity} />,
+    }) => <CategoryNameEditField category={entity} />,
+  },
+  icon: {
+    key: "icon",
+    label: i18n.t("Icon"),
+    edit: ({
+      entity,
+    }) => <CategoryIconEditField category={entity} />,
+  },
+  description: {
+    key: "description",
+    label: i18n.t("Description"),
+    edit: ({
+      entity,
+    }) => <CategoryDescriptionEditField category={entity} />,
   },
   primaryLanguage: {
     key: "primaryLanguage",
@@ -170,7 +196,7 @@ const CATEGORY_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["details", "primaryLanguage", "names", "genreMoods", "autofillSources"] satisfies CategoryFieldKey[],
+        fields: ["details", "name", "icon", "description", "primaryLanguage", "names", "genreMoods", "autofillSources"] satisfies CategoryFieldKey[],
       }],
     },
     {
