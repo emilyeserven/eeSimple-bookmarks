@@ -53,7 +53,7 @@ export function AutofillBackfillRow({
           />
         )}
       <div className="min-w-0 flex-1 space-y-0.5">
-        <p className="truncate text-sm font-medium">{entry.bookmark.title}</p>
+        <p className="text-sm font-medium wrap-break-word">{entry.bookmark.title}</p>
         <p className="truncate text-xs text-muted-foreground">{entry.bookmark.url}</p>
       </div>
       {entry.isExempt

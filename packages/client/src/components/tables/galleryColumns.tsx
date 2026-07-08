@@ -76,7 +76,7 @@ export function galleryColumns({
               bookmarkId: bookmark.id,
             }}
             className="
-              truncate
+              wrap-break-word
               hover:underline
             "
             title={bookmark.title}

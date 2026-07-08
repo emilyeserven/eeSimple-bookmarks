@@ -47,7 +47,7 @@ function BookmarkPicker({
               onSelect={() => onSelect(bookmark)}
               className="flex items-center justify-between gap-2"
             >
-              <span className="truncate">{bookmark.title}</span>
+              <span className="wrap-break-word">{bookmark.title}</span>
               {selected?.id === bookmark.id
                 ? <Check className="size-4 shrink-0 text-primary" />
                 : null}
