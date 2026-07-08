@@ -9,13 +9,13 @@ description: >-
   standard hover Edit/Info buttons to a listing", "make a listing card link to the term's own page",
   "add a count badge / de-emphasize empty items on a listing", or when adding a new listing page that
   should adopt the standard. Mirrors Categories, Websites, YouTube Channels, Media Types, Tags,
-  Property Groups, Relationship Types, Groups, Group Types, People, Autofill, and Saved Filters.
+  Relationship Types, Groups, Group Types, People, Autofill, and Saved Filters.
 ---
 
 # Standard listing card
 
-Every entity listing page (Categories, Tags, Websites, Media Types, YouTube Channels, Property
-Groups, Relationship Types, Autofill) renders its rows with the **same** card look + interaction
+Every entity listing page (Categories, Tags, Websites, Media Types, YouTube Channels,
+Relationship Types, Autofill) renders its rows with the **same** card look + interaction
 model. New listing pages adopt it from the start; existing ones must not drift back to bespoke rows.
 
 ## The standard (6 invariants)
@@ -29,7 +29,7 @@ model. New listing pages adopt it from the start; existing ones must not drift b
      to their **own `$slug` index route** — `/categories/$slug`, `/tags/$slug`,
      `/taxonomies/websites/$slug`, etc. — which renders that term's bookmarks under a term-specific
      header. A **plain `<Link>`** (no `viewClick`): there's no panel content type for a bookmark list.
-   - **Non-listable entities** (Property Groups, Relationship Types, Groups, Group Types, People, Autofill,
+   - **Non-listable entities** (Relationship Types, Groups, Group Types, People, Autofill,
      Custom Properties) have no per-term bookmarks page, so the body links to the entity's **Info
      page** (`<Link to="/<entity>/$slug/info">`) and **is** panel-aware (`viewClick`).
    Don't reintroduce a `<Link to="/bookmarks" search={withX(...)}>` body link — `withX` now backs only
@@ -39,7 +39,7 @@ model. New listing pages adopt it from the start; existing ones must not drift b
    (modifier-click opens the right panel). **The Info link must point at `…/$slug/info`, never the
    bare index `…/$slug`** — for Tags, Websites, YouTube Channels, and Media Types the bare index route
    renders a *bookmarks* `BookmarkSearchView` (the listable body destination), not the Info page; and
-   even where the index `redirect`s to `/info` (Property Groups, Relationship Types, Groups,
+   even where the index `redirect`s to `/info` (Relationship Types, Groups,
    Group Types, People) you should link directly to `/info`. (The old header "Info" (view-details)
    button was removed — the hover Info button on the card is unrelated and stays.)
 5. **Always-visible count badge** = bookmarks where the item is applied.
@@ -127,7 +127,6 @@ card.
 | YouTube Channels | `YouTubeChannelListItem.tsx` | avatar `imageUrl`→`MonitorPlay` | own page `/taxonomies/youtube-channels/$slug` (plain) | `bookmarkCount` |
 | Tags (tree) | `TagTreeList.tsx` | `CategoryIcon` (none → Tag glyph) | own page `/tags/$slug` (plain) | `bookmarkCount` |
 | Media Types (tree) | `MediaTypeTreeList.tsx` | `CategoryIcon name={node.icon}` | own page `/taxonomies/media-types/$slug` (plain) | `bookmarkCount` |
-| Property Groups *(detail)* | `PropertyGroupListItem.tsx` | `Layers` | detail `…/$slug/info` (`viewClick`) | `propertyCount` |
 | Relationship Types *(detail)* | `RelationshipTypeManager.tsx` | `Link2` | detail `…/$slug/info` (`viewClick`) | `bookmarkCount` |
 | Groups *(detail)* | `GroupListItem.tsx` | `BookOpen` | detail `…/$slug/info` (`viewClick`) | `bookmarkCount` |
 | Group Types *(detail)* | `GroupTypeListItem.tsx` | `Library` | detail `…/$slug/info` (`viewClick`) | `groupCount` |
@@ -150,10 +149,9 @@ Types thread `node.icon`; flat Tags get the Tag-glyph fallback).
 
 ## Non-listable entities + other notes
 
-- **Property Groups / Groups / Group Types / People** — no per-term bookmarks page exists, so the body
-  links to the entity's **Info page** (`…/$slug/info`, panel-aware `viewClick`). Property
-  Groups' badge counts member **properties** (`propertyCount`), Group Types' counts member **groups**
-  (`groupCount`); the others use `bookmarkCount`. Edit +
+- **Groups / Group Types / People** — no per-term bookmarks page exists, so the body
+  links to the entity's **Info page** (`…/$slug/info`, panel-aware `viewClick`). Group Types' badge
+  counts member **groups** (`groupCount`); the others use `bookmarkCount`. Edit +
   Info are still shown (Info also → `…/info`).
 - **Autofill** — the body links to the rule's **info page** (`/autofill/$slug`, `viewClick`); there is
   **no Info button** (`renderInfo` omitted). The badge is `matchCount` (bookmarks the rule matches).
@@ -179,7 +177,7 @@ matches the card.
 ## pageKeys
 
 Reuse the `listing-page-controls` keys (`categories-listing`, `websites-listing`,
-`media-types-listing`, `youtube-channels-listing`, `tags-listing`, `property-groups-listing`,
+`media-types-listing`, `youtube-channels-listing`, `tags-listing`,
 `autofill-rules-listing`) plus `relationship-types-listing` for any column/view-mode state.
 
 ## When a listing entity has no detail/edit pages
@@ -201,8 +199,8 @@ descriptor. Then convert the inline manager row to `StandardListingCard`.
 ## Reference implementations
 
 `CategoryPreviewCard.tsx` (flat, full props), `WebsiteListItem.tsx` / `YouTubeChannelListItem.tsx`
-(image icon + footer pill), `PropertyGroupListItem.tsx` + `AutofillRuleListItem.tsx` (the two
-exceptions), `TaxonomyTreeRow.tsx` + `TagTreeList.tsx` / `MediaTypeTreeList.tsx` (tree).
+(image icon + footer pill), `AutofillRuleListItem.tsx` (the non-listable exception),
+`TaxonomyTreeRow.tsx` + `TagTreeList.tsx` / `MediaTypeTreeList.tsx` (tree).
 
 ## Verify
 
@@ -216,7 +214,7 @@ pnpm dev                                   # then check each listing page
 
 Per page: body click → **the term's own page** — its own bookmarks page for listable entities
 (Categories, Tags, Websites, YouTube Channels, Media Types), or its Info page for
-non-listable ones (Property Groups, Relationship Types, Groups, Group Types, People, Autofill) — and **never**
+non-listable ones (Relationship Types, Groups, Group Types, People, Autofill) — and **never**
 the global `/bookmarks?…=id` list; icon far-left; a tall/wrapping card centers the icon + buttons;
 hover shows Edit (+ Info except Autofill); the **Info icon lands on the entity's Info page
 (`…/$slug/info`), not a bookmarks list**; modifier-click on Edit/Info opens the right panel; for a

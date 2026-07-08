@@ -152,7 +152,6 @@ in `uiStore`.
 | YouTube Channels | `"youtube-channels-listing"` |
 | Tags | `"tags-listing"` |
 | Custom Properties | `"custom-properties-listing"` |
-| Property Groups | `"property-groups-listing"` |
 | Autofill Rules | `"autofill-rules-listing"` |
 
 ---

@@ -6,7 +6,7 @@ description: >-
   column-definition file under `components/tables/`. Use when asked to "add a table view to X",
   "give the X listing a data table", "let me switch X between cards and a table", "add column
   definitions for X", or "wire X into the DataTable". Mirrors how Categories, Websites, Media Types,
-  YouTube Channels, Tags, Custom Properties, Property Groups, Autofill rules, People, Groups,
+  YouTube Channels, Tags, Custom Properties, Autofill rules, People, Groups,
   Group Types, Relationship Types, Newsletters, and Place Types got their table views.
   Also covers maintaining a table — "add/remove a column on the X table", "change how a column renders/sorts".
 ---

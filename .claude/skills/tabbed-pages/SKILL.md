@@ -6,7 +6,7 @@ description: >-
   the `?tab=` route files. Use when asked to "give X a tabbed layout", "add/rename/remove/reorder a
   tab on X", "make X's detail/edit pages tabbed like Categories", "split the X page into tabs", or
   "add an autofill/display-rules tab to X". Mirrors how every slug-routed entity (Categories, Custom
-  Properties, Websites, Media Types, YouTube Channels, Tags, Property Groups, …) is laid out today.
+  Properties, Websites, Media Types, YouTube Channels, Tags, …) is laid out today.
 ---
 
 # Author / maintain an entity's tabbed View + Edit layout
@@ -41,7 +41,7 @@ Almost always the entity already exists and is already tabbed — so this skill 
   (`showIf`), plus scoped Autofill + Display-Rules tabs.
 - **Categories** (`workbench/category.tsx`) — asymmetric view/edit fields (`genreMoods` edit-only,
   `autofillSources` view-only), a decomposed General, and a "Rules" **group** (Autofill + Display Rules).
-- **Media Types / YouTube Channels / Property Groups** — the leanest: each tab is **one** composite
+- **Media Types / YouTube Channels** — the leanest: each tab is **one** composite
   field (`general` bundles the whole view+edit General), plus a view-only Hierarchy where applicable.
 
 ## The descriptor is the whole surface
