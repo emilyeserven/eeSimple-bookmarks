@@ -3,7 +3,7 @@ name: add-entity
 description: >-
   Scaffold a new slug-routed entity end to end in eeSimple Bookmarks — add a new table / taxonomy /
   content type with detail and edit pages, a service with slug generation, CRUD routes, shared
-  types, the client route quartet, and a manager component. Use when
+  types, the client `?tab=` route set, and a layout-driven workbench field-registry descriptor. Use when
   asked to "add a new entity/table/taxonomy/content type", "give X detail and edit pages",
   or "make X slug-routed". Mirrors how categories, websites,
   custom-properties, autofill, media-types, youtube-channels, tags, property-groups, and genres-moods
@@ -140,23 +140,37 @@ of the three edit-route files, header content, and the `WorkbenchTab.group` nav-
 `pnpm --filter=@eesimple/client routeTree` (or let the Vite plugin regenerate it on `dev`/`build`).
 
 ### 8. Client — manager component (`packages/client/src/components/<Entity>Manager.tsx`)
-Copy `MediaTypeManager.tsx`. The **edit** UI is the auto-save **`<Entity>GeneralForm`** you build for
-the edit tab (see the `tabbed-pages` / `toast-notifications` skills), and the read-only **view body**
-is a small **`<Entity>GeneralView`** (or the inline `<dl>` you lift into the workbench). These render
-via the workbench descriptor — do **not** reuse the submit create form for edit.
+Copy `MediaTypeManager.tsx`. The **edit** UI is the auto-save **`<Entity>GeneralForm`** (see the
+`tabbed-pages` / `toast-notifications` skills), and the read-only **view body** is a small
+**`<Entity>GeneralView`** (an inline `<dl>` — e.g. `workbench/mediaTypeViews.tsx`). Both are wired into
+the workbench field registry (step 9), which is what the pages render — do **not** reuse the submit
+create form for edit.
 
-### 9. Workbench descriptor
-- **Workbench descriptor** (`packages/client/src/components/workbench/<entity>.tsx`): copy
-  `workbench/mediaType.tsx`. Export an `EntityWorkbench<Entity>` (typed by `workbench/types.ts`):
-  `useBySlug` loader, `name`/`isBuiltIn`/`canDelete`, a `useDelete` control, and a `tabs`
-  array where each tab has a `view` and/or `edit` `WorkbenchPane` (title + description + a body
-  component). This is the **single source** the main-app pages render.
+### 9. Workbench descriptor (`packages/client/src/components/workbench/<entity>.tsx`)
+Copy `workbench/mediaType.tsx` — the leanest layout-driven descriptor. Every entity is **layout-driven**
+(CLAUDE.md → "Entity page layouts"), so the descriptor is a **field registry + default layout**, not
+opaque panes:
+- a `<Entity>FieldKey` union + a `const <entity>Fields = { … } satisfies Record<<Entity>FieldKey,
+  WorkbenchField<Entity>>` registry — each field `{ key, label, view?, edit?, showIf? }`. The leanest
+  form registers each tab as **one** composite field (`general: { view: <Entity>GeneralView, edit:
+  ({entity}) => <<Entity>GeneralForm …/> }`); a view-only tab (Hierarchy) has only a `view` renderer.
+  A field renderer must **return a JSX element**, never call hooks in the arrow (hooks live in the
+  returned component).
+- a `const <ENTITY>_DEFAULT_LAYOUT: EntityLayout` — one tab per section-group, one untitled section per
+  tab, `fields: [...] satisfies <Entity>FieldKey[]` in render order.
+- the exported `EntityWorkbench<Entity>` setting `layoutKind: "<kind>"` (its
+  `LAYOUTABLE_ENTITY_KINDS` value — add the kind to that tuple in `packages/types/src/entityLayouts.ts`
+  if it's new), `fields`, `defaultLayout`, plus `useBySlug`/`useById`, `name`/`isBuiltIn`/`canDelete`,
+  `useDelete`, `notFound`, `navAriaLabel`, `getSlug`, `listingPath?`, and a **thin `tabs` array**
+  (`{ key, label, group? }`, no panes) carrying only the code-only `group` nav metadata (re-attached by
+  key in `deriveWorkbenchTabs`). This is the **single source** the pages render.
 - **Main-pane surfaces**: the **Info** page (`…$slug.info.tsx` / `…$slug._hub.info.tsx`) renders
-  `<EntityInfoView workbench={<entity>Workbench} …>` — the vertical rail derives its view tabs from the
-  descriptor, so there's no route file per view tab. The **Edit** page (`…$slug.edit.index.tsx`)
-  renders `<EntityEditView workbench={<entity>Workbench} …>` the same way — the horizontal strip
-  derives its edit tabs from the descriptor, so there's no route file per edit tab either — see
-  `routes/taxonomies.media-types.*`.
+  `<EntityInfoView workbench={<entity>Workbench} …>` and the **Edit** page (`…$slug.edit.index.tsx`)
+  renders `<EntityEditView workbench={<entity>Workbench} …>`; both derive their tabs from the resolved
+  layout (`deriveWorkbenchTabs`) and render bodies via `WorkbenchRouteTab` → `LayoutDrivenTabBody`, so
+  there is **no route file per tab** on either side — see `routes/taxonomies.media-types.*`. (Optional:
+  add the kind to `LAYOUT_DRIVEN_ENTITIES` in `lib/layoutDrivenEntities.ts` to expose it in the
+  Settings → Display → Page Layouts editor; the render path works without it.)
 
 ### 10. Registries that derive from the sidebar entry
 
