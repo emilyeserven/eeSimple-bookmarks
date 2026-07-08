@@ -215,13 +215,7 @@ import { Route as CategoriesCategorySlugEditSplatRouteImport } from './routes/ca
 import { Route as CategoriesCategorySlugHubInfoRouteImport } from './routes/categories.$categorySlug._hub.info'
 import { Route as CategoriesCategorySlugHubGalleryRouteImport } from './routes/categories.$categorySlug._hub.gallery'
 import { Route as CardDisplayRulesRuleSlugEditSplatRouteImport } from './routes/card-display-rules.$ruleSlug.edit.$'
-import { Route as BookmarksBookmarkIdEditVideoRouteImport } from './routes/bookmarks.$bookmarkId.edit.video'
-import { Route as BookmarksBookmarkIdEditRelationshipsRouteImport } from './routes/bookmarks.$bookmarkId.edit.relationships'
-import { Route as BookmarksBookmarkIdEditRelatedRouteImport } from './routes/bookmarks.$bookmarkId.edit.related'
-import { Route as BookmarksBookmarkIdEditPropertiesRouteImport } from './routes/bookmarks.$bookmarkId.edit.properties'
-import { Route as BookmarksBookmarkIdEditLanguagesRouteImport } from './routes/bookmarks.$bookmarkId.edit.languages'
-import { Route as BookmarksBookmarkIdEditImageRouteImport } from './routes/bookmarks.$bookmarkId.edit.image'
-import { Route as BookmarksBookmarkIdEditGeneralRouteImport } from './routes/bookmarks.$bookmarkId.edit.general'
+import { Route as BookmarksBookmarkIdEditSplatRouteImport } from './routes/bookmarks.$bookmarkId.edit.$'
 import { Route as AutofillRuleSlugEditSplatRouteImport } from './routes/autofill.$ruleSlug.edit.$'
 import { Route as TaxonomiesYoutubeChannelsChannelSlugEditIndexRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug.edit.index'
 import { Route as TaxonomiesYoutubeChannelsChannelSlugHubIndexRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug._hub.index'
@@ -1416,46 +1410,10 @@ const CardDisplayRulesRuleSlugEditSplatRoute =
     path: '/$',
     getParentRoute: () => CardDisplayRulesRuleSlugEditRoute,
   } as any)
-const BookmarksBookmarkIdEditVideoRoute =
-  BookmarksBookmarkIdEditVideoRouteImport.update({
-    id: '/video',
-    path: '/video',
-    getParentRoute: () => BookmarksBookmarkIdEditRoute,
-  } as any)
-const BookmarksBookmarkIdEditRelationshipsRoute =
-  BookmarksBookmarkIdEditRelationshipsRouteImport.update({
-    id: '/relationships',
-    path: '/relationships',
-    getParentRoute: () => BookmarksBookmarkIdEditRoute,
-  } as any)
-const BookmarksBookmarkIdEditRelatedRoute =
-  BookmarksBookmarkIdEditRelatedRouteImport.update({
-    id: '/related',
-    path: '/related',
-    getParentRoute: () => BookmarksBookmarkIdEditRoute,
-  } as any)
-const BookmarksBookmarkIdEditPropertiesRoute =
-  BookmarksBookmarkIdEditPropertiesRouteImport.update({
-    id: '/properties',
-    path: '/properties',
-    getParentRoute: () => BookmarksBookmarkIdEditRoute,
-  } as any)
-const BookmarksBookmarkIdEditLanguagesRoute =
-  BookmarksBookmarkIdEditLanguagesRouteImport.update({
-    id: '/languages',
-    path: '/languages',
-    getParentRoute: () => BookmarksBookmarkIdEditRoute,
-  } as any)
-const BookmarksBookmarkIdEditImageRoute =
-  BookmarksBookmarkIdEditImageRouteImport.update({
-    id: '/image',
-    path: '/image',
-    getParentRoute: () => BookmarksBookmarkIdEditRoute,
-  } as any)
-const BookmarksBookmarkIdEditGeneralRoute =
-  BookmarksBookmarkIdEditGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
+const BookmarksBookmarkIdEditSplatRoute =
+  BookmarksBookmarkIdEditSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => BookmarksBookmarkIdEditRoute,
   } as any)
 const AutofillRuleSlugEditSplatRoute =
@@ -1952,13 +1910,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/websites/': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels/': typeof TaxonomiesYoutubeChannelsIndexRoute
   '/autofill/$ruleSlug/edit/$': typeof AutofillRuleSlugEditSplatRoute
-  '/bookmarks/$bookmarkId/edit/general': typeof BookmarksBookmarkIdEditGeneralRoute
-  '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
-  '/bookmarks/$bookmarkId/edit/languages': typeof BookmarksBookmarkIdEditLanguagesRoute
-  '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
-  '/bookmarks/$bookmarkId/edit/related': typeof BookmarksBookmarkIdEditRelatedRoute
-  '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
-  '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
+  '/bookmarks/$bookmarkId/edit/$': typeof BookmarksBookmarkIdEditSplatRoute
   '/card-display-rules/$ruleSlug/edit/$': typeof CardDisplayRulesRuleSlugEditSplatRoute
   '/categories/$categorySlug/gallery': typeof CategoriesCategorySlugHubGalleryRoute
   '/categories/$categorySlug/info': typeof CategoriesCategorySlugHubInfoRoute
@@ -2163,13 +2115,7 @@ export interface FileRoutesByTo {
   '/taxonomies/websites': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsIndexRoute
   '/autofill/$ruleSlug/edit/$': typeof AutofillRuleSlugEditSplatRoute
-  '/bookmarks/$bookmarkId/edit/general': typeof BookmarksBookmarkIdEditGeneralRoute
-  '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
-  '/bookmarks/$bookmarkId/edit/languages': typeof BookmarksBookmarkIdEditLanguagesRoute
-  '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
-  '/bookmarks/$bookmarkId/edit/related': typeof BookmarksBookmarkIdEditRelatedRoute
-  '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
-  '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
+  '/bookmarks/$bookmarkId/edit/$': typeof BookmarksBookmarkIdEditSplatRoute
   '/card-display-rules/$ruleSlug/edit/$': typeof CardDisplayRulesRuleSlugEditSplatRoute
   '/categories/$categorySlug/gallery': typeof CategoriesCategorySlugHubGalleryRoute
   '/categories/$categorySlug/info': typeof CategoriesCategorySlugHubInfoRoute
@@ -2401,13 +2347,7 @@ export interface FileRoutesById {
   '/taxonomies/websites/': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels/': typeof TaxonomiesYoutubeChannelsIndexRoute
   '/autofill/$ruleSlug/edit/$': typeof AutofillRuleSlugEditSplatRoute
-  '/bookmarks/$bookmarkId/edit/general': typeof BookmarksBookmarkIdEditGeneralRoute
-  '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
-  '/bookmarks/$bookmarkId/edit/languages': typeof BookmarksBookmarkIdEditLanguagesRoute
-  '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
-  '/bookmarks/$bookmarkId/edit/related': typeof BookmarksBookmarkIdEditRelatedRoute
-  '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
-  '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
+  '/bookmarks/$bookmarkId/edit/$': typeof BookmarksBookmarkIdEditSplatRoute
   '/card-display-rules/$ruleSlug/edit/$': typeof CardDisplayRulesRuleSlugEditSplatRoute
   '/categories/$categorySlug/_hub/gallery': typeof CategoriesCategorySlugHubGalleryRoute
   '/categories/$categorySlug/_hub/info': typeof CategoriesCategorySlugHubInfoRoute
@@ -2672,13 +2612,7 @@ export interface FileRouteTypes {
     | '/taxonomies/websites/'
     | '/taxonomies/youtube-channels/'
     | '/autofill/$ruleSlug/edit/$'
-    | '/bookmarks/$bookmarkId/edit/general'
-    | '/bookmarks/$bookmarkId/edit/image'
-    | '/bookmarks/$bookmarkId/edit/languages'
-    | '/bookmarks/$bookmarkId/edit/properties'
-    | '/bookmarks/$bookmarkId/edit/related'
-    | '/bookmarks/$bookmarkId/edit/relationships'
-    | '/bookmarks/$bookmarkId/edit/video'
+    | '/bookmarks/$bookmarkId/edit/$'
     | '/card-display-rules/$ruleSlug/edit/$'
     | '/categories/$categorySlug/gallery'
     | '/categories/$categorySlug/info'
@@ -2883,13 +2817,7 @@ export interface FileRouteTypes {
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
     | '/autofill/$ruleSlug/edit/$'
-    | '/bookmarks/$bookmarkId/edit/general'
-    | '/bookmarks/$bookmarkId/edit/image'
-    | '/bookmarks/$bookmarkId/edit/languages'
-    | '/bookmarks/$bookmarkId/edit/properties'
-    | '/bookmarks/$bookmarkId/edit/related'
-    | '/bookmarks/$bookmarkId/edit/relationships'
-    | '/bookmarks/$bookmarkId/edit/video'
+    | '/bookmarks/$bookmarkId/edit/$'
     | '/card-display-rules/$ruleSlug/edit/$'
     | '/categories/$categorySlug/gallery'
     | '/categories/$categorySlug/info'
@@ -3120,13 +3048,7 @@ export interface FileRouteTypes {
     | '/taxonomies/websites/'
     | '/taxonomies/youtube-channels/'
     | '/autofill/$ruleSlug/edit/$'
-    | '/bookmarks/$bookmarkId/edit/general'
-    | '/bookmarks/$bookmarkId/edit/image'
-    | '/bookmarks/$bookmarkId/edit/languages'
-    | '/bookmarks/$bookmarkId/edit/properties'
-    | '/bookmarks/$bookmarkId/edit/related'
-    | '/bookmarks/$bookmarkId/edit/relationships'
-    | '/bookmarks/$bookmarkId/edit/video'
+    | '/bookmarks/$bookmarkId/edit/$'
     | '/card-display-rules/$ruleSlug/edit/$'
     | '/categories/$categorySlug/_hub/gallery'
     | '/categories/$categorySlug/_hub/info'
@@ -4713,53 +4635,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CardDisplayRulesRuleSlugEditSplatRouteImport
       parentRoute: typeof CardDisplayRulesRuleSlugEditRoute
     }
-    '/bookmarks/$bookmarkId/edit/video': {
-      id: '/bookmarks/$bookmarkId/edit/video'
-      path: '/video'
-      fullPath: '/bookmarks/$bookmarkId/edit/video'
-      preLoaderRoute: typeof BookmarksBookmarkIdEditVideoRouteImport
-      parentRoute: typeof BookmarksBookmarkIdEditRoute
-    }
-    '/bookmarks/$bookmarkId/edit/relationships': {
-      id: '/bookmarks/$bookmarkId/edit/relationships'
-      path: '/relationships'
-      fullPath: '/bookmarks/$bookmarkId/edit/relationships'
-      preLoaderRoute: typeof BookmarksBookmarkIdEditRelationshipsRouteImport
-      parentRoute: typeof BookmarksBookmarkIdEditRoute
-    }
-    '/bookmarks/$bookmarkId/edit/related': {
-      id: '/bookmarks/$bookmarkId/edit/related'
-      path: '/related'
-      fullPath: '/bookmarks/$bookmarkId/edit/related'
-      preLoaderRoute: typeof BookmarksBookmarkIdEditRelatedRouteImport
-      parentRoute: typeof BookmarksBookmarkIdEditRoute
-    }
-    '/bookmarks/$bookmarkId/edit/properties': {
-      id: '/bookmarks/$bookmarkId/edit/properties'
-      path: '/properties'
-      fullPath: '/bookmarks/$bookmarkId/edit/properties'
-      preLoaderRoute: typeof BookmarksBookmarkIdEditPropertiesRouteImport
-      parentRoute: typeof BookmarksBookmarkIdEditRoute
-    }
-    '/bookmarks/$bookmarkId/edit/languages': {
-      id: '/bookmarks/$bookmarkId/edit/languages'
-      path: '/languages'
-      fullPath: '/bookmarks/$bookmarkId/edit/languages'
-      preLoaderRoute: typeof BookmarksBookmarkIdEditLanguagesRouteImport
-      parentRoute: typeof BookmarksBookmarkIdEditRoute
-    }
-    '/bookmarks/$bookmarkId/edit/image': {
-      id: '/bookmarks/$bookmarkId/edit/image'
-      path: '/image'
-      fullPath: '/bookmarks/$bookmarkId/edit/image'
-      preLoaderRoute: typeof BookmarksBookmarkIdEditImageRouteImport
-      parentRoute: typeof BookmarksBookmarkIdEditRoute
-    }
-    '/bookmarks/$bookmarkId/edit/general': {
-      id: '/bookmarks/$bookmarkId/edit/general'
-      path: '/general'
-      fullPath: '/bookmarks/$bookmarkId/edit/general'
-      preLoaderRoute: typeof BookmarksBookmarkIdEditGeneralRouteImport
+    '/bookmarks/$bookmarkId/edit/$': {
+      id: '/bookmarks/$bookmarkId/edit/$'
+      path: '/$'
+      fullPath: '/bookmarks/$bookmarkId/edit/$'
+      preLoaderRoute: typeof BookmarksBookmarkIdEditSplatRouteImport
       parentRoute: typeof BookmarksBookmarkIdEditRoute
     }
     '/autofill/$ruleSlug/edit/$': {
@@ -5202,28 +5082,13 @@ const AutofillRouteWithChildren = AutofillRoute._addFileChildren(
 )
 
 interface BookmarksBookmarkIdEditRouteChildren {
-  BookmarksBookmarkIdEditGeneralRoute: typeof BookmarksBookmarkIdEditGeneralRoute
-  BookmarksBookmarkIdEditImageRoute: typeof BookmarksBookmarkIdEditImageRoute
-  BookmarksBookmarkIdEditLanguagesRoute: typeof BookmarksBookmarkIdEditLanguagesRoute
-  BookmarksBookmarkIdEditPropertiesRoute: typeof BookmarksBookmarkIdEditPropertiesRoute
-  BookmarksBookmarkIdEditRelatedRoute: typeof BookmarksBookmarkIdEditRelatedRoute
-  BookmarksBookmarkIdEditRelationshipsRoute: typeof BookmarksBookmarkIdEditRelationshipsRoute
-  BookmarksBookmarkIdEditVideoRoute: typeof BookmarksBookmarkIdEditVideoRoute
+  BookmarksBookmarkIdEditSplatRoute: typeof BookmarksBookmarkIdEditSplatRoute
   BookmarksBookmarkIdEditIndexRoute: typeof BookmarksBookmarkIdEditIndexRoute
 }
 
 const BookmarksBookmarkIdEditRouteChildren: BookmarksBookmarkIdEditRouteChildren =
   {
-    BookmarksBookmarkIdEditGeneralRoute: BookmarksBookmarkIdEditGeneralRoute,
-    BookmarksBookmarkIdEditImageRoute: BookmarksBookmarkIdEditImageRoute,
-    BookmarksBookmarkIdEditLanguagesRoute:
-      BookmarksBookmarkIdEditLanguagesRoute,
-    BookmarksBookmarkIdEditPropertiesRoute:
-      BookmarksBookmarkIdEditPropertiesRoute,
-    BookmarksBookmarkIdEditRelatedRoute: BookmarksBookmarkIdEditRelatedRoute,
-    BookmarksBookmarkIdEditRelationshipsRoute:
-      BookmarksBookmarkIdEditRelationshipsRoute,
-    BookmarksBookmarkIdEditVideoRoute: BookmarksBookmarkIdEditVideoRoute,
+    BookmarksBookmarkIdEditSplatRoute: BookmarksBookmarkIdEditSplatRoute,
     BookmarksBookmarkIdEditIndexRoute: BookmarksBookmarkIdEditIndexRoute,
   }
 

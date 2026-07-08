@@ -87,10 +87,11 @@ export function editBookmarkAction(ctx: ToolbarContext): ToolbarAction | null {
         asChild
       >
         <Link
-          to="/bookmarks/$bookmarkId/edit/general"
+          to="/bookmarks/$bookmarkId/edit"
           params={{
             bookmarkId,
           }}
+          search={{}}
         >
           {i18n.t("Edit")}
         </Link>
@@ -101,10 +102,11 @@ export function editBookmarkAction(ctx: ToolbarContext): ToolbarAction | null {
       node: (
         <DropdownMenuItem asChild>
           <Link
-            to="/bookmarks/$bookmarkId/edit/general"
+            to="/bookmarks/$bookmarkId/edit"
             params={{
               bookmarkId,
             }}
+            search={{}}
           >
             <Pencil className="size-4" />
             {i18n.t("Edit")}

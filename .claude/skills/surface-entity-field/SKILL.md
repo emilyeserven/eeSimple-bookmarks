@@ -17,6 +17,15 @@ Most "show field X on the page" requests are **client-only**: the field already 
 the shared types, the route's JSON schema, and the service — it's just missing from the form and the
 detail view. **So always trace first** (step 0) and only touch the middleware when the trace fails.
 
+> **Bookmarks are the exception (#1163).** A **bookmark** is layout-driven but **id-routed and off
+> `ENTITY_DESCRIPTORS`**, so surfacing a bookmark field is **not** this slug-routed tabbed-page flow.
+> Add/extend a `WorkbenchField` in `components/workbench/bookmark.tsx` (view renderers live in
+> `bookmarkViewFields.tsx`; edit renderers wrap the existing `Bookmark*Form` components) and place its
+> key in `BOOKMARK_DEFAULT_LAYOUT`. The detail page (`BookmarkDetailBody`/`Tabbed` via
+> `hooks/useBookmarkViewTabs.ts`) and edit page (`BookmarkEditView`) both render from that registry.
+> A data-empty view tab is dropped in `lib/bookmarkViewTabs.ts` (`hiddenBookmarkViewTabKeys`), not via
+> per-field `showIf`. See CLAUDE.md → **Content hierarchies → Bookmarks are layout-driven**.
+
 Canonical examples already in the tree, by effort:
 
 - **`numberFormat`** (Custom Properties) — client-only enum select added to a typed Options tab.

@@ -1,4 +1,4 @@
-import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
+import type { Bookmark } from "@eesimple/types";
 
 import { youtubeEmbedUrl } from "@eesimple/types";
 import { BookOpen } from "lucide-react";
@@ -16,26 +16,20 @@ import { kavitaSeriesUrl } from "../lib/kavita";
 
 interface BookmarkDetailProps {
   bookmark: Bookmark;
-  /** All categories, used to resolve the bookmark's category name/icon/slug. */
-  categories?: Category[];
-  /** Custom property definitions, used to label and unit-format the bookmark's values. */
-  properties?: CustomProperty[];
-  /** Property groups, used to group property values under their group headings. */
-  propertyGroups?: PropertyGroup[];
   onEdit?: () => void;
   onDelete?: () => void;
-  /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
-  onSaveBoolean?: (propertyId: string, value: boolean) => void;
 }
 
 /**
  * The full view of a single bookmark, showing every field including each custom-property value.
  * Shared by the bookmark detail page and the right panel's bookmark view so the two stay identical.
- * Presentational: pass `categories`/`properties` for labels and `onEdit`/`onDelete` for actions.
- * The body renders as a single stacked column or vertical tabs per the `bookmarkDetailLayout` pref.
+ * The body is layout-driven (the `"bookmark"` field registry): it resolves the stored/default
+ * `EntityLayout` and renders each view field, self-loading the data each field needs — so only the
+ * bookmark + optional `onEdit`/`onDelete` header actions are passed in. The body renders as a single
+ * stacked column or horizontal tabs per the `bookmarkDetailLayout` pref.
  */
 export function BookmarkDetail({
-  bookmark, categories = [], properties = [], propertyGroups = [], onEdit, onDelete, onSaveBoolean,
+  bookmark, onEdit, onDelete,
 }: BookmarkDetailProps) {
   const {
     t,
@@ -140,24 +134,8 @@ export function BookmarkDetail({
         />
       </div>
       {isSingle
-        ? (
-          <BookmarkDetailBody
-            bookmark={bookmark}
-            categories={categories}
-            properties={properties}
-            propertyGroups={propertyGroups}
-            onSaveBoolean={onSaveBoolean}
-          />
-        )
-        : (
-          <BookmarkDetailTabbed
-            bookmark={bookmark}
-            categories={categories}
-            properties={properties}
-            propertyGroups={propertyGroups}
-            onSaveBoolean={onSaveBoolean}
-          />
-        )}
+        ? <BookmarkDetailBody bookmark={bookmark} />
+        : <BookmarkDetailTabbed bookmark={bookmark} />}
 
     </div>
   );

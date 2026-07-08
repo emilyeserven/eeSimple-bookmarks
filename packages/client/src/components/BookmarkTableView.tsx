@@ -85,10 +85,11 @@ export function BookmarkTableView({
           });
         }, () => {
           void navigate({
-            to: "/bookmarks/$bookmarkId/edit/general",
+            to: "/bookmarks/$bookmarkId/edit",
             params: {
               bookmarkId: bookmark.id,
             },
+            search: {},
           });
         })}
     />

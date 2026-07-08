@@ -29,10 +29,11 @@ export function BookmarkViewPageCommandGroup({
           value="Go to Edit"
           onSelect={() => {
             void navigate({
-              to: "/bookmarks/$bookmarkId/edit/general",
+              to: "/bookmarks/$bookmarkId/edit",
               params: {
                 bookmarkId,
               },
+              search: {},
             });
             onClose();
           }}
