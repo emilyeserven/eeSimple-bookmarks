@@ -13,6 +13,7 @@ import {
   Image,
   Inbox,
   Languages,
+  LayoutDashboard,
   LayoutTemplate,
   Link2,
   ListChecks,
@@ -75,6 +76,11 @@ export const displayNav: readonly SettingsTabNavItem[] = [
     to: "/settings/display/languages",
     label: i18n.t("Languages"),
     icon: Languages,
+  },
+  {
+    to: "/settings/display/page-layouts",
+    label: i18n.t("Page Layouts"),
+    icon: LayoutDashboard,
   },
 ] as const;
 

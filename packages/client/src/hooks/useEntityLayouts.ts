@@ -13,11 +13,7 @@ export function useEntityLayouts() {
   });
 }
 
-// The save/reset mutations are the layout **write** API. Their only consumer is the Page Layouts DnD
-// editor (#1160/#1162), which hasn't landed yet — the render path reads through `useEntityLayout` (the
-// singular seam in `useEntityLayout.ts`). Keep them wired so the editor sub-issue is a pure UI add; drop
-// the suppressions when it imports them.
-// fallow-ignore-next-line unused-export
+/** The layout **write** API, consumed by the Page Layouts settings editor (#1162). */
 export function useSaveEntityLayout() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -35,7 +31,6 @@ export function useSaveEntityLayout() {
   });
 }
 
-// fallow-ignore-next-line unused-export
 export function useResetEntityLayout() {
   const queryClient = useQueryClient();
   return useMutation({
