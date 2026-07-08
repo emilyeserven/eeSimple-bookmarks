@@ -1,14 +1,15 @@
 import type { ActivityRow } from "../lib/headerActivity";
 import type { LucideIcon } from "lucide-react";
 
-import { Download, Film, ImageDown } from "lucide-react";
+import { Camera, Download, Film, ImageDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useAutoFetchCompletionToast, useAutoFetchStatus, useAutoFetchWithFallbackCompletionToast, useAutoFetchWithFallbackStatus } from "./useGallery";
 import { useActiveImports, useImportCompletionToasts } from "./useImports";
 import { useActiveReelArchiveJobs, useReelArchiveCompletionToast } from "./useReelArchive";
+import { useScreenshotQueue } from "./useScreenshotQueue";
 import { useBackfillChannelImagesCompletionToast, useBackfillChannelImagesStatus } from "./useYouTubeChannels";
-import { fetchRow, importRow, reelRow } from "../lib/headerActivity";
+import { fetchRow, importRow, reelRow, screenshotRow } from "../lib/headerActivity";
 
 /** One titled group of activity rows in the consolidated header popover. */
 export interface ActivitySection {
@@ -50,6 +51,8 @@ export function useHeaderActivity(): HeaderActivity {
   const {
     data: channels,
   } = useBackfillChannelImagesStatus();
+  // Owns the screenshot-queue side effects (invalidation + completion toast) and returns its snapshot.
+  const screenshots = useScreenshotQueue();
 
   useImportCompletionToasts(imports);
   useReelArchiveCompletionToast(reels);
@@ -96,6 +99,16 @@ export function useHeaderActivity(): HeaderActivity {
       title: t("Channel avatars"),
       icon: ImageDown,
       rows: [channelRow],
+    });
+  }
+
+  const screenshotProgress = screenshotRow(screenshots);
+  if (screenshotProgress) {
+    sections.push({
+      key: "screenshots",
+      title: t("Screenshots"),
+      icon: Camera,
+      rows: [screenshotProgress],
     });
   }
 

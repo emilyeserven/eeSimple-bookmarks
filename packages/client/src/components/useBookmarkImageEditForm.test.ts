@@ -16,7 +16,7 @@ const addMutateAsync = vi.fn(async () => ({
 const fromCandidatesMutateAsync = vi.fn(async () => []);
 const setMainMutateAsync = vi.fn(async () => undefined);
 const deleteByIdMutateAsync = vi.fn(async () => undefined);
-const takeScreenshotMutateAsync = vi.fn(async () => undefined);
+const enqueueScreenshot = vi.fn();
 const deleteScreenshotMutateAsync = vi.fn(async () => undefined);
 const updateBookmarkMutate = vi.fn();
 const scanMock = vi.fn(async () => ({
@@ -51,10 +51,6 @@ vi.mock("../hooks/useBookmarks", () => ({
   }),
   useDeleteBookmarkImageById: () => ({
     mutateAsync: deleteByIdMutateAsync,
-    ...pendingFalse,
-  }),
-  useTakeBookmarkScreenshot: () => ({
-    mutateAsync: takeScreenshotMutateAsync,
     ...pendingFalse,
   }),
   useDeleteBookmarkScreenshot: () => ({
@@ -112,6 +108,18 @@ vi.mock("../lib/api/metadata", () => ({
 
 vi.mock("../lib/notifications", () => ({
   notifySuccess: vi.fn(),
+}));
+
+const queueState = {
+  enqueue: enqueueScreenshot,
+  pending: [] as { id: string }[],
+  activeIds: [] as string[],
+};
+
+vi.mock("../stores/screenshotQueueStore", () => ({
+  useScreenshotQueueStore: (selector: (s: typeof queueState) => unknown) => selector(queueState),
+  selectIsBookmarkQueued: (id: string) => (s: typeof queueState) =>
+    s.activeIds.includes(id) || s.pending.some(job => job.id === id),
 }));
 
 const bookmark: Bookmark = makeBookmark({
@@ -258,7 +266,7 @@ describe("useBookmarkImageEditForm", () => {
     act(() => {
       result.current.onTakeScreenshot();
     });
-    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+    expect(enqueueScreenshot).toHaveBeenCalledWith({
       id: bookmark.id,
       delayMs: 5000,
       width: 1280,
@@ -279,7 +287,7 @@ describe("useBookmarkImageEditForm", () => {
     act(() => {
       result.current.onTakeScreenshot();
     });
-    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+    expect(enqueueScreenshot).toHaveBeenCalledWith({
       id: bookmark.id,
       delayMs: undefined,
       width: 1280,
@@ -298,7 +306,7 @@ describe("useBookmarkImageEditForm", () => {
     act(() => {
       result.current.onTakeScreenshot();
     });
-    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+    expect(enqueueScreenshot).toHaveBeenCalledWith({
       id: bookmark.id,
       delayMs: undefined,
       width: 1920,
@@ -343,7 +351,7 @@ describe("useBookmarkImageEditForm", () => {
     await act(async () => {
       result.current.onTakeScreenshot();
     });
-    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+    expect(enqueueScreenshot).toHaveBeenCalledWith({
       id: bookmark.id,
       delayMs: 10000,
       width: 1920,
@@ -362,7 +370,7 @@ describe("useBookmarkImageEditForm", () => {
     act(() => {
       result.current.onTakeScreenshot();
     });
-    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+    expect(enqueueScreenshot).toHaveBeenCalledWith({
       id: bookmark.id,
       delayMs: undefined,
       width: 1280,
@@ -393,7 +401,7 @@ describe("useBookmarkImageEditForm", () => {
     act(() => {
       result.current.onTakeScreenshot();
     });
-    expect(takeScreenshotMutateAsync).toHaveBeenCalledWith({
+    expect(enqueueScreenshot).toHaveBeenCalledWith({
       id: bookmark.id,
       delayMs: 5000,
       width: 1920,

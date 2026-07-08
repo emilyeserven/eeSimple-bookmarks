@@ -3,7 +3,6 @@ import type { QueryClient } from "@tanstack/react-query";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 
 import { bookmarksApi } from "../lib/api/bookmarks";
 import { describeError } from "../lib/apiError";
@@ -434,41 +433,6 @@ export function useDeleteBookmarkImageById() {
       queryKey: BOOKMARKS_KEY,
     }),
     onError: (err: Error) => notifyError(describeError(err, "Could not remove the image")),
-  });
-}
-
-/** Take a Browserless screenshot and store it as the bookmark's screenshot image. */
-export function useTakeBookmarkScreenshot() {
-  const queryClient = useQueryClient();
-  const {
-    t,
-  } = useTranslation();
-  return useMutation({
-    mutationFn: ({
-      id, delayMs, width, height, scrollDistance,
-    }: { id: string;
-      delayMs?: number;
-      width?: number;
-      height?: number;
-      scrollDistance?: number; }) =>
-      bookmarksApi.takeScreenshot(id, delayMs, width, height, scrollDistance),
-    onMutate: () => {
-      const toastId = toast.loading("Generating screenshot…");
-      return {
-        toastId,
-      };
-    },
-    onSuccess: (_, __, context) => {
-      toast.dismiss(context?.toastId);
-      void queryClient.invalidateQueries({
-        queryKey: BOOKMARKS_KEY,
-      });
-      notifySuccess(t("Screenshot captured"));
-    },
-    onError: (err: Error, _, context) => {
-      toast.dismiss(context?.toastId);
-      notifyError(describeError(err, "Could not capture a screenshot"));
-    },
   });
 }
 

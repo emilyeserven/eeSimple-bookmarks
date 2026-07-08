@@ -1,7 +1,8 @@
 import type { Bookmark } from "@eesimple/types";
 
-import { useAutoBookmarkImage, useTakeBookmarkScreenshot, useUpdateBookmark } from "../hooks/useBookmarks";
+import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
 import { mergeBooleanValue } from "../lib/bookmarkFormat";
+import { selectIsBookmarkQueued, useScreenshotQueueStore } from "../stores/screenshotQueueStore";
 
 /** Replace the entry for `propertyId` in a typed value array, or append it when missing. */
 function mergePropertyEntry<T extends { propertyId: string }>(entries: T[], next: T): T[] {
@@ -19,7 +20,8 @@ function mergePropertyEntry<T extends { propertyId: string }>(entries: T[], next
  */
 export function useBookmarkCardSaves(bookmark: Bookmark) {
   const autoImage = useAutoBookmarkImage();
-  const screenshot = useTakeBookmarkScreenshot();
+  const enqueueScreenshot = useScreenshotQueueStore(state => state.enqueue);
+  const screenshotQueued = useScreenshotQueueStore(selectIsBookmarkQueued(bookmark.id));
   const updateBookmark = useUpdateBookmark();
 
   function saveNumber(propertyId: string, value: number) {
@@ -78,7 +80,10 @@ export function useBookmarkCardSaves(bookmark: Bookmark) {
 
   return {
     autoImage,
-    screenshot,
+    screenshotPending: screenshotQueued,
+    onScreenshot: () => enqueueScreenshot({
+      id: bookmark.id,
+    }),
     saveNumber,
     saveBoolean,
     saveDateTime,
