@@ -14,6 +14,8 @@ import {
   renameSection,
   renameTab,
   setSectionColumns,
+  setSectionDescription,
+  setTabDescription,
   setTabIcon,
 } from "./entityLayoutMutations";
 
@@ -184,6 +186,39 @@ describe("renameTab / renameSection / setTabIcon", () => {
     expect(set.tabs[0].icon).toBe("Star");
     const cleared = setTabIcon(set, "general", undefined);
     expect(cleared.tabs[0]).not.toHaveProperty("icon");
+  });
+});
+
+describe("setTabDescription / setSectionDescription", () => {
+  it("sets and clears a tab description", () => {
+    const set = setTabDescription(sampleLayout(), "general", "Overview of the entity");
+    expect(set.tabs[0].description).toBe("Overview of the entity");
+    const cleared = setTabDescription(set, "general", "");
+    expect(cleared.tabs[0]).not.toHaveProperty("description");
+  });
+
+  it("sets and clears a section description on the target section only", () => {
+    const set = setSectionDescription(sampleLayout(), "general", "meta", "Extra details");
+    expect(set.tabs[0].sections[1].description).toBe("Extra details");
+    expect(set.tabs[0].sections[0]).not.toHaveProperty("description");
+    const cleared = setSectionDescription(set, "general", "meta", "");
+    expect(cleared.tabs[0].sections[1]).not.toHaveProperty("description");
+  });
+
+  it("preserves a section description across renameSection and setSectionColumns", () => {
+    const described = setSectionDescription(sampleLayout(), "general", "main", "Core fields");
+    expect(renameSection(described, "general", "main", "Renamed").tabs[0].sections[0].description)
+      .toBe("Core fields");
+    expect(setSectionColumns(described, "general", "main", 2).tabs[0].sections[0].description)
+      .toBe("Core fields");
+  });
+
+  it("does not mutate the input layout", () => {
+    const layout = sampleLayout();
+    setTabDescription(layout, "general", "x");
+    setSectionDescription(layout, "general", "main", "y");
+    expect(layout.tabs[0]).not.toHaveProperty("description");
+    expect(layout.tabs[0].sections[0]).not.toHaveProperty("description");
   });
 });
 

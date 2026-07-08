@@ -481,10 +481,115 @@ test("a recreated section inherits its columns count from the default home", () 
   assert.deepEqual(recreated.fields, ["icon"]);
 });
 
+// ---- tab & section descriptions (#1220 follow-up) --------------------------------------------------
+
+test("a tab and section description are preserved through reconciliation", () => {
+  const defaultLayout = makeDefaultLayout();
+  const stored: EntityLayout = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        description: "About this entity",
+        sections: [
+          {
+            key: "main",
+            description: "The core fields",
+            fields: ["name", "description"],
+          },
+        ],
+      },
+    ],
+  };
+  const result = resolveLayout(stored, defaultLayout, defaultKnownFieldKeys());
+  const tab = result.tabs.find(t => t.key === "general")!;
+  assert.equal(tab.description, "About this entity");
+  assert.equal(tab.sections.find(s => s.key === "main")!.description, "The core fields");
+});
+
+test("a recreated tab and section inherit their description from the default home", () => {
+  const defaultLayout: EntityLayout = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        sections: [{
+          key: "main",
+          fields: ["name"],
+        }],
+      },
+      {
+        key: "related",
+        label: "Related",
+        description: "Linked records",
+        sections: [{
+          key: "links",
+          title: "Links",
+          description: "Everything connected",
+          fields: ["tags"],
+        }],
+      },
+    ],
+  };
+  const stored: EntityLayout = {
+    tabs: [{
+      key: "general",
+      label: "General",
+      // "related" tab (with its description) was deleted, so "tags" is missing and recreated.
+      sections: [{
+        key: "main",
+        fields: ["name"],
+      }],
+    }],
+  };
+  const result = resolveLayout(stored, defaultLayout, new Set(["name", "tags"]));
+  const recreatedTab = result.tabs.at(-1)!;
+  assert.equal(recreatedTab.key, "related");
+  assert.equal(recreatedTab.description, "Linked records");
+  assert.equal(recreatedTab.sections[0].description, "Everything connected");
+});
+
 // ---- isValidEntityLayout ---------------------------------------------------------------------------
 
 test("isValidEntityLayout accepts a well-formed layout", () => {
   assert.equal(isValidEntityLayout(makeDefaultLayout()), true);
+});
+
+test("isValidEntityLayout accepts string tab/section descriptions and rejects non-string ones", () => {
+  const withDescriptions = {
+    tabs: [{
+      key: "general",
+      label: "General",
+      description: "Tab blurb",
+      sections: [{
+        key: "main",
+        description: "Section blurb",
+        fields: ["name"],
+      }],
+    }],
+  };
+  assert.equal(isValidEntityLayout(withDescriptions), true);
+  const badTab = {
+    tabs: [{
+      key: "general",
+      label: "General",
+      description: 42,
+      sections: [],
+    }],
+  };
+  assert.equal(isValidEntityLayout(badTab), false);
+  const badSection = {
+    tabs: [{
+      key: "general",
+      label: "General",
+      sections: [{
+        key: "main",
+        description: 7,
+        fields: ["name"],
+      }],
+    }],
+  };
+  assert.equal(isValidEntityLayout(badSection), false);
 });
 
 test("isValidEntityLayout accepts a section with a numeric columns count", () => {
