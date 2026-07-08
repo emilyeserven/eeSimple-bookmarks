@@ -246,7 +246,10 @@ not whether a `useAppForm` exists:
      `EntityEditView` wraps the edit body with the same active-tab gate. References: `websiteWorkbench`
      (`components/workbench/website.tsx`) + `WebsiteGeneralFormContext.tsx`; `locationWorkbench`
      (`components/workbench/location.tsx`) + `LocationGeneralFormContext.tsx` (#1191, the
-     maximal-atomization case whose map is its own view-only `map` field).
+     maximal-atomization case whose map is its own view-only `map` field); `cardDisplayRuleWorkbench`
+     (`components/workbench/cardDisplayRule.tsx`) + `CardDisplayRuleDisplayContext.tsx` (#1198 — the
+     shared controller here is a `useState` + per-attribute `useFieldAutoSave` hook, not a `useAppForm`;
+     the mechanism doesn't care, since `editFormProvider` only needs `{ entity, children } => ReactNode`).
   3. **Granular edit fields** — each a thin component that reads the shared controller from context and
      renders the existing sub-component; register each as a `WorkbenchField.edit`. View fields read the
      entity directly (no context). Split any shared sub-component into per-field halves
@@ -258,15 +261,28 @@ not whether a `useAppForm` exists:
      section (the bookmark **Advanced** section).
   5. **Snapshot** — add/update the both-modes layout test (`bookmarkLayout.test.tsx`,
      `locationLayout.test.tsx`, or the entity's rollout harness — e.g. `batch2Layouts.test.tsx` for Custom
-     Property) to the new field/section order. Remember view/edit parity: edit-only fields
-     (Name/Type/blacklists) drop in view, view-only fields (bookmark `detailsExtra`, Custom Property
-     `created`, Location's `map` / `slug` / `bookmarkCount`) drop in edit.
+     Property and Card Display Rule) to the new field/section order. Remember view/edit parity: edit-only
+     fields (Name/Type/blacklists) drop in view, view-only fields (bookmark `detailsExtra`, Custom
+     Property `created`, Location's `map` / `slug` / `bookmarkCount`) drop in edit — Card Display Rule's
+     atomized set is entirely edit-only except its `preview` field, so the whole set but `preview` drops
+     in view.
 
   **Location (#1191)** is the maximal-atomization + slug-routed reference: every General row became its
   own field (the map is its own **view-only** `map` field — `LocationMapView`, extracted with the
   ancestry logic, `LocationMapSection` props preserved per the `locations-map` skill), and only two
   genuine coordination clusters stayed whole (lat/long + Re-geocode button; Wikipedia EN/Local + Autofill
   button) because a single shared action drives each.
+
+  **Card Display Rule (#1198)** is the reference for a shared controller that is **not** a `useAppForm`:
+  the Display tab's four image-presentation overrides, the `CardFieldZoneBoard` (kept one composite
+  field), the section-layout controls, and a placeable **`preview`** field all read one `RuleDisplayValue`
+  + `handleChange` from `CardDisplayRuleDisplayProvider` (`CardDisplayRuleDisplayContext.tsx`), which
+  wraps the pre-existing `useCardDisplayRuleDisplay` (a `useState` + per-attribute `useFieldAutoSave`
+  hook) so the live preview stays in sync as the atomized controls change — the update mutation
+  invalidates rather than optimistically patching, so shared local state (not just react-query) is what
+  keeps the preview live. The mechanism is identical to Website/Location's since `editFormProvider` only
+  needs `{ entity, children } => ReactNode`; `preview`'s **view** renderer reads the saved entity directly
+  and needs no context, since the provider only mounts on the edit route.
 
 ## Verify
 
