@@ -27,6 +27,68 @@ export function knownFieldKeys<E extends { id: string }>(
 }
 
 /**
+ * Give dynamic (runtime-sourced) field keys a **home** in the default layout so `resolveLayout` keeps
+ * the invisibility invariant for them too: any dynamic key not explicitly placed by the operator is
+ * appended to `home` (`resolveLayout` Rule 3 needs a key to appear in the default layout to auto-append
+ * it). Pure — clones only the affected tab/section. Keys already present anywhere in `defaultLayout` are
+ * skipped (a dynamic key never collides with a static one in practice, but this keeps it idempotent).
+ * The home tab/section is created if the default layout doesn't already contain it (label falls back to
+ * the key), so a misconfigured home can't drop the fields.
+ */
+export function augmentDefaultLayout(
+  defaultLayout: EntityLayout,
+  dynamicKeys: string[],
+  home: { tabKey: string;
+    sectionKey: string; },
+): EntityLayout {
+  const existing = new Set(
+    defaultLayout.tabs.flatMap(tab => tab.sections.flatMap(section => section.fields)),
+  );
+  const toAppend = dynamicKeys.filter(key => !existing.has(key));
+  if (toAppend.length === 0) return defaultLayout;
+
+  let homeTabFound = false;
+  const tabs: LayoutTab[] = defaultLayout.tabs.map((tab) => {
+    if (tab.key !== home.tabKey) return tab;
+    homeTabFound = true;
+    let homeSectionFound = false;
+    const sections: LayoutSection[] = tab.sections.map((section) => {
+      if (section.key !== home.sectionKey) return section;
+      homeSectionFound = true;
+      return {
+        ...section,
+        fields: [...section.fields, ...toAppend],
+      };
+    });
+    if (!homeSectionFound) {
+      sections.push({
+        key: home.sectionKey,
+        fields: [...toAppend],
+      });
+    }
+    return {
+      ...tab,
+      sections,
+    };
+  });
+
+  if (!homeTabFound) {
+    tabs.push({
+      key: home.tabKey,
+      label: home.tabKey,
+      sections: [{
+        key: home.sectionKey,
+        fields: [...toAppend],
+      }],
+    });
+  }
+
+  return {
+    tabs,
+  };
+}
+
+/**
  * Whether a field renders for this mode + entity: its mode renderer exists AND (`showIf` absent, OR
  * the entity hasn't loaded yet, OR `showIf(entity)` passes). The `!entity` clause reproduces the
  * "optimistically include while loading, re-filter once loaded" behavior of the legacy tab filters.

@@ -5,6 +5,7 @@ import type { EntityLayout } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import {
+  augmentDefaultLayout,
   deriveWorkbenchTabs,
   fieldRendersInMode,
   modeVisibleTabs,
@@ -305,5 +306,83 @@ describe("deriveWorkbenchTabs (layout-driven)", () => {
     };
     const tabs = deriveWorkbenchTabs(layoutDriven, withNewTab, "view", withOptions);
     expect(tabs.find(t => t.key === "custom")?.group).toBeUndefined();
+  });
+});
+
+describe("augmentDefaultLayout (dynamic field homes)", () => {
+  const base: EntityLayout = {
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+        sections: [{
+          key: "main",
+          fields: ["name"],
+        }],
+      },
+      {
+        key: "properties",
+        label: "Properties",
+        sections: [{
+          key: "properties",
+          fields: [],
+        }],
+      },
+    ],
+  };
+  const home = {
+    tabKey: "properties",
+    sectionKey: "properties",
+  };
+
+  it("appends dynamic keys to the home section", () => {
+    const out = augmentDefaultLayout(base, ["p1", "p2"], home);
+    const section = out.tabs.find(t => t.key === "properties")?.sections.find(s => s.key === "properties");
+    expect(section?.fields).toEqual(["p1", "p2"]);
+    // Untouched tab is preserved.
+    expect(out.tabs.find(t => t.key === "general")?.sections[0]?.fields).toEqual(["name"]);
+  });
+
+  it("is a no-op when there are no dynamic keys (returns the same reference)", () => {
+    expect(augmentDefaultLayout(base, [], home)).toBe(base);
+  });
+
+  it("skips keys already placed somewhere in the default layout (idempotent)", () => {
+    const out = augmentDefaultLayout(base, ["name", "p1"], home);
+    expect(out.tabs.find(t => t.key === "properties")?.sections[0]?.fields).toEqual(["p1"]);
+  });
+
+  it("creates the home section when the home tab lacks it", () => {
+    const noSection: EntityLayout = {
+      tabs: [{
+        key: "properties",
+        label: "Properties",
+        sections: [],
+      }],
+    };
+    const out = augmentDefaultLayout(noSection, ["p1"], home);
+    expect(out.tabs[0]?.sections).toEqual([{
+      key: "properties",
+      fields: ["p1"],
+    }]);
+  });
+
+  it("creates the home tab + section when the default layout lacks the home tab", () => {
+    const noTab: EntityLayout = {
+      tabs: [{
+        key: "general",
+        label: "General",
+        sections: [{
+          key: "main",
+          fields: ["name"],
+        }],
+      }],
+    };
+    const out = augmentDefaultLayout(noTab, ["p1"], home);
+    const created = out.tabs.find(t => t.key === "properties");
+    expect(created?.sections).toEqual([{
+      key: "properties",
+      fields: ["p1"],
+    }]);
   });
 });

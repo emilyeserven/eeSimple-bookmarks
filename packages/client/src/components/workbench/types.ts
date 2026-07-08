@@ -59,6 +59,23 @@ export interface WorkbenchTab<E> {
   group?: string;
 }
 
+/**
+ * A set of **dynamic** (runtime-sourced) placeable fields — the layout engine's escape hatch from the
+ * compile-time-static {@link EntityWorkbench.fields} registry (#1163+). A descriptor's optional
+ * {@link EntityWorkbench.useDynamicFields} hook returns these; the engine merges them into `fields`
+ * (so they render + list as placeable) and appends their keys to `defaultHome` in the augmented default
+ * layout (so an unplaced/new one is never invisible — the same invariant `resolveLayout` guarantees for
+ * static fields). Reference source: each **enabled custom property** becomes one field keyed by its id
+ * (see `bookmark.tsx` `useBookmarkDynamicFields`), mirroring the Card Display Rules card-field system.
+ */
+export interface DynamicFieldSet<E> {
+  /** Dynamic field registry, keyed by the runtime key (e.g. a custom property's id). */
+  fields: Record<string, WorkbenchField<E>>;
+  /** The default-layout tab+section an unplaced dynamic key is appended to. */
+  defaultHome: { tabKey: string;
+    sectionKey: string; };
+}
+
 /** A delete control surfaced in the panel header; `run` fires the mutation and dismisses on success. */
 export interface WorkbenchDelete {
   isPending: boolean;
@@ -135,6 +152,16 @@ export interface EntityWorkbench<E extends { id: string }> {
    */
   editFormProvider?: (props: { entity: E;
     children: ReactNode; }) => ReactNode;
+  /**
+   * **Dynamic (user-defined) placeable fields (#1163+).** A hook returning a {@link DynamicFieldSet}
+   * of fields sourced from runtime data (e.g. one field per enabled custom property, keyed by id).
+   * `useLayoutDrivenWorkbench` merges these into {@link fields} and augments {@link defaultLayout} so
+   * they render, list in the Page Layouts editor, and get a default home — the general-capability seam
+   * that lets the layout system place user-defined data, not just the compile-time registry. Called as
+   * a hook (its name starts with `use`), so it may read react-query. Omit for entities with no dynamic
+   * source (the common case — the merge is then a no-op).
+   */
+  useDynamicFields?: () => DynamicFieldSet<E>;
   /**
    * Returns the entity's URL identifier (slug or id) for its main-pane page.
    * When present, the panel header shows an "Open in main pane" button.

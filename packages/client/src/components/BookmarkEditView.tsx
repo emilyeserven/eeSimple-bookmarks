@@ -31,7 +31,7 @@ const SHARED_FORM_FIELD_KEYS = new Set<string>([
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useResolvedWorkbenchLayout } from "@/hooks/useEntityLayout";
+import { useLayoutDrivenWorkbench, useResolvedWorkbenchLayout } from "@/hooks/useEntityLayout";
 import { cn } from "@/lib/utils";
 import { deriveWorkbenchTabs } from "@/lib/workbenchLayout";
 
@@ -121,8 +121,10 @@ export function BookmarkEditView({
     data: bookmark, isLoading,
   } = useBookmark(bookmarkId);
 
-  const layout = useResolvedWorkbenchLayout(bookmarkWorkbench);
-  const tabs = deriveWorkbenchTabs(bookmarkWorkbench, layout, "edit", bookmark);
+  // Route through the dynamic-field merge seam so per-property fields (#1163+) resolve + render.
+  const workbench = useLayoutDrivenWorkbench(bookmarkWorkbench);
+  const layout = useResolvedWorkbenchLayout(workbench);
+  const tabs = deriveWorkbenchTabs(workbench, layout, "edit", bookmark);
   const active = tabs.find(tab => tab.key === activeTab)?.key ?? tabs[0]?.key;
 
   const nav = tabs.length <= 1
@@ -155,7 +157,7 @@ export function BookmarkEditView({
     ) ?? false;
     const tabBody = (
       <LayoutDrivenTabBody
-        workbench={bookmarkWorkbench}
+        workbench={workbench}
         layout={layout}
         tabKey={active}
         mode="edit"

@@ -1,10 +1,26 @@
-import type { EntityWorkbench } from "../components/workbench/types";
+import type { DynamicFieldSet, EntityWorkbench } from "../components/workbench/types";
 import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
+
+import { useMemo } from "react";
 
 import { resolveLayout } from "@eesimple/types";
 
 import { useEntityLayouts } from "./useEntityLayouts";
-import { knownFieldKeys } from "../lib/workbenchLayout";
+import { augmentDefaultLayout, knownFieldKeys } from "../lib/workbenchLayout";
+
+/** Stable empty dynamic-field set for entities without a `useDynamicFields` source (the common case). */
+const EMPTY_DYNAMIC_FIELD_SET: DynamicFieldSet<{ id: string }> = {
+  fields: {},
+  defaultHome: {
+    tabKey: "",
+    sectionKey: "",
+  },
+};
+
+/** A no-op dynamic-fields hook, so `useLayoutDrivenWorkbench` always calls exactly one such hook. */
+function useNoDynamicFields<E extends { id: string }>(): DynamicFieldSet<E> {
+  return EMPTY_DYNAMIC_FIELD_SET as DynamicFieldSet<E>;
+}
 
 /**
  * The stored layout for an entity kind, or `null` when nothing is saved (the kind renders its
@@ -38,4 +54,38 @@ export function useResolvedWorkbenchLayout<E extends { id: string }>(
   const stored = useEntityLayout(workbench.layoutKind);
   if (!workbench.fields || !workbench.defaultLayout) return null;
   return resolveLayout(stored, workbench.defaultLayout, knownFieldKeys(workbench));
+}
+
+/**
+ * The **dynamic-field merge seam (#1163+).** Returns a workbench whose `fields` include the descriptor's
+ * runtime {@link EntityWorkbench.useDynamicFields} source (e.g. one field per custom property) and whose
+ * `defaultLayout` gives those keys a home (via {@link augmentDefaultLayout}). Every layout-render consumer
+ * (`EntityInfoView`/`EntityEditView`/`WorkbenchRouteTab`, and the bookmark detail/edit bodies) routes its
+ * workbench through this **before** `useResolvedWorkbenchLayout` / `deriveWorkbenchTabs` /
+ * `LayoutDrivenTabBody`, so dynamic fields resolve, render, and count toward tab visibility exactly like
+ * static ones. A no-op (returns the original workbench) for entities without a dynamic source.
+ *
+ * `useDynamicFields` is selected once via `??` and called unconditionally, so the hook order is stable —
+ * safe because a given mounted consumer always renders one entity kind (bookmark uses dedicated
+ * components; each slug entity is its own route subtree), so the selected hook never changes identity.
+ */
+export function useLayoutDrivenWorkbench<E extends { id: string }>(
+  workbench: EntityWorkbench<E>,
+): EntityWorkbench<E> {
+  const useDynamicFields = workbench.useDynamicFields ?? useNoDynamicFields<E>;
+  const dynamic = useDynamicFields();
+  return useMemo(() => {
+    const dynamicKeys = Object.keys(dynamic.fields);
+    if (dynamicKeys.length === 0) return workbench;
+    return {
+      ...workbench,
+      fields: {
+        ...workbench.fields,
+        ...dynamic.fields,
+      },
+      defaultLayout: workbench.defaultLayout
+        ? augmentDefaultLayout(workbench.defaultLayout, dynamicKeys, dynamic.defaultHome)
+        : workbench.defaultLayout,
+    };
+  }, [workbench, dynamic]);
 }
