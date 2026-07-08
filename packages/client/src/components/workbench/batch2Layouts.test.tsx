@@ -175,6 +175,12 @@ describe("YouTube channel default layout", () => {
 });
 
 describe("autofill rule default layout", () => {
+  // The prefill pane is atomized (#1197) into five independently-placeable fields; identical order in
+  // both modes since every field carries both a view and an edit renderer.
+  const PREFILL_FIELDS = [
+    "prefillCategory", "prefillMediaType", "prefillTags", "prefillLocations", "prefillProperties",
+  ];
+
   it("renders the view tabs in order (Debug + Backfill present)", () => {
     expect(shape(autofillWorkbench, "view").map(tab => tab.key)).toEqual([
       "general", "conditions", "prefill", "debug", "backfill",
@@ -185,6 +191,16 @@ describe("autofill rule default layout", () => {
     expect(shape(autofillWorkbench, "edit").map(tab => tab.key)).toEqual([
       "general", "conditions", "prefill",
     ]);
+  });
+
+  it("splits the prefill tab into five granular fields in both modes", () => {
+    for (const mode of ["view", "edit"] as const) {
+      const prefill = shape(autofillWorkbench, mode).find(tab => tab.key === "prefill");
+      expect(prefill?.sections).toEqual([{
+        key: "prefill",
+        fields: PREFILL_FIELDS,
+      }]);
+    }
   });
 });
 

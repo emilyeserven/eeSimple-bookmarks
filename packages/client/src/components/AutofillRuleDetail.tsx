@@ -1,3 +1,4 @@
+import type { PrefillPropertyRow } from "./autofillPrefillRows";
 import type {
   AutofillRule,
   Category,
@@ -11,9 +12,9 @@ import type {
 
 import { useTranslation } from "react-i18next";
 
+import { prefillPropertyRows } from "./autofillPrefillRows";
 import { LabeledSection } from "./LabeledSection";
 import { RuleGeneralFields } from "./RuleGeneralFields";
-import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 import { describePropertyPredicate } from "../lib/describePropertyPredicate";
 
 import { Separator } from "@/components/ui/separator";
@@ -183,7 +184,126 @@ export function AutofillConditionsFields({
   );
 }
 
-/** Body of the Prefill view tab: what category/media type/tags/properties the rule sets. */
+/** View block: the category the rule sets (or "leave unchanged"). */
+export function PrefillCategoryBlock({
+  categoryName,
+}: { categoryName: string | null }) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <LabeledSection title={t("Category")}>
+      {categoryName
+        ? <p className="text-sm">{categoryName}</p>
+        : <p className="text-sm text-muted-foreground">{t("— Leave unchanged —")}</p>}
+    </LabeledSection>
+  );
+}
+
+/** View block: the media type the rule sets (or "leave unchanged"). */
+export function PrefillMediaTypeBlock({
+  mediaTypeName,
+}: { mediaTypeName: string | null }) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <LabeledSection title={t("Media type")}>
+      {mediaTypeName
+        ? <p className="text-sm">{mediaTypeName}</p>
+        : <p className="text-sm text-muted-foreground">{t("— Leave unchanged —")}</p>}
+    </LabeledSection>
+  );
+}
+
+/** View block: the tags the rule applies. */
+export function PrefillTagsBlock({
+  tagNames,
+}: { tagNames: string[] }) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <LabeledSection title={t("Tags")}>
+      {tagNames.length > 0
+        ? (
+          <ul className="space-y-1 text-sm">
+            {tagNames.map((name, i) => (
+
+              <li key={i}>
+                •
+                {" "}
+                {name}
+              </li>
+            ))}
+          </ul>
+        )
+        : <p className="text-sm text-muted-foreground">{t("None")}</p>}
+    </LabeledSection>
+  );
+}
+
+/** View block: the locations the rule applies. */
+export function PrefillLocationsBlock({
+  locationNames,
+}: { locationNames: string[] }) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <LabeledSection title={t("Locations")}>
+      {locationNames.length > 0
+        ? (
+          <ul className="space-y-1 text-sm">
+            {locationNames.map((name, i) => (
+
+              <li key={i}>
+                •
+                {" "}
+                {name}
+              </li>
+            ))}
+          </ul>
+        )
+        : <p className="text-sm text-muted-foreground">{t("None")}</p>}
+    </LabeledSection>
+  );
+}
+
+/** View block: the custom-property values the rule sets. */
+export function PrefillPropertiesBlock({
+  propertyValues,
+}: { propertyValues: PrefillPropertyRow[] }) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <LabeledSection title={t("Custom Properties")}>
+      {propertyValues.length > 0
+        ? (
+          <ul className="space-y-1 text-sm">
+            {propertyValues.map(pv => (
+              <li key={pv.id}>
+                •
+                {" "}
+                {pv.name}
+                :
+                {" "}
+                {pv.display}
+              </li>
+            ))}
+          </ul>
+        )
+        : <p className="text-sm text-muted-foreground">{t("None")}</p>}
+    </LabeledSection>
+  );
+}
+
+/**
+ * Body of the Prefill view tab: what category/media type/tags/locations/properties the rule sets.
+ * Recomposed (#1197) from the five presentational blocks above so its prop-driven story stays
+ * unchanged while each block can be surfaced on its own Page Layouts view field.
+ */
 export function AutofillPrefillFields({
   rule, categories, mediaTypes, tags, properties, locations,
 }: {
@@ -194,9 +314,6 @@ export function AutofillPrefillFields({
   properties: CustomProperty[];
   locations: Location[];
 }) {
-  const {
-    t,
-  } = useTranslation();
   const categoryName = rule.setCategoryId
     ? (categories.find(c => c.id === rule.setCategoryId)?.name ?? null)
     : null;
@@ -205,113 +322,23 @@ export function AutofillPrefillFields({
     ? (mediaTypes.find(m => m.id === rule.setMediaTypeId)?.name ?? null)
     : null;
 
-  const tagNames = rule.tagIds.map(id => tags.find(t => t.id === id)?.name ?? id);
+  const tagNames = rule.tagIds.map(id => tags.find(tag => tag.id === id)?.name ?? id);
 
   const locationNames = rule.locationIds.map(id => locations.find(l => l.id === id)?.name ?? id);
 
-  const propertyValues: { id: string;
-    name: string;
-    display: string; }[] = [
-    ...rule.numberValues.map((e) => {
-      const prop = properties.find(p => p.id === e.propertyId);
-      return {
-        id: e.propertyId,
-        name: prop?.name ?? t("Unknown"),
-        display: prop ? formatNumber(e.value, prop) : String(e.value),
-      };
-    }),
-    ...rule.booleanValues.map((e) => {
-      const prop = properties.find(p => p.id === e.propertyId);
-      return {
-        id: e.propertyId,
-        name: prop?.name ?? t("Unknown"),
-        display: e.value ? t("Yes") : t("No"),
-      };
-    }),
-    ...rule.dateTimeValues.map((e) => {
-      const prop = properties.find(p => p.id === e.propertyId);
-      return {
-        id: e.propertyId,
-        name: prop?.name ?? t("Unknown"),
-        display: prop ? formatDateTime(e.value, prop) : e.value,
-      };
-    }),
-  ];
+  const propertyValues = prefillPropertyRows(rule, properties);
 
   return (
     <div className="space-y-6">
-      <LabeledSection title={t("Category")}>
-        {categoryName
-          ? <p className="text-sm">{categoryName}</p>
-          : <p className="text-sm text-muted-foreground">{t("— Leave unchanged —")}</p>}
-      </LabeledSection>
-
+      <PrefillCategoryBlock categoryName={categoryName} />
       <Separator />
-
-      <LabeledSection title={t("Media type")}>
-        {mediaTypeName
-          ? <p className="text-sm">{mediaTypeName}</p>
-          : <p className="text-sm text-muted-foreground">{t("— Leave unchanged —")}</p>}
-      </LabeledSection>
-
+      <PrefillMediaTypeBlock mediaTypeName={mediaTypeName} />
       <Separator />
-
-      <LabeledSection title={t("Tags")}>
-        {tagNames.length > 0
-          ? (
-            <ul className="space-y-1 text-sm">
-              {tagNames.map((name, i) => (
-
-                <li key={i}>
-                  •
-                  {" "}
-                  {name}
-                </li>
-              ))}
-            </ul>
-          )
-          : <p className="text-sm text-muted-foreground">{t("None")}</p>}
-      </LabeledSection>
-
+      <PrefillTagsBlock tagNames={tagNames} />
       <Separator />
-
-      <LabeledSection title={t("Locations")}>
-        {locationNames.length > 0
-          ? (
-            <ul className="space-y-1 text-sm">
-              {locationNames.map((name, i) => (
-
-                <li key={i}>
-                  •
-                  {" "}
-                  {name}
-                </li>
-              ))}
-            </ul>
-          )
-          : <p className="text-sm text-muted-foreground">{t("None")}</p>}
-      </LabeledSection>
-
+      <PrefillLocationsBlock locationNames={locationNames} />
       <Separator />
-
-      <LabeledSection title={t("Custom Properties")}>
-        {propertyValues.length > 0
-          ? (
-            <ul className="space-y-1 text-sm">
-              {propertyValues.map(pv => (
-                <li key={pv.id}>
-                  •
-                  {" "}
-                  {pv.name}
-                  :
-                  {" "}
-                  {pv.display}
-                </li>
-              ))}
-            </ul>
-          )
-          : <p className="text-sm text-muted-foreground">{t("None")}</p>}
-      </LabeledSection>
+      <PrefillPropertiesBlock propertyValues={propertyValues} />
     </div>
   );
 }

@@ -195,7 +195,15 @@ not whether a `useAppForm` exists:
   composite), **Newsletter** (`useNewsletterGeneralForm` called per sub-field, #1187), and **Custom
   Property** (`usePropertyGeneralForm` → `name`/`type`/`status`/`description` edit fields +
   `status`/`description`/`created` view rows, #1196) — the last two share a `useAppForm`+autosave but split
-  cleanly because name→slug follow is self-contained and status/description don't interact.
+  cleanly because name→slug follow is self-contained and status/description don't interact. Also **Autofill**
+  (#1197: the one `prefill` field → `prefillCategory` / `prefillMediaType` / `prefillTags` /
+  `prefillLocations` / `prefillProperties`, each its own `useState` + single-key `useFieldAutoSave`; the
+  `AutofillRulePrefillPickers` combined pickers split into per-field halves + recompose, view side split
+  into presentational blocks in `AutofillRuleDetail.tsx` + self-contained registry view fields in
+  `workbench/autofillPrefillView.tsx`). **Keep a category-scoped dynamic value-set as ONE composite field**
+  (autofill `prefillProperties` — its shown inputs depend on the chosen category, like the Conditions
+  builder; it scopes off the persisted `rule.setCategoryId` rather than shared in-flight state, which is
+  exactly why no provider is needed).
 - **Shared-`useAppForm` composite with genuine cross-field coordination** (name-blur autofill,
   website-lookup → offer → category, primary-language sync — the bookmark case) → the render seam calls
   each field renderer as a plain function, so N naive field components would each instantiate N separate

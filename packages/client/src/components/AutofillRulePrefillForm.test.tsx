@@ -78,32 +78,45 @@ vi.mock("../lib/autoSave", () => ({
   notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
 }));
 
-// Stub the pickers so the test can drive each onChange directly without a real Select/TagPicker.
+// Stub the per-field picker halves so the test can drive each onChange directly without a real
+// Select/TagPicker. The prefill form is recomposed (#1197) from the five granular edit fields, each
+// of which renders one of these halves.
 vi.mock("./AutofillRulePrefillPickers", () => ({
-  AutofillRulePrefillPickers: ({
-    onCategoryChange, onMediaTypeChange, onToggleTag,
-  }: {
-    onCategoryChange: (value: string) => void;
-    onMediaTypeChange: (value: string) => void;
-    onToggleTag: (id: string) => void;
-  }) => (
-    <div>
-      <button
-        type="button"
-        onClick={() => onCategoryChange("cat-1")}
-      >pick-category
-      </button>
-      <button
-        type="button"
-        onClick={() => onMediaTypeChange("mt-1")}
-      >pick-media-type
-      </button>
-      <button
-        type="button"
-        onClick={() => onToggleTag("tag-1")}
-      >toggle-tag
-      </button>
-    </div>
+  AutofillCategoryPicker: ({
+    onChange,
+  }: { onChange: (value: string) => void }) => (
+    <button
+      type="button"
+      onClick={() => onChange("cat-1")}
+    >pick-category
+    </button>
+  ),
+  AutofillMediaTypePicker: ({
+    onChange,
+  }: { onChange: (value: string) => void }) => (
+    <button
+      type="button"
+      onClick={() => onChange("mt-1")}
+    >pick-media-type
+    </button>
+  ),
+  AutofillTagsPicker: ({
+    onToggle,
+  }: { onToggle: (id: string) => void }) => (
+    <button
+      type="button"
+      onClick={() => onToggle("tag-1")}
+    >toggle-tag
+    </button>
+  ),
+  AutofillLocationsPicker: ({
+    onToggle,
+  }: { onToggle: (id: string) => void }) => (
+    <button
+      type="button"
+      onClick={() => onToggle("loc-1")}
+    >toggle-location
+    </button>
   ),
 }));
 

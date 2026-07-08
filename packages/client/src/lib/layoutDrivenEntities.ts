@@ -2,6 +2,7 @@ import type { LayoutFieldMeta } from "../components/LayoutBoard";
 import type { WorkbenchField } from "../components/workbench/types";
 import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 
+import { autofillWorkbench } from "../components/workbench/autofill";
 import { bookmarkWorkbench } from "../components/workbench/bookmark";
 import { categoryWorkbench } from "../components/workbench/category";
 import { genreMoodWorkbench } from "../components/workbench/genreMood";
@@ -78,6 +79,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Tag"),
     fields: fieldsFromRegistry(tagWorkbench.fields),
     defaultLayout: tagWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "autofill",
+    label: i18n.t("Autofill Rules"),
+    fields: fieldsFromRegistry(autofillWorkbench.fields),
+    defaultLayout: autofillWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },
