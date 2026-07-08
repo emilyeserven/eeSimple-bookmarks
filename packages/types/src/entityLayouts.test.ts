@@ -667,12 +667,12 @@ test("isValidEntityLayout rejects a section with non-string fields", () => {
 
 // ---- LAYOUTABLE_ENTITY_KINDS -----------------------------------------------------------------------
 
-test("LAYOUTABLE_ENTITY_KINDS has exactly 22 unique entries", () => {
-  assert.equal(LAYOUTABLE_ENTITY_KINDS.length, 22);
+test("LAYOUTABLE_ENTITY_KINDS has exactly 21 unique entries", () => {
+  assert.equal(LAYOUTABLE_ENTITY_KINDS.length, 21);
   assert.deepEqual([...new Set(LAYOUTABLE_ENTITY_KINDS)], [...LAYOUTABLE_ENTITY_KINDS]);
 });
 
-test("LAYOUTABLE_ENTITY_KINDS includes bookmark alongside the 21 workbench entity kinds", () => {
+test("LAYOUTABLE_ENTITY_KINDS includes bookmark alongside the 20 workbench entity kinds", () => {
   assert.ok(LAYOUTABLE_ENTITY_KINDS.includes("bookmark"));
   assert.ok(LAYOUTABLE_ENTITY_KINDS.includes("category"));
   assert.ok(LAYOUTABLE_ENTITY_KINDS.includes("card-display-rule"));
