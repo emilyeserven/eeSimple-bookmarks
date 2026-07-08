@@ -165,67 +165,96 @@ export function BookmarkWebsiteDetailView({
   );
 }
 
-/** The residual General-view rows that have no matching General edit field: locations, channel, person,
- *  and the Kavita/Plex link rows. */
-export function BookmarkDetailsExtraView({
+/**
+ * The residual General-view rows that have no matching General edit field, each split into its own
+ * placeable view field (#1163+): Locations, YouTube channel, People, and the Kavita/Plex link rows.
+ * Each self-hides when empty (the Kavita/Plex rows are self-contained components).
+ */
+
+/** Locations row, or null when the bookmark has none. */
+export function BookmarkLocationsDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  if (bookmark.locations.length === 0) return null;
+  return (
+    <DetailField label={i18n.t("Locations")}>
+      <BookmarkLocationsBox locations={bookmark.locations} />
+    </DetailField>
+  );
+}
+
+/** YouTube channel link row. */
+export function BookmarkChannelDetailView({
   bookmark,
 }: {
   bookmark: Bookmark;
 }) {
   return (
-    <>
-      {bookmark.locations.length > 0
+    <DetailField label={i18n.t("Channel")}>
+      {bookmark.youtubeChannel
         ? (
-          <DetailField label={i18n.t("Locations")}>
-            <BookmarkLocationsBox locations={bookmark.locations} />
-          </DetailField>
+          <Link
+            to="/taxonomies/youtube-channels/$channelSlug"
+            params={{
+              channelSlug: bookmark.youtubeChannel.slug,
+            }}
+            className="hover:underline"
+          >
+            {bookmark.youtubeChannel.name}
+          </Link>
         )
         : null}
+    </DetailField>
+  );
+}
 
-      <DetailField label={i18n.t("Channel")}>
-        {bookmark.youtubeChannel
-          ? (
+/** People links row, or null when the bookmark credits no people. */
+export function BookmarkPeopleDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  if (bookmark.people.length === 0) return null;
+  return (
+    <DetailField label={i18n.t("Person")}>
+      <span className="flex flex-wrap gap-x-1">
+        {bookmark.people.map((person, i) => (
+          <span key={person.id}>
+            {i > 0 && <span className="mr-1">,</span>}
             <Link
-              to="/taxonomies/youtube-channels/$channelSlug"
+              to="/taxonomies/people/$personSlug"
               params={{
-                channelSlug: bookmark.youtubeChannel.slug,
+                personSlug: person.slug,
               }}
               className="hover:underline"
             >
-              {bookmark.youtubeChannel.name}
+              {person.name}
             </Link>
-          )
-          : null}
-      </DetailField>
-
-      {bookmark.people.length > 0
-        ? (
-          <DetailField label={i18n.t("Person")}>
-            <span className="flex flex-wrap gap-x-1">
-              {bookmark.people.map((person, i) => (
-                <span key={person.id}>
-                  {i > 0 && <span className="mr-1">,</span>}
-                  <Link
-                    to="/taxonomies/people/$personSlug"
-                    params={{
-                      personSlug: person.slug,
-                    }}
-                    className="hover:underline"
-                  >
-                    {person.name}
-                  </Link>
-                </span>
-              ))}
-            </span>
-          </DetailField>
-        )
-        : null}
-
-      <BookmarkKavitaDetailRow bookmark={bookmark} />
-
-      <BookmarkPlexDetailRow bookmark={bookmark} />
-    </>
+          </span>
+        ))}
+      </span>
+    </DetailField>
   );
+}
+
+/** Kavita "View on Kavita" link row (self-hiding). */
+export function BookmarkKavitaDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  return <BookmarkKavitaDetailRow bookmark={bookmark} />;
+}
+
+/** Plex "View on Plex" link row (self-hiding). */
+export function BookmarkPlexDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  return <BookmarkPlexDetailRow bookmark={bookmark} />;
 }
 
 /** The relationship-type + directional-role + label badges for one explicit relationship edge. */
@@ -406,23 +435,28 @@ export function BookmarkLocationsMapView({
   );
 }
 
-/** The read-only Metadata block (Priority + Created). Always present, matching the old view. */
-export function BookmarkMetadataView({
+/** Priority metadata row — its own placeable view field (#1163+). */
+export function BookmarkPriorityView({
   bookmark,
 }: {
   bookmark: Bookmark;
 }) {
   return (
-    <LabeledSection title={i18n.t("Metadata")}>
-      <dl className="space-y-3">
-        <DetailField label={i18n.t("Priority")}>
-          <span>{bookmark.priority}</span>
-        </DetailField>
+    <DetailField label={i18n.t("Priority")}>
+      <span>{bookmark.priority}</span>
+    </DetailField>
+  );
+}
 
-        <DetailField label={i18n.t("Created")}>
-          <span>{new Date(bookmark.createdAt).toLocaleString()}</span>
-        </DetailField>
-      </dl>
-    </LabeledSection>
+/** Created-timestamp metadata row — its own placeable view field (#1163+). */
+export function BookmarkCreatedView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  return (
+    <DetailField label={i18n.t("Created")}>
+      <span>{new Date(bookmark.createdAt).toLocaleString()}</span>
+    </DetailField>
   );
 }

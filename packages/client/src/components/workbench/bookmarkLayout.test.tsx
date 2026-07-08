@@ -57,7 +57,7 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["url", "description", "category", "mediaType", "tags", "detailsExtra"],
+          fields: ["url", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "kavitaLink", "plexLink"],
         }],
       },
       // The `properties` tab has no static VIEW field (its only static field, `youtubeMetadata`, is
@@ -76,7 +76,8 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "image",
-          fields: ["gallery"],
+          // Only `imagePicker` has a view renderer; the other three image fields are edit-only.
+          fields: ["imagePicker"],
         }],
       },
       {
@@ -84,7 +85,8 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "video",
-          fields: ["reel"],
+          // `reelCapture` is edit-only, so only the player shows in view.
+          fields: ["reelPlayer"],
         }],
       },
       {
@@ -100,7 +102,7 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "metadata",
-          fields: ["metadata"],
+          fields: ["priority", "createdAt"],
         }],
       },
       {
@@ -152,7 +154,7 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "image",
-          fields: ["gallery"],
+          fields: ["imagePicker", "imageActions", "imageDisplay", "screenshot"],
         }],
       },
       {
@@ -160,7 +162,7 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "video",
-          fields: ["reel"],
+          fields: ["reelCapture", "reelPlayer"],
         }],
       },
       {
@@ -176,7 +178,7 @@ describe("bookmark default layout", () => {
 });
 
 describe("bookmark stored layout rearrangement (end-to-end loop)", () => {
-  // Move the `gallery` field into a brand-new user-created tab; `resolveLayout` keeps it there and
+  // Move the `imagePicker` field into a brand-new user-created tab; `resolveLayout` keeps it there and
   // appends every other unplaced field to its default home — proving a stored layout drives the render
   // in BOTH modes for bookmarks too (the hand-PUT loop the editor UI automates).
   const stored: EntityLayout = {
@@ -186,7 +188,7 @@ describe("bookmark stored layout rearrangement (end-to-end loop)", () => {
         label: "Media",
         sections: [{
           key: "s",
-          fields: ["gallery"],
+          fields: ["imagePicker"],
         }],
       },
     ],
@@ -195,11 +197,13 @@ describe("bookmark stored layout rearrangement (end-to-end loop)", () => {
   it("shows the moved field under the new tab in both modes", () => {
     const viewMedia = shape(bookmarkWorkbench, "view", stored).find(tab => tab.key === "media");
     const editMedia = shape(bookmarkWorkbench, "edit", stored).find(tab => tab.key === "media");
-    expect(viewMedia?.sections[0]?.fields).toEqual(["gallery"]);
-    expect(editMedia?.sections[0]?.fields).toEqual(["gallery"]);
+    expect(viewMedia?.sections[0]?.fields).toEqual(["imagePicker"]);
+    expect(editMedia?.sections[0]?.fields).toEqual(["imagePicker"]);
   });
 
-  it("no longer shows the original image tab (now empty → hidden)", () => {
+  it("no longer shows the original image tab in view (its only view field moved away)", () => {
+    // In view the image tab's other fields (imageActions/imageDisplay/screenshot) are edit-only, so
+    // with `imagePicker` moved out the image tab has no view-visible field and is hidden.
     const keys = shape(bookmarkWorkbench, "view", stored).map(tab => tab.key);
     expect(keys).toContain("media");
     expect(keys).not.toContain("image");

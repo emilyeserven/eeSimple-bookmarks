@@ -5,6 +5,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkGeneralFormProvider } from "./BookmarkGeneralFormContext";
+import { BookmarkImageEditFormProvider } from "./BookmarkImageEditFormContext";
 import { BookmarkPropertiesFormProvider } from "./BookmarkPropertiesFormContext";
 import { TabbedShell, navLinkClass } from "./TabbedShell";
 import { bookmarkWorkbench } from "./workbench/bookmark";
@@ -37,6 +38,14 @@ const SHARED_FORM_FIELD_KEYS = new Set<string>([
  * `BookmarkPropertiesFormProvider` mounted around the edit body.
  */
 const STATIC_FIELD_KEYS = new Set<string>(Object.keys(bookmarkWorkbench.fields ?? {}));
+
+/** The Image-tab fields that read the shared `useBookmarkImageEditForm` controller from context. */
+const IMAGE_FIELD_KEYS = new Set<string>([
+  "imagePicker",
+  "imageActions",
+  "imageDisplay",
+  "screenshot",
+]);
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -166,6 +175,7 @@ export function BookmarkEditView({
     // A property field is the static `youtubeMetadata` or any dynamic (non-static) custom-property key;
     // both read the shared properties controller, so mount its provider around the body.
     const hasPropertyField = tabFieldKeys.some(field => field === "youtubeMetadata" || !STATIC_FIELD_KEYS.has(field));
+    const hasImageField = tabFieldKeys.some(field => IMAGE_FIELD_KEYS.has(field));
 
     let body: ReactNode = (
       <LayoutDrivenTabBody
@@ -181,6 +191,9 @@ export function BookmarkEditView({
     }
     if (hasPropertyField) {
       body = <BookmarkPropertiesFormProvider bookmark={bookmark}>{body}</BookmarkPropertiesFormProvider>;
+    }
+    if (hasImageField) {
+      body = <BookmarkImageEditFormProvider bookmark={bookmark}>{body}</BookmarkImageEditFormProvider>;
     }
     return (
       <>

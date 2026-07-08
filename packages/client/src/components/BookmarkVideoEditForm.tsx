@@ -11,10 +11,11 @@ interface BookmarkVideoEditFormProps {
 }
 
 /**
- * Manage a bookmark's archived Instagram reel video: capture/re-capture it into object storage, play
- * it back, download it, or remove it. Self-contained edit-tab counterpart to `BookmarkImageEditForm`.
+ * The reel **capture** affordance — the connector/reel gate plus the archive trigger — as its own
+ * placeable **edit** field (#1163+). Self-hides its trigger behind the same messages the combined form
+ * showed: "not configured" when the connector is off, "not a reel" for a non-reel with no archive.
  */
-export function BookmarkVideoEditForm({
+export function BookmarkReelCaptureField({
   bookmark,
 }: BookmarkVideoEditFormProps) {
   const {
@@ -43,12 +44,25 @@ export function BookmarkVideoEditForm({
   }
 
   return (
+    <BookmarkArchiveReelButton
+      bookmark={bookmark}
+      enabled={reelArchiveEnabled}
+      showLabel
+    />
+  );
+}
+
+/**
+ * Manage a bookmark's archived Instagram reel video: capture/re-capture it into object storage, play
+ * it back, download it, or remove it. Recomposed from the now-separate `BookmarkReelCaptureField` +
+ * `BookmarkReelArchivePlayer` (the two placeable Video-tab fields) so its story/test stay unchanged.
+ */
+export function BookmarkVideoEditForm({
+  bookmark,
+}: BookmarkVideoEditFormProps) {
+  return (
     <div className="space-y-4">
-      <BookmarkArchiveReelButton
-        bookmark={bookmark}
-        enabled={reelArchiveEnabled}
-        showLabel
-      />
+      <BookmarkReelCaptureField bookmark={bookmark} />
       <BookmarkReelArchivePlayer bookmark={bookmark} />
     </div>
   );

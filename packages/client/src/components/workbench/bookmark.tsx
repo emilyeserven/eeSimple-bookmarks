@@ -3,13 +3,18 @@ import type { Bookmark, EntityLayout } from "@eesimple/types";
 
 import {
   BookmarkCategoryDetailView,
+  BookmarkChannelDetailView,
+  BookmarkCreatedView,
   BookmarkDescriptionDetailView,
-  BookmarkDetailsExtraView,
   BookmarkHierarchyView,
+  BookmarkKavitaDetailView,
+  BookmarkLocationsDetailView,
   BookmarkLocationsMapView,
   BookmarkMediaSourceView,
   BookmarkMediaTypeDetailView,
-  BookmarkMetadataView,
+  BookmarkPeopleDetailView,
+  BookmarkPlexDetailView,
+  BookmarkPriorityView,
   BookmarkRelatedBookmarksView,
   BookmarkTagsDetailView,
   BookmarkWebsiteDetailView,
@@ -30,11 +35,16 @@ import {
   BookmarkTagsEditField,
   BookmarkUrlEditField,
 } from "../BookmarkGeneralForm";
-import { BookmarkImageEditForm } from "../BookmarkImageEditForm";
+import {
+  BookmarkImageActionsField,
+  BookmarkImageDisplayField,
+  BookmarkImagePickerEditField,
+  BookmarkScreenshotField,
+} from "../BookmarkImageEditForm";
 import { bookmarkYouTubeMetadataField, useBookmarkDynamicFields } from "../BookmarkPropertyLayoutFields";
 import { BookmarkReelArchivePlayer } from "../BookmarkReelArchive";
 import { BookmarkRelatedForm } from "../BookmarkRelatedForm";
-import { BookmarkVideoEditForm } from "../BookmarkVideoEditForm";
+import { BookmarkReelCaptureField } from "../BookmarkVideoEditForm";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 
 /**
@@ -65,19 +75,28 @@ export type BookmarkFieldKey
     | "category"
     | "mediaType"
     | "tags"
-    | "detailsExtra"
+    | "locationsBox"
+    | "channel"
+    | "people"
+    | "kavitaLink"
+    | "plexLink"
     | "tagBlacklist"
     | "locationBlacklist"
     | "youtubeMetadata"
     | "languageUsages"
-    | "gallery"
-    | "reel"
+    | "imagePicker"
+    | "imageActions"
+    | "imageDisplay"
+    | "screenshot"
+    | "reelCapture"
+    | "reelPlayer"
     | "relatedEdit"
     | "relatedBookmarks"
     | "hierarchy"
     | "mediaSource"
     | "locationsMap"
-    | "metadata"
+    | "priority"
+    | "createdAt"
     | "debugInfo";
 
 const bookmarkFields = {
@@ -140,12 +159,40 @@ const bookmarkFields = {
     }) => <BookmarkTagsDetailView bookmark={entity} />,
     edit: () => <BookmarkTagsEditField />,
   },
-  detailsExtra: {
-    key: "detailsExtra",
-    label: i18n.t("Other details"),
+  locationsBox: {
+    key: "locationsBox",
+    label: i18n.t("Locations"),
     view: ({
       entity,
-    }) => <BookmarkDetailsExtraView bookmark={entity} />,
+    }) => <BookmarkLocationsDetailView bookmark={entity} />,
+  },
+  channel: {
+    key: "channel",
+    label: i18n.t("Channel"),
+    view: ({
+      entity,
+    }) => <BookmarkChannelDetailView bookmark={entity} />,
+  },
+  people: {
+    key: "people",
+    label: i18n.t("People"),
+    view: ({
+      entity,
+    }) => <BookmarkPeopleDetailView bookmark={entity} />,
+  },
+  kavitaLink: {
+    key: "kavitaLink",
+    label: i18n.t("Kavita"),
+    view: ({
+      entity,
+    }) => <BookmarkKavitaDetailView bookmark={entity} />,
+  },
+  plexLink: {
+    key: "plexLink",
+    label: i18n.t("Plex"),
+    view: ({
+      entity,
+    }) => <BookmarkPlexDetailView bookmark={entity} />,
   },
   tagBlacklist: {
     key: "tagBlacklist",
@@ -179,25 +226,53 @@ const bookmarkFields = {
       />
     ),
   },
-  gallery: {
-    key: "gallery",
+  imagePicker: {
+    key: "imagePicker",
     label: i18n.t("Image"),
     view: ({
       entity,
     }) => <BookmarkGallery bookmark={entity} />,
     edit: ({
       entity,
-    }) => <BookmarkImageEditForm bookmark={entity} />,
+    }) => <BookmarkImagePickerEditField bookmark={entity} />,
   },
-  reel: {
-    key: "reel",
+  imageActions: {
+    key: "imageActions",
+    label: i18n.t("Image actions"),
+    edit: ({
+      entity,
+    }) => <BookmarkImageActionsField bookmark={entity} />,
+  },
+  imageDisplay: {
+    key: "imageDisplay",
+    label: i18n.t("Cover image display"),
+    edit: ({
+      entity,
+    }) => <BookmarkImageDisplayField bookmark={entity} />,
+  },
+  screenshot: {
+    key: "screenshot",
+    label: i18n.t("Page screenshot"),
+    edit: ({
+      entity,
+    }) => <BookmarkScreenshotField bookmark={entity} />,
+  },
+  reelCapture: {
+    key: "reelCapture",
+    label: i18n.t("Archive reel"),
+    edit: ({
+      entity,
+    }) => <BookmarkReelCaptureField bookmark={entity} />,
+  },
+  reelPlayer: {
+    key: "reelPlayer",
     label: i18n.t("Video"),
     view: ({
       entity,
     }) => <BookmarkReelArchivePlayer bookmark={entity} />,
     edit: ({
       entity,
-    }) => <BookmarkVideoEditForm bookmark={entity} />,
+    }) => <BookmarkReelArchivePlayer bookmark={entity} />,
   },
   relatedEdit: {
     key: "relatedEdit",
@@ -234,12 +309,19 @@ const bookmarkFields = {
       entity,
     }) => <BookmarkLocationsMapView bookmark={entity} />,
   },
-  metadata: {
-    key: "metadata",
-    label: i18n.t("Metadata"),
+  priority: {
+    key: "priority",
+    label: i18n.t("Priority"),
     view: ({
       entity,
-    }) => <BookmarkMetadataView bookmark={entity} />,
+    }) => <BookmarkPriorityView bookmark={entity} />,
+  },
+  createdAt: {
+    key: "createdAt",
+    label: i18n.t("Created"),
+    view: ({
+      entity,
+    }) => <BookmarkCreatedView bookmark={entity} />,
   },
   debugInfo: {
     key: "debugInfo",
@@ -271,7 +353,7 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       sections: [
         {
           key: "general",
-          fields: ["name", "primaryLanguage", "names", "url", "description", "category", "mediaType", "tags", "detailsExtra"] satisfies BookmarkFieldKey[],
+          fields: ["name", "primaryLanguage", "names", "url", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "kavitaLink", "plexLink"] satisfies BookmarkFieldKey[],
         },
         {
           key: "advanced",
@@ -303,7 +385,7 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("Image"),
       sections: [{
         key: "image",
-        fields: ["gallery"] satisfies BookmarkFieldKey[],
+        fields: ["imagePicker", "imageActions", "imageDisplay", "screenshot"] satisfies BookmarkFieldKey[],
       }],
     },
     {
@@ -311,7 +393,7 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("Video"),
       sections: [{
         key: "video",
-        fields: ["reel"] satisfies BookmarkFieldKey[],
+        fields: ["reelCapture", "reelPlayer"] satisfies BookmarkFieldKey[],
       }],
     },
     {
@@ -327,7 +409,8 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("Metadata"),
       sections: [{
         key: "metadata",
-        fields: ["metadata"] satisfies BookmarkFieldKey[],
+        title: i18n.t("Metadata"),
+        fields: ["priority", "createdAt"] satisfies BookmarkFieldKey[],
       }],
     },
     {
