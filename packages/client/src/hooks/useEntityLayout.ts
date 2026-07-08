@@ -3,21 +3,25 @@ import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 
 import { resolveLayout } from "@eesimple/types";
 
+import { useEntityLayouts } from "./useEntityLayouts";
 import { knownFieldKeys } from "../lib/workbenchLayout";
 
 /**
- * The stored layout for an entity kind, or `null` when nothing is saved.
+ * The stored layout for an entity kind, or `null` when nothing is saved (the kind renders its
+ * code-defined `defaultLayout` — a deploy with no override renders exactly as today).
  *
- * **Stub seam (#1159).** The `entity_layouts` persistence (table + `/api/entity-layouts/:kind`
- * endpoint) is a parallel sub-issue (#1158); the Page Layouts editor that writes it is #1160/#1162.
- * Until those land there is nothing to read, so this returns `null` and every layout-driven entity
- * resolves straight to its code-defined `defaultLayout` — a deploy renders exactly as today. When
- * persistence lands, this is the single place to swap in the real query (keyed by `kind`); every
- * consumer already goes through {@link useResolvedWorkbenchLayout}.
+ * **The single render seam (#1159).** This is the one place the layout renderer reads persistence;
+ * every consumer goes through {@link useResolvedWorkbenchLayout}. It reads the #1158 `entity_layouts`
+ * store (`GET /api/entity-layouts`, one cached query shared across the app) and picks this kind's row.
+ * The Page Layouts editor that *writes* the store is #1160/#1162 — this hook only reads.
  */
 export function useEntityLayout(kind: LayoutableEntityKind | undefined): EntityLayout | null {
-  void kind;
-  return null;
+  // Called unconditionally (Rules of Hooks) even for registry-less kinds; a single shared query.
+  const {
+    data,
+  } = useEntityLayouts();
+  if (!kind) return null;
+  return (data ?? []).find(record => record.entityKind === kind)?.layout ?? null;
 }
 
 /**

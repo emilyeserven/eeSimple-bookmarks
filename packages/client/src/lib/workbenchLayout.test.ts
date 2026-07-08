@@ -251,3 +251,59 @@ describe("deriveWorkbenchTabs (legacy fallback)", () => {
     expect(deriveWorkbenchTabs(legacy, null, "view", withOptions).map(t => t.key)).toEqual(["general", "opts"]);
   });
 });
+
+describe("deriveWorkbenchTabs (layout-driven)", () => {
+  // A layout-driven workbench keeps its `tabs` array as the sole source of `group` (code-only nav
+  // metadata, never persisted in the layout jsonb). The renderer builds its strip from the layout.
+  const layoutDriven = {
+    fields,
+    defaultLayout: layout,
+    tabs: [
+      {
+        key: "general",
+        label: "General",
+      },
+      {
+        key: "display",
+        label: "Display",
+      },
+      {
+        key: "hierarchy",
+        label: "Hierarchy",
+        group: "Rules",
+      },
+      {
+        key: "opts",
+        label: "Options",
+        group: "Rules",
+      },
+    ],
+  } as unknown as EntityWorkbench<Fake>;
+
+  it("re-attaches group from workbench.tabs by key so the edit strip's grouping survives", () => {
+    const viewTabs = deriveWorkbenchTabs(layoutDriven, layout, "view", withOptions);
+    // view mode: 'display' (edit-only) is hidden; 'hierarchy'/'opts' carry the Rules group.
+    expect(viewTabs.map(t => t.key)).toEqual(["general", "hierarchy", "opts"]);
+    expect(viewTabs.find(t => t.key === "hierarchy")?.group).toBe("Rules");
+    expect(viewTabs.find(t => t.key === "opts")?.group).toBe("Rules");
+    expect(viewTabs.find(t => t.key === "general")?.group).toBeUndefined();
+  });
+
+  it("leaves a layout tab with no matching workbench tab ungrouped (user-created tab stays flat)", () => {
+    const withNewTab: EntityLayout = {
+      tabs: [
+        ...layout.tabs,
+        {
+          key: "custom",
+          label: "My Tab",
+          sections: [{
+            key: "s",
+            fields: ["name"],
+          }],
+        },
+      ],
+    };
+    const tabs = deriveWorkbenchTabs(layoutDriven, withNewTab, "view", withOptions);
+    expect(tabs.find(t => t.key === "custom")?.group).toBeUndefined();
+  });
+});

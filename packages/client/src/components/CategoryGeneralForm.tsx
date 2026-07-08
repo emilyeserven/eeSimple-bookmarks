@@ -27,14 +27,20 @@ const LABELS: Partial<Record<keyof UpdateCategoryInput, string>> = {
   icon: "Icon",
 };
 
-interface CategoryGeneralFormProps {
+interface CategoryFieldProps {
   category: Category;
 }
 
-/** Edit a category's name, icon, and description. Each field auto-saves (no Save button). */
-export function CategoryGeneralForm({
+/**
+ * The name / icon / description core of a category's General form. Kept as one unit — the three share
+ * a single `useAppForm` instance and render in a two-column responsive grid, so they are one placeable
+ * layout field (the `details` field in the category workbench registry), not three. Name auto-saves on
+ * blur (following the new slug) and re-syncs the primary-language name value; icon saves on change;
+ * description saves on blur.
+ */
+export function CategoryDetailsFields({
   category,
-}: CategoryGeneralFormProps) {
+}: CategoryFieldProps) {
   const {
     t,
   } = useTranslation();
@@ -64,86 +70,132 @@ export function CategoryGeneralForm({
   });
 
   return (
-    <div className="space-y-4">
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-2
-        "
-      >
-        <form.AppField name="name">
-          {field => (
-            <field.TextField
-              label={t("Name")}
-              disabled={category.builtIn}
-              onBlur={() => {
-                const trimmed = field.state.value.trim();
-                autoSave.saveField(
-                  "name",
-                  trimmed,
-                  {
-                    valid: field.state.meta.errors.length === 0,
-                    // Renaming changes the slug; follow it so the edit page keeps resolving.
-                    onSuccess: (updated) => {
-                      if (updated.slug !== category.slug) {
-                        void navigate({
-                          to: "/categories/$categorySlug/edit",
-                          params: {
-                            categorySlug: updated.slug,
-                          },
-                        });
-                      }
-                    },
-                  },
-                );
-                primaryLanguage.syncPrimaryValue(trimmed);
-              }}
-            />
-          )}
-        </form.AppField>
-        <form.AppField name="icon">
-          {field => (
-            <div className="space-y-1">
-              <Label htmlFor={`category-icon-${category.id}`}>{t("Icon")}</Label>
-              <IconPicker
-                aria-label={t("Icon for {{name}}", {
-                  name: category.name,
-                })}
-                value={field.state.value}
-                onChange={(value) => {
-                  field.handleChange(value);
-                  autoSave.saveField("icon", value);
-                }}
-              />
-            </div>
-          )}
-        </form.AppField>
-        <form.AppField name="description">
-          {field => (
-            <field.TextareaField
-              label={t("Description")}
-              onBlur={() => autoSave.saveField(
-                "description",
-                field.state.value.trim() || null,
+    <div
+      className="
+        grid gap-3
+        sm:grid-cols-2
+      "
+    >
+      <form.AppField name="name">
+        {field => (
+          <field.TextField
+            label={t("Name")}
+            disabled={category.builtIn}
+            onBlur={() => {
+              const trimmed = field.state.value.trim();
+              autoSave.saveField(
+                "name",
+                trimmed,
                 {
                   valid: field.state.meta.errors.length === 0,
+                  // Renaming changes the slug; follow it so the edit page keeps resolving.
+                  onSuccess: (updated) => {
+                    if (updated.slug !== category.slug) {
+                      void navigate({
+                        to: "/categories/$categorySlug/edit",
+                        params: {
+                          categorySlug: updated.slug,
+                        },
+                      });
+                    }
+                  },
                 },
-              )}
+              );
+              primaryLanguage.syncPrimaryValue(trimmed);
+            }}
+          />
+        )}
+      </form.AppField>
+      <form.AppField name="icon">
+        {field => (
+          <div className="space-y-1">
+            <Label htmlFor={`category-icon-${category.id}`}>{t("Icon")}</Label>
+            <IconPicker
+              aria-label={t("Icon for {{name}}", {
+                name: category.name,
+              })}
+              value={field.state.value}
+              onChange={(value) => {
+                field.handleChange(value);
+                autoSave.saveField("icon", value);
+              }}
             />
-          )}
-        </form.AppField>
-      </div>
-      <PrimaryLanguageField
-        value={primaryLanguage.primaryLanguageId}
-        onValueChange={v => primaryLanguage.setPrimaryLanguage(v, form.state.values.name)}
+          </div>
+        )}
+      </form.AppField>
+      <form.AppField name="description">
+        {field => (
+          <field.TextareaField
+            label={t("Description")}
+            onBlur={() => autoSave.saveField(
+              "description",
+              field.state.value.trim() || null,
+              {
+                valid: field.state.meta.errors.length === 0,
+              },
+            )}
+          />
+        )}
+      </form.AppField>
+    </div>
+  );
+}
+
+/**
+ * The category's primary-language picker. A standalone placeable field (the `primaryLanguage` field in
+ * the registry); it mounts its own `usePrimaryLanguageField` (react-query-backed, so it coordinates
+ * with the name field's sync via the shared cache) and seeds a newly-set primary row with the category's
+ * saved name.
+ */
+export function CategoryPrimaryLanguageEdit({
+  category,
+}: CategoryFieldProps) {
+  const primaryLanguage = usePrimaryLanguageField("category", category.id);
+  return (
+    <PrimaryLanguageField
+      value={primaryLanguage.primaryLanguageId}
+      onValueChange={v => primaryLanguage.setPrimaryLanguage(v, category.name)}
+    />
+  );
+}
+
+/** The category's additional-names editor (the `names` field). Self-saving via `EntityNamesTabEditor`. */
+export function CategoryNamesEdit({
+  category,
+}: CategoryFieldProps) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <div className="space-y-1">
+      <Label>{t("Names")}</Label>
+      <EntityNamesTabEditor
+        ownerType="category"
+        ownerId={category.id}
       />
-      <div className="space-y-1">
-        <Label>{t("Names")}</Label>
-        <EntityNamesTabEditor
-          ownerType="category"
-          ownerId={category.id}
-        />
-      </div>
+    </div>
+  );
+}
+
+interface CategoryGeneralFormProps {
+  category: Category;
+}
+
+/**
+ * Edit a category's name, icon, description, primary language, additional names, and genres/moods.
+ * Each field auto-saves (no Save button). Composed from the same placeable sub-fields the category
+ * workbench registry uses (`CategoryDetailsFields` / `CategoryPrimaryLanguageEdit` / `CategoryNamesEdit`
+ * + `GenreMoodAssignmentSection`), so this whole-form shell (still used by `CategoryCard`) stays in
+ * lockstep with the layout-driven General tab.
+ */
+export function CategoryGeneralForm({
+  category,
+}: CategoryGeneralFormProps) {
+  return (
+    <div className="space-y-4">
+      <CategoryDetailsFields category={category} />
+      <CategoryPrimaryLanguageEdit category={category} />
+      <CategoryNamesEdit category={category} />
       <GenreMoodAssignmentSection
         ownerType="category"
         ownerId={category.id}

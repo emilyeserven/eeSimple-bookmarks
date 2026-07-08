@@ -355,8 +355,9 @@ that matches the surface — don't invent a new structure for a one-off page.
 
 The per-deploy **Page Layouts** editor (#1106) lets an operator arrange an entity's view/edit UI as a
 user-editable **Tab › Section › Field** tree, instead of the tab/section structure being hardcoded JSX.
-It is being built incrementally; **this is the field-registry contract + layout-driven renderer only —
-most of the surrounding system (persistence, DnD editor, per-entity registries) is still landing.**
+It is being built incrementally; **the contract, the layout-driven renderer, persistence, and the render
+seam are all live — the DnD editor UI (#1160/#1162) and the remaining per-entity registries are still
+landing.** Two entities are already layout-driven pilots: **Category** and **Newsletter** (#1161).
 
 - **Schema (`@eesimple/types`, `entityLayouts.ts`).** `EntityLayout = { tabs: LayoutTab[] }`,
   `LayoutTab = { key, label, icon?, sections: LayoutSection[] }`, `LayoutSection = { key, title?, fields:
@@ -376,10 +377,40 @@ most of the surrounding system (persistence, DnD editor, per-entity registries) 
   Set all three ⇒ **layout-driven**: `EntityInfoView`/`EntityEditView` build their rail + per-tab
   `LabeledSection` stacks from the resolved layout (`deriveWorkbenchTabs` + `LayoutDrivenTabBody`),
   registry `fields` dispatched by mode. Omit them ⇒ the entity keeps its opaque `tabs`/pane `render`
-  untouched. **No real entity opts in yet** — the per-entity `fields`/`defaultLayout` are authored in the
-  rollout sub-issues; author them exhaustively (`const fooFields = {…} satisfies Record<FooFieldKey,
-  WorkbenchField<Foo>>` + a `defaultLayout` whose section `fields` are typed `FooFieldKey[]`) so a
-  declared key without a renderer fails `tsc` — the `bookmarkAddFormFields.tsx` FIELD_RENDERERS idiom.
+  untouched. **Category and Newsletter are the live pilots** (`components/workbench/{category,newsletter}.tsx`);
+  the remaining entities are authored in the rollout sub-issues. Author `fields` exhaustively (`const
+  fooFields = {…} satisfies Record<FooFieldKey, WorkbenchField<Foo>>` + a `defaultLayout` whose section
+  `fields` are typed `FooFieldKey[]`) so a declared key without a renderer fails `tsc` — the
+  `bookmarkAddFormFields.tsx` FIELD_RENDERERS idiom.
+  - **The migration recipe (repeat verbatim per entity):** audit the entity's current tabs/panes → build
+    `fields` + `defaultLayout` (one untitled section per tab, fields in current render order) → set
+    `layoutKind`/`fields`/`defaultLayout` → **delete the opaque pane bodies** (thin the `tabs` array down
+    to `{ key, label, group? }` — it now exists only to carry the code-only `group` nav metadata + satisfy
+    the type) → snapshot-check tab/section/field order in **both** modes (`pilotLayouts.test.tsx`). The
+    default must render byte-identically at the **tab/section/field-order** level — the layout-driven path
+    intentionally drops the pane `<h2>`/description header (the rail label + section titles identify the
+    content) and normalizes decomposed edit fields to `space-y-6`; those are the accepted deltas, not CSS
+    pixel-parity.
+  - **A field renderer must return a JSX *element* (`({entity}) => <Comp .../>`), never call hooks
+    directly** — `LayoutDrivenTabBody` invokes `render({entity})` as a plain call, so any hooks must live
+    inside the returned component (isolated fiber), or the changing field set breaks the Rules of Hooks.
+  - **Field-granularity edge cases** (judgment, not mechanical): a scalar cluster sharing one `useAppForm`
+    + a `grid sm:grid-cols-2` stays **one** field (Category `details` = name/icon/description — splitting
+    would linearize the grid); asymmetric view/edit composites reconcile into **one ordered field list**
+    where each field is view-only, edit-only, or both, and the mode picks the renderer (Category
+    `genreMoods` edit-only + `autofillSources` view-only; Newsletter `name`/`tags`/`genreMoods` edit-only +
+    `metadata` view-only); a within-tab `<Separator/>` folds into the **leading edge of the field it
+    precedes** (Newsletter `tags`/`genreMoods`), since the layout inserts separators only between sections.
+  - **A form reused elsewhere is recomposed, not deleted.** `CategoryGeneralForm` (used by `CategoryCard`)
+    and `NewsletterGeneralForm` (used by its story) are recomposed from the **same** extracted per-field
+    sub-components the registry uses, so their output/tests/stories are unchanged while the layout tab gets
+    per-field placement. `usePrimaryLanguageField` is react-query-backed, so mounting it in two separate
+    fields (name-sync + the standalone primary-language field) coordinates via the shared cache.
+- **Nav grouping survives the layout path.** The edit strip's "More" dropdown (consecutive same-`group`
+  tabs, e.g. Category's "Rules" = Autofill + Display Rules) is code-only metadata on `WorkbenchTab.group`,
+  **never persisted in the layout jsonb**. `deriveWorkbenchTabs` re-attaches each resolved tab's `group`
+  from the matching `workbench.tabs[key]` — so a layout-driven descriptor keeps a thin `tabs` array solely
+  as the group source, and a user-created tab (no matching key) stays flat.
 - **Resolution.** Defaults derive from **code, never the DB**: an absent/empty stored layout resolves to
   the descriptor's `defaultLayout`, so a deploy with no saved layout renders as today. The pure
   `resolveLayout(stored, defaultLayout, knownFieldKeys)` (`@eesimple/types`) reconciles a stale stored
@@ -388,10 +419,13 @@ most of the surrounding system (persistence, DnD editor, per-entity registries) 
   resolves. The two render-time gates it defers to the renderer live in the pure helpers in
   `lib/workbenchLayout.ts` (`fieldRendersInMode` / `visibleSectionsForTab` / `modeVisibleTabs`): a
   section with no mode-visible field, and a tab with no visible section, are hidden at render.
-- **Persistence is a stub.** `hooks/useEntityLayout.ts` `useEntityLayout(kind)` returns `null` today —
-  the `entity_layouts` table / `/api/entity-layouts/:kind` endpoint and the editor that writes it are
-  follow-up sub-issues. It is the **single seam** to wire the real query; every consumer goes through
-  `useResolvedWorkbenchLayout(workbench)`.
+- **Persistence + render seam are live.** `hooks/useEntityLayout.ts` `useEntityLayout(kind)` is the
+  **single seam** every consumer goes through (`useResolvedWorkbenchLayout(workbench)`); it now reads the
+  #1158 store via `useEntityLayouts()` (`hooks/useEntityLayouts.ts` → `GET /api/entity-layouts`, one shared
+  cached query) and returns the kind's stored `layout` (or `null` → the code `defaultLayout`). Writes go
+  through `useSaveEntityLayout`/`useResetEntityLayout` (`PUT`/`DELETE /api/entity-layouts/:kind`); the DnD
+  editor that calls them is #1160/#1162. To prove the loop without the editor, hand-`PUT` a layout for a
+  pilot kind and the live page rearranges in both modes; `DELETE` resets to the default.
 
 ## Large-form / over-cap decomposition
 

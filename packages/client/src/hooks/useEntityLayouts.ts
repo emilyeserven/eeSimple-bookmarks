@@ -1,8 +1,3 @@
-// fallow-ignore-file unused-file
-// This hook has no UI consumer yet — it's the persistence-layer sub-issue (#1158) of the #1106
-// layout-editor epic. #1159 (field registry + renderer), #1160 (LayoutBoard editor), and #1162
-// (Page Layouts settings page) are what will actually call these hooks. Remove this suppression
-// once one of them imports from this file.
 import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,15 +13,11 @@ export function useEntityLayouts() {
   });
 }
 
-/** A single kind's stored layout record from the cached list — null when no override is stored. */
-export function useEntityLayout(kind: LayoutableEntityKind) {
-  const query = useEntityLayouts();
-  return {
-    ...query,
-    record: (query.data ?? []).find(item => item.entityKind === kind) ?? null,
-  };
-}
-
+// The save/reset mutations are the layout **write** API. Their only consumer is the Page Layouts DnD
+// editor (#1160/#1162), which hasn't landed yet — the render path reads through `useEntityLayout` (the
+// singular seam in `useEntityLayout.ts`). Keep them wired so the editor sub-issue is a pure UI add; drop
+// the suppressions when it imports them.
+// fallow-ignore-next-line unused-export
 export function useSaveEntityLayout() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -44,6 +35,7 @@ export function useSaveEntityLayout() {
   });
 }
 
+// fallow-ignore-next-line unused-export
 export function useResetEntityLayout() {
   const queryClient = useQueryClient();
   return useMutation({
