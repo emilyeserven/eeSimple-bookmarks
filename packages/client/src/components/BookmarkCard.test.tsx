@@ -13,10 +13,6 @@ vi.mock("../hooks/useBookmarks", () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
-  useTakeBookmarkScreenshot: () => ({
-    mutate: vi.fn(),
-    isPending: false,
-  }),
   useUpdateBookmark: () => ({
     mutate: updateMutate,
   }),

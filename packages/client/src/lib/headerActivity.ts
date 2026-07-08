@@ -46,6 +46,36 @@ export function reelRow(item: ActiveReelArchiveJob): ActivityRow {
   };
 }
 
+/** A snapshot of the on-demand screenshot queue, enough to render its header progress row. */
+export interface ScreenshotQueueSnapshot {
+  /** Jobs enqueued in the current run (0 = idle). */
+  total: number;
+  /** Captures that succeeded this run. */
+  completed: number;
+  /** Captures that failed this run. */
+  failed: number;
+  /** Jobs still pending or in flight (0 = the run has drained). */
+  active: number;
+}
+
+/**
+ * A row for the on-demand screenshot generation queue (processed/total bar). Returns null when idle
+ * or once the run has drained, so the header indicator hides itself between runs.
+ */
+export function screenshotRow(snapshot: ScreenshotQueueSnapshot): ActivityRow | null {
+  const {
+    total, completed, failed, active,
+  } = snapshot;
+  if (total === 0 || active === 0) return null;
+  const processed = completed + failed;
+  return {
+    key: "screenshots",
+    label: i18n.t("Generating screenshots"),
+    detail: `${processed} / ${total}`,
+    fraction: Math.min(1, processed / total),
+  };
+}
+
 /**
  * A row for a running image auto-fetch job (missing-image, screenshot fallback, or channel-avatar
  * backfill — they share the {@link AutoFetchJobStatus} shape). Returns null unless the job is running.

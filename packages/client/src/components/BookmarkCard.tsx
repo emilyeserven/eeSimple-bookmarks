@@ -59,7 +59,7 @@ export function BookmarkCard({
   imageVisibility = "shown", fieldZones, cardZoneLayouts, hideWebsiteForYouTube, loading = false,
 }: BookmarkCardProps) {
   const {
-    autoImage, screenshot, saveNumber, saveBoolean, saveDateTime, saveChoices, saveTags,
+    autoImage, screenshotPending, onScreenshot, saveNumber, saveBoolean, saveDateTime, saveChoices, saveTags,
   } = useBookmarkCardSaves(bookmark);
   const placements = fieldPlacementsForCard(fieldZones, properties);
   const {
@@ -92,10 +92,8 @@ export function BookmarkCard({
       id: bookmark.id,
       sourceUrl: bookmark.url ?? "",
     }),
-    screenshotPending: screenshot.isPending,
-    onScreenshot: () => screenshot.mutate({
-      id: bookmark.id,
-    }),
+    screenshotPending,
+    onScreenshot,
     onSaveNumber: saveNumber,
     onSaveBoolean: saveBoolean,
     onSaveDateTime: saveDateTime,

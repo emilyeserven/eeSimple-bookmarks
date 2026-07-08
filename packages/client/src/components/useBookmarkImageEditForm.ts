@@ -15,6 +15,7 @@ import { useConnectors } from "../hooks/useConnectors";
 import { usePropertyBySlug } from "../hooks/useCustomProperties";
 import { metadataApi } from "../lib/api/metadata";
 import { notifySuccess } from "../lib/notifications";
+import { selectIsBookmarkQueued, useScreenshotQueueStore } from "../stores/screenshotQueueStore";
 
 /** Everything `BookmarkImageEditForm`'s JSX needs, with every hook consolidated into this one call. */
 export interface BookmarkImageEditFormController {
@@ -102,6 +103,8 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
   const [candidates, setCandidates] = useState<ImageCandidate[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const screenshotSettings = useScreenshotSettingsState(bookmark.screenshotSettings);
+  const enqueueScreenshot = useScreenshotQueueStore(state => state.enqueue);
+  const screenshotQueued = useScreenshotQueueStore(selectIsBookmarkQueued(bookmark.id));
 
   async function handleFindImages(): Promise<void> {
     if (!bookmark.url) return;
@@ -138,7 +141,9 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
   return {
     imageFieldKey,
     isPending,
-    isMutating: mutations.isMutating,
+    // A queued/in-flight capture for this bookmark disables the image controls too, matching the
+    // prior behavior when the screenshot mutation was part of `mutations.isMutating`.
+    isMutating: mutations.isMutating || screenshotQueued,
     mutationError: mutations.mutationError,
     candidates,
     isScanning,
@@ -165,9 +170,9 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     },
     onSubmit: event => void handleSubmit(event),
     ...screenshotSettings,
-    takeScreenshotPending: mutations.takeScreenshot.isPending,
+    takeScreenshotPending: screenshotQueued,
     deleteScreenshotPending: mutations.deleteScreenshot.isPending,
-    onTakeScreenshot: () => void mutations.takeScreenshot.mutateAsync({
+    onTakeScreenshot: () => enqueueScreenshot({
       id: bookmark.id,
       delayMs: screenshotSettings.screenshotDelayMs || undefined,
       width: screenshotSettings.screenshotWidth,
