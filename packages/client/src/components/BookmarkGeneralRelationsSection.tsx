@@ -12,11 +12,10 @@ import { mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 type Ctrl = ReturnType<typeof useBookmarkGeneralForm>;
 
 /**
- * The General-tab taxonomy fields: media type and tags (each with its inline-create modal). The
- * remaining relationship fields (YouTube channel, locations, people, groups) live on the Related tab
- * in {@link BookmarkRelatedEntitiesSection}; tag/location blacklists live in {@link BookmarkBlacklistSection}.
+ * The General-tab **Media type** field (with its inline-create modal) — one of the two halves the old
+ * `BookmarkGeneralRelationsSection` bundled, now a standalone placeable field (#1163 field extraction).
  */
-export function BookmarkGeneralRelationsSection({
+export function BookmarkMediaTypeField({
   ctrl,
 }: { ctrl: Ctrl }) {
   const {
@@ -24,13 +23,8 @@ export function BookmarkGeneralRelationsSection({
   } = useTranslation();
   const {
     form,
-    tagTree,
     mediaTypes,
-    addTagOpen,
-    setAddTagOpen,
     saveField,
-    saveTags,
-    touchedRef,
   } = ctrl;
   const builtInName = useBuiltInName();
   const mediaTypeCreate = useEntityCreateOption("media-type", (mediaType) => {
@@ -53,7 +47,30 @@ export function BookmarkGeneralRelationsSection({
         )}
       </form.AppField>
       {mediaTypeCreate.modal}
+    </>
+  );
+}
 
+/**
+ * The General-tab **Tags** field (with its inline-create modal) — the other half of the old
+ * `BookmarkGeneralRelationsSection`, now a standalone placeable field (#1163 field extraction).
+ */
+export function BookmarkTagsSelectField({
+  ctrl,
+}: { ctrl: Ctrl }) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    form,
+    tagTree,
+    addTagOpen,
+    setAddTagOpen,
+    saveTags,
+    touchedRef,
+  } = ctrl;
+  return (
+    <>
       <form.Field name="tagIds">
         {field => (
           <BookmarkTagsField
@@ -88,6 +105,23 @@ export function BookmarkGeneralRelationsSection({
           }
         }}
       />
+    </>
+  );
+}
+
+/**
+ * The General-tab taxonomy fields: media type and tags (each with its inline-create modal). The
+ * remaining relationship fields (YouTube channel, locations, people, groups) live on the Related tab
+ * in {@link BookmarkRelatedEntitiesSection}; tag/location blacklists live in {@link BookmarkBlacklistSection}.
+ * Recomposed from the two halves above so the Related-tab consumer stays unchanged.
+ */
+export function BookmarkGeneralRelationsSection({
+  ctrl,
+}: { ctrl: Ctrl }) {
+  return (
+    <>
+      <BookmarkMediaTypeField ctrl={ctrl} />
+      <BookmarkTagsSelectField ctrl={ctrl} />
     </>
   );
 }

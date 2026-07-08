@@ -174,6 +174,46 @@ entity, but **no bytes-ingest** path. To add upload:
   `lib/api.ts`; add a `useUpload<Entity>Image` hook (mirror `useUploadBookmarkImage`) that invalidates
   the entity query; wire it into `EntityImageField` in the composite's edit renderer.
 
+## Extraction (reverse direction) — split a composite into granular fields
+
+The steps above **add** or **fold** a field; this is the opposite move — breaking a coarse composite
+field into several independently-placeable fields so an operator can arrange them (and pull some into
+their own section) in **Settings → Display → Page Layouts**. Reference: the bookmark `general`/"Details"
+field split into Name / Primary language / Names / URL / Description / Category / Media type / Tags, with
+the two blacklists pulled into an **Advanced** section (#1163). The composite-vs-granular judgment is in
+CLAUDE.md → "Field-granularity edge cases"; do this only when the sub-fields genuinely deserve
+independent placement, not to atomize a cohesive grid.
+
+Pick the shape by how each sub-field is backed:
+
+- **Independently-backed sub-field** (its own hook / react-query-backed, not part of a shared
+  `useAppForm`) → just promote it with step 4b: a `WorkbenchField` whose renderer wraps the existing
+  sub-component, placed in `defaultLayout`. This is the Category precedent (`primaryLanguage`/`names`
+  broken out beside the `details` composite) — react-query coordinates the shared state across fibers, so
+  nothing else is needed.
+- **Shared-`useAppForm` composite** (one controller with cross-field coordination) → the render seam
+  calls each field renderer as a plain function, so N naive field components would each instantiate N
+  separate form instances. Use a **form-context provider**:
+  1. **Context** — a `<Entity>GeneralFormProvider` that calls the controller hook (+ any react-query
+     field hooks + the sync registration) **once** and exposes them; a `use<Entity>GeneralFormContext()`
+     reader. Reference: `components/BookmarkGeneralFormContext.tsx`.
+  2. **Mount** it at the entity's **edit-view** level, wrapping the edit body — gated on the active tab
+     hosting a shared-form field so the controller mounts exactly where the old monolithic form did (and
+     follows the fields if an operator relocates them). Reference: `BookmarkEditView.tsx`
+     (`SHARED_FORM_FIELD_KEYS`).
+  3. **Granular edit fields** — each a thin component that reads the shared controller from context and
+     renders the existing sub-component; register each as a `WorkbenchField.edit`. View fields read the
+     entity directly (no context). Split any shared sub-component into per-field halves
+     (`BookmarkGeneralRelationsSection` → media-type + tags; `BookmarkBlacklistSection` → the two
+     blacklist halves) and **recompose** the original from the halves so its story/test and other
+     consumers stay unchanged.
+  4. **Layout** — place the new keys in `defaultLayout`; group the pulled-out fields into a **titled
+     section** (`{ key, title, fields }`) to turn a former `CollapsibleFormSection` into a first-class
+     section (the bookmark **Advanced** section).
+  5. **Snapshot** — update the both-modes layout test (`bookmarkLayout.test.tsx`) to the new
+     field/section order. Remember view/edit parity: edit-only fields (Name/blacklists) drop in view, a
+     view-only residual field (bookmark `detailsExtra`) drops in edit.
+
 ## Verify
 
 ```

@@ -7,10 +7,14 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { CategoriesTable } from "../components/CategoriesTable";
 import { CategoryPreviewRow } from "../components/CategoryPreviewRow";
+import { CategorySortToggle } from "../components/CategorySortToggle";
 import { categoryWorkbench } from "../components/workbench/category";
 import { useBulkDeleteCategories, useCategories } from "../hooks/useCategories";
+import { useCategorySortedItems } from "../hooks/useCategoryListing";
 import i18n from "../i18n";
 import { categoriesApi } from "../lib/api/taxonomies";
+
+const CATEGORIES_PAGE_KEY = "categories-listing";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -42,8 +46,10 @@ const CATEGORY_PALETTE: EntityPaletteConfig = {
 };
 
 export const categoryListingConfig: EntityListingConfig<Category> = {
-  pageKey: "categories-listing",
+  pageKey: CATEGORIES_PAGE_KEY,
   useItems: useCategories,
+  useSortedItems: useCategorySortedItems,
+  renderSearchSort: () => <CategorySortToggle />,
   matches: (category, query) => category.name.toLowerCase().includes(query)
     || (category.description ?? "").toLowerCase().includes(query),
   deletableIds: items => items.filter(c => !c.builtIn).map(c => c.id),

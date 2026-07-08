@@ -2,19 +2,35 @@ import type { EntityWorkbench, WorkbenchField } from "./types";
 import type { Bookmark, EntityLayout } from "@eesimple/types";
 
 import {
-  BookmarkGeneralDetailView,
+  BookmarkCategoryDetailView,
+  BookmarkDescriptionDetailView,
+  BookmarkDetailsExtraView,
   BookmarkHierarchyView,
   BookmarkLocationsMapView,
   BookmarkMediaSourceView,
+  BookmarkMediaTypeDetailView,
   BookmarkMetadataView,
   BookmarkPropertiesView,
   BookmarkRelatedBookmarksView,
+  BookmarkTagsDetailView,
+  BookmarkWebsiteDetailView,
 } from "./bookmarkViewFields";
 import { useBookmark } from "../../hooks/useBookmarks";
 import i18n from "../../i18n";
 import { BookmarkDetailDebug } from "../BookmarkDetailDebug";
 import { BookmarkGallery } from "../BookmarkGallery";
-import { BookmarkGeneralForm } from "../BookmarkGeneralForm";
+import {
+  BookmarkCategoryEditField,
+  BookmarkDescriptionEditField,
+  BookmarkLocationBlacklistEditField,
+  BookmarkMediaTypeEditField,
+  BookmarkNameEditField,
+  BookmarkNamesEditField,
+  BookmarkPrimaryLanguageEditField,
+  BookmarkTagBlacklistEditField,
+  BookmarkTagsEditField,
+  BookmarkUrlEditField,
+} from "../BookmarkGeneralForm";
 import { BookmarkImageEditForm } from "../BookmarkImageEditForm";
 import { BookmarkPropertiesForm } from "../BookmarkPropertiesForm";
 import { BookmarkReelArchivePlayer } from "../BookmarkReelArchive";
@@ -42,7 +58,17 @@ import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsage
  * auto-save, the Properties/Languages debounce-persist, and the Image staged Save button are unchanged.
  */
 export type BookmarkFieldKey
-  = | "general"
+  = | "name"
+    | "primaryLanguage"
+    | "names"
+    | "url"
+    | "description"
+    | "category"
+    | "mediaType"
+    | "tags"
+    | "detailsExtra"
+    | "tagBlacklist"
+    | "locationBlacklist"
     | "customProperties"
     | "languageUsages"
     | "gallery"
@@ -56,15 +82,81 @@ export type BookmarkFieldKey
     | "debugInfo";
 
 const bookmarkFields = {
-  general: {
-    key: "general",
-    label: i18n.t("Details"),
-    view: ({
-      entity,
-    }) => <BookmarkGeneralDetailView bookmark={entity} />,
+  name: {
+    key: "name",
+    label: i18n.t("Name"),
+    edit: () => <BookmarkNameEditField />,
+  },
+  primaryLanguage: {
+    key: "primaryLanguage",
+    label: i18n.t("Primary language"),
+    edit: () => <BookmarkPrimaryLanguageEditField />,
+  },
+  names: {
+    key: "names",
+    label: i18n.t("Names"),
     edit: ({
       entity,
-    }) => <BookmarkGeneralForm bookmark={entity} />,
+    }) => <BookmarkNamesEditField bookmark={entity} />,
+  },
+  url: {
+    key: "url",
+    label: i18n.t("URL"),
+    view: ({
+      entity,
+    }) => <BookmarkWebsiteDetailView bookmark={entity} />,
+    edit: ({
+      entity,
+    }) => <BookmarkUrlEditField bookmark={entity} />,
+  },
+  description: {
+    key: "description",
+    label: i18n.t("Description"),
+    view: ({
+      entity,
+    }) => <BookmarkDescriptionDetailView bookmark={entity} />,
+    edit: () => <BookmarkDescriptionEditField />,
+  },
+  category: {
+    key: "category",
+    label: i18n.t("Category"),
+    view: ({
+      entity,
+    }) => <BookmarkCategoryDetailView bookmark={entity} />,
+    edit: () => <BookmarkCategoryEditField />,
+  },
+  mediaType: {
+    key: "mediaType",
+    label: i18n.t("Media type"),
+    view: ({
+      entity,
+    }) => <BookmarkMediaTypeDetailView bookmark={entity} />,
+    edit: () => <BookmarkMediaTypeEditField />,
+  },
+  tags: {
+    key: "tags",
+    label: i18n.t("Tags"),
+    view: ({
+      entity,
+    }) => <BookmarkTagsDetailView bookmark={entity} />,
+    edit: () => <BookmarkTagsEditField />,
+  },
+  detailsExtra: {
+    key: "detailsExtra",
+    label: i18n.t("Other details"),
+    view: ({
+      entity,
+    }) => <BookmarkDetailsExtraView bookmark={entity} />,
+  },
+  tagBlacklist: {
+    key: "tagBlacklist",
+    label: i18n.t("Tag blacklist"),
+    edit: () => <BookmarkTagBlacklistEditField />,
+  },
+  locationBlacklist: {
+    key: "locationBlacklist",
+    label: i18n.t("Location blacklist"),
+    edit: () => <BookmarkLocationBlacklistEditField />,
   },
   customProperties: {
     key: "customProperties",
@@ -186,10 +278,17 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
     {
       key: "general",
       label: i18n.t("General"),
-      sections: [{
-        key: "general",
-        fields: ["general"] satisfies BookmarkFieldKey[],
-      }],
+      sections: [
+        {
+          key: "general",
+          fields: ["name", "primaryLanguage", "names", "url", "description", "category", "mediaType", "tags", "detailsExtra"] satisfies BookmarkFieldKey[],
+        },
+        {
+          key: "advanced",
+          title: i18n.t("Advanced"),
+          fields: ["tagBlacklist", "locationBlacklist"] satisfies BookmarkFieldKey[],
+        },
+      ],
     },
     {
       key: "properties",

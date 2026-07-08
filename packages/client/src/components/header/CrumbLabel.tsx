@@ -46,6 +46,7 @@ export function CrumbLabel({
       fallbackLanguage={fallbackLanguage}
       secondaryClassName="text-xs/tight"
       stacked
+      truncate
     />
   );
 }

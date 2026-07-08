@@ -1,4 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
+import type { CategorySortMode } from "../lib/categorySort";
 import type { LocationSortMode } from "../lib/locationSort";
 import type { SyncProvider } from "../lib/syncSources/syncSourceTypes";
 import type { WebsiteBookmarkFilter, WebsiteBuiltInFilter, WebsiteSortMode } from "../lib/websiteListingSort";
@@ -135,6 +136,9 @@ interface UiState {
   /** How the Locations list/tree is ordered: server order ("default") or grouped by place type. */
   locationSortMode: LocationSortMode;
   setLocationSortMode: (mode: LocationSortMode) => void;
+  /** How the Categories listing's card view is ordered. */
+  categorySortMode: CategorySortMode;
+  setCategorySortMode: (mode: CategorySortMode) => void;
   /** How the Websites listing's card view is ordered. */
   websiteSortMode: WebsiteSortMode;
   setWebsiteSortMode: (mode: WebsiteSortMode) => void;
@@ -330,6 +334,10 @@ export const useUiStore = create<UiState>()(
       setLocationSortMode: mode => set({
         locationSortMode: mode,
       }),
+      categorySortMode: "name-asc",
+      setCategorySortMode: mode => set({
+        categorySortMode: mode,
+      }),
       websiteSortMode: "name-asc",
       setWebsiteSortMode: mode => set({
         websiteSortMode: mode,
@@ -464,6 +472,7 @@ export const useUiStore = create<UiState>()(
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         collapsedLocationMapKeys: state.collapsedLocationMapKeys,
         locationSortMode: state.locationSortMode,
+        categorySortMode: state.categorySortMode,
         websiteSortMode: state.websiteSortMode,
         hideLocationMapAdminBorders: state.hideLocationMapAdminBorders,
         bookmarkImageLayout: state.bookmarkImageLayout,
