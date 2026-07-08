@@ -191,7 +191,22 @@ Pick the shape by how each sub-field is backed:
   sub-component, placed in `defaultLayout`. This is the Category precedent (`primaryLanguage`/`names`
   broken out beside the `details` composite) — react-query coordinates the shared state across fibers, so
   nothing else is needed.
-- **Shared-`useAppForm` composite** (one controller with cross-field coordination) → the render seam
+- **Shared-`useAppForm` composite with NO heavy cross-field coordination** (each control just validates +
+  saves its own key; the only coupling is the react-query-backed name → primary-language sync) → the
+  **independent-slice pattern**, and **no provider is needed**. Extract one thin per-field component per
+  control, each calling the entity's `use<Entity>GeneralForm(entity)` controller **independently** (each
+  instantiates its own `useAppForm`/`useFieldAutoSave`; that's fine — react-query dedupes the queries),
+  render one `form.AppField`, and **recompose** the whole-form shell from the same pieces so its
+  story/consumers stay unchanged. Mount its own `usePrimaryLanguageField` in the name field (sync on blur)
+  **and** in the standalone primary-language field (seed from the saved entity name) — the shared cache
+  coordinates them. References: `NewsletterGeneralForm.tsx` (name/description/defaults),
+  `CategoryGeneralForm.tsx` (`CategoryDetailsFields` + split `primaryLanguage`/`names`), and
+  `GroupGeneralForm.tsx` (#1195 — name/description/group-type/websites/channels/social split, with
+  `CreatorMediaSection` kept as one `creatorMedia` field). Slug-routed entities render through the generic
+  `EntityEditView`, so this keeps `EntityEditView`/`WorkbenchRouteTab` untouched. Reach for the provider
+  below **only** when a single controller carries genuine imperative cross-field effects.
+- **Shared-`useAppForm` composite with genuine cross-field coordination** (one controller with imperative
+  effects — bookmark's name-blur autofill, website-lookup → autofill offer → category) → the render seam
   calls each field renderer as a plain function, so N naive field components would each instantiate N
   separate form instances. Use a **form-context provider**:
   1. **Context** — a `<Entity>GeneralFormProvider` that calls the controller hook (+ any react-query
