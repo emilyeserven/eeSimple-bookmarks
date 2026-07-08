@@ -2,6 +2,7 @@
 import type { EntityWorkbench, WorkbenchField } from "./types";
 import type { EntityLayout, YouTubeChannel } from "@eesimple/types";
 
+import { channelUrlFromKey } from "@eesimple/types";
 import { MonitorPlay } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -11,12 +12,104 @@ import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityImagePreview } from "../EntityImageField";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
-import { YouTubeChannelGeneralForm } from "../YouTubeChannelGeneralForm";
+import {
+  YouTubeChannelCategoryEdit,
+  YouTubeChannelDescriptionEdit,
+  YouTubeChannelGenreMoodEdit,
+  YouTubeChannelGroupsEdit,
+  YouTubeChannelLabeledWebsitesEdit,
+  YouTubeChannelNameField,
+  YouTubeChannelSelfIdsEdit,
+  YouTubeChannelTagsEdit,
+  YouTubeChannelWebsitesEdit,
+  YouTubeChannelAvatarField,
+} from "../YouTubeChannelGeneralForm";
 
 import { useGroups } from "@/hooks/useGroups";
 import { useDeleteYouTubeChannel, useYouTubeChannelBySlug, useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 
-function YouTubeChannelGeneralView({
+/** Read-only avatar preview — the `avatar` field's view renderer. */
+function YouTubeChannelAvatarView({
+  entity: ch,
+}: {
+  entity: YouTubeChannel;
+}) {
+  return (
+    <EntityImagePreview
+      imageUrl={ch.imageUrl}
+      shape="circle"
+      fallback={<MonitorPlay className="size-6" />}
+    />
+  );
+}
+
+/** Read-only system metadata (Added / Channel key / URL / Slug / Bookmarks) — the `metadata` field's view. */
+function YouTubeChannelMetadataView({
+  entity: ch,
+}: {
+  entity: YouTubeChannel;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const channelUrl = channelUrlFromKey(ch.channelKey);
+  return (
+    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+      <dt className="text-muted-foreground">{t("Added")}</dt>
+      <dd>{new Date(ch.createdAt).toLocaleDateString()}</dd>
+      <dt className="text-muted-foreground">{t("Channel key")}</dt>
+      <dd>{ch.channelKey}</dd>
+      <dt className="text-muted-foreground">{t("URL")}</dt>
+      <dd>
+        <a
+          href={channelUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="
+            break-all text-primary
+            hover:underline
+          "
+        >
+          {channelUrl}
+        </a>
+      </dd>
+      <dt className="text-muted-foreground">{t("Slug")}</dt>
+      <dd className="font-mono">{ch.slug}</dd>
+      {ch.bookmarkCount != null
+        ? (
+          <>
+            <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
+            <dd>{ch.bookmarkCount}</dd>
+          </>
+        )
+        : null}
+    </dl>
+  );
+}
+
+/** Read-only self-identifiers row — the `selfIds` field's view renderer. */
+function YouTubeChannelSelfIdsView({
+  entity: ch,
+}: {
+  entity: YouTubeChannel;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+      <dt className="text-muted-foreground">{t("Self-identifiers")}</dt>
+      <dd>
+        {ch.selfIds.length > 0
+          ? ch.selfIds.join(", ")
+          : <span className="text-muted-foreground">{t("None")}</span>}
+      </dd>
+    </dl>
+  );
+}
+
+/** Read-only connected-groups row — the `channelGroups` field's view renderer (hidden when none). */
+function YouTubeChannelGroupsView({
   entity: ch,
 }: {
   entity: YouTubeChannel;
@@ -28,83 +121,138 @@ function YouTubeChannelGeneralView({
     data: groups,
   } = useGroups();
   const connectedGroups = (groups ?? []).filter(group => (ch.groupIds ?? []).includes(group.id));
-
+  if (connectedGroups.length === 0) return null;
   return (
-    <div className="space-y-4">
-      <EntityImagePreview
-        imageUrl={ch.imageUrl}
-        shape="circle"
-        fallback={<MonitorPlay className="size-6" />}
-      />
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">{t("Added")}</dt>
-        <dd>{new Date(ch.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">{t("Channel key")}</dt>
-        <dd>{ch.channelKey}</dd>
-        <dt className="text-muted-foreground">{t("Slug")}</dt>
-        <dd className="font-mono">{ch.slug}</dd>
-        {ch.description
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Description")}</dt>
-              <dd>{ch.description}</dd>
-            </>
-          )
-          : null}
-        <dt className="text-muted-foreground">{t("Self-identifiers")}</dt>
-        <dd>
-          {ch.selfIds.length > 0
-            ? ch.selfIds.join(", ")
-            : <span className="text-muted-foreground">{t("None")}</span>}
-        </dd>
-        {ch.bookmarkCount != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Bookmarks")}</dt>
-              <dd>{ch.bookmarkCount}</dd>
-            </>
-          )
-          : null}
-        {connectedGroups.length > 0
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Groups")}</dt>
-              <dd>{connectedGroups.map(group => group.name).join(", ")}</dd>
-            </>
-          )
-          : null}
-      </dl>
-      <SourceAutofillDefaults
-        kind="channel"
-        category={ch.category}
-        tagIds={ch.tagIds}
-      />
-    </div>
+    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+      <dt className="text-muted-foreground">{t("Groups")}</dt>
+      <dd>{connectedGroups.map(group => group.name).join(", ")}</dd>
+    </dl>
   );
 }
 
 /**
- * The YouTube channel workbench's field registry (#1106 layout editor). Each existing tab pane
- * becomes ONE placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key (#1165
- * composite-editor recipe) — `general` bundles the existing image preview + metadata + form
- * unchanged (an image-bearing entity's avatar stays part of its one composite field, per the "an
- * image/gallery manager registers as a single field" rule). Authored as an exhaustive
+ * The YouTube channel workbench's field registry (#1106 layout editor). The old opaque `general`
+ * composite is atomized into granular, independently-placeable {@link WorkbenchField}s (#1192,
+ * mirroring Newsletter): `name`/`category`/`tags`/`channelWebsites`/`labeledWebsites`/`genreMoods` are
+ * **edit-only**, `metadata`/`sourceDefaults` are **view-only**, and `description`/`avatar`/`selfIds`/
+ * `channelGroups` carry both — the mode picks the renderer, so view/edit parity is by construction. Each
+ * edit renderer independently calls `useYouTubeChannelGeneralForm` (no shared form-context provider is
+ * needed — auto-save is per field, the Category/Newsletter precedent). Authored as an exhaustive
  * `Record<YouTubeChannelFieldKey, …>` so a key without a renderer fails `tsc`.
  */
 type YouTubeChannelFieldKey
-  = | "general"
+  = | "name"
+    | "description"
+    | "avatar"
+    | "metadata"
+    | "sourceDefaults"
+    | "category"
+    | "selfIds"
+    | "tags"
+    | "channelWebsites"
+    | "channelGroups"
+    | "labeledWebsites"
+    | "genreMoods"
     | "autofillRules"
     | "displayRules"
     | "languages";
 
 const youtubeChannelFields = {
-  general: {
-    key: "general",
-    label: i18n.t("General"),
-    view: YouTubeChannelGeneralView,
+  name: {
+    key: "name",
+    label: i18n.t("Channel name"),
     edit: ({
       entity,
-    }) => <YouTubeChannelGeneralForm channel={entity} />,
+    }) => <YouTubeChannelNameField channel={entity} />,
+  },
+  description: {
+    key: "description",
+    label: i18n.t("Description"),
+    view: ({
+      entity,
+    }) => (entity.description
+      ? <p className="text-sm text-muted-foreground">{entity.description}</p>
+      : null),
+    edit: ({
+      entity,
+    }) => <YouTubeChannelDescriptionEdit channel={entity} />,
+  },
+  avatar: {
+    key: "avatar",
+    label: i18n.t("Avatar"),
+    view: YouTubeChannelAvatarView,
+    edit: ({
+      entity,
+    }) => <YouTubeChannelAvatarField channel={entity} />,
+  },
+  metadata: {
+    key: "metadata",
+    label: i18n.t("Details"),
+    view: YouTubeChannelMetadataView,
+  },
+  sourceDefaults: {
+    key: "sourceDefaults",
+    label: i18n.t("Defaults"),
+    view: ({
+      entity,
+    }) => (
+      <SourceAutofillDefaults
+        kind="channel"
+        category={entity.category}
+        tagIds={entity.tagIds}
+      />
+    ),
+  },
+  category: {
+    key: "category",
+    label: i18n.t("Default category"),
+    edit: ({
+      entity,
+    }) => <YouTubeChannelCategoryEdit channel={entity} />,
+  },
+  selfIds: {
+    key: "selfIds",
+    label: i18n.t("Self-identifiers"),
+    view: YouTubeChannelSelfIdsView,
+    edit: ({
+      entity,
+    }) => <YouTubeChannelSelfIdsEdit channel={entity} />,
+  },
+  tags: {
+    key: "tags",
+    label: i18n.t("Default tags"),
+    edit: ({
+      entity,
+    }) => <YouTubeChannelTagsEdit channel={entity} />,
+  },
+  channelWebsites: {
+    key: "channelWebsites",
+    label: i18n.t("Associated websites"),
+    edit: ({
+      entity,
+    }) => <YouTubeChannelWebsitesEdit channel={entity} />,
+  },
+  channelGroups: {
+    key: "channelGroups",
+    label: i18n.t("Groups"),
+    view: YouTubeChannelGroupsView,
+    edit: ({
+      entity,
+    }) => <YouTubeChannelGroupsEdit channel={entity} />,
+  },
+  labeledWebsites: {
+    key: "labeledWebsites",
+    label: i18n.t("Labeled websites"),
+    edit: ({
+      entity,
+    }) => <YouTubeChannelLabeledWebsitesEdit channel={entity} />,
+  },
+  genreMoods: {
+    key: "genreMoods",
+    label: i18n.t("Genres & moods"),
+    edit: ({
+      entity,
+    }) => <YouTubeChannelGenreMoodEdit channel={entity} />,
   },
   autofillRules: {
     key: "autofillRules",
@@ -159,7 +307,10 @@ const youtubeChannelFields = {
   },
 } satisfies Record<YouTubeChannelFieldKey, WorkbenchField<YouTubeChannel>>;
 
-/** The code-defined default layout — the current tab list, one untitled section per tab. */
+/**
+ * The code-defined default layout. The `general` tab now holds the granular field keys (in the current
+ * form order, so the edit surface stays byte-identical); the other three tabs keep one field each.
+ */
 const YOUTUBE_CHANNEL_DEFAULT_LAYOUT: EntityLayout = {
   tabs: [
     {
@@ -167,7 +318,20 @@ const YOUTUBE_CHANNEL_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["general"] satisfies YouTubeChannelFieldKey[],
+        fields: [
+          "name",
+          "description",
+          "avatar",
+          "metadata",
+          "sourceDefaults",
+          "category",
+          "selfIds",
+          "tags",
+          "channelWebsites",
+          "channelGroups",
+          "labeledWebsites",
+          "genreMoods",
+        ] satisfies YouTubeChannelFieldKey[],
       }],
     },
     {
