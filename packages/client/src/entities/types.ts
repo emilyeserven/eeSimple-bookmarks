@@ -82,6 +82,19 @@ export interface EntityListingConfig<E extends { id: string }> {
     title?: string;
     match: (item: E) => boolean;
   }[];
+  /**
+   * Client-side re-sort applied to the filtered list before render (both card and table views). A
+   * hook slot (not a pure fn) so entities can read settings stores — Categories: name/bookmark-count
+   * sort (`sortCategories`). Must be a stable hook per `pageKey` (same rule as `useBulkDelete`).
+   * Defaults to identity.
+   */
+  useSorted?: (items: E[]) => E[];
+  /**
+   * A sort control rendered in the `ListingSearchBox`'s right-hand `sort` slot — like the normal
+   * (bookmark) listing pages and the tree taxonomies' `renderSearchSort`. Categories uses this for its
+   * Name / Bookmark-count sort dropdown.
+   */
+  renderSearchSort?: () => ReactNode;
   renderListItem: (props: {
     entity: E;
     /** The full unfiltered list, for entities whose card needs cross-item lookups (e.g. a

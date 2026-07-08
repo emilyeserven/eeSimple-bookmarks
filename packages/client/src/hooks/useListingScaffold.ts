@@ -36,9 +36,12 @@ export function useListingScaffold<E extends { id: string }>(config: EntityListi
   const {
     secondaryFilter,
   } = config;
-  const filtered = secondaryFilter
+  const matched = secondaryFilter
     ? textFiltered.filter(item => secondaryFilter.matches(item, secondaryFilterValue))
     : textFiltered;
+  // `config` is a module-level constant, so this conditional hook call is stable across renders
+  // (same pattern as `config.useBulkDelete` below). Covers card + table views via the shared `filtered`.
+  const filtered = config.useSorted ? config.useSorted(matched) : matched;
 
   const deletableIds = (config.deletableIds ?? (all => all.map(item => item.id)))(filtered);
   const selection = useListSelection(config.pageKey, deletableIds);

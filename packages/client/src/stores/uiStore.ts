@@ -134,6 +134,9 @@ interface UiState {
   /** How the Locations list/tree is ordered: server order ("default") or grouped by place type. */
   locationSortMode: LocationSortMode;
   setLocationSortMode: (mode: LocationSortMode) => void;
+  /** Per-listing-page ("categories-listing", …) sort-mode pref for flat listings; unset = the page's default. */
+  listingSortMode: Record<string, string>;
+  setListingSortMode: (pageKey: string, mode: string) => void;
   /**
    * Whether location maps hide the base tiles' own country/prefecture/state administrative border
    * lines (switches to a borderless tile style). Shared across every location map.
@@ -314,6 +317,13 @@ export const useUiStore = create<UiState>()(
       setLocationSortMode: mode => set({
         locationSortMode: mode,
       }),
+      listingSortMode: {},
+      setListingSortMode: (pageKey, mode) => set(state => ({
+        listingSortMode: {
+          ...state.listingSortMode,
+          [pageKey]: mode,
+        },
+      })),
       hideLocationMapAdminBorders: false,
       setHideLocationMapAdminBorders: hide => set({
         hideLocationMapAdminBorders: hide,
@@ -428,6 +438,7 @@ export const useUiStore = create<UiState>()(
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         collapsedLocationMapKeys: state.collapsedLocationMapKeys,
         locationSortMode: state.locationSortMode,
+        listingSortMode: state.listingSortMode,
         hideLocationMapAdminBorders: state.hideLocationMapAdminBorders,
         bookmarkImageLayout: state.bookmarkImageLayout,
         bookmarkCornerOverlays: state.bookmarkCornerOverlays,
