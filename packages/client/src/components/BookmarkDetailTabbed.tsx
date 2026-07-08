@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { navLinkClass, navStripClass } from "./TabbedShell";
-import { bookmarkWorkbench } from "./workbench/bookmark";
 import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
 import { useBookmarkViewTabs } from "../hooks/useBookmarkViewTabs";
 
@@ -28,7 +27,7 @@ export function BookmarkDetailTabbed({
     t,
   } = useTranslation();
   const {
-    layout, tabs,
+    layout, tabs, workbench,
   } = useBookmarkViewTabs(bookmark);
   const [activeKey, setActiveKey] = useState<string | null>(null);
 
@@ -59,7 +58,7 @@ export function BookmarkDetailTabbed({
       </nav>
       <div className="min-w-0 pb-6">
         <LayoutDrivenTabBody
-          workbench={bookmarkWorkbench}
+          workbench={workbench}
           layout={layout}
           tabKey={active.key}
           mode="view"

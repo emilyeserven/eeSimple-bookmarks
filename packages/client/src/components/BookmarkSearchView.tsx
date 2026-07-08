@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { BookmarkListPane } from "./BookmarkListPane";
@@ -16,8 +16,6 @@ interface BookmarkSearchViewProps {
   tree: TagNode[];
   /** Properties offered as filters and used to render bookmark cards. */
   properties: CustomProperty[];
-  /** Property groups; grouped property filters render under their group's heading. */
-  propertyGroups?: PropertyGroup[];
   /** When provided, groups category-specific property filters under collapsible sections. */
   categories?: Category[];
   /** Media types offered as a multi-select filter in the rail. */
@@ -71,7 +69,6 @@ export function BookmarkSearchView({
   pageKey,
   tree,
   properties,
-  propertyGroups,
   categories,
   mediaTypes,
   youtubeChannels,
@@ -98,7 +95,6 @@ export function BookmarkSearchView({
     pageKey,
     tree,
     properties,
-    propertyGroups,
     categories,
     mediaTypes,
     youtubeChannels,

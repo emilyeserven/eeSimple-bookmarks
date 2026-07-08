@@ -28,13 +28,6 @@ vi.mock("../hooks/useCustomProperties", async importOriginal => ({
   }),
 }));
 
-vi.mock("../hooks/usePropertyGroups", async importOriginal => ({
-  ...await importOriginal<typeof import("../hooks/usePropertyGroups")>(),
-  usePropertyGroups: () => ({
-    data: [],
-  }),
-}));
-
 const updateMutate = vi.fn();
 vi.mock("../hooks/useBookmarks", async importOriginal => ({
   ...await importOriginal<typeof import("../hooks/useBookmarks")>(),

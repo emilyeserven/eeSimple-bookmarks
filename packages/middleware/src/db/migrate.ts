@@ -72,6 +72,27 @@ const migrations: RuntimeMigration[] = [
       sql`CREATE UNIQUE INDEX IF NOT EXISTS "entity_layouts_entity_kind_unique" ON "entity_layouts" ("entity_kind")`,
     ),
   },
+  // Property Groups were removed — each custom property is now an individually-placeable layout
+  // field, so the visual grouping is obsolete. Drop the join tables, the base table, and the
+  // `custom_properties.property_group_id` display-only column here (destructive) so push's
+  // subsequent diff against schema.ts stays purely additive. Order: the FK column and both join
+  // tables before the base `property_groups` table. Each `db.execute` is a single statement.
+  {
+    name: "drop legacy custom_properties.property_group_id",
+    run: db => db.execute(sql`ALTER TABLE "custom_properties" DROP COLUMN IF EXISTS "property_group_id"`),
+  },
+  {
+    name: "drop legacy property_group_categories",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "property_group_categories"`),
+  },
+  {
+    name: "drop legacy property_group_media_types",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "property_group_media_types"`),
+  },
+  {
+    name: "drop legacy property_groups",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "property_groups"`),
+  },
 ];
 
 async function main(): Promise<void> {

@@ -2,7 +2,6 @@ import type { Bookmark } from "@eesimple/types";
 
 import { Fragment } from "react";
 
-import { bookmarkWorkbench } from "./workbench/bookmark";
 import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
 import { useBookmarkViewTabs } from "../hooks/useBookmarkViewTabs";
 
@@ -22,7 +21,7 @@ export function BookmarkDetailBody({
   bookmark,
 }: BookmarkDetailBodyProps) {
   const {
-    layout, tabs,
+    layout, tabs, workbench,
   } = useBookmarkViewTabs(bookmark);
   if (!layout) return null;
 
@@ -34,7 +33,7 @@ export function BookmarkDetailBody({
             ? <Separator />
             : null}
           <LayoutDrivenTabBody
-            workbench={bookmarkWorkbench}
+            workbench={workbench}
             layout={layout}
             tabKey={tab.key}
             mode="view"

@@ -19,7 +19,6 @@ const EXPECTED_KINDS: EntityRouteKind[] = [
   "person",
   "group",
   "group-type",
-  "property-group",
   "relationship-type",
   "custom-property",
   "autofill",

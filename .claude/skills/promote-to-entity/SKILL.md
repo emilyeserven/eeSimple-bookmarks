@@ -15,7 +15,7 @@ client (types, hooks, manager component, settings page) but has no slug, no deta
 sidebar entry.
 
 **Reference implementation: Saved Filters** (`saved_filters` table → `/saved-filters` routes).
-Compare against **Autofill Rules** and **Property Groups** for the full client pattern.
+Compare against **Autofill Rules** and **Custom Properties** for the full client pattern.
 
 The key distinction from `add-entity`: **don't recreate what already exists — extend it.**
 

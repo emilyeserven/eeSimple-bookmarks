@@ -67,7 +67,6 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
     language: slugFor(pathname, pathParts, "/taxonomies/languages", 2),
     placeType: slugFor(pathname, pathParts, "/taxonomies/place-types", 2),
     locationRelation: slugFor(pathname, pathParts, "/taxonomies/location-relations", 2),
-    propertyGroup: slugFor(pathname, pathParts, "/taxonomies/property-groups", 2),
     relationshipType: slugFor(pathname, pathParts, "/taxonomies/relationship-types", 2),
     property: slugFor(pathname, pathParts, "/custom-properties", 1),
     autofill: slugFor(pathname, pathParts, "/autofill", 1),

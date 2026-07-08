@@ -14,7 +14,7 @@ description: >-
 
 **Every combobox that picks a user-creatable taxonomy/entity value MUST allow creation.** Every
 `<Combobox>`, `<MultiCombobox>`, or `<TreeMultiCombobox>` that lets the user pick one of Category,
-Media Type, Website, YouTube Channel, Tag, Person, Group, Group Type, Newsletter, Property Group, Location,
+Media Type, Website, YouTube Channel, Tag, Person, Group, Group Type, Newsletter, Location,
 Custom Property, or Place Type MUST pass a `createOption` prop wired through
 `useEntityCreateOption` (below). There is no exception for "simple" or "small" forms, and no
 picker is exempt except the closed list under **Explicit exemptions** — anything not on that list
@@ -46,7 +46,6 @@ const categoryCreate = useEntityCreateOption("category", category => setValue(ca
 | Person | `AddPersonModal` | Uses `InlineCreateModal`; name only |
 | Group | `AddGroupModal` | Uses `InlineCreateModal`; name only |
 | Group Type | `AddGroupTypeModal` | Uses `InlineCreateModal`; name only |
-| Property Group | `AddPropertyGroupModal` | Uses `InlineCreateModal`; name only |
 | Place Type | `AddPlaceTypeModal` | Uses `InlineCreateModal`; name only |
 | Website | `AddWebsiteModal` | Custom dialog — takes domain + optional name (NOT `InlineCreateModal`) |
 | YouTube Channel | `AddYouTubeChannelModal` | Custom dialog — takes channelUrl + name (NOT `InlineCreateModal`) |
@@ -74,7 +73,7 @@ const tagCreate = useEntityCreateOption("tag", tag => onToggle(tag.id));
 
 `CREATABLE_ENTITY_PICKERS` registers the user-creatable entity kinds (`tag`, `person`,
 `place-type`, `category`, `media-type`, `website`, `youtube-channel`, `group`, `group-type`, `newsletter`,
-`property-group`, `location`, `custom-property`, …) — growing it further is one entry (all Add-modals
+`location`, `custom-property`, …) — growing it further is one entry (all Add-modals
 share the `open`/`onOpenChange`/`onCreated` contract). Call `useEntityCreateOption` **in the
 component that owns the combobox and its `onCreated` selection logic**, not lifted into a parent
 just to centralize modal state — see `BookmarkAdvancedCategoryField.tsx` /

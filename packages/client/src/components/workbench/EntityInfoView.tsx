@@ -7,7 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { WorkbenchRouteTab } from "./WorkbenchRouteTab";
 import { navLinkClass } from "../TabbedShell";
 
-import { useResolvedWorkbenchLayout } from "@/hooks/useEntityLayout";
+import { useLayoutDrivenWorkbench, useResolvedWorkbenchLayout } from "@/hooks/useEntityLayout";
 import { cn } from "@/lib/utils";
 import { deriveWorkbenchTabs } from "@/lib/workbenchLayout";
 
@@ -33,8 +33,11 @@ interface Props<E extends { id: string }> {
  * single-tab entity drops the rail entirely.
  */
 export function EntityInfoView<E extends { id: string }>({
-  workbench, slug, infoTo, params, activeTab, header,
+  workbench: baseWorkbench, slug, infoTo, params, activeTab, header,
 }: Props<E>) {
+  // Route through the dynamic-field merge seam so any runtime-sourced fields (#1163+) render + count
+  // toward tab visibility. A no-op for entities without a `useDynamicFields` source (every slug entity today).
+  const workbench = useLayoutDrivenWorkbench(baseWorkbench);
   const {
     entity,
   } = workbench.useBySlug(slug);

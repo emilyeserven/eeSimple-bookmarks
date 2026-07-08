@@ -1,10 +1,11 @@
+import type { EntityWorkbench } from "../components/workbench/types";
 import type { RenderTab } from "../lib/workbenchLayout";
 import type { Bookmark, EntityLayout } from "@eesimple/types";
 
 import { useBookmarks } from "./useBookmarks";
 import { useBookmarksSharingMediaSource } from "./useBookmarksSharingMediaSource";
 import { useCustomProperties } from "./useCustomProperties";
-import { useResolvedWorkbenchLayout } from "./useEntityLayout";
+import { useLayoutDrivenWorkbench, useResolvedWorkbenchLayout } from "./useEntityLayout";
 import { useRelatedBookmarks } from "./useRelatedBookmarks";
 import { bookmarkWorkbench } from "../components/workbench/bookmark";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
@@ -25,8 +26,11 @@ import { modeVisibleTabs } from "../lib/workbenchLayout";
 export function useBookmarkViewTabs(bookmark: Bookmark): {
   layout: EntityLayout | null;
   tabs: RenderTab[];
+  /** The dynamic-field-merged workbench the detail bodies must render with (so per-property fields show). */
+  workbench: EntityWorkbench<Bookmark>;
 } {
-  const layout = useResolvedWorkbenchLayout(bookmarkWorkbench);
+  const workbench = useLayoutDrivenWorkbench(bookmarkWorkbench);
+  const layout = useResolvedWorkbenchLayout(workbench);
   const {
     data: allBookmarks,
   } = useBookmarks();
@@ -37,10 +41,11 @@ export function useBookmarkViewTabs(bookmark: Bookmark): {
   const relatedBookmarks = useRelatedBookmarks(bookmark);
   const mediaSourceMatches = useBookmarksSharingMediaSource(bookmark);
 
-  if (!layout || !bookmarkWorkbench.fields) {
+  if (!layout || !workbench.fields) {
     return {
       layout: null,
       tabs: [],
+      workbench,
     };
   }
 
@@ -53,10 +58,11 @@ export function useBookmarkViewTabs(bookmark: Bookmark): {
     hasPropertyRows: hasBookmarkPropertyRows(bookmark, properties ?? [], defaultFieldZones),
   });
 
-  const tabs = modeVisibleTabs(layout, bookmarkWorkbench.fields, "view", bookmark)
+  const tabs = modeVisibleTabs(layout, workbench.fields, "view", bookmark)
     .filter(tab => !hidden.has(tab.key));
   return {
     layout,
     tabs,
+    workbench,
   };
 }

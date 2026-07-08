@@ -95,12 +95,6 @@ interface CategoryCustomFieldsProps extends CustomPropertyInputBundle {
   autofilledPropertyIds?: ReadonlySet<string>;
   /** Whether the "reveal auto-filled fields in main" setting is on (create-mode only). */
   revealAutofilledInMain?: boolean;
-  /**
-   * When provided, only properties whose `propertyGroupId` matches this value are rendered.
-   * Pass `null` to render only ungrouped properties (groupId === null or unknown group).
-   * Omit to render all properties regardless of group.
-   */
-  groupId?: string | null;
   /** When true, the "Properties" section heading is omitted. */
   hideHeading?: boolean;
 }
@@ -112,7 +106,7 @@ export function CategoryCustomFields({
   placementOverrides,
   autofilledPropertyIds,
   revealAutofilledInMain,
-  groupId, hideHeading = false,
+  hideHeading = false,
   // The per-type input maps + change handlers travel together to each field — keep them bundled and
   // spread them, rather than threading ~18 individual props through the JSX (a complexity driver).
   ...inputBundle
@@ -125,7 +119,6 @@ export function CategoryCustomFields({
     mediaTypeId,
     placement,
     hiddenSlugs,
-    groupId,
     placementOverrides,
     autofilledPropertyIds,
     revealAutofilledInMain,
@@ -162,7 +155,7 @@ export function CategoryCustomFields({
   );
 }
 
-interface CategoryPropertyFieldProps extends CustomPropertyInputBundle {
+export interface CategoryPropertyFieldProps extends CustomPropertyInputBundle {
   property: CustomProperty;
   bookmark: Bookmark | null;
 }
@@ -325,7 +318,7 @@ const PROPERTY_FIELD_RENDERERS: Record<
 };
 
 /** Renders the single input appropriate to one custom property's type. */
-function CategoryPropertyField(props: CategoryPropertyFieldProps) {
+export function CategoryPropertyField(props: CategoryPropertyFieldProps) {
   const Renderer = PROPERTY_FIELD_RENDERERS[props.property.type];
   return <Renderer {...props} />;
 }

@@ -219,7 +219,6 @@ export const apiHandlers = [
     exists: true,
     siteName: "GitHub",
   })),
-  http.get("/api/property-groups", () => HttpResponse.json([])),
   http.get("/api/media-types", () => HttpResponse.json(sampleMediaTypes)),
   http.get("/api/youtube-channels", () => HttpResponse.json(sampleChannels)),
   http.get("/api/app-settings/advanced", () => HttpResponse.json({

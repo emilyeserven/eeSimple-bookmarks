@@ -6,8 +6,7 @@ description: >-
   generic loop-and-report bulk-delete route/service. Use when asked to "add bulk select/delete to a
   listing", "let me select multiple X and delete them", "add a bulk action bar to X", "wire up
   multi-select on a manager", or "add bulk editing to a listing page". Mirrors how the Bookmarks page
-  and every taxonomy listing (Categories, Websites, Media Types, YouTube Channels, Tags, Property
-  Groups, Relationship Types, Custom Properties, Autofill, Groups, Group Types, People, Newsletters, Place
+  and every taxonomy listing (Categories, Websites, Media Types, YouTube Channels, Tags, Relationship Types, Custom Properties, Autofill, Groups, Group Types, People, Newsletters, Place
   Types, Saved Filters) got bulk select + delete.
   Also covers maintaining bulk actions — "add another bulk action to X's bar", "bulk select is broken on X".
 ---

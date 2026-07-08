@@ -44,7 +44,6 @@ import { newsletterRoutes } from "@/routes/newsletters";
 import { groupRoutes } from "@/routes/groups";
 import { groupTypeRoutes } from "@/routes/groupTypes";
 import { reelArchiveRoutes } from "@/routes/reelArchive";
-import { propertyGroupRoutes } from "@/routes/propertyGroups";
 import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
@@ -255,7 +254,6 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(locationRelationRoutes);
   await app.register(youtubeChannelRoutes);
   await app.register(customPropertyRoutes);
-  await app.register(propertyGroupRoutes);
   await app.register(relationshipTypeRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);

@@ -5,17 +5,6 @@ import { CREATE_DEFAULTS, propertySchema } from "./propertyFormSchema";
 import { useAppForm } from "../lib/form";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const groupOptions = [
-  {
-    value: "group-reading",
-    label: "Reading",
-  },
-  {
-    value: "group-ratings",
-    label: "Ratings",
-  },
-];
-
 /** Mounts a real property `useAppForm` instance so the section renders in isolation. */
 function PropertyDisplaySectionHost() {
   const form = useAppForm({
@@ -28,7 +17,6 @@ function PropertyDisplaySectionHost() {
     <PropertyDisplaySection
       form={form}
       idPrefix="story"
-      groupOptions={groupOptions}
     />
   );
 }
@@ -47,7 +35,7 @@ export default meta;
 
 type Story = StoryObj;
 
-/** The "Display options" section: grouping combobox, "Show in…" checkboxes, and editing toggles. */
+/** The "Display options" section: "Show in…" checkboxes and editing toggles. */
 export const Default: Story = {
   render: () => <PropertyDisplaySectionHost />,
 };

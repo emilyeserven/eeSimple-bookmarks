@@ -34,7 +34,6 @@ export function LocationListing({
   const {
     categories,
     properties,
-    propertyGroups,
     bookmarks,
     bookmarksLoading,
     error,
@@ -124,7 +123,6 @@ export function LocationListing({
       pageKey={`location:${locationSlug}`}
       tree={tagTree ?? []}
       properties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
       categories={categories ?? []}
       youtubeChannels={youtubeChannels ?? []}
       relationshipTypes={relationshipTypes ?? []}

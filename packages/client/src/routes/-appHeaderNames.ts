@@ -12,7 +12,6 @@ import { useLocationRelationBySlug } from "@/hooks/useLocationRelations";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePersonBySlug } from "@/hooks/usePeople";
 import { usePlaceTypeBySlug } from "@/hooks/usePlaceTypes";
-import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useSavedFilterBySlug } from "@/hooks/useSavedFilters";
 
@@ -27,7 +26,6 @@ export interface TaxonomyNameSlugs {
   language: string;
   placeType: string;
   locationRelation: string;
-  propertyGroup: string;
   relationshipType: string;
   property: string;
   autofill: string;
@@ -70,9 +68,6 @@ export function useTaxonomyNameMap(
   const {
     locationRelation,
   } = useLocationRelationBySlug(slugs.locationRelation);
-  const {
-    propertyGroup,
-  } = usePropertyGroupBySlug(slugs.propertyGroup);
   const {
     relationshipType,
   } = useRelationshipTypeBySlug(slugs.relationshipType);
@@ -119,9 +114,6 @@ export function useTaxonomyNameMap(
     },
     "/taxonomies/location-relations": {
       name: locationRelation?.name,
-    },
-    "/taxonomies/property-groups": {
-      name: propertyGroup?.name,
     },
     "/taxonomies/relationship-types": {
       name: relationshipType?.name,

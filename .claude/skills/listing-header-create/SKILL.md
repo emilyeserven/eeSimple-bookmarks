@@ -24,7 +24,7 @@ Every entity listing page that supports creation follows a single pattern:
 
 | Situation | Register `createAction` in… | Modal state lives in… |
 |---|---|---|
-| Route owns the button (Categories, Tags, Media Types, Property Groups, Autofill) | The route component, passing `() => setModalOpen(true)` | The route component |
+| Route owns the button (Categories, Tags, Media Types, Autofill) | The route component, passing `() => setModalOpen(true)` | The route component |
 | Component calls `useSetListingPage` itself (Websites, Custom Properties, YouTube Channels) | The manager/listing component, passing `() => setModalOpen(true)` | The manager/listing component |
 
 ## `useSetListingPage` signature
@@ -53,7 +53,7 @@ it labels the entity-create entry when the Plus becomes a dropdown (with `addBoo
 mobile More-menu item. Omitting it leaves a generic label; the Autofill listing shipped exactly
 that omission once.
 
-## Shape A — name-only (Categories, Media Types, Property Groups, Tags, Autofill Rules)
+## Shape A — name-only (Categories, Media Types, Tags, Autofill Rules)
 
 Wrap `InlineCreateModal` (`packages/client/src/components/InlineCreateModal.tsx`). It owns the
 Dialog chrome, the Name field, zod validation, and form reset. Wire `onSubmit` to `useCreate*`
@@ -95,7 +95,7 @@ export function AddWidgetModal({ open, onOpenChange, onCreated }: AddWidgetModal
 ```
 
 Key contract: **do not** call `onOpenChange(false)` yourself — `done()` does that plus resets the
-field. `AddCategoryModal` and `AddPropertyGroupModal` are working examples.
+field. `AddCategoryModal` is a working example.
 
 ## Shape B — two fields (Websites: domain + optional name; YouTube Channels: URL + name; Relationship Types: name + directional checkbox)
 
@@ -224,7 +224,6 @@ export function WidgetsListing() {
 | YouTube Channels | `"youtube-channels-listing"` |
 | Tags | `"tags-listing"` |
 | Custom Properties | `"custom-properties-listing"` |
-| Property Groups | `"property-groups-listing"` |
 | Autofill Rules | `"autofill-rules-listing"` |
 | Relationship Types | `"relationship-types-listing"` |
 | Card Display Rules | `"card-display-rules-listing"` |

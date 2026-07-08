@@ -16,7 +16,6 @@ import { newsletterDescriptor } from "./newsletter";
 import { personDescriptor } from "./person";
 import { placeTypeDescriptor } from "./placeType";
 import { customPropertyDescriptor } from "./property";
-import { propertyGroupDescriptor } from "./propertyGroup";
 import { relationshipTypeDescriptor } from "./relationshipType";
 import { savedFilterDescriptor } from "./savedFilter";
 import { tagDescriptor } from "./tag";
@@ -49,7 +48,6 @@ export const ENTITY_DESCRIPTORS = {
   "person": personDescriptor,
   "group": groupDescriptor,
   "group-type": groupTypeDescriptor,
-  "property-group": propertyGroupDescriptor,
   "relationship-type": relationshipTypeDescriptor,
   "custom-property": customPropertyDescriptor,
   "autofill": autofillDescriptor,

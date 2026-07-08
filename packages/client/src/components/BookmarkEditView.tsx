@@ -5,6 +5,8 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkGeneralFormProvider } from "./BookmarkGeneralFormContext";
+import { BookmarkImageEditFormProvider } from "./BookmarkImageEditFormContext";
+import { BookmarkPropertiesFormProvider } from "./BookmarkPropertiesFormContext";
 import { TabbedShell, navLinkClass } from "./TabbedShell";
 import { bookmarkWorkbench } from "./workbench/bookmark";
 import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
@@ -29,9 +31,25 @@ const SHARED_FORM_FIELD_KEYS = new Set<string>([
   "locationBlacklist",
 ]);
 
+/**
+ * The static bookmark field keys. Any field key on a resolved layout tab that is **not** here is a
+ * dynamic custom-property field (keyed by property id, #1163+), which — like the static
+ * `youtubeMetadata` field — reads the shared `useBookmarkPropertiesForm` controller and so needs the
+ * `BookmarkPropertiesFormProvider` mounted around the edit body.
+ */
+const STATIC_FIELD_KEYS = new Set<string>(Object.keys(bookmarkWorkbench.fields ?? {}));
+
+/** The Image-tab fields that read the shared `useBookmarkImageEditForm` controller from context. */
+const IMAGE_FIELD_KEYS = new Set<string>([
+  "imagePicker",
+  "imageActions",
+  "imageDisplay",
+  "screenshot",
+]);
+
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useResolvedWorkbenchLayout } from "@/hooks/useEntityLayout";
+import { useLayoutDrivenWorkbench, useResolvedWorkbenchLayout } from "@/hooks/useEntityLayout";
 import { cn } from "@/lib/utils";
 import { deriveWorkbenchTabs } from "@/lib/workbenchLayout";
 
@@ -121,8 +139,10 @@ export function BookmarkEditView({
     data: bookmark, isLoading,
   } = useBookmark(bookmarkId);
 
-  const layout = useResolvedWorkbenchLayout(bookmarkWorkbench);
-  const tabs = deriveWorkbenchTabs(bookmarkWorkbench, layout, "edit", bookmark);
+  // Route through the dynamic-field merge seam so per-property fields (#1163+) resolve + render.
+  const workbench = useLayoutDrivenWorkbench(bookmarkWorkbench);
+  const layout = useResolvedWorkbenchLayout(workbench);
+  const tabs = deriveWorkbenchTabs(workbench, layout, "edit", bookmark);
   const active = tabs.find(tab => tab.key === activeTab)?.key ?? tabs[0]?.key;
 
   const nav = tabs.length <= 1
@@ -150,23 +170,34 @@ export function BookmarkEditView({
     if (!bookmark) return <p className="text-destructive">{t("Bookmark not found.")}</p>;
     if (!layout || !active) return null;
     const activeTab = layout.tabs.find(tab => tab.key === active);
-    const hasSharedFormField = activeTab?.sections.some(
-      section => section.fields.some(field => SHARED_FORM_FIELD_KEYS.has(field)),
-    ) ?? false;
-    const tabBody = (
+    const tabFieldKeys = activeTab?.sections.flatMap(section => section.fields) ?? [];
+    const hasSharedFormField = tabFieldKeys.some(field => SHARED_FORM_FIELD_KEYS.has(field));
+    // A property field is the static `youtubeMetadata` or any dynamic (non-static) custom-property key;
+    // both read the shared properties controller, so mount its provider around the body.
+    const hasPropertyField = tabFieldKeys.some(field => field === "youtubeMetadata" || !STATIC_FIELD_KEYS.has(field));
+    const hasImageField = tabFieldKeys.some(field => IMAGE_FIELD_KEYS.has(field));
+
+    let body: ReactNode = (
       <LayoutDrivenTabBody
-        workbench={bookmarkWorkbench}
+        workbench={workbench}
         layout={layout}
         tabKey={active}
         mode="edit"
         entity={bookmark}
       />
     );
+    if (hasSharedFormField) {
+      body = <BookmarkGeneralFormProvider bookmark={bookmark}>{body}</BookmarkGeneralFormProvider>;
+    }
+    if (hasPropertyField) {
+      body = <BookmarkPropertiesFormProvider bookmark={bookmark}>{body}</BookmarkPropertiesFormProvider>;
+    }
+    if (hasImageField) {
+      body = <BookmarkImageEditFormProvider bookmark={bookmark}>{body}</BookmarkImageEditFormProvider>;
+    }
     return (
       <>
-        {hasSharedFormField
-          ? <BookmarkGeneralFormProvider bookmark={bookmark}>{tabBody}</BookmarkGeneralFormProvider>
-          : tabBody}
+        {body}
         {active === "general" ? <BookmarkDeleteDangerZone bookmark={bookmark} /> : null}
       </>
     );

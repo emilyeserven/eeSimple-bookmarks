@@ -30,7 +30,6 @@ export function TagListing({
   const {
     categories,
     properties,
-    propertyGroups,
     bookmarks,
     bookmarksLoading,
     error,
@@ -65,7 +64,6 @@ export function TagListing({
       pageKey={`tag:${tagSlug}`}
       tree={tagTree ?? []}
       properties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
       categories={categories ?? []}
       mediaTypes={mediaTypes ?? []}
       youtubeChannels={youtubeChannels ?? []}

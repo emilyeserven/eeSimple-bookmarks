@@ -26,7 +26,6 @@ import {
 import { useCategories } from "@/hooks/useCategories";
 import { useCustomProperties, useDeleteCustomProperty, usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useMediaTypes } from "@/hooks/useMediaTypes";
-import { usePropertyGroups } from "@/hooks/usePropertyGroups";
 import { hasPropertyOptions } from "@/lib/propertyForm";
 
 function PropertyOptionsView({
@@ -82,15 +81,7 @@ function PropertyDisplayView({
 }: {
   entity: CustomProperty;
 }) {
-  const {
-    data: propertyGroups,
-  } = usePropertyGroups();
-  return (
-    <PropertyDisplayFields
-      property={property}
-      propertyGroups={propertyGroups ?? []}
-    />
-  );
+  return <PropertyDisplayFields property={property} />;
 }
 
 function editPane(section: PropertyFormSection) {

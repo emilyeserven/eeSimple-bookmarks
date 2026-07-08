@@ -1,4 +1,4 @@
-import type { Category, CustomProperty, CustomPropertyType, MediaType, PropertyGroup } from "@eesimple/types";
+import type { Category, CustomProperty, CustomPropertyType, MediaType } from "@eesimple/types";
 import type { FC } from "react";
 
 import { CHOICES_DISPLAY_LABELS } from "@eesimple/types";
@@ -356,39 +356,17 @@ export function PropertyMediaTypesContent({
   );
 }
 
-/** The "Display" section body: group, form placement, listings, and card-menu editability. */
+/** The "Display" section body: form placement, listings, and card-menu editability. */
 export function PropertyDisplayFields({
-  property, propertyGroups = [],
+  property,
 }: {
   property: CustomProperty;
-  propertyGroups?: PropertyGroup[];
 }) {
   const {
     t,
   } = useTranslation();
-  const group = property.propertyGroupId
-    ? propertyGroups.find(candidate => candidate.id === property.propertyGroupId)
-    : undefined;
   return (
     <dl className="space-y-3">
-      <DetailField label={t("Group")}>
-        {group
-          ? (
-            <Link
-              to="/taxonomies/property-groups/$propertyGroupSlug"
-              params={{
-                propertyGroupSlug: group.slug,
-              }}
-              className="
-                text-primary
-                hover:underline
-              "
-            >
-              {group.name}
-            </Link>
-          )
-          : <span className="text-muted-foreground">{t("Ungrouped")}</span>}
-      </DetailField>
       <DetailField label={t("Bookmark form")}>
         <div className="space-y-1">
           <p>{formPlacement(property)}</p>

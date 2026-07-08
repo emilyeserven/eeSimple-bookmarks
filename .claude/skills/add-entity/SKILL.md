@@ -6,7 +6,7 @@ description: >-
   types, the client `?tab=` route set, and a layout-driven workbench field-registry descriptor. Use when
   asked to "add a new entity/table/taxonomy/content type", "give X detail and edit pages",
   or "make X slug-routed". Mirrors how categories, websites,
-  custom-properties, autofill, media-types, youtube-channels, tags, property-groups, and genres-moods
+  custom-properties, autofill, media-types, youtube-channels, tags, and genres-moods
   (the cross-taxonomy polymorphic-assignment case) were each built.
   Also the map for maintaining an entity — renaming it, adding fields, or removing it (each step below is a sync point; see the sibling skills it links for field-level changes).
 ---

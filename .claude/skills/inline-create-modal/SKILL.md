@@ -5,7 +5,7 @@ description: >-
   backed by the shared `InlineCreateModal` component. Use when asked to "let me create a
   category/tag/group inline", "add an Add-new-X button to a combobox", "add a quick-create modal",
   or when a form's entity-picker needs to mint a new entity without leaving the page. Mirrors
-  `AddCategoryModal`, `AddPropertyGroupModal`, and `AddRelationshipTypeModal` (the `extraFields`
+  `AddCategoryModal` and `AddRelationshipTypeModal` (the `extraFields`
   case).
   Also covers maintaining one — "add a field to the Add-X modal" (usually the wrong move; see When NOT to use it), "rename the inline-create dialog".
 ---

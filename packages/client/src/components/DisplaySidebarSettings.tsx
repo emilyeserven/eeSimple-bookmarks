@@ -11,7 +11,6 @@ import {
   Globe,
   Languages,
   LayoutGrid,
-  Layers,
   ListFilter,
   Mail,
   MapPin,
@@ -121,11 +120,6 @@ const CUSTOMIZATION_ITEMS = [
     key: "custom-properties",
     label: "Custom Properties",
     icon: SlidersHorizontal,
-  },
-  {
-    key: "property-groups",
-    label: "Property Groups",
-    icon: Layers,
   },
   {
     key: "relationship-types",

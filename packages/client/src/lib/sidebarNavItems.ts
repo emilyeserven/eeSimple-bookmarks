@@ -9,7 +9,6 @@ import {
   Home,
   Inbox,
   Languages,
-  Layers,
   LayoutGrid,
   ListFilter,
   Mail,
@@ -134,12 +133,6 @@ export const customizationItems = [
     title: i18n.t("Custom Properties"),
     to: "/custom-properties",
     icon: SlidersHorizontal,
-  },
-  {
-    key: "property-groups",
-    title: i18n.t("Property Groups"),
-    to: "/taxonomies/property-groups",
-    icon: Layers,
   },
   {
     key: "relationship-types",

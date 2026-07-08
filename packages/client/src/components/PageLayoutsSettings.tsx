@@ -11,8 +11,9 @@ import { useEntityLayout } from "../hooks/useEntityLayout";
 import { useEntityLayouts, useResetEntityLayout, useSaveEntityLayout } from "../hooks/useEntityLayouts";
 import { describeError } from "../lib/apiError";
 import { notifyFieldSaveError, notifyFieldSaved } from "../lib/autoSave";
-import { LAYOUT_DRIVEN_ENTITIES } from "../lib/layoutDrivenEntities";
+import { LAYOUT_DRIVEN_ENTITIES, useDynamicLayoutFieldsByKind } from "../lib/layoutDrivenEntities";
 import { notifyError, notifySuccess } from "../lib/notifications";
+import { augmentDefaultLayout } from "../lib/workbenchLayout";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -53,14 +54,28 @@ export function PageLayoutsSettings({
   const [resetOpen, setResetOpen] = useState(false);
 
   const selectedEntity = LAYOUT_DRIVEN_ENTITIES.find(entity => entity.kind === selectedKind) ?? LAYOUT_DRIVEN_ENTITIES[0];
+  // Dynamic (user-defined) placeable fields for the selected kind — e.g. one per custom property on
+  // bookmarks. Merged into the tray + the resolve inputs so they list and place like static fields.
+  const dynamicByKind = useDynamicLayoutFieldsByKind();
+  const dynamic = dynamicByKind[selectedEntity.kind];
+  const fields = useMemo(
+    () => (dynamic ? [...selectedEntity.fields, ...dynamic.metas] : selectedEntity.fields),
+    [selectedEntity, dynamic],
+  );
+  const defaultLayout = useMemo(
+    () => (dynamic
+      ? augmentDefaultLayout(selectedEntity.defaultLayout, dynamic.metas.map(meta => meta.key), dynamic.defaultHome)
+      : selectedEntity.defaultLayout),
+    [selectedEntity, dynamic],
+  );
   const knownFieldKeys = useMemo(
-    () => new Set(selectedEntity.fields.map(field => field.key)),
-    [selectedEntity],
+    () => new Set(fields.map(field => field.key)),
+    [fields],
   );
   const stored = useEntityLayout(selectedKind);
   const resolved = useMemo(
-    () => resolveLayout(stored, selectedEntity.defaultLayout, knownFieldKeys),
-    [stored, selectedEntity, knownFieldKeys],
+    () => resolveLayout(stored, defaultLayout, knownFieldKeys),
+    [stored, defaultLayout, knownFieldKeys],
   );
   const [value, setValue] = useState<EntityLayout>(resolved);
 
@@ -88,7 +103,7 @@ export function PageLayoutsSettings({
   function handleReset() {
     resetLayout.mutate(selectedKind, {
       onSuccess: () => {
-        setValue(selectedEntity.defaultLayout);
+        setValue(defaultLayout);
         setResetOpen(false);
         notifySuccess(t("{{label}} layout reset to default", {
           label: selectedEntity.label,
@@ -146,7 +161,7 @@ export function PageLayoutsSettings({
               <LayoutBoard
                 value={value}
                 onChange={setValue}
-                fields={selectedEntity.fields}
+                fields={fields}
                 idPrefix={selectedKind}
               />
             )}

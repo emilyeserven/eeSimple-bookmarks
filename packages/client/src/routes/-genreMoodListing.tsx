@@ -30,7 +30,6 @@ export function GenreMoodListing({
   const {
     categories,
     properties,
-    propertyGroups,
     bookmarks,
     bookmarksLoading,
     error,
@@ -62,7 +61,6 @@ export function GenreMoodListing({
       pageKey={`genre-mood:${genreMoodSlug}`}
       tree={tagTree ?? []}
       properties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
       categories={categories ?? []}
       youtubeChannels={youtubeChannels ?? []}
       relationshipTypes={relationshipTypes ?? []}

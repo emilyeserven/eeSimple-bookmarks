@@ -311,7 +311,7 @@ export interface AppSettings {
   hiddenCategoryIds: string[];
   /** Taxonomy item keys hidden in the left sidebar (tags / websites / media-types / youtube-channels). */
   hiddenTaxonomyItems: string[];
-  /** Customization item keys hidden in the left sidebar (custom-properties / property-groups / autofill). */
+  /** Customization item keys hidden in the left sidebar (custom-properties / autofill / …). */
   hiddenCustomizationItems: string[];
   /** Management item keys hidden in the left sidebar (categories / tags). */
   hiddenManagementItems: string[];
@@ -886,61 +886,6 @@ export interface UpdateGroupInput {
   youtubeChannelIds?: string[];
   /** IDs of websites to associate; replaces the full set. Omit to leave unchanged. */
   websiteIds?: string[];
-}
-
-/**
- * A Property Group — an optional grouping for custom properties. A property may belong to one group;
- * grouped properties render together (under the group's heading) on bookmark detail pages and in the
- * listings filter sidebar. Groups carry a `priority` (lower sorts first) and an optional description.
- */
-export interface PropertyGroup {
-  id: string;
-  /** Display name. Unique. */
-  name: string;
-  /** URL-friendly identifier derived from the name. Unique. */
-  slug: string;
-  /** Free-text description surfaced on the group's detail page. */
-  description: string | null;
-  /** Display ordering weight across groups; lower sorts first. */
-  priority: number;
-  /** Ids of the categories this group is scoped to (zero, one, or many). Empty = applies to all. */
-  categoryIds: string[];
-  /** When true, the group applies to every category, including ones created later (overrides `categoryIds`). */
-  allCategories: boolean;
-  /** Ids of the media types this group is scoped to (zero, one, or many). */
-  mediaTypeIds: string[];
-  /** When true, the group applies to every media type, including ones created later (overrides `mediaTypeIds`). */
-  allMediaTypes: boolean;
-  /** ISO-8601 timestamp of when the group was created. */
-  createdAt: string;
-  /** Number of custom properties in this group (populated by list endpoints). */
-  propertyCount?: number;
-}
-
-/** Payload for creating a property group. */
-export interface CreatePropertyGroupInput {
-  name: string;
-  description?: string | null;
-  priority?: number;
-  /** Ids of categories to scope this group to. Omit to leave unscoped (applies everywhere). */
-  categoryIds?: string[];
-  /** When true, the group applies to every category, including ones created later. Defaults to false. */
-  allCategories?: boolean;
-  /** Ids of media types to scope this group to. Omit to leave unscoped. */
-  mediaTypeIds?: string[];
-  /** When true, the group applies to every media type, including ones created later. Defaults to false. */
-  allMediaTypes?: boolean;
-}
-
-/** Payload for updating a property group (rename, re-describe, reorder, and/or re-scope). */
-export interface UpdatePropertyGroupInput {
-  name?: string;
-  description?: string | null;
-  priority?: number;
-  categoryIds?: string[];
-  allCategories?: boolean;
-  mediaTypeIds?: string[];
-  allMediaTypes?: boolean;
 }
 
 /**
@@ -2340,8 +2285,6 @@ export interface CustomProperty {
   enabled: boolean;
   /** When false, this property does not appear in the category defaults editor. */
   allowDefault: boolean;
-  /** Id of the property group this property belongs to, or `null` when ungrouped. */
-  propertyGroupId: string | null;
   /** The selectable options for a `choices` property; empty for non-choices types. */
   choicesItems: ChoicesItem[];
   /** How a `choices` property is rendered in the bookmark form; `null` for non-choices types. */
@@ -2409,8 +2352,6 @@ export interface CreateCustomPropertyInput {
   enabled?: boolean;
   /** When false, this property is excluded from the category defaults editor. Defaults to true. */
   allowDefault?: boolean;
-  /** Id of the property group to place this property in, or `null` to leave it ungrouped. */
-  propertyGroupId?: string | null;
   /** How `true`/`false` values are rendered. Only relevant for `boolean` type. */
   booleanLabelPreset?: BooleanLabelPreset | null;
   /** Custom label for a `true` value; only used when `booleanLabelPreset` is `"custom"`. */
@@ -2471,28 +2412,6 @@ export function propertyAppliesToMediaType(
 ): boolean {
   if (!mediaTypeId) return false;
   return property.allMediaTypes || property.mediaTypeIds.includes(mediaTypeId);
-}
-
-/**
- * Whether a property group is scoped to a given category. Mirrors {@link propertyAppliesToCategory}:
- * a group with `allCategories`, or with no explicit category scope, applies to every category.
- */
-export function propertyGroupAppliesToCategory(
-  group: Pick<PropertyGroup, "allCategories" | "categoryIds">,
-  categoryId: string,
-): boolean {
-  return propertyAppliesToCategory(group, categoryId);
-}
-
-/**
- * Whether a property group is scoped to a given media type. Mirrors {@link propertyAppliesToMediaType}:
- * media types require explicit inclusion (or `allMediaTypes`); a bookmark with no media type never matches.
- */
-export function propertyGroupAppliesToMediaType(
-  group: Pick<PropertyGroup, "allMediaTypes" | "mediaTypeIds">,
-  mediaTypeId: string | null,
-): boolean {
-  return propertyAppliesToMediaType(group, mediaTypeId);
 }
 
 /** A number custom property value carried on a bookmark. */

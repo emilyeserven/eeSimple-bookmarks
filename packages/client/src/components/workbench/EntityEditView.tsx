@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useResolvedWorkbenchLayout } from "@/hooks/useEntityLayout";
+import { useLayoutDrivenWorkbench, useResolvedWorkbenchLayout } from "@/hooks/useEntityLayout";
 import { cn } from "@/lib/utils";
 import { deriveWorkbenchTabs } from "@/lib/workbenchLayout";
 
@@ -159,8 +159,10 @@ function EditNavMore({
  * per-field auto-save and the General-tab Danger zone are unchanged. A single-tab entity drops the strip.
  */
 export function EntityEditView<E extends { id: string }>({
-  workbench, slug, editTo, params, activeTab, header,
+  workbench: baseWorkbench, slug, editTo, params, activeTab, header,
 }: Props<E>) {
+  // Route through the dynamic-field merge seam (#1163+); a no-op for entities without a runtime source.
+  const workbench = useLayoutDrivenWorkbench(baseWorkbench);
   const {
     entity,
   } = workbench.useBySlug(slug);

@@ -117,33 +117,6 @@ describe("selectVisibleFormProperties", () => {
       .toEqual(["a", "b"]);
   });
 
-  it("restricts to a property group when groupId is given (null = ungrouped)", () => {
-    const list = [
-      prop({
-        id: "g1",
-        slug: "g1",
-        showInForm: true,
-        propertyGroupId: "g1",
-      }),
-      prop({
-        id: "ungrouped",
-        slug: "ungrouped",
-        showInForm: true,
-        propertyGroupId: null,
-      }),
-    ];
-    expect(selectVisibleFormProperties(list, {
-      ...base,
-      groupId: "g1",
-    }).map(p => p.id))
-      .toEqual(["g1"]);
-    expect(selectVisibleFormProperties(list, {
-      ...base,
-      groupId: null,
-    }).map(p => p.id))
-      .toEqual(["ungrouped"]);
-  });
-
   it("hides a property that applies to neither the category nor the media type", () => {
     const list = [
       prop({

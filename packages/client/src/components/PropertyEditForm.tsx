@@ -8,7 +8,6 @@ import { PropertyCategoriesEditForm, PropertyMediaTypesEditForm } from "./Proper
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
-import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
 interface PropertyEditFormProps {
   property: CustomProperty;
@@ -34,9 +33,6 @@ export function PropertyEditForm({
   const {
     data: properties,
   } = useCustomProperties();
-  const {
-    data: propertyGroups,
-  } = usePropertyGroups();
 
   // A calculate property may sum any other number property, but never itself.
   const numberProperties = (properties ?? []).filter(
@@ -68,11 +64,6 @@ export function PropertyEditForm({
         />
       );
     case "display":
-      return (
-        <PropertyDisplayEditForm
-          property={property}
-          propertyGroups={propertyGroups ?? []}
-        />
-      );
+      return <PropertyDisplayEditForm property={property} />;
   }
 }

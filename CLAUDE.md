@@ -162,8 +162,8 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.
-- **Inline-create modals:** the name-only "Add new X" dialogs (`AddCategoryModal`,
-  `AddPropertyGroupModal`) are thin wrappers over the shared `InlineCreateModal`
+- **Inline-create modals:** the name-only "Add new X" dialogs (e.g. `AddCategoryModal`) are thin
+  wrappers over the shared `InlineCreateModal`
   (`packages/client/src/components/InlineCreateModal.tsx`). A new one should wrap it too rather than
   re-implement the Dialog + name field + reset — see the **`inline-create-modal`** skill.
 - **Layout/section patterns** are catalogued under **Content hierarchies** below — consult it
@@ -230,7 +230,7 @@ title (see **Content hierarchies**), never a header crumb.
 - **Name resolves the real entity name** via the entity's `use*BySlug` hook — never a generic
   singular. The descriptor's `singular` is only a brief loading placeholder.
 - **Most slug-routed entities share one builder.** Categories, Websites, Media Types, YouTube
-  Channels, Property Groups, Custom Properties, and Autofill are all driven by `TAXONOMY_DESCRIPTORS`
+  Channels, Custom Properties, and Autofill are all driven by `TAXONOMY_DESCRIPTORS`
   + `taxonomyCrumbs()`. Only **Tags** (ancestor chain), **Bookmarks** (category + title), and
   **Settings** stay bespoke.
 - **Segment labels** come from the single `crumbLabel()` helper — a small `LABEL_OVERRIDES` map (only
@@ -302,7 +302,7 @@ that matches the surface — don't invent a new structure for a one-off page.
     no `parentId` column, but their Hierarchy tab renders the domain/subdomain tree derived by
     `useWebsiteTree` (`websiteHierarchyView.tsx`) — a *derived* tree is legitimate for a view-only
     Hierarchy tab when a real containment relation exists in the data. Genuinely flat taxonomies
-    (Categories, YouTube Channels, Property Groups) do **not** get one.
+    (Categories, YouTube Channels) do **not** get one.
 - **Entity-scoped bookmarks page + the `_hub` listing strip** — an entity whose bookmarks can be
   meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels, Genres & Moods,
   Languages, Locations, Media Properties, the seven media taxonomies, People, Groups) gets a **pathless
@@ -541,6 +541,22 @@ registry edit, never a pane edit.
     change. (An entity is added here once its General composite (or, for a config entity, its main
     composite field) is broken into granular fields — e.g. Group #1195, Website #1188, Location #1191,
     YouTube Channel #1192, Person #1194, Autofill #1197, Card Display Rule #1198.)
+- **Dynamic (user-defined) placeable fields (#1163+).** The layout engine also carries **runtime-sourced**
+  fields, not just the compile-time `fields` registry: a descriptor may set `useDynamicFields` (on
+  `EntityWorkbench`) returning a `DynamicFieldSet` (fields keyed by a runtime id + a `defaultHome`
+  tab/section). `useLayoutDrivenWorkbench` (`hooks/useEntityLayout.ts`) merges these into the resolved
+  `fields` and appends their keys to an **augmented** `defaultLayout` (via `augmentDefaultLayout` in
+  `lib/workbenchLayout.ts`) so an unplaced/new one still gets a home — keeping `resolveLayout` pure and
+  the invisibility invariant intact. Every layout consumer (`EntityInfoView`/`EntityEditView`/
+  `WorkbenchRouteTab`, the bookmark detail/edit bodies, and `PageLayoutsSettings`' tray) routes its
+  workbench through this seam. **Bookmarks are the sole source today:** each **enabled** custom property
+  is a placeable field keyed by its id (`useBookmarkDynamicFields` in `BookmarkPropertyLayoutFields.tsx`;
+  the Card-Display-Rules card-field convention), so an operator arranges individual properties across the
+  bookmark view/edit tabs. All per-property edit fields share **one** `useBookmarkPropertiesForm`
+  controller via `BookmarkPropertiesFormContext` (mounted by `BookmarkEditView` when the active tab hosts
+  a property field), since the controller debounce-persists the whole value set. This **replaced Property
+  Groups**, which was removed — there is no property-group entity, table, or `propertyGroupId` column; the
+  bookmark property view/form and the filter sidebar render properties flat.
 - **Explicitly out of scope for v1 — don't "fix" these:**
   - **Create forms are unaffected.** The Add Bookmark quick-create form keeps its own, separate placement
     system (Settings → Display → Bookmark Add Form; see **Add Bookmark form field placement** + the
@@ -595,7 +611,7 @@ parametrized helper).
 ## Edit-tab auto-save standard
 
 Every slug-routed entity **edit** tab (Categories, Custom Properties, Websites, Media Types, YouTube
-Channels, Tags, Property Groups, Autofill) **auto-saves per field — there is no Save button.** Each
+Channels, Tags, Autofill) **auto-saves per field — there is no Save button.** Each
 field persists on its own and fires a toast that **names the field** and is recorded in the
 Notifications log (the header **bell popover**, `components/NotificationsBellPopover.tsx`, over the
 `notificationStore` — this is the history home since the right drawer was removed in issue #1108).

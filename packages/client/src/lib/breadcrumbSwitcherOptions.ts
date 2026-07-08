@@ -19,7 +19,6 @@ const TAXONOMY_HREF_PREFIX: Record<TaxonomyEntity, string> = {
   "website": "/taxonomies/websites",
   "youtube-channel": "/taxonomies/youtube-channels",
   "custom-property": "/custom-properties",
-  "property-group": "/taxonomies/property-groups",
   "autofill": "/autofill",
   "import-rule": "/import-rules",
 };
@@ -86,12 +85,6 @@ function taxonomyOptions(entity: TaxonomyEntity, lists: TaxonomyLists): Switcher
         value: p.slug,
         label: p.name,
         href: `${prefix}/${p.slug}`,
-      }));
-    case "property-group":
-      return (lists.groups ?? []).map(g => ({
-        value: g.slug,
-        label: g.name,
-        href: `${prefix}/${g.slug}`,
       }));
     case "autofill":
       return (lists.rules ?? []).map(r => ({

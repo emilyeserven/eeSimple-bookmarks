@@ -6,7 +6,6 @@ import { languageWorkbench } from "./language";
 import { locationRelationWorkbench } from "./locationRelation";
 import { personWorkbench } from "./person";
 import { placeTypeWorkbench } from "./placeType";
-import { propertyGroupWorkbench } from "./propertyGroup";
 import { relationshipTypeWorkbench } from "./relationshipType";
 import { shape } from "./workbenchLayoutTestUtils";
 
@@ -81,47 +80,6 @@ describe("locationRelation default layout", () => {
         }],
       },
     ]);
-  });
-});
-
-describe("propertyGroup default layout", () => {
-  it("renders all four tabs identically in both modes", () => {
-    const expected = [
-      {
-        key: "general",
-        group: undefined,
-        sections: [{
-          key: "general",
-          fields: ["general"],
-        }],
-      },
-      {
-        key: "categories",
-        group: undefined,
-        sections: [{
-          key: "categories",
-          fields: ["categories"],
-        }],
-      },
-      {
-        key: "media-types",
-        group: undefined,
-        sections: [{
-          key: "media-types",
-          fields: ["mediaTypes"],
-        }],
-      },
-      {
-        key: "display-rules",
-        group: undefined,
-        sections: [{
-          key: "display-rules",
-          fields: ["displayRules"],
-        }],
-      },
-    ];
-    expect(shape(propertyGroupWorkbench, "view")).toEqual(expected);
-    expect(shape(propertyGroupWorkbench, "edit")).toEqual(expected);
   });
 });
 

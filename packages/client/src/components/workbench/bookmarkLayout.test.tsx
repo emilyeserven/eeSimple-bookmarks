@@ -1,12 +1,12 @@
-import type { EntityWorkbench, WorkbenchMode } from "./types";
-import type { EntityLayout } from "@eesimple/types";
+import type { EntityWorkbench, WorkbenchMode, WorkbenchField } from "./types";
+import type { EntityLayout, Bookmark } from "@eesimple/types";
 
 import { resolveLayout } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import { bookmarkWorkbench } from "./bookmark";
 
-import { deriveWorkbenchTabs, knownFieldKeys, visibleSectionsForTab } from "@/lib/workbenchLayout";
+import { augmentDefaultLayout, deriveWorkbenchTabs, knownFieldKeys, visibleSectionsForTab } from "@/lib/workbenchLayout";
 
 /**
  * The #1163 bookmark analogue of `pilotLayouts.test.tsx`: the `"bookmark"` field registry must resolve
@@ -57,17 +57,12 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["url", "description", "category", "mediaType", "tags", "detailsExtra"],
+          fields: ["url", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "kavitaLink", "plexLink"],
         }],
       },
-      {
-        key: "properties",
-        group: undefined,
-        sections: [{
-          key: "properties",
-          fields: ["customProperties"],
-        }],
-      },
+      // The `properties` tab has no static VIEW field (its only static field, `youtubeMetadata`, is
+      // edit-only; each custom property is a dynamic view+edit field merged in at runtime — see the
+      // "dynamic custom-property fields" describe below), so it is hidden in the static-registry view.
       {
         key: "languages",
         group: undefined,
@@ -81,7 +76,8 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "image",
-          fields: ["gallery"],
+          // Only `imagePicker` has a view renderer; the other three image fields are edit-only.
+          fields: ["imagePicker"],
         }],
       },
       {
@@ -89,7 +85,8 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "video",
-          fields: ["reel"],
+          // `reelCapture` is edit-only, so only the player shows in view.
+          fields: ["reelPlayer"],
         }],
       },
       {
@@ -105,7 +102,7 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "metadata",
-          fields: ["metadata"],
+          fields: ["priority", "createdAt"],
         }],
       },
       {
@@ -140,7 +137,8 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "properties",
-          fields: ["customProperties"],
+          // The static YouTube-metadata field (edit-only); dynamic custom-property fields append here.
+          fields: ["youtubeMetadata"],
         }],
       },
       {
@@ -156,7 +154,7 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "image",
-          fields: ["gallery"],
+          fields: ["imagePicker", "imageActions", "imageDisplay", "screenshot"],
         }],
       },
       {
@@ -164,7 +162,7 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "video",
-          fields: ["reel"],
+          fields: ["reelCapture", "reelPlayer"],
         }],
       },
       {
@@ -180,7 +178,7 @@ describe("bookmark default layout", () => {
 });
 
 describe("bookmark stored layout rearrangement (end-to-end loop)", () => {
-  // Move the `gallery` field into a brand-new user-created tab; `resolveLayout` keeps it there and
+  // Move the `imagePicker` field into a brand-new user-created tab; `resolveLayout` keeps it there and
   // appends every other unplaced field to its default home — proving a stored layout drives the render
   // in BOTH modes for bookmarks too (the hand-PUT loop the editor UI automates).
   const stored: EntityLayout = {
@@ -190,7 +188,7 @@ describe("bookmark stored layout rearrangement (end-to-end loop)", () => {
         label: "Media",
         sections: [{
           key: "s",
-          fields: ["gallery"],
+          fields: ["imagePicker"],
         }],
       },
     ],
@@ -199,13 +197,76 @@ describe("bookmark stored layout rearrangement (end-to-end loop)", () => {
   it("shows the moved field under the new tab in both modes", () => {
     const viewMedia = shape(bookmarkWorkbench, "view", stored).find(tab => tab.key === "media");
     const editMedia = shape(bookmarkWorkbench, "edit", stored).find(tab => tab.key === "media");
-    expect(viewMedia?.sections[0]?.fields).toEqual(["gallery"]);
-    expect(editMedia?.sections[0]?.fields).toEqual(["gallery"]);
+    expect(viewMedia?.sections[0]?.fields).toEqual(["imagePicker"]);
+    expect(editMedia?.sections[0]?.fields).toEqual(["imagePicker"]);
   });
 
-  it("no longer shows the original image tab (now empty → hidden)", () => {
+  it("no longer shows the original image tab in view (its only view field moved away)", () => {
+    // In view the image tab's other fields (imageActions/imageDisplay/screenshot) are edit-only, so
+    // with `imagePicker` moved out the image tab has no view-visible field and is hidden.
     const keys = shape(bookmarkWorkbench, "view", stored).map(tab => tab.key);
     expect(keys).toContain("media");
     expect(keys).not.toContain("image");
+  });
+});
+
+describe("bookmark dynamic custom-property fields", () => {
+  // Simulate the runtime merge `useLayoutDrivenWorkbench` performs: two enabled custom properties
+  // become view+edit fields keyed by id, appended to the Properties tab's home section.
+  const noop = () => null;
+  const propField = (key: string, label: string): WorkbenchField<Bookmark> => ({
+    key,
+    label,
+    view: noop,
+    edit: noop,
+  });
+  const baseDefault = bookmarkWorkbench.defaultLayout ?? {
+    tabs: [],
+  };
+  const defaultLayout = augmentDefaultLayout(
+    baseDefault,
+    ["prop-a", "prop-b"],
+    {
+      tabKey: "properties",
+      sectionKey: "properties",
+    },
+  );
+  const merged = {
+    ...bookmarkWorkbench,
+    fields: {
+      ...bookmarkWorkbench.fields,
+      "prop-a": propField("prop-a", "Rating"),
+      "prop-b": propField("prop-b", "Notes"),
+    },
+    defaultLayout,
+  };
+
+  it("places each property field in the Properties tab, in both modes", () => {
+    const viewProps = shape(merged, "view").find(tab => tab.key === "properties");
+    // youtubeMetadata is edit-only → dropped in view, leaving the two dynamic property fields.
+    expect(viewProps?.sections[0]?.fields).toEqual(["prop-a", "prop-b"]);
+
+    const editProps = shape(merged, "edit").find(tab => tab.key === "properties");
+    expect(editProps?.sections[0]?.fields).toEqual(["youtubeMetadata", "prop-a", "prop-b"]);
+  });
+
+  it("keeps a stored placement of a property field in a different tab", () => {
+    const stored = {
+      tabs: [
+        {
+          key: "general",
+          label: "General",
+          sections: [{
+            key: "general",
+            fields: ["url", "prop-a"],
+          }],
+        },
+      ],
+    };
+    const editGeneral = shape(merged, "edit", stored).find(tab => tab.key === "general");
+    expect(editGeneral?.sections[0]?.fields).toContain("prop-a");
+    // prop-b, unplaced, falls back to its Properties home.
+    const editProps = shape(merged, "edit", stored).find(tab => tab.key === "properties");
+    expect(editProps?.sections.some(section => section.fields.includes("prop-b"))).toBe(true);
   });
 });

@@ -30,7 +30,6 @@ export function MediaTypeListing({
   const {
     categories,
     properties,
-    propertyGroups,
     bookmarks,
     bookmarksLoading,
     error,
@@ -63,7 +62,6 @@ export function MediaTypeListing({
       pageKey={`media-type:${mediaTypeSlug}`}
       tree={tagTree ?? []}
       properties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
       categories={categories ?? []}
       youtubeChannels={youtubeChannels ?? []}
       relationshipTypes={relationshipTypes ?? []}

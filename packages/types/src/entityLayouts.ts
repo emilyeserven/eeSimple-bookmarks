@@ -37,7 +37,6 @@ export const LAYOUTABLE_ENTITY_KINDS = [
   "person",
   "group",
   "group-type",
-  "property-group",
   "relationship-type",
   "custom-property",
   "autofill",
