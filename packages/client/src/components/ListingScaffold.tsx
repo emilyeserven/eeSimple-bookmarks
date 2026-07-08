@@ -25,11 +25,11 @@ export function ListingScaffold<E extends { id: string }>({
   state: ListingScaffoldState<E>;
 }) {
   const {
-    items, isLoading, error, columns, viewMode, rawQuery, hasQuery, filtered, deletableIds, selection, bulkDelete,
+    items, isLoading, error, columns, viewMode, rawQuery, hasQuery, filtered, sorted, facetActive, deletableIds, selection, bulkDelete,
     secondaryFilterValue, setSecondaryFilterValue,
   } = state;
 
-  const groups = partitionListingSections(filtered, config.sections);
+  const groups = partitionListingSections(sorted, config.sections);
   const {
     renderTable,
   } = config;
@@ -37,7 +37,7 @@ export function ListingScaffold<E extends { id: string }>({
 
   return (
     <div className="space-y-4">
-      <ListingSearchBox />
+      <ListingSearchBox sort={config.renderSearchSort?.()} />
 
       {config.secondaryFilter
         ? config.secondaryFilter.render({
@@ -53,6 +53,7 @@ export function ListingScaffold<E extends { id: string }>({
         filteredCount={filtered.length}
         rawQuery={rawQuery}
         hasQuery={hasQuery}
+        hasFilter={facetActive}
         loadingLabel={config.loadingLabel}
         entityPlural={config.entityPlural}
         emptyMessage={config.emptyMessage}

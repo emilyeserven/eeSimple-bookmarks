@@ -13,6 +13,8 @@ export interface ListingStatusMessagesProps {
   rawQuery: string;
   /** Whether a non-empty search query is active. */
   hasQuery: boolean;
+  /** Whether an extra facet filter (not the text query) is narrowing the list. Defaults to false. */
+  hasFilter?: boolean;
   /** Text shown while loading, e.g. "Loading websites…". */
   loadingLabel: string;
   /** Lowercase plural entity name for the "No {plural} match …" line, e.g. "websites". */
@@ -34,6 +36,7 @@ export function ListingStatusMessages({
   filteredCount,
   rawQuery,
   hasQuery,
+  hasFilter = false,
   loadingLabel,
   entityPlural,
   emptyMessage,
@@ -41,10 +44,11 @@ export function ListingStatusMessages({
   const {
     t,
   } = useTranslation();
+  const narrowed = hasQuery || hasFilter;
 
   return (
     <>
-      {hasQuery && filteredCount < totalCount
+      {narrowed && filteredCount < totalCount
         ? (
           <p className="text-sm text-muted-foreground">
             {t("Showing {{filteredCount}} of {{totalCount}}", {
@@ -63,10 +67,14 @@ export function ListingStatusMessages({
       {!isLoading && totalCount > 0 && filteredCount === 0
         ? (
           <p className="text-muted-foreground">
-            {t("No {{entityPlural}} match “{{rawQuery}}”.", {
-              entityPlural,
-              rawQuery,
-            })}
+            {hasQuery
+              ? t("No {{entityPlural}} match “{{rawQuery}}”.", {
+                entityPlural,
+                rawQuery,
+              })
+              : t("No {{entityPlural}} match the current filters.", {
+                entityPlural,
+              })}
           </p>
         )
         : null}

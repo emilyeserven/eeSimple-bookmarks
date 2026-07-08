@@ -69,6 +69,26 @@ export interface EntityListingConfig<E extends { id: string }> {
     matches: (item: E, value: string | null) => boolean;
   };
   /**
+   * Extra facet filter(s) that need store/query state richer than `secondaryFilter`'s single string
+   * (e.g. Websites' Category + Media Type + Built-in + Has-bookmarks combination). A hook slot — same
+   * rule as `useSortedItems` — applied after the header/secondary filters and BEFORE `useSortedItems`,
+   * so it reduces the "N of M" filtered count and the bulk-select set. Default: identity. Pair it with
+   * a `renderSearchSort` control that writes the facet state. Mirrors the tree config's hook slots.
+   */
+  useExtraFilter?: (items: E[]) => E[];
+  /**
+   * Client-side re-sort of the filtered items before render (hook slot, so it can read a uiStore sort
+   * mode — mirrors `EntityTreeListingConfig.useSortedTree`). Applied last, after every filter, so it
+   * never changes the counts. Must be a stable hook per `pageKey`. Default: identity.
+   */
+  useSortedItems?: (items: E[]) => E[];
+  /**
+   * A sort/filter control rendered in the `ListingSearchBox`'s right-hand `sort` slot — the same slot
+   * the bookmark listings use, and the flat mirror of `EntityTreeListingConfig.renderSearchSort`. Wire
+   * it to the state that `useSortedItems`/`useExtraFilter` read.
+   */
+  renderSearchSort?: () => ReactNode;
+  /**
    * Optional partition of the rendered list (both card/list and table views) into labeled sections,
    * e.g. Languages' used vs. "Unused" split. Each filtered item is assigned to the FIRST section
    * whose `match` returns true (sections should be mutually exclusive & exhaustive); items matching
