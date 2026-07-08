@@ -1,5 +1,5 @@
-import type { EntityWorkbench } from "./types";
-import type { AutofillRule } from "@eesimple/types";
+import type { EntityWorkbench, WorkbenchField } from "./types";
+import type { AutofillRule, EntityLayout } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { AutofillBackfillView } from "../AutofillBackfillView";
@@ -10,6 +10,109 @@ import { AutofillRulePrefillForm } from "../AutofillRulePrefillForm";
 import { ConditionsView, DebugView, PrefillView } from "./autofillViews";
 
 import { useAutofillRuleById, useAutofillRuleBySlug, useDeleteAutofillRule } from "@/hooks/useAutofill";
+
+/**
+ * The autofill-rule workbench's field registry (#1106 layout editor). Each existing tab pane
+ * becomes ONE placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key — the
+ * composite-editor recipe (#1165): the `conditions` field's edit renderer is the Activation
+ * Conditions builder, kept as one opaque block per "a composite editor (Conditions builder, …)
+ * registers as ONE field; its internals are not decomposed." `debug` and `backfill` are
+ * **view-only** (no `edit`), which is what makes those tabs disappear in edit mode for free.
+ * Authored as an exhaustive `Record<AutofillFieldKey, …>` so a key without a renderer fails `tsc`.
+ */
+type AutofillFieldKey
+  = | "general"
+    | "conditions"
+    | "prefill"
+    | "debug"
+    | "backfill";
+
+const autofillFields = {
+  general: {
+    key: "general",
+    label: i18n.t("General"),
+    view: ({
+      entity,
+    }) => <AutofillGeneralFields rule={entity} />,
+    edit: ({
+      entity,
+    }) => <AutofillRuleGeneralForm rule={entity} />,
+  },
+  conditions: {
+    key: "conditions",
+    label: i18n.t("Activation Conditions"),
+    view: ConditionsView,
+    edit: ({
+      entity,
+    }) => <AutofillRuleConditionsForm rule={entity} />,
+  },
+  prefill: {
+    key: "prefill",
+    label: i18n.t("What Gets Prefilled"),
+    view: PrefillView,
+    edit: ({
+      entity,
+    }) => <AutofillRulePrefillForm rule={entity} />,
+  },
+  debug: {
+    key: "debug",
+    label: i18n.t("Debug"),
+    view: DebugView,
+  },
+  backfill: {
+    key: "backfill",
+    label: i18n.t("Backfill"),
+    view: ({
+      entity,
+    }) => <AutofillBackfillView rule={entity} />,
+  },
+} satisfies Record<AutofillFieldKey, WorkbenchField<AutofillRule>>;
+
+/** The code-defined default layout — the current tab list, one untitled section per tab. */
+const AUTOFILL_DEFAULT_LAYOUT: EntityLayout = {
+  tabs: [
+    {
+      key: "general",
+      label: i18n.t("General"),
+      sections: [{
+        key: "general",
+        fields: ["general"] satisfies AutofillFieldKey[],
+      }],
+    },
+    {
+      key: "conditions",
+      label: i18n.t("Activation Conditions"),
+      sections: [{
+        key: "conditions",
+        fields: ["conditions"] satisfies AutofillFieldKey[],
+      }],
+    },
+    {
+      key: "prefill",
+      label: i18n.t("What Gets Prefilled"),
+      sections: [{
+        key: "prefill",
+        fields: ["prefill"] satisfies AutofillFieldKey[],
+      }],
+    },
+    {
+      key: "debug",
+      label: i18n.t("Debug"),
+      sections: [{
+        key: "debug",
+        fields: ["debug"] satisfies AutofillFieldKey[],
+      }],
+    },
+    {
+      key: "backfill",
+      label: i18n.t("Backfill"),
+      sections: [{
+        key: "backfill",
+        fields: ["backfill"] satisfies AutofillFieldKey[],
+      }],
+    },
+  ],
+};
 
 /** Single source of truth for an autofill rule's tabbed view/edit UI (main pane routes + right panel). */
 export const autofillWorkbench: EntityWorkbench<AutofillRule> = {
@@ -46,76 +149,31 @@ export const autofillWorkbench: EntityWorkbench<AutofillRule> = {
   notFound: i18n.t("Autofill rule not found."),
   navAriaLabel: i18n.t("Autofill rule sections"),
   getSlug: rule => rule.slug,
+  layoutKind: "autofill",
+  fields: autofillFields,
+  defaultLayout: AUTOFILL_DEFAULT_LAYOUT,
+  // Layout-driven: the tab rail + section stacks come from `fields` + `defaultLayout`. `tabs` is
+  // retained only to satisfy the descriptor's type requirement — a config entity, so no nav groups.
   tabs: [
     {
       key: "general",
-      label: "General",
-      view: {
-        title: i18n.t("General"),
-        description: i18n.t("Name, description, and priority."),
-        render: ({
-          entity,
-        }) => <AutofillGeneralFields rule={entity} />,
-      },
-      edit: {
-        title: i18n.t("General"),
-        description: i18n.t("Name, description, and priority."),
-        render: ({
-          entity,
-        }) => <AutofillRuleGeneralForm rule={entity} />,
-      },
+      label: i18n.t("General"),
     },
     {
       key: "conditions",
-      label: "Activation Conditions",
-      view: {
-        title: i18n.t("Activation Conditions"),
-        description: i18n.t("When this rule fires."),
-        render: ConditionsView,
-      },
-      edit: {
-        title: i18n.t("Activation Conditions"),
-        description: i18n.t("Configure when this rule should apply."),
-        render: ({
-          entity,
-        }) => <AutofillRuleConditionsForm rule={entity} />,
-      },
+      label: i18n.t("Activation Conditions"),
     },
     {
       key: "prefill",
-      label: "What Gets Prefilled",
-      view: {
-        title: i18n.t("What Gets Prefilled"),
-        description: i18n.t("Category, tags, and custom-property values set when this rule matches."),
-        render: PrefillView,
-      },
-      edit: {
-        title: i18n.t("What Gets Prefilled"),
-        description: i18n.t("Configure the category, tags, and property values this rule sets."),
-        render: ({
-          entity,
-        }) => <AutofillRulePrefillForm rule={entity} />,
-      },
+      label: i18n.t("What Gets Prefilled"),
     },
     {
       key: "debug",
-      label: "Debug",
-      view: {
-        title: i18n.t("Debug"),
-        description: i18n.t("Rule and bookmark JSON for debugging rule matching with Claude."),
-        render: DebugView,
-      },
+      label: i18n.t("Debug"),
     },
     {
       key: "backfill",
-      label: "Backfill",
-      view: {
-        title: i18n.t("Backfill"),
-        description: i18n.t("Find matching bookmarks missing this rule's properties and apply them."),
-        render: ({
-          entity,
-        }) => <AutofillBackfillView rule={entity} />,
-      },
+      label: i18n.t("Backfill"),
     },
   ],
 };

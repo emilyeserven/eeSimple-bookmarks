@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- this module exports an entity descriptor that pairs tab bodies with metadata, not a component */
-import type { EntityWorkbench } from "./types";
-import type { YouTubeChannel } from "@eesimple/types";
+import type { EntityWorkbench, WorkbenchField } from "./types";
+import type { EntityLayout, YouTubeChannel } from "@eesimple/types";
 
 import { MonitorPlay } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -83,6 +83,120 @@ function YouTubeChannelGeneralView({
   );
 }
 
+/**
+ * The YouTube channel workbench's field registry (#1106 layout editor). Each existing tab pane
+ * becomes ONE placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key (#1165
+ * composite-editor recipe) — `general` bundles the existing image preview + metadata + form
+ * unchanged (an image-bearing entity's avatar stays part of its one composite field, per the "an
+ * image/gallery manager registers as a single field" rule). Authored as an exhaustive
+ * `Record<YouTubeChannelFieldKey, …>` so a key without a renderer fails `tsc`.
+ */
+type YouTubeChannelFieldKey
+  = | "general"
+    | "autofillRules"
+    | "displayRules"
+    | "languages";
+
+const youtubeChannelFields = {
+  general: {
+    key: "general",
+    label: i18n.t("General"),
+    view: YouTubeChannelGeneralView,
+    edit: ({
+      entity,
+    }) => <YouTubeChannelGeneralForm channel={entity} />,
+  },
+  autofillRules: {
+    key: "autofillRules",
+    label: i18n.t("Autofill Rules"),
+    view: ({
+      entity,
+    }) => (
+      <AutofillRulesList
+        channelId={entity.id}
+        query=""
+      />
+    ),
+    edit: ({
+      entity,
+    }) => (
+      <AutofillRulesList
+        channelId={entity.id}
+        query=""
+      />
+    ),
+  },
+  displayRules: {
+    key: "displayRules",
+    label: i18n.t("Display Rules"),
+    view: ({
+      entity,
+    }) => <CardDisplayRulesList channelId={entity.id} />,
+    edit: ({
+      entity,
+    }) => <CardDisplayRulesList channelId={entity.id} />,
+  },
+  languages: {
+    key: "languages",
+    label: i18n.t("Languages"),
+    view: ({
+      entity,
+    }) => (
+      <LanguageUsagesTabView
+        ownerType="youtubeChannel"
+        ownerId={entity.id}
+      />
+    ),
+    edit: ({
+      entity,
+    }) => (
+      <LanguageUsagesTabEditor
+        ownerType="youtubeChannel"
+        ownerId={entity.id}
+        kind="availability"
+      />
+    ),
+  },
+} satisfies Record<YouTubeChannelFieldKey, WorkbenchField<YouTubeChannel>>;
+
+/** The code-defined default layout — the current tab list, one untitled section per tab. */
+const YOUTUBE_CHANNEL_DEFAULT_LAYOUT: EntityLayout = {
+  tabs: [
+    {
+      key: "general",
+      label: i18n.t("General"),
+      sections: [{
+        key: "general",
+        fields: ["general"] satisfies YouTubeChannelFieldKey[],
+      }],
+    },
+    {
+      key: "autofill",
+      label: i18n.t("Autofill Rules"),
+      sections: [{
+        key: "autofill",
+        fields: ["autofillRules"] satisfies YouTubeChannelFieldKey[],
+      }],
+    },
+    {
+      key: "display-rules",
+      label: i18n.t("Display Rules"),
+      sections: [{
+        key: "display-rules",
+        fields: ["displayRules"] satisfies YouTubeChannelFieldKey[],
+      }],
+    },
+    {
+      key: "languages",
+      label: i18n.t("Languages"),
+      sections: [{
+        key: "languages",
+        fields: ["languages"] satisfies YouTubeChannelFieldKey[],
+      }],
+    },
+  ],
+};
+
 /** Single source of truth for a YouTube channel's tabbed view/edit UI (main pane routes + right panel). */
 export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
   useBySlug: (slug) => {
@@ -119,99 +233,30 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
   navAriaLabel: i18n.t("YouTube channel sections"),
   listingPath: "/taxonomies/youtube-channels",
   getSlug: channel => channel.slug,
+  layoutKind: "youtube-channel",
+  fields: youtubeChannelFields,
+  defaultLayout: YOUTUBE_CHANNEL_DEFAULT_LAYOUT,
+  // Layout-driven: the tab rail + section stacks come from `fields` + `defaultLayout`. `tabs` is
+  // retained only to carry the code-only `group` nav metadata (the "Rules" More dropdown on the
+  // edit strip), re-attached by tab key in `deriveWorkbenchTabs`.
   tabs: [
     {
       key: "general",
       label: i18n.t("General"),
-      view: {
-        title: i18n.t("General"),
-        description: i18n.t("Channel details."),
-        render: YouTubeChannelGeneralView,
-      },
-      edit: {
-        title: i18n.t("General"),
-        description: i18n.t("Channel name."),
-        render: ({
-          entity,
-        }) => <YouTubeChannelGeneralForm channel={entity} />,
-      },
     },
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
       group: i18n.t("Rules"),
-      view: {
-        title: i18n.t("Autofill Rules"),
-        description: i18n.t("Autofill rules whose conditions target this channel."),
-        render: ({
-          entity,
-        }) => (
-          <AutofillRulesList
-            channelId={entity.id}
-            query=""
-          />
-        ),
-      },
-      edit: {
-        title: i18n.t("Autofill Rules"),
-        description: i18n.t("Autofill rules whose conditions target this channel."),
-        render: ({
-          entity,
-        }) => (
-          <AutofillRulesList
-            channelId={entity.id}
-            query=""
-          />
-        ),
-      },
     },
     {
       key: "display-rules",
       label: i18n.t("Display Rules"),
       group: i18n.t("Rules"),
-      view: {
-        title: i18n.t("Display Rules"),
-        description: i18n.t("Card display rules whose conditions reference this channel."),
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList channelId={entity.id} />,
-      },
-      edit: {
-        title: i18n.t("Display Rules"),
-        description: i18n.t("Card display rules whose conditions reference this channel."),
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList channelId={entity.id} />,
-      },
     },
     {
       key: "languages",
       label: i18n.t("Languages"),
-      view: {
-        title: i18n.t("Languages"),
-        description: i18n.t("Languages this channel's content is available in and how."),
-        render: ({
-          entity,
-        }) => (
-          <LanguageUsagesTabView
-            ownerType="youtubeChannel"
-            ownerId={entity.id}
-          />
-        ),
-      },
-      edit: {
-        title: i18n.t("Languages"),
-        description: i18n.t("Record which languages this channel offers (dub, subtitles, …)."),
-        render: ({
-          entity,
-        }) => (
-          <LanguageUsagesTabEditor
-            ownerType="youtubeChannel"
-            ownerId={entity.id}
-            kind="availability"
-          />
-        ),
-      },
     },
   ],
 };
