@@ -5,6 +5,7 @@ import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 import { bookmarkWorkbench } from "../components/workbench/bookmark";
 import { categoryWorkbench } from "../components/workbench/category";
 import { genreMoodWorkbench } from "../components/workbench/genreMood";
+import { mediaTypeWorkbench } from "../components/workbench/mediaType";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
 import { propertyWorkbench } from "../components/workbench/property";
 import { tagWorkbench } from "../components/workbench/tag";
@@ -87,6 +88,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Website"),
     fields: fieldsFromRegistry(websiteWorkbench.fields),
     defaultLayout: websiteWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "media-type",
+    label: i18n.t("Media Type"),
+    fields: fieldsFromRegistry(mediaTypeWorkbench.fields),
+    defaultLayout: mediaTypeWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },
