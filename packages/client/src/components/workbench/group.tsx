@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- this module exports an entity descriptor that pairs tab bodies with metadata, not a component */
-import type { EntityWorkbench } from "./types";
-import type { Group } from "@eesimple/types";
+import type { EntityWorkbench, WorkbenchField } from "./types";
+import type { EntityLayout, Group } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { Building2 } from "lucide-react";
@@ -160,6 +160,91 @@ function GroupGeneralView({
   );
 }
 
+/**
+ * The group workbench's field registry (#1106 layout editor). All four fields carry both modes — the
+ * entity has no view-only/edit-only tabs today.
+ */
+type GroupFieldKey = "general" | "people" | "youtubeChannels" | "websites";
+
+const groupFields = {
+  general: {
+    key: "general",
+    label: i18n.t("General"),
+    view: GroupGeneralView,
+    edit: ({
+      entity,
+    }) => <GroupGeneralForm group={entity} />,
+  },
+  people: {
+    key: "people",
+    label: i18n.t("People"),
+    view: ({
+      entity,
+    }) => <GroupPeopleView group={entity} />,
+    edit: ({
+      entity,
+    }) => <GroupPeopleForm group={entity} />,
+  },
+  youtubeChannels: {
+    key: "youtubeChannels",
+    label: i18n.t("YouTube Channels"),
+    view: ({
+      entity,
+    }) => <GroupYouTubeChannelsView group={entity} />,
+    edit: ({
+      entity,
+    }) => <GroupYouTubeChannelsForm group={entity} />,
+  },
+  websites: {
+    key: "websites",
+    label: i18n.t("Websites"),
+    view: ({
+      entity,
+    }) => <GroupWebsitesView group={entity} />,
+    edit: ({
+      entity,
+    }) => <GroupWebsitesForm group={entity} />,
+  },
+} satisfies Record<GroupFieldKey, WorkbenchField<Group>>;
+
+/** The code default layout: the current four tabs, one untitled section each, in current order. */
+const GROUP_DEFAULT_LAYOUT: EntityLayout = {
+  tabs: [
+    {
+      key: "general",
+      label: i18n.t("General"),
+      sections: [{
+        key: "general",
+        fields: ["general"] satisfies GroupFieldKey[],
+      }],
+    },
+    {
+      key: "people",
+      label: i18n.t("People"),
+      sections: [{
+        key: "people",
+        fields: ["people"] satisfies GroupFieldKey[],
+      }],
+    },
+    {
+      key: "youtube-channels",
+      label: i18n.t("YouTube Channels"),
+      sections: [{
+        key: "youtube-channels",
+        fields: ["youtubeChannels"] satisfies GroupFieldKey[],
+      }],
+    },
+    {
+      key: "websites",
+      label: i18n.t("Websites"),
+      sections: [{
+        key: "websites",
+        fields: ["websites"] satisfies GroupFieldKey[],
+      }],
+    },
+  ],
+};
+
 /** Single source of truth for a group's tabbed view/edit UI (main pane routes + right panel). */
 export const groupWorkbench: EntityWorkbench<Group> = {
   useBySlug: (slug) => {
@@ -196,76 +281,27 @@ export const groupWorkbench: EntityWorkbench<Group> = {
   navAriaLabel: i18n.t("Group sections"),
   listingPath: "/taxonomies/groups",
   getSlug: group => group.slug,
+  layoutKind: "group",
+  fields: groupFields,
+  defaultLayout: GROUP_DEFAULT_LAYOUT,
+  // Layout-driven: the body comes from `fields` + `defaultLayout`. `tabs` is a thin placeholder
+  // retained only for the descriptor's type requirement (no `group` nav metadata needed here).
   tabs: [
     {
       key: "general",
       label: i18n.t("General"),
-      view: {
-        title: i18n.t("General"),
-        description: i18n.t("Name, website, group type, image, Plex link, and year."),
-        render: GroupGeneralView,
-      },
-      edit: {
-        title: i18n.t("General"),
-        description: i18n.t("Edit the group's name, website, group type, image, Plex link, and year."),
-        render: ({
-          entity,
-        }) => <GroupGeneralForm group={entity} />,
-      },
     },
     {
       key: "people",
       label: i18n.t("People"),
-      view: {
-        title: i18n.t("People"),
-        description: i18n.t("People associated with this group."),
-        render: ({
-          entity,
-        }) => <GroupPeopleView group={entity} />,
-      },
-      edit: {
-        title: i18n.t("People"),
-        description: i18n.t("Connect people to this group."),
-        render: ({
-          entity,
-        }) => <GroupPeopleForm group={entity} />,
-      },
     },
     {
       key: "youtube-channels",
       label: i18n.t("YouTube Channels"),
-      view: {
-        title: i18n.t("YouTube Channels"),
-        description: i18n.t("YouTube channels associated with this group."),
-        render: ({
-          entity,
-        }) => <GroupYouTubeChannelsView group={entity} />,
-      },
-      edit: {
-        title: i18n.t("YouTube Channels"),
-        description: i18n.t("Connect YouTube channels to this group."),
-        render: ({
-          entity,
-        }) => <GroupYouTubeChannelsForm group={entity} />,
-      },
     },
     {
       key: "websites",
       label: i18n.t("Websites"),
-      view: {
-        title: i18n.t("Websites"),
-        description: i18n.t("Websites associated with this group."),
-        render: ({
-          entity,
-        }) => <GroupWebsitesView group={entity} />,
-      },
-      edit: {
-        title: i18n.t("Websites"),
-        description: i18n.t("Connect websites to this group."),
-        render: ({
-          entity,
-        }) => <GroupWebsitesForm group={entity} />,
-      },
     },
   ],
 };

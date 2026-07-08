@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- this module exports an entity descriptor that pairs tab bodies with metadata, not a component */
-import type { EntityWorkbench } from "./types";
-import type { LocationNode, PlaceType } from "@eesimple/types";
+import type { EntityWorkbench, WorkbenchField } from "./types";
+import type { EntityLayout, LocationNode, PlaceType } from "@eesimple/types";
 
 import { placeTypeKey } from "@eesimple/types";
 
@@ -69,6 +69,37 @@ function PlaceTypeGeneralView({
   );
 }
 
+/**
+ * The place type workbench's field registry (#1106 layout editor). A single `general` field carries
+ * both modes (`PlaceTypeGeneralView` view / `PlaceTypeGeneralForm` edit) — the entity has one tab today.
+ */
+type PlaceTypeFieldKey = "general";
+
+const placeTypeFields = {
+  general: {
+    key: "general",
+    label: i18n.t("General"),
+    view: PlaceTypeGeneralView,
+    edit: ({
+      entity,
+    }) => <PlaceTypeGeneralForm placeType={entity} />,
+  },
+} satisfies Record<PlaceTypeFieldKey, WorkbenchField<PlaceType>>;
+
+/** The code default layout: the single General tab, one untitled section, one field. */
+const PLACE_TYPE_DEFAULT_LAYOUT: EntityLayout = {
+  tabs: [
+    {
+      key: "general",
+      label: i18n.t("General"),
+      sections: [{
+        key: "general",
+        fields: ["general"] satisfies PlaceTypeFieldKey[],
+      }],
+    },
+  ],
+};
+
 /** Single source of truth for a place type's view/edit UI (main pane routes + right panel). */
 export const placeTypeWorkbench: EntityWorkbench<PlaceType> = {
   useBySlug: (slug) => {
@@ -108,22 +139,15 @@ export const placeTypeWorkbench: EntityWorkbench<PlaceType> = {
   navAriaLabel: i18n.t("Place type sections"),
   listingPath: "/taxonomies/place-types",
   getSlug: placeType => placeType.slug,
+  layoutKind: "place-type",
+  fields: placeTypeFields,
+  defaultLayout: PLACE_TYPE_DEFAULT_LAYOUT,
+  // Layout-driven: the body comes from `fields` + `defaultLayout`. A single tab needs no `group`, so
+  // `tabs` is a thin placeholder retained only for the descriptor's type requirement.
   tabs: [
     {
       key: "general",
       label: "General",
-      view: {
-        title: i18n.t("General"),
-        description: i18n.t("Place type details and a map of its locations."),
-        render: PlaceTypeGeneralView,
-      },
-      edit: {
-        title: i18n.t("General"),
-        description: i18n.t("Name and sort order."),
-        render: ({
-          entity,
-        }) => <PlaceTypeGeneralForm placeType={entity} />,
-      },
     },
   ],
 };
