@@ -13,6 +13,7 @@ import {
   moveTab,
   renameSection,
   renameTab,
+  setSectionColumns,
   setTabIcon,
 } from "./entityLayoutMutations";
 
@@ -167,11 +168,44 @@ describe("renameTab / renameSection / setTabIcon", () => {
     expect(cleared.tabs[0].sections[1]).not.toHaveProperty("title");
   });
 
+  it("preserves a section's columns count across a rename", () => {
+    const withColumns = setSectionColumns(sampleLayout(), "general", "main", 2);
+    const renamed = renameSection(withColumns, "general", "main", "Overview");
+    expect(renamed.tabs[0].sections[0].title).toBe("Overview");
+    expect(renamed.tabs[0].sections[0].columns).toBe(2);
+    // …and when the title is cleared.
+    const cleared = renameSection(withColumns, "general", "main", "");
+    expect(cleared.tabs[0].sections[0]).not.toHaveProperty("title");
+    expect(cleared.tabs[0].sections[0].columns).toBe(2);
+  });
+
   it("sets and clears a tab icon", () => {
     const set = setTabIcon(sampleLayout(), "general", "Star");
     expect(set.tabs[0].icon).toBe("Star");
     const cleared = setTabIcon(set, "general", undefined);
     expect(cleared.tabs[0]).not.toHaveProperty("icon");
+  });
+});
+
+describe("setSectionColumns", () => {
+  it("sets a >1 column count on the target section only", () => {
+    const next = setSectionColumns(sampleLayout(), "general", "main", 3);
+    expect(next.tabs[0].sections[0].columns).toBe(3);
+    expect(next.tabs[0].sections[1]).not.toHaveProperty("columns");
+  });
+
+  it("drops the columns key for 1 (clean full-width default) and for undefined", () => {
+    const withColumns = setSectionColumns(sampleLayout(), "general", "main", 4);
+    expect(setSectionColumns(withColumns, "general", "main", 1).tabs[0].sections[0])
+      .not.toHaveProperty("columns");
+    expect(setSectionColumns(withColumns, "general", "main", undefined).tabs[0].sections[0])
+      .not.toHaveProperty("columns");
+  });
+
+  it("does not mutate the input layout", () => {
+    const layout = sampleLayout();
+    setSectionColumns(layout, "general", "main", 2);
+    expect(layout.tabs[0].sections[0]).not.toHaveProperty("columns");
   });
 });
 

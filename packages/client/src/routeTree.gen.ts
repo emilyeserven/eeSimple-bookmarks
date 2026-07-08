@@ -53,6 +53,7 @@ import { Route as SettingsYoutubeChannelsRouteImport } from './routes/settings.y
 import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites'
 import { Route as SettingsSavedFiltersRouteImport } from './routes/settings.saved-filters'
 import { Route as SettingsRelationshipsRouteImport } from './routes/settings.relationships'
+import { Route as SettingsPageLayoutsRouteImport } from './routes/settings.page-layouts'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
 import { Route as SettingsMediaManagementRouteImport } from './routes/settings.media-management'
 import { Route as SettingsMediaRouteImport } from './routes/settings.media'
@@ -130,7 +131,6 @@ import { Route as SettingsLocationsPinStyleRouteImport } from './routes/settings
 import { Route as SettingsLocationsLocationRelationsRouteImport } from './routes/settings.locations.location-relations'
 import { Route as SettingsLocationsLevelGroupsRouteImport } from './routes/settings.locations.level-groups'
 import { Route as SettingsDisplaySidebarRouteImport } from './routes/settings.display.sidebar'
-import { Route as SettingsDisplayPageLayoutsRouteImport } from './routes/settings.display.page-layouts'
 import { Route as SettingsDisplayMediaRouteImport } from './routes/settings.display.media'
 import { Route as SettingsDisplayLanguagesRouteImport } from './routes/settings.display.languages'
 import { Route as SettingsDisplayHomepageRouteImport } from './routes/settings.display.homepage'
@@ -497,6 +497,11 @@ const SettingsSavedFiltersRoute = SettingsSavedFiltersRouteImport.update({
 const SettingsRelationshipsRoute = SettingsRelationshipsRouteImport.update({
   id: '/relationships',
   path: '/relationships',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsPageLayoutsRoute = SettingsPageLayoutsRouteImport.update({
+  id: '/page-layouts',
+  path: '/page-layouts',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsMediaTypesRoute = SettingsMediaTypesRouteImport.update({
@@ -925,12 +930,6 @@ const SettingsDisplaySidebarRoute = SettingsDisplaySidebarRouteImport.update({
   path: '/sidebar',
   getParentRoute: () => SettingsDisplayRoute,
 } as any)
-const SettingsDisplayPageLayoutsRoute =
-  SettingsDisplayPageLayoutsRouteImport.update({
-    id: '/page-layouts',
-    path: '/page-layouts',
-    getParentRoute: () => SettingsDisplayRoute,
-  } as any)
 const SettingsDisplayMediaRoute = SettingsDisplayMediaRouteImport.update({
   id: '/media',
   path: '/media',
@@ -1796,6 +1795,7 @@ export interface FileRoutesByFullPath {
   '/settings/media': typeof SettingsMediaRouteWithChildren
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
+  '/settings/page-layouts': typeof SettingsPageLayoutsRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
@@ -1857,7 +1857,6 @@ export interface FileRoutesByFullPath {
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
   '/settings/display/languages': typeof SettingsDisplayLanguagesRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
-  '/settings/display/page-layouts': typeof SettingsDisplayPageLayoutsRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
   '/settings/locations/location-relations': typeof SettingsLocationsLocationRelationsRoute
@@ -2029,6 +2028,7 @@ export interface FileRoutesByTo {
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
+  '/settings/page-layouts': typeof SettingsPageLayoutsRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
@@ -2068,7 +2068,6 @@ export interface FileRoutesByTo {
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
   '/settings/display/languages': typeof SettingsDisplayLanguagesRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
-  '/settings/display/page-layouts': typeof SettingsDisplayPageLayoutsRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
   '/settings/locations/location-relations': typeof SettingsLocationsLocationRelationsRoute
@@ -2231,6 +2230,7 @@ export interface FileRoutesById {
   '/settings/media': typeof SettingsMediaRouteWithChildren
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
+  '/settings/page-layouts': typeof SettingsPageLayoutsRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
@@ -2293,7 +2293,6 @@ export interface FileRoutesById {
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
   '/settings/display/languages': typeof SettingsDisplayLanguagesRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
-  '/settings/display/page-layouts': typeof SettingsDisplayPageLayoutsRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
   '/settings/locations/location-relations': typeof SettingsLocationsLocationRelationsRoute
@@ -2498,6 +2497,7 @@ export interface FileRouteTypes {
     | '/settings/media'
     | '/settings/media-management'
     | '/settings/media-types'
+    | '/settings/page-layouts'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/websites'
@@ -2559,7 +2559,6 @@ export interface FileRouteTypes {
     | '/settings/display/homepage'
     | '/settings/display/languages'
     | '/settings/display/media'
-    | '/settings/display/page-layouts'
     | '/settings/display/sidebar'
     | '/settings/locations/level-groups'
     | '/settings/locations/location-relations'
@@ -2731,6 +2730,7 @@ export interface FileRouteTypes {
     | '/settings/link-parsing'
     | '/settings/media-management'
     | '/settings/media-types'
+    | '/settings/page-layouts'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/websites'
@@ -2770,7 +2770,6 @@ export interface FileRouteTypes {
     | '/settings/display/homepage'
     | '/settings/display/languages'
     | '/settings/display/media'
-    | '/settings/display/page-layouts'
     | '/settings/display/sidebar'
     | '/settings/locations/level-groups'
     | '/settings/locations/location-relations'
@@ -2932,6 +2931,7 @@ export interface FileRouteTypes {
     | '/settings/media'
     | '/settings/media-management'
     | '/settings/media-types'
+    | '/settings/page-layouts'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/websites'
@@ -2994,7 +2994,6 @@ export interface FileRouteTypes {
     | '/settings/display/homepage'
     | '/settings/display/languages'
     | '/settings/display/media'
-    | '/settings/display/page-layouts'
     | '/settings/display/sidebar'
     | '/settings/locations/level-groups'
     | '/settings/locations/location-relations'
@@ -3499,6 +3498,13 @@ declare module '@tanstack/react-router' {
       path: '/relationships'
       fullPath: '/settings/relationships'
       preLoaderRoute: typeof SettingsRelationshipsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/page-layouts': {
+      id: '/settings/page-layouts'
+      path: '/page-layouts'
+      fullPath: '/settings/page-layouts'
+      preLoaderRoute: typeof SettingsPageLayoutsRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/media-types': {
@@ -4038,13 +4044,6 @@ declare module '@tanstack/react-router' {
       path: '/sidebar'
       fullPath: '/settings/display/sidebar'
       preLoaderRoute: typeof SettingsDisplaySidebarRouteImport
-      parentRoute: typeof SettingsDisplayRoute
-    }
-    '/settings/display/page-layouts': {
-      id: '/settings/display/page-layouts'
-      path: '/page-layouts'
-      fullPath: '/settings/display/page-layouts'
-      preLoaderRoute: typeof SettingsDisplayPageLayoutsRouteImport
       parentRoute: typeof SettingsDisplayRoute
     }
     '/settings/display/media': {
@@ -5454,7 +5453,6 @@ interface SettingsDisplayRouteChildren {
   SettingsDisplayHomepageRoute: typeof SettingsDisplayHomepageRoute
   SettingsDisplayLanguagesRoute: typeof SettingsDisplayLanguagesRoute
   SettingsDisplayMediaRoute: typeof SettingsDisplayMediaRoute
-  SettingsDisplayPageLayoutsRoute: typeof SettingsDisplayPageLayoutsRoute
   SettingsDisplaySidebarRoute: typeof SettingsDisplaySidebarRoute
   SettingsDisplayIndexRoute: typeof SettingsDisplayIndexRoute
 }
@@ -5467,7 +5465,6 @@ const SettingsDisplayRouteChildren: SettingsDisplayRouteChildren = {
   SettingsDisplayHomepageRoute: SettingsDisplayHomepageRoute,
   SettingsDisplayLanguagesRoute: SettingsDisplayLanguagesRoute,
   SettingsDisplayMediaRoute: SettingsDisplayMediaRoute,
-  SettingsDisplayPageLayoutsRoute: SettingsDisplayPageLayoutsRoute,
   SettingsDisplaySidebarRoute: SettingsDisplaySidebarRoute,
   SettingsDisplayIndexRoute: SettingsDisplayIndexRoute,
 }
@@ -5530,6 +5527,7 @@ interface SettingsRouteChildren {
   SettingsMediaRoute: typeof SettingsMediaRouteWithChildren
   SettingsMediaManagementRoute: typeof SettingsMediaManagementRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
+  SettingsPageLayoutsRoute: typeof SettingsPageLayoutsRoute
   SettingsRelationshipsRoute: typeof SettingsRelationshipsRoute
   SettingsSavedFiltersRoute: typeof SettingsSavedFiltersRoute
   SettingsWebsitesRoute: typeof SettingsWebsitesRoute
@@ -5553,6 +5551,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsMediaRoute: SettingsMediaRouteWithChildren,
   SettingsMediaManagementRoute: SettingsMediaManagementRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
+  SettingsPageLayoutsRoute: SettingsPageLayoutsRoute,
   SettingsRelationshipsRoute: SettingsRelationshipsRoute,
   SettingsSavedFiltersRoute: SettingsSavedFiltersRoute,
   SettingsWebsitesRoute: SettingsWebsitesRoute,

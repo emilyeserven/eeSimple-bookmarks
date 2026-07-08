@@ -6,6 +6,7 @@ import { Fragment } from "react";
 import { LabeledSection } from "../LabeledSection";
 
 import { Separator } from "@/components/ui/separator";
+import { sectionColumnsClass } from "@/lib/layoutColumns";
 import { visibleSectionsForTab } from "@/lib/workbenchLayout";
 
 interface Props<E extends { id: string }> {
@@ -44,7 +45,7 @@ export function LayoutDrivenTabBody<E extends { id: string }>({
         section, fieldKeys,
       }, index) => {
         const body = (
-          <div className="space-y-6">
+          <div className={sectionColumnsClass(section.columns)}>
             {fieldKeys.map((key) => {
               const render = mode === "edit" ? fields[key]?.edit : fields[key]?.view;
               return render

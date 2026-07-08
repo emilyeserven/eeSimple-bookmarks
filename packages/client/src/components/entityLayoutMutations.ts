@@ -168,10 +168,31 @@ export function renameSection(
 ): EntityLayout {
   return mapTab(layout, tabKey, tab => mapSection(tab, sectionKey, (section) => {
     const next: LayoutSection = {
-      key: section.key,
-      fields: section.fields,
+      ...section,
     };
     if (title) next.title = title;
+    else delete next.title;
+    return next;
+  }));
+}
+
+/**
+ * Set a section's column count (1–4; fields render at `1/columns` width). A value of `1` (or
+ * `undefined`) drops the `columns` key so a full-width section stays a clean `{ key, fields }`
+ * literal — the default. Mirrors {@link setTabIcon}'s set-or-clear shape.
+ */
+export function setSectionColumns(
+  layout: EntityLayout,
+  tabKey: string,
+  sectionKey: string,
+  columns: number | undefined,
+): EntityLayout {
+  return mapTab(layout, tabKey, tab => mapSection(tab, sectionKey, (section) => {
+    const next: LayoutSection = {
+      ...section,
+    };
+    if (columns && columns > 1) next.columns = columns;
+    else delete next.columns;
     return next;
   }));
 }

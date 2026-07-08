@@ -54,11 +54,14 @@ export type LayoutableEntityKind = typeof LAYOUTABLE_ENTITY_KINDS[number];
  * One field row within a section. `key` is a stable machine slug (identity for merge/diff
  * purposes, never shown to the user); `title` is an optional user-editable display title (absent =
  * untitled section); `fields` are field keys (from the entity's field registry, see #1159) in
- * render order.
+ * render order. `columns` is the section's column count (1–4; absent = 1 = a full-width stack) —
+ * fields render at `1/columns` width and overflow wraps to the next line, honored identically in
+ * the editor preview and on the real View/Edit pages (#1220).
  */
 export interface LayoutSection {
   key: string;
   title?: string;
+  columns?: number;
   fields: string[];
 }
 
@@ -99,6 +102,7 @@ function isValidLayoutSection(value: unknown): value is LayoutSection {
   const section = value as Record<string, unknown>;
   if (typeof section.key !== "string") return false;
   if (section.title !== undefined && typeof section.title !== "string") return false;
+  if (section.columns !== undefined && typeof section.columns !== "number") return false;
   return isStringArray(section.fields);
 }
 
@@ -214,6 +218,7 @@ export function resolveLayout(
       targetSection = {
         key: home.section.key,
         title: home.section.title,
+        columns: home.section.columns,
         fields: [],
       };
       targetTab.sections.push(targetSection);
