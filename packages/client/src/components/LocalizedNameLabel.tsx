@@ -25,6 +25,11 @@ interface LocalizedNameLabelProps {
    * listing cards).
    */
   stacked?: boolean;
+  /**
+   * When stacked, render each line single-line + ellipsis (`truncate`) instead of wrapping onto
+   * multiple lines. Used by the header breadcrumb, whose fixed-height strip must not grow.
+   */
+  truncate?: boolean;
 }
 
 /**
@@ -34,21 +39,23 @@ interface LocalizedNameLabelProps {
  * rows have been backfilled yet. `CrumbLabel` delegates to this internally.
  */
 export function LocalizedNameLabel({
-  names, base, legacyRomanized, preferredLanguage, secondaryLanguage, fallbackLanguage, secondaryClassName, stacked = false,
+  names, base, legacyRomanized, preferredLanguage, secondaryLanguage, fallbackLanguage, secondaryClassName, stacked = false, truncate = false,
 }: LocalizedNameLabelProps) {
   const {
     primary, secondary,
   } = resolveDisplayNames(namesWithLegacyFallback(names, legacyRomanized), preferredLanguage, base, secondaryLanguage, fallbackLanguage);
 
   if (stacked) {
+    const lineClass = truncate ? "truncate" : "wrap-break-word";
     return (
       <span className="flex min-w-0 flex-col">
-        <span className="wrap-break-word">{primary}</span>
+        <span className={lineClass}>{primary}</span>
         {secondary
           ? (
             <span
               className={cn(`
-                text-sm font-normal wrap-break-word text-muted-foreground
+                text-sm font-normal text-muted-foreground
+                ${lineClass}
               `, secondaryClassName)}
             >
               {secondary}
