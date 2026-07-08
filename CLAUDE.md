@@ -351,6 +351,48 @@ that matches the surface — don't invent a new structure for a one-off page.
     by the detail page directly, not via the workbench), while its *edit* is the router-driven bookmark
     edit tabs.
 
+## Entity page layouts
+
+The per-deploy **Page Layouts** editor (#1106) lets an operator arrange an entity's view/edit UI as a
+user-editable **Tab › Section › Field** tree, instead of the tab/section structure being hardcoded JSX.
+It is being built incrementally; **this is the field-registry contract + layout-driven renderer only —
+most of the surrounding system (persistence, DnD editor, per-entity registries) is still landing.**
+
+- **Schema (`@eesimple/types`, `entityLayouts.ts`).** `EntityLayout = { tabs: LayoutTab[] }`,
+  `LayoutTab = { key, label, icon?, sections: LayoutSection[] }`, `LayoutSection = { key, title?, fields:
+  string[] }`. `key`s are stable machine slugs (merge identity); `label`/`title` are user-editable; array
+  order = render order; `icon` is a serialized **string name** (a user-created tab must be
+  jsonb-serializable — the registry's real `LucideIcon` is resolved from it via `lib/icons.tsx`
+  `icons[name]`). `LAYOUTABLE_ENTITY_KINDS` (the 21 workbench kinds + `"bookmark"`) is the single edit
+  point for adding a layoutable kind.
+- **Field registry contract (`components/workbench/types.ts`).** A `WorkbenchField<E>` is a placeable,
+  mode-aware unit: `{ key, label, icon?, view?, edit?, showIf? }` — the mode picks the `view`/`edit`
+  renderer, so **view/edit parity is by construction** (one layout tree, no per-mode storage; an
+  edit-only field renders nothing in view and vice-versa, which reproduces today's view-only "Hierarchy"
+  / edit-only "Display" tabs for free). A composite editor (Conditions builder, gallery grid, rules
+  list) registers as **one** field — internals are not decomposed. `useFieldAutoSave` stays inside the
+  `edit` renderer; the danger zone stays a `WorkbenchRouteTab` fixture, not a placeable field.
+- **Opt-in per entity.** `EntityWorkbench` gained optional `layoutKind` / `fields` / `defaultLayout`.
+  Set all three ⇒ **layout-driven**: `EntityInfoView`/`EntityEditView` build their rail + per-tab
+  `LabeledSection` stacks from the resolved layout (`deriveWorkbenchTabs` + `LayoutDrivenTabBody`),
+  registry `fields` dispatched by mode. Omit them ⇒ the entity keeps its opaque `tabs`/pane `render`
+  untouched. **No real entity opts in yet** — the per-entity `fields`/`defaultLayout` are authored in the
+  rollout sub-issues; author them exhaustively (`const fooFields = {…} satisfies Record<FooFieldKey,
+  WorkbenchField<Foo>>` + a `defaultLayout` whose section `fields` are typed `FooFieldKey[]`) so a
+  declared key without a renderer fails `tsc` — the `bookmarkAddFormFields.tsx` FIELD_RENDERERS idiom.
+- **Resolution.** Defaults derive from **code, never the DB**: an absent/empty stored layout resolves to
+  the descriptor's `defaultLayout`, so a deploy with no saved layout renders as today. The pure
+  `resolveLayout(stored, defaultLayout, knownFieldKeys)` (`@eesimple/types`) reconciles a stale stored
+  layout: unknown field keys dropped, known-but-unplaced fields appended to their default home
+  (recreating a deleted container so a new code-added field can never be invisible), ≥1 tab always
+  resolves. The two render-time gates it defers to the renderer live in the pure helpers in
+  `lib/workbenchLayout.ts` (`fieldRendersInMode` / `visibleSectionsForTab` / `modeVisibleTabs`): a
+  section with no mode-visible field, and a tab with no visible section, are hidden at render.
+- **Persistence is a stub.** `hooks/useEntityLayout.ts` `useEntityLayout(kind)` returns `null` today —
+  the `entity_layouts` table / `/api/entity-layouts/:kind` endpoint and the editor that writes it are
+  follow-up sub-issues. It is the **single seam** to wire the real query; every consumer goes through
+  `useResolvedWorkbenchLayout(workbench)`.
+
 ## Large-form / over-cap decomposition
 
 When a component or hook trips fallow's cognitive-complexity cap (`maxCognitive: 25`), the cause is

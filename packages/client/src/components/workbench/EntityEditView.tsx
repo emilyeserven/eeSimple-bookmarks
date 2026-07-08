@@ -1,4 +1,5 @@
-import type { EntityWorkbench, WorkbenchTab } from "./types";
+import type { EntityWorkbench } from "./types";
+import type { RenderTab } from "@/lib/workbenchLayout";
 import type { LinkProps } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
@@ -15,7 +16,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useResolvedWorkbenchLayout } from "@/hooks/useEntityLayout";
 import { cn } from "@/lib/utils";
+import { deriveWorkbenchTabs } from "@/lib/workbenchLayout";
 
 interface Props<E extends { id: string }> {
   workbench: EntityWorkbench<E>;
@@ -32,19 +35,20 @@ interface Props<E extends { id: string }> {
 }
 
 /** A `nav` entry: a flat tab, or a run of consecutive same-`group` tabs collapsed into a dropdown. */
-type EditNavEntry<E>
+type EditNavEntry
   = | { kind: "tab";
-    tab: WorkbenchTab<E>; }
+    tab: RenderTab; }
     | { kind: "group";
       label: string;
-      tabs: WorkbenchTab<E>[]; };
+      tabs: RenderTab[]; };
 
 /**
  * Collapse consecutive edit tabs that share a `group` label into a single dropdown entry. A tab
  * without `group`, or one whose group differs from the previous entry's, starts a fresh flat entry.
+ * (Layout-driven tabs carry no `group`, so they always stay flat in v1.)
  */
-function groupEditTabs<E>(tabs: WorkbenchTab<E>[]): EditNavEntry<E>[] {
-  const entries: EditNavEntry<E>[] = [];
+function groupEditTabs(tabs: RenderTab[]): EditNavEntry[] {
+  const entries: EditNavEntry[] = [];
   for (const tab of tabs) {
     const group = tab.group;
     const last = entries[entries.length - 1];
@@ -68,10 +72,10 @@ function groupEditTabs<E>(tabs: WorkbenchTab<E>[]): EditNavEntry<E>[] {
   return entries;
 }
 
-function EditNavLink<E extends { id: string }>({
+function EditNavLink({
   tab, editTo, params, active,
 }: {
-  tab: WorkbenchTab<E>;
+  tab: RenderTab;
   editTo: LinkProps["to"];
   params: LinkProps["params"];
   active: boolean;
@@ -95,10 +99,10 @@ function EditNavLink<E extends { id: string }>({
  * `TabbedEntityLayout`. The trigger shows the active styling when the current `?tab=` is one of the
  * group's tabs. (The trigger text stays "More" to match the old path-routed strip.)
  */
-function EditNavMore<E extends { id: string }>({
+function EditNavMore({
   tabs, editTo, params, activeKey,
 }: {
-  tabs: WorkbenchTab<E>[];
+  tabs: RenderTab[];
   editTo: LinkProps["to"];
   params: LinkProps["params"];
   activeKey: string | undefined;
@@ -161,11 +165,11 @@ export function EntityEditView<E extends { id: string }>({
     entity,
   } = workbench.useBySlug(slug);
 
-  // Edit tabs only; honor `showIf` once the entity is loaded (optimistically include showIf tabs while
-  // it loads — they re-filter on the next render).
-  const tabs = workbench.tabs.filter(
-    tab => tab.edit != null && (!tab.showIf || !entity || tab.showIf(entity)),
-  );
+  // Layout-driven entities derive their strip from the resolved layout; registry-less entities fall
+  // back to `workbench.tabs`. `deriveWorkbenchTabs` yields the edit-mode-visible tabs (honoring
+  // `showIf`, optimistically included while loading; `group` carried through only on the legacy path).
+  const layout = useResolvedWorkbenchLayout(workbench);
+  const tabs = deriveWorkbenchTabs(workbench, layout, "edit", entity);
   const active = tabs.find(tab => tab.key === activeTab)?.key ?? tabs[0]?.key;
 
   const body = active
@@ -175,6 +179,7 @@ export function EntityEditView<E extends { id: string }>({
         tabKey={active}
         mode="edit"
         slug={slug}
+        layout={layout ?? undefined}
       />
     )
     : null;

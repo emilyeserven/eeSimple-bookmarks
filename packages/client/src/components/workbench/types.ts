@@ -1,4 +1,6 @@
+import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 import type { LinkProps } from "@tanstack/react-router";
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 export type WorkbenchMode = "view" | "edit";
@@ -8,6 +10,33 @@ export interface WorkbenchPane<E> {
   title: string;
   description: string;
   render: (props: { entity: E }) => ReactNode;
+}
+
+/**
+ * A single placeable, mode-aware field unit — the layout-editor (#1106) replacement for the opaque
+ * per-tab {@link WorkbenchPane.render}. A stored {@link EntityLayout} arranges these by `key` into
+ * tabs/sections; the active mode picks the `view` / `edit` renderer, so view/edit parity is by
+ * construction (one layout tree, never per-mode storage). An **edit-only** field (`view` omitted)
+ * renders nothing in view; a **view-only** field (`edit` omitted) renders nothing in edit — this is
+ * what reproduces today's view-only ("Hierarchy") / edit-only ("Display") tabs without special-casing.
+ *
+ * A composite editor (Conditions builder, gallery grid, location map, a rules list) registers as ONE
+ * field; its internals are not decomposed (design decision #6). Auto-save (`useFieldAutoSave`) stays
+ * inside the `edit` renderer — the layout system never touches save semantics.
+ */
+export interface WorkbenchField<E> {
+  /** Stable machine slug, unique within the entity kind (identity for merge/diff; never shown). */
+  key: string;
+  /** Default English label (user-overridable per-layout). Editor/rail metadata, not the body. */
+  label: string;
+  /** Real component (the serialized layout stores only the icon's string name). Editor metadata. */
+  icon?: LucideIcon;
+  /** Read-only renderer; omit ⇒ the field never appears in view mode. */
+  view?: (props: { entity: E }) => ReactNode;
+  /** Edit renderer; owns its own `useFieldAutoSave`. Omit ⇒ the field never appears in edit mode. */
+  edit?: (props: { entity: E }) => ReactNode;
+  /** Hide the field unless this returns true (e.g. a property's Options only when it has options). */
+  showIf?: (entity: E) => boolean;
 }
 
 /**
@@ -68,6 +97,27 @@ export interface EntityWorkbench<E extends { id: string }> {
    */
   listingPath?: LinkProps["to"];
   tabs: WorkbenchTab<E>[];
+  /**
+   * **Opt-in to the layout editor (#1106).** When set together with {@link fields} and
+   * {@link defaultLayout}, this entity is **layout-driven**: `EntityInfoView`/`EntityEditView` build
+   * their tab rail + per-tab section stacks from the resolved {@link EntityLayout} (registry `fields`
+   * dispatched by mode) instead of `tabs`/pane `render`. Omit all three and the entity keeps its opaque
+   * `tabs`/panes untouched — migration is incremental (per-entity registries land in #1161/#1163+).
+   */
+  layoutKind?: LayoutableEntityKind;
+  /**
+   * The field registry: field key → mode-aware {@link WorkbenchField}. Authored per entity as an
+   * exhaustive `Record<FieldKey, WorkbenchField<E>>` (the `bookmarkAddFormFields.tsx` FIELD_RENDERERS
+   * idiom) so a declared key without a renderer fails `tsc`. Consumed only when {@link layoutKind} +
+   * {@link defaultLayout} are also set.
+   */
+  fields?: Record<string, WorkbenchField<E>>;
+  /**
+   * The code-defined default layout, referencing {@link fields} keys. An absent/empty stored layout
+   * resolves to this (via the shared `resolveLayout`), so a deploy with no saved layout renders as
+   * today. Defaults derive from code, never the DB.
+   */
+  defaultLayout?: EntityLayout;
   /**
    * Returns the entity's URL identifier (slug or id) for its main-pane page.
    * When present, the panel header shows an "Open in main pane" button.

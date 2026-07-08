@@ -7,7 +7,9 @@ import { Link } from "@tanstack/react-router";
 import { WorkbenchRouteTab } from "./WorkbenchRouteTab";
 import { navLinkClass } from "../TabbedShell";
 
+import { useResolvedWorkbenchLayout } from "@/hooks/useEntityLayout";
 import { cn } from "@/lib/utils";
+import { deriveWorkbenchTabs } from "@/lib/workbenchLayout";
 
 interface Props<E extends { id: string }> {
   workbench: EntityWorkbench<E>;
@@ -37,11 +39,11 @@ export function EntityInfoView<E extends { id: string }>({
     entity,
   } = workbench.useBySlug(slug);
 
-  // View tabs only; honor `showIf` once the entity is loaded (optimistically include showIf tabs while
-  // it loads — they re-filter on the next render).
-  const tabs = workbench.tabs.filter(
-    tab => tab.view != null && (!tab.showIf || !entity || tab.showIf(entity)),
-  );
+  // Layout-driven entities (a `fields` registry + `defaultLayout`) derive their rail from the resolved
+  // layout; registry-less entities fall back to `workbench.tabs`. Either way `deriveWorkbenchTabs`
+  // yields the view-mode-visible tabs (honoring `showIf`, optimistically included while loading).
+  const layout = useResolvedWorkbenchLayout(workbench);
+  const tabs = deriveWorkbenchTabs(workbench, layout, "view", entity);
   const active = tabs.find(tab => tab.key === activeTab)?.key ?? tabs[0]?.key;
 
   const body = active
@@ -51,6 +53,7 @@ export function EntityInfoView<E extends { id: string }>({
         tabKey={active}
         mode="view"
         slug={slug}
+        layout={layout ?? undefined}
       />
     )
     : null;
