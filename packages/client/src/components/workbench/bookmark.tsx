@@ -3,13 +3,15 @@ import type { Bookmark, EntityLayout } from "@eesimple/types";
 
 import {
   BookmarkCategoryDetailView,
+  BookmarkChannelDetailView,
   BookmarkDescriptionDetailView,
-  BookmarkDetailsExtraView,
   BookmarkHierarchyView,
+  BookmarkLocationsDetailView,
   BookmarkLocationsMapView,
   BookmarkMediaSourceView,
   BookmarkMediaTypeDetailView,
   BookmarkMetadataView,
+  BookmarkPersonDetailView,
   BookmarkPropertiesView,
   BookmarkRelatedBookmarksView,
   BookmarkTagsDetailView,
@@ -32,6 +34,8 @@ import {
   BookmarkUrlEditField,
 } from "../BookmarkGeneralForm";
 import { BookmarkImageEditForm } from "../BookmarkImageEditForm";
+import { BookmarkKavitaDetailRow } from "../BookmarkKavitaField";
+import { BookmarkPlexDetailRow } from "../BookmarkPlexField";
 import { BookmarkPropertiesForm } from "../BookmarkPropertiesForm";
 import { BookmarkReelArchivePlayer } from "../BookmarkReelArchive";
 import { BookmarkRelatedForm } from "../BookmarkRelatedForm";
@@ -66,7 +70,11 @@ export type BookmarkFieldKey
     | "category"
     | "mediaType"
     | "tags"
-    | "detailsExtra"
+    | "locations"
+    | "channel"
+    | "person"
+    | "kavita"
+    | "plex"
     | "tagBlacklist"
     | "locationBlacklist"
     | "customProperties"
@@ -141,12 +149,40 @@ const bookmarkFields = {
     }) => <BookmarkTagsDetailView bookmark={entity} />,
     edit: () => <BookmarkTagsEditField />,
   },
-  detailsExtra: {
-    key: "detailsExtra",
-    label: i18n.t("Other details"),
+  locations: {
+    key: "locations",
+    label: i18n.t("Locations"),
     view: ({
       entity,
-    }) => <BookmarkDetailsExtraView bookmark={entity} />,
+    }) => <BookmarkLocationsDetailView bookmark={entity} />,
+  },
+  channel: {
+    key: "channel",
+    label: i18n.t("Channel"),
+    view: ({
+      entity,
+    }) => <BookmarkChannelDetailView bookmark={entity} />,
+  },
+  person: {
+    key: "person",
+    label: i18n.t("Person"),
+    view: ({
+      entity,
+    }) => <BookmarkPersonDetailView bookmark={entity} />,
+  },
+  kavita: {
+    key: "kavita",
+    label: i18n.t("Kavita"),
+    view: ({
+      entity,
+    }) => <BookmarkKavitaDetailRow bookmark={entity} />,
+  },
+  plex: {
+    key: "plex",
+    label: i18n.t("Plex"),
+    view: ({
+      entity,
+    }) => <BookmarkPlexDetailRow bookmark={entity} />,
   },
   tagBlacklist: {
     key: "tagBlacklist",
@@ -281,7 +317,7 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       sections: [
         {
           key: "general",
-          fields: ["name", "primaryLanguage", "names", "url", "description", "category", "mediaType", "tags", "detailsExtra"] satisfies BookmarkFieldKey[],
+          fields: ["name", "primaryLanguage", "names", "url", "description", "category", "mediaType", "tags", "locations", "channel", "person", "kavita", "plex"] satisfies BookmarkFieldKey[],
         },
         {
           key: "advanced",

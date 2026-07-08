@@ -478,6 +478,15 @@ registry edit, never a pane edit.
        "Advanced" becomes a first-class section. Finish by updating the both-modes snapshot
        (`bookmarkLayout.test.tsx`) to the new field/section order. See the **`surface-entity-field`**
        skill's "Extraction (reverse direction)" section.
+
+    **Break out every row individually — never leave a catch-all residual field.** Extraction means
+    *fully* atomizing: each row becomes its own `WorkbenchField`, **including view-only rows** with no
+    editable counterpart (e.g. the bookmark General view's Channel / Person / Locations / Kavita / Plex
+    rows each became a standalone view-only field). Do **not** lump the leftover rows into a single
+    "Other details"/`detailsExtra`-style field — that just moves the composite down a level and defeats
+    the point (an operator can't place the rows independently). A view-only row whose editable component
+    already exists elsewhere (Kavita/Plex) is placed by pointing its field's `view` renderer straight at
+    that existing component; it needs no new wrapper.
   - **A form reused elsewhere is recomposed, not deleted.** `CategoryGeneralForm` (used by `CategoryCard`)
     and `NewsletterGeneralForm` (used by its story) are recomposed from the **same** extracted per-field
     sub-components the registry uses, so their output/tests/stories are unchanged while the layout tab gets
