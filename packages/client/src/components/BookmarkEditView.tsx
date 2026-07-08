@@ -4,11 +4,30 @@ import type { ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
+import { BookmarkGeneralFormProvider } from "./BookmarkGeneralFormContext";
 import { TabbedShell, navLinkClass } from "./TabbedShell";
 import { bookmarkWorkbench } from "./workbench/bookmark";
 import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
 import { useBookmark, useDeleteBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
+
+/**
+ * The General-tab edit fields that read the shared `useBookmarkGeneralForm` controller from
+ * {@link BookmarkGeneralFormProvider}. When the active tab hosts any of these, the edit body is wrapped
+ * in the provider so the one controller (+ its "Sync from source" registration) mounts exactly where the
+ * old `BookmarkGeneralForm` did — and follows the fields if an operator relocates them via Page Layouts.
+ */
+const SHARED_FORM_FIELD_KEYS = new Set<string>([
+  "name",
+  "primaryLanguage",
+  "url",
+  "description",
+  "category",
+  "mediaType",
+  "tags",
+  "tagBlacklist",
+  "locationBlacklist",
+]);
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -130,15 +149,24 @@ export function BookmarkEditView({
     if (isLoading) return <p className="text-muted-foreground">{t("Loading bookmark…")}</p>;
     if (!bookmark) return <p className="text-destructive">{t("Bookmark not found.")}</p>;
     if (!layout || !active) return null;
+    const activeTab = layout.tabs.find(tab => tab.key === active);
+    const hasSharedFormField = activeTab?.sections.some(
+      section => section.fields.some(field => SHARED_FORM_FIELD_KEYS.has(field)),
+    ) ?? false;
+    const tabBody = (
+      <LayoutDrivenTabBody
+        workbench={bookmarkWorkbench}
+        layout={layout}
+        tabKey={active}
+        mode="edit"
+        entity={bookmark}
+      />
+    );
     return (
       <>
-        <LayoutDrivenTabBody
-          workbench={bookmarkWorkbench}
-          layout={layout}
-          tabKey={active}
-          mode="edit"
-          entity={bookmark}
-        />
+        {hasSharedFormField
+          ? <BookmarkGeneralFormProvider bookmark={bookmark}>{tabBody}</BookmarkGeneralFormProvider>
+          : tabBody}
         {active === "general" ? <BookmarkDeleteDangerZone bookmark={bookmark} /> : null}
       </>
     );

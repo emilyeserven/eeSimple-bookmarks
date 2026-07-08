@@ -42,9 +42,32 @@ import { builtInName } from "@/lib/builtInName";
  * is handled once in the bookmark detail bodies, while each sub-block still returns `null` when empty.
  */
 
-/** The core "Details" block — every scalar/link row except Languages (own tab) and the custom-property
- *  sections (own tab). Always rendered (an absent value shows an empty `DetailField`, as before). */
-export function BookmarkGeneralDetailView({
+/**
+ * The core "Details" block, now split into per-field **view** components (#1163 field extraction) so
+ * each row is an independently-placeable layout field paired with its edit field in `BookmarkGeneralForm`.
+ * Each returns a self-hiding `DetailField` (or null) — the layout seam's `space-y-6` stack applies gaps
+ * only between the rows that actually render, so an empty field adds no gap. `BookmarkDetailsExtraView`
+ * carries the residual rows (Locations, Website channel, Person, Kavita, Plex) that have no matching edit
+ * field on the General tab.
+ */
+
+/** Description row. */
+export function BookmarkDescriptionDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  return (
+    <DetailField label={i18n.t("Description")}>
+      {bookmark.description
+        ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
+        : null}
+    </DetailField>
+  );
+}
+
+/** Category link row. */
+export function BookmarkCategoryDetailView({
   bookmark,
 }: {
   bookmark: Bookmark;
@@ -54,133 +77,159 @@ export function BookmarkGeneralDetailView({
   } = useCategories();
   const category = (categories ?? []).find(item => item.id === bookmark.categoryId);
   return (
-    <LabeledSection title={i18n.t("Details")}>
-      <dl className="space-y-3">
-        <DetailField label={i18n.t("Description")}>
-          {bookmark.description
-            ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
-            : null}
-        </DetailField>
+    <DetailField label={i18n.t("Category")}>
+      {category
+        ? <BookmarkCategoryLink category={category} />
+        : null}
+    </DetailField>
+  );
+}
 
-        <DetailField label={i18n.t("Category")}>
-          {category
-            ? <BookmarkCategoryLink category={category} />
-            : null}
-        </DetailField>
+/** Tags row (badge links), or null when the bookmark has no tags. */
+export function BookmarkTagsDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  if (bookmark.tags.length === 0) return null;
+  return (
+    <DetailField label={i18n.t("Tags")}>
+      <ul className="flex flex-wrap gap-1">
+        {bookmark.tags.map(tag => (
+          <li key={tag.id}>
+            <Link
+              to="/tags/$tagSlug"
+              params={{
+                tagSlug: tag.slug,
+              }}
+            >
+              <Badge
+                variant="secondary"
+                className="
+                  cursor-pointer
+                  hover:opacity-80
+                "
+              >
+                {tag.name}
+              </Badge>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </DetailField>
+  );
+}
 
-        {bookmark.tags.length > 0
+/** Media type link row. */
+export function BookmarkMediaTypeDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  return (
+    <DetailField label={i18n.t("Media type")}>
+      {bookmark.mediaType
+        ? (
+          <Link
+            to="/taxonomies/media-types/$mediaTypeSlug"
+            params={{
+              mediaTypeSlug: bookmark.mediaType.slug,
+            }}
+            className="hover:underline"
+          >
+            {bookmark.mediaType.name}
+          </Link>
+        )
+        : null}
+    </DetailField>
+  );
+}
+
+/** Website link row — the view side of the URL field. */
+export function BookmarkWebsiteDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  return (
+    <DetailField label={i18n.t("Website")}>
+      {bookmark.website
+        ? (
+          <Link
+            to="/taxonomies/websites/$websiteSlug"
+            params={{
+              websiteSlug: bookmark.website.slug,
+            }}
+            className="hover:underline"
+          >
+            {bookmark.website.siteName} ({bookmark.website.domain})
+          </Link>
+        )
+        : null}
+    </DetailField>
+  );
+}
+
+/** The residual General-view rows that have no matching General edit field: locations, channel, person,
+ *  and the Kavita/Plex link rows. */
+export function BookmarkDetailsExtraView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  return (
+    <>
+      {bookmark.locations.length > 0
+        ? (
+          <DetailField label={i18n.t("Locations")}>
+            <BookmarkLocationsBox locations={bookmark.locations} />
+          </DetailField>
+        )
+        : null}
+
+      <DetailField label={i18n.t("Channel")}>
+        {bookmark.youtubeChannel
           ? (
-            <DetailField label={i18n.t("Tags")}>
-              <ul className="flex flex-wrap gap-1">
-                {bookmark.tags.map(tag => (
-                  <li key={tag.id}>
-                    <Link
-                      to="/tags/$tagSlug"
-                      params={{
-                        tagSlug: tag.slug,
-                      }}
-                    >
-                      <Badge
-                        variant="secondary"
-                        className="
-                          cursor-pointer
-                          hover:opacity-80
-                        "
-                      >
-                        {tag.name}
-                      </Badge>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </DetailField>
+            <Link
+              to="/taxonomies/youtube-channels/$channelSlug"
+              params={{
+                channelSlug: bookmark.youtubeChannel.slug,
+              }}
+              className="hover:underline"
+            >
+              {bookmark.youtubeChannel.name}
+            </Link>
           )
           : null}
+      </DetailField>
 
-        {bookmark.locations.length > 0
-          ? (
-            <DetailField label={i18n.t("Locations")}>
-              <BookmarkLocationsBox locations={bookmark.locations} />
-            </DetailField>
-          )
-          : null}
+      {bookmark.people.length > 0
+        ? (
+          <DetailField label={i18n.t("Person")}>
+            <span className="flex flex-wrap gap-x-1">
+              {bookmark.people.map((person, i) => (
+                <span key={person.id}>
+                  {i > 0 && <span className="mr-1">,</span>}
+                  <Link
+                    to="/taxonomies/people/$personSlug"
+                    params={{
+                      personSlug: person.slug,
+                    }}
+                    className="hover:underline"
+                  >
+                    {person.name}
+                  </Link>
+                </span>
+              ))}
+            </span>
+          </DetailField>
+        )
+        : null}
 
-        <DetailField label={i18n.t("Website")}>
-          {bookmark.website
-            ? (
-              <Link
-                to="/taxonomies/websites/$websiteSlug"
-                params={{
-                  websiteSlug: bookmark.website.slug,
-                }}
-                className="hover:underline"
-              >
-                {bookmark.website.siteName} ({bookmark.website.domain})
-              </Link>
-            )
-            : null}
-        </DetailField>
+      <BookmarkKavitaDetailRow bookmark={bookmark} />
 
-        <DetailField label={i18n.t("Media type")}>
-          {bookmark.mediaType
-            ? (
-              <Link
-                to="/taxonomies/media-types/$mediaTypeSlug"
-                params={{
-                  mediaTypeSlug: bookmark.mediaType.slug,
-                }}
-                className="hover:underline"
-              >
-                {bookmark.mediaType.name}
-              </Link>
-            )
-            : null}
-        </DetailField>
-
-        <DetailField label={i18n.t("Channel")}>
-          {bookmark.youtubeChannel
-            ? (
-              <Link
-                to="/taxonomies/youtube-channels/$channelSlug"
-                params={{
-                  channelSlug: bookmark.youtubeChannel.slug,
-                }}
-                className="hover:underline"
-              >
-                {bookmark.youtubeChannel.name}
-              </Link>
-            )
-            : null}
-        </DetailField>
-
-        {bookmark.people.length > 0
-          ? (
-            <DetailField label={i18n.t("Person")}>
-              <span className="flex flex-wrap gap-x-1">
-                {bookmark.people.map((person, i) => (
-                  <span key={person.id}>
-                    {i > 0 && <span className="mr-1">,</span>}
-                    <Link
-                      to="/taxonomies/people/$personSlug"
-                      params={{
-                        personSlug: person.slug,
-                      }}
-                      className="hover:underline"
-                    >
-                      {person.name}
-                    </Link>
-                  </span>
-                ))}
-              </span>
-            </DetailField>
-          )
-          : null}
-
-        <BookmarkKavitaDetailRow bookmark={bookmark} />
-
-        <BookmarkPlexDetailRow bookmark={bookmark} />
-      </dl>
-    </LabeledSection>
+      <BookmarkPlexDetailRow bookmark={bookmark} />
+    </>
   );
 }
 

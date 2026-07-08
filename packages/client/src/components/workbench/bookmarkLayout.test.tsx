@@ -57,7 +57,7 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["general"],
+          fields: ["url", "description", "category", "mediaType", "tags", "detailsExtra"],
         }],
       },
       {
@@ -124,10 +124,16 @@ describe("bookmark default layout", () => {
       {
         key: "general",
         group: undefined,
-        sections: [{
-          key: "general",
-          fields: ["general"],
-        }],
+        sections: [
+          {
+            key: "general",
+            fields: ["name", "primaryLanguage", "names", "url", "description", "category", "mediaType", "tags"],
+          },
+          {
+            key: "advanced",
+            fields: ["tagBlacklist", "locationBlacklist"],
+          },
+        ],
       },
       {
         key: "properties",

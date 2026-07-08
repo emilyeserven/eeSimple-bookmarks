@@ -449,6 +449,35 @@ registry edit, never a pane edit.
     `genreMoods` edit-only + `autofillSources` view-only; Newsletter `name`/`tags`/`genreMoods` edit-only +
     `metadata` view-only); a within-tab `<Separator/>` folds into the **leading edge of the field it
     precedes** (Newsletter `tags`/`genreMoods`), since the layout inserts separators only between sections.
+  - **Extracting a coarse composite into granular fields (the repeatable recipe).** The inverse of the
+    "keep it composite" judgment above: when an operator should be able to place a composite field's
+    sub-fields independently (e.g. the bookmark `general`/"Details" field → Name / Primary language /
+    Names / URL / Description / Category / Media type / Tags, with the blacklists pulled into an **Advanced**
+    section — #1163), promote each sub-field to its own `WorkbenchField` key. Two shapes, by how the
+    sub-field is backed:
+    1. **Independently-backed sub-field** (its own hook / react-query-backed, no shared `useAppForm`) →
+       promote it directly: add a `WorkbenchField` (its `edit`/`view` renderer wraps the existing
+       sub-component) and place its key in `defaultLayout`. This is the Category precedent
+       (`primaryLanguage`/`names` broken out beside the `details` composite) — nothing else is needed
+       because react-query already coordinates the shared state across the separate fibers.
+    2. **Shared-`useAppForm` composite** (one controller with cross-field coordination — the bookmark
+       General form: name-blur autofill, website-lookup → autofill offer → category, primary-language
+       sync) → because the render seam calls each field renderer as a plain function, N independent field
+       components would each spin up N separate form instances. Introduce a **form-context provider** at
+       the entity's **edit-view** level that instantiates the controller **once**
+       (`BookmarkGeneralFormProvider` in `BookmarkGeneralFormContext.tsx`, mounted by `BookmarkEditView`
+       around the edit body — gated on the active tab hosting a shared-form field so it mounts exactly
+       where the old monolithic form did). Each granular **edit** field is then a thin component that
+       reads the shared controller from context (`useBookmarkGeneralFormContext`) and renders the existing
+       sub-component; **view** fields read the entity directly and need no context. Split any shared
+       sub-component into per-field halves (`BookmarkGeneralRelationsSection` → media-type + tags;
+       `BookmarkBlacklistSection` → the two blacklist halves) and **recompose** the original from the
+       halves so its story/test and any other consumer stay unchanged (the "form reused elsewhere is
+       recomposed" rule below). Place the new keys in `defaultLayout` — grouping the pulled-out fields
+       into a **titled section** (`{ key, title, fields }`) is how the old `CollapsibleFormSection`
+       "Advanced" becomes a first-class section. Finish by updating the both-modes snapshot
+       (`bookmarkLayout.test.tsx`) to the new field/section order. See the **`surface-entity-field`**
+       skill's "Extraction (reverse direction)" section.
   - **A form reused elsewhere is recomposed, not deleted.** `CategoryGeneralForm` (used by `CategoryCard`)
     and `NewsletterGeneralForm` (used by its story) are recomposed from the **same** extracted per-field
     sub-components the registry uses, so their output/tests/stories are unchanged while the layout tab gets

@@ -33,14 +33,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
  * `value`/`onChange` editor with no persistence of its own — this page owns staging the edits and
  * committing them via `useSaveEntityLayout`, plus a confirm-gated `useResetEntityLayout`.
  */
-export function PageLayoutsSettings() {
+interface PageLayoutsSettingsProps {
+  /** The selected entity kind, driven by the route's `?entity=` search param. */
+  selectedKind: LayoutableEntityKind;
+  /** Change the selection — writes the `?entity=` search param (see the route). */
+  onSelectKind: (kind: LayoutableEntityKind) => void;
+}
+
+export function PageLayoutsSettings({
+  selectedKind,
+  onSelectKind,
+}: PageLayoutsSettingsProps) {
   const {
     t,
   } = useTranslation();
   const {
     isLoading,
   } = useEntityLayouts();
-  const [selectedKind, setSelectedKind] = useState<LayoutableEntityKind>(LAYOUT_DRIVEN_ENTITIES[0].kind);
   const [resetOpen, setResetOpen] = useState(false);
 
   const selectedEntity = LAYOUT_DRIVEN_ENTITIES.find(entity => entity.kind === selectedKind) ?? LAYOUT_DRIVEN_ENTITIES[0];
@@ -99,7 +108,7 @@ export function PageLayoutsSettings() {
         <Label htmlFor="page-layouts-kind">{t("Entity")}</Label>
         <Select
           value={selectedKind}
-          onValueChange={kind => setSelectedKind(kind as LayoutableEntityKind)}
+          onValueChange={kind => onSelectKind(kind as LayoutableEntityKind)}
         >
           <SelectTrigger
             id="page-layouts-kind"
