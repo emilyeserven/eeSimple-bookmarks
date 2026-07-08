@@ -1,53 +1,19 @@
-import type { EntityWorkbench, WorkbenchMode } from "./types";
+import type { WorkbenchMode } from "./types";
 import type { EntityLayout } from "@eesimple/types";
 
-import { resolveLayout } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import { categoryWorkbench } from "./category";
 import { newsletterWorkbench } from "./newsletter";
-
-import { deriveWorkbenchTabs, knownFieldKeys, visibleSectionsForTab } from "@/lib/workbenchLayout";
+import { shape } from "./workbenchLayoutTestUtils";
 
 /**
  * Byte-identical pilot check (#1161): the two field-registry pilots (Category, Newsletter) must resolve
  * their code default layout to the exact same tab / section / field-key order — in both view and edit —
  * as their pre-migration opaque panes. These assertions are the snapshot the migration must preserve;
- * the rollout sub-issues (#1164/#1165) reuse the same shape. Renderers are never invoked here, only the
- * pure order/visibility helpers, so no React rendering happens.
+ * the rollout sub-issues (#1164/#1165) reuse the same `shape` helper (`workbenchLayoutTestUtils.ts`).
+ * Renderers are never invoked here, only the pure order/visibility helpers, so no React rendering happens.
  */
-
-interface TabShape {
-  key: string;
-  group?: string;
-  sections: { key: string;
-    fields: string[]; }[];
-}
-
-/** The resolved (default) layout's visible tab → section → field-key shape for a given mode. */
-function shape<E extends { id: string }>(
-  workbench: EntityWorkbench<E>,
-  mode: WorkbenchMode,
-  stored: EntityLayout | null = null,
-): TabShape[] {
-  const {
-    defaultLayout, fields,
-  } = workbench;
-  if (!defaultLayout || !fields) throw new Error("pilot workbench must be layout-driven");
-  const layout = resolveLayout(stored, defaultLayout, knownFieldKeys(workbench));
-  return deriveWorkbenchTabs(workbench, layout, mode, undefined).flatMap((tab) => {
-    const layoutTab = layout.tabs.find(candidate => candidate.key === tab.key);
-    if (!layoutTab) return [];
-    return [{
-      key: tab.key,
-      group: tab.group,
-      sections: visibleSectionsForTab(layoutTab, fields, mode, undefined).map(section => ({
-        key: section.section.key,
-        fields: section.fieldKeys,
-      })),
-    }];
-  });
-}
 
 describe("category default layout", () => {
   it("renders the view tabs + field order byte-identically to the old panes", () => {

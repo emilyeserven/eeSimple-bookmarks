@@ -165,8 +165,8 @@ export const newsletterWorkbench: EntityWorkbench<Newsletter> = {
       }),
     };
   },
-  notFound: i18n.t("Import not found."),
-  navAriaLabel: i18n.t("Import sections"),
+  notFound: i18n.t("Newsletter not found."),
+  navAriaLabel: i18n.t("Newsletter sections"),
   listingPath: "/taxonomies/newsletters",
   getSlug: newsletter => newsletter.slug,
   layoutKind: "newsletter",

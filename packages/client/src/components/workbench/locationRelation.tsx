@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- this module exports an entity descriptor that pairs tab bodies with metadata, not a component */
-import type { EntityWorkbench } from "./types";
-import type { LocationRelation } from "@eesimple/types";
+import type { EntityWorkbench, WorkbenchField } from "./types";
+import type { EntityLayout, LocationRelation } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { LocationRelationCardsView } from "../LocationRelationCardsView";
@@ -47,6 +47,53 @@ function LocationRelationGeneralView({
   );
 }
 
+/**
+ * The location relation workbench's field registry (#1106 layout editor). `bookmarks` is **view-only**
+ * (`LocationRelationCardsView`); `general` carries both modes — reproducing the old view-only
+ * "Bookmarks" tab with no special-casing.
+ */
+type LocationRelationFieldKey = "bookmarks" | "general";
+
+const locationRelationFields = {
+  bookmarks: {
+    key: "bookmarks",
+    label: i18n.t("Bookmarks"),
+    view: ({
+      entity,
+    }) => <LocationRelationCardsView locationRelation={entity} />,
+  },
+  general: {
+    key: "general",
+    label: i18n.t("General"),
+    view: LocationRelationGeneralView,
+    edit: ({
+      entity,
+    }) => <LocationRelationGeneralForm locationRelation={entity} />,
+  },
+} satisfies Record<LocationRelationFieldKey, WorkbenchField<LocationRelation>>;
+
+/** The code default layout: the current two tabs, one untitled section each, in current order. */
+const LOCATION_RELATION_DEFAULT_LAYOUT: EntityLayout = {
+  tabs: [
+    {
+      key: "bookmarks",
+      label: i18n.t("Bookmarks"),
+      sections: [{
+        key: "bookmarks",
+        fields: ["bookmarks"] satisfies LocationRelationFieldKey[],
+      }],
+    },
+    {
+      key: "general",
+      label: "General",
+      sections: [{
+        key: "general",
+        fields: ["general"] satisfies LocationRelationFieldKey[],
+      }],
+    },
+  ],
+};
+
 /** Single source of truth for a location relation's view/edit UI (main pane routes + right panel). */
 export const locationRelationWorkbench: EntityWorkbench<LocationRelation> = {
   useBySlug: (slug) => {
@@ -88,33 +135,19 @@ export const locationRelationWorkbench: EntityWorkbench<LocationRelation> = {
   navAriaLabel: i18n.t("Location relation sections"),
   listingPath: "/taxonomies/location-relations",
   getSlug: relation => relation.slug,
+  layoutKind: "location-relation",
+  fields: locationRelationFields,
+  defaultLayout: LOCATION_RELATION_DEFAULT_LAYOUT,
+  // Layout-driven: the body comes from `fields` + `defaultLayout`. `tabs` is a thin placeholder
+  // retained only for the descriptor's type requirement (no `group` nav metadata needed here).
   tabs: [
     {
       key: "bookmarks",
       label: i18n.t("Bookmarks"),
-      view: {
-        title: i18n.t("Bookmarks"),
-        description: i18n.t("Bookmarks and the locations they relate to under this relation."),
-        render: ({
-          entity,
-        }) => <LocationRelationCardsView locationRelation={entity} />,
-      },
     },
     {
       key: "general",
       label: "General",
-      view: {
-        title: i18n.t("General"),
-        description: i18n.t("Location relation details."),
-        render: LocationRelationGeneralView,
-      },
-      edit: {
-        title: i18n.t("General"),
-        description: i18n.t("Name and sort order."),
-        render: ({
-          entity,
-        }) => <LocationRelationGeneralForm locationRelation={entity} />,
-      },
     },
   ],
 };

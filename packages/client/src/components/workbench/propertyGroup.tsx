@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- this module exports an entity descriptor that pairs tab bodies with metadata, not a component */
-import type { EntityWorkbench } from "./types";
-import type { PropertyGroup } from "@eesimple/types";
+import type { EntityWorkbench, WorkbenchField } from "./types";
+import type { EntityLayout, PropertyGroup } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
@@ -143,6 +143,83 @@ function PropertyGroupGeneralView({
   );
 }
 
+/**
+ * The property group workbench's field registry (#1106 layout editor). All four fields carry both
+ * modes — the entity has no view-only/edit-only tabs today.
+ */
+type PropertyGroupFieldKey = "general" | "categories" | "mediaTypes" | "displayRules";
+
+const propertyGroupFields = {
+  general: {
+    key: "general",
+    label: i18n.t("General"),
+    view: PropertyGroupGeneralView,
+    edit: ({
+      entity,
+    }) => <PropertyGroupGeneralForm group={entity} />,
+  },
+  categories: {
+    key: "categories",
+    label: i18n.t("Categories"),
+    view: PropertyGroupCategoriesView,
+    edit: PropertyGroupCategoriesEdit,
+  },
+  mediaTypes: {
+    key: "mediaTypes",
+    label: i18n.t("Media Types"),
+    view: PropertyGroupMediaTypesView,
+    edit: PropertyGroupMediaTypesEdit,
+  },
+  displayRules: {
+    key: "displayRules",
+    label: i18n.t("Display Rules"),
+    view: ({
+      entity,
+    }) => <CardDisplayRulesList propertyGroupId={entity.id} />,
+    edit: ({
+      entity,
+    }) => <CardDisplayRulesList propertyGroupId={entity.id} />,
+  },
+} satisfies Record<PropertyGroupFieldKey, WorkbenchField<PropertyGroup>>;
+
+/** The code default layout: the current four tabs, one untitled section each, in current order. */
+const PROPERTY_GROUP_DEFAULT_LAYOUT: EntityLayout = {
+  tabs: [
+    {
+      key: "general",
+      label: i18n.t("General"),
+      sections: [{
+        key: "general",
+        fields: ["general"] satisfies PropertyGroupFieldKey[],
+      }],
+    },
+    {
+      key: "categories",
+      label: i18n.t("Categories"),
+      sections: [{
+        key: "categories",
+        fields: ["categories"] satisfies PropertyGroupFieldKey[],
+      }],
+    },
+    {
+      key: "media-types",
+      label: i18n.t("Media Types"),
+      sections: [{
+        key: "media-types",
+        fields: ["mediaTypes"] satisfies PropertyGroupFieldKey[],
+      }],
+    },
+    {
+      key: "display-rules",
+      label: i18n.t("Display Rules"),
+      sections: [{
+        key: "display-rules",
+        fields: ["displayRules"] satisfies PropertyGroupFieldKey[],
+      }],
+    },
+  ],
+};
+
 /** Single source of truth for a property group's view/edit UI (main pane routes + right panel). */
 export const propertyGroupWorkbench: EntityWorkbench<PropertyGroup> = {
   useBySlug: (slug) => {
@@ -179,68 +256,27 @@ export const propertyGroupWorkbench: EntityWorkbench<PropertyGroup> = {
   navAriaLabel: i18n.t("Property group sections"),
   listingPath: "/taxonomies/property-groups",
   getSlug: group => group.slug,
+  layoutKind: "property-group",
+  fields: propertyGroupFields,
+  defaultLayout: PROPERTY_GROUP_DEFAULT_LAYOUT,
+  // Layout-driven: the body comes from `fields` + `defaultLayout`. `tabs` is a thin placeholder
+  // retained only for the descriptor's type requirement (no `group` nav metadata needed here).
   tabs: [
     {
       key: "general",
       label: i18n.t("General"),
-      view: {
-        title: i18n.t("General"),
-        description: i18n.t("Name, priority, description, and metadata."),
-        render: PropertyGroupGeneralView,
-      },
-      edit: {
-        title: i18n.t("General"),
-        description: i18n.t("Name, priority, and description."),
-        render: ({
-          entity,
-        }) => <PropertyGroupGeneralForm group={entity} />,
-      },
     },
     {
       key: "categories",
       label: i18n.t("Categories"),
-      view: {
-        title: i18n.t("Categories"),
-        description: i18n.t("The categories that show this group on the bookmark form."),
-        render: PropertyGroupCategoriesView,
-      },
-      edit: {
-        title: i18n.t("Categories"),
-        description: i18n.t("Choose which categories show this group on the bookmark form. Leave empty to show it for every category."),
-        render: PropertyGroupCategoriesEdit,
-      },
     },
     {
       key: "media-types",
       label: i18n.t("Media Types"),
-      view: {
-        title: i18n.t("Media Types"),
-        description: i18n.t("The media types this group is also shown on."),
-        render: PropertyGroupMediaTypesView,
-      },
-      edit: {
-        title: i18n.t("Media Types"),
-        description: i18n.t("Also show this group on bookmarks of the chosen media types (in addition to its categories)."),
-        render: PropertyGroupMediaTypesEdit,
-      },
     },
     {
       key: "display-rules",
       label: i18n.t("Display Rules"),
-      view: {
-        title: i18n.t("Display Rules"),
-        description: i18n.t("Card display rules whose conditions reference this group's properties."),
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList propertyGroupId={entity.id} />,
-      },
-      edit: {
-        title: i18n.t("Display Rules"),
-        description: i18n.t("Card display rules whose conditions reference this group's properties."),
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList propertyGroupId={entity.id} />,
-      },
     },
   ],
 };
