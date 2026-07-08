@@ -3,114 +3,130 @@ import type { Bookmark } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
-import { BookmarkBlacklistSection } from "./BookmarkBlacklistSection";
+import { BookmarkLocationBlacklistField, BookmarkTagBlacklistField } from "./BookmarkBlacklistSection";
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
 import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
-import { BookmarkGeneralRelationsSection } from "./BookmarkGeneralRelationsSection";
+import { BookmarkGeneralFormProvider, useBookmarkGeneralFormContext } from "./BookmarkGeneralFormContext";
+import { BookmarkMediaTypeField, BookmarkTagsSelectField } from "./BookmarkGeneralRelationsSection";
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
 import { BookmarkNameField } from "./BookmarkNameField";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
 import { PersonSocialAccountOffer } from "./PersonSocialAccountOffer";
-import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
-import { useBookmarkSyncRegistration } from "../hooks/useBookmarkSyncRegistration";
-import { usePrimaryLanguageField } from "../hooks/usePrimaryLanguageField";
 
 import { Label } from "@/components/ui/label";
 
-interface BookmarkGeneralFormProps {
-  bookmark: Bookmark;
+/**
+ * The bookmark General-tab **edit** fields, extracted from the old monolithic `BookmarkGeneralForm`
+ * (#1163). Each is a placeable layout field that reads the **shared** controller from
+ * {@link useBookmarkGeneralFormContext} (mounted by `BookmarkEditView` / the recomposed
+ * `BookmarkGeneralForm`), so the single `useAppForm` + its cross-field coordination is preserved even
+ * though the fields now render independently through the layout seam. The registry
+ * (`workbench/bookmark.tsx`) points each `edit` renderer at one of these; the view side lives in
+ * `workbench/bookmarkViewFields.tsx`.
+ */
+
+/** Name/Title field: title textarea, fetch-from-URL controls; blur runs autofill + saves + syncs language. */
+export function BookmarkNameEditField() {
+  const {
+    ctrl,
+    primaryLanguage,
+  } = useBookmarkGeneralFormContext();
+  const {
+    form,
+    fetchTitle,
+    fetchMetadata,
+    titleFetch,
+    setTitleFetch,
+    undoTitleFetch,
+    runFetchTitle,
+    runYouTubeEnrichment,
+    isReportingTitle,
+    setIsReportingTitle,
+    expectedTitle,
+    setExpectedTitle,
+    runAutofill,
+    saveTitle,
+  } = ctrl;
+  return (
+    <BookmarkNameField
+      form={form}
+      fetchTitle={fetchTitle}
+      fetchMetadata={fetchMetadata}
+      titleFetch={titleFetch}
+      onTitleEdited={() => setTitleFetch(null)}
+      undoTitleFetch={undoTitleFetch}
+      runFetchTitle={runFetchTitle}
+      runYouTubeEnrichment={runYouTubeEnrichment}
+      isReportingTitle={isReportingTitle}
+      setIsReportingTitle={setIsReportingTitle}
+      expectedTitle={expectedTitle}
+      setExpectedTitle={setExpectedTitle}
+      onNameBlur={() => {
+        runAutofill();
+        saveTitle();
+        primaryLanguage.syncPrimaryValue(form.getFieldValue("title").trim());
+      }}
+    />
+  );
 }
 
-/** Edit a bookmark's core fields: URL, name, description, category, and tags. */
-export function BookmarkGeneralForm({
+/** Primary display language — the react-query-backed `usePrimaryLanguageField`, shared via context. */
+export function BookmarkPrimaryLanguageEditField() {
+  const {
+    ctrl,
+    primaryLanguage,
+  } = useBookmarkGeneralFormContext();
+  return (
+    <PrimaryLanguageField
+      value={primaryLanguage.primaryLanguageId}
+      onValueChange={v => primaryLanguage.setPrimaryLanguage(v, ctrl.form.getFieldValue("title"))}
+    />
+  );
+}
+
+/** The multilingual "Names" editor (self-contained; needs only the bookmark id). */
+export function BookmarkNamesEditField({
   bookmark,
-}: BookmarkGeneralFormProps) {
+}: { bookmark: Bookmark }) {
   const {
     t,
   } = useTranslation();
-  const ctrl = useBookmarkGeneralForm(bookmark);
-  const primaryLanguage = usePrimaryLanguageField("bookmark", bookmark.id);
+  return (
+    <div className="space-y-1">
+      <Label>{t("Names")}</Label>
+      <EntityNamesTabEditor
+        ownerType="bookmark"
+        ownerId={bookmark.id}
+      />
+    </div>
+  );
+}
+
+/** URL field + cleanup/duplicate warnings, plus the website-lookup banner and autofill offer. */
+export function BookmarkUrlEditField({
+  bookmark,
+}: { bookmark: Bookmark }) {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
   const {
     form,
     categories,
-    fetchTitle,
-    fetchMetadata,
     websiteLookup,
     channelHintRef,
     youtubeChannel,
     setYoutubeChannel,
     websiteSiteName,
     setWebsiteSiteName,
-    isReportingTitle,
-    setIsReportingTitle,
-    expectedTitle,
-    setExpectedTitle,
-    titleFetch,
-    setTitleFetch,
     autofillOfferDismissed,
     setAutofillOfferDismissed,
-    socialAccountOffer,
-    setSocialAccountOffer,
-    createPersonFromSocialAccount,
-    runAutofill,
     runFetchTitle,
-    runFetchDescription,
-    runYouTubeEnrichment,
-    undoTitleFetch,
-    saveField,
-    saveTitle,
-    saveDescription,
   } = ctrl;
-
-  // Register the header "Sync from source" button for this bookmark (re-scan its URL). Staged
-  // Title/Description values persist through the same per-field auto-save the form's fields use.
-  useBookmarkSyncRegistration({
-    bookmark,
-    form,
-    onFieldStaged: () => {
-      saveTitle();
-      saveDescription();
-    },
-  });
-
   return (
-    <div className="space-y-4">
-      <BookmarkNameField
-        form={form}
-        fetchTitle={fetchTitle}
-        fetchMetadata={fetchMetadata}
-        titleFetch={titleFetch}
-        onTitleEdited={() => setTitleFetch(null)}
-        undoTitleFetch={undoTitleFetch}
-        runFetchTitle={runFetchTitle}
-        runYouTubeEnrichment={runYouTubeEnrichment}
-        isReportingTitle={isReportingTitle}
-        setIsReportingTitle={setIsReportingTitle}
-        expectedTitle={expectedTitle}
-        setExpectedTitle={setExpectedTitle}
-        onNameBlur={() => {
-          runAutofill();
-          saveTitle();
-          primaryLanguage.syncPrimaryValue(form.getFieldValue("title").trim());
-        }}
-      />
-
-      <PrimaryLanguageField
-        value={primaryLanguage.primaryLanguageId}
-        onValueChange={v => primaryLanguage.setPrimaryLanguage(v, form.getFieldValue("title"))}
-      />
-
-      <div className="space-y-1">
-        <Label>{t("Names")}</Label>
-        <EntityNamesTabEditor
-          ownerType="bookmark"
-          ownerId={bookmark.id}
-        />
-      </div>
-
+    <>
       <BookmarkGeneralUrlSection
         ctrl={ctrl}
         bookmark={bookmark}
@@ -151,14 +167,46 @@ export function BookmarkGeneralForm({
           )}
         </form.Subscribe>
       )}
+    </>
+  );
+}
 
-      <BookmarkDescriptionField
-        form={form}
-        fetchMetadata={fetchMetadata}
-        runFetchDescription={runFetchDescription}
-        onBlur={saveDescription}
-      />
+/** Description textarea; saves on blur. */
+export function BookmarkDescriptionEditField() {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
+  const {
+    form,
+    fetchMetadata,
+    runFetchDescription,
+    saveDescription,
+  } = ctrl;
+  return (
+    <BookmarkDescriptionField
+      form={form}
+      fetchMetadata={fetchMetadata}
+      runFetchDescription={runFetchDescription}
+      onBlur={saveDescription}
+    />
+  );
+}
 
+/** Category combobox (+ the person social-account offer it can surface). */
+export function BookmarkCategoryEditField() {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
+  const {
+    form,
+    categories,
+    saveField,
+    socialAccountOffer,
+    setSocialAccountOffer,
+    createPersonFromSocialAccount,
+  } = ctrl;
+  return (
+    <>
       <div
         className="
           grid gap-4
@@ -179,34 +227,98 @@ export function BookmarkGeneralForm({
         }}
         onDismiss={() => setSocialAccountOffer(null)}
       />
+    </>
+  );
+}
 
-      <BookmarkGeneralRelationsSection ctrl={ctrl} />
+/** Media type combobox (with inline-create). */
+export function BookmarkMediaTypeEditField() {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
+  return <BookmarkMediaTypeField ctrl={ctrl} />;
+}
 
-      <CollapsibleFormSection
-        title={t("Advanced")}
-        description={t("Tags and locations excluded here will never be auto-applied by autofill rules.")}
-        defaultOpen={
-          form.state.values.blacklistedTagIds.length > 0
-          || form.state.values.blacklistedLocationIds.length > 0
-        }
-        preview={(
-          <form.Subscribe
-            selector={state => [
-              state.values.blacklistedTagIds.length,
-              state.values.blacklistedLocationIds.length,
-            ] as const}
-          >
-            {([tagCount, locationCount]) => (tagCount === 0 && locationCount === 0
+/** Tags multi-select (with inline-create). */
+export function BookmarkTagsEditField() {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
+  return <BookmarkTagsSelectField ctrl={ctrl} />;
+}
+
+/** Advanced → Tag blacklist. */
+export function BookmarkTagBlacklistEditField() {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
+  return <BookmarkTagBlacklistField ctrl={ctrl} />;
+}
+
+/** Advanced → Location blacklist. */
+export function BookmarkLocationBlacklistEditField() {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
+  return <BookmarkLocationBlacklistField ctrl={ctrl} />;
+}
+
+interface BookmarkGeneralFormProps {
+  bookmark: Bookmark;
+}
+
+/**
+ * Edit a bookmark's core fields: name, primary language, names, URL, description, category, media type,
+ * tags, and the Advanced tag/location blacklists. Recomposed from the extracted per-field components
+ * (each reads the shared controller from context) so its existing story/test render unchanged even
+ * though the layout-driven registry now drives these same fields individually on the edit page.
+ */
+export function BookmarkGeneralForm({
+  bookmark,
+}: BookmarkGeneralFormProps) {
+  const {
+    t,
+  } = useTranslation();
+
+  return (
+    <BookmarkGeneralFormProvider bookmark={bookmark}>
+      <div className="space-y-4">
+        <BookmarkNameEditField />
+        <BookmarkPrimaryLanguageEditField />
+        <BookmarkNamesEditField bookmark={bookmark} />
+        <BookmarkUrlEditField bookmark={bookmark} />
+        <BookmarkDescriptionEditField />
+        <BookmarkCategoryEditField />
+        <BookmarkMediaTypeEditField />
+        <BookmarkTagsEditField />
+
+        <CollapsibleFormSection
+          title={t("Advanced")}
+          description={t("Tags and locations excluded here will never be auto-applied by autofill rules.")}
+          defaultOpen={
+            bookmark.blacklistedTagIds.length > 0
+            || bookmark.blacklistedLocationIds.length > 0
+          }
+          preview={
+            bookmark.blacklistedTagIds.length === 0 && bookmark.blacklistedLocationIds.length === 0
               ? t("No exclusions")
               : t("{{tagCount}} tags, {{locationCount}} locations excluded", {
-                tagCount,
-                locationCount,
-              }))}
-          </form.Subscribe>
-        )}
-      >
-        <BookmarkBlacklistSection ctrl={ctrl} />
-      </CollapsibleFormSection>
-    </div>
+                tagCount: bookmark.blacklistedTagIds.length,
+                locationCount: bookmark.blacklistedLocationIds.length,
+              })
+          }
+        >
+          <div
+            className="
+              grid gap-4
+              md:grid-cols-2
+            "
+          >
+            <BookmarkTagBlacklistEditField />
+            <BookmarkLocationBlacklistEditField />
+          </div>
+        </CollapsibleFormSection>
+      </div>
+    </BookmarkGeneralFormProvider>
   );
 }
