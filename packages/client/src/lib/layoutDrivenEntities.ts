@@ -8,6 +8,7 @@ import { genreMoodWorkbench } from "../components/workbench/genreMood";
 import { newsletterWorkbench } from "../components/workbench/newsletter";
 import { propertyWorkbench } from "../components/workbench/property";
 import { tagWorkbench } from "../components/workbench/tag";
+import { websiteWorkbench } from "../components/workbench/website";
 import i18n from "../i18n";
 
 /** One entity kind selectable on the Page Layouts settings page. */
@@ -78,6 +79,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Tag"),
     fields: fieldsFromRegistry(tagWorkbench.fields),
     defaultLayout: tagWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "website",
+    label: i18n.t("Website"),
+    fields: fieldsFromRegistry(websiteWorkbench.fields),
+    defaultLayout: websiteWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },
