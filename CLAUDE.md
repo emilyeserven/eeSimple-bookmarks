@@ -524,11 +524,12 @@ registry edit, never a pane edit.
   `PUT` a layout for a kind and the live page rearranges in both modes; `DELETE` resets to the default.
   - **Editor selectable-list caveat.** The render path honors stored layouts for **all** kinds, but the
     editor's kind picker (`LAYOUT_DRIVEN_ENTITIES` in `lib/layoutDrivenEntities.ts`) currently lists only
-    **Category, Newsletter, Group, Bookmark, Genres & Moods, Tag, Custom Property, Website, Media Type,
-    Location, YouTube Channel, Person, Autofill**. Growing it to the rest is a follow-up — add one
-    `{ kind, label, fields, defaultLayout }` entry per kind; the render side needs no change. (An entity
-    is added here once its General composite is broken into granular fields — e.g. Group #1195, Website
-    #1188, Location #1191, YouTube Channel #1192, Person #1194, Autofill #1197.)
+    **Category, Newsletter, Group, Bookmark, Custom Property, Genres & Moods, Tag, Website, Media Type,
+    Location, YouTube Channel, Person, Autofill, Card Display Rule**. Growing it to the rest is a
+    follow-up — add one `{ kind, label, fields, defaultLayout }` entry per kind; the render side needs no
+    change. (An entity is added here once its General composite (or, for a config entity, its main
+    composite field) is broken into granular fields — e.g. Group #1195, Website #1188, Location #1191,
+    YouTube Channel #1192, Person #1194, Autofill #1197, Card Display Rule #1198.)
 - **Explicitly out of scope for v1 — don't "fix" these:**
   - **Create forms are unaffected.** The Add Bookmark quick-create form keeps its own, separate placement
     system (Settings → Display → Bookmark Add Form; see **Add Bookmark form field placement** + the

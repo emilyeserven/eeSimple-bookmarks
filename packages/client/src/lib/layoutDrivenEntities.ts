@@ -4,6 +4,7 @@ import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 
 import { autofillWorkbench } from "../components/workbench/autofill";
 import { bookmarkWorkbench } from "../components/workbench/bookmark";
+import { cardDisplayRuleWorkbench } from "../components/workbench/cardDisplayRule";
 import { categoryWorkbench } from "../components/workbench/category";
 import { genreMoodWorkbench } from "../components/workbench/genreMood";
 import { groupWorkbench } from "../components/workbench/group";
@@ -141,6 +142,14 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Autofill Rules"),
     fields: fieldsFromRegistry(autofillWorkbench.fields),
     defaultLayout: autofillWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
+    kind: "card-display-rule",
+    label: i18n.t("Card Display Rule"),
+    fields: fieldsFromRegistry(cardDisplayRuleWorkbench.fields),
+    defaultLayout: cardDisplayRuleWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },

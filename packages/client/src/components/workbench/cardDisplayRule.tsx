@@ -3,29 +3,58 @@ import type { CardDisplayRule, EntityLayout } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { CardDisplayRuleConditionsForm } from "../CardDisplayRuleConditionsForm";
-import { CardDisplayRuleDisplayForm } from "../CardDisplayRuleDisplayForm";
+import { CardDisplayRuleDisplayProvider } from "../CardDisplayRuleDisplayContext";
 import { CardDisplayRuleGeneralForm } from "../CardDisplayRuleGeneralForm";
 import {
   CardDisplayRuleConditionsView,
   CardDisplayRuleDisplayView,
   CardDisplayRuleGeneralView,
 } from "../CardDisplayRuleViews";
+import {
+  CardDisplayRuleCardZoneLayoutsField,
+  CardDisplayRuleFieldZonesField,
+  CardDisplayRuleHideWebsiteField,
+  CardDisplayRuleImageAspectField,
+  CardDisplayRuleImageLayoutField,
+  CardDisplayRuleImageVisibilityField,
+  CardDisplayRulePreviewEditField,
+} from "./cardDisplayRuleDisplayFields";
 
 import { useCardDisplayRuleById, useCardDisplayRuleBySlug, useDeleteCardDisplayRule } from "@/hooks/useCardDisplayRules";
 
 /**
- * The card-display-rule workbench's field registry (#1106 layout editor). Each existing tab pane
- * becomes ONE placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key — the
- * composite-editor recipe (#1165): `display`'s edit renderer is the card-field-zone + image
- * presentation editor, kept as one opaque block. The former tab-level
- * `showIf: rule => !rule.isDefault` (the Default rule matches every card unconditionally, so it has
- * no conditions to edit) moves onto the `conditions` field itself. Authored as an exhaustive
+ * The card-display-rule workbench's field registry (#1106 layout editor). `general` and `conditions`
+ * are whole tab panes (the Conditions builder is a composite editor kept as one field, hidden for the
+ * Default rule via its own `showIf`). The former single opaque `display` composite is **atomized**
+ * (#1198) into independently-placeable fields — the four image-presentation overrides, the
+ * `CardFieldZoneBoard` (kept one composite field), the section-layout controls, and a `preview` — each
+ * granular edit field reading the one shared `RuleDisplayValue` controller from
+ * `CardDisplayRuleDisplayProvider` via the shared-`useAppForm` extraction seam (#1188:
+ * `sharedFormFieldKeys` + `editFormProvider`, mirroring `websiteWorkbench`). Authored as an exhaustive
  * `Record<CardDisplayRuleFieldKey, …>` so a key without a renderer fails `tsc`.
  */
 type CardDisplayRuleFieldKey
   = | "general"
     | "conditions"
-    | "display";
+    | "imageVisibility"
+    | "imageMode"
+    | "imageLayout"
+    | "hideWebsiteForYouTube"
+    | "fieldZones"
+    | "cardZoneLayouts"
+    | "preview";
+
+/** The Display-tab field keys whose `edit` renderer reads the shared `useCardDisplayRuleDisplay`
+ *  controller from {@link CardDisplayRuleDisplayProvider}. Drives `EntityEditView`'s provider gate. */
+const CARD_DISPLAY_RULE_SHARED_FORM_FIELD_KEYS = new Set<string>([
+  "imageVisibility",
+  "imageMode",
+  "imageLayout",
+  "hideWebsiteForYouTube",
+  "fieldZones",
+  "cardZoneLayouts",
+  "preview",
+]);
 
 const cardDisplayRuleFields = {
   general: {
@@ -41,15 +70,51 @@ const cardDisplayRuleFields = {
     view: CardDisplayRuleConditionsView,
     edit: CardDisplayRuleConditionsForm,
   },
-  display: {
-    key: "display",
-    label: i18n.t("Display"),
+  imageVisibility: {
+    key: "imageVisibility",
+    label: i18n.t("Image visibility"),
+    edit: () => <CardDisplayRuleImageVisibilityField />,
+  },
+  imageMode: {
+    key: "imageMode",
+    label: i18n.t("Image aspect"),
+    edit: () => <CardDisplayRuleImageAspectField />,
+  },
+  imageLayout: {
+    key: "imageLayout",
+    label: i18n.t("Image layout"),
+    edit: () => <CardDisplayRuleImageLayoutField />,
+  },
+  hideWebsiteForYouTube: {
+    key: "hideWebsiteForYouTube",
+    label: i18n.t("Website pill on YouTube"),
+    edit: () => <CardDisplayRuleHideWebsiteField />,
+  },
+  fieldZones: {
+    key: "fieldZones",
+    label: i18n.t("Card fields"),
+    edit: () => <CardDisplayRuleFieldZonesField />,
+  },
+  cardZoneLayouts: {
+    key: "cardZoneLayouts",
+    label: i18n.t("Section layout"),
+    edit: () => <CardDisplayRuleCardZoneLayoutsField />,
+  },
+  preview: {
+    key: "preview",
+    label: i18n.t("Card preview"),
     view: CardDisplayRuleDisplayView,
-    edit: CardDisplayRuleDisplayForm,
+    edit: () => <CardDisplayRulePreviewEditField />,
   },
 } satisfies Record<CardDisplayRuleFieldKey, WorkbenchField<CardDisplayRule>>;
 
-/** The code-defined default layout — the current tab list, one untitled section per tab. */
+/**
+ * The code-defined default layout — the current three tabs. The Display tab now holds the atomized
+ * display fields in one untitled section, in the same top-to-bottom order the opaque composite
+ * rendered them (image rows → field zones → section layout → preview). In **view** mode every
+ * display field but `preview` is edit-only and drops out, so the Display view stays the single
+ * read-only card preview it was.
+ */
 const CARD_DISPLAY_RULE_DEFAULT_LAYOUT: EntityLayout = {
   tabs: [
     {
@@ -73,7 +138,15 @@ const CARD_DISPLAY_RULE_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("Display"),
       sections: [{
         key: "display",
-        fields: ["display"] satisfies CardDisplayRuleFieldKey[],
+        fields: [
+          "imageVisibility",
+          "imageMode",
+          "imageLayout",
+          "hideWebsiteForYouTube",
+          "fieldZones",
+          "cardZoneLayouts",
+          "preview",
+        ] satisfies CardDisplayRuleFieldKey[],
       }],
     },
   ],
@@ -118,6 +191,13 @@ export const cardDisplayRuleWorkbench: EntityWorkbench<CardDisplayRule> = {
   layoutKind: "card-display-rule",
   fields: cardDisplayRuleFields,
   defaultLayout: CARD_DISPLAY_RULE_DEFAULT_LAYOUT,
+  // Shared-`useAppForm` extraction (#1188, #1198): the granular Display edit fields read one controller
+  // from `CardDisplayRuleDisplayProvider`, which `EntityEditView` mounts around the edit body whenever
+  // the active tab hosts one of these keys.
+  sharedFormFieldKeys: CARD_DISPLAY_RULE_SHARED_FORM_FIELD_KEYS,
+  editFormProvider: ({
+    entity, children,
+  }) => <CardDisplayRuleDisplayProvider rule={entity}>{children}</CardDisplayRuleDisplayProvider>,
   // Layout-driven: the tab rail + section stacks come from `fields` + `defaultLayout`. `tabs` is
   // retained only to satisfy the descriptor's type requirement — a config entity, so no nav groups.
   tabs: [

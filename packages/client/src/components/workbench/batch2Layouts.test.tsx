@@ -255,12 +255,33 @@ describe("import rule default layout", () => {
 describe("card display rule default layout", () => {
   const expectedTabs = ["general", "conditions", "display"];
 
+  function displayFields(mode: WorkbenchMode): string[] {
+    const display = shape(cardDisplayRuleWorkbench, mode).find(tab => tab.key === "display");
+    return display?.sections.flatMap(section => section.fields) ?? [];
+  }
+
   it("renders the view tabs in order", () => {
     expect(shape(cardDisplayRuleWorkbench, "view").map(tab => tab.key)).toEqual(expectedTabs);
   });
 
   it("renders the edit tabs in order", () => {
     expect(shape(cardDisplayRuleWorkbench, "edit").map(tab => tab.key)).toEqual(expectedTabs);
+  });
+
+  it("shows only the preview in the Display tab in view mode (the granular controls are edit-only)", () => {
+    expect(displayFields("view")).toEqual(["preview"]);
+  });
+
+  it("atomizes the Display composite into granular fields in edit mode", () => {
+    expect(displayFields("edit")).toEqual([
+      "imageVisibility",
+      "imageMode",
+      "imageLayout",
+      "hideWebsiteForYouTube",
+      "fieldZones",
+      "cardZoneLayouts",
+      "preview",
+    ]);
   });
 });
 
@@ -293,7 +314,7 @@ describe("stored layout rearrangement (end-to-end loop, one tree entity + one co
     expect(editKeys).not.toContain("autofill");
   });
 
-  it("moves a card display rule field into a brand-new user-created tab in both modes", () => {
+  it("moves a granular card display rule field into a brand-new user-created tab in edit mode", () => {
     const stored: EntityLayout = {
       tabs: [
         {
@@ -301,16 +322,20 @@ describe("stored layout rearrangement (end-to-end loop, one tree entity + one co
           label: "Extras",
           sections: [{
             key: "s",
-            fields: ["display"],
+            fields: ["fieldZones"],
           }],
         },
       ],
     };
-    const viewKeys = shape(cardDisplayRuleWorkbench, "view", stored).map(tab => tab.key);
-    const editKeys = shape(cardDisplayRuleWorkbench, "edit", stored).map(tab => tab.key);
-    expect(viewKeys).toContain("extras");
+    const editTabs = shape(cardDisplayRuleWorkbench, "edit", stored);
+    const editKeys = editTabs.map(tab => tab.key);
     expect(editKeys).toContain("extras");
-    expect(viewKeys).not.toContain("display");
-    expect(editKeys).not.toContain("display");
+    const extras = editTabs.find(tab => tab.key === "extras");
+    expect(extras?.sections.flatMap(section => section.fields)).toContain("fieldZones");
+    // The Display tab keeps its remaining fields — moving one field never empties it.
+    const display = editTabs.find(tab => tab.key === "display");
+    expect(display?.sections.flatMap(section => section.fields)).not.toContain("fieldZones");
+    // `fieldZones` is edit-only, so the user tab holding only it disappears in view mode.
+    expect(shape(cardDisplayRuleWorkbench, "view", stored).map(tab => tab.key)).not.toContain("extras");
   });
 });

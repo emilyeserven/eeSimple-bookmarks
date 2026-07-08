@@ -31,20 +31,73 @@ const OVERRIDE_DEFAULTS = {
   hideWebsiteForYouTube: false,
 };
 
-interface CardDisplayImageControlsProps {
+/** Shared props for a single image-presentation override row. */
+interface ImageRowProps {
   value: RuleDisplayValue;
   onChange: (patch: Partial<RuleDisplayValue>) => void;
   idPrefix: string;
   isDefault: boolean;
 }
 
-/**
- * The image-related display rows of a card display rule: visibility, aspect, layout, and the
- * hide-website-for-YouTube toggle — each wrapped in an `OverridableRow`.
- */
-export function CardDisplayImageControls({
+/** The "Images" visibility row (Show / Only / Off). Its own placeable field (#1198). */
+export function ImageVisibilityRow({
   value, onChange, idPrefix, isDefault,
-}: CardDisplayImageControlsProps) {
+}: ImageRowProps) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <OverridableRow
+      label={t("Images")}
+      idPrefix={idPrefix}
+      attr="imageVisibility"
+      isDefault={isDefault}
+      isOverridden={value.imageVisibility !== null}
+      onOverrideChange={on => onChange({
+        imageVisibility: on ? OVERRIDE_DEFAULTS.imageVisibility : null,
+      })}
+    >
+      <ToggleGroup
+        type="single"
+        size="sm"
+        value={value.imageVisibility ?? OVERRIDE_DEFAULTS.imageVisibility}
+        className="gap-0 overflow-hidden rounded-md border border-input"
+        onValueChange={(next) => {
+          if (next) onChange({
+            imageVisibility: next as BookmarkImageVisibility,
+          });
+        }}
+      >
+        <ToggleGroupItem
+          value="shown"
+          className="
+            rounded-none border-r border-input
+            first:rounded-l-sm
+          "
+        >{t("Show")}
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="image-only"
+          className="rounded-none border-r border-input"
+        >{t("Only")}
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="off"
+          className="
+            rounded-none
+            last:rounded-r-sm
+          "
+        >{t("Off")}
+        </ToggleGroupItem>
+      </ToggleGroup>
+    </OverridableRow>
+  );
+}
+
+/** The "Aspect" row (natural / cropped / square / custom ratio). Its own placeable field (#1198). */
+export function ImageAspectRow({
+  value, onChange, idPrefix, isDefault,
+}: ImageRowProps) {
   const {
     t,
   } = useTranslation();
@@ -54,145 +107,163 @@ export function CardDisplayImageControls({
     data: customRatios = [],
   } = useCustomAspectRatios();
   const aspectOptions = buildAspectOptions(croppedWidth, croppedHeight, customRatios);
+  return (
+    <OverridableRow
+      label={t("Aspect")}
+      idPrefix={idPrefix}
+      attr="imageMode"
+      isDefault={isDefault}
+      isOverridden={value.imageMode !== null}
+      onOverrideChange={on => onChange({
+        imageMode: on ? OVERRIDE_DEFAULTS.imageMode : null,
+      })}
+    >
+      <Select
+        value={value.imageMode ?? OVERRIDE_DEFAULTS.imageMode}
+        onValueChange={next => onChange({
+          imageMode: next,
+        })}
+      >
+        <SelectTrigger className="h-7 w-44 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {aspectOptions.map(opt => (
+            <SelectItem
+              key={opt.value}
+              value={opt.value}
+            >
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </OverridableRow>
+  );
+}
 
+/** The "Layout" row (Above / Side). Its own placeable field (#1198). */
+export function ImageLayoutRow({
+  value, onChange, idPrefix, isDefault,
+}: ImageRowProps) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <OverridableRow
+      label={t("Layout")}
+      idPrefix={idPrefix}
+      attr="imageLayout"
+      isDefault={isDefault}
+      isOverridden={value.imageLayout !== null}
+      onOverrideChange={on => onChange({
+        imageLayout: on ? OVERRIDE_DEFAULTS.imageLayout : null,
+      })}
+      hint={t("Side layout only applies at 1–2 columns.")}
+    >
+      <ToggleGroup
+        type="single"
+        size="sm"
+        value={value.imageLayout ?? OVERRIDE_DEFAULTS.imageLayout}
+        className="gap-0 overflow-hidden rounded-md border border-input"
+        onValueChange={(next) => {
+          if (next) onChange({
+            imageLayout: next as HomepageSectionImageLayout,
+          });
+        }}
+      >
+        <ToggleGroupItem
+          value="above"
+          className="
+            rounded-none border-r border-input
+            first:rounded-l-sm
+          "
+        >{t("Above")}
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="side"
+          className="
+            rounded-none
+            last:rounded-r-sm
+          "
+        >{t("Side")}
+        </ToggleGroupItem>
+      </ToggleGroup>
+    </OverridableRow>
+  );
+}
+
+/** The "Hide website for YouTube" row. Its own placeable field (#1198). */
+export function HideWebsiteRow({
+  value, onChange, idPrefix, isDefault,
+}: ImageRowProps) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <OverridableRow
+      label={t("Hide website for YouTube")}
+      idPrefix={idPrefix}
+      attr="hideWebsiteForYouTube"
+      isDefault={isDefault}
+      isOverridden={value.hideWebsiteForYouTube !== null}
+      onOverrideChange={on => onChange({
+        hideWebsiteForYouTube: on ? OVERRIDE_DEFAULTS.hideWebsiteForYouTube : null,
+      })}
+      hint={t("Hides the website pill on a card that also has a YouTube channel.")}
+    >
+      <OnOffToggleGroup
+        value={value.hideWebsiteForYouTube ?? OVERRIDE_DEFAULTS.hideWebsiteForYouTube}
+        onChange={on => onChange({
+          hideWebsiteForYouTube: on,
+        })}
+      />
+    </OverridableRow>
+  );
+}
+
+interface CardDisplayImageControlsProps {
+  value: RuleDisplayValue;
+  onChange: (patch: Partial<RuleDisplayValue>) => void;
+  idPrefix: string;
+  isDefault: boolean;
+}
+
+/**
+ * The image-related display rows of a card display rule: visibility, aspect, layout, and the
+ * hide-website-for-YouTube toggle — each wrapped in an `OverridableRow`. Recomposed from the four
+ * per-row components so the monolithic modal form (`CardDisplayRuleForm`) is unchanged while each row
+ * is also independently placeable as a workbench field (#1198).
+ */
+export function CardDisplayImageControls({
+  value, onChange, idPrefix, isDefault,
+}: CardDisplayImageControlsProps) {
   return (
     <>
-      <OverridableRow
-        label={t("Images")}
+      <ImageVisibilityRow
+        value={value}
+        onChange={onChange}
         idPrefix={idPrefix}
-        attr="imageVisibility"
         isDefault={isDefault}
-        isOverridden={value.imageVisibility !== null}
-        onOverrideChange={on => onChange({
-          imageVisibility: on ? OVERRIDE_DEFAULTS.imageVisibility : null,
-        })}
-      >
-        <ToggleGroup
-          type="single"
-          size="sm"
-          value={value.imageVisibility ?? OVERRIDE_DEFAULTS.imageVisibility}
-          className="gap-0 overflow-hidden rounded-md border border-input"
-          onValueChange={(next) => {
-            if (next) onChange({
-              imageVisibility: next as BookmarkImageVisibility,
-            });
-          }}
-        >
-          <ToggleGroupItem
-            value="shown"
-            className="
-              rounded-none border-r border-input
-              first:rounded-l-sm
-            "
-          >{t("Show")}
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="image-only"
-            className="rounded-none border-r border-input"
-          >{t("Only")}
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="off"
-            className="
-              rounded-none
-              last:rounded-r-sm
-            "
-          >{t("Off")}
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </OverridableRow>
-
-      <OverridableRow
-        label={t("Aspect")}
+      />
+      <ImageAspectRow
+        value={value}
+        onChange={onChange}
         idPrefix={idPrefix}
-        attr="imageMode"
         isDefault={isDefault}
-        isOverridden={value.imageMode !== null}
-        onOverrideChange={on => onChange({
-          imageMode: on ? OVERRIDE_DEFAULTS.imageMode : null,
-        })}
-      >
-        <Select
-          value={value.imageMode ?? OVERRIDE_DEFAULTS.imageMode}
-          onValueChange={next => onChange({
-            imageMode: next,
-          })}
-        >
-          <SelectTrigger className="h-7 w-44 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {aspectOptions.map(opt => (
-              <SelectItem
-                key={opt.value}
-                value={opt.value}
-              >
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </OverridableRow>
-
-      <OverridableRow
-        label={t("Layout")}
+      />
+      <ImageLayoutRow
+        value={value}
+        onChange={onChange}
         idPrefix={idPrefix}
-        attr="imageLayout"
         isDefault={isDefault}
-        isOverridden={value.imageLayout !== null}
-        onOverrideChange={on => onChange({
-          imageLayout: on ? OVERRIDE_DEFAULTS.imageLayout : null,
-        })}
-        hint={t("Side layout only applies at 1–2 columns.")}
-      >
-        <ToggleGroup
-          type="single"
-          size="sm"
-          value={value.imageLayout ?? OVERRIDE_DEFAULTS.imageLayout}
-          className="gap-0 overflow-hidden rounded-md border border-input"
-          onValueChange={(next) => {
-            if (next) onChange({
-              imageLayout: next as HomepageSectionImageLayout,
-            });
-          }}
-        >
-          <ToggleGroupItem
-            value="above"
-            className="
-              rounded-none border-r border-input
-              first:rounded-l-sm
-            "
-          >{t("Above")}
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="side"
-            className="
-              rounded-none
-              last:rounded-r-sm
-            "
-          >{t("Side")}
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </OverridableRow>
-
-      <OverridableRow
-        label={t("Hide website for YouTube")}
+      />
+      <HideWebsiteRow
+        value={value}
+        onChange={onChange}
         idPrefix={idPrefix}
-        attr="hideWebsiteForYouTube"
         isDefault={isDefault}
-        isOverridden={value.hideWebsiteForYouTube !== null}
-        onOverrideChange={on => onChange({
-          hideWebsiteForYouTube: on ? OVERRIDE_DEFAULTS.hideWebsiteForYouTube : null,
-        })}
-        hint={t("Hides the website pill on a card that also has a YouTube channel.")}
-      >
-        <OnOffToggleGroup
-          value={value.hideWebsiteForYouTube ?? OVERRIDE_DEFAULTS.hideWebsiteForYouTube}
-          onChange={on => onChange({
-            hideWebsiteForYouTube: on,
-          })}
-        />
-      </OverridableRow>
+      />
     </>
   );
 }
