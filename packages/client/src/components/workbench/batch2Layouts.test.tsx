@@ -88,6 +88,10 @@ describe("tag default layout", () => {
 });
 
 describe("media type default layout", () => {
+  /** The General tab's flattened section field-key order for a mode. */
+  const generalFields = (mode: WorkbenchMode) =>
+    shape(mediaTypeWorkbench, mode).find(tab => tab.key === "general")?.sections.flatMap(section => section.fields);
+
   it("renders the view tabs in order (Hierarchy present)", () => {
     expect(shape(mediaTypeWorkbench, "view").map(tab => tab.key)).toEqual([
       "general", "hierarchy", "autofill", "display-rules",
@@ -97,6 +101,23 @@ describe("media type default layout", () => {
   it("renders the edit tabs in order (Hierarchy dropped, view-only)", () => {
     expect(shape(mediaTypeWorkbench, "edit").map(tab => tab.key)).toEqual([
       "general", "autofill", "display-rules",
+    ]);
+  });
+
+  it("atomizes the General composite into granular view fields (#1189)", () => {
+    // Edit-only `name`/`genreMoods` drop in view.
+    expect(generalFields("view")).toEqual([
+      "added", "slug", "hidden", "sortOrder", "description",
+      "primaryLanguage", "names", "parent", "icon", "autofillSources", "bookmarks",
+    ]);
+  });
+
+  it("atomizes the General composite into granular edit fields (#1189)", () => {
+    // View-only `added`/`slug`/`autofillSources`/`bookmarks` drop in edit; the rest reproduce the
+    // pre-#1189 edit order exactly.
+    expect(generalFields("edit")).toEqual([
+      "hidden", "name", "sortOrder", "description",
+      "primaryLanguage", "names", "parent", "icon", "genreMoods",
     ]);
   });
 });
@@ -126,6 +147,25 @@ describe("custom property default layout", () => {
 
   it("renders the edit tabs in order", () => {
     expect(shape(propertyWorkbench, "edit").map(tab => tab.key)).toEqual(expectedTabs);
+  });
+
+  // The atomized General composite (#1196): one section, five fields ordered so each mode drops the
+  // fields it lacks a renderer for — edit keeps name/type/status/description; view keeps
+  // status/description/created (name/type are edit-only, created is view-only).
+  it("splits the General tab into granular view fields", () => {
+    const general = shape(propertyWorkbench, "view").find(tab => tab.key === "general");
+    expect(general?.sections).toEqual([{
+      key: "general",
+      fields: ["status", "description", "created"],
+    }]);
+  });
+
+  it("splits the General tab into granular edit fields", () => {
+    const general = shape(propertyWorkbench, "edit").find(tab => tab.key === "general");
+    expect(general?.sections).toEqual([{
+      key: "general",
+      fields: ["name", "type", "status", "description"],
+    }]);
   });
 });
 

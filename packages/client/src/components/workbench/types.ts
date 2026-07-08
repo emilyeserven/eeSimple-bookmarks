@@ -119,6 +119,23 @@ export interface EntityWorkbench<E extends { id: string }> {
    */
   defaultLayout?: EntityLayout;
   /**
+   * **Shared-`useAppForm` extraction seam (#1188).** When a General composite is broken into granular
+   * edit fields that all read **one** controller from a React context (the form-context-provider
+   * pattern — see the `surface-entity-field` skill), `EntityEditView` wraps the edit body in
+   * {@link editFormProvider} whenever the active tab hosts any of these field keys, so the single
+   * controller mounts exactly where the fields live (and follows them if an operator relocates them via
+   * Page Layouts). This is the slug-routed analogue of `BookmarkEditView`'s `SHARED_FORM_FIELD_KEYS`;
+   * omit both when no field needs a shared controller. Reference: `websiteWorkbench`.
+   */
+  sharedFormFieldKeys?: Set<string>;
+  /**
+   * The provider that instantiates the shared edit-form controller once (see {@link sharedFormFieldKeys}).
+   * `EntityEditView` renders `<Provider entity={entity}>{editBody}</Provider>` around the active edit
+   * tab. Omit for entities whose granular fields are all independently-backed.
+   */
+  editFormProvider?: (props: { entity: E;
+    children: ReactNode; }) => ReactNode;
+  /**
    * Returns the entity's URL identifier (slug or id) for its main-pane page.
    * When present, the panel header shows an "Open in main pane" button.
    * Omit for entities without a dedicated slug-routed main-pane page.

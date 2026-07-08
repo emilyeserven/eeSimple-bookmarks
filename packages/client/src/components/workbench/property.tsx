@@ -8,12 +8,20 @@ import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import {
   PropertyCategoriesContent,
+  PropertyCreatedView,
+  PropertyDescriptionView,
   PropertyDisplayFields,
-  PropertyGeneralFields,
   PropertyMediaTypesContent,
   PropertyOptionsFields,
+  PropertyStatusView,
 } from "../PropertyDetail";
 import { PropertyEditForm } from "../PropertyEditForm";
+import {
+  PropertyDescriptionField,
+  PropertyNameField,
+  PropertyStatusField,
+  PropertyTypeField,
+} from "../PropertyGeneralEditForm";
 
 import { useCategories } from "@/hooks/useCategories";
 import { useCustomProperties, useDeleteCustomProperty, usePropertyBySlug } from "@/hooks/useCustomProperties";
@@ -102,16 +110,24 @@ function editPane(section: PropertyFormSection) {
 }
 
 /**
- * The custom-property workbench's field registry (#1106 layout editor). Each existing tab pane
- * becomes ONE placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key (#1165
- * composite-editor recipe). The former tab-level `showIf: hasPropertyOptions` moves onto the
- * `options` field itself — `fieldRendersInMode` checks `showIf` before a field counts as visible,
- * so an options-less property's Options section (and therefore its tab) still hides exactly as
- * before. Authored as an exhaustive `Record<PropertyFieldKey, …>` so a key without a renderer fails
- * `tsc`.
+ * The custom-property workbench's field registry (#1106 layout editor). Most tab panes are ONE
+ * placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key (#1165 composite-editor
+ * recipe); the former `general` composite is atomized (#1196) into `name`/`type`/`status`/
+ * `description`/`created` so each row is independently placeable in Page Layouts. View/edit parity is
+ * by construction: `name`/`type` are edit-only, `created` is view-only, `status`/`description` carry
+ * both. Ordered so the default layout renders byte-identically in both modes — edit-visible fields are
+ * `name → type → status → description` (the old edit order), view-visible are `status → description →
+ * created` (the old view order). The former tab-level `showIf: hasPropertyOptions` moves onto the
+ * `options` field itself — `fieldRendersInMode` checks `showIf` before a field counts as visible, so
+ * an options-less property's Options section (and therefore its tab) still hides exactly as before.
+ * Authored as an exhaustive `Record<PropertyFieldKey, …>` so a key without a renderer fails `tsc`.
  */
 type PropertyFieldKey
-  = | "general"
+  = | "name"
+    | "type"
+    | "status"
+    | "description"
+    | "created"
     | "options"
     | "categories"
     | "mediaTypes"
@@ -120,13 +136,46 @@ type PropertyFieldKey
     | "displayRules";
 
 const propertyFields = {
-  general: {
-    key: "general",
-    label: i18n.t("General"),
+  name: {
+    key: "name",
+    label: i18n.t("Name"),
+    edit: ({
+      entity,
+    }) => <PropertyNameField property={entity} />,
+  },
+  type: {
+    key: "type",
+    label: i18n.t("Type"),
+    edit: ({
+      entity,
+    }) => <PropertyTypeField property={entity} />,
+  },
+  status: {
+    key: "status",
+    label: i18n.t("Status"),
     view: ({
       entity,
-    }) => <PropertyGeneralFields property={entity} />,
-    edit: editPane("general"),
+    }) => <PropertyStatusView property={entity} />,
+    edit: ({
+      entity,
+    }) => <PropertyStatusField property={entity} />,
+  },
+  description: {
+    key: "description",
+    label: i18n.t("Description"),
+    view: ({
+      entity,
+    }) => <PropertyDescriptionView property={entity} />,
+    edit: ({
+      entity,
+    }) => <PropertyDescriptionField property={entity} />,
+  },
+  created: {
+    key: "created",
+    label: i18n.t("Created"),
+    view: ({
+      entity,
+    }) => <PropertyCreatedView property={entity} />,
   },
   options: {
     key: "options",
@@ -193,7 +242,7 @@ const PROPERTY_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["general"] satisfies PropertyFieldKey[],
+        fields: ["name", "type", "status", "description", "created"] satisfies PropertyFieldKey[],
       }],
     },
     {

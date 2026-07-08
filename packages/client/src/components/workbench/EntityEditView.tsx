@@ -172,7 +172,7 @@ export function EntityEditView<E extends { id: string }>({
   const tabs = deriveWorkbenchTabs(workbench, layout, "edit", entity);
   const active = tabs.find(tab => tab.key === activeTab)?.key ?? tabs[0]?.key;
 
-  const body = active
+  const tabBody = active
     ? (
       <WorkbenchRouteTab
         workbench={workbench}
@@ -183,6 +183,21 @@ export function EntityEditView<E extends { id: string }>({
       />
     )
     : null;
+
+  // Shared-`useAppForm` extraction (#1188): when the active tab hosts a field that reads the entity's
+  // shared edit-form controller from context, wrap the body in the descriptor's `editFormProvider` so
+  // the one controller (+ any header sync registration) mounts exactly where those fields live. The
+  // slug-routed analogue of `BookmarkEditView`'s gate. No-op for entities that set neither field.
+  const Provider = workbench.editFormProvider;
+  const sharedKeys = workbench.sharedFormFieldKeys;
+  const activeLayoutTab = active != null ? layout?.tabs.find(candidate => candidate.key === active) : undefined;
+  const hasSharedFormField = sharedKeys != null
+    && (activeLayoutTab?.sections.some(
+      section => section.fields.some(field => sharedKeys.has(field)),
+    ) ?? false);
+  const body = Provider && hasSharedFormField && entity != null
+    ? <Provider entity={entity}>{tabBody}</Provider>
+    : tabBody;
 
   // A single-tab (or tab-less) surface drops the strip — `TabbedShell` omits the `<nav>` on null.
   const nav = tabs.length <= 1
