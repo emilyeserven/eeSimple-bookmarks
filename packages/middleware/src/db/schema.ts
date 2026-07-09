@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardDisplaySection, CardFieldZones, CardZoneLayouts, ConditionTree, EntityLayout, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardDisplaySection, CardFieldZones, CardZoneLayouts, ConditionTree, EntityLayout, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteExtensionFillRule, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -322,6 +322,10 @@ export const websites = pgTable("websites", {
   // Amazon/honto/O'Reilly extractors + a generic scrape) and autofills the ISBN field. Nullable
   // (push-safe additive); NULL = false. This gates all scan-time ISBN detection.
   scanUrlForIsbn: boolean("scan_url_for_isbn"),
+  // Per-site rules for the browser extension's "check & fill" mode: CSS-selector-based extraction
+  // of field/property/taxonomy values from the live page. Nullable (push-safe additive); NULL = no
+  // rules configured. See packages/types/src/extensionFill.ts for the shape.
+  extensionFillRules: jsonb("extension_fill_rules").$type<WebsiteExtensionFillRule[]>(),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import type { WebsiteExtensionFillRule } from "@eesimple/types";
+
 import { builtInWebsiteRenamedOrMoved, buildWebsiteScalarPatch, normalizeWebsiteDomain } from "@/services/websiteUpdate";
 
 test("normalizeWebsiteDomain: strips a leading www. and lowercases", () => {
@@ -72,6 +74,59 @@ test("buildWebsiteScalarPatch: explicit null clears nullable associations", () =
     scanUrlForIsbn: true,
   }), {
     scanUrlForIsbn: true,
+  });
+});
+
+test("buildWebsiteScalarPatch: extensionFillRules omitted leaves it out; provided replaces verbatim", () => {
+  assert.equal("extensionFillRules" in buildWebsiteScalarPatch({}), false);
+
+  const rules: WebsiteExtensionFillRule[] = [
+    {
+      id: "r1",
+      label: "Pages",
+      pathSuffix: "/book",
+      target: {
+        kind: "customProperty",
+        propertyId: "prop-1",
+      },
+      extract: {
+        selector: "._statBlockTitle_1ckth_86 > *",
+        filters: [
+          {
+            kind: "siblingText",
+            match: {
+              mode: "contains",
+              value: "PRINT LENGTH:",
+            },
+          },
+        ],
+        read: {
+          kind: "attr",
+          name: "data-value",
+        },
+        transform: [{
+          kind: "number",
+        }],
+      },
+    },
+    {
+      id: "r2",
+      label: "Authors",
+      target: {
+        kind: "taxonomy",
+        taxonomy: "people",
+      },
+      extract: {
+        selector: ".authors a",
+        split: ",",
+      },
+    },
+  ];
+
+  assert.deepEqual(buildWebsiteScalarPatch({
+    extensionFillRules: rules,
+  }), {
+    extensionFillRules: rules,
   });
 });
 
