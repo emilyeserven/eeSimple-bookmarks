@@ -1,4 +1,5 @@
 import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
+import type { CSSProperties } from "react";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -12,6 +13,7 @@ import { SectionVisibilityEditor } from "./SectionVisibilityEditor";
 import { navLinkClass } from "./TabbedShell";
 import { useEntityLayout } from "../hooks/useEntityLayout";
 import { useEntityLayouts, useResetEntityLayout, useSaveEntityLayout } from "../hooks/useEntityLayouts";
+import { useHorizontalSplit } from "../hooks/useHorizontalSplit";
 import { describeError } from "../lib/apiError";
 import { notifyFieldSaveError, notifyFieldSaved } from "../lib/autoSave";
 import { LAYOUT_DRIVEN_ENTITIES, useDynamicLayoutFieldsByKind } from "../lib/layoutDrivenEntities";
@@ -42,11 +44,14 @@ interface PageLayoutsSettingsProps {
   selectedKind: LayoutableEntityKind;
   /** Change the selection — writes the `?entity=` search param (see the route). */
   onSelectKind: (kind: LayoutableEntityKind) => void;
+  /** Whether the live preview pane is shown — toggled by the page-header Preview button (route). */
+  previewOpen: boolean;
 }
 
 export function PageLayoutsSettings({
   selectedKind,
   onSelectKind,
+  previewOpen,
 }: PageLayoutsSettingsProps) {
   const {
     t,
@@ -55,7 +60,10 @@ export function PageLayoutsSettings({
     isLoading,
   } = useEntityLayouts();
   const [resetOpen, setResetOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  // Draggable board/preview split — starts 50/50, the divider resizes it (preview mode only).
+  const {
+    containerRef, percent, onHandlePointerDown,
+  } = useHorizontalSplit();
 
   const selectedEntity = LAYOUT_DRIVEN_ENTITIES.find(entity => entity.kind === selectedKind) ?? LAYOUT_DRIVEN_ENTITIES[0];
   // Dynamic (user-defined) placeable fields for the selected kind — e.g. one per custom property on
@@ -124,6 +132,7 @@ export function PageLayoutsSettings({
       </p>
 
       <div
+        ref={containerRef}
         className="
           flex flex-col gap-4
           md:flex-row
@@ -164,8 +173,16 @@ export function PageLayoutsSettings({
 
         <div
           className={cn("min-w-0 space-y-4", previewOpen
-            ? "md:basis-2/3"
+            ? `
+              md:max-h-[calc(100vh-13rem)] md:grow-(--g) md:basis-0
+              md:overflow-y-auto
+            `
             : "flex-1")}
+          style={previewOpen
+            ? {
+              "--g": percent,
+            } as CSSProperties
+            : undefined}
         >
           {isLoading
             ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
@@ -201,31 +218,41 @@ export function PageLayoutsSettings({
             >
               {t("Reset to default")}
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => setPreviewOpen(open => !open)}
-              aria-pressed={previewOpen}
-            >
-              {previewOpen ? t("Hide preview") : t("Preview")}
-            </Button>
           </div>
         </div>
 
         {previewOpen
           ? (
-            <div
-              className="
-                min-w-0 space-y-2
-                md:basis-1/3
-              "
-            >
-              <h3 className="text-sm font-medium">{t("Preview")}</h3>
-              <LayoutPreviewPane
-                key={selectedKind}
-                kind={selectedKind}
-                layout={value}
+            <>
+              <div
+                role="separator"
+                aria-orientation="vertical"
+                aria-label={t("Resize preview")}
+                onPointerDown={onHandlePointerDown}
+                className="
+                  hidden w-1.5 shrink-0 cursor-col-resize rounded-sm bg-border
+                  hover:bg-primary
+                  md:block
+                "
               />
-            </div>
+              <div
+                className="
+                  min-w-0 space-y-2
+                  md:max-h-[calc(100vh-13rem)] md:grow-(--g) md:basis-0
+                  md:overflow-y-auto
+                "
+                style={{
+                  "--g": 100 - percent,
+                } as CSSProperties}
+              >
+                <h3 className="text-sm font-medium">{t("Preview")}</h3>
+                <LayoutPreviewPane
+                  key={selectedKind}
+                  kind={selectedKind}
+                  layout={value}
+                />
+              </div>
+            </>
           )
           : null}
       </div>

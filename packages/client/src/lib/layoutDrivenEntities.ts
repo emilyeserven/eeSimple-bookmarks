@@ -66,6 +66,14 @@ export function useDynamicLayoutFieldsByKind(): Partial<Record<LayoutableEntityK
  */
 export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
   {
+    kind: "bookmark",
+    label: i18n.t("Bookmark"),
+    fields: fieldsFromRegistry(bookmarkWorkbench.fields),
+    defaultLayout: bookmarkWorkbench.defaultLayout ?? {
+      tabs: [],
+    },
+  },
+  {
     kind: "category",
     label: i18n.t("Category"),
     fields: fieldsFromRegistry(categoryWorkbench.fields),
@@ -86,14 +94,6 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
     label: i18n.t("Group"),
     fields: fieldsFromRegistry(groupWorkbench.fields),
     defaultLayout: groupWorkbench.defaultLayout ?? {
-      tabs: [],
-    },
-  },
-  {
-    kind: "bookmark",
-    label: i18n.t("Bookmark"),
-    fields: fieldsFromRegistry(bookmarkWorkbench.fields),
-    defaultLayout: bookmarkWorkbench.defaultLayout ?? {
       tabs: [],
     },
   },

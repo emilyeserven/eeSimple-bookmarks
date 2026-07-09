@@ -64,7 +64,7 @@ export function SectionVisibilityEditor({
           variant="outline"
           size="sm"
           className="
-            h-7 w-full justify-start gap-1.5 text-xs font-normal
+            h-7 max-w-44 justify-start gap-1.5 text-xs font-normal
             text-muted-foreground
           "
         >
@@ -74,7 +74,7 @@ export function SectionVisibilityEditor({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-96 max-w-[90vw]"
+        className="max-h-[60vh] w-96 max-w-[90vw] overflow-y-auto"
       >
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
