@@ -1,363 +1,110 @@
 // @vitest-environment node
-import type { Bookmark, CardDisplayRule, EvaluateOptions } from "@eesimple/types";
+import type { Bookmark, CardDisplayConfig, CardDisplaySection, ConditionTree, EvaluateOptions } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { buildTagDescendants, defaultCardZoneLayouts, emptyCardFieldZones } from "@eesimple/types";
+import { emptyCardImageCorners } from "@eesimple/types";
 
-import { bookmarkToConditionInput, inspectBookmarkRules, resolveCardDisplay } from "./cardDisplayRules";
-import { makeBookmark as makeSharedBookmark } from "../test-utils/factories";
+import { cardSectionVisible, resolveCardDisplay } from "./cardDisplayRules";
+import { makeBookmark } from "../test-utils/factories";
 
-/** The shared Bookmark factory, pinned to the ids/url/date this suite's assertions rely on. */
-function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
-  return makeSharedBookmark({
+const options: EvaluateOptions = {};
+
+function bookmark(overrides: Partial<Bookmark> = {}): Bookmark {
+  return makeBookmark({
     id: "b1",
-    url: "https://example.com/post",
-    categoryId: "cat-1",
-    createdAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   });
 }
 
-/** Build a CardDisplayRule with sensible (all-inherit) defaults. */
-function makeRule(overrides: Partial<CardDisplayRule> = {}): CardDisplayRule {
+const videoOnly: ConditionTree = {
+  type: "group",
+  combinator: "and",
+  children: [{
+    type: "media-type",
+    mediaTypeIds: ["mt-video"],
+  }],
+};
+
+function section(key: string, visibleIf?: ConditionTree): CardDisplaySection {
   return {
-    id: "r1",
-    name: "Rule",
-    slug: "rule",
-    description: null,
-    conditions: {
-      type: "group",
-      combinator: "and",
-      children: [],
+    key,
+    form: "inline",
+    layout: {
+      mode: "flex",
     },
-    sortOrder: 0,
-    isDefault: false,
-    fieldZones: null,
-    cardZoneLayouts: null,
-    imageMode: null,
-    imageVisibility: null,
-    imageLayout: null,
-    hideWebsiteForYouTube: null,
-    createdAt: "2026-01-01T00:00:00.000Z",
-    ...overrides,
+    fields: [{
+      key: "title",
+    }],
+    visibleIf,
   };
 }
 
-const DEFAULT_RULE = makeRule({
-  id: "default",
-  name: "Default",
-  isDefault: true,
-  sortOrder: 1_000_000,
-  fieldZones: emptyCardFieldZones(),
-  cardZoneLayouts: defaultCardZoneLayouts(),
-  imageMode: "natural",
-  imageVisibility: "shown",
-  imageLayout: "above",
-  hideWebsiteForYouTube: false,
+function config(sections: CardDisplaySection[]): CardDisplayConfig {
+  return {
+    sections,
+    imageCorners: emptyCardImageCorners(),
+    imageMode: "natural",
+    imageVisibility: "shown",
+    imageLayout: "above",
+    hideWebsiteForYouTube: false,
+  };
+}
+
+const videoBookmark = bookmark({
+  mediaType: {
+    id: "mt-video",
+    name: "Video",
+    slug: "video",
+  } as Bookmark["mediaType"],
 });
 
-/** No cascade resolvers — leaves match by exact id (or their legacy default). */
-const emptyOptions: EvaluateOptions = {};
+describe("cardSectionVisible", () => {
+  const input = {
+    url: "",
+    title: "",
+  } as never; // unused for the empty-tree short-circuit path
 
-describe("bookmarkToConditionInput", () => {
-  it("populates every field from the bookmark", () => {
-    const input = bookmarkToConditionInput(makeBookmark({
-      categoryId: "cat-9",
-      tags: [{
-        id: "t1",
-        name: "T1",
-        slug: "t1",
-        parentId: null,
-      }],
-      youtubeChannel: {
-        id: "ch-1",
-        name: "Ch",
-        slug: "ch",
-        imageUrl: null,
-      },
-      mediaType: {
-        id: "mt-1",
-        name: "Video",
-        slug: "video",
-        icon: null,
-        parentId: null,
-        builtIn: false,
-      },
-      numberValues: [{
-        propertyId: "p-num",
-        value: 5,
-      }],
-      booleanValues: [{
-        propertyId: "p-bool",
-        value: true,
-      }],
-      dateTimeValues: [{
-        propertyId: "p-dt",
-        value: "2026-01-01",
-      }],
-      fileValues: [{
-        propertyId: "p-file",
-        url: "u",
-        contentType: "image/webp",
-        byteSize: 1,
-        originalFilename: null,
-        width: null,
-        height: null,
-      }],
-    }));
-
-    expect(input.categoryId).toBe("cat-9");
-    expect(input.tagIds.has("t1")).toBe(true);
-    expect(input.youtubeChannelId).toBe("ch-1");
-    expect(input.mediaTypeId).toBe("mt-1");
-    expect(input.numberValues.get("p-num")).toBe(5);
-    expect(input.booleanValues.get("p-bool")).toBe(true);
-    expect(input.dateTimeValues.get("p-dt")).toBe("2026-01-01");
-    expect(input.fileValues.has("p-file")).toBe(true);
-  });
-});
-
-describe("resolveCardDisplay — layered merge", () => {
-  it("falls back to the Default rule when nothing else matches", () => {
-    const rule = makeRule({
-      conditions: {
-        type: "group",
-        combinator: "and",
-        children: [{
-          type: "category",
-          categoryIds: ["other"],
-        }],
-      },
-      imageMode: "square",
-    });
-    const resolved = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], emptyOptions);
-    expect(resolved.imageMode).toBe("natural");
-    expect(resolved.provenance.matchedRuleIds).toEqual(["default"]);
+  it("shows a section with no visibleIf", () => {
+    expect(cardSectionVisible(section("s"), input, options)).toBe(true);
   });
 
-  it("the highest-priority matching rule wins each attribute it sets", () => {
-    const high = makeRule({
-      id: "high",
-      sortOrder: 0,
-      conditions: {
-        type: "group",
-        combinator: "and",
-        children: [{
-          type: "category",
-          categoryIds: ["cat-1"],
-        }],
-      },
-      fieldZones: {
-        ...emptyCardFieldZones(),
-        "card-labels": [{
-          key: "category",
-        }],
-      },
-    });
-    const low = makeRule({
-      id: "low",
-      sortOrder: 1,
-      conditions: {
-        type: "group",
-        combinator: "and",
-        children: [{
-          type: "category",
-          categoryIds: ["cat-1"],
-        }],
-      },
-      imageMode: "square",
-      fieldZones: emptyCardFieldZones(),
-    });
-
-    const resolved = resolveCardDisplay(makeBookmark(), [high, low, DEFAULT_RULE], emptyOptions);
-    // `high` supplies fieldZones; `low` supplies imageMode; Default fills the rest.
-    expect(resolved.fieldZones["card-labels"]).toEqual([{
-      key: "category",
-    }]);
-    expect(resolved.provenance.source.fieldZones).toBe("high");
-    expect(resolved.imageMode).toBe("square");
-    expect(resolved.provenance.source.imageMode).toBe("low");
-    expect(resolved.imageVisibility).toBe("shown");
-    expect(resolved.provenance.source.imageVisibility).toBe("default");
-  });
-
-  it("a matching rule supplies hideWebsiteForYouTube, else the Default applies", () => {
-    const rule = makeRule({
-      id: "yt",
-      conditions: {
-        type: "group",
-        combinator: "and",
-        children: [{
-          type: "category",
-          categoryIds: ["cat-1"],
-        }],
-      },
-      hideWebsiteForYouTube: true,
-    });
-    const match = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], emptyOptions);
-    expect(match.hideWebsiteForYouTube).toBe(true);
-    expect(match.provenance.source.hideWebsiteForYouTube).toBe("yt");
-
-    const noMatch = resolveCardDisplay(
-      makeBookmark({
-        categoryId: "other",
-      }),
-      [rule, DEFAULT_RULE],
-      emptyOptions,
-    );
-    expect(noMatch.hideWebsiteForYouTube).toBe(false);
-    expect(noMatch.provenance.source.hideWebsiteForYouTube).toBe("default");
-  });
-
-  it("a matching rule supplies cardZoneLayouts, else the Default applies", () => {
-    const gridded = defaultCardZoneLayouts();
-    gridded["card-labels"] = {
-      mode: "grid",
+  it("shows a section whose visibleIf is an empty group", () => {
+    const empty: ConditionTree = {
+      type: "group",
+      combinator: "and",
+      children: [],
     };
-    const rule = makeRule({
-      id: "layout",
-      conditions: {
-        type: "group",
-        combinator: "and",
-        children: [{
-          type: "category",
-          categoryIds: ["cat-1"],
-        }],
-      },
-      cardZoneLayouts: gridded,
-    });
-    const match = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], emptyOptions);
-    expect(match.cardZoneLayouts["card-labels"].mode).toBe("grid");
-    expect(match.provenance.source.cardZoneLayouts).toBe("layout");
-
-    const noMatch = resolveCardDisplay(
-      makeBookmark({
-        categoryId: "other",
-      }),
-      [rule, DEFAULT_RULE],
-      emptyOptions,
-    );
-    expect(noMatch.cardZoneLayouts["card-labels"].mode).toBe("flex");
-    expect(noMatch.provenance.source.cardZoneLayouts).toBe("default");
-  });
-
-  it("an empty condition tree never matches a non-default rule", () => {
-    const empty = makeRule({
-      id: "empty",
-      imageMode: "square",
-    });
-    const resolved = resolveCardDisplay(makeBookmark(), [empty, DEFAULT_RULE], emptyOptions);
-    expect(resolved.imageMode).toBe("natural");
-    expect(resolved.provenance.matchedRuleIds).toEqual(["default"]);
-  });
-
-  it("matches via tag cascade (a parent-tag rule matches a child-tagged bookmark)", () => {
-    const tagDescendants = buildTagDescendants([
-      {
-        id: "parent",
-        parentId: null,
-      },
-      {
-        id: "child",
-        parentId: "parent",
-      },
-    ]);
-    const rule = makeRule({
-      conditions: {
-        type: "group",
-        combinator: "and",
-        children: [{
-          type: "tag",
-          tagIds: ["parent"],
-        }],
-      },
-      imageVisibility: "off",
-    });
-    const bookmark = makeBookmark({
-      tags: [{
-        id: "child",
-        name: "Child",
-        slug: "child",
-        parentId: "parent",
-      }],
-    });
-    const resolved = resolveCardDisplay(bookmark, [rule, DEFAULT_RULE], {
-      tagDescendants,
-    });
-    expect(resolved.imageVisibility).toBe("off");
+    expect(cardSectionVisible(section("s", empty), input, options)).toBe(true);
   });
 });
 
-describe("inspectBookmarkRules", () => {
-  const catCondition = (categoryId: string) => ({
-    type: "group" as const,
-    combinator: "and" as const,
-    children: [{
-      type: "category" as const,
-      categoryIds: [categoryId],
-    }],
+describe("resolveCardDisplay", () => {
+  it("keeps unconditional sections and drops non-matching conditional sections", () => {
+    const resolved = resolveCardDisplay(
+      bookmark(),
+      config([section("always"), section("videos", videoOnly)]),
+      options,
+    );
+    expect(resolved.sections.map(s => s.key)).toEqual(["always"]);
   });
 
-  it("flags a lower rule's attribute as overridden by the higher rule that won it", () => {
-    const high = makeRule({
-      id: "high",
-      sortOrder: 0,
-      conditions: catCondition("cat-1"),
+  it("keeps a conditional section for a matching bookmark", () => {
+    const resolved = resolveCardDisplay(
+      videoBookmark,
+      config([section("always"), section("videos", videoOnly)]),
+      options,
+    );
+    expect(resolved.sections.map(s => s.key)).toEqual(["always", "videos"]);
+  });
+
+  it("passes through the image presentation attributes", () => {
+    const resolved = resolveCardDisplay(bookmark(), {
+      ...config([]),
       imageMode: "square",
-    });
-    const low = makeRule({
-      id: "low",
-      sortOrder: 1,
-      conditions: catCondition("cat-1"),
-      imageMode: "cropped",
-    });
-
-    const result = inspectBookmarkRules(makeBookmark(), [high, low, DEFAULT_RULE], emptyOptions);
-
-    const highInspection = result.rules.find(r => r.rule.id === "high");
-    const lowInspection = result.rules.find(r => r.rule.id === "low");
-
-    expect(highInspection?.matched).toBe(true);
-    expect(highInspection?.attrs).toContainEqual(expect.objectContaining({
-      key: "imageMode",
-      status: "applied",
-      overriddenBy: null,
-    }));
-
-    expect(lowInspection?.matched).toBe(true);
-    expect(lowInspection?.attrs).toContainEqual(expect.objectContaining({
-      key: "imageMode",
-      status: "overridden",
-      overriddenBy: "high",
-    }));
-  });
-
-  it("marks a rule whose conditions don't match as not matched, still reporting its set attrs", () => {
-    const rule = makeRule({
-      id: "other",
-      conditions: catCondition("nope"),
-      imageMode: "square",
-    });
-
-    const result = inspectBookmarkRules(makeBookmark(), [rule, DEFAULT_RULE], emptyOptions);
-    const inspection = result.rules.find(r => r.rule.id === "other");
-
-    expect(inspection?.matched).toBe(false);
-    // It sets imageMode but the Default supplied the resolved value, so it reads as overridden.
-    expect(inspection?.attrs).toContainEqual(expect.objectContaining({
-      key: "imageMode",
-      status: "overridden",
-      overriddenBy: "default",
-    }));
-  });
-
-  it("reports the Default rule's attributes as applied when nothing else matches", () => {
-    const result = inspectBookmarkRules(makeBookmark(), [DEFAULT_RULE], emptyOptions);
-    const defaultInspection = result.rules.find(r => r.rule.id === "default");
-
-    expect(defaultInspection?.matched).toBe(true);
-    expect(defaultInspection?.attrs.every(attr => attr.status === "applied")).toBe(true);
-    expect(result.resolved.imageMode).toBe("natural");
+      hideWebsiteForYouTube: true,
+    }, options);
+    expect(resolved.imageMode).toBe("square");
+    expect(resolved.hideWebsiteForYouTube).toBe(true);
   });
 });

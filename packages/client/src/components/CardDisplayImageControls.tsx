@@ -1,4 +1,3 @@
-import type { RuleDisplayValue } from "./CardDisplayRuleDisplaySettings";
 import type {
   BookmarkImageVisibility,
   HomepageSectionImageLayout,
@@ -23,6 +22,18 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
+/**
+ * The image-presentation attributes these rows read/write. Each is nullable so the (non-default)
+ * "inherit / override" path stays expressible; the single card-display config always passes concrete
+ * values with `isDefault` so the override affordance is hidden.
+ */
+export interface CardImageDisplayValue {
+  imageMode: string | null;
+  imageVisibility: BookmarkImageVisibility | null;
+  imageLayout: HomepageSectionImageLayout | null;
+  hideWebsiteForYouTube: boolean | null;
+}
+
 /** Defaults applied when a non-default rule first switches an attribute from "inherit" to "override". */
 const OVERRIDE_DEFAULTS = {
   imageMode: "natural",
@@ -33,8 +44,8 @@ const OVERRIDE_DEFAULTS = {
 
 /** Shared props for a single image-presentation override row. */
 interface ImageRowProps {
-  value: RuleDisplayValue;
-  onChange: (patch: Partial<RuleDisplayValue>) => void;
+  value: CardImageDisplayValue;
+  onChange: (patch: Partial<CardImageDisplayValue>) => void;
   idPrefix: string;
   isDefault: boolean;
 }
@@ -223,8 +234,8 @@ export function HideWebsiteRow({
 }
 
 interface CardDisplayImageControlsProps {
-  value: RuleDisplayValue;
-  onChange: (patch: Partial<RuleDisplayValue>) => void;
+  value: CardImageDisplayValue;
+  onChange: (patch: Partial<CardImageDisplayValue>) => void;
   idPrefix: string;
   isDefault: boolean;
 }

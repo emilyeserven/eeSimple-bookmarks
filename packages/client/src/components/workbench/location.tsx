@@ -3,7 +3,6 @@ import type { EntityLayout, LocationNode } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
-import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import {
   LocationAlternateNamesEditField,
   LocationAncestorsEditField,
@@ -87,8 +86,7 @@ type LocationFieldKey
     | "created"
     | "map"
     | "hierarchy"
-    | "autofillRules"
-    | "displayRules";
+    | "autofillRules";
 
 const locationFields = {
   name: {
@@ -254,22 +252,12 @@ const locationFields = {
       />
     ),
   },
-  displayRules: {
-    key: "displayRules",
-    label: i18n.t("Display Rules"),
-    view: ({
-      entity,
-    }) => <CardDisplayRulesList locationId={entity.id} />,
-    edit: ({
-      entity,
-    }) => <CardDisplayRulesList locationId={entity.id} />,
-  },
 } satisfies Record<LocationFieldKey, WorkbenchField<LocationNode>>;
 
 /**
  * The code-defined default layout — the General tab is one untitled section holding the atomized rows
  * in a unified order (the mode drops the fields it can't render), plus the unchanged Hierarchy /
- * Autofill / Display Rules tabs.
+ * Autofill tabs.
  */
 const LOCATION_DEFAULT_LAYOUT: EntityLayout = {
   tabs: [
@@ -320,14 +308,6 @@ const LOCATION_DEFAULT_LAYOUT: EntityLayout = {
       sections: [{
         key: "autofill",
         fields: ["autofillRules"] satisfies LocationFieldKey[],
-      }],
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      sections: [{
-        key: "display-rules",
-        fields: ["displayRules"] satisfies LocationFieldKey[],
       }],
     },
   ],
@@ -418,12 +398,6 @@ export const locationWorkbench: EntityWorkbench<LocationNode> = {
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
-      group: i18n.t("Rules"),
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      group: i18n.t("Rules"),
     },
   ],
 };

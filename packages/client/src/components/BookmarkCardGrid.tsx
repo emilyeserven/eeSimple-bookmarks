@@ -88,8 +88,8 @@ export function BookmarkCardGrid({
                 bookmark={bookmark}
                 properties={properties}
                 onDelete={id => deleteBookmark.mutate(id)}
-                fieldZones={display.fieldZones}
-                cardZoneLayouts={display.cardZoneLayouts}
+                sections={display.sections}
+                imageCorners={display.imageCorners}
                 imageLeft={(columns === 1 || columns === 2) && display.imageLayout === "side"}
                 imageMode={display.imageMode}
                 imageVisibility={display.imageVisibility}

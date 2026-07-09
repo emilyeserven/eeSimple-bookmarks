@@ -1,21 +1,17 @@
-import type { RuleDisplayValue } from "./CardDisplayRuleDisplaySettings";
+import type { CardImageDisplayValue } from "./CardDisplayImageControls";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { CardDisplayImageControls } from "./CardDisplayImageControls";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const inheritedValue: RuleDisplayValue = {
-  fieldZones: null,
-  cardZoneLayouts: null,
+const inheritedValue: CardImageDisplayValue = {
   imageMode: null,
   imageVisibility: null,
   imageLayout: null,
   hideWebsiteForYouTube: null,
 };
 
-const concreteValue: RuleDisplayValue = {
-  fieldZones: null,
-  cardZoneLayouts: null,
+const concreteValue: CardImageDisplayValue = {
   imageMode: "natural",
   imageVisibility: "shown",
   imageLayout: "above",

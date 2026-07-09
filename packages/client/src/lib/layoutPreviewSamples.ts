@@ -29,9 +29,8 @@ export const SAMPLE_ID = "__layout_preview_sample__";
  * when the real data set is sparse. Reuses the shared `make*` factories (the CLAUDE.md single source of
  * truth for type-complete construction) plus the rich `sampleBookmark` from `story-mocks`.
  *
- * Returns `null` for the two config entities (`autofill`, `card-display-rule`) whose full shape is
- * impractical to synthesize (large condition/display trees) — the preview falls back to a real instance
- * for those (a seeded Default card rule always exists).
+ * Returns `null` for the `autofill` config entity whose full shape is impractical to synthesize
+ * (large condition trees) — the preview falls back to a real instance for it.
  */
 export function buildSampleEntity(kind: LayoutableEntityKind): { id: string } | null {
   switch (kind) {
@@ -154,7 +153,6 @@ export function buildSampleEntity(kind: LayoutableEntityKind): { id: string } | 
         imageUrl: "https://example.com/person.webp",
       });
     case "autofill":
-    case "card-display-rule":
       return null;
     default:
       return null;

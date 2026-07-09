@@ -22,8 +22,7 @@ export type EntityRouteKind
     | "custom-property"
     | "autofill"
     | "import-rule"
-    | "saved-filter"
-    | "card-display-rule";
+    | "saved-filter";
 
 /**
  * Route data for one slug-routed entity — the single source the breadcrumb `TAXONOMY_DESCRIPTORS`

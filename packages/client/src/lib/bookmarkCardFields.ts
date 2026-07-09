@@ -1,33 +1,30 @@
 import type { CardFieldZones } from "@eesimple/types";
 
-import { useCardDisplayRules } from "../hooks/useCardDisplayRules";
+import { fieldZonesFromConfig } from "@eesimple/types";
 
-// Re-exported from the pure defs module so existing importers keep working; the hook-backed helpers
-// below live here because they depend on stores/queries.
-export { STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
+import { useCardDisplayConfig } from "../hooks/useCardDisplayConfig";
 
 /**
- * The **Default** card display rule's field zones (`Settings → Card Display Rules`), or `undefined`
- * before the rules load. Non-listing surfaces (homepage, right panel, table view) source corner
- * placement from this, since they don't resolve a per-card rule. Listing cards resolve `fieldZones`
- * per-card via `useResolveCardDisplay` instead.
+ * The single card-display config flattened into the legacy {@link CardFieldZones} shape, or
+ * `undefined` before the config loads. Non-listing surfaces (homepage default, right panel, table
+ * view) source per-field knobs / corner placement from this, since they don't resolve per-card
+ * sections. Listing cards resolve their sections per-card via `useResolveCardDisplay` instead.
  */
 export function useDefaultFieldZones(): CardFieldZones | undefined {
   const {
-    data: rules,
-  } = useCardDisplayRules();
-  return rules?.find(rule => rule.isDefault)?.fieldZones ?? undefined;
+    data: config,
+  } = useCardDisplayConfig();
+  return config ? fieldZonesFromConfig(config) : undefined;
 }
 
 /**
- * Whether the website pill should be hidden on a bookmark that also has a YouTube channel — the
- * baseline value from the **Default** card display rule (`Settings → Card Display Rules`). Listing
- * cards resolve this per-card (a specific rule can override it) and pass it explicitly; other surfaces
- * (homepage, right panel, table view) use this Default-rule value.
+ * Whether the website pill should be hidden on a bookmark that also has a YouTube channel — the value
+ * from the single card-display config. Listing cards resolve this per-card and pass it explicitly;
+ * other surfaces (homepage, right panel, table view) use this config value.
  */
 export function useHideWebsiteForYouTube(): boolean {
   const {
-    data: rules,
-  } = useCardDisplayRules();
-  return rules?.find(rule => rule.isDefault)?.hideWebsiteForYouTube ?? false;
+    data: config,
+  } = useCardDisplayConfig();
+  return config?.hideWebsiteForYouTube ?? false;
 }

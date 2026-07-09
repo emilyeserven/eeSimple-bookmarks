@@ -3,7 +3,6 @@ import type { EntityLayout, MediaType } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
-import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { EntityNamesTabView, PrimaryLanguageTabView } from "../entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
@@ -57,8 +56,7 @@ type MediaTypeFieldKey
     | "added"
     | "bookmarks"
     | "hierarchy"
-    | "autofillRules"
-    | "displayRules";
+    | "autofillRules";
 
 const mediaTypeFields = {
   hidden: {
@@ -220,16 +218,6 @@ const mediaTypeFields = {
       />
     ),
   },
-  displayRules: {
-    key: "displayRules",
-    label: i18n.t("Display Rules"),
-    view: ({
-      entity,
-    }) => <CardDisplayRulesList mediaTypeId={entity.id} />,
-    edit: ({
-      entity,
-    }) => <CardDisplayRulesList mediaTypeId={entity.id} />,
-  },
 } satisfies Record<MediaTypeFieldKey, WorkbenchField<MediaType>>;
 
 /**
@@ -279,14 +267,6 @@ const MEDIA_TYPE_DEFAULT_LAYOUT: EntityLayout = {
       sections: [{
         key: "autofill",
         fields: ["autofillRules"] satisfies MediaTypeFieldKey[],
-      }],
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      sections: [{
-        key: "display-rules",
-        fields: ["displayRules"] satisfies MediaTypeFieldKey[],
       }],
     },
   ],
@@ -348,12 +328,6 @@ export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
-      group: i18n.t("Rules"),
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      group: i18n.t("Rules"),
     },
   ],
 };

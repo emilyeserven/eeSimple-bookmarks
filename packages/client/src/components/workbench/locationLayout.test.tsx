@@ -5,8 +5,6 @@ import { describe, expect, it } from "vitest";
 import { locationWorkbench } from "./location";
 import { shape } from "./workbenchLayoutTestUtils";
 
-import i18n from "@/i18n";
-
 /**
  * The #1191 location analogue of `bookmarkLayout.test.tsx`: the former single `general` composite is now
  * atomized into per-row fields, so this snapshots the chosen unified tab / section / field-key order and
@@ -16,8 +14,6 @@ import i18n from "@/i18n";
  * edit. Renderers are never invoked — only the pure order/visibility helpers (so the map never mounts).
  * The tab-key-only check stays in `batch2Layouts.test.tsx`; this adds the field-level detail.
  */
-
-const RULES = i18n.t("Rules");
 
 describe("location default layout", () => {
   it("renders the view tab/section/field order (edit-only rows dropped, Hierarchy present)", () => {
@@ -56,18 +52,10 @@ describe("location default layout", () => {
       },
       {
         key: "autofill",
-        group: RULES,
+        group: undefined,
         sections: [{
           key: "autofill",
           fields: ["autofillRules"],
-        }],
-      },
-      {
-        key: "display-rules",
-        group: RULES,
-        sections: [{
-          key: "display-rules",
-          fields: ["displayRules"],
         }],
       },
     ]);
@@ -105,18 +93,10 @@ describe("location default layout", () => {
       },
       {
         key: "autofill",
-        group: RULES,
+        group: undefined,
         sections: [{
           key: "autofill",
           fields: ["autofillRules"],
-        }],
-      },
-      {
-        key: "display-rules",
-        group: RULES,
-        sections: [{
-          key: "display-rules",
-          fields: ["displayRules"],
         }],
       },
     ]);

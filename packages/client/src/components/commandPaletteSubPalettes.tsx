@@ -1,13 +1,12 @@
 import type { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
 import type { FlatNode } from "@/lib/tagTree";
-import type { Person, Bookmark, CardDisplayRule, Category, CustomProperty, Group, LocationNode, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
+import type { Person, Bookmark, Category, CustomProperty, Group, LocationNode, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
 
 import { useMemo } from "react";
 
 import {
   ArrowLeftIcon,
   CheckIcon,
-  LayoutGridIcon,
   PlusIcon,
   TagIcon,
 } from "lucide-react";
@@ -986,53 +985,6 @@ export function BookmarkTaxonomiesGroup({
               </span>
               <span className="text-xs text-muted-foreground">
                 {t("Opens properties tab")}
-              </span>
-            </span>
-          </CommandItem>
-        ))}
-      </CommandGroup>
-      <CommandSeparator />
-    </>
-  );
-}
-
-/**
- * The Card Display Rules that style the current/hovered bookmark's card, each linking to its View
- * page. Lets the user jump from "this card looks like X" to the rule(s) responsible. Rendered
- * alongside the bookmark taxonomies group whenever a card is hovered (or on a bookmark detail page).
- */
-export function CardDisplayRulesGroup({
-  rules,
-  onSelect,
-}: {
-  rules: CardDisplayRule[];
-  onSelect: (slug: string) => void;
-}) {
-  const {
-    t,
-  } = useTranslation();
-  if (rules.length === 0) return null;
-  return (
-    <>
-      <CommandGroup heading={t("Card Display Rules")}>
-        {rules.map(rule => (
-          <CommandItem
-            key={rule.id}
-            value={`Card display rule ${rule.name}`}
-            disabled={!rule.slug}
-            onSelect={() => rule.slug && onSelect(rule.slug)}
-          >
-            <LayoutGridIcon />
-            <span className="flex min-w-0 flex-col gap-0.5">
-              <span>
-                {rule.isDefault
-                  ? t("{{name}} (Default)", {
-                    name: rule.name,
-                  })
-                  : rule.name}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {t("View display rule")}
               </span>
             </span>
           </CommandItem>

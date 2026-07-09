@@ -1,9 +1,8 @@
-import type { Person, CardDisplayRule } from "@eesimple/types";
+import type { Person } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import {
   PeopleSubPalette,
-  CardDisplayRulesGroup,
   CategorySubPalette,
 } from "./commandPaletteSubPalettes";
 import { makeCategory } from "../test-utils/factories";
@@ -31,21 +30,6 @@ const people = [
     name: "Alan Turing",
   },
 ] as unknown as Person[];
-
-const rules = [
-  {
-    id: "r-default",
-    name: "Default",
-    slug: "default",
-    isDefault: true,
-  },
-  {
-    id: "r-videos",
-    name: "Videos",
-    slug: "videos",
-    isDefault: false,
-  },
-] as unknown as CardDisplayRule[];
 
 /** Sub-palettes render `CommandGroup`/`CommandItem`, so they need a `Command` + `CommandList` host. */
 function CommandHost({
@@ -93,18 +77,6 @@ export const People: StoryObj = {
         onBack={() => {}}
         onDone={() => {}}
         onCreateNew={() => {}}
-      />
-    </CommandHost>
-  ),
-};
-
-/** The card-display-rules group linking the hovered card to its responsible rules. */
-export const CardDisplayRules: StoryObj = {
-  render: () => (
-    <CommandHost>
-      <CardDisplayRulesGroup
-        rules={rules}
-        onSelect={() => {}}
       />
     </CommandHost>
   ),

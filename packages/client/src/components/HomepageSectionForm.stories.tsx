@@ -37,7 +37,19 @@ const meta = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/card-display-rules", () => HttpResponse.json([])),
+        http.get("/api/card-display", () => HttpResponse.json({
+          sections: [],
+          imageCorners: {
+            "top-left": [],
+            "top-right": [],
+            "bottom-left": [],
+            "bottom-right": [],
+          },
+          imageMode: "natural",
+          imageVisibility: "shown",
+          imageLayout: "above",
+          hideWebsiteForYouTube: false,
+        })),
         ...apiHandlers,
       ],
     },

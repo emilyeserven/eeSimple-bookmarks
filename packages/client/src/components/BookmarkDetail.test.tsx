@@ -1,4 +1,4 @@
-import { emptyCardFieldZones } from "@eesimple/types";
+import { emptyCardImageCorners } from "@eesimple/types";
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -48,22 +48,31 @@ vi.mock("../hooks/useEntityLayout", async importOriginal => ({
   ) => workbench.defaultLayout ?? null,
 }));
 
-// The per-card boolean display knobs (e.g. `clickableInView`) come from the Default card display
-// rule; stub it so the detail view resolves the reviewed property as a clickable toggle.
-vi.mock("../hooks/useCardDisplayRules", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../hooks/useCardDisplayRules")>();
-  const zones = emptyCardFieldZones();
-  zones["card-labels"].push({
-    key: "prop-reviewed",
-    clickableInView: true,
-  });
+// The per-card boolean display knobs (e.g. `clickableInView`) come from the single card display
+// config; stub it so the detail view resolves the reviewed property as a clickable toggle.
+vi.mock("../hooks/useCardDisplayConfig", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../hooks/useCardDisplayConfig")>();
   return {
     ...actual,
-    useCardDisplayRules: () => ({
-      data: [{
-        isDefault: true,
-        fieldZones: zones,
-      }],
+    useCardDisplayConfig: () => ({
+      data: {
+        sections: [{
+          key: "labels",
+          form: "inline",
+          layout: {
+            mode: "flex",
+          },
+          fields: [{
+            key: "prop-reviewed",
+            clickableInView: true,
+          }],
+        }],
+        imageCorners: emptyCardImageCorners(),
+        imageMode: "natural",
+        imageVisibility: "shown",
+        imageLayout: "above",
+        hideWebsiteForYouTube: false,
+      },
     }),
   };
 });

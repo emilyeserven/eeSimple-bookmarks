@@ -1,8 +1,11 @@
 import type {
   Bookmark,
+  CardDisplaySection,
+  CardFieldPlacement,
   CardFieldZone,
   CardFieldZones,
   CardImageCorner,
+  CardImageCorners,
   CustomProperty,
 } from "@eesimple/types";
 
@@ -10,6 +13,7 @@ import { CARD_BODY_ZONES, CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } 
 
 import { eligibleCustomCardFields, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { formatBoolean, formatBooleanBadge, formatChoices, formatDateTime, formatNumber } from "./bookmarkFormat";
+import { formatDateTimeValue } from "./datetime";
 import i18n from "../i18n";
 
 /**
@@ -75,30 +79,65 @@ export interface ResolvedFieldPlacement {
   showGenreMoodHierarchyOnHover: boolean;
 }
 
+/** Resolve one stored {@link CardFieldPlacement} into a {@link ResolvedFieldPlacement} at `zone`. */
+function toResolvedPlacement(placement: CardFieldPlacement, zone: CardFieldZone): ResolvedFieldPlacement {
+  return {
+    zone,
+    corner: zoneToCorner(zone),
+    scale: placement.scale ?? 1,
+    mobileScale: placement.mobileScale ?? null,
+    hideLabel: placement.hideLabel ?? false,
+    hideIcon: placement.hideIcon ?? false,
+    showIfFalse: placement.showIfFalse ?? false,
+    clickableInView: placement.clickableInView ?? false,
+    clickableInOverlay: placement.clickableInOverlay ?? false,
+    showLabelColon: placement.showLabelColon ?? true,
+    showValueBeforeLabel: placement.showValueBeforeLabel ?? false,
+    clickableTags: placement.clickableTags ?? false,
+    showTagHierarchyOnHover: placement.showTagHierarchyOnHover ?? false,
+    showMediaTypeHierarchyOnHover: placement.showMediaTypeHierarchyOnHover ?? false,
+    showLocationHierarchyOnHover: placement.showLocationHierarchyOnHover ?? false,
+    showGenreMoodHierarchyOnHover: placement.showGenreMoodHierarchyOnHover ?? false,
+  };
+}
+
+/** The card-body `image-*` {@link CardFieldZone} for an image {@link CardImageCorner}. */
+function cornerToZone(corner: CardImageCorner): CardFieldZone {
+  return `image-${corner}` as CardFieldZone;
+}
+
 /** Build a `fieldKey → placement` lookup from a rule's {@link CardFieldZones}. Unlisted keys are hidden. */
 export function resolveFieldPlacements(zones: CardFieldZones): Map<string, ResolvedFieldPlacement> {
   const map = new Map<string, ResolvedFieldPlacement>();
   for (const zone of CARD_FIELD_ZONES) {
     // A row read before the boot sub-zone backfill can be missing newer keys; treat absent as empty.
     for (const placement of zones[zone] ?? []) {
-      map.set(placement.key, {
-        zone,
-        corner: zoneToCorner(zone),
-        scale: placement.scale ?? 1,
-        mobileScale: placement.mobileScale ?? null,
-        hideLabel: placement.hideLabel ?? false,
-        hideIcon: placement.hideIcon ?? false,
-        showIfFalse: placement.showIfFalse ?? false,
-        clickableInView: placement.clickableInView ?? false,
-        clickableInOverlay: placement.clickableInOverlay ?? false,
-        showLabelColon: placement.showLabelColon ?? true,
-        showValueBeforeLabel: placement.showValueBeforeLabel ?? false,
-        clickableTags: placement.clickableTags ?? false,
-        showTagHierarchyOnHover: placement.showTagHierarchyOnHover ?? false,
-        showMediaTypeHierarchyOnHover: placement.showMediaTypeHierarchyOnHover ?? false,
-        showLocationHierarchyOnHover: placement.showLocationHierarchyOnHover ?? false,
-        showGenreMoodHierarchyOnHover: placement.showGenreMoodHierarchyOnHover ?? false,
-      });
+      map.set(placement.key, toResolvedPlacement(placement, zone));
+    }
+  }
+  return map;
+}
+
+/**
+ * Build a `fieldKey → placement` lookup from the dynamic card-display {@link CardDisplaySection}s +
+ * {@link CardImageCorners} (listing cards). Body-section fields resolve `corner: null`; the four
+ * image corners resolve their overlay corner. A key absent from every section/corner is hidden. The
+ * section ordering/form/layout is carried separately (see `bodySectionsFromConfig`); this map only
+ * supplies each field's per-field knobs + corner.
+ */
+export function fieldPlacementsForConfig(
+  sections: CardDisplaySection[],
+  imageCorners: CardImageCorners,
+): Map<string, ResolvedFieldPlacement> {
+  const map = new Map<string, ResolvedFieldPlacement>();
+  for (const section of sections) {
+    for (const placement of section.fields) {
+      map.set(placement.key, toResolvedPlacement(placement, "card-labels"));
+    }
+  }
+  for (const item of CARD_IMAGE_CORNERS) {
+    for (const placement of imageCorners[item.corner]) {
+      map.set(placement.key, toResolvedPlacement(placement, cornerToZone(item.corner)));
     }
   }
   return map;
@@ -499,6 +538,9 @@ export function standardFieldOverlayLabel(
   switch (key) {
     case "title": return bookmark.title || null;
     case "description": return bookmark.description || null;
+    case "url": return bookmark.url || null;
+    case "createdAt": return formatDateTimeValue(bookmark.createdAt, "date");
+    case "updatedAt": return bookmark.updatedAt ? formatDateTimeValue(bookmark.updatedAt, "date") : null;
     case "category": return categoryName;
     case "website":
       return bookmark.youtubeChannel && hideWebsiteForYouTube ? null : bookmark.website?.siteName ?? null;

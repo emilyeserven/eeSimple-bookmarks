@@ -383,9 +383,6 @@ function breadcrumbsForPath(pathname: string, ctx: BreadcrumbContext): Breadcrum
     }, {
       label: i18n.t("Add import"),
     }];
-  if (pathname === "/card-display-rules") return [{
-    label: i18n.t("Card Display Rules"),
-  }];
   if (pathname.startsWith("/settings")) return settingsCrumbs(pathname);
   if (pathname === "/tags" || pathname.startsWith("/tags/")) return tagCrumbs(pathname, ctx.tagAncestors);
   // Media-type detail/edit pages get a tree ancestor chain (the bare listing stays on the descriptor).

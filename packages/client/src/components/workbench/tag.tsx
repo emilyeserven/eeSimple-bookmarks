@@ -3,7 +3,6 @@ import type { EntityLayout, TagNode } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
-import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { EntityNamesTabView, PrimaryLanguageTabView } from "../entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
@@ -42,8 +41,7 @@ type TagFieldKey
     | "genreMoods"
     | "autofillSources"
     | "hierarchy"
-    | "autofillRules"
-    | "displayRules";
+    | "autofillRules";
 
 const tagFields = {
   stats: {
@@ -158,16 +156,6 @@ const tagFields = {
       />
     ),
   },
-  displayRules: {
-    key: "displayRules",
-    label: i18n.t("Display Rules"),
-    view: ({
-      entity,
-    }) => <CardDisplayRulesList tagId={entity.id} />,
-    edit: ({
-      entity,
-    }) => <CardDisplayRulesList tagId={entity.id} />,
-  },
 } satisfies Record<TagFieldKey, WorkbenchField<TagNode>>;
 
 /**
@@ -211,14 +199,6 @@ const TAG_DEFAULT_LAYOUT: EntityLayout = {
       sections: [{
         key: "autofill",
         fields: ["autofillRules"] satisfies TagFieldKey[],
-      }],
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      sections: [{
-        key: "display-rules",
-        fields: ["displayRules"] satisfies TagFieldKey[],
       }],
     },
   ],
@@ -278,12 +258,6 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
-      group: i18n.t("Rules"),
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      group: i18n.t("Rules"),
     },
   ],
 };

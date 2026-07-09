@@ -1,7 +1,6 @@
 import type { TaxonomyName } from "./-appHeaderData";
 
 import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
-import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useGenreMoodBySlug } from "@/hooks/useGenreMoods";
 import { useGroupBySlug } from "@/hooks/useGroups";
@@ -31,7 +30,6 @@ export interface TaxonomyNameSlugs {
   autofill: string;
   importRule: string;
   savedFilter: string;
-  cardDisplayRule: string;
 }
 
 /**
@@ -83,9 +81,6 @@ export function useTaxonomyNameMap(
   const {
     savedFilter,
   } = useSavedFilterBySlug(slugs.savedFilter);
-  const {
-    rule: cardDisplayRule,
-  } = useCardDisplayRuleBySlug(slugs.cardDisplayRule);
 
   return {
     "/taxonomies/newsletters": {
@@ -129,9 +124,6 @@ export function useTaxonomyNameMap(
     },
     "/saved-filters": {
       name: savedFilter?.name,
-    },
-    "/card-display-rules": {
-      name: cardDisplayRule?.name,
     },
   };
 }

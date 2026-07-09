@@ -29,7 +29,6 @@ describe("buildSampleEntity", () => {
 
   it("returns null for the config entities previewed from real instances", () => {
     expect(buildSampleEntity("autofill")).toBeNull();
-    expect(buildSampleEntity("card-display-rule")).toBeNull();
   });
 
   it("returns either a filled entity or null for every layout kind", () => {
@@ -47,7 +46,6 @@ describe("buildSampleEntity", () => {
       "youtube-channel",
       "person",
       "autofill",
-      "card-display-rule",
     ];
     for (const kind of kinds) {
       const sample = buildSampleEntity(kind);

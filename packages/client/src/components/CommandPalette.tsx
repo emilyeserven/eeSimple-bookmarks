@@ -11,7 +11,6 @@ import { CommandPaletteDefaultView } from "./CommandPaletteDefaultView";
 import { CommandPaletteModals } from "./commandPaletteModals";
 import {
   BookmarkTaxonomiesGroup,
-  CardDisplayRulesGroup,
 } from "./commandPaletteSubPalettes";
 import { CommandPaletteTaxonomyModes } from "./CommandPaletteTaxonomyModes";
 import { useCommandPaletteData } from "./useCommandPaletteData";
@@ -80,7 +79,6 @@ export function CommandPalette() {
     listingCtx,
     entityCtx,
     settingsPage,
-    matchingCardRules,
   } = useCommandPaletteData(open, targetBookmarkId);
 
   const {
@@ -209,23 +207,6 @@ export function CommandPalette() {
     />
   );
 
-  // Empty (no bookmark / no matches) renders nothing — CardDisplayRulesGroup returns null — so no
-  // extra guard is needed at the call sites beyond the hover/detail position check.
-  const cardDisplayRulesGroup = (
-    <CardDisplayRulesGroup
-      rules={matchingCardRules}
-      onSelect={(slug) => {
-        void navigate({
-          to: "/card-display-rules/$ruleSlug",
-          params: {
-            ruleSlug: slug,
-          },
-        });
-        handleClose();
-      }}
-    />
-  );
-
   return (
     <>
       <Dialog
@@ -257,7 +238,6 @@ export function CommandPalette() {
                 <CommandPaletteDefaultView
                   bookmarkFromHover={bookmarkFromHover}
                   bookmarkTaxonomiesGroup={bookmarkTaxonomiesGroup}
-                  cardDisplayRulesGroup={cardDisplayRulesGroup}
                   looksLikeUrl={looksLikeUrl}
                   inputValue={inputValue}
                   onAddBookmark={handleAddBookmark}

@@ -1,169 +1,57 @@
 import type { FastifyInstance } from "fastify";
-import type {
-  CreateCardDisplayRuleInput,
-  UpdateCardDisplayRuleInput,
-} from "@eesimple/types";
+import type { CardDisplayConfig } from "@eesimple/types";
 import {
-  createCardDisplayRule,
-  deleteCardDisplayRule,
-  listCardDisplayRules,
-  reorderCardDisplayRules,
-  updateCardDisplayRule,
+  getCardDisplayConfig,
+  updateCardDisplayConfig,
 } from "@/services/cardDisplayRules";
-import { cardZoneLayoutsSchema, fieldZonesSchema } from "@/routes/cardFieldZonesSchema";
-import { NotFoundError, ValidationError } from "@/utils/errors";
+import {
+  cardDisplaySectionsSchema,
+  cardImageCornersSchema,
+} from "@/routes/cardFieldZonesSchema";
 
-const ruleParams = {
-  type: "object",
-  required: ["id"],
-  properties: {
-    id: {
-      type: "string",
-      format: "uuid",
-    },
-  },
-} as const;
-
-const displayProperties = {
-  description: {
-    type: "string",
-    nullable: true,
-  },
-  sortOrder: {
-    type: "integer",
-  },
-  // Per-zone field placements + per-body-zone layout. Shared with the homepage-sections routes.
-  fieldZones: fieldZonesSchema,
-  cardZoneLayouts: cardZoneLayoutsSchema,
-  imageMode: {
-    type: "string",
-    nullable: true,
-  },
-  imageVisibility: {
-    type: "string",
-    nullable: true,
-    enum: ["shown", "image-only", "off"],
-  },
-  imageLayout: {
-    type: "string",
-    nullable: true,
-    enum: ["above", "side"],
-  },
-  hideWebsiteForYouTube: {
-    type: "boolean",
-    nullable: true,
-  },
-} as const;
-
-const createBody = {
-  type: "object",
-  required: ["name", "conditions"],
-  additionalProperties: false,
-  properties: {
-    name: {
-      type: "string",
-    },
-    conditions: {
-      $ref: "conditionTree#",
-    },
-    ...displayProperties,
-  },
-} as const;
-
+/**
+ * The single Card Display config: the dynamic body `sections` (each with its own form/layout/
+ * `visibleIf`), the four image corners, and the image presentation attributes. `PUT` is a partial
+ * merge so each control on the settings page can auto-save its own field.
+ */
 const updateBody = {
   type: "object",
   additionalProperties: false,
   properties: {
-    name: {
+    sections: cardDisplaySectionsSchema,
+    imageCorners: cardImageCornersSchema,
+    imageMode: {
       type: "string",
     },
-    conditions: {
-      $ref: "conditionTree#",
+    imageVisibility: {
+      type: "string",
+      enum: ["shown", "image-only", "off"],
     },
-    ...displayProperties,
-  },
-} as const;
-
-const reorderBody = {
-  type: "object",
-  required: ["orderedIds"],
-  additionalProperties: false,
-  properties: {
-    orderedIds: {
-      type: "array",
-      items: {
-        type: "string",
-        format: "uuid",
-      },
+    imageLayout: {
+      type: "string",
+      enum: ["above", "side"],
+    },
+    hideWebsiteForYouTube: {
+      type: "boolean",
     },
   },
 } as const;
 
-/** CRUD + reorder for card display rules. */
+/** Read/update the single card-display configuration (the former Default rule). */
 export async function cardDisplayRulesRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/api/card-display-rules", {
+  app.get("/api/card-display", {
     schema: {
-      tags: ["card-display-rules"],
+      tags: ["card-display"],
     },
-  }, async () => listCardDisplayRules());
+  }, async () => getCardDisplayConfig());
 
-  // Static sub-paths must be declared before /:id to avoid Fastify treating them as UUID params.
-  app.put("/api/card-display-rules/reorder", {
+  app.put("/api/card-display", {
     schema: {
-      tags: ["card-display-rules"],
-      body: reorderBody,
-    },
-  }, async (req, reply) => {
-    const {
-      orderedIds,
-    } = req.body as { orderedIds: string[] };
-    await reorderCardDisplayRules(orderedIds);
-    reply.status(204);
-  });
-
-  app.post("/api/card-display-rules", {
-    schema: {
-      tags: ["card-display-rules"],
-      body: createBody,
-    },
-  }, async (req, reply) => {
-    const input = req.body as CreateCardDisplayRuleInput;
-    const rule = await createCardDisplayRule(input);
-    reply.status(201);
-    return rule;
-  });
-
-  app.patch("/api/card-display-rules/:id", {
-    schema: {
-      tags: ["card-display-rules"],
-      params: ruleParams,
+      tags: ["card-display"],
       body: updateBody,
     },
-  }, async (req, reply) => {
-    const {
-      id,
-    } = req.params as { id: string };
-    const input = req.body as UpdateCardDisplayRuleInput;
-    const rule = await updateCardDisplayRule(id, input);
-    if (!rule) {
-      throw new NotFoundError("Card display rule");
-    }
-    return rule;
-  });
-
-  app.delete("/api/card-display-rules/:id", {
-    schema: {
-      tags: ["card-display-rules"],
-      params: ruleParams,
-    },
-  }, async (req, reply) => {
-    const {
-      id,
-    } = req.params as { id: string };
-    const deleted = await deleteCardDisplayRule(id);
-    if (!deleted) {
-      throw new ValidationError("The Default rule cannot be deleted");
-    }
-    reply.status(204);
+  }, async (req) => {
+    const patch = req.body as Partial<CardDisplayConfig>;
+    return updateCardDisplayConfig(patch);
   });
 }

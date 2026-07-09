@@ -72,7 +72,6 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
     autofill: slugFor(pathname, pathParts, "/autofill", 1),
     importRule: slugFor(pathname, pathParts, "/import-rules", 1),
     savedFilter: slugFor(pathname, pathParts, "/saved-filters", 1),
-    cardDisplayRule: slugFor(pathname, pathParts, "/card-display-rules", 1),
   });
 
   return {

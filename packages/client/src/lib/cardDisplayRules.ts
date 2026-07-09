@@ -4,66 +4,56 @@ import type {
 } from "../lib/bookmarkColumns";
 import type {
   Bookmark,
-  CardDisplayRule,
-  CardFieldZones,
-  CardZoneLayouts,
+  CardDisplayConfig,
+  CardDisplaySection,
+  CardImageCorners,
   ConditionInput,
   EvaluateOptions,
 } from "@eesimple/types";
 
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 
-import { defaultCardZoneLayouts, emptyCardFieldZones, evaluateConditions } from "@eesimple/types";
+import { cardDisplayConfigFromFieldZones, defaultCardZoneLayouts, emptyCardFieldZones, evaluateConditions } from "@eesimple/types";
 
 import { STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { defaultBodyZone } from "./bookmarkCardValues";
-import { useCardDisplayRules } from "../hooks/useCardDisplayRules";
+import { useCardDisplayConfig } from "../hooks/useCardDisplayConfig";
 import { useConditionEvaluateOptions } from "../hooks/useConditionEvaluateOptions";
-import i18n from "../i18n";
 
 /**
- * Per-card display, fully resolved from the rule set. Every attribute is concrete (the Default rule
- * guarantees a baseline), and `provenance` records which rule supplied each attribute plus every rule
- * that matched — surfaced for the future "which rules apply to this bookmark" inspector.
+ * A bookmark's fully-resolved per-card display: the dynamic body `sections` **already filtered** by
+ * each section's `visibleIf` for this bookmark, the four image corners, and the concrete image
+ * presentation attributes. Fed straight to `<BookmarkCard sections=… imageCorners=… />`.
  */
 export interface ResolvedCardDisplay {
-  fieldZones: CardFieldZones;
-  cardZoneLayouts: CardZoneLayouts;
+  sections: CardDisplaySection[];
+  imageCorners: CardImageCorners;
   imageMode: string;
   imageVisibility: BookmarkImageVisibility;
   imageLayout: HomepageSectionImageLayout;
   hideWebsiteForYouTube: boolean;
-  provenance: {
-    /** Rule ids that matched this bookmark, in priority order (highest first). */
-    matchedRuleIds: string[];
-    /** For each attribute, the id of the rule that supplied its value (or null = built-in baseline). */
-    source: Record<keyof Omit<ResolvedCardDisplay, "provenance">, string | null>;
-  };
 }
 
 /**
- * Hardcoded fallback used only if the Default rule is missing (e.g. before the boot seed runs). Also
- * reused by the rule-editor card preview to fill attributes a rule leaves to "inherit".
+ * The hardcoded baseline config used only before the stored config loads (cold React Query cache):
+ * every standard field placed in its {@link defaultBodyZone}, all corners empty, natural/shown/above.
  */
-/** Standard fields placed in the card body — the baseline `fieldZones` when no Default rule exists. */
-function baselineFieldZones(): CardFieldZones {
+function baselineConfig(): CardDisplayConfig {
   const zones = emptyCardFieldZones();
   for (const field of STANDARD_CARD_FIELDS) {
     zones[defaultBodyZone(field.key)].push({
       key: field.key,
     });
   }
-  return zones;
+  return cardDisplayConfigFromFieldZones(zones, defaultCardZoneLayouts(), {
+    imageMode: "natural",
+    imageVisibility: "shown",
+    imageLayout: "above",
+    hideWebsiteForYouTube: false,
+  });
 }
 
-export const BASELINE = {
-  fieldZones: baselineFieldZones(),
-  cardZoneLayouts: defaultCardZoneLayouts(),
-  imageMode: "natural",
-  imageVisibility: "shown" as BookmarkImageVisibility,
-  imageLayout: "above" as HomepageSectionImageLayout,
-  hideWebsiteForYouTube: false,
-};
+export const BASELINE: CardDisplayConfig = baselineConfig();
 
 /**
  * Build the full {@link ConditionInput} projection of an EXISTING bookmark. Unlike `lib/autofill.ts`'s
@@ -98,260 +88,65 @@ export function bookmarkToConditionInput(bookmark: Bookmark): ConditionInput {
   };
 }
 
-/** Whether a rule matches the bookmark. The Default rule always matches; other rules evaluate conditions. */
-function ruleMatches(
-  rule: CardDisplayRule,
+/**
+ * Whether a card-body section is visible for a bookmark. An absent or empty `visibleIf` group always
+ * shows (an empty condition group otherwise evaluates to `false`, so it must be short-circuited —
+ * mirrors `useBookmarkSectionVisibility`'s `sectionMatchesConditionInput`).
+ */
+export function cardSectionVisible(
+  section: CardDisplaySection,
   input: ConditionInput,
   options: EvaluateOptions,
 ): boolean {
-  if (rule.isDefault) return true;
-  return evaluateConditions(rule.conditions, input, options);
+  const tree = section.visibleIf;
+  if (!tree || tree.children.length === 0) return true;
+  return evaluateConditions(tree, input, options);
 }
 
-/** The overridable display attributes resolved by the layered merge — each nullable on a non-default rule. */
-const MERGE_KEYS = [
-  "fieldZones",
-  "cardZoneLayouts",
-  "imageMode",
-  "imageVisibility",
-  "imageLayout",
-  "hideWebsiteForYouTube",
-] as const;
-type MergeKey = (typeof MERGE_KEYS)[number];
-type MergedAttrs = Pick<CardDisplayRule, MergeKey>;
-
-/** Fresh accumulator with every mergeable attribute unset (null). */
-function emptyMergedAttrs(): MergedAttrs {
-  return {
-    fieldZones: null,
-    cardZoneLayouts: null,
-    imageMode: null,
-    imageVisibility: null,
-    imageLayout: null,
-    hideWebsiteForYouTube: null,
-  };
-}
-
-/**
- * Layered-merge step for one attribute: the first matching rule to set a non-null value wins it, and
- * records that rule's id as the provenance source. Generic over the key so `merged[key]`/`rule[key]`
- * stay the same type and assignment is checked.
- */
-function takeFirstAttr<K extends MergeKey>(
-  merged: MergedAttrs,
-  source: Record<MergeKey, string | null>,
-  rule: CardDisplayRule,
-  key: K,
-): void {
-  if (merged[key] === null && rule[key] !== null) {
-    merged[key] = rule[key];
-    source[key] = rule.id;
-  }
-}
-
-/**
- * Resolve a bookmark's per-card display by layering the matching rules. `rules` must be pre-sorted by
- * priority (highest first; the Default rule last). For each attribute the first matching rule that
- * sets a non-null value wins; the Default rule fills whatever remains; a hardcoded baseline covers the
- * (transient) case where no Default rule exists yet.
- */
+/** Resolve a bookmark's per-card display from the single config, filtering sections by `visibleIf`. */
 export function resolveCardDisplay(
   bookmark: Bookmark,
-  rules: CardDisplayRule[],
+  config: CardDisplayConfig,
   options: EvaluateOptions,
 ): ResolvedCardDisplay {
   const input = bookmarkToConditionInput(bookmark);
-
-  const matchedRuleIds: string[] = [];
-  const merged = emptyMergedAttrs();
-  const source: ResolvedCardDisplay["provenance"]["source"] = {
-    fieldZones: null,
-    cardZoneLayouts: null,
-    imageMode: null,
-    imageVisibility: null,
-    imageLayout: null,
-    hideWebsiteForYouTube: null,
-  };
-
-  for (const rule of rules) {
-    if (!ruleMatches(rule, input, options)) continue;
-    matchedRuleIds.push(rule.id);
-    for (const key of MERGE_KEYS) takeFirstAttr(merged, source, rule, key);
-  }
-
   return {
-    fieldZones: merged.fieldZones ?? BASELINE.fieldZones,
-    cardZoneLayouts: merged.cardZoneLayouts ?? BASELINE.cardZoneLayouts,
-    imageMode: merged.imageMode ?? BASELINE.imageMode,
-    imageVisibility: merged.imageVisibility ?? BASELINE.imageVisibility,
-    imageLayout: merged.imageLayout ?? BASELINE.imageLayout,
-    hideWebsiteForYouTube: merged.hideWebsiteForYouTube ?? BASELINE.hideWebsiteForYouTube,
-    provenance: {
-      matchedRuleIds,
-      source,
-    },
-  };
-}
-
-/** Sort rules into priority order: non-default first (lowest sortOrder first), the Default rule last. */
-function byPriority(a: CardDisplayRule, b: CardDisplayRule): number {
-  if (a.isDefault !== b.isDefault) return a.isDefault ? 1 : -1;
-  return a.sortOrder - b.sortOrder;
-}
-
-/** The overridable display attributes, in display order, with the labels used by the rule editor. */
-export const CARD_DISPLAY_ATTRS = [
-  {
-    key: "imageVisibility",
-    label: i18n.t("Images"),
-  },
-  {
-    key: "imageMode",
-    label: i18n.t("Aspect"),
-  },
-  {
-    key: "imageLayout",
-    label: i18n.t("Layout"),
-  },
-  {
-    key: "hideWebsiteForYouTube",
-    label: i18n.t("Hide website for YouTube"),
-  },
-  {
-    key: "fieldZones",
-    label: i18n.t("Card fields"),
-  },
-  {
-    key: "cardZoneLayouts",
-    label: i18n.t("Zone layout"),
-  },
-] as const satisfies readonly {
-  key: keyof ResolvedCardDisplay["provenance"]["source"];
-  label: string;
-}[];
-
-/** A single attribute a rule sets, plus whether its value won or was overridden by a higher rule. */
-export interface RuleAttrInspection {
-  key: keyof ResolvedCardDisplay["provenance"]["source"];
-  label: string;
-  /** The raw value the rule declares for this attribute (formatted for display by the caller). */
-  value: CardFieldZones | CardZoneLayouts | string | boolean;
-  status: "applied" | "overridden";
-  /** When overridden, the id of the higher-priority rule that supplied the final value. */
-  overriddenBy: string | null;
-}
-
-/** One rule's contribution to a bookmark: whether it matched and which attributes it sets. */
-export interface RuleInspection {
-  rule: CardDisplayRule;
-  matched: boolean;
-  /** Only the attributes this rule sets (non-null), each flagged applied/overridden. */
-  attrs: RuleAttrInspection[];
-}
-
-/** Full breakdown of how the rule set resolves for one bookmark, for the settings inspector. */
-export interface BookmarkRuleInspection {
-  resolved: ResolvedCardDisplay;
-  /** Every rule in priority order (matching the input order), each with its per-attribute status. */
-  rules: RuleInspection[];
-}
-
-/**
- * Inspect how `rules` resolve for one bookmark: for each rule report whether it matched and, for each
- * attribute it sets, whether that value was applied or overridden by a higher-priority rule. Built as
- * a view over {@link resolveCardDisplay}'s provenance so the inspector and the live cards agree.
- * `rules` must be pre-sorted by priority (highest first; the Default rule last).
- */
-export function inspectBookmarkRules(
-  bookmark: Bookmark,
-  rules: CardDisplayRule[],
-  options: EvaluateOptions,
-): BookmarkRuleInspection {
-  const resolved = resolveCardDisplay(bookmark, rules, options);
-  const input = bookmarkToConditionInput(bookmark);
-
-  const ruleInspections = rules.map((rule): RuleInspection => {
-    const attrs: RuleAttrInspection[] = [];
-    for (const {
-      key, label,
-    } of CARD_DISPLAY_ATTRS) {
-      const value = rule[key];
-      if (value === null) continue;
-      const winner = resolved.provenance.source[key];
-      const applied = winner === rule.id;
-      attrs.push({
-        key,
-        label,
-        value,
-        status: applied ? "applied" : "overridden",
-        overriddenBy: applied ? null : winner,
-      });
-    }
-    return {
-      rule,
-      matched: ruleMatches(rule, input, options),
-      attrs,
-    };
-  });
-
-  return {
-    resolved,
-    rules: ruleInspections,
+    sections: config.sections.filter(section => cardSectionVisible(section, input, options)),
+    imageCorners: config.imageCorners,
+    imageMode: config.imageMode,
+    imageVisibility: config.imageVisibility,
+    imageLayout: config.imageLayout,
+    hideWebsiteForYouTube: config.hideWebsiteForYouTube,
   };
 }
 
 /**
- * Returns a stable resolver `(bookmark) => ResolvedCardDisplay` for the current rule set. Loads the
- * rules + tags once (already cached by React Query) and builds the tag-cascade resolver a single time.
+ * Returns a stable resolver `(bookmark) => ResolvedCardDisplay` for the single card-display config.
+ * Loads the config + tags once (already cached by React Query) and builds the tag-cascade resolver a
+ * single time.
  *
- * `isPending` is true only when neither rules nor tags have been fetched yet (cold React Query cache).
- * Callers that render images should suppress them while pending to prevent an aspect-ratio flash:
- * without rules the resolver falls back to BASELINE.imageMode ("natural"), so an image would render
- * at the wrong aspect ratio and then jump when the rules arrive.
+ * `isPending` is true only when the config hasn't been fetched yet (cold React Query cache). Callers
+ * that render images should suppress them while pending to prevent an aspect-ratio flash: without the
+ * config the resolver falls back to BASELINE.imageMode ("natural"), so an image would render at the
+ * wrong aspect ratio and then jump when the config arrives.
  */
 export function useResolveCardDisplay(): {
   resolve: (bookmark: Bookmark) => ResolvedCardDisplay;
   isPending: boolean;
 } {
   const {
-    data: rules = [],
-    isPending: rulesPending,
-  } = useCardDisplayRules();
+    data: config = BASELINE,
+    isPending,
+  } = useCardDisplayConfig();
   const options = useConditionEvaluateOptions();
 
-  const sortedRules = useMemo(() => [...rules].sort(byPriority), [rules]);
-
   const resolve = useCallback(
-    (bookmark: Bookmark) => resolveCardDisplay(bookmark, sortedRules, options),
-    [sortedRules, options],
+    (bookmark: Bookmark) => resolveCardDisplay(bookmark, config, options),
+    [config, options],
   );
 
   return {
     resolve,
-    isPending: rulesPending,
+    isPending,
   };
-}
-
-/**
- * The Card Display Rules that match `bookmark`, in priority order (highest first; the Default rule —
- * which always matches — last). A thin view over {@link resolveCardDisplay}'s `matchedRuleIds`
- * provenance, mapped back to the full rule objects, so it agrees with the live cards. Powers the
- * CMD+K "jump to the rules that style this card" group. Returns `[]` when `bookmark` is undefined.
- */
-export function useMatchingCardDisplayRules(bookmark: Bookmark | undefined): CardDisplayRule[] {
-  const {
-    data: rules = [],
-  } = useCardDisplayRules();
-  const options = useConditionEvaluateOptions();
-
-  const sortedRules = useMemo(() => [...rules].sort(byPriority), [rules]);
-
-  return useMemo(() => {
-    if (!bookmark) return [];
-    const byId = new Map(rules.map(rule => [rule.id, rule]));
-    const resolved = resolveCardDisplay(bookmark, sortedRules, options);
-    return resolved.provenance.matchedRuleIds
-      .map(id => byId.get(id))
-      .filter((rule): rule is CardDisplayRule => rule !== undefined);
-  }, [bookmark, rules, sortedRules, options]);
 }

@@ -71,6 +71,47 @@ const PLACEMENT_PROP_SCHEMAS = {
   },
 } as const satisfies Record<keyof CardFieldPlacement, unknown>;
 
+/** One `CardFieldPlacement` object (a `key` plus its optional per-field knobs). */
+const placementItemSchema = {
+  type: "object",
+  required: ["key"],
+  additionalProperties: false,
+  properties: PLACEMENT_PROP_SCHEMAS,
+} as const;
+
+/** The object form of a `CardZoneLayout` (`{ mode, gap?, align?, alignItems?, direction?, wrap? }`). */
+const cardZoneLayoutObjectSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["mode"],
+  properties: {
+    mode: {
+      type: "string",
+      enum: ["flex", "grid"],
+    },
+    gap: {
+      type: "string",
+      enum: ["sm", "md", "lg"],
+    },
+    align: {
+      type: "string",
+      enum: ["start", "center", "end", "between"],
+    },
+    alignItems: {
+      type: "string",
+      enum: ["start", "center", "end", "stretch"],
+    },
+    direction: {
+      type: "string",
+      enum: ["row", "column"],
+    },
+    wrap: {
+      type: "string",
+      enum: ["wrap", "nowrap"],
+    },
+  },
+} as const;
+
 /**
  * `fieldZones`: per-zone field placements. `null` = inherit / fall back. Each zone holds an ordered
  * array of placements; a field key absent from all zones is hidden.
@@ -82,15 +123,68 @@ export const fieldZonesSchema = {
     CARD_FIELD_ZONES.map(
       zone => [zone, {
         type: "array",
-        items: {
-          type: "object",
-          required: ["key"],
-          additionalProperties: false,
-          properties: PLACEMENT_PROP_SCHEMAS,
-        },
+        items: placementItemSchema,
       }],
     ),
   ),
+} as const;
+
+/**
+ * `sections`: the dynamic card-body sections for the single Card Display config. Each section carries
+ * its render `form`, its `layout` (object `CardZoneLayout`), an optional `visibleIf` condition tree,
+ * and its ordered field placements. `null` = unset (falls back to the code default).
+ */
+export const cardDisplaySectionsSchema = {
+  type: ["array", "null"],
+  items: {
+    type: "object",
+    required: ["key", "form", "layout", "fields"],
+    additionalProperties: false,
+    properties: {
+      key: {
+        type: "string",
+      },
+      title: {
+        type: "string",
+      },
+      visibleIf: {
+        $ref: "conditionTree#",
+      },
+      form: {
+        type: "string",
+        enum: ["stacked", "inline", "table"],
+      },
+      layout: cardZoneLayoutObjectSchema,
+      fields: {
+        type: "array",
+        items: placementItemSchema,
+      },
+    },
+  },
+} as const;
+
+/** `imageCorners`: the four image-corner overlay placement arrays for the single Card Display config. */
+export const cardImageCornersSchema = {
+  type: ["object", "null"],
+  additionalProperties: false,
+  properties: {
+    "top-left": {
+      type: "array",
+      items: placementItemSchema,
+    },
+    "top-right": {
+      type: "array",
+      items: placementItemSchema,
+    },
+    "bottom-left": {
+      type: "array",
+      items: placementItemSchema,
+    },
+    "bottom-right": {
+      type: "array",
+      items: placementItemSchema,
+    },
+  },
 } as const;
 
 /**
@@ -109,37 +203,7 @@ export const cardZoneLayoutsSchema = {
           type: "string",
           enum: ["flex", "grid"],
         },
-        {
-          type: "object",
-          additionalProperties: false,
-          required: ["mode"],
-          properties: {
-            mode: {
-              type: "string",
-              enum: ["flex", "grid"],
-            },
-            gap: {
-              type: "string",
-              enum: ["sm", "md", "lg"],
-            },
-            align: {
-              type: "string",
-              enum: ["start", "center", "end", "between"],
-            },
-            alignItems: {
-              type: "string",
-              enum: ["start", "center", "end", "stretch"],
-            },
-            direction: {
-              type: "string",
-              enum: ["row", "column"],
-            },
-            wrap: {
-              type: "string",
-              enum: ["wrap", "nowrap"],
-            },
-          },
-        },
+        cardZoneLayoutObjectSchema,
       ],
     }]),
   ),

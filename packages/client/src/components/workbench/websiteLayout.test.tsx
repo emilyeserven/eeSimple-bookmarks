@@ -103,18 +103,10 @@ describe("website default layout", () => {
       },
       {
         key: "autofill",
-        group: "Rules",
+        group: undefined,
         sections: [{
           key: "autofill",
           fields: ["autofillRules"],
-        }],
-      },
-      {
-        key: "display-rules",
-        group: "Rules",
-        sections: [{
-          key: "display-rules",
-          fields: ["displayRules"],
         }],
       },
       {
@@ -179,18 +171,10 @@ describe("website default layout", () => {
       },
       {
         key: "autofill",
-        group: "Rules",
+        group: undefined,
         sections: [{
           key: "autofill",
           fields: ["autofillRules"],
-        }],
-      },
-      {
-        key: "display-rules",
-        group: "Rules",
-        sections: [{
-          key: "display-rules",
-          fields: ["displayRules"],
         }],
       },
       {

@@ -24,7 +24,6 @@ const EXPECTED_KINDS: EntityRouteKind[] = [
   "autofill",
   "import-rule",
   "saved-filter",
-  "card-display-rule",
 ];
 
 describe("entityRoutes", () => {
