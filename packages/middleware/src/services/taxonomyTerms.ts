@@ -135,14 +135,6 @@ export async function getTaxonomyTermTree(taxonomyId: string): Promise<TaxonomyT
   return buildTermTree(await listTaxonomyTerms(taxonomyId));
 }
 
-/** Resolve a single term by id. */
-export async function getTaxonomyTerm(id: string): Promise<TaxonomyTerm | null> {
-  const [row] = await db.select().from(taxonomyTerms).where(eq(taxonomyTerms.id, id));
-  if (!row) return null;
-  const namesMap = await loadEntityNames("taxonomyTerm", [row.id]);
-  return toTaxonomyTerm(row, undefined, namesMap.get(row.id));
-}
-
 /** Add a term to a taxonomy. Throws `DuplicateTaxonomyTermError` on a sibling name clash. */
 export async function createTaxonomyTerm(
   taxonomyId: string,

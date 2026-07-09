@@ -625,6 +625,8 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   const numberValues = await withRuntime(input.numberValues ?? [], meta, "create");
   const dateTimeValues = await withDatePosted(input.dateTimeValues ?? [], meta, "create");
   const choicesValues = await withContentStatusDefault(input.choicesValues ?? []);
+  // G&M is a taxonomy now; resolve its id once so `linkGenreMoods` can write taxonomy_assignments.
+  const genreMoodsTaxonomyId = await getGenreMoodsTaxonomyId();
 
   const {
     id, websiteId, youtubeChannelId,
@@ -645,7 +647,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         id: bookmarks.id,
       });
     await linkTags(tx, row.id, mergedTagIds);
-    await linkGenreMoods(tx, row.id, input.genreMoodIds);
+    await linkGenreMoods(tx, row.id, input.genreMoodIds, genreMoodsTaxonomyId);
     await linkLocations(tx, row.id, mergedLocationIds, input.locationRelationByLocationId);
     if (input.blacklistedTagIds?.length) {
       await setBookmarkTagBlacklist(tx, row.id, input.blacklistedTagIds);
@@ -792,7 +794,7 @@ async function applyBookmarkValueUpdates(
         eq(taxonomyAssignments.ownerId, id),
       ));
     }
-    await linkGenreMoods(tx, id, input.genreMoodIds);
+    await linkGenreMoods(tx, id, input.genreMoodIds, genreMoodsTaxonomyId);
   }
   if (input.locationIds !== undefined) {
     await tx.delete(bookmarkLocations).where(eq(bookmarkLocations.bookmarkId, id));

@@ -106,24 +106,34 @@ test("setNumberValues is a no-op for undefined or empty values", async () => {
   assert.deepEqual(state.inserted, []);
 });
 
-test("linkGenreMoods de-duplicates repeated genre/mood ids before inserting", async () => {
+test("linkGenreMoods de-duplicates repeated ids and writes taxonomy_assignments for the G&M taxonomy", async () => {
   const {
     tx, state,
   } = makeFakeTx();
-  await linkGenreMoods(tx, "bm-1", ["g1", "g1", "g2"]);
+  await linkGenreMoods(tx, "bm-1", ["g1", "g1", "g2"], "gm-tax");
   assert.equal(state.inserted.length, 1);
   assert.deepEqual(state.inserted[0].rows, [
     {
-      genreMoodId: "g1",
+      taxonomyId: "gm-tax",
+      termId: "g1",
       ownerType: "bookmark",
       ownerId: "bm-1",
     },
     {
-      genreMoodId: "g2",
+      taxonomyId: "gm-tax",
+      termId: "g2",
       ownerType: "bookmark",
       ownerId: "bm-1",
     },
   ]);
+});
+
+test("linkGenreMoods no-ops when the G&M taxonomy has been demoted away (null id)", async () => {
+  const {
+    tx, state,
+  } = makeFakeTx();
+  await linkGenreMoods(tx, "bm-1", ["g1"], null);
+  assert.deepEqual(state.inserted, []);
 });
 
 test("linkLocations de-duplicates location ids while still mapping each to its relation id", async () => {
