@@ -26,6 +26,7 @@ export const WEBSITE_LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> =
   youtubeChannelIds: "YouTube channels",
   alternateNames: "Alternate names",
   redirectResolutionFailure: "Redirect resolution failure",
+  scanUrlForIsbn: "Scan URL for ISBN",
 };
 
 /** The autosave snapshot for a website's editable fields, with all nullable defaults applied. */
@@ -42,5 +43,6 @@ export function websiteAutoSaveInitial(website: Website): UpdateWebsiteInput {
     youtubeChannelIds: website.youtubeChannelIds ?? [],
     alternateNames: website.alternateNames,
     redirectResolutionFailure: website.redirectResolutionFailure ?? false,
+    scanUrlForIsbn: website.scanUrlForIsbn ?? false,
   };
 }

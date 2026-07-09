@@ -318,6 +318,10 @@ export const websites = pgTable("websites", {
   // Flags this site as having unreliable redirect resolution. When true, its bookmarks appear in
   // Settings → Redirect Failures for URL correction. NOT NULL; pre-applied in migrate.ts.
   redirectResolutionFailure: boolean("redirect_resolution_failure").notNull().default(false),
+  // When true, pasting a bookmark URL from this site scans the page for an ISBN (dedicated
+  // Amazon/honto/O'Reilly extractors + a generic scrape) and autofills the ISBN field. Nullable
+  // (push-safe additive); NULL = false. This gates all scan-time ISBN detection.
+  scanUrlForIsbn: boolean("scan_url_for_isbn"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

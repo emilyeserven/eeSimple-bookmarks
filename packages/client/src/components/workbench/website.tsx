@@ -19,6 +19,7 @@ import {
   WebsiteLabeledWebsitesEditField,
   WebsiteNameEditField,
   WebsiteRedirectFailureEditField,
+  WebsiteScanIsbnEditField,
   WebsiteSocialLinksEditField,
   WebsiteYouTubeChannelsEditField,
 } from "../WebsiteGeneralForm";
@@ -67,6 +68,7 @@ type WebsiteFieldKey
     | "socialLinks"
     | "labeledWebsites"
     | "redirectFailure"
+    | "scanIsbn"
     | "genreMoods"
     | "people"
     | "shortenedLinks"
@@ -92,6 +94,7 @@ const WEBSITE_SHARED_FORM_FIELD_KEYS = new Set<string>([
   "socialLinks",
   "labeledWebsites",
   "redirectFailure",
+  "scanIsbn",
 ]);
 
 const websiteFields = {
@@ -188,6 +191,13 @@ const websiteFields = {
     edit: ({
       entity,
     }) => <WebsiteRedirectFailureEditField website={entity} />,
+  },
+  scanIsbn: {
+    key: "scanIsbn",
+    label: i18n.t("Scan URL for ISBN"),
+    edit: ({
+      entity,
+    }) => <WebsiteScanIsbnEditField website={entity} />,
   },
   genreMoods: {
     key: "genreMoods",
@@ -322,6 +332,7 @@ const WEBSITE_DEFAULT_LAYOUT: EntityLayout = {
           "socialLinks",
           "labeledWebsites",
           "redirectFailure",
+          "scanIsbn",
           "genreMoods",
         ] satisfies WebsiteFieldKey[],
       }],

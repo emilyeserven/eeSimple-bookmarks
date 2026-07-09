@@ -198,6 +198,9 @@ const updateWebsiteBody = {
     redirectResolutionFailure: {
       type: "boolean",
     },
+    scanUrlForIsbn: {
+      type: "boolean",
+    },
   },
 } as const;
 

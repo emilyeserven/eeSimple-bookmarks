@@ -68,6 +68,11 @@ test("buildWebsiteScalarPatch: explicit null clears nullable associations", () =
   }), {
     redirectResolutionFailure: false,
   });
+  assert.deepEqual(buildWebsiteScalarPatch({
+    scanUrlForIsbn: true,
+  }), {
+    scanUrlForIsbn: true,
+  });
 });
 
 test("buildWebsiteScalarPatch: never sets domain or slug (those need a DB lookup)", () => {

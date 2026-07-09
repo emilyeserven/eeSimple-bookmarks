@@ -12,6 +12,7 @@ export interface WebsiteScalarPatch {
   labeledWebsites?: LabeledWebsite[];
   alternateNames?: string[];
   redirectResolutionFailure?: boolean;
+  scanUrlForIsbn?: boolean;
 }
 
 /** Canonical website domain: strip a leading `www.` and lowercase. */
@@ -51,5 +52,6 @@ export function buildWebsiteScalarPatch(input: UpdateWebsiteInput): WebsiteScala
   if ("labeledWebsites" in input) patch.labeledWebsites = input.labeledWebsites ?? [];
   if (input.alternateNames !== undefined) patch.alternateNames = input.alternateNames;
   if ("redirectResolutionFailure" in input) patch.redirectResolutionFailure = input.redirectResolutionFailure ?? false;
+  if ("scanUrlForIsbn" in input) patch.scanUrlForIsbn = input.scanUrlForIsbn ?? false;
   return patch;
 }

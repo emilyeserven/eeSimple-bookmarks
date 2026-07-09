@@ -6,6 +6,7 @@ import { getImageUrlBlacklist } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
 import { fetchHontoIsbnFromPage } from "@/services/honto";
 import { buildImageCandidates, filterCandidates } from "@/services/imageCandidates";
+import { fetchIsbnFromPage } from "@/services/isbnScrape";
 import {
   checkUrl,
   duckDuckGoIconUrl,
@@ -598,23 +599,33 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       };
     const finalUrl = redirect.finalUrl;
 
+    // ISBN autodetect is gated per-website: it runs only when the pasted URL matches a website that
+    // exists in the taxonomy and has its "Scan URL for ISBN" flag on. Resolve the website first (a
+    // local DB query) so the gate is known before dispatching any ISBN work.
+    const websiteRaw = await lookupWebsiteByUrl(finalUrl);
+    const scanIsbn = websiteRaw.website != null && (websiteRaw.website.scanUrlForIsbn ?? false);
+
     // The ASIN itself is usually a valid ISBN-10 (pure, no fetch); when it isn't, fall back to
     // reading the ISBN straight out of the product page's own structured details. honto.jp has no
     // ASIN-equivalent, so it always needs the page fetch. O'Reilly URLs embed the real ISBN-13
-    // directly in the path, so it's pure like the Amazon ASIN case, no fetch needed.
-    const isbnFromAsin = extractIsbn13FromAmazonUrl(finalUrl);
-    const isbnFromOreilly = extractIsbn13FromOreillyUrl(finalUrl);
-    const [websiteRaw, duplicate, metadata, isbnFromAmazonPage, isbnFromHontoPage] = await Promise.all([
-      lookupWebsiteByUrl(finalUrl),
+    // directly in the path, so it's pure like the Amazon ASIN case, no fetch needed. All are gated
+    // on `scanIsbn`; a site with no dedicated connector falls back to a generic page scrape.
+    const isbnFromAsin = scanIsbn ? extractIsbn13FromAmazonUrl(finalUrl) : null;
+    const isbnFromOreilly = scanIsbn ? extractIsbn13FromOreillyUrl(finalUrl) : null;
+    const isDedicatedIsbnSite = isAmazonProductUrl(finalUrl) || isHontoProductUrl(finalUrl) || isOreillyProductUrl(finalUrl);
+    const [duplicate, metadata, isbnFromAmazonPage, isbnFromHontoPage, isbnFromGenericPage] = await Promise.all([
       checkBookmarkUrlDuplicate(finalUrl, identity),
       isYouTubeVideoUrl(finalUrl)
         ? buildYouTubeMetadataResult(finalUrl, req.log)
         : buildGenericMetadataResult(finalUrl, siteNameHint),
-      isbnFromAsin === null && isAmazonProductUrl(finalUrl)
+      scanIsbn && isbnFromAsin === null && isAmazonProductUrl(finalUrl)
         ? fetchAmazonIsbnFromPage(finalUrl)
         : Promise.resolve(null),
-      isHontoProductUrl(finalUrl)
+      scanIsbn && isHontoProductUrl(finalUrl)
         ? fetchHontoIsbnFromPage(finalUrl)
+        : Promise.resolve(null),
+      scanIsbn && !isDedicatedIsbnSite
+        ? fetchIsbnFromPage(finalUrl)
         : Promise.resolve(null),
     ]);
 
@@ -623,8 +634,9 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     const socialAccount = socialAccountFromUrl(finalUrl);
     // A checksum-valid ISBN-13 from an Amazon product URL's ASIN, or (when the ASIN itself isn't one,
     // or the URL is a honto.jp product page) scraped from the product page's own structured details,
-    // or (for an O'Reilly product URL) parsed directly out of the path.
-    const resolvedIsbn = isbnFromAsin ?? isbnFromAmazonPage ?? isbnFromHontoPage ?? isbnFromOreilly;
+    // or (for an O'Reilly product URL) parsed directly out of the path, or (for any other opted-in
+    // site) scraped generically. `null` unless the matched website opted into ISBN scanning.
+    const resolvedIsbn = isbnFromAsin ?? isbnFromAmazonPage ?? isbnFromHontoPage ?? isbnFromOreilly ?? isbnFromGenericPage;
     const result: ScanResult = {
       finalUrl,
       redirected: redirect.redirected,

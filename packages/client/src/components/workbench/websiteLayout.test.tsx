@@ -13,7 +13,7 @@ import { deriveWorkbenchTabs, knownFieldKeys, visibleSectionsForTab } from "@/li
  * into granular fields, so this snapshots the full tab → section → field-key order the `"website"`
  * registry + default layout resolve to in both modes, and the parity-by-construction split — the
  * view-only `metadata`/`sourceDefaults` fields drop in edit, and the edit-only
- * `name`/`defaultCategory`/`defaultMediaType`/`defaultTags`/`labeledWebsites`/`redirectFailure`/`genreMoods`
+ * `name`/`defaultCategory`/`defaultMediaType`/`defaultTags`/`labeledWebsites`/`redirectFailure`/`scanIsbn`/`genreMoods`
  * fields drop in view; the `hierarchy` tab stays view-only. Renderers are never invoked, only the pure
  * order/visibility helpers. (`batch2Layouts.test.tsx` still covers the unchanged tab-key order.)
  */
@@ -148,6 +148,7 @@ describe("website default layout", () => {
             "socialLinks",
             "labeledWebsites",
             "redirectFailure",
+            "scanIsbn",
             "genreMoods",
           ],
         }],
