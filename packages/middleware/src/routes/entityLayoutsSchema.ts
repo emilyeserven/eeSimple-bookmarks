@@ -36,6 +36,9 @@ const layoutSectionSchema = {
     columns: {
       type: "integer",
     },
+    visibleIf: {
+      $ref: "conditionTree#",
+    },
     fields: {
       type: "array",
       items: {

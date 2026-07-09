@@ -1,8 +1,9 @@
 import type { EntityWorkbench } from "../components/workbench/types";
-import type { RenderTab } from "../lib/workbenchLayout";
+import type { RenderTab, SectionMatches } from "../lib/workbenchLayout";
 import type { Bookmark, EntityLayout } from "@eesimple/types";
 
 import { useBookmarks } from "./useBookmarks";
+import { useBookmarkSectionVisibility } from "./useBookmarkSectionVisibility";
 import { useBookmarksSharingMediaSource } from "./useBookmarksSharingMediaSource";
 import { useCustomProperties } from "./useCustomProperties";
 import { useLayoutDrivenWorkbench, useResolvedWorkbenchLayout } from "./useEntityLayout";
@@ -28,6 +29,8 @@ export function useBookmarkViewTabs(bookmark: Bookmark): {
   tabs: RenderTab[];
   /** The dynamic-field-merged workbench the detail bodies must render with (so per-property fields show). */
   workbench: EntityWorkbench<Bookmark>;
+  /** The per-section condition gate, shared with the detail bodies' `LayoutDrivenTabBody`. */
+  sectionMatches: SectionMatches;
 } {
   const workbench = useLayoutDrivenWorkbench(bookmarkWorkbench);
   const layout = useResolvedWorkbenchLayout(workbench);
@@ -40,12 +43,14 @@ export function useBookmarkViewTabs(bookmark: Bookmark): {
   const defaultFieldZones = useDefaultFieldZones();
   const relatedBookmarks = useRelatedBookmarks(bookmark);
   const mediaSourceMatches = useBookmarksSharingMediaSource(bookmark);
+  const sectionMatches = useBookmarkSectionVisibility(bookmark);
 
   if (!layout || !workbench.fields) {
     return {
       layout: null,
       tabs: [],
       workbench,
+      sectionMatches,
     };
   }
 
@@ -58,11 +63,12 @@ export function useBookmarkViewTabs(bookmark: Bookmark): {
     hasPropertyRows: hasBookmarkPropertyRows(bookmark, properties ?? [], defaultFieldZones),
   });
 
-  const tabs = modeVisibleTabs(layout, workbench.fields, "view", bookmark)
+  const tabs = modeVisibleTabs(layout, workbench.fields, "view", bookmark, sectionMatches)
     .filter(tab => !hidden.has(tab.key));
   return {
     layout,
     tabs,
     workbench,
+    sectionMatches,
   };
 }

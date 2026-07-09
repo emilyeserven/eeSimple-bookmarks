@@ -1,5 +1,5 @@
 // @vitest-environment node
-import type { EntityLayout } from "@eesimple/types";
+import type { ConditionTree, EntityLayout } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -15,6 +15,7 @@ import {
   renameTab,
   setSectionColumns,
   setSectionDescription,
+  setSectionVisibility,
   setTabDescription,
   setTabIcon,
 } from "./entityLayoutMutations";
@@ -241,6 +242,39 @@ describe("setSectionColumns", () => {
     const layout = sampleLayout();
     setSectionColumns(layout, "general", "main", 2);
     expect(layout.tabs[0].sections[0]).not.toHaveProperty("columns");
+  });
+});
+
+describe("setSectionVisibility", () => {
+  const tree: ConditionTree = {
+    type: "group",
+    combinator: "and",
+    children: [{
+      type: "media-type",
+      mediaTypeIds: ["mt-video"],
+    }],
+  };
+
+  it("sets visibleIf when the tree has children", () => {
+    const next = setSectionVisibility(sampleLayout(), "general", "main", tree);
+    expect(next.tabs[0].sections[0].visibleIf).toEqual(tree);
+  });
+
+  it("drops visibleIf for an empty tree or undefined (keeps a clean literal)", () => {
+    const set = setSectionVisibility(sampleLayout(), "general", "main", tree);
+    const emptyTree: ConditionTree = {
+      type: "group",
+      combinator: "and",
+      children: [],
+    };
+    expect("visibleIf" in setSectionVisibility(set, "general", "main", emptyTree).tabs[0].sections[0]).toBe(false);
+    expect("visibleIf" in setSectionVisibility(set, "general", "main", undefined).tabs[0].sections[0]).toBe(false);
+  });
+
+  it("does not mutate its argument", () => {
+    const layout = sampleLayout();
+    setSectionVisibility(layout, "general", "main", tree);
+    expect(layout.tabs[0].sections[0].visibleIf).toBeUndefined();
   });
 });
 

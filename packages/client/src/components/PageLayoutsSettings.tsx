@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { resolveLayout } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
+import { setSectionVisibility } from "./entityLayoutMutations";
 import { LayoutBoard } from "./LayoutBoard";
+import { SectionVisibilityEditor } from "./SectionVisibilityEditor";
 import { navLinkClass } from "./TabbedShell";
 import { useEntityLayout } from "../hooks/useEntityLayout";
 import { useEntityLayouts, useResetEntityLayout, useSaveEntityLayout } from "../hooks/useEntityLayouts";
@@ -163,6 +165,16 @@ export function PageLayoutsSettings({
                 onChange={setValue}
                 fields={fields}
                 idPrefix={selectedKind}
+                renderSectionExtras={selectedKind === "bookmark"
+                  ? ({
+                    tabKey, section, value: layout, onChange,
+                  }) => (
+                    <SectionVisibilityEditor
+                      tree={section.visibleIf}
+                      onChange={tree => onChange(setSectionVisibility(layout, tabKey, section.key, tree))}
+                    />
+                  )
+                  : undefined}
               />
             )}
 

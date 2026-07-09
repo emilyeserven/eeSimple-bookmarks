@@ -1,4 +1,4 @@
-import type { EntityLayout, LayoutSection, LayoutTab } from "@eesimple/types";
+import type { ConditionTree, EntityLayout, LayoutSection, LayoutTab } from "@eesimple/types";
 
 /**
  * Pure, immutable reducers over an {@link EntityLayout} for the `LayoutBoard` drag-and-drop editor
@@ -232,6 +232,28 @@ export function setSectionDescription(
     };
     if (description) next.description = description;
     else delete next.description;
+    return next;
+  }));
+}
+
+/**
+ * Set (or clear) a section's `visibleIf` condition gate. A tree with ≥1 child is stored; an empty
+ * (or undefined) tree drops the `visibleIf` key so an unconditioned section stays a clean
+ * `{ key, fields }` literal — the "always visible" default. Mirrors {@link setSectionColumns}'s
+ * set-or-clear shape.
+ */
+export function setSectionVisibility(
+  layout: EntityLayout,
+  tabKey: string,
+  sectionKey: string,
+  tree: ConditionTree | undefined,
+): EntityLayout {
+  return mapTab(layout, tabKey, tab => mapSection(tab, sectionKey, (section) => {
+    const next: LayoutSection = {
+      ...section,
+    };
+    if (tree && tree.children.length > 0) next.visibleIf = tree;
+    else delete next.visibleIf;
     return next;
   }));
 }

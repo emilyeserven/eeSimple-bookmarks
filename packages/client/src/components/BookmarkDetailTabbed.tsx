@@ -27,7 +27,7 @@ export function BookmarkDetailTabbed({
     t,
   } = useTranslation();
   const {
-    layout, tabs, workbench,
+    layout, tabs, workbench, sectionMatches,
   } = useBookmarkViewTabs(bookmark);
   const [activeKey, setActiveKey] = useState<string | null>(null);
 
@@ -63,6 +63,7 @@ export function BookmarkDetailTabbed({
           tabKey={active.key}
           mode="view"
           entity={bookmark}
+          sectionMatches={sectionMatches}
         />
       </div>
     </div>

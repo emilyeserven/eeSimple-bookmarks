@@ -2,6 +2,7 @@ import type { FieldTarget } from "./entityLayoutMutations";
 import type { CollisionDetection } from "@dnd-kit/core";
 import type { EntityLayout, LayoutSection, LayoutTab } from "@eesimple/types";
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { useState } from "react";
 
@@ -67,12 +68,27 @@ interface MoveTarget {
   target: FieldTarget | null;
 }
 
+/**
+ * Optional per-section extra controls rendered in each section's header block — used by the bookmark
+ * kind to attach a `visibleIf` condition editor. Kept a render-prop so `LayoutBoard` stays
+ * entity-agnostic (the condition editor pulls bookmark-specific data + hooks). Receives the board's
+ * live `value`/`onChange` so it can commit a section mutation.
+ */
+export type RenderSectionExtras = (ctx: {
+  tabKey: string;
+  section: LayoutSection;
+  value: EntityLayout;
+  onChange: (next: EntityLayout) => void;
+}) => ReactNode;
+
 interface LayoutBoardProps {
   value: EntityLayout;
   onChange: (next: EntityLayout) => void;
   /** Every known field. The tray holds those not placed in any section. */
   fields: LayoutFieldMeta[];
   idPrefix: string;
+  /** Optional per-section extra controls (e.g. the bookmark section `visibleIf` editor). */
+  renderSectionExtras?: RenderSectionExtras;
 }
 
 /** Where a drag is currently hovering, for the drop highlight. */
@@ -160,7 +176,7 @@ function buildMoveTargets(layout: EntityLayout): MoveTarget[] {
  * proven collision/sensor settings. Standalone: no persistence, no entity knowledge beyond `fields`.
  */
 export function LayoutBoard({
-  value, onChange, fields, idPrefix,
+  value, onChange, fields, idPrefix, renderSectionExtras,
 }: LayoutBoardProps) {
   const fieldByKey = new Map(fields.map(field => [field.key, field]));
   const placedKeys = new Set(
@@ -237,6 +253,7 @@ export function LayoutBoard({
             moveTargets={moveTargets}
             overTarget={overTarget}
             idPrefix={idPrefix}
+            renderSectionExtras={renderSectionExtras}
           />
         ))}
         <AddButton
@@ -272,11 +289,13 @@ interface TabGroupProps {
   moveTargets: MoveTarget[];
   overTarget: OverTarget;
   idPrefix: string;
+  renderSectionExtras?: RenderSectionExtras;
 }
 
 /** One tab: a header (icon / rename / reorder / delete / add-section) over its section list. */
 function TabGroup({
   tab, tabIndex, tabCount, value, onChange, fieldByKey, moveTargets, overTarget, idPrefix,
+  renderSectionExtras,
 }: TabGroupProps) {
   return (
     <div className="rounded-md border p-2">
@@ -334,6 +353,7 @@ function TabGroup({
             moveTargets={moveTargets}
             highlight={isSectionHighlighted(overTarget, tab.key, section.key)}
             idPrefix={idPrefix}
+            renderSectionExtras={renderSectionExtras}
           />
         ))}
         <AddButton
@@ -405,12 +425,13 @@ interface SectionDropAreaProps {
   moveTargets: MoveTarget[];
   highlight: boolean;
   idPrefix: string;
+  renderSectionExtras?: RenderSectionExtras;
 }
 
 /** One section: a droppable, sortable field list with a rename / reorder / delete header. */
 function SectionDropArea({
   tabKey, section, sectionIndex, sectionCount, value, onChange, fieldByKey, moveTargets, highlight,
-  idPrefix,
+  idPrefix, renderSectionExtras,
 }: SectionDropAreaProps) {
   const {
     setNodeRef, isOver,
@@ -462,6 +483,18 @@ function SectionDropArea({
           onCommit={description => onChange(setSectionDescription(value, tabKey, section.key, description))}
         />
       </div>
+      {renderSectionExtras
+        ? (
+          <div className="mb-1.5">
+            {renderSectionExtras({
+              tabKey,
+              section,
+              value,
+              onChange,
+            })}
+          </div>
+        )
+        : null}
       <SortableContext
         items={section.fields}
         strategy={rectSortingStrategy}
