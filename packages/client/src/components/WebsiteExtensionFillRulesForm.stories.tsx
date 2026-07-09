@@ -107,8 +107,9 @@ const multiValueProperties = [
 
 /**
  * A site that has opted into ISBN scanning and configured source defaults, so the read-only
- * "Built-in rules" section below the editor reflects live state (ISBN On, a default category /
- * media type / tags), alongside the always-on scan and oEmbed rules.
+ * "Built-in rules" section below the editor lists the site-specific rules that actually apply
+ * (ISBN, default category / media type / tags, title-suffix removal) with their live values. A site
+ * with none of these configured (see the Default/Empty stories) shows no built-in section at all.
  */
 export const BuiltInRulesConfigured: Story = {
   args: {
@@ -123,6 +124,7 @@ export const BuiltInRulesConfigured: Story = {
       },
       mediaTypeId: "media-video",
       tagIds: ["tag-dev"],
+      alternateNames: ["O'Reilly Media"],
     },
   },
 };

@@ -156,6 +156,26 @@ export function ConnectorsSettings() {
     status: ConnectorStatus;
     node: ReactNode; }[] = [
     {
+      id: "page-metadata",
+      status: "always-on",
+      node: (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>{t("Page metadata (Open Graph, Twitter Cards, HTML)")}</CardTitle>
+              <AlwaysOnBadge />
+            </div>
+            <CardDescription>
+              {t("Every scanned page is read for standard metadata to prefill a new bookmark.")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Provides items={[t("Title"), t("Description"), t("Image"), t("Authors"), t("Language")]} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
       id: "oembed",
       status: "always-on",
       node: (

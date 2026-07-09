@@ -5,15 +5,18 @@ import { describe, expect, it } from "vitest";
 
 import { buildBuiltInFillRules } from "./builtInFillRules";
 
-/** Minimal website with the fields the built-in rules reflect. */
-function site(overrides: Partial<Pick<Website, "category" | "tagIds" | "mediaTypeId" | "scanUrlForIsbn">> = {}) {
+type SiteFields = Pick<Website, "category" | "tagIds" | "mediaTypeId" | "scanUrlForIsbn" | "alternateNames">;
+
+/** Minimal website with the fields the built-in rules reflect; nothing configured by default. */
+function site(overrides: Partial<SiteFields> = {}): SiteFields {
   return {
     category: null,
     tagIds: [],
     mediaTypeId: null,
     scanUrlForIsbn: false,
+    alternateNames: [],
     ...overrides,
-  } as Pick<Website, "category" | "tagIds" | "mediaTypeId" | "scanUrlForIsbn">;
+  };
 }
 
 const ctx = {
@@ -26,38 +29,25 @@ const ctx = {
   } as Record<string, string>)[id],
 };
 
-function ruleById(website: Parameters<typeof buildBuiltInFillRules>[0], id: string) {
+function ruleById(website: SiteFields, id: string) {
   return buildBuiltInFillRules(website, ctx).find(rule => rule.id === id);
 }
 
 describe("buildBuiltInFillRules", () => {
-  it("always includes the global scan and oEmbed rules with providers", () => {
-    const rules = buildBuiltInFillRules(site(), ctx);
-    const ids = rules.map(rule => rule.id);
-    for (const id of ["scan-title", "scan-description", "scan-image", "scan-favicon", "scan-people", "scan-language"]) {
-      expect(ids).toContain(id);
-    }
-    const oembed = rules.find(rule => rule.id === "oembed");
-    expect(oembed?.scope).toBe("global");
-    expect(oembed?.providers?.length ?? 0).toBeGreaterThan(0);
-    // Global scan rules carry no per-site state.
-    expect(ruleById(site(), "scan-title")?.state).toBeUndefined();
+  it("returns nothing when the site has no built-in rule configured", () => {
+    expect(buildBuiltInFillRules(site(), ctx)).toEqual([]);
   });
 
-  it("reflects the ISBN scan gate on vs off", () => {
+  it("includes ISBN only when the site opted into URL ISBN scanning", () => {
     expect(ruleById(site({
       scanUrlForIsbn: true,
-    }), "isbn")?.state).toEqual({
-      kind: "on",
-    });
+    }), "isbn")).toBeDefined();
     expect(ruleById(site({
       scanUrlForIsbn: false,
-    }), "isbn")?.state).toEqual({
-      kind: "off",
-    });
+    }), "isbn")).toBeUndefined();
   });
 
-  it("resolves a configured default category / media type to its name, else unset", () => {
+  it("includes a default only when configured, showing the resolved name as detail", () => {
     const configured = site({
       category: {
         id: "cat-1",
@@ -67,34 +57,49 @@ describe("buildBuiltInFillRules", () => {
       },
       mediaTypeId: "mt-book",
     });
-    expect(ruleById(configured, "default-category")?.state).toEqual({
-      kind: "value",
-      detail: "Development",
-    });
-    expect(ruleById(configured, "default-media-type")?.state).toEqual({
-      kind: "value",
-      detail: "Book",
-    });
-    expect(ruleById(site(), "default-category")?.state).toEqual({
-      kind: "unset",
-    });
-    expect(ruleById(site(), "default-media-type")?.state).toEqual({
-      kind: "unset",
-    });
+    expect(ruleById(configured, "default-category")?.detail).toBe("Development");
+    expect(ruleById(configured, "default-media-type")?.detail).toBe("Book");
+    // Absent (not "Not set") when unconfigured.
+    expect(ruleById(site(), "default-category")).toBeUndefined();
+    expect(ruleById(site(), "default-media-type")).toBeUndefined();
   });
 
-  it("joins resolved default-tag names and drops ids that no longer resolve", () => {
+  it("joins resolved default-tag names and omits the rule when none resolve", () => {
     expect(ruleById(site({
       tagIds: ["tag-1", "tag-2"],
-    }), "default-tags")?.state).toEqual({
-      kind: "value",
-      detail: "React, TypeScript",
-    });
-    // An id with no matching name resolves to unset rather than a blank value.
+    }), "default-tags")?.detail).toBe("React, TypeScript");
+    // No resolvable names → no rule at all (not a blank one).
     expect(ruleById(site({
       tagIds: ["tag-missing"],
-    }), "default-tags")?.state).toEqual({
-      kind: "unset",
-    });
+    }), "default-tags")).toBeUndefined();
+  });
+
+  it("includes title-suffix removal only when the site has alternate names", () => {
+    expect(ruleById(site({
+      alternateNames: ["GH", "GitHub Docs"],
+    }), "alternate-names")?.detail).toBe("GH, GitHub Docs");
+    expect(ruleById(site(), "alternate-names")).toBeUndefined();
+  });
+
+  it("orders the active rules: ISBN, defaults, then title-suffix removal", () => {
+    const rules = buildBuiltInFillRules(site({
+      scanUrlForIsbn: true,
+      category: {
+        id: "cat-1",
+        name: "Development",
+        slug: "development",
+        icon: null,
+      },
+      tagIds: ["tag-1"],
+      mediaTypeId: "mt-book",
+      alternateNames: ["GH"],
+    }), ctx);
+    expect(rules.map(rule => rule.id)).toEqual([
+      "isbn",
+      "default-category",
+      "default-tags",
+      "default-media-type",
+      "alternate-names",
+    ]);
   });
 });
