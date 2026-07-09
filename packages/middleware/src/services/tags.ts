@@ -6,6 +6,7 @@ import { bookmarkTags, tags, type TagRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import {
   collectSubtreeIds as collectParentTreeSubtreeIds,
@@ -223,6 +224,7 @@ export async function deleteTag(id: string): Promise<boolean> {
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("tag", id);
+    await deleteTaxonomyAssignmentsForOwner("tag", id);
     await deleteEntityNamesForOwner("tag", id);
     invalidateBookmarkCache();
   }

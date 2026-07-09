@@ -19,6 +19,7 @@ import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { geocodeLocation, refreshLocationBoundary } from "@/services/geocoding";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames, mergeEnglishEntityName } from "@/services/entityNames";
 import { resolveWikipediaLinks } from "@/services/wikidataGeocoding";
 import { AppError } from "@/utils/errors";
@@ -588,6 +589,7 @@ export async function deleteLocation(id: string): Promise<boolean> {
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("location", id);
+    await deleteTaxonomyAssignmentsForOwner("location", id);
     await deleteEntityNamesForOwner("location", id);
     invalidateBookmarkCache();
   }

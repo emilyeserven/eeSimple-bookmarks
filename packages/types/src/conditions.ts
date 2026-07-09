@@ -154,6 +154,20 @@ export interface GenreMoodCondition {
 }
 
 /**
+ * Leaf: the bookmark carries one of `termIds` (any-of) from the user-configurable taxonomy
+ * `taxonomyId`. `cascadeTermIds` is the subset that match their subtree (a hierarchical taxonomy is a
+ * `parentId` tree); **absent = exact match** (no cascade). `taxonomyId` scopes the editor's term
+ * choices; evaluation matches the flat term-id set (term ids are globally unique). The generic
+ * successor to {@link GenreMoodCondition}.
+ */
+export interface TaxonomyCondition {
+  type: "taxonomy";
+  taxonomyId: string;
+  termIds: string[];
+  cascadeTermIds?: string[];
+}
+
+/**
  * Leaf: the bookmark participates in a relationship whose type is one of `relationshipTypeIds`
  * (regardless of direction or the other bookmark). An empty list never matches.
  */
@@ -249,6 +263,7 @@ export type ConditionNode
     | YouTubeChannelCondition
     | MediaTypeCondition
     | GenreMoodCondition
+    | TaxonomyCondition
     | RelationshipTypeCondition
     | LanguageUsageCondition
     | PropertyCondition;
@@ -288,6 +303,12 @@ export interface ConditionInput {
   mediaTypeId: string | null;
   /** The bookmark's own Genres & Moods entry ids (NOT expanded for cascade). */
   genreMoodIds: Set<string>;
+  /**
+   * The bookmark's own user-taxonomy term ids across all taxonomies (NOT expanded for cascade).
+   * Absent/empty when the input isn't a real bookmark or carries no taxonomy terms — a
+   * {@link TaxonomyCondition} then never matches.
+   */
+  taxonomyTermIds?: Set<string>;
   /** Type ids of every relationship the bookmark participates in (presence matching). */
   relationshipTypeIds: Set<string>;
   /** The bookmark's (language, usage level) association pairs, for language-usage matching. */
@@ -322,6 +343,8 @@ export interface EvaluateOptions {
   mediaTypeDescendants?: TagDescendants;
   /** Genre & Mood cascade resolver; when omitted, a genre-mood leaf matches only the exact ids selected. */
   genreMoodDescendants?: TagDescendants;
+  /** Taxonomy-term cascade resolver; when omitted, a taxonomy leaf matches only the exact ids selected. */
+  taxonomyTermDescendants?: TagDescendants;
 }
 
 /**
@@ -373,6 +396,12 @@ export const buildMediaTypeDescendants = buildTagDescendants;
  * so it aliases {@link buildTagDescendants}. Used for the per-item genre-mood cascade toggle.
  */
 export const buildGenreMoodDescendants = buildTagDescendants;
+
+/**
+ * Build a descendant resolver for a user taxonomy's term tree — same `{ id, parentId }` shape as
+ * tags, so it aliases {@link buildTagDescendants}. Used for the per-item taxonomy cascade toggle.
+ */
+export const buildTaxonomyTermDescendants = buildTagDescendants;
 
 /** Extract a URL's host with a leading `www.` removed, or `null` if it can't be parsed. */
 function hostOf(url: string): string | null {
@@ -571,6 +600,23 @@ function evaluateGenreMood(
   return false;
 }
 
+function evaluateTaxonomy(
+  condition: TaxonomyCondition,
+  input: ConditionInput,
+  options: EvaluateOptions | undefined,
+): boolean {
+  if (condition.termIds.length === 0) return false;
+  const owned = input.taxonomyTermIds;
+  if (!owned || owned.size === 0) return false;
+  for (const termId of condition.termIds) {
+    const candidates = cascadeCandidates(termId, condition.cascadeTermIds, options?.taxonomyTermDescendants, false);
+    for (const id of candidates) {
+      if (owned.has(id)) return true;
+    }
+  }
+  return false;
+}
+
 function evaluateChoicesPredicate(
   predicate: ChoicesPredicate,
   values: string[],
@@ -676,6 +722,8 @@ export function evaluateConditions(
       return evaluateMediaType(node, input, options);
     case "genre-mood":
       return evaluateGenreMood(node, input, options);
+    case "taxonomy":
+      return evaluateTaxonomy(node, input, options);
     case "relationship-type":
       return evaluateRelationshipType(node, input);
     case "language-usage":

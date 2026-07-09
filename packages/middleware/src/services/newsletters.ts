@@ -3,6 +3,7 @@ import type { BulkDeleteResult, CreateNewsletterInput, Newsletter, UpdateNewslet
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { bookmarks, categories, type NewsletterRow, newsletters, newsletterTags } from "@/db/schema";
 import { AppError } from "@/utils/errors";
 import { buildStringMap } from "@/utils/mapUtils";
@@ -213,6 +214,7 @@ export async function deleteNewsletter(id: string): Promise<boolean> {
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("newsletter", id);
+    await deleteTaxonomyAssignmentsForOwner("newsletter", id);
   }
   return rows.length > 0;
 }

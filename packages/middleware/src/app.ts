@@ -33,6 +33,8 @@ import { entityNameRoutes } from "@/routes/entityNames";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { genreMoodRoutes } from "@/routes/genreMoods";
 import { genreMoodAssignmentRoutes } from "@/routes/genreMoodAssignments";
+import { taxonomyRoutes } from "@/routes/taxonomies";
+import { taxonomyAssignmentRoutes } from "@/routes/taxonomyAssignments";
 import { locationRoutes } from "@/routes/locations";
 import { locationRelationRoutes } from "@/routes/locationRelations";
 import { placeTypeRoutes } from "@/routes/placeTypes";
@@ -244,6 +246,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(mediaTypeRoutes);
   await app.register(genreMoodRoutes);
   await app.register(genreMoodAssignmentRoutes);
+  await app.register(taxonomyRoutes);
+  await app.register(taxonomyAssignmentRoutes);
   await app.register(languageRoutes);
   await app.register(languageUsageLevelRoutes);
   await app.register(languageUsageRoutes);

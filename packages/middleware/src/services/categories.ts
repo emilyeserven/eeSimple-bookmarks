@@ -15,6 +15,7 @@ import { getAutomationSettings } from "@/services/appSettings";
 import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import {
   bookmarks,
@@ -164,6 +165,7 @@ export async function deleteCategory(id: string): Promise<boolean> {
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("category", id);
+    await deleteTaxonomyAssignmentsForOwner("category", id);
     await deleteEntityNamesForOwner("category", id);
     const defaultId = await resolveDefaultCategoryId();
     await db.update(bookmarks).set({

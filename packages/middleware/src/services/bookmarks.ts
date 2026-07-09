@@ -34,6 +34,7 @@ import {
   bookmarkTags,
   entityNames,
   genreMoodAssignments,
+  taxonomyAssignments,
   relationshipTypes,
 } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
@@ -212,6 +213,11 @@ async function cleanupGenreMoodAssignments(bookmarkIds: string[]): Promise<void>
   await db.delete(genreMoodAssignments).where(and(
     eq(genreMoodAssignments.ownerType, "bookmark"),
     inArray(genreMoodAssignments.ownerId, bookmarkIds),
+  ));
+  // The generic taxonomy assignment layer shares the same no-cascade-FK owner cleanup contract.
+  await db.delete(taxonomyAssignments).where(and(
+    eq(taxonomyAssignments.ownerType, "bookmark"),
+    inArray(taxonomyAssignments.ownerId, bookmarkIds),
   ));
 }
 

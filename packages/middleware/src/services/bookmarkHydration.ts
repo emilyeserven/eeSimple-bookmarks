@@ -20,6 +20,7 @@ import type {
   BookmarkScreenshotSettings,
   BookmarkSectionsValue,
   BookmarkGenreMood,
+  BookmarkTaxonomyTerm,
   BookmarkTag,
   BookmarkTextValue,
   BookmarkWebsite,
@@ -68,6 +69,7 @@ import {
   youtubeChannels,
 } from "@/db/schema";
 import { loadLanguageUsages } from "@/services/languageUsages";
+import { loadTaxonomyTermsForOwners } from "@/services/taxonomyAssignments";
 import { loadEntityNames } from "@/services/entityNames";
 import { bookmarkImageFromRow, bookmarkScreenshotFromRow, bookmarkScreenshotSettingsFromRow } from "@/services/bookmarkImages";
 import { reelArchiveFromRow } from "@/services/reelArchive";
@@ -87,6 +89,7 @@ interface BookmarkExtras {
   import: BookmarkImport | null;
   tags: BookmarkTag[];
   genreMoods: BookmarkGenreMood[];
+  taxonomyTerms: BookmarkTaxonomyTerm[];
   locations: BookmarkLocation[];
   blacklistedTagIds: string[];
   blacklistedLocationIds: string[];
@@ -118,6 +121,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   import: null,
   tags: [],
   genreMoods: [],
+  taxonomyTerms: [],
   locations: [],
   blacklistedTagIds: [],
   blacklistedLocationIds: [],
@@ -175,6 +179,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     import: extras.import,
     tags: extras.tags,
     genreMoods: extras.genreMoods,
+    taxonomyTerms: extras.taxonomyTerms,
     locations: extras.locations,
     blacklistedTagIds: extras.blacklistedTagIds,
     blacklistedLocationIds: extras.blacklistedLocationIds,
@@ -939,9 +944,10 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, genreMoodsMap, locationsMap, blacklistedMap, blacklistedLocationMap, peopleMap, bmGroupsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap, languageUsagesMap, entityNamesMap] = await Promise.all([
+  const [tagsMap, genreMoodsMap, taxonomyTermsMap, locationsMap, blacklistedMap, blacklistedLocationMap, peopleMap, bmGroupsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap, languageUsagesMap, entityNamesMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     genreMoodsByBookmarkId(bookmarkIds),
+    loadTaxonomyTermsForOwners("bookmark", bookmarkIds),
     locationsByBookmarkId(bookmarkIds),
     blacklistedTagIdsByBookmarkId(bookmarkIds),
     blacklistedLocationIdsByBookmarkId(bookmarkIds),
@@ -975,6 +981,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       import: null,
       tags: tagsMap.get(id) ?? [],
       genreMoods: genreMoodsMap.get(id) ?? [],
+      taxonomyTerms: taxonomyTermsMap.get(id) ?? [],
       locations: locationsMap.get(id) ?? [],
       blacklistedTagIds: blacklistedMap.get(id) ?? [],
       blacklistedLocationIds: blacklistedLocationMap.get(id) ?? [],

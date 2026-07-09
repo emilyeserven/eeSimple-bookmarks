@@ -9,6 +9,7 @@ function emptyGroups(): ConditionInputGroups {
   return {
     tagsByBid: new Map(),
     genreMoodsByBid: new Map(),
+    taxonomyTermsByBid: new Map(),
     locationsByBid: new Map(),
     numsByBid: new Map(),
     boolsByBid: new Map(),

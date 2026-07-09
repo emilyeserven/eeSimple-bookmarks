@@ -72,6 +72,87 @@ const migrations: RuntimeMigration[] = [
       sql`CREATE UNIQUE INDEX IF NOT EXISTS "entity_layouts_entity_kind_unique" ON "entity_layouts" ("entity_kind")`,
     ),
   },
+  // User-configurable taxonomies (`taxonomies` / `taxonomy_terms` / `taxonomy_assignments`) are brand
+  // -new tables. Same push new-table trap as `entity_layouts` above — pre-create each here (and its
+  // indexes) so push's diff stays empty. FK columns are declared as plain `uuid` with NO `REFERENCES`
+  // (migrate runs before push, which adds the FK constraints afterward additively). One statement per
+  // `db.execute`. Idempotent (`IF NOT EXISTS`).
+  {
+    name: "create taxonomies table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "taxonomies" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "slug" text NOT NULL,
+        "description" text,
+        "hierarchical" boolean DEFAULT true NOT NULL,
+        "single_value" boolean DEFAULT false NOT NULL,
+        "built_in" boolean DEFAULT false NOT NULL,
+        "hidden" boolean,
+        "icon" text,
+        "show_in_sidebar" boolean DEFAULT true NOT NULL,
+        "custom_layout" boolean,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    name: "create taxonomies slug unique index",
+    run: db => db.execute(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS "taxonomies_slug_unique" ON "taxonomies" ("slug")`,
+    ),
+  },
+  {
+    name: "create taxonomy_terms table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "taxonomy_terms" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "taxonomy_id" uuid NOT NULL,
+        "name" text NOT NULL,
+        "slug" text,
+        "description" text,
+        "parent_id" uuid,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    name: "create taxonomy_terms tax_parent_name unique index",
+    run: db => db.execute(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS "taxonomy_terms_tax_parent_name_unique" ON "taxonomy_terms" ("taxonomy_id", "parent_id", "name")`,
+    ),
+  },
+  {
+    name: "create taxonomy_terms tax_slug unique index",
+    run: db => db.execute(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS "taxonomy_terms_tax_slug_unique" ON "taxonomy_terms" ("taxonomy_id", "slug")`,
+    ),
+  },
+  {
+    name: "create taxonomy_assignments table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "taxonomy_assignments" (
+        "taxonomy_id" uuid NOT NULL,
+        "term_id" uuid NOT NULL,
+        "owner_type" text NOT NULL,
+        "owner_id" uuid NOT NULL,
+        CONSTRAINT "taxonomy_assignments_term_id_owner_type_owner_id_pk" PRIMARY KEY ("term_id", "owner_type", "owner_id")
+      )
+    `),
+  },
+  {
+    name: "create taxonomy_assignments owner index",
+    run: db => db.execute(
+      sql`CREATE INDEX IF NOT EXISTS "taxonomy_assignments_owner_idx" ON "taxonomy_assignments" ("owner_type", "owner_id")`,
+    ),
+  },
+  {
+    name: "create taxonomy_assignments tax_owner index",
+    run: db => db.execute(
+      sql`CREATE INDEX IF NOT EXISTS "taxonomy_assignments_tax_owner_idx" ON "taxonomy_assignments" ("taxonomy_id", "owner_type", "owner_id")`,
+    ),
+  },
   // Property Groups were removed — each custom property is now an individually-placeable layout
   // field, so the visual grouping is obsolete. Drop the join tables, the base table, and the
   // `custom_properties.property_group_id` display-only column here (destructive) so push's

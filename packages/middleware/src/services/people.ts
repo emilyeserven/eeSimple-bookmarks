@@ -3,6 +3,7 @@ import type { Person, BulkDeleteResult, CreatePersonInput, EntityName, LabeledWe
 import { db } from "@/db";
 import { getPersonSourceLabelSettings } from "@/services/appSettings";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
@@ -378,6 +379,7 @@ export async function deletePerson(id: string): Promise<boolean> {
     await deleteLanguageUsagesForOwner("person", id);
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("person", id);
+    await deleteTaxonomyAssignmentsForOwner("person", id);
     await deleteEntityNamesForOwner("person", id);
   }
   return rows.length > 0;

@@ -15,6 +15,8 @@ import type {
   MediaType,
   Newsletter,
   Tag,
+  Taxonomy,
+  TaxonomyTerm,
   Website,
   YouTubeChannel,
 } from "@eesimple/types";
@@ -112,6 +114,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     import: null,
     tags: [],
     genreMoods: [],
+    taxonomyTerms: [],
     blacklistedTagIds: [],
     numberValues: [],
     booleanValues: [],
@@ -284,6 +287,45 @@ export function makeGenreMood(overrides: Partial<GenreMood> = {}): GenreMood {
     name: "Genre",
     names: [],
     slug: "genre",
+    description: null,
+    parentId: null,
+    createdAt: NOW,
+    bookmarkCount: 0,
+    ownBookmarkCount: 0,
+    ...overrides,
+  };
+}
+
+/** A fully-populated user-configurable `Taxonomy` (hierarchical, multi-value by default). */
+export function makeTaxonomy(overrides: Partial<Taxonomy> = {}): Taxonomy {
+  return {
+    id: "tax",
+    name: "Genres & Moods",
+    slug: "genres-moods",
+    description: null,
+    hierarchical: true,
+    singleValue: false,
+    builtIn: false,
+    hidden: false,
+    icon: null,
+    showInSidebar: true,
+    customLayout: false,
+    sortOrder: 0,
+    createdAt: NOW,
+    termCount: 0,
+    bookmarkCount: 0,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `TaxonomyTerm` (a root term by default). */
+export function makeTaxonomyTerm(overrides: Partial<TaxonomyTerm> = {}): TaxonomyTerm {
+  return {
+    id: "term",
+    taxonomyId: "tax",
+    name: "Term",
+    names: [],
+    slug: "term",
     description: null,
     parentId: null,
     createdAt: NOW,

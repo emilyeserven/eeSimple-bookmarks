@@ -2,6 +2,7 @@ import { asc, eq, inArray } from "drizzle-orm";
 import type { BulkDeleteResult, CreateYouTubeChannelInput, LabeledWebsite, UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
 import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
@@ -488,6 +489,7 @@ export async function deleteYouTubeChannel(id: string): Promise<boolean> {
     await deleteLanguageUsagesForOwner("youtubeChannel", id);
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteGenreMoodAssignmentsForOwner("youtubeChannel", id);
+    await deleteTaxonomyAssignmentsForOwner("youtubeChannel", id);
     invalidateBookmarkCache();
   }
   return rows.length > 0;

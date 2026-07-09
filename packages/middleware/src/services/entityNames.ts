@@ -17,6 +17,7 @@ import {
   mediaTypes,
   people,
   tags,
+  taxonomyTerms,
 } from "@/db/schema";
 import { getDisplayPreferenceSettings } from "@/services/appSettings";
 import { detectNameLanguage } from "@/utils/scriptDetection";
@@ -48,6 +49,10 @@ const OWNER_TABLES: Record<EntityNameOwnerType, { table: PgTable;
   },
   genreMood: {
     table: genreMoods,
+    nameColumn: "name",
+  },
+  taxonomyTerm: {
+    table: taxonomyTerms,
     nameColumn: "name",
   },
   location: {

@@ -45,10 +45,21 @@ export const LAYOUTABLE_ENTITY_KINDS = [
   "import-rule",
   "saved-filter",
   "bookmark",
+  "taxonomy-term",
 ] as const;
 
 /** A layoutable entity kind. Derived from {@link LAYOUTABLE_ENTITY_KINDS}. */
 export type LayoutableEntityKind = typeof LAYOUTABLE_ENTITY_KINDS[number];
+
+/**
+ * The key an `entity_layouts` row is stored under. Usually a {@link LayoutableEntityKind}, but a
+ * user-configurable taxonomy that opted into a custom term-page layout stores under a **runtime
+ * string key** `taxonomy:<id>` (see `taxonomyTermLayoutKind` in `taxonomies.ts`). Kept as a widened
+ * string (with the union preserved for autocomplete) so the persistence seam accepts both without
+ * per-taxonomy union members. The `entity_layouts.entity_kind` DB column is `text`, so this is purely
+ * a compile-time convenience.
+ */
+export type LayoutStorageKind = LayoutableEntityKind | (string & {});
 
 /**
  * One field row within a section. `key` is a stable machine slug (identity for merge/diff
@@ -99,7 +110,7 @@ export interface EntityLayout {
  * stored for this kind — the client resolves the kind's code-defined default via {@link resolveLayout}.
  */
 export interface EntityLayoutRecord {
-  entityKind: LayoutableEntityKind;
+  entityKind: LayoutStorageKind;
   layout: EntityLayout | null;
   updatedAt: string;
 }
