@@ -304,7 +304,7 @@ const fillTargetSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["field", "customProperty", "taxonomy"],
+      enum: ["field", "customProperty", "taxonomy", "image"],
     },
     field: {
       type: "string",
@@ -324,6 +324,9 @@ const fillTargetSchema = {
     taxonomy: {
       type: "string",
       enum: ["people", "groups", "locations", "tags"],
+    },
+    setMain: {
+      type: "boolean",
     },
   },
   allOf: [

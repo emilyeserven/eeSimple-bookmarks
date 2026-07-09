@@ -7,6 +7,7 @@ import {
   coerceFillFilter,
   coerceFillTarget,
   coerceFillTransform,
+  describeFillTarget,
   duplicateFillRule,
   moveItem,
   newFillRuleDraft,
@@ -60,6 +61,25 @@ describe("coerceFillTarget", () => {
     });
   });
 
+  it("defaults an image target to setMain and preserves it across a same-kind rebuild", () => {
+    // Switching to image from another kind defaults setMain on.
+    expect(coerceFillTarget("image", {
+      kind: "field",
+      field: "title",
+    })).toEqual({
+      kind: "image",
+      setMain: true,
+    });
+    // A same-kind rebuild keeps the user's choice.
+    expect(coerceFillTarget("image", {
+      kind: "image",
+      setMain: false,
+    })).toEqual({
+      kind: "image",
+      setMain: false,
+    });
+  });
+
   it("carries the sub-value discriminators across a same-kind rebuild", () => {
     expect(coerceFillTarget("customProperty", {
       kind: "customProperty",
@@ -79,6 +99,22 @@ describe("coerceFillTarget", () => {
       propertyId: "p1",
       choiceValue: "read",
     });
+  });
+});
+
+describe("describeFillTarget", () => {
+  it("summarizes an image target, flagging the main-image variant", () => {
+    expect(describeFillTarget({
+      kind: "image",
+      setMain: true,
+    })).toBe("Image · Main");
+    expect(describeFillTarget({
+      kind: "image",
+      setMain: false,
+    })).toBe("Image");
+    expect(describeFillTarget({
+      kind: "image",
+    })).toBe("Image");
   });
 });
 
@@ -319,6 +355,39 @@ describe("normalizeExtensionFillRules", () => {
       },
     })]);
     expect(text.extract).not.toHaveProperty("read");
+  });
+
+  it("keeps an image target, emitting setMain only when true", () => {
+    const [main] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "image",
+        setMain: true,
+      },
+      extract: {
+        selector: "img.cover",
+        read: {
+          kind: "attr",
+          name: "src",
+        },
+      },
+    })]);
+    expect(main.target).toEqual({
+      kind: "image",
+      setMain: true,
+    });
+    // setMain false is the default and is omitted from the schema-clean payload.
+    const [noMain] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "image",
+        setMain: false,
+      },
+      extract: {
+        selector: "img.cover",
+      },
+    })]);
+    expect(noMain.target).toEqual({
+      kind: "image",
+    });
   });
 
   it("keeps split only for taxonomy targets", () => {

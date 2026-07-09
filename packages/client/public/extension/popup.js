@@ -389,7 +389,44 @@ function buildRow(rule, values, ctx) {
   if (kind === "field") return buildFieldRow(rule, values, ctx.bookmark);
   if (kind === "customProperty") return buildPropertyRow(rule, values, ctx);
   if (kind === "taxonomy") return buildTaxonomyRow(rule, values, ctx);
+  if (kind === "image") return buildImageRow(rule, values, ctx.bookmark);
   return baseRow(rule, "", values[0] ?? "", false, "unsupported");
+}
+
+// image: grab image URL(s) off the page (resolved to absolute against the tab URL) and, on apply,
+// download the bytes in the browser and upload them to the bookmark. `setMain` makes the first
+// grabbed image the bookmark's main image. Non-http(s) values (e.g. data: URIs) are dropped.
+function buildImageRow(rule, values, bookmark) {
+  const urls = values
+    .map(resolveImageUrl)
+    .filter(url => url !== null);
+  const mainImage = (bookmark.images ?? []).find(img => img.isMain) ?? (bookmark.images ?? [])[0];
+  const currentText = mainImage ? "1 image" : "—";
+  if (!urls.length) {
+    return baseRow(rule, currentText, "", false, "not found");
+  }
+  const setMain = !!rule.target.setMain;
+  const extractedText = setMain ? `${urls.length} image → main` : `${urls.length} image`;
+  const row = baseRow(rule, currentText, extractedText, true, null);
+  // Uploads run in a separate phase after the PATCH — see applyChanges.
+  row.image = {
+    urls,
+    setMain,
+  };
+  return row;
+}
+
+// Resolve an extracted value to an absolute http(s) URL against the current tab, or null if it
+// isn't a usable remote image URL.
+function resolveImageUrl(value) {
+  try {
+    const resolved = new URL(value, currentTab?.url ?? undefined);
+    if (resolved.protocol !== "http:" && resolved.protocol !== "https:") return null;
+    return resolved.href;
+  }
+  catch {
+    return null;
+  }
 }
 
 function buildFieldRow(rule, values, bookmark) {
@@ -704,6 +741,8 @@ function appendNames(container, names, newNames) {
 // --- Apply --------------------------------------------------------------
 async function applyChanges(rows, bookmark) {
   const checked = rows.filter(row => row.checkbox && row.checkbox.checked);
+  const imageRows = checked.filter(row => row.image);
+  const patchRows = checked.filter(row => !row.image);
   fillApplyBtn.disabled = true;
   fillApplyBtn.textContent = "Applying…";
   fillError.classList.add("hidden");
@@ -717,7 +756,7 @@ async function applyChanges(rows, bookmark) {
   const patch = {};
 
   try {
-    for (const row of checked) {
+    for (const row of patchRows) {
       await row.apply(patch, state);
     }
     for (const kind of Object.keys(state.tax)) {
@@ -727,17 +766,28 @@ async function applyChanges(rows, bookmark) {
       patch[key] = Array.from(state.values[key].values());
     }
 
-    const res = await fetch(`${serverUrl}/api/bookmarks/${bookmark.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(patch),
-    });
-    if (!res.ok) throw new Error(`status ${res.status}`);
+    // Only PATCH when there's something to change (a run of only image rows skips it).
+    if (Object.keys(patch).length > 0) {
+      const res = await fetch(`${serverUrl}/api/bookmarks/${bookmark.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) throw new Error(`status ${res.status}`);
+    }
 
-    const n = checked.length;
-    fillAppliedMsg.textContent = `Updated ${n} field${n === 1 ? "" : "s"}.`;
+    // Image uploads run after the PATCH (best-effort): the browser downloads each grabbed image and
+    // uploads the bytes to the bookmark. A failure here surfaces a note but doesn't undo the PATCH.
+    const imageResult = await applyImageRows(imageRows, bookmark.id);
+
+    const n = patchRows.length + imageResult.uploaded;
+    let message = `Updated ${n} field${n === 1 ? "" : "s"}.`;
+    if (imageResult.failed > 0) {
+      message += ` ${imageResult.failed} image${imageResult.failed === 1 ? "" : "s"} couldn't be saved.`;
+    }
+    fillAppliedMsg.textContent = message;
     fillAppliedOpenBtn.onclick = () => openBookmark(bookmark.id);
     show("applied");
   }
@@ -746,6 +796,53 @@ async function applyChanges(rows, bookmark) {
     fillApplyBtn.textContent = "Apply";
     fillError.textContent = "Couldn't apply the changes. Please try again.";
     fillError.classList.remove("hidden");
+  }
+}
+
+// Download each checked image row's URL(s) in the browser and upload the bytes to the bookmark's
+// additive images endpoint. `setMain` is applied to the first successfully-uploaded image only.
+// Returns counts of uploaded vs failed images.
+async function applyImageRows(imageRows, bookmarkId) {
+  let uploaded = 0;
+  let failed = 0;
+  for (const row of imageRows) {
+    let firstOfRow = true;
+    for (const url of row.image.urls) {
+      const ok = await uploadImageFromUrl(bookmarkId, url, row.image.setMain && firstOfRow);
+      if (ok) {
+        uploaded += 1;
+        firstOfRow = false;
+      }
+      else {
+        failed += 1;
+      }
+    }
+  }
+  return {
+    uploaded,
+    failed,
+  };
+}
+
+// Fetch an image URL (the popup has host permissions, so this is CORS-free) and upload the bytes as
+// multipart to POST /api/bookmarks/:id/images. Returns true on success, false on any failure.
+async function uploadImageFromUrl(bookmarkId, url, setMain) {
+  try {
+    const imageRes = await fetch(url);
+    if (!imageRes.ok) return false;
+    const blob = await imageRes.blob();
+    if (!blob || blob.size === 0) return false;
+    const form = new FormData();
+    form.append("file", blob, "image");
+    const query = setMain ? "?main=true" : "";
+    const res = await fetch(`${serverUrl}/api/bookmarks/${bookmarkId}/images${query}`, {
+      method: "POST",
+      body: form,
+    });
+    return res.ok;
+  }
+  catch {
+    return false;
   }
 }
 
