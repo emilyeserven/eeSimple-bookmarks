@@ -78,6 +78,7 @@ mock.module("@/utils/objectStore", {
 });
 
 const {
+  createGroup,
   deleteGroup,
 } = await import("@/services/groups");
 const {
@@ -86,6 +87,26 @@ const {
 
 test.beforeEach(() => {
   resetRows({});
+});
+
+test("createGroup: builds the response from the inserted row without reading relation tables", async () => {
+  // The fake db deliberately registers only `groups`/`groupImages` — not groupTypes /
+  // group_youtube_channels / group_websites. A name-only create (the extension stub case) must
+  // therefore succeed touching none of them; the pre-fix `getGroupById` re-read would have queried
+  // those absent tables, mirroring the prod 500 that broke extension group creation.
+  resetRows({});
+  const group = await createGroup({
+    name: "The Beatles",
+  });
+  assert.equal(group.name, "The Beatles");
+  assert.ok(group.id);
+  assert.equal(group.slug, "the-beatles");
+  assert.equal(group.groupType, null);
+  assert.equal(group.imageUrl, null);
+  assert.deepEqual(group.youtubeChannelIds, []);
+  assert.deepEqual(group.websiteIds, []);
+  assert.deepEqual(group.names, []);
+  assert.equal(groupRows.some(row => row.name === "The Beatles"), true);
 });
 
 test("deleteGroup: a missing id returns false with no side effects", async () => {

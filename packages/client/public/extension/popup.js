@@ -52,13 +52,15 @@ const SCREENS = {
   applied: fillAppliedEl,
 };
 
-// Which taxonomy kind maps to which PATCH id-array field / stub endpoint.
-const TAX_PATCH_KEY = {
-  people: "personIds",
-  groups: "groupIds",
-  locations: "locationIds",
-  tags: "tagIds",
-};
+// Taxonomy match-or-create resolver + summary helpers, loaded from taxonomyFill.js (a classic
+// script included before this one in popup.html). `TAX_PATCH_KEY` maps each taxonomy kind to its
+// PATCH id-array field / stub endpoint.
+const {
+  TAX_PATCH_KEY,
+  resolveTaxonomyId,
+  summarizeCreated,
+  summarizeFailed,
+} = globalThis.eesimpleTaxonomyFill;
 // Custom-property types the popup can fill, mapped to the bookmark's typed value array / PATCH key.
 // itemInItems (Two Numbers) and choices fill a single rule-selected sub-value (target.subField /
 // target.choiceValue). Other value kinds (sections/ratingScale/…) degrade to a disabled
@@ -330,10 +332,18 @@ async function enterFillMode(ctx, rules) {
     return;
   }
 
-  const rows = rules.map((rule) => {
-    const result = results.find(r => r.ruleId === rule.id);
-    return buildRow(rule, result?.values ?? [], ctx);
-  });
+  let rows;
+  try {
+    rows = rules.map((rule) => {
+      const result = results.find(r => r.ruleId === rule.id);
+      return buildRow(rule, result?.values ?? [], ctx);
+    });
+  }
+  catch {
+    // A malformed rule/result shouldn't leave the popup stuck on the "Reading the page…" spinner.
+    showReviewError(bookmark, "Couldn't prepare the changes for this page.");
+    return;
+  }
   renderReview(bookmark, rows);
 }
 
@@ -625,10 +635,31 @@ function buildTaxonomyRow(rule, values, ctx) {
   row.apply = async (patch, state) => {
     if (!state.tax[kind]) {
       state.tax[kind] = new Set((bookmark[kind] ?? []).map(x => x.id));
+      // The PATCH is delete-then-relink, so we seed from the bookmark's *current* links to preserve
+      // them. Record whether those links were actually hydrated: if `.people`/`.groups` were ever
+      // absent, sending the id array would wipe links we couldn't see — see the transfer guard in
+      // applyChanges.
+      state.taxHydrated[kind] = Array.isArray(bookmark[kind]);
     }
     for (const name of toAdd) {
-      const id = await resolveTaxonomyId(kind, name, optionList);
-      if (id) state.tax[kind].add(id);
+      const {
+        id, created,
+      } = await resolveTaxonomyId(serverUrl, kind, name, optionList);
+      if (id) {
+        state.tax[kind].add(id);
+        if (created) state.created.push({
+          kind,
+          name,
+        });
+      }
+      else {
+        // Couldn't match or create — collect it so applyChanges surfaces it instead of the old
+        // silent drop that still reported success.
+        state.failed.push({
+          kind,
+          name,
+        });
+      }
     }
   };
   return row;
@@ -747,11 +778,15 @@ async function applyChanges(rows, bookmark) {
   fillApplyBtn.textContent = "Applying…";
   fillError.classList.add("hidden");
 
-  // Accumulators shared across rows: taxonomy id sets (unioned with existing) and
-  // custom-property value maps (seeded from existing so siblings aren't wiped).
+  // Accumulators shared across rows: taxonomy id sets (unioned with existing), custom-property value
+  // maps (seeded from existing so siblings aren't wiped), per-kind hydration flags (the wipe guard),
+  // and the created / failed taxonomy names for the post-apply summary.
   const state = {
     tax: {},
     values: {},
+    taxHydrated: {},
+    created: [],
+    failed: [],
   };
   const patch = {};
 
@@ -760,7 +795,12 @@ async function applyChanges(rows, bookmark) {
       await row.apply(patch, state);
     }
     for (const kind of Object.keys(state.tax)) {
-      patch[TAX_PATCH_KEY[kind]] = Array.from(state.tax[kind]);
+      // Skip a kind whose current links weren't hydrated: the delete-then-relink PATCH would wipe
+      // links we couldn't see. This never triggers today (hydration always returns .people/.groups),
+      // but it keeps a future hydration change from silently dropping links.
+      if (state.taxHydrated[kind]) {
+        patch[TAX_PATCH_KEY[kind]] = Array.from(state.tax[kind]);
+      }
     }
     for (const key of Object.keys(state.values)) {
       patch[key] = Array.from(state.values[key].values());
@@ -784,6 +824,14 @@ async function applyChanges(rows, bookmark) {
 
     const n = patchRows.length + imageResult.uploaded;
     let message = `Updated ${n} field${n === 1 ? "" : "s"}.`;
+    // Note freshly-created taxonomy stubs, then any that couldn't be created (best-effort: a taxonomy
+    // failure doesn't undo the rest of the PATCH, but it must never be silently swallowed).
+    if (state.created.length > 0) {
+      message += ` ${summarizeCreated(state.created)}`;
+    }
+    if (state.failed.length > 0) {
+      message += ` ${summarizeFailed(state.failed)}`;
+    }
     if (imageResult.failed > 0) {
       message += ` ${imageResult.failed} image${imageResult.failed === 1 ? "" : "s"} couldn't be saved.`;
     }
@@ -844,59 +892,4 @@ async function uploadImageFromUrl(bookmarkId, url, setMain) {
   catch {
     return false;
   }
-}
-
-// Resolve a taxonomy name to an id: match an existing option (case-insensitive), else create a
-// name-only stub. On a duplicate-create race (or any create failure), re-fetch the list and
-// re-match by name so the value still links; give up (drop) only if it truly can't be found.
-async function resolveTaxonomyId(kind, name, optionList) {
-  const lower = name.toLowerCase();
-  const hit = optionList.find(o => o.name.toLowerCase() === lower);
-  if (hit) return hit.id;
-
-  try {
-    const res = await fetch(`${serverUrl}/api/${kind}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-      }),
-    });
-    if (res.ok) {
-      const created = await res.json();
-      if (created && created.id) {
-        optionList.push({
-          id: created.id,
-          name,
-        });
-        return created.id;
-      }
-    }
-  }
-  catch {
-    // fall through to the re-match below
-  }
-
-  try {
-    const res = await fetch(`${serverUrl}/api/${kind}`);
-    if (res.ok) {
-      const all = await res.json();
-      const match = Array.isArray(all)
-        ? all.find(o => o && typeof o.name === "string" && o.name.toLowerCase() === lower)
-        : null;
-      if (match) {
-        optionList.push({
-          id: match.id,
-          name: match.name,
-        });
-        return match.id;
-      }
-    }
-  }
-  catch {
-    // give up
-  }
-  return null;
 }

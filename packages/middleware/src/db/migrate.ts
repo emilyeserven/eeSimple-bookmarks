@@ -250,6 +250,47 @@ const migrations: RuntimeMigration[] = [
     name: "drop legacy property_groups",
     run: db => db.execute(sql`DROP TABLE IF EXISTS "property_groups"`),
   },
+  // Groups' relation tables (added with the Publishers → Groups / Artists merge). A brand-new table
+  // is the drizzle-kit push silent-skip trap against a populated DB: push bails at the truncate
+  // prompt and skips the table (and the rest of its additive diff), so every full group read
+  // (`getGroupById` / `listGroups`, which join these) 500s — including the re-read the create
+  // endpoint used to do. Pre-create them here (FK columns as plain uuid; push adds the FK
+  // constraints afterward, additively). Idempotent.
+  {
+    name: "create group_images table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "group_images" (
+        "group_id" uuid PRIMARY KEY NOT NULL,
+        "object_key" text NOT NULL,
+        "content_type" text NOT NULL,
+        "width" integer,
+        "height" integer,
+        "byte_size" integer NOT NULL,
+        "source" text NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    name: "create group_youtube_channels table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "group_youtube_channels" (
+        "group_id" uuid NOT NULL,
+        "channel_id" uuid NOT NULL,
+        CONSTRAINT "group_youtube_channels_group_id_channel_id_pk" PRIMARY KEY ("group_id", "channel_id")
+      )
+    `),
+  },
+  {
+    name: "create group_websites table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "group_websites" (
+        "group_id" uuid NOT NULL,
+        "website_id" uuid NOT NULL,
+        CONSTRAINT "group_websites_group_id_website_id_pk" PRIMARY KEY ("group_id", "website_id")
+      )
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

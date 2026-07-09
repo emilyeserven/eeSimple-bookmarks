@@ -302,7 +302,24 @@ export async function createGroup(input: CreateGroupInput): Promise<Group> {
       groupTypeId: input.groupTypeId ?? null,
     })
     .returning();
-  return getGroupById(row.id) as Promise<Group>;
+
+  // Build the response from the inserted row (mirroring createPerson) rather than a `getGroupById`
+  // re-read. A brand-new group has no image / YouTube channels / websites / alt-names yet, so the
+  // re-read adds only fragility: it joins `group_images` and queries `group_youtube_channels` /
+  // `group_websites`, and 500s if any of those relation tables is unavailable in a partially-migrated
+  // deploy — which is exactly why extension group-creation failed in prod while people (returned
+  // straight from the inserted row) worked.
+  const groupType = row.groupTypeId
+    ? (await db
+      .select(groupTypeSelect)
+      .from(groupTypes)
+      .where(eq(groupTypes.id, row.groupTypeId))
+      .limit(1))[0] ?? null
+    : null;
+  return toGroup({
+    ...row,
+    imageCreatedAt: null,
+  }, groupType, undefined, [], [], undefined);
 }
 
 export async function updateGroup(id: string, input: UpdateGroupInput): Promise<Group> {
