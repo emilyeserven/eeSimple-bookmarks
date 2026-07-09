@@ -175,9 +175,9 @@ describe("website default layout", () => {
     ]);
   });
 
-  it("renders the edit tabs in order (Hierarchy dropped, view-only)", () => {
+  it("renders the edit tabs in order (Hierarchy dropped, view-only; Extension Fill edit-only)", () => {
     expect(shape(websiteWorkbench, "edit").map(tab => tab.key)).toEqual([
-      "general", "people", "shortened-links", "param-rules", "autofill", "languages",
+      "general", "people", "shortened-links", "param-rules", "extension-fill", "autofill", "languages",
     ]);
   });
 });

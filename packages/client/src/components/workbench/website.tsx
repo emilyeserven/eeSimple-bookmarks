@@ -7,6 +7,7 @@ import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { ParamRulesList } from "../ParamRulesList";
 import { ShortenedLinksList } from "../ShortenedLinksList";
+import { WebsiteExtensionFillRulesForm } from "../WebsiteExtensionFillRulesForm";
 import {
   WebsiteAlternateNamesEditField,
   WebsiteDefaultCategoryEditField,
@@ -72,6 +73,7 @@ type WebsiteFieldKey
     | "people"
     | "shortenedLinks"
     | "paramRules"
+    | "extensionFillRules"
     | "hierarchy"
     | "autofillRules"
     | "languages";
@@ -249,6 +251,13 @@ const websiteFields = {
       entity,
     }) => <WebsiteParamRulesForm website={entity} />,
   },
+  extensionFillRules: {
+    key: "extensionFillRules",
+    label: i18n.t("Extension Fill Rules"),
+    edit: ({
+      entity,
+    }) => <WebsiteExtensionFillRulesForm website={entity} />,
+  },
   hierarchy: {
     key: "hierarchy",
     label: i18n.t("Hierarchy"),
@@ -350,6 +359,14 @@ const WEBSITE_DEFAULT_LAYOUT: EntityLayout = {
       }],
     },
     {
+      key: "extension-fill",
+      label: i18n.t("Extension Fill"),
+      sections: [{
+        key: "extension-fill",
+        fields: ["extensionFillRules"] satisfies WebsiteFieldKey[],
+      }],
+    },
+    {
       key: "hierarchy",
       label: i18n.t("Hierarchy"),
       sections: [{
@@ -445,6 +462,10 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
     {
       key: "param-rules",
       label: i18n.t("Param Rules"),
+    },
+    {
+      key: "extension-fill",
+      label: i18n.t("Extension Fill"),
     },
     {
       key: "hierarchy",
