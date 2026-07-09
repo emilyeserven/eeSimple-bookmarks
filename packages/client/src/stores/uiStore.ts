@@ -2,7 +2,7 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { CategorySortMode } from "../lib/categorySort";
 import type { LocationSortMode } from "../lib/locationSort";
 import type { SyncProvider } from "../lib/syncSources/syncSourceTypes";
-import type { WebsiteBookmarkFilter, WebsiteBuiltInFilter, WebsiteSortMode } from "../lib/websiteListingSort";
+import type { WebsiteBookmarkFilter, WebsiteBuiltInFilter, WebsiteIsbnFilter, WebsiteSortMode } from "../lib/websiteListingSort";
 import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, GenreMood, LocationMapLevelMode, MediaType, PlaceType, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
@@ -153,6 +153,9 @@ interface UiState {
   /** Websites listing facet: has bookmarks vs empty. */
   websiteBookmarkFilter: WebsiteBookmarkFilter;
   setWebsiteBookmarkFilter: (value: WebsiteBookmarkFilter) => void;
+  /** Websites listing facet: can vs cannot extract ISBNs (the `scanUrlForIsbn` flag). */
+  websiteIsbnFilter: WebsiteIsbnFilter;
+  setWebsiteIsbnFilter: (value: WebsiteIsbnFilter) => void;
   /**
    * Whether location maps hide the base tiles' own country/prefecture/state administrative border
    * lines (switches to a borderless tile style). Shared across every location map.
@@ -356,6 +359,10 @@ export const useUiStore = create<UiState>()(
       websiteBookmarkFilter: "all",
       setWebsiteBookmarkFilter: value => set({
         websiteBookmarkFilter: value,
+      }),
+      websiteIsbnFilter: "all",
+      setWebsiteIsbnFilter: value => set({
+        websiteIsbnFilter: value,
       }),
       hideLocationMapAdminBorders: false,
       setHideLocationMapAdminBorders: hide => set({

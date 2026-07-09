@@ -1,4 +1,4 @@
-import type { WebsiteBookmarkFilter, WebsiteBuiltInFilter, WebsiteSortMode } from "@/lib/websiteListingSort";
+import type { WebsiteBookmarkFilter, WebsiteBuiltInFilter, WebsiteIsbnFilter, WebsiteSortMode } from "@/lib/websiteListingSort";
 
 import { SlidersHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -42,6 +42,8 @@ export function WebsiteListingControls() {
   const setBuiltIn = useUiStore(s => s.setWebsiteBuiltInFilter);
   const bookmark = useUiStore(s => s.websiteBookmarkFilter);
   const setBookmark = useUiStore(s => s.setWebsiteBookmarkFilter);
+  const isbn = useUiStore(s => s.websiteIsbnFilter);
+  const setIsbn = useUiStore(s => s.setWebsiteIsbnFilter);
 
   const {
     data: categories,
@@ -79,7 +81,7 @@ export function WebsiteListingControls() {
   ];
 
   const filterActive
-    = category != null || mediaType != null || builtIn !== "all" || bookmark !== "all";
+    = category != null || mediaType != null || builtIn !== "all" || bookmark !== "all" || isbn !== "all";
 
   return (
     <div className="flex items-center gap-2">
@@ -172,6 +174,26 @@ export function WebsiteListingControls() {
                 <SelectItem value="all">{t("All")}</SelectItem>
                 <SelectItem value="has">{t("Has bookmarks")}</SelectItem>
                 <SelectItem value="empty">{t("Empty")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <Label className="text-sm font-medium">{t("ISBN scanning")}</Label>
+            <Select
+              value={isbn}
+              onValueChange={value => setIsbn(value as WebsiteIsbnFilter)}
+            >
+              <SelectTrigger
+                size="sm"
+                className="w-40"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("All")}</SelectItem>
+                <SelectItem value="can">{t("Can extract ISBNs")}</SelectItem>
+                <SelectItem value="cannot">{t("Cannot extract ISBNs")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
