@@ -9,10 +9,10 @@ import type {
   SectionsPropertyRow,
   TextPropertyRow,
 } from "../lib/bookmarkPropertyRows";
-import type { IsbnLink } from "../lib/isbnLinks";
 import type { SectionEntry } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { IsbnLinksPanel } from "./IsbnLinksPanel";
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { StarRating } from "./StarRating";
 import i18n from "../i18n";
@@ -23,29 +23,6 @@ import { formatSectionEntry } from "../lib/propertyFormat";
  * flat dispatcher and each kind's markup is scored (and story-covered) on its own. Each returns the
  * `<div>…<dt>…<dd>…</dd><PropertyQuickFilterLink/></div>` row for one built property row.
  */
-
-function IsbnLinksPanel({
-  links,
-}: { links: IsbnLink[] }) {
-  return (
-    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm">
-      {links.map(link => (
-        <a
-          key={link.label}
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="
-            text-primary underline-offset-2
-            hover:underline
-          "
-        >
-          {link.label}
-        </a>
-      ))}
-    </div>
-  );
-}
 
 export function NumberRowCell({
   row,

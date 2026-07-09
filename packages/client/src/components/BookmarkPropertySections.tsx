@@ -1,7 +1,7 @@
-import type { IsbnLink } from "../lib/isbnLinks";
 import type { Bookmark, CustomProperty, SectionEntry } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { IsbnLinksPanel } from "./IsbnLinksPanel";
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { StarRating } from "./StarRating";
 import i18n from "../i18n";
@@ -10,29 +10,6 @@ import { buildBookmarkPropertyRows } from "../lib/bookmarkPropertyRows";
 import { formatSectionEntry } from "../lib/propertyFormat";
 
 import { LabeledSection } from "@/components/LabeledSection";
-
-function IsbnLinksPanel({
-  links,
-}: { links: IsbnLink[] }) {
-  return (
-    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm">
-      {links.map(link => (
-        <a
-          key={link.label}
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="
-            text-primary underline-offset-2
-            hover:underline
-          "
-        >
-          {link.label}
-        </a>
-      ))}
-    </div>
-  );
-}
 
 interface BookmarkPropertySectionsProps {
   bookmark: Bookmark;
