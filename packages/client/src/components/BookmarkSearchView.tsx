@@ -2,9 +2,9 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { BookmarkFilterControls } from "./BookmarkFilterControls";
 import { BookmarkListPane } from "./BookmarkListPane";
 import { BookmarkSortPopover } from "./BookmarkSortPopover";
-import { FilterPillsRow } from "./FilterPillsRow";
 import { ListingSearchBox } from "./ListingSearchBox";
 import { useBookmarkSearchView } from "./useBookmarkSearchView";
 
@@ -116,7 +116,7 @@ export function BookmarkSearchView({
       <ListingSearchBox
         sort={<BookmarkSortPopover label />}
         filters={(
-          <FilterPillsRow
+          <BookmarkFilterControls
             tree={tree}
             properties={properties}
             categories={categories}

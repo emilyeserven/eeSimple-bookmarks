@@ -44,7 +44,7 @@ import {
   withWebsitePresence,
   withYouTubeChannelPresence,
 } from "../lib/bookmarkSearch";
-import { facetHasActiveSelection, facetSelectionSummary } from "../lib/filterFacets";
+import { facetHasActiveSelection, facetSelectionSummary, languageUsageHasActiveSelection, propertyHasActiveSelection } from "../lib/filterFacets";
 
 export interface FilterPillsRowProps extends FilterFacetInputs {
   /**
@@ -54,6 +54,12 @@ export interface FilterPillsRowProps extends FilterFacetInputs {
   bookmarks: Pick<Bookmark, "numberValues" | "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
+  /**
+   * "Applied filters" mode (the mobile chip strip under the Filter button): render **only** the pills
+   * with an active selection, and drop the leading Saved-filters trigger and trailing "Add filter"
+   * control. Returns `null` when nothing is active. Default (unset) is the full editable pill row.
+   */
+  activeOnly?: boolean;
 }
 
 /** A facet's split popover content: the header-row toggle (if any) and the body control below it. */
@@ -271,25 +277,41 @@ function renderFacetBody(key: FilterFacetKey, ctx: FacetBodyContext): FacetRende
  */
 export function FilterPillsRow(props: FilterPillsRowProps) {
   const {
-    bookmarks, search, onSearchChange,
+    bookmarks, search, onSearchChange, activeOnly = false,
   } = props;
   const {
     orderedItems, addableFilters, revealFilter, ctx, t,
   } = useFilterPillsRow(props);
 
-  if (orderedItems.length === 0 && addableFilters.length === 0) {
+  const isActive = (item: (typeof orderedItems)[number]) =>
+    item.kind === "property"
+      ? propertyHasActiveSelection(item.property.id, search)
+      : facetHasActiveSelection(item.facet.key, search);
+  const visibleItems = activeOnly ? orderedItems.filter(isActive) : orderedItems;
+  const languageUsageActive = languageUsageHasActiveSelection(search);
+
+  if (activeOnly) {
+    if (visibleItems.length === 0 && !languageUsageActive) {
+      return null;
+    }
+  }
+  else if (visibleItems.length === 0 && addableFilters.length === 0) {
     return null;
   }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <SavedFiltersSection
-        search={search}
-        onSearchChange={onSearchChange}
-        compact
-      />
+      {activeOnly
+        ? null
+        : (
+          <SavedFiltersSection
+            search={search}
+            onSearchChange={onSearchChange}
+            compact
+          />
+        )}
 
-      {orderedItems.map((item) => {
+      {visibleItems.map((item) => {
         if (item.kind === "property") {
           return (
             <PropertyFilterPill
@@ -317,12 +339,16 @@ export function FilterPillsRow(props: FilterPillsRowProps) {
         );
       })}
 
-      <LanguageUsageFilterPill
-        search={search}
-        onSearchChange={onSearchChange}
-      />
+      {!activeOnly || languageUsageActive
+        ? (
+          <LanguageUsageFilterPill
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        )
+        : null}
 
-      {addableFilters.length > 0
+      {!activeOnly && addableFilters.length > 0
         ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
