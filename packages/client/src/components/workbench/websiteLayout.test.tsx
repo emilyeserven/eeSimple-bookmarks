@@ -170,6 +170,14 @@ describe("website default layout", () => {
         }],
       },
       {
+        key: "extension-fill",
+        group: undefined,
+        sections: [{
+          key: "extension-fill",
+          fields: ["extensionFillRules"],
+        }],
+      },
+      {
         key: "autofill",
         group: undefined,
         sections: [{
