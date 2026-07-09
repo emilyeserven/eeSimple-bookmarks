@@ -1,0 +1,187 @@
+/*
+ * eeSimple Bookmarks — extension fill extraction engine.
+ *
+ * A classic browser script (no import/export, no chrome APIs) that assigns
+ * `globalThis.eesimpleFillEngine`. The popup injects this file into the page with
+ * `chrome.scripting.executeScript({ files: ["fillEngine.js"] })` and then calls
+ * `eesimpleFillEngine.runRules(rules)` against the live DOM; the jsdom test suite imports it
+ * as a side-effect module and calls the same global against fixture HTML.
+ *
+ * `runRules(rules, doc = document)` returns one `{ ruleId, values, error? }` per input rule, in
+ * order. Each rule runs an extraction pipeline: selector -> filters (in order, each narrowing or
+ * mapping the candidate set) -> read -> transforms (in order) -> split. The whole per-rule
+ * pipeline is wrapped in try/catch so one bad rule (invalid selector/regex) yields an `error`
+ * and never poisons the batch. "No candidates matched" is an empty result, not an error.
+ */
+(function () {
+  function trimmedText(el) {
+    return (el.textContent || "").trim();
+  }
+
+  function elementSiblings(el) {
+    var parent = el.parentElement;
+    if (!parent) return [];
+    return Array.prototype.filter.call(parent.children, function (child) {
+      return child !== el;
+    });
+  }
+
+  function matchesText(text, match) {
+    var target = text;
+    var value = match.value;
+    if (!match.caseSensitive) {
+      target = target.toLowerCase();
+      value = value.toLowerCase();
+    }
+    if (match.mode === "equals") return target === value;
+    if (match.mode === "contains") return target.indexOf(value) !== -1;
+    if (match.mode === "regex") {
+      // Build from the raw (un-lowercased) value so char classes stay intact; add `i` when
+      // case-insensitive. An invalid pattern throws and surfaces as a per-rule error.
+      return new RegExp(match.value, match.caseSensitive ? "" : "i").test(text);
+    }
+    throw new Error("Unknown text match mode: " + match.mode);
+  }
+
+  function ancestorMatches(el, match, maxDepth) {
+    var node = el.parentElement;
+    var depth = 0;
+    var limit = typeof maxDepth === "number" ? maxDepth : Infinity;
+    while (node && depth < limit) {
+      if (matchesText(trimmedText(node), match)) return true;
+      node = node.parentElement;
+      depth += 1;
+    }
+    return false;
+  }
+
+  // Narrow (or, for `closest`, map) the candidate set by one filter. Applied in order.
+  function applyFilter(candidates, filter) {
+    if (filter.kind === "selfText") {
+      return candidates.filter(function (el) {
+        return matchesText(trimmedText(el), filter.match);
+      });
+    }
+    if (filter.kind === "siblingText") {
+      return candidates.filter(function (el) {
+        return elementSiblings(el).some(function (sib) {
+          return matchesText(trimmedText(sib), filter.match);
+        });
+      });
+    }
+    if (filter.kind === "ancestorText") {
+      return candidates.filter(function (el) {
+        return ancestorMatches(el, filter.match, filter.maxDepth);
+      });
+    }
+    if (filter.kind === "closest") {
+      // Map each candidate to its nearest matching ancestor, drop misses, de-duplicate.
+      var mapped = [];
+      candidates.forEach(function (el) {
+        var found = el.closest(filter.selector);
+        if (found && mapped.indexOf(found) === -1) mapped.push(found);
+      });
+      return mapped;
+    }
+    if (filter.kind === "nth") {
+      var index = filter.index < 0 ? candidates.length + filter.index : filter.index;
+      return candidates[index] ? [candidates[index]] : [];
+    }
+    throw new Error("Unknown filter kind: " + filter.kind);
+  }
+
+  // Read a raw string from an element. Returns null for a missing attribute so the caller drops it.
+  function readValue(el, read) {
+    if (!read || read.kind === "text") return trimmedText(el);
+    if (read.kind === "attr") {
+      var attr = el.getAttribute(read.name);
+      return attr == null ? null : attr.trim();
+    }
+    throw new Error("Unknown read kind: " + read.kind);
+  }
+
+  function applyTransform(value, transform) {
+    if (transform.kind === "regex") {
+      var re = new RegExp(transform.pattern, transform.flags || "");
+      var m = re.exec(value);
+      if (!m) return "";
+      var group = typeof transform.group === "number" ? transform.group : 0;
+      return m[group] == null ? "" : m[group];
+    }
+    if (transform.kind === "number") {
+      var digits = value.replace(/,/g, "").match(/\d+/);
+      return digits ? digits[0] : "";
+    }
+    if (transform.kind === "replace") {
+      return value.replace(new RegExp(transform.pattern, transform.flags || ""), transform.replacement);
+    }
+    if (transform.kind === "trim") {
+      return value.trim();
+    }
+    throw new Error("Unknown transform kind: " + transform.kind);
+  }
+
+  function runRule(rule, doc) {
+    var extract = rule.extract || {};
+    var candidates = Array.prototype.slice.call(doc.querySelectorAll(extract.selector));
+
+    (extract.filters || []).forEach(function (filter) {
+      candidates = applyFilter(candidates, filter);
+    });
+
+    var read = extract.read || {
+      kind: "text",
+    };
+    var values = [];
+    candidates.forEach(function (el) {
+      var raw = readValue(el, read);
+      if (raw != null) values.push(raw);
+    });
+
+    (extract.transform || []).forEach(function (transform) {
+      values = values.map(function (value) {
+        return applyTransform(value, transform);
+      });
+    });
+
+    if (extract.split) {
+      values = values.reduce(function (acc, value) {
+        return acc.concat(value.split(extract.split));
+      }, []);
+    }
+
+    // Trim, drop empties, de-duplicate while preserving order.
+    var seen = {};
+    var result = [];
+    values.forEach(function (value) {
+      var trimmed = value.trim();
+      if (trimmed && !Object.prototype.hasOwnProperty.call(seen, trimmed)) {
+        seen[trimmed] = true;
+        result.push(trimmed);
+      }
+    });
+    return result;
+  }
+
+  function runRules(rules, doc = document) {
+    return (rules || []).map(function (rule) {
+      try {
+        return {
+          ruleId: rule.id,
+          values: runRule(rule, doc),
+        };
+      }
+      catch (err) {
+        return {
+          ruleId: rule.id,
+          values: [],
+          error: err && err.message ? err.message : String(err),
+        };
+      }
+    });
+  }
+
+  globalThis.eesimpleFillEngine = {
+    runRules,
+  };
+})();
