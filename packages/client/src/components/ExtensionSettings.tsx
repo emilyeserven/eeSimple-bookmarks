@@ -10,6 +10,7 @@ import fillEngineJsRaw from "../../public/extension/fillEngine.js?raw";
 import manifestJsonRaw from "../../public/extension/manifest.json?raw";
 import popupHtmlRaw from "../../public/extension/popup.html?raw";
 import popupJsRaw from "../../public/extension/popup.js?raw";
+import taxonomyFillJsRaw from "../../public/extension/taxonomyFill.js?raw";
 import { notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,10 @@ const EXTENSION_FILES = [
   {
     file: "popup.js",
     content: popupJsRaw,
+  },
+  {
+    file: "taxonomyFill.js",
+    content: taxonomyFillJsRaw,
   },
   {
     file: "fillEngine.js",
@@ -139,7 +144,7 @@ export function ExtensionSettings() {
           <div className="space-y-2">
             <p className="text-sm font-medium">Extension files</p>
             <p className="text-sm text-muted-foreground">
-              Save all five files into a new folder (e.g.
+              Save all six files into a new folder (e.g.
               {" "}
               <code className="rounded-sm bg-muted px-1 text-xs">eesimple-extension/</code>
               ). Use
@@ -232,7 +237,7 @@ export function ExtensionSettings() {
             "
           >
             <li>
-              Save the five files above into a single folder (download or copy each).
+              Save the six files above into a single folder (download or copy each).
             </li>
             <li>
               Open
