@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import { setSectionVisibility } from "./entityLayoutMutations";
 import { LayoutBoard } from "./LayoutBoard";
+import { LayoutPreviewPane } from "./LayoutPreviewPane";
 import { SectionVisibilityEditor } from "./SectionVisibilityEditor";
 import { navLinkClass } from "./TabbedShell";
 import { useEntityLayout } from "../hooks/useEntityLayout";
@@ -54,6 +55,7 @@ export function PageLayoutsSettings({
     isLoading,
   } = useEntityLayouts();
   const [resetOpen, setResetOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const selectedEntity = LAYOUT_DRIVEN_ENTITIES.find(entity => entity.kind === selectedKind) ?? LAYOUT_DRIVEN_ENTITIES[0];
   // Dynamic (user-defined) placeable fields for the selected kind — e.g. one per custom property on
@@ -127,36 +129,44 @@ export function PageLayoutsSettings({
           md:flex-row
         "
       >
-        <nav
-          aria-label={t("Entity")}
-          className="
-            flex flex-row gap-1 overflow-x-auto border-b pb-1
-            md:w-48 md:shrink-0 md:flex-col md:border-b-0 md:pb-0
-          "
-        >
-          {LAYOUT_DRIVEN_ENTITIES.map(entity => (
-            <button
-              key={entity.kind}
-              type="button"
-              onClick={() => onSelectKind(entity.kind)}
-              className={cn(
-                navLinkClass,
-                `
-                  text-left
-                  md:w-full
-                `,
-                entity.kind === selectedKind && `
-                  bg-accent text-accent-foreground
-                `,
-              )}
-              aria-current={entity.kind === selectedKind ? "page" : undefined}
+        {previewOpen
+          ? null
+          : (
+            <nav
+              aria-label={t("Entity")}
+              className="
+                flex flex-row gap-1 overflow-x-auto border-b pb-1
+                md:w-48 md:shrink-0 md:flex-col md:border-b-0 md:pb-0
+              "
             >
-              {entity.label}
-            </button>
-          ))}
-        </nav>
+              {LAYOUT_DRIVEN_ENTITIES.map(entity => (
+                <button
+                  key={entity.kind}
+                  type="button"
+                  onClick={() => onSelectKind(entity.kind)}
+                  className={cn(
+                    navLinkClass,
+                    `
+                      text-left
+                      md:w-full
+                    `,
+                    entity.kind === selectedKind && `
+                      bg-accent text-accent-foreground
+                    `,
+                  )}
+                  aria-current={entity.kind === selectedKind ? "page" : undefined}
+                >
+                  {entity.label}
+                </button>
+              ))}
+            </nav>
+          )}
 
-        <div className="min-w-0 flex-1 space-y-4">
+        <div
+          className={cn("min-w-0 space-y-4", previewOpen
+            ? "md:basis-2/3"
+            : "flex-1")}
+        >
           {isLoading
             ? <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
             : (
@@ -191,8 +201,33 @@ export function PageLayoutsSettings({
             >
               {t("Reset to default")}
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => setPreviewOpen(open => !open)}
+              aria-pressed={previewOpen}
+            >
+              {previewOpen ? t("Hide preview") : t("Preview")}
+            </Button>
           </div>
         </div>
+
+        {previewOpen
+          ? (
+            <div
+              className="
+                min-w-0 space-y-2
+                md:basis-1/3
+              "
+            >
+              <h3 className="text-sm font-medium">{t("Preview")}</h3>
+              <LayoutPreviewPane
+                key={selectedKind}
+                kind={selectedKind}
+                layout={value}
+              />
+            </div>
+          )
+          : null}
       </div>
 
       <Dialog
