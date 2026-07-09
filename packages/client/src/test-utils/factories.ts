@@ -252,6 +252,7 @@ export function makeWebsite(overrides: Partial<Website> = {}): Website {
     youtubeChannelIds: [],
     alternateNames: [],
     redirectResolutionFailure: false,
+    scanUrlForIsbn: false,
     ...overrides,
   };
 }

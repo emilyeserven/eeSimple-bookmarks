@@ -903,6 +903,20 @@ configuration are explicitly opt-in (Tier 2, below).
   image/icon URL passes `isPublicHttpUrl` before fetch.
 - **ISBN has a keyless fallback chain.** `services/isbn.ts` tries Open Library, then Google Books;
   the route maps the discriminated outcome to 200 / 404 (not found) / 502 (providers unreachable).
+- **URL→ISBN autodetect in `/api/scan` is gated per-website.** A pasted bookmark URL is scanned for an
+  ISBN **only when** it matches a website that exists in the taxonomy **and** that website's
+  **`scanUrlForIsbn`** flag is on (the "Scan URL for ISBN" checkbox on the website's edit General tab —
+  a nullable boolean mirroring `redirectResolutionFailure`). When gated on, detection tries, in order:
+  the Amazon ASIN (pure, `extractIsbn13FromAmazonUrl`) then its page scrape (`services/amazon.ts`), the
+  O'Reilly path (pure, `extractIsbn13FromOreillyUrl`), the honto.jp page scrape (`services/honto.ts`),
+  and — for any opted-in site with **no** dedicated connector — a **generic page scrape**
+  (`extractIsbnFromHtml` in `packages/types/src/isbnScrape.ts` via `services/isbnScrape.ts`
+  `fetchIsbnFromPage`). The detected ISBN rides `ScanResult.isbn`; the client fills the ISBN property
+  when empty (`handleAmazonIsbnDetected`, unchanged). **`GET /api/scan` resolves the website first**
+  (hoisted out of the metadata `Promise.all`) so the gate is known before any ISBN work is dispatched.
+  The gate is **scan-only** — the explicit `GET /api/isbn/from-book-url` (manual per-URL resolve for
+  Amazon/honto/O'Reilly) stays **ungated**. Consequence: a deploy with no opted-in website records
+  autodetects no ISBNs from a scan by default.
 - **A detected value that resolves to a taxonomy entity (not just a display string) is matched or
   created client-side, never inside the scan/ISBN endpoints.** E.g. bookmark language: `services/
   metadata.ts`'s `extractLanguage` (og:locale/`<html lang>`), the YouTube Data API's

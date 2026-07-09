@@ -32,6 +32,7 @@ export * from "./groupTypes.js";
 export * from "./homepageWidgets.js";
 export * from "./importBlacklist.js";
 export * from "./isbn.js";
+export * from "./isbnScrape.js";
 export * from "./labeledWebsites.js";
 export * from "./languageUsages.js";
 export * from "./locationRelations.js";
@@ -181,6 +182,8 @@ export interface Website {
   alternateNames: string[];
   /** When true, redirect chains from this site resolve unreliably; its bookmarks appear in Settings → Redirect Failures. */
   redirectResolutionFailure?: boolean;
+  /** When true, scanning a bookmark URL from this site reads the page for an ISBN and autofills it. Gates all scan-time ISBN detection. */
+  scanUrlForIsbn?: boolean;
   /** Languages associated with this website, each qualified by a usage level. Populated by get endpoints. */
   languageUsages?: LanguageUsage[];
 }
@@ -230,6 +233,8 @@ export interface UpdateWebsiteInput {
   alternateNames?: string[];
   /** When true, flags this site's redirect chains as unreliable. Omit to leave unchanged. */
   redirectResolutionFailure?: boolean;
+  /** When true, scan-time ISBN detection runs for bookmark URLs from this site. Omit to leave unchanged. */
+  scanUrlForIsbn?: boolean;
 }
 
 /** A bookmark stub returned by the redirect-failures endpoint. */

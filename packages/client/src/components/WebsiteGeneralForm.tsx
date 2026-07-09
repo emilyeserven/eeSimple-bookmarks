@@ -12,6 +12,7 @@ import { SocialLinksField } from "./SocialLinksField";
 import { CategoryDefaultField, MediaTypeDefaultField } from "./SourceDefaultFields";
 import { WebsiteGeneralFormProvider, useWebsiteGeneralFormContext } from "./WebsiteGeneralFormContext";
 import { WebsiteRedirectFailureField } from "./WebsiteRedirectFailureField";
+import { WebsiteScanIsbnField } from "./WebsiteScanIsbnField";
 import { WebsiteYouTubeChannelsField } from "./WebsiteYouTubeChannelsField";
 
 interface Props {
@@ -303,6 +304,23 @@ export function WebsiteRedirectFailureEditField({
   );
 }
 
+/** Scan-URL-for-ISBN flag. */
+export function WebsiteScanIsbnEditField({
+  website,
+}: Props) {
+  const {
+    ctrl: {
+      saveField,
+    },
+  } = useWebsiteGeneralFormContext();
+  return (
+    <WebsiteScanIsbnField
+      checked={website.scanUrlForIsbn ?? false}
+      onCheckedChange={checked => saveField("scanUrlForIsbn", checked)}
+    />
+  );
+}
+
 /**
  * The full website General edit form, recomposed from the granular {@link WebsiteNameEditField} … fields
  * inside the shared {@link WebsiteGeneralFormProvider}. The Page Layouts path renders these fields
@@ -327,6 +345,7 @@ export function WebsiteGeneralForm({
         <WebsiteSocialLinksEditField website={website} />
         <WebsiteLabeledWebsitesEditField website={website} />
         <WebsiteRedirectFailureEditField website={website} />
+        <WebsiteScanIsbnEditField website={website} />
         <GenreMoodAssignmentSection
           ownerType="website"
           ownerId={website.id}

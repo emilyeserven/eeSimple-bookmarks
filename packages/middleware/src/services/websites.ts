@@ -217,6 +217,7 @@ function toWebsite(
     youtubeChannelIds,
     alternateNames: (row.alternateNames as string[] | null) ?? [],
     redirectResolutionFailure: row.redirectResolutionFailure ?? false,
+    scanUrlForIsbn: row.scanUrlForIsbn ?? false,
   };
 }
 
@@ -238,6 +239,7 @@ const websiteSelect = {
   mediaTypeId: websites.mediaTypeId,
   faviconAutoGrabError: websites.faviconAutoGrabError,
   redirectResolutionFailure: websites.redirectResolutionFailure,
+  scanUrlForIsbn: websites.scanUrlForIsbn,
   faviconCreatedAt: websiteFavicons.createdAt,
   categoryName: categories.name,
   categorySlug: categories.slug,
@@ -553,7 +555,7 @@ export async function updateWebsite(
     throw new BuiltInWebsiteError("A built-in website cannot be renamed or moved");
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "redirectResolutionFailure">> = buildWebsiteScalarPatch(input);
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "redirectResolutionFailure" | "scanUrlForIsbn">> = buildWebsiteScalarPatch(input);
   if (input.domain !== undefined) {
     const domain = normalizeWebsiteDomain(input.domain);
     const [clash] = await db.select({
