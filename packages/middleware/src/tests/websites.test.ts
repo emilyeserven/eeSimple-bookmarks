@@ -171,6 +171,70 @@ test("PATCH /api/websites/:id accepts a well-formed extensionFillRules payload c
   await app.close();
 });
 
+test("PATCH /api/websites/:id accepts a customProperty target's subField / choiceValue sub-value", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Total pages",
+          target: {
+            kind: "customProperty",
+            propertyId: "22222222-2222-2222-2222-222222222222",
+            subField: "total",
+          },
+          extract: {
+            selector: ".pages",
+          },
+        },
+        {
+          id: "r2",
+          label: "Status",
+          target: {
+            kind: "customProperty",
+            propertyId: "22222222-2222-2222-2222-222222222222",
+            choiceValue: "read",
+          },
+          extract: {
+            selector: ".status",
+          },
+        },
+      ],
+    },
+  });
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("PATCH /api/websites/:id rejects a customProperty subField outside the enum", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Pages",
+          target: {
+            kind: "customProperty",
+            propertyId: "22222222-2222-2222-2222-222222222222",
+            subField: "middle",
+          },
+          extract: {
+            selector: ".pages",
+          },
+        },
+      ],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("PATCH /api/websites/:id rejects an extensionFillRules entry with an unknown target kind", async () => {
   const app = await buildApp();
   const res = await app.inject({

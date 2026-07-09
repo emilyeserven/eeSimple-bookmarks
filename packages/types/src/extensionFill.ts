@@ -23,9 +23,15 @@ export interface WebsiteExtensionFillRule {
 export type FillTarget
   = | { kind: "field";
     field: "title" | "description" | "isbn" | "year"; }
-  /** Value kind is derived from the property's type; file/image properties are excluded. */
+  /**
+   * Value kind is derived from the property's type; file/image properties are excluded. For a
+   * multi-value property the rule fills one specific sub-value: `subField` picks the number of a
+   * Two-Numbers (`itemInItems`) property; `choiceValue` picks the option of a `choices` property.
+   */
     | { kind: "customProperty";
-      propertyId: string; }
+      propertyId: string;
+      subField?: "current" | "total";
+      choiceValue?: string; }
   /** Multi-value; unmatched names create a name-only stub. */
       | { kind: "taxonomy";
         taxonomy: "people" | "groups" | "locations" | "tags"; };

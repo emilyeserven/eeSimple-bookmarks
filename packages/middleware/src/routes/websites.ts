@@ -314,6 +314,13 @@ const fillTargetSchema = {
       type: "string",
       format: "uuid",
     },
+    subField: {
+      type: "string",
+      enum: ["current", "total"],
+    },
+    choiceValue: {
+      type: "string",
+    },
     taxonomy: {
       type: "string",
       enum: ["people", "groups", "locations", "tags"],

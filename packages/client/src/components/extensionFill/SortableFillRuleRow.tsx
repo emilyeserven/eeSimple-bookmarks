@@ -1,28 +1,36 @@
 import type { ComboboxOption } from "../Combobox";
-import type { WebsiteExtensionFillRule } from "@eesimple/types";
+import type { CustomProperty, WebsiteExtensionFillRule } from "@eesimple/types";
+
+import { useState } from "react";
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, X } from "lucide-react";
+import { ChevronDown, Copy, GripVertical, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { LabeledInput } from "./controls";
 import { FillRuleFields } from "./FillRuleFields";
 
 import { Button } from "@/components/ui/button";
+import { describeFillTarget } from "@/lib/extensionFillForm";
+import { cn } from "@/lib/utils";
 
-/** One draggable rule card: a drag handle + label + remove button over the rule's field body. */
+/** One draggable rule card: a collapsible header (drag + label + duplicate/remove) over the field body. */
 export function SortableFillRuleRow({
-  rule, propertyOptions, onChange, onRemove,
+  rule, propertyOptions, propertiesById, onChange, onRemove, onDuplicate,
 }: {
   rule: WebsiteExtensionFillRule;
   propertyOptions: ComboboxOption[];
+  propertiesById: Map<string, CustomProperty>;
   onChange: (rule: WebsiteExtensionFillRule) => void;
   onRemove: () => void;
+  onDuplicate: () => void;
 }) {
   const {
     t,
   } = useTranslation();
+  // A configured rule (has a selector) loads collapsed; a fresh/blank draft opens expanded.
+  const [open, setOpen] = useState(() => rule.extract.selector.trim() === "");
   const {
     attributes, listeners, setNodeRef, transform, transition,
   } = useSortable({
@@ -32,6 +40,9 @@ export function SortableFillRuleRow({
     transform: CSS.Transform.toString(transform),
     transition,
   };
+  const property = rule.target.kind === "customProperty"
+    ? propertiesById.get(rule.target.propertyId)
+    : undefined;
   return (
     <div
       ref={setNodeRef}
@@ -48,6 +59,21 @@ export function SortableFillRuleRow({
         >
           <GripVertical className="size-4" />
         </button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="mb-1 shrink-0"
+          aria-label={open ? t("Collapse rule") : t("Expand rule")}
+          aria-expanded={open}
+          onClick={() => setOpen(current => !current)}
+        >
+          <ChevronDown
+            className={cn("size-4 transition-transform", open
+              ? "rotate-180"
+              : "")}
+          />
+        </Button>
         <LabeledInput
           className="flex-1"
           label={t("Label")}
@@ -62,17 +88,35 @@ export function SortableFillRuleRow({
           type="button"
           variant="ghost"
           size="icon"
+          aria-label={t("Duplicate rule")}
+          onClick={onDuplicate}
+        >
+          <Copy className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
           aria-label={t("Remove rule")}
           onClick={onRemove}
         >
           <X className="size-4" />
         </Button>
       </div>
-      <FillRuleFields
-        rule={rule}
-        propertyOptions={propertyOptions}
-        onChange={onChange}
-      />
+      {open
+        ? (
+          <FillRuleFields
+            rule={rule}
+            propertyOptions={propertyOptions}
+            propertiesById={propertiesById}
+            onChange={onChange}
+          />
+        )
+        : (
+          <p className="truncate pl-8 text-sm text-muted-foreground">
+            {describeFillTarget(rule.target, property)}
+          </p>
+        )}
     </div>
   );
 }

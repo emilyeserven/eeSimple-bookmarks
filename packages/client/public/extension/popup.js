@@ -60,12 +60,16 @@ const TAX_PATCH_KEY = {
   tags: "tagIds",
 };
 // Custom-property types the popup can fill, mapped to the bookmark's typed value array / PATCH key.
-// Other value kinds (choices/progress/sections/ratingScale/…) degrade to a disabled "unsupported" row.
+// itemInItems (Two Numbers) and choices fill a single rule-selected sub-value (target.subField /
+// target.choiceValue). Other value kinds (sections/ratingScale/…) degrade to a disabled
+// "unsupported" row.
 const VALUE_PATCH_KEY = {
   number: "numberValues",
   boolean: "booleanValues",
   text: "textValues",
   datetime: "dateTimeValues",
+  itemInItems: "progressValues",
+  choices: "choicesValues",
 };
 
 function show(state) {
@@ -426,6 +430,12 @@ function buildPropertyRow(rule, values, ctx) {
   if (!extracted) {
     return baseRow(rule, "", "", false, "not found");
   }
+  if (property.type === "itemInItems") {
+    return buildProgressRow(rule, property, extracted, bookmark);
+  }
+  if (property.type === "choices") {
+    return buildChoicesRow(rule, property, extracted, bookmark);
+  }
   const currentEntry = (bookmark[patchKey] ?? []).find(v => v.propertyId === property.id);
   const currentVal = currentEntry ? currentEntry.value : undefined;
 
@@ -475,6 +485,82 @@ function buildPropertyRow(rule, values, ctx) {
       propertyId: property.id,
       value: coerced,
     });
+  };
+  return row;
+}
+
+// Seed a per-property value Map from the bookmark's existing entries so sibling values aren't wiped.
+function seedValueMap(state, patchKey, bookmark) {
+  if (!state.values[patchKey]) {
+    state.values[patchKey] = new Map();
+    for (const v of (bookmark[patchKey] ?? [])) {
+      state.values[patchKey].set(v.propertyId, {
+        ...v,
+      });
+    }
+  }
+  return state.values[patchKey];
+}
+
+// itemInItems (Two Numbers): fill only the rule-selected sub-number (current|total), preserving the
+// sibling number from the existing value.
+function buildProgressRow(rule, property, extracted, bookmark) {
+  const subField = rule.target.subField === "total" ? "total" : "current";
+  const num = Number(extracted);
+  const existing = (bookmark.progressValues ?? []).find(v => v.propertyId === property.id);
+  if (!Number.isFinite(num)) {
+    return baseRow(rule, formatScalar(existing ? existing[subField] : undefined), extracted, false, "not found");
+  }
+  const currentVal = existing ? existing[subField] : undefined;
+  const changed = currentVal !== num;
+  const label = subField === "current" ? "current" : "total";
+  const row = baseRow(
+    rule,
+    `${label}: ${formatScalar(currentVal)}`,
+    `${label}: ${num}`,
+    changed,
+    changed ? null : "no change",
+  );
+  row.apply = (patch, state) => {
+    const map = seedValueMap(state, "progressValues", bookmark);
+    const entry = map.get(property.id) ?? {
+      propertyId: property.id,
+      current: 0,
+      total: 0,
+    };
+    entry[subField] = num;
+    map.set(property.id, entry);
+  };
+  return row;
+}
+
+// choices: add the rule-selected option (target.choiceValue) to the bookmark's selected values;
+// a single-select property is replaced, a multi-select unions.
+function buildChoicesRow(rule, property, extracted, bookmark) {
+  const choiceValue = rule.target.choiceValue;
+  if (!choiceValue) {
+    return baseRow(rule, "", extracted, false, "unsupported");
+  }
+  const option = (property.choicesItems ?? []).find(item => item.value === choiceValue);
+  const optionLabel = option ? option.label : choiceValue;
+  const existing = (bookmark.choicesValues ?? []).find(v => v.propertyId === property.id);
+  const currentValues = existing ? existing.values : [];
+  const currentLabels = currentValues
+    .map(value => (property.choicesItems ?? []).find(item => item.value === value)?.label ?? value);
+  const changed = property.choicesMultiple
+    ? !currentValues.includes(choiceValue)
+    : currentValues.length !== 1 || currentValues[0] !== choiceValue;
+  const row = baseRow(rule, currentLabels.join(", ") || "—", optionLabel, changed, changed ? null : "no change");
+  row.apply = (patch, state) => {
+    const map = seedValueMap(state, "choicesValues", bookmark);
+    const entry = map.get(property.id) ?? {
+      propertyId: property.id,
+      values: [],
+    };
+    entry.values = property.choicesMultiple
+      ? Array.from(new Set([...entry.values, choiceValue]))
+      : [choiceValue];
+    map.set(property.id, entry);
   };
   return row;
 }

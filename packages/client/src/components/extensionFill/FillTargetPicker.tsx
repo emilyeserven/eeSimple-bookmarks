@@ -1,6 +1,6 @@
 import type { KindOption } from "./controls";
 import type { ComboboxOption } from "../Combobox";
-import type { FillTarget } from "@eesimple/types";
+import type { CustomProperty, FillTarget } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
@@ -11,13 +11,15 @@ import { coerceFillTarget } from "@/lib/extensionFillForm";
 
 type FieldName = Extract<FillTarget, { kind: "field" }>["field"];
 type TaxonomyName = Extract<FillTarget, { kind: "taxonomy" }>["taxonomy"];
+type SubField = "current" | "total";
 
 /** The `kind` select plus the variant-specific value control for a rule's {@link FillTarget}. */
 export function FillTargetPicker({
-  target, propertyOptions, onChange,
+  target, propertyOptions, propertiesById, onChange,
 }: {
   target: FillTarget;
   propertyOptions: ComboboxOption[];
+  propertiesById: Map<string, CustomProperty>;
   onChange: (target: FillTarget) => void;
 }) {
   const {
@@ -47,6 +49,7 @@ export function FillTargetPicker({
       <FillTargetValue
         target={target}
         propertyOptions={propertyOptions}
+        propertiesById={propertiesById}
         onChange={onChange}
       />
     </div>
@@ -55,10 +58,11 @@ export function FillTargetPicker({
 
 /** The value control for the currently-selected target kind. */
 function FillTargetValue({
-  target, propertyOptions, onChange,
+  target, propertyOptions, propertiesById, onChange,
 }: {
   target: FillTarget;
   propertyOptions: ComboboxOption[];
+  propertiesById: Map<string, CustomProperty>;
   onChange: (target: FillTarget) => void;
 }) {
   const {
@@ -79,17 +83,25 @@ function FillTargetValue({
       );
     case "customProperty":
       return (
-        <Combobox
-          aria-label={t("Custom property")}
-          options={propertyOptions}
-          value={target.propertyId || undefined}
-          placeholder={t("Select a property")}
-          emptyText={t("No properties found.")}
-          onValueChange={value => onChange({
-            kind: "customProperty",
-            propertyId: value ?? "",
-          })}
-        />
+        <div className="space-y-2">
+          <Combobox
+            aria-label={t("Custom property")}
+            options={propertyOptions}
+            value={target.propertyId || undefined}
+            placeholder={t("Select a property")}
+            emptyText={t("No properties found.")}
+            onValueChange={value => onChange({
+              // Swapping the property resets any per-value sub-selection (it may no longer apply).
+              kind: "customProperty",
+              propertyId: value ?? "",
+            })}
+          />
+          <CustomPropertySubValue
+            target={target}
+            property={propertiesById.get(target.propertyId)}
+            onChange={onChange}
+          />
+        </div>
       );
     case "taxonomy":
       return (
@@ -104,6 +116,65 @@ function FillTargetValue({
         />
       );
   }
+}
+
+/**
+ * For a multi-value property, a sub-value selector: Two-Numbers (`itemInItems`) → Current/Total;
+ * Choices → which option. Other property types (and while none is selected) render nothing.
+ */
+function CustomPropertySubValue({
+  target, property, onChange,
+}: {
+  target: Extract<FillTarget, { kind: "customProperty" }>;
+  property: CustomProperty | undefined;
+  onChange: (target: FillTarget) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  if (property?.type === "itemInItems") {
+    return (
+      <KindSelect<SubField>
+        label={t("Value")}
+        value={target.subField ?? "current"}
+        options={[
+          {
+            value: "current",
+            label: t("Current"),
+          },
+          {
+            value: "total",
+            label: t("Total"),
+          },
+        ]}
+        onValueChange={subField => onChange({
+          kind: "customProperty",
+          propertyId: target.propertyId,
+          subField,
+        })}
+      />
+    );
+  }
+  if (property?.type === "choices") {
+    return (
+      <Combobox
+        aria-label={t("Option")}
+        options={property.choicesItems.map(item => ({
+          value: item.value,
+          label: item.label,
+        }))}
+        value={target.choiceValue || undefined}
+        placeholder={t("Select an option")}
+        emptyText={t("No options found.")}
+        onValueChange={value => onChange({
+          kind: "customProperty",
+          propertyId: target.propertyId,
+          choiceValue: value ?? "",
+        })}
+      />
+    );
+  }
+  return null;
 }
 
 function FIELD_OPTIONS(t: (key: string) => string): KindOption<FieldName>[] {

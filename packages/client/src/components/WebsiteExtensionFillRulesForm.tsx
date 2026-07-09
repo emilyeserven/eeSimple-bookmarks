@@ -1,12 +1,15 @@
 import type { UpdateWebsiteInput, Website, WebsiteExtensionFillRule } from "@eesimple/types";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ExtensionFillRulesEditor } from "./extensionFill/ExtensionFillRulesEditor";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateWebsite } from "../hooks/useWebsites";
 import i18n from "../i18n";
 import { normalizeExtensionFillRules } from "../lib/extensionFillForm";
+
+/** Debounce window for the whole-rules auto-save (the codebase convention). */
+const SAVE_DEBOUNCE_MS = 700;
 
 const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
   extensionFillRules: i18n.t("Extension Fill Rules"),
@@ -32,9 +35,28 @@ export function WebsiteExtensionFillRulesForm({
     },
   });
 
+  // Debounce the save so per-keystroke edits collapse into one PATCH + toast. The pending value is
+  // held so a quick unmount (navigating away) still flushes; `saveField` itself dedups no-ops.
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const pending = useRef<WebsiteExtensionFillRule[] | null>(null);
+  const saveFieldRef = useRef(autoSave.saveField);
+  saveFieldRef.current = autoSave.saveField;
+
+  function flush(): void {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = undefined;
+    if (pending.current === null) return;
+    saveFieldRef.current("extensionFillRules", normalizeExtensionFillRules(pending.current));
+    pending.current = null;
+  }
+
+  useEffect(() => flush, []);
+
   function handleChange(next: WebsiteExtensionFillRule[]): void {
     setRules(next);
-    autoSave.saveField("extensionFillRules", normalizeExtensionFillRules(next));
+    pending.current = next;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
   }
 
   return (
