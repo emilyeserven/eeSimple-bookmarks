@@ -134,6 +134,305 @@ const alternateNamesSchema = {
   },
 } as const;
 
+const textMatchSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["mode", "value"],
+  properties: {
+    mode: {
+      type: "string",
+      enum: ["equals", "contains", "regex"],
+    },
+    value: {
+      type: "string",
+    },
+    caseSensitive: {
+      type: "boolean",
+    },
+  },
+} as const;
+
+/**
+ * The extension-fill discriminated unions below use a merged-properties `object` + `allOf`
+ * `if`/`then` per `kind`, NOT a `oneOf` of per-kind branches. Fastify's default AJV options set
+ * `removeAdditional: true`, and `oneOf` evaluates every branch to confirm exactly one matches — so
+ * a wrong branch with `additionalProperties: false` permanently strips any of the payload's real
+ * properties it doesn't recognize *before* failing, corrupting (or outright rejecting) an
+ * otherwise-valid payload for a sibling `kind` whose required fields happen to be a superset of an
+ * earlier-evaluated branch's (see https://ajv.js.org/guide/modifying-data.html). `if`/`then`
+ * sidesteps this: one `additionalProperties: false` pass over the union of every kind's fields,
+ * with per-kind required-field enforcement layered on top.
+ */
+const fillFilterSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["kind"],
+  properties: {
+    kind: {
+      type: "string",
+      enum: ["selfText", "siblingText", "ancestorText", "closest", "nth"],
+    },
+    match: textMatchSchema,
+    maxDepth: {
+      type: "number",
+    },
+    selector: {
+      type: "string",
+    },
+    index: {
+      type: "number",
+    },
+  },
+  allOf: [
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "selfText",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "match"],
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "siblingText",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "match"],
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "ancestorText",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "match"],
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "closest",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "selector"],
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "nth",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "index"],
+      },
+    },
+  ],
+} as const;
+
+const fillTransformSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["kind"],
+  properties: {
+    kind: {
+      type: "string",
+      enum: ["regex", "number", "replace", "trim"],
+    },
+    pattern: {
+      type: "string",
+    },
+    flags: {
+      type: "string",
+    },
+    group: {
+      type: "number",
+    },
+    replacement: {
+      type: "string",
+    },
+  },
+  allOf: [
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "regex",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "pattern"],
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "replace",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "pattern", "replacement"],
+      },
+    },
+  ],
+} as const;
+
+const fillTargetSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["kind"],
+  properties: {
+    kind: {
+      type: "string",
+      enum: ["field", "customProperty", "taxonomy"],
+    },
+    field: {
+      type: "string",
+      enum: ["title", "description", "isbn", "year"],
+    },
+    propertyId: {
+      type: "string",
+      format: "uuid",
+    },
+    taxonomy: {
+      type: "string",
+      enum: ["people", "groups", "locations", "tags"],
+    },
+  },
+  allOf: [
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "field",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "field"],
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "customProperty",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "propertyId"],
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "taxonomy",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "taxonomy"],
+      },
+    },
+  ],
+} as const;
+
+const fillReadSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["kind"],
+  properties: {
+    kind: {
+      type: "string",
+      enum: ["text", "attr"],
+    },
+    name: {
+      type: "string",
+    },
+  },
+  allOf: [
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "attr",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "name"],
+      },
+    },
+  ],
+} as const;
+
+const fillExtractSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["selector"],
+  properties: {
+    selector: {
+      type: "string",
+    },
+    filters: {
+      type: "array",
+      items: fillFilterSchema,
+    },
+    read: fillReadSchema,
+    transform: {
+      type: "array",
+      items: fillTransformSchema,
+    },
+    split: {
+      type: "string",
+    },
+  },
+} as const;
+
+const extensionFillRulesSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    additionalProperties: false,
+    required: ["id", "label", "target", "extract"],
+    properties: {
+      id: {
+        type: "string",
+      },
+      label: {
+        type: "string",
+      },
+      pathSuffix: {
+        type: "string",
+      },
+      target: fillTargetSchema,
+      extract: fillExtractSchema,
+    },
+  },
+} as const;
+
 const socialLinksSchema = {
   type: "array",
   items: {
@@ -195,6 +494,7 @@ const updateWebsiteBody = {
       },
     },
     alternateNames: alternateNamesSchema,
+    extensionFillRules: extensionFillRulesSchema,
     redirectResolutionFailure: {
       type: "boolean",
     },

@@ -9,6 +9,7 @@ import type { BookmarkContentKind } from "./bookmarkContentKind.js";
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { EntityName, UpdateEntityNameEntry } from "./entityNames.js";
+import type { WebsiteExtensionFillRule } from "./extensionFill.js";
 import type { BookmarkGenreMood } from "./genreMoods.js";
 import type { HomepageWidget } from "./homepageWidgets.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
@@ -27,6 +28,7 @@ export * from "./oreilly.js";
 export * from "./entityNames.js";
 export * from "./entityLayouts.js";
 export * from "./conditions.js";
+export * from "./extensionFill.js";
 export * from "./genreMoods.js";
 export * from "./taxonomies.js";
 export * from "./customProperties.js";
@@ -182,6 +184,11 @@ export interface Website {
   youtubeChannelIds?: string[];
   /** Extra names this site appends to titles (e.g. "GH"); stripped during title fetch. */
   alternateNames: string[];
+  /**
+   * Extension "check & fill" extraction rules for this site. A `null` stored value always surfaces
+   * here as `[]` (null-vs-empty is normalized at the API boundary, matching `alternateNames`).
+   */
+  extensionFillRules: WebsiteExtensionFillRule[];
   /** When true, redirect chains from this site resolve unreliably; its bookmarks appear in Settings → Redirect Failures. */
   redirectResolutionFailure?: boolean;
   /** When true, scanning a bookmark URL from this site reads the page for an ISBN and autofills it. Gates all scan-time ISBN detection. */
@@ -233,6 +240,8 @@ export interface UpdateWebsiteInput {
   youtubeChannelIds?: string[];
   /** Full replacement list of extra site-name aliases used for title stripping. Omit to leave unchanged. */
   alternateNames?: string[];
+  /** Full replacement list of extension fill rules. Omit to leave unchanged. */
+  extensionFillRules?: WebsiteExtensionFillRule[];
   /** When true, flags this site's redirect chains as unreliable. Omit to leave unchanged. */
   redirectResolutionFailure?: boolean;
   /** When true, scan-time ISBN detection runs for bookmark URLs from this site. Omit to leave unchanged. */

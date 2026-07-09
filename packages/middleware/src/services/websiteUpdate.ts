@@ -1,4 +1,4 @@
-import type { LabeledWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, WebsiteParamRule } from "@eesimple/types";
+import type { LabeledWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, WebsiteExtensionFillRule, WebsiteParamRule } from "@eesimple/types";
 
 /** The website columns an update can set without touching the slug/domain (which need a DB lookup). */
 export interface WebsiteScalarPatch {
@@ -11,6 +11,7 @@ export interface WebsiteScalarPatch {
   socialLinks?: SocialLink[];
   labeledWebsites?: LabeledWebsite[];
   alternateNames?: string[];
+  extensionFillRules?: WebsiteExtensionFillRule[];
   redirectResolutionFailure?: boolean;
   scanUrlForIsbn?: boolean;
 }
@@ -51,6 +52,7 @@ export function buildWebsiteScalarPatch(input: UpdateWebsiteInput): WebsiteScala
   if ("socialLinks" in input) patch.socialLinks = input.socialLinks ?? [];
   if ("labeledWebsites" in input) patch.labeledWebsites = input.labeledWebsites ?? [];
   if (input.alternateNames !== undefined) patch.alternateNames = input.alternateNames;
+  if (input.extensionFillRules !== undefined) patch.extensionFillRules = input.extensionFillRules;
   if ("redirectResolutionFailure" in input) patch.redirectResolutionFailure = input.redirectResolutionFailure ?? false;
   if ("scanUrlForIsbn" in input) patch.scanUrlForIsbn = input.scanUrlForIsbn ?? false;
   return patch;
