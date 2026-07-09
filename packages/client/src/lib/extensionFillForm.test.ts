@@ -7,6 +7,7 @@ import {
   coerceFillFilter,
   coerceFillTarget,
   coerceFillTransform,
+  duplicateFillRule,
   moveItem,
   newFillRuleDraft,
   normalizeExtensionFillRules,
@@ -57,6 +58,54 @@ describe("coerceFillTarget", () => {
       kind: "taxonomy",
       taxonomy: "people",
     });
+  });
+
+  it("carries the sub-value discriminators across a same-kind rebuild", () => {
+    expect(coerceFillTarget("customProperty", {
+      kind: "customProperty",
+      propertyId: "p1",
+      subField: "total",
+    })).toEqual({
+      kind: "customProperty",
+      propertyId: "p1",
+      subField: "total",
+    });
+    expect(coerceFillTarget("customProperty", {
+      kind: "customProperty",
+      propertyId: "p1",
+      choiceValue: "read",
+    })).toEqual({
+      kind: "customProperty",
+      propertyId: "p1",
+      choiceValue: "read",
+    });
+  });
+});
+
+describe("duplicateFillRule", () => {
+  it("clones a rule with a fresh id and deep-copied nested arrays", () => {
+    const original = rule({
+      id: "orig",
+      extract: {
+        selector: ".x",
+        filters: [
+          {
+            kind: "selfText",
+            match: {
+              mode: "equals",
+              value: "Pages",
+            },
+          },
+        ],
+      },
+    });
+    const copy = duplicateFillRule(original);
+    expect(copy.id).not.toBe(original.id);
+    expect(copy.id).toBeTruthy();
+    expect(copy.label).toBe(original.label);
+    expect(copy.extract).toEqual(original.extract);
+    // Deep clone: mutating the copy's nested array must not touch the original.
+    expect(copy.extract.filters).not.toBe(original.extract.filters);
   });
 });
 
@@ -140,6 +189,33 @@ describe("normalizeExtensionFillRules", () => {
     expect(out.target).toEqual({
       kind: "customProperty",
       propertyId: "22222222-2222-2222-2222-222222222222",
+    });
+  });
+
+  it("passes through a customProperty subField / choiceValue sub-value", () => {
+    const [progress] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "customProperty",
+        propertyId: "22222222-2222-2222-2222-222222222222",
+        subField: "total",
+      },
+    })]);
+    expect(progress.target).toEqual({
+      kind: "customProperty",
+      propertyId: "22222222-2222-2222-2222-222222222222",
+      subField: "total",
+    });
+    const [choice] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "customProperty",
+        propertyId: "22222222-2222-2222-2222-222222222222",
+        choiceValue: "read",
+      },
+    })]);
+    expect(choice.target).toEqual({
+      kind: "customProperty",
+      propertyId: "22222222-2222-2222-2222-222222222222",
+      choiceValue: "read",
     });
   });
 

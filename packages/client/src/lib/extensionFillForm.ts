@@ -1,4 +1,5 @@
 import type {
+  CustomProperty,
   FillExtract,
   FillFilter,
   FillTarget,
@@ -46,6 +47,15 @@ export function newFillRuleDraft(): WebsiteExtensionFillRule {
   };
 }
 
+/** Deep-clone an existing rule with a fresh id, for the editor's "duplicate" action. */
+export function duplicateFillRule(rule: WebsiteExtensionFillRule): WebsiteExtensionFillRule {
+  const clone = JSON.parse(JSON.stringify(rule)) as WebsiteExtensionFillRule;
+  return {
+    ...clone,
+    id: randomId(),
+  };
+}
+
 /** A blank filter row (a self-text "contains" match). */
 export function newFillFilter(): FillFilter {
   return {
@@ -59,6 +69,46 @@ export function newFillTransform(): FillTransform {
   return {
     kind: "number",
   };
+}
+
+// ---------------------------------------------------------------------------
+// Collapsed-preview summary
+// ---------------------------------------------------------------------------
+
+const FIELD_LABELS: Record<Extract<FillTarget, { kind: "field" }>["field"], string> = {
+  title: "Title",
+  description: "Description",
+  isbn: "ISBN",
+  year: "Year",
+};
+
+const TAXONOMY_LABELS: Record<Extract<FillTarget, { kind: "taxonomy" }>["taxonomy"], string> = {
+  people: "People",
+  groups: "Groups",
+  locations: "Locations",
+  tags: "Tags",
+};
+
+/**
+ * A short human summary of a rule's target for the collapsed rule card. Resolves the custom-property
+ * name (and the chosen sub-value) from `property` when available.
+ */
+export function describeFillTarget(target: FillTarget, property?: CustomProperty): string {
+  switch (target.kind) {
+    case "field":
+      return FIELD_LABELS[target.field];
+    case "taxonomy":
+      return TAXONOMY_LABELS[target.taxonomy];
+    case "customProperty": {
+      const name = property?.name ?? "Custom property";
+      if (target.subField) return `${name} · ${target.subField === "current" ? "Current" : "Total"}`;
+      if (target.choiceValue) {
+        const option = property?.choicesItems.find(item => item.value === target.choiceValue);
+        return `${name} · ${option?.label ?? target.choiceValue}`;
+      }
+      return name;
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -77,6 +127,17 @@ export function coerceFillTarget(kind: FillTarget["kind"], prev: FillTarget): Fi
       return {
         kind: "customProperty",
         propertyId: prev.kind === "customProperty" ? prev.propertyId : "",
+        // Preserve the per-value discriminators across a same-kind rebuild (e.g. a property swap).
+        ...(prev.kind === "customProperty" && prev.subField !== undefined
+          ? {
+            subField: prev.subField,
+          }
+          : {}),
+        ...(prev.kind === "customProperty" && prev.choiceValue !== undefined
+          ? {
+            choiceValue: prev.choiceValue,
+          }
+          : {}),
       };
     case "taxonomy":
       return {
@@ -187,6 +248,16 @@ function cleanTarget(target: FillTarget): FillTarget | null {
         ? {
           kind: "customProperty",
           propertyId: target.propertyId,
+          ...(target.subField !== undefined
+            ? {
+              subField: target.subField,
+            }
+            : {}),
+          ...(target.choiceValue
+            ? {
+              choiceValue: target.choiceValue,
+            }
+            : {}),
         }
         : null;
     case "taxonomy":

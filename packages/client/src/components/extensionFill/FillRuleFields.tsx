@@ -1,5 +1,5 @@
 import type { ComboboxOption } from "../Combobox";
-import type { FillExtract, WebsiteExtensionFillRule } from "@eesimple/types";
+import type { CustomProperty, FillExtract, WebsiteExtensionFillRule } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
@@ -11,10 +11,11 @@ import { FillTransformList } from "./FillTransformList";
 
 /** The body of one extraction rule: path gate, target, selector, read mode, split, filters, transforms. */
 export function FillRuleFields({
-  rule, propertyOptions, onChange,
+  rule, propertyOptions, propertiesById, onChange,
 }: {
   rule: WebsiteExtensionFillRule;
   propertyOptions: ComboboxOption[];
+  propertiesById: Map<string, CustomProperty>;
   onChange: (rule: WebsiteExtensionFillRule) => void;
 }) {
   const {
@@ -39,6 +40,7 @@ export function FillRuleFields({
       <FillTargetPicker
         target={rule.target}
         propertyOptions={propertyOptions}
+        propertiesById={propertiesById}
         onChange={target => onChange({
           ...rule,
           target,

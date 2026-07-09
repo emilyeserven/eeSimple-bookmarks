@@ -23,7 +23,7 @@ import { LabeledSection } from "../LabeledSection";
 
 import { Button } from "@/components/ui/button";
 import { useCustomProperties } from "@/hooks/useCustomProperties";
-import { newFillRuleDraft } from "@/lib/extensionFillForm";
+import { duplicateFillRule, newFillRuleDraft } from "@/lib/extensionFillForm";
 
 /**
  * The whole "Extension Fill" rules editor: a dnd-kit sortable list of {@link WebsiteExtensionFillRule}
@@ -40,12 +40,14 @@ export function ExtensionFillRulesEditor({
     t,
   } = useTranslation();
   const properties = useCustomProperties();
-  const propertyOptions = (properties.data ?? [])
-    .filter(property => property.type !== "file" && property.type !== "image")
-    .map(property => ({
-      value: property.id,
-      label: property.name,
-    }));
+  const fillableProperties = (properties.data ?? [])
+    .filter(property => property.type !== "file" && property.type !== "image");
+  const propertyOptions = fillableProperties.map(property => ({
+    value: property.id,
+    label: property.name,
+  }));
+  // Lookup for the target picker's per-value sub-selectors and the collapsed-card preview.
+  const propertiesById = new Map(fillableProperties.map(property => [property.id, property]));
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -89,8 +91,14 @@ export function ExtensionFillRulesEditor({
                       key={rule.id}
                       rule={rule}
                       propertyOptions={propertyOptions}
+                      propertiesById={propertiesById}
                       onChange={next => onChange(rules.map((current, i) => (i === index ? next : current)))}
                       onRemove={() => onChange(rules.filter((_, i) => i !== index))}
+                      onDuplicate={() => onChange([
+                        ...rules.slice(0, index + 1),
+                        duplicateFillRule(rule),
+                        ...rules.slice(index + 1),
+                      ])}
                     />
                   ))}
                 </div>
