@@ -23,7 +23,8 @@ interface ListingSearchBoxProps {
 
 /**
  * The on-page control box every listing renders above its results: the quick-search input (left) with
- * an optional Sort control (right) on the top row and the filter pills wrapping below. The pin button
+ * an optional Sort control (right, `≥md` only — on phones it drops into the filter slot's controls row)
+ * on the top row and the filter pills wrapping below. The pin button
  * floats the whole box — sticking it to the top of the viewport while the list scrolls — via the
  * server-persisted {@link useSearchBoxPinned} preference (mirrors the right-panel pin, so the choice
  * follows the user across devices and fires a save toast). Taxonomy listings render it with just the
@@ -61,7 +62,17 @@ export function ListingSearchBox({
       <div className="flex items-center gap-2">
         <ListingSearchBar />
         <div className="ml-auto flex shrink-0 items-center gap-2">
-          {sort}
+          {sort
+            ? (
+              <div
+                className="
+                  hidden
+                  md:flex
+                "
+              >{sort}
+              </div>
+            )
+            : null}
           <Button
             type="button"
             variant="ghost"

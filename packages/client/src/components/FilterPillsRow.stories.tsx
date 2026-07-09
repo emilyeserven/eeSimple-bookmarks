@@ -58,6 +58,20 @@ export const WithSelection: Story = {
 };
 
 /**
+ * `activeOnly` mode (the mobile "applied filters" chip strip): only the pills with an active
+ * selection render — no Saved-filters trigger and no "Add filter" control.
+ */
+export const AppliedChips: Story = {
+  args: {
+    activeOnly: true,
+    search: {
+      categories: ["cat-workflow", "cat-content"],
+      tagPresence: "missing",
+    },
+  },
+};
+
+/**
  * Full parity: custom-property pills (one per enabled property), the language-usage pill, and a
  * saved filter all present alongside the standard facet pills.
  */
