@@ -4,6 +4,7 @@ import type { EntityLayout, TagNode } from "@eesimple/types";
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import { EntityAutofillSources } from "../EntityAutofillSources";
+import { TagHierarchyView, TagParentEditView, TagStatsView } from "./tagViews";
 import { EntityNamesTabView, PrimaryLanguageTabView } from "../entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
 import {
@@ -13,7 +14,7 @@ import {
   TagOptionsFields,
   TagPrimaryLanguageEdit,
 } from "../TagGeneralForm";
-import { TagHierarchyView, TagParentEditView, TagStatsView } from "./tagViews";
+import { TagPromoteToTaxonomy } from "../TagPromoteToTaxonomy";
 
 import { useDeleteTag, useTagBySlug, useTagTree } from "@/hooks/useTags";
 import { flattenTree } from "@/lib/tagTree";
@@ -39,6 +40,7 @@ type TagFieldKey
     | "parent"
     | "options"
     | "genreMoods"
+    | "promote"
     | "autofillSources"
     | "hierarchy"
     | "autofillRules";
@@ -117,6 +119,13 @@ const tagFields = {
       />
     ),
   },
+  promote: {
+    key: "promote",
+    label: i18n.t("Promote to taxonomy"),
+    edit: ({
+      entity,
+    }) => <TagPromoteToTaxonomy tagId={entity.id} />,
+  },
   autofillSources: {
     key: "autofillSources",
     label: i18n.t("Autofill sources"),
@@ -181,6 +190,7 @@ const TAG_DEFAULT_LAYOUT: EntityLayout = {
           "parent",
           "options",
           "genreMoods",
+          "promote",
           "autofillSources",
         ] satisfies TagFieldKey[],
       }],

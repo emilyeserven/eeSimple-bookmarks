@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { Captions, Languages, LayoutDashboard, MapPinned, Puzzle, Shapes, Waypoints } from "lucide-react";
+import { Captions, Languages, LayoutDashboard, MapPinned, Puzzle, Shapes, Tags, Waypoints } from "lucide-react";
 
 import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
@@ -36,6 +36,12 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
     path: "/settings/extension",
     label: i18n.t("Extension"),
     icon: Puzzle,
+  },
+  {
+    // User-configurable taxonomies manager, reached from the sidebar Taxonomies section header.
+    path: "/settings/taxonomies",
+    label: i18n.t("Taxonomies"),
+    icon: Tags,
   },
   {
     // A tab-less /settings leaf (see `settingsNav` in routes/settings.tsx).
