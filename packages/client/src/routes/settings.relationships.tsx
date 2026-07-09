@@ -52,6 +52,7 @@ function RelationshipsSettingsPage() {
   const bookmarkOptions: ComboboxOption[] = (allBookmarks ?? []).map(b => ({
     value: b.id,
     label: b.title,
+    names: b.names,
   }));
 
   return (

@@ -30,6 +30,7 @@ export function DebugView({
     () => allBookmarks.map(b => ({
       value: b.id,
       label: b.title,
+      names: b.names,
     })),
     [allBookmarks],
   );
