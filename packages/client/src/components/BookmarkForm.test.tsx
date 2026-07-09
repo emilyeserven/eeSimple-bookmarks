@@ -197,6 +197,19 @@ vi.mock("../hooks/useLocations", () => ({
     data: [],
   }),
 }));
+vi.mock("../hooks/useGenreMoods", () => ({
+  useGenreMoods: () => ({
+    data: [],
+  }),
+  useGenreMoodTree: () => ({
+    data: [],
+  }),
+  useCreateGenreMood: () => ({
+    mutate: vi.fn(),
+    isError: false,
+    error: null,
+  }),
+}));
 vi.mock("../hooks/useLocationRelations", () => ({
   useLocationRelations: () => ({
     data: [],

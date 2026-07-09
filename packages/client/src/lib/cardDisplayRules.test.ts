@@ -1,5 +1,5 @@
 // @vitest-environment node
-import type { Bookmark, CardDisplayRule } from "@eesimple/types";
+import type { Bookmark, CardDisplayRule, EvaluateOptions } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
@@ -57,7 +57,8 @@ const DEFAULT_RULE = makeRule({
   hideWebsiteForYouTube: false,
 });
 
-const noTagDescendants = buildTagDescendants([]);
+/** No cascade resolvers — leaves match by exact id (or their legacy default). */
+const emptyOptions: EvaluateOptions = {};
 
 describe("bookmarkToConditionInput", () => {
   it("populates every field from the bookmark", () => {
@@ -130,7 +131,7 @@ describe("resolveCardDisplay — layered merge", () => {
       },
       imageMode: "square",
     });
-    const resolved = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], noTagDescendants);
+    const resolved = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], emptyOptions);
     expect(resolved.imageMode).toBe("natural");
     expect(resolved.provenance.matchedRuleIds).toEqual(["default"]);
   });
@@ -169,7 +170,7 @@ describe("resolveCardDisplay — layered merge", () => {
       fieldZones: emptyCardFieldZones(),
     });
 
-    const resolved = resolveCardDisplay(makeBookmark(), [high, low, DEFAULT_RULE], noTagDescendants);
+    const resolved = resolveCardDisplay(makeBookmark(), [high, low, DEFAULT_RULE], emptyOptions);
     // `high` supplies fieldZones; `low` supplies imageMode; Default fills the rest.
     expect(resolved.fieldZones["card-labels"]).toEqual([{
       key: "category",
@@ -194,7 +195,7 @@ describe("resolveCardDisplay — layered merge", () => {
       },
       hideWebsiteForYouTube: true,
     });
-    const match = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], noTagDescendants);
+    const match = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], emptyOptions);
     expect(match.hideWebsiteForYouTube).toBe(true);
     expect(match.provenance.source.hideWebsiteForYouTube).toBe("yt");
 
@@ -203,7 +204,7 @@ describe("resolveCardDisplay — layered merge", () => {
         categoryId: "other",
       }),
       [rule, DEFAULT_RULE],
-      noTagDescendants,
+      emptyOptions,
     );
     expect(noMatch.hideWebsiteForYouTube).toBe(false);
     expect(noMatch.provenance.source.hideWebsiteForYouTube).toBe("default");
@@ -226,7 +227,7 @@ describe("resolveCardDisplay — layered merge", () => {
       },
       cardZoneLayouts: gridded,
     });
-    const match = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], noTagDescendants);
+    const match = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], emptyOptions);
     expect(match.cardZoneLayouts["card-labels"].mode).toBe("grid");
     expect(match.provenance.source.cardZoneLayouts).toBe("layout");
 
@@ -235,7 +236,7 @@ describe("resolveCardDisplay — layered merge", () => {
         categoryId: "other",
       }),
       [rule, DEFAULT_RULE],
-      noTagDescendants,
+      emptyOptions,
     );
     expect(noMatch.cardZoneLayouts["card-labels"].mode).toBe("flex");
     expect(noMatch.provenance.source.cardZoneLayouts).toBe("default");
@@ -246,7 +247,7 @@ describe("resolveCardDisplay — layered merge", () => {
       id: "empty",
       imageMode: "square",
     });
-    const resolved = resolveCardDisplay(makeBookmark(), [empty, DEFAULT_RULE], noTagDescendants);
+    const resolved = resolveCardDisplay(makeBookmark(), [empty, DEFAULT_RULE], emptyOptions);
     expect(resolved.imageMode).toBe("natural");
     expect(resolved.provenance.matchedRuleIds).toEqual(["default"]);
   });
@@ -281,7 +282,9 @@ describe("resolveCardDisplay — layered merge", () => {
         parentId: "parent",
       }],
     });
-    const resolved = resolveCardDisplay(bookmark, [rule, DEFAULT_RULE], tagDescendants);
+    const resolved = resolveCardDisplay(bookmark, [rule, DEFAULT_RULE], {
+      tagDescendants,
+    });
     expect(resolved.imageVisibility).toBe("off");
   });
 });
@@ -310,7 +313,7 @@ describe("inspectBookmarkRules", () => {
       imageMode: "cropped",
     });
 
-    const result = inspectBookmarkRules(makeBookmark(), [high, low, DEFAULT_RULE], noTagDescendants);
+    const result = inspectBookmarkRules(makeBookmark(), [high, low, DEFAULT_RULE], emptyOptions);
 
     const highInspection = result.rules.find(r => r.rule.id === "high");
     const lowInspection = result.rules.find(r => r.rule.id === "low");
@@ -337,7 +340,7 @@ describe("inspectBookmarkRules", () => {
       imageMode: "square",
     });
 
-    const result = inspectBookmarkRules(makeBookmark(), [rule, DEFAULT_RULE], noTagDescendants);
+    const result = inspectBookmarkRules(makeBookmark(), [rule, DEFAULT_RULE], emptyOptions);
     const inspection = result.rules.find(r => r.rule.id === "other");
 
     expect(inspection?.matched).toBe(false);
@@ -350,7 +353,7 @@ describe("inspectBookmarkRules", () => {
   });
 
   it("reports the Default rule's attributes as applied when nothing else matches", () => {
-    const result = inspectBookmarkRules(makeBookmark(), [DEFAULT_RULE], noTagDescendants);
+    const result = inspectBookmarkRules(makeBookmark(), [DEFAULT_RULE], emptyOptions);
     const defaultInspection = result.rules.find(r => r.rule.id === "default");
 
     expect(defaultInspection?.matched).toBe(true);

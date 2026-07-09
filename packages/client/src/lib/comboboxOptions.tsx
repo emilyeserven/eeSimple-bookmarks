@@ -135,3 +135,26 @@ export function mediaTypeNodesToOptions(
     ];
   });
 }
+
+/**
+ * Convert a `GenreMoodNode` tree into nested `TreeComboboxOption[]` (icon-less), preserving the
+ * parent→child structure so the condition picker can expand/collapse and offer the per-item cascade
+ * toggle. Unlike {@link genreMoodTreeComboboxOptions} (a flat, depth-indented list), this keeps a real
+ * `children` array. Optionally exclude a subtree of ids.
+ */
+export function genreMoodNodesToOptions(
+  nodes: GenreMoodNode[],
+  excludeIds?: Set<string>,
+): TreeComboboxOption[] {
+  return nodes.flatMap((node) => {
+    if (excludeIds?.has(node.id)) return [];
+    return [
+      {
+        value: node.id,
+        label: node.name,
+        names: node.names,
+        children: genreMoodNodesToOptions(node.children, excludeIds),
+      },
+    ];
+  });
+}

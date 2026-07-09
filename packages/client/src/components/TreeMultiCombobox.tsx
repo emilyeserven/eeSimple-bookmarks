@@ -50,6 +50,14 @@ interface TreeMultiComboboxProps {
     label: string;
     onSelect: () => void;
   };
+  /**
+   * Per-item "match child items" cascade toggle (used by the hierarchical condition editors). When
+   * `cascadeValues`/`onToggleCascade` are provided, each **selected parent** row shows a small
+   * checkbox: checked = the item matches its whole subtree, unchecked = exact match. Leaf rows never
+   * show it. Omitted → no cascade checkbox (the default for ordinary entity pickers).
+   */
+  "cascadeValues"?: string[];
+  "onToggleCascade"?: (value: string) => void;
 }
 
 /**
@@ -70,6 +78,8 @@ export function TreeMultiCombobox({
   id,
   "aria-label": ariaLabel,
   createOption,
+  cascadeValues,
+  onToggleCascade,
 }: TreeMultiComboboxProps) {
   const {
     t,
@@ -81,6 +91,7 @@ export function TreeMultiCombobox({
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
 
   const selectedSet = new Set(values);
+  const cascadeSet = new Set(cascadeValues ?? []);
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
@@ -164,6 +175,9 @@ export function TreeMultiCombobox({
               onToggleExpand: toggleExpand,
               secondaryLanguage,
               fallbackLanguage,
+              showCascade: onToggleCascade != null,
+              isCascade: value => cascadeSet.has(value),
+              onToggleCascade,
             })}
           </CommandGroup>
         )}

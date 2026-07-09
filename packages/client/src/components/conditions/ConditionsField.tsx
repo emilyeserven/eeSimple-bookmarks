@@ -234,6 +234,7 @@ export function ConditionsField({
           value={mediaTypeLeaf ?? {
             type: "media-type",
             mediaTypeIds: [],
+            cascadeMediaTypeIds: [],
           }}
           onChange={next =>
             commit({
@@ -250,6 +251,7 @@ export function ConditionsField({
           value={genreMoodLeaf ?? {
             type: "genre-mood",
             genreMoodIds: [],
+            cascadeGenreMoodIds: [],
           }}
           onChange={next =>
             commit({
@@ -299,6 +301,7 @@ export function ConditionsField({
           value={tagLeaf ?? {
             type: "tag",
             tagIds: [],
+            cascadeTagIds: [],
           }}
           tagTree={tagTree}
           onChange={next =>
@@ -316,6 +319,7 @@ export function ConditionsField({
           value={locationLeaf ?? {
             type: "location",
             locationIds: [],
+            cascadeLocationIds: [],
           }}
           onChange={next =>
             commit({

@@ -4,12 +4,30 @@ import { test } from "node:test";
 import type { ConditionInput, ConditionNode } from "./conditions.js";
 
 import {
+  buildGenreMoodDescendants,
   buildLocationDescendants,
+  buildMediaTypeDescendants,
   buildTagDescendants,
   emptyConditionTree,
   evaluateConditions,
   normalizeDomain,
 } from "./conditions.js";
+
+/** A three-level parent → child → grandchild tree, shared by the per-item cascade tests. */
+const cascadeTree = [
+  {
+    id: "parent",
+    parentId: null,
+  },
+  {
+    id: "child",
+    parentId: "parent",
+  },
+  {
+    id: "grandchild",
+    parentId: "child",
+  },
+];
 
 function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
   return {
@@ -400,6 +418,111 @@ test("genre-mood matches on presence of any listed id; empty never matches", () 
     type: "genre-mood",
     genreMoodIds: [],
   }, input), false);
+});
+
+test("tag per-item cascade flag: only flagged ids match descendants; absent = legacy cascade-all", () => {
+  const resolve = buildTagDescendants(cascadeTree);
+  const input = makeInput({
+    tagIds: new Set(["grandchild"]),
+  });
+
+  // Absent cascade set (legacy) → parent still cascades to its subtree, preserving old behavior.
+  assert.equal(evaluateConditions({
+    type: "tag",
+    tagIds: ["parent"],
+  }, input, {
+    tagDescendants: resolve,
+  }), true);
+  // Explicit empty cascade set → exact only → the parent no longer matches its grandchild.
+  assert.equal(evaluateConditions({
+    type: "tag",
+    tagIds: ["parent"],
+    cascadeTagIds: [],
+  }, input, {
+    tagDescendants: resolve,
+  }), false);
+  // Parent flagged to cascade → matches the grandchild again.
+  assert.equal(evaluateConditions({
+    type: "tag",
+    tagIds: ["parent"],
+    cascadeTagIds: ["parent"],
+  }, input, {
+    tagDescendants: resolve,
+  }), true);
+});
+
+test("location per-item cascade flag mirrors tags (absent = legacy cascade-all)", () => {
+  const resolve = buildLocationDescendants(cascadeTree);
+  const input = makeInput({
+    locationIds: new Set(["child"]),
+  });
+  assert.equal(evaluateConditions({
+    type: "location",
+    locationIds: ["parent"],
+  }, input, {
+    locationDescendants: resolve,
+  }), true);
+  assert.equal(evaluateConditions({
+    type: "location",
+    locationIds: ["parent"],
+    cascadeLocationIds: [],
+  }, input, {
+    locationDescendants: resolve,
+  }), false);
+});
+
+test("media-type per-item cascade: absent = legacy exact; flagged id matches its subtree", () => {
+  const resolve = buildMediaTypeDescendants(cascadeTree);
+  const input = makeInput({
+    mediaTypeId: "grandchild",
+  });
+
+  // Absent cascade set (legacy) → exact only → a parent does NOT match a descendant media type.
+  assert.equal(evaluateConditions({
+    type: "media-type",
+    mediaTypeIds: ["parent"],
+  }, input, {
+    mediaTypeDescendants: resolve,
+  }), false);
+  // Flagged to cascade → the bookmark's descendant media type now matches.
+  assert.equal(evaluateConditions({
+    type: "media-type",
+    mediaTypeIds: ["parent"],
+    cascadeMediaTypeIds: ["parent"],
+  }, input, {
+    mediaTypeDescendants: resolve,
+  }), true);
+  // Exact self still matches.
+  assert.equal(evaluateConditions({
+    type: "media-type",
+    mediaTypeIds: ["grandchild"],
+    cascadeMediaTypeIds: [],
+  }, input, {
+    mediaTypeDescendants: resolve,
+  }), true);
+});
+
+test("genre-mood per-item cascade: absent = legacy exact; flagged id matches its subtree", () => {
+  const resolve = buildGenreMoodDescendants(cascadeTree);
+  const input = makeInput({
+    genreMoodIds: new Set(["child"]),
+  });
+
+  // Absent cascade set (legacy) → exact only → parent does NOT match a descendant genre.
+  assert.equal(evaluateConditions({
+    type: "genre-mood",
+    genreMoodIds: ["parent"],
+  }, input, {
+    genreMoodDescendants: resolve,
+  }), false);
+  // Flagged to cascade → any descendant present on the bookmark matches.
+  assert.equal(evaluateConditions({
+    type: "genre-mood",
+    genreMoodIds: ["parent"],
+    cascadeGenreMoodIds: ["parent"],
+  }, input, {
+    genreMoodDescendants: resolve,
+  }), true);
 });
 
 test("property number predicate: range bounds and presence", () => {

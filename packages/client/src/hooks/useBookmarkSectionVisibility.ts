@@ -1,11 +1,11 @@
 import type { SectionMatches } from "../lib/workbenchLayout";
-import type { Bookmark, ConditionInput, LayoutSection, TagDescendants } from "@eesimple/types";
+import type { Bookmark, ConditionInput, EvaluateOptions, LayoutSection } from "@eesimple/types";
 
 import { useCallback, useMemo } from "react";
 
-import { buildTagDescendants, evaluateConditions } from "@eesimple/types";
+import { evaluateConditions } from "@eesimple/types";
 
-import { useTags } from "./useTags";
+import { useConditionEvaluateOptions } from "./useConditionEvaluateOptions";
 import { bookmarkToConditionInput } from "../lib/cardDisplayRules";
 
 /**
@@ -17,43 +17,31 @@ import { bookmarkToConditionInput } from "../lib/cardDisplayRules";
 export function sectionMatchesConditionInput(
   section: LayoutSection,
   input: ConditionInput,
-  tagDescendants: TagDescendants,
+  options: EvaluateOptions,
 ): boolean {
   const tree = section.visibleIf;
   if (!tree || tree.children.length === 0) return true;
-  return evaluateConditions(tree, input, {
-    tagDescendants,
-  });
+  return evaluateConditions(tree, input, options);
 }
 
 /**
  * A stable {@link SectionMatches} predicate for one bookmark: does a layout section's `visibleIf`
- * condition tree match this bookmark's data? Models `useResolveCardDisplay` — it loads the tags once
- * (already cached by React Query), builds the tag-cascade resolver a single time, and projects the
- * bookmark to a `ConditionInput` once, then evaluates the shared `evaluateConditions` per section.
+ * condition tree match this bookmark's data? Models `useResolveCardDisplay` — it builds the shared
+ * cascade resolvers once ({@link useConditionEvaluateOptions}) and projects the bookmark to a
+ * `ConditionInput` once, then evaluates the shared `evaluateConditions` per section.
  *
  * A section with no `visibleIf` (or an empty tree) is always visible — an empty condition group
  * evaluates to `false`, so that case is short-circuited before the evaluator ever runs. While the
  * bookmark is still loading (`undefined`) every section is optimistically shown, matching
- * `fieldRendersInMode`'s "include while loading" behavior. Location leaves match by exact id (no
- * cascade), matching `useResolveCardDisplay`'s current behavior.
+ * `fieldRendersInMode`'s "include while loading" behavior. All four hierarchical leaves honor their
+ * per-item cascade toggle via the shared evaluate options.
  */
 export function useBookmarkSectionVisibility(bookmark: Bookmark | undefined): SectionMatches {
-  const {
-    data: tags = [],
-  } = useTags();
-
-  const tagDescendants = useMemo(
-    () => buildTagDescendants(tags.map(tag => ({
-      id: tag.id,
-      parentId: tag.parentId,
-    }))),
-    [tags],
-  );
+  const options = useConditionEvaluateOptions();
   const input = useMemo(() => (bookmark ? bookmarkToConditionInput(bookmark) : null), [bookmark]);
 
   return useCallback<SectionMatches>(
-    section => (input ? sectionMatchesConditionInput(section, input, tagDescendants) : true),
-    [input, tagDescendants],
+    section => (input ? sectionMatchesConditionInput(section, input, options) : true),
+    [input, options],
   );
 }

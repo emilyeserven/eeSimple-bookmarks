@@ -8,17 +8,17 @@ import type {
   CardFieldZones,
   CardZoneLayouts,
   ConditionInput,
-  TagDescendants,
+  EvaluateOptions,
 } from "@eesimple/types";
 
 import { useCallback, useMemo } from "react";
 
-import { buildTagDescendants, defaultCardZoneLayouts, emptyCardFieldZones, evaluateConditions } from "@eesimple/types";
+import { defaultCardZoneLayouts, emptyCardFieldZones, evaluateConditions } from "@eesimple/types";
 
 import { STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { defaultBodyZone } from "./bookmarkCardValues";
 import { useCardDisplayRules } from "../hooks/useCardDisplayRules";
-import { useTags } from "../hooks/useTags";
+import { useConditionEvaluateOptions } from "../hooks/useConditionEvaluateOptions";
 import i18n from "../i18n";
 
 /**
@@ -102,12 +102,10 @@ export function bookmarkToConditionInput(bookmark: Bookmark): ConditionInput {
 function ruleMatches(
   rule: CardDisplayRule,
   input: ConditionInput,
-  tagDescendants: TagDescendants,
+  options: EvaluateOptions,
 ): boolean {
   if (rule.isDefault) return true;
-  return evaluateConditions(rule.conditions, input, {
-    tagDescendants,
-  });
+  return evaluateConditions(rule.conditions, input, options);
 }
 
 /** The overridable display attributes resolved by the layered merge — each nullable on a non-default rule. */
@@ -160,7 +158,7 @@ function takeFirstAttr<K extends MergeKey>(
 export function resolveCardDisplay(
   bookmark: Bookmark,
   rules: CardDisplayRule[],
-  tagDescendants: TagDescendants,
+  options: EvaluateOptions,
 ): ResolvedCardDisplay {
   const input = bookmarkToConditionInput(bookmark);
 
@@ -176,7 +174,7 @@ export function resolveCardDisplay(
   };
 
   for (const rule of rules) {
-    if (!ruleMatches(rule, input, tagDescendants)) continue;
+    if (!ruleMatches(rule, input, options)) continue;
     matchedRuleIds.push(rule.id);
     for (const key of MERGE_KEYS) takeFirstAttr(merged, source, rule, key);
   }
@@ -267,9 +265,9 @@ export interface BookmarkRuleInspection {
 export function inspectBookmarkRules(
   bookmark: Bookmark,
   rules: CardDisplayRule[],
-  tagDescendants: TagDescendants,
+  options: EvaluateOptions,
 ): BookmarkRuleInspection {
-  const resolved = resolveCardDisplay(bookmark, rules, tagDescendants);
+  const resolved = resolveCardDisplay(bookmark, rules, options);
   const input = bookmarkToConditionInput(bookmark);
 
   const ruleInspections = rules.map((rule): RuleInspection => {
@@ -291,7 +289,7 @@ export function inspectBookmarkRules(
     }
     return {
       rule,
-      matched: ruleMatches(rule, input, tagDescendants),
+      matched: ruleMatches(rule, input, options),
       attrs,
     };
   });
@@ -319,28 +317,18 @@ export function useResolveCardDisplay(): {
     data: rules = [],
     isPending: rulesPending,
   } = useCardDisplayRules();
-  const {
-    data: tags = [],
-    isPending: tagsPending,
-  } = useTags();
+  const options = useConditionEvaluateOptions();
 
   const sortedRules = useMemo(() => [...rules].sort(byPriority), [rules]);
-  const tagDescendants = useMemo(
-    () => buildTagDescendants(tags.map(tag => ({
-      id: tag.id,
-      parentId: tag.parentId,
-    }))),
-    [tags],
-  );
 
   const resolve = useCallback(
-    (bookmark: Bookmark) => resolveCardDisplay(bookmark, sortedRules, tagDescendants),
-    [sortedRules, tagDescendants],
+    (bookmark: Bookmark) => resolveCardDisplay(bookmark, sortedRules, options),
+    [sortedRules, options],
   );
 
   return {
     resolve,
-    isPending: rulesPending || tagsPending,
+    isPending: rulesPending,
   };
 }
 
@@ -354,25 +342,16 @@ export function useMatchingCardDisplayRules(bookmark: Bookmark | undefined): Car
   const {
     data: rules = [],
   } = useCardDisplayRules();
-  const {
-    data: tags = [],
-  } = useTags();
+  const options = useConditionEvaluateOptions();
 
   const sortedRules = useMemo(() => [...rules].sort(byPriority), [rules]);
-  const tagDescendants = useMemo(
-    () => buildTagDescendants(tags.map(tag => ({
-      id: tag.id,
-      parentId: tag.parentId,
-    }))),
-    [tags],
-  );
 
   return useMemo(() => {
     if (!bookmark) return [];
     const byId = new Map(rules.map(rule => [rule.id, rule]));
-    const resolved = resolveCardDisplay(bookmark, sortedRules, tagDescendants);
+    const resolved = resolveCardDisplay(bookmark, sortedRules, options);
     return resolved.provenance.matchedRuleIds
       .map(id => byId.get(id))
       .filter((rule): rule is CardDisplayRule => rule !== undefined);
-  }, [bookmark, rules, sortedRules, tagDescendants]);
+  }, [bookmark, rules, sortedRules, options]);
 }

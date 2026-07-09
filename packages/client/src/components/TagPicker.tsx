@@ -13,11 +13,14 @@ interface TagPickerProps {
   selectedIds: string[];
   onToggle: (id: string) => void;
   createOption?: CreateOption;
+  /** Per-item cascade "match child items" toggle (condition editors only). Omit for plain selection. */
+  cascadeValues?: string[];
+  onToggleCascade?: (id: string) => void;
 }
 
 /** Combobox multi-select for assigning a bookmark to any tier of the tag taxonomy. */
 export function TagPicker({
-  tree, selectedIds, onToggle, createOption,
+  tree, selectedIds, onToggle, createOption, cascadeValues, onToggleCascade,
 }: TagPickerProps) {
   const {
     t,
@@ -42,6 +45,8 @@ export function TagPicker({
       searchPlaceholder={t("Search tags…")}
       emptyText={t("No tags yet.")}
       createOption={createOption}
+      cascadeValues={cascadeValues}
+      onToggleCascade={onToggleCascade}
     />
   );
 }
