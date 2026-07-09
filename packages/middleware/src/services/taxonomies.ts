@@ -180,9 +180,13 @@ export function bulkDeleteTaxonomies(ids: string[]): Promise<BulkDeleteResult[]>
 }
 
 /**
- * Seed the built-in "Genres & Moods" taxonomy row (idempotent, insert-by-slug). Terms come from the
- * migrate.ts copy on existing installs, or start empty on a fresh install — matching today's
- * empty-on-fresh G&M. Slotted into the `ensure*` boot block in `src/index.ts`.
+ * Pre-seed the built-in "Genres & Moods" taxonomy row (idempotent, insert-by-slug), satisfying
+ * "G&M becomes a pre-seeded taxonomy in the DB". It is seeded **hidden + off-sidebar** on purpose:
+ * the bespoke `genre_moods` taxonomy is still live during this additive phase, so an un-hidden G&M
+ * taxonomy would render as a confusing duplicate (a second sidebar item + a second bookmark picker
+ * writing to a different table). The data-migration cutover (copy `genre_moods` → `taxonomy_terms`
+ * with stable UUIDs, unhide, and retire the bespoke G&M code — see the plan) is the remaining step.
+ * Slotted into the `ensure*` boot block in `src/index.ts`.
  */
 export async function ensureBuiltInTaxonomies(): Promise<void> {
   await db
@@ -194,8 +198,9 @@ export async function ensureBuiltInTaxonomies(): Promise<void> {
       hierarchical: true,
       singleValue: false,
       builtIn: true,
+      hidden: true,
       icon: "Drama",
-      showInSidebar: true,
+      showInSidebar: false,
       sortOrder: 0,
     })
     .onConflictDoNothing({
