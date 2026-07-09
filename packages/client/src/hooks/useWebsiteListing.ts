@@ -15,12 +15,13 @@ export function useWebsiteSortedItems(items: Website[]): Website[] {
   return sortWebsites(items, mode);
 }
 
-/** Narrows the website list by the four facet prefs in `uiStore` (category / media type / built-in / bookmarks). */
+/** Narrows the website list by the five facet prefs in `uiStore` (category / media type / built-in / bookmarks / ISBN scanning). */
 export function useWebsiteFacetFilter(items: Website[]): Website[] {
   const category = useUiStore(s => s.websiteCategoryFilter);
   const mediaType = useUiStore(s => s.websiteMediaTypeFilter);
   const builtIn = useUiStore(s => s.websiteBuiltInFilter);
   const bookmark = useUiStore(s => s.websiteBookmarkFilter);
+  const isbn = useUiStore(s => s.websiteIsbnFilter);
 
   return items.filter((w) => {
     if (category && w.category?.id !== category) return false;
@@ -29,6 +30,8 @@ export function useWebsiteFacetFilter(items: Website[]): Website[] {
     if (builtIn === "custom" && w.builtIn) return false;
     if (bookmark === "has" && (w.bookmarkCount ?? 0) === 0) return false;
     if (bookmark === "empty" && (w.bookmarkCount ?? 0) !== 0) return false;
+    if (isbn === "can" && !w.scanUrlForIsbn) return false;
+    if (isbn === "cannot" && w.scanUrlForIsbn) return false;
     return true;
   });
 }
