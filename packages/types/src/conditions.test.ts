@@ -4,7 +4,7 @@ import { test } from "node:test";
 import type { ConditionInput, ConditionNode } from "./conditions.js";
 
 import {
-  buildGenreMoodDescendants,
+  buildTaxonomyTermDescendants,
   buildLocationDescendants,
   buildMediaTypeDescendants,
   buildTagDescendants,
@@ -36,7 +36,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     categoryId: "cat-1",
     tagIds: new Set(),
     locationIds: new Set(),
-    genreMoodIds: new Set(),
+    taxonomyTermIds: new Set(),
     youtubeChannelId: null,
     mediaTypeId: null,
     relationshipTypeIds: new Set(),
@@ -404,7 +404,7 @@ test("language-usage matches both constraints on a single association row", () =
 
 test("genre-mood matches on presence of any listed id; empty never matches", () => {
   const input = makeInput({
-    genreMoodIds: new Set(["gm-a"]),
+    taxonomyTermIds: new Set(["gm-a"]),
   });
   assert.equal(evaluateConditions({
     type: "genre-mood",
@@ -503,9 +503,9 @@ test("media-type per-item cascade: absent = legacy exact; flagged id matches its
 });
 
 test("genre-mood per-item cascade: absent = legacy exact; flagged id matches its subtree", () => {
-  const resolve = buildGenreMoodDescendants(cascadeTree);
+  const resolve = buildTaxonomyTermDescendants(cascadeTree);
   const input = makeInput({
-    genreMoodIds: new Set(["child"]),
+    taxonomyTermIds: new Set(["child"]),
   });
 
   // Absent cascade set (legacy) → exact only → parent does NOT match a descendant genre.
@@ -513,7 +513,7 @@ test("genre-mood per-item cascade: absent = legacy exact; flagged id matches its
     type: "genre-mood",
     genreMoodIds: ["parent"],
   }, input, {
-    genreMoodDescendants: resolve,
+    taxonomyTermDescendants: resolve,
   }), false);
   // Flagged to cascade → any descendant present on the bookmark matches.
   assert.equal(evaluateConditions({
@@ -521,7 +521,7 @@ test("genre-mood per-item cascade: absent = legacy exact; flagged id matches its
     genreMoodIds: ["parent"],
     cascadeGenreMoodIds: ["parent"],
   }, input, {
-    genreMoodDescendants: resolve,
+    taxonomyTermDescendants: resolve,
   }), true);
 });
 

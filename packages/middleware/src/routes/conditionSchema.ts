@@ -134,6 +134,23 @@ const genreMoodNode = {
   },
 } as const;
 
+const taxonomyNode = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "taxonomyId", "termIds"],
+  properties: {
+    type: {
+      const: "taxonomy",
+    },
+    taxonomyId: {
+      type: "string",
+      format: "uuid",
+    },
+    termIds: uuidArray,
+    cascadeTermIds: uuidArray,
+  },
+} as const;
+
 const relationshipTypeNode = {
   type: "object",
   additionalProperties: false,
@@ -458,7 +475,7 @@ const groupNode = {
 /** Any node in the tree (group or one of the leaf kinds). Self-references for nesting. */
 export const conditionNodeSchema = {
   $id: "conditionNode",
-  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, locationNode, youtubeChannelNode, mediaTypeNode, genreMoodNode, relationshipTypeNode, languageUsageNode, propertyNode],
+  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, locationNode, youtubeChannelNode, mediaTypeNode, genreMoodNode, taxonomyNode, relationshipTypeNode, languageUsageNode, propertyNode],
 } as const;
 
 /** The persisted root: always a group. Referenced by request bodies as `conditionTree#`. */

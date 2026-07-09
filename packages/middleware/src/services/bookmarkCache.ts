@@ -1,6 +1,6 @@
 import { and, eq, inArray, or } from "drizzle-orm";
 import type { BookmarkSectionsValue, ConditionInput, EvaluateOptions, SectionEntry, TagDescendants } from "@eesimple/types";
-import { buildGenreMoodDescendants, buildLocationDescendants, buildMediaTypeDescendants, buildTagDescendants } from "@eesimple/types";
+import { buildLocationDescendants, buildMediaTypeDescendants, buildTagDescendants, buildTaxonomyTermDescendants } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
@@ -16,12 +16,12 @@ import {
   bookmarks,
   type BookmarkRow,
   bookmarkTags,
-  genreMoodAssignments,
-  genreMoods,
   languageUsages,
   locations,
   mediaTypes,
   tags,
+  taxonomyAssignments,
+  taxonomyTerms,
 } from "@/db/schema";
 import { bookmarkCacheVersion } from "@/services/bookmarkCacheVersion";
 import { resolveDefaultCategoryId } from "@/services/categories";
@@ -54,9 +54,9 @@ export interface BookmarkEvaluationData {
   locationDescendants: TagDescendants;
   /** Media-type descendant resolver for the per-item media-type cascade toggle. */
   mediaTypeDescendants: TagDescendants;
-  /** Genre & Mood descendant resolver for the per-item genre-mood cascade toggle. */
-  genreMoodDescendants: TagDescendants;
-  /** The four cascade resolvers pre-bundled as `EvaluateOptions` — pass straight to `evaluateConditions`. */
+  /** User-taxonomy term descendant resolver (also backs the legacy genre-mood cascade toggle). */
+  taxonomyTermDescendants: TagDescendants;
+  /** The cascade resolvers pre-bundled as `EvaluateOptions` — pass straight to `evaluateConditions`. */
   evaluateOptions: EvaluateOptions;
 }
 
@@ -112,13 +112,13 @@ async function loadEvaluationData(): Promise<BookmarkEvaluationData> {
     .from(mediaTypes);
   const mediaTypeDescendants = buildMediaTypeDescendants(mediaTypeRows);
 
-  const genreMoodRows = await db
+  const taxonomyTermRows = await db
     .select({
-      id: genreMoods.id,
-      parentId: genreMoods.parentId,
+      id: taxonomyTerms.id,
+      parentId: taxonomyTerms.parentId,
     })
-    .from(genreMoods);
-  const genreMoodDescendants = buildGenreMoodDescendants(genreMoodRows);
+    .from(taxonomyTerms);
+  const taxonomyTermDescendants = buildTaxonomyTermDescendants(taxonomyTermRows);
 
   const baseRows = await db.select().from(bookmarks);
   const conditionInputs = await buildConditionInputs(baseRows, defaultCategoryId);
@@ -128,12 +128,12 @@ async function loadEvaluationData(): Promise<BookmarkEvaluationData> {
     tagDescendants,
     locationDescendants,
     mediaTypeDescendants,
-    genreMoodDescendants,
+    taxonomyTermDescendants,
     evaluateOptions: {
       tagDescendants,
       locationDescendants,
       mediaTypeDescendants,
-      genreMoodDescendants,
+      taxonomyTermDescendants,
     },
   };
 }
@@ -173,7 +173,7 @@ function groupToMaps<T, V>(
 /** The per-bookmark grouped value maps that back {@link assembleConditionInput}. */
 export interface ConditionInputGroups {
   tagsByBid: Map<string, Set<string>>;
-  genreMoodsByBid: Map<string, Set<string>>;
+  taxonomyTermsByBid: Map<string, Set<string>>;
   locationsByBid: Map<string, Set<string>>;
   numsByBid: Map<string, Map<string, number>>;
   boolsByBid: Map<string, Map<string, boolean>>;
@@ -204,7 +204,7 @@ export function assembleConditionInput(
     title: row.title,
     categoryId: row.categoryId ?? defaultCategoryId,
     tagIds: groups.tagsByBid.get(row.id) ?? new Set(),
-    genreMoodIds: groups.genreMoodsByBid.get(row.id) ?? new Set(),
+    taxonomyTermIds: groups.taxonomyTermsByBid.get(row.id) ?? new Set(),
     locationIds: groups.locationsByBid.get(row.id) ?? new Set(),
     youtubeChannelId: row.youtubeChannelId ?? null,
     mediaTypeId: row.mediaTypeId ?? null,
@@ -228,7 +228,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, genreMoodRows, locationRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows, languageUsageRows] = await Promise.all([
+  const [tagRows, taxonomyTermRows, locationRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows, languageUsageRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -238,13 +238,13 @@ async function buildConditionInputs(
       .where(inArray(bookmarkTags.bookmarkId, ids)),
     db
       .select({
-        bookmarkId: genreMoodAssignments.ownerId,
-        genreMoodId: genreMoodAssignments.genreMoodId,
+        bookmarkId: taxonomyAssignments.ownerId,
+        termId: taxonomyAssignments.termId,
       })
-      .from(genreMoodAssignments)
+      .from(taxonomyAssignments)
       .where(and(
-        eq(genreMoodAssignments.ownerType, "bookmark"),
-        inArray(genreMoodAssignments.ownerId, ids),
+        eq(taxonomyAssignments.ownerType, "bookmark"),
+        inArray(taxonomyAssignments.ownerId, ids),
       )),
     db
       .select({
@@ -341,7 +341,7 @@ async function buildConditionInputs(
   ]);
 
   const tagsByBid = groupToSets(tagRows, r => r.bookmarkId, r => r.tagId);
-  const genreMoodsByBid = groupToSets(genreMoodRows, r => r.bookmarkId, r => r.genreMoodId);
+  const taxonomyTermsByBid = groupToSets(taxonomyTermRows, r => r.bookmarkId, r => r.termId);
   const locationsByBid = groupToSets(locationRows, r => r.bookmarkId, r => r.locationId);
   const numsByBid = groupToMaps(numberRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
   const boolsByBid = groupToMaps(booleanRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
@@ -403,7 +403,7 @@ async function buildConditionInputs(
 
   const groups: ConditionInputGroups = {
     tagsByBid,
-    genreMoodsByBid,
+    taxonomyTermsByBid,
     locationsByBid,
     numsByBid,
     boolsByBid,

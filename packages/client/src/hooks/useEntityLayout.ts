@@ -1,11 +1,16 @@
 import type { DynamicFieldSet, EntityWorkbench } from "../components/workbench/types";
-import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
+import type { EntityLayout, LayoutStorageKind } from "@eesimple/types";
 
 import { useMemo } from "react";
 
 import { resolveLayout } from "@eesimple/types";
 
 import { useEntityLayouts } from "./useEntityLayouts";
+import {
+  layoutKindToTaxonomyOwnerType,
+  TAXONOMY_FIELD_HOME,
+  useTaxonomyDynamicFields,
+} from "../components/TaxonomyLayoutFields";
 import { augmentDefaultLayout, knownFieldKeys } from "../lib/workbenchLayout";
 
 /** Stable empty dynamic-field set for entities without a `useDynamicFields` source (the common case). */
@@ -31,7 +36,7 @@ function useNoDynamicFields<E extends { id: string }>(): DynamicFieldSet<E> {
  * store (`GET /api/entity-layouts`, one cached query shared across the app) and picks this kind's row.
  * The Page Layouts editor that *writes* the store is #1160/#1162 — this hook only reads.
  */
-export function useEntityLayout(kind: LayoutableEntityKind | undefined): EntityLayout | null {
+export function useEntityLayout(kind: LayoutStorageKind | undefined): EntityLayout | null {
   // Called unconditionally (Rules of Hooks) even for registry-less kinds; a single shared query.
   const {
     data,
@@ -74,18 +79,32 @@ export function useLayoutDrivenWorkbench<E extends { id: string }>(
 ): EntityWorkbench<E> {
   const useDynamicFields = workbench.useDynamicFields ?? useNoDynamicFields<E>;
   const dynamic = useDynamicFields();
+  // Centrally inject one placeable field per user taxonomy on every layout-driven owner (bookmarks +
+  // all taxonomy entities), keyed off the descriptor's `layoutKind` — so a taxonomy surfaces on its
+  // owners' view/edit pages without per-descriptor wiring. A no-op for config/non-owner kinds.
+  const taxonomyDynamic = useTaxonomyDynamicFields<E>(
+    layoutKindToTaxonomyOwnerType(workbench.layoutKind),
+    TAXONOMY_FIELD_HOME,
+  );
   return useMemo(() => {
-    const dynamicKeys = Object.keys(dynamic.fields);
-    if (dynamicKeys.length === 0) return workbench;
+    const descriptorKeys = Object.keys(dynamic.fields);
+    const taxonomyKeys = Object.keys(taxonomyDynamic.fields);
+    if (descriptorKeys.length === 0 && taxonomyKeys.length === 0) return workbench;
+    let defaultLayout = workbench.defaultLayout;
+    if (defaultLayout && descriptorKeys.length > 0) {
+      defaultLayout = augmentDefaultLayout(defaultLayout, descriptorKeys, dynamic.defaultHome);
+    }
+    if (defaultLayout && taxonomyKeys.length > 0) {
+      defaultLayout = augmentDefaultLayout(defaultLayout, taxonomyKeys, taxonomyDynamic.defaultHome);
+    }
     return {
       ...workbench,
       fields: {
         ...workbench.fields,
         ...dynamic.fields,
+        ...taxonomyDynamic.fields,
       },
-      defaultLayout: workbench.defaultLayout
-        ? augmentDefaultLayout(workbench.defaultLayout, dynamicKeys, dynamic.defaultHome)
-        : workbench.defaultLayout,
+      defaultLayout,
     };
-  }, [workbench, dynamic]);
+  }, [workbench, dynamic, taxonomyDynamic]);
 }

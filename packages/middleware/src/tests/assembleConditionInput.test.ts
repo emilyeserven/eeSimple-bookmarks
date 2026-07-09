@@ -8,7 +8,7 @@ import { assembleConditionInput, type ConditionInputGroups } from "@/services/bo
 function emptyGroups(): ConditionInputGroups {
   return {
     tagsByBid: new Map(),
-    genreMoodsByBid: new Map(),
+    taxonomyTermsByBid: new Map(),
     locationsByBid: new Map(),
     numsByBid: new Map(),
     boolsByBid: new Map(),
@@ -41,7 +41,7 @@ test("assembleConditionInput falls back to empty collections and the default cat
   assert.equal(input.url, "https://example.com");
   assert.equal(input.youtubeChannelId, null);
   assert.equal(input.tagIds.size, 0);
-  assert.equal(input.genreMoodIds.size, 0);
+  assert.equal(input.taxonomyTermIds?.size ?? 0, 0);
   assert.equal(input.numberValues.size, 0);
   assert.deepEqual(input.languageUsages, []);
   assert.deepEqual(input.names, []);

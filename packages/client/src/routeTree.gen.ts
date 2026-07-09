@@ -45,9 +45,11 @@ import { Route as TaxonomiesLanguageUsageLevelsRouteImport } from './routes/taxo
 import { Route as TaxonomiesGroupsRouteImport } from './routes/taxonomies.groups'
 import { Route as TaxonomiesGroupTypesRouteImport } from './routes/taxonomies.group-types'
 import { Route as TaxonomiesGenresMoodsRouteImport } from './routes/taxonomies.genres-moods'
+import { Route as TaxonomiesTaxonomyKeyRouteImport } from './routes/taxonomies.$taxonomyKey'
 import { Route as TagsTagSlugRouteImport } from './routes/tags.$tagSlug'
 import { Route as SettingsYoutubeChannelsRouteImport } from './routes/settings.youtube-channels'
 import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites'
+import { Route as SettingsTaxonomiesRouteImport } from './routes/settings.taxonomies'
 import { Route as SettingsSavedFiltersRouteImport } from './routes/settings.saved-filters'
 import { Route as SettingsRelationshipsRouteImport } from './routes/settings.relationships'
 import { Route as SettingsPageLayoutsRouteImport } from './routes/settings.page-layouts'
@@ -442,6 +444,11 @@ const TaxonomiesGenresMoodsRoute = TaxonomiesGenresMoodsRouteImport.update({
   path: '/taxonomies/genres-moods',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaxonomiesTaxonomyKeyRoute = TaxonomiesTaxonomyKeyRouteImport.update({
+  id: '/taxonomies/$taxonomyKey',
+  path: '/taxonomies/$taxonomyKey',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TagsTagSlugRoute = TagsTagSlugRouteImport.update({
   id: '/$tagSlug',
   path: '/$tagSlug',
@@ -455,6 +462,11 @@ const SettingsYoutubeChannelsRoute = SettingsYoutubeChannelsRouteImport.update({
 const SettingsWebsitesRoute = SettingsWebsitesRouteImport.update({
   id: '/websites',
   path: '/websites',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsTaxonomiesRoute = SettingsTaxonomiesRouteImport.update({
+  id: '/taxonomies',
+  path: '/taxonomies',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsSavedFiltersRoute = SettingsSavedFiltersRouteImport.update({
@@ -1685,9 +1697,11 @@ export interface FileRoutesByFullPath {
   '/settings/page-layouts': typeof SettingsPageLayoutsRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
+  '/settings/taxonomies': typeof SettingsTaxonomiesRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
   '/tags/$tagSlug': typeof TagsTagSlugHubRouteWithChildren
+  '/taxonomies/$taxonomyKey': typeof TaxonomiesTaxonomyKeyRoute
   '/taxonomies/genres-moods': typeof TaxonomiesGenresMoodsRouteWithChildren
   '/taxonomies/group-types': typeof TaxonomiesGroupTypesRouteWithChildren
   '/taxonomies/groups': typeof TaxonomiesGroupsRouteWithChildren
@@ -1904,9 +1918,11 @@ export interface FileRoutesByTo {
   '/settings/page-layouts': typeof SettingsPageLayoutsRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
+  '/settings/taxonomies': typeof SettingsTaxonomiesRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
   '/tags/$tagSlug': typeof TagsTagSlugHubIndexRoute
+  '/taxonomies/$taxonomyKey': typeof TaxonomiesTaxonomyKeyRoute
   '/taxonomies/translation-sources': typeof TaxonomiesTranslationSourcesRoute
   '/autofill': typeof AutofillIndexRoute
   '/bookmarks': typeof BookmarksIndexRoute
@@ -2094,9 +2110,11 @@ export interface FileRoutesById {
   '/settings/page-layouts': typeof SettingsPageLayoutsRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
+  '/settings/taxonomies': typeof SettingsTaxonomiesRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
   '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
+  '/taxonomies/$taxonomyKey': typeof TaxonomiesTaxonomyKeyRoute
   '/taxonomies/genres-moods': typeof TaxonomiesGenresMoodsRouteWithChildren
   '/taxonomies/group-types': typeof TaxonomiesGroupTypesRouteWithChildren
   '/taxonomies/groups': typeof TaxonomiesGroupsRouteWithChildren
@@ -2345,9 +2363,11 @@ export interface FileRouteTypes {
     | '/settings/page-layouts'
     | '/settings/relationships'
     | '/settings/saved-filters'
+    | '/settings/taxonomies'
     | '/settings/websites'
     | '/settings/youtube-channels'
     | '/tags/$tagSlug'
+    | '/taxonomies/$taxonomyKey'
     | '/taxonomies/genres-moods'
     | '/taxonomies/group-types'
     | '/taxonomies/groups'
@@ -2564,9 +2584,11 @@ export interface FileRouteTypes {
     | '/settings/page-layouts'
     | '/settings/relationships'
     | '/settings/saved-filters'
+    | '/settings/taxonomies'
     | '/settings/websites'
     | '/settings/youtube-channels'
     | '/tags/$tagSlug'
+    | '/taxonomies/$taxonomyKey'
     | '/taxonomies/translation-sources'
     | '/autofill'
     | '/bookmarks'
@@ -2753,9 +2775,11 @@ export interface FileRouteTypes {
     | '/settings/page-layouts'
     | '/settings/relationships'
     | '/settings/saved-filters'
+    | '/settings/taxonomies'
     | '/settings/websites'
     | '/settings/youtube-channels'
     | '/tags/$tagSlug'
+    | '/taxonomies/$taxonomyKey'
     | '/taxonomies/genres-moods'
     | '/taxonomies/group-types'
     | '/taxonomies/groups'
@@ -2977,6 +3001,7 @@ export interface RootRouteChildren {
   SavedFiltersRoute: typeof SavedFiltersRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   TagsRoute: typeof TagsRouteWithChildren
+  TaxonomiesTaxonomyKeyRoute: typeof TaxonomiesTaxonomyKeyRoute
   TaxonomiesGenresMoodsRoute: typeof TaxonomiesGenresMoodsRouteWithChildren
   TaxonomiesGroupTypesRoute: typeof TaxonomiesGroupTypesRouteWithChildren
   TaxonomiesGroupsRoute: typeof TaxonomiesGroupsRouteWithChildren
@@ -3248,6 +3273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesGenresMoodsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/taxonomies/$taxonomyKey': {
+      id: '/taxonomies/$taxonomyKey'
+      path: '/taxonomies/$taxonomyKey'
+      fullPath: '/taxonomies/$taxonomyKey'
+      preLoaderRoute: typeof TaxonomiesTaxonomyKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tags/$tagSlug': {
       id: '/tags/$tagSlug'
       path: '/$tagSlug'
@@ -3267,6 +3299,13 @@ declare module '@tanstack/react-router' {
       path: '/websites'
       fullPath: '/settings/websites'
       preLoaderRoute: typeof SettingsWebsitesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/taxonomies': {
+      id: '/settings/taxonomies'
+      path: '/taxonomies'
+      fullPath: '/settings/taxonomies'
+      preLoaderRoute: typeof SettingsTaxonomiesRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/saved-filters': {
@@ -5173,6 +5212,7 @@ interface SettingsRouteChildren {
   SettingsPageLayoutsRoute: typeof SettingsPageLayoutsRoute
   SettingsRelationshipsRoute: typeof SettingsRelationshipsRoute
   SettingsSavedFiltersRoute: typeof SettingsSavedFiltersRoute
+  SettingsTaxonomiesRoute: typeof SettingsTaxonomiesRoute
   SettingsWebsitesRoute: typeof SettingsWebsitesRoute
   SettingsYoutubeChannelsRoute: typeof SettingsYoutubeChannelsRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -5196,6 +5236,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsPageLayoutsRoute: SettingsPageLayoutsRoute,
   SettingsRelationshipsRoute: SettingsRelationshipsRoute,
   SettingsSavedFiltersRoute: SettingsSavedFiltersRoute,
+  SettingsTaxonomiesRoute: SettingsTaxonomiesRoute,
   SettingsWebsitesRoute: SettingsWebsitesRoute,
   SettingsYoutubeChannelsRoute: SettingsYoutubeChannelsRoute,
   SettingsIndexRoute: SettingsIndexRoute,
@@ -6158,6 +6199,7 @@ const rootRouteChildren: RootRouteChildren = {
   SavedFiltersRoute: SavedFiltersRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   TagsRoute: TagsRouteWithChildren,
+  TaxonomiesTaxonomyKeyRoute: TaxonomiesTaxonomyKeyRoute,
   TaxonomiesGenresMoodsRoute: TaxonomiesGenresMoodsRouteWithChildren,
   TaxonomiesGroupTypesRoute: TaxonomiesGroupTypesRouteWithChildren,
   TaxonomiesGroupsRoute: TaxonomiesGroupsRouteWithChildren,

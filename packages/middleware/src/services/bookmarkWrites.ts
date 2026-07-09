@@ -25,7 +25,7 @@ import {
   bookmarkTags,
   calculatePropertyOperands,
   customProperties,
-  genreMoodAssignments,
+  taxonomyAssignments,
 } from "@/db/schema";
 
 /** A Drizzle transaction handle, as passed to the `db.transaction` callback. */
@@ -70,11 +70,22 @@ export async function linkTags(tx: Tx, bookmarkId: string, tagIds: string[] | un
   })));
 }
 
-/** Insert assignment rows linking a bookmark to the given Genres & Moods ids (no-op when empty). */
-export async function linkGenreMoods(tx: Tx, bookmarkId: string, genreMoodIds: string[] | undefined): Promise<void> {
-  if (!genreMoodIds || genreMoodIds.length === 0) return;
-  await tx.insert(genreMoodAssignments).values([...new Set(genreMoodIds)].map(genreMoodId => ({
-    genreMoodId,
+/**
+ * Insert assignment rows linking a bookmark to the given Genres & Moods ids (no-op when empty).
+ * G&M is now an ordinary taxonomy, so this writes `taxonomy_assignments` scoped to the G&M taxonomy
+ * id (the term ids are unchanged by the migration). The caller resolves `genreMoodsTaxonomyId` once
+ * via `getGenreMoodsTaxonomyId()`; a `null` id (G&M demoted away) no-ops.
+ */
+export async function linkGenreMoods(
+  tx: Tx,
+  bookmarkId: string,
+  genreMoodIds: string[] | undefined,
+  genreMoodsTaxonomyId: string | null,
+): Promise<void> {
+  if (!genreMoodIds || genreMoodIds.length === 0 || !genreMoodsTaxonomyId) return;
+  await tx.insert(taxonomyAssignments).values([...new Set(genreMoodIds)].map(termId => ({
+    taxonomyId: genreMoodsTaxonomyId,
+    termId,
     ownerType: "bookmark" as const,
     ownerId: bookmarkId,
   })));

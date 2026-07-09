@@ -18,6 +18,7 @@ import { SidebarCategoriesSection } from "./SidebarCategoriesSection";
 import { SidebarCountBadge } from "./SidebarCountBadge";
 import { SidebarPrimaryNav } from "./SidebarPrimaryNav";
 import { SidebarSavedFiltersSection } from "./SidebarSavedFiltersSection";
+import { SidebarUserTaxonomiesSection } from "./SidebarUserTaxonomiesSection";
 import { useAppSidebarData } from "./useAppSidebarData";
 
 import {
@@ -309,6 +310,13 @@ export function AppSidebar({
             />
           )
           : null}
+
+        {!hiddenSidebarGroups.includes("taxonomies") && (
+          <SidebarUserTaxonomiesSection
+            sidebarState={state}
+            pathname={pathname}
+          />
+        )}
 
         {!hiddenSidebarGroups.includes("customization") && (visibleCustomizationItems.length > 0 || seeMoreCustomizationItemsList.length > 0)
           ? (

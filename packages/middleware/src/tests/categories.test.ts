@@ -4,7 +4,7 @@ import {
   bookmarks,
   categories,
   entityNames,
-  genreMoodAssignments,
+  taxonomyAssignments,
 } from "@/db/schema";
 import { createFakeDb, resetFakeIds } from "@/tests/testDbHelpers";
 
@@ -24,7 +24,7 @@ const DEFAULT_CATEGORY_ID = "default-category-id";
 // Mutable, never-reassigned fixture arrays — the fake `db` closes over these by reference.
 const categoryRows: Record<string, unknown>[] = [];
 const bookmarkRows: Record<string, unknown>[] = [];
-const genreMoodAssignmentRows: Record<string, unknown>[] = [];
+const taxonomyAssignmentRows: Record<string, unknown>[] = [];
 const entityNameRows: Record<string, unknown>[] = [];
 
 // Per-test override for the app-configured default category, read by the mocked
@@ -35,7 +35,7 @@ let automationDefaultCategoryId: string | null = null;
 function resetRows(opts: {
   categories?: Record<string, unknown>[];
   bookmarks?: Record<string, unknown>[];
-  genreMoodAssignments?: Record<string, unknown>[];
+  taxonomyAssignments?: Record<string, unknown>[];
   entityNames?: Record<string, unknown>[];
 }): void {
   resetFakeIds();
@@ -54,8 +54,8 @@ function resetRows(opts: {
   categoryRows.push(defaultRow, ...(opts.categories ?? []));
   bookmarkRows.length = 0;
   bookmarkRows.push(...(opts.bookmarks ?? []));
-  genreMoodAssignmentRows.length = 0;
-  genreMoodAssignmentRows.push(...(opts.genreMoodAssignments ?? []));
+  taxonomyAssignmentRows.length = 0;
+  taxonomyAssignmentRows.push(...(opts.taxonomyAssignments ?? []));
   entityNameRows.length = 0;
   entityNameRows.push(...(opts.entityNames ?? []));
 }
@@ -70,8 +70,8 @@ const db = createFakeDb([
     rows: bookmarkRows,
   },
   {
-    table: genreMoodAssignments,
-    rows: genreMoodAssignmentRows,
+    table: taxonomyAssignments,
+    rows: taxonomyAssignmentRows,
   },
   {
     table: entityNames,
@@ -191,7 +191,7 @@ test("deleteCategory: cleans up genre/mood + entity-name rows, reassigns orphane
         categoryId: "cat-1",
       },
     ],
-    genreMoodAssignments: [
+    taxonomyAssignments: [
       {
         id: "gma-1",
         ownerType: "category",
@@ -223,7 +223,7 @@ test("deleteCategory: cleans up genre/mood + entity-name rows, reassigns orphane
   assert.equal(categoryRows.some(row => row.id === "cat-1"), false);
 
   // Only the category-owned genre/mood assignment was cleaned up; the bookmark-owned one survives.
-  assert.deepEqual(genreMoodAssignmentRows.map(row => row.id), ["gma-2"]);
+  assert.deepEqual(taxonomyAssignmentRows.map(row => row.id), ["gma-2"]);
 
   // The category's entity-name row was cleaned up.
   assert.equal(entityNameRows.length, 0);

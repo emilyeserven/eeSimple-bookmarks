@@ -1,4 +1,4 @@
-import type { EntityLayout, LayoutableEntityKind } from "@eesimple/types";
+import type { EntityLayout, LayoutStorageKind } from "@eesimple/types";
 import type { LinkProps } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -121,7 +121,7 @@ export interface EntityWorkbench<E extends { id: string }> {
    * dispatched by mode) instead of `tabs`/pane `render`. Omit all three and the entity keeps its opaque
    * `tabs`/panes untouched — migration is incremental (per-entity registries land in #1161/#1163+).
    */
-  layoutKind?: LayoutableEntityKind;
+  layoutKind?: LayoutStorageKind;
   /**
    * The field registry: field key → mode-aware {@link WorkbenchField}. Authored per entity as an
    * exhaustive `Record<FieldKey, WorkbenchField<E>>` (the `bookmarkAddFormFields.tsx` FIELD_RENDERERS

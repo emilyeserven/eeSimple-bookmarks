@@ -40,6 +40,10 @@ function summarizeNode(node: ConditionNode): string {
       return node.genreMoodIds.length === 1
         ? "Genres & Moods is (1)"
         : `Genres & Moods is one of (${node.genreMoodIds.length})`;
+    case "taxonomy":
+      return node.termIds.length === 1
+        ? "taxonomy term is (1)"
+        : `taxonomy term is one of (${node.termIds.length})`;
     case "relationship-type":
       return node.relationshipTypeIds.length === 1
         ? "has a relationship of type (1)"

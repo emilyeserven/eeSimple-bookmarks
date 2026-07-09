@@ -41,7 +41,8 @@ export function formStateToConditionInput(
     categoryId: values.categoryId,
     tagIds: new Set(values.tagIds),
     locationIds: new Set(values.locationIds),
-    genreMoodIds: new Set(values.genreMoodIds),
+    // G&M ids are taxonomy term ids now, matched via the taxonomy/legacy-genre-mood leaves.
+    taxonomyTermIds: new Set(values.genreMoodIds),
     youtubeChannelId: values.youtubeChannelId || null,
     mediaTypeId,
     numberValues: new Map([

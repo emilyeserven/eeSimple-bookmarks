@@ -1,97 +1,51 @@
-import { and, asc, eq } from "drizzle-orm";
-import type { BookmarkGenreMood, GenreMoodOwnerType } from "@eesimple/types";
-import { db } from "@/db";
-import { genreMoodAssignments, genreMoods } from "@/db/schema";
-import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
-import { slugify } from "@/utils/slug";
+import type { BookmarkGenreMood, GenreMoodOwnerType, TaxonomyOwnerType } from "@eesimple/types";
+import {
+  getOwnerTaxonomyTerms,
+  listTermIdsByOwnerType,
+  setOwnerTaxonomyTerms,
+} from "@/services/taxonomyAssignments";
+import { getGenreMoodsTaxonomyId } from "@/services/taxonomies";
 
-/** The Genres & Moods entries attached to a single owner (bookmark or taxonomy entity). */
+/**
+ * Legacy "Genres & Moods assignment" service — after the cutover, G&M is an ordinary taxonomy, so
+ * these delegate to the generic taxonomy-assignment service scoped to the G&M taxonomy id. The
+ * `genreMood` self-owner type maps to the generic `taxonomy` owner. Callers (routes, the client)
+ * are unchanged. The old `deleteGenreMoodAssignmentsForOwner` is gone — every owner delete already
+ * calls `deleteTaxonomyAssignmentsForOwner`, which removes G&M rows too.
+ */
+
+/** Map the legacy `genreMood` self-owner to the generic `taxonomy` owner; pass every other type through. */
+function toTaxonomyOwnerType(ownerType: GenreMoodOwnerType): TaxonomyOwnerType {
+  return ownerType === "genreMood" ? "taxonomy" : ownerType;
+}
+
+/** The Genres & Moods entries attached to a single owner. */
 export async function getOwnerGenreMoods(
   ownerType: GenreMoodOwnerType,
   ownerId: string,
 ): Promise<BookmarkGenreMood[]> {
-  const rows = await db
-    .select({
-      id: genreMoods.id,
-      name: genreMoods.name,
-      slug: genreMoods.slug,
-      parentId: genreMoods.parentId,
-    })
-    .from(genreMoodAssignments)
-    .innerJoin(genreMoods, eq(genreMoodAssignments.genreMoodId, genreMoods.id))
-    .where(and(
-      eq(genreMoodAssignments.ownerType, ownerType),
-      eq(genreMoodAssignments.ownerId, ownerId),
-    ))
-    .orderBy(asc(genreMoods.name));
-  return rows.map(row => ({
-    id: row.id,
-    name: row.name,
-    slug: row.slug ?? slugify(row.name),
-    parentId: row.parentId,
-  }));
+  const taxonomyId = await getGenreMoodsTaxonomyId();
+  if (!taxonomyId) return [];
+  const terms = await getOwnerTaxonomyTerms(toTaxonomyOwnerType(ownerType), ownerId);
+  return terms.filter(term => term.taxonomyId === taxonomyId);
 }
 
-/**
- * The Genres & Moods ids attached to every owner of one `ownerType`, grouped by `ownerId`. Powers
- * the bookmark-listing "Media" tab's independent-match check (see `mediaItemsForBookmarks.ts`)
- * without an N+1 per media item.
- */
+/** The Genres & Moods ids attached to every owner of one `ownerType`, grouped by `ownerId`. */
 export async function listGenreMoodIdsByOwnerType(
   ownerType: GenreMoodOwnerType,
 ): Promise<Record<string, string[]>> {
-  const rows = await db
-    .select({
-      ownerId: genreMoodAssignments.ownerId,
-      genreMoodId: genreMoodAssignments.genreMoodId,
-    })
-    .from(genreMoodAssignments)
-    .where(eq(genreMoodAssignments.ownerType, ownerType));
-  const byOwner: Record<string, string[]> = {};
-  for (const row of rows) {
-    (byOwner[row.ownerId] ??= []).push(row.genreMoodId);
-  }
-  return byOwner;
+  const taxonomyId = await getGenreMoodsTaxonomyId();
+  if (!taxonomyId) return {};
+  return listTermIdsByOwnerType(taxonomyId, toTaxonomyOwnerType(ownerType));
 }
 
-/**
- * Replace the full set of Genres & Moods entries attached to one owner (delete-then-insert for that
- * owner only). Bookmark owners refresh the bookmark cache since the attachment is matchable data.
- */
+/** Replace the full set of Genres & Moods entries attached to one owner. */
 export async function setOwnerGenreMoods(
   ownerType: GenreMoodOwnerType,
   ownerId: string,
   genreMoodIds: string[],
 ): Promise<BookmarkGenreMood[]> {
-  const unique = [...new Set(genreMoodIds)];
-  await db.transaction(async (tx) => {
-    await tx.delete(genreMoodAssignments).where(and(
-      eq(genreMoodAssignments.ownerType, ownerType),
-      eq(genreMoodAssignments.ownerId, ownerId),
-    ));
-    if (unique.length > 0) {
-      await tx.insert(genreMoodAssignments).values(unique.map(genreMoodId => ({
-        genreMoodId,
-        ownerType,
-        ownerId,
-      })));
-    }
-  });
-  if (ownerType === "bookmark") invalidateBookmarkCache();
-  return getOwnerGenreMoods(ownerType, ownerId);
-}
-
-/**
- * Remove every Genres & Moods attachment for one owner. Called from each owner entity's delete
- * service (bookmark + all taxonomies) since `ownerId` carries no cascade FK.
- */
-export async function deleteGenreMoodAssignmentsForOwner(
-  ownerType: GenreMoodOwnerType,
-  ownerId: string,
-): Promise<void> {
-  await db.delete(genreMoodAssignments).where(and(
-    eq(genreMoodAssignments.ownerType, ownerType),
-    eq(genreMoodAssignments.ownerId, ownerId),
-  ));
-  if (ownerType === "bookmark") invalidateBookmarkCache();
+  const taxonomyId = await getGenreMoodsTaxonomyId();
+  if (!taxonomyId) return [];
+  return setOwnerTaxonomyTerms(taxonomyId, toTaxonomyOwnerType(ownerType), ownerId, genreMoodIds);
 }

@@ -16,6 +16,7 @@ import type { LabeledWebsite } from "./labeledWebsites.js";
 import type { LanguageUsage, UpdateLanguageUsageEntry } from "./languageUsages.js";
 import type { BookmarkLocation } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
+import type { BookmarkTaxonomyTerm } from "./taxonomies.js";
 
 export * from "./autofillMerge.js";
 export * from "./amazon.js";
@@ -27,6 +28,7 @@ export * from "./entityNames.js";
 export * from "./entityLayouts.js";
 export * from "./conditions.js";
 export * from "./genreMoods.js";
+export * from "./taxonomies.js";
 export * from "./customProperties.js";
 export * from "./groupTypes.js";
 export * from "./homepageWidgets.js";
@@ -1410,6 +1412,12 @@ export interface Bookmark {
   tags: BookmarkTag[];
   /** Genres & Moods entries assigned to this bookmark, drawn from the taxonomy. */
   genreMoods: BookmarkGenreMood[];
+  /**
+   * User-configurable-taxonomy terms assigned to this bookmark (across all taxonomies, each tagged
+   * with its `taxonomyId` so the UI can bucket them per taxonomy). The generic successor to
+   * `genreMoods`; empty until taxonomies exist.
+   */
+  taxonomyTerms: BookmarkTaxonomyTerm[];
   /** Locations assigned to this bookmark, drawn from the Locations taxonomy. */
   locations: BookmarkLocation[];
   /** Tag IDs that should never be auto-applied to this bookmark by autofill rules. */

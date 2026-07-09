@@ -84,7 +84,7 @@ function resetFixtures(): void {
   // the rows it actually cares about.
   for (const table of [
     schema.bookmarkTags,
-    schema.genreMoodAssignments,
+    schema.taxonomyAssignments,
     schema.bookmarkLocations,
     schema.bookmarkTagBlacklist,
     schema.bookmarkLocationBlacklist,

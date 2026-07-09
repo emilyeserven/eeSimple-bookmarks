@@ -10,13 +10,13 @@ import {
   bookmarks,
   categories,
   entityNames,
-  genreMoods,
   groups,
   languages,
   locations,
   mediaTypes,
   people,
   tags,
+  taxonomyTerms,
 } from "@/db/schema";
 import { getDisplayPreferenceSettings } from "@/services/appSettings";
 import { detectNameLanguage } from "@/utils/scriptDetection";
@@ -46,8 +46,15 @@ const OWNER_TABLES: Record<EntityNameOwnerType, { table: PgTable;
     table: mediaTypes,
     nameColumn: "name",
   },
+  // G&M was folded into the taxonomy engine; its entries are `taxonomy_terms` rows, but its
+  // multilingual-name owner type stays `genreMood` (the bespoke G&M edit UI still uses it) — both
+  // point at the same table.
   genreMood: {
-    table: genreMoods,
+    table: taxonomyTerms,
+    nameColumn: "name",
+  },
+  taxonomyTerm: {
+    table: taxonomyTerms,
     nameColumn: "name",
   },
   location: {

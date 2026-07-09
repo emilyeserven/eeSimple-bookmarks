@@ -154,6 +154,20 @@ export interface GenreMoodCondition {
 }
 
 /**
+ * Leaf: the bookmark carries one of `termIds` (any-of) from the user-configurable taxonomy
+ * `taxonomyId`. `cascadeTermIds` is the subset that match their subtree (a hierarchical taxonomy is a
+ * `parentId` tree); **absent = exact match** (no cascade). `taxonomyId` scopes the editor's term
+ * choices; evaluation matches the flat term-id set (term ids are globally unique). The generic
+ * successor to {@link GenreMoodCondition}.
+ */
+export interface TaxonomyCondition {
+  type: "taxonomy";
+  taxonomyId: string;
+  termIds: string[];
+  cascadeTermIds?: string[];
+}
+
+/**
  * Leaf: the bookmark participates in a relationship whose type is one of `relationshipTypeIds`
  * (regardless of direction or the other bookmark). An empty list never matches.
  */
@@ -249,6 +263,7 @@ export type ConditionNode
     | YouTubeChannelCondition
     | MediaTypeCondition
     | GenreMoodCondition
+    | TaxonomyCondition
     | RelationshipTypeCondition
     | LanguageUsageCondition
     | PropertyCondition;
@@ -286,8 +301,13 @@ export interface ConditionInput {
   youtubeChannelId: string | null;
   /** The bookmark's media type id, or `null` when not set. */
   mediaTypeId: string | null;
-  /** The bookmark's own Genres & Moods entry ids (NOT expanded for cascade). */
-  genreMoodIds: Set<string>;
+  /**
+   * The bookmark's own user-taxonomy term ids across all taxonomies (NOT expanded for cascade).
+   * Absent/empty when the input isn't a real bookmark or carries no taxonomy terms — a
+   * {@link TaxonomyCondition} (and the legacy `genre-mood` leaf) then never matches. Genres & Moods
+   * ids live here too since G&M was folded into the taxonomy engine keeping the same UUIDs.
+   */
+  taxonomyTermIds?: Set<string>;
   /** Type ids of every relationship the bookmark participates in (presence matching). */
   relationshipTypeIds: Set<string>;
   /** The bookmark's (language, usage level) association pairs, for language-usage matching. */
@@ -320,8 +340,8 @@ export interface EvaluateOptions {
   locationDescendants?: TagDescendants;
   /** Media-type cascade resolver; when omitted, a media-type leaf matches only the exact ids selected. */
   mediaTypeDescendants?: TagDescendants;
-  /** Genre & Mood cascade resolver; when omitted, a genre-mood leaf matches only the exact ids selected. */
-  genreMoodDescendants?: TagDescendants;
+  /** Taxonomy-term cascade resolver; when omitted, a taxonomy (or legacy genre-mood) leaf matches only the exact ids selected. */
+  taxonomyTermDescendants?: TagDescendants;
 }
 
 /**
@@ -369,10 +389,10 @@ export const buildLocationDescendants = buildTagDescendants;
 export const buildMediaTypeDescendants = buildTagDescendants;
 
 /**
- * Build a descendant resolver for the Genres & Moods tree — same `{ id, parentId }` shape as tags,
- * so it aliases {@link buildTagDescendants}. Used for the per-item genre-mood cascade toggle.
+ * Build a descendant resolver for a user taxonomy's term tree (and the legacy Genres & Moods tree,
+ * now part of it) — same `{ id, parentId }` shape as tags, so it aliases {@link buildTagDescendants}.
  */
-export const buildGenreMoodDescendants = buildTagDescendants;
+export const buildTaxonomyTermDescendants = buildTagDescendants;
 
 /** Extract a URL's host with a leading `www.` removed, or `null` if it can't be parsed. */
 function hostOf(url: string): string | null {
@@ -561,11 +581,32 @@ function evaluateGenreMood(
   input: ConditionInput,
   options: EvaluateOptions | undefined,
 ): boolean {
+  // Legacy compatibility: Genres & Moods was folded into the generic taxonomy engine keeping the same
+  // UUIDs, so a stored `genre-mood` node still matches by evaluating its ids against `taxonomyTermIds`.
   if (condition.genreMoodIds.length === 0) return false;
+  const owned = input.taxonomyTermIds;
+  if (!owned || owned.size === 0) return false;
   for (const genreMoodId of condition.genreMoodIds) {
-    const candidates = cascadeCandidates(genreMoodId, condition.cascadeGenreMoodIds, options?.genreMoodDescendants, false);
+    const candidates = cascadeCandidates(genreMoodId, condition.cascadeGenreMoodIds, options?.taxonomyTermDescendants, false);
     for (const id of candidates) {
-      if (input.genreMoodIds.has(id)) return true;
+      if (owned.has(id)) return true;
+    }
+  }
+  return false;
+}
+
+function evaluateTaxonomy(
+  condition: TaxonomyCondition,
+  input: ConditionInput,
+  options: EvaluateOptions | undefined,
+): boolean {
+  if (condition.termIds.length === 0) return false;
+  const owned = input.taxonomyTermIds;
+  if (!owned || owned.size === 0) return false;
+  for (const termId of condition.termIds) {
+    const candidates = cascadeCandidates(termId, condition.cascadeTermIds, options?.taxonomyTermDescendants, false);
+    for (const id of candidates) {
+      if (owned.has(id)) return true;
     }
   }
   return false;
@@ -676,6 +717,8 @@ export function evaluateConditions(
       return evaluateMediaType(node, input, options);
     case "genre-mood":
       return evaluateGenreMood(node, input, options);
+    case "taxonomy":
+      return evaluateTaxonomy(node, input, options);
     case "relationship-type":
       return evaluateRelationshipType(node, input);
     case "language-usage":

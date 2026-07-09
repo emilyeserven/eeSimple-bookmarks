@@ -33,7 +33,7 @@ import {
   type BookmarkRow,
   bookmarkTags,
   entityNames,
-  genreMoodAssignments,
+  taxonomyAssignments,
   relationshipTypes,
 } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
@@ -54,6 +54,7 @@ import {
   ytLog,
 } from "@/services/bookmarkEnrichment";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
+import { getGenreMoodsTaxonomyId } from "@/services/taxonomies";
 import {
   linkGenreMoods,
   linkPeople,
@@ -209,9 +210,11 @@ export async function bulkUpdateBookmarkUrls(items: BulkUrlUpdate[]): Promise<Bu
  */
 async function cleanupGenreMoodAssignments(bookmarkIds: string[]): Promise<void> {
   if (bookmarkIds.length === 0) return;
-  await db.delete(genreMoodAssignments).where(and(
-    eq(genreMoodAssignments.ownerType, "bookmark"),
-    inArray(genreMoodAssignments.ownerId, bookmarkIds),
+  // Genres & Moods was folded into the generic taxonomy layer, so a bookmark's G&M rows live in
+  // `taxonomy_assignments` — this one delete covers every taxonomy (including G&M) for these owners.
+  await db.delete(taxonomyAssignments).where(and(
+    eq(taxonomyAssignments.ownerType, "bookmark"),
+    inArray(taxonomyAssignments.ownerId, bookmarkIds),
   ));
 }
 
@@ -622,6 +625,8 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   const numberValues = await withRuntime(input.numberValues ?? [], meta, "create");
   const dateTimeValues = await withDatePosted(input.dateTimeValues ?? [], meta, "create");
   const choicesValues = await withContentStatusDefault(input.choicesValues ?? []);
+  // G&M is a taxonomy now; resolve its id once so `linkGenreMoods` can write taxonomy_assignments.
+  const genreMoodsTaxonomyId = await getGenreMoodsTaxonomyId();
 
   const {
     id, websiteId, youtubeChannelId,
@@ -642,7 +647,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         id: bookmarks.id,
       });
     await linkTags(tx, row.id, mergedTagIds);
-    await linkGenreMoods(tx, row.id, input.genreMoodIds);
+    await linkGenreMoods(tx, row.id, input.genreMoodIds, genreMoodsTaxonomyId);
     await linkLocations(tx, row.id, mergedLocationIds, input.locationRelationByLocationId);
     if (input.blacklistedTagIds?.length) {
       await setBookmarkTagBlacklist(tx, row.id, input.blacklistedTagIds);
@@ -779,11 +784,17 @@ async function applyBookmarkValueUpdates(
     await linkTags(tx, id, input.tagIds);
   }
   if (input.genreMoodIds !== undefined) {
-    await tx.delete(genreMoodAssignments).where(and(
-      eq(genreMoodAssignments.ownerType, "bookmark"),
-      eq(genreMoodAssignments.ownerId, id),
-    ));
-    await linkGenreMoods(tx, id, input.genreMoodIds);
+    // G&M is now a taxonomy: replace this bookmark's G&M assignments (scoped to the G&M taxonomy so
+    // other taxonomies' assignments on the bookmark are untouched), then re-link.
+    const genreMoodsTaxonomyId = await getGenreMoodsTaxonomyId();
+    if (genreMoodsTaxonomyId) {
+      await tx.delete(taxonomyAssignments).where(and(
+        eq(taxonomyAssignments.taxonomyId, genreMoodsTaxonomyId),
+        eq(taxonomyAssignments.ownerType, "bookmark"),
+        eq(taxonomyAssignments.ownerId, id),
+      ));
+    }
+    await linkGenreMoods(tx, id, input.genreMoodIds, genreMoodsTaxonomyId);
   }
   if (input.locationIds !== undefined) {
     await tx.delete(bookmarkLocations).where(eq(bookmarkLocations.bookmarkId, id));

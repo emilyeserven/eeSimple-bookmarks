@@ -893,68 +893,123 @@ export const tagsRelations = relations(tags, ({
 }));
 
 /**
- * `genre_moods` table — the "Genres & Moods" taxonomy, a self-referencing tree. `parentId` NULL
- * means a root entry. Many-to-many with bookmarks (and any other owner) via
- * `genre_mood_assignments`. New table + nullable `slug` → push-safe additive.
+ * `taxonomies` — a user-configurable classification vocabulary (the generic engine that Genres &
+ * Moods is migrated into). `hierarchical` = a `parentId` term tree vs a flat list; `singleValue` = at
+ * most one term per bookmark vs many. `builtIn` rows (seeded G&M) are non-renamable/-deletable but
+ * hideable + demotable to Tags. `hidden`/`custom_layout` are lone nullable columns → push-safe. The
+ * table itself is a NEW table → pre-created in migrate.ts (the new-table push trap).
  */
-export const genreMoods = pgTable("genre_moods", {
+export const taxonomies = pgTable("taxonomies", {
   id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  // Tree vs flat vocabulary.
+  hierarchical: boolean("hierarchical").notNull().default(true),
+  // One-term-per-bookmark vs many (enforced at write time — no per-taxonomy FK column is possible).
+  singleValue: boolean("single_value").notNull().default(false),
+  // Seeded built-ins (Genres & Moods) can't be renamed/deleted, but can be hidden and demoted.
+  builtIn: boolean("built_in").notNull().default(false),
+  // Hide from pickers/facets/sidebar while staying resolvable. Nullable (null = false) → push-safe.
+  hidden: boolean("hidden"),
+  // Serialized lucide-react icon name.
+  icon: text("icon"),
+  // Whether this taxonomy shows as its own sidebar item.
+  showInSidebar: boolean("show_in_sidebar").notNull().default(true),
+  // When true, this taxonomy's term pages use their own stored page layout (key `taxonomy:<id>`)
+  // instead of the shared generic `taxonomy-term` layout. Nullable (null = false) → push-safe.
+  customLayout: boolean("custom_layout"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  // A `uniqueIndex` (not a table `unique()` constraint) so the migrate.ts pre-create can declare it
+  // identically with `CREATE UNIQUE INDEX IF NOT EXISTS`, keeping push's diff for this new table empty.
+  uniqueIndex("taxonomies_slug_unique").on(table.slug),
+]);
+
+/**
+ * `taxonomy_terms` — the terms/entries of a taxonomy, a self-referencing tree like `genre_moods`.
+ * `parentId` NULL = a root term (always so for a flat taxonomy). Slugs are unique *within* a taxonomy
+ * (two taxonomies may both want "action"). Composite uniques are `uniqueIndex()` (never `unique()` —
+ * the push composite-unique trap). NEW table → pre-created in migrate.ts.
+ */
+export const taxonomyTerms = pgTable("taxonomy_terms", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  taxonomyId: uuid("taxonomy_id").notNull().references(() => taxonomies.id, {
+    onDelete: "cascade",
+  }),
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
-  // Free-text description surfaced on the genre/mood's detail page.
   description: text("description"),
-  parentId: uuid("parent_id").references((): AnyPgColumn => genreMoods.id, {
+  parentId: uuid("parent_id").references((): AnyPgColumn => taxonomyTerms.id, {
     onDelete: "cascade",
   }),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
 }, table => [
-  // Sibling names unique within a parent (a unique INDEX, not a constraint — see the `tags` note).
-  uniqueIndex("genre_moods_parent_name_unique").on(table.parentId, table.name),
-  unique("genre_moods_slug_unique").on(table.slug),
+  // Sibling names unique within a parent, scoped per taxonomy (unique INDEX, not a constraint).
+  uniqueIndex("taxonomy_terms_tax_parent_name_unique").on(table.taxonomyId, table.parentId, table.name),
+  // Slug unique within the taxonomy.
+  uniqueIndex("taxonomy_terms_tax_slug_unique").on(table.taxonomyId, table.slug),
 ]);
 
 /**
- * `genre_mood_assignments` — polymorphic M:M linking a Genres & Moods entry to any owner. `ownerType`
- * is one of `GENRE_MOOD_OWNER_TYPES` (a bookmark or a taxonomy entity). A real FK on the value side
- * (cascade), but `ownerId` carries no FK since one table can't reference a dozen owner tables — so
- * owner deletes must clean up their rows in the service layer (mirrors `taxonomy_images`).
+ * `taxonomy_assignments` — the generic polymorphic M:M linking a taxonomy term to any owner (a
+ * bookmark or another taxonomy entity), generalizing `genre_mood_assignments`. `taxonomyId` is
+ * denormalized (needed for single-value replace scoping + per-taxonomy facet queries). A real FK on
+ * the value side (`termId`, cascade); `ownerId` carries NO FK (polymorphic) — owner deletes must
+ * clean up their rows in the service layer (mirrors `taxonomy_images` / `genre_mood_assignments`).
+ * NEW table → pre-created in migrate.ts.
  */
-export const genreMoodAssignments = pgTable("genre_mood_assignments", {
-  genreMoodId: uuid("genre_mood_id").notNull().references(() => genreMoods.id, {
+export const taxonomyAssignments = pgTable("taxonomy_assignments", {
+  taxonomyId: uuid("taxonomy_id").notNull(),
+  termId: uuid("term_id").notNull().references(() => taxonomyTerms.id, {
     onDelete: "cascade",
   }),
   ownerType: text("owner_type").notNull(),
   ownerId: uuid("owner_id").notNull(),
 }, table => [
   primaryKey({
-    columns: [table.genreMoodId, table.ownerType, table.ownerId],
+    columns: [table.termId, table.ownerType, table.ownerId],
   }),
-  index("genre_mood_assignments_owner_idx").on(table.ownerType, table.ownerId),
+  index("taxonomy_assignments_owner_idx").on(table.ownerType, table.ownerId),
+  index("taxonomy_assignments_tax_owner_idx").on(table.taxonomyId, table.ownerType, table.ownerId),
 ]);
 
-export const genreMoodsRelations = relations(genreMoods, ({
-  one, many,
+export const taxonomiesRelations = relations(taxonomies, ({
+  many,
 }) => ({
-  parent: one(genreMoods, {
-    fields: [genreMoods.parentId],
-    references: [genreMoods.id],
-    relationName: "genre_mood_parent",
-  }),
-  children: many(genreMoods, {
-    relationName: "genre_mood_parent",
-  }),
-  assignments: many(genreMoodAssignments),
+  terms: many(taxonomyTerms),
 }));
 
-export const genreMoodAssignmentsRelations = relations(genreMoodAssignments, ({
+export const taxonomyTermsRelations = relations(taxonomyTerms, ({
+  one, many,
+}) => ({
+  taxonomy: one(taxonomies, {
+    fields: [taxonomyTerms.taxonomyId],
+    references: [taxonomies.id],
+  }),
+  parent: one(taxonomyTerms, {
+    fields: [taxonomyTerms.parentId],
+    references: [taxonomyTerms.id],
+    relationName: "taxonomy_term_parent",
+  }),
+  children: many(taxonomyTerms, {
+    relationName: "taxonomy_term_parent",
+  }),
+  assignments: many(taxonomyAssignments),
+}));
+
+export const taxonomyAssignmentsRelations = relations(taxonomyAssignments, ({
   one,
 }) => ({
-  genreMood: one(genreMoods, {
-    fields: [genreMoodAssignments.genreMoodId],
-    references: [genreMoods.id],
+  term: one(taxonomyTerms, {
+    fields: [taxonomyAssignments.termId],
+    references: [taxonomyTerms.id],
   }),
 }));
 
@@ -2499,10 +2554,12 @@ export type NewNewsletterRow = typeof newsletters.$inferInsert;
 export type TagRow = typeof tags.$inferSelect;
 export type NewTagRow = typeof tags.$inferInsert;
 export type BookmarkTagRow = typeof bookmarkTags.$inferSelect;
-export type GenreMoodRow = typeof genreMoods.$inferSelect;
-export type NewGenreMoodRow = typeof genreMoods.$inferInsert;
-export type GenreMoodAssignmentRow = typeof genreMoodAssignments.$inferSelect;
-export type NewGenreMoodAssignmentRow = typeof genreMoodAssignments.$inferInsert;
+export type TaxonomyRow = typeof taxonomies.$inferSelect;
+export type NewTaxonomyRow = typeof taxonomies.$inferInsert;
+export type TaxonomyTermRow = typeof taxonomyTerms.$inferSelect;
+export type NewTaxonomyTermRow = typeof taxonomyTerms.$inferInsert;
+export type TaxonomyAssignmentRow = typeof taxonomyAssignments.$inferSelect;
+export type NewTaxonomyAssignmentRow = typeof taxonomyAssignments.$inferInsert;
 export type BookmarkRelationshipRow = typeof bookmarkRelationships.$inferSelect;
 export type CustomPropertyRow = typeof customProperties.$inferSelect;
 export type NewCustomPropertyRow = typeof customProperties.$inferInsert;

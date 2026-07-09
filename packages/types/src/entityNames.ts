@@ -23,6 +23,7 @@ export const ENTITY_NAME_OWNER_TYPES = [
   "tag",
   "mediaType",
   "genreMood",
+  "taxonomyTerm",
   "location",
   "person",
   "group",

@@ -3,10 +3,10 @@ import type { EvaluateOptions } from "@eesimple/types";
 import { useMemo } from "react";
 
 import {
-  buildGenreMoodDescendants,
   buildLocationDescendants,
   buildMediaTypeDescendants,
   buildTagDescendants,
+  buildTaxonomyTermDescendants,
 } from "@eesimple/types";
 
 import { useGenreMoods } from "./useGenreMoods";
@@ -50,6 +50,8 @@ export function useConditionEvaluateOptions(): EvaluateOptions {
     tagDescendants: buildTagDescendants(idParent(tags)),
     locationDescendants: buildLocationDescendants(idParent(locations)),
     mediaTypeDescendants: buildMediaTypeDescendants(idParent(mediaTypes)),
-    genreMoodDescendants: buildGenreMoodDescendants(idParent(genreMoods)),
+    // Genres & Moods is part of the taxonomy engine now; its tree backs both the taxonomy leaf and
+    // the legacy genre-mood leaf cascade toggle.
+    taxonomyTermDescendants: buildTaxonomyTermDescendants(idParent(genreMoods)),
   }), [tags, locations, mediaTypes, genreMoods]);
 }

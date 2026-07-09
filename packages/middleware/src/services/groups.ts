@@ -19,7 +19,7 @@ import {
   groupYoutubeChannels,
   type GroupRow,
 } from "@/db/schema";
-import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { getGroupImageRow } from "@/services/groupImages";
 import { AppError } from "@/utils/errors";
@@ -370,7 +370,7 @@ export async function deleteGroup(id: string): Promise<boolean> {
   const deleted = result.length > 0;
   if (deleted) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
-    await deleteGenreMoodAssignmentsForOwner("group", id);
+    await deleteTaxonomyAssignmentsForOwner("group", id);
     await deleteEntityNamesForOwner("group", id);
     if (imageRow) await deleteObject(imageRow.objectKey).catch(() => undefined);
   }

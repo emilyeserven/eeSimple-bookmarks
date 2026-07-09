@@ -72,6 +72,145 @@ const migrations: RuntimeMigration[] = [
       sql`CREATE UNIQUE INDEX IF NOT EXISTS "entity_layouts_entity_kind_unique" ON "entity_layouts" ("entity_kind")`,
     ),
   },
+  // User-configurable taxonomies (`taxonomies` / `taxonomy_terms` / `taxonomy_assignments`) are brand
+  // -new tables. Same push new-table trap as `entity_layouts` above — pre-create each here (and its
+  // indexes) so push's diff stays empty. FK columns are declared as plain `uuid` with NO `REFERENCES`
+  // (migrate runs before push, which adds the FK constraints afterward additively). One statement per
+  // `db.execute`. Idempotent (`IF NOT EXISTS`).
+  {
+    name: "create taxonomies table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "taxonomies" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "slug" text NOT NULL,
+        "description" text,
+        "hierarchical" boolean DEFAULT true NOT NULL,
+        "single_value" boolean DEFAULT false NOT NULL,
+        "built_in" boolean DEFAULT false NOT NULL,
+        "hidden" boolean,
+        "icon" text,
+        "show_in_sidebar" boolean DEFAULT true NOT NULL,
+        "custom_layout" boolean,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    name: "create taxonomies slug unique index",
+    run: db => db.execute(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS "taxonomies_slug_unique" ON "taxonomies" ("slug")`,
+    ),
+  },
+  {
+    name: "create taxonomy_terms table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "taxonomy_terms" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "taxonomy_id" uuid NOT NULL,
+        "name" text NOT NULL,
+        "slug" text,
+        "description" text,
+        "parent_id" uuid,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    name: "create taxonomy_terms tax_parent_name unique index",
+    run: db => db.execute(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS "taxonomy_terms_tax_parent_name_unique" ON "taxonomy_terms" ("taxonomy_id", "parent_id", "name")`,
+    ),
+  },
+  {
+    name: "create taxonomy_terms tax_slug unique index",
+    run: db => db.execute(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS "taxonomy_terms_tax_slug_unique" ON "taxonomy_terms" ("taxonomy_id", "slug")`,
+    ),
+  },
+  {
+    name: "create taxonomy_assignments table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "taxonomy_assignments" (
+        "taxonomy_id" uuid NOT NULL,
+        "term_id" uuid NOT NULL,
+        "owner_type" text NOT NULL,
+        "owner_id" uuid NOT NULL,
+        CONSTRAINT "taxonomy_assignments_term_id_owner_type_owner_id_pk" PRIMARY KEY ("term_id", "owner_type", "owner_id")
+      )
+    `),
+  },
+  {
+    name: "create taxonomy_assignments owner index",
+    run: db => db.execute(
+      sql`CREATE INDEX IF NOT EXISTS "taxonomy_assignments_owner_idx" ON "taxonomy_assignments" ("owner_type", "owner_id")`,
+    ),
+  },
+  {
+    name: "create taxonomy_assignments tax_owner index",
+    run: db => db.execute(
+      sql`CREATE INDEX IF NOT EXISTS "taxonomy_assignments_tax_owner_idx" ON "taxonomy_assignments" ("taxonomy_id", "owner_type", "owner_id")`,
+    ),
+  },
+  // ── Genres & Moods → generic taxonomy cutover ──────────────────────────────────────────────────
+  // The bespoke `genre_moods` taxonomy is folded into the generic engine: it becomes one built-in
+  // `taxonomies` row, its entries become `taxonomy_terms` (REUSING the same UUIDs so existing
+  // bookmark hydration + stored `genre-mood` condition trees keep resolving with no jsonb rewrite),
+  // and its polymorphic assignments become `taxonomy_assignments`. Then the legacy tables are dropped.
+  // All steps are idempotent + guarded (`IF EXISTS` / `ON CONFLICT`), so they no-op after the first run.
+  {
+    name: "seed genres-moods taxonomy row",
+    run: db => db.execute(sql`
+      INSERT INTO "taxonomies" ("name", "slug", "hierarchical", "single_value", "built_in", "hidden", "icon", "show_in_sidebar", "sort_order")
+      VALUES ('Genres & Moods', 'genres-moods', true, false, true, false, 'Drama', true, 0)
+      ON CONFLICT ("slug") DO NOTHING
+    `),
+  },
+  {
+    // Copy each genre/mood entry into taxonomy_terms with the SAME id (so parent_id links + bookmark
+    // hydration + stored condition ids all stay valid). Guarded on the legacy table still existing.
+    name: "copy genre_moods into taxonomy_terms",
+    run: db => db.execute(sql`
+      DO $$
+      BEGIN
+        IF to_regclass('public.genre_moods') IS NOT NULL THEN
+          INSERT INTO "taxonomy_terms" ("id", "taxonomy_id", "name", "slug", "description", "parent_id", "created_at")
+          SELECT gm."id", (SELECT "id" FROM "taxonomies" WHERE "slug" = 'genres-moods'),
+                 gm."name", gm."slug", gm."description", gm."parent_id", gm."created_at"
+          FROM "genre_moods" gm
+          ON CONFLICT ("id") DO NOTHING;
+        END IF;
+      END $$
+    `),
+  },
+  {
+    // Copy assignments; a genre/mood that was itself an assignment OWNER (owner_type='genreMood')
+    // becomes owner_type='taxonomy' (the generic self-owner value).
+    name: "copy genre_mood_assignments into taxonomy_assignments",
+    run: db => db.execute(sql`
+      DO $$
+      BEGIN
+        IF to_regclass('public.genre_mood_assignments') IS NOT NULL THEN
+          INSERT INTO "taxonomy_assignments" ("taxonomy_id", "term_id", "owner_type", "owner_id")
+          SELECT (SELECT "id" FROM "taxonomies" WHERE "slug" = 'genres-moods'),
+                 gma."genre_mood_id",
+                 CASE WHEN gma."owner_type" = 'genreMood' THEN 'taxonomy' ELSE gma."owner_type" END,
+                 gma."owner_id"
+          FROM "genre_mood_assignments" gma
+          ON CONFLICT ("term_id", "owner_type", "owner_id") DO NOTHING;
+        END IF;
+      END $$
+    `),
+  },
+  {
+    name: "drop legacy genre_mood_assignments",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "genre_mood_assignments"`),
+  },
+  {
+    name: "drop legacy genre_moods",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "genre_moods"`),
+  },
   // Property Groups were removed — each custom property is now an individually-placeable layout
   // field, so the visual grouping is obsolete. Drop the join tables, the base table, and the
   // `custom_properties.property_group_id` display-only column here (destructive) so push's
