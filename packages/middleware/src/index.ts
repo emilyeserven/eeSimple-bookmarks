@@ -11,7 +11,6 @@ import { resetStalledImports } from "@/services/imports";
 import { resetStalledReelArchiveJobs } from "@/services/reelArchive";
 import { ensureHomepageSections } from "@/services/homepageSections";
 import { ensureBuiltInMediaTypes } from "@/services/mediaTypes";
-import { ensureBuiltInTaxonomies } from "@/services/taxonomies";
 import { ensureBuiltInLanguages } from "@/services/languages";
 import { ensureBuiltInLanguageUsageLevels } from "@/services/languageUsageLevels";
 import { ensureBuiltInTranslationSources } from "@/services/translationSources";
@@ -56,7 +55,6 @@ try {
   await ensureDatePostedProperty();
   await ensureContentStatusProperty();
   await ensureBuiltInMediaTypes();
-  await ensureBuiltInTaxonomies();
   await ensureBuiltInLanguages();
   await ensureBuiltInLanguageUsageLevels();
   await ensureBuiltInTranslationSources();

@@ -104,9 +104,9 @@ export async function getTaxonomyBySlug(slug: string): Promise<Taxonomy | null> 
 }
 
 /**
- * Resolve the built-in Genres & Moods taxonomy's id (or `null` if it was demoted away). The legacy
- * `genre_moods` code paths were repointed onto the generic taxonomy tables scoped to this id, so G&M
- * is now stored as an ordinary taxonomy. Cheap (unique-indexed slug lookup).
+ * Resolve the seeded Genres & Moods taxonomy's id (or `null` if it was demoted/deleted away). The
+ * legacy `genre_moods` code paths were repointed onto the generic taxonomy tables scoped to this id,
+ * so G&M is now stored as an ordinary (non-built-in) taxonomy. Cheap (unique-indexed slug lookup).
  */
 export async function getGenreMoodsTaxonomyId(): Promise<string | null> {
   const [row] = await db
@@ -192,29 +192,4 @@ export async function deleteTaxonomy(id: string): Promise<boolean> {
 /** Delete many taxonomies, skipping built-ins (reported as not-deletable). */
 export function bulkDeleteTaxonomies(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deleteTaxonomy, err => err instanceof BuiltInTaxonomyError);
-}
-
-/**
- * Ensure the built-in "Genres & Moods" taxonomy row exists (idempotent, insert-by-slug). G&M was
- * folded into the generic engine by the `migrate.ts` cutover (its entries + assignments copied into
- * `taxonomy_terms` / `taxonomy_assignments` with stable UUIDs, then the legacy tables dropped); this
- * seeds the row for a brand-new install with no legacy data. Slotted into the `ensure*` boot block.
- */
-export async function ensureBuiltInTaxonomies(): Promise<void> {
-  await db
-    .insert(taxonomies)
-    .values({
-      name: "Genres & Moods",
-      slug: GENRES_MOODS_TAXONOMY_SLUG,
-      description: null,
-      hierarchical: true,
-      singleValue: false,
-      builtIn: true,
-      icon: "Drama",
-      showInSidebar: true,
-      sortOrder: 0,
-    })
-    .onConflictDoNothing({
-      target: taxonomies.slug,
-    });
 }

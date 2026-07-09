@@ -160,12 +160,30 @@ const migrations: RuntimeMigration[] = [
   // and its polymorphic assignments become `taxonomy_assignments`. Then the legacy tables are dropped.
   // All steps are idempotent + guarded (`IF EXISTS` / `ON CONFLICT`), so they no-op after the first run.
   {
+    // Seed the Genres & Moods taxonomy row as an ORDINARY (non-built-in) taxonomy — it's fully
+    // user-controllable (renamable / deletable / demotable). Guarded on the legacy `genre_moods` table
+    // still existing so this only fires during the one-time migration: once the table is dropped (end
+    // of the first migrating boot), this never runs again, so a user who demotes/deletes G&M won't see
+    // it resurrect on the next boot.
     name: "seed genres-moods taxonomy row",
     run: db => db.execute(sql`
-      INSERT INTO "taxonomies" ("name", "slug", "hierarchical", "single_value", "built_in", "hidden", "icon", "show_in_sidebar", "sort_order")
-      VALUES ('Genres & Moods', 'genres-moods', true, false, true, false, 'Drama', true, 0)
-      ON CONFLICT ("slug") DO NOTHING
+      DO $$
+      BEGIN
+        IF to_regclass('public.genre_moods') IS NOT NULL THEN
+          INSERT INTO "taxonomies" ("name", "slug", "hierarchical", "single_value", "built_in", "hidden", "icon", "show_in_sidebar", "sort_order")
+          VALUES ('Genres & Moods', 'genres-moods', true, false, false, false, 'Drama', true, 0)
+          ON CONFLICT ("slug") DO NOTHING;
+        END IF;
+      END $$
     `),
+  },
+  {
+    // Flip an already-migrated G&M row (seeded built-in by the first cut of this feature) to
+    // non-built-in so it becomes demotable. No-op once it's already false / if G&M was demoted away.
+    name: "make genres-moods taxonomy non-built-in",
+    run: db => db.execute(
+      sql`UPDATE "taxonomies" SET "built_in" = false WHERE "slug" = 'genres-moods' AND "built_in" = true`,
+    ),
   },
   {
     // Copy each genre/mood entry into taxonomy_terms with the SAME id (so parent_id links + bookmark

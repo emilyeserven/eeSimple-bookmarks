@@ -23,6 +23,10 @@ function SettingsLayout() {
       label: t("Media"),
     },
     {
+      to: "/settings/taxonomies",
+      label: t("Taxonomies"),
+    },
+    {
       to: "/settings/automations",
       label: t("Automations"),
     },
