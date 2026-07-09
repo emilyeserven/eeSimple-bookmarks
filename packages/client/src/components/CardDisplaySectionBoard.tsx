@@ -1,4 +1,4 @@
-import type { CardDisplayFields, FieldTarget } from "../lib/cardDisplaySectionMutations";
+import type { CardDisplayFields, CardFieldTarget } from "../lib/cardDisplaySectionMutations";
 import type { CollisionDetection } from "@dnd-kit/core";
 import type { CardDisplaySection, CardImageCorner, CardSectionForm, CardZoneLayout, CustomProperty } from "@eesimple/types";
 
@@ -21,17 +21,17 @@ import { useTranslation } from "react-i18next";
 import { SectionVisibilityEditor } from "./SectionVisibilityEditor";
 import { eligibleCustomCardFields, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
 import {
-  addSection,
+  addCardSection,
   CARD_IMAGE_CORNER_KEYS,
-  moveField,
-  moveSection,
+  moveCardField,
+  moveCardSection,
   patchFieldPlacement,
   placedFieldKeys,
   removeSection,
-  renameSection,
+  renameCardSection,
   setSectionForm,
   setSectionLayout,
-  setSectionVisibility,
+  setCardSectionVisibility,
 } from "../lib/cardDisplaySectionMutations";
 
 import { Button } from "@/components/ui/button";
@@ -144,20 +144,20 @@ export function CardDisplaySectionBoard({
   function handleDragEnd(activeId: string, overId: string | null): void {
     if (!overId) return;
     if (overId === TRAY_ID) {
-      onChange(moveField(value, activeId, {
+      onChange(moveCardField(value, activeId, {
         type: "tray",
       }));
       return;
     }
     if (overId.startsWith("sec:")) {
-      onChange(moveField(value, activeId, {
+      onChange(moveCardField(value, activeId, {
         type: "section",
         key: overId.slice(4),
       }));
       return;
     }
     if (overId.startsWith("corner:")) {
-      onChange(moveField(value, activeId, {
+      onChange(moveCardField(value, activeId, {
         type: "corner",
         corner: overId.slice(7) as CardImageCorner,
       }));
@@ -167,13 +167,13 @@ export function CardDisplaySectionBoard({
       // Dropped onto another chip — insert into that chip's container at its index.
       const targetKey = overId.slice(6);
       const target = locateField(value, targetKey);
-      if (target) onChange(moveField(value, activeId, target.target, target.index));
+      if (target) onChange(moveCardField(value, activeId, target.target, target.index));
     }
   }
 
   // "Move to…" destinations shared by every field chip.
   const moveTargets: { label: string;
-    target: FieldTarget; }[] = [
+    target: CardFieldTarget; }[] = [
     ...value.sections.map(section => ({
       label: t("Section: {{name}}", {
         name: section.title || section.key,
@@ -228,7 +228,7 @@ export function CardDisplaySectionBoard({
           className="w-full border-dashed"
           onClick={() => onChange({
             ...value,
-            sections: addSection(value.sections),
+            sections: addCardSection(value.sections),
           })}
         >
           <Plus className="mr-1 size-4" />
@@ -248,7 +248,7 @@ export function CardDisplaySectionBoard({
                 fields={value.imageCorners[corner]}
                 labelFor={labelFor}
                 moveTargets={moveTargets.filter(mt => !(mt.target.type === "corner" && mt.target.corner === corner))}
-                onMoveField={(fieldKey, target) => onChange(moveField(value, fieldKey, target))}
+                onMoveField={(fieldKey, target) => onChange(moveCardField(value, fieldKey, target))}
                 onToggleHideLabel={(fieldKey, on) => onChange(patchFieldPlacement(value, fieldKey, {
                   hideLabel: on,
                 }))}
@@ -261,7 +261,7 @@ export function CardDisplaySectionBoard({
           trayKeys={trayKeys}
           labelFor={labelFor}
           moveTargets={moveTargets.filter(mt => mt.target.type !== "tray")}
-          onMoveField={(fieldKey, target) => onChange(moveField(value, fieldKey, target))}
+          onMoveField={(fieldKey, target) => onChange(moveCardField(value, fieldKey, target))}
         />
       </div>
     </DndContext>
@@ -269,7 +269,7 @@ export function CardDisplaySectionBoard({
 }
 
 /** Locate a field's container + index (for drop-onto-chip insertion). */
-function locateField(value: CardDisplayFields, fieldKey: string): { target: FieldTarget;
+function locateField(value: CardDisplayFields, fieldKey: string): { target: CardFieldTarget;
   index: number; } | null {
   for (const section of value.sections) {
     const idx = section.fields.findIndex(f => f.key === fieldKey);
@@ -296,7 +296,7 @@ function locateField(value: CardDisplayFields, fieldKey: string): { target: Fiel
 
 interface MoveTargetList {
   label: string;
-  target: FieldTarget;
+  target: CardFieldTarget;
 }
 
 function SectionCard({
@@ -327,7 +327,7 @@ function SectionCard({
           placeholder={t("Section name")}
           onCommit={title => onChange({
             ...value,
-            sections: renameSection(value.sections, section.key, title),
+            sections: renameCardSection(value.sections, section.key, title),
           })}
         />
         <div className="ml-auto flex items-center gap-1">
@@ -335,7 +335,7 @@ function SectionCard({
             tree={section.visibleIf}
             onChange={tree => onChange({
               ...value,
-              sections: setSectionVisibility(value.sections, section.key, tree),
+              sections: setCardSectionVisibility(value.sections, section.key, tree),
             })}
           />
           <Button
@@ -347,7 +347,7 @@ function SectionCard({
             aria-label={t("Move up")}
             onClick={() => onChange({
               ...value,
-              sections: moveSection(value.sections, section.key, -1),
+              sections: moveCardSection(value.sections, section.key, -1),
             })}
           >
             <ChevronUp className="size-4" />
@@ -361,7 +361,7 @@ function SectionCard({
             aria-label={t("Move down")}
             onClick={() => onChange({
               ...value,
-              sections: moveSection(value.sections, section.key, 1),
+              sections: moveCardSection(value.sections, section.key, 1),
             })}
           >
             <ChevronDown className="size-4" />
@@ -428,7 +428,7 @@ function SectionCard({
                     hideLabel={field.hideLabel ?? false}
                     idPrefix={idPrefix}
                     moveTargets={moveTargets}
-                    onMove={target => onChange(moveField(value, field.key, target))}
+                    onMove={target => onChange(moveCardField(value, field.key, target))}
                     onToggleHideLabel={on => onChange(patchFieldPlacement(value, field.key, {
                       hideLabel: on,
                     }))}
@@ -510,7 +510,7 @@ function FieldChip({
   hideLabel: boolean;
   idPrefix: string;
   moveTargets: MoveTargetList[];
-  onMove: (target: FieldTarget) => void;
+  onMove: (target: CardFieldTarget) => void;
   onToggleHideLabel: (on: boolean) => void;
 }) {
   const {
@@ -591,7 +591,7 @@ function CornerDropArea({
     hideLabel?: boolean; }[];
   labelFor: (key: string) => string;
   moveTargets: MoveTargetList[];
-  onMoveField: (fieldKey: string, target: FieldTarget) => void;
+  onMoveField: (fieldKey: string, target: CardFieldTarget) => void;
   onToggleHideLabel: (fieldKey: string, on: boolean) => void;
 }) {
   const {
@@ -642,7 +642,7 @@ function TrayDropArea({
   trayKeys: string[];
   labelFor: (key: string) => string;
   moveTargets: MoveTargetList[];
-  onMoveField: (fieldKey: string, target: FieldTarget) => void;
+  onMoveField: (fieldKey: string, target: CardFieldTarget) => void;
 }) {
   const {
     t,

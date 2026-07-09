@@ -4,10 +4,6 @@ import { fieldZonesFromConfig } from "@eesimple/types";
 
 import { useCardDisplayConfig } from "../hooks/useCardDisplayConfig";
 
-// Re-exported from the pure defs module so existing importers keep working; the hook-backed helpers
-// below live here because they depend on stores/queries.
-export { STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
-
 /**
  * The single card-display config flattened into the legacy {@link CardFieldZones} shape, or
  * `undefined` before the config loads. Non-listing surfaces (homepage default, right panel, table

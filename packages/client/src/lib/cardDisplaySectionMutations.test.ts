@@ -7,16 +7,16 @@ import { describe, expect, it } from "vitest";
 import { emptyCardImageCorners } from "@eesimple/types";
 
 import {
-  addSection,
-  moveField,
-  moveSection,
+  addCardSection,
+  moveCardField,
+  moveCardSection,
   patchFieldPlacement,
   placedFieldKeys,
   removeSection,
-  renameSection,
+  renameCardSection,
   setSectionForm,
   setSectionLayout,
-  setSectionVisibility,
+  setCardSectionVisibility,
 } from "./cardDisplaySectionMutations";
 
 function section(key: string, fieldKeys: string[]): CardDisplaySection {
@@ -50,16 +50,16 @@ const tree: ConditionTree = {
 };
 
 describe("card display section mutations", () => {
-  it("addSection appends a stacked/flex section with a stable unique key", () => {
-    const next = addSection([section("a", [])]);
+  it("addCardSection appends a stacked/flex section with a stable unique key", () => {
+    const next = addCardSection([section("a", [])]);
     expect(next).toHaveLength(2);
     expect(next[1].form).toBe("stacked");
     expect(next[1].layout.mode).toBe("flex");
     expect(next[1].key).not.toBe("a");
   });
 
-  it("renameSection changes only the title", () => {
-    expect(renameSection([section("a", ["title"])], "a", "Header")[0].title).toBe("Header");
+  it("renameCardSection changes only the title", () => {
+    expect(renameCardSection([section("a", ["title"])], "a", "Header")[0].title).toBe("Header");
   });
 
   it("setSectionForm / setSectionLayout update the render form + layout", () => {
@@ -75,10 +75,10 @@ describe("card display section mutations", () => {
     });
   });
 
-  it("setSectionVisibility sets a non-empty tree and clears an empty one", () => {
-    const withTree = setSectionVisibility([section("a", [])], "a", tree);
+  it("setCardSectionVisibility sets a non-empty tree and clears an empty one", () => {
+    const withTree = setCardSectionVisibility([section("a", [])], "a", tree);
     expect(withTree[0].visibleIf).toEqual(tree);
-    const cleared = setSectionVisibility(withTree, "a", {
+    const cleared = setCardSectionVisibility(withTree, "a", {
       type: "group",
       combinator: "and",
       children: [],
@@ -86,13 +86,13 @@ describe("card display section mutations", () => {
     expect(cleared[0].visibleIf).toBeUndefined();
   });
 
-  it("moveSection swaps order and no-ops at the boundary", () => {
+  it("moveCardSection swaps order and no-ops at the boundary", () => {
     const list = [section("a", []), section("b", [])];
-    expect(moveSection(list, "a", 1).map(s => s.key)).toEqual(["b", "a"]);
-    expect(moveSection(list, "a", -1).map(s => s.key)).toEqual(["a", "b"]);
+    expect(moveCardSection(list, "a", 1).map(s => s.key)).toEqual(["b", "a"]);
+    expect(moveCardSection(list, "a", -1).map(s => s.key)).toEqual(["a", "b"]);
   });
 
-  it("moveField relocates a field between sections and preserves its knobs", () => {
+  it("moveCardField relocates a field between sections and preserves its knobs", () => {
     const value = fields([
       {
         ...section("a", []),
@@ -103,7 +103,7 @@ describe("card display section mutations", () => {
       },
       section("b", []),
     ]);
-    const next = moveField(value, "title", {
+    const next = moveCardField(value, "title", {
       type: "section",
       key: "b",
     });
@@ -114,15 +114,15 @@ describe("card display section mutations", () => {
     }]);
   });
 
-  it("moveField to a corner and to the tray", () => {
+  it("moveCardField to a corner and to the tray", () => {
     const value = fields([section("a", ["title"])]);
-    const toCorner = moveField(value, "title", {
+    const toCorner = moveCardField(value, "title", {
       type: "corner",
       corner: "top-left",
     });
     expect(toCorner.imageCorners["top-left"].map(f => f.key)).toEqual(["title"]);
     expect(toCorner.sections[0].fields).toHaveLength(0);
-    const toTray = moveField(value, "title", {
+    const toTray = moveCardField(value, "title", {
       type: "tray",
     });
     expect(placedFieldKeys(toTray).has("title")).toBe(false);

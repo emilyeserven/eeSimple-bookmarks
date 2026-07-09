@@ -26,7 +26,7 @@ export const CARD_IMAGE_CORNER_KEYS: CardImageCorner[] = [
 ];
 
 /** Where a field can be dropped: into a body section, an image corner, or the (hidden) tray. */
-export type FieldTarget
+export type CardFieldTarget
   = | { type: "section";
     key: string; }
     | { type: "corner";
@@ -72,10 +72,10 @@ function withoutField(value: CardDisplayFields, fieldKey: string): CardDisplayFi
  * the tray simply drops it from every section/corner. `index` positions it within a target section
  * (default: appended). Pure.
  */
-export function moveField(
+export function moveCardField(
   value: CardDisplayFields,
   fieldKey: string,
-  target: FieldTarget,
+  target: CardFieldTarget,
   index?: number,
 ): CardDisplayFields {
   const existing = findPlacement(value, fieldKey);
@@ -132,7 +132,7 @@ export function patchFieldPlacement(
 }
 
 /** Append a new empty body section (stacked / flex) with a stable key. Pure. */
-export function addSection(sections: CardDisplaySection[], title = "New section"): CardDisplaySection[] {
+export function addCardSection(sections: CardDisplaySection[], title = "New section"): CardDisplaySection[] {
   const key = makeContainerKey(title, new Set(sections.map(s => s.key)), "section");
   return [
     ...sections,
@@ -149,7 +149,7 @@ export function addSection(sections: CardDisplaySection[], title = "New section"
 }
 
 /** Rename a section (its user-facing title). Pure. */
-export function renameSection(sections: CardDisplaySection[], key: string, title: string): CardDisplaySection[] {
+export function renameCardSection(sections: CardDisplaySection[], key: string, title: string): CardDisplaySection[] {
   return sections.map(section => (section.key === key
     ? {
       ...section,
@@ -179,7 +179,7 @@ export function setSectionLayout(sections: CardDisplaySection[], key: string, la
 }
 
 /** Set (or clear) a section's `visibleIf` condition. An empty tree clears it (always visible). Pure. */
-export function setSectionVisibility(
+export function setCardSectionVisibility(
   sections: CardDisplaySection[],
   key: string,
   tree: ConditionTree,
@@ -197,7 +197,7 @@ export function setSectionVisibility(
 }
 
 /** Move a section up (`dir = -1`) or down (`dir = 1`) in render order. Pure. */
-export function moveSection(sections: CardDisplaySection[], key: string, dir: -1 | 1): CardDisplaySection[] {
+export function moveCardSection(sections: CardDisplaySection[], key: string, dir: -1 | 1): CardDisplaySection[] {
   const index = sections.findIndex(section => section.key === key);
   const target = index + dir;
   if (index < 0 || target < 0 || target >= sections.length) return sections;
