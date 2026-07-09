@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { mock, test } from "node:test";
-import { genreMoodAssignments, languages } from "@/db/schema";
+import { taxonomyAssignments, languages } from "@/db/schema";
 import { createFakeDb, resetFakeIds } from "@/tests/testDbHelpers";
 
 /**
@@ -10,17 +10,17 @@ import { createFakeDb, resetFakeIds } from "@/tests/testDbHelpers";
  */
 
 const languageRows: Record<string, unknown>[] = [];
-const genreMoodAssignmentRows: Record<string, unknown>[] = [];
+const taxonomyAssignmentRows: Record<string, unknown>[] = [];
 
 function resetRows(opts: {
   languages?: Record<string, unknown>[];
-  genreMoodAssignments?: Record<string, unknown>[];
+  taxonomyAssignments?: Record<string, unknown>[];
 } = {}): void {
   resetFakeIds();
   languageRows.length = 0;
   languageRows.push(...(opts.languages ?? []));
-  genreMoodAssignmentRows.length = 0;
-  genreMoodAssignmentRows.push(...(opts.genreMoodAssignments ?? []));
+  taxonomyAssignmentRows.length = 0;
+  taxonomyAssignmentRows.push(...(opts.taxonomyAssignments ?? []));
 }
 
 const db = createFakeDb([
@@ -29,8 +29,8 @@ const db = createFakeDb([
     rows: languageRows,
   },
   {
-    table: genreMoodAssignments,
-    rows: genreMoodAssignmentRows,
+    table: taxonomyAssignments,
+    rows: taxonomyAssignmentRows,
   },
 ]);
 
@@ -83,7 +83,7 @@ test("deleteLanguage: deleting a custom language cleans up its genre/mood assign
       isoCode: null,
       builtIn: false,
     }],
-    genreMoodAssignments: [
+    taxonomyAssignments: [
       {
         id: "gma-1",
         ownerType: "language",
@@ -103,7 +103,7 @@ test("deleteLanguage: deleting a custom language cleans up its genre/mood assign
   const deleted = await deleteLanguage("lang-custom");
   assert.equal(deleted, true);
   assert.equal(languageRows.some(row => row.id === "lang-custom"), false);
-  assert.deepEqual(genreMoodAssignmentRows.map(row => row.id), ["gma-2"]);
+  assert.deepEqual(taxonomyAssignmentRows.map(row => row.id), ["gma-2"]);
   assert.equal(bookmarkCacheVersion(), versionBefore + 1);
 });
 

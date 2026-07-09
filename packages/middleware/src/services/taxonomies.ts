@@ -103,6 +103,21 @@ export async function getTaxonomyBySlug(slug: string): Promise<Taxonomy | null> 
   return row ? toTaxonomy(row) : null;
 }
 
+/**
+ * Resolve the built-in Genres & Moods taxonomy's id (or `null` if it was demoted away). The legacy
+ * `genre_moods` code paths were repointed onto the generic taxonomy tables scoped to this id, so G&M
+ * is now stored as an ordinary taxonomy. Cheap (unique-indexed slug lookup).
+ */
+export async function getGenreMoodsTaxonomyId(): Promise<string | null> {
+  const [row] = await db
+    .select({
+      id: taxonomies.id,
+    })
+    .from(taxonomies)
+    .where(eq(taxonomies.slug, GENRES_MOODS_TAXONOMY_SLUG));
+  return row?.id ?? null;
+}
+
 /** Create a taxonomy. Slug is minted unique from the name (or a provided slug base). */
 export async function createTaxonomy(input: CreateTaxonomyInput): Promise<Taxonomy> {
   const name = input.name.trim();
@@ -180,13 +195,10 @@ export function bulkDeleteTaxonomies(ids: string[]): Promise<BulkDeleteResult[]>
 }
 
 /**
- * Pre-seed the built-in "Genres & Moods" taxonomy row (idempotent, insert-by-slug), satisfying
- * "G&M becomes a pre-seeded taxonomy in the DB". It is seeded **hidden + off-sidebar** on purpose:
- * the bespoke `genre_moods` taxonomy is still live during this additive phase, so an un-hidden G&M
- * taxonomy would render as a confusing duplicate (a second sidebar item + a second bookmark picker
- * writing to a different table). The data-migration cutover (copy `genre_moods` → `taxonomy_terms`
- * with stable UUIDs, unhide, and retire the bespoke G&M code — see the plan) is the remaining step.
- * Slotted into the `ensure*` boot block in `src/index.ts`.
+ * Ensure the built-in "Genres & Moods" taxonomy row exists (idempotent, insert-by-slug). G&M was
+ * folded into the generic engine by the `migrate.ts` cutover (its entries + assignments copied into
+ * `taxonomy_terms` / `taxonomy_assignments` with stable UUIDs, then the legacy tables dropped); this
+ * seeds the row for a brand-new install with no legacy data. Slotted into the `ensure*` boot block.
  */
 export async function ensureBuiltInTaxonomies(): Promise<void> {
   await db
@@ -198,9 +210,8 @@ export async function ensureBuiltInTaxonomies(): Promise<void> {
       hierarchical: true,
       singleValue: false,
       builtIn: true,
-      hidden: true,
       icon: "Drama",
-      showInSidebar: false,
+      showInSidebar: true,
       sortOrder: 0,
     })
     .onConflictDoNothing({

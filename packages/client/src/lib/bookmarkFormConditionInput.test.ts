@@ -42,7 +42,7 @@ describe("formStateToConditionInput", () => {
     expect(input.mediaTypeId).toBe("mt-1");
     expect([...input.tagIds]).toEqual(["t1", "t2"]);
     expect([...input.locationIds]).toEqual(["loc-1"]);
-    expect([...input.genreMoodIds]).toEqual(["gm-1"]);
+    expect([...(input.taxonomyTermIds ?? [])]).toEqual(["gm-1"]);
   });
 
   it("coerces empty youtubeChannelId/mediaTypeId to null", () => {

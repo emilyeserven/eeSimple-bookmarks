@@ -10,7 +10,6 @@ import type {
 import { db } from "@/db";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
 import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { bookmarks, mediaTypes, type MediaTypeRow } from "@/db/schema";
@@ -398,7 +397,6 @@ export async function deleteMediaType(id: string): Promise<boolean> {
   // The FK sets bookmarks.mediaTypeId to NULL — matchable data (media-type condition leaves).
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
-    await deleteGenreMoodAssignmentsForOwner("mediaType", id);
     await deleteTaxonomyAssignmentsForOwner("mediaType", id);
     await deleteEntityNamesForOwner("mediaType", id);
     invalidateBookmarkCache();

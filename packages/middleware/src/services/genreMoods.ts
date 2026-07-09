@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, ne } from "drizzle-orm";
 import type {
   BulkDeleteResult,
   CreateGenreMoodInput,
@@ -8,10 +8,11 @@ import type {
   UpdateGenreMoodInput,
 } from "@eesimple/types";
 import { db } from "@/db";
-import { genreMoodAssignments, genreMoods, type GenreMoodRow } from "@/db/schema";
+import { taxonomyAssignments, taxonomyTerms, type TaxonomyTermRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { deleteGenreMoodAssignmentsForOwner } from "@/services/genreMoodAssignments";
+import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
+import { getGenreMoodsTaxonomyId } from "@/services/taxonomies";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import {
   collectSubtreeIds,
@@ -20,7 +21,14 @@ import {
 } from "@/utils/parentTree";
 import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
-import { takenSlugsOf } from "@/utils/taxonomySlugs";
+
+/**
+ * "Genres & Moods" service — after the cutover, G&M is an ordinary built-in taxonomy, so these legacy
+ * functions read/write the generic `taxonomy_terms` / `taxonomy_assignments` tables scoped to the G&M
+ * taxonomy id. The wire type (`GenreMood`) and every caller (routes, hydration, the client) are
+ * unchanged; only the storage moved. When the G&M taxonomy has been demoted away, reads return empty
+ * and writes throw.
+ */
 
 /** Thrown when a create/rename collides with an existing entry name under the same parent. */
 export class DuplicateGenreMoodError extends AppError {
@@ -39,13 +47,19 @@ export class GenreMoodCycleError extends AppError {
   }
 }
 
-/** Map a DB row (plus optional precomputed counts) to the shared `GenreMood` wire type. */
-function toGenreMood(row: GenreMoodRow, counts?: SubtreeBookmarkCounts, names?: EntityName[]): GenreMood {
+/** Thrown when the G&M taxonomy has been demoted to Tags and no longer exists. */
+class GenreMoodsRetiredError extends AppError {
+  constructor() {
+    super("Genres & Moods has been demoted to Tags", "notFound", 404);
+  }
+}
+
+/** Map a taxonomy-term row (plus optional precomputed counts) to the shared `GenreMood` wire type. */
+function toGenreMood(row: TaxonomyTermRow, counts?: SubtreeBookmarkCounts, names?: EntityName[]): GenreMood {
   return {
     id: row.id,
     name: row.name,
     names: names ?? [],
-    // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
     slug: row.slug ?? slugify(row.name),
     description: row.description,
     parentId: row.parentId,
@@ -56,11 +70,7 @@ function toGenreMood(row: GenreMoodRow, counts?: SubtreeBookmarkCounts, names?: 
   };
 }
 
-/**
- * Compute each entry's distinct subtree bookmark count and its "own" (no-descendant) count from a
- * flat list and the bookmark links. Distinct counting dedupes bookmarks carrying both an entry and
- * one of its descendants. Pure — operates on in-memory data so it can be unit-tested.
- */
+/** Distinct subtree + "own" bookmark counts from a flat list + the bookmark links. Pure. */
 export function computeGenreMoodBookmarkCounts(
   all: { id: string;
     parentId: string | null; }[],
@@ -73,10 +83,7 @@ export function computeGenreMoodBookmarkCounts(
   })));
 }
 
-/**
- * Build a nested tree from a flat list (roots first). Pure — kept separate from DB access so it can
- * be unit-tested with in-memory data.
- */
+/** Build a nested tree from a flat list (roots first). Pure. */
 export function buildGenreMoodTree(all: GenreMood[]): GenreMoodNode[] {
   const byId = new Map<string, GenreMoodNode>(all.map(node => [node.id, {
     ...node,
@@ -91,31 +98,44 @@ export function buildGenreMoodTree(all: GenreMood[]): GenreMoodNode[] {
   return roots;
 }
 
-/**
- * Whether reparenting `id` under `newParentId` would create a cycle (the new parent is the entry
- * itself or one of its descendants). Pure helper (module-private — mirrors tags' `wouldCreateCycle`
- * but unexported to avoid a duplicate-export collision with it).
- */
 function wouldCreateCycle(all: GenreMood[], id: string, newParentId: string): boolean {
   return collectSubtreeIds(all, id).has(newParentId);
 }
 
-/** Existing slugs, optionally excluding one row (when renaming). */
-const takenSlugs = (excludeId?: string) =>
-  takenSlugsOf(genreMoods, genreMoods.slug, genreMoods.id, excludeId);
+/** Existing G&M term slugs, optionally excluding one term (when renaming). */
+async function takenSlugs(taxonomyId: string, excludeId?: string): Promise<string[]> {
+  const rows = await db
+    .select({
+      slug: taxonomyTerms.slug,
+    })
+    .from(taxonomyTerms)
+    .where(excludeId
+      ? and(eq(taxonomyTerms.taxonomyId, taxonomyId), ne(taxonomyTerms.id, excludeId))
+      : eq(taxonomyTerms.taxonomyId, taxonomyId));
+  return rows.map(r => r.slug).filter((s): s is string => typeof s === "string");
+}
 
-/** List every entry, ordered by name, with distinct bookmark counts. */
+/** List every G&M entry, ordered by name, with distinct bookmark counts. */
 export async function listGenreMoods(): Promise<GenreMood[]> {
-  const rows = await db.select().from(genreMoods).orderBy(asc(genreMoods.name));
+  const taxonomyId = await getGenreMoodsTaxonomyId();
+  if (!taxonomyId) return [];
+  const rows = await db
+    .select()
+    .from(taxonomyTerms)
+    .where(eq(taxonomyTerms.taxonomyId, taxonomyId))
+    .orderBy(asc(taxonomyTerms.name));
   const links = await db
     .select({
-      genreMoodId: genreMoodAssignments.genreMoodId,
-      bookmarkId: genreMoodAssignments.ownerId,
+      genreMoodId: taxonomyAssignments.termId,
+      bookmarkId: taxonomyAssignments.ownerId,
     })
-    .from(genreMoodAssignments)
-    .where(eq(genreMoodAssignments.ownerType, "bookmark"));
+    .from(taxonomyAssignments)
+    .where(and(
+      eq(taxonomyAssignments.taxonomyId, taxonomyId),
+      eq(taxonomyAssignments.ownerType, "bookmark"),
+    ));
   const counts = computeGenreMoodBookmarkCounts(rows, links);
-  const namesMap = await loadEntityNames("genreMood", rows.map(row => row.id));
+  const namesMap = await loadEntityNames("taxonomyTerm", rows.map(row => row.id));
   return rows.map(row => toGenreMood(row, counts.get(row.id), namesMap.get(row.id)));
 }
 
@@ -124,21 +144,25 @@ export async function getGenreMoodTree(): Promise<GenreMoodNode[]> {
   return buildGenreMoodTree(await listGenreMoods());
 }
 
-/** Add an entry. Throws `DuplicateGenreMoodError` on a sibling name clash. */
+/** Add an entry. */
 export async function createGenreMood(input: CreateGenreMoodInput): Promise<GenreMood> {
+  const taxonomyId = await getGenreMoodsTaxonomyId();
+  if (!taxonomyId) throw new GenreMoodsRetiredError();
   const name = input.name.trim();
   if (name.length === 0) throw new DuplicateGenreMoodError(input.name);
 
-  const slug = uniqueSlug(name, await takenSlugs(), "genre-mood");
+  const slug = uniqueSlug(name, await takenSlugs(taxonomyId), "genre-mood");
   const [row] = await db
-    .insert(genreMoods)
+    .insert(taxonomyTerms)
     .values({
+      taxonomyId,
       name,
       slug,
       description: input.description ?? null,
       parentId: input.parentId ?? null,
     })
     .returning();
+  invalidateBookmarkCache();
   return toGenreMood(row);
 }
 
@@ -147,45 +171,45 @@ export async function updateGenreMood(
   id: string,
   input: UpdateGenreMoodInput,
 ): Promise<GenreMood | null> {
+  const taxonomyId = await getGenreMoodsTaxonomyId();
+  if (!taxonomyId) return null;
   if (input.parentId !== undefined && input.parentId !== null) {
     if (input.parentId === id) throw new GenreMoodCycleError();
     const all = await listGenreMoods();
     if (wouldCreateCycle(all, id, input.parentId)) throw new GenreMoodCycleError();
   }
 
-  const patch: Partial<Pick<GenreMoodRow, "name" | "slug" | "description" | "parentId">> = {};
+  const patch: Partial<Pick<TaxonomyTermRow, "name" | "slug" | "description" | "parentId">> = {};
   if (input.name !== undefined) {
     patch.name = input.name.trim();
-    patch.slug = uniqueSlug(input.name, await takenSlugs(id), "genre-mood");
+    patch.slug = uniqueSlug(input.name, await takenSlugs(taxonomyId, id), "genre-mood");
   }
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
   if (Object.keys(patch).length === 0) {
-    const [existing] = await db.select().from(genreMoods).where(eq(genreMoods.id, id));
+    const [existing] = await db.select().from(taxonomyTerms).where(eq(taxonomyTerms.id, id));
     return existing ? toGenreMood(existing) : null;
   }
 
-  const [row] = await db.update(genreMoods).set(patch).where(eq(genreMoods.id, id)).returning();
+  const [row] = await db.update(taxonomyTerms).set(patch).where(eq(taxonomyTerms.id, id)).returning();
+  if (row) invalidateBookmarkCache();
   return row ? toGenreMood(row) : null;
 }
 
 /** Delete an entry. FK cascade removes descendants and any assignment rows on the value side. */
 export async function deleteGenreMood(id: string): Promise<boolean> {
-  const rows = await db.delete(genreMoods).where(eq(genreMoods.id, id)).returning({
-    id: genreMoods.id,
+  const rows = await db.delete(taxonomyTerms).where(eq(taxonomyTerms.id, id)).returning({
+    id: taxonomyTerms.id,
   });
   if (rows.length > 0) {
-    // A genre/mood can itself be an assignment owner (attached to another genre/mood); ownerId
-    // carries no cascade FK, so clean up those rows here.
-    await deleteGenreMoodAssignmentsForOwner("genreMood", id);
-    await deleteEntityNamesForOwner("genreMood", id);
-    // Cascade removes descendants + value-side assignment rows (incl. bookmark owners) — refresh the cache.
+    await deleteTaxonomyAssignmentsForOwner("taxonomy", id);
+    await deleteEntityNamesForOwner("taxonomyTerm", id);
     invalidateBookmarkCache();
   }
   return rows.length > 0;
 }
 
-/** Delete many entries, reporting per-item outcomes (a cascaded descendant may report not-found). */
+/** Delete many entries, reporting per-item outcomes. */
 export function bulkDeleteGenreMoods(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deleteGenreMood);
 }

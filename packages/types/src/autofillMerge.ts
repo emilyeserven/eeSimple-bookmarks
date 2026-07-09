@@ -39,7 +39,6 @@ export function urlTitleConditionInput(input: AutofillMatchInput): ConditionInpu
     title: input.title,
     categoryId: "",
     tagIds: new Set(),
-    genreMoodIds: new Set(),
     locationIds: new Set(),
     youtubeChannelId: null,
     mediaTypeId: null,

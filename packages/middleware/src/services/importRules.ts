@@ -138,7 +138,6 @@ export async function applyImportRules(
     title: item.title ?? "",
     categoryId: "",
     tagIds: new Set<string>(),
-    genreMoodIds: new Set<string>(),
     locationIds: new Set<string>(),
     youtubeChannelId: null,
     mediaTypeId: null,

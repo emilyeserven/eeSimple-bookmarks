@@ -153,6 +153,64 @@ const migrations: RuntimeMigration[] = [
       sql`CREATE INDEX IF NOT EXISTS "taxonomy_assignments_tax_owner_idx" ON "taxonomy_assignments" ("taxonomy_id", "owner_type", "owner_id")`,
     ),
   },
+  // ── Genres & Moods → generic taxonomy cutover ──────────────────────────────────────────────────
+  // The bespoke `genre_moods` taxonomy is folded into the generic engine: it becomes one built-in
+  // `taxonomies` row, its entries become `taxonomy_terms` (REUSING the same UUIDs so existing
+  // bookmark hydration + stored `genre-mood` condition trees keep resolving with no jsonb rewrite),
+  // and its polymorphic assignments become `taxonomy_assignments`. Then the legacy tables are dropped.
+  // All steps are idempotent + guarded (`IF EXISTS` / `ON CONFLICT`), so they no-op after the first run.
+  {
+    name: "seed genres-moods taxonomy row",
+    run: db => db.execute(sql`
+      INSERT INTO "taxonomies" ("name", "slug", "hierarchical", "single_value", "built_in", "hidden", "icon", "show_in_sidebar", "sort_order")
+      VALUES ('Genres & Moods', 'genres-moods', true, false, true, false, 'Drama', true, 0)
+      ON CONFLICT ("slug") DO NOTHING
+    `),
+  },
+  {
+    // Copy each genre/mood entry into taxonomy_terms with the SAME id (so parent_id links + bookmark
+    // hydration + stored condition ids all stay valid). Guarded on the legacy table still existing.
+    name: "copy genre_moods into taxonomy_terms",
+    run: db => db.execute(sql`
+      DO $$
+      BEGIN
+        IF to_regclass('public.genre_moods') IS NOT NULL THEN
+          INSERT INTO "taxonomy_terms" ("id", "taxonomy_id", "name", "slug", "description", "parent_id", "created_at")
+          SELECT gm."id", (SELECT "id" FROM "taxonomies" WHERE "slug" = 'genres-moods'),
+                 gm."name", gm."slug", gm."description", gm."parent_id", gm."created_at"
+          FROM "genre_moods" gm
+          ON CONFLICT ("id") DO NOTHING;
+        END IF;
+      END $$
+    `),
+  },
+  {
+    // Copy assignments; a genre/mood that was itself an assignment OWNER (owner_type='genreMood')
+    // becomes owner_type='taxonomy' (the generic self-owner value).
+    name: "copy genre_mood_assignments into taxonomy_assignments",
+    run: db => db.execute(sql`
+      DO $$
+      BEGIN
+        IF to_regclass('public.genre_mood_assignments') IS NOT NULL THEN
+          INSERT INTO "taxonomy_assignments" ("taxonomy_id", "term_id", "owner_type", "owner_id")
+          SELECT (SELECT "id" FROM "taxonomies" WHERE "slug" = 'genres-moods'),
+                 gma."genre_mood_id",
+                 CASE WHEN gma."owner_type" = 'genreMood' THEN 'taxonomy' ELSE gma."owner_type" END,
+                 gma."owner_id"
+          FROM "genre_mood_assignments" gma
+          ON CONFLICT ("term_id", "owner_type", "owner_id") DO NOTHING;
+        END IF;
+      END $$
+    `),
+  },
+  {
+    name: "drop legacy genre_mood_assignments",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "genre_mood_assignments"`),
+  },
+  {
+    name: "drop legacy genre_moods",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "genre_moods"`),
+  },
   // Property Groups were removed — each custom property is now an individually-placeable layout
   // field, so the visual grouping is obsolete. Drop the join tables, the base table, and the
   // `custom_properties.property_group_id` display-only column here (destructive) so push's

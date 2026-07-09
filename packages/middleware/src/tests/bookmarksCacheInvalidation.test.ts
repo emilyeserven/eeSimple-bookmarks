@@ -48,7 +48,7 @@ function resetFixtures(): void {
   invalidateCalls = 0;
   for (const table of [
     schema.bookmarks,
-    schema.genreMoodAssignments,
+    schema.taxonomyAssignments,
     schema.entityNames,
     schema.bookmarkTags,
     schema.tags,

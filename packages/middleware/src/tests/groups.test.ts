@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mock, test } from "node:test";
 import {
   entityNames,
-  genreMoodAssignments,
+  taxonomyAssignments,
   groupImages,
   groups,
 } from "@/db/schema";
@@ -19,14 +19,14 @@ import { createFakeDb, resetFakeIds } from "@/tests/testDbHelpers";
 
 const groupRows: Record<string, unknown>[] = [];
 const groupImageRows: Record<string, unknown>[] = [];
-const genreMoodAssignmentRows: Record<string, unknown>[] = [];
+const taxonomyAssignmentRows: Record<string, unknown>[] = [];
 const entityNameRows: Record<string, unknown>[] = [];
 const deletedObjectKeys: string[] = [];
 
 function resetRows(opts: {
   groups?: Record<string, unknown>[];
   groupImages?: Record<string, unknown>[];
-  genreMoodAssignments?: Record<string, unknown>[];
+  taxonomyAssignments?: Record<string, unknown>[];
   entityNames?: Record<string, unknown>[];
 }): void {
   resetFakeIds();
@@ -34,8 +34,8 @@ function resetRows(opts: {
   groupRows.push(...(opts.groups ?? []));
   groupImageRows.length = 0;
   groupImageRows.push(...(opts.groupImages ?? []));
-  genreMoodAssignmentRows.length = 0;
-  genreMoodAssignmentRows.push(...(opts.genreMoodAssignments ?? []));
+  taxonomyAssignmentRows.length = 0;
+  taxonomyAssignmentRows.push(...(opts.taxonomyAssignments ?? []));
   entityNameRows.length = 0;
   entityNameRows.push(...(opts.entityNames ?? []));
   deletedObjectKeys.length = 0;
@@ -51,8 +51,8 @@ const db = createFakeDb([
     rows: groupImageRows,
   },
   {
-    table: genreMoodAssignments,
-    rows: genreMoodAssignmentRows,
+    table: taxonomyAssignments,
+    rows: taxonomyAssignmentRows,
   },
   {
     table: entityNames,
@@ -91,7 +91,7 @@ test.beforeEach(() => {
 test("deleteGroup: a missing id returns false with no side effects", async () => {
   const deleted = await deleteGroup("nonexistent-id");
   assert.equal(deleted, false);
-  assert.equal(genreMoodAssignmentRows.length, 0);
+  assert.equal(taxonomyAssignmentRows.length, 0);
   assert.equal(entityNameRows.length, 0);
   assert.deepEqual(deletedObjectKeys, []);
 });
@@ -106,7 +106,7 @@ test("deleteGroup: cleans up genre/mood + entity-name rows and deletes a stored 
       groupId: "group-1",
       objectKey: "groups/group-1/avatar.webp",
     }],
-    genreMoodAssignments: [
+    taxonomyAssignments: [
       {
         id: "gma-1",
         ownerType: "group",
@@ -132,7 +132,7 @@ test("deleteGroup: cleans up genre/mood + entity-name rows and deletes a stored 
   assert.equal(deleted, true);
 
   assert.equal(groupRows.some(row => row.id === "group-1"), false);
-  assert.deepEqual(genreMoodAssignmentRows.map(row => row.id), ["gma-2"]);
+  assert.deepEqual(taxonomyAssignmentRows.map(row => row.id), ["gma-2"]);
   assert.equal(entityNameRows.length, 0);
   assert.deepEqual(deletedObjectKeys, ["groups/group-1/avatar.webp"]);
 });

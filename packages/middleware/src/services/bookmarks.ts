@@ -33,7 +33,6 @@ import {
   type BookmarkRow,
   bookmarkTags,
   entityNames,
-  genreMoodAssignments,
   taxonomyAssignments,
   relationshipTypes,
 } from "@/db/schema";
@@ -55,6 +54,7 @@ import {
   ytLog,
 } from "@/services/bookmarkEnrichment";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
+import { getGenreMoodsTaxonomyId } from "@/services/taxonomies";
 import {
   linkGenreMoods,
   linkPeople,
@@ -210,11 +210,8 @@ export async function bulkUpdateBookmarkUrls(items: BulkUrlUpdate[]): Promise<Bu
  */
 async function cleanupGenreMoodAssignments(bookmarkIds: string[]): Promise<void> {
   if (bookmarkIds.length === 0) return;
-  await db.delete(genreMoodAssignments).where(and(
-    eq(genreMoodAssignments.ownerType, "bookmark"),
-    inArray(genreMoodAssignments.ownerId, bookmarkIds),
-  ));
-  // The generic taxonomy assignment layer shares the same no-cascade-FK owner cleanup contract.
+  // Genres & Moods was folded into the generic taxonomy layer, so a bookmark's G&M rows live in
+  // `taxonomy_assignments` — this one delete covers every taxonomy (including G&M) for these owners.
   await db.delete(taxonomyAssignments).where(and(
     eq(taxonomyAssignments.ownerType, "bookmark"),
     inArray(taxonomyAssignments.ownerId, bookmarkIds),
@@ -785,10 +782,16 @@ async function applyBookmarkValueUpdates(
     await linkTags(tx, id, input.tagIds);
   }
   if (input.genreMoodIds !== undefined) {
-    await tx.delete(genreMoodAssignments).where(and(
-      eq(genreMoodAssignments.ownerType, "bookmark"),
-      eq(genreMoodAssignments.ownerId, id),
-    ));
+    // G&M is now a taxonomy: replace this bookmark's G&M assignments (scoped to the G&M taxonomy so
+    // other taxonomies' assignments on the bookmark are untouched), then re-link.
+    const genreMoodsTaxonomyId = await getGenreMoodsTaxonomyId();
+    if (genreMoodsTaxonomyId) {
+      await tx.delete(taxonomyAssignments).where(and(
+        eq(taxonomyAssignments.taxonomyId, genreMoodsTaxonomyId),
+        eq(taxonomyAssignments.ownerType, "bookmark"),
+        eq(taxonomyAssignments.ownerId, id),
+      ));
+    }
     await linkGenreMoods(tx, id, input.genreMoodIds);
   }
   if (input.locationIds !== undefined) {

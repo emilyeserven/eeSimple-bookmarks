@@ -66,7 +66,11 @@ export function bookmarkToConditionInput(bookmark: Bookmark): ConditionInput {
     title: bookmark.title,
     categoryId: bookmark.categoryId,
     tagIds: new Set(bookmark.tags.map(tag => tag.id)),
-    genreMoodIds: new Set(bookmark.genreMoods.map(entry => entry.id)),
+    // Union of all taxonomy-term ids (G&M ids live here too — it was folded into the taxonomy engine).
+    taxonomyTermIds: new Set([
+      ...bookmark.taxonomyTerms.map(term => term.id),
+      ...bookmark.genreMoods.map(entry => entry.id),
+    ]),
     locationIds: new Set(bookmark.locations.map(location => location.id)),
     youtubeChannelId: bookmark.youtubeChannel?.id ?? null,
     mediaTypeId: bookmark.mediaType?.id ?? null,

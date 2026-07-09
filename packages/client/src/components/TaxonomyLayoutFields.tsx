@@ -6,7 +6,7 @@ import type { LayoutStorageKind, Taxonomy, TaxonomyOwnerType } from "@eesimple/t
 
 import { useMemo } from "react";
 
-import { isTaxonomyLayoutKind } from "@eesimple/types";
+import { GENRES_MOODS_TAXONOMY_SLUG, isTaxonomyLayoutKind } from "@eesimple/types";
 import { Tags } from "lucide-react";
 
 import { LabeledSection } from "./LabeledSection";
@@ -105,6 +105,9 @@ export function useTaxonomyDynamicFields<E extends { id: string }>(
     };
     for (const taxonomy of taxonomies ?? []) {
       if (taxonomy.hidden) continue;
+      // Genres & Moods keeps its own bespoke bookmark/entity picker (backed by the same taxonomy
+      // data), so skip it here to avoid a duplicate field.
+      if (taxonomy.slug === GENRES_MOODS_TAXONOMY_SLUG) continue;
       const key = `${TAXONOMY_FIELD_PREFIX}${taxonomy.id}`;
       fields[key] = {
         key,

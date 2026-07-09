@@ -8,7 +8,6 @@ import {
   bookmarkTagBlacklist,
   autofillRuleTags,
   entityNames,
-  genreMoodAssignments,
   homepageTags,
   locationTags,
   newsletterTags,
@@ -122,10 +121,6 @@ async function insertTermsFromTags(
 /** Remove the leftover owner-side rows (no cascade FK) for a set of now-deleted tags. */
 async function cleanupTagOwnerRows(tx: Tx, ownerIds: string[]): Promise<void> {
   if (ownerIds.length === 0) return;
-  await tx.delete(genreMoodAssignments).where(and(
-    eq(genreMoodAssignments.ownerType, "tag"),
-    inArray(genreMoodAssignments.ownerId, ownerIds),
-  ));
   await tx.delete(taxonomyAssignments).where(and(
     eq(taxonomyAssignments.ownerType, "tag"),
     inArray(taxonomyAssignments.ownerId, ownerIds),

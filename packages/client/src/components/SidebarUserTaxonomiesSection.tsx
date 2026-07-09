@@ -1,3 +1,4 @@
+import { GENRES_MOODS_TAXONOMY_SLUG } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { Tags } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -30,7 +31,8 @@ export function SidebarUserTaxonomiesSection({
   const {
     data: taxonomies = [],
   } = useTaxonomies();
-  const visible = taxonomies.filter(taxonomy => taxonomy.showInSidebar && !taxonomy.hidden);
+  const visible = taxonomies.filter(taxonomy =>
+    taxonomy.showInSidebar && !taxonomy.hidden && taxonomy.slug !== GENRES_MOODS_TAXONOMY_SLUG);
   if (visible.length === 0) return null;
 
   return (
