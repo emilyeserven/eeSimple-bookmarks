@@ -1,6 +1,6 @@
 import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanResult, WebsiteLookup } from "@eesimple/types";
-import { detectContentKind, extractIsbn13FromAmazonUrl, isAmazonProductUrl, isHontoProductUrl, socialAccountFromUrl } from "@eesimple/types";
+import { detectContentKind, extractIsbn13FromAmazonUrl, extractIsbn13FromOreillyUrl, isAmazonProductUrl, isHontoProductUrl, isOreillyProductUrl, socialAccountFromUrl } from "@eesimple/types";
 import { fetchAmazonIsbnFromPage } from "@/services/amazon";
 import { getImageUrlBlacklist } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
@@ -482,10 +482,11 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     }) as unknown as FetchIsbnMetadataResult;
   });
 
-  // Resolve a book-site product URL (Amazon or honto.jp) to an ISBN-13. For Amazon, the ASIN itself
-  // is usually a valid ISBN-10 (pure, no fetch); when it isn't, or for honto.jp (which has no
-  // ASIN-equivalent), fall back to reading the ISBN out of the product page's own structured
-  // details. Best-effort like /api/scan — a page with no discoverable ISBN returns { isbn: null }.
+  // Resolve a book-site product URL (Amazon, honto.jp, or O'Reilly) to an ISBN-13. For Amazon, the
+  // ASIN itself is usually a valid ISBN-10 (pure, no fetch); when it isn't, or for honto.jp (which
+  // has no ASIN-equivalent), fall back to reading the ISBN out of the product page's own structured
+  // details. O'Reilly product URLs embed the real ISBN-13 directly in the path (pure, no fetch).
+  // Best-effort like /api/scan — a page with no discoverable ISBN returns { isbn: null }.
   app.get("/api/isbn/from-book-url", {
     schema: {
       tags: ["metadata"],
@@ -519,7 +520,12 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         isbn: await fetchHontoIsbnFromPage(url),
       };
     }
-    throw new ValidationError("url must be an Amazon or honto.jp product URL");
+    if (isOreillyProductUrl(url)) {
+      return {
+        isbn: extractIsbn13FromOreillyUrl(url),
+      };
+    }
+    throw new ValidationError("url must be an Amazon, honto.jp, or O'Reilly product URL");
   });
 
   // Richer metadata lookup: title for any URL, plus channel/duration/thumbnail for YouTube videos.
@@ -594,8 +600,10 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
 
     // The ASIN itself is usually a valid ISBN-10 (pure, no fetch); when it isn't, fall back to
     // reading the ISBN straight out of the product page's own structured details. honto.jp has no
-    // ASIN-equivalent, so it always needs the page fetch.
+    // ASIN-equivalent, so it always needs the page fetch. O'Reilly URLs embed the real ISBN-13
+    // directly in the path, so it's pure like the Amazon ASIN case, no fetch needed.
     const isbnFromAsin = extractIsbn13FromAmazonUrl(finalUrl);
+    const isbnFromOreilly = extractIsbn13FromOreillyUrl(finalUrl);
     const [websiteRaw, duplicate, metadata, isbnFromAmazonPage, isbnFromHontoPage] = await Promise.all([
       lookupWebsiteByUrl(finalUrl),
       checkBookmarkUrlDuplicate(finalUrl, identity),
@@ -614,8 +622,9 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     // The social account `finalUrl` points at, if any (pure of `finalUrl`, so cache-safe).
     const socialAccount = socialAccountFromUrl(finalUrl);
     // A checksum-valid ISBN-13 from an Amazon product URL's ASIN, or (when the ASIN itself isn't one,
-    // or the URL is a honto.jp product page) scraped from the product page's own structured details.
-    const resolvedIsbn = isbnFromAsin ?? isbnFromAmazonPage ?? isbnFromHontoPage;
+    // or the URL is a honto.jp product page) scraped from the product page's own structured details,
+    // or (for an O'Reilly product URL) parsed directly out of the path.
+    const resolvedIsbn = isbnFromAsin ?? isbnFromAmazonPage ?? isbnFromHontoPage ?? isbnFromOreilly;
     const result: ScanResult = {
       finalUrl,
       redirected: redirect.redirected,
