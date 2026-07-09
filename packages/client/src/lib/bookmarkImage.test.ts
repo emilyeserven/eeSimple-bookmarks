@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { makeBookmarkImage } from "../test-utils/factories";
 
-import { bookmarkImageAspectStyle, bookmarkImageClass, bookmarkThumbnailWidthClass, resolveBookmarkDisplayImage } from "./bookmarkImage";
+import { bookmarkImageAspectStyle, bookmarkImageClass, bookmarkThumbnailWidthClass, resolveBookmarkDisplayImage, resolveCardImageState } from "./bookmarkImage";
 
 describe("bookmarkImageClass", () => {
   it("uses fixed-width left layout, omitting object-cover for natural mode", () => {
@@ -141,5 +141,56 @@ describe("resolveBookmarkDisplayImage", () => {
       image,
       screenshot,
     }))).toBe(screenshot);
+  });
+});
+
+describe("resolveCardImageState", () => {
+  const image = makeBookmarkImage();
+  const withImage: Pick<Bookmark, "image" | "screenshot" | "imageDisplayPreference"> = {
+    image,
+    screenshot: null,
+    imageDisplayPreference: "auto",
+  };
+  const noImage: Pick<Bookmark, "image" | "screenshot" | "imageDisplayPreference"> = {
+    image: null,
+    screenshot: null,
+    imageDisplayPreference: "auto",
+  };
+
+  it("shows the image area and no placeholder for a bookmark with an image (shown mode)", () => {
+    expect(resolveCardImageState(withImage, "shown", false)).toEqual({
+      hasActualImage: true,
+      imageEnabled: true,
+      hasImage: true,
+      showPlaceholder: false,
+      showImageArea: true,
+    });
+  });
+
+  it("shows a placeholder for a no-image bookmark in shown mode", () => {
+    const state = resolveCardImageState(noImage, "shown", false);
+    expect(state.showPlaceholder).toBe(true);
+    expect(state.showImageArea).toBe(true);
+    expect(state.hasImage).toBe(false);
+  });
+
+  it("hides everything when image visibility is off, even with an image", () => {
+    const state = resolveCardImageState(withImage, "off", false);
+    expect(state.imageEnabled).toBe(false);
+    expect(state.hasImage).toBe(false);
+    expect(state.showPlaceholder).toBe(false);
+    expect(state.showImageArea).toBe(false);
+  });
+
+  it("does not placeholder in image-only mode (no actual image → no area)", () => {
+    const state = resolveCardImageState(noImage, "image-only", false);
+    expect(state.showPlaceholder).toBe(false);
+    expect(state.showImageArea).toBe(false);
+  });
+
+  it("while loading, shows the area only for a bookmark that actually has an image", () => {
+    expect(resolveCardImageState(withImage, "shown", true).showImageArea).toBe(true);
+    // A no-image bookmark hides the area until rules resolve (avoids a placeholder flash).
+    expect(resolveCardImageState(noImage, "shown", true).showImageArea).toBe(false);
   });
 });
