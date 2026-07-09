@@ -100,6 +100,12 @@ function describeConditionNode(
         : i18n.t("Genres & Moods is one of ({{count}})", {
           count: node.genreMoodIds.length,
         });
+    case "taxonomy":
+      return node.termIds.length === 1
+        ? i18n.t("taxonomy term is (1)")
+        : i18n.t("taxonomy term is one of ({{count}})", {
+          count: node.termIds.length,
+        });
     case "relationship-type":
       return node.relationshipTypeIds.length === 1
         ? i18n.t("has a relationship of type (1)")

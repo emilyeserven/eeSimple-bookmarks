@@ -45,6 +45,15 @@ import type {
   GenreMoodNode,
   GenreMoodOwnerType,
   BookmarkGenreMood,
+  Taxonomy,
+  TaxonomyTerm,
+  TaxonomyTermNode,
+  BookmarkTaxonomyTerm,
+  TaxonomyOwnerType,
+  CreateTaxonomyInput,
+  UpdateTaxonomyInput,
+  CreateTaxonomyTermInput,
+  UpdateTaxonomyTermInput,
   Location,
   LocationLookupResult,
   LocationNode,
@@ -182,6 +191,64 @@ export const genreMoodAssignmentsApi = {
       method: "PUT",
       body: JSON.stringify({
         genreMoodIds,
+      }),
+    }),
+};
+
+export const taxonomiesApi = {
+  ...createCrudApi<Taxonomy, CreateTaxonomyInput, UpdateTaxonomyInput>("taxonomies"),
+  bySlug: (slug: string) => request<Taxonomy>(`/taxonomies/by-slug/${slug}`),
+  promoteTag: (tagId: string) =>
+    request<Taxonomy>("/taxonomies/promote-tag", {
+      method: "POST",
+      body: JSON.stringify({
+        tagId,
+      }),
+    }),
+  demote: (id: string, parentTagId?: string | null) =>
+    request<{ parentTagId: string }>(`/taxonomies/${id}/demote`, {
+      method: "POST",
+      body: JSON.stringify({
+        parentTagId: parentTagId ?? null,
+      }),
+    }),
+  // Terms — nested for list/tree/create, flat by id for update/remove/bulk.
+  listTerms: (taxonomyId: string) => request<TaxonomyTerm[]>(`/taxonomies/${taxonomyId}/terms`),
+  termTree: (taxonomyId: string) => request<TaxonomyTermNode[]>(`/taxonomies/${taxonomyId}/terms/tree`),
+  createTerm: (taxonomyId: string, input: CreateTaxonomyTermInput) =>
+    request<TaxonomyTerm>(`/taxonomies/${taxonomyId}/terms`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateTerm: (id: string, input: UpdateTaxonomyTermInput) =>
+    request<TaxonomyTerm>(`/taxonomy-terms/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  removeTerm: (id: string) =>
+    request<undefined>(`/taxonomy-terms/${id}`, {
+      method: "DELETE",
+    }),
+  bulkDeleteTerms: (ids: string[]) =>
+    request<BulkDeleteResult[]>("/taxonomy-terms/bulk-delete", {
+      method: "POST",
+      body: JSON.stringify({
+        ids,
+      }),
+    }),
+};
+
+export const taxonomyAssignmentsApi = {
+  list: (ownerType: TaxonomyOwnerType, ownerId: string) =>
+    request<BookmarkTaxonomyTerm[]>(`/taxonomy-assignments/${ownerType}/${ownerId}`),
+  listByOwnerType: (taxonomyId: string, ownerType: TaxonomyOwnerType) =>
+    request<Record<string, string[]>>(`/taxonomy-assignments/by-owner-type/${taxonomyId}/${ownerType}`),
+  set: (taxonomyId: string, ownerType: TaxonomyOwnerType, ownerId: string, termIds: string[]) =>
+    request<BookmarkTaxonomyTerm[]>(`/taxonomy-assignments/${ownerType}/${ownerId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        taxonomyId,
+        termIds,
       }),
     }),
 };

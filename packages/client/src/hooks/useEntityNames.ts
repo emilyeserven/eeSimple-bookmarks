@@ -16,6 +16,7 @@ const OWNER_QUERY_KEYS: Record<EntityNameOwnerType, string> = {
   tag: "tags",
   mediaType: "media-types",
   genreMood: "genre-moods",
+  taxonomyTerm: "taxonomies",
   location: "locations",
   person: "people",
   group: "groups",
