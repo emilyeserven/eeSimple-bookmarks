@@ -15,6 +15,7 @@ import { cardFieldTemplatesRoutes } from "@/routes/cardFieldTemplates";
 import { entityLayoutsRoutes } from "@/routes/entityLayouts";
 import { conditionNodeSchema, conditionTreeSchema } from "@/routes/conditionSchema";
 import { customPropertyRoutes } from "@/routes/customProperties";
+import { extensionRoutes } from "@/routes/extension";
 import { galleryRoutes } from "@/routes/gallery";
 import { healthRoutes } from "@/routes/health";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
@@ -230,6 +231,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.addSchema(conditionTreeSchema);
 
   await app.register(healthRoutes);
+  await app.register(extensionRoutes);
   await app.register(metadataRoutes);
   await app.register(connectorsRoutes);
   await app.register(kavitaRoutes);

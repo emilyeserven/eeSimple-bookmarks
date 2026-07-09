@@ -72,6 +72,17 @@ export async function listTagNames(): Promise<TitleTagCandidate[]> {
   }));
 }
 
+/** Compact `{id, name}` listing of every tag, for client-side match-or-create flows. */
+export async function listTagsCompact(): Promise<{ id: string;
+  name: string; }[]> {
+  return db
+    .select({
+      id: tags.id,
+      name: tags.name,
+    })
+    .from(tags);
+}
+
 /**
  * Compute each tag's distinct subtree bookmark count and its "own" (no-descendant) count from a
  * flat tag list and the bookmark↔tag links. Distinct counting dedupes bookmarks tagged with both a
