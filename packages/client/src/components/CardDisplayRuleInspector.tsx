@@ -22,7 +22,7 @@ export function CardDisplayRuleInspector() {
     bookmarks,
     options,
     sortedRules,
-    tagDescendants,
+    evaluateOptions,
     ruleNameById,
     labels,
   } = useCardRuleInspectorData();
@@ -38,9 +38,9 @@ export function CardDisplayRuleInspector() {
 
   const inspection: BookmarkRuleInspection | null = useMemo(
     () => (selectedBookmark
-      ? inspectBookmarkRules(selectedBookmark, sortedRules, tagDescendants)
+      ? inspectBookmarkRules(selectedBookmark, sortedRules, evaluateOptions)
       : null),
-    [selectedBookmark, sortedRules, tagDescendants],
+    [selectedBookmark, sortedRules, evaluateOptions],
   );
 
   const matchedRules = inspection?.rules.filter(ri => ri.matched) ?? [];

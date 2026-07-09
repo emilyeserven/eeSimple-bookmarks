@@ -13,11 +13,14 @@ interface LocationPickerProps {
   selectedIds: string[];
   onToggle: (id: string) => void;
   createOption?: CreateOption;
+  /** Per-item cascade "match child items" toggle (condition editors only). Omit for plain selection. */
+  cascadeValues?: string[];
+  onToggleCascade?: (id: string) => void;
 }
 
 /** Combobox multi-select for assigning a bookmark to any tier of the location taxonomy. */
 export function LocationPicker({
-  tree, selectedIds, onToggle, createOption,
+  tree, selectedIds, onToggle, createOption, cascadeValues, onToggleCascade,
 }: LocationPickerProps) {
   const {
     t,
@@ -42,6 +45,8 @@ export function LocationPicker({
       searchPlaceholder={t("Search locations…")}
       emptyText={t("No locations yet.")}
       createOption={createOption}
+      cascadeValues={cascadeValues}
+      onToggleCascade={onToggleCascade}
     />
   );
 }

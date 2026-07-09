@@ -1,15 +1,14 @@
 // @vitest-environment node
-import type { Bookmark, ConditionTree, LayoutSection } from "@eesimple/types";
+import type { Bookmark, ConditionTree, EvaluateOptions, LayoutSection } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
-
-import { buildTagDescendants } from "@eesimple/types";
 
 import { sectionMatchesConditionInput } from "./useBookmarkSectionVisibility";
 import { bookmarkToConditionInput } from "../lib/cardDisplayRules";
 import { makeBookmark } from "../test-utils/factories";
 
-const tagDescendants = buildTagDescendants([]);
+// No resolvers needed for these assertions (no cascade); an empty options object suffices.
+const options: EvaluateOptions = {};
 
 function section(visibleIf?: ConditionTree): LayoutSection {
   return {
@@ -37,7 +36,7 @@ const videoOnly: ConditionTree = {
 
 describe("sectionMatchesConditionInput", () => {
   it("shows a section with no visibleIf", () => {
-    expect(sectionMatchesConditionInput(section(), inputFor(), tagDescendants)).toBe(true);
+    expect(sectionMatchesConditionInput(section(), inputFor(), options)).toBe(true);
   });
 
   it("shows a section whose visibleIf is an empty group (matches nothing on its own, but means always-visible here)", () => {
@@ -46,7 +45,7 @@ describe("sectionMatchesConditionInput", () => {
       combinator: "and",
       children: [],
     };
-    expect(sectionMatchesConditionInput(section(empty), inputFor(), tagDescendants)).toBe(true);
+    expect(sectionMatchesConditionInput(section(empty), inputFor(), options)).toBe(true);
   });
 
   it("shows a section only for a bookmark that matches its condition", () => {
@@ -57,10 +56,10 @@ describe("sectionMatchesConditionInput", () => {
         slug: "video",
       } as Bookmark["mediaType"],
     });
-    expect(sectionMatchesConditionInput(section(videoOnly), matching, tagDescendants)).toBe(true);
+    expect(sectionMatchesConditionInput(section(videoOnly), matching, options)).toBe(true);
   });
 
   it("hides a section for a bookmark that does not match its condition", () => {
-    expect(sectionMatchesConditionInput(section(videoOnly), inputFor(), tagDescendants)).toBe(false);
+    expect(sectionMatchesConditionInput(section(videoOnly), inputFor(), options)).toBe(false);
   });
 });

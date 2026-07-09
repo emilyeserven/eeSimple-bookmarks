@@ -79,6 +79,7 @@ const tagNode = {
       const: "tag",
     },
     tagIds: uuidArray,
+    cascadeTagIds: uuidArray,
   },
 } as const;
 
@@ -91,6 +92,7 @@ const locationNode = {
       const: "location",
     },
     locationIds: uuidArray,
+    cascadeLocationIds: uuidArray,
   },
 } as const;
 
@@ -115,6 +117,7 @@ const mediaTypeNode = {
       const: "media-type",
     },
     mediaTypeIds: uuidArray,
+    cascadeMediaTypeIds: uuidArray,
   },
 } as const;
 
@@ -127,6 +130,7 @@ const genreMoodNode = {
       const: "genre-mood",
     },
     genreMoodIds: uuidArray,
+    cascadeGenreMoodIds: uuidArray,
   },
 } as const;
 

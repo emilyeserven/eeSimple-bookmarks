@@ -100,19 +100,27 @@ export interface WebsiteCondition {
 /**
  * Leaf: the bookmark carries one of `tagIds`. Cascade (a selected parent also matches its
  * descendants) is applied at EVALUATION time, so `tagIds` stores exactly what the user picked.
+ *
+ * `cascadeTagIds` is the subset of `tagIds` that match their whole subtree (the per-item "cascade"
+ * checkbox). **Absent = legacy**: reproduces the old always-cascade behavior (every selected id
+ * cascades), so existing saved conditions are unchanged. A newly-selected parent defaults to exact
+ * (not in this set).
  */
 export interface TagCondition {
   type: "tag";
   tagIds: string[];
+  cascadeTagIds?: string[];
 }
 
 /**
  * Leaf: the bookmark carries one of `locationIds`. Cascade (a selected parent also matches its
  * descendants) is applied at EVALUATION time, so `locationIds` stores exactly what the user picked.
+ * `cascadeLocationIds` mirrors {@link TagCondition.cascadeTagIds} (absent = legacy always-cascade).
  */
 export interface LocationCondition {
   type: "location";
   locationIds: string[];
+  cascadeLocationIds?: string[];
 }
 
 /**
@@ -125,19 +133,24 @@ export interface YouTubeChannelCondition {
 
 /**
  * Leaf: the bookmark's media type is one of `mediaTypeIds`. An empty list never matches.
+ * `cascadeMediaTypeIds` is the subset that match their subtree (media types are a `parentId` tree);
+ * **absent = legacy exact match** (no cascade), preserving existing conditions.
  */
 export interface MediaTypeCondition {
   type: "media-type";
   mediaTypeIds: string[];
+  cascadeMediaTypeIds?: string[];
 }
 
 /**
  * Leaf: the bookmark carries one of `genreMoodIds` (any-of; a bookmark can have several Genres &
- * Moods). Flat match — no parent→child cascade. An empty list never matches.
+ * Moods). `cascadeGenreMoodIds` is the subset that match their subtree (Genres & Moods are a
+ * `parentId` tree); **absent = legacy exact match** (no cascade), preserving existing conditions.
  */
 export interface GenreMoodCondition {
   type: "genre-mood";
   genreMoodIds: string[];
+  cascadeGenreMoodIds?: string[];
 }
 
 /**
@@ -305,6 +318,10 @@ export interface EvaluateOptions {
   tagDescendants?: TagDescendants;
   /** Location cascade resolver; when omitted, a location leaf matches only the exact ids selected. */
   locationDescendants?: TagDescendants;
+  /** Media-type cascade resolver; when omitted, a media-type leaf matches only the exact ids selected. */
+  mediaTypeDescendants?: TagDescendants;
+  /** Genre & Mood cascade resolver; when omitted, a genre-mood leaf matches only the exact ids selected. */
+  genreMoodDescendants?: TagDescendants;
 }
 
 /**
@@ -344,6 +361,18 @@ export function buildTagDescendants(
  * shape as tags, so this is just {@link buildTagDescendants} under a clearer name.
  */
 export const buildLocationDescendants = buildTagDescendants;
+
+/**
+ * Build a descendant resolver for the Media Types tree — same `{ id, parentId }` shape as tags, so
+ * it aliases {@link buildTagDescendants}. Used for the per-item media-type cascade toggle.
+ */
+export const buildMediaTypeDescendants = buildTagDescendants;
+
+/**
+ * Build a descendant resolver for the Genres & Moods tree — same `{ id, parentId }` shape as tags,
+ * so it aliases {@link buildTagDescendants}. Used for the per-item genre-mood cascade toggle.
+ */
+export const buildGenreMoodDescendants = buildTagDescendants;
 
 /** Extract a URL's host with a leading `www.` removed, or `null` if it can't be parsed. */
 function hostOf(url: string): string | null {
@@ -403,15 +432,31 @@ function evaluateMatch(condition: MatchCondition, input: ConditionInput): boolea
   }
 }
 
+/**
+ * The candidate id set matched by one selected hierarchical id: its inclusive subtree when the id is
+ * flagged to cascade (the per-item checkbox) and a resolver is available, else just the id itself
+ * (exact). `cascadeIds === undefined` means the leaf predates the per-item flag — `legacyCascade`
+ * supplies that leaf type's historical default (Tags/Locations cascaded everything, Media
+ * Types/Genres & Moods were exact), so existing conditions evaluate exactly as before.
+ */
+function cascadeCandidates(
+  id: string,
+  cascadeIds: string[] | undefined,
+  resolve: TagDescendants | undefined,
+  legacyCascade: boolean,
+): Set<string> {
+  const shouldCascade = cascadeIds === undefined ? legacyCascade : cascadeIds.includes(id);
+  return resolve && shouldCascade ? resolve(id) : new Set([id]);
+}
+
 function evaluateTag(
   condition: TagCondition,
   input: ConditionInput,
   options: EvaluateOptions | undefined,
 ): boolean {
   if (condition.tagIds.length === 0) return false;
-  const resolve = options?.tagDescendants;
   for (const tagId of condition.tagIds) {
-    const candidates = resolve ? resolve(tagId) : new Set([tagId]);
+    const candidates = cascadeCandidates(tagId, condition.cascadeTagIds, options?.tagDescendants, true);
     for (const id of candidates) {
       if (input.tagIds.has(id)) return true;
     }
@@ -465,9 +510,8 @@ function evaluateLocation(
   options: EvaluateOptions | undefined,
 ): boolean {
   if (condition.locationIds.length === 0) return false;
-  const resolve = options?.locationDescendants;
   for (const locationId of condition.locationIds) {
-    const candidates = resolve ? resolve(locationId) : new Set([locationId]);
+    const candidates = cascadeCandidates(locationId, condition.cascadeLocationIds, options?.locationDescendants, true);
     for (const id of candidates) {
       if (input.locationIds.has(id)) return true;
     }
@@ -480,9 +524,18 @@ function evaluateYoutubeChannel(condition: YouTubeChannelCondition, input: Condi
   return input.youtubeChannelId !== null && condition.channelIds.includes(input.youtubeChannelId);
 }
 
-function evaluateMediaType(condition: MediaTypeCondition, input: ConditionInput): boolean {
+function evaluateMediaType(
+  condition: MediaTypeCondition,
+  input: ConditionInput,
+  options: EvaluateOptions | undefined,
+): boolean {
   if (condition.mediaTypeIds.length === 0) return false;
-  return input.mediaTypeId !== null && condition.mediaTypeIds.includes(input.mediaTypeId);
+  if (input.mediaTypeId === null) return false;
+  for (const mediaTypeId of condition.mediaTypeIds) {
+    const candidates = cascadeCandidates(mediaTypeId, condition.cascadeMediaTypeIds, options?.mediaTypeDescendants, false);
+    if (candidates.has(input.mediaTypeId)) return true;
+  }
+  return false;
 }
 
 function evaluateRelationshipType(
@@ -503,9 +556,19 @@ function evaluateLanguageUsage(condition: LanguageUsageCondition, input: Conditi
     && (usageLevelIds.length === 0 || usageLevelIds.includes(usage.usageLevelId)));
 }
 
-function evaluateGenreMood(condition: GenreMoodCondition, input: ConditionInput): boolean {
+function evaluateGenreMood(
+  condition: GenreMoodCondition,
+  input: ConditionInput,
+  options: EvaluateOptions | undefined,
+): boolean {
   if (condition.genreMoodIds.length === 0) return false;
-  return condition.genreMoodIds.some(id => input.genreMoodIds.has(id));
+  for (const genreMoodId of condition.genreMoodIds) {
+    const candidates = cascadeCandidates(genreMoodId, condition.cascadeGenreMoodIds, options?.genreMoodDescendants, false);
+    for (const id of candidates) {
+      if (input.genreMoodIds.has(id)) return true;
+    }
+  }
+  return false;
 }
 
 function evaluateChoicesPredicate(
@@ -610,9 +673,9 @@ export function evaluateConditions(
     case "youtube-channel":
       return evaluateYoutubeChannel(node, input);
     case "media-type":
-      return evaluateMediaType(node, input);
+      return evaluateMediaType(node, input, options);
     case "genre-mood":
-      return evaluateGenreMood(node, input);
+      return evaluateGenreMood(node, input, options);
     case "relationship-type":
       return evaluateRelationshipType(node, input);
     case "language-usage":

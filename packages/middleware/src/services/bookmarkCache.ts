@@ -1,6 +1,6 @@
 import { and, eq, inArray, or } from "drizzle-orm";
-import type { BookmarkSectionsValue, ConditionInput, SectionEntry, TagDescendants } from "@eesimple/types";
-import { buildLocationDescendants, buildTagDescendants } from "@eesimple/types";
+import type { BookmarkSectionsValue, ConditionInput, EvaluateOptions, SectionEntry, TagDescendants } from "@eesimple/types";
+import { buildGenreMoodDescendants, buildLocationDescendants, buildMediaTypeDescendants, buildTagDescendants } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
@@ -17,8 +17,10 @@ import {
   type BookmarkRow,
   bookmarkTags,
   genreMoodAssignments,
+  genreMoods,
   languageUsages,
   locations,
+  mediaTypes,
   tags,
 } from "@/db/schema";
 import { bookmarkCacheVersion } from "@/services/bookmarkCacheVersion";
@@ -50,6 +52,12 @@ export interface BookmarkEvaluationData {
   tagDescendants: TagDescendants;
   /** Location descendant resolver for location conditions. */
   locationDescendants: TagDescendants;
+  /** Media-type descendant resolver for the per-item media-type cascade toggle. */
+  mediaTypeDescendants: TagDescendants;
+  /** Genre & Mood descendant resolver for the per-item genre-mood cascade toggle. */
+  genreMoodDescendants: TagDescendants;
+  /** The four cascade resolvers pre-bundled as `EvaluateOptions` — pass straight to `evaluateConditions`. */
+  evaluateOptions: EvaluateOptions;
 }
 
 let snapshot: { version: number;
@@ -96,6 +104,22 @@ async function loadEvaluationData(): Promise<BookmarkEvaluationData> {
     .from(locations);
   const locationDescendants = buildLocationDescendants(locationRows);
 
+  const mediaTypeRows = await db
+    .select({
+      id: mediaTypes.id,
+      parentId: mediaTypes.parentId,
+    })
+    .from(mediaTypes);
+  const mediaTypeDescendants = buildMediaTypeDescendants(mediaTypeRows);
+
+  const genreMoodRows = await db
+    .select({
+      id: genreMoods.id,
+      parentId: genreMoods.parentId,
+    })
+    .from(genreMoods);
+  const genreMoodDescendants = buildGenreMoodDescendants(genreMoodRows);
+
   const baseRows = await db.select().from(bookmarks);
   const conditionInputs = await buildConditionInputs(baseRows, defaultCategoryId);
   return {
@@ -103,6 +127,14 @@ async function loadEvaluationData(): Promise<BookmarkEvaluationData> {
     conditionInputs,
     tagDescendants,
     locationDescendants,
+    mediaTypeDescendants,
+    genreMoodDescendants,
+    evaluateOptions: {
+      tagDescendants,
+      locationDescendants,
+      mediaTypeDescendants,
+      genreMoodDescendants,
+    },
   };
 }
 

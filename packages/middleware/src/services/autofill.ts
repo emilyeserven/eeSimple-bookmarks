@@ -293,16 +293,13 @@ export async function listAutofillRules(): Promise<AutofillRule[]> {
   // Count how many existing bookmarks each rule currently matches, evaluated with the same shared
   // predicate the autofill/homepage engines use over the cached per-bookmark inputs (no extra I/O).
   const {
-    baseRows, conditionInputs, tagDescendants, locationDescendants,
+    baseRows, conditionInputs, evaluateOptions,
   } = evaluation;
   return rules.map((rule) => {
     let matchCount = 0;
     for (const row of baseRows) {
       const conditionInput = conditionInputs.get(row.id);
-      if (conditionInput && evaluateConditions(rule.conditions, conditionInput, {
-        tagDescendants,
-        locationDescendants,
-      })) {
+      if (conditionInput && evaluateConditions(rule.conditions, conditionInput, evaluateOptions)) {
         matchCount += 1;
       }
     }
@@ -502,16 +499,13 @@ export async function previewAutofillMatches(
 ): Promise<AutofillPreviewResult> {
   const limit = input.limit && input.limit > 0 ? input.limit : DEFAULT_PREVIEW_LIMIT;
   const {
-    baseRows, conditionInputs, tagDescendants, locationDescendants,
+    baseRows, conditionInputs, evaluateOptions,
   } = await getBookmarkEvaluationData();
 
   const matches = (row: BookmarkRow): boolean => {
     const conditionInput = conditionInputs.get(row.id);
     if (!conditionInput) return false;
-    return evaluateConditions(input.conditions, conditionInput, {
-      tagDescendants,
-      locationDescendants,
-    });
+    return evaluateConditions(input.conditions, conditionInput, evaluateOptions);
   };
 
   const query = input.query?.trim().toLowerCase();
@@ -608,16 +602,13 @@ export async function getAutofillBackfillEntries(ruleId: string): Promise<Autofi
   if (!rule) return null;
 
   const {
-    baseRows, conditionInputs, tagDescendants, locationDescendants,
+    baseRows, conditionInputs, evaluateOptions,
   } = await getBookmarkEvaluationData();
 
   const matchingRows = baseRows.filter((row) => {
     const ci = conditionInputs.get(row.id);
     return ci
-      ? evaluateConditions(rule.conditions, ci, {
-        tagDescendants,
-        locationDescendants,
-      })
+      ? evaluateConditions(rule.conditions, ci, evaluateOptions)
       : false;
   });
   matchingRows.sort(byPriorityThenNewest);
@@ -667,7 +658,7 @@ export async function applyAutofillBackfill(
   if (!rule) return null;
 
   const [{
-    baseRows, conditionInputs, tagDescendants, locationDescendants,
+    baseRows, conditionInputs, evaluateOptions,
   }, exemptRows, globallyExcludedTagIds] = await Promise.all([
     getBookmarkEvaluationData(),
     db.select().from(autofillRuleExemptions).where(eq(autofillRuleExemptions.ruleId, ruleId)),
@@ -691,10 +682,7 @@ export async function applyAutofillBackfill(
       continue;
     }
     const ci = conditionInputs.get(id);
-    if (!ci || !evaluateConditions(rule.conditions, ci, {
-      tagDescendants,
-      locationDescendants,
-    })) {
+    if (!ci || !evaluateConditions(rule.conditions, ci, evaluateOptions)) {
       skipped += 1;
     }
     else {
@@ -820,7 +808,7 @@ export async function applyAutofillBackfill(
  */
 export async function getGlobalBackfill(): Promise<GlobalAutofillBackfillResult> {
   const [rules, {
-    baseRows, conditionInputs, tagDescendants, locationDescendants,
+    baseRows, conditionInputs, evaluateOptions,
   }, allExemptions, globallyExcludedTagIds] = await Promise.all([
     listAutofillRules(),
     getBookmarkEvaluationData(),
@@ -842,10 +830,7 @@ export async function getGlobalBackfill(): Promise<GlobalAutofillBackfillResult>
     const matchingRows = baseRows.filter((row) => {
       const ci = conditionInputs.get(row.id);
       return ci
-        ? evaluateConditions(rule.conditions, ci, {
-          tagDescendants,
-          locationDescendants,
-        })
+        ? evaluateConditions(rule.conditions, ci, evaluateOptions)
         : false;
     });
     matchingRows.sort(byPriorityThenNewest);

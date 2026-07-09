@@ -163,7 +163,7 @@ export async function listHomepageSectionBookmarks(): Promise<HomepageSectionBoo
   if (sections.length === 0) return [];
 
   const {
-    baseRows, conditionInputs, tagDescendants, locationDescendants,
+    baseRows, conditionInputs, evaluateOptions,
   } = await getBookmarkEvaluationData();
   if (baseRows.length === 0) {
     return sections.map(section => ({
@@ -181,10 +181,7 @@ export async function listHomepageSectionBookmarks(): Promise<HomepageSectionBoo
       .filter((row) => {
         const input = conditionInputs.get(row.id);
         if (!input) return false;
-        return evaluateConditions(section.conditions, input, {
-          tagDescendants,
-          locationDescendants,
-        });
+        return evaluateConditions(section.conditions, input, evaluateOptions);
       })
       .sort((a, b) =>
         b.priority - a.priority

@@ -16,13 +16,13 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { useMemo, useState } from "react";
 
-import { buildTagDescendants, evaluateConditions } from "@eesimple/types";
+import { evaluateConditions } from "@eesimple/types";
 
 import { useBookmarks } from "./useBookmarks";
 import { useCardDisplayRules } from "./useCardDisplayRules";
 import { useCategories } from "./useCategories";
+import { useConditionEvaluateOptions } from "./useConditionEvaluateOptions";
 import { useCustomProperties } from "./useCustomProperties";
-import { useTags } from "./useTags";
 import { BASELINE, bookmarkToConditionInput } from "../lib/cardDisplayRules";
 
 /**
@@ -225,23 +225,13 @@ export function useCardDisplayRulePreview({
   const {
     data: rules = [],
   } = useCardDisplayRules();
-  const {
-    data: tags = [],
-  } = useTags();
+  const evaluateOptions = useConditionEvaluateOptions();
   const {
     data: categories = [],
   } = useCategories();
 
   const [mode, setMode] = useState<PreviewMode>("sample");
   const [index, setIndex] = useState(0);
-
-  const tagDescendants = useMemo(
-    () => buildTagDescendants(tags.map(tag => ({
-      id: tag.id,
-      parentId: tag.parentId,
-    }))),
-    [tags],
-  );
 
   // The generic sample: every standard field + a placeholder value per custom property. Uses a real
   // category (so the category pill resolves against the categories cache) when one exists.
@@ -367,10 +357,8 @@ export function useCardDisplayRulePreview({
   const matches = useMemo(() => {
     if (isDefault) return bookmarks;
     return bookmarks.filter(bookmark =>
-      evaluateConditions(conditions, bookmarkToConditionInput(bookmark), {
-        tagDescendants,
-      }));
-  }, [bookmarks, conditions, isDefault, tagDescendants]);
+      evaluateConditions(conditions, bookmarkToConditionInput(bookmark), evaluateOptions));
+  }, [bookmarks, conditions, isDefault, evaluateOptions]);
 
   const safeIndex = matches.length > 0 ? Math.min(index, matches.length - 1) : 0;
   const matchedBookmark = mode === "existing" ? (matches[safeIndex] ?? null) : null;
@@ -386,10 +374,8 @@ export function useCardDisplayRulePreview({
     return rules.filter(rule =>
       !rule.isDefault
       && rule.id !== currentRuleId
-      && evaluateConditions(rule.conditions, input, {
-        tagDescendants,
-      }));
-  }, [matchedBookmark, rules, currentRuleId, tagDescendants]);
+      && evaluateConditions(rule.conditions, input, evaluateOptions));
+  }, [matchedBookmark, rules, currentRuleId, evaluateOptions]);
 
   return {
     mode,

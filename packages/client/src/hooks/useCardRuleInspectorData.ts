@@ -3,14 +3,12 @@ import type { RuleAttrLabels } from "../lib/cardDisplayRuleAttrFormat";
 
 import { useMemo } from "react";
 
-import { buildTagDescendants } from "@eesimple/types";
-
 import { useCroppedHeight, useCroppedWidth } from "./useAppSettings";
 import { useBookmarks } from "./useBookmarks";
 import { useCardDisplayRules } from "./useCardDisplayRules";
+import { useConditionEvaluateOptions } from "./useConditionEvaluateOptions";
 import { useCustomAspectRatios } from "./useCustomAspectRatios";
 import { useCustomProperties } from "./useCustomProperties";
-import { useTags } from "./useTags";
 import { useTranslatedLabel } from "./useTranslatedLabel";
 import { buildAspectOptions } from "../lib/aspectOptions";
 import { STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFields";
@@ -45,9 +43,7 @@ export function useCardRuleInspectorData() {
   const {
     data: rules = [],
   } = useCardDisplayRules();
-  const {
-    data: tags = [],
-  } = useTags();
+  const evaluateOptions = useConditionEvaluateOptions();
   const {
     data: properties = [],
   } = useCustomProperties();
@@ -66,13 +62,6 @@ export function useCardRuleInspectorData() {
   );
 
   const sortedRules = useMemo(() => [...rules].sort(byPriority), [rules]);
-  const tagDescendants = useMemo(
-    () => buildTagDescendants(tags.map(tag => ({
-      id: tag.id,
-      parentId: tag.parentId,
-    }))),
-    [tags],
-  );
 
   const ruleNameById = useMemo(
     () => new Map(rules.map(rule => [rule.id, rule.name])),
@@ -95,7 +84,7 @@ export function useCardRuleInspectorData() {
     bookmarks,
     options,
     sortedRules,
-    tagDescendants,
+    evaluateOptions,
     ruleNameById,
     labels,
   };

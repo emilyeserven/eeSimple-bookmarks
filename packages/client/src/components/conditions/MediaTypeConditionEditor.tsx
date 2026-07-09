@@ -8,6 +8,7 @@ import { useEntityCreateOption } from "../useEntityCreateOption";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useBuiltInName } from "@/lib/builtInName";
 import { mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
+import { effectiveCascadeIds, pruneCascadeIds, toggleCascadeId } from "@/lib/conditionCascade";
 
 interface MediaTypeConditionEditorProps {
   value: MediaTypeCondition;
@@ -44,6 +45,13 @@ export function MediaTypeConditionEditor({
           onChange({
             ...value,
             mediaTypeIds,
+            cascadeMediaTypeIds: pruneCascadeIds(value.cascadeMediaTypeIds, mediaTypeIds),
+          })}
+        cascadeValues={effectiveCascadeIds(value.mediaTypeIds, value.cascadeMediaTypeIds, false)}
+        onToggleCascade={id =>
+          onChange({
+            ...value,
+            cascadeMediaTypeIds: toggleCascadeId(value.mediaTypeIds, value.cascadeMediaTypeIds, id, false),
           })}
         createOption={mediaTypeCreate.createOption}
       />

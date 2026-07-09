@@ -3,12 +3,11 @@ import type { BookmarkAddFormSettings, CustomProperty } from "@eesimple/types";
 
 import { useMemo } from "react";
 
-import { applyAdvancedRules, buildLocationDescendants, buildTagDescendants } from "@eesimple/types";
+import { applyAdvancedRules } from "@eesimple/types";
 import { useStore } from "@tanstack/react-form";
 
 import { useBookmarkAddFormConfig } from "./useAppSettings";
-import { useLocations } from "./useLocations";
-import { useTags } from "./useTags";
+import { useConditionEvaluateOptions } from "./useConditionEvaluateOptions";
 import { formStateToConditionInput } from "../lib/bookmarkFormConditionInput";
 
 /**
@@ -28,31 +27,11 @@ export function useBookmarkAddFormEffectiveConfig(
   isEdit: boolean,
 ): BookmarkAddFormSettings {
   const config = useBookmarkAddFormConfig();
-  const {
-    data: tags = [],
-  } = useTags();
-  const {
-    data: locations = [],
-  } = useLocations();
+  const evaluateOptions = useConditionEvaluateOptions();
   const active = !isEdit && config.advancedRules.length > 0;
   // Subscribe to the whole values object so any relevant field change re-evaluates the rules. When no
   // rules are active this is still cheap — the memo below short-circuits before touching `values`.
   const values = useStore(form.store, s => s.values);
-
-  const tagDescendants = useMemo(
-    () => buildTagDescendants(tags.map(tag => ({
-      id: tag.id,
-      parentId: tag.parentId,
-    }))),
-    [tags],
-  );
-  const locationDescendants = useMemo(
-    () => buildLocationDescendants(locations.map(loc => ({
-      id: loc.id,
-      parentId: loc.parentId,
-    }))),
-    [locations],
-  );
 
   return useMemo(() => {
     if (!active) return config;
@@ -71,9 +50,6 @@ export function useBookmarkAddFormEffectiveConfig(
       inputs,
       customProperties,
     );
-    return applyAdvancedRules(config, input, {
-      tagDescendants,
-      locationDescendants,
-    });
-  }, [active, config, values, inputs, customProperties, tagDescendants, locationDescendants]);
+    return applyAdvancedRules(config, input, evaluateOptions);
+  }, [active, config, values, inputs, customProperties, evaluateOptions]);
 }

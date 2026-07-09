@@ -4,13 +4,18 @@ import { useTranslation } from "react-i18next";
 
 import { TagPickerWithCreate } from "../TagPickerWithCreate";
 
+import { effectiveCascadeIds, pruneCascadeIds, toggleCascadeId } from "@/lib/conditionCascade";
+
 interface TagConditionEditorProps {
   value: TagCondition;
   tagTree: TagNode[];
   onChange: (next: TagCondition) => void;
 }
 
-/** Controlled editor for a "tagged with …" condition. Selecting a parent matches its children. */
+/**
+ * Controlled editor for a "tagged with …" condition. A selected **parent** tag shows a "+ children"
+ * checkbox: checked = also match bookmarks carrying any descendant tag (cascade), unchecked = exact.
+ */
 export function TagConditionEditor({
   value, tagTree, onChange,
 }: TagConditionEditorProps) {
@@ -29,11 +34,18 @@ export function TagConditionEditor({
           onChange({
             ...value,
             tagIds: next,
+            cascadeTagIds: pruneCascadeIds(value.cascadeTagIds, next),
           });
         }}
+        cascadeValues={effectiveCascadeIds(value.tagIds, value.cascadeTagIds, true)}
+        onToggleCascade={id =>
+          onChange({
+            ...value,
+            cascadeTagIds: toggleCascadeId(value.tagIds, value.cascadeTagIds, id, true),
+          })}
       />
       <p className="text-xs text-muted-foreground">
-        {t("Selecting a parent tag also matches bookmarks with its child tags.")}
+        {t("Check “+ children” on a parent tag to also match bookmarks with its child tags; leave it unchecked for an exact match.")}
       </p>
     </div>
   );
