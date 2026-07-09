@@ -1,8 +1,9 @@
 import type { EntityWorkbench, WorkbenchMode } from "./workbench/types";
+import type { RenderTab, SectionMatches } from "@/lib/workbenchLayout";
 import type { Bookmark, EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { Component, useEffect, useMemo, useState } from "react";
+import { Component, useCallback, useEffect, useMemo, useState } from "react";
 
 import { resolveLayout } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
@@ -15,6 +16,7 @@ import { navLinkClass } from "./TabbedShell";
 import { bookmarkWorkbench } from "./workbench/bookmark";
 import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
 import { ENTITY_DESCRIPTORS } from "../entities/registry";
+import { useBookmarkSectionVisibility } from "../hooks/useBookmarkSectionVisibility";
 import { useLayoutDrivenWorkbench } from "../hooks/useEntityLayout";
 import { usePreviewInstancesByKind } from "../lib/layoutPreviewInstances";
 import { buildSampleEntity, SAMPLE_ID } from "../lib/layoutPreviewSamples";
@@ -74,7 +76,7 @@ class PreviewErrorBoundary extends Component<
  * Wrap the edit body in the entity's edit-form provider(s) so provider-backed edit fields render. For a
  * read-only preview we mount them unconditionally in edit mode (no per-tab gating needed — the real
  * `BookmarkEditView`/`EntityEditView` gate only to avoid unnecessary mounts). The pane separately
- * suppresses the "Sync from source" header registration these providers publish (see the effect below).
+ * suppresses the "Sync from source" header registration these providers publish.
  */
 function EditModeProviders({
   kind, workbench, entity, mode, children,
@@ -102,6 +104,229 @@ function EditModeProviders({
   return Provider ? <Provider entity={entity}>{children}</Provider> : children;
 }
 
+/**
+ * One view tab in the preview: renders its {@link LayoutDrivenTabBody} (shown only when active, else
+ * `hidden` but still mounted) so the tab measures its own emptiness and reports it up — an empty tab is
+ * disabled in the rail. The body always mounts so its emptiness is known before the user selects it.
+ */
+function PreviewViewTab({
+  workbench, layout, tabKey, entity, sectionMatches, visible, onTabEmptyChange,
+}: {
+  workbench: EntityWorkbench<{ id: string }>;
+  layout: EntityLayout;
+  tabKey: string;
+  entity: { id: string };
+  sectionMatches: SectionMatches;
+  visible: boolean;
+  onTabEmptyChange: (key: string, isEmpty: boolean) => void;
+}) {
+  const handle = useCallback(
+    (isEmpty: boolean) => onTabEmptyChange(tabKey, isEmpty),
+    [tabKey, onTabEmptyChange],
+  );
+  return (
+    <div hidden={!visible}>
+      <LayoutDrivenTabBody
+        workbench={workbench}
+        layout={layout}
+        tabKey={tabKey}
+        mode="view"
+        entity={entity}
+        sectionMatches={sectionMatches}
+        onViewEmptyChange={handle}
+      />
+    </div>
+  );
+}
+
+/**
+ * Clears the header "Sync from source" registration that an edit-form provider mounted for the preview
+ * would publish — a settings-page leak. Runs after the providers' registration effects each commit, so
+ * it wins; the unmount cleanup also clears it.
+ */
+function useSyncProviderSuppression() {
+  const setSyncProvider = useUiStore(state => state.setSyncProvider);
+  useEffect(() => {
+    setSyncProvider(null);
+  });
+  useEffect(() => () => setSyncProvider(null), [setSyncProvider]);
+}
+
+/** The previewed entity plus the View/Edit + entity-picker state. */
+function usePreviewSelection(kind: LayoutableEntityKind, workbench: EntityWorkbench<{ id: string }>) {
+  const instancesByKind = usePreviewInstancesByKind();
+  const instanceOptions = instancesByKind[kind] ?? [];
+  const sample = useMemo(() => buildSampleEntity(kind), [kind]);
+
+  const [mode, setMode] = useState<WorkbenchMode>("view");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const resolvedSelectedId = selectedId ?? (sample ? SAMPLE_ID : (instanceOptions[0]?.value ?? ""));
+
+  // Load the picked real entity by id (empty for the Sample sentinel — its useById no-ops/misses).
+  const byId = workbench.useById(resolvedSelectedId === SAMPLE_ID ? "" : resolvedSelectedId);
+  const entity = resolvedSelectedId === SAMPLE_ID ? sample : (byId.entity ?? null);
+
+  return {
+    mode,
+    setMode,
+    setSelectedId,
+    resolvedSelectedId,
+    sample,
+    instanceOptions,
+    entity,
+  };
+}
+
+/** The active tab plus the empty-view-tab tracking, so empty view tabs can be disabled in the rail. */
+function usePreviewActiveTab(tabs: RenderTab[], mode: WorkbenchMode, resolvedSelectedId: string) {
+  const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
+  const active = tabs.find(tab => tab.key === activeTab)?.key ?? tabs[0]?.key;
+
+  // Which view tabs measured empty (every section renders no value) — reset when the entity/mode changes.
+  const [emptyTabKeys, setEmptyTabKeys] = useState<Set<string>>(() => new Set());
+  const handleTabEmpty = useCallback((key: string, isEmpty: boolean) => {
+    setEmptyTabKeys((prev) => {
+      if (isEmpty === prev.has(key)) return prev;
+      const next = new Set(prev);
+      if (isEmpty) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  }, []);
+  useEffect(() => {
+    setEmptyTabKeys(new Set());
+  }, [resolvedSelectedId, mode]);
+  // If the active view tab is empty, advance to the first tab that has content.
+  useEffect(() => {
+    if (mode !== "view" || !active || !emptyTabKeys.has(active)) return;
+    const firstNonEmpty = tabs.find(tab => !emptyTabKeys.has(tab.key))?.key;
+    if (firstNonEmpty) setActiveTab(firstNonEmpty);
+  }, [mode, active, emptyTabKeys, tabs]);
+
+  return {
+    active,
+    setActiveTab,
+    emptyTabKeys,
+    handleTabEmpty,
+  };
+}
+
+/** The non-navigating preview tab rail; empty view tabs are disabled. Dropped for a single-tab surface. */
+function PreviewRail({
+  tabs, active, mode, emptyTabKeys, onSelect,
+}: {
+  tabs: RenderTab[];
+  active: string | undefined;
+  mode: WorkbenchMode;
+  emptyTabKeys: Set<string>;
+  onSelect: (key: string) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  if (tabs.length <= 1) return null;
+  return (
+    <nav
+      aria-label={t("Preview tabs")}
+      className="flex flex-row gap-1 overflow-x-auto border-b pb-1"
+    >
+      {tabs.map((tab) => {
+        const disabled = mode === "view" && emptyTabKeys.has(tab.key);
+        return (
+          <button
+            key={tab.key}
+            type="button"
+            disabled={disabled}
+            onClick={() => onSelect(tab.key)}
+            title={disabled ? t("No content for the previewed entity") : undefined}
+            className={cn(
+              navLinkClass,
+              tab.key === active && "bg-accent text-accent-foreground",
+              disabled && "cursor-not-allowed opacity-40",
+            )}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+/**
+ * The read-only preview body. In **view** mode every tab is rendered (only the active shown) so each
+ * reports its emptiness for the rail; **edit** mode renders just the active tab wrapped in its edit-form
+ * providers. Errors are caught so a field that needs unwired context can't take down the settings page.
+ */
+function PreviewBody({
+  kind, workbench, resolved, entity, active, mode, sectionMatches, resolvedSelectedId, tabs, onTabEmptyChange,
+}: {
+  kind: LayoutableEntityKind;
+  workbench: EntityWorkbench<{ id: string }>;
+  resolved: EntityLayout;
+  entity: { id: string } | null;
+  active: string | undefined;
+  mode: WorkbenchMode;
+  sectionMatches: SectionMatches;
+  resolvedSelectedId: string;
+  tabs: RenderTab[];
+  onTabEmptyChange: (key: string, isEmpty: boolean) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  if (!entity || !active) {
+    return <p className="text-sm text-muted-foreground">{t("Nothing to preview yet.")}</p>;
+  }
+  if (mode === "view") {
+    return (
+      <PreviewErrorBoundary
+        resetKey={`${kind}:view:${resolvedSelectedId}`}
+        fallback={<p className="text-sm text-muted-foreground">{t("Couldn't render this preview.")}</p>}
+      >
+        {tabs.map(tab => (
+          <PreviewViewTab
+            key={tab.key}
+            workbench={workbench}
+            layout={resolved}
+            tabKey={tab.key}
+            entity={entity}
+            sectionMatches={sectionMatches}
+            visible={tab.key === active}
+            onTabEmptyChange={onTabEmptyChange}
+          />
+        ))}
+      </PreviewErrorBoundary>
+    );
+  }
+  return (
+    <PreviewErrorBoundary
+      resetKey={`${kind}:edit:${resolvedSelectedId}:${active}`}
+      fallback={(
+        <p className="text-sm text-muted-foreground">
+          {t("This tab's fields can't be previewed here — switch to View mode to preview them.")}
+        </p>
+      )}
+    >
+      <EditModeProviders
+        kind={kind}
+        workbench={workbench}
+        entity={entity}
+        mode={mode}
+      >
+        <LayoutDrivenTabBody
+          workbench={workbench}
+          layout={resolved}
+          tabKey={active}
+          mode={mode}
+          entity={entity}
+          sectionMatches={sectionMatches}
+        />
+      </EditModeProviders>
+    </PreviewErrorBoundary>
+  );
+}
+
 interface Props {
   /** The layout-driven entity kind being edited in the board. */
   kind: LayoutableEntityKind;
@@ -125,31 +350,17 @@ export function LayoutPreviewPane({
   const {
     t,
   } = useTranslation();
+  const workbench = useLayoutDrivenWorkbench(baseWorkbenchForKind(kind));
+  const {
+    mode, setMode, setSelectedId, resolvedSelectedId, sample, instanceOptions, entity,
+  } = usePreviewSelection(kind, workbench);
 
-  const base = baseWorkbenchForKind(kind);
-  const workbench = useLayoutDrivenWorkbench(base);
-
-  const instancesByKind = usePreviewInstancesByKind();
-  const instanceOptions = instancesByKind[kind] ?? [];
-  const sample = useMemo(() => buildSampleEntity(kind), [kind]);
-
-  const [mode, setMode] = useState<WorkbenchMode>("view");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const resolvedSelectedId
-    = selectedId ?? (sample ? SAMPLE_ID : (instanceOptions[0]?.value ?? ""));
-
-  // Load the picked real entity by id (empty for the Sample sentinel — its useById no-ops/misses).
-  const byId = workbench.useById(resolvedSelectedId === SAMPLE_ID ? "" : resolvedSelectedId);
-  const entity = resolvedSelectedId === SAMPLE_ID ? sample : (byId.entity ?? null);
-
-  // Suppress the header "Sync from source" button that any edit-form provider we mount for the preview
-  // would register — a settings-page leak. This parent effect runs after the providers' registration
-  // effects each commit, so it wins; the unmount cleanup also clears it.
-  const setSyncProvider = useUiStore(state => state.setSyncProvider);
-  useEffect(() => {
-    setSyncProvider(null);
-  });
-  useEffect(() => () => setSyncProvider(null), [setSyncProvider]);
+  // Section "Show only if…" (visibleIf) gate — only bookmarks carry section conditions, so other kinds
+  // get an always-true predicate. Mode-agnostic, so it gates both preview modes like the real pages.
+  const sectionMatches = useBookmarkSectionVisibility(
+    kind === "bookmark" && entity ? entity as Bookmark : undefined,
+  );
+  useSyncProviderSuppression();
 
   const resolved = useMemo(
     () => resolveLayout(layout, workbench.defaultLayout ?? {
@@ -157,11 +368,11 @@ export function LayoutPreviewPane({
     }, knownFieldKeys(workbench)),
     [layout, workbench],
   );
-
   const fields = workbench.fields ?? {};
-  const tabs = entity ? modeVisibleTabs(resolved, fields, mode, entity) : [];
-  const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
-  const active = tabs.find(tab => tab.key === activeTab)?.key ?? tabs[0]?.key;
+  const tabs = entity ? modeVisibleTabs(resolved, fields, mode, entity, sectionMatches) : [];
+  const {
+    active, setActiveTab, emptyTabKeys, handleTabEmpty,
+  } = usePreviewActiveTab(tabs, mode, resolvedSelectedId);
 
   const pickerOptions = [
     ...(sample
@@ -198,63 +409,30 @@ export function LayoutPreviewPane({
         </div>
       </div>
 
-      {tabs.length > 1
-        ? (
-          <nav
-            aria-label={t("Preview tabs")}
-            className="flex flex-row gap-1 overflow-x-auto border-b pb-1"
-          >
-            {tabs.map(tab => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={cn(navLinkClass, tab.key === active && `
-                  bg-accent text-accent-foreground
-                `)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        )
-        : null}
+      <PreviewRail
+        tabs={tabs}
+        active={active}
+        mode={mode}
+        emptyTabKeys={emptyTabKeys}
+        onSelect={key => setActiveTab(key)}
+      />
 
       <div
         className="pointer-events-none select-none"
         aria-hidden
       >
-        {entity && active
-          ? (
-            <PreviewErrorBoundary
-              resetKey={`${kind}:${mode}:${resolvedSelectedId}:${active}`}
-              fallback={(
-                <p className="text-sm text-muted-foreground">
-                  {t("This tab's fields can't be previewed here — switch to View mode to preview them.")}
-                </p>
-              )}
-            >
-              <EditModeProviders
-                kind={kind}
-                workbench={workbench}
-                entity={entity}
-                mode={mode}
-              >
-                <LayoutDrivenTabBody
-                  workbench={workbench}
-                  layout={resolved}
-                  tabKey={active}
-                  mode={mode}
-                  entity={entity}
-                />
-              </EditModeProviders>
-            </PreviewErrorBoundary>
-          )
-          : (
-            <p className="text-sm text-muted-foreground">
-              {t("Nothing to preview yet.")}
-            </p>
-          )}
+        <PreviewBody
+          kind={kind}
+          workbench={workbench}
+          resolved={resolved}
+          entity={entity}
+          active={active}
+          mode={mode}
+          sectionMatches={sectionMatches}
+          resolvedSelectedId={resolvedSelectedId}
+          tabs={tabs}
+          onTabEmptyChange={handleTabEmpty}
+        />
       </div>
     </div>
   );
