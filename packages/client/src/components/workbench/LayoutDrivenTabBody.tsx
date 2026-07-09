@@ -2,7 +2,7 @@ import type { EntityWorkbench, WorkbenchField, WorkbenchMode } from "./types";
 import type { SectionMatches, VisibleSection } from "@/lib/workbenchLayout";
 import type { EntityLayout, LayoutSection } from "@eesimple/types";
 
-import { Fragment, useCallback, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { LabeledSection } from "../LabeledSection";
 
@@ -24,6 +24,11 @@ interface Props<E extends { id: string }> {
    * `useBookmarkSectionVisibility`; other kinds omit it, so every section shows as before.
    */
   sectionMatches?: SectionMatches;
+  /**
+   * View mode only: reports whether **every** section measured empty, i.e. the whole tab renders no
+   * value for this entity. The Page Layouts preview uses it to disable an empty tab in its rail (#1225).
+   */
+  onViewEmptyChange?: (isEmpty: boolean) => void;
 }
 
 /** CSS selector for "the section rendered something meaningful" — media / interactive / tabular content. */
@@ -137,12 +142,13 @@ function MeasuredViewSection<E extends { id: string }>({
  * placed on the first *visible* section's successors only, so a hidden section leaves no stray divider.
  */
 function ViewSectionsBody<E extends { id: string }>({
-  sections, fields, entity, tabDescription,
+  sections, fields, entity, tabDescription, onViewEmptyChange,
 }: {
   sections: VisibleSection[];
   fields: Record<string, WorkbenchField<E>>;
   entity: E;
   tabDescription?: string;
+  onViewEmptyChange?: (isEmpty: boolean) => void;
 }) {
   const [emptyKeys, setEmptyKeys] = useState<Set<string>>(() => new Set());
   const onEmptyChange = useCallback((key: string, isEmpty: boolean) => {
@@ -154,6 +160,12 @@ function ViewSectionsBody<E extends { id: string }>({
       return next;
     });
   }, []);
+
+  // Bubble whole-tab emptiness (every section measured empty) so a rail can disable the tab.
+  const allEmpty = sections.every(entry => emptyKeys.has(entry.section.key));
+  useEffect(() => {
+    onViewEmptyChange?.(allEmpty);
+  }, [allEmpty, onViewEmptyChange]);
 
   const firstVisibleKey = sections.find(entry => !emptyKeys.has(entry.section.key))?.section.key;
 
@@ -193,7 +205,7 @@ function ViewSectionsBody<E extends { id: string }>({
  * muted blurb at the top; the danger zone stays a `WorkbenchRouteTab` fixture (this body is fields only).
  */
 export function LayoutDrivenTabBody<E extends { id: string }>({
-  workbench, layout, tabKey, mode, entity, sectionMatches,
+  workbench, layout, tabKey, mode, entity, sectionMatches, onViewEmptyChange,
 }: Props<E>) {
   const fields = workbench.fields ?? {};
   const tab = layout.tabs.find(candidate => candidate.key === tabKey);
@@ -209,6 +221,7 @@ export function LayoutDrivenTabBody<E extends { id: string }>({
         fields={fields}
         entity={entity}
         tabDescription={tab.description}
+        onViewEmptyChange={onViewEmptyChange}
       />
     );
   }

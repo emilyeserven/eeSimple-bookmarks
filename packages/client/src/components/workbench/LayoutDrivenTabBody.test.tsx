@@ -2,7 +2,7 @@ import type { EntityWorkbench, WorkbenchField } from "./types";
 import type { EntityLayout } from "@eesimple/types";
 
 import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { LayoutDrivenTabBody } from "./LayoutDrivenTabBody";
 
@@ -220,5 +220,47 @@ describe("LayoutDrivenTabBody empty-section hiding (#1225)", () => {
 
     expect(screen.getByText("Empty Section")).toBeVisible();
     expect(screen.getByLabelText("Blank")).toBeVisible();
+  });
+
+  const onlyBlankLayout: EntityLayout = {
+    tabs: [{
+      key: "general",
+      label: "General",
+      sections: [{
+        key: "b",
+        title: "Empty Section",
+        fields: ["blank"],
+      }],
+    }],
+  };
+
+  it("reports the whole tab empty when every section renders no value", async () => {
+    const onViewEmptyChange = vi.fn();
+    render(
+      <LayoutDrivenTabBody
+        workbench={emptyWorkbench}
+        layout={onlyBlankLayout}
+        tabKey="general"
+        mode="view"
+        entity={demo}
+        onViewEmptyChange={onViewEmptyChange}
+      />,
+    );
+    await waitFor(() => expect(onViewEmptyChange).toHaveBeenLastCalledWith(true));
+  });
+
+  it("reports the tab non-empty when a section has content", async () => {
+    const onViewEmptyChange = vi.fn();
+    render(
+      <LayoutDrivenTabBody
+        workbench={emptyWorkbench}
+        layout={emptyLayout}
+        tabKey="general"
+        mode="view"
+        entity={demo}
+        onViewEmptyChange={onViewEmptyChange}
+      />,
+    );
+    await waitFor(() => expect(onViewEmptyChange).toHaveBeenLastCalledWith(false));
   });
 });
