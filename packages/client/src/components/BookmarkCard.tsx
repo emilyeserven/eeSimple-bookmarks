@@ -19,7 +19,7 @@ import { useBookmarkCardSaves } from "./useBookmarkCardSaves";
 import { useCategories } from "../hooks/useCategories";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems, fieldPlacementsForCard, fieldPlacementsForConfig } from "../lib/bookmarkCardValues";
-import { resolveBookmarkDisplayImage } from "../lib/bookmarkImage";
+import { resolveCardImageState } from "../lib/bookmarkImage";
 import { bodySectionsFromConfig } from "../lib/cardBodySections";
 
 interface BookmarkCardProps {
@@ -97,9 +97,9 @@ export function BookmarkCard({
   // Tags opted into the bookmark card's "More" menu quick-toggle.
   const editableTags = bookmark.tags.filter(t => t.editableOnCard);
 
-  const hasActualImage = !!resolveBookmarkDisplayImage(bookmark);
-  const imageEnabled = imageVisibility !== "off";
-  const hasImage = hasActualImage && imageEnabled;
+  const {
+    imageEnabled, showPlaceholder, showImageArea,
+  } = resolveCardImageState(bookmark, imageVisibility, loading);
 
   // The "More" menu's editable-data + capture controls, shared by the image overlay and the card body.
   const menu: BookmarkCardMenuControls = {
@@ -128,16 +128,6 @@ export function BookmarkCard({
   const overlayItems = imageEnabled
     ? buildBookmarkCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, menu, effectiveHideWebsiteForYouTube)
     : [];
-
-  // Show a placeholder in "shown" mode when there is no actual image — always, so the absence of
-  // an image is visually clear rather than just leaving the card with no image area.
-  const showPlaceholder = imageVisibility === "shown" && !hasActualImage;
-  // While display rules load, only show the image area for bookmarks that have an actual image
-  // (rendered as a skeleton). For no-image bookmarks, hide the area until rules resolve so a
-  // placeholder that would immediately disappear (if rules set imageVisibility="off") is not shown.
-  const showImageArea = loading
-    ? (hasActualImage && imageEnabled)
-    : (hasImage || showPlaceholder);
 
   const imageEl = showImageArea
     ? (

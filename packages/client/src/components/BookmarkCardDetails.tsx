@@ -21,6 +21,21 @@ import { formatDateTimeValue } from "../lib/datetime";
 /** The card header field keys, rendered as a justified header row when co-located in a single zone. */
 const HEADER_FIELD_KEYS = new Set(["title", "externalLink", "more"]);
 
+/** Field keys routed to the shared taxonomy field renderer. */
+const TAXONOMY_FIELD_KEYS = new Set([
+  "category", "website", "mediaType", "youtubeChannel", "tags", "genreMoods", "locations", "people", "groups",
+]);
+
+/** A field whose inline/block/table cells all render the same node. */
+function uniformFieldRender(node: ReactNode, tableName: string): FieldRender {
+  return {
+    inline: node,
+    block: node,
+    tableName,
+    tableValue: node,
+  };
+}
+
 interface BookmarkCardDetailsProps {
   bookmark: Bookmark;
   properties: CustomProperty[];
@@ -91,85 +106,110 @@ export function BookmarkCardDetails({
     .filter(item => item.corner === null);
   const valueById = new Map(valueItems.map(item => [item.id, item]));
 
+  // Fields whose inline/block/table cells all render the same node (built once per render). A `null`
+  // node means the field is hidden — the link-out fields are null when their connector isn't
+  // configured / the bookmark isn't linked.
+  const uniformFields: Record<string, { node: ReactNode | null;
+    tableName: string; }> = {
+    title: {
+      node: titleNode,
+      tableName: t("Title"),
+    },
+    externalLink: {
+      node: externalLinkNode,
+      tableName: t("Link"),
+    },
+    archiveLink: {
+      node: archiveLinkNode,
+      tableName: t("Archive"),
+    },
+    kavitaLink: {
+      node: kavitaLinkNode,
+      tableName: t("Kavita"),
+    },
+    plexLink: {
+      node: plexLinkNode,
+      tableName: t("Plex"),
+    },
+    podcastLink: {
+      node: podcastLinkNode,
+      tableName: t("Podcast"),
+    },
+    more: {
+      node: moreNode,
+      tableName: "",
+    },
+    createdAt: {
+      node: <span className="text-sm text-muted-foreground">{formatDateTimeValue(bookmark.createdAt, "date")}</span>,
+      tableName: t("Date Added"),
+    },
+    updatedAt: {
+      node: bookmark.updatedAt
+        ? <span className="text-sm text-muted-foreground">{formatDateTimeValue(bookmark.updatedAt, "date")}</span>
+        : null,
+      tableName: t("Date Updated"),
+    },
+  };
+
+  /** The default arm: a bookmark value item (rating / image thumbnail / formatted badge). */
+  function describeValueField(key: string): FieldRender | null {
+    const item = valueById.get(key);
+    if (!item) return null;
+    if (item.kind === "rating") {
+      const labeled = (
+        <span
+          className="
+            flex flex-wrap items-center gap-2 text-sm text-muted-foreground
+          "
+        >
+          <span>{item.property.name}</span>
+          {ratingStars(item, true, onSaveRating)}
+        </span>
+      );
+      return {
+        inline: labeled,
+        block: labeled,
+        tableName: item.property.name,
+        tableValue: ratingStars(item, false, onSaveRating),
+      };
+    }
+    // Image values can show their thumbnail; other badges show their formatted value.
+    const thumb = item.imageUrl
+      ? (
+        <img
+          src={item.imageUrl}
+          alt=""
+          className="h-8 w-auto rounded-sm object-cover"
+        />
+      )
+      : null;
+    return {
+      inline: badgeNode(item, item.label, onSaveBoolean),
+      block: badgeNode(item, item.label, onSaveBoolean),
+      tableName: item.name,
+      tableValue: thumb ?? <span className="text-sm">{item.value}</span>,
+    };
+  }
+
   /** The render forms for one placed field key, or `null` when it has nothing to show. */
   function describeField(key: string): FieldRender | null {
+    const uniform = uniformFields[key];
+    if (uniform) return uniform.node === null ? null : uniformFieldRender(uniform.node, uniform.tableName);
+    if (TAXONOMY_FIELD_KEYS.has(key)) {
+      return describeTaxonomyField(key, {
+        bookmark,
+        bookmarkCategory,
+        effectiveHideWebsiteForYouTube,
+        placements,
+      });
+    }
     switch (key) {
-      case "title": {
-        return {
-          inline: titleNode,
-          block: titleNode,
-          tableName: t("Title"),
-          tableValue: titleNode,
-        };
-      }
       case "secondaryName": {
         // Only hidden when there is no secondary name at all; when present,
         // BookmarkSecondaryNameField renders the resolved secondary name (via `resolveDisplayNames`)
         // so it matches every other surface.
         if (bookmark.names.length === 0) return null;
-        const secondaryNameNode = <BookmarkSecondaryNameField bookmark={bookmark} />;
-        return {
-          inline: secondaryNameNode,
-          block: secondaryNameNode,
-          tableName: t("Secondary Title"),
-          tableValue: secondaryNameNode,
-        };
-      }
-      case "externalLink": {
-        return {
-          inline: externalLinkNode,
-          block: externalLinkNode,
-          tableName: t("Link"),
-          tableValue: externalLinkNode,
-        };
-      }
-      case "archiveLink": {
-        // Hidden when ArchiveBox isn't configured or the bookmark has no url.
-        if (archiveLinkNode === null) return null;
-        return {
-          inline: archiveLinkNode,
-          block: archiveLinkNode,
-          tableName: t("Archive"),
-          tableValue: archiveLinkNode,
-        };
-      }
-      case "kavitaLink": {
-        // Hidden when Kavita isn't configured or the bookmark isn't linked to a series.
-        if (kavitaLinkNode === null) return null;
-        return {
-          inline: kavitaLinkNode,
-          block: kavitaLinkNode,
-          tableName: t("Kavita"),
-          tableValue: kavitaLinkNode,
-        };
-      }
-      case "plexLink": {
-        // Hidden when Plex isn't configured or the bookmark isn't linked to an item.
-        if (plexLinkNode === null) return null;
-        return {
-          inline: plexLinkNode,
-          block: plexLinkNode,
-          tableName: t("Plex"),
-          tableValue: plexLinkNode,
-        };
-      }
-      case "podcastLink": {
-        // Hidden when the bookmark isn't linked to a podcast with a service URL.
-        if (podcastLinkNode === null) return null;
-        return {
-          inline: podcastLinkNode,
-          block: podcastLinkNode,
-          tableName: t("Podcast"),
-          tableValue: podcastLinkNode,
-        };
-      }
-      case "more": {
-        return {
-          inline: moreNode,
-          block: moreNode,
-          tableName: "",
-          tableValue: moreNode,
-        };
+        return uniformFieldRender(<BookmarkSecondaryNameField bookmark={bookmark} />, t("Secondary Title"));
       }
       case "description": {
         if (!bookmark.description) return null;
@@ -183,98 +223,25 @@ export function BookmarkCardDetails({
       }
       case "url": {
         if (!bookmark.url) return null;
-        const urlNode = (
-          <a
-            href={bookmark.url}
-            target="_blank"
-            rel="noreferrer"
-            className="
-              block max-w-full truncate text-sm text-muted-foreground
-              underline-offset-2
-              hover:underline
-            "
-          >{bookmark.url}
-          </a>
+        return uniformFieldRender(
+          (
+            <a
+              href={bookmark.url}
+              target="_blank"
+              rel="noreferrer"
+              className="
+                block max-w-full truncate text-sm text-muted-foreground
+                underline-offset-2
+                hover:underline
+              "
+            >{bookmark.url}
+            </a>
+          ),
+          t("URL"),
         );
-        return {
-          inline: urlNode,
-          block: urlNode,
-          tableName: t("URL"),
-          tableValue: urlNode,
-        };
-      }
-      case "createdAt": {
-        const node = <span className="text-sm text-muted-foreground">{formatDateTimeValue(bookmark.createdAt, "date")}</span>;
-        return {
-          inline: node,
-          block: node,
-          tableName: t("Date Added"),
-          tableValue: node,
-        };
-      }
-      case "updatedAt": {
-        if (!bookmark.updatedAt) return null;
-        const node = <span className="text-sm text-muted-foreground">{formatDateTimeValue(bookmark.updatedAt, "date")}</span>;
-        return {
-          inline: node,
-          block: node,
-          tableName: t("Date Updated"),
-          tableValue: node,
-        };
-      }
-      case "category":
-      case "website":
-      case "mediaType":
-      case "youtubeChannel":
-      case "tags":
-      case "genreMoods":
-      case "locations":
-      case "people":
-      case "groups": {
-        return describeTaxonomyField(key, {
-          bookmark,
-          bookmarkCategory,
-          effectiveHideWebsiteForYouTube,
-          placements,
-        });
       }
       default: {
-        const item = valueById.get(key);
-        if (!item) return null;
-        if (item.kind === "rating") {
-          const labeled = (
-            <span
-              className="
-                flex flex-wrap items-center gap-2 text-sm text-muted-foreground
-              "
-            >
-              <span>{item.property.name}</span>
-              {ratingStars(item, true, onSaveRating)}
-            </span>
-          );
-          return {
-            inline: labeled,
-            block: labeled,
-            tableName: item.property.name,
-            tableValue: ratingStars(item, false, onSaveRating),
-          };
-        }
-        // Image values can show their thumbnail; other badges show their formatted value.
-        const thumb = item.imageUrl
-          ? (
-            <img
-              src={item.imageUrl}
-              alt=""
-              className="h-8 w-auto rounded-sm object-cover"
-            />
-          )
-          : null;
-        return {
-          inline: badgeNode(item, item.label, onSaveBoolean),
-          block: badgeNode(item, item.label, onSaveBoolean),
-          tableName: item.name,
-          tableValue: thumb ?? <span className="text-sm">{item.value}</span>,
-        };
+        return describeValueField(key);
       }
     }
   }

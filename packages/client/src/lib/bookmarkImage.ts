@@ -1,3 +1,4 @@
+import type { BookmarkImageVisibility } from "./bookmarkColumns";
 import type { Bookmark, BookmarkCardThumbnailSize, BookmarkImage, CustomAspectRatio } from "@eesimple/types";
 import type { CSSProperties } from "react";
 
@@ -71,4 +72,48 @@ export function resolveBookmarkDisplayImage(
   if (bookmark.imageDisplayPreference === "screenshot") return bookmark.screenshot ?? bookmark.image;
   if (bookmark.imageDisplayPreference === "image") return bookmark.image ?? bookmark.screenshot;
   return bookmark.image ?? bookmark.screenshot;
+}
+
+/** The resolved image-area presentation state for a bookmark card. */
+export interface BookmarkCardImageState {
+  /** True when a real image/screenshot exists for the bookmark. */
+  hasActualImage: boolean;
+  /** True unless the card's image visibility is `"off"`. */
+  imageEnabled: boolean;
+  /** True when an actual image both exists and is enabled. */
+  hasImage: boolean;
+  /** True when a "shown"-mode card has no actual image and should render a placeholder. */
+  showPlaceholder: boolean;
+  /** True when the image area (real image or placeholder) should render at all. */
+  showImageArea: boolean;
+}
+
+/**
+ * Resolves whether a bookmark card renders an image area, a placeholder, or nothing, from the
+ * bookmark's image sources and the card's visibility/loading state. Pure — extracted from
+ * `BookmarkCard` so the branching is unit-testable and off the component's complexity budget.
+ *
+ * While display rules load, only bookmarks with a real image show the area (as a skeleton); a
+ * no-image bookmark hides the area until rules resolve, so a placeholder that would immediately
+ * disappear (rules setting `imageVisibility="off"`) is never briefly shown.
+ */
+export function resolveCardImageState(
+  bookmark: Pick<Bookmark, "image" | "screenshot" | "imageDisplayPreference">,
+  imageVisibility: BookmarkImageVisibility,
+  loading: boolean,
+): BookmarkCardImageState {
+  const hasActualImage = !!resolveBookmarkDisplayImage(bookmark);
+  const imageEnabled = imageVisibility !== "off";
+  const hasImage = hasActualImage && imageEnabled;
+  const showPlaceholder = imageVisibility === "shown" && !hasActualImage;
+  const showImageArea = loading
+    ? (hasActualImage && imageEnabled)
+    : (hasImage || showPlaceholder);
+  return {
+    hasActualImage,
+    imageEnabled,
+    hasImage,
+    showPlaceholder,
+    showImageArea,
+  };
 }
