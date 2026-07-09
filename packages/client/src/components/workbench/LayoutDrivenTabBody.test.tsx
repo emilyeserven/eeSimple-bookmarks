@@ -1,7 +1,7 @@
 import type { EntityWorkbench, WorkbenchField } from "./types";
 import type { EntityLayout } from "@eesimple/types";
 
-import { render } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { LayoutDrivenTabBody } from "./LayoutDrivenTabBody";
@@ -147,5 +147,78 @@ describe("LayoutDrivenTabBody descriptions (#1220 follow-up)", () => {
       />,
     );
     expect(getByText("Standalone blurb")).toBeTruthy();
+  });
+});
+
+describe("LayoutDrivenTabBody empty-section hiding (#1225)", () => {
+  const emptyFields = {
+    filled: {
+      key: "filled",
+      label: "Filled",
+      view: () => <span>Filled value</span>,
+      edit: () => <input aria-label="Filled" />,
+    },
+    // A view renderer that returns nothing when the entity has no value for it.
+    blank: {
+      key: "blank",
+      label: "Blank",
+      view: () => null,
+      edit: () => <input aria-label="Blank" />,
+    },
+  } satisfies Record<string, WorkbenchField<Demo>>;
+
+  const emptyWorkbench = {
+    fields: emptyFields,
+  } as unknown as EntityWorkbench<Demo>;
+
+  const emptyLayout: EntityLayout = {
+    tabs: [{
+      key: "general",
+      label: "General",
+      sections: [
+        {
+          key: "a",
+          title: "Filled Section",
+          fields: ["filled"],
+        },
+        {
+          key: "b",
+          title: "Empty Section",
+          fields: ["blank"],
+        },
+      ],
+    }],
+  };
+
+  it("hides a view section whose fields render no value", async () => {
+    render(
+      <LayoutDrivenTabBody
+        workbench={emptyWorkbench}
+        layout={emptyLayout}
+        tabKey="general"
+        mode="view"
+        entity={demo}
+      />,
+    );
+
+    expect(screen.getByText("Filled value")).toBeVisible();
+    expect(screen.getByText("Filled Section")).toBeVisible();
+    // The empty section's heading stays mounted (for re-measure) but hidden.
+    await waitFor(() => expect(screen.getByText("Empty Section")).not.toBeVisible());
+  });
+
+  it("keeps every section in edit mode so inputs stay reachable", () => {
+    render(
+      <LayoutDrivenTabBody
+        workbench={emptyWorkbench}
+        layout={emptyLayout}
+        tabKey="general"
+        mode="edit"
+        entity={demo}
+      />,
+    );
+
+    expect(screen.getByText("Empty Section")).toBeVisible();
+    expect(screen.getByLabelText("Blank")).toBeVisible();
   });
 });

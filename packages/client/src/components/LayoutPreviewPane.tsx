@@ -15,6 +15,7 @@ import { navLinkClass } from "./TabbedShell";
 import { bookmarkWorkbench } from "./workbench/bookmark";
 import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
 import { ENTITY_DESCRIPTORS } from "../entities/registry";
+import { useBookmarkSectionVisibility } from "../hooks/useBookmarkSectionVisibility";
 import { useLayoutDrivenWorkbench } from "../hooks/useEntityLayout";
 import { usePreviewInstancesByKind } from "../lib/layoutPreviewInstances";
 import { buildSampleEntity, SAMPLE_ID } from "../lib/layoutPreviewSamples";
@@ -142,6 +143,13 @@ export function LayoutPreviewPane({
   const byId = workbench.useById(resolvedSelectedId === SAMPLE_ID ? "" : resolvedSelectedId);
   const entity = resolvedSelectedId === SAMPLE_ID ? sample : (byId.entity ?? null);
 
+  // Section "Show only if…" (visibleIf) gate — only bookmarks carry section conditions, so other kinds
+  // get an always-true predicate. Called unconditionally (Rules of Hooks); mode-agnostic, so it gates
+  // both the View and Edit previews exactly like the real detail/edit pages.
+  const sectionMatches = useBookmarkSectionVisibility(
+    kind === "bookmark" && entity ? entity as Bookmark : undefined,
+  );
+
   // Suppress the header "Sync from source" button that any edit-form provider we mount for the preview
   // would register — a settings-page leak. This parent effect runs after the providers' registration
   // effects each commit, so it wins; the unmount cleanup also clears it.
@@ -159,7 +167,7 @@ export function LayoutPreviewPane({
   );
 
   const fields = workbench.fields ?? {};
-  const tabs = entity ? modeVisibleTabs(resolved, fields, mode, entity) : [];
+  const tabs = entity ? modeVisibleTabs(resolved, fields, mode, entity, sectionMatches) : [];
   const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
   const active = tabs.find(tab => tab.key === activeTab)?.key ?? tabs[0]?.key;
 
@@ -246,6 +254,7 @@ export function LayoutPreviewPane({
                   tabKey={active}
                   mode={mode}
                   entity={entity}
+                  sectionMatches={sectionMatches}
                 />
               </EditModeProviders>
             </PreviewErrorBoundary>
