@@ -3,10 +3,13 @@ import type { UpdateWebsiteInput, Website, WebsiteExtensionFillRule } from "@ees
 import { useEffect, useRef, useState } from "react";
 
 import { ExtensionFillRulesEditor } from "./extensionFill/ExtensionFillRulesEditor";
+import { WebsiteBuiltInFillRules } from "./extensionFill/WebsiteBuiltInFillRules";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateWebsite } from "../hooks/useWebsites";
 import i18n from "../i18n";
 import { normalizeExtensionFillRules } from "../lib/extensionFillForm";
+
+import { Separator } from "@/components/ui/separator";
 
 /** Debounce window for the whole-rules auto-save (the codebase convention). */
 const SAVE_DEBOUNCE_MS = 700;
@@ -65,6 +68,8 @@ export function WebsiteExtensionFillRulesForm({
         rules={rules}
         onChange={handleChange}
       />
+      <Separator />
+      <WebsiteBuiltInFillRules website={website} />
     </div>
   );
 }
