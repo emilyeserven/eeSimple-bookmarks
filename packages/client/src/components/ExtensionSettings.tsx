@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 // Extension file contents inlined at build time so they can be shown/copied even when the
 // browser blocks or fails the native file download.
 import backgroundJsRaw from "../../public/extension/background.js?raw";
+import fillEngineJsRaw from "../../public/extension/fillEngine.js?raw";
 import manifestJsonRaw from "../../public/extension/manifest.json?raw";
 import popupHtmlRaw from "../../public/extension/popup.html?raw";
 import popupJsRaw from "../../public/extension/popup.js?raw";
@@ -33,6 +34,10 @@ const EXTENSION_FILES = [
   {
     file: "popup.js",
     content: popupJsRaw,
+  },
+  {
+    file: "fillEngine.js",
+    content: fillEngineJsRaw,
   },
   {
     file: "background.js",
@@ -110,7 +115,16 @@ export function ExtensionSettings() {
           <CardDescription>
             A one-click extension that saves the current page to your Inbox the moment you click the
             toolbar icon — no confirmation needed — then offers to open the saved bookmark to edit
-            it. No bookmarks bar needed.
+            it. No bookmarks bar needed. When the current page is already saved as a bookmark, the
+            extension switches to
+            {" "}
+            <strong>fill mode</strong>
+            : it scrapes the live page using the
+            per-Website extraction rules, shows you the proposed field values with per-change
+            checkboxes, and updates the bookmark only when you click
+            {" "}
+            <strong>Apply</strong>
+            .
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -125,7 +139,7 @@ export function ExtensionSettings() {
           <div className="space-y-2">
             <p className="text-sm font-medium">Extension files</p>
             <p className="text-sm text-muted-foreground">
-              Save all four files into a new folder (e.g.
+              Save all five files into a new folder (e.g.
               {" "}
               <code className="rounded-sm bg-muted px-1 text-xs">eesimple-extension/</code>
               ). Use
@@ -218,7 +232,7 @@ export function ExtensionSettings() {
             "
           >
             <li>
-              Save the four files above into a single folder (download or copy each).
+              Save the five files above into a single folder (download or copy each).
             </li>
             <li>
               Open
@@ -255,6 +269,16 @@ export function ExtensionSettings() {
               no confirmation needed.
             </li>
           </ol>
+          <p className="text-sm text-muted-foreground">
+            <strong>Updating an already-installed extension?</strong>
+            {" "}
+            Replace the files in your folder, then open
+            {" "}
+            <code className="rounded-sm bg-muted px-1 text-xs">chrome://extensions</code>
+            {" "}
+            and click the reload (↻) icon on the eeSimple card — new files and permissions only take
+            effect after a reload.
+          </p>
         </CardContent>
       </Card>
 

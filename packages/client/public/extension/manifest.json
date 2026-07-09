@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "eeSimple Bookmarks",
-  "version": "1.3",
+  "version": "1.4",
   "description": "Save the current page or any link to eeSimple Bookmarks.",
   "action": {
     "default_popup": "popup.html",
@@ -10,6 +10,6 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["activeTab", "storage", "contextMenus", "notifications"],
+  "permissions": ["activeTab", "storage", "contextMenus", "notifications", "scripting"],
   "host_permissions": ["*://*/*"]
 }
